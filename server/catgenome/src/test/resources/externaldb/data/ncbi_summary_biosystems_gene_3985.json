@@ -1,0 +1,899 @@
+{
+    "header": {
+        "type": "esummary",
+        "version": "0.3"
+    },
+    "result": {
+        "uids": [
+            "114228",
+            "83065",
+            "1270332",
+            "1270307",
+            "1269510",
+            "198806",
+            "83089",
+            "1270330",
+            "1270305",
+            "1270304",
+            "1269509",
+            "1269507",
+            "169356",
+            "137994",
+            "106590",
+            "476",
+            "1270302",
+            "1269379",
+            "500",
+            "1270303"
+        ],
+        "114228": {
+            "uid": "114228",
+            "source": "KEGG",
+            "modifydate": "2016/01/10 00:00",
+            "sidcount": 8,
+            "cidcount": 4,
+            "genecount": 93,
+            "proteincount": 2118,
+            "feedbackurl": "http://www.kegg.jp/pathway/hsa04666",
+            "sourceurl": "http://www.kegg.jp/",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "hsa04666",
+                "biosystemname": "Fc gamma R-mediated phagocytosis",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "Phagocytosis plays an essential role in host-defense mechanisms through the uptake and destruction of infectious pathogens. Specialized cell types including macrophages, neutrophils, and monocytes take part in this process in higher organisms. After opsonization with antibodies (IgG), foreign extracellular materials are recognized by Fc gamma receptors. Cross-linking of Fc gamma receptors initiates a variety of signals mediated by tyrosine phosphorylation of multiple proteins, which lead through the actin cytoskeleton rearrangements and membrane remodeling to the formation of phagosomes. Nascent phagosomes undergo a process of maturation that involves fusion with lysosomes. The acquisition of lysosomal proteases and release of reactive oxygen species are crucial for digestion of engulfed materials in phagosomes.",
+                "comment": [
+                ],
+                "url": "http://www.kegg.jp/pathway/hsa04666",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": "http://www.kegg.jp/pathway/hsa04666"
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "83065": {
+            "uid": "83065",
+            "source": "KEGG",
+            "modifydate": "2016/03/06 00:00",
+            "sidcount": 1,
+            "cidcount": 1,
+            "genecount": 127,
+            "proteincount": 3202,
+            "feedbackurl": "http://www.kegg.jp/pathway/hsa04360",
+            "sourceurl": "http://www.kegg.jp/",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "hsa04360",
+                "biosystemname": "Axon guidance",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "Axon guidance represents a key stage in the formation of neuronal network. Axons are guided by a variety of guidance factors, such as netrins, ephrins, Slits, and semaphorins. These guidance cues are read by growth cone receptors, and signal transduction pathways downstream of these receptors converge onto the Rho GTPases to elicit changes in cytoskeletal organization that determine which way the growth cone will turn.",
+                "comment": [
+                ],
+                "url": "http://www.kegg.jp/pathway/hsa04360",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": "http://www.kegg.jp/pathway/hsa04360"
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "1270332": {
+            "uid": "1270332",
+            "source": "REACTOME",
+            "modifydate": "2016/01/11 00:00",
+            "sidcount": 10,
+            "cidcount": 10,
+            "genecount": 42,
+            "proteincount": 1048,
+            "feedbackurl": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-3928662",
+            "sourceurl": "http://www.reactome.org",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "R-HSA-3928662",
+                "biosystemname": "EPHB-mediated forward signaling",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "Multiple EPHB receptors contribute directly to dendritic spine development and morphogenesis. These are more broadly involved in post-synaptic development through activation of focal adhesion kinase (FAK) and Rho family GTPases and their GEFs. Dendritic spine morphogenesis is a vital part of the process of synapse formation and maturation during CNS development. Dendritic spine morphogenesis is characterized by filopodia shortening followed by the formation of mature mushroom-shaped spines (Moeller et al. 2006). EPHBs control neuronal morphology and motility by modulation of the actin cytoskeleton. EPHBs control dendritic filopodia motility, enabling synapse formation. EPHBs exert these effects through interacting with the guanine exchange factors (GEFs) such as intersectin and kalirin. The intersectin-CDC42-WASP-actin and kalirin-RAC-PAK-actin pathways have been proposed to regulate the EPHB receptor mediated morphogenesis and maturation of dendritic spines in cultured hippocampal and cortical neurons (Irie &amp; Yamaguchi 2002, Penzes et al. 2003). EPHBs are also involved in the regulation of dendritic spine morphology through FAK which activates the RHOA-ROCK-LIMK-1 pathway to suppress cofilin activity and inhibit cofilin-mediated dendritic spine remodeling (Shi et al. 2009).",
+                "comment": [
+                ],
+                "url": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-3928662",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": ""
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "1270307": {
+            "uid": "1270307",
+            "source": "REACTOME",
+            "modifydate": "2016/01/11 00:00",
+            "sidcount": 4,
+            "cidcount": 4,
+            "genecount": 24,
+            "proteincount": 580,
+            "feedbackurl": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-416572",
+            "sourceurl": "http://www.reactome.org",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "R-HSA-416572",
+                "biosystemname": "Sema4D induced cell migration and growth-cone collapse",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "Sema4D-mediated attraction of endothelial cells requires Rho, but not R-Ras, signaling. Sema4D-mediated plexinB1 activation activates Rho and its downstream effector ROCK. ROCK then phosphorylates MLC to induce actomyosin stress fiber contraction and to direct the assembly of focal adhesion complexes and integrin-mediated adhesion.",
+                "comment": [
+                ],
+                "url": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-416572",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": ""
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "1269510": {
+            "uid": "1269510",
+            "source": "REACTOME",
+            "modifydate": "2016/01/11 00:00",
+            "sidcount": 5,
+            "cidcount": 5,
+            "genecount": 17,
+            "proteincount": 419,
+            "feedbackurl": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-5627117",
+            "sourceurl": "http://www.reactome.org",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "R-HSA-5627117",
+                "biosystemname": "RHO GTPases Activate ROCKs",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "RHO associated, coiled-coil containing protein kinases ROCK1 and ROCK2 consist of a serine/threonine kinase domain, a coiled-coil region, a RHO-binding domain and a plekstrin homology (PH) domain interspersed with a cysteine-rich region. The PH domain inhibits the kinase activity of ROCKs by an intramolecular fold. ROCKs are activated by binding of the GTP-bound RHO GTPases RHOA, RHOB and RHOC to the RHO binding domain of ROCKs (Ishizaki et al. 1996, Leung et al. 1996), which disrupts the autoinhibitory fold. Once activated, ROCK1 and ROCK2 phosphorylate target proteins, many of which are involved in the stabilization of actin filaments and generation of actin-myosin contractile force. ROCKs phosphorylate LIM kinases LIMK1 and LIMK2, enabling LIMKs to phosphorylate cofilin, an actin depolymerizing factor, and thereby regulate the reorganization of the actin cytoskeleton (Ohashi et al. 2000, Sumi et al. 2001). ROCKs phosphorylate MRLC (myosin regulatory light chain), which stimulates the activity of non-muscle myosin II (NMM2), an actin-based motor protein involved in cell migration, polarity formation and cytokinesis (Amano et al. 1996, Riento and Ridley 2003, Watanabe et al. 2007, Amano et al. 2010). ROCKs also phosphorylate the myosin phosphatase targeting subunit (MYPT1) of MLC phosphatase, inhibiting the phosphatase activity and preventing dephosphorylation of MRLC. This pathway acts synergistically with phosphorylation of MRLC by ROCKs towards stimulation of non-muscle myosin II activity (Kimura et al. 1996, Amano et al. 2010).",
+                "comment": [
+                ],
+                "url": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-5627117",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": ""
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "198806": {
+            "uid": "198806",
+            "source": "WikiPathways",
+            "modifydate": "2013/02/25 00:00",
+            "sidcount": "",
+            "cidcount": "",
+            "genecount": 91,
+            "proteincount": 2654,
+            "feedbackurl": "http://www.wikipathways.org/index.php/Pathway:WP138",
+            "sourceurl": "http://www.wikipathways.org",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "WP138",
+                "biosystemname": "Androgen receptor signaling pathway",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "Androgens, mainly testosterone and 5alpha-dihydrotestosterone (DHT) play significant role in the growth and development of the male reproductive organs. These steroid hormones bring about their biological functions through their associations with Androgen receptor (AR), a 110 KDa ligand dependent transcription factor that falls under the group of nuclear receptor superfamily. DHT binds the receptor with high affinity compared to testosterone. The AR gene is located in the X chromosome at Xq11-12 site. AR is cytosolic protein, which in the ligand unbound state, is present as a complex with various Heat shock proteins primarily Hsp70, 90 and 56 as well as p23. Upon ligand binding, it dissociates from the complex. AR is found to be expressed in a number of tissues and cells including prostate, testis, seminal vescicle, epididymis, skin, skeletal muscle, cardiac muscle, liver and central nervous system. The protein has four functional domains- an N terminal domain (NTD), a DNA binding domain (DBD), a hinge region and a Ligand binding Domain (LBD). The DBD is a 658 amino acid residue region that has ZNF motifs which allows it bind to DNA. The rest of the domains are involved in dimerization and ligand binding. Two phosphorylation events are proposed to play very important role in the activation of the receptor upon ligand binding. The first phosphorylation event releases the ligand binding domain for hormone binding. The subsequent phosphorylation event is triggered upon hormone binding. Activated AR upon ligand binding undergoes conformational change to form a homodimer and interacts tightly with the Androgen Response Element (ARE). The androgen receptor is known to bind to many co-regulators at different time points and in different cell types. This DNA protein complex triggers the expression of various target genes that are associated with the male phenotype. Modulation of the AR activity is carried out by several transcription factors like ARA70, TR4, SRC family members and CBP/p300 and other associated proteins. FXXLF and WXXLF motifs containing coactivators such as the p160 members bind with the AF2 region of the Ligand Binding Domain of the AR. Androgen receptors are known to induce apoptosis under certain conditions. Various regulators that regulate androgen induced apoptosis include BRCA1 and Smad3 and Akt. Mutation in AR are also known to be associated in a number of diseases including spinal and bulbar muscular atrophy (SBMA) or Kennedy's disease and Androgen Insensitivity syndrome (AIS). Abnormal amplification of the androgen gene as well as deregulation of AR gene expression have been shown to be associated with prostate cancer.   Please access this pathway at [http://www.netpath.org/netslim/ar_pathway.html NetSlim] database.  If you use this pathway, you must cite following paper: Kandasamy, K., Mohan, S. S., Raju, R., Keerthikumar, S., Kumar, G. S. S., Venugopal, A. K., Telikicherla, D., Navarro, J. D., Mathivanan, S., Pecquet, C., Gollapudi, S. K., Tattikota, S. G., Mohan, S., Padhukasahasram, H., Subbannayya, Y., Goel, R., Jacob, H. K. C., Zhong, J., Sekhar, R., Nanjappa, V., Balakrishnan, L., Subbaiah, R., Ramachandra, Y. L., Rahiman, B. A., Prasad, T. S. K., Lin, J., Houtman, J. C. D., Desiderio, S., Renauld, J., Constantinescu, S. N., Ohara, O., Hirano, T., Kubo, M., Singh, S., Khatri, P., Draghici, S., Bader, G. D., Sander, C., Leonard, W. J. and Pandey, A. (2010). NetPath: A public resource of curated signal transduction pathways. Genome Biology. 11:R3.",
+                "comment": [
+                ],
+                "url": "http://www.wikipathways.org/index.php/Pathway:WP138",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": ""
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "83089": {
+            "uid": "83089",
+            "source": "KEGG",
+            "modifydate": "2015/10/04 00:00",
+            "sidcount": 6,
+            "cidcount": 2,
+            "genecount": 214,
+            "proteincount": 5441,
+            "feedbackurl": "http://www.kegg.jp/pathway/hsa04810",
+            "sourceurl": "http://www.kegg.jp/",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "hsa04810",
+                "biosystemname": "Regulation of actin cytoskeleton",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "",
+                "comment": [
+                ],
+                "url": "http://www.kegg.jp/pathway/hsa04810",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": "http://www.kegg.jp/pathway/hsa04810"
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "1270330": {
+            "uid": "1270330",
+            "source": "REACTOME",
+            "modifydate": "2016/01/11 00:00",
+            "sidcount": 10,
+            "cidcount": 10,
+            "genecount": 95,
+            "proteincount": 2311,
+            "feedbackurl": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-2682334",
+            "sourceurl": "http://www.reactome.org",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "R-HSA-2682334",
+                "biosystemname": "EPH-Ephrin signaling",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "During the development process cell migration and adhesion are the main forces involved in morphing the cells into critical anatomical structures. The ability of a cell to migrate to its correct destination depends heavily on signaling at the cell membrane. Erythropoietin producing hepatocellular carcinoma (EPH) receptors and their ligands, the ephrins (EPH receptors interacting proteins, EFNs), orchestrates the precise control necessary to guide a cell to its destination. They are expressed in all tissues of a developing embryo and are involved in multiple developmental processes such as axon guidance, cardiovascular and skeletal development and tissue patterning. In addition, EPH receptors and EFNs are expressed in developing and mature synapses in the nervous system, where they may have a role in regulating synaptic plasticity and long-term potentiation. Activation of EPHB receptors in neurons induces the rapid formation and enlargement of dendritic spines, as well as rapid synapse maturation (Dalva et al. 2007). On the other hand, EPHA4 activation leads to dendritic spine elimination (Murai et al. 2003, Fu et al. 2007).EPH receptors are the largest known family of receptor tyrosine kinases (RTKs), with fourteen total receptors divided into either A- or B-subclasses: EPHA (1-8 and 10) and EPHB (1-4 and 6). EPH receptors can have overlapping functions, and loss of one receptor can be partially compensated for by another EPH receptor that has similar expression pattern and ligand-binding specificities. EPH receptors have an N-terminal extracellular domain through which they bind to ephrin ligands, a short transmembrane domain, and an intracellular cytoplasmic signaling structure containing a canonical tyrosine kinase catalytic domain as well as other protein interaction sites. Ephrins are also sub-divided into an A-subclass (A1-A5), which are tethered to the plasma membrane by a glycosylphosphatidylinositol (GPI) anchor, and a B-subclass (B1-B3), members of which have a transmembrane domain and a short, highly conserved cytoplasmic tail lacking endogenous catalytic activity. The interaction between EPH receptors and its ligands requires cell-cell interaction since both molecules are membrane-bound. Close contact between EPH receptors and EFNs is required for signaling to occur. EPH/EFN-initiated signaling occurs bi-directionally into either EPH- or EFN-expressing cells or axons. Signaling into the EPH receptor-expressing cell is referred as the forward signal and signaling into the EFN-expressing cell, the reverse signal. (Dalva et al. 2000, Grunwald et al. 2004, Davy &amp; Robbins 2000, Cowan et al. 2004)",
+                "comment": [
+                ],
+                "url": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-2682334",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": ""
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "1270305": {
+            "uid": "1270305",
+            "source": "REACTOME",
+            "modifydate": "2016/01/11 00:00",
+            "sidcount": 6,
+            "cidcount": 6,
+            "genecount": 27,
+            "proteincount": 651,
+            "feedbackurl": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-400685",
+            "sourceurl": "http://www.reactome.org",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "R-HSA-400685",
+                "biosystemname": "Sema4D in semaphorin signaling",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "Semaphorin 4D (Sema 4D/CD100) is an axon guidance molecule with two disulfide-linked 150-kDa subunits.  SEMA4D is structurally defined by a conserved 500-amino acid extracellular domain with 16 cysteines (sema domain) and also an Ig-like domain C-terminal to the sema domain. Sema4D is expressed on the cell surface as a homodimer; cysteine 679 within the sema domain is required for this dimerization.The main receptors for Sema4D are plexin-B1 and CD72. The activation of plexins by semaphorins initiates a variety of signaling processes that involve several small GTPases of the Ras and Rho families. Sema4D-Plexin-B1 interaction appears to mediate different and sometimes opposite effects depending on the cellular context. Plexin-B1 activation inhibits integrin-mediated cell attachment and cell migration through the activation of the R-RasGAP activity inherent to plexin-B1 or through the inhibition of RhoA. However, activation of plexin-B1 by Sema4D stimulates the migration of endothelial cells by mediating the activation of RhoA.",
+                "comment": [
+                ],
+                "url": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-400685",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": ""
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "1270304": {
+            "uid": "1270304",
+            "source": "REACTOME",
+            "modifydate": "2016/01/11 00:00",
+            "sidcount": 6,
+            "cidcount": 6,
+            "genecount": 67,
+            "proteincount": 1617,
+            "feedbackurl": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-373755",
+            "sourceurl": "http://www.reactome.org",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "R-HSA-373755",
+                "biosystemname": "Semaphorin interactions",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "Semaphorins are a large family of cell surface and secreted guidance molecules divided into eight classes on the basis of their structures. They all have an N-terminal conserved sema domain. Semaphorins signal through multimeric receptor complexes that include other proteins such as plexins and neuropilins.",
+                "comment": [
+                ],
+                "url": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-373755",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": ""
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "1269509": {
+            "uid": "1269509",
+            "source": "REACTOME",
+            "modifydate": "2016/01/11 00:00",
+            "sidcount": 27,
+            "cidcount": 27,
+            "genecount": 288,
+            "proteincount": 6037,
+            "feedbackurl": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-195258",
+            "sourceurl": "http://www.reactome.org",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "R-HSA-195258",
+                "biosystemname": "RHO GTPase Effectors",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "RHO GTPases regulate cell behaviour by activating a number of downstream effectors that regulate cytoskeletal organization, intracellular trafficking and transcription (reviewed by Sahai and Marshall 2002).One of the best studied RHO GTPase effectors are protein kinases ROCK1 and ROCK2, which are activated by binding RHOA, RHOB or RHOC. ROCK1 and ROCK2 phosphorylate many proteins involved in the stabilization of actin filaments and generation of actin-myosin contractile force, such as LIM kinases and myosin regulatory light chains (MRLC) (Amano et al. 1996, Ishizaki et al. 1996, Leung et al. 1996, Ohashi et al. 2000, Sumi et al. 2001, Riento and Ridley 2003, Watanabe et al. 2007).PAK1, PAK2 and PAK3, members of the p21-activated kinase family, are activated by binding to RHO GTPases RAC1 and CDC42 and subsequent autophosphorylation and are involved in cytoskeleton regulation (Manser et al. 1994, Manser et al. 1995, Zhang et al. 1998, Edwards et al. 1999, Lei et al. 2000, Parrini et al. 2002; reviewed by Daniels and Bokoch 1999, Szczepanowska 2009).RHOA, RHOB, RHOC and RAC1 activate protein kinase C related kinases (PKNs) PKN1, PKN2 and PKN3 (Maesaki et al. 1999, Zong et al. 1999, Owen et al. 2003, Modha et al. 2008, Hutchinson et al. 2011, Hutchinson et al. 2013), bringing them in proximity to the PIP3-activated PDPK1 (PDK1) and thus enabling PDPK1-mediated phosphorylation of PKN1, PKN2 and PKN3 (Flynn et al. 2000, Torbett et al. 2003). PKNs play important roles in cytoskeleton organization (Hamaguchi et al. 2000), regulation of cell cycle (Misaki et al. 2001), receptor trafficking (Metzger et al. 2003) and apoptosis (Takahashi et al. 1998). PKN1 is also involved in the ligand-dependent transcriptional activation by the androgen receptor (Metzger et al. 2003, Metzger et al. 2005, Metzger et al. 2008).Citron kinase (CIT) binds RHO GTPases RHOA, RHOB, RHOC and RAC1 (Madaule et al. 1995), but the mechanism of CIT activation by GTP-bound RHO GTPases has not been elucidated. CIT and RHOA are implicated to act together in Golgi apparatus organization through regulation of the actin cytoskeleton (Camera et al. 2003). CIT is also involved in the regulation of cytokinesis through its interaction with KIF14 (Gruneberg et al. 2006, Bassi et al. 2013, Watanabe et al. 2013).RHOA, RHOG, RAC1 and CDC42 bind kinectin (KTN1), a kinesin anchor protein involved in kinesin-mediated vesicle motility (Vignal et al. 2001, Hotta et al. 1996). The effect of RHOG activity on cellular morphology, exhibited in the formation of microtubule-dependent cellular protrusions, depends both on RHOG interaction with KTN1, as well as on the kinesin activity (Vignal et al. 2001). RHOG and KTN1 also cooperate in microtubule-dependent lysosomal transport (Vignal et al. 2001).IQGAP proteins IQGAP1, IQGAP2 and IQGAP3, bind RAC1 and CDC42 and stabilize them in their GTP-bound state (Kuroda et al. 1996, Swart-Mataraza et al. 2002, Wang et al. 2007). IQGAPs bind F-actin filaments and modulate cell shape and motility through regulation of G-actin/F-actin equilibrium (Brill et al. 1996, Fukata et al. 1997, Bashour et al. 1997, Wang et al. 2007, Pelikan-Conchaudron et al. 2011). Binding of IQGAPs to F-actin is inhibited by calmodulin (Bashour et al. 1997, Pelikan-Conchaudron et al. 2011). IQGAP1 is involved in the regulation of adherens junctions through its interaction with E-cadherin (CDH1) and catenins (CTTNB1 and CTTNA1) (Kuroda et al. 1998, Hage et al. 2009). IQGAP1 contributes to cell polarity and lamellipodia formation through its interaction with microtubules (Fukata et al. 2002, Suzuki and Takahashi 2008).RHOQ (TC10) regulates the trafficking of CFTR (cystic fibrosis transmembrane conductance regulator) by binding to the Golgi-associated protein GOPC (also known as PIST, FIG and CAL). In the absence of RHOQ, GOPC bound to CFTR directs CFTR for lysosomal degradation, while GTP-bound RHOQ directs GOPC:CFTR complex to the plasma membrane, thereby rescuing CFTR (Neudauer et al. 2001, Cheng et al. 2005).RAC1 and CDC42 activate WASP and WAVE proteins, members of the Wiskott-Aldrich Syndrome protein family. WASPs and WAVEs simultaneously interact with G-actin and the actin-related ARP2/3 complex, acting as nucleation promoting factors in actin polymerization (reviewed by Lane et al. 2014).RHOA, RHOB, RHOC, RAC1 and CDC42 activate a subset of formin family members. Once activated, formins bind G-actin and the actin-bound profilins and accelerate actin polymerization, while some formins also interact with microtubules. Formin-mediated cytoskeletal reorganization plays important roles in cell motility, organelle trafficking and mitosis (reviewed by Kuhn and Geyer 2014).Rhotekin (RTKN) and rhophilins (RHPN1 and RHPN2) are effectors of RHOA, RHOB and RHOC and have not been studied in detail. They regulate the organization of the actin cytoskeleton and are implicated in the establishment of cell polarity, cell motility and possibly endosome trafficking (Sudo et al. 2006, Watanabe et al. 1996, Fujita et al. 2000, Peck et al. 2002, Mircescu et al. 2002). Similar to formins (Miralles et al. 2003), cytoskeletal changes triggered by RTKN activation may lead to stimulation of SRF-mediated transcription (Reynaud et al. 2000).RHO GTPases RAC1 and RAC2 are needed for activation of NADPH oxidase complexes 1, 2 and 3 (NOX1, NOX2 and NOX3), membrane associated enzymatic complexes that use NADPH as an electron donor to reduce oxygen and produce superoxide (O2-). Superoxide serves as a secondary messenger and also directly contributes to the microbicidal activity of neutrophils (Knaus et al. 1991, Roberts et al. 1999, Kim and Dinauer 2001, Jyoti et al. 2014, Cheng et al. 2006, Miyano et al. 2006, Ueyama et al. 2006).",
+                "comment": [
+                ],
+                "url": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-195258",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": ""
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "1269507": {
+            "uid": "1269507",
+            "source": "REACTOME",
+            "modifydate": "2016/01/11 00:00",
+            "sidcount": 27,
+            "cidcount": 27,
+            "genecount": 402,
+            "proteincount": 8727,
+            "feedbackurl": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-194315",
+            "sourceurl": "http://www.reactome.org",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "R-HSA-194315",
+                "biosystemname": "Signaling by Rho GTPases",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "The Rho family of small guanine nucleotide binding proteins is one of five generally recognized branches of the Ras superfamily. Like most Ras superfamily members, typical Rho proteins function as binary switches controlling a variety of biological processes. They perform this function by cycling between active GTP-bound and inactive GDP-bound conformations. Mammalian Rho GTPases include RhoA, RhoB and RhoC (Rho proteins), Rac1 3 (Rac proteins), Cdc42, TC10, TCL, Wrch1, Chp/Wrch2, RhoD and RhoG, to name some. The family also includes RhoH and Rnd1-3, which lack GTPase activity and are predicted to exist in a constitutively active state.Members of the Rho family have been identified in all eukaryotes. Including the atypical RHOBTB1-3 and RHOT1-2 proteins, 24 Rho family members have been identified in mammals (Jaffe and Hall, 2005; Bernards, 2005; Ridley, 2006). Among Rho GTPases, RhoA, Rac1 and Cdc42 have been most extensively studied. These proteins are best known for their ability to induce dynamic rearrangements of the plasma membrane-associated actin cytoskeleton (Aspenstrom et al, 2004; Murphy et al, 1999; Govek et al, 2005). Beyond this function, Rho GTPases also regulate actomyosin contractility and microtubule dynamics. Rho mediated effects on transcription and membrane trafficking are believed to be secondary to these functions. At the more macroscopic level, Rho GTPases have been implicated in many important cell biological processes, including cell growth control, cytokinesis, cell motility, cell cell and cell extracellular matrix adhesion, cell transformation and invasion, and development (Govek et al., 2005). The illustration below lists Rho GTPase effectors implicated in actin and microtubule dynamics (courtesy: Govek et al., 2005, Genes and Development, CSHL Press). Detailed annotations of various biological processes regulated by Rho GTPases will be available in future releases.",
+                "comment": [
+                ],
+                "url": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-194315",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": ""
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "169356": {
+            "uid": "169356",
+            "source": "Pathway Interaction Database",
+            "modifydate": "2010/10/04 00:00",
+            "sidcount": "",
+            "cidcount": "",
+            "genecount": 41,
+            "proteincount": 134,
+            "feedbackurl": "http://pid.nci.nih.gov/search/pathway_landing.shtml?pathway_id=rhoa_pathway&amp;pathway_name=RhoA signaling pathway&amp;source=NCI-Nature%20curated&amp;what=graphic&amp;jpg=on",
+            "sourceurl": "http://pid.nci.nih.gov",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "rhoa_pathway",
+                "biosystemname": "RhoA signaling pathway",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "",
+                "comment": [
+                ],
+                "url": "http://pid.nci.nih.gov/search/pathway_landing.shtml?pathway_id=rhoa_pathway&amp;pathway_name=RhoA signaling pathway&amp;source=NCI-Nature%20curated&amp;what=graphic&amp;jpg=on",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": ""
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "137994": {
+            "uid": "137994",
+            "source": "Pathway Interaction Database",
+            "modifydate": "2010/10/04 00:00",
+            "sidcount": "",
+            "cidcount": "",
+            "genecount": 70,
+            "proteincount": 288,
+            "feedbackurl": "http://pid.nci.nih.gov/search/pathway_landing.shtml?pathway_id=cdc42_pathway&amp;pathway_name=CDC42 signaling events&amp;source=NCI-Nature%20curated&amp;what=graphic&amp;jpg=on",
+            "sourceurl": "http://pid.nci.nih.gov",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "cdc42_pathway",
+                "biosystemname": "CDC42 signaling events",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "",
+                "comment": [
+                ],
+                "url": "http://pid.nci.nih.gov/search/pathway_landing.shtml?pathway_id=cdc42_pathway&amp;pathway_name=CDC42 signaling events&amp;source=NCI-Nature%20curated&amp;what=graphic&amp;jpg=on",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": ""
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "106590": {
+            "uid": "106590",
+            "source": "KEGG",
+            "modifydate": "2016/03/20 00:00",
+            "sidcount": 8,
+            "cidcount": 4,
+            "genecount": 3409,
+            "proteincount": 12973,
+            "feedbackurl": "http://www.kegg.jp/pathway/ko04666",
+            "sourceurl": "http://www.kegg.jp/",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "ko04666",
+                "biosystemname": "Fc gamma R-mediated phagocytosis",
+                "biosystemtype": "conserved biosystem",
+                "bscategory": "conserved biosystem",
+                "bstype": "pathway",
+                "description": "Phagocytosis plays an essential role in host-defense mechanisms through the uptake and destruction of infectious pathogens. Specialized cell types including macrophages, neutrophils, and monocytes take part in this process in higher organisms. After opsonization with antibodies (IgG), foreign extracellular materials are recognized by Fc gamma receptors. Cross-linking of Fc gamma receptors initiates a variety of signals mediated by tyrosine phosphorylation of multiple proteins, which lead through the actin cytoskeleton rearrangements and membrane remodeling to the formation of phagosomes. Nascent phagosomes undergo a process of maturation that involves fusion with lysosomes. The acquisition of lysosomal proteases and release of reactive oxygen species are crucial for digestion of engulfed materials in phagosomes.",
+                "comment": [
+                ],
+                "url": "http://www.kegg.jp/pathway/ko04666",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": "http://www.kegg.jp/pathway/ko04666"
+                },
+                "taxonomy": [
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "476": {
+            "uid": "476",
+            "source": "KEGG",
+            "modifydate": "2016/03/20 00:00",
+            "sidcount": 1,
+            "cidcount": 1,
+            "genecount": 4905,
+            "proteincount": 20251,
+            "feedbackurl": "http://www.kegg.jp/pathway/ko04360",
+            "sourceurl": "http://www.kegg.jp/",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "ko04360",
+                "biosystemname": "Axon guidance",
+                "biosystemtype": "conserved biosystem",
+                "bscategory": "conserved biosystem",
+                "bstype": "pathway",
+                "description": "Axon guidance represents a key stage in the formation of neuronal network. Axons are guided by a variety of guidance factors, such as netrins, ephrins, Slits, and semaphorins. These guidance cues are read by growth cone receptors, and signal transduction pathways downstream of these receptors converge onto the Rho GTPases to elicit changes in cytoskeletal organization that determine which way the growth cone will turn.",
+                "comment": [
+                ],
+                "url": "http://www.kegg.jp/pathway/ko04360",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": "http://www.kegg.jp/pathway/ko04360"
+                },
+                "taxonomy": [
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "1270302": {
+            "uid": "1270302",
+            "source": "REACTOME",
+            "modifydate": "2016/01/11 00:00",
+            "sidcount": 28,
+            "cidcount": 25,
+            "genecount": 813,
+            "proteincount": 18557,
+            "feedbackurl": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-1266738",
+            "sourceurl": "http://www.reactome.org",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "R-HSA-1266738",
+                "biosystemname": "Developmental Biology",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "As a first step towards capturing the array of processes by which a fertilized egg gives rise to the diverse tissues of the body, examples of three kinds of processes have been annotated. These are aspects of the roles of cell adhesion molecules in axonal guidance and myogenesis, of transcriptional regulation  in hematopoiesis (specifically, B lymphopoiesis), pancreatic beta cell and white adipocyte differentiation, and molecular events of \"nodal\" signaling.",
+                "comment": [
+                ],
+                "url": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-1266738",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": ""
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "1269379": {
+            "uid": "1269379",
+            "source": "REACTOME",
+            "modifydate": "2016/01/11 00:00",
+            "sidcount": 231,
+            "cidcount": 216,
+            "genecount": 2424,
+            "proteincount": 50926,
+            "feedbackurl": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-162582",
+            "sourceurl": "http://www.reactome.org",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "R-HSA-162582",
+                "biosystemname": "Signal Transduction",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "Signal transduction is a process in which extracellular signals elicit changes in cell state and activity. Transmembrane receptors sense changes in the cellular environment by binding ligands, such as hormones and growth factors, or reacting to other types of stimuli, such as light. Stimulation of transmembrane receptors leads to their conformational change which propagates the signal to the intracellular environment by activating downstream signaling cascades. Depending on the cellular context, this may impact cellular proliferation, differentiation, and survival. On the organism level, signal transduction regulates overall growth and behavior. Receptor tyrosine kinases (RTKs) transmit extracellular signals by phosphorylating their protein partners on conserved tyrosine residues.  Some of the best studied RTKs are EGFR (reviewed in Avraham and Yarden, 2011), FGFR (reviewed in Eswarakumar et al, 2005), insulin receptor (reviewed in Saltiel and Kahn, 2001), NGF (reviewed in Reichardt, 2006), PDGF (reviewed in Andrae et al, 2008) and VEGF (reviewed in Xie et al, 2004).  RTKs frequently activate downstream signaling through RAF/MAP kinases (reviewed in McKay and Morrison, 2007 and Wellbrock et al 2004), AKT (reviewed in Manning and Cantley, 2007) and PLC- gamma (reviewed in Patterson et al), which ultimately results in changes in gene expression and cellular metabolism.   Receptor serine/threonine kinases of the TGF-beta family, such as TGF-beta receptors (reviewed in Kang et al. 2009) and BMP receptors (reviewed in Miyazono et al. 2009), transmit extracellular signals by phosphorylating regulatory SMAD proteins on conserved serine and threonine residues. This leads to formation of complexes of regulatory SMADs and SMAD4, which translocate to the nucleus where they act as transcription factors.   WNT receptors transmit their signal through beta-catenin. In the absence of ligand, beta-catenin is constitutively degraded in a ubiquitin-dependent manner. WNT receptor stimulation releases beta-catenin from the destruction complex, allowing it to translocate to the nucleus where it acts as a transcriptional regulator (reviewed in MacDonald et al, 2009 and Angers and Moon, 2009).  WNT receptors were originally classified as G-protein coupled receptors (GPCRs).  Although they are structurally related, GPCRs primarily transmit their signals through G-proteins, which are trimers of alpha, beta and gamma subunits. When a GPCR is activated, it acts as a guanine nucleotide exchange factor, catalyzing GDP to GTP exchange on the G-alpha subunit of the G protein and its dissociation from the gamma-beta heterodimer.  The G-alpha subunit regulates the activity of adenylate cyclase, while the gamma-beta heterodimer can activate AKT and PLC signaling (reviewed in Rosenbaum et al. 2009, Oldham and Hamm 2008, Ritter and Hall 2009).  NOTCH receptors are activated by transmembrane ligands expressed on neighboring cells, which results in cleavage of NOTCH receptor and release of its intracellular domain. NOTCH intracellular domain translocates to the nucleus where it acts as a transcription factor (reviewed in Kopan and Ilagan, 2009).  Integrins are activated by extracellular matrix components, such as fibronectin and collagen, leading to conformational change and clustering of integrins on the cell surface.  This results in activation of integrin-linked kinase and other cytosolic kinases and, in co-operation with RTK signaling, regulates survival, proliferation and cell shape and adhesion (reviewed in Hehlgans et al, 2007) .   Besides inducing changes in gene expression and cellular metabolism, extracellular signals that trigger the activation of Rho GTP-ases can trigger changes in the organization of cytoskeleton, thereby regulating cell polarity and cell-cell junctions (reviewed in Citi et al, 2011).",
+                "comment": [
+                ],
+                "url": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-162582",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": ""
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "500": {
+            "uid": "500",
+            "source": "KEGG",
+            "modifydate": "2016/03/20 00:00",
+            "sidcount": 6,
+            "cidcount": 2,
+            "genecount": 13792,
+            "proteincount": 43638,
+            "feedbackurl": "http://www.kegg.jp/pathway/ko04810",
+            "sourceurl": "http://www.kegg.jp/",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "ko04810",
+                "biosystemname": "Regulation of actin cytoskeleton",
+                "biosystemtype": "conserved biosystem",
+                "bscategory": "conserved biosystem",
+                "bstype": "pathway",
+                "description": "",
+                "comment": [
+                ],
+                "url": "http://www.kegg.jp/pathway/ko04810",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": "http://www.kegg.jp/pathway/ko04810"
+                },
+                "taxonomy": [
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        },
+        "1270303": {
+            "uid": "1270303",
+            "source": "REACTOME",
+            "modifydate": "2016/01/11 00:00",
+            "sidcount": 18,
+            "cidcount": 15,
+            "genecount": 518,
+            "proteincount": 12598,
+            "feedbackurl": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-422475",
+            "sourceurl": "http://www.reactome.org",
+            "citations": [
+            ],
+            "biosystem": {
+                "externalid": "R-HSA-422475",
+                "biosystemname": "Axon guidance",
+                "biosystemtype": "organism-specific biosystem",
+                "bscategory": "organism-specific biosystem",
+                "bstype": "pathway",
+                "description": "Axon guidance / axon pathfinding is the process by which neurons send out axons to reach the correct targets. Growing axons have a highly motile structure at the growing tip called the growth cone, which senses the guidance cues in the environment through guidance cue receptors and responds by undergoing cytoskeletal changes that determine the direction of axon growth. Guidance cues present in the surrounding environment provide the necessary directional information for the trip. These extrinsic cues have been divided into attractive or repulsive signals that tell the growth cone where and where not to grow. Genetic and biochemical studies have led to the identification of highly conserved families of guidance molecules and their receptors that guide axons. These include netrins, Slits, semaphorins, and ephrins, and their cognate receptors, DCC and or uncoordinated-5 (UNC5), roundabouts (Robo), neuropilin and Eph. In addition, many other classes of adhesion molecules are also used by growth cones to navigate properly which include NCAM and L1CAM.",
+                "comment": [
+                ],
+                "url": "http://www.reactome.org/cgi-bin/eventbrowser_st_id?ST_ID=R-HSA-422475",
+                "highliteurl": {
+                    "hilitetype": "simple",
+                    "idtypes": [
+                    ],
+                    "url": ""
+                },
+                "taxonomy": [
+                    {
+                        "taxid": 9606,
+                        "taxonomyname": "Homo sapiens"
+                    }
+                ],
+                "genes": [
+                ],
+                "smallmolecules": [
+                ],
+                "citations": [
+                ],
+                "linkedsystems": [
+                ]
+            }
+        }
+    }
+}
+

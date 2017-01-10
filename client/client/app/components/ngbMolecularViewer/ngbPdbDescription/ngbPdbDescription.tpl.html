@@ -1,0 +1,21 @@
+<div ng-if="$ctrl.description">
+
+    <ul class="simple-list">
+        <li>{{$ctrl.description.classification}}</li>
+        <li>{{$ctrl.description.structureTitle}}</li>
+    </ul>
+
+    <md-input-container class="md-block" ng-if="$ctrl.description.entities.length">
+        <label>Chain ({{$ctrl.description.entities.length}})</label>
+        <md-select aria-label="entities" ng-model="$ctrl.chainId">
+            <md-option value="">All</md-option>
+            <md-option ng-repeat="entry in $ctrl.description.entities" value="{{entry.chainId}}">{{entry.chainId}} -
+                {{entry.compound}}
+            </md-option>
+        </md-select>
+    </md-input-container>
+</div>
+
+<div class="md-padding" ng-if="$ctrl.errorMessageList.length">
+    <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+</div>

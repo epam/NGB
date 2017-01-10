@@ -1,0 +1,93 @@
+.u_reset-font-size {
+  font-size: 0;
+}
+
+.u-block {
+  display: block;
+}
+
+.u-relative {
+  position: relative;
+}
+
+.u-column-padding {
+  padding: $space $space-md;
+  &__scroll {
+    padding: $space $space-md $space 0;
+  }
+}
+
+.u-scroll-space {
+  padding: 0 $space-md;
+  width: inherit;
+}
+
+.u-scroll {
+  &__vertical {
+    display: block;
+    overflow-y: scroll;
+    overflow-x: hidden;
+  }
+  &__auto {
+    overflow: auto;
+  }
+}
+
+.u-bg-white {
+  background-color: #fff;
+}
+
+.u-space {
+  &_t {
+    margin-top: $space-md;
+    &-sm {
+      margin-top: $space;
+    }
+  }
+  &_r {
+    margin-right: $space-md;
+    &-sm {
+      margin-right: $space;
+    }
+  }
+}
+
+.u-padding {
+  &_t {
+    padding-top: $space-md;
+    &-sm {
+      padding-top: $space;
+    }
+    &-0 {
+      padding-top: 0;
+    }
+  }
+  &_r {
+    padding-top: $space-md;
+    &-sm {
+      padding-top: $space;
+    }
+  }
+}
+
+.u-pull {
+  &__left {
+    float: left;
+  }
+  &__right {
+    float: right;
+  }
+}
+
+.u-height {
+  &__full {
+    height: 100%;
+  }
+  &__50 {
+    height: 50%;
+  }
+}
+
+.u-break-word {
+  word-break: break-all;
+}

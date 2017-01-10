@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.person.PersonDao" id="personDao" autowire="byName">
+        <property name="personSequenceName" value="catgenome.s_person" />
+        <property name="insertPersonQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.person (
+                        person_id,
+                        name,
+                        password,
+                        email,
+                        role_id
+                    ) VALUES (
+                        :PERSON_ID,
+                        :NAME,
+                        :PASSWORD,
+                        :EMAIL,
+                        :ROLE_ID
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="updatePersonQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.person SET
+                        password = :PASSWORD,
+                        role_id = :ROLE_ID
+                    WHERE
+                        person_id = :PERSON_ID
+                ]]>
+            </value>
+        </property>
+        <property name="loadPersonByIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        person_id,
+                        name,
+                        email,
+                        role_id
+                    FROM catgenome.person
+                    WHERE person_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadPersonByNameAndPasswordQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        person_id,
+                        name,
+                        email,
+                        role_id
+                    FROM catgenome.person
+                    WHERE name = :NAME and password = :PASSWORD
+                ]]>
+            </value>
+        </property>
+        <property name="loadPersonByNameQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        person_id,
+                        name,
+                        password,
+                        email,
+                        role_id
+                    FROM catgenome.person
+                    WHERE name = :NAME
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

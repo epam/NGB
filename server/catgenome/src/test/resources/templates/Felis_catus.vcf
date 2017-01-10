@@ -1,0 +1,80 @@
+##fileformat=VCFv4.1
+##fileDate=20150708
+##source=ensembl;version=81;url=http://e81.ensembl.org/Felis_catus
+##reference=ftp://ftp.ensembl.org/pub/release-81/fasta/Felis_catus/dna/
+##FILTER=<ID=q10,Description="Quality below 10">
+##FILTER=<ID=s50,Description="Less than 50% of samples have data">
+##INFO=<ID=dbSNP_127,Number=0,Type=Flag,Description="Variants (including SNPs and indels) imported from dbSNP [remapped from build CAT]">
+##INFO=<ID=TSA,Number=1,Type=String,Description="Type of sequence alteration. Child of term sequence_alteration as defined by the sequence ontology project.">
+##INFO=<ID=E_Cited,Number=0,Type=Flag,Description="Cited.http://www.ensembl.org/info/docs/variation/data_description.html#evidence_status">
+##INFO=<ID=E_Phenotype_or_Disease,Number=0,Type=Flag,Description="Phenotype_or_Disease.http://www.ensembl.org/info/docs/variation/data_description.html#evidence_status">
+##INFO=<ID=E_ESP,Number=0,Type=Flag,Description="ESP.http://www.ensembl.org/info/docs/variation/data_description.html#evidence_status">
+##INFO=<ID=E_1000G,Number=0,Type=Flag,Description="1000Genomes.http://www.ensembl.org/info/docs/variation/data_description.html#evidence_status">
+##INFO=<ID=E_Multiple_observations,Number=0,Type=Flag,Description="Multiple_observations.http://www.ensembl.org/info/docs/variation/data_description.html#evidence_status">
+##INFO=<ID=E_Freq,Number=0,Type=Flag,Description="Frequency.http://www.ensembl.org/info/docs/variation/data_description.html#evidence_status">
+##INFO=<ID=E_Hapmap,Number=0,Type=Flag,Description="HapMap.http://www.ensembl.org/info/docs/variation/data_description.html#evidence_status">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=SVLEN,Number=.,Type=Integer,Description="Difference in length between REF and ALT alleles">
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
+##INFO=<ID=MATEID,Number=.,Type=String,Description="ID of mate breakend">
+##INFO=<ID=MATE_BND_DEPTH,Number=1,Type=Integer,Description="Read depth at remote translocation mate breakend">
+##INFO=<ID=BND_DEPTH,Number=1,Type=Integer,Description="Read depth at local translocation breakend">
+##INFO=<ID=ANN,Number=.,Type=String,Description="Functional annotations: 'Allele | Annotation | Annotation_Impact | Gene_Name | Gene_ID | Feature_Type | Feature_ID | Transcript_BioType | Rank | HGVS.c | HGVS.p | cDNA.pos / cDNA.length | CDS.pos / CDS.length | AA.pos / AA.length | Distance | ERRORS / WARNINGS / INFO' ">
+##INFO=<ID=SVINSLEN,Number=.,Type=Integer,Description="Length of insertion">
+##INFO=<ID=SVINSSEQ,Number=.,Type=String,Description="Sequence of insertion">
+##INFO=<ID=CIPOS,Number=2,Type=Integer,Description="Region of location">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chrA1	3	rs43947053	N	<DEL>	.	.	dbSNP_127;TSA=SNV;SVTYPE=DEL;SVLEN=-150;END=35468
+chrA1	35465	rs44022001	CTG	ACC	.	.	dbSNP_127;TSA=SNV
+chrA1	35469	MantaBND:53:0:1:0:0:0:0	T	TT]CHR13:76366796]	.	PASS	SVTYPE=BND;MATEID=MantaBND:53:0:1:0:0:0:1;SVINSLEN=1;SVINSSEQ=T;BND_DEPTH=1979;CIPOS=-10,10;MATE_BND_DEPTH=85;ANN=TT]CHR13:76366796]|intron_variant|MODIFIER|RET|ENSG00000165731|transcript|ENST00000355710|protein_coding|10/19|c.1880-222_1880-221insT]CHR13:76366796]||||||
+chrA1	35471	rs44022000	C	AC	.	.	dbSNP_127;TSA=SNV
+chrA1	35486	rs44021999	G	T	.	.	dbSNP_127;TSA=SNV
+chrA1	194357	rs44035420	T	C	.	.	dbSNP_127;TSA=SNV
+chrA1	660138	rs44098031	A	G	.	.	dbSNP_127;TSA=SNV
+chrA1	660206	rs44098032	T	G	.	.	dbSNP_127;TSA=SNV
+chrA1	660230	rs44098033	C	A	.	.	dbSNP_127;TSA=SNV
+chrA1	1559394	rs43947046	C	T	.	.	dbSNP_127;TSA=SNV
+chrA1	1559654	rs43971707	C	T	.	.	dbSNP_127;TSA=SNV
+chrA1	2772058	rs44098035	G	A	.	.	dbSNP_127;TSA=SNV
+chrA1	2772080	rs44098036	C	T	.	.	dbSNP_127;TSA=SNV
+chrA1	2774029	rs44098037	C	A	.	.	dbSNP_127;TSA=SNV
+chrA1	2774062	rs44098038	A	G	.	.	dbSNP_127;TSA=SNV
+chrA1	2774107	rs44098039	A	G	.	.	dbSNP_127;TSA=SNV
+chrA1	2774203	rs44098040	G	A	.	.	dbSNP_127;TSA=SNV
+chrA1	2774377	rs44098041	G	A	.	.	dbSNP_127;TSA=SNV
+chrA1	2783876	rs44098042	A	G	.	.	dbSNP_127;TSA=SNV
+chrA1	2784152	rs44098043	A	G	.	.	dbSNP_127;TSA=SNV
+chrA1	2784318	rs44098044	G	A	.	.	dbSNP_127;TSA=SNV
+chrA1	2784918	rs44098045	A	G	.	.	dbSNP_127;TSA=SNV
+chrA1	2785327	rs44098046	C	T	.	.	dbSNP_127;TSA=SNV
+chrA1	2788406	rs44098047	T	A	.	.	dbSNP_127;TSA=SNV
+chrA1	2788479	rs44098048	A	G	.	.	dbSNP_127;TSA=SNV
+chrA1	2790141	rs44098049	C	G	.	.	dbSNP_127;TSA=SNV
+chrA1	2802586	rs44098050	C	T	.	.	dbSNP_127;TSA=SNV
+chrA1	2803784	rs44098051	G	A	.	.	dbSNP_127;TSA=SNV
+chrA1	2804158	rs44098052	G	C	.	.	dbSNP_127;TSA=SNV
+chrA1	2806968	rs44098053	T	C	.	.	dbSNP_127;TSA=SNV
+chrA1	2807097	rs44098054	G	A	.	.	dbSNP_127;TSA=SNV
+chrA1	2815028	rs44098055	T	C	.	.	dbSNP_127;TSA=SNV
+chrA1	2815409	rs44098056	C	T	.	.	dbSNP_127;TSA=SNV
+chrA1	2821907	rs44098057	G	A	.	.	dbSNP_127;TSA=SNV
+chrA1	2821999	rs44098058	G	C	.	.	dbSNP_127;TSA=SNV
+chrA1	2822066	rs44098059	G	C	.	.	dbSNP_127;TSA=SNV
+chrA1	2822075	rs44098060	A	G	.	.	dbSNP_127;TSA=SNV
+chrA1	2822146	rs44098061	G	A	.	.	dbSNP_127;TSA=SNV
+chrA1	2824071	rs44098062	A	G	.	.	dbSNP_127;TSA=SNV
+chrA1	2824118	rs44098063	T	A	.	.	dbSNP_127;TSA=SNV
+chrA1	2824498	rs44098064	A	G	.	.	dbSNP_127;TSA=SNV
+chrA1	2824577	rs44098065	G	A	.	.	dbSNP_127;TSA=SNV
+chrA1	2824644	rs44098066	T	C	.	.	dbSNP_127;TSA=SNV
+chrA1	2824654	rs44098067	C	A	.	.	dbSNP_127;TSA=SNV
+chrA1	2824669	rs44098068	C	T	.	.	dbSNP_127;TSA=SNV
+chrA1	2824963	rs44098069	A	G	.	.	dbSNP_127;TSA=SNV
+chrA1	2825513	rs44098070	G	A	.	.	dbSNP_127;TSA=SNV
+chrA1	2826697	rs44098071	C	T	.	.	dbSNP_127;TSA=SNV
+chrA1	2826798	rs44098072	C	G	.	.	dbSNP_127;TSA=SNV
+chrA1	2827093	rs44098073	T	C	.	.	dbSNP_127;TSA=SNV
+chrA1	2827554	rs44098074	T	C	.	.	dbSNP_127;TSA=SNV
+chrA1	2829646	rs44098075	C	T	.	.	dbSNP_127;TSA=SNV
+chrA1	2829690	rs44098076	A	G	.	.	dbSNP_127;TSA=SNV
+chrA1	2830330	rs44098077	A	G	.	.	dbSNP_127;TSA=SNV

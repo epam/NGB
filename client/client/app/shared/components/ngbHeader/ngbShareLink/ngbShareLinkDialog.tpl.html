@@ -1,0 +1,27 @@
+<md-dialog aria-label="Mango (Fruit)">
+    <form ng-cloak>
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>Share Link</h2>
+                <span flex></span>
+                <md-button class="md-icon-button" ng-click="close()" aria-label="Close">
+                    <ng-md-icon icon="clear"></ng-md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+
+        <md-dialog-content>
+            <div class="md-dialog-content">
+                <ngb-share-link-menu url="generatedUrl"></ngb-share-link-menu>
+            </div>
+        </md-dialog-content>
+
+        <md-dialog-actions layout="row">
+            <md-button class="copy-to-clipboard-button"
+                       ng-click="copyLink()"
+                       data-clipboard-text="{{generatedUrl}}">
+                Copy link to clipboard
+            </md-button>
+        </md-dialog-actions>
+    </form>
+</md-dialog>

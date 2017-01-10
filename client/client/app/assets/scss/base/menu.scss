@@ -1,0 +1,32 @@
+md-menu-item > .md-menu {
+  padding: 0;
+  margin: 0;
+  > .md-button {
+    border-radius: 0;
+    margin: auto 0;
+    font-size: $ngb-menu-font;
+    text-transform: none;
+    font-weight: 400;
+    height: 100%;
+    padding-left: $space-md;
+    padding-right: $space-md;
+    text-align: left;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-align-items: baseline;
+    -ms-flex-align: baseline;
+    align-items: baseline;
+    -webkit-align-content: flex-start;
+    -ms-flex-line-pack: start;
+    align-content: flex-start;
+    width: 100%;
+  }
+}
+
+md-menu-content {
+  .md-label {
+    font-size: $ngb-menu-font;
+    color: $ngb-button-color;
+  }
+}

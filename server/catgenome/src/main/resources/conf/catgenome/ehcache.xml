@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache updateCheck="true"
+         monitoring="autodetect">
+
+    <diskStore path="java.io.tmpdir" />
+    <cache name="proteinTrack"
+           maxEntriesLocalHeap="1000"
+           eternal="false"
+           diskSpoolBufferSizeMB="40"
+           timeToIdleSeconds="5"
+           memoryStoreEvictionPolicy="FIFO"
+           transactionalMode="off">
+        <persistence strategy="none" />
+    </cache>
+</ehcache>

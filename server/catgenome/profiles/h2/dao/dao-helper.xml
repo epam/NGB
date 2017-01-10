@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="daoHelper" class="com.epam.catgenome.dao.DaoHelper" autowire="byName">
+
+        <property name="createIdQuery">
+            <value>
+                <![CDATA[
+                        SELECT NEXTVAL(:SEQUENCE_NAME)
+                ]]>
+            </value>
+        </property>
+
+        <property name="createIdsQuery">
+            <value>
+                <![CDATA[
+                        SELECT NEXTVAL(:SEQUENCE_NAME)
+                        FROM catgenome.t_list list
+                        WHERE list.list_id = :LIST_ID
+                ]]>
+            </value>
+        </property>
+
+        <property name="listIdSequenceName" value="catgenome.s_list"/>
+
+        <property name="clearTemporaryListQuery">
+            <value>
+                <![CDATA[
+                        DELETE
+                        FROM catgenome.t_list list
+                        WHERE list.list_id = :LIST_ID
+                ]]>
+            </value>
+
+        </property>
+
+        <property name="createTemporaryListQuery">
+            <value>
+                <![CDATA[
+                        CREATE LOCAL TEMPORARY TABLE IF NOT EXISTS catgenome.t_list (
+                           list_id BIGINT,
+                           list_value BIGINT
+                        ) TRANSACTIONAL
+                ]]>
+            </value>
+        </property>
+
+        <property name="insertTemporaryListItemQuery">
+            <value>
+                <![CDATA[
+                        INSERT INTO catgenome.t_list (list_id, list_value)
+                           VALUES (:LIST_ID, :LIST_VALUE)
+                ]]>
+            </value>
+        </property>
+
+    </bean>
+
+</beans>

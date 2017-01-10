@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ MIT License
+  ~
+  ~ Copyright (c) 2016 EPAM Systems
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
+  ~ of this software and associated documentation files (the "Software"), to deal
+  ~ in the Software without restriction, including without limitation the rights
+  ~ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the Software is
+  ~ furnished to do so, subject to the following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in all
+  ~ copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  ~ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  ~ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  ~ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  ~ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  ~ SOFTWARE.
+  -->
+
+<config>
+    <set_server>
+        <name>set_server</name>
+        <help></help>
+    </set_server>
+    <register_reference>
+        <name>register_reference</name>
+        <url>/restapi/secure/reference/register/fasta</url>
+        <type>POST</type>
+        <secure>true</secure>
+        <help></help>
+    </register_reference>
+    <delete_reference>
+        <name>delete_reference</name>
+        <url>/restapi/secure/reference/register/fasta?referenceId=%d</url>
+        <type>DELETE</type>
+        <secure>true</secure>
+    </delete_reference>
+    <register_file>
+        <name>register_file</name>
+        <url>/restapi/%s/register</url>
+        <type>POST</type>
+        <secure>false</secure>
+    </register_file>
+    <delete_file>
+        <name>delete_file</name>
+        <url>/restapi/dataitem/delete?id=%d</url>
+        <type>DELETE</type>
+        <secure>false</secure>
+    </delete_file>
+    <search>
+        <name>search</name>
+        <url>/restapi/dataitem/search</url>
+        <type>GET</type>
+        <secure>false</secure>
+    </search>
+    <register_dataset>
+        <name>register_dataset</name>
+        <url>/restapi/project/save</url>
+        <type>POST</type>
+        <secure>false</secure>
+    </register_dataset>
+    <add_to_dataset>
+        <name>add_to_dataset</name>
+        <url>/restapi/project/%d/add/%d</url>
+        <type>PUT</type>
+        <secure>false</secure>
+    </add_to_dataset>
+    <remove_from_dataset>
+        <name>remove_from_dataset</name>
+        <url>/restapi/project/%d/remove/%d</url>
+        <type>DELETE</type>
+        <secure>false</secure>
+    </remove_from_dataset>
+    <delete_dataset>
+        <name>delete_dataset</name>
+        <url>/restapi/project/%d</url>
+        <type>DELETE</type>
+        <secure>false</secure>
+    </delete_dataset>
+    <list_references>
+        <name>list_references</name>
+        <url>/restapi/reference/loadAll</url>
+        <type>GET</type>
+        <secure>false</secure>
+    </list_references>
+    <list_datasets>
+        <name>list_datasets</name>
+        <url>/restapi/project/loadMy</url>
+        <type>GET</type>
+        <secure>false</secure>
+    </list_datasets>
+    <add_genes>
+        <name>add_genes</name>
+        <url>/restapi/secure/reference/%d/genes</url>
+        <type>PUT</type>
+        <secure>true</secure>
+    </add_genes>
+    <remove_genes>
+        <name>remove_genes</name>
+        <url>/restapi/secure/reference/%d/genes</url>
+        <type>PUT</type>
+        <secure>true</secure>
+    </remove_genes>
+    <index_file>
+        <name>index_file</name>
+        <url>/restapi/%s/%d/index</url>
+        <type>GET</type>
+        <secure>false</secure>
+    </index_file>
+</config>

@@ -1,0 +1,15 @@
+<md-chips ng-model="ctrl.projectContext.vcfFilter.selectedGenes"
+          md-autocomplete-snap
+          md-on-add="ctrl.addGeneChip($chip)"
+          md-on-remove="ctrl.removeGeneChip($chip)">
+    <md-autocomplete
+            md-selected-item="selectedItem"
+            md-no-cache="false"
+            md-min-length="0"
+            md-search-text="searchText"
+            md-items="gene in ctrl.getGenes(searchText)"
+            md-item-text="gene"
+            placeholder="Add gene name">
+        <span md-highlight-text="searchText">{{gene}}</span>
+    </md-autocomplete>
+</md-chips>

@@ -1,0 +1,12 @@
+/H2
+/out
+/build
+/contents
+/.settings
+/.classpath
+/.idea
+/.gradle
+catgenome.iml
+catgenome.ipr
+catgenome.iws
+/catgenome.iws

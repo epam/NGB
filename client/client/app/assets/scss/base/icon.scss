@@ -1,0 +1,29 @@
+
+.md-icon__text {
+  vertical-align: middle;
+  display: inline-block;
+}
+
+md-icon, ng-md-icon {
+  font-size: 0;
+  display: inline-block;
+  vertical-align: top;
+  svg {
+    vertical-align: middle;
+  }
+}
+
+[disabled] ng-md-icon, ng-md-icon[disabled], [disabled] md-icon, md-icon[disabled] {
+  fill: $state-disabed-color !important;
+  cursor: default;
+}
+
+.material-icons {
+  color: $ngb-button-color;
+}
+
+md-toolbar.md-default-theme:not(.md-menu-toolbar) ng-md-icon,
+md-toolbar:not(.md-menu-toolbar) ng-md-icon {
+  color: rgba(255,255,255,0.87);
+  fill: rgba(255,255,255,0.87);
+}

@@ -1,0 +1,66 @@
+{
+  "header": {
+    "type": "esummary",
+    "version": "0.3"
+  },
+  "result": {
+    "uids": [
+      "7412"
+    ],
+    "7412": {
+      "uid": "7412",
+      "snp_id": 7412,
+      "organism": "",
+      "allele_origin": "T(germline)/C(germline)",
+      "global_maf": "T=0.0751/376",
+      "global_population": "",
+      "global_samplesize": "",
+      "suspected": "",
+      "clinical_significance": "Pathogenic",
+      "genes": [
+        {
+          "name": "APOE",
+          "gene_id": "348"
+        }
+      ],
+      "acc": "NM_000041.3,NM_001302688.1,NM_001302689.1,NM_001302690.1,NM_001302691.1,NP_000032.1,NP_001289617.1,NP_001289618.1,NP_001289619.1,NP_001289620.1,NT_011109.17",
+      "chr": "19",
+      "weight": 1,
+      "handle": "1000GENOMES,BUSHMAN,CGAP-GAI,COMPLETE_GENOMICS,CUORCGL,DEBNICK,EVA-GONL,EVA_DECODE,EVA_EXAC,EVA_GENOME_DK,EVA_SVP,EVA_UK10K_ALSPAC,EVA_UK10K_TWINSUK,EXOME_CHIP,GMI,ILLUMINA,KRIBB_YJKIM,LEE,NCBI-CURATED-RECORDS,NHLBI-ESP,OMICIA,OMIM-CURATED-RECORDS,PAGE_STUDY,RSG_UW,SC_SNP,SSMP,WEILL_CORNELL_DGM",
+      "fxn_class": "missense,reference",
+      "validated": "by-1000G,by-2hit-2allele,by-cluster,by-frequency,by-hapmap",
+      "gtype": "true",
+      "nonref": "false",
+      "docsum": "CLINICAL=Y|HGVS=NC_000019.10:g.44908822C&gt;T,NC_000019.9:g.45412079C&gt;T,NG_007084.2:g.8041C&gt;T,NM_000041.3:c.526C&gt;T,NM_001302688.1:c.604C&gt;T,NM_001302689.1:c.526C&gt;T,NM_001302690.1:c.526C&gt;T,NM_001302691.1:c.526C&gt;T,NP_000032.1:p.Arg176Cys,NP_001289617.1:p.Arg202Cys,NP_001289618.1:p.Arg176Cys,NP_001289619.1:p.Arg176Cys,NP_001289620.1:p.Arg176Cys,XM_005258867.1:c.604C&gt;T,XM_005258868.1:c.526C&gt;T,XP_005258924.1:p.Arg202Cys,XP_005258925.1:p.Arg176Cys|SEQ=CCGCGATGCCGATGACCTGCAGAAG[C/T]GCCTGGCAGTGTACCAGGCCGGGGC|GENE=APOE:348",
+      "het": 13,
+      "srate": "",
+      "tax_id": 9606,
+      "chrrpt": "7412|2|0|1|1|1|19|NT_011109.17|17667947|44908822|APOE|0.133322|0.221102| |59|1|1|52|147|0|Pathogenic|T(germline)/C(germline)|T:5008:0.0751",
+      "orig_build": 52,
+      "upd_build": 147,
+      "createdate": "2000/09/19 17:02",
+      "updatedate": "2016/03/03 10:50",
+      "pop_class": "",
+      "method_class": "computed,hybridize,other,sequence,unknown",
+      "snp3d": "NP_000032|4557325|177|X  |C                                                                                                   |342350764|167|R  |",
+      "linkout": "CGAP-GAI|http://lpgws.nci.nih.gov/perl/gettrace.pl?type=7&amp;trace=1470428,DEBNICK| ae4075,LEE| e830440,WEILL_CORNELL_DGM|http://geneticmedicine.weill.cornell.edu/genome.htmlSNV:chr19:45412079",
+      "ss": 283224141,
+      "locsnpid": "exm1479366-0_B_F_1923260329",
+      "allele": "Y",
+      "snp_class": "snp",
+      "chrpos": "19:44908822",
+      "contigpos": "NT_011109.17:17667948",
+      "text": "",
+      "lookup": "../output/entrez/20160302/clin146.bin:4106139",
+      "sort_priority": 100,
+      "snp_id_sort": "0000007412",
+      "clinical_sort": "1",
+      "human_sort": "1",
+      "cited_sort": "1",
+      "weight_sort": "01",
+      "chrpos_sort": "0044908822",
+      "merged_sort": "0"
+    }
+  }
+}
+

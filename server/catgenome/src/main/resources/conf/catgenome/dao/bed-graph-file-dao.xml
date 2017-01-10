@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.wig.WigFileDao" id="bedGraphFileDao" autowire="byName">
+        <property name="wigFileSequenceName" value="catgenome.s_bed_graph" />
+        <property name="createWigFileQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.bed_graph (
+                        bed_graph_id,
+                        bio_data_item_id,
+                        reference_genome_id)
+                    VALUES (
+                        :BED_GRAPH_ID,
+                        :BIO_DATA_ITEM_ID,
+                        :REFERENCE_GENOME_ID)
+                ]]>
+            </value>
+        </property>
+        <property name="loadWigFileQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.format,
+                        b.created_by,
+                        b.created_date,
+                        b.bucket_id,
+                        bg.bed_graph_id,
+                        bg.reference_genome_id as bed_graph_reference_genome_id,
+
+                        null as index_id,
+                        null as index_name,
+                        null as index_type,
+                        null as index_path,
+                        null as index_format,
+                        null as index_bucket_id,
+                        null as index_created_by,
+                        null as index_created_date
+                    FROM catgenome.bed_graph bg
+                        JOIN catgenome.biological_data_item b ON bg.bio_data_item_id = b.bio_data_item_id
+                    WHERE bg.bed_graph_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadWigFilesByReferenceIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.format,
+                        b.created_by,
+                        b.created_date,
+                        b.bucket_id,
+                        bg.bed_graph_id,
+                        bg.reference_genome_id as bed_graph_reference_genome_id,
+
+                        null as index_id,
+                        null as index_name,
+                        null as index_type,
+                        null as index_path,
+                        null as index_format,
+                        null as index_bucket_id,
+                        null as index_created_by,
+                        null as index_created_date
+                    FROM catgenome.bed_graph bg
+                        JOIN catgenome.biological_data_item b ON bg.bio_data_item_id = b.bio_data_item_id
+                    WHERE bg.reference_genome_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteWigFileQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.bed_graph WHERE bed_graph_id = ?
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

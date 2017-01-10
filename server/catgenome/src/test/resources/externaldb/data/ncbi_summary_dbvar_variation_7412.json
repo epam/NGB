@@ -1,0 +1,91 @@
+{
+    "header": {
+        "type": "esummary",
+        "version": "0.3"
+    },
+    "result": {
+        "uids": [
+            "7412"
+        ],
+        "7412": {
+            "uid": "7412",
+            "obj_type": "VARIANT",
+            "st": "nstd2",
+            "sv": "nsv7113",
+            "study_type": "",
+            "variant_count": "",
+            "dbvarpublicationlist": [
+            ],
+            "dbvarstudyorglist": [
+            ],
+            "method_type_weight": "Non-BAC",
+            "tax_id": 9606,
+            "organism": "human",
+            "dbvarsubmittedassemblylist": [
+            ],
+            "dbvarremappedassemblylist": [
+            ],
+            "dbvarplacementlist": [
+                {
+                    "chr": "X",
+                    "chr_accession_version": "NC_000023.8",
+                    "contig_accession_version": "",
+                    "chr_start": "",
+                    "chr_end": "",
+                    "chr_inner_start": "",
+                    "chr_inner_end": "",
+                    "chr_outer_start": 137167266,
+                    "chr_outer_end": 137198012,
+                    "assembly": "NCBI35 (hg17)",
+                    "assembly_accession": "GCF_000001405.11",
+                    "assembly_tax_id": "9606",
+                    "placement_type": "Submitted genomic"
+                },
+                {
+                    "chr": "X",
+                    "chr_accession_version": "NC_000023.10",
+                    "contig_accession_version": "",
+                    "chr_start": "",
+                    "chr_end": "",
+                    "chr_inner_start": "",
+                    "chr_inner_end": "",
+                    "chr_outer_start": 137441746,
+                    "chr_outer_end": 137472492,
+                    "assembly": "GRCh37 (hg19)",
+                    "assembly_accession": "GCF_000001405.13",
+                    "assembly_tax_id": "9606",
+                    "placement_type": "Remapped"
+                },
+                {
+                    "chr": "X",
+                    "chr_accession_version": "NC_000023.11",
+                    "contig_accession_version": "",
+                    "chr_start": "",
+                    "chr_end": "",
+                    "chr_inner_start": "",
+                    "chr_inner_end": "",
+                    "chr_outer_start": 138359587,
+                    "chr_outer_end": 138390333,
+                    "assembly": "GRCh38 (hg38)",
+                    "assembly_accession": "GCF_000001405.26",
+                    "assembly_tax_id": "9606",
+                    "placement_type": "Remapped"
+                }
+            ],
+            "dbvargenelist": [
+            ],
+            "dbvarmethodlist": [
+                "Sequencing"
+            ],
+            "dbvarclinicalsignificancelist": [
+            ],
+            "dbvarvarianttypelist": [
+                "copy number variation"
+            ],
+            "validation_status_weight": "0",
+            "variant_call_count": 1,
+            "validation_status": ""
+        }
+    }
+}
+

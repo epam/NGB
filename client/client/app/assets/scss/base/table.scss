@@ -1,0 +1,16 @@
+table {
+
+  font-size: $caption-font-size-base;
+  line-height: 48px;
+  tr:last-child > td {
+    border-bottom: 0;
+  }
+  td {
+    padding: 0 8px;
+    border-bottom: 1px solid #eee;
+    &:first-child {
+      padding-right: 16px;
+    }
+
+  }
+}

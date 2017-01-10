@@ -1,0 +1,18 @@
+<ngb-tracks-view layout-fill ng-if="$ctrl.isChromosome"></ngb-tracks-view>
+<ngb-project-info-panel layout-fill ng-if="!$ctrl.isChromosome && $ctrl.isProject"></ngb-project-info-panel>
+<div layout-fill ng-if="!$ctrl.isProject && !$ctrl.isChromosome" class="browser-welcome-container">
+    <div layout="column" layout-align="center center" class="browser-welcome">
+        <div>
+            <h1>
+                Choose files or folders<br/>
+                on <strong>Datasets</strong> panel.
+            </h1>
+            <p><strong>Click</strong> on <strong>expand button</strong>
+                (<ng-md-icon icon="play_arrow" class="dataset-icon" size="13pt"></ng-md-icon>) to open folder.</p>
+            <p><strong>Click</strong> on <strong>checkbox</strong> to select/deselect all folder's <br/>tracks or particular track.</p>
+            <h3>What if there's no Datasets panel?</h3>
+            <p>Click on the "view" button on the header<br/>
+                and select the "Datasets" option.</p>
+        </div>
+    </div>
+</div>

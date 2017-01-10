@@ -1,0 +1,17 @@
+<div ng-if="$ctrl.settingItem.byDefault">
+    <md-checkbox ng-if="$ctrl.settingItem.byDefault.type === 'radio'"
+                 ng-model="$ctrl.settingItem.byDefault.model.value"
+                 ng-true-value="'{{$ctrl.settingItem.byDefault.name}}'"
+                 ng-false-value="'{{$ctrl.settingItem.byDefault.model.byDefault}}'"
+                 aria-label="$ctrl.settingItem.label"
+                 ng-click="$ctrl.onClick($event)"
+                 ng-disabled="$ctrl.settingItem.byDefault.name === $ctrl.settingItem.byDefault.model.byDefault
+                  && $ctrl.settingItem.byDefault.model.value === $ctrl.settingItem.byDefault.model.byDefault">
+
+    </md-checkbox>
+    <md-checkbox ng-if="$ctrl.settingItem.byDefault.type === 'checkbox'"
+                 ng-model="$ctrl.settingItem.byDefault.model"
+                 aria-label="$ctrl.settingItem.label"
+                 ng-click="$ctrl.onClick($event)"></md-checkbox>
+    <md-tooltip>Set as default</md-tooltip>
+</div>

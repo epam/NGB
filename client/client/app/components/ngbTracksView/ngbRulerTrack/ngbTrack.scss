@@ -1,0 +1,15 @@
+ngb-ruler-track {
+  display: block;
+  z-index: 0;
+  width: 100%;
+}
+
+.ngb-track-ruler-container {
+  margin: 5px;
+  padding: 1px;
+}
+
+.ngb-track-placeholder {
+  height: 1px;
+  background: transparent;
+}

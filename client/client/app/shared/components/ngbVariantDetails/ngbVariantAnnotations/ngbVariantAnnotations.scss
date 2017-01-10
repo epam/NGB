@@ -1,0 +1,41 @@
+.md-variant-annotation{
+  border-bottom: 1px solid #eeeeee;
+  padding: 5px;
+}
+
+.md-variant-annotation:last-child{
+  border-bottom: 1px solid transparent;
+}
+
+.md-variant-annotation-dbname{
+  color:#a0a0a0;
+}
+
+.md-variant-annotation-link{
+  margin-left: 5px;
+  fill:#499CEC;
+}
+
+.md-variant-annotation-impact{
+  color:#000000;
+  padding: 5px;
+  width: 80px;
+  text-align: center;
+}
+
+.md-variant-annotation-impact-moderate{
+  background-color: #c9d6f0;
+}
+
+.md-variant-annotation-impact-high{
+  background-color: #f3ceb6;
+}
+
+.md-variant-annotation-impact-low{
+  background-color: #d8efdd;
+}
+
+.md-variant-annotations-message{
+  color:#a0a0a0;
+  font-size: smaller;
+}

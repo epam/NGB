@@ -1,0 +1,63 @@
+<?xml version='1.0' standalone='no' ?>
+<dasalignment xmlns="http://www.efamily.org.uk/xml/das/2004/06/17/dasalignment.xsd" xmlns:align="http://www.efamily.org.uk/xml/das/2004/06/17/alignment.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance" xsd:schemaLocation="http://www.efamily.org.uk/xml/das/2004/06/17/dasalignment.xsd http://www.efamily.org.uk/xml/das/2004/06/17/dasalignment.xsd">
+    <alignment alignType="PDB_SP">
+        <alignObject dbAccessionId="2K8F" intObjectId="2K8F" objectVersion="unknown" type="STRUCTURE" dbSource="PDB" dbVersion="latest" dbCoordSys="PDBresnum,Protein Structure">
+            <alignObjectDetail dbSource="PDB" property="title">Structural Basis for the Regulation of p53 Function by p300</alignObjectDetail>
+            <alignObjectDetail dbSource="PDB" property="citation">Structural Basis for p300 Taz2-p53 TAD1 Binding and Modulation by Phosphorylation.</alignObjectDetail>
+            <alignObjectDetail dbSource="PDB" property="pubmed_id">19217391</alignObjectDetail>
+            <alignObjectDetail dbSource="PDB" property="method">SOLUTION NMR</alignObjectDetail>
+            <alignObjectDetail dbSource="PDB" property="release">2009-03-03</alignObjectDetail>
+        </alignObject>
+        <alignObject dbAccessionId="Q09472" intObjectId="Q09472" objectVersion="unknown" type="PROTEIN" dbSource="UniProt" dbVersion="latest" dbCoordSys="UniProt,Protein Sequence">
+            <alignObjectDetail dbSource="UniProtKB" property="title"></alignObjectDetail>
+        </alignObject>
+        <block blockOrder="1">
+            <segment intObjectId="2K8F.A" start="1" end="15" />
+            <segment intObjectId="Q09472" start="1723" end="1737" />
+        </block>
+        <block blockOrder="2">
+            <segment intObjectId="2K8F.A" start="16" end="16" />
+            <segment intObjectId="Q09472" start="1738" end="1738" />
+        </block>
+        <block blockOrder="3">
+            <segment intObjectId="2K8F.A" start="17" end="23" />
+            <segment intObjectId="Q09472" start="1739" end="1745" />
+        </block>
+        <block blockOrder="4">
+            <segment intObjectId="2K8F.A" start="24" end="24" />
+            <segment intObjectId="Q09472" start="1746" end="1746" />
+        </block>
+        <block blockOrder="5">
+            <segment intObjectId="2K8F.A" start="25" end="66" />
+            <segment intObjectId="Q09472" start="1747" end="1788" />
+        </block>
+        <block blockOrder="6">
+            <segment intObjectId="2K8F.A" start="67" end="67" />
+            <segment intObjectId="Q09472" start="1789" end="1789" />
+        </block>
+        <block blockOrder="7">
+            <segment intObjectId="2K8F.A" start="68" end="68" />
+            <segment intObjectId="Q09472" start="1790" end="1790" />
+        </block>
+        <block blockOrder="8">
+            <segment intObjectId="2K8F.A" start="69" end="90" />
+            <segment intObjectId="Q09472" start="1791" end="1812" />
+        </block>
+    </alignment>
+    <alignment alignType="PDB_SP">
+        <alignObject dbAccessionId="2K8F" intObjectId="2K8F" objectVersion="unknown" type="STRUCTURE" dbSource="PDB" dbVersion="latest" dbCoordSys="PDBresnum,Protein Structure">
+            <alignObjectDetail dbSource="PDB" property="title">Structural Basis for the Regulation of p53 Function by p300</alignObjectDetail>
+            <alignObjectDetail dbSource="PDB" property="citation">Structural Basis for p300 Taz2-p53 TAD1 Binding and Modulation by Phosphorylation.</alignObjectDetail>
+            <alignObjectDetail dbSource="PDB" property="pubmed_id">19217391</alignObjectDetail>
+            <alignObjectDetail dbSource="PDB" property="method">SOLUTION NMR</alignObjectDetail>
+            <alignObjectDetail dbSource="PDB" property="release">2009-03-03</alignObjectDetail>
+        </alignObject>
+        <alignObject dbAccessionId="P04637" intObjectId="P04637" objectVersion="unknown" type="PROTEIN" dbSource="UniProt" dbVersion="latest" dbCoordSys="UniProt,Protein Sequence">
+            <alignObjectDetail dbSource="UniProtKB" property="title"></alignObjectDetail>
+        </alignObject>
+        <block blockOrder="1">
+            <segment intObjectId="2K8F.B" start="1" end="39" />
+            <segment intObjectId="P04637" start="1" end="39" />
+        </block>
+    </alignment>
+</dasalignment>

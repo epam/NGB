@@ -1,0 +1,14 @@
+<div layout="row" class="u-height__full">
+    <div layout="column" flex>
+        <md-content flex>
+            <div ng-if="$ctrl.isProgressShown">
+                <div class="progress" layout-align="center center">
+                    <span>Loading variations...</span>
+                </div>
+                <md-progress-linear md-mode="query"></md-progress-linear>
+            </div>
+            <ngb-variants-table is-progress-shown="$ctrl.isProgressShown"></ngb-variants-table>
+        </md-content>
+    </div>
+</div>
+

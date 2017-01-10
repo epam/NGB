@@ -1,0 +1,31 @@
+$chromosome-control-height: 34px;
+
+md-input-container.chromosome-control {
+  margin: 0;
+  padding-left: $space * 4;
+
+  .material-icons {
+    color: $ngb-color-blue-light;
+    position: absolute;
+    top: 7px;
+    left:0;
+  }
+
+  > md-autocomplete {
+    background: none transparent;
+    height: $chromosome-control-height;
+    button {
+      margin: 4px 0 0 0;
+    }
+  }
+
+  .md-input {
+    margin-top: 4px;
+  }
+
+  md-autocomplete-wrap {
+    box-shadow: $whiteframe-shadow-0;
+    flex-direction: row-reverse;
+    height: $chromosome-control-height;
+  }
+}

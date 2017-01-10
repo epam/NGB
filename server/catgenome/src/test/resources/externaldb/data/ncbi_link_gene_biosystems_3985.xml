@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE eLinkResult PUBLIC "-//NLM//DTD elink 20101123//EN" "http://eutils.ncbi.nlm.nih.gov/eutils/dtd/20101123/elink.dtd">
+<eLinkResult>
+<LinkSet>
+	<DbFrom>gene</DbFrom>
+	<IdList>
+		<Id>3985</Id>
+	</IdList>
+	<LinkSetDbHistory>
+		<DbTo>biosystems</DbTo>
+		<LinkName>gene_biosystems</LinkName>
+		<QueryKey>1</QueryKey>
+	</LinkSetDbHistory>
+	<WebEnv>NCID_1_23738595_165.112.9.28_9001_1460538915_1245746636_0MetA0_S_MegaStore_F_1</WebEnv>
+</LinkSet>
+</eLinkResult>

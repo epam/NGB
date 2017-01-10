@@ -1,0 +1,17 @@
+ngb-bookmarks-table {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.project-not-selected-warning {
+  padding-top: 20px;
+  text-align: center;
+  span {
+    font-size: small;
+    color: #999999;
+    strong {
+      color: #666666;
+    }
+  }
+}

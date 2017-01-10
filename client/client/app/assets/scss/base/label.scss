@@ -1,0 +1,38 @@
+.md-label {
+  display: inline-block;
+  padding: .2em;
+  font-size: 1em;
+  box-sizing: padding-box;
+  color: $ngb-text-color;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  border-radius: 3px;
+
+  &__block {
+    display: block;
+  }
+
+  &__round {
+    height: 2em;
+    line-height: 2em;
+    width: 2em;
+    border-radius: 500px;
+  }
+
+  &__acsent {
+    background-color: $ngb-color-blue-light;
+    color: #fff;
+  }
+
+  &__light {
+    background-color: $ngb-color-gray-light;
+  }
+
+  &__selectable {
+    &:hover {
+      background-color: $ngb-color-blue-lightest;
+    }
+  }
+}
+

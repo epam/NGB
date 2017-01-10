@@ -1,0 +1,11 @@
+.md-chips {
+  font-size: $ngb-font-size;
+}
+
+ngb-chips {
+  &.md-label{
+    padding: 3px;
+    font-size: $ngb-font-size-sm;
+    line-height: 18px;
+  }
+}

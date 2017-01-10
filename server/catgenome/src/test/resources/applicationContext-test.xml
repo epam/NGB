@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context.xsd
+                           http://www.springframework.org/schema/util
+                           http://www.springframework.org/schema/util/spring-util.xsd"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans">
+
+    <!-- configures properties' placeholder to resolve placeholders for bean configurations -->
+    <util:properties id="catgenome" location="classpath:test-catgenome.properties"/>
+    <context:property-placeholder properties-ref="catgenome" order="1" ignore-unresolvable="true"/>
+
+    <!-- Registers messages bundle and helper to process messages by given codes and provided parameters -->
+    <import resource="classpath:conf/catgenome/applicationContext-messages.xml"/>
+
+    <!-- Registers and configures beans used to support access to a database and required for
+         transaction management through AOP
+     -->
+    <import resource="classpath:conf/catgenome/applicationContext-database.xml"/>
+
+    <import resource="classpath:test-applicationContext-flyway.xml"/>
+
+    <!-- Registers required post-processors and enables auto-detection of annotated components,
+         excluding all controllers from application component scanning. All controllers should
+         be scanned in the proper MVC configuration
+    -->
+    <context:annotation-config/>
+    <context:component-scan base-package="com.epam.catgenome">
+        <!-- Excludes all controllers from application context component scanning. All controllers
+             should be scanned by in a proper MVC configuration
+        -->
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!-- Multipart resolver required to support file upload -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
+
+</beans>

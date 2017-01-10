@@ -1,0 +1,24 @@
+<md-menu-bar ng-if="!$ctrl.isClicked" style="padding: 0">
+    <md-menu-content width="4">
+        <md-menu-item ng-repeat="entry in $ctrl.menuData">
+            <md-menu ng-if="entry.submenu" md-position-mode="cascade">
+                <md-button     aria-label="entry.title" ng-click="$ctrl.closeOthers();$mdOpenMenu();">
+                    {{entry.title}}
+                </md-button>
+                <md-menu-content>
+                    <md-menu-item ng-repeat="submenuitem in entry.submenu">
+                        <md-button ng-clo>
+                            {{submenuitem.title}}
+                        </md-button>
+                    </md-menu-item>
+                </md-menu-content>
+            </md-menu>
+            <md-button ng-if="!entry.clipboard && !entry.submenu" ng-click="$ctrl.clickItem($event,entry)">
+                {{entry.title}}
+            </md-button>
+            <md-button class="copy-to-clipboard-button" ng-if="entry.clipboard" data-clipboard-text="{{entry.clipboard}}" ng-click="$ctrl.closeItem()">
+                {{entry.title}}
+            </md-button>
+        </md-menu-item>
+    </md-menu-content>
+</md-menu-bar>

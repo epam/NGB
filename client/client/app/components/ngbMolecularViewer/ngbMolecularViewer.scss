@@ -1,0 +1,17 @@
+ngb-molecular-viewer {
+
+  .md-toolbar-panel {
+    md-input-container {
+      margin: 7px 0 7px 12px;
+    }
+  }
+  .option-hack {
+    display: inline;
+  }
+
+}
+md-option .md-text .option-hack {
+  display: none;
+}
+
+

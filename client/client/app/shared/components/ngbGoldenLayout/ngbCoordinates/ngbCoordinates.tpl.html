@@ -1,0 +1,63 @@
+<div layout="column">
+    <div ng-hide="$ctrl.isProjectSelected">
+        Browser
+    </div>
+    <div flex layout="row" ng-show="$ctrl.isProjectSelected">
+        <div class="chromosome-block">
+            <md-input-container aria-label="chromosome selection" class="md-block" md-no-float
+                                ng-if="$ctrl.isChromosomeEditingMode" title="">
+                <input type="text"
+                       aria-label="chromosome input"
+                       ng-model="$ctrl.chromosomeText"
+                       ng-key-bind="{ enter: '$ctrl.didTypeChromosome($event)', esc: '$ctrl.discardEdit()' }"
+                       ng-mousedown="$event.stopImmediatePropagation();"
+                       ng-click="$event.stopImmediatePropagation()"
+                       ng-blur="$ctrl.discardEdit();"
+                       ng-change="$ctrl.inputChanged('chromosome');"
+                       onfocus="this.setSelectionRange(0, this.value.length)"
+                       placeholder="Chromosome"
+                       ng-auto-focus>
+            </md-input-container>
+            <a class="chromosome-link" ng-if="!$ctrl.isChromosomeEditingMode"
+               ng-click="$ctrl.startEdit('chromosome')">{{$ctrl.chromosomeText ? ($ctrl.chromosomeText.toLowerCase().indexOf('chr') === 0 ? $ctrl.chromosomeText : ('Chr:' + $ctrl.chromosomeText)) : 'Chr:none'}}</a>
+        </div>
+        <div class="coordinates-block">
+            <md-input-container aria-label="chromosome selection" class="md-block" md-no-float
+                                ng-if="$ctrl.isCoordinatesEditingMode" title="">
+                <input type="text"
+                       aria-label="coordinates input"
+                       ng-model="$ctrl.coordinatesText"
+                       ng-key-bind="{ enter: '$ctrl.didTypeCoordinates($event)', esc: '$ctrl.discardEdit()' }"
+                       ng-mousedown="$event.stopImmediatePropagation();"
+                       ng-click="$event.stopImmediatePropagation()"
+                       ng-blur="$ctrl.discardEdit();"
+                       ng-change="$ctrl.inputChanged('coordinates');"
+                       onfocus="this.setSelectionRange(0, this.value.length)"
+                       ng-auto-focus>
+            </md-input-container>
+            <a class="coordinates-link" ng-if="!$ctrl.isCoordinatesEditingMode"
+               ng-click="$ctrl.startEdit('coordinates')">{{$ctrl.coordinatesText || 'Type coordinates'}}</a>
+        </div>
+    </div>
+    <div flex
+         layout="column"
+         class="coordinates-menu"
+         md-whiteframe="2"
+         ng-if="$ctrl.isEditingMode && ($ctrl.contextMenuItems.length > 0 || $ctrl.hints.length > 0)"
+         ng-mousedown="$ctrl.preventGoldenLayoutPanelDrag($event)"
+         title="" ngb-safe-scroll>
+        <div ng-repeat="hint in $ctrl.hints" class="coordinates-menu-item hint">
+            {{hint}}
+        </div>
+        <md-divider ng-if="$ctrl.hints.length > 0 && $ctrl.contextMenuItems.length > 0"></md-divider>
+        <md-button aria-label="{{$index}} menu button"
+                   ng-repeat="item in $ctrl.contextMenuItems track by $index"
+                   class="coordinates-menu-item"
+                   ng-click="$ctrl.didSelectContextMenuItem(item);">
+            <span ng-if="item.type === 'feature'" class="context-menu-item">{{item.name}}</span>
+            <span ng-if="item.type === 'feature'" class="context-menu-item-subtitle">{{item.subTitle}}</span>
+            <span ng-if="item.type === 'chromosome'" class="context-menu-item">{{item.name}}</span>
+        </md-button>
+    </div>
+</div>
+

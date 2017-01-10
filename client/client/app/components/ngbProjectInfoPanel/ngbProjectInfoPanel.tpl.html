@@ -1,0 +1,21 @@
+<ngb-variant-density-diagram ng-show="$ctrl.containsVcfFiles"></ngb-variant-density-diagram>
+<div layout="row" flex class="u-column-padding u-padding_t-0" ng-style="{'height' : $ctrl.containsVcfFiles ? '66%' : '100%'}">
+    <div flex="100" ng-hide="$ctrl.containsVcfFiles">
+        <ngb-project-summary flex></ngb-project-summary>
+    </div>
+    <div flex="50" ng-show="$ctrl.containsVcfFiles">
+        <ngb-project-summary flex></ngb-project-summary>
+    </div>
+    <div flex="50" ng-show="$ctrl.containsVcfFiles">
+        <div layout="row" flex class="u-height__50 u-padding_b-sm">
+            <div flex="100">
+                <ngb-variant-type-diagram></ngb-variant-type-diagram>
+            </div>
+        </div>
+        <div layout="row" flex class="u-height__50 u-padding_t-sm">
+            <div flex="100">
+                <ngb-variant-quality-diagram></ngb-variant-quality-diagram>
+            </div>
+        </div>
+    </div>
+</div>

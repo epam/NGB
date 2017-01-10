@@ -1,0 +1,22 @@
+.md-tooltip {
+  &__full-height {
+    .md-content {
+      height: auto;
+      line-height: 2;
+    }
+  }
+}
+
+track-tooltip {
+  table {
+    margin: 0 0;
+    background-color: #FFF;
+    td {
+      line-height: 25px;
+    }
+  }
+}
+
+track-menu {
+
+}

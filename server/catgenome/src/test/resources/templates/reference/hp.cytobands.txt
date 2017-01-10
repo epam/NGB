@@ -1,0 +1,9 @@
+chrA1	0	230	p	gneg
+chrA1	150	145	cen	acen
+chrA1	146	200	cen	acen
+chrA2	2	34	q2.34	stalk
+chrA2	56	100		gneg
+chrA3	0	170		gneg
+chrA3	10	71		gvar
+chrA3	80	78		gpos25
+chrA4	0	35		gpos100

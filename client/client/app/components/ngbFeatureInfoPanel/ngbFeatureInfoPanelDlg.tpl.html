@@ -1,0 +1,23 @@
+<md-dialog aria-label="feature" class="feature-dialog">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2 ng-show="name">{{name}}</h2>
+            <h2 ng-hide="name">Feature info</h2>
+            <span flex></span>
+            <md-button class="md-icon-button" ng-click="close()" aria-label="Close">
+                <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    <md-dialog-content>
+        <div layout="column">
+            <ngb-feature-info-panel properties="properties"
+                                    reference-id="referenceId"
+                                    chromosome-id="chromosomeId"
+                                    start-index="startIndex"
+                                    end-index="endIndex"
+                                    read="read"
+                                    name="name" flex></ngb-feature-info-panel>
+        </div>
+    </md-dialog-content>
+</md-dialog>

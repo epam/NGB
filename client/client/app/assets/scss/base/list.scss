@@ -1,0 +1,20 @@
+
+ul {
+  margin: 0;
+  padding-left: 16px;
+
+  li {
+    font-size: $ngb-font-size;
+    font-family: $font-family;
+  }
+}
+
+ul.simple-list {
+
+  li {
+    font-size: 14px;
+    list-style-image: linear-gradient(#4285f4 0, #3367D6 50%, #8fc2f4 50%);
+    padding: 0 8px 8px;
+
+  }
+}

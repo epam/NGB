@@ -1,0 +1,12 @@
+.ngb-filter {
+  md-toolbar {
+    background-color: $ngb-color-blue-light2;
+    color: #fff;
+    text-transform: uppercase;
+    min-height: 40px;
+    .md-toolbar-tools {
+      font-size: 18px;
+      padding: $space $space-md;
+    }
+  }
+}

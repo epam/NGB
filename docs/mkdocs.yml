@@ -1,0 +1,30 @@
+site_name: New Genome Browser 2.1
+pages:
+    - Home: index.md
+    - Installation guide:
+        - Overview: installation/overview.md
+        - Using Docker: installation/docker.md
+        - Using Binaries: installation/binaries.md
+    - Command Line Interface guide:
+        - Overview: cli/introduction.md
+        - CLI Installation: cli/installation.md
+        - Running a command: cli/running-command.md
+        - Accomplishing typical tasks: cli/typical-tasks.md
+        - Command reference: cli/command-reference.md
+    - User Interface Guide:
+        - Overview: user-guide/overview.md
+        - Working with datasets: user-guide/datasets.md
+        - Working with tracks: user-guide/tracks.md
+        - Reference track: user-guide/tracks-reference.md
+        - Genes track: user-guide/tracks-genes.md        
+        - VCF track: user-guide/tracks-vcf.md
+        - WIG track: user-guide/tracks-wig.md
+        - BED track: user-guide/tracks-bed.md
+        - Aignments track: user-guide/tracks-bam.md
+        - Working with Annotations: user-guide/annotations.md
+theme: material  
+theme_dir: material-epam-theme
+docs_dir: md
+use_directory_urls: false
+extra:
+  logo: assets/images/logo.png

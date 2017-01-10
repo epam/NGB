@@ -1,0 +1,66 @@
+export const ZONES_MANAGER_DEFAULT_ZONE_NAME = 'default';
+const Math = window.Math;
+
+export default class FeatureBaseRenderer{
+
+    _config;
+    _opts;
+    _textureCoordinates;
+
+    constructor(config, registerLabel, registerDockableElement, registerFeaturePosition){
+        this._config = config;
+        this._registerLabel = registerLabel;
+        this._registerDockableElement = registerDockableElement;
+        this._registerFeaturePosition = registerFeaturePosition;
+    }
+
+    get config() { return this._config; }
+    get registerLabel() { return this._registerLabel; }
+    get registerDockableElement() { return this._registerDockableElement; }
+    get registerFeaturePosition() { return this._registerFeaturePosition; }
+
+    get textureCoordinates() {
+        return this._textureCoordinates;
+    }
+
+    initializeRenderingSession() {
+        this._textureCoordinates = {
+            x: null,
+            y: null
+        };
+    }
+
+    updateTextureCoordinates(coordinates) {
+        const {x, y} = coordinates;
+        if (!this._textureCoordinates.x || this._textureCoordinates.x > x) {
+            this._textureCoordinates.x = x;
+        }
+        if (!this._textureCoordinates.y || this._textureCoordinates.y > y) {
+            this._textureCoordinates.y = y;
+        }
+    }
+
+    analyzeBoundaries(feature, viewport){
+        if (feature.hasOwnProperty('startIndex') && feature.hasOwnProperty('endIndex')){
+            const pixelsInBp = viewport.factor; // pixels in 1 bp.
+            const x1 = Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize) - pixelsInBp / 2;
+            const x2 = Math.min(viewport.project.brushBP2pixel(feature.endIndex), 2 * viewport.canvasSize) + pixelsInBp / 2;
+            return {
+                margin:{
+                    marginX: 0,
+                    marginY: 0
+                },
+                rect: {
+                    x1: x1,
+                    x2: x2,
+                    y1: 0,
+                    y2: 20
+                }
+            };
+        }
+        return null;
+    }
+
+    render(){
+    }
+}

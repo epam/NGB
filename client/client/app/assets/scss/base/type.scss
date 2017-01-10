@@ -1,0 +1,28 @@
+.title__first {
+  margin-top: 0;
+}
+
+h4 {
+  margin: $space 0;
+}
+
+h5 {
+  margin: $space 0;
+}
+
+.text {
+  &__sm {
+    font-size: $caption-font-size-base;
+  }
+  &__ellipsis {
+    display: inline-block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.capitalize {
+  text-transform: capitalize;
+}

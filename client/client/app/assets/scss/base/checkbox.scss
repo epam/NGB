@@ -1,0 +1,27 @@
+md-checkbox {
+  margin-bottom: $space;
+  font-size: $ngb-font-size;
+
+
+  .md-label {
+    text-align: left;
+  }
+
+}
+
+.md-checkbox {
+  &__ellipsis {
+    max-width: 100%;
+    .md-label  {
+      display: block;
+      span {
+        display: inline-block;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+      }
+    }
+  }
+}

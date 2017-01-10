@@ -1,0 +1,9 @@
+ngb-tracks-view {
+  position: relative;
+  display: block;
+  background-color: #ffffff;
+}
+
+ngb-tracks-view .dndHasDraggingElement ngb-track {
+  transition: transform .25s ease-out;
+}

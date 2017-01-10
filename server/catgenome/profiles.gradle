@@ -1,0 +1,44 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+// copies properties file and filers resources based on environment
+task copyConfiguration << {
+    println "Target profile: $profile"
+    println "Target database: $database"
+    println "Build number: $buildNumber"
+    // specifies the content root directory? used to store
+    //filterTokens.putAt("rootDirPath", profile == "dev" ? escape(rootDir.absolutePath)  : "")
+    filterTokens.putAt("rootDirPath", escape(rootDir.absolutePath))
+    filterTokens.putAt("version", escape("$buildNumber"))
+
+    copy {
+        from "profiles/$profile"
+        into "$buildDir/resources/main"
+        include "*/"
+        filter(ReplaceTokens, tokens: project.filterTokens)
+    }
+
+    copy {
+        from "profiles/version.properties"
+        into "$buildDir/resources/main"
+        filter(ReplaceTokens, tokens: project.filterTokens)
+    }
+
+    copy {
+        from "profiles/$database"
+        into "$buildDir/resources/main/conf/catgenome"
+        include "applicationContext*"
+    }
+
+    copy {
+        from "profiles/$database/dao"
+        into "$buildDir/resources/main/conf/catgenome/dao"
+        include "dao-helper.xml"
+    }
+
+    copy {
+        from "profiles/$database"
+        into "$buildDir/resources/test"
+        include "test*"
+        filter(ReplaceTokens, tokens: project.filterTokens)
+    }
+}

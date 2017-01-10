@@ -1,0 +1,79 @@
+<div ng-cloak>
+    <md-content>
+        <md-tabs md-dynamic-height md-border-bottom>
+            <md-tab label="Colors">
+                <md-content class="md-padding">
+                    <div layout="row">
+                        <div layout="column" flex="25">
+                            <div ng-repeat="color in $ctrl.colors  track by $index"
+                                 md-colors="{background: 'primary-{{color}}'}"
+                                 md-justified="column" class="primary line">
+                                <span>primary-{{color}}</span>
+                            </div>
+
+                        </div>
+                        <div layout="column" flex="25">
+                            <div ng-repeat="color in $ctrl.colors  track by $index"
+                                 md-colors="{background: 'accent-{{color}}'}"
+                                 md-justified="column" class="primary line">
+                                <span>accent-{{color}}</span>
+                            </div>
+                            <div ng-repeat="color in ['DEL','INS','SNV','BND','INV','DUP','UNK']  track by $index"
+                                 md-colors="{background: 'accent-{{color}}'}"
+                                 md-justified="column" class="primary line">
+                                <span>accent-{{color}}</span>
+                            </div>
+
+                        </div>
+                        <div layout="column" flex="25">
+                            <div ng-repeat="color in $ctrl.colors  track by $index"
+                                 md-colors="{background: 'warn-{{color}}'}"
+                                 md-justified="column" class="primary line">
+                                <span>warn-{{color}}</span>
+                            </div>
+
+                        </div>
+                        <div layout="column" flex="25">
+                            <div ng-repeat="color in $ctrl.colors  track by $index"
+                                 md-colors="{background: 'background-{{color}}'}"
+                                 md-justified="column" class="primary line">
+                                <span>background-{{color}}</span>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </md-content>
+            </md-tab>
+            <md-tab label="Log">
+                <md-content class="md-padding">
+                    <md-button ng-click="$ctrl.clearLog()">
+                        CLEAR LOG
+                    </md-button>
+                    <div ng-repeat="message in $ctrl.getMessage() track by $index"
+                         ng-class="{error: message.startsWith('ERROR'),hub: message.startsWith('HUB')}">
+                        {{message}}
+                    </div>
+                </md-content>
+            </md-tab>
+            <md-tab label="Current Events" md-on-select="$ctrl.getEventNames()">
+                <md-content class="md-padding">
+                    <div ng-repeat="event in $ctrl.events track by $index">
+                        {{event.key}} : {{event.len}}
+                    </div>
+                </md-content>
+            </md-tab>
+
+
+            <md-tab label="Current State">
+                <md-content class="md-padding">
+                    <div ng-repeat="state in $ctrl.getState() track by $index">
+                        {{state}} : {{ $ctrl.state[state]}}
+                    </div>
+                </md-content>
+            </md-tab>
+
+
+        </md-tabs>
+    </md-content>
+</div>

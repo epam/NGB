@@ -1,0 +1,21 @@
+ngb-project-summary {
+  h2, h5 {
+    margin-bottom: 0;
+  }
+  .created-date > span{
+    display: inline-block;
+    width: 70px;
+  }
+  .frame {
+    margin-right: 4px;
+    margin-bottom: 8px;
+  }
+
+  table td {
+    padding: 0;
+    border-bottom: none;
+  }
+  .project-summary-layout {
+    height:100%;
+  }
+}

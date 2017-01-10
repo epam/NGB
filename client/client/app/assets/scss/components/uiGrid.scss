@@ -1,0 +1,97 @@
+.ui-grid-container {
+  height: 100%;
+  overflow: hidden;
+
+  .ui-grid {
+    height: 100% !important;
+  }
+  .ui-grid-header-viewport {
+    background-color: #fff;
+  }
+  .ui-grid-cell-contents {
+    font-size: 12px;
+    align-self: center;
+    height: auto;
+
+    &.md-button {
+      margin: 0;
+      padding: 5px 4px 3px 4px;
+      width: 100%;
+      text-transform: none;
+      color: $ngb-text-color;
+      border-radius: 0;
+      line-height: 12px;
+      min-height: 20px;
+      min-width: 50px;
+
+    }
+  }
+  .ui-grid-cell {
+    border-right: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, .12);
+    display: flex;
+    justify-content: left;
+
+  }
+  .ui-grid-row:nth-child(odd) .ui-grid-cell, .ui-grid-row:nth-child(even) .ui-grid-cell {
+    background-color: #fff;
+  }
+
+  .ui-grid-header-cell {
+    background-color: #fff;
+    font-size: 12px;
+    font-weight: normal;
+
+
+  }
+  .ui-grid-row.ui-grid-row-selected > [ui-grid-row] > .ui-grid-cell {
+    background-color: $state-selected-bg;
+  }
+  .ui-grid-row:hover > [ui-grid-row] > .ui-grid-cell, .ui-grid-row.ui-grid-row-selected:hover > [ui-grid-row] > .ui-grid-cell {
+    background-color: $state-hover-bg;
+  }
+  .ui-grid-header-cell .ui-grid-sort-priority-number {
+    margin-left: -6px;
+  }
+  .ui-grid-column-menu-button {
+    outline: none;
+  }
+  .ui-grid-menu-button {
+    background: transparent;
+    border: none;
+    .ui-grid-icon-container {
+      margin: 0;
+      outline: none;
+    }
+    .ui-grid-icon-menu:before {
+      margin: 12px 18px;
+      font-size: 22px;
+      color: #666;
+    }
+  }
+
+  .ui-grid-menu {
+    .ui-grid-menu-inner {
+      border: none;
+      background-color: #fff;
+    }
+    .ui-grid-icon-cancel, .ui-grid-icon-ok {
+      color: #666;
+    }
+  }
+  .ui-grid-menu-inner ul li button:hover,
+  .ui-grid-menu-inner ul li button:focus {
+    box-shadow: none;
+    background-color: rgba(158, 158, 158, 0.2);
+  }
+
+
+  .ui-grid-filter-container {
+    padding: 0px 10px 2px;
+    position: relative;
+  }
+
+  [ui-grid-filter].enabled-filter {
+    min-height: 38px;
+  }
+}

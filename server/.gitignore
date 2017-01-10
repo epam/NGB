@@ -1,0 +1,14 @@
+/H2
+/out
+/catgenome/build
+/ngb-cli/build
+/contents
+/.settings
+/.classpath
+/.idea
+/.gradle
+/catgenome.iws
+/catgenome/src/main/webapp/*.*
+catgenome.iml
+catgenome.ipr
+catgenome.iws

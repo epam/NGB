@@ -1,0 +1,96 @@
+$track-border-color: #cccccc;
+
+ngb-track {
+  display: block;
+  z-index: 0;
+  width: 100%;
+}
+
+.ngb-track-header-type {
+  margin-right: 10px;
+}
+
+.ngb-track-header-file-name {
+  margin-right: 10px;
+}
+
+.ngb-track-container {
+  background-color: #ffffff;
+  margin: 1px 5px 0px 5px;
+  border: 1px solid $track-border-color;
+}
+
+ngb-track .ngb-track-container {
+  box-shadow: 0 0 0 0 white;
+  transition: box-shadow .1s ease-in-out;
+}
+
+ngb-track.dndDragging .ngb-track-container, ngb-track.resizing .ngb-track-container {
+  box-shadow: 0px 0px 30px -5px rgba(0, 0, 0, 0.5);
+}
+
+.ngb-track-ruler-container {
+  margin: 5px;
+  padding: 1px;
+}
+
+.ngb-track-header {
+  height: 20px;
+  font-size: 9pt;
+  background-color: #eeeeee;
+  border-bottom: 1px solid $track-border-color;
+  color: black;
+  cursor: move;
+  margin-bottom: 2px;
+  padding-left: 5px;
+}
+
+.ngb-track-header-hidden {
+  visibility: hidden;
+  height: 0px;
+}
+
+.ngb-track-renderer {
+
+}
+
+.track-info-tooltip {
+  width: 300px;
+  height: 50px;
+  margin: 0 35%;
+  background-color: #edee2d;
+}
+
+.ngb-resize-panel {
+  height: 5px;
+  background-color: transparent;
+  cursor: ns-resize;
+}
+
+.ngb-track-placeholder {
+  height: 1px;
+  background: transparent;
+}
+ngb-track-menu {
+  display: block;
+}
+
+.ngb-track-header-action-button {
+  border-left: 1px solid $track-border-color;
+  padding-right: 5px;
+}
+
+.ngb-track-header-action-button:last-child {
+  border-right: 1px solid $track-border-color;
+}
+
+.ngb-track-header-checkbox {
+  transform: scale(.6);
+  margin: 0px;
+  width: 20px;
+}
+
+.ngb-track-header-message {
+  margin-left: 5px;
+  color: #666666;
+}

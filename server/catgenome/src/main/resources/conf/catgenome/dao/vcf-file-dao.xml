@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.vcf.VcfFileDao" id="vcfFileDao" autowire="byName">
+        <property name="vcfFileSequenceName" value="catgenome.s_vcf_file" />
+        <property name="vcfSampleSequenceName" value="catgenome.s_vcf_sample" />
+        <property name="createVcfFileQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.vcf (
+                        vcf_id,
+                        bio_data_item_id,
+                        reference_genome_id,
+                        index_id,
+                        compressed)
+                    VALUES (
+                        :VCF_ID,
+                        :BIO_DATA_ITEM_ID,
+                        :REFERENCE_GENOME_ID,
+                        :INDEX_ID,
+                        :COMPRESSED)
+                ]]>
+            </value>
+        </property>
+        <property name="loadVcfFileQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.format,
+                        b.created_by,
+                        b.created_date,
+                        b.bucket_id,
+                        v.vcf_id,
+                        v.reference_genome_id as vcf_reference_genome_id,
+                        v.compressed as vcf_compressed,
+
+                        i.bio_data_item_id as index_id,
+                        i.name as index_name,
+                        i.type as index_type,
+                        i.path as index_path,
+                        i.format as index_format,
+                        i.created_by as index_created_by,
+                        i.bucket_id as index_bucket_id,
+                        i.created_date as index_created_date
+                    FROM catgenome.vcf v
+                        JOIN catgenome.biological_data_item b ON v.bio_data_item_id = b.bio_data_item_id
+                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = v.index_id
+                    WHERE v.vcf_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadVcfFilesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.format,
+                        b.created_by,
+                        b.created_date,
+                        b.bucket_id,
+                        v.vcf_id,
+                        v.reference_genome_id as vcf_reference_genome_id,
+                        v.compressed as vcf_compressed,
+
+                        i.bio_data_item_id as index_id,
+                        i.name as index_name,
+                        i.type as index_type,
+                        i.path as index_path,
+                        i.format as index_format,
+                        i.created_by as index_created_by,
+                        i.bucket_id as index_bucket_id,
+                        i.created_date as index_created_date
+                    FROM catgenome.vcf v
+                        JOIN catgenome.biological_data_item b ON v.bio_data_item_id = b.bio_data_item_id
+                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = v.index_id
+                        JOIN t_list tmp ON v.vcf_id = tmp.list_value
+                    WHERE tmp.list_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadVcfFilesByReferenceIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.format,
+                        b.created_by,
+                        b.created_date,
+                        b.bucket_id,
+                        v.vcf_id,
+                        v.reference_genome_id as vcf_reference_genome_id,
+                        v.compressed as vcf_compressed,
+
+                        i.bio_data_item_id as index_id,
+                        i.name as index_name,
+                        i.type as index_type,
+                        i.path as index_path,
+                        i.format as index_format,
+                        i.created_by as index_created_by,
+                        i.bucket_id as index_bucket_id,
+                        i.created_date as index_created_date
+                    FROM catgenome.vcf v
+                        JOIN catgenome.biological_data_item b ON v.bio_data_item_id = b.bio_data_item_id
+                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = v.index_id
+                    WHERE reference_genome_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="createSamplesForFileQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.vcf_sample (
+                        vcf_sample_id,
+                        vcf_id,
+                        sample_name,
+                        order_index)
+                    VALUES (
+                        :VCF_SAMPLE_ID,
+                        :VCF_ID,
+                        :SAMPLE_NAME,
+                        :ORDER_INDEX)
+                ]]>
+            </value>
+        </property>
+        <property name="loadSamplesForFileQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        vcf_sample_id,
+                        sample_name,
+                        order_index
+                    FROM catgenome.vcf_sample
+                    WHERE vcf_id = ?
+                    ORDER BY order_index
+                ]]>
+            </value>
+        </property>
+        <property name="loadSamplesByFileIdsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        s.vcf_sample_id,
+                        s.sample_name,
+                        s.order_index,
+                        s.vcf_id
+                    FROM catgenome.vcf_sample s
+                        JOIN t_list tmp ON s.vcf_id = tmp.list_value
+                    WHERE tmp.list_id = ?
+                    ORDER BY order_index
+                ]]>
+            </value>
+        </property>
+        <property name="loadSamplesForFilesByReferenceIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        s.vcf_sample_id,
+                        s.sample_name,
+                        s.vcf_id,
+                        s.order_index
+                    FROM catgenome.vcf_sample s
+                        JOIN catgenome.vcf f ON s.vcf_id = f.vcf_id
+                    WHERE f.reference_genome_id = ?
+                    ORDER BY s.vcf_id, s.order_index
+                ]]>
+            </value>
+        </property>
+        <property name="deleteVcfFileQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.vcf WHERE vcf_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteVcfSampleQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.vcf_sample WHERE vcf_id = ?
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

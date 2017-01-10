@@ -1,0 +1,69 @@
+.error-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -45px;
+  z-index: 1;
+  font-size: small;
+}
+
+/*
+  Common diagram styles
+*/
+.chart-holder {
+  border : 1px solid rgba(0, 0, 0, 0.12);
+  width: 100%; height: 100%;
+  position: relative;
+    md-progress-circular {
+      z-index:9999;
+      display: inline-block;
+      position: absolute;
+      right: 12px; top: 25px;
+      margin: -12px 0 0 -12px;
+    }
+  .title {
+    margin: 10px 0 0 0;
+    font-weight: bold;
+    }
+  nvd3 {
+    height: 100%;
+    svg {
+      height: 100%;
+    }
+    g {
+      text {
+        stroke: none;
+        font-family: Verdana;
+        font-size: 12px;
+      }
+      rect:hover {
+        opacity : 0.8;
+      }
+    }
+    g.nv-axis {
+      .nv-axisMaxMin-y {
+        text {
+          font-weight: bold;
+        }
+      },
+      .nv-axisMaxMin-x {
+        text {
+          font-weight: bold;
+          }
+        }
+      .tick {
+        margin-top: 4px;
+        text {
+          font-weight: bold;
+        }
+      }
+    }
+    g.nv-bar {
+      text {
+        display: inline-block; border: 1px solid red;
+        fill-opacity: 100;
+        fill: #000;
+        }
+      }
+  }
+}

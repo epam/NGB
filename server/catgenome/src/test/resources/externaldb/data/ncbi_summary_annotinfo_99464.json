@@ -1,0 +1,48 @@
+{
+    "header": {
+        "type": "esummary",
+        "version": "0.3"
+    },
+    "result": {
+        "uids": [
+            "99464"
+        ],
+        "99464": {
+            "uid": "99464",
+            "build": 99464,
+            "buildname": "38.2",
+            "buildstatuses": [
+                "PUBLIC",
+                "APPROVED",
+                "LATEST"
+            ],
+            "annotreleaseid": 107,
+            "taxid": 9606,
+            "organism": "Homo sapiens",
+            "freezedate": "2015/02/19",
+            "sequencereleasedate": "2015/03/12",
+            "annottargetset": "GCF_000878165.1",
+            "assemblyaccession": [
+                "GCF_000001405.28",
+                "GCF_000306695.2"
+            ],
+            "reporturl": "/genome/annotation_euk/Homo_sapiens/107/",
+            "ftpurl": "ftp://ftp.ncbi.nlm.nih.gov/genomes/H_sapiens/",
+            "blasturl": "/genome/seq/BlastGen/BlastGen.cgi?taxid=9606",
+            "mapviewerurl": "/projects/mapview/map_search.cgi?taxid=9606&amp;build=107",
+            "milestone": [
+                "Sequence databases",
+                "Gene",
+                "Map Viewer",
+                "FTP",
+                "BLAST databases",
+                "Freeze",
+                "SADB",
+                "VDB",
+                "Annotation report",
+                "Reftrack"
+            ]
+        }
+    }
+}
+

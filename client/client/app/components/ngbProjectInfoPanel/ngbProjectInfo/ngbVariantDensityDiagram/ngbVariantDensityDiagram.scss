@@ -1,0 +1,24 @@
+ngb-variant-density-diagram {
+  display:block;
+  height: 33%;
+  position: relative;
+}
+.ngb-variant-density-diagram{
+  height: 100%;
+
+
+
+  .chart-holder {margin-left: 0}
+  }
+
+.ngbDensityDiagram-holder {
+  nvd3 {
+    g {
+      rect:hover {
+        cursor: pointer;
+        }
+      }
+    }
+  }
+
+

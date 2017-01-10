@@ -1,0 +1,4 @@
+rootProject.name = "ngb-server"
+include 'ngb-cli'
+include 'catgenome'
+

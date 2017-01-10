@@ -1,0 +1,73 @@
+$main-bg: #eee;
+$header-text-color: #fff;
+$header-height: 40px;
+$header-toolbar-height: 56px;
+$header-opacity: .5;
+$page-title-space: $space * 4;
+
+$title-dot-size: 8px;
+$title-dot-space: $space * 3;
+
+md-toolbar.md-header-toolbar {
+  min-height: $header-height;
+  ng-md-icon {
+    fill: $header-text-color;
+  }
+  h3 {
+    font-weight: normal;
+    display: inline-block;
+    margin: 0;
+    line-height: $header-height;
+  }
+  h3.page-title {
+    cursor: pointer;
+    font-family: 'Oswald Regular';
+    margin-left: $page-title-space;
+    text-transform: uppercase;
+    opacity: $header-opacity;
+    border-radius: 10px;
+    margin-left: 0;
+  }
+  md-menu {
+    display: inline-block;
+    vertical-align: middle;
+
+  }
+  md-menu-item > .md-button {
+    ng-md-icon {
+      font-size: 24px;
+      vertical-align: middle;
+    }
+  }
+  md-input-container {
+    margin: 4px 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    &md-input-focused {
+      border-bottom: 1px solid transparent ;
+    }
+    md-input-container_search .md-input {
+      height: 30px;
+    }
+  }
+}
+
+md-toolbar.md-project-toolbar {
+  background-color: #fff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  min-height: $header-toolbar-height;
+}
+
+.title-dot {
+  display: inline-block;
+  margin: 0 $title-dot-space;
+  background-color: $header-text-color;
+  opacity: $header-opacity;
+  border-radius: 2 * $title-dot-size;
+  height: $title-dot-size;
+  width: $title-dot-size;
+  vertical-align: middle;
+  &__in-header {
+    margin-bottom: 2px;
+  }
+}

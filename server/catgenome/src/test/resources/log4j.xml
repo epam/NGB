@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd" >
+<log4j:configuration>
+    <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
+        <param name="Target" value="System.out" />
+        <param name="Encoding" value="UTF-8" />
+
+        <!-- Log from DEBUG and higher. -->
+        <param name="Threshold" value="DEBUG"/>
+
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%c{1}] %m%n" />
+        </layout>
+    </appender>
+
+    <category name="org.springframework.aop.framework.CglibAopProxy">
+        <priority value="ERROR"/>
+    </category>
+    <category name="com.epam.catgenome">
+        <priority value="DEBUG"/>
+    </category>
+    <category name="org.apache.commons.beanutils">
+        <priority value="WARN"/>
+    </category>
+    <category name="com.mchange">
+        <priority value="ERROR"/>
+    </category>
+
+    <root>
+        <level value="DEBUG"/>
+        <appender-ref ref="stdout"/>
+    </root>
+</log4j:configuration>

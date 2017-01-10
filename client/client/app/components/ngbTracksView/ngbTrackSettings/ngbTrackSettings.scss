@@ -1,0 +1,25 @@
+
+md-menu-item {
+  width: 100%;
+}
+
+md-menu-content {
+  max-height: 100vh;
+  padding-bottom: 0px;
+}
+
+md-menu-content > * { /*hack for displaying the divider*/
+  display: flex;
+  flex-shrink: 0;
+}
+
+button {
+  background-color: Transparent;
+  border: none;
+  outline:none;
+}
+
+a:hover {
+  cursor:pointer;
+
+}

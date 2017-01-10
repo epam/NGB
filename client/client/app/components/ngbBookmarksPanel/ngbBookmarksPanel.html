@@ -1,0 +1,21 @@
+<div layout="row" class="u-height__full">
+    <div layout="column" flex>
+        <div class="md-toolbar-panel md-whiteframe-2dp">
+            <div layout="row" class="u-column-padding">
+                <md-input-container md-no-float class="md-block md-input-container__simple md-input-container__nospacer" flex>
+                    <input type="text" ng-model="searchPattern" placeholder="Search..."/>
+                </md-input-container>
+                <md-button class="md-icon-button datasets-action"
+                           aria-label="Close"
+                           ng-if="searchPattern && searchPattern.length > 0"
+                           ng-click="$ctrl.clearSearch()">
+                    <ng-md-icon icon="clear" size="20"></ng-md-icon>
+                </md-button>
+            </div>
+        </div>
+        <md-divider></md-divider>
+        <md-content flex>
+            <ngb-bookmarks-table search-pattern="searchPattern"></ngb-bookmarks-table>
+        </md-content>
+    </div>
+</div>

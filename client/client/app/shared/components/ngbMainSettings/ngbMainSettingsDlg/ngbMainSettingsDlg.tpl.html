@@ -1,0 +1,235 @@
+<md-dialog aria-label="Settings">
+
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>Settings</h2>
+            <span flex></span>
+            <md-button class="md-icon-button" ng-click="ctrl.close()" aria-label="Close">
+                <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+
+    <form name="settingsForm">
+        <md-dialog-content style="min-width:600px;max-width:800px;max-height:610px; ">
+            <md-tabs md-dynamic-height md-border-bottom>
+                <md-tab label="GENERAL">
+                    <md-content class="md-padding">
+                        <div class="column">
+                            <div class="row"><h4>Tooltips</h4></div>
+                            <div class="row">
+                                <md-checkbox flex aria-label="Display tooltips" ng-model="ctrl.settings.displayTooltips">
+                                    <div class="hint">
+                                        Display tooltips
+                                    </div>
+                                </md-checkbox>
+                            </div>
+                            <div class="row">
+                                <md-checkbox flex aria-label="Display tooltips" ng-model="ctrl.settings.displayAlignmentsCoverageTooltips" ng-hide="ctrl.settings.displayTooltips">
+                                    <div class="hint">
+                                        Display tooltips for alignments coverage
+                                    </div>
+                                </md-checkbox>
+                            </div>
+                        </div>
+                    </md-content>
+                </md-tab>
+                <md-tab label="ALIGNMENTS">
+                    <md-content class="md-padding">
+                        <div class="column">
+                            <div class="row"><h4>Downsampling</h4></div>
+                            <div class="row">
+                                <md-checkbox flex aria-label="Downsample reads"
+                                             ng-model="ctrl.settings.isDownSampling">
+                                    <div class="hint">
+                                        Downsample reads
+                                    </div>
+                                </md-checkbox>
+                                <span flex ng-if="ctrl.settings.isDownSampling">
+                                <md-input-container flex>
+                                    <input name="maxReadsCount" type="number" placeholder="max reads count"
+                                           ng-required="ctrl.settings.isDownSampling"
+                                           ng-model="ctrl.settings.maxReadsCount"/>
+                                    <div ng-messages="settingsForm.maxReadsCount.$error">
+                                        <div ng-message="required">Enter max reads count</div>
+                                    </div>
+                                </md-input-container>
+
+                                <md-input-container flex>
+                                    <input name="frameSize" type="number" placeholder="frame size"
+                                           ng-required="ctrl.settings.isDownSampling"
+                                           ng-model="ctrl.settings.maxFrameSize"/>
+                                    <div ng-messages="settingsForm.frameSize.$error">
+                                        <div ng-message="required">Enter frame size</div>
+                                    </div>
+                                </md-input-container>
+                            </span>
+                            </div>
+                            <div class="row" flex><h4>Insert size</h4></div>
+                            <div class="row">
+                                <md-input-container>
+                                    <input name="minBpCount" required
+                                           ng-model="ctrl.settings.minBpCount"
+                                           placeholder="minimum (bp)"/>
+                                    <div ng-messages="settingsForm.minBpCount.$error">
+                                        <div ng-message="required">Enter minimum (bp)</div>
+                                    </div>
+                                </md-input-container>
+                                <md-input-container>
+                                    <input name="maxBpCount" type="number" required
+                                           ng-model="ctrl.settings.maxBpCount"
+                                           placeholder="maximum (bp)"/>
+                                    <div ng-messages="settingsForm.maxBpCount.$error">
+                                        <div ng-message="required">Enter maximum (bp)</div>
+                                    </div>
+                                </md-input-container>
+                            </div>
+                            <div class="row"><h4>Track options</h4></div>
+                            <div class="row">
+                                <md-checkbox flex aria-label="Show soft-clipped bases"
+                                             ng-model="ctrl.settings.showSoftClippedBase">
+                                    <div class="hint">
+                                        Show soft-clipped bases
+                                    </div>
+                                </md-checkbox>
+                            </div>
+                            <div class="row">
+                                <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.showCenterLine">
+                                    <div class="hint">
+                                        Show center line
+                                    </div>
+                                </md-checkbox>
+                            </div>
+                            <div class="row" layout="row">
+                                <div flex="50">
+                                    <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.filterReads.pcrOpticalDuplicates">
+                                        <div class="hint">
+                                            Filter PCR/optical duplicates
+                                        </div>
+                                    </md-checkbox>
+                                </div>
+                                <div flex="50">
+                                    <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.filterReads.supplementaryAlignments">
+                                        <div class="hint">
+                                            Filter supplementary alignments
+                                        </div>
+                                    </md-checkbox>
+                                </div>
+                            </div>
+                            <div class="row" layout="row">
+                                <div flex="50">
+                                    <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.filterReads.failedVendorChecks">
+                                        <div class="hint">
+                                            Filter failed vendor checks
+                                        </div>
+                                    </md-checkbox>
+                                </div>
+                                <div flex="50">
+                                    <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.filterReads.secondaryAlignments">
+                                        <div class="hint">
+                                            Filter secondary alignments
+                                        </div>
+                                    </md-checkbox>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <md-input-container>
+                                    <input name="maxRangeBpBam"
+                                           type="number"
+                                           required
+                                           placeholder="maximum range(bp)"
+                                           ng-model-options="{getterSetter: true}"
+                                           ng-model="ctrl.getterSetterMaximumBPForBam"
+                                           ng-min="1000"
+                                           ng-max="50000"/>
+                                    <div ng-messages="settingsForm.maxRangeBpBam.$error" role="alert">
+                                        <div ng-message="required,min,max">Enter maximum range (bp).<br/>Value must be greater than or equal 1000 and less than or equal 50000.</div>
+                                    </div>
+                                </md-input-container>
+                            </div>
+                        </div>
+                    </md-content>
+                </md-tab>
+                <md-tab label="GFF/GTF">
+                    <md-content class="md-padding">
+                        <div class="column">
+                            <div class="row"><h4>Track options</h4></div>
+                            <div class="row">
+                                <md-checkbox flex aria-label="Display tooltips" ng-model="ctrl.settings.gffColorByFeatureType">
+                                    <div class="hint">
+                                        Color by feature type
+                                    </div>
+                                </md-checkbox>
+                            </div>
+                            <div class="row"><h4>Shorten introns</h4></div>
+                            <div class="row">
+                                <md-input-container>
+                                    <input name="shortenedIntronLength"
+                                           type="number"
+                                           required
+                                           placeholder="Intron length(bp)"
+                                           ng-model="ctrl.settings.shortenedIntronLength"
+                                           ng-min="0"
+                                           ng-max="50000"/>
+                                    <div ng-messages="settingsForm.shortenedIntronLength.$error" role="alert">
+                                        <div ng-message="required,min,max">Enter intron length (bp).<br/>Value must be greater than or equal 0 and less than or equal 50000.</div>
+                                    </div>
+                                </md-input-container>
+                            </div>
+                            <div class="row">
+                                <md-input-container>
+                                    <input name="maxRangeBpShortenedIntrons"
+                                           type="number"
+                                           required
+                                           placeholder="maximum range(bp)"
+                                           ng-model="ctrl.settings.shortenedIntronsMaximumRange"
+                                           ng-min="1000"
+                                           ng-max="50000"/>
+                                    <div ng-messages="settingsForm.maxRangeBpShortenedIntrons.$error" role="alert">
+                                        <div ng-message="required,min,max">Enter maximum range (bp).<br/>Value must be greater than or equal 1000 and less than or equal 50000.</div>
+                                    </div>
+                                </md-input-container>
+                            </div>
+                        </div>
+                    </md-content>
+                </md-tab>
+                <md-tab label="Customize">
+
+                    <md-content class="customizations">
+                        <div class="md-toolbar-panel">
+                            <md-button ng-click="ctrl.setToDefaultCustomizations()" class="set-to-default-btn">
+                                SET TO DEFAULTS
+                            </md-button>
+                        </div>
+                        <collapsible ng-repeat="category in ctrl.customizeSettings">
+                            <collapsible-panel is-open="true">
+                                <collapsible-panel-title>
+                                    {{category.label}}
+                                </collapsible-panel-title>
+                                <collapsible-panel-content>
+                                    <table>
+                                        <col width="30%">
+                                        <col width="20%">
+                                        <col width="40%">
+                                        <col width="10%">
+                                        <tr ng-repeat-start="subItem in category.subItems" ngb-customization-table-row setting-item="subItem" customize-settings="ctrl.customizeSettings"></tr>
+                                        <tr ng-repeat-end ng-repeat="item in subItem.subItems" ngb-customization-table-row setting-item="item" customize-settings="ctrl.customizeSettings" ></tr>
+                                    </table>
+                                </collapsible-panel-content>
+                            </collapsible-panel>
+                        </collapsible>
+                    </md-content>
+                </md-tab>
+            </md-tabs>
+
+        </md-dialog-content>
+        <md-dialog-actions layout="row">
+            <md-button class="md-primary" ng-disabled="settingsForm.$invalid" ng-click="ctrl.save()">
+                Save
+            </md-button>
+            <md-button ng-click="ctrl.close()" style="margin-right:20px;">
+                Cancel
+            </md-button>
+        </md-dialog-actions>
+    </form>
+</md-dialog>

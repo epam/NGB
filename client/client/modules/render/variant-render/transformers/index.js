@@ -1,0 +1,1 @@
+export {default as ShortVariantTransformer} from './short-variant-transformer';

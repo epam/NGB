@@ -1,0 +1,391 @@
+package com.epam.catgenome.util;
+
+import java.io.BufferedInputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
+
+import com.epam.catgenome.exception.IndexException;
+import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
+import htsjdk.samtools.seekablestream.SeekableStream;
+import htsjdk.samtools.seekablestream.SeekableStreamFactory;
+import htsjdk.samtools.util.AbstractIterator;
+import htsjdk.samtools.util.BlockCompressedInputStream;
+import htsjdk.samtools.util.BlockCompressedStreamConstants;
+import htsjdk.samtools.util.CloserUtil;
+import htsjdk.samtools.util.LocationAware;
+import htsjdk.samtools.util.RuntimeIOException;
+import htsjdk.samtools.util.Tuple;
+import htsjdk.tribble.AbstractFeatureReader;
+import htsjdk.tribble.CloseableTribbleIterator;
+import htsjdk.tribble.Feature;
+import htsjdk.tribble.FeatureCodec;
+import htsjdk.tribble.FeatureCodecHeader;
+import htsjdk.tribble.TribbleException;
+import htsjdk.tribble.index.Index;
+import htsjdk.tribble.index.IndexCreator;
+import htsjdk.tribble.index.IndexFactory;
+import htsjdk.tribble.index.tabix.TabixFormat;
+import htsjdk.tribble.index.tabix.TabixIndex;
+import htsjdk.tribble.index.tabix.TabixIndexCreator;
+import htsjdk.tribble.readers.AsciiLineReader;
+import htsjdk.tribble.readers.LineIterator;
+import htsjdk.tribble.readers.LineReader;
+import org.apache.commons.io.IOUtils;
+
+/**
+ * An utility class for creating Tabix (tbi) indexes for tab delimited BGZIP-compressed files (VCF,
+ * BED, GFF). All calls to this class should be removed, after creating Tabix indexes will be fixed
+ * in HTSJDK library.
+ */
+public final class IndexUtils {
+
+    private IndexUtils() {
+        //no operations
+    }
+
+    /**
+     * If file isn't compressed HTSJDK method is used, for compressed files out methods are
+     * used, which create the tabix index correctly.
+     *
+     * @param inputFile
+     * @param codec
+     * @param tabixFormat
+     * @param <F>
+     * @param <S>
+     * @return
+     */
+    public static <F extends Feature, S> TabixIndex createTabixIndex(final File inputFile,
+            final FeatureCodec<F, S> codec, final TabixFormat tabixFormat) {
+        if (AbstractFeatureReader.hasBlockCompressedExtension(inputFile)) {
+            final TabixIndexCreator indexCreator = new TabixIndexCreator(null, tabixFormat);
+            return (TabixIndex) createIndex(inputFile, new FeatureIterator<>(inputFile, codec),
+                    indexCreator);
+        } else {
+            return IndexFactory.createTabixIndex(inputFile, codec, tabixFormat, null);
+        }
+    }
+
+    private static Index createIndex(final File inputFile, final FeatureIterator iterator,
+            final IndexCreator creator) {
+        Feature lastFeature = null;
+        Feature currentFeature;
+        final Map<String, Feature> visitedChromos = new HashMap<>(40);
+        while (iterator.hasNext()) {
+            final long position = iterator.getPosition();
+            currentFeature = iterator.next();
+
+            checkSorted(inputFile, lastFeature, currentFeature);
+            //should only visit chromosomes once
+            final String curChr = currentFeature.getContig();
+            final String lastChr = lastFeature != null ? lastFeature.getContig() : null;
+            if (!curChr.equals(lastChr)) {
+                if (visitedChromos.containsKey(curChr)) {
+                    String msg = "Input file must have contiguous chromosomes.";
+                    throw new TribbleException.MalformedFeatureFile(msg,
+                            inputFile.getAbsolutePath());
+                } else {
+                    visitedChromos.put(curChr, currentFeature);
+                }
+            }
+
+            creator.addFeature(currentFeature, position);
+
+            lastFeature = currentFeature;
+        }
+
+        iterator.close();
+        return creator.finalizeIndex(iterator.getPosition());
+    }
+
+    private static void checkSorted(final File inputFile, final Feature lastFeature,
+            final Feature currentFeature) {
+        // if the last currentFeature is after the current currentFeature, exception out
+        if (lastFeature != null && currentFeature.getStart() < lastFeature.getStart() && lastFeature
+                .getContig().equals(currentFeature.getContig())) {
+            throw new TribbleException.MalformedFeatureFile(
+                    "Input file is not sorted by start position. \n"
+                            + "We saw a record with a start of " + currentFeature.getContig() + ":"
+                            + currentFeature.getStart() + " after a record with a start of "
+                            + lastFeature.getContig() + ":" + lastFeature.getStart(),
+                    inputFile.getAbsolutePath());
+        }
+    }
+
+    /**
+     * Iterator for reading features from a file, given a {@code FeatureCodec}.
+     */
+    static final class FeatureIterator<F extends Feature, S>
+            implements CloseableTribbleIterator<Feature> {
+        // the stream we use to get features
+        private final S source;
+        // the next feature
+        private Feature nextFeature;
+        // our codec
+        private final FeatureCodec<F, S> codec;
+        private final File inputFile;
+
+        // we also need cache our position
+        private long cachedPosition;
+
+        /**
+         * @param inputFile The file from which to read. Stream for reading is opened on construction.
+         * @param codec
+         */
+        private FeatureIterator(final File inputFile, final FeatureCodec<F, S> codec) {
+            this.codec = codec;
+            this.inputFile = inputFile;
+            final FeatureCodecHeader header = readHeader();
+            source =
+                    (S) makeIndexableSourceFromStream(initStream(inputFile, header.getHeaderEnd()));
+            readNextFeature();
+        }
+
+        public LocationAware makeIndexableSourceFromStream(InputStream bufferedInputStream) {
+            final BlockCompressedInputStream pbs;
+            if (bufferedInputStream instanceof BlockCompressedInputStream) {
+                pbs = (BlockCompressedInputStream) bufferedInputStream;
+            } else {
+                throw new IllegalArgumentException();
+            }
+            return new TabixLineReaderIterator(new TabixLineReader(pbs));
+        }
+
+        /**
+         * Some codecs,  e.g. VCF files,  need the header to decode features.  This is a rather poor design,
+         * the internal header is set as a side-affect of reading it, but we have to live with it for now.
+         */
+        private FeatureCodecHeader readHeader() {
+            try {
+                final S headerSource = this.codec.makeSourceFromStream(initStream(inputFile, 0));
+                final FeatureCodecHeader header = this.codec.readHeader(headerSource);
+                codec.close(headerSource);
+                return header;
+            } catch (final IOException e) {
+                throw new IndexException(e.getMessage(), e);
+            }
+        }
+
+        private InputStream initStream(final File inputFile, final long skip) {
+            try (FileInputStream fileStream = new FileInputStream(inputFile)) {
+                InputStream is;
+                // if this looks like a block compressed file and it in fact is, we will use it
+                // otherwise we will use the file as is
+                if (AbstractFeatureReader.hasBlockCompressedExtension(inputFile)) {
+                    // make a buffered stream to test that this is in fact a valid block compressed file
+                    final int bufferSize = BlockCompressedStreamConstants.MAX_COMPRESSED_BLOCK_SIZE;
+                    final BufferedInputStream bufferedStream =
+                            new BufferedInputStream(fileStream, bufferSize);
+
+                    if (!BlockCompressedInputStream.isValidFile(bufferedStream)) {
+                        throw new TribbleException.MalformedFeatureFile(
+                                "Input file is not in valid block compressed format.",
+                                inputFile.getAbsolutePath());
+                    }
+
+                    final ISeekableStreamFactory ssf = SeekableStreamFactory.getInstance();
+                    final SeekableStream seekableStream =
+                            ssf.getStreamFor(inputFile.getAbsolutePath());
+                    is = new BlockCompressedInputStream(seekableStream);
+                } else {
+                    throw new IllegalArgumentException("Only compressed files are supported.");
+                }
+                if (skip > 0) {
+                    IOUtils.skip(is, skip);
+                }
+                return is;
+            } catch (final FileNotFoundException e) {
+                throw new IndexException(e.getMessage(), e);
+            } catch (final IOException e) {
+                throw new TribbleException.MalformedFeatureFile("Error initializing stream",
+                        inputFile.getAbsolutePath(), e);
+            }
+        }
+
+        @Override public boolean hasNext() {
+            return nextFeature != null;
+        }
+
+        @Override public Feature next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            final Feature ret = nextFeature;
+            readNextFeature();
+            return ret;
+        }
+
+        /**
+         * @throws UnsupportedOperationException
+         */
+        @Override public void remove() {
+            throw new UnsupportedOperationException("We cannot remove");
+        }
+
+
+        /**
+         * @return the file position from the underlying reader
+         */
+        public long getPosition() {
+            return hasNext() ? cachedPosition : ((LocationAware) source).getPosition();
+        }
+
+        @Override public Iterator<Feature> iterator() {
+            return this;
+        }
+
+        @Override public void close() {
+            codec.close(source);
+        }
+
+        /**
+         * Read the next feature from the stream
+         *
+         * @throws TribbleException.MalformedFeatureFile
+         */
+        private void readNextFeature() {
+            cachedPosition = ((LocationAware) source).getPosition();
+            try {
+                nextFeature = null;
+                while (nextFeature == null && !codec.isDone(source)) {
+                    nextFeature = codec.decodeLoc(source);
+                }
+            } catch (final IOException e) {
+                throw new TribbleException.MalformedFeatureFile(
+                        "Unable to read a line from the file", inputFile.getAbsolutePath(), e);
+            }
+        }
+    }
+
+    public static class TabixLineReader implements LineReader, LocationAware {
+
+        private long lastPosition = -1;
+        private BlockCompressedInputStream is;
+
+        public TabixLineReader(final BlockCompressedInputStream is) {
+            this.is = is;
+            try {
+                is.available();
+            } catch (IOException e) {
+                throw new IndexException(e.getMessage(), e);
+            }
+        }
+
+
+        /**
+         * @return The position of the InputStream
+         */
+        @Override public long getPosition() {
+            if (is == null) {
+                throw new TribbleException(
+                        "getPosition() called but no default stream was provided to the class on creation");
+            }
+            if (lastPosition < 0) {
+                return is.getFilePointer();
+            } else {
+                return lastPosition;
+            }
+        }
+
+        @Override public final String readLine() throws IOException {
+            if (is == null) {
+                throw new TribbleException(
+                        "readLine() called without an explicit stream argument but no default"
+                                + " stream was provided to the class on creation");
+            }
+            return is.readLine();
+        }
+
+        @Override public void close() {
+            if (is != null) {
+                try {
+                    lastPosition = is.getFilePointer();
+                    is.close();
+                } catch (IOException e) {
+                    throw new IndexException(e.getMessage(), e);
+                }
+            }
+        }
+
+    }
+
+    public static class TabixLineReaderIterator implements LocationAware, LineIterator, Closeable {
+        private final TabixLineReader lineReader;
+        private final TabixLineReaderIterator.TupleIterator i;
+
+        public TabixLineReaderIterator(final TabixLineReader lineReader) {
+            this.lineReader = lineReader;
+            this.i = new TabixLineReaderIterator.TupleIterator();
+        }
+
+        @Override public void close() throws IOException {
+            CloserUtil.close(lineReader);
+        }
+
+        @Override public boolean hasNext() {
+            return i.hasNext();
+        }
+
+        @Override public String next() {
+            Tuple<String, Long> current = i.next();
+            return current.a;
+        }
+
+        @Override public void remove() {
+            i.remove();
+        }
+
+        /**
+         * Returns the byte position at the end of the most-recently-read line (a.k.a.,
+         * he beginning of the next line) from {@link #next()} in
+         * the underlying {@link AsciiLineReader}.
+         */
+        @Override public long getPosition() {
+            return i.getPosition();
+        }
+
+        @Override public String peek() {
+            return i.peek().a;
+        }
+
+        /**
+         * This is stored internally since it iterates over {@link htsjdk.samtools.util.Tuple},
+         * not {@link String} (and the outer
+         * class can't do both).
+         */
+        private final class TupleIterator extends AbstractIterator<Tuple<String, Long>>
+                implements LocationAware {
+
+            private TupleIterator() {
+                super.hasNext();
+            }
+
+            @Override protected Tuple<String, Long> advance() {
+                final String line;
+                final long position = lineReader.getPosition();
+                try {
+                    line = lineReader.readLine();
+                } catch (IOException e) {
+                    throw new RuntimeIOException(e);
+                }
+                return line == null ? null : new Tuple<>(line, position);
+            }
+
+            /**
+             * Returns the byte position at the beginning of the next line.
+             */
+            @Override public long getPosition() {
+                final Tuple<String, Long> peek = super.peek();
+                // Be careful: peek will be null at the end of the stream.
+                return peek != null ? peek.b : lineReader.getPosition();
+            }
+        }
+    }
+}

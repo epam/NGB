@@ -1,0 +1,121 @@
+<form name="registerTrackForm" ng-hide="ctrl._isRegisteringNewBucket" flex>
+    <div layout="row" layout-wrap>
+        <div flex="100" layout="row">
+            <div flex>
+                <md-input-container class="md-block">
+                    <label for="s3Bucket">S3 bucket</label>
+                    <md-select id="s3Bucket" aria-label="s3 bucket" ng-model="ctrl._s3bucketId" required>
+                        <md-option ng-repeat="bucket in ctrl._s3buckets" value="{{bucket.id}}">{{bucket.bucketName}}
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+            <div flex="nogrow">
+                <md-button class="md-fab md-mini md-primary" aria-label="Add bucket"
+                           ng-click="ctrl.openNewBucketRegistrationForm();">
+                    <ng-md-icon size="24" style="fill: white" icon="add"></ng-md-icon>
+                </md-button>
+            </div>
+        </div>
+        <div flex="100">
+            <md-input-container class="md-block">
+                <label for="filePath">File path</label>
+                <input type="text"
+                       id="filePath"
+                       name="filePath"
+                       required
+                       ng-model="ctrl.filePath">
+                <div ng-messages="registerTrackForm.filePath.$error">
+                    <div ng-message="required">You must enter file path</div>
+                </div>
+            </md-input-container>
+            <div class="register-warning" ng-show="ctrl.registrationWarning">{{ctrl.registrationWarning}}</div>
+            <md-input-container class="md-block">
+                <label for="indexFilePath">Index File Path (required for .bam files)</label>
+                <input type="text" id="indexFilePath"
+                       name="indexFilePath"
+                       ng-model="ctrl.indexFilePath">
+                <div ng-messages="registerTrackForm.indexFilePath.$error">
+                    <div ng-message="required">You must enter index file path</div>
+                </div>
+            </md-input-container>
+            <md-progress-circular style="display: inline"
+                                  md-mode="indeterminate"
+                                  md-diameter="12"
+                                  ng-show="ctrl.isProgressShown">
+            </md-progress-circular>
+            <div class="md-button__right" layout="row">
+                <div>
+                    <md-button class="md-primary"
+                               ng-click="ctrl.registerTrack(registerTrackForm)"
+                               ng-disabled="registerTrackForm.$error.required">
+                        Register track
+                    </md-button>
+                    <md-tooltip ng-if="registerTrackForm.$error.required"
+                                md-direction="top">
+                        Enter file path and s3 bucket
+                    </md-tooltip>
+                </div>
+                <md-button ng-click="ctrl.onCancel(registerTrackForm)">Cancel</md-button>
+            </div>
+        </div>
+    </div>
+</form>
+<form name="registerBucketForm" ng-show="ctrl._isRegisteringNewBucket" flex>
+    <div layout="row" layout-wrap>
+        <div flex="100">
+            <md-input-container class="md-block">
+                <label for="bucketName">S3 bucket name</label>
+                <input type="text"
+                       id="bucketName"
+                       name="bucketName"
+                       required
+                       ng-model="ctrl._bucketName">
+                <div ng-messages="registerBucketForm.bucketName.$error">
+                    <div ng-message="required">You must enter bucket name</div>
+                </div>
+            </md-input-container>
+            <md-input-container class="md-block">
+                <label for="accessKeyId">Access Key ID</label>
+                <input type="text"
+                       id="accessKeyId"
+                       name="accessKeyId"
+                       required
+                       ng-model="ctrl._accessKeyId">
+                <div ng-messages="registerBucketForm.accessKeyId.$error">
+                    <div ng-message="required">You must enter access key id</div>
+                </div>
+            </md-input-container>
+            <md-input-container class="md-block">
+                <label for="accessKeySecret">Access Key Secret</label>
+                <input type="text"
+                       id="accessKeySecret"
+                       name="accessKeySecret"
+                       required
+                       ng-model="ctrl._accessKeySecret">
+                <div ng-messages="registerBucketForm.accessKeySecret.$error">
+                    <div ng-message="required">You must enter access key secret</div>
+                </div>
+            </md-input-container>
+            <md-progress-circular style="display: inline"
+                                  md-mode="indeterminate"
+                                  md-diameter="12"
+                                  ng-show="ctrl.isProgressShown">
+            </md-progress-circular>
+            <div class="md-button__right" layout="row">
+                <div>
+                    <md-button class="md-primary"
+                               ng-click="ctrl.registerNewBucket(registerBucketForm)"
+                               ng-disabled="registerBucketForm.$error.required">
+                        Add bucket
+                    </md-button>
+                    <md-tooltip ng-if="registerBucketForm.$error.required"
+                                md-direction="top">
+                        Enter bucket name, access key id and secret
+                    </md-tooltip>
+                </div>
+                <md-button ng-click="ctrl.closeRegisterNewBucketForm(registerBucketForm)">Cancel</md-button>
+            </div>
+        </div>
+    </div>
+</form>

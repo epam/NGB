@@ -1,0 +1,94 @@
+<div ng-repeat="vcfFilter in ctrl.advancedVcfFiltersList track by vcfFilter.name">
+    <div class="sub-header">
+        {{vcfFilter.name}}
+        <md-tooltip ng-if="vcfFilter.type !== 'Flag'" md-direction="top">
+            {{(vcfFilter.description)}}
+        </md-tooltip>
+    </div>
+
+    <div layout-gt-sm="row" ng-if="vcfFilter.type === 'Integer'">
+        <md-input-container>
+            <label for="vcfFilterIntFrom{{vcfFilter.name}}">From (Int)</label>
+            <input type="number" id="vcfFilterIntFrom{{vcfFilter.name}}" name="from{{vcfFilter.name}}"
+                   ng-model="vcfFilter.from"
+                   ng-max="vcfFilter.to"
+                   ng-change="ctrl.toggleAdvancedVcfFilters(vcfFilter)"
+                   ng-pattern="/^\d+$/">
+            <div ng-messages="vcfFilterForm['from' + vcfFilter.name].$error">
+                <div ng-message="max">Value must be less than {{vcfFilter.to}}</div>
+                <div ng-message="pattern">Value must be an integer</div>
+            </div>
+        </md-input-container>
+        <md-input-container>
+            <label for="vcfFilterIntTo{{vcfFilter.name}}">To (Int)</label>
+            <input type="number" id="vcfFilterIntTo{{vcfFilter.name}}" name="to{{vcfFilter.name}}"
+                   ng-model="vcfFilter.to"
+                   ng-min="vcfFilter.from"
+                   ng-change="ctrl.toggleAdvancedVcfFilters(vcfFilter)"
+                   ng-pattern="/^\d+$/">
+            <div ng-messages="vcfFilterForm['to' + vcfFilter.name].$error">
+                <div ng-message="min">Value must be greater than {{vcfFilter.from}}</div>
+                <div ng-message="pattern">Value must be an integer</div>
+            </div>
+        </md-input-container>
+
+    </div>
+
+    <div layout-gt-sm="row" ng-if="vcfFilter.type === 'Float'">
+        <md-input-container>
+            <label for="vcfFilterFloatFrom{{vcfFilter.name}}">From (Float)</label>
+            <input type="number" id="vcfFilterFloatFrom{{vcfFilter.name}}" name="from{{vcfFilter.name}}"
+                   ng-model="vcfFilter.from" ng-max="vcfFilter.to"
+                   ng-change="ctrl.toggleAdvancedVcfFilters(vcfFilter)">
+            <div ng-messages="vcfFilterForm['from' + vcfFilter.name].$error">
+                <div ng-message="max">Value must be less than {{vcfFilter.to}}</div>
+            </div>
+        </md-input-container>
+        <md-input-container>
+            <label for="vcfFilterFloatTo{{vcfFilter.name}}">To (Float)</label>
+            <input type="number" id="vcfFilterFloatTo{{vcfFilter.name}}" name="to{{vcfFilter.name}}"
+                   ng-model="vcfFilter.to" ng-min="vcfFilter.from"
+                   ng-change="ctrl.toggleAdvancedVcfFilters(vcfFilter)">
+            <div ng-messages="vcfFilterForm['to' + vcfFilter.name].$error">
+                <div ng-message="min">Value must be greater than {{vcfFilter.from}}</div>
+            </div>
+        </md-input-container>
+    </div>
+
+    <div layout-gt-sm="row" ng-if="vcfFilter.type === 'Flag'">
+        <md-checkbox aria-label="{{(vcfFilter.description)}}"
+                     ng-click="ctrl.toggleAdvancedVcfFilters(vcfFilter)"
+                     ng-checked="ctrl.existsAdvancedFlag(vcfFilter)">
+            <div class="hint">
+                {{vcfFilter.description}}
+            </div>
+        </md-checkbox>
+    </div>
+
+    <div layout-gt-sm="row" ng-if="vcfFilter.type === 'Enum'">
+        <div class="hint">Something for Enum....</div>
+    </div>
+
+    <div layout-gt-sm="row" ng-if="vcfFilter.type === 'String'">
+        <md-input-container class="md-block">
+            <label for="string{{vcfFilter.name}}">Write ({{vcfFilter.type}})</label>
+            <textarea id="string{{vcfFilter.name}}" ng-model="vcfFilter.value" rows="3" md-select-on-focus
+                      ng-change="ctrl.toggleAdvancedVcfFilters(vcfFilter)">
+            </textarea>
+        </md-input-container>
+    </div>
+
+    <div layout-gt-sm="row" ng-if="vcfFilter.type === 'Char'">
+        <md-input-container class="md-block">
+            <label for="char{{vcfFilter.name}}">Write ({{vcfFilter.type}})</label>
+            <textarea id="char{{vcfFilter.name}}" ng-model="vcfFilter.value" rows="3" md-select-on-focus
+                      name="char{{vcfFilter.name}}"
+                      ng-change="ctrl.toggleAdvancedVcfFilters(vcfFilter)"
+                      ng-maxlength="1">
+            </textarea>
+            <div ng-messages="vcfFilterForm['char' + vcfFilter.name].$error">
+                <div ng-message="maxlength">Enter only 1 character</div>
+            </div>
+        </md-input-container>
+    </div>
+</div>

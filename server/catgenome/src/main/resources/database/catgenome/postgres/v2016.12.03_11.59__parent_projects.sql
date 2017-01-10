@@ -1,0 +1,2 @@
+ALTER TABLE CATGENOME.PROJECT ADD COLUMN parent_id INTEGER;
+ALTER TABLE CATGENOME.PROJECT ADD CONSTRAINT project_parent_id_foreign_key FOREIGN KEY (parent_id) REFERENCES catgenome.project(project_id);

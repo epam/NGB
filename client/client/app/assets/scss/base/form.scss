@@ -1,0 +1,35 @@
+select, button, textarea, input {
+  font-size: $ngb-font-size;
+}
+
+// inputs
+md-input-container {
+  > ng-md-icon {
+    position: absolute;
+  }
+  &.md-icon-float > ng-md-icon {
+    top: 5px;
+    left: 5px;
+    right: auto;
+  }
+  &.md-input-container {
+    &__simple {
+      margin: 0;
+    }
+    &__nospacer {
+      .md-errors-spacer {
+        min-height: 0;
+      }
+    }
+  }
+
+}
+
+
+label{
+  &.control-label {
+    display:inline-block;
+    text-transform: uppercase;
+    margin-bottom: $space;
+  }
+}

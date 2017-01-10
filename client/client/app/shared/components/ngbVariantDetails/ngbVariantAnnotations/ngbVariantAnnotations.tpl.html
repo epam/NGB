@@ -1,0 +1,25 @@
+<div flex layout-wrap>
+    <div flex="100" layout-margin ng-show="ctrl.isLoading" layout="row" layout-align="center center">
+        <div>
+            <md-progress-circular md-mode="indeterminate" flex md-diameter="12"></md-progress-circular>
+        </div>
+    </div>
+    <div flex="100" class="md-variant-annotations-message" layout-margin ng-show="ctrl.variantAnnotations.length == 0" layout="row" layout-align="center center">
+        <div>
+            {{ctrl.annotationsNotFoundMessage}}
+        </div>
+    </div>
+    <div ng-repeat="annotation in ctrl.variantAnnotations" flex="100" layout="column" class="md-variant-annotation">
+        <div layout="row"
+             layout-align="space-between center"
+             flex>
+            <div layout="row" layout-align="start center">
+                <div class="md-variant-annotation-dbname">{{annotation.databaseName}}</div>
+                <ng-md-icon icon="launch" class="md-variant-annotation-link"></ng-md-icon>
+            </div>
+            <div class="md-whiteframe-1dp md-variant-annotation-impact md-variant-annotation-impact-{{annotation.variantImpact}}">
+                <span>{{annotation.variantImpact | capitalize}}</span>
+            </div>
+        </div>
+    </div>
+</div>

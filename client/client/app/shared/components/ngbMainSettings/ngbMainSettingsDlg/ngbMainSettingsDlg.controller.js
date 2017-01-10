@@ -1,0 +1,41 @@
+const DEFAULT_CONFIG = 7000;
+export default class ngbMainSettingsDlgController {
+    settings = null;
+
+    static get UID() {
+        return 'ngbMainSettingsDlgController';
+    }
+
+    /* @ngInject */
+    constructor(dispatcher, localDataService, $mdDialog, ngbMainSettingsDlgService, $scope) {
+        this._dispatcher = dispatcher;
+        this._localDataService = localDataService;
+        this._mdDialog = $mdDialog;
+        this.settings = this._localDataService.getSettings();
+        this.settings && (this.settings.maxBAMBP = this.settings.maxBAMBP || DEFAULT_CONFIG);
+        this.settingsService = ngbMainSettingsDlgService;
+        this.customizeSettings = this.settingsService.getSettings();
+
+        this.scope = $scope;
+    }
+
+    close() {
+        this._mdDialog.hide();
+    }
+
+    save() {
+        this.settingsService.updateThisLocalSettingsVar(this.settings);
+        this._localDataService.updateSettings(this.settings);
+        this._dispatcher.emitGlobalEvent('settings:change', this.settings);
+        this.close();
+    }
+
+    getterSetterMaximumBPForBam(input) {
+        return arguments.length ? this.settings.maxBAMBP = input : this.settings.maxBAMBP;
+    }
+
+    setToDefaultCustomizations(){
+        this.customizeSettings = this.settingsService.getDefaultSettings();
+        this.scope.$broadcast('setToDefault');
+    }
+}

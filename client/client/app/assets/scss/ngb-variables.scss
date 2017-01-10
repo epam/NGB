@@ -1,0 +1,47 @@
+@font-face {
+  font-family: 'Oswald Regular';
+  font-style: normal;
+  font-weight: 400;
+  src: url(assets/fonts/Oswald-Regular-webfont.eot); /* For IE6-8 */
+  src: local('Oswald Regular'),
+  local('Oswald Regular'),
+  url(assets/fonts/Oswald-Regular-webfont.woff2) format('woff2'),
+  url(assets/fonts/Oswald-Regular-webfont.woff) format('woff'),
+  url(assets/fonts/Oswald-Regular-webfont.ttf) format('truetype');
+}
+
+$ngb-font-size: 12px;
+$ngb-font-size-lg: 14px;
+$ngb-font-size-sm: 12px;
+
+$ngb-menu-font: $ngb-font-size-lg;
+
+$ngb-main-color: #fff;
+$ngb-main-bg: #fff;
+
+$ngb-text-color: #000;
+
+
+$ngb-color-blue: #4285F4;
+$ngb-color-blue-light: #2196f3;
+$ngb-color-blue-light2: #6699ff;
+$ngb-color-blue-lightest: #bddffc;
+
+$ngb-color-gray-light2: #ebebeb;
+$ngb-color-gray-light: #f5f5f5;
+$ngb-color-blue: #fff;
+
+$ngb-button-color: rgba(0,0,0,0.87);
+$ngb-border-color: rgba(0,0,0,0.12);
+
+
+
+$padding-base: $baseline-grid;
+
+$state-hover-bg: #eef6ff;
+$state-selected-bg: $ngb-color-gray-light2;
+$state-disabed-color: rgba(0,0,0,0.26);
+
+$space: $baseline-grid;
+$space-md: $baseline-grid * 2;
+$space-lg: $baseline-grid * 4;

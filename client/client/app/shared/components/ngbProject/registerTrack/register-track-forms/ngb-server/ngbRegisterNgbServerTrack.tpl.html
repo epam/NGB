@@ -1,0 +1,39 @@
+<form name="registerTrackForm">
+    <md-input-container class="md-block">
+        <label for="filePath">File path</label>
+        <input type="text"
+               id="filePath"
+               name="filePath"
+               required
+               ng-model="ctrl.filePath">
+        <div ng-messages="registerTrackForm.filePath.$error">
+            <div ng-message="required">You must enter file path</div>
+        </div>
+    </md-input-container>
+    <md-input-container class="md-block">
+        <label for="indexFilePath">Index File Path (required for .bam files)</label>
+        <input type="text" id="indexFilePath"
+               name="indexFilePath"
+               ng-model="ctrl.indexFilePath">
+    </md-input-container>
+    <md-progress-circular style="display: inline"
+                          md-mode="indeterminate"
+                          md-diameter="12"
+                          ng-show="ctrl.isProgressShown">
+    </md-progress-circular>
+    <div class="md-button__right" layout="row">
+        <div>
+            <md-button class="md-primary"
+                       ng-click="ctrl.registerTrack(registerTrackForm)"
+                       ng-disabled="registerTrackForm.$error.required">
+                Register track
+            </md-button>
+            <md-tooltip ng-if="registerTrackForm.$error.required"
+                        md-direction="top">
+                Enter file path
+            </md-tooltip>
+        </div>
+        <md-button ng-click="ctrl.onCancel(registerTrackForm)">Cancel</md-button>
+    </div>
+    <div flex class="register-warning" ng-show="ctrl.registrationWarning">{{ctrl.registrationWarning}}</div>
+</form>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans">
+
+    <!-- Registers bean which is required to access resource bundles using given basenames.
+         It supports reloading of properties files though the "cacheSeconds" setting and allows
+         to specify required encoding explicitly
+    -->
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="basename" value="catgenome-messages"/>
+        <property name="defaultEncoding" value="UTF-8"/>
+    </bean>
+
+    <!-- Registers singleton used to support static access to messages bundle defined above -->
+    <bean id="messageHelper" class="com.epam.catgenome.component.MessageHelper" factory-method="singleton">
+        <constructor-arg type="org.springframework.context.MessageSource" ref="messageSource"/>
+    </bean>
+
+</beans>

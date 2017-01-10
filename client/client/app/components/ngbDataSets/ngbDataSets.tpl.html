@@ -1,0 +1,42 @@
+<div layout="row" class="u-height__full">
+    <div layout="column" flex ng-if="!$ctrl.isLoading">
+        <div class="md-toolbar-panel md-whiteframe-2dp">
+            <div layout="row" class="u-column-padding">
+                <md-input-container md-no-float class="md-block md-input-container__simple md-input-container__nospacer" flex>
+                    <input type="text" ng-model="$ctrl.searchPattern" placeholder="Search..."/>
+                </md-input-container>
+                <md-button class="md-icon-button datasets-action"
+                           aria-label="Close"
+                           ng-if="$ctrl.searchPattern && $ctrl.searchPattern.length > 0"
+                           ng-click="$ctrl.clearSearch()">
+                    <ng-md-icon icon="clear" size="20"></ng-md-icon>
+                </md-button>
+                <md-button class="md-icon-button datasets-action"
+                           aria-label="Refresh"
+                           ng-click="$ctrl.refreshDatasets()">
+                    <ng-md-icon icon="refresh" size="20"></ng-md-icon>
+                </md-button>
+            </div>
+        </div>
+        <md-divider></md-divider>
+        <md-content flex>
+            <div id="tree"
+                 ng-if="!$ctrl.nothingFound"
+                 class="datasets-tree"
+                 ivh-treeview="$ctrl.datasets"
+                 ivh-treeview-options="$ctrl.service.treeviewOptions"
+                 ivh-treeview-filter="$ctrl.service.filter"
+                 ivh-treeview-on-toggle="$ctrl.service.toggle(ivhNode)"
+                 ivh-treeview-on-cb-change="$ctrl.select(ivhNode, ivhIsSelected, ivhTree);"></div>
+            <div ng-if="$ctrl.nothingFound" flex class="datasets-not-found-warning">
+                <span>No datasets found for <strong>{{$ctrl.searchPattern}}</strong></span>
+            </div>
+        </md-content>
+    </div>
+    <div ng-if="$ctrl.isLoading" flex>
+        <div class="progress" layout-align="center center">
+            <span>Loading datasets...</span>
+        </div>
+        <md-progress-linear md-mode="query"></md-progress-linear>
+    </div>
+</div>

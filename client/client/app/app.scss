@@ -1,0 +1,46 @@
+@import 'assets/scss/md-variables';
+@import 'assets/scss/ngb-variables';
+
+@import 'assets/scss/md-mixins';
+
+@import 'assets/scss/base/base';
+@import 'assets/scss/base/buttons';
+@import 'assets/scss/base/checkbox';
+@import 'assets/scss/base/chips';
+@import 'assets/scss/base/dropdown';
+@import 'assets/scss/base/form';
+@import 'assets/scss/base/frame';
+@import 'assets/scss/base/grid';
+@import 'assets/scss/base/icon';
+@import 'assets/scss/base/label';
+@import 'assets/scss/base/layout';
+@import 'assets/scss/base/list';
+@import 'assets/scss/base/menu';
+@import 'assets/scss/base/progres';
+@import 'assets/scss/base/scrollbar';
+@import 'assets/scss/base/table';
+@import 'assets/scss/base/tooltip';
+@import 'assets/scss/base/type';
+@import 'assets/scss/base/utils';
+@import 'assets/scss/base/whiteframe';
+
+@import 'assets/scss/components/chromosome-control';
+@import 'assets/scss/components/filter';
+@import 'assets/scss/components/goldenlayout';
+@import 'assets/scss/components/header';
+@import 'assets/scss/components/toolbar';
+@import 'assets/scss/components/uiGrid';
+
+@import 'assets/scss/md-components/md-dialog';
+@import 'assets/scss/md-components/md-input';
+@import 'assets/scss/md-components/md-list';
+@import 'assets/scss/md-components/md-select';
+
+
+
+
+
+ui-view {
+  display: block;
+}
+

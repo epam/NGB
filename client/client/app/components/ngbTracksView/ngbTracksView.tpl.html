@@ -1,0 +1,32 @@
+<ngb-browser-toolbar-panel style="display: block;"
+                           zoom-manager="ctrl.zoomManager"
+                           bookmark-camera="ctrl.bookmarkCamera"
+                           attach-to-element="ctrl.browserToolbarAttachedToElement"
+></ngb-browser-toolbar-panel>
+<div style="overflow-y: scroll;" layout-fill>
+        <div class="tracks-panel">
+                <div ng-if="ctrl.renderable">
+                        <ngb-ruler-track
+                                track="ctrl.rulerTrack"
+                                track-opts="ctrl.trackOpts"
+                                viewport="ctrl.viewport"></ngb-ruler-track>
+                </div>
+                <div dnd-list="ctrl.tracks">
+                        <div class="dndPlaceholder"></div>
+                        <ngb-track
+                                ng-repeat="track in ctrl.tracks track by ctrl.trackHash(track)"
+                                dnd-draggable="track"
+
+                                track="track"
+                                index="$index"
+
+                                menu-manager="ctrl.menuManager"
+
+                                track-opts="ctrl.trackOpts"
+                                viewport="ctrl.viewport"></ngb-track>
+                </div>
+        </div>
+</div>
+
+<ngb-track-view-menu menu-data="ctrl.menuManager.menuData"
+                     tether-menu="ctrl.menuManager.tetherMenu"></ngb-track-view-menu>

@@ -1,0 +1,50 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:sec="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+       http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.0.xsd">
+
+    <!-- Registers the customized extension of Jackson ObjectMapper codec, configured to produce more
+         compressed JSON output, ignoring empty and <tt>null</tt> values, preventing failures
+         on the unknown properties etc.
+    -->
+    <bean id="objectMapper" class="com.epam.catgenome.controller.JsonMapper"/>
+
+    <!-- Registers all required post-processors and enables auto-detection of annotated components -->
+    <context:annotation-config/>
+
+    <!-- Registers low-level beans, e.g. DefaultAnnotationHandlerMapping,
+         DefaultAnnotationHandlerAdapter which are required to dispatch requests to @Controller's.
+         Also it configures beans with sensible defaults based on what is presented in application
+         classpath, e.g. required to support reading/writing JSON with Jackson or support for
+         validating @Controller inputs with @Valid, if JSR-303 Provider is present on the classpath
+    -->
+    <mvc:annotation-driven>
+        <!-- Register Jackson JSON message converter -->
+        <mvc:message-converters>
+            <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+                <property name="objectMapper" ref="objectMapper"/>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+
+    <!-- Enables and configures Swagger -->
+    <bean class="com.epam.catgenome.config.SwaggerConfig" autowire="byName"/>
+
+    <!-- Registers required post-processors and enables auto-detection of the annotated controllers,
+         all other components are scanned as described in the application context configuration
+    -->
+    <context:component-scan base-package="com.epam.catgenome.config"/>
+    <context:component-scan base-package="com.epam.catgenome.controller"/>
+
+    <mvc:resources location="/swagger-ui/, classpath:/META-INF/resources/webjars/swagger-ui/2.0.24/"
+                   mapping="/swagger-ui/**"/>
+
+    <sec:global-method-security
+            pre-post-annotations="enabled" proxy-target-class="true" secured-annotations="enabled" />
+
+</beans>

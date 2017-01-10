@@ -1,0 +1,12 @@
+<section layout="column" ng-cloak>
+    <md-button class="md-raised" ng-click="$ctrl.zoomIn()" ng-show="$ctrl.canZoom">+</md-button>
+    <md-divider md-inset="true"></md-divider>
+    <md-button class="md-raised" ng-click="$ctrl.zoomOut()" ng-show="$ctrl.canZoom">-</md-button>
+    <ngb-bookmark ng-if="$ctrl.showBookmark"></ngb-bookmark>
+    <md-button ng-if="$ctrl.showScreenShot"
+               class="md-raised bookmark camera"
+               ng-click="$ctrl.saveBrowserView()"
+               aria-label="save screenshot">
+        <ng-md-icon icon="camera_alt"></ng-md-icon>
+    </md-button>
+</section>

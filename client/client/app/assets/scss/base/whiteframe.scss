@@ -1,0 +1,10 @@
+md-whiteframe {
+  display: inline-block;
+}
+
+.md-whiteframe {
+  &__block {
+    display:block;
+    margin-bottom: $space-md;
+  }
+}

@@ -1,0 +1,20 @@
+.ngb-header {
+  padding-left: 20px;
+}
+
+ngb-header-project {
+  display: block;
+  ngb-tool-windows {
+    float: right;
+    vertical-align: top;
+  }
+  ngb-share-link {
+    float: right;
+    vertical-align: top;
+  }
+  ngb-main-settings {
+    float: right;
+    padding-right: 60px;
+    vertical-align: top;
+  }
+}

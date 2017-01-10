@@ -1,0 +1,26 @@
+<div layout="column" flex>
+    <div flex layout="row" layout-align="space-between stretch">
+        <div layout="row" layout-align="start stretch">
+            <div layout-padding class="ngb-variant-identifier">{{$ctrl.variant.id}}</div>
+            <div layout-padding class="ngb-variant-type">{{$ctrl.variant.type}}</div>
+        </div>
+        <md-button class="md-icon-button" ng-click="$ctrl.close()" aria-label="Close">
+            <ng-md-icon style="fill: #000000;" icon="clear"></ng-md-icon>
+        </md-button>
+    </div>
+    <md-divider></md-divider>
+    <md-tabs md-dynamic-height>
+        <md-tab id="visualizer">
+            <md-tab-label>Visualizer</md-tab-label>
+            <md-tab-body>
+                <ngb-variant-visualizer flex variant="$ctrl.variant" variant-request="$ctrl.variantRequest"></ngb-variant-visualizer>
+            </md-tab-body>
+        </md-tab>
+        <md-tab id="info">
+            <md-tab-label>Info</md-tab-label>
+            <md-tab-body>
+                <ngb-variant-info flex variant="$ctrl.variant" variant-request="$ctrl.variantRequest"></ngb-variant-info>
+            </md-tab-body>
+        </md-tab>
+    </md-tabs>
+</div>

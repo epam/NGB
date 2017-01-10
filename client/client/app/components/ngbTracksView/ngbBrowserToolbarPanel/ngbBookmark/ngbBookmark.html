@@ -1,0 +1,15 @@
+<md-button class="md-raised opened-bookmark-animation"
+           aria-label = "save bookmark"
+           ng-class="{'open-bookmark': $ctrl.isClicked ,'success-save':$ctrl.isSaveSuccess===true,'error-save':$ctrl.isSaveSuccess===false}"
+           ng-click="$ctrl.onClick()"
+>
+    <ng-md-icon icon="place"></ng-md-icon>
+</md-button>
+<input class="input-container"
+       placeholder="Enter bookmark name"
+       ng-class="{'open-bookmark': $ctrl.isClicked }"
+       ng-model="$ctrl.getterSetterName"
+       ng-model-options="{getterSetter: true}"
+       ng-keydown="$ctrl.onKeyDown($event)"
+       ng-blur="$ctrl.onBlur()"
+>

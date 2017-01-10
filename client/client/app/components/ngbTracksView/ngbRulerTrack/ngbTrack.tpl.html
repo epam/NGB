@@ -1,0 +1,22 @@
+<div
+        flex
+        layout="row"
+        layout-wrap="100"
+        class="ngb-track-ruler-container">
+    <div
+            dnd-nodrag
+            class="ngb-track-renderer js-ngb-render-container-target"
+            flex="100"></div>
+    <div
+            dnd-nodrag
+            flex="100"
+            layout-margin
+            ng-hide="ctrl.isLoaded"
+            ng-style="{height: ctrl.possibleTrackHeight + 'px'}"
+            layout="row"
+            layout-align="center center">
+        <div>
+            <ngb-progress-circular ngb-mode="indeterminate" flex></ngb-progress-circular>
+        </div>
+    </div>
+</div>

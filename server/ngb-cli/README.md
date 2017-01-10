@@ -1,0 +1,1 @@
+Command Line Interface Tool for work with NGB server. Supports CRUD operations for datasets, references and files.

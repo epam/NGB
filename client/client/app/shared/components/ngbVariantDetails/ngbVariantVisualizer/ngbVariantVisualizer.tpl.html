@@ -1,0 +1,188 @@
+<div layout="row" layout-wrap>
+    <div layout="row" layout-wrap class="md-variant-properties-table" flex="100"
+         ng-show="ctrl._geneFilesLoaded && ctrl._geneFiles.length > 0">
+        <div flex="100" class="md-variant-property md-variant-property-display-mode-wide">
+            <div layout="row" layout-align="start stretch" flex>
+                <div class="md-variant-property-title" flex="50">Gene file</div>
+                <div class="md-variant-property-values" layout="column" flex="50">
+                    <md-radio-group ng-if="ctrl._geneFiles.length > 1" aria-label="gene files"
+                                    ng-model="ctrl._selectedGeneFile">
+                        <md-radio-button ng-repeat="value in ctrl._geneFiles" ng-value="value"
+                                         class="md-primary alt-single-field" md-no-ink>
+                            {{value.name}}
+                        </md-radio-button>
+                    </md-radio-group>
+                    <div ng-if="ctrl._geneFiles.length === 1"
+                         class="md-variant-property-single-value">
+                        {{ctrl._selectedGeneFile.name}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div flex="100" layout-margin ng-show="!ctrl._loaded || !ctrl._geneFilesLoaded" layout="row"
+         layout-align="center center">
+        <div>
+            <md-progress-circular md-mode="indeterminate" flex md-diameter="12"></md-progress-circular>
+        </div>
+    </div>
+    <div layout="row" layout-wrap class="md-variant-properties-table" flex="100" ng-show="ctrl._loaded">
+        <div flex="100" class="md-variant-property md-variant-property-display-mode-wide"
+             ng-if="ctrl._variantVisualizerData.chromosome">
+            <div layout="row" layout-align="start stretch" flex>
+                <div class="md-variant-property-title" flex="50">Chromosome</div>
+                <div class="md-variant-property-values" layout="column" flex="50">
+                    {{ctrl._variantVisualizerData.chromosome.name}}
+                </div>
+            </div>
+        </div>
+        <div flex="100" class="md-variant-property md-variant-property-display-mode-wide"
+             ng-if="ctrl._variantVisualizerData.chromosomes">
+            <div layout="row" layout-align="start stretch" flex>
+                <div class="md-variant-property-title" flex="50">Chromosome(s)</div>
+                <div class="md-variant-property-values" layout="column" flex="50">
+                    <div ng-repeat="chromosome in ctrl._variantVisualizerData.chromosomes"
+                         class="md-variant-property-single-value">
+                        {{chromosome}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div flex="100" class="md-variant-property md-variant-property-display-mode-wide"
+             ng-repeat="breakpoint in ctrl._variantVisualizerData.analysisResult.breakpoints">
+            <div layout="row" layout-align="start stretch" flex>
+                <div class="md-variant-property-title" flex="50">Mate gene(s)</div>
+                <div class="md-variant-property-values" layout="column" flex="50">
+                    <md-radio-group ng-if="breakpoint.affectedGenes.length > 1"
+                                    aria-label="mate {{breakpoint.position}} genes"
+                                    ng-model="breakpoint.affectedGene">
+                        <md-radio-button ng-repeat="gene in breakpoint.affectedGenes" ng-value="gene"
+                                         class="md-primary alt-single-field" md-no-ink
+                                         ng-click="ctrl.affectedGeneChanged(breakpoint, gene);"
+                                         ng-if="!breakpoint.affectedGene.empty">
+                            {{gene.name}}
+                        </md-radio-button>
+                    </md-radio-group>
+                    <div ng-if="breakpoint.affectedGenes.length === 1 && !breakpoint.affectedGene.empty"
+                         class="md-variant-property-single-value">
+                        {{breakpoint.affectedGene.name}}
+                    </div>
+                    <div ng-if="breakpoint.affectedGenes.length === 1 && breakpoint.affectedGene.empty"
+                         class="md-variant-property-single-value">
+                        <small><i>no affected gene</i></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div flex="100" class="md-variant-property md-variant-property-display-mode-wide"
+             ng-if="ctrl._variantVisualizerData.analysisResult.breakpoints">
+            <div layout="row" layout-align="start center" flex>
+                <div class="md-variant-property-title">
+                    <md-checkbox aria-label="highlight breakpoints" class="md-primary" ng-model="ctrl._highlightBreakpoints">
+                    </md-checkbox>
+                </div>
+                <div class="md-variant-property-values" layout="column">
+                    <div class="md-variant-property-single-value">
+                        Highlight breakpoints
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div flex="100" class="md-variant-property md-variant-property-display-mode-wide"
+             ng-if="ctrl._variantVisualizerData.analysisResult.duplicatedGeneNames">
+            <div layout="row" layout-align="start stretch" flex>
+                <div class="md-variant-property-title" flex="50">Duplicated genes</div>
+                <div class="md-variant-property-values" layout="column" flex="50">
+                    <div ng-repeat="name in ctrl._variantVisualizerData.analysisResult.duplicatedGeneNames track by $index"
+                         class="md-variant-property-single-value">
+                        {{name}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div flex="50" class="md-variant-property md-variant-property-display-mode-common"
+             ng-if="ctrl._variantVisualizerData.variantInfo.displayReferenceAllele">
+            <div layout="row" layout-align="start stretch" flex>
+                <div class="md-variant-property-title" flex="50">REF</div>
+                <div class="md-variant-property-values" layout="column" flex="50">
+                    {{ctrl._variantVisualizerData.variantInfo.displayReferenceAllele}}
+                </div>
+            </div>
+        </div>
+        <div flex="50" class="md-variant-property md-variant-property-display-mode-common"
+             ng-if="ctrl._variantVisualizerData.altFields">
+            <div layout="row" layout-align="start stretch" flex>
+                <div class="md-variant-property-title" flex="50">ALT</div>
+                <div class="md-variant-property-values" layout="column" flex="50">
+                    <md-radio-group ng-if="ctrl._variantVisualizerData.altFields.length > 1" aria-label="alt fields"
+                                    ng-model="ctrl._variantVisualizerData.selectedAltField">
+                        <md-radio-button ng-repeat="value in ctrl._variantVisualizerData.altFields" ng-value="value"
+                                         class="md-primary alt-single-field" md-no-ink>
+                            {{value.displaySource}}
+                        </md-radio-button>
+                    </md-radio-group>
+                    <div ng-if="ctrl._variantVisualizerData.altFields.length === 1"
+                         class="md-variant-property-single-value">
+                        {{ctrl._variantVisualizerData.altFields[0].displaySource}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div flex="100" class="md-variant-property md-variant-property-display-mode-wide"
+             ng-if="ctrl._variantVisualizerData.selectedAltField.affectedFeaturesStructure.affectedGenes.length > 0">
+            <div layout="row" layout-align="start stretch" flex>
+                <div class="md-variant-property-title"
+                     ng-if="ctrl._variantVisualizerData.selectedAltField.affectedFeaturesStructure.affectedGenes.length === 1"
+                     flex="50">
+                    Gene
+                </div>
+                <div class="md-variant-property-title"
+                     ng-if="ctrl._variantVisualizerData.selectedAltField.affectedFeaturesStructure.affectedGenes.length > 1"
+                     flex="50">
+                    Genes
+                </div>
+                <div class="md-variant-property-values" layout="column" flex="50">
+                    <div ng-repeat="gene in ctrl._variantVisualizerData.selectedAltField.affectedFeaturesStructure.affectedGenesDisplay"
+                         class="md-variant-property-single-value">
+                        {{gene}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div flex="100" class="md-variant-property md-variant-property-display-mode-wide"
+             ng-if="ctrl._variantVisualizerData.selectedAltField.affectedFeaturesStructure.affectedTranscripts.length > 0">
+            <div layout="row" layout-align="start stretch" flex>
+                <div class="md-variant-property-title" flex="50">
+                    <span class="chip" transcript>Transcript</span>
+                    <span class="chip" exon>Exon</span>
+                    <span class="chip" domain>Domain</span>
+                </div>
+                <div class="md-variant-property-values" layout="column" flex="50">
+                    <div ng-repeat="item in ctrl._variantVisualizerData.selectedAltField.affectedFeaturesStructure.affectedTranscripts"
+                         class="md-variant-property-single-value"
+                         layout="row"
+                         layout-align="start stretch" flex>
+                        <span class="chip" transcript ng-if="item.transcript">{{item.transcript.name}}</span>
+                        <span class="chip" exon ng-if="item.exon">{{item.exon.name}}</span>
+                        <span class="chip" domain ng-if="item.domain">{{item.domain.name}}</span>
+                        <span class="chip" domain-unavailable ng-if="!item.domain">unavailable</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div flex="100" id="cnv" ng-show="ctrl._loaded && !ctrl._visualizationError">
+        <div class="visualizer-tooltip-target"></div>
+    </div>
+    <div flex="100" layout="row" layout-align="center center" ng-show="ctrl._loaded && ctrl._visualizationError">
+        <div class="visualization-error">{{ctrl._visualizationError}}</div>
+    </div>
+    <div class="visualizer-tooltip hidden" id="vtooltip">
+        <table style="width: 100%">
+            <tr ng-repeat="tooltipItem in ctrl._tooltipContent">
+                <td>{{tooltipItem.key}}</td>
+                <td>{{tooltipItem.value}}</td>
+            </tr>
+        </table>
+    </div>
+</div>

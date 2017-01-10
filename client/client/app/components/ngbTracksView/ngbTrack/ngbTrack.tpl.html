@@ -1,0 +1,77 @@
+<div
+        flex
+        layout="row"
+        layout-wrap="100"
+        class="ngb-track-container"
+        ng-class="{resizing: isResizing}"
+>
+    <div
+            flex="100"
+            class="ngb-track-header"
+            layout="row"
+            layout-align="start center"
+            ng-mousedown="ctrl.onHeaderMouseDown($event)">
+
+        <div class="ngb-track-header-type">{{ctrl.track.format}}</div>
+        <div class="ngb-track-header-file-name">{{ctrl.track.name}}</div>
+
+        <ngb-track-settings
+                dnd-nodrag
+                ng-if="ctrl.trackInstance !== undefined && ctrl.trackInstance.getSettings"
+                settings="ctrl.trackInstance.getSettings()"></ngb-track-settings>
+
+        <div class="ngb-track-header-action-buttons" layout="row" layout-align="start center"
+             ng-if="ctrl.trackInstance !== undefined && ctrl.trackInstance.actions">
+            <div class="ngb-track-header-action-button" ng-repeat="action in ctrl.trackInstance.actions">
+                <div ng-if="action.enabled()">
+                    <div ng-if="action.type === 'checkbox'"
+                         layout="row"
+                         layout-align="start center">
+                        <md-checkbox class="ngb-track-header-checkbox md-warn"
+                                     aria-label="action"
+                                     md-no-ink
+                                     ng-mousedown="$event.stopImmediatePropagation();"
+                                     ng-click="action.handleClick();"
+                                     ng-checked="action.value()"
+                        >
+                        </md-checkbox>
+                        {{action.label}}
+                    </div>
+                </div>
+                <div ng-hide="action.enabled()"
+                     class="ngb-track-header-message"
+                     layout="row"
+                     layout-align="start center">{{action.disabledMessage()}}
+                </div>
+            </div>
+        </div>
+
+        <div ng-show="ctrl.trackDataIsLoading">
+            <md-progress-circular md-mode="indeterminate" md-diameter="12"></md-progress-circular>
+        </div>
+    </div>
+
+    <div
+            dnd-nodrag
+            class="ngb-track-renderer js-ngb-render-container-target"
+            flex="100"></div>
+
+    <div
+            dnd-nodrag
+            flex="100"
+            layout-margin
+            ng-hide="ctrl.isLoaded"
+            ng-style="{height: ctrl.possibleTrackHeight + 'px'}"
+            layout="row"
+            layout-align="center center">
+        <div>
+            <ngb-progress-circular ngb-mode="indeterminate" flex></ngb-progress-circular>
+        </div>
+    </div>
+
+    <div
+            ng-if="ctrl.isResizable"
+            dnd-nodrag
+            class="ngb-resize-panel"
+            flex="100"></div>
+</div>

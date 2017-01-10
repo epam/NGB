@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.seg.SegFileDao" id="segFileDao" autowire="byName">
+        <property name="segFileSequenceName" value="catgenome.s_seg" />
+        <property name="segSampleSequenceName" value="catgenome.s_seg_sample" />
+        <property name="createSegFileQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.seg (
+                        seg_id,
+                        bio_data_item_id,
+                        reference_genome_id,
+                        index_id,
+                        compressed)
+                    VALUES (
+                        :SEG_ID,
+                        :BIO_DATA_ITEM_ID,
+                        :REFERENCE_GENOME_ID,
+                        :INDEX_ID,
+                        :COMPRESSED)
+                ]]>
+            </value>
+        </property>
+        <property name="loadSegFileQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.format,
+                        b.created_by,
+                        b.created_date,
+                        b.bucket_id,
+                        s.seg_id,
+                        s.reference_genome_id as seg_reference_genome_id,
+                        s.compressed as seg_compressed,
+
+                        i.bio_data_item_id as index_id,
+                        i.name as index_name,
+                        i.type as index_type,
+                        i.path as index_path,
+                        i.format as index_format,
+                        i.created_by as index_created_by,
+                        i.bucket_id as index_bucket_id,
+                        i.created_date as index_created_date
+                    FROM catgenome.seg s
+                        JOIN catgenome.biological_data_item b ON s.bio_data_item_id = b.bio_data_item_id
+                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = s.index_id
+                    WHERE s.seg_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadSegFilesByReferenceIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.format,
+                        b.created_by,
+                        b.created_date,
+                        b.bucket_id,
+                        s.seg_id,
+                        s.reference_genome_id as seg_reference_genome_id,
+                        s.compressed as seg_compressed,
+
+                        i.bio_data_item_id as index_id,
+                        i.name as index_name,
+                        i.type as index_type,
+                        i.path as index_path,
+                        i.format as index_format,
+                        i.created_by as index_created_by,
+                        i.bucket_id as index_bucket_id,
+                        i.created_date as index_created_date
+                    FROM catgenome.seg s
+                        JOIN catgenome.biological_data_item b ON s.bio_data_item_id = b.bio_data_item_id
+                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = s.index_id
+                    WHERE s.reference_genome_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteSegFileQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.seg where seg_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="createSamplesForFileQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.seg_sample (
+                        seg_sample_id,
+                        seg_id,
+                        sample_name)
+                    VALUES (
+                        :SEG_SAMPLE_ID,
+                        :SEG_ID,
+                        :SAMPLE_NAME)
+                ]]>
+            </value>
+        </property>
+        <property name="loadSamplesForFileQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        seg_sample_id,
+                        sample_name
+                    FROM catgenome.seg_sample
+                    WHERE seg_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadSamplesByFileIdsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        s.seg_sample_id,
+                        s.sample_name,
+                        s.seg_id
+                    FROM catgenome.seg_sample s
+                        JOIN t_list tmp ON s.seg_id = tmp.list_value
+                    WHERE tmp.list_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadSamplesForFilesByReferenceIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        s.seg_sample_id,
+                        s.sample_name,
+                        s.seg_id
+                    FROM catgenome.seg_sample s
+                        JOIN catgenome.seg f ON s.seg_id = f.seg_id
+                    WHERE f.reference_genome_id = ?
+                    ORDER BY s.seg_id
+                ]]>
+            </value>
+        </property>
+        <property name="deleteSamplesQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.seg_sample WHERE seg_id = ?
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

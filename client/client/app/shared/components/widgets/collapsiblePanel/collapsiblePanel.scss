@@ -1,0 +1,66 @@
+collapsible {
+  display: block;
+}
+collapsible-panel-title {
+  font-weight: bolder;
+  font-size: 12px;
+  padding-left: 10px;
+}
+
+.animate-show {
+  opacity: 1;
+}
+
+.animate-show.ng-hide-add, .animate-show.ng-hide-remove {
+  transition: all linear 0.2s;
+}
+
+.animate-show.ng-hide {
+  opacity: 0;
+}
+
+.rotate {
+  -ms-transform: rotate(180deg); /* IE 9 */
+  -moz-transform: rotate(180deg);
+  -webkit-transform: rotate(180deg); /* Chrome, Safari, Opera */
+  transform: rotate(180deg);
+}
+
+.rotate-back {
+  -ms-transform: rotate(0deg); /* IE 9 */
+  -moz-transform: rotate(0deg);
+  -webkit-transform: rotate(0deg); /* Chrome, Safari, Opera */
+  transform: rotate(0deg);
+}
+
+.rotate svg {
+  animation-name: rotation;
+  animation-duration: 0.2s;
+  animation-iteration-count: 1;
+  animation-timing-function: linear;
+}
+
+.rotate-back svg {
+  animation-name: rotation-back;
+  animation-duration: 0.2s;
+  animation-iteration-count: 1;
+  animation-timing-function: linear;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes rotation-back {
+  0% {
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}

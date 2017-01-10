@@ -1,0 +1,11 @@
+export const leftArrow = 1;
+export const rightArrow = 2;
+export const match = 3;
+export const deletion = 4;
+export const insertion = 5;
+export const base = 6;
+export const initRead = 7;
+export const softClip = 8;
+export const softClipBase = 9;
+export const pairedReadConnection = 10;
+export const spliceJunctions = 11;

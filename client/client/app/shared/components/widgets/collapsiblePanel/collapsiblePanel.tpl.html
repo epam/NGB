@@ -1,0 +1,15 @@
+<md-button class="md-button_block md-button__icon-right"
+           ng-click="$ctrl.onClick()"
+           ng-disabled="$ctrl.disabled">
+    <ng-md-icon size="18"
+                ng-class="{'rotate' :  !$ctrl.open, 'rotate-back' :  $ctrl.open}"
+                class="rotated"
+                icon="keyboard_arrow_down">
+    </ng-md-icon>
+    <span class="control-label">
+        <div ng-transclude="title"></div>
+    </span>
+</md-button>
+<div class="animate-show u-column-padding" ng-show="$ctrl.open">
+    <div ng-transclude="body"></div>
+</div>

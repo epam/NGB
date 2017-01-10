@@ -1,0 +1,162 @@
+$selected-color: #d8efdd;
+$unselected-color: #f9f9f9;
+$folder-fill: #666666;
+$folder-line: #cccccc;
+
+.dataset-icon {
+  margin-top: -2px;
+  vertical-align: middle;
+  fill: $folder-fill;
+  &.opened {
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    transform: rotate(90deg);
+    margin-top: -4px;
+  }
+
+  &.empty {
+    visibility: hidden;
+  }
+}
+
+.ivh-treeview-node-content {
+  vertical-align: middle;
+  display: block;
+}
+
+.dataset-track-format-title {
+  margin-right: 2px;
+  margin-top: -1px;
+  cursor: pointer;
+  font-size: xx-small;
+  display: inline-block;
+  width: 30px;
+  background-color: $unselected-color;
+  text-align: center;
+  border-radius: 3px;
+  border: 1px solid darken($unselected-color, 10%);
+
+  &.selected {
+    background-color: $selected-color;
+    border-color: darken($selected-color, 20%);
+  }
+}
+
+.dataset-genome {
+  margin-right:10px;
+  text-transform: uppercase;
+  color: #888888;
+  font-size: x-small;
+}
+
+.dataset-item-row {
+  white-space: nowrap;
+  margin-top: -1px;
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Chrome/Safari/Opera */
+  -khtml-user-select: none; /* Konqueror */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently not supported by any browser */
+  -o-user-select: none;
+
+  &:hover {
+    background-color: #f9f9f9;
+    .dataset-genome {
+      color: #444444;
+    }
+  }
+}
+
+.dataset-project-title {
+  cursor: pointer;
+  &.selected {
+    font-weight: bold;
+  }
+  &.empty {
+    margin-left: 17px;
+    color: #666666;
+    cursor: default;
+  }
+}
+
+.dataset-track-title {
+  &.selected {
+    font-weight: bold;
+  }
+}
+
+.dataset-selectable {
+  cursor: pointer;
+  &:focus {
+    outline:0;
+  }
+}
+
+.folder-vertical-line {
+  width: 1px;
+  background-color: $folder-line;
+  position: relative;
+  left: 9px;
+  margin-bottom: 9px;
+}
+
+.folder-horizontal-line {
+  display: block;
+  height: 1px;
+  position: relative;
+  width: 7px;
+  background-color: $folder-line;
+  top: 10px;
+  left: -7px;
+
+  &.empty {
+    width: 40px;
+    &.invisible {
+      display: none;
+    }
+  }
+}
+
+.ivh-treeview-checkbox-wrapper {
+  &.track {
+    margin-left: 1px;
+  }
+  &.empty {
+    visibility: hidden;
+  }
+}
+
+.dataset-project-title-structure-card {
+  padding: 1px 4px 1px 4px;
+  cursor: pointer;
+  font-size: xx-small;
+  display: inline-block;
+  background-color: $unselected-color;
+  text-align: center;
+  border-radius: 3px;
+  border: 1px solid darken($unselected-color, 10%);
+  font-weight: normal;
+  text-transform: uppercase;
+}
+
+.datasets-not-found-warning {
+  padding-top: 20px;
+  text-align: center;
+  span {
+    font-size: small;
+    color: #999999;
+    strong {
+      color: #666666;
+    }
+  }
+}
+
+.md-button.md-icon-button.datasets-action {
+  margin: 0;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+}

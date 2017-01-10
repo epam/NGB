@@ -1,0 +1,22 @@
+<div layout="row" layout-wrap flex md-component-id="gene-panel">
+    <md-input-container flex="50">
+        <label for="qualityFrom">From</label>
+        <input type="number" id="qualityFrom" name="qualityFrom"
+               ng-model="ctrl.projectContext.vcfFilter.quality.from"
+               ng-max="ctrl.projectContext.vcfFilter.quality.to"
+               ng-change="ctrl.toggleQuality()">
+        <div ng-messages="vcfFilterForm.qualityFrom.$error">
+            <div ng-message="max">Value must be less than {{ctrl.projectContext.vcfFilter.quality.to}}</div>
+        </div>
+    </md-input-container>
+    <md-input-container flex="50">
+        <label for="qualityTo">To</label>
+        <input type="number" id="qualityTo" name="qualityTo"
+               ng-model="ctrl.projectContext.vcfFilter.quality.to"
+               ng-min="ctrl.projectContext.vcfFilter.quality.from"
+               ng-change="ctrl.toggleQuality()">
+        <div ng-messages="vcfFilterForm.qualityTo.$error">
+            <div ng-message="min">Value must be greater than {{ctrl.projectContext.vcfFilter.quality.from}}</div>
+        </div>
+    </md-input-container>
+</div>

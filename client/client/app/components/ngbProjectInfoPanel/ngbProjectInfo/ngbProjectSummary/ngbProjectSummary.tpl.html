@@ -1,0 +1,24 @@
+<div layout="column" flex  class="project-summary-layout">
+    <div class="u-space_r">
+        <h2 class="title__first">{{ctrl.project.name}}</h2>
+        <md-list flex class="md-dense md-list__text">
+            <md-list-item class="md-list-item__sm md-list-item__nospace created-date text__sm">
+                <span>Created</span>{{ctrl.project.createdDate}}
+            </md-list-item>
+            <md-list-item class="md-list-item__sm md-list-item__nospace created-date text__sm">
+                <span>Modified</span>{{ctrl.project.lastOpenedDate}}
+            </md-list-item>
+        </md-list>
+    </div>
+    <md-content class="u-space_r u-scroll__auto" flex>
+        <div class="frame u-column-padding" flex ng-repeat="file in ctrl.files">
+            <h5 class="format-header">{{file.type}}</h5>
+            <md-list flex class="md-dense md-list__text">
+                <md-list-item class="md-list-item__sm md-list-item__nospace" ng-repeat="name in file.names track by $index">
+                    {{name}}
+                </md-list-item>
+            </md-list>
+        </div>
+    </md-content>
+</div>
+

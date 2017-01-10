@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="referenceGenomeDao" class="com.epam.catgenome.dao.reference.ReferenceGenomeDao" autowire="byName">
+
+        <property name="chromosomeSequenceName" value="catgenome.s_chromosome"/>
+
+        <property name="referenceGenomeSequenceName" value="catgenome.s_reference_genome"/>
+
+
+        <property name="createReferenceGenomeQuery">
+            <value>
+                <![CDATA[
+                        INSERT INTO catgenome.reference_genome (
+                            reference_genome_id,
+                            bio_data_item_id,
+                            reference_genome_size,
+                            gene_item_id)
+                        VALUES (
+                            :REFERENCE_GENOME_ID,
+                            :BIO_DATA_ITEM_ID,
+                            :SIZE,
+                            :GENE_ITEM_ID)
+                ]]>
+            </value>
+        </property>
+
+        <property name="loadReferenceGenomeByIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.format,
+                        b.created_by,
+                        b.created_date,
+                        b.bucket_id,
+                        r.reference_genome_id,
+                        r.bio_data_item_id,
+                        r.reference_genome_size,
+                        null as compressed,
+                        r.gene_item_id
+                    FROM catgenome.reference_genome r
+                        JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
+                    WHERE r.reference_genome_id = :REFERENCE_GENOME_ID
+                ]]>
+            </value>
+        </property>
+
+        <property name="loadReferenceGenomeByBioIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.format,
+                        b.created_by,
+                        b.created_date,
+                        b.bucket_id,
+                        r.reference_genome_id,
+                        r.bio_data_item_id,
+                        r.reference_genome_size,
+                        null as compressed,
+                        r.gene_item_id
+                    FROM catgenome.reference_genome r
+                        JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
+                    WHERE r.bio_data_item_id = :BIO_DATA_ITEM_ID
+                ]]>
+            </value>
+        </property>
+        <property name="loadAllReferenceGenomesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.path,
+                        b.created_date,
+                        b.bucket_id,
+                        b.type,
+                        r.reference_genome_id,
+                        r.bio_data_item_id,
+                        r.reference_genome_size,
+                        null as compressed
+                    FROM catgenome.reference_genome r
+                        JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
+                    ORDER BY name ASC
+                ]]>
+            </value>
+        </property>
+        <property name="updateReferenceGeneFileIdQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.reference_genome
+                    SET gene_item_id = :GENE_ITEM_ID
+                    WHERE reference_genome_id = :REFERENCE_GENOME_ID
+                ]]>
+            </value>
+        </property>
+        <property name="createChromosomeQuery">
+            <value>
+                <![CDATA[
+                        INSERT INTO catgenome.chromosome ( chromosome_id, reference_genome_id,
+                                                           chromosome_name, chromosome_size,
+                                                           chromosome_header, content_resource_path
+                                                         )
+                           VALUES ( :CHROMOSOME_ID, :REFERENCE_GENOME_ID, :NAME, :SIZE,
+                                    :HEADER, :PATH
+                                  )
+                ]]>
+            </value>
+        </property>
+
+        <property name="loadChromosomeByIdQuery">
+            <value>
+                <![CDATA[
+                        SELECT chromosome.chromosome_id AS chromosome_id,
+                               chromosome.reference_genome_id AS reference_genome_id,
+                               chromosome.chromosome_name AS name, chromosome.chromosome_size AS size,
+                               chromosome.chromosome_header AS header,
+                               chromosome.content_resource_path AS path
+                        FROM catgenome.chromosome chromosome
+                        WHERE chromosome.chromosome_id = :CHROMOSOME_ID
+                ]]>
+            </value>
+        </property>
+
+        <property name="loadAllChromosomesByReferenceIdQuery">
+            <value>
+                <![CDATA[
+                        SELECT chromosome.chromosome_id AS chromosome_id,
+                               chromosome.reference_genome_id AS reference_genome_id,
+                               chromosome.chromosome_name AS name, chromosome.chromosome_size AS size,
+                               chromosome.chromosome_header AS header,
+                               chromosome.content_resource_path AS path
+                        FROM catgenome.chromosome chromosome
+                        WHERE chromosome.reference_genome_id = :REFERENCE_GENOME_ID
+                        ORDER BY chromosome_id ASC
+                ]]>
+            </value>
+        </property>
+
+        <property name="deleteReferenceQuery">
+            <value>
+                <![CDATA[
+                        DELETE FROM catgenome.reference_genome WHERE reference_genome_id = ?
+                ]]>
+            </value>
+        </property>
+
+        <property name="deleteReferenceChromosomeQuery">
+            <value>
+                <![CDATA[
+                        DELETE FROM catgenome.chromosome WHERE reference_genome_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadBiologicalItemsQuery">
+            <value>
+                <![CDATA[
+                    SELECT a.id, a.BIO_DATA_ITEM_ID, b.NAME FROM
+                    ((SELECT vcf_id as id, BIO_DATA_ITEM_ID FROM CATGENOME.VCF WHERE REFERENCE_GENOME_ID = :REFERENCE_GENOME_ID)
+                    UNION (SELECT gene_item_id as id, BIO_DATA_ITEM_ID FROM CATGENOME.GENE_ITEM WHERE REFERENCE_GENOME_ID = :REFERENCE_GENOME_ID)
+                    UNION (SELECT bam_id as id, BIO_DATA_ITEM_ID FROM CATGENOME.BAM WHERE REFERENCE_GENOME_ID = :REFERENCE_GENOME_ID)
+                    UNION (SELECT BED_GRAPH_ID as id, BIO_DATA_ITEM_ID FROM CATGENOME.BED_GRAPH WHERE REFERENCE_GENOME_ID = :REFERENCE_GENOME_ID)) a JOIN
+                    CATGENOME.BIOLOGICAL_DATA_ITEM b ON a.BIO_DATA_ITEM_ID = b.BIO_DATA_ITEM_ID;
+                ]]>
+            </value>
+        </property>
+
+    </bean>
+
+</beans>

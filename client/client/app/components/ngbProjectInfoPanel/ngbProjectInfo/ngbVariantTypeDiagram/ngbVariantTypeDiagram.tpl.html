@@ -1,0 +1,10 @@
+<div layout-fill class="ngb-variant-type-diagram">
+    <div class="chart-holder ngbTypeDiagram-holder">
+        <md-progress-circular
+                md-mode="indeterminate"
+                ng-show="ctrl.isProgressShown"
+                md-diameter="12">
+        </md-progress-circular>
+        <nvd3 options="options" data="data" api="api"></nvd3>
+    </div>
+</div>

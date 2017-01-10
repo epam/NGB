@@ -1,0 +1,14 @@
+<div layout-fill
+     flex
+     class="ngb-variant-density-diagram u-column-padding"
+     layout-wrap layout="row">
+	<div class="chart-holder ngbDensityDiagram-holder">
+        <md-progress-circular
+                md-mode="indeterminate"
+                ng-show="ctrl.isProgressShown"
+                md-diameter="12">
+        </md-progress-circular>
+		<nvd3 options="options" data="data" api="api" on-change="callback"></nvd3>
+	</div>
+
+</div>

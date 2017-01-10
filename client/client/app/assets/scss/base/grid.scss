@@ -1,0 +1,49 @@
+@mixin make-flex-for-name-by-columns($columns, $name: null) {
+  $flexName: 'flex';
+  @if $name != null {
+    $flexName: 'flex-#{$name}';
+    $name : '-#{$name}';
+  } @else {
+    $name : '';
+  }
+  $value : #{100/$columns + '%'};
+
+  .#{$flexName}-c#{$columns} {
+    flex: 1 1 #{$value};
+    max-width: #{$value};
+    max-height: 100%;
+    box-sizing: border-box;
+  }
+
+  .layout-row > .#{$flexName}-c#{$columns},
+  .layout#{$name}-row > .#{$flexName}-c#{$columns} {
+    flex: 1 1 #{$value};
+    max-width: #{$value};
+    max-height: 100%;
+    box-sizing: border-box;
+  }
+
+  .layout-column > .#{$flexName}-c#{$columns},
+  .layout#{$name}-column > .#{$flexName}-c#{$columns} {
+    flex: 1 1 #{$value};
+    max-width: 100%;
+    max-height: #{$value};
+    box-sizing: border-box;
+  }
+
+  .layout-row, .layout#{$name}-row {
+    > .#{$flexName}-c#{$columns}, > .#{$flexName}-c#{$columns}     {  flex: 1 1 #{$value};  max-width: #{$value};  max-height: 100%; box-sizing: border-box; }
+
+    // Bug workaround for http://crbug.com/546034 - flex issues on Chrome 48
+    > .flex                                       { min-width: 0;   }
+  }
+}
+
+@media (min-width: $layout-breakpoint-md) {
+  @include make-flex-for-name-by-columns(6, lgc);
+}
+
+@media (min-width: $layout-breakpoint-lg) {
+  @include make-flex-for-name-by-columns(6, xl);
+}
+

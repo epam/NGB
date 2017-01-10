@@ -1,0 +1,55 @@
+<div layout="row" layout-align="center center" class="u-height__full"
+     ng-if="!$ctrl.selectedGeneTrack">
+    <h4 ng-bind-html="$ctrl.defaultMessage"></h4>
+</div>
+
+<div layout="row" layout-align="center start" class="u-height__full" ng-if="$ctrl.selectedGeneTrack">
+
+    <div layout="column" flex class="u-height__full">
+        <div>
+            <md-input-container class="md-block" ng-if="$ctrl.geneTracks.length > 1">
+                <md-select aria-label="geneTracks" ng-model="$ctrl.selectedGeneTrack">
+                    <md-option ng-repeat="track in $ctrl.geneTracks track by $index" value="{{track.id}}">{{track.name}}</md-option>
+                </md-select>
+            </md-input-container>
+        </div>
+        <div ng-if="$ctrl.loading">
+            <div class="progress" layout-align="center center">
+                <span>Loading transcripts...</span>
+            </div>
+            <md-progress-linear md-mode="query"></md-progress-linear>
+        </div>
+        <div ng-if="!$ctrl.loading">
+            <md-input-container class="md-block" ng-if="$ctrl.PDBids.length">
+                <md-select aria-label="PDBids" ng-model="$ctrl.selectedItemId">
+                    <md-option ng-repeat="pdb in $ctrl.PDBids" value="{{pdb.id}}">{{pdb.id}}
+                        <span class="option-hack" ng-if="$ctrl.description.structureTitle">&nbsp;-&nbsp;{{$ctrl.description.structureTitle}}</span>
+                    </md-option>
+                </md-select>
+            </md-input-container>
+        </div>
+        <md-content flex>
+            <div layout="row" ng-if="$ctrl.selectedItem" class="md-padding">
+                <ngb-pdb-description pdb="$ctrl.selectedItem"
+                                     pdb-list="$ctrl.mdSelectSource"
+                                     chain-id="$ctrl.descriptionChainId"
+                                     description="$ctrl.description"
+                                     load-done="$ctrl.descriptionDone"
+                ></ngb-pdb-description>
+            </div>
+            <div layout="row" class="md-padding" ng-if="$ctrl.descriptionDone">
+                <ngb-miew pdb="$ctrl.selectedItem"
+                          chain-id="$ctrl.descriptionChainId"
+                          description="$ctrl.description"
+                          region="$ctrl.region"
+                ></ngb-miew>
+            </div>
+            <div class="md-padding" ng-if="$ctrl.errorMessageList.length">
+                <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+            </div>
+        </md-content>
+    </div>
+
+</div>
+
+

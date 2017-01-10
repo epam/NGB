@@ -1,0 +1,10 @@
+###
+A1	ensembl	gene	2	40	.	+	.	ID=gene:ENSFCAG00000011704;Name=PGLYRP4;biotype=protein_coding;description=peptidoglycan recognition protein 4 [Source:HGNC Symbol%3BAcc:HGNC:30015];gene_id=ENSFCAG00000011704;logic_name=ensembl;version=2
+A1	FlyBase	mRNA	2	30	15	+		gene_id "FBgn0030164"; gene_symbol "CG1889"; transcript_id "FBtr0336906"; transcript_symbol "CG1889-RE";
+A1	ensembl	transcript	2	30	.	+	.	ID=transcript:ENSFCAT00000011707;Parent=gene:ENSFCAG00000011704;Name=PGLYRP4-201;biotype=protein_coding;transcript_id=ENSFCAT00000011707;version=2
+A1	ensembl	exon	2	8	.	+	.	Parent=transcript:ENSFCAT00000011707;Name=ENSFCAE00000118589;constitutive=1;ensembl_end_phase=1;ensembl_phase=0;exon_id=ENSFCAE00000118589;rank=1;version=1
+A1	ensembl	CDS	2	8	.	+	0	ID=CDS:ENSFCAP00000010862;Parent=transcript:ENSFCAT00000011707;protein_id=ENSFCAP00000010862
+A1	ensembl	exon	7	14	.	+	.	Parent=transcript:ENSFCAT00000011707;Name=ENSFCAE00000118591;constitutive=1;ensembl_end_phase=1;ensembl_phase=1;exon_id=ENSFCAE00000118591;rank=2;version=2
+A1	ensembl	CDS	7	14	.	-	2	ID=CDS:ENSFCAP00000010862;Parent=transcript:ENSFCAT00000011707;protein_id=ENSFCAP00000010862
+A1	ensembl	exon	20	25	.	+	.	Parent=transcript:ENSFCAT00000011707;Name=ENSFCAE00000118591;constitutive=1;ensembl_end_phase=1;ensembl_phase=1;exon_id=ENSFCAE00000118591;rank=2;version=2
+A1	ensembl	CDS	20	25	.	+	2	ID=CDS:ENSFCAP00000010862;Parent=transcript:ENSFCAT00000011707;protein_id=ENSFCAP00000010862

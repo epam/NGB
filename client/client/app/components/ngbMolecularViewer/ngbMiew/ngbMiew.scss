@@ -1,0 +1,112 @@
+ngb-miew {
+  display: block;
+  height: 100%;
+  width: 100%;
+
+  .miew-container {
+    width: 100%;
+    height: 100%;
+  }
+
+  .miew-canvas > canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .miew-container, .miew-canvas {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .miew-message {
+    background-color: silver;
+    display: table;
+    width: 100%;
+    height: 100%;
+  }
+  .miew-message p {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    font-size: large;
+  }
+
+  .bottom-message {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    opacity: 0.0;
+  }
+  .bottom-message div {
+    width: 300px;
+    height: 50px;
+    border-radius: 4px;
+    color: silver;
+    background-color: rgba(64, 64, 64, 0.75);
+    margin: auto;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-align: center;
+    align-items: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+  }
+  .bottom-message p {
+    margin: 0;
+    text-align: center;
+  }
+  .bottom-message em {
+    color: limegreen;
+  }
+
+  .mode-message {
+    position: absolute;
+    top: 50px;
+    right: 10px;
+    width: 200px;
+    height: 50px;
+    border-radius: 4px;
+    color: silver;
+    background-color: rgba(64, 64, 64, 0.75);
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-align: center;
+    align-items: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    opacity: 0.0;
+  }
+  .mode-message p {
+    margin: 0;
+    text-align: center;
+  }
+
+  .atom-info {
+    position: absolute;
+    top: 50px;
+    left: 10px;
+    border-radius: 4px;
+    color: silver;
+    background-color: rgba(64, 64, 64, 0.75);
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-align: left;
+    align-items: left;
+    -ms-flex-pack: left;
+    justify-content: left;
+    opacity: 0.0;
+  }
+  .atom-info p {
+    margin: 10px;
+    text-align: left;
+  }
+
+  .overlay {
+    pointer-events: none;
+  }
+
+}

@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.reference.BookmarkDao" id="bookmarkDao" autowire="byName">
+        <property name="bookmarkSequenceName" value="catgenome.s_bookmark" />
+        <property name="bookmarkItemSequenceName" value="catgenome.s_bookmark_item" />
+        <property name="insertBookmarkQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.bookmark (
+                        bookmark_id,
+                        bookmark_name,
+                        start_index,
+                        end_index,
+                        referred_chromosome_id,
+                        created_by,
+                        created_date)
+                    VALUES (
+                        :BOOKMARK_ID,
+                        :BOOKMARK_NAME,
+                        :START_INDEX,
+                        :END_INDEX,
+                        :REFERRED_CHROMOSOME_ID,
+                        :CREATED_BY,
+                        :CREATED_DATE)
+                ]]>
+            </value>
+        </property>
+        <property name="updateBookmarkQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.bookmark SET
+                        bookmark_name = :BOOKMARK_NAME,
+                        start_index = :START_INDEX,
+                        end_index = :END_INDEX
+                    WHERE
+                        bookmark_id = :BOOKMARK_ID
+                ]]>
+            </value>
+        </property>
+        <property name="loadAllBookmarksQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bookmark_id,
+                        b.bookmark_name,
+                        b.start_index,
+                        b.end_index,
+                        b.referred_chromosome_id,
+                        c.chromosome_name,
+                        b.created_by,
+                        b.created_date
+                    FROM
+                        catgenome.bookmark b
+                        JOIN catgenome.chromosome c
+                            ON b.referred_chromosome_id = c.chromosome_id
+                    WHERE
+                        b.created_by = ?
+                ]]>
+            </value>
+        </property>
+        <property name="searchBookmarksQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bookmark_id,
+                        b.bookmark_name,
+                        b.start_index,
+                        b.end_index,
+                        b.referred_chromosome_id,
+                        null as chromosome_name,
+                        b.created_by,
+                        b.created_date
+                    FROM
+                        catgenome.bookmark b
+                    WHERE
+                        b.created_by = :CREATED_BY
+                        AND bookmark_name LIKE :BOOKMARK_NAME
+                    LIMIT :SEARCH_LIMIT
+                ]]>
+            </value>
+        </property>
+        <property name="searchBookmarkCountQuery">
+            <value>
+                <![CDATA[
+                    SELECT count(*) as count
+                    FROM catgenome.bookmark
+                    WHERE
+                        created_by = :CREATED_BY
+                        AND bookmark_name LIKE :BOOKMARK_NAME
+                ]]>
+            </value>
+        </property>
+        <property name="loadBookmarkByIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bookmark_id,
+                        b.bookmark_name,
+                        b.start_index,
+                        b.end_index,
+                        b.referred_chromosome_id,
+                        c.chromosome_name,
+                        b.created_by,
+                        b.created_date
+                    FROM
+                        catgenome.bookmark b
+                        JOIN catgenome.chromosome c
+                            ON b.referred_chromosome_id = c.chromosome_id
+                    WHERE
+                        bookmark_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadBookmarksByIdsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bookmark_id,
+                        b.bookmark_name,
+                        b.start_index,
+                        b.end_index,
+                        b.referred_chromosome_id,
+                        c.chromosome_name,
+                        b.created_by,
+                        b.created_date
+                    FROM
+                        catgenome.bookmark b
+                        JOIN catgenome.chromosome c
+                            ON b.referred_chromosome_id = c.chromosome_id
+                        JOIN t_list tmp ON b.bookmark_id = tmp.list_value
+                    WHERE
+                        tmp.list_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteBookmarkQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.bookmark WHERE bookmark_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="insertBookmarkItemsQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.bookmark_item (
+                        bookmark_item_id,
+                        bookmark_id,
+                        bio_data_item_id)
+                    VALUES (
+                        :BOOKMARK_ITEM_ID,
+                        :BOOKMARK_ID,
+                        :BIOLOGICAL_ITEM_ID)
+                ]]>
+            </value>
+        </property>
+        <property name="loadBookmarksItemsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        book.bookmark_id,
+
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.format,
+                        b.created_by,
+                        b.created_date,
+
+                        v.vcf_id,
+                        v.reference_genome_id as vcf_reference_genome_id,
+                        v.compressed as vcf_compressed,
+
+                        g.gene_item_id,
+                        g.reference_genome_id as gene_reference_genome_id,
+                        g.compressed as gene_compressed,
+                        g.external_db_type_id as gene_external_db_type_id,
+                        g.external_db_id as gene_external_db_id,
+                        g.external_db_organism as gene_external_db_organism,
+
+                        r.reference_genome_id,
+                        r.reference_genome_size,
+                        r.gene_item_id as reference_gene_item_id,
+                        rgb.name as reference_gene_item_name,
+                        rgb.bio_data_item_id as reference_gene_bio_data_item_id,
+                        rgb.type as reference_gene_type,
+                        rgb.path as reference_gene_path,
+                        rgb.format as reference_gene_format,
+                        rgb.created_by as reference_gene_created_by,
+                        rgb.created_date as reference_gene_created_date,
+                        rg.reference_genome_id as reference_gene_reference_genome_id,
+                        rg.compressed as reference_gene_compressed,
+
+                        m.bam_id,
+                        m.reference_genome_id as bam_reference_genome_id,
+
+                        bg.bed_graph_id,
+                        bg.reference_genome_id as bed_graph_reference_genome_id,
+
+                        bd.bed_id,
+                        bd.reference_genome_id as bed_reference_genome_id,
+                        bd.compressed as bed_compressed,
+
+                        s.seg_id,
+                        s.reference_genome_id as seg_reference_genome_id,
+                        s.compressed as seg_compressed,
+
+                        maf.maf_id,
+                        maf.reference_genome_id as maf_reference_genome_id,
+                        maf.compressed as maf_compressed,
+                        maf.real_path as maf_real_path,
+
+                        vg.vg_id,
+                        vg.reference_genome_id as vg_reference_genome_id,
+                        vg.real_path as vg_real_path,
+
+                        i.bio_data_item_id as index_id,
+                        i.name as index_name,
+                        i.type as index_type,
+                        i.path as index_path,
+                        i.format as index_format,
+                        i.created_by as index_created_by,
+                        i.bucket_id as index_bucket_id,
+                        i.created_date as index_created_date
+                    FROM
+                        catgenome.bookmark_item book
+                        JOIN t_list tmp ON book.bookmark_id = tmp.list_value
+                        JOIN catgenome.biological_data_item b ON b.bio_data_item_id = book.bio_data_item_id
+                        LEFT JOIN catgenome.vcf v ON v.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.gene_item g ON g.bio_data_item_id = b.bio_data_item_id
+
+                        LEFT JOIN catgenome.reference_genome r ON r.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.gene_item rg ON r.gene_item_id = rg.gene_item_id
+                        LEFT JOIN catgenome.biological_data_item rgb ON rg.bio_data_item_id = rgb.bio_data_item_id
+
+                        LEFT JOIN catgenome.bam m ON m.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.bed_graph bg ON bg.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.bed bd ON bd.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.seg s ON s.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.biological_data_item i ON
+                                i.bio_data_item_id = m.index_id
+                                OR i.bio_data_item_id = g.index_id
+                                OR i.bio_data_item_id = v.index_id
+                                OR i.bio_data_item_id = bd.index_id
+                                OR i.bio_data_item_id = s.index_id
+                    WHERE
+                        tmp.list_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteBookmarkItemsQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.bookmark_item WHERE bookmark_id = ?
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

@@ -1,0 +1,40 @@
+md-list.md-dense {
+  font-family: $font-family;
+  font-size: $ngb-font-size;
+  &__sm {
+    font-size: $caption-font-size-base;
+  }
+  md-list-item {
+    &:first-child {
+      .md-list-item-text {
+        margin-top: 0;
+      }
+    }
+    &:last-child {
+      .md-list-item-text {
+        margin-bottom: 0;
+      }
+    }
+    .md-list-item-text {
+      margin-bottom: 8px;
+      margin-top: 8px;
+    }
+    &.md-list-item {
+      &__sm {
+        font-size: $caption-font-size-base;
+        min-height: 18px;
+        height: 18px;
+        padding: 0;
+      }
+
+      &__nospace {
+        padding: 0;
+      }
+    }
+  }
+
+}
+
+
+
+

@@ -1,0 +1,23 @@
+<tr>
+    <td ng-if="$ctrl.settingItem.type === 'group'" colspan="4">
+        <p class="group-label">{{$ctrl.settingItem.label}}</p>
+    </td>
+    <td ng-if="$ctrl.settingItem.type === 'item'">
+        {{$ctrl.settingItem.label}}
+    </td>
+    <td ng-if="$ctrl.settingItem.type === 'item'">
+        <ngb-hotkey-input item="$ctrl.settingItem" hotkeys="$ctrl.customizeSettings"></ngb-hotkey-input>
+    </td>
+    <td ng-if="$ctrl.settingItem.type === 'item'">
+        <div layout="row">
+            <div ng-repeat="color in $ctrl.settingItem.colors" class="color-wrapper">
+                <div class="color-label">{{color.label}}:</div>
+                <color-picker ng-model="color.value" options="$ctrl.pickerOptions" class="color-value"></color-picker>
+            </div>
+        </div>
+
+    </td>
+    <td ng-if="$ctrl.settingItem.type === 'item'" >
+        <ngb-grouped-checkbox setting-item="$ctrl.settingItem"></ngb-grouped-checkbox>
+    </td>
+</tr>

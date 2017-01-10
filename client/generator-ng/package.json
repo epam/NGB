@@ -1,0 +1,21 @@
+{
+  "name": "generator-ng",
+  "version": "0.0.2",
+  "description": "Angular 1.5 components and services generator for Yeoman.",
+  "homepage": "",
+  "author": {
+    "name": "EPAM"
+  },
+  "main": "generators\\index.js",
+  "keywords": [
+    "epam",
+    "yeoman-generator"
+  ],
+  "dependencies": {
+    "yeoman-generator": "^0.23.0",
+    "lodash": "4.2.1"
+  },
+  "devDependencies": {
+  },
+  "private": true
+}

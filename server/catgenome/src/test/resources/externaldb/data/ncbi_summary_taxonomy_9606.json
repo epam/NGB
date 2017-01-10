@@ -1,0 +1,27 @@
+{
+    "header": {
+        "type": "esummary",
+        "version": "0.3"
+    },
+    "result": {
+        "uids": [
+            "9606"
+        ],
+        "9606": {
+            "uid": "9606",
+            "status": "active",
+            "rank": "species",
+            "division": "primates",
+            "scientificname": "Homo sapiens",
+            "commonname": "human",
+            "taxid": 9606,
+            "akataxid": "",
+            "genus": "Homo",
+            "species": "sapiens",
+            "subsp": "",
+            "modificationdate": "2015/09/16 00:00",
+            "genbankdivision": "Primates"
+        }
+    }
+}
+

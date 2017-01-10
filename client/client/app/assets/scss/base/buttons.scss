@@ -1,0 +1,45 @@
+$icon-button-width: rem(4.000) !default;
+
+.md-button_block {
+  width: 100%;
+  text-align: left;
+  margin: 0;
+}
+
+.md-button__icon-right {
+  .control-label {
+    display: block;
+    margin-right: 20px;
+  }
+  ng-md-icon {
+    float: right;
+  }
+}
+
+.md-button__right {
+  float: right;
+}
+
+.md-button {
+  &.md-icon-button {
+
+    md-icon {
+      display: inline-block;
+    }
+    min-width: $icon-button-width;
+    width: auto;
+    vertical-align: middle;
+    span {
+      vertical-align: middle;
+    }
+    .material-icons {
+      vertical-align: middle;
+    }
+    &__sm {
+      padding: 0;
+      height: 24px;
+      width: 24px;
+      min-height: 24px;
+    }
+  }
+}

@@ -1,0 +1,64 @@
+$domain-bg-color: #f3ceb6;
+$exon-bg-color: #d8efdd;
+$transcript-bg-color: #FFF9C4;
+
+.ngb-variant-visualizer-temp {
+  text-align: center;
+  color: #999999;
+  font-size: smaller;
+}
+
+ngb-variant-visualizer {
+  margin-top: 20px;
+}
+
+md-radio-button.alt-single-field {
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
+}
+
+.chip {
+  padding: 2px 5px 2px 5px;
+  border-radius: 30px;
+  color: #555555;
+  &[transcript] {
+    background-color: $transcript-bg-color;
+  }
+  &[exon] {
+    background-color: $exon-bg-color;
+  }
+  &[domain] {
+    background-color: $domain-bg-color;
+  }
+  &[domain-unavailable] {
+    background-color: $domain-bg-color;
+    opacity: 0.5;
+    color: #777777;
+    font-size: smaller;
+    font-style: italic;
+  }
+}
+
+.visualizer-tooltip-target {
+  display: block;
+  width: 1px;
+  height: 1px;
+  position:relative;
+}
+
+.visualizer-tooltip {
+  z-index: 1001;
+  min-width: 200px;
+  background-color: #ffffff;
+  box-shadow: 0px 0px 30px -5px rgba(0, 0, 0, 0.5);
+}
+
+.visualizer-tooltip.hidden {
+  display: none;
+}
+
+.visualization-error{
+  padding: 20px;
+  color: #888888;
+  font-size: small;
+}

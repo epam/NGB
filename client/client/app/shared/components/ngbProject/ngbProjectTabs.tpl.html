@@ -1,0 +1,37 @@
+<md-dialog aria-label="Create Project">
+
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>{{ctrl.windowTitle}}</h2>
+            <span flex></span>
+            <md-button class="md-icon-button" ng-click="ctrl.close()">
+                <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+
+    <md-dialog-content style="min-width:600px;max-width:800px;max-height:810px; ">
+        <md-tabs md-dynamic-height md-border-bottom>
+            <md-tab label="General">
+                <project-general event="ctrl.emittedEvent" project-id="ctrl.projectId"></project-general>
+            </md-tab>
+            <md-tab label="Tracks" ng-disabled="ctrl.isTracksTabNotAvailable()">
+                <project-tracks event="ctrl.emittedEvent" project-id="ctrl.projectId"></project-tracks>
+            </md-tab>
+        </md-tabs>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+        <div>
+            <md-button class="md-primary" ng-click="ctrl.save()" ng-disabled="ctrl.isSaveDisable()">
+                Save
+            </md-button>
+            <md-tooltip ng-if="ctrl.isSaveDisable()" md-direction="top">
+                Select reference genome and enter project name
+            </md-tooltip>
+        </div>
+
+        <md-button ng-click="ctrl.close()" style="margin-right:20px;">
+            Cancel
+        </md-button>
+    </md-dialog-actions>
+</md-dialog>

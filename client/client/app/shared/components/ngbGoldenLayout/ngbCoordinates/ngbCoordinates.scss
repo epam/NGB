@@ -1,0 +1,57 @@
+ngb-coordinates {
+  md-input-container.md-block {
+    padding: 0;
+    margin: -5px 0px 0px 0px;
+    input {
+      font-size: 14px;
+      line-height: 14px;
+      padding: 0 0 3px 5px;
+      background-color: #eeeeee;
+    }
+  }
+}
+
+.chromosome-block, .coordinates-block {
+  margin-left: 1px;
+  height: 26px;
+  display: block;
+}
+
+.chromosome-block a, .coordinates-block a{
+  margin-top: 2px;
+  text-decoration: underline;
+  padding: 5px 5px 5px 5px;
+  color: black;
+}
+
+.coordinates-menu {
+  position: absolute;
+  top: 40px;
+  background-color: white;
+  margin: 4px;
+  cursor: default;
+  overflow-y: scroll;
+  max-height: 300px;
+}
+
+.coordinates-menu-item {
+  cursor: hand;
+  width: 300px;
+  text-align: left;
+}
+
+.coordinates-menu-item.hint {
+  padding: 10px 15px;
+  font-size: smaller;
+  font-style: italic;
+  text-decoration: none;
+  cursor: default;
+}
+
+.context-menu-item {
+
+}
+
+.context-menu-item-subtitle {
+  font-size: x-small;
+}

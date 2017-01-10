@@ -1,0 +1,80 @@
+{
+    "header": {
+      "type":"esummary","version":"0.3"
+    },
+    "result": {
+      "uids":
+        ["55911"],
+      "55911": {
+        "uid":"55911",
+        "title":"LIM domain kinase 2",
+        "description":"LIMK2, Limk2, limk2 - conserved in Euteleostomi",
+        "homologenedatalist":[
+          {
+            "taxname":"Homo sapiens",
+            "taxid":9606,
+            "symbol":"LIMK2",
+            "title":"LIM domain kinase 2",
+            "geneid":3985
+          },
+          {
+            "taxname":"Pan troglodytes",
+            "taxid":9598,
+            "symbol":"LIMK2",
+            "title":"LIM domain kinase 2",
+            "geneid":458970
+          },
+          {
+            "taxname":"Canis lupus familiaris",
+            "taxid":9615,
+            "symbol":"LIMK2",
+            "title":"LIM domain kinase 2",
+            "geneid":486363
+          },
+          {
+            "taxname":"Bos taurus",
+            "taxid":9913,
+            "symbol":"LIMK2",
+            "title":"LIM domain kinase 2",
+            "geneid":513539
+          },
+          {
+            "taxname":"Mus musculus",
+            "taxid":10090,
+            "symbol":"Limk2",
+            "title":"LIM motif-containing protein kinase 2",
+            "geneid":16886
+          },
+          {
+            "taxname":"Rattus norvegicus",
+            "taxid":10116,
+            "symbol":"Limk2",
+            "title":"LIM domain kinase 2",
+            "geneid":29524
+          },
+          {
+            "taxname":"Gallus gallus",
+            "taxid":9031,
+            "symbol":"LIMK2",
+            "title":"LIM domain kinase 2",
+            "geneid":396010
+          },
+          {
+            "taxname":"Danio rerio",
+            "taxid":7955,
+            "symbol":"limk2",
+            "title":"LIM domain kinase 2",
+            "geneid":436924
+          },
+          {
+            "taxname":"Xenopus (Silurana) tropicalis",
+            "taxid":8364,
+            "symbol":"limk2",
+            "title":"LIM domain kinase 2",
+            "geneid":100216249
+          }
+        ],
+        "caption":"Gene conserved in Euteleostomi"
+      }
+    }
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE eLinkResult PUBLIC "-//NLM//DTD elink 20101123//EN" "http://eutils.ncbi.nlm.nih.gov/eutils/dtd/20101123/elink.dtd">
+<eLinkResult>
+<LinkSet>
+	<DbFrom>gene</DbFrom>
+	<IdList>
+		<Id>3985</Id>
+	</IdList>
+	<LinkSetDbHistory>
+		<DbTo>pubmed</DbTo>
+		<LinkName>gene_pubmed</LinkName>
+		<QueryKey>1</QueryKey>
+	</LinkSetDbHistory>
+	<WebEnv>NCID_1_25615458_165.112.9.37_9001_1460538774_1139714798_0MetA0_S_MegaStore_F_1</WebEnv>
+</LinkSet>
+</eLinkResult>

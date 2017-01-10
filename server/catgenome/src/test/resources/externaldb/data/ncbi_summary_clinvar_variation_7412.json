@@ -1,0 +1,131 @@
+{
+    "header": {
+        "type": "esummary",
+        "version": "0.3"
+    },
+    "result": {
+        "uids": [
+            "7412"
+        ],
+        "7412": {
+            "uid": "7412",
+            "obj_type": "Simple",
+            "accession": "",
+            "accession_version": "",
+            "title": "NM_006941.3(SOX10):c.915delG (p.His306Thrfs)",
+            "variation_set": [
+                {
+                    "measure_id": "22451",
+                    "variation_xrefs": [
+                        {
+                            "db_source": "OMIM",
+                            "db_id": "602229.0020"
+                        },
+                        {
+                            "db_source": "dbSNP",
+                            "db_id": "397515372"
+                        }
+                    ],
+                    "variation_name": "NM_006941.3(SOX10):c.915delG (p.His306Thrfs)",
+                    "cdna_change": "c.915delG (p.His306Thrfs)",
+                    "aliases": [
+                    ],
+                    "variation_loc": [
+                        {
+                            "status": "current",
+                            "assembly_name": "GRCh38",
+                            "chr": "22",
+                            "band": "22q13.1",
+                            "start": "37973981",
+                            "stop": "37973981",
+                            "inner_start": "",
+                            "inner_stop": "",
+                            "outer_start": "",
+                            "outer_stop": "",
+                            "display_start": "37973981",
+                            "display_stop": "37973981",
+                            "assembly_acc_ver": "GCF_000001405.28",
+                            "annotation_release": "",
+                            "alt": "-",
+                            "ref": "C"
+                        },
+                        {
+                            "status": "previous",
+                            "assembly_name": "GRCh37",
+                            "chr": "22",
+                            "band": "22q13.1",
+                            "start": "38369988",
+                            "stop": "38369988",
+                            "inner_start": "",
+                            "inner_stop": "",
+                            "outer_start": "",
+                            "outer_stop": "",
+                            "display_start": "38369988",
+                            "display_stop": "38369988",
+                            "assembly_acc_ver": "GCF_000001405.25",
+                            "annotation_release": "",
+                            "alt": "-",
+                            "ref": "C"
+                        }
+                    ],
+                    "allele_freq_set": [
+                    ],
+                    "variant_type": "Deletion"
+                }
+            ],
+            "trait_set": [
+                {
+                    "trait_xrefs": [
+                        {
+                            "db_source": "MedGen",
+                            "db_id": "C1836727"
+                        },
+                        {
+                            "db_source": "Orphanet",
+                            "db_id": "163746"
+                        },
+                        {
+                            "db_source": "OMIM",
+                            "db_id": "609136"
+                        }
+                    ],
+                    "trait_name": "Peripheral demyelinating neuropathy, central dysmyelination, Waardenburg syndrome, and Hirschsprung disease"
+                }
+            ],
+            "supporting_submissions": {
+                "scv": [
+                    "SCV000028042"
+                ],
+                "rcv": [
+                    "RCV000007837"
+                ]
+            },
+            "clinical_significance": {
+                "description": "Pathogenic",
+                "last_evaluated": "2009/10/01 00:00",
+                "review_status": "no assertion criteria provided"
+            },
+            "record_status": "",
+            "gene_sort": "POLR2F",
+            "chr_sort": "22",
+            "location_sort": "00000000000037973981",
+            "variation_set_name": "",
+            "variation_set_id": "",
+            "genes": [
+                {
+                    "symbol": "POLR2F",
+                    "geneid": "5435",
+                    "strand": "+",
+                    "source": "submitted"
+                },
+                {
+                    "symbol": "SOX10",
+                    "geneid": "6663",
+                    "strand": "-",
+                    "source": "submitted"
+                }
+            ]
+        }
+    }
+}
+

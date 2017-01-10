@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<ruleset name="catgenome-ruleset"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
+    <description>CatGenome Java ruleset</description>
+
+    <rule ref="rulesets/java/basic.xml">
+        <!--<exclude name="UselessParentheses"/>-->
+    </rule>
+
+    <rule ref="rulesets/java/unusedcode.xml"/>
+    <rule ref="rulesets/java/imports.xml"/>
+    <rule ref="rulesets/java/imports.xml/TooManyStaticImports">
+        <properties>
+            <property name="maximumStaticImports" value="6"/>
+        </properties>
+    </rule>
+    <rule ref="rulesets/java/strings.xml"/>
+    <rule ref="rulesets/java/braces.xml"/>
+    <rule ref="rulesets/java/empty.xml">
+        <priority>2</priority>
+    </rule>
+    <rule ref="rulesets/java/finalizers.xml"/>
+    <rule ref="rulesets/java/naming.xml">
+        <exclude name="VariableNamingConventions"/>
+        <exclude name="ShortClassName"/>
+        <exclude name="LongVariable"/>
+        <exclude name="ShortVariable"/>
+    </rule>
+    <rule ref="rulesets/java/strictexception.xml">
+        <exclude name="SignatureDeclareThrowsException"/>
+    </rule>
+
+    <exclude-pattern>.*/com/epam/catgenome/manager/FeatureIndexManager.java</exclude-pattern>
+    <exclude-pattern>.*/com/epam/catgenome/util/TestUtils.java</exclude-pattern>
+</ruleset>
