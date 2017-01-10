@@ -18,9 +18,9 @@ Links to variations loci, provided below, will load public NGB instance located 
 
 ## Figure 6. ROS1-SLC34A2 interchromosomal translocation fusion
 
-1. Navigate to [ROS1-SLC34A2 fusion locus](http://ngb.opensource.epam.com/catgenome/#/pId/2/chr/6/start/117337097/end/117337197) *(click a link to navigate to a public NGB instance)*
+1. Navigate to [ROS1-SLC34A2 fusion locus](http://ngb.opensource.epam.com/catgenome/#/pId/3/chr/6/start/117337097/end/117337197) *(click a link to navigate to a public NGB instance)*
 2. BND (breakends) variation with alignments will be shown. Variation tooltip indicates second breakpoint location (interchromosomal translocation chr6<->chr4)
-3. Left-click a variation on a VCF track - context menu with two options will be shown
+3. Left-click a variation on a VCF track (lumpy) - context menu with two options will be shown
  * Show info
  * Show pair in split screen
 ![BND](../installation/images/docker-4.png)
@@ -34,9 +34,9 @@ Links to variations loci, provided below, will load public NGB instance located 
 
 ## Figure 7. EML4-ALK inversion fusion
 
-1. Navigate to [EML4-ALK fusion locus](http://ngb.opensource.epam.com/catgenome/#/pId/1/chr/2/start/29224543/end/29225020) *(click a link to navigate to a public NGB instance)*
+1. Navigate to [EML4-ALK fusion locus](http://ngb.opensource.epam.com/catgenome/#/pId/2/chr/2/start/29224732/end/29224832) *(click a link to navigate to a public NGB instance)*
 2. Inversion variation with alignments will be shown
-3. Left-click a variation on a VCF track - context menu with two options will be shown
+3. Left-click a variation on a VCF track (lumpy) - context menu with two options will be shown
  * Show info
  * Show pair in split screen
 ![ALK-EML4](../installation/images/docker-1.png)
