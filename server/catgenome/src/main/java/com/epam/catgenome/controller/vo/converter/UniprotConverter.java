@@ -26,8 +26,10 @@ package com.epam.catgenome.controller.vo.converter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.epam.catgenome.controller.vo.externaldb.UniprotEntryVO;
+import com.epam.catgenome.manager.externaldb.bindings.uniprot.CommentType;
 import com.epam.catgenome.manager.externaldb.bindings.uniprot.Entry;
 import com.epam.catgenome.manager.externaldb.bindings.uniprot.EvidencedStringType;
 import com.epam.catgenome.manager.externaldb.bindings.uniprot.GeneNameType;
@@ -43,7 +45,12 @@ import com.epam.catgenome.manager.externaldb.bindings.uniprot.ProteinType.Submit
  *  </p>
  */
 public final class UniprotConverter {
-    
+
+    private static final String UNIPROT_URL_TEMPLATE = "http://www.uniprot.org/uniprot/%s";
+    private static final String REVIEWED_DATASET = "SWISS-PROT";
+    private static final String UNREVIEWED_DATASET = "TREMBL";
+    private static final String FUNCTION = "function";
+
     private UniprotConverter(){}
 
     /**
@@ -57,6 +64,9 @@ public final class UniprotConverter {
         UniprotEntryVO vo = new UniprotEntryVO();
         setEntryName(uniprotEntry, vo);
         setAccession(uniprotEntry, vo);
+        if (vo.getAccession() != null) {
+            vo.setUrl(String.format(UNIPROT_URL_TEMPLATE, vo.getAccession()));
+        }
         // convert protein names
         List<SubmittedName> submittedNamesList = uniprotEntry.getProtein().getSubmittedName();
         List<String> proteinNamesList = new ArrayList<>();
@@ -77,8 +87,27 @@ public final class UniprotConverter {
         OrganismType organism = uniprotEntry.getOrganism();
 
         setOrganismAndLineage(vo, organism);
+        setStatus(vo, uniprotEntry.getDataset());
+        setFunction(vo, uniprotEntry.getComment());
 
         return vo;
+    }
+
+    private static void setFunction(UniprotEntryVO vo, List<CommentType> comment) {
+        List<CommentType> function =
+                comment.stream().filter(commentType -> FUNCTION.equals(commentType.getType()))
+                        .collect(Collectors.toList());
+        if (!function.isEmpty() && !function.get(0).getText().isEmpty()) {
+            vo.setFunction(function.get(0).getText().get(0).getValue());
+        }
+    }
+
+    private static void setStatus(UniprotEntryVO vo, String dataset) {
+        if (REVIEWED_DATASET.equalsIgnoreCase(dataset)) {
+            vo.setStatus("Reviewed");
+        } else if (UNREVIEWED_DATASET.equalsIgnoreCase(dataset)) {
+            vo.setStatus("Unreviewed");
+        }
     }
 
     private static void setOrganismAndLineage(UniprotEntryVO vo, OrganismType organism) {

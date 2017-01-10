@@ -6,7 +6,7 @@ New Genome Browser (NGB) is a Web client-server tool that has been developed wit
 * User experience that is based on a set of useful features like hotkeys, variation tables, docking widgets, etc.
 * Web 3D molecular viewer integrated
 
-We have done our best to make those features at the highest possible level and thus make NGB one the best web-based genome browser
+We have done our best to make those features at the highest possible level and thus make NGB one the best web-based genome browser.
 The community lead by EPAM intends to develop NGB extending it functionality and improving user experience. Your suggestions and comments are welcome.
 
 We believe that NGB (being a namesake of a [Neuroglobin (NGB) gene](http://www.uniprot.org/uniprot/Q9NPG2), coding a protein that is involved in oxygen transport in the brain) will help researchers and clinicians to discover the valuable insights in the huge volumes of genomic data.
@@ -18,6 +18,9 @@ We believe that NGB (being a namesake of a [Neuroglobin (NGB) gene](http://www.u
 Detailed documentation on building, installation, usage is available at
 * [Markdown sources](docs/README.md)
 * [Latest HTML documentation](http://ngb.opensource.epam.com/distr/latest/docs)
+
+Publications 
+* [Dataset visualization for article **Prioritisation of Structural Variant Calls in Cancer Genomes**](docs/md/publications/dataset-prioritisation-of-sv.md)
 
 # Quickstart
 

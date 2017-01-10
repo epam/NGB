@@ -46,6 +46,9 @@ public class UniprotEntryVO {
     private List<String> geneNames;
     private String organismName;
     private List<String> lineage;
+    private String status;
+    private String url;
+    private String function;
 
     public String getAccession() {
         return accession;
@@ -93,5 +96,29 @@ public class UniprotEntryVO {
 
     public void setLineage(List<String> lineage) {
         this.lineage = lineage;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String getFunction() {
+        return function;
+    }
+
+    public void setFunction(String function) {
+        this.function = function;
     }
 }
