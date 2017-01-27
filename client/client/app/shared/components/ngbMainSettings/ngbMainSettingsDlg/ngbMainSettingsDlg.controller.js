@@ -7,11 +7,11 @@ export default class ngbMainSettingsDlgController {
     }
 
     /* @ngInject */
-    constructor(dispatcher, localDataService, $mdDialog, ngbMainSettingsDlgService, $scope) {
+    constructor(dispatcher, localDataService, $mdDialog, ngbMainSettingsDlgService, $scope, settings) {
         this._dispatcher = dispatcher;
         this._localDataService = localDataService;
         this._mdDialog = $mdDialog;
-        this.settings = this._localDataService.getSettings();
+        this.settings = settings;
         this.settings && (this.settings.maxBAMBP = this.settings.maxBAMBP || DEFAULT_CONFIG);
         this.settingsService = ngbMainSettingsDlgService;
         this.customizeSettings = this.settingsService.getSettings();
@@ -34,7 +34,7 @@ export default class ngbMainSettingsDlgController {
         return arguments.length ? this.settings.maxBAMBP = input : this.settings.maxBAMBP;
     }
 
-    setToDefaultCustomizations(){
+    setToDefaultCustomizations() {
         this.customizeSettings = this.settingsService.getDefaultSettings();
         this.scope.$broadcast('setToDefault');
     }

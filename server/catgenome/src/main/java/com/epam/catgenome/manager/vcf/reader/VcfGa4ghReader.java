@@ -85,7 +85,8 @@ public class VcfGa4ghReader extends AbstractVcfReader {
 
     @Override
     public Track<Variation> readVariations(VcfFile vcfFile, Track<Variation> track, Chromosome chromosome,
-                                           Integer sampleIndex, boolean loadInfo) throws VcfReadingException {
+                                           Integer sampleIndex, boolean loadInfo, final boolean collapse)
+        throws VcfReadingException {
         final String start = track.getStartIndex().toString();
         final String end = track.getEndIndex().toString();
         final List<VariantGA4GH> ghList;
@@ -98,7 +99,8 @@ public class VcfGa4ghReader extends AbstractVcfReader {
         if (ghList.isEmpty()) {
             return null;
         }
-        if (track.getScaleFactor() >= 1 && track.getEndIndex() - track.getStartIndex() < Constants.GA4GH_MAX_SIZE) {
+        if ((track.getScaleFactor() >= 1 && track.getEndIndex() - track.getStartIndex() < Constants.GA4GH_MAX_SIZE)
+            || !collapse) {
             ArrayList<Variation> variations = new ArrayList<>();
             final VariantSet metadata = variationMetadata(vcfFile.getPath());
             createVariationsFromGA4GH(vcfFile, loadInfo, ghList, variations, metadata);
@@ -158,19 +160,20 @@ public class VcfGa4ghReader extends AbstractVcfReader {
                 throw new VcfReadingException(vcfFile, e);
             }
             final VariantSet variantSet = variationMetadata(vcfFile.getPath());
-            lastFeature = getLastVariation(vcfFile, varList, variantSet);
+            lastFeature = getLastVariation(vcfFile, varList, variantSet, fromPosition);
             i++;
         }
         return lastFeature;
     }
 
-    private Variation getLastVariation(VcfFile vcfFile, List<VariantGA4GH> varList, VariantSet variantSet) {
+    private Variation getLastVariation(VcfFile vcfFile, List<VariantGA4GH> varList, VariantSet variantSet,
+                                       int fromPosition) {
         Variation lastFeature = null;
         for (VariantGA4GH ghEntity : varList) {
             final Variation variation = createVariation(ghEntity, false, vcfFile,
                     variantSet.getMetadata());
             if (variation.getGenotypeData() == null || variation.getGenotypeData().getOrganismType()
-                    != OrganismType.NO_VARIATION) {
+                    != OrganismType.NO_VARIATION && variation.getEndIndex() < fromPosition) {
                 lastFeature = variation;
             }
         }
@@ -191,7 +194,8 @@ public class VcfGa4ghReader extends AbstractVcfReader {
         for (VariantGA4GH ghEntity : varList) {
             Variation variation = createVariation(ghEntity, false, vcfFile, variantSet.getMetadata());
             if (variation.getGenotypeData() == null ||
-                    variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION) {
+                    variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION &&
+                    variation.getStartIndex() > fromPosition) {
                 return variation;
             }
         }

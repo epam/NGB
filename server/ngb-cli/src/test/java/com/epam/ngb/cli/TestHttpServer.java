@@ -358,4 +358,23 @@ public class TestHttpServer extends AbstractCliTest{
                 .withBody(TestDataProvider.getPayloadJson(Collections.emptyList()))
                 .withStatus(HTTP_STATUS_OK);
     }
+
+    public void addDatasetMovingWithParent(Long datasetId, Long parentId) {
+        onRequest()
+                .havingMethodEqualTo(HTTP_PUT)
+                .havingPathEqualTo(String.format(DATASET_MOVING_URL, datasetId))
+                .havingParameterEqualTo("parentId", String.valueOf(parentId))
+                .respond()
+                .withBody(TestDataProvider.getPayloadJson("OK"))
+                .withStatus(HTTP_STATUS_OK);
+    }
+
+    public void addDatasetMovingWithoutParent(Long datasetId) {
+        onRequest()
+                .havingMethodEqualTo(HTTP_PUT)
+                .havingPathEqualTo(String.format(DATASET_MOVING_URL, datasetId))
+                .respond()
+                .withBody(TestDataProvider.getPayloadJson("OK"))
+                .withStatus(HTTP_STATUS_OK);
+    }
 }

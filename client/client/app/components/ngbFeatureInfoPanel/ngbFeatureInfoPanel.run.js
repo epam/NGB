@@ -11,6 +11,7 @@ export default function run($mdDialog, dispatcher) {
                 $scope.chromosomeId = data.chromosomeId;
                 $scope.startIndex = data.startIndex;
                 $scope.endIndex = data.endIndex;
+                $scope.geneId = data.geneId;
                 $scope.read = data.read;
                 if (data.read && data.read.name) {
                     $scope.name = data.read.name;
@@ -18,6 +19,7 @@ export default function run($mdDialog, dispatcher) {
                 else if (data.name) {
                     $scope.name = data.name;
                 }
+                $scope.panelTitle = data.title;
                 $scope.close = () => {
                     $mdDialog.hide();
                 };

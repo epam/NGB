@@ -25,7 +25,7 @@ export default class ngbTracksViewController extends baseController {
         return 'ngbTracksViewController';
     }
 
-    constructor($scope, $element, projectDataService, genomeDataService, dispatcher, projectContext) {
+    constructor($scope, $element, projectDataService, genomeDataService, vcfDataService, dispatcher, projectContext ) {
         super();
 
         Object.assign(this, {
@@ -35,6 +35,7 @@ export default class ngbTracksViewController extends baseController {
             genomeDataService,
             projectContext,
             projectDataService,
+            vcfDataService
         });
 
         this.domElement = this.$element[0];
@@ -139,7 +140,8 @@ export default class ngbTracksViewController extends baseController {
             this.dispatcher,
             this.projectContext,
             viewportPxMargin,
-            browserInitialSetting);
+            browserInitialSetting,
+            this.vcfDataService);
         this.tracks = tracks;
 
         if (this.brushStart && this.brushEnd) {

@@ -26,11 +26,11 @@ export default class ngbDataSetsController extends baseController {
         });
         $scope.$watch('$ctrl.searchPattern', ::this.searchPatternChanged);
         this.initEvents();
+        this._isLoading = true;
     }
 
     async $onInit() {
-        await this.loadingStarted();
-        await this.loadingFinished();
+        await this.refreshDatasets();
     }
 
     async loadingStarted() {

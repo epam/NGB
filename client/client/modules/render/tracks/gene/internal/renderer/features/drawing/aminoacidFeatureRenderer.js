@@ -33,9 +33,10 @@ const AMINOACID_DESCRIPTION = {
     'Y': {name: 'Tyrosine', symbol: 'Tyr'}
 };
 
-export default class AminoacidFeatureRenderer extends FeatureBaseRenderer{
+export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
+    gffShowNumbersAminoacid;
 
-    constructor(config, registerLabel, registerDockableElement, registerFeaturePosition){
+    constructor(config, registerLabel, registerDockableElement, registerFeaturePosition) {
         super(config, registerLabel, registerDockableElement, registerFeaturePosition);
         this._aminoacidLabelWidth = PixiTextSize.getTextSize('W', this.config.aminoacid.label.defaultStyle).width +
             this.config.aminoacid.label.margin * 2;
@@ -43,10 +44,15 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer{
             this.config.aminoacid.label.margin * 2;
         this._stopLabelWidth = PixiTextSize.getTextSize('STOP', this.config.aminoacid.label.defaultStyle).width +
             this.config.aminoacid.label.margin * 2;
+        this._maxAminoacidNumberWidth = PixiTextSize.getTextSize('99999', this.config.aminoacid.number).width;
     }
 
-    shouldDrawAminoacids(viewport){
+    shouldDrawAminoacids(viewport) {
         return viewport.convert.brushBP2pixel(AMINOACID_LENGTH_IN_BASE_PAIRS) >= this._aminoacidLabelWidth;
+    }
+
+    shouldNumberAminoacids(viewport) {
+        return viewport.convert.brushBP2pixel(AMINOACID_LENGTH_IN_BASE_PAIRS) >= this._maxAminoacidNumberWidth;
     }
 
     _getLabelStyleConfig(acid, shouldDisplayStopLabel, shouldDisplayStartLabel) {
@@ -94,13 +100,48 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer{
         return feature;
     }
 
-    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, position) {
-        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, position);
+    aminoacidsFitsViewport(transcript, viewport) {
+        let fits = false;
+        const minStartIndex = viewport.project.pixel2brushBP(- viewport.factor / 2);
+        const maxEndIndex = viewport.project.pixel2brushBP(viewport.canvasSize + viewport.factor / 2);
+        if (transcript.structure) {
+            for (let i = 0; i < transcript.structure.length; i++) {
+                const block = transcript.structure[i];
+                if (!block.isEmpty) {
+                    for (let j = 0; j < block.items.length; j++) {
+                        const sequence = block.items[j].aminoacidSequence || [];
+                        for (let a = 0; a < sequence.length; a++) {
+                            const acid = sequence[a];
+                            if (acid.endIndex < minStartIndex || acid.startIndex > maxEndIndex) {
+                                continue;
+                            }
+                            fits = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return fits;
+    }
+
+    analyzeBoundaries(feature, viewport) {
+        this._aminoacidNumberHeight = this.gffShowNumbersAminoacid && this.shouldNumberAminoacids(viewport) ? PixiTextSize.getTextSize('1', this.config.aminoacid.number).height : 0;
+        const boundaries = super.analyzeBoundaries(feature, viewport);
+        const rectBoundaries = boundaries.rect;
+        if (this.aminoacidsFitsViewport(feature, viewport)) {
+            rectBoundaries.y2 += this._aminoacidNumberHeight;
+        }
+        return boundaries;
+    }
+
+    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
         feature.aminoacidSequence = feature.aminoacidSequence || [];
 
         const minStartIndex = viewport.project.pixel2brushBP(-viewport.canvasSize);
         const maxEndIndex = viewport.project.pixel2brushBP(2 * viewport.canvasSize);
-        const height = this.config.transcript.height / 2;
+        const height = this.config.transcript.height;
         const pixelsInBp = viewport.factor;
         const shouldDisplayAminoacidLabels = viewport.convert.brushBP2pixel(AMINOACID_LENGTH_IN_BASE_PAIRS) >= this._aminoacidLabelWidth;
         const shouldDisplayStartLabel = viewport.convert.brushBP2pixel(AMINOACID_LENGTH_IN_BASE_PAIRS) >= this._startLabelWidth;
@@ -111,6 +152,26 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer{
             if (acid.startIndex < minStartIndex || acid.startIndex > maxEndIndex) {
                 continue;
             }
+
+            if (this.gffShowNumbersAminoacid && this.shouldNumberAminoacids(viewport)) {
+                const indexAcid = acid.index + 1;
+                const aminoacidNumber = new PIXI.Text(indexAcid, this.config.aminoacid.number);
+                aminoacidNumber.resolution = drawingConfiguration.resolution;
+
+                const aminoacidNumberPosition = {
+                    x: viewport.project.brushBP2pixel(acid.startIndex) +
+                    viewport.convert.brushBP2pixel(acid.endIndex - acid.startIndex + 1) / 2 - aminoacidNumber.width / 2,
+                    y: Math.round(position.y - height / 2 - aminoacidNumber.height)
+                };
+                aminoacidNumber.x = Math.round(aminoacidNumberPosition.x);
+                aminoacidNumber.y = Math.round(aminoacidNumberPosition.y);
+                labelContainer.addChild(aminoacidNumber);
+                this.registerLabel(aminoacidNumber, aminoacidNumberPosition, {
+                    end: acid.endIndex,
+                    start: acid.startIndex,
+                }, false, true);
+            }
+
             let startStrandFactor = 0;
             let endStrandFactor = 0;
             let startDiff = 0;

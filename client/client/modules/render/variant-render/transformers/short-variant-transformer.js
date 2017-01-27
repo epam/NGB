@@ -552,7 +552,7 @@ export default class ShortVariantTransformer{
             aminoacids.push({
                 startIndex: aStart + gene.startIndex,
                 endIndex: aStart + 2 + gene.startIndex,
-                aminoacid: ShortVariantTransformer.aminoacids[aminoacidStr]
+                aminoacid: ShortVariantTransformer.aminoacids[aminoacidStr.toUpperCase()]
             });
         }
     }

@@ -127,7 +127,9 @@ public class DatasetRegistrationHandler extends AbstractHTTPCommandHandler {
             handler.setRequestUrl(handler.getServerParameters().getRegistrationUrl());
             handler.setRequestType("POST");
             List<BiologicalDataItem> registeredFiles = handler.registerItems();
-            registeredFiles.forEach(f -> items.add(new ProjectItem(f.getBioDataItemId(), false)));
+            if (!registeredFiles.isEmpty()) {
+                registeredFiles.forEach(f -> items.add(new ProjectItem(f.getBioDataItemId(), false)));
+            }
         }
     }
 

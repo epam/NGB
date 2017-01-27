@@ -38,7 +38,7 @@ export default class advancedVcfFilterController extends baseFilterController {
             if (item.type === 'Flag') {
                 this.selectedAdvancedVcfFilters.splice(idx, 1);
             } else if (item.type === 'Integer' || item.type === 'Float') {
-                if(item.from === null && item.to === null){
+                if((item.from === null || item.from === undefined) && (item.to === null || item.to === undefined)){
                     this.selectedAdvancedVcfFilters.splice(idx, 1);
                 } else {
                     item.value = [item.from, item.to];
@@ -48,7 +48,7 @@ export default class advancedVcfFilterController extends baseFilterController {
             if (item.type === 'Flag') {
                 item.value = true;
             } else if (item.type === 'Integer' || item.type === 'Float') {
-                if(item.from === null && item.to === null){
+                if((item.from === null || item.from === undefined) && (item.to === null || item.to === undefined)){
                     this.selectedAdvancedVcfFilters.splice(idx, 1);
                 } else {
                     item.value = [item.from, item.to];

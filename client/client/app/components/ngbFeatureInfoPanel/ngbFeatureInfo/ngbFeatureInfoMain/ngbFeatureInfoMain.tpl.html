@@ -1,0 +1,31 @@
+<div layout="column">
+    <collapsible >
+        <collapsible-panel is-open="true">
+            <collapsible-panel-title>
+                General information
+            </collapsible-panel-title>
+            <collapsible-panel-content>
+                <ngb-info-rows properties="$ctrl.properties"></ngb-info-rows>
+            </collapsible-panel-content>
+        </collapsible-panel>
+    </collapsible>
+
+    <collapsible ng-show="$ctrl.read === undefined">
+        <collapsible-panel is-open="true">
+            <collapsible-panel-title>
+                Sequence
+            </collapsible-panel-title>
+            <collapsible-panel-content>
+                <div flex="100" layout="row" layout-wrap class="property-row" >
+                    <div flex="100" class="property property-value">
+                        <div layout="row" ng-hide="$ctrl.isSequenceLoading" layout-align="stretch middle">
+                            <textarea wrap="hard" flex class="sequence-area">{{$ctrl.sequence}}</textarea>
+                        </div>
+                        <md-progress-linear ng-show="$ctrl.isSequenceLoading" md-mode="determinate" value="{{$ctrl.sequenceProgress}}"
+                                            flex="100"></md-progress-linear>
+                    </div>
+                </div>
+            </collapsible-panel-content>
+        </collapsible-panel>
+    </collapsible>
+</div>

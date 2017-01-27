@@ -97,10 +97,11 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
         this.referenceManager = referenceManager;
         this.min = startTrack;
         this.max = endTrack + Constants.REFERENCE_STEP;
+
         this.refID = options.getRefID();
-        this.showClipping = options.getShowClipping();
+        this.showClipping = options.getShowClipping() != null && options.getShowClipping();
         this.chromosomeName = options.getChromosomeName();
-        this.showSpliceJunction = options.getShowSpliceJunction();
+        this.showSpliceJunction = options.getShowSpliceJunction() != null && options.getShowSpliceJunction();
         this.filter = filter;
         referenceBuffer = new BamReferenceBuffer(referenceManager.getSequenceString(min, max, refID, chromosomeName)
                 .toUpperCase());
@@ -273,7 +274,7 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
         }
     }
 
-    // SAMRecord is needed because sometimes weneed tags, but in other case record is useless, because
+    // SAMRecord is needed because sometimes we need tags, but in other case record is useless, because
     // it doesn't cash some fields.
     private List<BasePosition> computeDifferentBase(final String readString, final String bufferBase,
                                                     final int startReadPosition, final int bufferStart,
@@ -282,6 +283,21 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
         ReadBaseProcessor
                 baseCounter = new ReadBaseProcessor(readString, bufferBase, startReadPosition, bufferStart,
                 cigar, showClipping, record);
+        return baseCounter.getMismatchBasePositions();
+    }
+
+    public List<BasePosition> computeDifferentBase(final SAMRecord record)
+        throws IOException {
+        if (record.getStart() < min) {
+            refreshHeadReferenceBuffer(record.getStart());
+        }
+        if (record.getEnd() > max) {
+            refreshTailReferenceBuffer(record.getEnd());
+        }
+
+        ReadBaseProcessor
+            baseCounter = new ReadBaseProcessor(record.getReadString(), referenceBuffer.getBuffer(), record.getStart(),
+                                                min, record.getCigar().getCigarElements(), showClipping, record);
         return baseCounter.getMismatchBasePositions();
     }
 

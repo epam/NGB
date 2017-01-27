@@ -33,9 +33,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -50,10 +52,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 
 import com.epam.catgenome.controller.util.MultipartFileSender;
 import com.epam.catgenome.controller.util.UrlTestingUtils;
+import com.epam.catgenome.controller.vo.ReadQuery;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
@@ -118,12 +120,12 @@ public class BamManagerTest {
     private static final int LARGE_FRAME_SIZE = 12589188;
     private static final int TEST_COUNT = 30;
     private static final int LARGE_TEST_COUNT = 10000000;
+    private static final String BAI_EXTENSION = ".bai";
 
     private Resource resource;
     private String chromosomeName = "X";
     private Reference testReference;
     private Chromosome testChromosome;
-
 
     @Value("${s3.bucket.test.name}")
     private String s3BucketName;
@@ -168,22 +170,22 @@ public class BamManagerTest {
         final String path = resource.getFile().getAbsolutePath() + "//agnX1.09-28.trim.dm606.realign.bam";
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(path);
-        request.setIndexPath(path + ".bai");
+        request.setIndexPath(path + BAI_EXTENSION);
         request.setName(TEST_NSAME);
         request.setReferenceId(testReference.getId());
         request.setType(BiologicalDataItemResourceType.FILE);
 
         BamFile bamFile = bamManager.registerBam(request);
-        Assert.notNull(bamFile);
+        Assert.assertNotNull(bamFile);
         final BamFile loadBamFile = bamFileManager.loadBamFile(bamFile.getId());
-        Assert.notNull(loadBamFile);
-        Assert.isTrue(bamFile.getId().equals(loadBamFile.getId()));
-        Assert.isTrue(bamFile.getName().equals(loadBamFile.getName()));
-        Assert.isTrue(bamFile.getCreatedBy().equals(loadBamFile.getCreatedBy()));
-        Assert.isTrue(bamFile.getCreatedDate().equals(loadBamFile.getCreatedDate()));
-        Assert.isTrue(bamFile.getReferenceId().equals(loadBamFile.getReferenceId()));
-        Assert.isTrue(bamFile.getPath().equals(loadBamFile.getPath()));
-        Assert.isTrue(bamFile.getIndex().getPath().equals(loadBamFile.getIndex().getPath()));
+        Assert.assertNotNull(loadBamFile);
+        Assert.assertTrue(bamFile.getId().equals(loadBamFile.getId()));
+        Assert.assertTrue(bamFile.getName().equals(loadBamFile.getName()));
+        Assert.assertTrue(bamFile.getCreatedBy().equals(loadBamFile.getCreatedBy()));
+        Assert.assertTrue(bamFile.getCreatedDate().equals(loadBamFile.getCreatedDate()));
+        Assert.assertTrue(bamFile.getReferenceId().equals(loadBamFile.getReferenceId()));
+        Assert.assertTrue(bamFile.getPath().equals(loadBamFile.getPath()));
+        Assert.assertTrue(bamFile.getIndex().getPath().equals(loadBamFile.getIndex().getPath()));
 
         //full
         Track<Read> fullTrackQ = new Track<>();
@@ -255,34 +257,34 @@ public class BamManagerTest {
         option.setFrame(0);
         option.setDownSampling(false);
         fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        Assert.isTrue(fullTrack.getDownsampleCoverage().isEmpty());
+        Assert.assertTrue(fullTrack.getDownsampleCoverage().isEmpty());
 
         option.setFrame(-TEST_FRAME_SIZE);
         option.setDownSampling(false);
         fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        Assert.isTrue(fullTrack.getDownsampleCoverage().isEmpty());
+        Assert.assertTrue(fullTrack.getDownsampleCoverage().isEmpty());
 
         option.setCount(LARGE_TEST_COUNT);
         option.setDownSampling(false);
         fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        Assert.isTrue(fullTrack.getDownsampleCoverage().isEmpty());
+        Assert.assertTrue(fullTrack.getDownsampleCoverage().isEmpty());
 
         option.setFrame(LARGE_FRAME_SIZE);
         option.setDownSampling(false);
         fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        Assert.isTrue(fullTrack.getDownsampleCoverage().isEmpty());
+        Assert.assertTrue(fullTrack.getDownsampleCoverage().isEmpty());
         option.setCount(0);
 
         option.setDownSampling(false);
         fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        Assert.isTrue(fullTrack.getDownsampleCoverage().isEmpty());
+        Assert.assertTrue(fullTrack.getDownsampleCoverage().isEmpty());
 
         option.setCount(null);
         option.setDownSampling(false);
         fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        Assert.isTrue(fullTrack.getDownsampleCoverage().isEmpty());
+        Assert.assertTrue(fullTrack.getDownsampleCoverage().isEmpty());
 
-        //ald method, delete next
+        //old method, delete next
         fullTrack = bamManager.getFullMiddleReadsResult(fullTrackQ, TEST_FRAME_SIZE, TEST_COUNT, true,
                 true);
 
@@ -294,16 +296,63 @@ public class BamManagerTest {
         fullTrack = bamManager.getFullReadsResult(fullTrackQ, TrackDirectionType.LEFT,
                 TEST_FRAME_SIZE, TEST_COUNT, false, true);
 
-        Assert.isTrue(!fullTrack.getBlocks().isEmpty());
+        Assert.assertTrue(!fullTrack.getBlocks().isEmpty());
         testRead = fullTrack.getBlocks().get(0);
         testRead(testRead);
 
         fullTrack = bamManager.getFullReadsResult(fullTrackQ, TrackDirectionType.RIGHT,
                 TEST_FRAME_SIZE, TEST_COUNT, true, false);
 
-        Assert.isTrue(!fullTrack.getBlocks().isEmpty());
+        Assert.assertTrue(!fullTrack.getBlocks().isEmpty());
         testRead = fullTrack.getBlocks().get(0);
         testRead(testRead);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testLoadRead() throws IOException {
+        final String path = resource.getFile().getAbsolutePath() + "//agnX1.09-28.trim.dm606.realign.bam";
+        IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
+        request.setPath(path);
+        request.setIndexPath(path + BAI_EXTENSION);
+        request.setName(TEST_NSAME);
+        request.setReferenceId(testReference.getId());
+        request.setType(BiologicalDataItemResourceType.FILE);
+
+        BamFile bamFile = bamManager.registerBam(request);
+        Assert.assertNotNull(bamFile);
+
+        Track<Read> fullTrackQ = new Track<>();
+        fullTrackQ.setStartIndex(TEST_START_INDEX_SMALL_RANGE);
+        fullTrackQ.setEndIndex(TEST_END_INDEX_SMALL_RANGE);
+        fullTrackQ.setScaleFactor(SCALE_FACTOR_SMALL);
+        fullTrackQ.setChromosome(new Chromosome(testChromosome.getId()));
+        fullTrackQ.setId(bamFile.getId());
+
+        BamQueryOption option = new BamQueryOption();
+        option.setTrackDirection(TrackDirectionType.LEFT);
+        option.setShowSpliceJunction(true);
+        option.setShowClipping(true);
+        option.setFrame(TEST_FRAME_SIZE);
+        option.setCount(TEST_COUNT);
+        BamTrack<Read> fullTrack = bamManager.getBamTrack(fullTrackQ, option);
+
+        Assert.assertTrue(!fullTrack.getBlocks().isEmpty());
+        Read read = fullTrack.getBlocks().get(0);
+
+        ReadQuery query = new ReadQuery();
+        query.setName(read.getName());
+        query.setChromosomeId(testChromosome.getId());
+        query.setStartIndex(read.getStartIndex());
+        query.setEndIndex(read.getEndIndex());
+        query.setId(bamFile.getId());
+
+        Read loadedRead = bamManager.loadRead(query);
+        Assert.assertNotNull(loadedRead);
+        Assert.assertTrue(StringUtils.isNotBlank(loadedRead.getSequence()));
+        Assert.assertTrue(!loadedRead.getTags().isEmpty());
+        Assert.assertTrue(StringUtils.isNotBlank(loadedRead.getQualities()));
+        Assert.assertEquals(read.getName(), loadedRead.getName());
     }
 
     @Test
@@ -311,7 +360,7 @@ public class BamManagerTest {
     public void testLoadUrl() throws Exception {
         final String path = "/agnX1.09-28.trim.dm606.realign.bam";
         String bamUrl = UrlTestingUtils.TEST_FILE_SERVER_URL + path;
-        String indexUrl = bamUrl + ".bai";
+        String indexUrl = bamUrl + BAI_EXTENSION;
 
         Server server = new Server(UrlTestingUtils.TEST_FILE_SERVER_PORT);
         server.setHandler(new AbstractHandler() {
@@ -371,17 +420,17 @@ public class BamManagerTest {
         request.setIndexS3BucketId(bucket.getId());
         request.setIndexType(BiologicalDataItemResourceType.S3);
         BamFile bamFile = bamManager.registerBam(request);
-        Assert.notNull(bamFile);
+        Assert.assertNotNull(bamFile);
         BamFile loadBamFile = bamFileManager.loadBamFile(bamFile.getId());
-        Assert.notNull(loadBamFile);
+        Assert.assertNotNull(loadBamFile);
 
         bamManager.unregisterBamFile(loadBamFile.getId());
         loadBamFile = bamFileManager.loadBamFile(bamFile.getId());
-        Assert.isNull(loadBamFile);
+        Assert.assertNull(loadBamFile);
 
         List<BiologicalDataItem> items = biologicalDataItemDao.loadBiologicalDataItemsByIds(Arrays.asList(
                 bamFile.getBioDataItemId(), bamFile.getIndex().getId()));
-        Assert.isTrue(items.isEmpty());
+        Assert.assertTrue(items.isEmpty());
     }
 
     @Ignore
@@ -397,16 +446,16 @@ public class BamManagerTest {
         request.setType(BiologicalDataItemResourceType.HDFS);
 
         BamFile bamFile = bamManager.registerBam(request);
-        Assert.notNull(bamFile);
+        Assert.assertNotNull(bamFile);
         BamFile loadBamFile = bamFileManager.loadBamFile(bamFile.getId());
-        Assert.notNull(loadBamFile);
+        Assert.assertNotNull(loadBamFile);
         bamManager.unregisterBamFile(loadBamFile.getId());
         loadBamFile = bamFileManager.loadBamFile(bamFile.getId());
-        Assert.isNull(loadBamFile);
+        Assert.assertNotNull(loadBamFile);
 
         List<BiologicalDataItem> items = biologicalDataItemDao.loadBiologicalDataItemsByIds(Arrays.asList(
                 bamFile.getBioDataItemId(), bamFile.getIndex().getId()));
-        Assert.isTrue(items.isEmpty());
+        Assert.assertTrue(items.isEmpty());
     }
 
     @Test
@@ -432,7 +481,7 @@ public class BamManagerTest {
             long start = System.currentTimeMillis();
             Track<Sequence> seq = bamManager.calculateConsensusSequence(track);
             long end = System.currentTimeMillis();
-            Assert.notNull(seq);
+            Assert.assertNotNull(seq);
             avTime1 += (end - start);
 
             // Large range.
@@ -443,7 +492,7 @@ public class BamManagerTest {
             start = System.currentTimeMillis();
             seq = bamManager.calculateConsensusSequence(track);
             end = System.currentTimeMillis();
-            Assert.notNull(seq);
+            Assert.assertNotNull(seq);
             avTime2 += (end - start);
 
             // Medium range.
@@ -454,7 +503,7 @@ public class BamManagerTest {
             start = System.currentTimeMillis();
             seq = bamManager.calculateConsensusSequence(track);
             end = System.currentTimeMillis();
-            Assert.notNull(seq);
+            Assert.assertNotNull(seq);
             avTime3 += (end - start);
 
             i++;
@@ -474,41 +523,41 @@ public class BamManagerTest {
         String path = resource.getFile().getAbsolutePath() + "//agnX1.09-28.trim.dm606.realign.bam";
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(path);
-        request.setIndexPath(path + ".bai");
+        request.setIndexPath(path + BAI_EXTENSION);
         request.setName(TEST_NSAME);
         request.setReferenceId(testReference.getId());
         request.setType(BiologicalDataItemResourceType.FILE);
 
         BamFile bamFile = bamManager.registerBam(request);
-        Assert.notNull(bamFile);
+        Assert.assertNotNull(bamFile);
         return bamFile;
     }
 
     private void testRead(Read read) {
-        Assert.notNull(read);
-        Assert.notNull(read.getName());
-        Assert.notNull(read.getEndIndex());
-        Assert.notNull(read.getStartIndex());
-        Assert.notNull(read.getStand());
-        Assert.notNull(read.getCigarString());
-        Assert.isTrue(!read.getCigarString().isEmpty());
-        Assert.notNull(read.getFlagMask());
-        Assert.notNull(read.getMappingQuality());
-        Assert.notNull(read.getTLen());
-        Assert.notNull(read.getPNext());
-        Assert.notNull(read.getRNext());
-        Assert.isTrue(!read.getRNext().isEmpty());
+        Assert.assertNotNull(read);
+        Assert.assertNotNull(read.getName());
+        Assert.assertNotNull(read.getEndIndex());
+        Assert.assertNotNull(read.getStartIndex());
+        Assert.assertNotNull(read.getStand());
+        Assert.assertNotNull(read.getCigarString());
+        Assert.assertTrue(!read.getCigarString().isEmpty());
+        Assert.assertNotNull(read.getFlagMask());
+        Assert.assertNotNull(read.getMappingQuality());
+        Assert.assertNotNull(read.getTLen());
+        Assert.assertNotNull(read.getPNext());
+        Assert.assertNotNull(read.getRNext());
+        Assert.assertTrue(!read.getRNext().isEmpty());
     }
 
     private void testBamTrack(BamTrack<Read> fullTrack) {
 
-        Assert.isTrue(null != fullTrack.getBlocks());
-        Assert.isTrue(!fullTrack.getBlocks().isEmpty());
-        Assert.isTrue(null != fullTrack.getBaseCoverage());
-        Assert.isTrue(!fullTrack.getBaseCoverage().isEmpty());
-        Assert.isTrue(null != fullTrack.getDownsampleCoverage());
-        Assert.isTrue(!fullTrack.getDownsampleCoverage().isEmpty());
-        Assert.isTrue(fullTrack.getSpliceJunctions().isEmpty());
+        Assert.assertTrue(null != fullTrack.getBlocks());
+        Assert.assertTrue(!fullTrack.getBlocks().isEmpty());
+        Assert.assertTrue(null != fullTrack.getBaseCoverage());
+        Assert.assertTrue(!fullTrack.getBaseCoverage().isEmpty());
+        Assert.assertTrue(null != fullTrack.getDownsampleCoverage());
+        Assert.assertTrue(!fullTrack.getDownsampleCoverage().isEmpty());
+        Assert.assertTrue(fullTrack.getSpliceJunctions().isEmpty());
 
     }
 }

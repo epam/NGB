@@ -1,26 +1,36 @@
 import {NumberFormatter, PixiTextSize, Sorting} from '../../../../utilities';
+import {GeneTransformer} from '../../../gene/internal';
 import VcfAnalyzer from '../../../../../../dataServices/vcf/vcf-analyzer';
-import {Viewport} from '../../../../core';
 
 const Math = window.Math;
 
-export class VcfTransformer{
+export class VcfTransformer extends GeneTransformer{
 
-    _config = null;
+    _collapsed = false;
 
-    constructor(config, chromosome){
-        this._config = config;
+    constructor(config, chromosome) {
+        super(config);
         this._chromosome = chromosome;
     }
 
-    get config() { return this._config; }
+    get collapsed() {
+        return this._collapsed;
+    }
+
+    set collapsed(value) {
+        this._collapsed = value;
+    }
+
+    isHistogramDrawingModeForViewport() {
+        return false;
+    }
 
     static getBubbleRadius(text, config){
         const size = PixiTextSize.getTextSize(text, config);
         return Math.max(size.width, size.height) / 2;
     }
 
-    transform(data, viewport: Viewport){
+    transformCollapsedData(data, viewport){
         if (data === null || data === undefined){
             return {
                 statisticsItems: [],
@@ -84,6 +94,71 @@ export class VcfTransformer{
         };
     }
 
+    transformData(data, viewport) {
+        if (this.collapsed) {
+            return this.transformCollapsedData(data, viewport);
+        }
+        if (data === null || data === undefined){
+            return {
+                statisticsItems: [],
+                variants: [],
+                viewport: viewport
+            };
+        }
+        data.forEach(x => VcfAnalyzer.analyzeVariant(x, this._chromosome.name));
+        let variants = [];
+        let previousItem = null;
+        const labelStyle = this.config.statistics.label;
+        for (let i = 0; i < data.length; i++) {
+            const variant = data[i];
+            variant.variationsCount = variant.variationsCount || 1;
+            if (viewport.isShortenedIntronsMode && viewport.shortenedIntronsViewport.shouldSkipFeature(variant))
+                continue;
+            if (variant.structural && !variant.interChromosome && viewport.convert.brushBP2pixel(variant.length) > 1) {
+                // we shouldn't combine this variant into bubbles
+                variants.push(Object.assign({isStatistics: false}, variant));
+            }
+            else {
+                if (previousItem) {
+                    if (variant.startIndex > previousItem.endIndex &&
+
+                        variant.startIndex - viewport.convert
+                            .pixel2brushBP(this.config.statistics.bubble.margin) <=
+                        (previousItem.endIndex + previousItem.startIndex) / 2
+                        + viewport.convert.pixel2brushBP(previousItem.bubble.radius)) {
+
+                        if (!previousItem.variants) {
+                            previousItem.variants = [Object.assign({}, previousItem)];
+                        }
+                        previousItem.variants.push(variant);
+                        previousItem.isStatistics = true;
+                        previousItem.variationsCount += variant.variationsCount;
+                        previousItem.endIndex = variant.endIndex;
+                        previousItem.bubble.radius =
+                            VcfTransformer.getBubbleRadius(NumberFormatter.textWithPrefix(previousItem.variationsCount, false), labelStyle)
+                            + this.config.statistics.bubble.padding;
+                        continue;
+                    }
+                }
+                const item = Object.assign({}, variant, {
+                    bubble: {
+                        radius: VcfTransformer.getBubbleRadius(NumberFormatter.textWithPrefix(variant.variationsCount, false), labelStyle)
+                        + this.config.statistics.bubble.padding
+                    },
+                    isStatistics: variant.type.toLowerCase() === 'statistic',
+                    startIndex: variant.startIndex + VcfAnalyzer.getVariantTranslation(variant),
+                    variationsCount: variant.variationsCount
+                });
+                variants.push(item);
+                previousItem = item;
+            }
+        }
+        variants.forEach(variant => this.addAllelesDescriptions(variant));
+        variants = this.expandBubbles(this.combineBubbles(variants, viewport));
+        data = null;
+        return variants;
+    }
+
     addAllelesDescriptions(variant){
         if (variant.isStatistics)
             return;
@@ -134,6 +209,19 @@ export class VcfTransformer{
         }
         if (previousItem){
             result.push(previousItem);
+        }
+        return result;
+    }
+
+    expandBubbles(items) {
+        const result = [];
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (item.isStatistics && item.variationsCount < 50) {
+                result.push(...item.variants);
+            } else {
+                result.push(item);
+            }
         }
         return result;
     }

@@ -305,7 +305,7 @@ ngb add 1 1 2 3
 ngb remove_dataset|rmd [<DATASET_NAME>|<DATASET_ID>] [<FILE_NAME>|<FILE_ID>] [options]
 
 //Options:
-//-t (--table)          Print result as a human-readable table
+//-t (--table)              Print result as a human-readable table
 //-j (--json)               Print result as a JSON string
 ```
 *Description*
@@ -325,6 +325,29 @@ ngb rmd new_dataset my_sample sample.vcf
 //Remove three files (with identifiers: "1","2" and "3") from dataset with id "1"
 ngb rmd 1 1 2 3
 ```
+
+### Move dataset (change dataset's hierarchy)
+```
+ngb move_dataset|md [<DATASET_NAME>|<DATASET_ID>] [options]
+
+//Options:
+//-p (--parent)         Change the dataset's parent to this value 
+```
+*Description*
+
+Changes the dataset's hierarchy. Without options the command will move the specified dataset
+to the top level od datasets' hierarchy (dataset's parent will be removed). If option -p (--parent)
+is specified the dataset's parent will be changed to this option value.
+
+*Example*
+```
+//Make dataset with ID 21 a top level dataset without a parent
+ngb move_dataset 21
+
+//Make dataset with name "data_parent" the parent dataset for a dataset with name "data_1" 
+ngb md data_1 -p data_parent
+```
+
 
 ### List datasets
 ```

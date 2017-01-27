@@ -43,7 +43,6 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -184,7 +183,6 @@ public class GffManagerTest {
     }
 
     @Test
-    @Ignore
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testRegisterZippedGtf() throws InterruptedException, FeatureIndexException, IOException,
                                          NoSuchAlgorithmException, HistogramReadingException, GeneReadingException {

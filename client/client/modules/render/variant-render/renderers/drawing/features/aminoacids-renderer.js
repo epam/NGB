@@ -34,7 +34,6 @@ export default class AminoacidsRenderer{
         const bpLength = viewport.factor - 2 * this.config.nucleotide.margin.x;
         const height = this.config.aminoacids.height;
 
-
         for (let n = 0; n < aminoacidsData.aminoacids.length; n++) {
             const aminoacid = aminoacidsData.aminoacids[n];
             if (aminoacid.aminoacid === null || aminoacid.endIndex < rangeStart || aminoacid.startIndex > rangeEnd)

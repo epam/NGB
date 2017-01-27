@@ -6,8 +6,8 @@
 </div>
 <div layout="row" class="golden-layout-content-0" layout-fill>
     <div ng-if="$ctrl.isNothingFound" flex class="project-not-selected-warning">
-        <span ng-if="$ctrl.searchPattern && $ctrl.searchPattern.length">Bookmarks not found for <strong>{{$ctrl.searchPattern}}</strong></span>
-        <span ng-if="!$ctrl.searchPattern || !$ctrl.searchPattern.length">Bookmarks not found</span>
+        <span ng-if="$ctrl.searchPattern && $ctrl.searchPattern.length">Sessions not found for <strong>{{$ctrl.searchPattern}}</strong></span>
+        <span ng-if="!$ctrl.searchPattern || !$ctrl.searchPattern.length">Sessions not found</span>
     </div>
     <div class="ui-grid-container" ng-if="$ctrl.isDataLoaded && !$ctrl.isNothingFound">
         <div ui-grid="$ctrl.gridOptions"
@@ -15,7 +15,6 @@
              ui-grid-resize-columns
              ui-grid-auto-resize
              ui-grid-move-columns
-             ui-grid-grouping
         ></div>
     </div>
 </div>

@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,7 +39,10 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.index.FeatureType;
+import com.epam.catgenome.manager.gene.parser.GffFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +59,7 @@ import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.parallel.ParallelTaskExecutionUtils;
 import com.epam.catgenome.parallel.TreeListMultiset;
 import com.epam.catgenome.util.Utils;
+import htsjdk.samtools.SAMFormatException;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.samtools.util.Interval;
 import htsjdk.samtools.util.IntervalTreeMap;
@@ -122,7 +127,7 @@ public abstract class AbstractGeneReader {
 
         final ReaderState state = new ReaderState();
 
-        final List<Callable<Boolean>> callables = new ArrayList<>(numOfSubIntervals);
+        final List<Callable<Throwable>> callables = new ArrayList<>(numOfSubIntervals);
 
         for (int i = 0; i < numOfSubIntervals; i++) {
             final int factor = i;
@@ -131,21 +136,24 @@ public abstract class AbstractGeneReader {
                     track.getEndIndex(), state, track.getScaleFactor()));
         }
 
-        List<Future<Boolean>> futures;
+        List<Future<Throwable>> futures;
         try {
             futures = executorService.invokeAll(callables);
         } catch (InterruptedException | AssertionError e) {
             throw new GeneReadingException(geneFile, chromosome, track.getStartIndex(), track.getEndIndex(), e);
         }
 
-        futures.stream().map(future -> {
+        List<Throwable> errors = futures.stream().map(future -> {
             try {
                 return future != null ? future.get() : null;
             } catch (InterruptedException | ExecutionException e) {
-                LOGGER.error("Error while reading from gene file:" + track.getId(), e);
+                return e;
             }
-            return null;
-        });
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+
+        if (!errors.isEmpty()) {
+            throw new GeneReadingException(track, errors.get(0));
+        }
 
         double time2 = Utils.getSystemTimeMilliseconds();
         LOGGER.debug("Reading in {} threads, took {} ms", numOfSubIntervals, time2 - time1);
@@ -199,11 +207,11 @@ public abstract class AbstractGeneReader {
         return passedGenes;
     }
 
-    private Boolean readPartOfGeneFile(final Chromosome chromosome,
+    private Throwable readPartOfGeneFile(final Chromosome chromosome,
                                        final Integer startIndex, final Integer factor, final Integer num,
                                        final Integer endIndex,
                                        final ReaderState state, Double scaleFactor)
-            throws IOException {
+        throws IOException {
         double time0 = Utils.getSystemTimeMilliseconds();
         try (AbstractFeatureReader<GeneFeature, LineIterator> featureReader = fileManager.makeGeneReader(
                 geneFile, determineGeneFileType(scaleFactor))) {
@@ -220,24 +228,30 @@ public abstract class AbstractGeneReader {
             }
             LOGGER.debug("Thread {} Interval: {} - {}", Thread.currentThread().getName(), start, end);
 
-            try (CloseableIterator<GeneFeature> iterator = Utils.query(featureReader, chromosome, start, end)){
+            try (CloseableIterator<GeneFeature> iterator = Utils.query(featureReader, chromosome, start, end)) {
                 double time21 = Utils.getSystemTimeMilliseconds();
                 LOGGER.debug("Thread {} Query took {} ms", Thread.currentThread().getName(), time21 - time11);
 
                 Map<String, Gene> overlappedMrnas = new HashMap<>();
                 time11 = Utils.getSystemTimeMilliseconds();
 
-                GeneFeature firstFeature = iterator.next();
-                processFeature(state, firstFeature, overlappedMrnas, start, end);
+                if (iterator.hasNext()) {
+                    GeneFeature firstFeature = iterator.next();
+                    processFeature(state, firstFeature, overlappedMrnas, start, end);
+                }
+
                 iterator.forEachRemaining(feature -> processFeature(state, feature, overlappedMrnas, start, end));
                 time21 = Utils.getSystemTimeMilliseconds();
                 LOGGER.debug("Thread {} Walkthrough took {} ms",
                         Thread.currentThread().getName(), time21 - time11);
 
                 fillExonsCountForOverlapping(overlappedMrnas, featureReader, chromosome);
+            } catch (SAMFormatException e) {
+                LOGGER.error("", e);
+                return e;
             }
             LOGGER.debug("Thread {} ends", Thread.currentThread().getName());
-            return true;
+            return null;
         }
     }
 
@@ -341,8 +355,7 @@ public abstract class AbstractGeneReader {
             long basesCount = 0;
             while (iterator.hasNext()) {
                 GeneFeature feature = iterator.next();
-                if (GeneUtils.isExon(feature) && java.util.Objects.equals(GeneUtils.getTranscriptId(feature),
-                        e.getKey())) {
+                if (GeneUtils.isExon(feature) && Objects.equals(GeneUtils.getTranscriptId(feature), e.getKey())) {
                     count++;
                     basesCount += feature.getEnd() - feature.getStart();
                 }
@@ -398,8 +411,13 @@ public abstract class AbstractGeneReader {
     protected Gene createCanonicalTranscript(Gene gene) {
         Gene canonicalTranscript = new Gene();
         canonicalTranscript.setFeature(TRANSCRIPT_FEATURE_NAME);
-        canonicalTranscript.setAttributes(Collections.singletonMap(GeneUtils.TRANSCRIPT_NAME_FILED,
-                gene.getFeatureName()));
+        canonicalTranscript.setGroupId(gene.getGroupId());
+        canonicalTranscript.setParentId(gene.getParentId());
+        canonicalTranscript.setFeatureId(gene.getFeatureId());
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(GeneUtils.TRANSCRIPT_NAME_FILED, gene.getFeatureName());
+        attributes.put(GffFeature.GENE_ID_KEY, gene.getFeatureId());
+        canonicalTranscript.setAttributes(attributes);
         canonicalTranscript.setStrand(gene.getStrand());
         canonicalTranscript.setCanonical(true);
 
@@ -433,11 +451,12 @@ public abstract class AbstractGeneReader {
                     merged.setAttributes(Collections.emptyMap());
                     toRemove.add(new Interval(s.getFeature(), g.getStartIndex(), g.getEndIndex()));
                 }
-
+                merged.setFeature(FeatureType.CDS.name());
                 toRemove.forEach(stuffIntervalMap::remove);
                 stuffIntervalMap.put(new Interval(s.getFeature(), merged.getStartIndex(), merged.getEndIndex()),
                         merged);
             } else {
+                s.setFeature(FeatureType.CDS.name());
                 stuffIntervalMap.put(interval, s);
             }
         }

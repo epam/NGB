@@ -1,0 +1,60 @@
+.feature-dialog {
+  width: 50%;
+}
+
+.sequence-area {
+  max-height: 100px;
+  min-height: 100px;
+  border: 0px solid transparent;
+}
+
+.feature-header {
+  margin: 0px;
+  border-bottom: 1px solid #cccccc;
+  font-weight: bold;
+}
+
+ngb-feature-info {
+  collapsible-panel-title{
+    font: 400 18px Arial;
+    text-transform: none;
+  }
+  collapsible{
+    width: 100%;
+  }
+  li {
+    padding: 5px;
+    font-size: 14px;
+  }
+  .linkCount{
+    margin: 10px 0;
+    span{
+      font-size: 14px;
+      color: #666;
+    }
+  }
+  .bibliographyList a{
+      display: block;
+  }
+  a{
+    text-decoration: none;
+    font-size: 14px;
+    color: #679edb;
+    & + span{
+      font-size: 14px;
+      color: #666;
+    }
+    &:hover{
+      text-decoration: underline;
+      color: #2165de;
+    }
+  }
+  .layout-column > span{
+    padding: 5px;
+  }
+  ngb-info-rows + a{
+    margin: 10px 5px;
+  }
+}
+
+

@@ -124,9 +124,9 @@ if [ "$ALL" = true ] || [ "$DOC" = true ] ; then
     
     BUILD=$BUILD_NUMBER
     if [[ $BUILD =  *[!\ ]* ]]; then
-        VERSION=2.0.$BUILD
+        VERSION=2.1.$BUILD
     else
-        VERSION=2.0
+        VERSION=2.1
     fi    
     if [ -f "$BUILD_DIR/docs/site" ]; then
         rm -rf $BUILD_DIR/docs/site

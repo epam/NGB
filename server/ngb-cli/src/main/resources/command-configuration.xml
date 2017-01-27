@@ -77,6 +77,12 @@
         <type>DELETE</type>
         <secure>false</secure>
     </remove_from_dataset>
+    <move_dataset>
+        <name>move_dataset</name>
+        <url>/restapi/project/%d/move</url>
+        <type>PUT</type>
+        <secure>false</secure>
+    </move_dataset>
     <delete_dataset>
         <name>delete_dataset</name>
         <url>/restapi/project/%d</url>

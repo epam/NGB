@@ -48,5 +48,42 @@ export class VcfDataService extends DataService {
         return this.get(`vcf/${refId}/loadAll`);
     }
 
+    getNextVariations(tracksVCF, chromosomeId ,fromPosition) {
+        const promises = [];
+        tracksVCF.forEach(trackVCF => {
+            const promise = new Promise((resolve) => {
+                this.get(`vcf/${trackVCF.id}/${chromosomeId}/next/?fromPosition=${fromPosition}`).then((data)=> {
+                    if (data) {
+                        resolve(data);
+                    }
+                });
+            });
+            promises.push(promise);
+        });
+        return new Promise((resolve) => {
+            Promise.all(promises).then(values => {
+                resolve(values);
+            });
+        });
+    }
+
+    getPreviousVariations(tracksVCF, chromosomeId ,fromPosition) {
+        const promises = [];
+        tracksVCF.forEach(trackVCF => {
+            const promise = new Promise((resolve) => {
+                this.get(`vcf/${trackVCF.id}/${chromosomeId}/prev/?fromPosition=${fromPosition}`).then((data)=> {
+                    if (data) {
+                        resolve(data);
+                    }
+                });
+            });
+            promises.push(promise);
+        });
+        return new Promise((resolve) => {
+            Promise.all(promises).then(values => {
+                resolve(values);
+            });
+        });
+    }
 
 }

@@ -7,18 +7,23 @@ export default class ngbMainSettingsBtnController {
     }
 
     /* @ngInject */
-    constructor($mdDialog) {
+    constructor(localDataService, $mdDialog) {
         this._mdDialog = $mdDialog;
-
+        this._localDataService = localDataService;
+        this.settings = this._localDataService.getSettings();
     }
 
     openDlg() {
         this._mdDialog.show({
-            clickOutsideToClose:true,
+            clickOutsideToClose: true,
             controller: ngbMainSettingsDlgController,
             controllerAs: 'ctrl',
             parent: angular.element(document.body),
-            template: require('./ngbMainSettingsDlg/ngbMainSettingsDlg.tpl.html')
+            template: require('./ngbMainSettingsDlg/ngbMainSettingsDlg.tpl.html'),
+            locals: {
+                settings: this.settings
+            }
         });
+
     }
 }

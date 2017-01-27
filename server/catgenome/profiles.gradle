@@ -5,10 +5,11 @@ task copyConfiguration << {
     println "Target profile: $profile"
     println "Target database: $database"
     println "Build number: $buildNumber"
+    version.build = buildNumber
     // specifies the content root directory? used to store
     //filterTokens.putAt("rootDirPath", profile == "dev" ? escape(rootDir.absolutePath)  : "")
     filterTokens.putAt("rootDirPath", escape(rootDir.absolutePath))
-    filterTokens.putAt("version", escape("$buildNumber"))
+    filterTokens.putAt("version", escape("$version"))
 
     copy {
         from "profiles/$profile"

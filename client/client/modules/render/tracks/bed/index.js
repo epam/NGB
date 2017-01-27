@@ -46,6 +46,8 @@ export class BEDTrack extends GENETrack {
         return this._renderer;
     }
 
+    applyAdditionalRequestParameters() {}
+
     getTooltipDataObject(isHistogram, item) {
         if (isHistogram) {
             return [

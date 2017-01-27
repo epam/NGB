@@ -36,6 +36,7 @@ export default class projectContext {
 
     _datasetsLoaded = false;
     _datasets = [];
+    _datasetsArePrepared = false;
 
     get project() {
         return this._project;
@@ -194,11 +195,18 @@ export default class projectContext {
         return this._datasets;
     }
 
+    get datasetsArePrepared() {
+        return this._datasetsArePrepared;
+    }
+
+    set datasetsArePrepared(value) {
+        this._datasetsArePrepared = value;
+    }
+
     constructor(dispatcher, genomeDataService, projectDataService) {
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
         this.projectDataService = projectDataService;
-        this.refreshDatasets();
     }
 
     _getVcfCallbacks() {
@@ -222,6 +230,7 @@ export default class projectContext {
     }
 
     async refreshDatasets() {
+        this._datasetsArePrepared = false;
         this.dispatcher.emitSimpleEvent('datasets:loading:started', null);
         this._datasets = (await this.projectDataService.getProjects() || []);
         this._datasetsLoaded = true;
@@ -416,6 +425,7 @@ export default class projectContext {
             await this._changeReference(null);
             this._containsVcfFiles = false;
             this._vcfInfo = [];
+            this._infoFields = [];
         }
     }
 
@@ -593,8 +603,6 @@ export default class projectContext {
             }
             if (infoFields) {
                 this._infoFields = infoFields;
-            } else {
-                this._infoFields = [];
             }
             await this.__filterVariants(onError);
             this._isVariantsLoading = false;

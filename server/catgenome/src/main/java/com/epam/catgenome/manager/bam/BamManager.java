@@ -28,6 +28,7 @@ import static com.epam.catgenome.component.MessageCode.NO_SUCH_REFERENCE;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -38,11 +39,13 @@ import org.springframework.util.Assert;
 
 import com.epam.catgenome.constant.Constants;
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.controller.vo.ReadQuery;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.BamQueryOption;
 import com.epam.catgenome.entity.bam.BamTrack;
+import com.epam.catgenome.entity.bam.BasePosition;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.bam.TrackDirectionType;
 import com.epam.catgenome.entity.reference.Chromosome;
@@ -51,8 +54,13 @@ import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.TrackHelper;
+import com.epam.catgenome.manager.bam.handlers.SAMRecordHandler;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
+import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.epam.catgenome.util.BamUtil;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SamReader;
 
 /**
  * Source:      BamManager
@@ -80,6 +88,9 @@ public class BamManager {
 
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
+
+    @Autowired
+    private ReferenceManager referenceManager;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BamHelper.class);
 
@@ -227,6 +238,42 @@ public class BamManager {
         final Chromosome chromosome = trackHelper.validateTrackWithBlockCount(track);
         TrackHelper.fillBlocks(track, indexes -> new Sequence(indexes.getLeft(), indexes.getRight()));
         return bamHelper.calculateConsensusSequence(track, chromosome);
+    }
+
+    /**
+     * Loads a specific read form a BAM fil, specified by ReadQuery object
+     * @param query a {@link ReadQuery} object, that specifies a {@link Read} to load
+     * @return a {@link Read} object
+     * @throws IOException
+     */
+    public Read loadRead(final ReadQuery query) throws IOException {
+        Assert.notNull(query, MessagesConstants.ERROR_NULL_PARAM);
+        Assert.notNull(query.getId(), MessagesConstants.ERROR_NULL_PARAM);
+        Assert.notNull(query.getChromosomeId(), MessagesConstants.ERROR_NULL_PARAM);
+        Assert.notNull(query.getStartIndex(), MessagesConstants.ERROR_NULL_PARAM);
+        Assert.notNull(query.getEndIndex(), MessagesConstants.ERROR_NULL_PARAM);
+        Assert.notNull(query.getName(), MessagesConstants.ERROR_NULL_PARAM);
+
+        final Chromosome chromosome = referenceGenomeManager.loadChromosome(query.getChromosomeId());
+        BamFile bamFile = bamFileManager.loadBamFile(query.getId());
+        try (SamReader reader = bamHelper.makeSamReader(bamFile, Collections.singletonList(chromosome),
+                                                        chromosome.getReferenceId())) {
+            SAMRecordIterator iterator = reader.query(chromosome.getName(),
+                                                      query.getStartIndex(), query.getEndIndex(), true);
+            while (iterator.hasNext()) {
+                final SAMRecord samRecord = iterator.next();
+                if (samRecord.getReadName().equals(query.getName())) {
+                    BamQueryOption option = new BamQueryOption();
+                    option.setRefID(chromosome.getReferenceId());
+                    option.setChromosomeName(chromosome.getName());
+                    SAMRecordHandler recordHandler = new SAMRecordHandler(query.getStartIndex(), query.getEndIndex(),
+                                                                  referenceManager, null, option);
+                    List<BasePosition> diffBase = recordHandler.computeDifferentBase(samRecord);
+                    return BamUtil.createExtendedRead(samRecord, diffBase);
+                }
+            }
+        }
+        return null;
     }
 
     private BamTrack<Read> getFullResult(final Track<Read> track, final BamQueryOption options)

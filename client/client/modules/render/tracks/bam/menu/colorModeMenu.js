@@ -1,5 +1,5 @@
 import {colorModes} from '../modes';
-import {getDivider} from './divider';
+import {menu} from '../../../utilities';
 
 export default {
     displayAdditionalName: state => {
@@ -72,7 +72,7 @@ export default {
             name: 'bam>color>firstInPairStrand',
             type: 'checkbox'
         },
-        getDivider(),
+        menu.getDivider(),
         {
             disable: state => state.shadeByQuality = false,
             enable: state => state.shadeByQuality = true,

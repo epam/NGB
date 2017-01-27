@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.apache.commons.io.IOUtils;
+
 import com.epam.catgenome.exception.IndexException;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import htsjdk.samtools.seekablestream.SeekableStream;
@@ -38,7 +40,9 @@ import htsjdk.tribble.index.tabix.TabixIndexCreator;
 import htsjdk.tribble.readers.AsciiLineReader;
 import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.readers.LineReader;
-import org.apache.commons.io.IOUtils;
+import htsjdk.tribble.readers.PositionalBufferedStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An utility class for creating Tabix (tbi) indexes for tab delimited BGZIP-compressed files (VCF,
@@ -47,12 +51,14 @@ import org.apache.commons.io.IOUtils;
  */
 public final class IndexUtils {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(IndexUtils.class);
+
     private IndexUtils() {
         //no operations
     }
 
     /**
-     * If file isn't compressed HTSJDK method is used, for compressed files out methods are
+     * If file isn't compressed HTSJDK method is used, for compressed files our methods are
      * used, which create the tabix index correctly.
      *
      * @param inputFile
@@ -120,9 +126,10 @@ public final class IndexUtils {
     }
 
     /**
-     * Iterator for reading features from a file, given a {@code FeatureCodec}.
+     * Iterator for reading features from a file, given a {@code FeatureCodec}. A modification of HTSJDK's private
+     * class to allow low-level file operations
      */
-    static final class FeatureIterator<F extends Feature, S>
+    public static final class FeatureIterator<F extends Feature, S>
             implements CloseableTribbleIterator<Feature> {
         // the stream we use to get features
         private final S source;
@@ -139,12 +146,20 @@ public final class IndexUtils {
          * @param inputFile The file from which to read. Stream for reading is opened on construction.
          * @param codec
          */
-        private FeatureIterator(final File inputFile, final FeatureCodec<F, S> codec) {
+        public FeatureIterator(final File inputFile, final FeatureCodec<F, S> codec) {
             this.codec = codec;
             this.inputFile = inputFile;
             final FeatureCodecHeader header = readHeader();
             source =
                     (S) makeIndexableSourceFromStream(initStream(inputFile, header.getHeaderEnd()));
+            readNextFeature();
+        }
+
+        public FeatureIterator(PositionalBufferedStream stream, final FeatureCodec<F, S> codec) throws IOException {
+            this.codec = codec;
+            this.inputFile = null;
+            initStream(stream, readHeader(stream).getHeaderEnd());
+            source = (S) codec.makeIndexableSourceFromStream(stream);
             readNextFeature();
         }
 
@@ -170,6 +185,16 @@ public final class IndexUtils {
                 return header;
             } catch (final IOException e) {
                 throw new IndexException(e.getMessage(), e);
+            }
+        }
+
+        private FeatureCodecHeader readHeader(PositionalBufferedStream stream) {
+            try {
+                final S sourceFromStream = this.codec.makeSourceFromStream(stream);
+                return this.codec.readHeader(sourceFromStream);
+            } catch (IOException e) {
+                LOGGER.error(e.getMessage(), e);
+                throw new TribbleException.InvalidHeader(e.getMessage());
             }
         }
 
@@ -206,6 +231,12 @@ public final class IndexUtils {
             } catch (final IOException e) {
                 throw new TribbleException.MalformedFeatureFile("Error initializing stream",
                         inputFile.getAbsolutePath(), e);
+            }
+        }
+
+        private void initStream(PositionalBufferedStream stream, final long skip) throws IOException {
+            if (skip > 0) {
+                IOUtils.skip(stream, skip);
             }
         }
 
@@ -268,6 +299,7 @@ public final class IndexUtils {
 
         private long lastPosition = -1;
         private BlockCompressedInputStream is;
+        private boolean closed = false;
 
         public TabixLineReader(final BlockCompressedInputStream is) {
             this.is = is;
@@ -304,10 +336,11 @@ public final class IndexUtils {
         }
 
         @Override public void close() {
-            if (is != null) {
+            if (is != null && !closed) {
                 try {
                     lastPosition = is.getFilePointer();
                     is.close();
+                    closed = true;
                 } catch (IOException e) {
                     throw new IndexException(e.getMessage(), e);
                 }

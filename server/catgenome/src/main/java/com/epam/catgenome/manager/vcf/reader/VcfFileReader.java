@@ -110,7 +110,7 @@ public class VcfFileReader extends AbstractVcfReader {
      */
     @Override
     public Track<Variation> readVariations(VcfFile vcfFile, final Track<Variation> track, Chromosome chromosome,
-                                           final Integer sampleIndex, final boolean loadInfo)
+                                           final Integer sampleIndex, final boolean loadInfo, final boolean collapse)
             throws VcfReadingException {
         try (FeatureReader<VariantContext> reader = AbstractFeatureReader.getFeatureReader(vcfFile.getPath(),
                 vcfFile.getIndex().getPath(), new VCFCodec(), true)) {
@@ -120,7 +120,7 @@ public class VcfFileReader extends AbstractVcfReader {
             try (CloseableIterator<VariantContext> iterator = Utils.query(reader, chromosome.getName(), track
                     .getStartIndex(), track.getEndIndex())) {
                 VCFHeader header = (VCFHeader) reader.getHeader();
-                track.setBlocks(doReadVariations(iterator, track, header, vcfFile, sampleIndex, loadInfo));
+                track.setBlocks(doReadVariations(iterator, track, header, vcfFile, sampleIndex, loadInfo, collapse));
             }
         } catch (IOException e) {
             throw new VcfReadingException(vcfFile, e);
@@ -195,7 +195,7 @@ public class VcfFileReader extends AbstractVcfReader {
                     firstIndex, lastIndex)) {
                 // instead traversing the whole file, read it by small chunks, 10000 bps
                 // long. Hopefully, the desired feature will be in first/second chunk
-                lastFeature = createVariations(sampleIndex, vcfHeader, iterator);
+                lastFeature = createVariations(sampleIndex, vcfHeader, iterator, fromPosition);
                 i++;
             }
         }
@@ -203,12 +203,13 @@ public class VcfFileReader extends AbstractVcfReader {
     }
 
     private Variation createVariations(Integer sampleIndex, VCFHeader vcfHeader,
-           CloseableIterator<VariantContext> iterator) {
+                                       CloseableIterator<VariantContext> iterator, int fromPosition) {
         Variation lastFeature = null;
         while (iterator.hasNext()) {
             Variation variation = createVariation(iterator.next(), vcfHeader, sampleIndex);
             if (variation.getGenotypeData() == null ||
-                    variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION) {
+                    variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION &&
+                    variation.getEndIndex() < fromPosition) {
                 lastFeature = variation;
             }
         }
@@ -225,7 +226,8 @@ public class VcfFileReader extends AbstractVcfReader {
                 VariantContext feature = iterator.next();
                 Variation variation = createVariation(feature, vcfHeader, sampleIndex);
                 if (variation.getGenotypeData() == null ||
-                        variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION) {
+                        variation.getGenotypeData().getOrganismType() != OrganismType.NO_VARIATION
+                        && variation.getStartIndex() > fromPosition) {
                     return variation;
                 }
             }
@@ -336,10 +338,10 @@ public class VcfFileReader extends AbstractVcfReader {
     }
 
     private List<Variation> doReadVariations(CloseableIterator<VariantContext> iterator, Track<Variation>
-            track, VCFHeader header, VcfFile vcfFile, Integer sampleIndex, boolean loadInfo)
+            track, VCFHeader header, VcfFile vcfFile, Integer sampleIndex, boolean loadInfo, boolean collapse)
             throws IOException {
 
-        if (track.getScaleFactor() >= 1) {
+        if (track.getScaleFactor() >= 1 || !collapse) {
             ArrayList<Variation> variations = new ArrayList<>();
             while (iterator.hasNext()) {
                 VariantContext context = iterator.next();

@@ -49,16 +49,24 @@ export class GENETrack extends CachedTrack {
                 value: ::this.currentTrackManagesShortenedIntronsMode
             }
         ];
+
         this._gffColorByFeatureType = opts.gffColorByFeatureType;
+        this._gffShowNumbersAminoacid = opts.gffShowNumbersAminoacid;
 
         if (opts.dispatcher) {
             this.dispatcher = opts.dispatcher;
         }
 
         this.hotKeyListener = (event) => {
-            if (event && this.menuService.actions[event]) {
-                this.menuService.actions[event].enable(this.state);
-                this.updateAndRefresh();
+            if (event) {
+                if(this.menuService.actions[event]){
+                    this.menuService.actions[event].enable(this.state);
+                    this.updateAndRefresh();
+                }
+                if(event === 'gene>showNumbersAminoacid'){
+                    this._gffShowNumbersAminoacid = !this._gffShowNumbersAminoacid;
+                    this.updateAndRefresh();
+                }
             }
         };
         const _hotKeyListener = ::this.hotKeyListener;
@@ -171,6 +179,7 @@ export class GENETrack extends CachedTrack {
     globalSettingsChanged(state) {
         super.globalSettingsChanged(state);
         this._gffColorByFeatureType = state.gffColorByFeatureType;
+        this._gffShowNumbersAminoacid = state.gffShowNumbersAminoacid;
         this._flags.dataChanged = true;
         this.requestRenderRefresh();
     }
@@ -183,7 +192,7 @@ export class GENETrack extends CachedTrack {
         }
         if (flags.brushChanged || flags.widthChanged || flags.heightChanged || flags.renderReset || flags.dataChanged) {
             this.renderer.height = this.height;
-            this.renderer.render(this.viewport, this.cache, flags.heightChanged, this._gffColorByFeatureType);
+            this.renderer.render(this.viewport, this.cache, flags.heightChanged, this._gffColorByFeatureType, this._gffShowNumbersAminoacid);
             somethingChanged = true;
         }
         return somethingChanged;
@@ -295,6 +304,10 @@ export class GENETrack extends CachedTrack {
         this.updateScene();
     }
 
+    applyAdditionalRequestParameters(params) {
+        params.collapsed = this.state.geneTranscript === GeneTypes.transcriptViewTypes.collapsed;
+    }
+
     async updateCache() {
 
         if (this.cache.histogramData === null || this.cache.histogramData === undefined) {
@@ -312,7 +325,7 @@ export class GENETrack extends CachedTrack {
             const reqToken = this.__currentDataUpdateReq = {};
 
             const params = this.cacheUpdateParameters(this.viewport);
-            params.collapsed = this.state.geneTranscript === GeneTypes.transcriptViewTypes.collapsed;
+            this.applyAdditionalRequestParameters(params);
             const data = await this.downloadDataFn(params, this.config.referenceId);
             if (reqToken === this.__currentDataUpdateReq) {
                 const downloadedData = this.transformer.transformData(data, this.viewport);

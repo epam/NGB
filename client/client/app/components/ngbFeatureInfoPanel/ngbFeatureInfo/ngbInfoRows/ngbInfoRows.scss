@@ -1,0 +1,38 @@
+.property {
+  padding: 7px;
+}
+
+.property-row,
+.property-name
+{
+  border: 0;
+}
+
+.property-name {
+  font: 700 13px Arial;
+  color: #999;
+}
+
+.property-value {
+  font: 13px Arial;
+  color: #666;
+  word-wrap: break-word;
+}
+
+#summary .property-row {
+  border: 0;
+  & + a{
+    color: #679edb;
+    font-size: 14px;
+    text-decoration: none;
+    &:hover{
+      text-decoration: underline;
+    }
+  }
+}
+#summary .property-name
+{
+  min-width: 130px;
+  text-align: right;
+  border: 0;
+}

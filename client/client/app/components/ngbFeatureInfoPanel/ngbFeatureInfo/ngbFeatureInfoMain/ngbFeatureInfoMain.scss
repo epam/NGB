@@ -1,0 +1,21 @@
+.feature-dialog {
+  width: 50%;
+}
+
+.sequence-area {
+  max-height: 100px;
+  min-height: 100px;
+  border: 0px solid transparent;
+}
+
+.feature-header {
+  margin: 0px;
+  border-bottom: 1px solid #cccccc;
+  font-weight: bold;
+}
+ngb-feature-info-main{
+  collapsible-panel-title{
+    font: 400 18px Arial;
+    text-transform: none;
+  }
+}

@@ -44,6 +44,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -774,7 +775,7 @@ public class FileManager {
             return null;
         }
 
-        SimpleFSDirectory[] indexes = new SimpleFSDirectory[featureFiles.size()];
+        List<SimpleFSDirectory> indexes = new ArrayList<>();
         try {
             for (int i = 0; i < featureFiles.size(); i++) {
                 FeatureFile featureFile = featureFiles.get(i);
@@ -787,11 +788,11 @@ public class FileManager {
 
                 params.put(FEATURE_FILE_DIR.name(), substitute(format, params));
                 File file = new File(toRealPath(substitute(FEATURE_INDEX_DIR, params)));
-                Assert.isTrue(file.exists(), getMessage(MessagesConstants.ERROR_FEATURE_INDEX_NOT_FOUND,
-                                                        featureFile.getId()));
-                indexes[i] = new SimpleFSDirectory(file.toPath());
+                if (file.exists()) {
+                    indexes.add(new SimpleFSDirectory(file.toPath()));
+                }
             }
-        } catch (IOException | IllegalArgumentException e) {
+        } catch (IOException e) {
             for (SimpleFSDirectory index : indexes) {
                 if (index != null) {
                     IOUtils.closeQuietly(index);
@@ -801,7 +802,10 @@ public class FileManager {
             throw e;
         }
 
-        return indexes;
+        Assert.isTrue(!indexes.isEmpty(), getMessage(MessagesConstants.ERROR_FEATURE_INDEX_NOT_FOUND,
+                                 featureFiles.stream().map(f -> f.getId().toString()).collect(Collectors.joining(", "))));
+
+        return indexes.toArray(new SimpleFSDirectory[indexes.size()]);
     }
 
     /**
@@ -1212,20 +1216,20 @@ public class FileManager {
 
     /**
      * Creates a {@code BlockCompressedOutputStream} to write gene file of specified GeneFileType
-     * @param geneFeatureClass class of a GeneFeature, that specified GeneFIle contains
+     * @param gffType a type of gene file
      * @param geneFile a GeneFile, for which data to write
      * @param type a GeneFileType of helper file to create
      * @return a {@code BlockCompressedOutputStream} to write gene file of specified GeneFileType
      * @throws FileNotFoundException
      */
     public BlockCompressedOutputStream makeGeneBlockCompressedOutputStream(
-        Class<? extends GeneFeature> geneFeatureClass, GeneFile geneFile, GeneFileType type)
+        GffCodec.GffType gffType, GeneFile geneFile, GeneFileType type)
         throws FileNotFoundException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), geneFile.getId());
         params.put(USER_ID.name(), geneFile.getCreatedBy());
 
-        String extension = getGeneFileExtension(geneFeatureClass, geneFile);
+        String extension = gffType.getExtensions()[0];
 
         params.put(GENE_EXTENSION.name(), extension);
         File file = createGeneFileByType(type, params);
@@ -1239,19 +1243,19 @@ public class FileManager {
 
     /**
      * Creates a {@code PositionalOutputStream} to write gene file of specified GeneFileType
-     * @param geneFeatureClass class of a GeneFeature, that specified GeneFIle contains
+     * @param gffType a type of gene file
      * @param geneFile a GeneFile, for which data to write
      * @param type a GeneFileType of helper file to create
      * @return a {@code PositionalOutputStream} to write gene file of specified GeneFileType
      * @throws FileNotFoundException
      */
-    public PositionalOutputStream makePositionalOutputStream(Class<? extends GeneFeature> geneFeatureClass,
+    public PositionalOutputStream makePositionalOutputStream(GffCodec.GffType gffType,
                                          GeneFile geneFile, GeneFileType type) throws FileNotFoundException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), geneFile.getId());
         params.put(USER_ID.name(), geneFile.getCreatedBy());
 
-        String extension = getGeneFileExtension(geneFeatureClass, geneFile);
+        String extension = gffType.getExtensions()[0];
 
         params.put(GENE_EXTENSION.name(), extension);
         File file = createGeneFileByType(type, params);

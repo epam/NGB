@@ -58,7 +58,9 @@ export default class ngbTrackEvents {
                             name: data.feature.name,
                             properties: data.info,
                             referenceId: track.instance.config.referenceId,
-                            startIndex: data.feature.startIndex
+                            startIndex: data.feature.startIndex,
+                            geneId: data.feature.attributes.gene_id,
+                            title: 'FEATURE'
                         },
                         name: 'feature:info:select'
                     }],
@@ -165,7 +167,6 @@ export default class ngbTrackEvents {
     }
 
     async readClick(trackInstance, data, track, event) {
-
         const hasPairRead = data.read.pnext !== undefined && data.read.pnext !== null && data.read.pnext !== 0;
 
         let pairReadParameters = {originalRead: data.read, position: data.read.pnext};
@@ -211,7 +212,9 @@ export default class ngbTrackEvents {
                         properties: data.info,
                         read: data.read,
                         referenceId: track.instance.config.referenceId,
-                        startIndex: data.read.startIndex
+                        startIndex: data.read.startIndex,
+                        geneId: null,
+                        title: 'ALIGNMENT'
                     },
                     name: 'feature:info:select'
                 }

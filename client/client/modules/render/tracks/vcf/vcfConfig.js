@@ -27,7 +27,7 @@ export default {
             padding: 4,
             stroke: {
                 color: 0x92AEE7,
-                thickness: 2
+                thickness: 1
             }
         },
         height: 7,
@@ -47,6 +47,7 @@ export default {
                 fill: 0x000000,
                 font: 'bold 8pt arial'
             },
+            height: 10,
             intersection: {
                 detailsHeight: 12,
                 horizontalMargin: 1,
@@ -59,7 +60,7 @@ export default {
             },
             margin: 0
         },
-        height: 15,
+        height: 12,
         multipleNucleotideVariant: {
             alpha: 1,
             color: 0xaaaaaa,
@@ -70,7 +71,8 @@ export default {
                 line: {
                     color: 0xaaaaaa,
                     margin: 10
-                }
+                },
+                margin: 20
             },
             label: {
                 bnd: {

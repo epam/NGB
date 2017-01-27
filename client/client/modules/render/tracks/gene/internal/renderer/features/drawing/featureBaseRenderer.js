@@ -7,17 +7,19 @@ export default class FeatureBaseRenderer{
     _opts;
     _textureCoordinates;
 
-    constructor(config, registerLabel, registerDockableElement, registerFeaturePosition){
+    constructor(config, registerLabel, registerDockableElement, registerFeaturePosition, registerAttachedElement){
         this._config = config;
         this._registerLabel = registerLabel;
         this._registerDockableElement = registerDockableElement;
         this._registerFeaturePosition = registerFeaturePosition;
+        this._registerAttachedElement = registerAttachedElement;
     }
 
     get config() { return this._config; }
     get registerLabel() { return this._registerLabel; }
     get registerDockableElement() { return this._registerDockableElement; }
     get registerFeaturePosition() { return this._registerFeaturePosition; }
+    get registerAttachedElement() { return this._registerAttachedElement; }
 
     get textureCoordinates() {
         return this._textureCoordinates;

@@ -27,7 +27,6 @@ package com.epam.catgenome.manager.gene;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
@@ -62,18 +61,16 @@ import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
-import com.epam.catgenome.manager.gene.parser.GtfFeature;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.util.AuthUtils;
-import com.epam.catgenome.util.FeatureIterator;
+import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.PositionalOutputStream;
 import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
-import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.AsciiFeatureCodec;
-import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.tabix.TabixFormat;
+import htsjdk.tribble.index.tabix.TabixIndex;
 import htsjdk.tribble.index.tabix.TabixIndexCreator;
 import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.readers.PositionalBufferedStream;
@@ -93,6 +90,8 @@ import htsjdk.tribble.util.LittleEndianOutputStream;
  */
 public class GeneRegisterer {
     private static final Logger LOGGER = LoggerFactory.getLogger(GeneRegisterer.class);
+    private static final String CHARSET_NAME = "UTF-8";
+
 
     private FileManager fileManager;
     private FeatureIndexManager featureIndexManager;
@@ -106,18 +105,17 @@ public class GeneRegisterer {
     private BufferedWriter writerLargeScale = null;
     private BlockCompressedInputStream compressedInputStream = null;
     private PositionalBufferedStream inputStream = null;
-    private FeatureIterator<GeneFeature, LineIterator> iterator = null;
+    private IndexUtils.FeatureIterator<GeneFeature, LineIterator> iterator = null;
     private LittleEndianOutputStream indexOutputStream = null;
     private LittleEndianOutputStream largeScaleIndexOutputStream = null;
     private LittleEndianOutputStream transcriptIndexOutputStream = null;
-    private long p = 0;
     private long largeScalePosition = 0;
     private long transcriptPosition = 0;
     private boolean largeScaleWritten = false;
     private boolean transcriptWritten = false;
     private Map<String, GeneFeature> geneMap = new HashMap<>();
     private Map<String, GeneFeature> transcriptMap = new HashMap<>();
-    private TabixIndexCreator indexCreator = new TabixIndexCreator(TabixFormat.GFF);
+    private TabixIndexCreator indexCreator = new TabixIndexCreator(null, TabixFormat.GFF);
     private TabixIndexCreator largeScaleIndexCreator = new TabixIndexCreator(TabixFormat.GFF);
     private TabixIndexCreator transcriptIndexCreator = new TabixIndexCreator(TabixFormat.GFF);
     private Map<String, Chromosome> chromosomeMap;
@@ -160,81 +158,67 @@ public class GeneRegisterer {
     public void processRegistration(final FeatureIndexedFileRegistrationRequest request)
             throws IOException {
         fileManager.makeGeneDir(geneFile.getId(), AuthUtils.getCurrentUserId());
-        final String extension = Utils.getFileExtension(request.getPath());
 
-        try (AbstractFeatureReader<GeneFeature, LineIterator> featureReader = AbstractFeatureReader.getFeatureReader(
-                request.getPath(), request.getIndexPath(), new GffCodec(GffCodec.GffType.forExt(extension)),
-                request.getIndexPath() != null)) {
+        File indexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.ORIGINAL);
+        File largeScaleIndexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.LARGE_SCALE);
+        File transcriptIndexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.TRANSCRIPT);
 
-            final GeneFeature firstFeature = featureReader.iterator().next();
+        GeneFeature firstFeature;
+        try {
+            openStreams(geneFile, request);
 
-            GffCodec.GffType gffType;
-            if (firstFeature.getClass() == GtfFeature.class) {
-                gffType = geneFile.getCompressed() ? GffCodec.GffType.COMPRESSED_GTF : GffCodec.GffType.GTF;
-            } else {
-                gffType = geneFile.getCompressed() ? GffCodec.GffType.COMPRESSED_GFF : GffCodec.GffType.GFF;
-            }
+            firstFeature = processFileContents(geneFile, indexFile, largeScaleIndexFile, transcriptIndexFile, request);
+        } finally {
+            closeStreams(geneFile);
+        }
 
-            AsciiFeatureCodec<GeneFeature> codec = new GffCodec(gffType);
-
-            File indexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.ORIGINAL);
-            File largeScaleIndexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.LARGE_SCALE);
-            File transcriptIndexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.TRANSCRIPT);
-
-            try {
-                openStreams(geneFile, firstFeature, request, codec, indexFile, largeScaleIndexFile,
-                        transcriptIndexFile);
-
-                processFileContents(geneFile, firstFeature, codec, indexFile, request);
-            } finally {
-                closeStreams(geneFile);
-            }
-
-            if (!largeScaleWritten) {
-                fileManager.deleteGeneHelperFile(geneFile, firstFeature.getClass(), GeneFileType.LARGE_SCALE);
-            }
-            if (!transcriptWritten) {
-                fileManager.deleteGeneHelperFile(geneFile, firstFeature.getClass(), GeneFileType.TRANSCRIPT);
-            }
+        if (!largeScaleWritten) {
+            fileManager.deleteGeneHelperFile(geneFile, firstFeature.getClass(), GeneFileType.LARGE_SCALE);
+        }
+        if (!transcriptWritten) {
+            fileManager.deleteGeneHelperFile(geneFile, firstFeature.getClass(), GeneFileType.TRANSCRIPT);
         }
     }
 
-    private void processFileContents(GeneFile geneFile, GeneFeature firstFeature,
-                                          AsciiFeatureCodec<GeneFeature> codec, File indexFile,
+    private GeneFeature processFileContents(GeneFile geneFile, File indexFile,
+                                     File largeScaleIndexFile, File transcriptIndexFile,
                                           FeatureIndexedFileRegistrationRequest request) throws
             IOException {
         boolean doIndex = TextUtils.isBlank(request.getIndexPath());
-        GeneFeature feature = firstFeature;
-        lastFeature = firstFeature;
+        GeneFeature feature = null;
+        GeneFeature firstFeature = null;
+        lastFeature = null;
 
         // histogram stuff
-        initializeHistogram(firstFeature);
         int featuresCount = 0;
 
-        String line = geneFile.getCompressed() ? compressedInputStream.readLine() : null;
         List<FeatureIndexEntry> allEntries = new ArrayList<>();
         // main loop - here we process gene file, add it's features to an index and create helper files: large scale
         // and transcript
-        while ((line != null) || ((iterator != null) && iterator.hasNext())) {
-            //add the feature to the index
-            feature = line != null ? codec.decode(line) : (GeneFeature) iterator.next();
-            featuresCount = processFeature(feature, featuresCount, doIndex, allEntries, request.isDoIndex());
-
+        while (iterator.hasNext()) {
             // read the next line if available
-            if (geneFile.getCompressed()) {
-                p = compressedInputStream.getFilePointer();
-                line = compressedInputStream.readLine();
-            } else {
-                p = iterator.getPosition();
+            final long filePointer = iterator.getPosition();
+            //add the feature to the index
+            feature = (GeneFeature) iterator.next();
+
+            if (firstFeature == null) {
+                firstFeature = feature;
+                lastFeature = feature;
+                initializeHistogram(firstFeature);
             }
+
+            featuresCount = processFeature(feature, featuresCount, doIndex, allEntries, request.isDoIndex(),
+                                           filePointer);
         }
 
         processLastFeature(feature, featuresCount, geneFile, allEntries, request.isDoIndex());
 
-        makeIndexes(geneFile, metaMap, indexFile, doIndex, request);
+        makeIndexes(geneFile, metaMap, indexFile, largeScaleIndexFile, transcriptIndexFile, doIndex, request);
 
         writerLargeScale.flush();
         writerTranscript.flush();
+
+        return firstFeature;
     }
 
     private void processLastFeature(GeneFeature feature, int featuresCount, GeneFile geneFile,
@@ -260,13 +244,13 @@ public class GeneRegisterer {
     }
 
     private int processFeature(GeneFeature feature, int featuresCount, boolean doIndex,
-                               final List<FeatureIndexEntry> allEntries, boolean doFeatureIndex)
+                               final List<FeatureIndexEntry> allEntries, boolean doFeatureIndex, final long filePointer)
         throws IOException {
         int currFeatureCount = featuresCount;
         if (feature != null) {
             Utils.checkSorted(feature, lastFeature, this.geneFile);
             if (doIndex) {
-                indexCreator.addFeature(feature, p);
+                indexCreator.addFeature(feature, filePointer);
             }
 
             addToHelperFiles(feature, this.geneFile);
@@ -359,22 +343,26 @@ public class GeneRegisterer {
     }
 
     private void makeIndexes(GeneFile geneFile, Map<String, Pair<Integer, Integer>> metaMap, File indexFile,
-                             boolean doIndex, IndexedFileRegistrationRequest request)
+                             File largeScaleIndexFile, File transcriptIndexFile, boolean doIndex,
+                             IndexedFileRegistrationRequest request)
             throws IOException {
         fileManager.makeIndexMetadata(geneFile, metaMap);
 
         // write the index to a file
-        Index index;
+        TabixIndex index;
         if (doIndex) {
-            index = indexCreator.finalizeIndex(p);
+            iterator.close();
+            index = (TabixIndex) indexCreator.finalizeIndex(iterator.getPosition());
             // VERY important! either use write based on input file or pass the little endian a BGZF stream
-            index.write(indexOutputStream);
+            index.write(indexFile);
         }
 
-        index = largeScaleIndexCreator.finalizeIndex(largeScalePosition);
-        index.write(largeScaleIndexOutputStream);
-        index = transcriptIndexCreator.finalizeIndex(transcriptPosition);
-        index.write(transcriptIndexOutputStream);
+        writerLargeScale.flush();
+        index = (TabixIndex) largeScaleIndexCreator.finalizeIndex(largeScalePosition);
+        index.write(largeScaleIndexFile);
+        writerTranscript.flush();
+        index = (TabixIndex) transcriptIndexCreator.finalizeIndex(transcriptPosition);
+        index.write(transcriptIndexFile);
 
         geneFile.setIndex(doIndex ? createIndexItem(indexFile.getAbsolutePath()) :
                 createIndexItem(request.getIndexPath()));
@@ -420,7 +408,7 @@ public class GeneRegisterer {
         if (GeneUtils.isGene(feature)) {
             geneMap.put(feature.getGroupId(), feature);
             writerLargeScale.write(feature.toString());
-            writerLargeScale.newLine();
+            writerLargeScale.write('\n');
             return true;
         }
 
@@ -434,55 +422,50 @@ public class GeneRegisterer {
                 && !transcriptMap.containsKey(transcriptId)) {
             transcriptMap.put(transcriptId, feature);
             writerTranscript.write(feature.toString());
-            writerTranscript.newLine();
+            writerTranscript.write('\n');
             return true;
         }
 
         return false;
     }
 
-    private void openStreams(GeneFile geneFile, GeneFeature firstFeature, IndexedFileRegistrationRequest request,
-                            AsciiFeatureCodec<GeneFeature> codec,
-                            File indexFile, File largeScaleIndexFile, File transcriptIndexFile)
-            throws
-            FileNotFoundException {
-        compressedInputStream = new BlockCompressedInputStream(new FileInputStream(
-            new File(request.getPath())));
-        inputStream = new PositionalBufferedStream(new FileInputStream(new File(request.getPath())));
+    private void openStreams(GeneFile geneFile, IndexedFileRegistrationRequest request)
+        throws
+        IOException {
+        File file = new File(request.getPath());
 
-        indexOutputStream = TextUtils.isBlank(request.getIndexPath()) ?
-                            new LittleEndianOutputStream(new BlockCompressedOutputStream(indexFile)) : null;
+        final String extension = Utils.getFileExtension(request.getPath());
+        GffCodec.GffType gffType = GffCodec.GffType.forExt(extension);
+        AsciiFeatureCodec<GeneFeature> codec = new GffCodec(gffType);
 
-        largeScaleIndexOutputStream = new LittleEndianOutputStream(
-            new BlockCompressedOutputStream(largeScaleIndexFile));
-        transcriptIndexOutputStream = new LittleEndianOutputStream(
-            new BlockCompressedOutputStream(transcriptIndexFile));
+        compressedInputStream = new BlockCompressedInputStream(new FileInputStream(file));
+        inputStream = new PositionalBufferedStream(new FileInputStream(file));
 
         if (geneFile.getCompressed()) {
             largeScaleOS = null;
-            largeScaleBCOS = fileManager.makeGeneBlockCompressedOutputStream(firstFeature.getClass(), geneFile,
+            largeScaleBCOS = fileManager.makeGeneBlockCompressedOutputStream(gffType, geneFile,
                                                                              GeneFileType.LARGE_SCALE);
             transcriptOS = null;
-            transcriptBCOS = fileManager.makeGeneBlockCompressedOutputStream(firstFeature.getClass(), geneFile,
+            transcriptBCOS = fileManager.makeGeneBlockCompressedOutputStream(gffType, geneFile,
                                                                              GeneFileType.TRANSCRIPT);
-            writerTranscript = new BufferedWriter(new OutputStreamWriter(transcriptBCOS, Charset.defaultCharset()));
-            writerLargeScale = new BufferedWriter(new OutputStreamWriter(largeScaleBCOS, Charset.defaultCharset()));
-            iterator = null;
+            writerTranscript = new BufferedWriter(new OutputStreamWriter(transcriptBCOS,
+                                                                         Charset.forName(CHARSET_NAME)));
+            writerLargeScale = new BufferedWriter(new OutputStreamWriter(largeScaleBCOS,
+                                                                         Charset.forName(CHARSET_NAME)));
+            iterator = new IndexUtils.FeatureIterator<>(file, codec);
         } else {
-            largeScaleOS = fileManager.makePositionalOutputStream(firstFeature.getClass(), geneFile,
-                                                                  GeneFileType.LARGE_SCALE);
+            largeScaleOS = fileManager.makePositionalOutputStream(gffType, geneFile, GeneFileType.LARGE_SCALE);
             largeScaleBCOS = null;
-            transcriptOS = fileManager.makePositionalOutputStream(firstFeature.getClass(), geneFile,
-                                                                  GeneFileType.TRANSCRIPT);
+            transcriptOS = fileManager.makePositionalOutputStream(gffType, geneFile, GeneFileType.TRANSCRIPT);
             transcriptBCOS = null;
 
-            writerTranscript = new BufferedWriter(new OutputStreamWriter(transcriptOS, Charset.defaultCharset()));
-            writerLargeScale = new BufferedWriter(new OutputStreamWriter(largeScaleOS, Charset.defaultCharset()));
-            iterator = new FeatureIterator<>(inputStream, codec);
+            writerTranscript = new BufferedWriter(new OutputStreamWriter(transcriptOS, Charset.forName(CHARSET_NAME)));
+            writerLargeScale = new BufferedWriter(new OutputStreamWriter(largeScaleOS, Charset.forName(CHARSET_NAME)));
+            iterator = new IndexUtils.FeatureIterator<>(inputStream, codec);
         }
     }
 
-    public void closeStreams(GeneFile geneFile) {
+    private void closeStreams(GeneFile geneFile) {
         IOUtils.closeQuietly(indexOutputStream);
         IOUtils.closeQuietly(largeScaleIndexOutputStream);
         IOUtils.closeQuietly(transcriptIndexOutputStream);

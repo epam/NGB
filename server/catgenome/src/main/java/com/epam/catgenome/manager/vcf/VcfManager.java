@@ -219,9 +219,11 @@ public class VcfManager {
      * @param track    a {@code Track} to load variations for
      * @param sampleId specifies sample to load variations for
      * @param loadInfo specifies if extended info should be loaded
+     * @param collapse flag determines if variations should be collapsed on small scale
      * @return a {@code Track} with variations
      */
-    public Track<Variation> loadVariations(final Track<Variation> track, final Long sampleId, final boolean loadInfo)
+    public Track<Variation> loadVariations(final Track<Variation> track, final Long sampleId, boolean loadInfo,
+                                           final boolean collapse)
             throws VcfReadingException {
         Chromosome chromosome = trackHelper.validateTrack(track);
 
@@ -234,7 +236,7 @@ public class VcfManager {
         }
 
         AbstractVcfReader.createVcfReader(vcfFile.getType(), httpDataManager, fileManager,
-                referenceGenomeManager).readVariations(vcfFile, track, chromosome, sampleIndex, loadInfo);
+                referenceGenomeManager).readVariations(vcfFile, track, chromosome, sampleIndex, loadInfo, collapse);
 
         return track;
     }
@@ -247,10 +249,11 @@ public class VcfManager {
      * @param fileUrl URL of VCF file resource
      * @param indexUrl URL of VCF index resource
      * @param loadInfo specifies if extended info should be loaded
+     * @param collapse flag determines if variations should be collapsed on small scale
      * @return a {@code Track} with variations
      */
     public Track<Variation> loadVariations(final Track<Variation> track, String fileUrl, String indexUrl,
-                                           final Integer sampleIndex, final boolean loadInfo)
+                                           final Integer sampleIndex, final boolean loadInfo, final boolean collapse)
         throws VcfReadingException {
         Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
 
@@ -270,7 +273,7 @@ public class VcfManager {
 
         AbstractVcfReader.createVcfReader(BiologicalDataItemResourceType.URL, httpDataManager, fileManager,
                                           referenceGenomeManager).readVariations(notRegisteredFile, track, chromosome,
-                                                                                 sampleIndex, loadInfo);
+                                                                                 sampleIndex, loadInfo, collapse);
         return track;
     }
 
@@ -292,7 +295,7 @@ public class VcfManager {
         track.setChromosome(referenceGenomeManager.loadChromosome(query.getChromosomeId()));
 
         // tries to load variation
-        loadVariations(track, query.getSampleId(), true);
+        loadVariations(track, query.getSampleId(), true, false);
         Assert.notEmpty(track.getBlocks(), getMessage(MessagesConstants.ERROR_NO_SUCH_VARIATION, query.getPosition()));
         Variation variation = track.getBlocks().get(0);
 
@@ -330,7 +333,7 @@ public class VcfManager {
 
         // tries to load variation
         loadVariations(track, fileUrl, indexUrl, query.getSampleId() != null ? query.getSampleId().intValue() : null,
-                       true);
+                       true, false);
         Assert.notEmpty(track.getBlocks(), getMessage(MessagesConstants.ERROR_NO_SUCH_VARIATION, query.getPosition()));
         Variation variation = track.getBlocks().get(0);
 

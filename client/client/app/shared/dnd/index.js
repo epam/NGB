@@ -179,7 +179,6 @@ export default angular.module('dndLists', [])
                             }
                         }),
                         ...hiddenTracks];
-                    console.log(tracksState);
 
                     scope.ctrl.projectContext.changeState({tracksState}, true);
 

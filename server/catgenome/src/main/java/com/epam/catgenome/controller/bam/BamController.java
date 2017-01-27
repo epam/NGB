@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
+import com.epam.catgenome.controller.vo.ReadQuery;
 import com.epam.catgenome.controller.vo.TrackQuery;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.bam.BamFile;
@@ -294,5 +295,18 @@ public class BamController extends AbstractRESTController {
             })
     public Track<Sequence> loadConsensusSequence(@RequestBody final TrackQuery query) throws IOException {
         return bamManager.calculateConsensusSequence(convertToTrack(query));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/bam/read/load", method = RequestMethod.POST)
+    @ApiOperation(
+        value = "Returns extended data for a read",
+        notes = "Provides extended data about the particular read",
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+        })
+    public Result<Read> loadRead(@RequestBody final ReadQuery query) throws IOException {
+        return Result.success(bamManager.loadRead(query));
     }
 }

@@ -262,6 +262,14 @@ public class VcfManagerTest {
                 b.getVariationsCount() != null && b.getVariationsCount() > 1).collect(Collectors.toList());
 
         Assert.assertFalse(ambiguousVariations.isEmpty());
+
+        /// test not collapsed
+        trackResult = testLoad(vcfFile, TEST_SMALL_SCALE_FACTOR, true, false);
+        ambiguousVariations = trackResult.getBlocks().stream()
+            .filter((b) -> b.getVariationsCount() != null && b.getVariationsCount() > 1)
+            .collect(Collectors.toList());
+
+        Assert.assertTrue(ambiguousVariations.isEmpty());
     }
 
     @Test
@@ -712,7 +720,7 @@ public class VcfManagerTest {
             Track<Variation> variationTrack = Query2TrackConverter.convertToTrack(vcfTrackQuery);
 
             Track<Variation> trackResult = vcfManager.loadVariations(variationTrack, vcfUrl, indexUrl,
-                                                                     null, true);
+                                                                     null, true, true);
             Assert.assertFalse(trackResult.getBlocks().isEmpty());
         } finally {
             server.stop();
@@ -852,6 +860,11 @@ public class VcfManagerTest {
 
     private Track<Variation> testLoad(VcfFile vcfFile, Double scaleFactor, boolean checkBlocks)
         throws IOException, VcfReadingException {
+        return testLoad(vcfFile, scaleFactor, checkBlocks, true);
+    }
+
+    private Track<Variation> testLoad(VcfFile vcfFile, Double scaleFactor, boolean checkBlocks, boolean collapse)
+        throws IOException, VcfReadingException {
         TrackQuery vcfTrackQuery = new TrackQuery();
         vcfTrackQuery.setChromosomeId(testChromosome.getId());
         vcfTrackQuery.setStartIndex(1);
@@ -862,7 +875,7 @@ public class VcfManagerTest {
         Track<Variation> variationTrack = Query2TrackConverter.convertToTrack(vcfTrackQuery);
 
         double time1 = Utils.getSystemTimeMilliseconds();
-        Track<Variation> trackResult = vcfManager.loadVariations(variationTrack, null, true);
+        Track<Variation> trackResult = vcfManager.loadVariations(variationTrack, null, true, collapse);
         double time2 = Utils.getSystemTimeMilliseconds();
         logger.debug("Loading VCF records took {} ms", time2 - time1);
 
@@ -887,7 +900,7 @@ public class VcfManagerTest {
         if (vcfFile.getType() == BiologicalDataItemResourceType.GA4GH) {
             variationTrack.setType(TrackType.GA4GH);
         }
-        Track<Variation> trackResult = vcfManager.loadVariations(variationTrack, sampleIndex, true);
+        Track<Variation> trackResult = vcfManager.loadVariations(variationTrack, sampleIndex, true, true);
 
         if (checkBlocks) {
             Assert.assertFalse(trackResult.getBlocks().isEmpty());

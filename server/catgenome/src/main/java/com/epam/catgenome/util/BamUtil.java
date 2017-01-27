@@ -34,6 +34,7 @@ import com.epam.catgenome.constant.Constants;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.bam.BamQueryOption;
 import com.epam.catgenome.entity.bam.BasePosition;
+import com.epam.catgenome.entity.bam.NgbSamTagAndValue;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.bam.TrackDirectionType;
 import com.epam.catgenome.entity.reference.Chromosome;
@@ -98,6 +99,16 @@ public final class BamUtil {
         read.setDifferentBase(differentBase);
         read.setHeadSequence(head);
         read.setTailSequence(tail);
+        return read;
+    }
+
+    public static Read createExtendedRead(final SAMRecord samRecord, final List<BasePosition> differentBase) {
+        Read read = createReadFromRecord(samRecord, samRecord.getStart(), samRecord.getEnd(), differentBase,
+                                         null, null);
+        read.setSequence(samRecord.getReadString());
+        read.setTags(NgbSamTagAndValue.fromSAMTags(samRecord.getAttributes()));
+        read.setQualities(samRecord.getBaseQualityString());
+
         return read;
     }
 

@@ -1,16 +1,42 @@
 <div layout="column">
-    <div flex="100" layout="row" layout-wrap ng-repeat="property in $ctrl.properties" class="property-row">
-        <div flex="50" class="property property-name">{{property[0]}}</div>
-        <div flex="50" class="property property-value">{{property[1]}}</div>
-    </div>
-    <div flex="100" layout="row" layout-wrap class="property-row" ng-show="$ctrl.read === undefined">
-        <div flex="100" class="property">Sequence</div>
-        <div flex="100" class="property property-value">
-            <div layout="row" ng-hide="$ctrl.isSequenceLoading" layout-align="stretch middle">
-                <textarea wrap="hard" flex class="sequence-area">{{$ctrl.sequence}}</textarea>
-            </div>
-            <md-progress-linear ng-show="$ctrl.isSequenceLoading" md-mode="determinate" value="{{$ctrl.sequenceProgress}}"
-                                flex="100"></md-progress-linear>
-        </div>
-    </div>
+    <ngb-feature-info-main properties="$ctrl.properties"
+                           reference-id="$ctrl.referenceId"
+                           chromosome-id="$ctrl.chromosomeId"
+                           start-index="$ctrl.startIndex"
+                           end-index="$ctrl.endIndex"
+                           read="$ctrl.read"
+                           name="$ctrl.name" flex ng-if="!$ctrl.shouldDisplayGeneInfo"></ngb-feature-info-main>
+    <md-tabs md-dynamic-height ng-if="$ctrl.shouldDisplayGeneInfo">
+        <md-tab id="gff">
+            <md-tab-label>{{$ctrl.panelTitle}}</md-tab-label>
+            <md-tab-body>
+                <ngb-feature-info-main properties="$ctrl.properties"
+                                      reference-id="$ctrl.referenceId"
+                                      chromosome-id="$ctrl.chromosomeId"
+                                      start-index="$ctrl.startIndex"
+                                      end-index="$ctrl.endIndex"
+                                      read="$ctrl.read"
+                                      name="$ctrl.name" flex></ngb-feature-info-main>
+            </md-tab-body>
+        </md-tab>
+        <md-tab id="ncbi" md-on-select="$ctrl.selectTab('ncbi')">
+            <md-tab-label>NCBI</md-tab-label>
+            <md-tab-body>
+                <ngb-feature-info flex feature-id="$ctrl.geneId" db="ncbi"></ngb-feature-info>
+            </md-tab-body>
+        </md-tab>
+        <md-tab id="ensembl" md-on-select="$ctrl.selectTab('ensembl')">
+            <md-tab-label>Ensembl</md-tab-label>
+            <md-tab-body>
+                <ngb-feature-info flex feature-id="$ctrl.geneId" db="ensembl"></ngb-feature-info>
+            </md-tab-body>
+        </md-tab>
+        <md-tab id="uniprot" md-on-select="$ctrl.selectTab('uniprot')">
+            <md-tab-label>Uniprot</md-tab-label>
+            <md-tab-body>
+                <ngb-feature-info flex feature-id="$ctrl.geneId" db="uniprot"></ngb-feature-info>
+            </md-tab-body>
+        </md-tab>
+    </md-tabs>
+
 </div>

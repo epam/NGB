@@ -35,8 +35,12 @@ export default class ngbDataSetsService {
     }
 
     async getDatasets() {
-        const projects = this.projectContext.datasets;
-        const datasets = projects.map(utilities.preprocessNode);
+        let projects = this.projectContext.datasets;
+        if (!this.projectContext.datasetsArePrepared) {
+            projects = projects.map(utilities.preprocessNode);
+            this.projectContext.datasetsArePrepared = true;
+        }
+        const datasets = projects;
         ngbDataSetsService.sort(datasets);
         this.ivhTreeviewMgr.validate(datasets, this.treeviewOptions, false);
         await this.updateSelectionFromState(datasets);

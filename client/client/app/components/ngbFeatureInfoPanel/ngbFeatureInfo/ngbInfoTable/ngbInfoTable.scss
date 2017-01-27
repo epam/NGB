@@ -1,0 +1,25 @@
+table{
+  border-collapse: collapse;
+  font: 13px Arial;
+  tr{
+    th{
+      background: #f3f3f3;
+      color: #999;
+      border: 0;
+      line-height: 24px;
+      text-align: left;
+      padding: 4px;
+      font-size: 11px;
+      box-sizing: border-box;
+      white-space: nowrap;
+      //min-width: 110px; ______!?
+    }
+
+    td{
+      color: #666;
+      border: 0;
+      line-height: 16px;
+      padding: 4px 8px 4px 4px ;
+    }
+  }
+}

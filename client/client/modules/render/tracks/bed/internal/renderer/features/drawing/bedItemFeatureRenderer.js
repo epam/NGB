@@ -34,8 +34,8 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
         return color;
     }
 
-    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, position) {
-        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, position);
+    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position) {
+        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
         const pixelsInBp = viewport.factor;
         const label = new PIXI.Text(feature.name, this.config.bed.label);
         label.resolution = drawingConfiguration.resolution;

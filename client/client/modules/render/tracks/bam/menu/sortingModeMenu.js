@@ -1,19 +1,19 @@
-import {getActionButton} from './actionButton';
+import {menu} from '../../../utilities';
 import {sortTypes} from '../modes';
 
 export default {
     fields: [
-        getActionButton('bam>sort>default', 'Default',
+        menu.getActionButton('bam>sort>default', 'Default',
             (renderSettings) => { renderSettings.sortMode = sortTypes.defaultSortingMode; }),
-        getActionButton('bam>sort>strandLocation', 'By start location',
+        menu.getActionButton('bam>sort>strandLocation', 'By start location',
             (renderSettings) => { renderSettings.sortMode = sortTypes.sortByStartLocation; }),
-        getActionButton('bam>sort>base', 'By base',
+        menu.getActionButton('bam>sort>base', 'By base',
             (renderSettings) => { renderSettings.sortMode = sortTypes.sortByBase; }),
-        getActionButton('bam>sort>strand', 'By strand',
+        menu.getActionButton('bam>sort>strand', 'By strand',
             (renderSettings) => { renderSettings.sortMode = sortTypes.sortByStrand; }),
-        getActionButton('bam>sort>mappingQuality', 'By mapping quality',
+        menu.getActionButton('bam>sort>mappingQuality', 'By mapping quality',
             (renderSettings) => { renderSettings.sortMode = sortTypes.sortByMappingQuality; }),
-        getActionButton('bam>sort>insertSize', 'By insert size',
+        menu.getActionButton('bam>sort>insertSize', 'By insert size',
             (renderSettings) => { renderSettings.sortMode = sortTypes.sortByInsertSize; })
     ],
     label: 'Sort',

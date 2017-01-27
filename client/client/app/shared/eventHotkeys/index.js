@@ -40,7 +40,12 @@ export default  class eventHotkey {
     _bind(list) {
         for (const key of Object.keys(list)) {
             if (list[key].hotkey) {
-                KeyboardJS.bind(list[key].hotkey.toLowerCase(), () => {
+                let hotkey = list[key].hotkey.toLowerCase();
+                const index = hotkey.indexOf('arrow');
+                if (index >= 0) {
+                    hotkey = hotkey.replace('arrow', '');
+                }
+                KeyboardJS.bind(hotkey, () => {
                     this.dispatcher.emitGlobalEvent('hotkeyPressed', key);
                 });
             }

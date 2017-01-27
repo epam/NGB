@@ -161,12 +161,15 @@ public class VcfController extends AbstractRESTController {
                                               @RequestParam(required = false) final String indexUrl)
         throws VcfReadingException {
         final Track<Variation> variationTrack = convertToTrack(trackQuery);
+        final boolean collapsed = trackQuery.getCollapsed() == null || trackQuery.getCollapsed();
+
         if (fileUrl == null) {
-            return Result.success(vcfManager.loadVariations(variationTrack, trackQuery.getSampleId(), false));
+            return Result.success(vcfManager.loadVariations(variationTrack, trackQuery.getSampleId(), false,
+                                                            collapsed));
         } else {
             return Result.success(vcfManager.loadVariations(variationTrack, fileUrl, indexUrl,
                                         trackQuery.getSampleId() != null ? trackQuery.getSampleId().intValue() : null,
-                                                            false));
+                                                            false, collapsed));
         }
     }
 

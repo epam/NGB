@@ -33,6 +33,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
 
             if (transcriptLength > 0 && shouldDisplayDetails) {
                 for (let i = 0; i < transcriptLength; i++) {
+                    this._transcriptFeatureRenderer.gffShowNumbersAminoacid = this._opts.gffShowNumbersAminoacid;
                     const childBoundaries = this._transcriptFeatureRenderer.analyzeBoundaries(transcripts[i], viewport);
                     if (childBoundaries) {
                         const childRect = childBoundaries.rect;
@@ -75,8 +76,8 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
         return config.gene.bar.fill;
     }
 
-    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, position) {
-        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, position);
+    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
         const featurePxStart = Math.max(viewport.project.brushBP2pixel(feature.startIndex), - viewport.canvasSize);
         const featurePxEnd = Math.min(viewport.project.brushBP2pixel(feature.endIndex), 2 * viewport.canvasSize);
         const width = featurePxEnd - featurePxStart;
@@ -98,7 +99,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
             geneNameLabelHeight = label.height;
             this.registerLabel(label, position, {
                 end: feature.endIndex,
-                height: position.height - this.config.transcript.height,
+                height: position.height - this.config.transcript.height - this.config.transcript.marginTop,
                 start: feature.startIndex
             }, true);
         }
@@ -172,25 +173,28 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
 
             let transcriptY = position.y + topMargin;
             const transcript = this.config.transcript;
+
             for (let i = 0; i < transcriptLength; i++) {
-                this._transcriptFeatureRenderer.render(transcripts[i], viewport, graphics, labelContainer, dockableElementsContainer, {
+                this._transcriptFeatureRenderer.render(transcripts[i], viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, {
                     x: position.x,
                     y: transcriptY
                 });
 
+                const transcriptAminoacidsFitsViewport = this._transcriptFeatureRenderer._aminoacidFeatureRenderer.aminoacidsFitsViewport(transcripts[i], viewport);
+
                 if (transcripts[i].name !== null) {
                     const labelSize = PixiTextSize.getTextSize(transcripts[i].name, transcript.label);
-                    transcriptY += labelSize.height + transcript.height;
+                    transcriptY += labelSize.height + transcript.label.marginTop + transcript.height + transcript.marginTop + (transcriptAminoacidsFitsViewport ? this._transcriptFeatureRenderer._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
                 }
                 else {
-                    transcriptY += transcript.height;
+                    transcriptY += transcript.height + transcript.marginTop + (transcriptAminoacidsFitsViewport ? this._transcriptFeatureRenderer._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
                 }
             }
 
             this.registerDockableElement(dockableGraphics, {
                 topMargin: geneNameLabelHeight,
                 y1: Math.round(position.y + geneNameLabelHeight),
-                y2: Math.round(position.y + position.height - transcript.height)
+                y2: Math.round(position.y + position.height - transcript.height - transcript.marginTop)
             });
 
             this.registerFeaturePosition(feature, {

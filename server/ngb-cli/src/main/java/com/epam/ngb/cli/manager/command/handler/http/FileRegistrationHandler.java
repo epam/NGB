@@ -24,11 +24,13 @@
 
 package com.epam.ngb.cli.manager.command.handler.http;
 
+import static com.epam.ngb.cli.constants.MessageConstants.ERROR_FILES_NOT_REGISTERED;
 import static com.epam.ngb.cli.constants.MessageConstants.MINIMUM_COMMAND_ARGUMENTS;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.methods.HttpPost;
@@ -43,6 +45,8 @@ import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.printer.AbstractResultPrinter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@code {@link FileRegistrationHandler}} represents a tool handling "register_file" command and
@@ -85,6 +89,8 @@ public class FileRegistrationHandler extends AbstractHTTPCommandHandler {
      * Specifies if a feature index for registered VCF or GFF/GTF file should be created
      */
     private boolean doIndex;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileRegistrationHandler.class);
 
     /**
      * Default constructor is required to enable reflexion creation of an instance
@@ -162,6 +168,7 @@ public class FileRegistrationHandler extends AbstractHTTPCommandHandler {
 
     protected List<BiologicalDataItem> registerItems() {
         List<BiologicalDataItem> items = new ArrayList<>(files.size());
+        List<Pair<String, String>> failed = new ArrayList<>(files.size());
         for (Pair<String, String> file : files) {
             BiologicalDataItemFormat format = BiologicalDataItemFormat.getByFilePath(file.getLeft());
             String url = String.format(getRequestUrl(), format.name().toLowerCase());
@@ -179,12 +186,18 @@ public class FileRegistrationHandler extends AbstractHTTPCommandHandler {
                         getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class,
                                 ResponseResult.class, BiologicalDataItem.class));
                 if (ERROR_STATUS.equals(responseResult.getStatus())) {
-                    throw new ApplicationException(responseResult.getMessage());
+                    LOGGER.error(responseResult.getMessage());
+                    failed.add(file);
+                } else {
+                    items.add(responseResult.getPayload());
                 }
-                items.add(responseResult.getPayload());
             } catch (IOException e) {
                 throw new ApplicationException(e.getMessage(), e);
             }
+        }
+        if (!failed.isEmpty()) {
+            LOGGER.error(MessageConstants.getMessage(ERROR_FILES_NOT_REGISTERED,
+                    failed.stream().map(Pair::getLeft).collect(Collectors.joining(","))));
         }
         return items;
     }

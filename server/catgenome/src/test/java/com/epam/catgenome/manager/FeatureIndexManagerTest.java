@@ -843,6 +843,14 @@ public class FeatureIndexManagerTest {
 
         TestUtils.assertFail(() -> featureIndexManager.filterVariations(new VcfFilterForm(), project.getId()),
                              Collections.singletonList(IllegalArgumentException.class));
+
+        // Now we add an indexed VCF and make sure that no exception is thrown and entries are returned
+        request.setDoIndex(true);
+        VcfFile vcfFile2 = vcfManager.registerVcfFile(request);
+
+        projectManager.addProjectItem(project.getId(), vcfFile2.getBioDataItemId());
+        List<VcfIndexEntry> entries = featureIndexManager.filterVariations(new VcfFilterForm(), project.getId());
+        Assert.assertFalse(entries.isEmpty());
     }
 
     @Test
@@ -859,6 +867,42 @@ public class FeatureIndexManagerTest {
 
         TestUtils.assertFail(() -> featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), geneFile, 10),
                              Collections.singletonList(IllegalArgumentException.class));
+    }
+
+    @Test
+    @Ignore // TODO: remove this test before merging to master
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void performanceTest() throws Exception {
+        Reference hg38 = EntityHelper.createG38Reference(referenceGenomeManager.createReferenceId());
+        referenceGenomeManager.register(hg38);
+
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(hg38.getId());
+        request.setPath("/home/kite/Documents/sampleData/Dream.set3.VarDict.SV.vcf");
+
+        VcfFile vcfFile1 = vcfManager.registerVcfFile(request);
+
+        request.setPath("/home/kite/Documents/sampleData/synthetic.challenge.set3.tumor.20pctmasked.truth.vcf");
+        VcfFile vcfFile2 = vcfManager.registerVcfFile(request);
+
+        Project project = new Project();
+        project.setName(TEST_PROJECT_NAME);
+        project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(vcfFile1.getBioDataItemId())),
+                                       new ProjectItem(new BiologicalDataItem(vcfFile2.getBioDataItemId()))));
+
+        projectManager.saveProject(project);
+
+        List<VcfIndexEntry> entries = featureIndexManager.filterVariations(new VcfFilterForm(), project.getId());
+        Assert.assertFalse(entries.isEmpty());
+
+        int warmingCount = 20;
+        int attemptsCount = 20;
+        TestUtils.warmUp(() -> featureIndexManager.filterVariations(new VcfFilterForm()), warmingCount);
+
+        double averageTime = TestUtils.measurePerformance(
+            () -> featureIndexManager.filterVariations(new VcfFilterForm()), attemptsCount);
+
+        logger.info("Performing index search took: {} ms", averageTime);
     }
 
     private void checkDuplicates(List<VcfIndexEntry> entryList) {

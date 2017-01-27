@@ -80,7 +80,7 @@ export default class ngbBookmarksTableController extends baseController {
         const id = entity.id;
 
         const confirm = this.$mdDialog.confirm()
-            .title(`Delete bookmark ${entity.name}?`)
+            .title(`Delete session ${entity.name}?`)
             .ok('OK')
             .cancel('CANCEL');
 

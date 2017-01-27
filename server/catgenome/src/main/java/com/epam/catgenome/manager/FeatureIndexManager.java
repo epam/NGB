@@ -657,7 +657,7 @@ public class FeatureIndexManager {
 
             if (organismTypes.size() == 1 && organismTypes.get(0) == OrganismType.NO_VARIATION) { // We don't add
                                                                                     // NO_VARIATION variations to index
-                Collections.emptyList();
+                return;
             }
 
             allEntries.add(masterEntry);

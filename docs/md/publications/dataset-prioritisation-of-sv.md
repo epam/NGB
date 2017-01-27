@@ -8,17 +8,22 @@ Links to variations loci, provided below, will load public NGB instance located 
 
 ## Figure 5. FGFR3-TACC3 tandem duplication fusion
 
-1. Navigate to [FGFR3-TACC3 fusion locus](http://ngb.opensource.epam.com/catgenome/#/pId/40/chr/4/start/1728469/end/1728569) *(click a link to navigate to a public NGB instance)*
-2. DUP (duplication) variation will be shown
-3. Left-click a variation on a VCF track and select **Show info**
+1. Navigate to [FGFR3-TACC3 fusion locus](http://ngb.opensource.epam.com/catgenome#/5/4/1727714/1729323?rewrite=Off&tracks=%5B%7B%22height%22%3A20%2C%22hidden%22%3Afalse%2C%22bioDataItemId%22%3A1%7D%2C%7B%22height%22%3A57%2C%22hidden%22%3Afalse%2C%22bioDataItemId%22%3A3%7D%2C%7B%22height%22%3A70%2C%22hidden%22%3Afalse%2C%22bioDataItemId%22%3A24%7D%2C%7B%22height%22%3A422%2C%22hidden%22%3Afalse%2C%22bioDataItemId%22%3A26%2C%22state%22%3A%7B%22arrows%22%3Atrue%2C%22colorMode%22%3A%22pairOrientation%22%2C%22coverage%22%3Atrue%2C%22diffBase%22%3Atrue%2C%22groupMode%22%3A%22default%22%2C%22ins_del%22%3Atrue%2C%22mismatches%22%3Atrue%2C%22readsViewMode%22%3A1%2C%22shadeByQuality%22%3Afalse%2C%22softClip%22%3Atrue%2C%22spliceJunctions%22%3Afalse%2C%22viewAsPairs%22%3Afalse%7D%7D%5D) *(click a link to navigate to a public NGB instance)*
+2. DUP (duplication) variation and read evidence will be shown
+3. Left-click a variation on a VCF track - context menu with two options will be shown
+ * Show info
+ * Show pair in split screen
 ![DUP](../installation/images/docker-8.png)
-4. Results of Structural Variation rearrangements will be shown (including protein domains coloring)
+4. Select **Show pair in split screen** to view second breakpoint of a duplication
+![DUP-Splitview](../installation/images/docker-9.png)
+5. Left-click a variation on a VCF track again and select **Show info**
+6. Results of Structural Variation rearrangements will be shown (including protein domains coloring)
 ![DUP-Details](../installation/images/docker-7.png)
 
 
 ## Figure 6. ROS1-SLC34A2 interchromosomal translocation fusion
 
-1. Navigate to [ROS1-SLC34A2 fusion locus](http://ngb.opensource.epam.com/catgenome/#/pId/3/chr/6/start/117337097/end/117337197) *(click a link to navigate to a public NGB instance)*
+1. Navigate to [ROS1-SLC34A2 fusion locus](http://ngb.opensource.epam.com/catgenome#/2/6/117336964/117337328?rewrite=Off&tracks=%5B%7B%22bioDataItemId%22%3A1%2C%22height%22%3A20%2C%22hidden%22%3Afalse%7D%2C%7B%22bioDataItemId%22%3A3%2C%22height%22%3A100%2C%22hidden%22%3Afalse%7D%2C%7B%22bioDataItemId%22%3A13%2C%22height%22%3A70%2C%22hidden%22%3Afalse%7D%2C%7B%22bioDataItemId%22%3A16%2C%22height%22%3A437%2C%22hidden%22%3Afalse%2C%22state%22%3A%7B%22arrows%22%3Atrue%2C%22colorMode%22%3A%22insertSize%22%2C%22coverage%22%3Atrue%2C%22diffBase%22%3Atrue%2C%22groupMode%22%3A%22chromosomeOfMate%22%2C%22ins_del%22%3Atrue%2C%22mismatches%22%3Atrue%2C%22readsViewMode%22%3A0%2C%22shadeByQuality%22%3Afalse%2C%22softClip%22%3Atrue%2C%22spliceJunctions%22%3Afalse%2C%22viewAsPairs%22%3Afalse%7D%7D%2C%7B%22bioDataItemId%22%3A14%2C%22hidden%22%3Atrue%7D%5D) *(click a link to navigate to a public NGB instance)*
 2. BND (breakends) variation with alignments will be shown. Variation tooltip indicates second breakpoint location (interchromosomal translocation chr6<->chr4)
 3. Left-click a variation on a VCF track (lumpy) - context menu with two options will be shown
  * Show info
@@ -34,7 +39,7 @@ Links to variations loci, provided below, will load public NGB instance located 
 
 ## Figure 7. EML4-ALK inversion fusion
 
-1. Navigate to [EML4-ALK fusion locus](http://ngb.opensource.epam.com/catgenome/#/pId/2/chr/2/start/29224732/end/29224832) *(click a link to navigate to a public NGB instance)*
+1. Navigate to [EML4-ALK fusion locus](http://ngb.opensource.epam.com/catgenome#/1/2/29224570/29224993?rewrite=Off&tracks=%5B%7B%22bioDataItemId%22%3A1%2C%22height%22%3A20%2C%22hidden%22%3Afalse%2C%22state%22%3A%7B%7D%7D%2C%7B%22bioDataItemId%22%3A3%2C%22hidden%22%3Afalse%2C%22height%22%3A100%2C%22state%22%3A%7B%22geneTranscript%22%3A%22collapsed%22%7D%7D%2C%7B%22bioDataItemId%22%3A8%2C%22hidden%22%3Afalse%2C%22height%22%3A47%2C%22state%22%3A%7B%22variantsView%22%3A%22Collapsed%22%7D%7D%2C%7B%22bioDataItemId%22%3A11%2C%22hidden%22%3Afalse%2C%22height%22%3A414%2C%22state%22%3A%7B%22arrows%22%3Atrue%2C%22colorMode%22%3A%22pairOrientation%22%2C%22coverage%22%3Atrue%2C%22diffBase%22%3Atrue%2C%22groupMode%22%3A%22default%22%2C%22ins_del%22%3Atrue%2C%22mismatches%22%3Atrue%2C%22readsViewMode%22%3A1%2C%22shadeByQuality%22%3Afalse%2C%22softClip%22%3Atrue%2C%22spliceJunctions%22%3Afalse%2C%22viewAsPairs%22%3Afalse%7D%7D%2C%7B%22bioDataItemId%22%3A9%2C%22hidden%22%3Atrue%7D%5D) *(click a link to navigate to a public NGB instance)*
 2. Inversion variation with alignments will be shown
 3. Left-click a variation on a VCF track (lumpy) - context menu with two options will be shown
  * Show info

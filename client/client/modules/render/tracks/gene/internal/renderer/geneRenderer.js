@@ -10,6 +10,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
     _featureRenderer: FeatureRenderer = null;
     _geneHistogram: GeneHistogram = null;
     _labelsContainer: PIXI.Container = null;
+    _attachedElementsContainer: PIXI.Container = null;
     _dockableElementsContainer: PIXI.Container = null;
     _mask: PIXI.Graphics = null;
 
@@ -19,6 +20,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
     _height = 0;
     _actualHeight = null;
     _gffColorByFeatureType = false;
+    _gffShowNumbersAminoacid = false;
 
     constructor(config, transformer: GeneTransformer, pixiRenderer) {
         super();
@@ -29,10 +31,12 @@ export default class GeneRenderer extends CachedTrackRenderer {
         this._transformer = transformer;
         this._labelsContainer = new PIXI.Container();
         this._dockableElementsContainer = new PIXI.Container();
+        this._attachedElementsContainer = new PIXI.Container();
         this._verticalScroll = new PIXI.Graphics();
         this._mask = new PIXI.Graphics();
         this.container.addChild(this.geneHistogram);
         this.container.addChild(this._verticalScroll);
+        this.container.addChild(this._attachedElementsContainer);
         this.container.addChild(this._dockableElementsContainer);
         this.container.addChild(this._labelsContainer);
     }
@@ -65,15 +69,23 @@ export default class GeneRenderer extends CachedTrackRenderer {
         return this._actualHeight;
     }
 
-    render(viewport, cache, heightChanged, _gffColorByFeatureType = false) {
+    render(viewport, cache, heightChanged, _gffColorByFeatureType = false, _gffShowNumbersAminoacid) {
         const gffColorByFeatureTypeChanged = this._gffColorByFeatureType !== _gffColorByFeatureType;
         this._gffColorByFeatureType = _gffColorByFeatureType;
-        if (!gffColorByFeatureTypeChanged && heightChanged) {
+
+        const gffShowNumbersAminoacidChanged = this._gffShowNumbersAminoacid !== _gffShowNumbersAminoacid;
+        this._gffShowNumbersAminoacid = _gffShowNumbersAminoacid;
+        const isRedraw = gffColorByFeatureTypeChanged||gffShowNumbersAminoacidChanged;
+        if (!isRedraw && heightChanged) {
             this.scroll(viewport, 0);
         }
         else {
-            super.render(viewport, cache, gffColorByFeatureTypeChanged);
+            super.render(viewport, cache, isRedraw);
         }
+    }
+
+    get needConvertGraphicsToTexture() {
+        return true;
     }
 
     rebuildContainer(viewport, cache) {
@@ -81,6 +93,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
 
         this.dataContainer.removeChildren();
         this._dockableElementsContainer.removeChildren();
+        this._attachedElementsContainer.removeChildren();
         this._labelsContainer.removeChildren();
 
         this._dockableElementsContainer.x = this.dataContainer.x;
@@ -94,21 +107,27 @@ export default class GeneRenderer extends CachedTrackRenderer {
         else if (cache.data !== null && cache.data !== undefined) {
             this.geneHistogram.clear();
             this.featureRenderer._opts = {
-                gffColorByFeatureType: this._gffColorByFeatureType
+                gffColorByFeatureType: this._gffColorByFeatureType,
+                gffShowNumbersAminoacid: this._gffShowNumbersAminoacid
             };
             this.featureRenderer.prepare();
-            const graphics = this.featureRenderer.render(cache.data, viewport, this._labelsContainer, this._dockableElementsContainer);
+            const graphics = this.featureRenderer.render(cache.data, viewport, this._labelsContainer, this._dockableElementsContainer, this._attachedElementsContainer);
             if (graphics !== null) {
-                const coordinates = this.featureRenderer.textureCoordinates;
-                const sprite = new PIXI.Sprite(graphics.generateTexture(this._pixiRenderer,
-                    drawingConfiguration.resolution, drawingConfiguration.scale));
-                sprite.position.x = coordinates.x;
-                sprite.position.y = coordinates.y;
-                this.dataContainer.addChild(sprite);
-                graphics.clear();
+                if (this.needConvertGraphicsToTexture) {
+                    const coordinates = this.featureRenderer.textureCoordinates;
+                    const sprite = new PIXI.Sprite(graphics.generateTexture(this._pixiRenderer,
+                        drawingConfiguration.resolution, drawingConfiguration.scale));
+                    sprite.position.x = coordinates.x;
+                    sprite.position.y = coordinates.y;
+                    this.dataContainer.addChild(sprite);
+                    graphics.clear();
+                } else {
+                    this.dataContainer.addChild(graphics);
+                }
             }
             this.featureRenderer.manageLabels(viewport);
-            this.featureRenderer.manageDockableElements();
+            this.featureRenderer.manageDockableElements(viewport);
+            this.featureRenderer.manageAttachedElements(viewport);
             this._actualHeight = this.featureRenderer.getActualHeight();
         }
         this.scroll(viewport, null);
@@ -200,7 +219,8 @@ export default class GeneRenderer extends CachedTrackRenderer {
         this._dockableElementsContainer.y = this.dataContainer.y;
         this._dockableElementsContainer.scale = this.dataContainer.scale;
         this.featureRenderer.manageLabels(viewport);
-        this.featureRenderer.manageDockableElements();
+        this.featureRenderer.manageDockableElements(viewport);
+        this.featureRenderer.manageAttachedElements(viewport);
         this.manageMask(viewport);
     }
 
@@ -214,7 +234,8 @@ export default class GeneRenderer extends CachedTrackRenderer {
             this._dockableElementsContainer.y = this.dataContainer.y;
             this._dockableElementsContainer.scale = this.dataContainer.scale;
             this.featureRenderer.manageLabels(viewport);
-            this.featureRenderer.manageDockableElements();
+            this.featureRenderer.manageDockableElements(viewport);
+            this.featureRenderer.manageAttachedElements(viewport);
         }
         this.manageMask(viewport);
     }

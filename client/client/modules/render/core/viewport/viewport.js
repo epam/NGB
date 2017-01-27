@@ -34,7 +34,7 @@ export class Viewport extends BaseViewport {
             end: chromosomeSize,
             start: 1
         }
-    }, dispatcher, projectContext, margin = 0, browserInitialSetting) {
+    }, dispatcher, projectContext, margin = 0, browserInitialSetting, vcfDataService) {
         super({
             brush: brush,
             canvas: {
@@ -50,6 +50,7 @@ export class Viewport extends BaseViewport {
         this.element = element;
         this.dispatcher = dispatcher;
         this.projectContext = projectContext;
+        this.vcfDataService = vcfDataService;
 
         if (browserInitialSetting && browserInitialSetting.browserId) {
             this.isSlave = true;
@@ -60,8 +61,37 @@ export class Viewport extends BaseViewport {
         const _nameGlobalEvent = this.nameGlobalEvent;
         const _nameEventObj = this.nameEventObj;
         this.dispatcher.emitGlobalEvent(this.nameGlobalEvent, {[this.nameEventObj]: this.brush});
+
+        this.hotKeyListener = (event) => {
+            if (event) {
+                const path = event.split('>');
+                if (path && path[0] === 'vcf') {
+                    const tracksVCF = this.projectContext.getActiveTracks().filter(track => track.format === 'VCF');
+                    const position =  Math.floor((this.brush.end + this.brush.start)/2);
+                    if (path[1] === 'nextVariation') {
+                        this.vcfDataService.getNextVariations(tracksVCF, this.projectContext.currentChromosome.id, position + 1).then(
+                            (data) => {
+                                const minStartIndex = Math.min.apply(Math,data.map(function(d){return d.startIndex;}));
+                                this.selectPosition(minStartIndex);
+                            }
+                        );
+                    } else {
+                        this.vcfDataService.getPreviousVariations(tracksVCF, this.projectContext.currentChromosome.id, position - 1).then(
+                            (data) => {
+                                const maxStartIndex = Math.max.apply(Math,data.map(function(d){return d.startIndex;}));
+                                this.selectPosition(maxStartIndex);
+                            }
+                        );
+                    }
+                }
+            }
+        };
+        const _hotKeyListener = ::this.hotKeyListener;
+        this.dispatcher.on('hotkeyPressed', _hotKeyListener);
+
         this.onDestroy = () => {
             this.dispatcher.emitGlobalEvent(_nameGlobalEvent, {[_nameEventObj]: null});
+            this.dispatcher.removeListener('hotkeyPressed', _hotKeyListener);
         };
         this._initSubscriptions();
         this.transform(brush);

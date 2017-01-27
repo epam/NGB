@@ -25,7 +25,9 @@
 
 package com.epam.catgenome.util;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 
@@ -64,6 +66,25 @@ public final class TestUtils {
         }
 
         Assert.assertTrue("An exception should be thrown, but nothing happened", fail);
+    }
+
+    public static void warmUp(TestTask task, int warmingCount) throws Exception {
+        for (int i = 0; i < warmingCount; i++) {
+            task.doTest();
+        }
+    }
+
+    public static double measurePerformance(TestTask task, int attemptsCount) throws Exception {
+        List<Double> timings = new ArrayList<>();
+        for (int i = 0; i < attemptsCount; i++) {
+            double time1 = Utils.getSystemTimeMilliseconds();
+            task.doTest();
+            double time2 = Utils.getSystemTimeMilliseconds();
+
+            timings.add(time2 - time1);
+        }
+
+        return timings.stream().collect(Collectors.averagingDouble(x -> x));
     }
 
     @FunctionalInterface

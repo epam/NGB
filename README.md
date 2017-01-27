@@ -19,7 +19,8 @@ Detailed documentation on building, installation, usage is available at
 * [Markdown sources](docs/README.md)
 * [Latest HTML documentation](http://ngb.opensource.epam.com/distr/latest/docs)
 
-Publications 
+# Publications 
+Links to publications that contain NGB references
 * [Dataset visualization for article **Prioritisation of Structural Variant Calls in Cancer Genomes**](docs/md/publications/dataset-prioritisation-of-sv.md)
 
 # Quickstart

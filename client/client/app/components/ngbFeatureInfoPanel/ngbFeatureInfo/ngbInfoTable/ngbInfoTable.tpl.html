@@ -1,0 +1,18 @@
+<script type="text/ng-template" id="defaultCell.tpl.html">
+    {{row[entryConfig.data.field]}}
+</script>
+<script type="text/ng-template" id="linkCell.tpl.html">
+    <a ng-href="{{row[entryConfig.data.linkField]}}" target="_blank">{{row[entryConfig.data.field]}}</a>
+</script>
+
+
+<table>
+    <tr>
+        <th ng-repeat="entryConfig in $ctrl.config">{{entryConfig.title}}</th>
+    </tr>
+    <tr ng-repeat="row in $ctrl.rows">
+        <td ng-repeat="entryConfig in $ctrl.config">
+            <div ng-include="entryConfig.templateUrl"></div>
+        </td>
+    </tr>
+</table>

@@ -1,4 +1,4 @@
-import {getDivider} from './divider';
+import {menu} from '../../../utilities';
 import {readsViewTypes} from '../modes';
 
 export default {
@@ -42,7 +42,7 @@ export default {
             name: 'bam>readsView>automatic',
             type: 'checkbox'
         },
-        getDivider(),
+        menu.getDivider(),
         {
             disable: state => state.viewAsPairs = false,
             enable: state => state.viewAsPairs = true,

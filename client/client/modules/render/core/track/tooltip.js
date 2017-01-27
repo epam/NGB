@@ -72,8 +72,9 @@ export default function tooltipFactory(track) {
                 clearTimeout(this.delayedFn);
                 this.delayedFn = null;
             }
-            if (this.isShown)
+            if (this.isShown) {
                 tooltipElementContainer.removeChild(tooltipElement);
+            }
             this.isShown = false;
         },
         isShown: false,
@@ -85,16 +86,14 @@ export default function tooltipFactory(track) {
         setContent(content) {
 
             const mapLineElements = function({colspan, content}, index) {
-                return `<td colspan='${colspan}' style='${index === 0 ? 'text-align:left' : 'text-align:right'}'>
-                        ${content}</td>`;
+                return `<td colspan='${colspan}' style='${index === 0 ? 'text-align:left' : 'text-align:right'}; color: #222222'>${content}</td>`;
             };
 
             const mapLine = function(line) {
-                return `<tr>${line.map(mapLineElements).join('')}</tr>`;
+                return `<tr style="border-bottom: 1px solid #ececec">${line.map(mapLineElements).join('')}</tr>`;
             };
 
-            tooltipElement.innerHTML = `<div class='md-open-menu-container md-whiteframe-z2 md-active md-clickable' style='width:100%'>
-                <table style='width:100%'>${normalizeTooltipData(content).map(mapLine).join('')}</table></div>`;
+            tooltipElement.innerHTML = `<div class='md-open-menu-container md-whiteframe-z2 md-active md-clickable' style='width:100%'><table style='width:100%'>${normalizeTooltipData(content).map(mapLine).join('')}</table></div>`;
         },
         show(position) {
             if (this.delayedFn) {

@@ -172,8 +172,7 @@ export default class BamCache {
             for (let i = 0; i < this._groups[g].rawReads.length; i++) {
                 if (this._groups[g].rawReads[i].startIndex > this._updatingBoundaries.endIndex ||
                     this._groups[g].rawReads[i].endIndex < this._updatingBoundaries.startIndex) {
-                    const readName = `${this._groups[g].rawReads[i].name}-${this._groups[g].rawReads[i].startIndex}-
-                                      ${this._groups[g].rawReads[i].endIndex}-${this._groups[g].rawReads[i].tlen}`;
+                    const readName = `${this._groups[g].rawReads[i].name}-${this._groups[g].rawReads[i].startIndex}-${this._groups[g].rawReads[i].endIndex}-${this._groups[g].rawReads[i].tlen}`;
                     if (this.readNames.has(readName)) {
                         this.readNames.delete(readName);
                         continue;
@@ -379,8 +378,7 @@ export default class BamCache {
             this.readNames = new FastSet();
         }
         for (let i = 0; i < (data.blocks || []).length; i++) {
-            const readName = `${data.blocks[i].name}-${data.blocks[i].startIndex}-
-                              ${data.blocks[i].endIndex}-${data.blocks[i].tlen}`;
+            const readName = `${data.blocks[i].name}-${data.blocks[i].startIndex}-${data.blocks[i].endIndex}-${data.blocks[i].tlen}`;
             if (this.readNames.has(readName)) {
                 continue;
             } else {

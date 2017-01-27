@@ -51,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.epam.catgenome.common.AbstractControllerTest;
 import com.epam.catgenome.common.ResponseResult;
+import com.epam.catgenome.controller.vo.ReadQuery;
 import com.epam.catgenome.controller.vo.TrackQuery;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
@@ -82,6 +83,7 @@ public class BamControllerTest extends AbstractControllerTest {
     private static final String BAM_GET_LEFT_READ = "/bam/track/left/get";
     private static final String BAM_GET_RIGHT_READ = "/bam/track/right/get";
     private static final String BAM_TRACK_GET = "/bam/track/get";
+    private static final String BAM_READ_LOAD = "/bam/read/load";
     private static final String TEST_NSAME = "BIG";
     private static final String TEST_BAM = "classpath:templates/agnX1.09-28.trim.dm606.realign.bam";
     private static final int TEST_START_INDEX = 12584188;
@@ -196,6 +198,8 @@ public class BamControllerTest extends AbstractControllerTest {
                         getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
                                 BamFile.class));
 
+        BamFile bamFile = res.getPayload();
+
         // Load a track by fileId
         TrackQuery bamTrackQuery = initTrackQuery(res.getPayload().getId());
         BamQueryOption bamQueryOption = new BamQueryOption();
@@ -239,6 +243,8 @@ public class BamControllerTest extends AbstractControllerTest {
         Assert.assertFalse(readSumFullRes.getPayload().getBlocks().isEmpty());
         assertIsReadCorrect(readSumFullRes.getPayload().getBlocks().get(1));
 
+        Read read = readSumFullRes.getPayload().getBlocks().get(0);
+
         // Load a track by fileId left
         actions = mvc()
                 .perform(post(BAM_GET_LEFT_READ).content(getObjectMapper().writeValueAsString(bamTrackQuery))
@@ -273,6 +279,30 @@ public class BamControllerTest extends AbstractControllerTest {
 
         Assert.assertFalse(readSumRightRes.getPayload().getBlocks().isEmpty());
         assertIsReadCorrect(readSumRightRes.getPayload().getBlocks().get(1));
+
+        // load read
+
+        ReadQuery query = new ReadQuery();
+        query.setName(read.getName());
+        query.setChromosomeId(testChromosome.getId());
+        query.setStartIndex(read.getStartIndex());
+        query.setEndIndex(read.getEndIndex());
+        query.setId(bamFile.getId());
+
+        actions = mvc()
+            .perform(post(BAM_READ_LOAD).content(getObjectMapper().writeValueAsString(query))
+                         .contentType(EXPECTED_CONTENT_TYPE))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
+            .andExpect(jsonPath(JPATH_PAYLOAD).exists())
+            .andExpect(jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+        actions.andDo(MockMvcResultHandlers.print());
+
+        ResponseResult<Read> readRes = getObjectMapper()
+            .readValue(actions.andReturn().getResponse().getContentAsByteArray(), getTypeFactory()
+                .constructParametrizedType(ResponseResult.class, ResponseResult.class, Read.class));
+        Assert.assertNotNull(readRes.getPayload());
+        Assert.assertNotNull(readRes.getPayload().getName());
     }
 
     private void assertIsReadCorrect(Read read) {

@@ -61,7 +61,6 @@ public class Read extends Block implements Serializable {
     @JsonIgnore
     private List<CigarElement> cigar;
 
-    @JsonIgnore
     private String qualities;
 
     private String pairedReadName;
@@ -72,6 +71,10 @@ public class Read extends Block implements Serializable {
     private String tailSequence;
 
     private String rName;
+
+    // extended fields
+    private transient List<NgbSamTagAndValue> tags;
+    private String sequence;
 
     /**
      * {@code List<BasePosition>} represents the base in read, that different from reference.
@@ -197,6 +200,22 @@ public class Read extends Block implements Serializable {
 
     public void setPNext(Integer pNext) {
         this.pNext = pNext;
+    }
+
+    public List<NgbSamTagAndValue> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<NgbSamTagAndValue> tags) {
+        this.tags = tags;
+    }
+
+    public String getSequence() {
+        return sequence;
+    }
+
+    public void setSequence(String sequence) {
+        this.sequence = sequence;
     }
 }
 

@@ -21,6 +21,8 @@ export default class FeatureRenderer {
     _aminoacidFeatureRenderer: AminoacidFeatureRenderer = null;
 
     _labels = null;
+    _dockableLabels = null;
+    _attachedElements = null;
     _dockableElements = null;
 
     _featuresPositions = null;
@@ -44,11 +46,17 @@ export default class FeatureRenderer {
             this._transcriptFeatureRenderer);
 
         this._labels = [];
+        this._dockableLabels = [];
         this._dockableElements = [];
+        this._attachedElements = [];
     }
 
     get defaultRenderer(): FeatureBaseRenderer {
         return this._geneFeatureRenderer;
+    }
+
+    get renderers() {
+        return [this._geneFeatureRenderer, this._transcriptFeatureRenderer, this._aminoacidFeatureRenderer];
     }
 
     get textureCoordinates() {
@@ -68,9 +76,11 @@ export default class FeatureRenderer {
                 coordinates.y = y;
             }
         };
-        updateCoordinates(this._geneFeatureRenderer.textureCoordinates);
-        updateCoordinates(this._transcriptFeatureRenderer.textureCoordinates);
-        updateCoordinates(this._aminoacidFeatureRenderer.textureCoordinates);
+        const renderers = this.renderers || [];
+        for (let i = 0; i < renderers.length; i++) {
+            const renderer = renderers[i];
+            updateCoordinates(renderer.textureCoordinates);
+        }
         return coordinates;
     }
 
@@ -83,21 +93,30 @@ export default class FeatureRenderer {
     }
 
     prepareRenderers() {
-        this._geneFeatureRenderer.initializeRenderingSession();
-        this._transcriptFeatureRenderer.initializeRenderingSession();
-        this._aminoacidFeatureRenderer.initializeRenderingSession();
+        const renderers = this.renderers || [];
+        for (let i = 0; i < renderers.length; i++) {
+            const renderer = renderers[i];
+            renderer.initializeRenderingSession();
+        }
+    }
+
+    getRendererForFeature() {
+        return this.defaultRenderer;
     }
 
     render(features,
            viewport: Viewport,
            labelContainer: PIXI.Container,
            dockableElementsContainer: PIXI.Container,
+           attachedElementsContainer: PIXI.Container,
            graphics: PIXI.Graphics = null): PIXI.Graphics {
         if (features === null || features === undefined)
             return null;
         this.prepareRenderers();
         this._labels = [];
+        this._dockableLabels = [];
         this._dockableElements = [];
+        this._attachedElements = [];
         this._featuresPositions = [];
         const zoneBoundaries = this._zonesManager.getZoneBoundaries(ZONES_MANAGER_DEFAULT_ZONE_NAME);
         if (zoneBoundaries === null)
@@ -107,9 +126,13 @@ export default class FeatureRenderer {
             featureGraphics = new PIXI.Graphics();
         }
         this._geneFeatureRenderer._opts = this._opts;
-        const maxIterations = 20;
+        const maxIterations = 10000000;
         for (let i = 0; i < features.length; i++) {
             const item = features[i];
+            const renderer = this.getRendererForFeature(item);
+            if (!renderer) {
+                continue;
+            }
             const boundaries = this._zonesManager.checkArea(
                 ZONES_MANAGER_DEFAULT_ZONE_NAME,
                 Object.assign(
@@ -119,7 +142,7 @@ export default class FeatureRenderer {
                             y: zoneBoundaries.y1
                         }
                     },
-                    this.defaultRenderer.analyzeBoundaries(item, viewport)
+                    renderer.analyzeBoundaries(item, viewport)
                 ),
                 {
                     translateX: 0,
@@ -128,7 +151,7 @@ export default class FeatureRenderer {
                 maxIterations);
             if (!boundaries.conflicts) {
                 this._zonesManager.submitArea(ZONES_MANAGER_DEFAULT_ZONE_NAME, boundaries);
-                this.defaultRenderer.render(item, viewport, featureGraphics, labelContainer, dockableElementsContainer, {
+                renderer.render(item, viewport, featureGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, {
                     height: boundaries.rect.y2 - boundaries.rect.y1,
                     width: boundaries.rect.x2 - boundaries.rect.x1,
                     x: boundaries.rect.x1,
@@ -148,6 +171,9 @@ export default class FeatureRenderer {
                 labelData.label.x = Math.round(viewport.project.brushBP2pixel(labelData.range.start) +
                     viewport.convert.brushBP2pixel(labelData.range.end - labelData.range.start) / 2 -
                     labelData.label.width / 2);
+            } else if (labelData.range.shift) {
+                labelData.label.x = Math.round(viewport.project.brushBP2pixel(labelData.range.start) +
+                    labelData.range.shift + labelData.label.width * labelData.range.shiftDirection);
             }
             else {
                 const startPx = viewport.project.brushBP2pixel(labelData.range.start) +
@@ -184,6 +210,26 @@ export default class FeatureRenderer {
         }
     }
 
+    manageAttachedElements(viewport) {
+        for (let i = 0; i < this._attachedElements.length; i++) {
+            const {attachedInfo, element} = this._attachedElements[i];
+            element.y = Math.round(attachedInfo.position - attachedInfo.renderInfo.height / 2);
+            const startPx = viewport.project.brushBP2pixel(attachedInfo.range.start);
+            const endPx = viewport.project.brushBP2pixel(attachedInfo.range.end);
+            if (startPx > viewport.canvasSize || endPx < 0) {
+                element.visible = false;
+                continue;
+            }
+            if (attachedInfo.attachedAt === 'right') {
+                element.x = Math.round(Math.max(0, startPx));
+                element.visible = !(attachedInfo.hideOnVisible && startPx > 0);
+            } else {
+                element.x = Math.round(Math.min(viewport.canvasSize, endPx) - attachedInfo.renderInfo.width);
+                element.visible = !(attachedInfo.hideOnVisible && endPx < viewport.canvasSize);
+            }
+        }
+    }
+
     _getDockableElementsBoundaries(viewport) {
         const yBorder = 50; // we should manage only 'upper' graphics
         const rects = [];
@@ -214,10 +260,9 @@ export default class FeatureRenderer {
     _getLabelsBoundaries(viewport) {
         const yBorder = 50; // we should manage only 'upper' graphics
         const rects = [];
-        for (let i = 0; i < this._labels.length; i++) {
-            if (!this._labels[i].yDockable)
-                continue;
-            const element:PIXI.Text = this._labels[i].label;
+        const labels = this._dockableLabels;
+        for (let i = 0; i < labels.length; i++) {
+            const element:PIXI.Text = labels[i].label;
             if (element.parent === null || element.parent === undefined) {
                 continue;
             }
@@ -239,9 +284,7 @@ export default class FeatureRenderer {
 
     manageMask(mask, viewport) {
         mask.clear();
-        const rects = [];
-        rects.push(...this._getDockableElementsBoundaries(viewport));
-        rects.push(...this._getLabelsBoundaries(viewport));
+        const rects = [...this._getDockableElementsBoundaries(viewport), ...this._getLabelsBoundaries(viewport)];
         let xCoords = [];
         let yCoords = [];
         xCoords.push(-viewport.canvasSize);
@@ -293,12 +336,28 @@ export default class FeatureRenderer {
             range: range,
             yDockable
         });
+        if (yDockable) {
+            this._dockableLabels.push({
+                centered: centered,
+                label: label,
+                position: position,
+                range: range,
+                yDockable
+            });
+        }
     }
 
     registerDockableElement(dockableElement, range) {
         this._dockableElements.push({
             element: dockableElement,
             range: range
+        });
+    }
+
+    registerAttachedElement(element, attachedInfo) {
+        this._attachedElements.push({
+            attachedInfo,
+            element
         });
     }
 

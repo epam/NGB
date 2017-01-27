@@ -353,9 +353,9 @@ public class BamHelper {
         });
     }
 
-    private SamReader makeSamReader(final BamFile bamFile, List<Chromosome> chromosomes, Long id) throws IOException {
-
-        return openSamReaderResource(loadIndex(loadFile(bamFile), bamFile.getIndex()), chromosomes, id);
+    public SamReader makeSamReader(final BamFile bamFile, List<Chromosome> chromosomes, Long referenceId)
+        throws IOException {
+        return openSamReaderResource(loadIndex(loadFile(bamFile), bamFile.getIndex()), chromosomes, referenceId);
     }
 
     private SamInputResource loadIndex(final SamInputResource samInputResource, final BiologicalDataItem indexFile)
@@ -438,12 +438,12 @@ public class BamHelper {
     }
 
     private SamReader openSamReaderResource(final SamInputResource inputResource,
-            List<Chromosome> chromosomes, Long id) {
+            List<Chromosome> chromosomes, Long referenceId) {
         Assert.notNull(inputResource, getMessage(RESOURCE_NOT_FOUND));
         return SamReaderFactory.makeDefault()
                 .validationStringency(ValidationStringency.SILENT)
                 .referenceSource(new ReferenceSource(new ChromosomeReferenceSequence(chromosomes,
-                        id, referenceManager)))
+                        referenceId, referenceManager)))
                 .open(inputResource);
     }
 

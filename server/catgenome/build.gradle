@@ -3,12 +3,6 @@ import org.apache.tools.ant.filters.ReplaceTokens
 buildscript {
     repositories {
         jcenter()
-        // enable this to use snapshot versions of Gretty:
-        // maven { url "http://oss.jfrog.org/artifactory/oss-snapshot-local" }
-    }
-
-    dependencies {
-        classpath "org.akhikhl.gretty:gretty:+"
     }
 }
 
@@ -18,7 +12,23 @@ plugins {
 }
 
 group "com.epam"
-version "1.0-SNAPSHOT"
+
+version = new Version(major: 2, minor: 1)
+
+task printVersion {
+    doFirst {
+        println "Project version is $version"
+    }
+}
+
+class Version {
+    int major, minor
+    String build
+
+    String toString() {
+        "$major.$minor${build ? ".$build" : ''}"
+    }
+}
 
 // >>>>> building for different profiles
 // >>>>> For configuration use -Pprofile=profile_name with run ('dev' is used by default)
@@ -27,7 +37,7 @@ loadConfiguration()
 def loadConfiguration() {
     def profile = hasProperty("profile") ? profile : "dev"
     def database = hasProperty("database") ? database : "h2"
-    def buildNumber =  hasProperty("buildNumber") ? buildNumber : "dev"
+    def buildNumber =  hasProperty("buildNumber") ? buildNumber : ""
     project.ext.setProperty("profile", profile)
     project.ext.setProperty("database", database)
     project.ext.setProperty("buildNumber", buildNumber)
@@ -37,8 +47,6 @@ apply from: "profiles.gradle"
 
 // >>>>> applied plugins
 apply plugin: "war"
-apply plugin: "org.akhikhl.gretty"
-
 apply plugin: "checkstyle"
 apply plugin: "pmd"
 apply plugin: "jacoco"

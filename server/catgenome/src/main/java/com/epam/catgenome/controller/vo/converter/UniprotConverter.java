@@ -135,7 +135,7 @@ public final class UniprotConverter {
         List<GeneType> geneList = uniprotEntry.getGene();
         List<String> geneNamesList = new ArrayList<>();
 
-        if (geneList != null) {
+        if (geneList != null && !geneList.isEmpty()) {
             GeneType geneType = geneList.get(0);
 
             if (geneType != null) {

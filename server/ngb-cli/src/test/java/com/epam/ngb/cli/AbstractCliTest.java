@@ -63,6 +63,7 @@ public abstract class AbstractCliTest {
     public static final String REF_REGISTRATION_URL = "/catgenome/restapi/secure/reference/register/fasta";
     public static final String REF_DELETION_URL = "/catgenome/restapi/secure/reference/register/fasta";
     public static final String GENE_ADDING_URL = "/catgenome/restapi/secure/reference/%d/genes";
+    public static final String DATASET_MOVING_URL = "/catgenome/restapi/project/%d/move";
     public static final String  AUTHENTICATION_URL = "/catgenome/oauth/token";
     public static final String  AUTHENTICATION_PAYLOAD = "client_id=restapp&client_secret=restapp&username="
             + "default_admin&password=admin&grant_type=password";

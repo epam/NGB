@@ -1,0 +1,81 @@
+<div layout="column">
+    <div flex="100" layout="row" layout-wrap class="property-row" ng-hide="$ctrl.isInfoLoading">
+
+        <collapsible ng-if="$ctrl.summaryProperties">
+            <collapsible-panel is-open="true">
+                <collapsible-panel-title>
+                    Summary
+                </collapsible-panel-title>
+                <collapsible-panel-content>
+                    <div layout="column"  layout-align="stretch middle" flex="100">
+                        <ngb-info-rows properties="$ctrl.summaryProperties"></ngb-info-rows>
+
+                        <a ng-if="$ctrl.featureInfo.gene_link" ng-href="{{$ctrl.featureInfo.gene_link}}" target="_blank">See all information</a>
+                    </div>
+
+                </collapsible-panel-content>
+            </collapsible-panel>
+        </collapsible>
+
+        <collapsible ng-if="$ctrl.featureInfo.pubmed_references">
+            <collapsible-panel is-open="true">
+                <collapsible-panel-title>
+                    Bibliography
+                </collapsible-panel-title>
+                <collapsible-panel-content>
+                    <div layout="column" layout-align="stretch middle" class="layout-align-stretch-stretch">
+                        <div layout="row" layout-align="stretch middle">
+                            <ol class="bibliographyList">
+                                <li ng-repeat="ref in $ctrl.featureInfo.pubmed_references">
+                                    <a ng-href="https://www.ncbi.nlm.nih.gov/pubmed/{{ref.uid}}" target="_blank">{{ref.title}}</a>
+                                    <span>{{$ctrl.articleInfoToString(ref)}}</span>
+                                </li>
+                            </ol>
+                        </div>
+
+                        <a ng-href="{{$ctrl.featureInfo.link_to_citations}}" target="_blank" class="linkCount">See all citations in PubMed <span>({{$ctrl.featureInfo.number_of_publications}})</span></a>
+                        <a ng-href="{{$ctrl.featureInfo.link_to_homologs_citations}}" target="_blank">See citations in PubMed for homologs of this gene provided by HomoloGene</a>
+                    </div>
+                </collapsible-panel-content>
+            </collapsible-panel>
+        </collapsible>
+
+        <collapsible ng-if="$ctrl.featureInfo.biosystems_references">
+            <collapsible-panel is-open="true">
+                <collapsible-panel-title>
+                    Pathways from BioSystems
+                </collapsible-panel-title>
+                <collapsible-panel-content>
+                    <div layout="column" layout-align="stretch middle">
+                        <span ng-repeat="ref in $ctrl.featureInfo.biosystems_references">
+                            <a ng-href="https://www.ncbi.nlm.nih.gov/biosystems/{{ref.uid}}?Sel=geneid:{{$ctrl.featureId}}#show=genes" target="_blank">{{ref.biosystem.biosystemname}}, {{ref.biosystem.biosystemtype}}</a>
+                            <span>(from {{ref.source}})</span>
+                        </span>
+                    </div>
+                </collapsible-panel-content>
+            </collapsible-panel>
+        </collapsible>
+
+        <collapsible ng-if="$ctrl.tableProperties">
+            <collapsible-panel is-open="true">
+                <collapsible-panel-title>
+                    {{$ctrl.featureInfo.tableTitle}}
+                </collapsible-panel-title>
+                <collapsible-panel-content>
+                    <ngb-info-table rows="$ctrl.tableProperties.rows" config="$ctrl.tableProperties.config"></ngb-info-table>
+                </collapsible-panel-content>
+            </collapsible-panel>
+        </collapsible>
+
+    </div>
+    <div ng-show="$ctrl.isInfoLoading">
+        <div class="progress" layout-align="center center">
+            <span>Loading information...</span>
+        </div>
+        <md-progress-linear md-mode="query"></md-progress-linear>
+    </div>
+
+    <div ng-if="$ctrl.errorMessageList.length" class="md-padding">
+        <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+    </div>
+</div>

@@ -8,7 +8,9 @@ export default  {
         properties: '=',
         read: '=',
         referenceId: '=',
-        startIndex: '='
+        startIndex: '=',
+        geneId: '=',
+        panelTitle: '='
     },
     controller: controller.UID,
     template: require('./ngbFeatureInfoPanel.tpl.html')

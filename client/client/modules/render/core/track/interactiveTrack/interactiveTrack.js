@@ -54,15 +54,20 @@ export default class InteractiveTrack extends Track {
     }
 
     _onTouchMoved(event){
-        this._dragged = this._touched;
         this._currentPosition = {x: event.offsetX, y: event.offsetY};
         let delta = null;
         if (this._lastPosition) {
             delta = {
                 x: event.screenX - this._lastPosition.x,
-                y: event.screenY - this._lastPosition.y
+                y: event.screenY - this._lastPosition.y,
+                isZero: function() { return this.x === 0 && this.y === 0; }
             };
         }
+
+        if(delta && !delta.isZero()) {
+            this._dragged = this._touched;
+        }
+
         if (this._dragged && this._touched) {
             this.onDrag({
                 currentGlobal: {x: event.screenX, y: event.screenY},
@@ -124,7 +129,8 @@ export default class InteractiveTrack extends Track {
         if (!this._isDoubleClick && !this._dragged) {
             const self = this;
             const handler = function () {
-                self.onClick({x: event.offsetX, y: event.offsetY});
+                if (!self._isDoubleClick)
+                    self.onClick({x: event.offsetX, y: event.offsetY});
             };
             setTimeout(handler, DOUBLE_CLICK_TIMEOUT);
         }

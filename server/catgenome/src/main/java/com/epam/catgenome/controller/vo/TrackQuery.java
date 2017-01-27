@@ -67,7 +67,7 @@ public class TrackQuery {
 
     private BamQueryOption option;
 
-    private boolean collapsed = false;
+    private Boolean collapsed;
 
     public BamQueryOption getOption() {
         return option;
@@ -117,11 +117,11 @@ public class TrackQuery {
         this.scaleFactor = scaleFactor;
     }
 
-    public boolean isCollapsed() {
+    public Boolean getCollapsed() {
         return collapsed;
     }
 
-    public void setCollapsed(boolean collapsed) {
+    public void setCollapsed(Boolean collapsed) {
         this.collapsed = collapsed;
     }
 }

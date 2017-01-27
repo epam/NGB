@@ -12,6 +12,7 @@ import Promise from 'bluebird';
 import {ScrollableTrack} from '../../core';
 import config from './bamConfig';
 import {default as menu} from './menu';
+import {menu as menuUtilities} from '../../utilities';
 
 const Math = window.Math;
 export class BAMTrack extends ScrollableTrack {
@@ -119,7 +120,7 @@ export class BAMTrack extends ScrollableTrack {
             if (event) {
                 const path = event.split('>');
                 if (path && path[0] === 'bam') {
-                    const menuItem = findMenuItem(this._menu, event);
+                    const menuItem = menuUtilities.findMenuItem(this._menu, event);
                     if (menuItem) {
                         if (menuItem.type === 'button') {
                             menuItem.perform();
@@ -454,20 +455,6 @@ export class BAMTrack extends ScrollableTrack {
         super.destructor();
         if (this._removeHotKeyListener) {
             this._removeHotKeyListener();
-        }
-    }
-}
-
-function findMenuItem(menu, name) {
-    for (const item of menu) {
-        if (item.name === name) {
-            return item;
-        }
-        if (item.fields) {
-            const found = findMenuItem(item.fields, name);
-            if (found) {
-                return found;
-            }
         }
     }
 }

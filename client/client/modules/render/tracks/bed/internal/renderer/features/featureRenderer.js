@@ -13,26 +13,8 @@ export default class BEDFeatureRenderer extends FeatureRenderer {
             ::this.registerFeaturePosition);
     }
 
-    prepareRenderers() {
-        this._bedItemFeatureRenderer.initializeRenderingSession();
-    }
-
-    get textureCoordinates() {
-        const coordinates = {
-            x: null,
-            y: null
-        };
-        if (this._bedItemFeatureRenderer.textureCoordinates) {
-            if (this._bedItemFeatureRenderer.textureCoordinates.x !== null &&
-                (!coordinates.x || coordinates.x > this._bedItemFeatureRenderer.textureCoordinates.x)) {
-                coordinates.x = this._bedItemFeatureRenderer.textureCoordinates.x;
-            }
-            if (this._bedItemFeatureRenderer.textureCoordinates.y !== null &&
-                (!coordinates.y || coordinates.y > this._bedItemFeatureRenderer.textureCoordinates.y)) {
-                coordinates.y = this._bedItemFeatureRenderer.textureCoordinates.y;
-            }
-        }
-        return coordinates;
+    get renderers() {
+        return [this._bedItemFeatureRenderer];
     }
 
     get defaultRenderer() {

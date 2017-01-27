@@ -54,6 +54,7 @@ public final class MessageConstants {
     public static final String SEVERAL_RESULTS_FOR_QUERY =  "Found several results for a query \"%s\".";
     public static final String ERROR_FILE_NOT_FOUND = "Failed to find a file by name: %s.";
     public static final String ERROR_PROJECT_NOT_FOUND = "Failed to find a dataset by ID: %d.";
+    public static final String ERROR_FILES_NOT_REGISTERED = "Failed to register files: %s.";
 
     private MessageConstants(){
         //no op

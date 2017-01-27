@@ -1,5 +1,6 @@
 import * as  geneTypes  from '../../../../../modules/render/tracks/gene/geneTypes';
 import {colorModes, groupModes, readsViewTypes} from '../../../../../modules/render/tracks/bam/modes/';
+import {variantsView} from '../../../../../modules/render/tracks/vcf/modes/';
 
 export default [
     {
@@ -452,6 +453,56 @@ export default [
                             type: 'radio',
                             name: geneTypes.transcriptViewTypes.collapsed,
                             group: 'geneTranscript',
+                            model: {}
+                        }
+                    }
+                ]
+            }
+        ],
+        type: 'category'
+    },
+    {
+        label: 'VCF',
+        name: 'vcf',
+        subItems: [
+            {
+                type: 'item',
+                name: 'vcf>nextVariation',
+                label: 'Next variation',
+                hotkey: ''
+            },
+            {
+                type: 'item',
+                name: 'vcf>previousVariation',
+                label: 'Previous variation',
+                hotkey: ''
+            },
+            {
+                type: 'group',
+                name: 'vcf>variantsView',
+                label: 'Variants view',
+                subItems: [
+                    {
+                        type: 'item',
+                        name: 'vcf>variantsView>expanded',
+                        label: 'Expanded',
+                        hotkey: '',
+                        byDefault: {
+                            type: 'radio',
+                            name: variantsView.variantsViewExpanded,
+                            group: 'variantsView',
+                            model: {}
+                        }
+                    },
+                    {
+                        type: 'item',
+                        name: 'vcf>variantsView>collapsed',
+                        label: 'Collapsed',
+                        hotkey: '',
+                        byDefault: {
+                            type: 'radio',
+                            name: variantsView.variantsViewCollapsed,
+                            group: 'variantsView',
                             model: {}
                         }
                     }

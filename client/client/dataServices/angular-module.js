@@ -16,4 +16,5 @@ export default angular.module('ngbDataServices', [])
     .service('wigDataService', dataServices.WigDataService.serviceFactory)
     .service('mafDataService', dataServices.MafDataService.serviceFactory)
     .service('bucketDataService', dataServices.BucketDataService.serviceFactory)
+    .service('externaldbDataService', dataServices.ExternaldbDataService.serviceFactory)
     .name;

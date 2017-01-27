@@ -50,6 +50,9 @@ export default class VcfAnalyzer{
         if (variant.type !== undefined && variant.type !== null && variant.type.toLowerCase() === 'statistic') {
             return variant;
         }
+        if (variant.type.toLowerCase() === 'ins') {
+            variant.endIndex = variant.startIndex;
+        }
         const alternativeAllelesInfo = VcfAnalyzer.analyzeAlternativeAlleles(variant);
         let name = null;
         let symbol = null;

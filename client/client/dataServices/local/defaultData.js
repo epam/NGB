@@ -1,5 +1,6 @@
 import * as  geneTypes  from '../../modules/render/tracks/gene/geneTypes';
 import {colorModes, groupModes, readsViewTypes} from '../../modules/render/tracks/bam/modes';
+import {variantsView} from '../../modules/render/tracks/vcf/modes';
 
 export default {
     defaultSettings: {
@@ -43,6 +44,7 @@ export default {
             shadeByQuality: false,
             softClip: true,
             spliceJunctions: false,
+            variantsView: variantsView.variantsViewCollapsed,
             viewAsPairs: false
         },
         displayAlignmentsCoverageTooltips: true,
@@ -54,6 +56,7 @@ export default {
             supplementaryAlignments: false
         },
         gffColorByFeatureType: true,
+        gffShowNumbersAminoacid: true,
         hotkeys: {
             'bam>color>firstInPairStrand': {
                 hotkey: 'SHIFT + 5'
@@ -150,6 +153,18 @@ export default {
             },
             'layout>variants':{
                 hotkey: 'ALT + V'
+            },
+            'vcf>nextVariation':{
+                hotkey: 'SHIFT + ARROWRIGHT'
+            },
+            'vcf>previousVariation':{
+                hotkey: 'SHIFT + ARROWLEFT'
+            },
+            'vcf>variantsView>collapsed':{
+                hotkey: 'SHIFT + ]'
+            },
+            'vcf>variantsView>expanded':{
+                hotkey: 'SHIFT + ['
             }
         },
         isDownSampling: true,

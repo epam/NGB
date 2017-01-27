@@ -13,6 +13,10 @@ export default {
             },
             margin: 2
         },
+        number: {
+            fill: 0x030E24,
+            font: 'normal 7pt arial'
+        },
         odd: {
             fill: 0x3D62AC,
             label: {
@@ -98,10 +102,12 @@ export default {
             }
         },
         fill: 0x92AEE7,
-        height: 21,
+        height: 10,
+        marginTop: 5,
         label: {
             fill: 0x273F70,
-            font: 'normal 7pt arial'
+            font: 'normal 7pt arial',
+            marginTop: 5
         },
         strand: {
             arrow: {

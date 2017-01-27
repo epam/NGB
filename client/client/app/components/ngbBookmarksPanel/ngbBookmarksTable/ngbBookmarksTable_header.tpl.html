@@ -4,7 +4,7 @@
      aria-sort="{{col.sort.direction == asc ? 'ascending' : ( col.sort.direction == desc ? 'descending' : (!col.sort.direction ? 'none' : 'other'))}}">
 
     <md-button  tabindex="0" class="ui-grid-cell-contents ui-grid-header-cell-primary-focus"
-               col-index="renderIndex" title="TOOLTIP">
+               col-index="renderIndex">
         <span class="ui-grid-header-cell-label" ui-grid-one-bind-id-grid="col.uid + '-header-text'">{{ col.displayName CUSTOM_FILTERS }}</span>
         <span ui-grid-one-bind-id-grid="col.uid +'-sortdir-text'" ui-grid-visible="col.sort.direction"
               aria-label="{{getSortDirectionAriaLabel()}}">

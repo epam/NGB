@@ -99,7 +99,7 @@ public abstract class AbstractVcfReader implements VcfReader {
      */
     @Override
     public abstract Track<Variation> readVariations(VcfFile vcfFile, Track<Variation> track, Chromosome chromosome,
-                                                    Integer sampleIndex, boolean loadInfo) throws VcfReadingException;
+                            Integer sampleIndex, boolean loadInfo, boolean collapse) throws VcfReadingException;
 
     /**
      * Allows navigating between the neighbouring variations

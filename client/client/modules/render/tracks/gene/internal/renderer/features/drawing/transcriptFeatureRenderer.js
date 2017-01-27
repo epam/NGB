@@ -9,6 +9,7 @@ const Math = window.Math;
 export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
 
     _aminoacidFeatureRenderer = null;
+    gffShowNumbersAminoacid;
 
     constructor(config, registerLabel, registerDockableElement, registerFeaturePosition, aminoacidFeatureRenderer) {
         super(config, registerLabel, registerDockableElement, registerFeaturePosition);
@@ -29,7 +30,18 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         }
 
         const width = Math.max(1, boundariesX2 - boundariesX1, transcriptLabelSize.width);
-        const height = transcript.height + transcriptLabelSize.height;
+        let height = transcript.height + transcriptLabelSize.height;
+
+        this._aminoacidFeatureRenderer.gffShowNumbersAminoacid = this.gffShowNumbersAminoacid;
+        const childBoundaries = this._aminoacidFeatureRenderer.analyzeBoundaries(feature, viewport);
+        if (childBoundaries) {
+            const childRect = childBoundaries.rect;
+            const childSize = {
+                height: childRect.y2 - childRect.y1,
+                width: childRect.x2 - childRect.x1
+            };
+            height += childSize.height;
+        }
 
         if (rectBoundaries) {
             rectBoundaries.x2 = Math.max(boundariesX2, boundariesX1 + width);
@@ -64,17 +76,19 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         const {viewport, graphics, block, centeredPositionY} = opts;
         const shouldDrawAminoacid = this._aminoacidFeatureRenderer !== null ? this._aminoacidFeatureRenderer.shouldDrawAminoacids(viewport) : false;
         const pixelsInBp = viewport.factor;
-        const blockPxStart = Math.max(viewport.project.brushBP2pixel(block.startIndex), - viewport.canvasSize) - pixelsInBp / 2;
+        const blockPxStart = Math.max(viewport.project.brushBP2pixel(block.startIndex), -viewport.canvasSize) - pixelsInBp / 2;
         const blockPxEnd = Math.min(viewport.project.brushBP2pixel(block.endIndex), 2 * viewport.canvasSize) + pixelsInBp / 2;
         const white = 0xFFFFFF;
-        const height = this.config.transcript.height / 2;
+        const height = this.config.transcript.height;
         graphics.lineStyle(0, white, 0);
         for (let j = 0; j < block.items.length; j++) {
             const blockItem = block.items[j];
-            const {fill,
+            const {
+                fill,
                 shouldDrawStrand,
                 strandFill,
-                shouldFillBlock} = this._getBlockDrawingConfig(blockItem, shouldDrawAminoacid);
+                shouldFillBlock
+            } = this._getBlockDrawingConfig(blockItem, shouldDrawAminoacid);
             const blockItemPxStart = Math.max(viewport.project.brushBP2pixel(blockItem.startIndex), -viewport.canvasSize) - pixelsInBp / 2;
             const blockItemPxEnd = Math.min(viewport.project.brushBP2pixel(blockItem.endIndex), 2 * viewport.canvasSize) + pixelsInBp / 2;
             if (blockItemPxStart > blockItemPxEnd) {
@@ -131,9 +145,9 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
     _renderEmptyBlock(opts) {
         const {viewport, graphics, block, centeredPositionY} = opts;
         const pixelsInBp = viewport.factor;
-        const blockPxStart = Math.max(viewport.project.brushBP2pixel(block.startIndex), - viewport.canvasSize) - pixelsInBp / 2;
+        const blockPxStart = Math.max(viewport.project.brushBP2pixel(block.startIndex), -viewport.canvasSize) - pixelsInBp / 2;
         const blockPxEnd = Math.min(viewport.project.brushBP2pixel(block.endIndex), 2 * viewport.canvasSize) + pixelsInBp / 2;
-        const height = this.config.transcript.height / 2;
+        const height = this.config.transcript.height;
         const white = 0xFFFFFF;
         graphics
             .beginFill(white, 0)
@@ -165,7 +179,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
     }
 
     _renderAminoacid(opts) {
-        const {block, viewport, graphics, labelContainer, dockableElementsContainer, position, centeredPositionY} = opts;
+        const {block, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position, centeredPositionY} = opts;
         const shouldDrawAminoacid = this._aminoacidFeatureRenderer !== null ?
             this._aminoacidFeatureRenderer.shouldDrawAminoacids(viewport) : false;
         if (shouldDrawAminoacid) {
@@ -176,12 +190,14 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                     if (blockItem.feature.toLowerCase() === 'cds' &&
                         this._aminoacidFeatureRenderer && aminoacidSequence !== null &&
                         aminoacidSequence !== undefined && aminoacidSequence.length > 0) {
+                        this._aminoacidFeatureRenderer.gffShowNumbersAminoacid = this.gffShowNumbersAminoacid;
                         this._aminoacidFeatureRenderer.render(
                             blockItem,
                             viewport,
                             graphics,
                             labelContainer,
                             dockableElementsContainer,
+                            attachedElementsContainer,
                             {
                                 x: position.x,
                                 y: centeredPositionY
@@ -192,34 +208,37 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         }
     }
 
-    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, position) {
-        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, position);
+    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
         const pixelsInBp = viewport.factor;
         const transcriptConfig = this.config.transcript;
-        let center = transcriptConfig.height / 2;
+        const aminoacidsFitsViewport = this._aminoacidFeatureRenderer.aminoacidsFitsViewport(feature, viewport);
+        let center = transcriptConfig.height / 2 + transcriptConfig.marginTop + (aminoacidsFitsViewport ? this._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
         const project = viewport.project;
         if (feature.name !== null &&
-            (feature.feature.toLowerCase() === 'transcript' || feature.feature.toLowerCase() === 'mrna') &&
-            !feature.canonical) {
+            (feature.feature.toLowerCase() === 'transcript' || feature.feature.toLowerCase() === 'mrna') && !feature.canonical) {
             const label = new PIXI.Text(feature.name, transcriptConfig.label);
             let labelStart = project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2;
             label.resolution = drawingConfiguration.resolution;
             labelStart = Math.max(Math.min(labelStart, project.brushBP2pixel(feature.endIndex) - label.width), position.x);
             label.x = Math.round(labelStart);
-            label.y = Math.round(position.y);
-            center = label.height + transcriptConfig.height / 2;
+            label.y = Math.round(position.y + transcriptConfig.label.marginTop);
+            center = label.height + transcriptConfig.label.marginTop + transcriptConfig.height / 2 + transcriptConfig.marginTop + (aminoacidsFitsViewport ? this._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
             labelContainer.addChild(label);
-            this.registerLabel(label, {x: labelStart, y: position.y}, {end: feature.endIndex, start: feature.startIndex});
+            this.registerLabel(label, {x: labelStart, y: position.y + transcriptConfig.label.marginTop}, {
+                end: feature.endIndex,
+                start: feature.startIndex
+            });
         }
 
         if (feature.structure !== null && feature.structure !== undefined) {
-            const height = transcriptConfig.height / 2;
+            const height = transcriptConfig.height;
             const centeredPositionY = position.y + center;
             for (let i = 0; i < feature.structure.length; i++) {
                 const block = feature.structure[i];
                 if (viewport.isShortenedIntronsMode && viewport.shortenedIntronsViewport.shouldSkipFeature(block))
                     continue;
-                const blockPxStart = Math.max(project.brushBP2pixel(block.startIndex), - viewport.canvasSize) - pixelsInBp / 2;
+                const blockPxStart = Math.max(project.brushBP2pixel(block.startIndex), -viewport.canvasSize) - pixelsInBp / 2;
                 const blockPxEnd = Math.min(project.brushBP2pixel(block.endIndex), 2 * viewport.canvasSize) + pixelsInBp / 2;
                 if (blockPxStart > blockPxEnd) {
                     continue;
@@ -235,6 +254,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                         block,
                         centeredPositionY,
                         dockableElementsContainer,
+                        attachedElementsContainer,
                         graphics,
                         labelContainer,
                         position,
@@ -256,6 +276,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                 y1: centeredPositionY - height / 2,
                 y2: centeredPositionY + height / 2
             });
+
         }
     }
 }
