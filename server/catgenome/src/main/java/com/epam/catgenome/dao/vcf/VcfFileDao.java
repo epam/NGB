@@ -88,6 +88,17 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
     }
 
     /**
+     * Persists {@code VcfFile} record to the database
+     *
+     * @param vcfFile a {@code VcfFile} instance to be persisted
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void createVcfFile(VcfFile vcfFile) {
+        getNamedParameterJdbcTemplate().update(createVcfFileQuery, BiologicalDataItemDao.FeatureFileParameters
+                .getLinkedTableParameters(VcfParameters.VCF_ID.name(), vcfFile));
+    }
+
+    /**
      * Deletes {@code VcfFile}  metadata from database and corresponding vcf samples.
      *
      * @param vcfFileId id of file to remove

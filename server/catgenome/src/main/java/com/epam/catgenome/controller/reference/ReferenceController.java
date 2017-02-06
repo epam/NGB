@@ -45,11 +45,13 @@ import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.TrackQuery;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
+import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.exception.ReferenceReadingException;
+import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.wordnik.swagger.annotations.Api;
@@ -74,6 +76,9 @@ public class ReferenceController extends AbstractRESTController {
 
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
+
+    @Autowired
+    private FeatureIndexManager featureIndexManager;
 
     @ResponseBody
     @RequestMapping(value = "/reference/loadAll", method = RequestMethod.GET)
@@ -169,6 +174,21 @@ public class ReferenceController extends AbstractRESTController {
             ReferenceReadingException {
         final Track<Sequence> track = referenceManager.getNucleotidesResultFromNib(convertToTrack(query));
         return Result.success(track);
+    }
+
+    @RequestMapping(value = "/reference/{referenceId}/search", method = RequestMethod.GET)
+    @ResponseBody
+    @ApiOperation(
+        value = "Searches for a given feature ID in a reference gene file, case-insensitive",
+        notes = "Searches an index of a gene file, associated with a given reference's ID for a specified feature ID",
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+        })
+    public Result<IndexSearchResult> searchFeatureInProject(@PathVariable(value = "referenceId") final Long referenceId,
+                                                            @RequestParam String featureId)
+        throws IOException {
+        return Result.success(featureIndexManager.searchFeaturesByReference(featureId, referenceId));
     }
 
     @ResponseBody

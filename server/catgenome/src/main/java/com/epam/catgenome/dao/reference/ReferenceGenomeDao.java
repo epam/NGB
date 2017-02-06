@@ -151,6 +151,20 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
+    public Reference createReferenceGenome(final Reference reference) {
+        final MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue(GenomeParameters.REFERENCE_GENOME_ID.name(), reference.getId());
+        params.addValue(GenomeParameters.BIO_DATA_ITEM_ID.name(), reference.getBioDataItemId());
+        params.addValue(GenomeParameters.SIZE.name(), reference.getSize());
+
+        params.addValue(GenomeParameters.GENE_ITEM_ID.name(), reference.getGeneFile() != null ?
+                reference.getGeneFile().getId() : null);
+
+        getNamedParameterJdbcTemplate().update(createReferenceGenomeQuery, params);
+        return reference;
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
     public void updateReferenceGeneFileId(long referenceId, Long geneFileId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(GenomeParameters.REFERENCE_GENOME_ID.name(), referenceId);

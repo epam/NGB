@@ -26,14 +26,16 @@ package com.epam.catgenome.config;
 
 import javax.servlet.ServletContext;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-
 import com.mangofactory.swagger.configuration.SpringSwaggerConfig;
 import com.mangofactory.swagger.models.dto.ApiInfo;
 import com.mangofactory.swagger.paths.SwaggerPathProvider;
 import com.mangofactory.swagger.plugin.EnableSwagger;
 import com.mangofactory.swagger.plugin.SwaggerSpringMvcPlugin;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 /**
  * Source:      SwaggerConfig.java
@@ -45,7 +47,10 @@ import com.mangofactory.swagger.plugin.SwaggerSpringMvcPlugin;
  * access to CATGenome REST API documentation through Web App.
  * <p>
  */
+@Configuration
 @EnableSwagger
+@EnableAutoConfiguration
+@Import(SpringSwaggerConfig.class)
 public class SwaggerConfig {
 
     @Autowired

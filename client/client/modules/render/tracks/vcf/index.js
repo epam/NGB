@@ -24,7 +24,21 @@ export class VCFTrack extends GENETrack{
     constructor(opts) {
         super(opts);
         this.transformer.collapsed = this.state.variantsView === variantsView.variantsViewCollapsed;
-        this._actions = null;
+
+        this._actions = [
+            {
+                enabled: function() {return true;},
+                label: 'Navigation',
+                type: 'groupLinks',
+                links: [{
+                    label: 'Prev',
+                    handleClick: ::this.prevVariation
+                },{
+                    label: 'Next',
+                    handleClick: ::this.nextVariation
+                }]
+            }
+        ];
     }
 
     getSettings() {
@@ -185,7 +199,7 @@ export class VCFTrack extends GENETrack{
                         chromosomeId: self.dataConfig.chromosomeId,
                         position: m.mate.position,
                         interChromosome: !m.mate.intraChromosome
-                    }
+                    };
                 };
                 const alts = variant.alternativeAllelesInfo.filter(x => x.mate).map(mapFn);
                 if (alts.length === 0 && !variant.interChromosome) {
@@ -208,7 +222,8 @@ export class VCFTrack extends GENETrack{
                         id: variant.identifier,
                         position: variant.serverStartIndex,
                         type: variant.type,
-                        vcfFileId: this.dataConfig.id
+                        vcfFileId: this.dataConfig.id,
+                        projectId: this.config.projectId
                     }
                 );
                 if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
@@ -245,7 +260,8 @@ export class VCFTrack extends GENETrack{
                         id: variantContainer._variant.identifier,
                         position: variantContainer._variant.serverStartIndex,
                         type: variantContainer._variant.type,
-                        vcfFileId: this.dataConfig.id
+                        vcfFileId: this.dataConfig.id,
+                        projectId: this.config.projectId
                     }
                 );
                 if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
@@ -329,5 +345,23 @@ export class VCFTrack extends GENETrack{
             }
             return tooltip;
         }
+    }
+
+    prevVariation() {
+        const position =  Math.floor((this.viewport.brush.end + this.viewport.brush.start)/2);
+        this._dataService.getPreviousVariations(this.config, this.projectContext.currentChromosome.id, position - 1).then(
+            (data) => {
+                this.viewport.selectPosition(data.startIndex);
+            }
+        );
+    }
+
+    nextVariation() {
+        const position =  Math.floor((this.viewport.brush.end + this.viewport.brush.start)/2);
+        this._dataService.getNextVariations(this.config, this.projectContext.currentChromosome.id, position + 1).then(
+            (data) => {
+                this.viewport.selectPosition(data.startIndex);
+            }
+        );
     }
 }

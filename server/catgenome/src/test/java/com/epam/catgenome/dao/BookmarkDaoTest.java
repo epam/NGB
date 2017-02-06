@@ -180,7 +180,7 @@ public class BookmarkDaoTest extends AbstractDaoTest {
         VcfFile vcfFile = new VcfFile();
 
         vcfFile.setId(vcfFileDao.createVcfFileId());
-        vcfFile.setName(TEST_FILE_NAME);
+        vcfFile.setName(TEST_FILE_NAME + BiologicalDataItemFormat.VCF.name());
         vcfFile.setCreatedBy(AuthUtils.getCurrentUserId());
         vcfFile.setType(BiologicalDataItemResourceType.FILE);
         vcfFile.setPath(TEST_PATH);
@@ -201,7 +201,7 @@ public class BookmarkDaoTest extends AbstractDaoTest {
         BedFile bedFile = new BedFile();
 
         bedFile.setId(bedFileDao.createBedFileId());
-        bedFile.setName(TEST_FILE_NAME);
+        bedFile.setName(TEST_FILE_NAME + BiologicalDataItemFormat.BED.name());
         bedFile.setCreatedBy(AuthUtils.getCurrentUserId());
         bedFile.setType(BiologicalDataItemResourceType.FILE);
         bedFile.setPath(TEST_PATH);
@@ -222,7 +222,7 @@ public class BookmarkDaoTest extends AbstractDaoTest {
         SegFile segFile = new SegFile();
 
         segFile.setId(segFileDao.createSegFileId());
-        segFile.setName(TEST_FILE_NAME);
+        segFile.setName(TEST_FILE_NAME + BiologicalDataItemFormat.SEG.name());
         segFile.setCreatedBy(AuthUtils.getCurrentUserId());
         segFile.setType(BiologicalDataItemResourceType.FILE);
         segFile.setPath(TEST_PATH);

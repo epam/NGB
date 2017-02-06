@@ -10,6 +10,7 @@ export default  {
         referenceId: '=',
         startIndex: '=',
         geneId: '=',
+        infoForRead: '=',
         panelTitle: '='
     },
     controller: controller.UID,

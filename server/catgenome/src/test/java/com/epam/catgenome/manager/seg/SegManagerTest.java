@@ -43,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.entity.BiologicalDataItem;
@@ -64,7 +65,7 @@ import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class SegManagerTest {
+public class SegManagerTest extends AbstractManagerTest {
     @Autowired
     private SegManager segManager;
 

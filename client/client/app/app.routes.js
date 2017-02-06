@@ -10,7 +10,7 @@ export default function routes($urlRouterProvider, $httpProvider, $stateProvider
             params: {
                 chromosome: {squash: true, value: null},
                 end: {squash: true, value: null},
-                projectId: {squash: true, value: null},
+                referenceId: {squash: true, value: null},
                 start: {squash: true, value: null},
 
                 bookmark: null,
@@ -24,7 +24,7 @@ export default function routes($urlRouterProvider, $httpProvider, $stateProvider
                 $stateParams: '$stateParams'
             },
             template: require('./app.tpl.html'),
-            url: '/:projectId/:chromosome/:start/:end?rewrite&bookmark&screenshot&toolbar&layout&tracks'
+            url: '/:referenceId/:chromosome/:start/:end?rewrite&bookmark&screenshot&toolbar&layout&tracks'
         });
 
 }

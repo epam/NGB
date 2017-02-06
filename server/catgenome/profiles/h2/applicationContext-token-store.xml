@@ -30,5 +30,5 @@
     <!-- This defined token store, we have used inmemory tokenstore for now
      but this can be changed to a user defined one -->
     <bean id="tokenStore"
-          class="org.springframework.security.oauth2.provider.token.InMemoryTokenStore" />
+          class="org.springframework.security.oauth2.provider.token.store.InMemoryTokenStore" />
 </beans>

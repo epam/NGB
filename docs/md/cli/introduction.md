@@ -61,7 +61,7 @@ The relationships between Reference, Dataset, and File are also shown on the NGB
 
 ### Datasets list
 * User opens a homepage
-* User select specific dataset, which contain data of interest
+* User select specific dataset, which contains data of interest
 
 ![Datasets list](images/cli-introduction-projects-list.png)
 

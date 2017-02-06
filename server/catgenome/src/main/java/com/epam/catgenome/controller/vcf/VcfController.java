@@ -242,7 +242,7 @@ public class VcfController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<VcfFilterInfo> erg(@PathVariable(value = "vcfFileId") final Long vcfFielId) throws IOException {
-        return Result.success(vcfManager.getFiltersInfo(Collections.singletonList(vcfFielId)));
+    public Result<VcfFilterInfo> erg(@PathVariable(value = "vcfFileId") final Long vcfFileId) throws IOException {
+        return Result.success(vcfManager.getFiltersInfo(Collections.singletonList(vcfFileId)));
     }
 }

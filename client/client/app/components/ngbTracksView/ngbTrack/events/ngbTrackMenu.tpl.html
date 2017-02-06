@@ -16,8 +16,9 @@
             <md-button ng-if="!entry.clipboard && !entry.submenu" ng-click="$ctrl.clickItem($event,entry)">
                 {{entry.title}}
             </md-button>
-            <md-button class="copy-to-clipboard-button" ng-if="entry.clipboard" data-clipboard-text="{{entry.clipboard}}" ng-click="$ctrl.closeItem()">
+            <md-button class="copy-to-clipboard-button" ng-disabled="entry.isLoading" ng-if="entry.clipboard" data-clipboard-text="{{entry.clipboard}}" ng-click="$ctrl.closeItem()">
                 {{entry.title}}
+                <md-progress-linear ng-show="entry.isLoading" md-mode="indeterminate"></md-progress-linear>
             </md-button>
         </md-menu-item>
     </md-menu-content>

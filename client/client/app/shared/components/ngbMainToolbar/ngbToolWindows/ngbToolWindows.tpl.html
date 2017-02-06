@@ -1,0 +1,44 @@
+<md-menu >
+    <md-button aria-label="Menu" class="md-icon-button" ng-click="$ctrl.openMenu($mdOpenMenu, $event)">
+        <ng-md-icon icon="dashboard"></ng-md-icon>
+    </md-button>
+    <md-menu-content width="4" class="ngb-tool-menu" md-whiteframe="4">
+        <md-menu-item ng-repeat="panel in $ctrl.panels">
+            <md-button ng-click="$ctrl.toggle(panel)" aria-label="tool.title">
+                <ng-md-icon class="u-pull__right" ng-if="panel.displayed"
+                            icon="check"
+
+                            md-menu-align-target></ng-md-icon>
+                <ng-md-icon class="u-space_r-sm" icon="{{panel.icon}}" md-colors="::{fill:'{{panel.iconColor}}' }"
+                            md-menu-align-target></ng-md-icon>
+                {{ panel.title }}
+                <span class="info-hotkey" ng-if="panel.hotkey">({{panel.hotkey}})</span>
+            </md-button>
+        </md-menu-item>
+        <md-menu-divider></md-menu-divider>
+
+        <md-menu-item ng-repeat="panel in $ctrl.extraPanels">
+            <md-button ng-click="$ctrl.toggle(panel)" aria-label="tool.title">
+                <ng-md-icon class="u-pull__right" ng-if="panel.displayed" icon="check"
+
+                            md-menu-align-target></ng-md-icon>
+                <ng-md-icon class="u-space_r-sm" icon="{{panel.icon}}" md-colors="::{fill:'{{panel.iconColor}}' }"
+                            md-menu-align-target></ng-md-icon>
+                {{ panel.title }}
+            </md-button>
+        </md-menu-item>
+        <md-menu-divider ng-if="$ctrl.extraPanels.length"></md-menu-divider>
+
+
+        <md-menu-item>
+            <md-button ng-click="$ctrl.restoreDefault()" aria-label="Restore Default Layout">
+                <ng-md-icon class="u-space_r-sm"
+                            icon="vignette"
+                            md-colors="::{fill:'{{$ctrl.restoreDefaultColor}}' }"
+                            md-menu-align-target></ng-md-icon>
+                Restore Default Layout
+            </md-button>
+        </md-menu-item>
+    </md-menu-content>
+</md-menu>
+

@@ -58,6 +58,7 @@ import com.epam.catgenome.manager.bam.handlers.SAMRecordHandler;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.epam.catgenome.util.BamUtil;
+import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SamReader;
@@ -107,15 +108,23 @@ public class BamManager {
             request.setType(BiologicalDataItemResourceType.FILE);
         }
         final BamFile newBamFile = bamHelper.fillBamFile(request);
-        Reference reference = referenceGenomeManager.loadReferenceGenome(request.getReferenceId());
-        List<Chromosome> chromosomes = reference.getChromosomes();
-        //we can read this file with this index file
-        LOGGER.debug(getMessage(MessagesConstants.DEBUG_FILE_READING, request.getPath()));
-        bamHelper.parseBamFile(newBamFile, chromosomes, reference.getId());
+        try {
+            biologicalDataItemManager.createBiologicalDataItem(newBamFile);
+            Reference reference = referenceGenomeManager.loadReferenceGenome(request.getReferenceId());
+            List<Chromosome> chromosomes = reference.getChromosomes();
+            //we can read this file with this index file
+            LOGGER.debug(getMessage(MessagesConstants.DEBUG_FILE_READING, request.getPath()));
+            bamHelper.parseBamFile(newBamFile, chromosomes, reference.getId());
 
 
-        biologicalDataItemManager.createBiologicalDataItem(newBamFile.getIndex());
-        bamFileManager.save(newBamFile);
+            biologicalDataItemManager.createBiologicalDataItem(newBamFile.getIndex());
+            bamFileManager.save(newBamFile);
+        } finally {
+            if (newBamFile != null && newBamFile.getId() != null
+                    && bamFileManager.loadBamFile(newBamFile.getId()) == null) {
+                biologicalDataItemManager.deleteBiologicalDataItem(newBamFile.getBioDataItemId());
+            }
+        }
 
         return newBamFile;
     }
@@ -241,10 +250,10 @@ public class BamManager {
     }
 
     /**
-     * Loads a specific read form a BAM fil, specified by ReadQuery object
+     * Loads a specific read form a BAM file, specified by ReadQuery object
      * @param query a {@link ReadQuery} object, that specifies a {@link Read} to load
      * @return a {@link Read} object
-     * @throws IOException
+     * @throws IOException if somwthing goes wrong with the filesystem
      */
     public Read loadRead(final ReadQuery query) throws IOException {
         Assert.notNull(query, MessagesConstants.ERROR_NULL_PARAM);
@@ -258,8 +267,12 @@ public class BamManager {
         BamFile bamFile = bamFileManager.loadBamFile(query.getId());
         try (SamReader reader = bamHelper.makeSamReader(bamFile, Collections.singletonList(chromosome),
                                                         chromosome.getReferenceId())) {
-            SAMRecordIterator iterator = reader.query(chromosome.getName(),
-                                                      query.getStartIndex(), query.getEndIndex(), true);
+            String chromosomeName = chromosome.getName();
+            if (reader.getFileHeader().getSequence(chromosomeName) == null) {
+                chromosomeName = Utils.changeChromosomeName(chromosomeName);
+            }
+
+            SAMRecordIterator iterator = reader.query(chromosomeName, query.getStartIndex(), query.getEndIndex(), true);
             while (iterator.hasNext()) {
                 final SAMRecord samRecord = iterator.next();
                 if (samRecord.getReadName().equals(query.getName())) {

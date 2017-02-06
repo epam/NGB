@@ -9,6 +9,7 @@ The following sections are currently covered in a documentation
     * [Overview](md/installation/overview.md)
     * [Using Docker](md/installation/docker.md)
     * [Using Binaries](md/installation/binaries.md)
+    * [Using Standalone Jar](md/installation/standalone.md)
 * Command Line Interface guide
     * [Overview](md/cli/introduction.md)
     * [CLI Installation](md/cli/installation.md)

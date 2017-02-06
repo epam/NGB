@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd" >
+<log4j:configuration>
+    <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
+        <param name="Target" value="System.out" />
+        <param name="Threshold" value="ERROR"/>
+        <param name="Encoding" value="UTF-8" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%c{1}] %m%n" />
+        </layout>
+    </appender>
+
+    <appender name="error-appender" class="org.apache.log4j.DailyRollingFileAppender">
+        <param name="Encoding" value="UTF-8" />
+        <param name="Threshold" value="ERROR"/>
+        <param name="File" value="./logs/catgenome-error.log"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%t][%c] %m%n" />
+        </layout>
+    </appender>
+
+    <category name="org.springframework.aop.framework.CglibAopProxy">
+        <priority value="ERROR"/>
+    </category>
+    <category name="com.epam.gene.catgenome">
+        <priority value="INFO"/>
+    </category>
+    <category name="org.apache.commons.beanutils">
+        <priority value="WARN"/>
+    </category>
+    <category name="com.mchange">
+        <priority value="ERROR"/>
+    </category>
+    <category name="org.springframework.jndi">
+        <priority value="ERROR"/>
+    </category>
+
+    <root>
+        <level value="INFO"/>
+        <appender-ref ref="stdout"/>
+        <appender-ref ref="error-appender"/>
+    </root>
+</log4j:configuration>

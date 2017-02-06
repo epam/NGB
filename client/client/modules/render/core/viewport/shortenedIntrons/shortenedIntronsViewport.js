@@ -97,7 +97,8 @@ export default class ShortenedIntronsViewport {
             if (this.brush) {
                 this._viewport.transform({
                     end: this.brush.center + this.brush.shortenedSize / 2,
-                    start: this.brush.center - this.brush.shortenedSize / 2
+                    start: this.brush.center - this.brush.shortenedSize / 2,
+                    awakeFromShortenedIntrons: true
                 });
             }
         }

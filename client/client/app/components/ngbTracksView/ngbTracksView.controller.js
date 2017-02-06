@@ -89,13 +89,12 @@ export default class ngbTracksViewController extends baseController {
         this.renderable = false;
         this.tracks = [];
 
-        const projectId = this.projectContext.projectId;
         let chromosome = this.projectContext.currentChromosome;
         if (this.chromosomeName) {
             chromosome = this.projectContext.getChromosome({name: this.chromosomeName});
         }
 
-        if (!chromosome || !projectId)
+        if (!chromosome)
             return;
 
         const browserInitialSetting = {
@@ -103,7 +102,6 @@ export default class ngbTracksViewController extends baseController {
             position: this.position
         };
 
-        this.projectId = projectId;
         this.referenceId = this.projectContext.referenceId;
 
         const tracks = this.projectContext.getActiveTracks();
@@ -117,7 +115,6 @@ export default class ngbTracksViewController extends baseController {
             chromosome: this.chromosome,
             chromosomeId: this.chromosome.id,
             isFixed: false,
-            projectId: this.projectId,
             referenceId: this.referenceId
         };
 
@@ -154,13 +151,13 @@ export default class ngbTracksViewController extends baseController {
 
         this.zoomManager = new ngbTracksViewZoomManager(this.viewport);
 
-        const project = this.projectContext.project;
+        const reference = this.projectContext.reference;
 
         this.bookmarkCamera =
             new ngbTracksViewCameraManager(
                 () => [
                     'NGB',
-                    project.name,
+                    reference.name,
                     this.chromosome.name,
                     Math.floor(this.viewport.brush.start),
                     Math.floor(this.viewport.brush.end),
@@ -172,9 +169,6 @@ export default class ngbTracksViewController extends baseController {
     }
 
     async manageTracks() {
-        if (!this.projectId) {
-            return;
-        }
         const oldTracks = this.tracks && this.tracks.length ? this.tracks.reduce((acc, track) => ({
             ...acc,
             [this.trackHash(track)]: track
@@ -200,7 +194,7 @@ export default class ngbTracksViewController extends baseController {
     }
 
     trackHash(track) {
-        return track.bioDataItemId;
+        return `[${track.bioDataItemId}][${track.projectId}]`;
     }
 }
 

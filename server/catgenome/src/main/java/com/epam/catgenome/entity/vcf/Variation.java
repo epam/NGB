@@ -170,6 +170,8 @@ public class Variation extends Block {
     public static class InfoField {
         private String description;
         private Object value;
+        private InfoFieldTypes type = InfoFieldTypes.TRIVIAL;
+        private List<String> header;
 
         public InfoField() {
             //no operations
@@ -195,5 +197,25 @@ public class Variation extends Block {
         public void setValue(Object value) {
             this.value = value;
         }
+
+        public InfoFieldTypes getType() {
+            return type;
+        }
+
+        public void setType(InfoFieldTypes type) {
+            this.type = type;
+        }
+
+        public List<String> getHeader() {
+            return header;
+        }
+
+        public void setHeader(List<String> header) {
+            this.header = header;
+        }
+    }
+
+    public enum InfoFieldTypes {
+        TRIVIAL, TABLE
     }
 }

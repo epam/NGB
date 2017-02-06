@@ -38,6 +38,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
@@ -50,7 +51,7 @@ import com.epam.catgenome.manager.vcf.VcfManager;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class DataItemManagerTest {
+public class DataItemManagerTest extends AbstractManagerTest {
 
     @Autowired
     DataItemManager dataItemManager;

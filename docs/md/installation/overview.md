@@ -4,6 +4,7 @@ There are two options to install NGB
 
 * **[Use Docker image](docker.md)**
 * **[Install web-archive (war file) to tomcat](binaries.md)**
+* **[Build and run a standalone jar file](standalone.md)**
 
 These options are described in details in the subsequent sections.
 

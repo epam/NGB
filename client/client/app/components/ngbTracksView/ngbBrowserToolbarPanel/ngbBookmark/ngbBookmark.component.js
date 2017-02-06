@@ -67,13 +67,12 @@ export const controller =  class NgbBookmarkController extends baseController {
             || `${chromosome.name  }:${  this.projectContext.viewport.start  }-${  this.projectContext.viewport.end}`;
         const tracks = this.projectContext.tracksState;
         const layout = this.projectContext.layout;
-        const project = this.projectContext.project;
-        const query = new Bookmark(project ? project.id : null, name, ruler, chromosome, tracks, layout);
+        const vcfColumns = this.projectContext.vcfColumns;
+        const query = new Bookmark(name, ruler, chromosome, tracks, layout, vcfColumns);
         try {
             const savingResult = this.localDataService.saveBookmark(query);
             this.isSaveSuccess = true;
             this.dispatcher.emitSimpleEvent('bookmark:save', {bookmarkId: savingResult.id});
-            // this.dispatcher.emitGlobalEvent('bookmark:save', {bookmarkId: savingResult.id});
         } catch (exception) {
             this.isSaveSuccess = false;
         }
@@ -81,8 +80,7 @@ export const controller =  class NgbBookmarkController extends baseController {
     }
 };
 
-function Bookmark(projectId, name, ruler, chromosome, tracks, layout) {
-    this.projectId = projectId;
+function Bookmark(name, ruler, chromosome, tracks, layout, vcfColumns) {
     this.name = name;
     this.startIndex = parseInt(ruler.start);
     this.endIndex = parseInt(ruler.end);
@@ -94,9 +92,11 @@ function Bookmark(projectId, name, ruler, chromosome, tracks, layout) {
         return {
             bioDataItemId: track.bioDataItemId,
             height: track.height,
+            projectId: track.projectId,
             state: track.state
         };
     };
-    this.tracks = tracks ? tracks.filter(track => !track.hidden).map(mapFn) : [];
+    this.tracks = (tracks || []).map(mapFn);
     this.layout = layout;
+    this.vcfColumns = vcfColumns;
 }

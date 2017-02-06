@@ -1,22 +1,43 @@
-export default class ngbTrackMenuController{
+export default class ngbTrackMenuController {
 
-    static get UID(){
+    static get UID() {
         return 'ngbTrackSettingsController';
-    }   
+    }
 
     settings;
+    projectContext;
 
-
-    constructor($scope, lastActionRepeater){
+    constructor($scope, lastActionRepeater, localDataService, projectContext) {
         this.lastActionRepeater = lastActionRepeater;
-        const hotkeyPressedFn = () => $scope.$apply();
+        this.projectContext = projectContext;
         const dispatcher = this.lastActionRepeater.dispatcher;
+        const self = this;
+
+        const hotkeyPressedFn = () => $scope.$apply();
+        const globalSettingsChanged = () => {
+            let hotkeys = this.projectContext.hotkeys || localDataService.getSettings().hotkeys;
+            if(self.settings) {
+                self.settings.forEach(menuEntry => {
+                    menuEntry.fields.forEach(field => {
+                        let objHotkey = hotkeys[field.name];
+                        if (objHotkey && objHotkey.hotkey) {
+                            field.hotkey = objHotkey.hotkey;
+                        }
+                    });
+                });
+            }
+        };
+
+        globalSettingsChanged();
         dispatcher.on('hotkeyPressed', hotkeyPressedFn);
-        $scope.$on('$destroy', ()=> {
+        dispatcher.on('settings:change', globalSettingsChanged);
+
+        $scope.$on('$destroy', () => {
             dispatcher.removeListener('hotkeyPressed', hotkeyPressedFn);
+            dispatcher.removeListener('settings:change', globalSettingsChanged);
         });
     }
-    
+
     handleField(e, field) {
         e.preventDefault();
         e.stopPropagation();
@@ -25,7 +46,7 @@ export default class ngbTrackMenuController{
         return false;
     }
 
-    handleButtonField(e, field){
+    handleButtonField(e, field) {
         e.preventDefault();
         e.stopPropagation();
         field.perform();

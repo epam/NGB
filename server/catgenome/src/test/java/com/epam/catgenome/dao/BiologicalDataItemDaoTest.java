@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.epam.catgenome.dao.gene.GeneFileDao;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,6 +68,9 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
 
     @Autowired
     private GeneFileManager geneFileManager;
+
+    @Autowired
+    private GeneFileDao geneFileDao;
 
     private static final String TEST_NAME = "test1";
     private static final String TEST_PATH = "///";
@@ -213,9 +217,9 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         geneFile.setCreatedBy(AuthUtils.getCurrentUserId());
         geneFile.setReferenceId(reference.getId());
         geneFile.setIndex(indexItem);
-
-        geneFileManager.createGeneFile(geneFile);
-
+        long id = geneFile.getId();
+        biologicalDataItemDao.createBiologicalDataItem(geneFile);
+        geneFileDao.createGeneFile(geneFile, id);
         return geneFile;
     }
 }

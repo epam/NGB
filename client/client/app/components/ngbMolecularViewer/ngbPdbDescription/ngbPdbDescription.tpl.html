@@ -8,7 +8,7 @@
     <md-input-container class="md-block" ng-if="$ctrl.description.entities.length">
         <label>Chain ({{$ctrl.description.entities.length}})</label>
         <md-select aria-label="entities" ng-model="$ctrl.chainId">
-            <md-option value="">All</md-option>
+            <md-option value="All">All</md-option>
             <md-option ng-repeat="entry in $ctrl.description.entities" value="{{entry.chainId}}">{{entry.chainId}} -
                 {{entry.compound}}
             </md-option>

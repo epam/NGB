@@ -31,8 +31,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
+import com.epam.catgenome.manager.BiologicalDataItemManager;
+import com.epam.catgenome.util.AuthUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,6 +116,9 @@ public class ReferenceManager {
     @Autowired
     private GeneFileManager geneFileManager;
 
+    @Autowired
+    private BiologicalDataItemManager biologicalDataItemManager;
+
     private static final Logger LOG = LoggerFactory.getLogger(ReferenceManager.class);
 
     /**
@@ -161,6 +167,17 @@ public class ReferenceManager {
         // files with NT-sequence and GC-content per each chromosome etc.
         boolean succeeded = false;
         try {
+            if (reference.getCreatedDate() == null) {
+                reference.setCreatedDate(new Date());
+            }
+            reference.setCreatedBy(AuthUtils.getCurrentUserId());
+            if (reference.getType() == null) {
+                reference.setType(BiologicalDataItemResourceType.FILE);
+            }
+            biologicalDataItemManager.createBiologicalDataItem(reference);
+            reference.setBioDataItemId(reference.getId());
+            reference.setId(referenceId);
+
             long lengthOfGenome;
             if (request.getType() == BiologicalDataItemResourceType.GA4GH) {
                 lengthOfGenome = registerGA4GH(request, referenceId, reference);
@@ -176,9 +193,7 @@ public class ReferenceManager {
                 GeneFile geneFile = geneFileManager.loadGeneFile(request.getGeneFileId());
                 reference.setGeneFile(geneFile);
             }
-
             referenceGenomeManager.register(reference);
-
             processGeneRegistrationRequest(request, reference);
             // sets this flag to 'true' that means all activities are performed successfully and no
             // rollback for applied changes are required
@@ -190,6 +205,9 @@ public class ReferenceManager {
             // and we cannot create a genome in the system)
             if (!succeeded) {
                 fileManager.deleteDir(reference.getPath());
+                if (reference.getBioDataItemId() != null && !referenceGenomeManager.isRegistered(reference.getId())) {
+                    biologicalDataItemManager.deleteBiologicalDataItem(reference.getBioDataItemId());
+                }
             }
         }
         return reference;

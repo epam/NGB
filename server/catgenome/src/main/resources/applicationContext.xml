@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd"
+
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans">
+
+    <!-- Registers properties sources to configure application, using placeholders -->
+    <import resource="classpath:conf/catgenome/applicationContext-config.xml"/>
+
+    <!-- Registers messages bundle and helper to process messages by given codes and provided parameters -->
+    <import resource="classpath:conf/catgenome/applicationContext-messages.xml"/>
+
+    <!-- Registers and configures beans used to support access to a database and required for
+         transaction management through AOP
+     -->
+    <import resource="classpath:conf/catgenome/applicationContext-database.xml"/>
+    <!-- Registers and configures Spring Security through Oauth2.0 -->
+    <import resource="classpath:conf/catgenome/applicationContext-security.xml"/>
+    <!-- Registers and configures caching -->
+    <import resource="classpath:conf/catgenome/applicationContext-cache.xml"/>
+
+    <import resource="classpath:conf/catgenome/applicationContext-flyway.xml"/>
+
+</beans>

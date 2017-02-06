@@ -33,6 +33,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,4 +123,8 @@ public class CytobandManagerTest extends AbstractJUnitTest {
         assertTrue("Unexpected start index value.", CAT_BAND_START_INDEX == band.getStartIndex());
     }
 
+    @After
+    public void tearDown() throws IOException {
+        FileUtils.deleteDirectory(new File(fileManager.getBaseDirPath()));
+    }
 }

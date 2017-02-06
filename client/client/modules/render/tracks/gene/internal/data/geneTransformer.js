@@ -117,13 +117,6 @@ export class GeneTransformer {
                     }
                 }
             }
-            if (transcripts.length === 1) {
-                const transcript = transcripts[0];
-                if (!transcript.canonical && (transcript.structure.length === 0 ||
-                    (transcript.structure.length === 1 && transcript.structure[0].isEmpty))) {
-                    transcripts = [];
-                }
-            }
             gene.items = [];
             gene.transcripts = transcripts;
         }

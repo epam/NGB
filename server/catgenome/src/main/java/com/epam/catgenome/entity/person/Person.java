@@ -26,12 +26,21 @@ package com.epam.catgenome.entity.person;
 
 import java.io.Serializable;
 
-import com.epam.catgenome.entity.BaseEntity;
-
 /**
  * Represents a system's user entity
  */
-public class Person extends BaseEntity implements Serializable {
+public class Person implements Serializable {
+
+    /**
+     * {@code Long} represents an entity's identifier.
+     */
+    private Long id;
+
+    /**
+     * {@code String} represents an entity's name.
+     */
+    private String name;
+
     /**
      * User's hashed password. Should never be sent to the outer world
      */
@@ -61,5 +70,21 @@ public class Person extends BaseEntity implements Serializable {
 
     public void setRole(PersonRole role) {
         this.role = role;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

@@ -2,8 +2,8 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:oauth="http://www.springframework.org/schema/security/oauth2"
        xmlns:sec="http://www.springframework.org/schema/security"
-       xsi:schemaLocation="http://www.springframework.org/schema/security/oauth2 http://www.springframework.org/schema/security/spring-security-oauth2-1.0.xsd
-  http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.0.xsd
+       xsi:schemaLocation="http://www.springframework.org/schema/security/oauth2 http://www.springframework.org/schema/security/spring-security-oauth2-2.0.xsd
+  http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.1.xsd
   http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
 
 <!-- This is default url to get a token from OAuth -->
@@ -88,17 +88,20 @@
         </constructor-arg>
     </bean>
 
-    <authentication-manager id="clientAuthenticationManager"
+    <!--authentication-manager id="clientAuthenticationManager"
                             xmlns="http://www.springframework.org/schema/security">
         <authentication-provider user-service-ref="clientDetailsUserService" />
-    </authentication-manager>
+    </authentication-manager-->
 
 
     <!-- This is simple authentication manager, with a hardcoded user/password
      combination. We can replace this with a user defined service to get few users
      credentials from DB -->
-    <authentication-manager alias="authenticationManager"
-                            xmlns="http://www.springframework.org/schema/security">
+    <authentication-manager
+            id="clientAuthenticationManager"
+            alias="authenticationManager"
+            xmlns="http://www.springframework.org/schema/security">
+        <authentication-provider user-service-ref="clientDetailsUserService" />
         <authentication-provider user-service-ref="personService">
             <!--<user-service>
                 <user name="test" password="12345" authorities="ROLE_APP" />
@@ -123,9 +126,15 @@
         <property name="clientDetailsService" ref="clientDetails" />
     </bean>
 
+    <bean id="requestFactory"
+          class="org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory">
+        <constructor-arg name="clientDetailsService" ref="clientDetails" />
+    </bean>
+
     <bean id="userApprovalHandler"
-          class="org.springframework.security.oauth2.provider.approval.TokenServicesUserApprovalHandler">
-        <property name="tokenServices" ref="tokenServices" />
+          class="org.springframework.security.oauth2.provider.approval.TokenStoreUserApprovalHandler">
+        <property name="tokenStore" ref="tokenStore" />
+        <property name="requestFactory" ref="requestFactory"/>
     </bean>
 
     <oauth:authorization-server

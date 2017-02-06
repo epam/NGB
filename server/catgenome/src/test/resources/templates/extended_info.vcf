@@ -1,0 +1,33 @@
+##fileformat=VCFv4.1
+##fileDate=20150708
+##source=ensembl;version=81;url=http://e81.ensembl.org/Felis_catus
+##reference=ftp://ftp.ensembl.org/pub/release-81/fasta/Felis_catus/dna/
+##FILTER=<ID=q10,Description="Quality below 10">
+##FILTER=<ID=s50,Description="Less than 50% of samples have data">
+##INFO=<ID=dbSNP_127,Number=0,Type=Flag,Description="Variants (including SNPs and indels) imported from dbSNP [remapped from build CAT]">
+##INFO=<ID=TSA,Number=1,Type=String,Description="Type of sequence alteration. Child of term sequence_alteration as defined by the sequence ontology project.">
+##INFO=<ID=E_Cited,Number=0,Type=Flag,Description="Cited.http://www.ensembl.org/info/docs/variation/data_description.html#evidence_status">
+##INFO=<ID=E_Phenotype_or_Disease,Number=0,Type=Flag,Description="Phenotype_or_Disease.http://www.ensembl.org/info/docs/variation/data_description.html#evidence_status">
+##INFO=<ID=E_ESP,Number=0,Type=Flag,Description="ESP.http://www.ensembl.org/info/docs/variation/data_description.html#evidence_status">
+##INFO=<ID=E_1000G,Number=0,Type=Flag,Description="1000Genomes.http://www.ensembl.org/info/docs/variation/data_description.html#evidence_status">
+##INFO=<ID=E_Multiple_observations,Number=0,Type=Flag,Description="Multiple_observations.http://www.ensembl.org/info/docs/variation/data_description.html#evidence_status">
+##INFO=<ID=E_Freq,Number=0,Type=Flag,Description="Frequency.http://www.ensembl.org/info/docs/variation/data_description.html#evidence_status">
+##INFO=<ID=E_Hapmap,Number=0,Type=Flag,Description="HapMap.http://www.ensembl.org/info/docs/variation/data_description.html#evidence_status">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=SVLEN,Number=.,Type=Integer,Description="Difference in length between REF and ALT alleles">
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
+##INFO=<ID=MATEID,Number=.,Type=String,Description="ID of mate breakend">
+##INFO=<ID=MATE_BND_DEPTH,Number=1,Type=Integer,Description="Read depth at remote translocation mate breakend">
+##INFO=<ID=BND_DEPTH,Number=1,Type=Integer,Description="Read depth at local translocation breakend">
+##INFO=<ID=ANN,Number=.,Type=String,Description="Functional annotations: 'Allele | Annotation | Annotation_Impact | Gene_Name | Gene_ID | Feature_Type | Feature_ID | Transcript_BioType | Rank | HGVS.c | HGVS.p | cDNA.pos / cDNA.length | CDS.pos / CDS.length | AA.pos / AA.length | Distance | ERRORS / WARNINGS / INFO' ">
+##INFO=<ID=SVINSLEN,Number=.,Type=Integer,Description="Length of insertion">
+##INFO=<ID=SVINSSEQ,Number=.,Type=String,Description="Sequence of insertion">
+##INFO=<ID=CIPOS,Number=2,Type=Integer,Description="Region of location">
+##INFO=<ID=SIMPLE_ANN,Number=.,Type=String,Description="Simplified human readable structural variant annotation: 'SVTYPE | ANNOTATION | GENE(s) | TRANSCRIPT | DETAIL (exon losses, KNOWN_FUSION, ON_PRIORITY_LIST, NOT_PRIORITISED) | PRIORITY (1-3) '">
+##INFO=<ID=LOF,Number=.,Type=String,Description="Predicted loss of function effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected' ">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chrA1	3	rs43947053	N	<DEL>	.	.	dbSNP_127;TSA=SNV;SVTYPE=DEL;SVLEN=-150;END=35468
+chrA1	35465	rs44022001	CTG	ACC	.	.	dbSNP_127;TSA=SNV;E_Multiple_observations=True;|DOWNSTREAM_GENE_VARIANT|PIK3CA|ENST00000462255.1|ON_PRIORITY_LIST|2
+chrA1	35471	rs44022000	C	AC	.	.	dbSNP_127;TSA=SNV;LOF=(SH3GLB1|ENSG00000097033||);SIMPLE_ANN=DEL|DOWNSTREAM_GENE_VARIANT|PIK3CA|ENST00000462255.1|ON_PRIORITY_LIST|2
+chrA1	35486	rs44021999	G	T	.	.	dbSNP_127;TSA=SNV
+chrA1	194357	rs44035420	T	C	.	.	dbSNP_127;TSA=SNV

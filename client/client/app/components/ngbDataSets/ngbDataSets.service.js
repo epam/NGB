@@ -58,10 +58,8 @@ export default class ngbDataSetsService {
             datasets,
             this.treeviewOptions,
             findSelectedTracksFn);
-        const project = items.map(track => track.project)[0];
         const reference = items.map(track => track.reference)[0];
         return {
-            project,
             reference,
             tracks: items
         };
@@ -71,22 +69,27 @@ export default class ngbDataSetsService {
         if (!datasets || this.__lockStatesUpdate) {
             return;
         }
-        let activeTracksIds = [];
-        const projectId = this.projectContext.project ? this.projectContext.project.id : null;
-        if (!projectId) {
+        if (!this.projectContext.reference) {
+            this.ivhTreeviewMgr.deselectAll(datasets, this.treeviewOptions);
             return;
         }
-
-        activeTracksIds = (this.projectContext
-            .getActiveTracks())
-            .map(track => track.bioDataItemId);
-        utilities.expandToProject(datasets, {id: projectId}, this.ivhTreeviewMgr, this.treeviewOptions);
+        const datasetsIds = this.projectContext.tracksState.reduce((ids, track) => {
+            if (ids.filter(t => t === +track.projectId).length === 0) {
+                return [...ids, +track.projectId];
+            }
+            return ids;
+        }, []);
+        for (let i = 0; i < datasetsIds.length; i++) {
+            utilities.expandToProject(datasets, {id: datasetsIds[i]}, this.ivhTreeviewMgr, this.treeviewOptions);
+        }
         const mgr = this.ivhTreeviewMgr;
         const opts = this.treeviewOptions;
+        const tracksState = this.projectContext.tracksState;
         const updateStateFn = function (item: Node) {
-            const selected = !item.isPlaceholder && item.isTrack &&
-                item.project.id === projectId &&
-                activeTracksIds.indexOf(item.bioDataItemId) >= 0;
+            let selected = false;
+            if (item.isTrack && !item.isPlaceholder) {
+                selected = tracksState.filter(s => s.bioDataItemId === item.bioDataItemId && s.projectId === item.projectId).length;
+            }
             mgr.select(datasets, item, opts, selected);
             if (selected) {
                 mgr.expandTo(datasets, item, opts);
@@ -112,6 +115,44 @@ export default class ngbDataSetsService {
         utilities.expandNode(item, this.ivhTreeviewMgr, this.treeviewOptions);
     }
 
+    getItemReference(item: Node) {
+        if (item.isTrack) {
+            return item.reference;
+        } else {
+            return utilities.findProjectReference(item);
+        }
+    }
+
+    checkSelectionAvailable(item: Node, isSelected) {
+        if (isSelected) {
+            let forceReference = null;
+            if (item.isProject) {
+                utilities.expandNode(item, this.ivhTreeviewMgr, this.treeviewOptions);
+                forceReference = utilities.findProjectReference(item);
+            } else {
+                // we should also select reference:
+                if (item.reference) {
+                    forceReference = item.reference;
+                    item.reference.__selected = true;
+                }
+            }
+            if (forceReference && this.projectContext.reference && forceReference.bioDataItemId !== this.projectContext.reference.bioDataItemId) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    deselectItem(item: Node, datasets) {
+        item.__selected = false;
+        if (item.isProject) {
+            item.items.forEach(t => t.__selected = false);
+        } else if (item.isTrack && item.project && item.project.items.filter(t => t.format !== 'REFERENCE' && t.__selected).length === 0){
+            item.project.items.forEach(t => t.__selected = false);
+        }
+        this.ivhTreeviewMgr.validate(datasets, this.treeviewOptions, false);
+    }
+
     selectItem(item: Node, isSelected, datasets) {
         if (this.__previousItem === item && item.__previousSelectedState !== undefined &&
             item.__previousSelectedState === isSelected) {
@@ -123,25 +164,18 @@ export default class ngbDataSetsService {
         this.__previousItem = item;
         item.__previousSelectedState = isSelected;
         if (isSelected) {
-            const projectsPath = [];
+            let forceReference = this.projectContext.reference;
             if (item.isProject) {
                 utilities.expandNode(item, this.ivhTreeviewMgr, this.treeviewOptions);
-                let buffer = item;
-                while (buffer) {
-                    projectsPath.push(buffer.id);
-                    buffer = buffer.project;
-                }
+                forceReference = utilities.findProjectReference(item);
             } else {
                 // we should also select reference:
                 if (item.reference) {
+                    forceReference = item.reference;
                     item.reference.__selected = true;
                 }
-                let buffer = item.project;
-                while (buffer) {
-                    projectsPath.push(buffer.id);
-                    buffer = buffer.project;
-                }
             }
+            utilities.selectRecursively(item, isSelected);
             this.ivhTreeviewBfs(
                 datasets,
                 this.treeviewOptions,
@@ -149,45 +183,52 @@ export default class ngbDataSetsService {
                     datasets,
                     this.ivhTreeviewMgr,
                     this.treeviewOptions,
-                    projectsPath
+                    forceReference
                 ));
+        } else if (item.isTrack && item.project && item.project.items.filter(t => t.format !== 'REFERENCE' && t.__selected).length === 0) {
+            item.project.items.forEach(t => t.__selected = false);
         }
         const {tracks} = this.getSelectedTracks(datasets);
-        if (tracks.length === 1 && tracks[0].format === 'REFERENCE') {
-            // only reference is selected - we should deselect all project
-            tracks[0].__selected = false;
-            this.ivhTreeviewMgr.validate(tracks[0].project, this.treeviewOptions);
+        if (tracks.filter(t => t.format !== 'REFERENCE').length === 0) {
+            tracks.forEach(t => t.__selected = false);
         }
+        this.ivhTreeviewMgr.validate(datasets, this.treeviewOptions, false);
         this.navigateToTracks(datasets);
     }
 
     navigateToTracks(datasets) {
-        const {project, tracks} = this.getSelectedTracks(datasets);
+        const {tracks} = this.getSelectedTracks(datasets);
         this.__lockStatesUpdate = true;
-        if (project) {
-            const tracksState = (this.projectContext.getTracksState(project.id) || []);
+        const [reference] = tracks.map(track => track.reference);
+        if (reference) {
+            const tracksState = this.projectContext.tracksState || [];
             if (tracksState.length === 0) {
-                const reference = project.reference;
                 tracksState.push({
-                    bioDataItemId: reference.bioDataItemId
+                    bioDataItemId: reference.bioDataItemId,
+                    projectId: reference.projectId
                 });
             }
-            const tracksIds = tracks.map(track => track.bioDataItemId);
-            const tracksStateIds = tracksState.filter(track => !track.hidden).map(track => track.bioDataItemId);
-            const addedTracks = tracks
-                .filter(track => tracksStateIds.indexOf(track.bioDataItemId) === -1)
-                .map(utilities.mapVisibleTrackFn);
-            const removedTracks = tracksState
-                .filter(track => tracksIds.indexOf(track.bioDataItemId) === -1)
-                .map(utilities.mapInvisibleTrackFn);
-            const existedTracks = tracksState.filter(track => !track.hidden && tracksIds.indexOf(track.bioDataItemId) >= 0);
-            const newTracksState = [...existedTracks, ...addedTracks, ...removedTracks];
-            const projectInstance = Object.assign({}, project);
-            projectInstance.items = project.items.filter(item => item.isTrack);
-            projectInstance.loaded = true;
-            this.projectContext.changeState({project: projectInstance, tracksState: newTracksState});
+            const tracksIds = tracks.map(track => `[${track.bioDataItemId}][${track.projectId}]`);
+            const tracksStateIds = tracksState.map(track => `[${track.bioDataItemId}][${track.projectId}]`);
+            const self = this;
+            const mapTrackFn = function(track) {
+                const state = self.projectContext.getTrackState(track.bioDataItemId, track.projectId);
+                if (state) {
+                    return state;
+                }
+                return utilities.mapTrackFn(track);
+            };
+            let addedTracks = tracks
+                .filter(track => tracksStateIds.indexOf(`[${track.bioDataItemId}][${track.projectId}]`) === -1 && track.format !== 'REFERENCE')
+                .map(mapTrackFn);
+            let existedTracks = tracksState.filter(track => tracksIds.indexOf(`[${track.bioDataItemId}][${track.projectId}]`) >= 0);
+            if (!existedTracks.filter(t => t.bioDataItemId === reference.bioDataItemId).length) {
+                existedTracks = [utilities.mapTrackFn(reference), ...existedTracks];
+            }
+            const newTracksState = [...existedTracks, ...addedTracks];
+            this.projectContext.changeState({reference: reference, tracks, tracksState: newTracksState});
         } else {
-            this.projectContext.changeState({project: null});
+            this.projectContext.changeState({reference: null, tracks: null, tracksState: null});
         }
         this.__lockStatesUpdate = false;
     }

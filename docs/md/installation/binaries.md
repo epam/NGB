@@ -94,7 +94,7 @@ cp /home/user/catgenome.war $CATALINA_HOME/webapps/
 Set path to NGB configuration file for Tomcat configuration file **$CATALINA_HOME/conf/catalina.properties**
 ```
 mkdir $CATALINA_HOME/conf/catgenome/
-echo "CATGENOME_CONF_DIR=$CATALINA_HOME/conf/catgenome/" >> $CATALINA_HOME/conf/catalina.properties
+echo "CATGENOME_CONF_DIR=${CATALINA_HOME}/conf/catgenome/" >> $CATALINA_HOME/conf/catalina.properties
 ```   
   * Create **catgenome.properies** file with NGB configuration in **$CATGENOME_CONF_DIR**. This file must include the following 
   properties:

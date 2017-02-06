@@ -9,16 +9,21 @@ export default class ngbFeatureInfoMainController {
     isSequenceLoading = true;
     error = null;
 
-    constructor($scope, genomeDataService, $anchorScroll) {
-        Object.assign(this, {$scope, genomeDataService, $anchorScroll});
+    constructor($scope, genomeDataService, bamDataService, $anchorScroll) {
+        Object.assign(this, {$scope, genomeDataService, bamDataService, $anchorScroll});
 
         if (!this.read) {
-            (async() => {
-                this.loadSequence();
-            })();
+            (async() => {this.loadSequence();})();
         }
         else {
             this.isSequenceLoading = false;
+        }
+
+        if (this.infoForRead) {
+            (async() => {this.loadRead();})();
+        }
+        else {
+            this.isReadLoadingis = false;
         }
     }
 
@@ -52,6 +57,18 @@ export default class ngbFeatureInfoMainController {
             this.$scope.$apply();
         };
         this.getReference(parts, '', 0, refresh);
+    }
+
+    loadRead() {
+        this.isReadLoadingis = true;
+        this.sequenceWithQualities = [];
+        this.bamDataService.loadRead(this.infoForRead.id, this.infoForRead.chromosomeId, this.infoForRead.startIndex, this.infoForRead.endIndex, this.infoForRead.name).then(read => {
+            for (let i = 0; i < read.qualities.length; i++) {
+                this.sequenceWithQualities.push({nucleotide : read.sequence[i], qualitie: read.qualities.charCodeAt(i) - 33});
+            }
+            this.tags = read.tags.map(tag => [tag.tag, tag.value]);
+            this.isReadLoadingis = false;
+        });
     }
 
     getReference(blocks, referenceBuffer, index, callback) {

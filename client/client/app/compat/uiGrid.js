@@ -13,7 +13,8 @@ const deps = [
     'ui.grid.autoResize',
     'ui.grid.selection',
     'ui.grid.grouping',
-    'ui.grid.pinning'
+    'ui.grid.pinning',
+    'ui.grid.saveState'
 ];
 
 export default angular.module('uiGrid', deps).name;

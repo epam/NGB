@@ -76,6 +76,16 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
     }
 
     /**
+     * Persists {@code GeneFile} record to the database
+     * @param geneFile a {@code GeneFile} instance to be persisted
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void createGeneFile(GeneFile geneFile) {
+        getNamedParameterJdbcTemplate().update(createGeneFileQuery, BiologicalDataItemDao.FeatureFileParameters
+                .getLinkedTableParameters(GeneParameters.GENE_ITEM_ID.name(), geneFile));
+    }
+
+    /**
      * Loads a persisted {@code GeneFile} record by it's ID
      * @param id {@code long} a GeneFile ID
      * @return {@code GeneFile} instance

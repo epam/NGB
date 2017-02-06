@@ -1,5 +1,5 @@
 export template from './ngbLog.html';
-export function controller(dispatcher, ngbLogService, $scope, $mdColors, $mdColorUtil) {
+export function controller(dispatcher, ngbLogService, projectContext, $scope, $mdColors, $mdColorUtil) {
 
     const log = (fireEvent) => {
         ngbLogService.writeToLog(
@@ -35,8 +35,8 @@ export function controller(dispatcher, ngbLogService, $scope, $mdColors, $mdColo
 
     };
     this.getState = () => {
-        this.state = dispatcher.state;
-        return dispatcher.state ? Object.keys(dispatcher.state) : [];
+        this.state = projectContext;
+        return ['reference', 'currentChromosome', 'viewport', 'viewports'];
     };
     this.getMessage = () => ngbLogService.logMessage;
     this.getMessageHub = () => ngbLogService.logMessageHub;

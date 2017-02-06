@@ -1,6 +1,5 @@
 const EventEmitter = require('events');
 import {GlobalEvent} from './events/global-event';
-import DispatcherState from './protocol/state';
 import deepExtend from 'deep-extend';
 import {isEquivalent} from '../utils/Object';
 
@@ -14,7 +13,7 @@ export class dispatcher extends EventEmitter {
 
     constructor() {
         super();
-        this.state = new DispatcherState();
+        this.setMaxListeners(Infinity);
         _instance = this;
     }
 
@@ -38,7 +37,6 @@ export class dispatcher extends EventEmitter {
     emitSilentEvent(name, object) {
         const event = new GlobalEvent(name, object);
         const state = event.state;
-        this.state = deepExtend((this.state || new DispatcherState()), state);
         this.eventsState = deepExtend((this.eventsState || {}), {[event.name]: state});
     }
 
@@ -48,7 +46,6 @@ export class dispatcher extends EventEmitter {
 
     _emitEventGeneral(event, hub = false) {
         const state = event.state;
-        this.state = deepExtend((this.state || new DispatcherState()), state);
         this.eventsState = deepExtend((this.eventsState || {}), {[event.name]: state});
 
         if (!this.listenerCount()) {

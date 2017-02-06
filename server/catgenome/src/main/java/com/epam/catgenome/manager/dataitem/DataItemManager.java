@@ -124,6 +124,10 @@ public class DataItemManager {
         Assert.isTrue(!items.isEmpty(), getMessage(ERROR_BIO_ID_NOT_FOUND, id));
         final BiologicalDataItem item = items.get(0);
         final Long itemId = item.getId();
+        if (item.getId() == null || item.getId() == 0) {
+            biologicalDataItemDao.deleteBiologicalDataItem(id);
+            return item;
+        }
         switch (item.getFormat()) {
             case BAM:
                 bamManager.unregisterBamFile(itemId);

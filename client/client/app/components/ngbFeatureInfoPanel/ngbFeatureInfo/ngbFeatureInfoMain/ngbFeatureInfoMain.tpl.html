@@ -1,11 +1,29 @@
 <div layout="column">
-    <collapsible >
+    <collapsible>
         <collapsible-panel is-open="true">
             <collapsible-panel-title>
                 General information
             </collapsible-panel-title>
             <collapsible-panel-content>
                 <ngb-info-rows properties="$ctrl.properties"></ngb-info-rows>
+                <div ng-hide="$ctrl.isReadLoadingis" >
+                    <div ng-if="$ctrl.sequenceWithQualities">
+                        <div class="title-unit">Sequence</div>
+                        <span class="sequence-with-qualities" ng-repeat="sequence in $ctrl.sequenceWithQualities">
+                        <div>
+                            {{sequence.nucleotide}}
+                        </div>
+                        <div>
+                            {{sequence.qualitie}}
+                        </div>
+                    </span>
+                    </div>
+                    <div class="tags-unit" ng-if="$ctrl.tags">
+                        <div class="title-unit">Tags</div>
+                        <ngb-info-rows properties="$ctrl.tags"></ngb-info-rows>
+                    </div>
+                </div>
+                <md-progress-linear ng-show="$ctrl.isReadLoadingis" md-mode="indeterminate"></md-progress-linear>
             </collapsible-panel-content>
         </collapsible-panel>
     </collapsible>
@@ -16,12 +34,13 @@
                 Sequence
             </collapsible-panel-title>
             <collapsible-panel-content>
-                <div flex="100" layout="row" layout-wrap class="property-row" >
+                <div flex="100" layout="row" layout-wrap class="property-row">
                     <div flex="100" class="property property-value">
                         <div layout="row" ng-hide="$ctrl.isSequenceLoading" layout-align="stretch middle">
                             <textarea wrap="hard" flex class="sequence-area">{{$ctrl.sequence}}</textarea>
                         </div>
-                        <md-progress-linear ng-show="$ctrl.isSequenceLoading" md-mode="determinate" value="{{$ctrl.sequenceProgress}}"
+                        <md-progress-linear ng-show="$ctrl.isSequenceLoading" md-mode="determinate"
+                                            value="{{$ctrl.sequenceProgress}}"
                                             flex="100"></md-progress-linear>
                     </div>
                 </div>

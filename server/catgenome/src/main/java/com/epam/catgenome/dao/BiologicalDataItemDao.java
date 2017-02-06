@@ -32,15 +32,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
+import com.epam.catgenome.component.MessageHelper;
+import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
@@ -55,6 +48,16 @@ import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.seg.SegFile;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.wig.WigFile;
+import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 /**
  * Source:      BiologicalDataItemDao
@@ -83,7 +86,20 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public void createBiologicalDataItem(BiologicalDataItem item) {
-        item.setId(daoHelper.createId(biologicalDataItemSequenceName));
+        if (!item.getFormat().isIndex() ||
+                (item.getFormat().isIndex() && !StringUtils.isEmpty(item.getName()))) {
+
+            Assert.isTrue(!StringUtils.isEmpty(item.getName()),
+                    "File name is required for registration.");
+            List<BiologicalDataItem> items = loadFilesByNameStrict(item.getName());
+            Assert.isTrue(items.isEmpty(), MessageHelper
+                    .getMessage(MessagesConstants.ERROR_FILE_NAME_EXISTS, item.getName()));
+            item.setId(daoHelper.createId(biologicalDataItemSequenceName));
+        } else {
+            item.setId(daoHelper.createId(biologicalDataItemSequenceName));
+            item.setName("INDEX " + item.getId());
+        }
+
         final MapSqlParameterSource params = new MapSqlParameterSource();
 
         params.addValue(BiologicalDataItemParameters.BIO_DATA_ITEM_ID.name(), item.getId());
@@ -120,6 +136,11 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         daoHelper.clearTempList(listId);
 
         return items;
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Long createBioItemId() {
+        return daoHelper.createId(biologicalDataItemSequenceName);
     }
 
     /**

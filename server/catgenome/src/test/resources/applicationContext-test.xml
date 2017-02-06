@@ -28,12 +28,18 @@
          be scanned in the proper MVC configuration
     -->
     <context:annotation-config/>
-    <context:component-scan base-package="com.epam.catgenome">
+    <context:component-scan base-package="com.epam.catgenome.component"/>
+    <context:component-scan base-package="com.epam.catgenome.constant"/>
+    <context:component-scan base-package="com.epam.catgenome.entity"/>
+    <context:component-scan base-package="com.epam.catgenome.exception"/>
+    <context:component-scan base-package="com.epam.catgenome.manager"/>
+    <context:component-scan base-package="com.epam.catgenome.util"/>
+    <context:component-scan base-package="com.epam.catgenome.dao"/>
         <!-- Excludes all controllers from application context component scanning. All controllers
              should be scanned by in a proper MVC configuration
         -->
-        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
-    </context:component-scan>
+    <!--    <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>-->
+    <!--</context:component-scan>-->
 
     <!-- Multipart resolver required to support file upload -->
     <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>

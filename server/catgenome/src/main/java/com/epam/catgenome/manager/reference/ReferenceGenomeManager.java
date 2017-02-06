@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.util.AuthUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,6 @@ import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * {@code ReferenceManager} represents a service class designed to encapsulate all business
@@ -102,13 +102,16 @@ public class ReferenceGenomeManager {
             reference.setCreatedDate(new Date());
         }
         reference.setCreatedBy(AuthUtils.getCurrentUserId());
-        final Long referenceId = reference.getId();
-
         if (reference.getType() == null) {
             reference.setType(BiologicalDataItemResourceType.FILE);
         }
-        biologicalDataItemDao.createBiologicalDataItem(reference);
-        referenceGenomeDao.createReferenceGenome(reference, referenceId);
+        if (reference.getBioDataItemId() == null) {
+            final Long referenceId = reference.getId();
+            biologicalDataItemDao.createBiologicalDataItem(reference);
+            referenceGenomeDao.createReferenceGenome(reference, referenceId);
+        } else {
+            referenceGenomeDao.createReferenceGenome(reference);
+        }
         referenceGenomeDao.saveChromosomes(reference.getId(), reference.getChromosomes());
         return reference;
     }
@@ -259,5 +262,10 @@ public class ReferenceGenomeManager {
 
         referenceGenomeDao.updateReferenceGeneFileId(referenceId, geneFileId);
         return loadReferenceGenome(referenceId);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public boolean isRegistered(Long id) {
+        return referenceGenomeDao.loadReferenceGenome(id) != null;
     }
 }

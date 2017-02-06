@@ -16,8 +16,8 @@ export default class ngbGoldenLayoutController extends baseController {
         ngbVariations: 'ngbVariantsTablePanel'
     };
     eventsNotForShareFromParent = ['layout:panels:displayed', 'layout:restore:default', 'layout:load',
-        'layout:item:change', 'ngbFilter:setDefault', 'variant:details:select'];
-    eventsNotForShareFromSub = ['layout:item:change', 'variant:details:select'];
+        'layout:item:change', 'ngbFilter:setDefault'];
+    eventsNotForShareFromSub = ['layout:item:change'];
 
     initHub = false;
     projectContext;
@@ -47,9 +47,8 @@ export default class ngbGoldenLayoutController extends baseController {
         'layout:restore:default': ::this.restoreDefault,
         'layout:load': ::this.loadLayout,
         'ngbFilter:change': ::this.panelRemoveExtraWindows,
-        'projectId:change': ::this.panelRemoveExtraWindows,
+        'reference:change': ::this.panelRemoveExtraWindows,
         'read:show:mate': ::this.panelAddBrowserWithPairRead,
-        'variant:details:select': ::this.panelRemoveExtraWindows,
         'variant:show:pair': ::this.panelAddBrowserWithVariation
     };
 
@@ -147,9 +146,17 @@ export default class ngbGoldenLayoutController extends baseController {
     }
 
     handlePanelChange(event) {
-
         if (event.layoutChange.displayed === true) {
-            this.panelAdd(event.layoutChange);
+            const [panel] = this.goldenLayout.root.getItemsByFilter(obj => obj.config &&
+            obj.config.componentState && obj.config.componentState.panel === event.layoutChange.panel);
+            if (!panel) {
+                this.panelAdd(event.layoutChange);
+            } else {
+                const parent = panel.parent;
+                if (parent && parent.type === 'stack') {
+                    parent.setActiveContentItem(panel);
+                }
+            }
         } else {
             this.panelRemove(event.layoutChange);
         }

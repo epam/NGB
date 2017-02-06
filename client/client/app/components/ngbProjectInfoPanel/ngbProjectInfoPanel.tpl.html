@@ -1,6 +1,6 @@
 <ngb-variant-density-diagram ng-show="$ctrl.containsVcfFiles"></ngb-variant-density-diagram>
 <div layout="row" flex class="u-column-padding u-padding_t-0" ng-style="{'height' : $ctrl.containsVcfFiles ? '66%' : '100%'}">
-    <div flex="100" ng-hide="$ctrl.containsVcfFiles">
+    <div flex="100" ng-hide="$ctrl.containsVcfFiles" class="selected-files-summary">
         <ngb-project-summary flex></ngb-project-summary>
     </div>
     <div flex="50" ng-show="$ctrl.containsVcfFiles">

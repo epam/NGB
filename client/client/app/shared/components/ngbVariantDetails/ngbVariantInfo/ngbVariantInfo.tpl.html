@@ -1,28 +1,46 @@
 <div flex layout="row" layout-wrap class="md-variant-properties-table">
-  <div flex="100" layout-margin ng-show="ctrl.isLoading" layout="row" layout-align="center center">
-    <div>
-      <md-progress-circular md-mode="indeterminate" flex md-diameter="12"></md-progress-circular>
+    <div flex="100" layout-margin ng-show="ctrl.isLoading" layout="row" layout-align="center center">
+        <div>
+            <md-progress-circular md-mode="indeterminate" flex md-diameter="12"></md-progress-circular>
+        </div>
     </div>
-  </div>
-  <div flex="100" layout-fill layout-margin ng-show="ctrl.hasError"  class="md-variant-info-error">
-    {{ctrl.errorMessage}}
-  </div>
-  <div ng-hide="ctrl.isLoading || crtl.hasError"
-       ng-repeat="property in ctrl.variantInfo.properties"
-       class="md-variant-property
+    <div flex="100" layout-fill layout-margin ng-show="ctrl.hasError" class="md-variant-info-error">
+        {{ctrl.errorMessage}}
+    </div>
+    <div ng-hide="ctrl.isLoading || crtl.hasError"
+         ng-repeat="property in ctrl.variantInfo.properties"
+         class="md-variant-property
        md-variant-property-display-mode-{{property.displayMode}}
        {{$last ? 'flex' : 'flex-' + property.flex}}">
-    <md-tooltip md-delay="500" ng-show="property.description.length > 0">{{property.description}}</md-tooltip>
-    <div layout="row"
-         layout-align="start stretch"
-         flex>
-      <div class="md-variant-property-title" flex="50">{{property.title}}</div>
-      <div class="md-variant-property-values" layout="column" flex="50">
-        <div ng-repeat="value in property.values track by $index"
-             class="md-variant-property-single-value">
-          {{value}}
+        <md-tooltip ng-if="property.type === 'TRIVIAL' || property.type === undefined" md-delay="500" ng-show="property.description.length > 0">{{property.description}}</md-tooltip>
+
+        <div ng-if="property.type === 'TRIVIAL' || property.type === undefined">
+            <div layout="row"
+                 layout-align="start stretch"
+                 flex>
+                <div class="md-variant-property-title" flex="50">{{property.title}}</div>
+                <div class="md-variant-property-values" layout="column" flex="50">
+                    <div ng-repeat="value in property.values track by $index"
+                         class="md-variant-property-single-value">
+                        {{value}}
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
+
     </div>
-  </div>
+    <div ng-hide="ctrl.isLoading || crtl.hasError"
+         ng-repeat="table in ctrl.variantInfo.tables" flex="100">
+            <collapsible flex>
+                <collapsible-panel is-open="false" tooltip="table.description">
+                    <collapsible-panel-title>{{table.title}}</collapsible-panel-title>
+                    <collapsible-panel-content>
+                        <div class="table-property" ui-grid="table.values"
+                             ui-grid-resize-columns
+                             ui-grid-auto-resize
+                             ui-grid-move-columns></div>
+                    </collapsible-panel-content>
+                </collapsible-panel>
+            </collapsible>
+    </div>
 </div>

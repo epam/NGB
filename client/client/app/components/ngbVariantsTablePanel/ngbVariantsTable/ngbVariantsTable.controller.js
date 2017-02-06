@@ -26,7 +26,19 @@ export default class ngbVariantsTableController extends baseController {
         multiSelect: false,
         rowHeight: 48,
         showHeader: true,
-        treeRowHeaderAlwaysVisible: false
+        treeRowHeaderAlwaysVisible: false,
+        saveWidths: true,
+        saveOrder: true,
+        saveScroll: false,
+        saveFocus: false,
+        saveVisible: true,
+        saveSort: true,
+        saveFilter: false,
+        savePinning: true,
+        saveGrouping: false,
+        saveGroupingExpandedStates: false,
+        saveTreeView: false,
+        saveSelection: false
     };
 
 
@@ -48,10 +60,9 @@ export default class ngbVariantsTableController extends baseController {
     //todo doesn't need events
     //variants:loading:started and variants:loading:finished - should be promise from service
     events = {
-        'ngbColumns:change': ::this.onColumnChange,
-        'projectId:change': ::this.initialize,
+        'reference:change': ::this.initialize,
         'variants:loading:finished': ::this.variantsLoadingFinished,
-        'variants:loading:started': ::this.variantsLoadingStarted
+        'variants:loading:started': ::this.initialize
     };
 
     $onInit() {
@@ -59,7 +70,7 @@ export default class ngbVariantsTableController extends baseController {
     }
 
     get isProjectSelected() {
-        return this.projectContext.project;
+        return this.projectContext.reference;
     }
 
     async initialize() {
@@ -68,12 +79,14 @@ export default class ngbVariantsTableController extends baseController {
             this.isProgressShown = true;
             Object.assign(this.gridOptions, {
                 appScopeProvider: this.$scope,
-                columnDefs: this.variantsTableService.getVariantsGridColumns(),
+                columnDefs: this.variantsTableService.getVariantsGridColumns([], []),
                 onRegisterApi: (gridApi) => {
                     this.gridApi = gridApi;
                     this.gridApi.core.handleWindowResize();
+                    this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
+                    this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
                     this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
-                    this.gridApi.core.on.columnVisibilityChanged(this.$scope, ::this.columnChange);
+                    this.gridApi.core.on.sortChanged(this.$scope, ::this.saveColumnsState);
                 }
             });
             await this.loadData();
@@ -83,20 +96,9 @@ export default class ngbVariantsTableController extends baseController {
         }
     }
 
-    async onColumnChange(infoFields) {
-        const projectId = this.projectContext.projectId;
-        if (!projectId) {
-            this.gridOptions.columnDefs = [];
-            return;
-        }
-        infoFields = infoFields || [];
-        const columnList = this.projectContext.vcfInfo.filter(m => infoFields.indexOf(m.name) >= 0);
-        this.gridOptions.columnDefs = this.variantsTableService.getVariantsGridColumns(columnList);
-    }
-
     async loadData() {
         try {
-            if (!this.projectContext.project) {
+            if (!this.projectContext.reference) {
                 this.isProgressShown = false;
                 this.$timeout(this.$scope.$apply());
                 return;
@@ -116,17 +118,47 @@ export default class ngbVariantsTableController extends baseController {
         this.$timeout(::this.$scope.$apply);
     }
 
-    columnChange(changedColumn) {
-        const infoFields = this.projectContext.vcfInfoColumns;
-        const index = infoFields.indexOf(changedColumn.name);
-        if (index > -1) {
-            infoFields.splice(index, 1);
-        }
-        this.projectContext.changeVcfInfoFields(infoFields);
-    }
-
     onError(message) {
         this.errorMessageList.push(message);
+    }
+
+    saveColumnsState() {
+        if (!this.gridApi) {
+            return;
+        }
+        const {columns} = this.gridApi.saveState.save();
+        const mapNameToField = function({name}) {
+            switch (name) {
+                case 'Type': return 'variationType';
+                case 'Chr': return 'chrName';
+                case 'Gene': return 'geneNames';
+                case 'Position': return 'startIndex';
+                case 'Info': return 'info';
+                default: return name;
+            }
+        };
+        const orders = columns.map(mapNameToField);
+        const r = [];
+        const names = this.projectContext.vcfColumns;
+        for (let i = 0; i < names.length; i++) {
+            const name = names[i];
+            if (orders.indexOf(name) >= 0) {
+                r.push(1);
+            } else {
+                r.push(0);
+            }
+        }
+        let index = 0;
+        const result = [];
+        for (let i = 0; i < r.length; i++) {
+            if (r[i] === 1) {
+                result.push(orders[index]);
+                index++;
+            } else {
+                result.push(names[i]);
+            }
+        }
+        this.projectContext.vcfColumns = result;
     }
 
     rowClick(row) {
@@ -163,7 +195,8 @@ export default class ngbVariantsTableController extends baseController {
                 id: entity.variantId,
                 position: entity.startIndex,
                 type: entity.variationType,
-                vcfFileId: entity.vcfFileId
+                vcfFileId: entity.vcfFileId,
+                projectId: entity.projectId
             }
         );
         this.dispatcher.emitSimpleEvent('variant:details:select', {variant: state});
@@ -175,6 +208,11 @@ export default class ngbVariantsTableController extends baseController {
     }
 
     variantsLoadingFinished() {
+        if (!this.projectContext.reference) {
+            this.gridOptions.columnDefs = [];
+            return;
+        }
+        this.gridOptions.columnDefs = this.variantsTableService.getVariantsGridColumns();
         this.gridOptions.data = this.projectContext.filteredVariants;
         this.isProgressShown = this.projectContext.isVariantsLoading;
         this.$timeout(::this.$scope.$apply);

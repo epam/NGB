@@ -108,7 +108,7 @@ public class MafManager {
         if (request.getType() == null) {
             request.setType(BiologicalDataItemResourceType.FILE);
         }
-        MafFile mafFile;
+        MafFile mafFile = null;
         try {
             switch (request.getType()) {
                 case FILE:
@@ -125,6 +125,11 @@ public class MafManager {
             mafFileManager.createMafFile(mafFile);
         } catch (IOException | NoSuchAlgorithmException e) {
             throw new RegistrationException("Error while registering MAF file " + requestPath, e);
+        } finally {
+            if (mafFile != null && mafFile.getId() != null &&
+                    mafFileManager.loadMafFile(mafFile.getId()) == null) {
+                biologicalDataItemManager.deleteBiologicalDataItem(mafFile.getBioDataItemId());
+            }
         }
         return mafFile;
     }
@@ -212,30 +217,36 @@ public class MafManager {
             throws IOException {
         LOGGER.debug("Registering MAF file " + mafFile.getRealPath());
         fileManager.makeMafDir(mafFile.getId(), AuthUtils.getCurrentUserId());
-
         if (file.isDirectory()) {
             mergeMaf(file, mafFile);
         } else {
             mafFile.setPath(request.getPath());
+            createMafBioItem(mafFile);
             fileManager.makeMafIndex(mafFile);
         }
+    }
 
-        biologicalDataItemManager.createBiologicalDataItem(mafFile.getIndex());
+    private void createMafBioItem(MafFile mafFile) {
+        if (mafFile.getBioDataItemId() == null) {
+            long id = mafFile.getId();
+            biologicalDataItemManager.createBiologicalDataItem(mafFile);
+            mafFile.setBioDataItemId(mafFile.getId());
+            mafFile.setId(id);
+        }
     }
 
     private void mergeMaf(File directory, MafFile mafFile) throws IOException {
         Assert.notNull(directory.listFiles(), getMessage(ERROR_EMPTY_FOLDER));
         Assert.isTrue(directory.listFiles().length > 0, getMessage(ERROR_EMPTY_FOLDER));
-
-        for (File f : directory.listFiles()) {
-            if (f.getAbsolutePath().endsWith(MafCodec.MAF_EXTENSION) ||
-                    f.getAbsolutePath().endsWith(MafCodec.MAF_COMPRESSED_EXTENSION)) {
-                fileManager.makeMafTempIndex(f, mafFile);
-            }
-        }
-
         Reference reference = referenceGenomeManager.loadReferenceGenome(mafFile.getReferenceId());
         try (BufferedWriter writer = fileManager.makeMafFileWriter(mafFile)) {
+            createMafBioItem(mafFile);
+            for (File f : directory.listFiles()) {
+                if (f.getAbsolutePath().endsWith(MafCodec.MAF_EXTENSION) ||
+                        f.getAbsolutePath().endsWith(MafCodec.MAF_COMPRESSED_EXTENSION)) {
+                    fileManager.makeMafTempIndex(f, mafFile);
+                }
+            }
             for (Chromosome chromosome : reference.getChromosomes()) {
                 List<MafFeature> currChrFeatures = new ArrayList<>();
                 LOGGER.debug("Reading MAF records for chromosome {}", chromosome.getName());

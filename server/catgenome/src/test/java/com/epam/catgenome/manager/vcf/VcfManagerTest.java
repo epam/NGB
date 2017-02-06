@@ -58,6 +58,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.util.UrlTestingUtils;
 import com.epam.catgenome.controller.vo.Query2TrackConverter;
 import com.epam.catgenome.controller.vo.TrackQuery;
@@ -110,7 +111,7 @@ import com.epam.catgenome.util.Utils;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class VcfManagerTest {
+public class VcfManagerTest extends AbstractManagerTest {
 
     private static final String CLASSPATH_TEMPLATES_FELIS_CATUS_VCF = "classpath:templates/Felis_catus.vcf";
     private static final String CLASSPATH_TEMPLATES_FELIS_CATUS_VCF_COMPRESSED = "classpath:templates/Felis_catus.vcf" +
@@ -172,6 +173,8 @@ public class VcfManagerTest {
     private static final int TEST_CHROMOSOME_SIZE = 239107476;
     private static final int GENE_POSTION = 35471;
     private static final String SAMPLE_NAME = "HG00702";
+    private static final int NUMBER_OF_FILTERS = 2;
+    private static final int NUMBER_OF_TRIVIAL_INFO = 18;
 
     @Value("${ga4gh.google.variantSetId}")
     private String varSet;
@@ -181,6 +184,9 @@ public class VcfManagerTest {
     private Integer end;
     @Value("${ga4gh.google.chrGA4GH}")
     private String chrGA4GH;
+
+    @Value("${vcf.extended.info.patterns}")
+    private String infoTemplate;
 
     private long referenceId;
     private long referenceIdGA4GH;
@@ -215,6 +221,7 @@ public class VcfManagerTest {
         testReferenceGA4GH.setType(BiologicalDataItemResourceType.GA4GH);
         referenceGenomeManager.register(testReferenceGA4GH);
         referenceIdGA4GH = testReferenceGA4GH.getId();
+        vcfManager.setExtendedInfoTemplates(infoTemplate);
     }
 
     @Test
@@ -404,7 +411,7 @@ public class VcfManagerTest {
     @Ignore
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testRegisteDownloadFile() throws IOException, ClassNotFoundException, InterruptedException,
+    public void testRegisterDownloadFile() throws IOException, ClassNotFoundException, InterruptedException,
                                                  ParseException, NoSuchAlgorithmException, VcfReadingException {
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceId);
@@ -449,7 +456,7 @@ public class VcfManagerTest {
         Resource refResource = context.getResource("classpath:templates/A3.fa");
 
         ReferenceRegistrationRequest refRequest = new ReferenceRegistrationRequest();
-        refRequest.setName(testReference.getName());
+        refRequest.setName(testReference.getName() + this.getClass().getSimpleName());
         refRequest.setPath(refResource.getFile().getPath());
 
         Reference reference = referenceManager.registerGenome(refRequest);
@@ -762,6 +769,22 @@ public class VcfManagerTest {
         } finally {
             server.stop();
         }
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testLoadExtendedInfo()
+            throws IOException, InterruptedException, FeatureIndexException,
+            NoSuchAlgorithmException, FeatureFileReadingException {
+        VcfFile vcfFile = testSave("classpath:templates/extended_info.vcf");
+
+        VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
+        Assert.assertNotNull(file);
+
+        VcfFilterInfo filterInfo = vcfManager.getFiltersInfo(Collections.singleton(vcfFile.getId()));
+        Assert.assertEquals(NUMBER_OF_FILTERS, filterInfo.getAvailableFilters().size());
+        Assert.assertEquals(NUMBER_OF_TRIVIAL_INFO, filterInfo.getInfoItems().size());
+        Assert.assertEquals(NUMBER_OF_TRIVIAL_INFO, filterInfo.getInfoItemMap().size());
     }
 
     private void getNextFeature(Long reference, BiologicalDataItemResourceType type) throws IOException,

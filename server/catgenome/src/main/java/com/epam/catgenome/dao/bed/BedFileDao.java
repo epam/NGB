@@ -76,6 +76,16 @@ public class BedFileDao extends NamedParameterJdbcDaoSupport {
     }
 
     /**
+     * Persists {@code BedFile} record to the database
+     * @param bedFile a {@code BedFile} instance to be persisted
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void createBedFile(BedFile bedFile) {
+        getNamedParameterJdbcTemplate().update(createBedFileQuery, BiologicalDataItemDao.FeatureFileParameters
+                .getLinkedTableParameters(BedParameters.BED_ID.name(), bedFile));
+    }
+
+    /**
      * Loads a persisted {@code BedFile} record by it's ID
      * @param id {@code long} a BedFile ID
      * @return {@code BedFile} instance

@@ -133,7 +133,7 @@ public final class EntityHelper {
     public static Reference createNewReference(final Chromosome chromosome, final Long referenceId) {
         Reference reference = new Reference();
         reference.setId(referenceId);
-        reference.setName("testReference");
+        reference.setName("testReference " + referenceId);
         reference.setSize(0L);
         reference.setPath("");
         reference.setCreatedDate(new Date());
@@ -144,7 +144,7 @@ public final class EntityHelper {
     public static Reference createNewReference(final List<Chromosome> chromosomes, final Long referenceId) {
         Reference reference = new Reference();
         reference.setId(referenceId);
-        reference.setName("testReference");
+        reference.setName("testReference " + referenceId);
         reference.setSize(0L);
         reference.setPath("");
         reference.setCreatedDate(new Date());

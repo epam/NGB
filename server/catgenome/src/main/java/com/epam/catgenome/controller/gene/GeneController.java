@@ -131,9 +131,13 @@ public class GeneController extends AbstractRESTController {
     @ResponseBody
     @RequestMapping(value = "/gene/{geneFileId}/index", method = RequestMethod.GET)
     @ApiOperation(value = "Rebuilds a gene file feature index",
-        notes = "Rebuilds a gene file feature index", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Result<Boolean> reindexGeneFile(@PathVariable long geneFileId) throws IOException {
-        GeneFile geneFile = gffManager.reindexGeneFile(geneFileId);
+        notes = "Rebuilds a gene file feature index.</br>" +
+                "<b>full</b> parameter specifies if full original file should be reindexed, or " +
+                "preprocessed large scale and transcript files should be used for indexing.</br>",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Result<Boolean> reindexGeneFile(@PathVariable long geneFileId,  @RequestParam(defaultValue = "false")
+            boolean full) throws IOException {
+        GeneFile geneFile = gffManager.reindexGeneFile(geneFileId, full);
         return Result.success(true, MessageHelper.getMessage(MessagesConstants.INFO_FEATURE_INDEX_DONE,
                                                              geneFile.getId(), geneFile.getName()));
     }

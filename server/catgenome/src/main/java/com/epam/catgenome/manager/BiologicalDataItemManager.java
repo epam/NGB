@@ -55,4 +55,13 @@ public class BiologicalDataItemManager {
     public void createBiologicalDataItem(BiologicalDataItem item) {
         biologicalDataItemDao.createBiologicalDataItem(item);
     }
+
+    /**
+     * Deletes a BiologicalDataItem entity from the database
+     * @param id a BiologicalDataItem ID to delete
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void deleteBiologicalDataItem(long id) {
+        biologicalDataItemDao.deleteBiologicalDataItem(id);
+    }
 }

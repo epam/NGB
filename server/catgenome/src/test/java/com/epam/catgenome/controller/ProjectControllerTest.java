@@ -123,6 +123,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
     private static final String TEST_VCF_UNK_FILE_PATH = "classpath:templates/samples.vcf";
     private static final String TEST_GENE_FILE_PATH = "classpath:templates/genes_sorted.gtf";
     private static final String TEST_VCF_FILE_NAME1 = "file1";
+    private static final String TEST_GENE_FILE_NAME1 = "gene file1";
     private static final String TEST_VCF_FILE_NAME2 = "file2";
     private static final String TEST_FEATURE_ID = "ENSFCAG00000031108";
     private static final String TEST_PROJECT_NAME = "testProject";
@@ -138,7 +139,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
         referenceId = referenceGenomeManager.createReferenceId();
         testReference = new Reference();
         testReference.setId(referenceId);
-        testReference.setName("testReference");
+        testReference.setName("testReference " + this.getClass().getSimpleName());
         testReference.setSize(0L);
         testReference.setPath("");
         testReference.setCreatedDate(new Date());
@@ -652,7 +653,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testFilterVcf() throws Exception {
-        GeneFile geneFile = addGeneFile(TEST_VCF_FILE_NAME1, TEST_GENE_FILE_PATH);
+        GeneFile geneFile = addGeneFile(TEST_GENE_FILE_NAME1, TEST_GENE_FILE_PATH);
         BiologicalDataItem geneItem = new BiologicalDataItem();
         geneItem.setId(geneFile.getBioDataItemId());
         ProjectItem geneProjectItem = new ProjectItem();
@@ -777,6 +778,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
         Assert.assertNotNull(infoRes.getPayload());
         Assert.assertFalse(infoRes.getPayload().getAvailableFilters().isEmpty());
+        Assert.assertNull(infoRes.getPayload().getInfoItemMap());
         Assert.assertFalse(infoRes.getPayload().getInfoItems().isEmpty());
     }
 
@@ -813,7 +815,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
         ProjectItem vcfProjectItem = new ProjectItem();
         vcfProjectItem.setBioDataItem(vcfItem);
 
-        GeneFile geneFile = addGeneFile(TEST_VCF_FILE_NAME1, TEST_GENE_FILE_PATH);
+        GeneFile geneFile = addGeneFile(TEST_GENE_FILE_NAME1, TEST_GENE_FILE_PATH);
         BiologicalDataItem geneItem = new BiologicalDataItem();
         geneItem.setId(geneFile.getBioDataItemId());
         ProjectItem geneProjectItem = new ProjectItem();

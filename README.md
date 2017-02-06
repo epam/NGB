@@ -96,12 +96,13 @@ Options:
 -c (--cli)      builds ngb command line interface, used to manipulate data within ngb
 -i (--docker)   builds war-file and packages it into a docker image, using docker/core/Dockerfile
 -d (--docs)     builds markdown documents into html web-site
+-j (--jar)      builds standalone jar-file with embedded Tomcat
 -a (--all)      builds all components, listed above (used as default, if no options are specified)
 ```
 
 All options could be combined, except for `--all` option
 
-Build artifacts are placed into `distr/` folder in a root level of a cloned repository
+Build artifacts are placed into `dist/` folder in a root level of a cloned repository
 
 If this script does not fit - each component could be built on it's own. Build process for each component is described in a appropriate **README** file, located in the component's folder
 

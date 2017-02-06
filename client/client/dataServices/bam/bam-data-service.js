@@ -248,4 +248,18 @@ export class BamDataService extends DataService {
         };
         return this.post('bam/track/get', payload);
     }
+
+    /**
+     * Provides extended data about the particular read
+     */
+    loadRead(id,chromosomeId, startIndex, endIndex, name) {
+        const payload = {
+            id: id,
+            chromosomeId: chromosomeId,
+            startIndex: startIndex,
+            endIndex: endIndex,
+            name: name
+        };
+        return this.post('bam/read/load', payload);
+    }
 }

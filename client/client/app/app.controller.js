@@ -1,4 +1,5 @@
-import  baseController from './shared/baseController';
+import angular from 'angular';
+import baseController from './shared/baseController';
 
 export default class ngbAppController extends baseController {
     static get UID() {
@@ -30,7 +31,6 @@ export default class ngbAppController extends baseController {
             projectContext,
             projectDataService
         });
-
         this.dictionaryState = localDataService.getDictionary().State;
 
         this.initStateFromParams();
@@ -39,6 +39,8 @@ export default class ngbAppController extends baseController {
 
         this.eventHotkey.init();
 
+        this.toolbarVisibility = projectContext.toolbarVisibility;
+
         $rootScope.$on('$stateChangeSuccess', (evt, toState, toParams) => {
             this._changeStateFromParams(toParams);
         });
@@ -46,13 +48,11 @@ export default class ngbAppController extends baseController {
     }
 
     events = {
-        'projectId:change': ::this._goToState,
-        'state:change': ::this._goToState,
-        'viewport:position': ::this._goToState
+        'route:change': ::this._goToState
     };
 
     _changeStateFromParams(params) {
-        const {projectId, chromosome, end, rewrite, start, tracks} = params;
+        const {referenceId, chromosome, end, rewrite, start, tracks} = params;
         const position = start
             ? {end, start}
             : null;
@@ -63,8 +63,8 @@ export default class ngbAppController extends baseController {
         this.projectContext.changeState({
             chromosome: {name: chromosome},
             position: (start && !end) ? start: null,
-            project: {id: projectId},
-            tracksState: tracks ? JSON.parse(tracks) : null,
+            reference: {name: referenceId},
+            tracksState: tracks ? this.projectContext.convertTracksStateFromJson(tracks) : null,
             viewport: position
         });
     }
@@ -95,15 +95,18 @@ export default class ngbAppController extends baseController {
     }
 
     _goToState() {
-        const projectId = this.projectContext.projectId;
         const chromosome = this.projectContext.currentChromosome ? this.projectContext.currentChromosome.name : null;
         const start = this.projectContext.viewport ? parseInt(this.projectContext.viewport.start) : null;
         const end = this.projectContext.viewport ? parseInt(this.projectContext.viewport.end) : null;
-        this.$state.go(this.$state.current.name, {
-            chromosome,
+        const referenceId = this.projectContext.reference ? this.projectContext.reference.name : null;
+        const tracks = this.projectContext.tracksState ? this.projectContext.convertTracksStateToJson(this.projectContext.tracksState) : null;
+        const state = {chromosome,
             end,
-            projectId,
-            start
-        }, {notify: false, inherit: false});
+            referenceId,
+            start};
+        if (tracks) {
+            state.tracks = tracks;
+        }
+        this.$state.go(this.$state.current.name, state, {notify: false, inherit: false});
     }
 }

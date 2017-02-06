@@ -85,8 +85,7 @@ public class VcfGa4ghReader extends AbstractVcfReader {
 
     @Override
     public Track<Variation> readVariations(VcfFile vcfFile, Track<Variation> track, Chromosome chromosome,
-                                           Integer sampleIndex, boolean loadInfo, final boolean collapse)
-        throws VcfReadingException {
+                           Integer sampleIndex, boolean loadInfo, final boolean collapse) throws VcfReadingException {
         final String start = track.getStartIndex().toString();
         final String end = track.getEndIndex().toString();
         final List<VariantGA4GH> ghList;

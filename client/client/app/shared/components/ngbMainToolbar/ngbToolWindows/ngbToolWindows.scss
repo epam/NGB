@@ -1,0 +1,22 @@
+ngb-tool-windows {
+  display: block;
+}
+
+.ngb-tool-menu {
+  position: absolute;
+  top: 10px;
+  left: 60px;
+  width: 350px;
+  background: #fff;
+  z-index: 10;
+  .md-button[disabled] {
+    color: #000 !important;
+    ng-md-icon {
+      fill: #000 !important;
+    }
+  }
+}
+
+.info-hotkey{
+  font-size: 9px;
+}

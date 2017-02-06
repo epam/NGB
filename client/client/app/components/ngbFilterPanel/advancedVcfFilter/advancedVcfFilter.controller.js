@@ -16,9 +16,11 @@ export default class advancedVcfFilterController extends baseFilterController {
         const __init = ::this.INIT;
 
         this._dispatcher.on('variants:initialized', __init);
+        this._dispatcher.on('tracks:state:change', __init);
 
         $scope.$on('$destroy', () => {
             this._dispatcher.removeListener('variants:initialized', __init);
+            this._dispatcher.removeListener('tracks:state:change', __init);
         });
 
     }

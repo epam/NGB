@@ -29,7 +29,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <!-- We'll use database token store -->
     <bean id="tokenStore"
-          class="org.springframework.security.oauth2.provider.token.JdbcTokenStore">
+          class="org.springframework.security.oauth2.provider.token.store.JdbcTokenStore">
         <constructor-arg name="dataSource" ref="dataSource" />
     </bean>
 </beans>

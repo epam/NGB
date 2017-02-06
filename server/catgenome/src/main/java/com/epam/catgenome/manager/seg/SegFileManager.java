@@ -64,9 +64,13 @@ public class SegFileManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public void createSegFile(SegFile segFile) {
-        long realId = segFile.getId();
-        biologicalDataItemDao.createBiologicalDataItem(segFile);
-        segFileDao.createSegFile(segFile, realId);
+        if (segFile.getBioDataItemId() == null) {
+            long realId = segFile.getId();
+            biologicalDataItemDao.createBiologicalDataItem(segFile);
+            segFileDao.createSegFile(segFile, realId);
+        } else {
+            segFileDao.createSegFile(segFile);
+        }
         segFileDao.createSamples(segFile.getSamples(), segFile.getId());
     }
 

@@ -24,8 +24,7 @@ export default class ngbBookmarksTableController extends baseController {
     projectContext;
 
     events = {
-        'bookmark:save': ::this.loadData,
-        'projectId:change': ::this.loadData
+        'bookmark:save': ::this.loadData
     };
 
     constructor($scope, bookmarksTableService, dispatcher, projectContext, $mdDialog) {
@@ -68,11 +67,14 @@ export default class ngbBookmarksTableController extends baseController {
             end: entity.endIndex,
             start: entity.startIndex
         };
-        const projectId = entity.projectId;
         const chromosomeName = `${entity.chromosome.name}`.toLowerCase();
         const tracksState = entity.tracks;
         const layout = entity.layout;
-        this.projectContext.changeState({project: {id: projectId}, chromosome: {name: chromosomeName}, viewport: position, tracksState, layout});
+        const vcfColumns = entity.vcfColumns;
+        if (vcfColumns) {
+            this.projectContext.vcfColumns = vcfColumns;
+        }
+        this.projectContext.changeState({chromosome: {name: chromosomeName}, viewport: position, tracksState, layout, forceVariantsFilter: true});
     }
 
     onRemove(row, event) {

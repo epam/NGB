@@ -77,9 +77,7 @@ public class VcfFileManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public void createVcfFile(VcfFile vcfFile) {
-        final Long realId = vcfFile.getId();
-        biologicalDataItemDao.createBiologicalDataItem(vcfFile);
-        vcfFileDao.createVcfFile(vcfFile, realId);
+        vcfFileDao.createVcfFile(vcfFile);
         if (vcfFile.getSamples() != null) {
             vcfFileDao.createSamples(vcfFile.getSamples(), vcfFile.getId());
         }

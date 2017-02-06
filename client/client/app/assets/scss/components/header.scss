@@ -52,10 +52,32 @@ md-toolbar.md-header-toolbar {
   }
 }
 
+.page-title-header{
+  padding: 0 20px 0 0;
+}
+
+.page-title-logo{
+  margin: 5px 7px 0 10px;
+  padding: 13px 0 0 15px;
+  border-radius: 50%;
+  background-color: #4285f4;
+  height: 53px;
+  width: 53px;
+  box-sizing: border-box;
+}
+
 md-toolbar.md-project-toolbar {
   background-color: #fff;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   min-height: $header-toolbar-height;
+}
+
+ngb-project-title{
+  text-align: center;
+
+  .page-title{
+    width: 100%;
+  }
 }
 
 .title-dot {

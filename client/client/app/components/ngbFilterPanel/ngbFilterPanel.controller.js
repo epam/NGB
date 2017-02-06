@@ -14,17 +14,17 @@ export default class ngbFilterController {
             this.INIT();
         };
 
-        this._dispatcher.on('projectId:change', ngbInit);
+        this._dispatcher.on('reference:change', ngbInit);
 
         $scope.$on('$destroy', () => {
-            this._dispatcher.removeListener('projectId:change', ngbInit);
+            this._dispatcher.removeListener('reference:change', ngbInit);
         });
 
         this.INIT();
     }
 
     get isProjectSelected() {
-        return this.projectContext.project !== null;
+        return this.projectContext.reference !== null;
     }
 
     INIT() {

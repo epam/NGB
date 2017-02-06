@@ -206,7 +206,13 @@ export class GENETrack extends CachedTrack {
 
         if (checkPositionResult && checkPositionResult.length > 0) {
             if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
-                const feature = checkPositionResult[0];
+                let feature = checkPositionResult[0];
+                if (feature.feature === 'aminoacid') {
+                    [feature] = checkPositionResult.filter(x => x.feature === 'transcript');
+                    if (!feature) {
+                        return;
+                    }
+                }
                 const eventInfo = {
                     endIndex: feature.endIndex,
                     feature: feature,
@@ -309,7 +315,6 @@ export class GENETrack extends CachedTrack {
     }
 
     async updateCache() {
-
         if (this.cache.histogramData === null || this.cache.histogramData === undefined) {
             await this.downloadHistogramFn(
                 this.cacheUpdateInitialParameters(this.viewport)
@@ -326,7 +331,13 @@ export class GENETrack extends CachedTrack {
 
             const params = this.cacheUpdateParameters(this.viewport);
             this.applyAdditionalRequestParameters(params);
+            if (this.trackDataLoadingStatusChanged) {
+                this.trackDataLoadingStatusChanged(true);
+            }
             const data = await this.downloadDataFn(params, this.config.referenceId);
+            if (this.trackDataLoadingStatusChanged) {
+                this.trackDataLoadingStatusChanged(false);
+            }
             if (reqToken === this.__currentDataUpdateReq) {
                 const downloadedData = this.transformer.transformData(data, this.viewport);
                 if (!this.cache) {

@@ -8,28 +8,18 @@ export default class ngbTrackEvents {
     dispatcher;
     projectContext;
 
-    constructor(dispatcher, projectContext, $scope, $compile, projectDataService, genomeDataService) {
+    constructor(dispatcher, projectContext, $scope, $compile, projectDataService, genomeDataService, bamDataService, appLayout) {
         this.dispatcher = dispatcher;
         this.projectContext = projectContext;
         this.$scope = $scope;
         this.$compile = $compile;
         this._projectDataService = projectDataService;
         this._genomeDataService = genomeDataService;
+        this._bamDataService = bamDataService;
+        this.appLayout = appLayout;
     }
 
     async _getGeneTracks(track) {
-        if (!this.projectContext.project || track.instance.config.projectId !== this.projectContext.projectId) {
-            const mapTrackFn = function(item) {
-                return {
-                    chromosomeId: track.instance.config.chromosomeId,
-                    id: item.id,
-                    name: item.name,
-                    referenceId: item.referenceId
-                };
-            };
-            return ((await this._projectDataService.getProject(track.instance.config.projectId)).items || [])
-                .filter(item => item.format.toLowerCase() === 'gene').map(mapTrackFn);
-        }
         return this.projectContext.geneTracks;
     }
 
@@ -67,19 +57,26 @@ export default class ngbTrackEvents {
                     title: 'Show Info'
                 });
                 if (geneTracks.length > 0) {
-                    if (data.feature.attributes && data.feature.attributes.gene_id) {
+                    if (data.feature.attributes && data.feature.attributes.gene_id) {               
+                        let layoutChange = this.appLayout.Panels.molecularViewer;
+                        layoutChange.displayed = true;
                         menuData.push({
-                            events: [{
-                                data: new EventGeneInfo({
-                                    endIndex: data.feature.endIndex,
-                                    geneId: data.feature.attributes.gene_id,
-                                    geneTracks,
-                                    highlight: false,
-                                    startIndex: data.feature.startIndex,
-                                    transcriptId: data.feature.attributes.transcript_id
-                                }),
-                                name: 'miew:show:structure'
-                            }],
+                            events: [
+                                {
+                                    data: {layoutChange: layoutChange},
+                                    name: 'layout:item:change'
+                                },
+                                {
+                                    data: new EventGeneInfo({
+                                        endIndex: data.feature.endIndex,
+                                        geneId: data.feature.attributes.gene_id,
+                                        geneTracks,
+                                        highlight: false,
+                                        startIndex: data.feature.startIndex,
+                                        transcriptId: data.feature.attributes.transcript_id
+                                    }),
+                                    name: 'miew:show:structure'
+                                }],
                             title: 'Show 3D structure'
                         });
                     }
@@ -111,7 +108,7 @@ export default class ngbTrackEvents {
     }
 
     variationRequest(trackInstance, data: EventVariationInfo, track, event) {
-        (async()=> {
+        (async() => {
             if (data) {
                 if (data.endPoint && data.endPoint.chromosome) {
                     data.endPoint.chromosome = this.projectContext.getChromosome({name: data.endPoint.chromosome});
@@ -203,6 +200,18 @@ export default class ngbTrackEvents {
             }
         }
 
+        const goToMateMenuItem = pairReadParameters ? {
+                state: goToMateMenuItemEvent,
+                title: goToMateMenuItemEvent ? 'Go to mate' : 'Chromosome not found'
+            } : null;
+        const openMateMenuItem = pairReadParameters ? {
+                events: [{
+                    data: new PairReadInfo(pairReadParameters),
+                    name: 'read:show:mate'
+                }],
+                title: 'Open mate region in split view'
+            } : null;
+
         const showInfo = {
             events: [
                 {
@@ -214,7 +223,14 @@ export default class ngbTrackEvents {
                         referenceId: track.instance.config.referenceId,
                         startIndex: data.read.startIndex,
                         geneId: null,
-                        title: 'ALIGNMENT'
+                        title: 'ALIGNMENT',
+                        infoForRead: {
+                            id: track.id,
+                            chromosomeId: data.chromosome.id,
+                            startIndex: data.read.startIndex,
+                            endIndex: data.read.endIndex,
+                            name: data.read.name
+                        }
                     },
                     name: 'feature:info:select'
                 }
@@ -222,22 +238,32 @@ export default class ngbTrackEvents {
             title: 'Show info'
         };
 
-        const goToMateMenuItem = pairReadParameters ? {
-            state: goToMateMenuItemEvent,
-            title: goToMateMenuItemEvent ? 'Go to mate' : 'Chromosome not found'
-        } : null;
-        const openMateMenuItem = pairReadParameters ? {
-            events: [{
-                data: new PairReadInfo(pairReadParameters),
-                name: 'read:show:mate'
-            }],
-            title: 'Open mate region in split view'
-        } : null;
-
-
+        const self = this;
         const copyToClipboard = {
-            clipboard: data.info.map(line => line.join(' = ')).join('\r\n'),
-            title: 'Copy info to clipboard'
+            clipboard: "Loading...",
+            title: 'Copy info to clipboard',
+            isLoading: true,
+            fn: async function (menuItem) {
+                const read = await self._bamDataService.loadRead(track.id, data.chromosome.id, data.read.startIndex, data.read.endIndex, data.read.name);
+                const generalInfo = data.info.map(line => line.join(' = ')).join('\r\n');
+                const tags = read.tags.map(tag => tag.tag + ' = ' + tag.value).join('\r\n');
+
+                menuItem.clipboard = generalInfo + '\r\n\r\n' + read.sequence + '\r\n\r\n' + tags;
+                menuItem.isLoading = false;
+                self.$scope.$apply();
+            }
+        };
+
+        const copySequenceToClipboard = {
+            clipboard: "Loading...",
+            title: 'Copy sequence to clipboard',
+            isLoading: true,
+            fn: async function (menuItem) {
+                const read = await self._bamDataService.loadRead(track.id, data.chromosome.id, data.read.startIndex, data.read.endIndex, data.read.name);
+                menuItem.clipboard = read.sequence;
+                menuItem.isLoading = false;
+                self.$scope.$apply();
+            }
         };
 
         const menuData = [];
@@ -247,6 +273,7 @@ export default class ngbTrackEvents {
             menuData.push(openMateMenuItem);
         }
         menuData.push(copyToClipboard);
+        menuData.push(copySequenceToClipboard);
         if (chromosomeNotFoundError) {
             menuData.push({
                 title: chromosomeNotFoundError
@@ -266,5 +293,4 @@ export default class ngbTrackEvents {
     static configureCopyToClipboardElements() {
         new Clipboard('.copy-to-clipboard-button');
     }
-
 }

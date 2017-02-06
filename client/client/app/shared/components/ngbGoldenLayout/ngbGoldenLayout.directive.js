@@ -4,14 +4,14 @@ import {isEquivalent} from '../../utils/Object';
 export default ($document, $window, projectContext) => ({
     link: (scope, $el) => {
 
-        const heightToolbar = 41;
+        const widthToolbar = 50;
 
         const toolbarVisibility = projectContext.toolbarVisibility;
 
-        const headerHeight = toolbarVisibility ? heightToolbar : 0;
+        const menuWidth = toolbarVisibility ? widthToolbar : 0;
 
-        $el.height($window.innerHeight - headerHeight);
-        $el.width($window.innerWidth);
+        $el.height($window.innerHeight);
+        $el.width($window.innerWidth - menuWidth);
 
         scope.onInit();
 
@@ -22,8 +22,8 @@ export default ($document, $window, projectContext) => ({
             };
             if (!isEquivalent(scope.currentDimensions, currentWindowSize)) {
 
-                $el.height(currentWindowSize.height - headerHeight);
-                $el.width(currentWindowSize.width);
+                $el.height(currentWindowSize.height);
+                $el.width(currentWindowSize.width - menuWidth);
 
                 scope.currentDimensions = currentWindowSize;
                 scope.onResize();

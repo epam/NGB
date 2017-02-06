@@ -27,6 +27,11 @@ package com.epam.catgenome.common;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -67,7 +72,7 @@ public abstract class AbstractControllerTest extends AbstractJUnitTest {
     private TypeFactory typeFactory;
 
     @Autowired
-    private WebApplicationContext wac;
+    protected WebApplicationContext wac;
 
     @Before
     public void setup() throws Exception {
@@ -77,6 +82,12 @@ public abstract class AbstractControllerTest extends AbstractJUnitTest {
 
         typeFactory = TypeFactory.defaultInstance();
         mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
+    }
+
+    @After
+    public void tearDown() throws IOException {
+        System.gc();
+        FileUtils.deleteDirectory(new File(fileManager.getBaseDirPath()));
     }
 
     protected final MockMvc mvc() {

@@ -41,6 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.gene.ProteinSequenceVariationQuery;
 import com.epam.catgenome.controller.vo.TrackQuery;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
@@ -66,7 +67,7 @@ import com.epam.catgenome.manager.reference.ReferenceManager;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class ProteinSequenceManagerIntegrationTest {
+public class ProteinSequenceManagerIntegrationTest extends AbstractManagerTest {
 
     private static final int VARIATION_START_INDEX_1 = 3;
     private static final int VARIATION_END_INDEX_1 = 4;

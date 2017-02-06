@@ -74,7 +74,6 @@ public class BamFileManager {
         Assert.notNull(bamFile.getCreatedBy());
         Assert.notNull(bamFile.getPath());
 
-        biologicalDataItemDao.createBiologicalDataItem(bamFile);
         bamFileDao.createBamFile(bamFile);
     }
 

@@ -15,13 +15,14 @@ export default class geneController extends baseFilterController {
     }
 
     getGenes(searchText) {
-        if (this.projectId) {
+        if (this.projectContext.reference) {
+            const ids = this._ngbFilterService.getAllVcfIdList();
+            const vcfIds = this.projectContext.vcfTracks.filter(t => ids.indexOf(t.bioDataItemId) >= 0).map(t => t.id);
             return this._dataProjectService.autocompleteGeneId(
-                this.projectId,
                 searchText,
                 this.projectContext.vcfFilter.vcfFileIds.length !== 0 ?
                     this.projectContext.vcfFilter.vcfFileIds :
-                    this._ngbFilterService.getAllVcfIdList())
+                    vcfIds)
                 .then((data)=> data
                 );
         } else {

@@ -1,9 +1,10 @@
 export class EventVariationInfo {
     constructor(obj) {
-        const {id, vcfFileId, chromosome, type, position, endPoints}=obj;
+        const {id, vcfFileId, projectId, chromosome, type, position, endPoints}=obj;
 
         this._id = id;
         this._vcfFileId = vcfFileId;
+        this._projectId = projectId;
         this._chromosome = chromosome;
         this._type = type;
         this._endPoints = endPoints;
@@ -16,6 +17,10 @@ export class EventVariationInfo {
 
     get vcfFileId() {
         return this._vcfFileId;
+    }
+
+    get projectId() {
+        return this._projectId;
     }
 
     get chromosome() {

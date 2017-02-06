@@ -26,6 +26,7 @@ package com.epam.catgenome.component;
 
 import java.util.Locale;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.util.Assert;
 
@@ -69,8 +70,9 @@ public final class MessageHelper {
      * @param messageSource {@code MessageSource} represents a reference on resources bundle that should
      *                      be associated with this helper
      */
-    private MessageHelper(final MessageSource messageSource) {
+    public MessageHelper(final MessageSource messageSource) {
         this.messageSource = messageSource;
+        instance = this;
     }
 
     /**
@@ -81,6 +83,11 @@ public final class MessageHelper {
      */
     public MessageSource getMessageSource() {
         return messageSource;
+    }
+
+    @Autowired
+    public static void setInstance(MessageHelper helper) {
+        MessageHelper.instance = helper;
     }
 
     /**

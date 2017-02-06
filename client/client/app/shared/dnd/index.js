@@ -160,25 +160,24 @@ export default angular.module('dndLists', [])
 
                     const tracksSettings = scope.ctrl.projectContext.tracksState || [];
 
-                    const hiddenTracks = tracksSettings.filter(m => m.hidden === true);
-
                     const tracksState = [
                         ...dndList.map(file => {
                             const [fileSettings]= tracksSettings.filter(m => m.bioDataItemId.toString() === file.bioDataItemId.toString());
                             if (!fileSettings) {
                                 return {
-                                    bioDataItemId: file.bioDataItemId
+                                    bioDataItemId: file.bioDataItemId,
+                                    projectId: file.projectId
                                 };
                             } else {
                                 const height = fileSettings.height;
-                                const hidden = fileSettings.hidden;
+                                const state = fileSettings.state;
                                 return {
-                                    height, hidden,
-                                    bioDataItemId: file.bioDataItemId
+                                    height, state,
+                                    bioDataItemId: file.bioDataItemId,
+                                    projectId: file.projectId
                                 };
                             }
-                        }),
-                        ...hiddenTracks];
+                        })];
 
                     scope.ctrl.projectContext.changeState({tracksState}, true);
 

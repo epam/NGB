@@ -18,6 +18,7 @@ export default class LocalDataService {
             bookmarks = [];
             this.updateBookmarks(bookmarks);
         }
+        bookmarks = bookmarks.map(::this.recoverBookmark);
         return bookmarks;
     }
 
@@ -25,6 +26,15 @@ export default class LocalDataService {
         const [bookmark] = this.getBookmarks().filter(bookmark => bookmark.id === id);
         if (!bookmark) {
             return null;
+        }
+        return bookmark;
+    }
+
+    recoverBookmark(bookmark) {
+        if (bookmark.projectId !== undefined) {
+            for (let i = 0; i < (bookmark.tracks || []).length; i++) {
+                bookmark.tracks[i].projectId = bookmark.projectId;
+            }
         }
         return bookmark;
     }
@@ -48,6 +58,7 @@ export default class LocalDataService {
     }
 
     updateBookmarks(bookmarks) {
+        bookmarks = bookmarks.map(::this.recoverBookmark);
         this._localStorage.bookmarks = angular.toJson(bookmarks || []);
     }
 

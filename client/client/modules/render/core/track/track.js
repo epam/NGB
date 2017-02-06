@@ -155,8 +155,8 @@ export class Track extends BaseTrack {
         }
         const track = {
             bioDataItemId: this.config.bioDataItemId,
+            projectId: this.config.projectId,
             height: this.height,
-            hidden: false,
             state: this.state
         };
         this.projectContext.applyTrackState(track);

@@ -116,7 +116,7 @@ public class BookmarksControllerTest extends AbstractControllerTest {
         referenceId = referenceGenomeManager.createReferenceId();
         testReference = new Reference();
         testReference.setId(referenceId);
-        testReference.setName("testReference");
+        testReference.setName("testReference " + this.getClass().getSimpleName());
         testReference.setSize(0L);
         testReference.setPath("");
         testReference.setCreatedDate(new Date());

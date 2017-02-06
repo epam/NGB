@@ -12,14 +12,16 @@ export class VcfDataService extends DataService {
         return this.get(`vcf/${vcfFieldId}/fieldInfo`);
     }
 
-    register(referenceId, path ,indexPath, name) {
+    register(referenceId, path, indexPath, name) {
         return this.post('vcf/register', {referenceId, path, indexPath, name});
     }
 
-    getVariantInfo(variantData){
+    getVariantInfo(variantData) {
         return new Promise((resolve) => {
             this.post('vcf/variation/load', variantData)
-                .catch(() => { resolve(null); })
+                .catch(() => {
+                    resolve(null);
+                })
                 .then((data) => {
                     if (data) {
                         resolve(data);
@@ -33,7 +35,7 @@ export class VcfDataService extends DataService {
 
     loadVcfTrack(vcf) {
         return new Promise((resolve, reject) => {
-            this.post('vcf/track/get', vcf).then((data)=> {
+            this.post('vcf/track/get', vcf).then((data) => {
                 if (data) {
                     resolve(data.blocks ? data.blocks : []);
                 } else {
@@ -48,40 +50,62 @@ export class VcfDataService extends DataService {
         return this.get(`vcf/${refId}/loadAll`);
     }
 
-    getNextVariations(tracksVCF, chromosomeId ,fromPosition) {
-        const promises = [];
-        tracksVCF.forEach(trackVCF => {
-            const promise = new Promise((resolve) => {
-                this.get(`vcf/${trackVCF.id}/${chromosomeId}/next/?fromPosition=${fromPosition}`).then((data)=> {
-                    if (data) {
-                        resolve(data);
-                    }
+    getNextVariations(tracksVCF, chromosomeId, fromPosition) {
+        if (tracksVCF instanceof Array) {
+            const promises = [];
+            tracksVCF.forEach(trackVCF => {
+                const promise = new Promise((resolve) => {
+                    this.get(`vcf/${trackVCF.id}/${chromosomeId}/next/?fromPosition=${fromPosition}`).then((data) => {
+                        if (data) {
+                            resolve(data);
+                        }
+                    });
+                });
+                promises.push(promise);
+            });
+            return new Promise((resolve) => {
+                Promise.all(promises).then(values => {
+                    resolve(values);
                 });
             });
-            promises.push(promise);
-        });
-        return new Promise((resolve) => {
-            Promise.all(promises).then(values => {
-                resolve(values);
+        }
+        return new Promise((resolve, reject) => {
+            this.get(`vcf/${tracksVCF.id}/${chromosomeId}/next/?fromPosition=${fromPosition}`).catch(() => {
+                resolve([]);
+            }).then((data) => {
+                if (data) {
+                    resolve(data);
+                }
             });
         });
     }
 
-    getPreviousVariations(tracksVCF, chromosomeId ,fromPosition) {
-        const promises = [];
-        tracksVCF.forEach(trackVCF => {
-            const promise = new Promise((resolve) => {
-                this.get(`vcf/${trackVCF.id}/${chromosomeId}/prev/?fromPosition=${fromPosition}`).then((data)=> {
-                    if (data) {
-                        resolve(data);
-                    }
+    getPreviousVariations(tracksVCF, chromosomeId, fromPosition) {
+        if (tracksVCF instanceof Array) {
+            const promises = [];
+            tracksVCF.forEach(trackVCF => {
+                const promise = new Promise((resolve) => {
+                    this.get(`vcf/${trackVCF.id}/${chromosomeId}/prev/?fromPosition=${fromPosition}`).then((data) => {
+                        if (data) {
+                            resolve(data);
+                        }
+                    });
+                });
+                promises.push(promise);
+            });
+            return new Promise((resolve) => {
+                Promise.all(promises).then(values => {
+                    resolve(values);
                 });
             });
-            promises.push(promise);
-        });
-        return new Promise((resolve) => {
-            Promise.all(promises).then(values => {
-                resolve(values);
+        }
+        return new Promise((resolve, reject) => {
+            this.get(`vcf/${tracksVCF.id}/${chromosomeId}/prev/?fromPosition=${fromPosition}`).catch(() => {
+                resolve([]);
+            }).then((data) => {
+                if (data) {
+                    resolve(data);
+                }
             });
         });
     }

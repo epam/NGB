@@ -24,7 +24,6 @@ export default class ngbGoldenLayout {
             .map(m => this.createItem(m));
     }
 
-
     repairSavedLayout(root) {
         if (!root)return root;
 

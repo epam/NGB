@@ -62,9 +62,7 @@ public class BedFileManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public void createBedFile(BedFile bedFile) {
-        long realId = bedFile.getId();
-        biologicalDataItemDao.createBiologicalDataItem(bedFile);
-        bedFileDao.createBedFile(bedFile, realId);
+        bedFileDao.createBedFile(bedFile);
     }
 
     /**

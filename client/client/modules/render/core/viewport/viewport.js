@@ -15,9 +15,6 @@ export class Viewport extends BaseViewport {
 
     margin = 0;
 
-    nameGlobalEvent = 'viewport:position';
-    nameEventObj = 'viewport';
-
     initialized = false;
 
     projectContext;
@@ -26,7 +23,7 @@ export class Viewport extends BaseViewport {
 
     _shortenedIntronsViewport = new ShortenedIntronsViewport(this);
 
-    isSlave = false;
+    browserId = null;
 
     constructor(element: HTMLElement, {
         chromosomeSize,
@@ -53,35 +50,36 @@ export class Viewport extends BaseViewport {
         this.vcfDataService = vcfDataService;
 
         if (browserInitialSetting && browserInitialSetting.browserId) {
-            this.isSlave = true;
-            this.nameGlobalEvent = `viewport:position:${browserInitialSetting.browserId}`;
-            this.nameEventObj = `viewport:${browserInitialSetting.browserId}`;
+            this.browserId = browserInitialSetting.browserId;
+            this.projectContext.changeViewportState(this.browserId, this.brush, true);
         }
-
-        const _nameGlobalEvent = this.nameGlobalEvent;
-        const _nameEventObj = this.nameEventObj;
-        this.dispatcher.emitGlobalEvent(this.nameGlobalEvent, {[this.nameEventObj]: this.brush});
 
         this.hotKeyListener = (event) => {
             if (event) {
                 const path = event.split('>');
                 if (path && path[0] === 'vcf') {
                     const tracksVCF = this.projectContext.getActiveTracks().filter(track => track.format === 'VCF');
-                    const position =  Math.floor((this.brush.end + this.brush.start)/2);
-                    if (path[1] === 'nextVariation') {
-                        this.vcfDataService.getNextVariations(tracksVCF, this.projectContext.currentChromosome.id, position + 1).then(
-                            (data) => {
-                                const minStartIndex = Math.min.apply(Math,data.map(function(d){return d.startIndex;}));
-                                this.selectPosition(minStartIndex);
-                            }
-                        );
-                    } else {
-                        this.vcfDataService.getPreviousVariations(tracksVCF, this.projectContext.currentChromosome.id, position - 1).then(
-                            (data) => {
-                                const maxStartIndex = Math.max.apply(Math,data.map(function(d){return d.startIndex;}));
-                                this.selectPosition(maxStartIndex);
-                            }
-                        );
+                    if(tracksVCF.length !== 0) {
+                        const position = Math.floor((this.brush.end + this.brush.start) / 2);
+                        if (path[1] === 'nextVariation') {
+                            this.vcfDataService.getNextVariations(tracksVCF, this.projectContext.currentChromosome.id, position + 1).then(
+                                (data) => {
+                                    const minStartIndex = Math.min.apply(Math, data.map(function (d) {
+                                        return d.startIndex;
+                                    }));
+                                    this.selectPosition(minStartIndex);
+                                }
+                            );
+                        } else {
+                            this.vcfDataService.getPreviousVariations(tracksVCF, this.projectContext.currentChromosome.id, position - 1).then(
+                                (data) => {
+                                    const maxStartIndex = Math.max.apply(Math, data.map(function (d) {
+                                        return d.startIndex;
+                                    }));
+                                    this.selectPosition(maxStartIndex);
+                                }
+                            );
+                        }
                     }
                 }
             }
@@ -90,7 +88,9 @@ export class Viewport extends BaseViewport {
         this.dispatcher.on('hotkeyPressed', _hotKeyListener);
 
         this.onDestroy = () => {
-            this.dispatcher.emitGlobalEvent(_nameGlobalEvent, {[_nameEventObj]: null});
+            if (this.browserId) {
+                this.projectContext.changeViewportState(this.browserId, undefined);
+            }
             this.dispatcher.removeListener('hotkeyPressed', _hotKeyListener);
         };
         this._initSubscriptions();
@@ -196,7 +196,7 @@ export class Viewport extends BaseViewport {
         return (this.brush.start + this.brush.end) / 2;
     }
 
-    transform({start = this.brush.start, end = this.brush.end, delta = 0}) {
+    transform({start = this.brush.start, end = this.brush.end, delta = 0, awakeFromShortenedIntrons = false}) {
         const oldBrush = {
             end: this.brush.end,
             start: this.brush.start,
@@ -241,21 +241,13 @@ export class Viewport extends BaseViewport {
                     start,
                 });
                 if (!this.initialized || oldBrush.start !== this.brush.start || oldBrush.end !== this.brush.end) {
-                    if (!this.isSlave) {
-                        this.projectContext.changeState({[this.nameEventObj]: this.brush});
-                    } else {
-                        this.dispatcher.emitGlobalEvent(this.nameGlobalEvent, {[this.nameEventObj]: this.brush});
-                    }
+                    this.projectContext.changeViewportState(this.browserId, Object.assign({}, this.brush));
                     this.brushChangeSubject.onNext(this);
                 }
             })();
         }
-        else if (!this.initialized || oldBrush.start !== this.brush.start || oldBrush.end !== this.brush.end) {
-            if (!this.isSlave) {
-                this.projectContext.changeState({[this.nameEventObj]: this.brush});
-            } else {
-                this.dispatcher.emitGlobalEvent(this.nameGlobalEvent, {[this.nameEventObj]: this.brush});
-            }
+        else if (awakeFromShortenedIntrons || !this.initialized || oldBrush.start !== this.brush.start || oldBrush.end !== this.brush.end) {
+            this.projectContext.changeViewportState(this.browserId, this.brush);
             this.brushChangeSubject.onNext(this);
         }
     }
@@ -266,10 +258,10 @@ export class Viewport extends BaseViewport {
             return;
         }
         if (!this.canTransform) {
-            if (!this.isSlave) {
-                this.projectContext.changeState({[this.nameEventObj]: this.brush}, true);
+            if (!this.browserId) {
+                this.projectContext.changeState({viewport: this.brush}, true);
             } else {
-                this.dispatcher.emitGlobalEvent(this.nameGlobalEvent, {[this.nameEventObj]: this.brush});
+                this.projectContext.changeViewportState(this.browserId, this.brush);
             }
             return;
         }
@@ -296,10 +288,10 @@ export class Viewport extends BaseViewport {
             return;
         }
         if (!this.canTransform) {
-            if (!this.isSlave) {
-                this.projectContext.changeState({[this.nameEventObj]: this.brush}, true);
+            if (!this.browserId) {
+                this.projectContext.changeState({viewport: this.brush}, true);
             } else {
-                this.dispatcher.emitGlobalEvent(this.nameGlobalEvent, {[this.nameEventObj]: this.brush});
+                this.projectContext.changeViewportState(this.browserId, this.brush);
             }
             return;
         }

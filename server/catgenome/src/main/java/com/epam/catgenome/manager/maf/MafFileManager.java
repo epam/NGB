@@ -62,9 +62,7 @@ public class MafFileManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public void createMafFile(MafFile mafFile) {
-        long realId = mafFile.getId();
-        biologicalDataItemDao.createBiologicalDataItem(mafFile);
-        mafFileDao.createMafFile(mafFile, realId);
+        mafFileDao.createMafFile(mafFile);
     }
 
     /**

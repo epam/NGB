@@ -21,7 +21,7 @@ export default class ngbBrowserController extends baseController {
 
     events = {
         'chromosome:change': ::this.onStateChange,
-        'projectId:change': ::this.onStateChange
+        'reference:change': ::this.onStateChange
     };
 
     $onInit() {
@@ -29,10 +29,10 @@ export default class ngbBrowserController extends baseController {
     }
 
     onStateChange() {
-        const projectId = this.projectContext.projectId;
+        const reference = this.projectContext.reference;
         const chromosome = this.projectContext.currentChromosome;
         this.isChromosome = chromosome !== null;
-        this.isProject = projectId !== null && projectId !== undefined;
+        this.isProject = reference !== null && reference !== undefined;
 
         this.$timeout(::this.$scope.$apply);
     }

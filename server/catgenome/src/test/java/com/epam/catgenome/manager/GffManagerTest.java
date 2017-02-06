@@ -40,6 +40,8 @@ import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Before;
@@ -61,6 +63,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.entity.BiologicalDataItem;
@@ -104,7 +107,7 @@ import htsjdk.tribble.TribbleException;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class GffManagerTest {
+public class GffManagerTest extends AbstractManagerTest {
     private static final int START_INDEX_ASTRA = 17084954;
     private static final int END_INDEX_ASTRA = 17084954;
     private static final String PBD_TEST_ID = "2K8F";
@@ -120,33 +123,45 @@ public class GffManagerTest {
     private static final int TEST_CENTER_POSITION = 109836;
     private static final int TEST_VIEW_PORT_SIZE = 30000;
     private static final int TEST_INTRON_LENGTH = 100;
+
     @Autowired
     ApplicationContext context;
+
     @Mock
     private HttpDataManager httpDataManager;
+
     @Spy
     @InjectMocks
     private PdbDataManager pBDataManager;
+
     @Spy
     @InjectMocks
     private EnsemblDataManager ensemblDataManager;
+
     @Spy
     @InjectMocks
     private UniprotDataManager uniprotDataManager;
+
     @InjectMocks
     @Autowired
     @Spy
     private GffManager gffManager;
+
     @Autowired
     private GeneFileManager geneFileManager;
+
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
+
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
+
     @Autowired
     private FileManager fileManager;
+
     @Value("#{catgenome['files.base.directory.path']}")
     private String baseDirPath;
+
     private long referenceId;
     private Reference testReference;
     private Chromosome testChromosome;
@@ -671,6 +686,16 @@ public class GffManagerTest {
         Assert.assertFalse(dir.exists());
 
         return true;
+    }
+
+    public void checkGenesCorrectness(List<Gene> genes) {
+        Assert.assertTrue(genes.stream().allMatch(g -> MapUtils.isNotEmpty(g.getAttributes())));
+        Assert.assertTrue(genes.stream().allMatch(g -> !GeneUtils.isGene(g) || CollectionUtils.isNotEmpty(
+            g.getItems())));
+        Assert.assertTrue(genes.stream().allMatch(g -> !GeneUtils.isGene(g) || g.getItems().stream().allMatch(
+            i -> MapUtils.isNotEmpty(i.getAttributes()))));
+        Assert.assertTrue(genes.stream().allMatch(g -> !GeneUtils.isGene(g) || g.getItems().stream().allMatch(
+            i -> CollectionUtils.isNotEmpty(i.getItems()))));
     }
 
 

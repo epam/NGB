@@ -14,7 +14,11 @@ export default  {
 
         $scope.$watch('$ctrl.chainId', () => {
             if (this.parsingFinished) {
-                setChainMaterials(this.chainId, this.description.entities);
+                let chainId = this.chainId;
+                if (chainId === 'All') {
+                    chainId = '';
+                }
+                setChainMaterials(chainId, this.description.entities);
             }
         });
 
@@ -118,7 +122,11 @@ export default  {
         }
         viewer.addEventListener('parsingFinished', () => {
             this.parsingFinished = true;
-            setChainMaterials(this.chainId, this.description.entities);
+            let chainId = this.chainId;
+            if (chainId === 'All') {
+                chainId = '';
+            }
+            setChainMaterials(chainId, this.description.entities);
         });
 
 

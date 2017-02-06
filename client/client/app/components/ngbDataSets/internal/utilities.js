@@ -31,6 +31,7 @@ function _preprocessNode(node: Node, parent: Node = null) {
     const mapTrackFn = function(track) {
         track.isTrack = true;
         track.project = node;
+        track.projectId = node.id;
         track.reference = reference;
         track.hint = `${track.name}${reference ? `\r\nReference: ${reference.name}` : ''}`;
         track.searchFilterPassed = true;
@@ -117,32 +118,31 @@ export function sortByNameDesc(node1: Node, node2: Node) {
     return node1.name.toLowerCase() > node2.name.toLowerCase() ? -1 : 1;
 }
 
-export function updateTracksStateFn(tree, manager, opts, projectsPath) {
-    if (!projectsPath || projectsPath.length === 0) {
-        return null;
+export function updateTracksStateFn(tree, manager, opts, reference) {
+    if (!reference) {
+        return;
     }
     return function (item: Node) {
-        if (item.isProject && projectsPath.indexOf(item.id) === -1) {
-            manager.deselect(tree, item, opts);
-            return false;
-        } else if (item.isTrack && projectsPath[0] !== item.project.id) {
+        if (item.isTrack && item.reference.bioDataItemId !== reference.bioDataItemId) {
             manager.deselect(tree, item, opts);
         }
         return true;
     };
 }
 
-export function mapVisibleTrackFn(track: Node){
-    return {
-        bioDataItemId: track.bioDataItemId,
-        hidden: false
-    };
+export function selectRecursively(item: Node, isSelected) {
+    item.__selected = isSelected;
+    if (item.isProject) {
+        for (let i = 0; i < item.items.length; i++) {
+            selectRecursively(item.items[i], isSelected);
+        }
+    }
 }
 
-export function mapInvisibleTrackFn(track: Node){
+export function mapTrackFn(track: Node){
     return {
         bioDataItemId: track.bioDataItemId,
-        hidden: true
+        projectId: track.projectId
     };
 }
 
@@ -165,6 +165,24 @@ export function findProject(datasets: Array<Node>, project) {
         }
     }
     return null;
+}
+
+export function findProjectReference(project: Node) {
+    const tracks = project.items || project._lazyItems;
+    let reference = null;
+    if (tracks.filter(t => t.isTrack && !t.isPlaceholder).length) {
+        [reference] = tracks.filter(t => t.isTrack && !t.isPlaceholder).map(t => t.reference);
+    } else {
+        const datasets = tracks.filter(t => t.isProject);
+        for (let i = 0; i < datasets.length; i++) {
+            const dataset = datasets[i];
+            reference = findProjectReference(dataset);
+            if (reference) {
+                break;
+            }
+        }
+    }
+    return reference;
 }
 
 export function expandNode(node: Node, manager, options) {

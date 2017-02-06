@@ -60,13 +60,15 @@ public abstract class AbstractJUnitTest {
 
     protected static final String TEMPLATES_CLASSPATH = "classpath:templates/";
     protected static final String FMT_TEMP_TEMPLATE_PATH = "%s" + File.separator + "%s";
+    protected static final String CLASSPATH_TEMPLATES_FELIS_CATUS_VCF = "classpath:templates/Felis_catus.vcf";
+    protected static final String CLASSPATH_TEMPLATES_GENES_SORTED = "classpath:templates/genes_sorted.gtf";
 
     protected static final String CHR_A1 = "chrA1";
     protected static final String CHR_A5 = "chrA5";
     protected static final String HP_GENOME = "Harry Potter v1.0";
 
     @Autowired
-    private FileManager fileManager;
+    protected FileManager fileManager;
 
     @Autowired
     private ApplicationContext context;
@@ -86,8 +88,14 @@ public abstract class AbstractJUnitTest {
         final File source = ctx().getResource(TEMPLATES_CLASSPATH + name).getFile();
         // copies it to a temporary directory, because managers can delete assuming that
         // it's a temporary resource created during file upload operation
+
+        if (!fileManager.getTempDir().exists()) {
+            fileManager.getTempDir().mkdirs();
+        }
+
         final File destination = new File(String.format(FMT_TEMP_TEMPLATE_PATH,
-            fileManager.getTempDir().getAbsolutePath(), source.getName()));
+                                                        fileManager.getTempDir().getAbsolutePath(), source.getName()));
+
         Files.copy(source, destination);
         return destination;
     }

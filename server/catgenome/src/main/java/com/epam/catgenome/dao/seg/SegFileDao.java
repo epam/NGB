@@ -93,6 +93,16 @@ public class SegFileDao extends NamedParameterJdbcDaoSupport {
     }
 
     /**
+     * Persists {@code SegFile} record to the database
+     * @param segFile a {@code SegFile} instance to be persisted
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void createSegFile(SegFile segFile) {
+        getNamedParameterJdbcTemplate().update(createSegFileQuery, BiologicalDataItemDao.FeatureFileParameters
+                .getLinkedTableParameters(SegParameters.SEG_ID.name(), segFile));
+    }
+
+    /**
      * Loads a persisted {@code SegFile} record by it's ID
      * @param id {@code long} a SegFile ID
      * @return {@code SegFile} instance

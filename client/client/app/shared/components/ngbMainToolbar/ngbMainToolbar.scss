@@ -1,0 +1,33 @@
+.ngb-header {
+  padding-left: 20px;
+}
+
+ngb-main-toolbar {
+  display: block;
+  ngb-info-product {
+    float: right;
+    vertical-align: top;
+  }
+  ngb-tool-windows {
+    float: right;
+    vertical-align: top;
+  }
+  ngb-share-link {
+    float: right;
+    vertical-align: top;
+  }
+  ngb-main-settings {
+    float: right;
+    vertical-align: top;
+  }
+}
+
+.list-menu li{
+  list-style-type: none;
+  ng-md-icon {
+    fill: white;
+  }
+  md-icon {
+    fill: white;
+  }
+}

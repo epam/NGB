@@ -62,7 +62,7 @@ export default class ngbCoordinatesController extends baseController {
     }
 
     get isProjectSelected() {
-        return this.projectContext.projectId !== null;
+        return this.projectContext.reference !== null;
     }
 
     $onInit() {
@@ -186,8 +186,11 @@ export default class ngbCoordinatesController extends baseController {
     }
 
     async searchGenes(text) {
+        if (!this.projectContext.reference) {
+            return;
+        }
         const searchQuery = text;
-        const result = await this.projectDataService.searchGenes(this.projectContext.projectId, searchQuery);
+        const result = await this.projectDataService.searchGenes(this.projectContext.reference.id, searchQuery);
         if (searchQuery !== this.coordinatesText) {
             return;
         }
@@ -305,12 +308,11 @@ export default class ngbCoordinatesController extends baseController {
         }
         const chromosome = this.projectContext.getChromosome({name: this.chromosomeName});
         const chr = chromosome.name;
-        const state = this.dispatcher.state;
 
-        const viewportObj = state[`viewport:${this.browserId}`];
+        const viewportObj = this.projectContext.viewports[this.browserId];
         if (viewportObj) {
             this.$timeout(() => {
-                const {start, end}= state[`viewport:${this.browserId}`];
+                const {start, end} = viewportObj;
                 this.coordinatesText = `${chr}: ${parseInt(start)} - ${parseInt(end)}`;
                 this.chromosomeText = chr;
             });
@@ -319,7 +321,7 @@ export default class ngbCoordinatesController extends baseController {
     }
 
     async _createTitle() {
-        if (!this.projectContext.currentChromosome || !this.projectContext.projectId) {
+        if (!this.projectContext.currentChromosome || !this.projectContext.reference) {
             this.coordinatesText = null;
             this.chromosomeText = null;
             return;

@@ -73,7 +73,7 @@ export default class ngbVariantInfoService{
         });
 
         for (const key in variantData.info) {
-            if (variantData.info.hasOwnProperty(key)) {
+            if (variantData.info.hasOwnProperty(key) && variantData.info[key].type !== 'TABLE') {
                 let values = [];
                 if (Array.isArray(variantData.info[key].value)) {
                     values = [...utilities.trimArray(variantData.info[key].value)];
@@ -81,22 +81,63 @@ export default class ngbVariantInfoService{
                 else {
                     values = [utilities.trimString(variantData.info[key].value)];
                 }
+
                 variantProperties.push({
                     description: variantData.info[key].description,
                     displayMode: this._constants.displayModes.common,
-                    flex: commonFlex,
+                    flex:  commonFlex,
                     title: key,
-                    values: values
+                    values: values,
+                    type: variantData.info[key].type
                 });
+
             }
         }
 
+        const variantInfoTables = [];
+
+        for (const key in variantData.info) {
+            if (variantData.info.hasOwnProperty(key) && variantData.info[key].type === 'TABLE') {
+                const values = variantData.info[key].value;
+                const gridData = [];
+                for (let i = 0; i < values.length; i++) {
+                    const data = {};
+                    for (let j = 0; j < variantData.info[key].header.length; j++) {
+                        data[`header_${j}`] = values[i][j];
+                    }
+                    gridData.push(data);
+                }
+
+                const columnDefs = [];
+                for (let i = 0; i < variantData.info[key].header.length; i++) {
+                    columnDefs.push({
+                        displayName: variantData.info[key].header[i],
+                        field: `header_${i}`,
+                        minWidth: 100
+                    });
+                }
+
+                variantInfoTables.push({
+                    description: variantData.info[key].description,
+                    title: key,
+                    values: {
+                        columnDefs: columnDefs,
+                        enableColumnMenus: false,
+                        enableFiltering: false,
+                        enableScrollbars: true,
+                        data: gridData
+                    },
+                    type: variantData.info[key].type
+                });
+            }
+        }
         this.isLoading = false;
         this.hasError = false;
 
         return {
             identifier: variantData.identifier,
             properties: variantProperties,
+            tables: variantInfoTables,
             type: variantData.type
         };
     }

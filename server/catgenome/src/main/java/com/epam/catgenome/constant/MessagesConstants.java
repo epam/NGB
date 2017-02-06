@@ -66,6 +66,7 @@ public final class MessagesConstants {
     public static final String ERROR_FILE_IN_LINK = "error.files.in.link";
     public static final String ERROR_EMPTY_FOLDER= "error.empty.folder";
     public static final String ERROR_FEATURE_FILE_READING = "error.feature.file.reading";
+    public static final String ERROR_FILE_NAME_EXISTS = "error.file.name.already.exists";
 
     public static final String ERROR_GENEID_NOT_SPECIFIED = "error.no.geneid";
 
@@ -138,6 +139,8 @@ public final class MessagesConstants {
     public static final String ERROR_VCF_INDEX = "error.vcf.index";
     public static final String ERROR_VCF_READING = "error.vcf.reading";
     public static final String ERROR_NO_SUCH_VARIATION = "error.no.such.variation";
+    public static final String ERROR_ILLEGAL_TEMPLATE_FORMAT = "error.vcf.illegal.template";
+    public static final String ERROR_ILLEGAL_INFO_FORMAT = "error.vcf.wrong.info.format";
 
     //BAM
     public static final String WRONG_BAM_INDEX_FILE = "error.bam.index.file";

@@ -39,9 +39,15 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -50,30 +56,6 @@ import java.util.zip.GZIPOutputStream;
 
 import javax.annotation.PostConstruct;
 
-import com.epam.catgenome.util.AuthUtils;
-import com.epam.catgenome.util.BlockCompressedDataInputStream;
-import com.epam.catgenome.util.BlockCompressedDataOutputStream;
-import com.epam.catgenome.util.IndexUtils;
-import com.epam.catgenome.util.PositionalOutputStream;
-import com.epam.catgenome.util.Utils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.StrSubstitutor;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.lucene.store.SimpleFSDirectory;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.bio.CompressionType;
-import org.jetbrains.bio.big.BigWigFile;
-import org.jetbrains.bio.big.WigSection;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
-
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.BiologicalDataItem;
@@ -81,6 +63,9 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.bed.BedFile;
+import com.epam.catgenome.entity.file.FsDirectory;
+import com.epam.catgenome.entity.file.FsFile;
+import com.epam.catgenome.entity.file.AbstractFsItem;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.gene.GeneFileType;
 import com.epam.catgenome.entity.maf.MafFile;
@@ -102,6 +87,7 @@ import com.epam.catgenome.manager.maf.parser.MafCodec;
 import com.epam.catgenome.manager.maf.parser.MafFeature;
 import com.epam.catgenome.manager.seg.parser.SegCodec;
 import com.epam.catgenome.manager.seg.parser.SegFeature;
+import com.epam.catgenome.util.*;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
 import htsjdk.tribble.AbstractFeatureReader;
@@ -118,6 +104,24 @@ import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.StrSubstitutor;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.lucene.store.SimpleFSDirectory;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.bio.CompressionType;
+import org.jetbrains.bio.big.BigWigFile;
+import org.jetbrains.bio.big.WigSection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Source:      FileManager.java
@@ -133,6 +137,7 @@ import htsjdk.variant.vcf.VCFCodec;
  * place and provide general approach to handle file resources.
  */
 @Service
+@DependsOn({"messageHelper"})
 public class FileManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileManager.class);
@@ -256,8 +261,14 @@ public class FileManager {
      * {@code String} specifies the content root path of a directory, which is used to
      * store uploaded content files and any other file resources related to them.
      */
-    @Value("#{catgenome['files.base.directory.path']}")
+    @Value("${files.base.directory.path}")
     private String baseDirPath;
+
+    @Value("#{catgenome['ngs.data.root.path'] ?: '/'}")
+    private String ngsDataRootPath;
+
+    @Value("#{catgenome['file.browsing.allowed'] ?: false}")
+    private boolean filesBrowsingAllowed;
 
     /**
      * Returns the real path of a directory used as the content root to store uploaded content
@@ -803,7 +814,7 @@ public class FileManager {
         }
 
         Assert.isTrue(!indexes.isEmpty(), getMessage(MessagesConstants.ERROR_FEATURE_INDEX_NOT_FOUND,
-                                 featureFiles.stream().map(f -> f.getId().toString()).collect(Collectors.joining(", "))));
+                         featureFiles.stream().map(f -> f.getId().toString()).collect(Collectors.joining(", "))));
 
         return indexes.toArray(new SimpleFSDirectory[indexes.size()]);
     }
@@ -876,6 +887,25 @@ public class FileManager {
 
         File file = new File(toRealPath(substitute(PROJECT_FEATURE_INDEX_FILE, params)));
         return file.exists();
+    }
+
+    /**
+     * Checks if Lucene index directory for desired file exists
+     *
+     * @param featureFile a file to check
+     * @return {@code true} if index directory exists, {@code false} if not
+     */
+    public boolean indexForFeatureFileExists(final FeatureFile featureFile) {
+        final Map<String, Object> params = new HashMap<>();
+        params.put(USER_ID.name(), featureFile.getCreatedBy());
+        params.put(DIR_ID.name(), featureFile.getId());
+
+        FilePathFormat format = determineFilePathFormat(featureFile);
+
+        params.put(FEATURE_FILE_DIR.name(), substitute(format, params));
+        File dir = new File(toRealPath(substitute(FEATURE_INDEX_DIR, params)));
+
+        return dir.exists();
     }
 
     /**
@@ -1731,6 +1761,79 @@ public class FileManager {
         File dir = new File(toRealPath(substitute(filePathFormat, params)));
         if (dir.exists()) {
             deleteDir(substitute(filePathFormat, params));
+        }
+    }
+
+    public List<AbstractFsItem> loadDirectoryContents(String path) throws IOException {
+        if (!filesBrowsingAllowed) {
+            throw new AccessDeniedException("Server file system browsing is not allowed");
+        }
+
+        File parentDir;
+        if (path == null) {
+            parentDir = new File(ngsDataRootPath);
+        } else {
+            parentDir = new File(path);
+        }
+
+        Assert.isTrue(parentDir.exists(), "Specified path does not exist: " + path);
+        Assert.isTrue(parentDir.isDirectory(), "Specified path is not a directory: " + path);
+
+        if (parentDir.listFiles() == null){
+            return Collections.emptyList();
+        }
+
+        List<AbstractFsItem> items = new ArrayList<>();
+
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(parentDir.toPath())) {
+            for (Path child : dirStream) {
+                File childFile = child.toFile();
+                if (childFile.isDirectory()) {
+                    FsDirectory directory = new FsDirectory();
+                    directory.setPath(childFile.getAbsolutePath());
+                    directory.setFileCount(countChildrenFiles(child));
+
+                    items.add(directory);
+                } else {
+                    addFsFile(items, childFile);
+                }
+            }
+        } catch (AccessDeniedException e) {
+            LOGGER.error("Access denied:", e);
+            throw new AccessDeniedException(e.getFile(), e.getOtherFile(), "Access denied");
+        }
+
+        return items;
+    }
+
+    private void addFsFile(List<AbstractFsItem> items, File childFile) {
+        FsFile fsFile = new FsFile();
+        fsFile.setName(childFile.getName());
+        fsFile.setSize(childFile.length());
+        fsFile.setFormat(NgbFileUtils.getFormatByExtension(childFile.getName()));
+
+        if (fsFile.getFormat() != null && fsFile.getFormat() != BiologicalDataItemFormat.REFERENCE) {
+            items.add(fsFile);
+        }
+    }
+
+    private int countChildrenFiles(Path child) throws IOException {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(child)) {
+            Iterator<Path> iter = stream.iterator();
+            if (!iter.hasNext()) {
+                return 0;
+            }
+
+            int count = 0;
+            while (iter.hasNext()) {
+                File file = iter.next().toFile();
+                BiologicalDataItemFormat format = NgbFileUtils.getFormatByExtension(file.getName());
+                if (file.isDirectory() || (format != null && format != BiologicalDataItemFormat.REFERENCE)) {
+                    count++;
+                }
+            }
+
+            return count;
         }
     }
 

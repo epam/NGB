@@ -19,6 +19,7 @@ export default function run($mdDialog, dispatcher) {
                 else if (data.name) {
                     $scope.name = data.name;
                 }
+  				$scope.infoForRead = data.infoForRead;
                 $scope.panelTitle = data.title;
                 $scope.close = () => {
                     $mdDialog.hide();

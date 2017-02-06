@@ -138,7 +138,7 @@ public class NggbBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
             parseAndSetBlockSizes(tokens, tokenCount, feature);
             parseAndSetBlockStarts(tokens, tokenCount, feature);
         } catch (BedFileParsingException e) {
-            LOGGER.debug(MessageHelper.getMessage(MessagesConstants.ERROR_BED_PARSING), e);
+            LOGGER.trace(MessageHelper.getMessage(MessagesConstants.ERROR_BED_PARSING), e);
             return feature;
         }
 

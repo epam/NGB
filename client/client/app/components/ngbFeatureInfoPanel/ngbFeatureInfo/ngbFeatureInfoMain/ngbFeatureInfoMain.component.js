@@ -8,7 +8,8 @@ export default  {
         properties: '=',
         read: '=',
         referenceId: '=',
-        startIndex: '='
+        startIndex: '=',
+        infoForRead: '='
     },
     controller: controller.UID,
     template: require('./ngbFeatureInfoMain.tpl.html')

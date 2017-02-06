@@ -81,6 +81,19 @@ public class MafFileDao extends NamedParameterJdbcDaoSupport {
     }
 
     /**
+     * Persists {@code MafFile} record to the database
+     * @param mafFile a {@code MafFile} instance to be persisted
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void createMafFile(MafFile mafFile) {
+        MapSqlParameterSource params = BiologicalDataItemDao.FeatureFileParameters
+                .getLinkedTableParameters(MafParameters.MAF_ID.name(), mafFile);
+        params.addValue(MafParameters.REAL_PATH.name(), mafFile.getRealPath());
+
+        getNamedParameterJdbcTemplate().update(createMafFileQuery, params);
+    }
+
+    /**
      * Loads {@code MafFile} records, saved for a specific reference ID
      * @param referenceId {@code long} a reference ID in the system
      * @return a {@code List} of {@code MafFile} instances

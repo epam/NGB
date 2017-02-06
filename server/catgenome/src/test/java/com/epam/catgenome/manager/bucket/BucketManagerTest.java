@@ -39,6 +39,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.entity.bucket.Bucket;
 
 /**
@@ -51,7 +52,7 @@ import com.epam.catgenome.entity.bucket.Bucket;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class BucketManagerTest {
+public class BucketManagerTest extends AbstractManagerTest {
 
     @Autowired
     private BucketManager bucketManager;

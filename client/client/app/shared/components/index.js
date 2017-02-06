@@ -1,7 +1,7 @@
 import angular from 'angular';
 
 import ngbGoldenLayout from './ngbGoldenLayout';
-import ngbHeader from './ngbHeader';
+import ngbMainToolbar from './ngbMainToolbar';
 import ngbMainSettings from './ngbMainSettings';
 import ngbPanelErrorList from './ngbPanelErrorList';
 import ngbSearch from './ngbSearch';
@@ -14,7 +14,7 @@ import textBox from './widgets/TextBox';
 
 export default angular.module('SharedComponents', [
     ngbGoldenLayout,
-    ngbHeader,
+    ngbMainToolbar,
     ngbPanelErrorList,
     ngbSearch,
     ngbMainSettings,

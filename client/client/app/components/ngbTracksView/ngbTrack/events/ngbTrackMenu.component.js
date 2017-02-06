@@ -2,7 +2,13 @@ export default {
     bindings: {
         menuData: '='
     },
-    controller(dispatcher, projectContext, $mdMenu){
+    controller(dispatcher, projectContext, $mdMenu){  
+        this.menuData.forEach(item => {
+            if(item.clipboard && item.fn){
+                item.fn(item);
+            }
+        });
+
         this.clickItem = ($event, entry)=> {
             if (entry.events) {
                 for (let i = 0; i < entry.events.length; i++) {

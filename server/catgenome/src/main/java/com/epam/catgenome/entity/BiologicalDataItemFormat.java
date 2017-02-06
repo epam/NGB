@@ -66,22 +66,22 @@ public enum BiologicalDataItemFormat {
     /**
      * An index item for VCF file
      */
-    VCF_INDEX(6),
+    VCF_INDEX(6, true),
 
     /**
      * An index item for GFF/GTF file
      */
-    GENE_INDEX(7),
+    GENE_INDEX(7, true),
 
     /**
      * An index item for BAM file
      */
-    BAM_INDEX(8),
+    BAM_INDEX(8, true),
 
     /**
      * An index item for BED file
      */
-    BED_INDEX(9),
+    BED_INDEX(9, true),
 
     /**
      * A BED item
@@ -96,7 +96,7 @@ public enum BiologicalDataItemFormat {
     /**
      * An index item for SEG file
      */
-    SEG_INDEX(12),
+    SEG_INDEX(12, true),
 
     /**
      * A MAF item
@@ -106,14 +106,20 @@ public enum BiologicalDataItemFormat {
     /**
      * An index item for MAF file
      */
-    MAF_INDEX(14),
+    MAF_INDEX(14, true),
 
     /**
      * A VG item
      */
-    VG(15);
+    VG(15),
+
+    /**
+     * A some unknown index format. Should not be used
+     */
+    INDEX(-1, true);
 
     private long id;
+    private boolean index = false;
     private static Map<Long, BiologicalDataItemFormat> idMap = new HashMap<>((int) VG.getId());
 
     static {
@@ -138,8 +144,17 @@ public enum BiologicalDataItemFormat {
         this.id = id;
     }
 
+    BiologicalDataItemFormat(long id, boolean index) {
+        this.id = id;
+        this.index = index;
+    }
+
     public long getId() {
         return id;
+    }
+
+    public boolean isIndex() {
+        return index;
     }
 
     /**

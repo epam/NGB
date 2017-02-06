@@ -84,7 +84,7 @@ public class BamControllerTest extends AbstractControllerTest {
     private static final String BAM_GET_RIGHT_READ = "/bam/track/right/get";
     private static final String BAM_TRACK_GET = "/bam/track/get";
     private static final String BAM_READ_LOAD = "/bam/read/load";
-    private static final String TEST_NSAME = "BIG";
+    private static final String TEST_NSAME = "BIG " + BamControllerTest.class.getSimpleName();
     private static final String TEST_BAM = "classpath:templates/agnX1.09-28.trim.dm606.realign.bam";
     private static final int TEST_START_INDEX = 12584188;
     private static final int TEST_END_INDEX = 12584688;
@@ -319,6 +319,7 @@ public class BamControllerTest extends AbstractControllerTest {
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setReferenceId(referenceId);
         request.setPath(path);
+        request.setName(TEST_BAM);
         request.setIndexPath(request.getPath() + ".bai");
         request.setS3BucketId(null);
         request.setType(BiologicalDataItemResourceType.FILE);

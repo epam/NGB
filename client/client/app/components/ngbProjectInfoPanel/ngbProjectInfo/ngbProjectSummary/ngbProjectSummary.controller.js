@@ -20,15 +20,15 @@ export default class ngbProjectSummaryController {
 
         this.INIT();
         const reloadPanel = ::this.INIT;
-        this._dispatcher.on('projectId:change', reloadPanel);
+        this._dispatcher.on('tracks:state:change', reloadPanel);
         // We must remove event listener when component is destroyed.
         $scope.$on('$destroy', () => {
-            __dispatcher.removeListener('projectId:change', reloadPanel);
+            __dispatcher.removeListener('tracks:state:change', reloadPanel);
         });
     }
 
     INIT() {
-        if (!this.projectContext.project)
+        if (!this.projectContext.tracks)
             return;
 
         const files = [];
@@ -49,6 +49,5 @@ export default class ngbProjectSummaryController {
             }
         }
         this.files = files;
-        this.project = this.projectContext.project;
     }
 }

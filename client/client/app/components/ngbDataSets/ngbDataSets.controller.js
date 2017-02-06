@@ -8,14 +8,16 @@ export default class ngbDataSetsController extends baseController {
 
     searchPattern = null;
     nothingFound = null;
+    noDatasets = false;
     _isLoading = true;
     projectContext;
 
     service;
 
-    constructor($scope, $timeout, dispatcher, ivhTreeviewBfs, ivhTreeviewMgr, ngbDataSetsService, projectContext) {
+    constructor($mdDialog, $scope, $timeout, dispatcher, ivhTreeviewBfs, ivhTreeviewMgr, ngbDataSetsService, projectContext) {
         super();
         Object.assign(this, {
+            $mdDialog,
             $scope,
             $timeout,
             dispatcher,
@@ -27,6 +29,17 @@ export default class ngbDataSetsController extends baseController {
         $scope.$watch('$ctrl.searchPattern', ::this.searchPatternChanged);
         this.initEvents();
         this._isLoading = true;
+
+        const self = this;
+        this.tracksStateChangeListener = async () => {
+            await self.service.updateSelectionFromState(self.datasets);
+        };
+        const tracksStateChangeListener = ::this.tracksStateChangeListener;
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('tracks:state:change', tracksStateChangeListener);
+        });
+        dispatcher.on('tracks:state:change', tracksStateChangeListener);
+
     }
 
     async $onInit() {
@@ -41,6 +54,7 @@ export default class ngbDataSetsController extends baseController {
     async loadingFinished() {
         this.datasets = await this.service.getDatasets();
         this.nothingFound = false;
+        this.noDatasets = this.datasets.length === 0;
         this._isLoading = !this.projectContext.datasetsLoaded;
         this.$timeout(::this.$scope.$apply);
     }
@@ -52,7 +66,7 @@ export default class ngbDataSetsController extends baseController {
     events = {
         'datasets:loading:finished': ::this.loadingFinished,
         'datasets:loading:started': ::this.loadingStarted,
-        'projectId:change': ::this.onProjectChanged
+        'reference:change': ::this.onProjectChanged
     };
 
     async onProjectChanged() {
@@ -61,11 +75,27 @@ export default class ngbDataSetsController extends baseController {
 
     async select(item, isSelected, tree) {
         const self = this;
-        this.$timeout(() => {
-            // we should deselect all nested projects - only files should be selected.
-            self.service.selectItem(item, isSelected, tree);
-            self.$scope.$apply();
-        });
+        if (!self.service.checkSelectionAvailable(item, isSelected)) {
+            const reference = self.service.getItemReference(item);
+            this.$timeout(() => {
+                self.service.deselectItem(item, tree);
+                self.$scope.$apply();
+            });
+            const confirm = self.$mdDialog.confirm()
+                .title(`Switch reference ${self.projectContext.reference ? self.projectContext.reference.name : ''}${reference ? ` to ${reference.name}` : ''}?`)
+                .textContent('All open tracks will be closed.')
+                .ariaLabel('Change reference')
+                .ok('OK')
+                .cancel('Cancel');
+            self.$mdDialog.show(confirm).then(function() {
+                self.service.selectItem(item, isSelected, tree);
+            }, function() {});
+        } else {
+            this.$timeout(() => {
+                self.service.selectItem(item, isSelected, tree);
+                self.$scope.$apply();
+            });
+        }
     }
 
     clearSearch() {

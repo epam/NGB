@@ -24,20 +24,36 @@
 
 package com.epam.catgenome.entity.vcf;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Contains data to fill filter form on UI for a VCF FILTER and INFO header lines
  */
 public class VcfFilterInfo {
-    private Set<InfoItem> infoItems;
+    @JsonIgnore
+    private Map<String, InfoItem> infoItemMap; // map for inner representation only
+
+    private Collection<InfoItem> infoItems;
     private Set<String> availableFilters;
 
-    public Set<InfoItem> getInfoItems() {
+    public Collection<InfoItem> getInfoItems() {
         return infoItems;
     }
 
-    public void setInfoItems(Set<InfoItem> infoItems) {
+    public Map<String, InfoItem> getInfoItemMap() {
+        return infoItemMap;
+    }
+
+    public void setInfoItemMap(Map<String, InfoItem> infoItemMap) {
+        this.infoItemMap = infoItemMap;
+        this.infoItems = infoItemMap.values();
+    }
+
+    public void setInfoItems(Collection<InfoItem> infoItems) {
         this.infoItems = infoItems;
     }
 

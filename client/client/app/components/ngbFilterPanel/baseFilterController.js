@@ -6,7 +6,7 @@ export default class BaseFilterController {
 
         this._dispatcher = dispatcher;
         this.projectContext = projectContext;
-        this.projectId = this.projectContext.project.id;
+        // this.projectId = this.projectContext.project.id;
 
         const setDefault = (event) => {
             this.setDefault(event);

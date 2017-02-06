@@ -75,9 +75,18 @@ ngb-track-menu {
   display: block;
 }
 
+.ngb-track-header-action-buttons{
+  height: 100%;
+  display: table;
+  margin-right: 5px;
+}
+
 .ngb-track-header-action-button {
   border-left: 1px solid $track-border-color;
   padding-right: 5px;
+  height: 100%;
+  display: table-cell;
+  vertical-align: middle;
 }
 
 .ngb-track-header-action-button:last-child {
@@ -93,4 +102,21 @@ ngb-track-menu {
 .ngb-track-header-message {
   margin-left: 5px;
   color: #666666;
+}
+
+.buttons-menu-track{
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.close-icon{
+  fill: rgb(119, 119, 119);
+}
+
+.link-action{
+  margin-left: 4px;
+}
+
+.ngb-track-header-action-group-links {
+  margin-left: 6px;
 }

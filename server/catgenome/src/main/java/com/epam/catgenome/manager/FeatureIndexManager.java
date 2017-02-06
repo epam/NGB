@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.math.NumberUtils;
@@ -59,6 +60,7 @@ import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.gene.GeneFileType;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.FeatureType;
+import com.epam.catgenome.entity.index.Group;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.project.Project;
@@ -181,8 +183,15 @@ public class FeatureIndexManager {
         return featureIndexDao.searchGenesInVcfFiles(gene, selectedVcfFiles);
     }
 
-    public Set<String> searchGenesInVcfFiles(String gene, List<Long> vcfFileIds)
-        throws IOException {
+    /**
+     * Searches gene IDs, affected by variations in specified VCF files in a specified project
+     *
+     * @param gene a prefix of a gene ID to search
+     * @param vcfFileIds a {@code List} of IDs of VCF files in project to search for gene IDs
+     * @return a {@code Set} of gene IDs, that are affected by some variations in specified VCf files
+     * @throws IOException if something goes wrong with file system
+     */
+    public Set<String> searchGenesInVcfFiles(String gene, List<Long> vcfFileIds) throws IOException {
         List<VcfFile> vcfFiles = vcfFileManager.loadVcfFiles(vcfFileIds);
         return featureIndexDao.searchGenesInVcfFiles(gene, vcfFiles);
     }
@@ -250,9 +259,48 @@ public class FeatureIndexManager {
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
             .collect(Collectors.toList());
-        return (List<VcfIndexEntry>) featureIndexDao.searchFileIndexes(files,
-                                                   filterForm.computeQuery2(FeatureType.VARIATION),
-                                                   filterForm.getInfoFields(), null, null).getEntries();
+        if (filterForm.getPage() != null && filterForm.getPageSize() != null) {
+            return (List<VcfIndexEntry>) featureIndexDao.searchFileIndexesPaging(files,
+                                                     filterForm.computeQuery2(FeatureType.VARIATION),
+                                                     filterForm.getInfoFields(), filterForm.getPage(),
+                                                     filterForm.getPageSize(), filterForm.getOrderBy()).getEntries();
+        } else {
+            return (List<VcfIndexEntry>) featureIndexDao.searchFileIndexes(files,
+                                                                       filterForm.computeQuery2(FeatureType.VARIATION),
+                                                                       filterForm.getInfoFields(), null,
+                                                                       null).getEntries();
+        }
+    }
+
+    /**
+     * Groups variations from specified {@link List} of {@link VcfFile}s by specified field
+     * @param filterForm {@code VcfFilterForm}, setting filter options
+     * @param projectId a {@code Project}s ID to filter
+     * @param groupByField a field to perform grouping
+     * @return a {@link List} of {@link Pair}s, mapping field value to number of variations, having this value
+     * @throws IOException if something goes wrong with the file system
+     */
+    public List<Group> groupVariations(VcfFilterForm filterForm, long projectId, String groupByField)
+        throws IOException {
+        Project project = projectManager.loadProject(projectId);
+        List<VcfFile> files = project.getItems().stream()
+            .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
+            .map(i -> (VcfFile) i.getBioDataItem())
+            .collect(Collectors.toList());
+        return featureIndexDao.groupVariations(files, filterForm.computeQuery2(FeatureType.VARIATION), groupByField);
+    }
+
+    /**
+     * Groups variations from specified {@link List} of {@link VcfFile}s by specified field
+     * @param filterForm {@code VcfFilterForm}, setting filter options
+     * @param groupByField a field to perform grouping
+     * @return a {@link List} of {@link Pair}s, mapping field value to number of variations, having this value
+     * @throws IOException if something goes wrong with the file system
+     */
+    public List<Group> groupVariations(VcfFilterForm filterForm, String groupByField)
+        throws IOException {
+        List<VcfFile> files = vcfFileManager.loadVcfFiles(filterForm.getVcfFileIds());
+        return featureIndexDao.groupVariations(files, filterForm.computeQuery2(FeatureType.VARIATION), groupByField);
     }
 
     /**
@@ -264,8 +312,16 @@ public class FeatureIndexManager {
      */
     public List<VcfIndexEntry> filterVariations(VcfFilterForm filterForm) throws IOException {
         List<VcfFile> files = vcfFileManager.loadVcfFiles(filterForm.getVcfFileIds());
-        return (List<VcfIndexEntry>) featureIndexDao.searchFileIndexes(files,
-               filterForm.computeQuery2(FeatureType.VARIATION), filterForm.getInfoFields(), null, null).getEntries();
+        if (filterForm.getPage() != null && filterForm.getPageSize() != null) {
+            return (List<VcfIndexEntry>) featureIndexDao.searchFileIndexesPaging(files,
+                                                     filterForm.computeQuery2(FeatureType.VARIATION),
+                                                     filterForm.getInfoFields(), filterForm.getPage(),
+                                                     filterForm.getPageSize(), filterForm.getOrderBy()).getEntries();
+        } else {
+            return (List<VcfIndexEntry>) featureIndexDao.searchFileIndexes(files,
+                               filterForm.computeQuery2(FeatureType.VARIATION), filterForm.getInfoFields(),
+                                                                           null, null).getEntries();
+        }
     }
 
     /**
@@ -275,7 +331,7 @@ public class FeatureIndexManager {
      * @return a {@code List} of {@code FeatureIndexEntry}
      * @throws IOException if something goes wrong with the file system
      */
-    public IndexSearchResult searchFeatures(String featureId, long projectId) throws IOException {
+    public IndexSearchResult searchFeaturesInProject(String featureId, long projectId) throws IOException {
         if (featureId == null || featureId.length() < 2) {
             return new IndexSearchResult(Collections.emptyList(), false, 0);
         }
@@ -290,6 +346,25 @@ public class FeatureIndexManager {
             IndexSearchResult res = featureIndexDao.searchFeatures(featureId,
                                                   geneFileManager.loadGeneFile(opt.get().getGeneFile().getId()),
                                                   maxFeatureSearchResultsCount);
+            bookmarkSearchRes.mergeFrom(res);
+            return bookmarkSearchRes;
+        }
+
+        return bookmarkSearchRes;
+    }
+
+    public IndexSearchResult searchFeaturesByReference(String featureId, long referenceId) throws IOException {
+        if (featureId == null || featureId.length() < 2) {
+            return new IndexSearchResult(Collections.emptyList(), false, 0);
+        }
+
+        IndexSearchResult bookmarkSearchRes = bookmarkManager.searchBookmarks(featureId, maxFeatureSearchResultsCount);
+
+        Reference reference = referenceGenomeManager.loadReferenceGenome(referenceId);
+        if (reference.getGeneFile() != null) {
+            IndexSearchResult res = featureIndexDao.searchFeatures(featureId,
+                                                       geneFileManager.loadGeneFile(reference.getGeneFile().getId()),
+                                                       maxFeatureSearchResultsCount);
             bookmarkSearchRes.mergeFrom(res);
             return bookmarkSearchRes;
         }
@@ -325,8 +400,8 @@ public class FeatureIndexManager {
      * @param chromosome a {@code Chromosome}
      * @return a {@code Set} of IDs of genes, affected by the variation
      */
-    private Set<VariationGeneInfo> fetchGeneIdsFromBatch(NggbIntervalTreeMap<Gene> intervalMap, int start, int end,
-                                                         Chromosome chromosome) {
+    private Set<VariationGeneInfo> fetchGeneIdsFromBatch(NggbIntervalTreeMap<List<Gene>> intervalMap,
+            int start, int end, Chromosome chromosome) {
         Set<VariationGeneInfo> geneIds = getGeneIds(intervalMap, chromosome, start, start);
         if (end > start) {
             geneIds.addAll(getGeneIds(intervalMap, chromosome, end, end));
@@ -356,7 +431,7 @@ public class FeatureIndexManager {
             end = Math.max(end, entry.getEndIndex());
         }
 
-        Map<GeneFile, NggbIntervalTreeMap<Gene>> intervalMapCache = new HashMap<>();
+        Map<GeneFile, NggbIntervalTreeMap<List<Gene>>> intervalMapCache = new HashMap<>();
 
         for (VcfIndexEntry indexEntry : entries) {
             String geneIdsString = null;
@@ -365,9 +440,9 @@ public class FeatureIndexManager {
 
             for (GeneFile geneFile : geneFiles) {
                 if (!intervalMapCache.containsKey(geneFile)) {
-                    intervalMapCache.put(geneFile, gffManager.loadGenesIntervalMap(geneFile, start, end, chromosome));
+                    intervalMapCache.put(geneFile, loadGenesIntervalMap(geneFile, start, end, chromosome));
                 }
-                NggbIntervalTreeMap<Gene> intervalMap = intervalMapCache.get(geneFile);
+                NggbIntervalTreeMap<List<Gene>> intervalMap = intervalMapCache.get(geneFile);
 
                 geneIds = fetchGeneIdsFromBatch(intervalMap, indexEntry.getStartIndex(), indexEntry.getEndIndex(),
                                                 chromosome);
@@ -396,9 +471,41 @@ public class FeatureIndexManager {
         return processedEntries;
     }
 
-    private Set<VariationGeneInfo> getGeneIds(NggbIntervalTreeMap<Gene> intervalMap, Chromosome chromosome, int start,
-                                              int end) {
-        Collection<Gene> genes = intervalMap.getOverlapping(new Interval(chromosome.getName(), start, end));
+    private NggbIntervalTreeMap<List<Gene>> loadGenesIntervalMap(GeneFile geneFile, int start, int end,
+            Chromosome chromosome) {
+        final NggbIntervalTreeMap<List<Gene>> genesRangeMap = new NggbIntervalTreeMap<>();
+        try {
+            IndexSearchResult searchResult = featureIndexDao
+                    .searchFeaturesInInterval(Collections.singletonList(geneFile), start, end,
+                            chromosome);
+            searchResult.getEntries().stream().filter(f -> f.getFeatureType() == FeatureType.EXON
+                    || f.getFeatureType() == FeatureType.GENE).map(f -> {
+                        Gene gene = new Gene();
+                        gene.setFeature(f.getFeatureType().name());
+                        gene.setStartIndex(f.getStartIndex());
+                        gene.setEndIndex(f.getEndIndex());
+                        gene.setGroupId(f.getFeatureId());
+                        gene.setFeatureName(f.getFeatureName().toUpperCase());
+                        return gene;
+                    }).forEach(g -> {
+                        Interval interval = new Interval(chromosome.getName(), g.getStartIndex(), g.getEndIndex());
+                        genesRangeMap.putIfAbsent(interval, new ArrayList<>());
+                        genesRangeMap.get(interval).add(g);
+                    });
+        } catch (IOException e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        genesRangeMap.setMaxEndIndex(start);
+        genesRangeMap.setMinStartIndex(end);
+        return genesRangeMap;
+    }
+
+    private Set<VariationGeneInfo> getGeneIds(NggbIntervalTreeMap<List<Gene>> intervalMap,
+            Chromosome chromosome, int start, int end) {
+        Collection<Gene> genes = intervalMap.getOverlapping(new Interval(chromosome.getName(), start, end))
+                .stream()
+                .flatMap(l -> l.stream())
+                .collect(Collectors.toList());
         Set<VariationGeneInfo> geneIds = new HashSet<>();
         if (genes != null) {
             boolean isExon = genes.stream().anyMatch(GeneUtils::isExon);
@@ -540,14 +647,16 @@ public class FeatureIndexManager {
      * Creates Gene file's feature index
      * @param geneFile a {@link GeneFile} to create index
      * @param chromosomeMap a Map of {@link Chromosome}s to chromosome names
+     * @param full
      * @throws IOException if an error occurred while writing index
      */
-    public void processGeneFile(GeneFile geneFile, final Map<String, Chromosome> chromosomeMap) throws IOException {
+    public void processGeneFile(GeneFile geneFile, final Map<String, Chromosome> chromosomeMap,
+            boolean full) throws IOException {
         List<FeatureIndexEntry> allEntries = new ArrayList<>();
 
         LOGGER.info("Writing feature index for file {}:{}", geneFile.getId(), geneFile.getName());
 
-        if (fileManager.checkGeneFileExists(geneFile, GeneFileType.TRANSCRIPT)) {
+        if (!full && fileManager.checkGeneFileExists(geneFile, GeneFileType.TRANSCRIPT)) {
             try (AbstractFeatureReader<GeneFeature, LineIterator> largeScaleReader = fileManager.makeGeneReader(
                 geneFile, GeneFileType.LARGE_SCALE);
                  AbstractFeatureReader<GeneFeature, LineIterator> transcriptReader = fileManager.makeGeneReader(
@@ -575,7 +684,7 @@ public class FeatureIndexManager {
                 feature = iterator.next();
                 currentKey = checkNextChromosome(feature, currentKey, chromosomeMap, allEntries, geneFile);
 
-                if (GeneUtils.isGene(feature) || GeneUtils.isTranscript(feature)) {
+                if (GeneUtils.isGene(feature) || GeneUtils.isTranscript(feature) || GeneUtils.isExon(feature)) {
                     addGeneFeatureToIndex(allEntries, feature, chromosomeMap);
                 }
             }
@@ -599,7 +708,7 @@ public class FeatureIndexManager {
             feature = iterator.next();
             currentKey = checkNextChromosome(feature, currentKey, chromosomeMap, allEntries, geneFile);
 
-            if (transcriptIterator || GeneUtils.isGene(feature)) {
+            if (transcriptIterator || GeneUtils.isGene(feature) || GeneUtils.isExon(feature)) {
                 addGeneFeatureToIndex(allEntries, feature, chromosomeMap);
             }
         }
@@ -638,6 +747,7 @@ public class FeatureIndexManager {
         if (chromosomeMap.containsKey(context.getContig())
                 || chromosomeMap.containsKey(Utils.changeChromosomeName(context.getContig()))) {
             VcfIndexEntry masterEntry = new VcfIndexEntry();
+            masterEntry.setUuid(UUID.randomUUID());
             masterEntry.setFeatureId(context.getID());
             masterEntry.setChromosome(Utils.getFromChromosomeMap(chromosomeMap, context.getContig()));
             masterEntry.setStartIndex(context.getStart());
@@ -743,6 +853,9 @@ public class FeatureIndexManager {
             }
             if (GeneUtils.isTranscript(feature)) {
                 masterEntry.setFeatureType(FeatureType.MRNA);
+            }
+            if (GeneUtils.isExon(feature)) {
+                masterEntry.setFeatureType(FeatureType.EXON);
             }
 
             allEntries.add(masterEntry);

@@ -117,16 +117,20 @@ public class BedManager {
             request.setType(BiologicalDataItemResourceType.FILE);
         }
 
-        final BedFile bedFile;
+        BedFile bedFile = null;
         try {
             bedFile = createBedFile(request);
+            LOG.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, bedFile.getId(), bedFile.getPath()));
+            biologicalDataItemManager.createBiologicalDataItem(bedFile.getIndex());
+            bedFileManager.createBedFile(bedFile);
         } catch (IOException | HistogramReadingException e) {
             throw new RegistrationException(e.getMessage(), e);
+        } finally {
+            if (bedFile != null && bedFile.getId() != null &&
+                    bedFileManager.loadBedFile(bedFile.getId()) == null) {
+                biologicalDataItemManager.deleteBiologicalDataItem(bedFile.getBioDataItemId());
+            }
         }
-
-        LOG.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, bedFile.getId(), bedFile.getPath()));
-        biologicalDataItemManager.createBiologicalDataItem(bedFile.getIndex());
-        bedFileManager.createBedFile(bedFile);
 
         return bedFile;
     }
@@ -280,6 +284,11 @@ public class BedManager {
         bedFile.setCreatedDate(new Date());
         bedFile.setCreatedBy(AuthUtils.getCurrentUserId());
         bedFile.setReferenceId(reference.getId());
+
+        long bedId = bedFile.getId();
+        biologicalDataItemManager.createBiologicalDataItem(bedFile);
+        bedFile.setBioDataItemId(bedFile.getId());
+        bedFile.setId(bedId);
 
         if (StringUtils.isNotBlank(request.getIndexPath())) {
             final BiologicalDataItem indexItem = new BiologicalDataItem();

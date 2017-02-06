@@ -1,5 +1,7 @@
 const Math = window.Math;
 
+const DEFAULT_VCF_COLUMNS = ['variationType', 'chrName', 'geneNames', 'startIndex', 'info'];
+
 export default class projectContext {
 
     static instance(dispatcher, genomeDataService, projectDataService) {
@@ -10,9 +12,33 @@ export default class projectContext {
     genomeDataService;
     projectDataService;
 
+    _tracksStateMinificationRules = {
+        bioDataItemId: 'b',
+        projectId: 'p',
+        height: 'h',
+        state: 's',
+        arrows: 'a',
+        colorMode: 'c',
+        coverage: 'c1',
+        diffBase: 'd',
+        geneTranscript: 'g',
+        groupMode: 'g1',
+        ins_del: 'i',
+        mismatches: 'm',
+        readsViewMode: 'r',
+        shadeByQuality: 's1',
+        softClip: 's2',
+        spliceJunctions: 's3',
+        variantsView: 'v',
+        viewAsPairs: 'v1'
+    };
+
+    _tracksStateRevertRules = {};
+
     _project = null;
     _tracks = [];
     _reference = null;
+    _references = null;
     _chromosomes = [];
     _currentChromosome = null;
     _position = null;
@@ -37,6 +63,16 @@ export default class projectContext {
     _datasetsLoaded = false;
     _datasets = [];
     _datasetsArePrepared = false;
+
+    _hotkeys = null;
+
+    get hotkeys() {
+        return this._hotkeys;
+    }
+
+    set hotkeys(value) {
+        this._hotkeys = value;
+    }
 
     get project() {
         return this._project;
@@ -127,40 +163,114 @@ export default class projectContext {
         }
     }
 
+    get vcfColumns() {
+        if (localStorage.getItem('vcfColumns') === null || localStorage.getItem('vcfColumns') === undefined) {
+            localStorage.setItem('vcfColumns', JSON.stringify(DEFAULT_VCF_COLUMNS));
+        }
+        return JSON.parse(localStorage.getItem('vcfColumns'));
+    }
+
+    set vcfColumns(columns) {
+        localStorage.setItem('vcfColumns', JSON.stringify(columns || []));
+        const oldColumns = this.vcfColumns.sort().reduce((names, name) => {
+            return `${names}|${name}`;
+        }, '');
+        const newColumns = columns.sort().reduce((names, name) => {
+            return `${names}|${name}`;
+        }, '');
+        if (newColumns !== oldColumns) {
+            this._isVariantsInitialized = false;
+        }
+    }
+
     get tracksState() {
-        if (!this.project) {
+        if (!this.reference) {
             return null;
         }
         if (this._tracksState) {
             return JSON.parse(this._tracksState);
         }
-        return this.getTracksState(this.project.id);
+        return [];
     }
 
     set tracksState(value) {
-        if (!this.project) {
+        if (!this.reference) {
             return;
         }
         if (value) {
             this._tracksState = JSON.stringify(value);
             if (this.rewriteLayout === true) {
-                const removeStateFn = function(track) {
-                    return {
-                        bioDataItemId: track.bioDataItemId,
-                        height: track.height,
-                        hidden: track.hidden
-                    };
-                };
-                const _tracksState = JSON.stringify(value.map(removeStateFn));
-                localStorage.setItem(`projectId_${this.project.id}`, _tracksState);
+                for (let i = 0; i < value.length; i++) {
+                    this.setTrackState(value[i]);
+                }
             }
         } else {
-            this._tracksState = localStorage.getItem(`projectId_${this.project.id}`);
+            this._tracksState = [];
         }
     }
 
-    getTracksState(projectId) {
-        return JSON.parse(localStorage.getItem(`projectId_${projectId}`));
+    convertTracksStateToJson(tracksState) {
+        const self = this;
+        const mapFn = function(ts) {
+            const converted = {};
+            for (const attr in ts) {
+                if (ts.hasOwnProperty(attr)) {
+                    let convertedAttr = attr;
+                    if (self._tracksStateMinificationRules.hasOwnProperty(attr)) {
+                        convertedAttr = self._tracksStateMinificationRules[attr];
+                    }
+                    if (ts[attr] instanceof Object) {
+                        converted[convertedAttr] = mapFn(ts[attr]);
+                    } else {
+                        converted[convertedAttr] = ts[attr];
+                    }
+                }
+            }
+            return converted;
+        };
+        const convertedState = tracksState.map(mapFn);
+        return JSON.stringify(convertedState);
+    }
+
+    convertTracksStateFromJson(tracksState) {
+        const self = this;
+        const mapFn = function(ts) {
+            const converted = {};
+            for (const attr in ts) {
+                if (ts.hasOwnProperty(attr)) {
+                    let convertedAttr = attr;
+                    if (self._tracksStateRevertRules.hasOwnProperty(attr)) {
+                        convertedAttr = self._tracksStateRevertRules[attr];
+                    }
+                    if (ts[attr] instanceof Object) {
+                        converted[convertedAttr] = mapFn(ts[attr]);
+                    } else {
+                        converted[convertedAttr] = ts[attr];
+                    }
+                }
+            }
+            return converted;
+        };
+        return JSON.parse(tracksState).map(mapFn);
+    }
+
+    getTrackState(bioDataItemId, projectId) {
+        const key = `track[${bioDataItemId}][${projectId}]`;
+        if (!localStorage[key]) {
+            return null;
+        }
+        return JSON.parse(localStorage[key]);
+    }
+
+    setTrackState(track) {
+        const key = `track[${track.bioDataItemId}][${track.projectId}]`;
+        const state = {
+            bioDataItemId: track.bioDataItemId,
+            projectId: track.projectId,
+            state: track.state,
+            height: track.height
+        };
+        localStorage[key] = JSON.stringify(state);
     }
 
     get toolbarVisibility() {
@@ -203,10 +313,21 @@ export default class projectContext {
         this._datasetsArePrepared = value;
     }
 
+    _viewports = {};
+
+    get viewports() {
+        return this._viewports;
+    }
+
     constructor(dispatcher, genomeDataService, projectDataService) {
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
         this.projectDataService = projectDataService;
+        for (const attr in this._tracksStateMinificationRules) {
+            if (this._tracksStateMinificationRules.hasOwnProperty(attr)) {
+                this._tracksStateRevertRules[this._tracksStateMinificationRules[attr]] = attr;
+            }
+        }
     }
 
     _getVcfCallbacks() {
@@ -248,15 +369,16 @@ export default class projectContext {
             }
         };
         (async() => {
+            const result = await this.changeStateAsync(state, callbacks);
             const {chromosomeDidChange,
                 layoutDidChange,
                 positionDidChange,
-                projectDidChange,
+                referenceDidChange,
                 tracksStateDidChange,
-                viewportDidChange} = await this.changeStateAsync(state, callbacks);
+                viewportDidChange} = result;
             let stateChanged = false;
-            if (projectDidChange) {
-                emitEventFn('projectId:change', this.getCurrentStateObject());
+            if (referenceDidChange) {
+                emitEventFn('reference:change', this.getCurrentStateObject());
                 stateChanged = true;
             }
             if (chromosomeDidChange) {
@@ -271,7 +393,7 @@ export default class projectContext {
                 emitEventFn('viewport:position', this.getCurrentStateObject());
                 stateChanged = true;
             }
-            if (tracksStateDidChange) {
+            if (tracksStateDidChange || referenceDidChange) {
                 emitEventFn('tracks:state:change', this.getCurrentStateObject());
                 stateChanged = true;
             }
@@ -281,19 +403,37 @@ export default class projectContext {
             if (stateChanged) {
                 emitEventFn('state:change', this.getCurrentStateObject());
             }
+            dispatcher.emitGlobalEvent('route:change', this.getCurrentStateObject());
         })();
     }
 
+    changeViewportState(viewportId, state, silent = false) {
+        if (!viewportId) {
+            this.changeState({viewport: state}, silent);
+            return;
+        }
+        const dispatcher = this.dispatcher;
+        const emitEventFn = function(...opts) {
+            if (silent) {
+                dispatcher.emitSilentEvent(...opts);
+            } else {
+                dispatcher.emitGlobalEvent(...opts);
+            }
+        };
+        this._viewports[viewportId] = state;
+        emitEventFn(`viewport:position:${viewportId}`, state);
+    }
+
     applyTrackState(track) {
-        const {bioDataItemId, height, hidden, state} = track;
+        const {bioDataItemId, height, projectId, state} = track;
         const __tracksState = this.tracksState || [];
-        let [existedState] = __tracksState.filter(track => track.bioDataItemId === bioDataItemId);
+        let [existedState] = __tracksState.filter(t => t.bioDataItemId === bioDataItemId && t.projectId === projectId);
         let index = -1;
         if (!existedState) {
-            existedState = {bioDataItemId, height, hidden, state};
+            existedState = {bioDataItemId, height, projectId, state};
         } else {
             index = __tracksState.indexOf(existedState);
-            Object.assign(existedState, {height, hidden, state});
+            Object.assign(existedState, {height, state});
         }
         if (index >= 0) {
             __tracksState[index] = existedState;
@@ -301,6 +441,7 @@ export default class projectContext {
             __tracksState.push(existedState);
         }
         this.tracksState = __tracksState;
+        this.dispatcher.emitGlobalEvent('route:change', this.getCurrentStateObject());
     }
 
     changeVcfInfoFields(infoFields) {
@@ -319,8 +460,8 @@ export default class projectContext {
     }
 
     async changeStateAsync(state, callbacks) {
-        const {project, chromosome, position, tracksState, viewport, layout} = state;
-        const projectDidChange = await this._changeProject(project);
+        const {chromosome, position, reference, tracks, tracksState, viewport, layout, forceVariantsFilter} = state;
+        const {referenceDidChange, vcfFilesChanged} = await this._changeProject(reference, tracks, tracksState);
         const tracksStateDidChange = this._changeTracksState(tracksState);
         const chromosomeDidChange = this._changeChromosome(chromosome);
         let positionDidChange = false;
@@ -336,18 +477,18 @@ export default class projectContext {
                 this._viewport = null;
             }
         }
-        if (projectDidChange) {
+        if (forceVariantsFilter || referenceDidChange || vcfFilesChanged) {
             this.filter({asDefault: true, callbacks});
         }
         if (layout) {
             this.layout = layout;
         }
-        const layoutDidChange = layout;
+        const layoutDidChange = layout ? true : false;
         return {
             chromosomeDidChange,
             layoutDidChange,
             positionDidChange,
-            projectDidChange,
+            referenceDidChange,
             tracksStateDidChange,
             viewportDidChange
         };
@@ -366,72 +507,108 @@ export default class projectContext {
         };
     }
 
-    async _changeProject(project) {
-        let projectDidChange = false;
-        if (project !== undefined) {
-            const projectId = (project === null || project.id === null || project.id === undefined) ? null : +project.id;
-            const oldProjectId = this._project ? +this._project.id : null;
-            projectDidChange = projectId !== oldProjectId;
+    async _changeProject(reference, tracks, tracksState) {
+        let vcfFilesChanged = false;
+        let referenceDidChange = false;
+        if (reference !== undefined || tracks !== undefined || tracksState !== undefined) {
+            const result = await this._loadProject(reference, tracks, tracksState);
+            vcfFilesChanged = result.vcfFilesChanged;
+            referenceDidChange = result.referenceDidChange;
         }
-        if (projectDidChange) {
-            await this._loadProject(project);
-            this._isVariantsInitialized = false;
+
+        if (referenceDidChange) {
             this._currentChromosome = null;
             this._viewport = null;
             this._position = null;
         }
-        return projectDidChange;
+        if (vcfFilesChanged) {
+            this._isVariantsInitialized = false;
+        }
+
+        return {referenceDidChange, vcfFilesChanged};
     }
 
     _changeTracksState(newTracksState) {
-        if (!this.project || !newTracksState) {
+        if (!this.reference || !newTracksState) {
             return false;
         }
+        const oldTracksStateStr = this.tracksState ? JSON.stringify(this.tracksState) : null;
+        const newTracksStateStr = newTracksState ? JSON.stringify(newTracksState) : null;
         this.tracksState = newTracksState;
-        return newTracksState !== null && newTracksState !== undefined;
+        return oldTracksStateStr !== newTracksStateStr;
     }
 
     async _changeReference(reference) {
+        if (!this._references) {
+            this._references = await this.genomeDataService.loadAllReference();
+        }
+        if (reference && reference.id === undefined && reference.name !== undefined && reference.name !== null) {
+            [reference] = this._references.filter(r => r.name.toLowerCase() === reference.name.toLowerCase());
+        }
         const newReferenceId = reference ? +reference.id : null;
         if (+this.referenceId !== newReferenceId) {
             this._reference = reference;
             this._chromosomes = await this._loadChromosomesForReference(this.referenceId);
+            return true;
         }
+        return false;
     }
 
-    async _loadProject(project) {
-        const projectId = (project === null || project.id === null || project.id === undefined) ? null : +project.id;
-        if (projectId) {
-            if (project.loaded) {
-                this._project = project;
-            } else {
-                this._project = await this.projectDataService.getProject(projectId);
-            }
-        } else {
-            this._project = null;
-        }
-        if (this._project) {
-            this._tracks = this._project.items.reduce((tracks, track) => {
-                if (tracks.filter(t => t.bioDataItemId === track.bioDataItemId).length === 0) {
-                    return [...tracks, track];
+    async _loadProject(reference, tracks, tracksState) {
+        let referenceDidChange = false;
+        const oldVcfFiles = this.vcfTracks || [];
+        if (tracks || tracksState) {
+            if (tracks) {
+                this._tracks = tracks;
+            } else if (tracksState) {
+                const __tracks = [];
+                const projectsIds = tracksState.reduce((ids, track) => {
+                    if (ids.filter(t => t === +track.projectId).length === 0) {
+                        return [...ids, +track.projectId];
+                    }
+                    return ids;
+                }, []);
+                for (let i = 0; i < projectsIds.length; i++) {
+                    const _project = await this.projectDataService.getProject(projectsIds[i]);
+                    if (_project) {
+                        for (let j = 0; j < _project.items.length; j++) {
+                            const track = _project.items[j];
+                            if (tracksState.filter(t => t.bioDataItemId === track.bioDataItemId && t.projectId === projectsIds[i]).length === 1) {
+                                track.projectId = projectsIds[i];
+                                __tracks.push(track);
+                            }
+                        }
+                    }
                 }
-                return tracks;
-            }, []);
-            const [reference] = this._tracks.filter(track => track.format === 'REFERENCE');
-            await this._changeReference(reference);
+                this._tracks = __tracks;
+            }
+            if (!reference) {
+                [reference] = this._tracks.filter(t => t.format === 'REFERENCE');
+            }
+            referenceDidChange = await this._changeReference(reference);
             this._containsVcfFiles = this.vcfTracks.length > 0;
-        } else {
+        } else if (tracks === null || reference === null) {
             this._tracks = [];
-            await this._changeReference(null);
+            referenceDidChange = await this._changeReference(null);
             this._containsVcfFiles = false;
             this._vcfInfo = [];
             this._infoFields = [];
         }
+        let vcfFilesChanged = oldVcfFiles.length !== this.vcfTracks.length;
+        if (!vcfFilesChanged) {
+            for (let i = 0; i < oldVcfFiles.length; i++) {
+                if (this.vcfTracks.filter(t => t.bioDataItemId === oldVcfFiles[i].bioDataItemId && t.projectId === oldVcfFiles[i].projectId).length === 0) {
+                    vcfFilesChanged = true;
+                    break;
+                }
+            }
+        }
+        return {referenceDidChange, vcfFilesChanged};
     }
 
     async _initializeVariants(onInit) {
         if (!this._isVariantsInitialized) {
-            const {infoItems} = await this.projectDataService.getProjectsFilterVcfInfo(this._project.id);
+            const {infoItems} = await this.projectDataService.getProjectsFilterVcfInfo(this.vcfTracks.map(t => t.id));
             this._vcfInfo = infoItems || [];
             this._vcfFilter = {
                 additionalFilters: {},
@@ -439,8 +616,22 @@ export default class projectContext {
                 quality: {},
                 selectedGenes: [],
                 selectedVcfTypes: [],
-                vcfFileIds: []
+                vcfFileIds: this.vcfTracks.map(t => t.id)
             };
+            this._infoFields = this.vcfColumns;
+            for (let i = 0; i < DEFAULT_VCF_COLUMNS.length; i++) {
+                const index = this._infoFields.indexOf(DEFAULT_VCF_COLUMNS[i]);
+                if (index >= 0) {
+                    this._infoFields.splice(index, 1);
+                }
+            }
+            const notVisibleFields = this._infoFields.filter(i => this._vcfInfo.map(v => v.name).indexOf(i) === -1);
+            for (let i = 0; i < notVisibleFields.length; i++) {
+                const index = this._infoFields.indexOf(notVisibleFields[i]);
+                if (index >= 0) {
+                    this._infoFields.splice(index, 1);
+                }
+            }
             if (onInit) {
                 onInit();
             }
@@ -503,7 +694,7 @@ export default class projectContext {
     }
 
     getActiveTracks() {
-        if (!this.project) {
+        if (!this.reference) {
             return [];
         }
         const tracksSettings = this.tracksState;
@@ -520,30 +711,24 @@ export default class projectContext {
                 }
                 return 0;
             }
-            const index1 = tracksSettings.findIndex(fundIndex(file1.bioDataItemId));
-            const index2 = tracksSettings.findIndex(fundIndex(file2.bioDataItemId));
+            const index1 = tracksSettings.findIndex(findIndex(file1.bioDataItemId, file1.projectId));
+            const index2 = tracksSettings.findIndex(findIndex(file2.bioDataItemId, file2.projectId));
 
             if (index1 === index2) return 0;
             return index1 > index2 ? 1 : -1;
 
-            function fundIndex(bioDataItemId) {
-                return (element) => element.bioDataItemId.toString() === bioDataItemId.toString();
+            function findIndex(bioDataItemId, projectId) {
+                return (element) => element.bioDataItemId.toString() === bioDataItemId.toString() && element.projectId === projectId;
             }
         }
         function filterItems(projectFiles) {
             if (!tracksSettings) return projectFiles;
-
             return projectFiles.filter(file => {
-                const [fileSettings ]= tracksSettings.filter(m => m.bioDataItemId.toString() === file.bioDataItemId.toString());
-                return fileSettings && fileSettings.hidden !== true;
+                const [fileSettings]= tracksSettings.filter(m => m.bioDataItemId.toString() === file.bioDataItemId.toString() && m.projectId === file.projectId);
+                return fileSettings !== undefined && fileSettings !== null;
             });
         }
-        return filterItems(this.tracks)
-            .map(m => {
-                m.hidden = false;
-                return m;
-            })
-            .sort(sortItems);
+        return filterItems(this.tracks).sort(sortItems);
     }
 
     getChromosome(chromosome) {
@@ -580,7 +765,7 @@ export default class projectContext {
     }
 
     filter(opts) {
-        if (!this._project) {
+        if (!this.reference) {
             return;
         }
         this._isVariantsLoading = true;
@@ -598,7 +783,7 @@ export default class projectContext {
                     quality: {},
                     selectedGenes: [],
                     selectedVcfTypes: [],
-                    vcfFileIds: []
+                    vcfFileIds: this.vcfTracks.map(t => t.id)
                 };
             }
             if (infoFields) {
@@ -617,7 +802,7 @@ export default class projectContext {
 
     async __filterVariants(errorCallback) {
         try {
-            if (this._project) {
+            if (this.reference) {
                 this._filteredVariants = await this._loadVariations();
             } else {
                 this._filteredVariants = [];
@@ -633,8 +818,7 @@ export default class projectContext {
     }
 
     async _loadVariations() {
-        const projectId = this._project.id;
-        const vcfFileIds = this._vcfFilter ? this._vcfFilter.vcfFileIds : [];
+        const vcfFileIds = this._vcfFilter && this._vcfFilter.vcfFileIds && this._vcfFilter.vcfFileIds.length ? this._vcfFilter.vcfFileIds : this.vcfTracks.map(t => t.id);
         const quality = this._vcfFilter ? this._vcfFilter.quality.value : [];
         const exon = (this._vcfFilter && (this._vcfFilter.exons !== undefined)) ? this._vcfFilter.exons : false;
         const genes = {
@@ -653,7 +837,6 @@ export default class projectContext {
             exon,
             genes,
             infoFields,
-            projectId,
             quality,
             variationTypes,
             vcfFileIds
@@ -662,6 +845,12 @@ export default class projectContext {
 
         const infoFieldsObj = {};
         this._infoFields && this._infoFields.forEach(f => infoFieldsObj[f] = null);
+
+        const vcfTrackToProjectId = {};
+        for (let i = 0; i < this.vcfTracks.length; i++) {
+            const vcfTrack = this.vcfTracks[i];
+            vcfTrackToProjectId[`${vcfTrack.id}`] = vcfTrack.projectId;
+        }
 
         return data.map(item =>
             Object.assign({},
@@ -678,7 +867,8 @@ export default class projectContext {
                     startIndex: item.startIndex,
                     variantId: item.featureId,
                     variationType: item.variationType,
-                    vcfFileId: item.featureFileId
+                    vcfFileId: item.featureFileId,
+                    projectId: vcfTrackToProjectId[`${item.featureFileId}`]
                 },
                 {...infoFieldsObj, ...item.info}
             )

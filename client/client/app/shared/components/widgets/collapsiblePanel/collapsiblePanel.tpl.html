@@ -8,6 +8,7 @@
     </ng-md-icon>
     <span class="control-label">
         <div ng-transclude="title"></div>
+        <md-tooltip md-delay="500" ng-show="$ctrl.tooltip && $ctrl.tooltip.length > 0">{{$ctrl.tooltip}}</md-tooltip>
     </span>
 </md-button>
 <div class="animate-show u-column-padding" ng-show="$ctrl.open">

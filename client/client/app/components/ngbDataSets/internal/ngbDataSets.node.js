@@ -13,6 +13,7 @@ export class Node {
     name;
 
     project;
+    projectId;
     reference;
 
     isTrack: Boolean;

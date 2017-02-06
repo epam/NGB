@@ -72,9 +72,7 @@ public class GeneFileManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public void createGeneFile(GeneFile geneFile) {
-        final Long realId = geneFile.getId();
-        biologicalDataItemDao.createBiologicalDataItem(geneFile);
-        geneFileDao.createGeneFile(geneFile, realId);
+        geneFileDao.createGeneFile(geneFile);
     }
 
     /**
@@ -105,6 +103,12 @@ public class GeneFileManager {
         GeneFile geneFile = geneFileDao.loadGeneFile(geneFileId);
         Assert.notNull(geneFile, MessageHelper.getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND, geneFileId));
         return geneFile;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public boolean geneFileExists(long geneFileId) {
+        GeneFile geneFile = geneFileDao.loadGeneFile(geneFileId);
+        return geneFile != null;
     }
 
     /**

@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.util.InfoFieldParser;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -148,6 +149,11 @@ public class VcfManager {
     private String[] whiteArray;
     private List<String> whiteList;
 
+    @Value("${vcf.extended.info.patterns}")
+    private String extendedInfoTemplates;
+
+    private InfoFieldParser infoFieldParser;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(VcfManager.class);
 
     /**
@@ -164,31 +170,39 @@ public class VcfManager {
                 MessagesConstants.ERROR_NULL_PARAM, "path"));
         Assert.notNull(request.getReferenceId(), getMessage(MessagesConstants.ERROR_NULL_PARAM, "referenceId"));
 
-        VcfFile vcfFile;
+        VcfFile vcfFile = null;
         Reference reference = referenceGenomeManager.loadReferenceGenome(request.getReferenceId());
         Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
                 Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
         if (request.getType() == null) {
             request.setType(BiologicalDataItemResourceType.FILE);
         }
-        switch (request.getType()) {
-            case GA4GH:
-                vcfFile = getVcfFileFromGA4GH(request, requestPath);
-                break;
-            case FILE:
-                vcfFile = createVcfFromFile(request, chromosomeMap, reference, request.isDoIndex());
-                break;
-            case DOWNLOAD:
-                vcfFile = downloadVcfFile(request, requestPath, chromosomeMap, reference, request.isDoIndex());
-                break;
-            case URL:
-                vcfFile = createVcfFromUrl(request, chromosomeMap, reference);
-                break;
-            default:
-                throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
+        try {
+            switch (request.getType()) {
+                case GA4GH:
+                    vcfFile = getVcfFileFromGA4GH(request, requestPath);
+                    break;
+                case FILE:
+                    vcfFile = createVcfFromFile(request, chromosomeMap, reference, request.isDoIndex());
+                    break;
+                case DOWNLOAD:
+                    vcfFile = downloadVcfFile(request, requestPath, chromosomeMap, reference,
+                            request.isDoIndex());
+                    break;
+                case URL:
+                    vcfFile = createVcfFromUrl(request, chromosomeMap, reference);
+                    break;
+                default:
+                    throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
+            }
+            biologicalDataItemManager.createBiologicalDataItem(vcfFile.getIndex());
+            vcfFileManager.createVcfFile(vcfFile);
+        } finally {
+            if (vcfFile != null && vcfFile.getId() != null &&
+                    vcfFileManager.loadVcfFile(vcfFile.getId()) == null) {
+                biologicalDataItemManager.deleteBiologicalDataItem(vcfFile.getBioDataItemId());
+            }
         }
-        biologicalDataItemManager.createBiologicalDataItem(vcfFile.getIndex());
-        vcfFileManager.createVcfFile(vcfFile);
         return vcfFile;
     }
 
@@ -298,7 +312,7 @@ public class VcfManager {
         loadVariations(track, query.getSampleId(), true, false);
         Assert.notEmpty(track.getBlocks(), getMessage(MessagesConstants.ERROR_NO_SUCH_VARIATION, query.getPosition()));
         Variation variation = track.getBlocks().get(0);
-
+        extendInfoFields(variation);
         VcfFile vcfFile = vcfFileManager.loadVcfFile(query.getId());
         Reference reference = referenceGenomeManager.loadReferenceGenome(vcfFile.getReferenceId());
         if (reference.getGeneFile() != null) {
@@ -336,7 +350,7 @@ public class VcfManager {
                        true, false);
         Assert.notEmpty(track.getBlocks(), getMessage(MessagesConstants.ERROR_NO_SUCH_VARIATION, query.getPosition()));
         Variation variation = track.getBlocks().get(0);
-
+        extendInfoFields(variation);
         Reference reference = referenceGenomeManager.loadReferenceGenome(track.getChromosome().getReferenceId());
         if (reference.getGeneFile() != null) {
             Set<String> geneIds = featureIndexManager.fetchGeneIds(variation.getStartIndex(),
@@ -380,13 +394,13 @@ public class VcfManager {
 
     /**
      * Loads VCF FILTER and INFO data for a {@code Collection} of VCF files
-     * @param vcfFileIds {@code Collection} specifies VCF giles of interest
+     * @param vcfFileIds {@code Collection} specifies VCF files of interest
      * @return  VCF FILTER and INFO data
      * @throws IOException if an error with file system occurred
      */
     public VcfFilterInfo getFiltersInfo(Collection<Long> vcfFileIds) throws IOException {
         VcfFilterInfo filterInfo = new VcfFilterInfo();
-        Set<InfoItem> infoItems = new HashSet<>();
+        Map<String, InfoItem> infoItems = new HashMap<>();
         Set<String> availableFilters = new HashSet<>();
 
         for (Long fileId : vcfFileIds) {
@@ -397,9 +411,10 @@ public class VcfManager {
                     new VCFCodec(), false)) {
                 VCFHeader header = (VCFHeader) reader.getHeader();
                 Collection<VCFInfoHeaderLine> headerLines = header.getInfoHeaderLines();
-                infoItems.addAll(headerLines.stream()
-                        .filter(l -> !"ANN".equalsIgnoreCase(l.getID()))    // Exclude ANN from fields,
-                        .map(InfoItem::new).collect(Collectors.toList())); // we don't need it in the index
+                infoItems.putAll(headerLines.stream()
+                        .filter(l -> !isExtendedInfoLine(l.getDescription()))    // Exclude ANN from fields,
+                        .map(InfoItem::new)                                 // we don't need it in the index
+                        .collect(Collectors.toMap(InfoItem::getName, i -> i)));
                 availableFilters.addAll(header.getFilterLines().stream().map(VCFSimpleHeaderLine::getID)
                         .collect(Collectors.toList()));
             }
@@ -411,7 +426,7 @@ public class VcfManager {
             infoItems = scourFilterList(infoItems, filtersWhiteList);
         }
 
-        filterInfo.setInfoItems(infoItems);
+        filterInfo.setInfoItemMap(infoItems);
         filterInfo.setAvailableFilters(availableFilters);
 
         return filterInfo;
@@ -449,13 +464,13 @@ public class VcfManager {
 
     private VcfFilterInfo getFiltersInfo(FeatureReader<VariantContext> reader) throws IOException {
         VcfFilterInfo filterInfo = new VcfFilterInfo();
-        Set<InfoItem> infoItems = new HashSet<>();
 
         VCFHeader header = (VCFHeader) reader.getHeader();
         Collection<VCFInfoHeaderLine> headerLines = header.getInfoHeaderLines();
-        infoItems.addAll(headerLines.stream()
-                             .filter(l -> !"ANN".equalsIgnoreCase(l.getID()))    // Exclude ANN from fields,
-                             .map(InfoItem::new).collect(Collectors.toList())); // we don't need it in the index
+        Map<String, InfoItem> infoItems = headerLines.stream()
+                                .filter(l -> !isExtendedInfoLine(l.getDescription()))    // Exclude ANN from fields,
+                                .map(InfoItem::new)                                 // we don't need it in the index
+                                .collect(Collectors.toMap(InfoItem::getName, i -> i));
         filterInfo.setAvailableFilters(header.getFilterLines().stream().map(VCFSimpleHeaderLine::getID)
                                     .collect(Collectors.toSet()));
 
@@ -464,7 +479,7 @@ public class VcfManager {
             infoItems = scourFilterList(infoItems, filtersWhiteList);
         }
 
-        filterInfo.setInfoItems(infoItems);
+        filterInfo.setInfoItemMap(infoItems);
 
         return filterInfo;
     }
@@ -504,7 +519,6 @@ public class VcfManager {
         }  catch (IOException | GeneReadingException e) {
             throw new RegistrationException(getMessage(ERROR_REGISTER_FILE, request.getName()), e);
         }
-
         return vcfFile;
     }
 
@@ -653,6 +667,10 @@ public class VcfManager {
 
             vcfFile.setIndex(indexItem);
         }
+        long vcfId = vcfFile.getId();
+        biologicalDataItemManager.createBiologicalDataItem(vcfFile);
+        vcfFile.setBioDataItemId(vcfFile.getId());
+        vcfFile.setId(vcfId);
         LOGGER.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, vcfFile.getId(), vcfFile.getPath()));
         return vcfFile;
     }
@@ -709,7 +727,10 @@ public class VcfManager {
 
             vcfFile.setIndex(indexItem);
         }
-
+        long vcfId = vcfFile.getId();
+        biologicalDataItemManager.createBiologicalDataItem(vcfFile);
+        vcfFile.setBioDataItemId(vcfFile.getId());
+        vcfFile.setId(vcfId);
         LOGGER.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, vcfFile.getId(), vcfFile.getPath()));
         return vcfFile;
     }
@@ -770,7 +791,69 @@ public class VcfManager {
         return null;
     }
 
-    private Set<InfoItem> scourFilterList(Collection<InfoItem> list, List<String> whiteList) {
-        return list.stream().filter(s -> whiteList.contains(s.getName())).collect(Collectors.toSet());
+    private Map<String, InfoItem> scourFilterList(Map<String, InfoItem> map, List<String> whiteList) {
+        return whiteList.stream()
+            .filter(map::containsKey)
+            .map(map::get)
+            .collect(Collectors.toMap(InfoItem::getName, i -> i));
+    }
+
+    private boolean isExtendedInfoLine(String description) {
+        InfoFieldParser parser = getExtendedInfoParser();
+        return parser.isExtendedInfoField(description);
+    }
+
+
+    protected void setExtendedInfoTemplates(String extendedInfoTemplates) {
+        this.extendedInfoTemplates = extendedInfoTemplates;
+    }
+
+    private void extendInfoFields(Variation variation) {
+        Map<String, Variation.InfoField> infoFieldMap = variation.getInfo();
+        InfoFieldParser parser = getExtendedInfoParser();
+        for (Map.Entry<String, Variation.InfoField> infoEntry : infoFieldMap.entrySet()) {
+            Variation.InfoField infoField = infoEntry.getValue();
+            if (parser.isExtendedInfoField(infoField.getDescription())) {
+                extendInfoField(infoField, parser);
+            }
+        }
+    }
+
+    private void extendInfoField(Variation.InfoField infoField, InfoFieldParser parser) {
+        List<String> values;
+        if (infoField.getValue() instanceof List) {
+            values = (List<String>) infoField.getValue();
+        } else if (infoField.getValue() instanceof String) {
+            values = Collections.singletonList((String) infoField.getValue());
+        } else {
+            return;
+        }
+        List<String> header = parser.extractHeaderFromLine(infoField.getDescription());
+        List<List<String>> lines = new ArrayList<>();
+        for (String line : values) {
+            List<String> data = parser.extractDataFromLine(line);
+            if (data.size() == header.size()) {
+                lines.add(data);
+            } else {
+                LOGGER.error("Extended info field value doesn't match the format "
+                        + "defined in the file header.");
+                return;
+            }
+        }
+        infoField.setType(Variation.InfoFieldTypes.TABLE);
+        infoField.setHeader(header);
+        infoField.setValue(lines);
+    }
+
+    public InfoFieldParser getExtendedInfoParser() {
+        if (infoFieldParser != null) {
+            return infoFieldParser;
+        }
+        if (extendedInfoTemplates == null || extendedInfoTemplates.isEmpty()) {
+            infoFieldParser = new InfoFieldParser("");
+        } else {
+            infoFieldParser = new InfoFieldParser(extendedInfoTemplates);
+        }
+        return infoFieldParser;
     }
 }

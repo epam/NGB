@@ -24,22 +24,25 @@ export default class ngbTrackController {
     isResizable = false;
     isResizing = false;
 
-    constructor($scope, $element, $compile, dispatcher, projectContext, projectDataService, genomeDataService, localDataService) {
+    constructor($scope, $element, $compile, $timeout, dispatcher, projectContext, projectDataService, genomeDataService, localDataService, bamDataService, appLayout) {
         this.dispatcher = dispatcher;
         this.projectContext = projectContext;
         this.domElement = $element[0];
         this._localDataService = localDataService;
+        this.$timeout = $timeout;
         this.trackRendererElement = $element.find('.md-track-renderer')[0];
 
         this.isRuler = this.track.format === 'Ruler';
 
-        this.ngbTrackEvents = new ngbTrackEvents(this.dispatcher, this.projectContext, $scope, $compile, projectDataService, genomeDataService);
+        this.ngbTrackEvents = new ngbTrackEvents(this.dispatcher, this.projectContext, $scope, $compile, projectDataService, genomeDataService, bamDataService, appLayout);
 
         const trackConstructor = trackConstructors[this.track.format];
         if (!trackConstructor) {
             this.isLoaded = true;
             return;
         }
+
+        this.showHideTrackButton = this.track.format != 'REFERENCE';
 
         this.possibleTrackHeight =
             this.instanceConstructor.config instanceof Object
@@ -52,7 +55,7 @@ export default class ngbTrackController {
         this.trackDataIsLoading = false;
         this.trackInstance.trackDataLoadingStatusChanged = (status) => {
             this.trackDataIsLoading = status;
-            $scope.$apply();
+            this.$timeout(::$scope.$apply);
         };
 
         $scope.$on('resizeStart', () => {
@@ -149,5 +152,25 @@ export default class ngbTrackController {
         }
 
         this.isLoaded = true;
+    }
+
+    hideTrack(event) {
+        const tracksState = this.projectContext.tracksState;
+        const bioDataItemId = this.track.bioDataItemId;
+        const projectId = this.track.projectId;
+        const [trackState] = tracksState.filter(t => t.bioDataItemId === bioDataItemId && t.projectId === projectId);
+        if (trackState) {
+            const index = tracksState.indexOf(trackState);
+            tracksState.splice(index, 1);
+            const referenceId = this.projectContext.reference.bioDataItemId;
+            if (tracksState.filter(t => t.bioDataItemId !== referenceId).length === 0) {
+                this.projectContext.changeState({reference: null});
+            } else {
+                this.projectContext.changeState({tracksState});
+            }
+        }
+        event.stopImmediatePropagation();
+        event.stopPropagation();
+        return false;
     }
 }

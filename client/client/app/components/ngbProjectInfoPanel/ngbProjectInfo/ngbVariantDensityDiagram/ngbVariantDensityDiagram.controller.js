@@ -91,7 +91,7 @@ export default class ngbVariantDensityDiagramController {
     async INIT() {
         this.noDataToDisplay = !this.projectContext.filteredVariants ||
             this.projectContext.filteredVariants.length === 0;
-        if (this.projectContext.project && this.projectContext.filteredVariants) {
+        if (this.projectContext.reference && this.projectContext.filteredVariants) {
             await this.updateDiagram(this.projectContext.filteredVariants,
                 this.projectContext.isVariantsLoading);
             this.isProgressShown = this.projectContext.isVariantsLoading;

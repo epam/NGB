@@ -33,6 +33,23 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.epam.catgenome.common.AbstractManagerTest;
+import com.epam.catgenome.controller.util.MultipartFileSender;
+import com.epam.catgenome.controller.util.UrlTestingUtils;
+import com.epam.catgenome.controller.vo.ReadQuery;
+import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
+import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
+import com.epam.catgenome.dao.BiologicalDataItemDao;
+import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
+import com.epam.catgenome.entity.bam.*;
+import com.epam.catgenome.entity.bucket.Bucket;
+import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.entity.reference.Sequence;
+import com.epam.catgenome.entity.track.Track;
+import com.epam.catgenome.manager.bucket.BucketManager;
+import com.epam.catgenome.manager.reference.ReferenceManager;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -53,27 +70,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.epam.catgenome.controller.util.MultipartFileSender;
-import com.epam.catgenome.controller.util.UrlTestingUtils;
-import com.epam.catgenome.controller.vo.ReadQuery;
-import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
-import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
-import com.epam.catgenome.dao.BiologicalDataItemDao;
-import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.bam.BamFile;
-import com.epam.catgenome.entity.bam.BamQueryOption;
-import com.epam.catgenome.entity.bam.BamTrack;
-import com.epam.catgenome.entity.bam.Read;
-import com.epam.catgenome.entity.bam.TrackDirectionType;
-import com.epam.catgenome.entity.bucket.Bucket;
-import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.entity.reference.Sequence;
-import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.manager.bucket.BucketManager;
-import com.epam.catgenome.manager.reference.ReferenceManager;
-
 /**
  * Source:      BamManagerTest.java
  * Created:     12/3/2015
@@ -85,7 +81,7 @@ import com.epam.catgenome.manager.reference.ReferenceManager;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class BamManagerTest {
+public class BamManagerTest extends AbstractManagerTest {
     private Logger logger = LoggerFactory.getLogger(BamManagerTest.class);
 
     @Autowired
@@ -106,7 +102,9 @@ public class BamManagerTest {
     @Autowired
     private BamManager bamManager;
 
-    private static final String TEST_NSAME = "BIG";
+    private static final String TEST_NSAME = "BIG " + BamManagerTest.class.getSimpleName();
+    private static final String TEST_REF_NAME = "//dm606.X.fa";
+    private static final String TEST_BAM_NAME = "//agnX1.09-28.trim.dm606.realign.bam";
     private static final int TEST_START_INDEX_SMALL_RANGE = 12589188;
     private static final int TEST_START_INDEX_MEDIUM_RANGE = 12589188;
     private static final int TEST_START_INDEX_LARGE_RANGE = 12582200;
@@ -138,7 +136,6 @@ public class BamManagerTest {
     @Value("${s3.index.path}")
     private String s3IndexPath;
 
-
     @Value("${hdfs.file.path}")
     private String hdfsFilePath;
     @Value("${hdfs.index.path}")
@@ -146,12 +143,11 @@ public class BamManagerTest {
 
     @Before
     public void setup() throws IOException {
-
         resource = context.getResource("classpath:templates");
-        File fastaFile = new File(resource.getFile().getAbsolutePath() + "//dm606.X.fa");
+        File fastaFile = new File(resource.getFile().getAbsolutePath() + TEST_REF_NAME);
 
         ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
-        request.setName(TEST_NSAME);
+        request.setName(TEST_REF_NAME + biologicalDataItemDao.createBioItemId());
         request.setPath(fastaFile.getPath());
 
         testReference = referenceManager.registerGenome(request);
@@ -459,6 +455,7 @@ public class BamManagerTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testCalculateConsensusSequencePerformance() throws IOException {
         // Set isPerfomaceTest to true if you want to measure time
         boolean isPerformanceTest = true;
@@ -520,11 +517,11 @@ public class BamManagerTest {
     }
 
     private BamFile setUpTestFile() throws IOException {
-        String path = resource.getFile().getAbsolutePath() + "//agnX1.09-28.trim.dm606.realign.bam";
+        String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(path);
         request.setIndexPath(path + BAI_EXTENSION);
-        request.setName(TEST_NSAME);
+        request.setName(TEST_BAM_NAME + biologicalDataItemDao.createBioItemId());
         request.setReferenceId(testReference.getId());
         request.setType(BiologicalDataItemResourceType.FILE);
 

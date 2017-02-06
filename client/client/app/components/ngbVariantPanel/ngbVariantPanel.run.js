@@ -3,7 +3,6 @@ export default function run($mdDialog, dispatcher, projectContext) {
 
     const displayVariantDetailsCallback = (state)=> {
         const {variant} = state;
-        const projectId = projectContext.projectId;
 
         $mdDialog.show({
 
@@ -21,7 +20,7 @@ export default function run($mdDialog, dispatcher, projectContext) {
                     vcfFileId: variant.vcfFileId,
                     position: variant.position,
                     chromosomeId: variant.chromosome.id,
-                    projectId: projectId
+                    projectId: variant.projectId
                 }, variantInfo);
 
                 $scope.variant = variantInfo;

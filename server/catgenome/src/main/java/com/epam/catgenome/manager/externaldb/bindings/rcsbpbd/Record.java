@@ -42,7 +42,8 @@ import javax.xml.bind.annotation.XmlType;
         "compound",
         "chainId",
         "structureTitle",
-        "classification"
+        "classification",
+        "uniprotRecommendedName"
     })
 
 @XmlRootElement(name = "record")
@@ -57,7 +58,8 @@ public class Record {
     protected String structureTitle;
     @XmlElement(name = "dimStructure.classification", required = true)
     protected String classification;
-
+    @XmlElement(name = "dimEntity.uniprotRecommendedName", required = true)
+    protected String uniprotRecommendedName;
 
     public String getStructureId() {
         return structureId;
@@ -97,5 +99,13 @@ public class Record {
 
     public void setChainId(String chainId) {
         this.chainId = chainId;
+    }
+
+    public String getUniprotRecommendedName() {
+        return uniprotRecommendedName;
+    }
+
+    public void setUniprotRecommendedName(String uniprotRecommendedName) {
+        this.uniprotRecommendedName = uniprotRecommendedName;
     }
 }

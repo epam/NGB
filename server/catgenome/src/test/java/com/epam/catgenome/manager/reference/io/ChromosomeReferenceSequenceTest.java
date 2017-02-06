@@ -37,9 +37,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.reference.Chromosome;
@@ -50,7 +52,7 @@ import htsjdk.samtools.reference.ReferenceSequence;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class ChromosomeReferenceSequenceTest extends AbstractTransactionalJUnit4SpringContextTests {
+public class ChromosomeReferenceSequenceTest extends AbstractManagerTest {
 
     @Autowired
     ApplicationContext context;
@@ -117,6 +119,7 @@ public class ChromosomeReferenceSequenceTest extends AbstractTransactionalJUnit4
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRED)
     public void getSequence() throws Exception {
         ChromosomeReferenceSequence referenceSequence = new ChromosomeReferenceSequence(chromosomes,
                 referenceId, referenceManager);
@@ -130,6 +133,7 @@ public class ChromosomeReferenceSequenceTest extends AbstractTransactionalJUnit4
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRED)
     public void getSequenceInterval() throws Exception {
         ChromosomeReferenceSequence referenceSequence = new ChromosomeReferenceSequence(chromosomes,
                 referenceId, referenceManager);

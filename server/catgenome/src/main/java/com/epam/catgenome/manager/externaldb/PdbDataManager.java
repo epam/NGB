@@ -64,7 +64,8 @@ public class PdbDataManager {
 
         ParameterNameValue[] params = new ParameterNameValue[]{new ParameterNameValue("pdbids", pdbids),
             new ParameterNameValue("format", "xml"),
-            new ParameterNameValue("customReportColumns", "structureTitle,expressionHost,classification,compound")};
+            new ParameterNameValue("customReportColumns", "structureTitle,expressionHost,classification,"
+                                                          + "compound,uniprotRecommendedName")};
 
         String location = RCSB_SERVER + RCSB_TOOL + "?";
 

@@ -24,13 +24,20 @@
 
 package com.epam.catgenome.controller;
 
+import java.io.IOException;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.epam.catgenome.entity.file.AbstractFsItem;
+import com.epam.catgenome.manager.FileManager;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
@@ -47,6 +54,9 @@ import com.wordnik.swagger.annotations.ApiResponses;
  */
 @Controller
 public class UtilsController extends AbstractRESTController {
+    @Autowired
+    private FileManager fileManager;
+
     @Value("#{catgenome['version']}")
     private String version;
 
@@ -60,5 +70,19 @@ public class UtilsController extends AbstractRESTController {
             })
     public Result<String> loadVersion() {
         return Result.success(version);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/files", method = RequestMethod.GET)
+    @ApiOperation(
+        value = "Returns directory contents",
+        notes = "Returns directory contents, specified by path",
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+        })
+    public Result<List<AbstractFsItem>> loadDirectoryContents(@RequestParam(required = false) String path)
+        throws IOException {
+        return Result.success(fileManager.loadDirectoryContents(path));
     }
 }

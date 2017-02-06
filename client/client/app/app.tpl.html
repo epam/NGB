@@ -1,6 +1,9 @@
-<ngb-header-project></ngb-header-project>
-<ngb-golden-layout></ngb-golden-layout>
+<div class="menu-with-golden-layout" flex layout="row">
+    <div ng-class="{'left-menu': $ctrl.toolbarVisibility}">
+        <ngb-main-toolbar></ngb-main-toolbar>
+    </div>
 
-
-
-
+    <div ng-class="{'golden-layout': $ctrl.toolbarVisibility}" >
+        <ngb-golden-layout></ngb-golden-layout>
+    </div>
+</div>

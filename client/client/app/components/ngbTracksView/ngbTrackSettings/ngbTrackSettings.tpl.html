@@ -20,6 +20,7 @@
                         class="track-menu-button"
                         ng-click="ctrl.handleButtonField($event, subfield)">
                     {{subfield.label}}
+                    <span class="info-hotkey" ng-if="subfield.hotkey">({{subfield.hotkey}})</span>
                 </md-button>
             </md-menu-item>
             <md-menu-item
@@ -35,6 +36,7 @@
                             ng-checked="subfield.isEnabled()"
                             ng-click="ctrl.handleField($event, subfield)">
                         {{subfield.label}}
+                        <span class="info-hotkey" ng-if="subfield.hotkey">({{subfield.hotkey}})</span>
                     </md-checkbox>
                 </div>
             </md-menu-item>

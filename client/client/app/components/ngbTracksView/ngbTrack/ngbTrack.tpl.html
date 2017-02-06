@@ -37,6 +37,15 @@
                         </md-checkbox>
                         {{action.label}}
                     </div>
+                    <div ng-if="action.type === 'groupLinks'"
+                         class="ngb-track-header-action-group-links"
+                         layout="row"
+                         layout-align="start center">
+                        {{action.label}}:
+                        <div ng-repeat="link in action.links">
+                            <a class="link-action" href="" ng-click="link.handleClick()">{{link.label}}</a>
+                        </div>
+                    </div>
                 </div>
                 <div ng-hide="action.enabled()"
                      class="ngb-track-header-message"
@@ -48,6 +57,11 @@
 
         <div ng-show="ctrl.trackDataIsLoading">
             <md-progress-circular md-mode="indeterminate" md-diameter="12"></md-progress-circular>
+        </div>
+        <div title="Hide Track" class="buttons-menu-track" dnd-nodrag>
+            <md-button md-no-ink ng-show="ctrl.showHideTrackButton" class="md-icon-button" style="padding-right: 0;margin-right: 0;" ng-click="ctrl.hideTrack($event)" aria-label="Hide Track">
+                <ng-md-icon class="close-icon" icon="clear"></ng-md-icon>
+            </md-button>
         </div>
     </div>
 

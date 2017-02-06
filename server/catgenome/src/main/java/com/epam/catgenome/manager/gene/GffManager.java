@@ -193,10 +193,17 @@ public class GffManager {
                 throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
         }
 
-        final GeneFile geneFile = registerGeneFileFromFile(request);
-
-        biologicalDataItemManager.createBiologicalDataItem(geneFile.getIndex());
-        geneFileManager.createGeneFile(geneFile);
+        GeneFile geneFile = null;
+        try {
+            geneFile = registerGeneFileFromFile(request);
+            biologicalDataItemManager.createBiologicalDataItem(geneFile.getIndex());
+            geneFileManager.createGeneFile(geneFile);
+        } finally {
+            if (geneFile != null && geneFile.getId() != null &&
+                    !geneFileManager.geneFileExists(geneFile.getId())) {
+                biologicalDataItemManager.deleteBiologicalDataItem(geneFile.getBioDataItemId());
+            }
+        }
         return geneFile;
     }
 
@@ -204,10 +211,11 @@ public class GffManager {
      * Creates a feature index for {@link GeneFile}. If an index already exists, it will be deleted and created
      * from scratch
      * @param geneFileId an ID of gene file to reindex.
+     * @param full
      * @return a {@link GeneFile}, for which index was created
      * @throws IOException if an error occurred while writing index
      */
-    public GeneFile reindexGeneFile(long geneFileId) throws IOException {
+    public GeneFile reindexGeneFile(long geneFileId, boolean full) throws IOException {
         GeneFile geneFile = geneFileManager.loadGeneFile(geneFileId);
         Reference reference = referenceGenomeManager.loadReferenceGenome(geneFile.getReferenceId());
         Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
@@ -215,7 +223,7 @@ public class GffManager {
 
         fileManager.deleteFileFeatureIndex(geneFile);
 
-        featureIndexManager.processGeneFile(geneFile, chromosomeMap);
+        featureIndexManager.processGeneFile(geneFile, chromosomeMap, full);
 
         return geneFile;
     }
@@ -258,15 +266,22 @@ public class GffManager {
             geneFile.setIndex(indexItem);
         }
 
+        long geneId = geneFile.getId();
+        biologicalDataItemManager.createBiologicalDataItem(geneFile);
+        geneFile.setBioDataItemId(geneFile.getId());
+        geneFile.setId(geneId);
+
         LOGGER.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, geneFile.getId(), geneFile.getPath()));
         GeneRegisterer geneRegisterer = new GeneRegisterer(referenceGenomeManager, fileManager, featureIndexManager,
                                                            geneFile);
         try {
             geneRegisterer.processRegistration(request);
         } catch (IOException e) {
+            if (geneFile.getId() != null && !geneFileManager.geneFileExists(geneFile.getId())) {
+                biologicalDataItemManager.deleteBiologicalDataItem(geneFile.getBioDataItemId());
+            }
             throw new RegistrationException("Error while Gene file registration: " + geneFile.getPath(), e);
         }
-
         return geneFile;
     }
 
@@ -967,7 +982,8 @@ public class GffManager {
     private DimEntity dimSEntityFromRecord(final Record record) {
         DimEntity entity = new DimEntity();
         entity.setChainId(record.getChainId());
-        entity.setCompound(record.getCompound());
+        entity.setCompound(!"null".equals(record.getCompound()) ? record.getCompound() :
+                           record.getUniprotRecommendedName());
         return entity;
     }
 

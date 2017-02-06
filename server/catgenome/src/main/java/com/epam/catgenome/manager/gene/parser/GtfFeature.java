@@ -26,8 +26,6 @@ package com.epam.catgenome.manager.gene.parser;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Source:      GtfFeature.java
@@ -46,8 +44,6 @@ public class GtfFeature extends GffFeature {
     private static final String MRNA_SYMBOL_KEY = "mRNA_symbol";
     private static final String TRANSCRIPT_NAME_KEY = "transcript_name";
     private static final String TRANSCRIPT_SYMBOL_KEY = "transcript_symbol";
-
-    private static final Pattern PATTERN = Pattern.compile("([^;]*) (\")?([^;]*)\\2;([^\\t]|$)");
 
     public GtfFeature(String line) {
         super(line);
@@ -71,11 +67,13 @@ public class GtfFeature extends GffFeature {
         if (attributes == null) {
             attributes = new HashMap<>();
         }
-        Matcher matcher = PATTERN.matcher(line.substring(line.lastIndexOf('\t') + 1));
-        while (matcher.find()) {
-            String key = matcher.group(1);
-            String value = matcher.group(3);
-            attributes.put(key, value);
+
+        String[] groups = line.substring(line.lastIndexOf('\t') + 1).split(";");
+        for (String group : groups) {
+            String[] keyValue = group.split("\"");
+            if (keyValue.length == 2) {
+                attributes.put(keyValue[0].trim(), keyValue[1]);
+            }
         }
         return getGeneId();
     }

@@ -1,19 +1,26 @@
 import org.apache.tools.ant.filters.ReplaceTokens
+import de.undercouch.gradle.tasks.download.Download
 
 buildscript {
     repositories {
         jcenter()
+    }
+
+    dependencies {
+        classpath "org.akhikhl.gretty:gretty:+"
     }
 }
 
 plugins {
     id "net.saliman.properties" version "1.4.4"
     id "org.sonarqube" version "2.2"
+    id 'org.springframework.boot' version '1.4.3.RELEASE'
+    id "de.undercouch.download" version "3.1.2"
 }
 
 group "com.epam"
 
-version = new Version(major: 2, minor: 1)
+version = new Version(major: 2, minor: 2)
 
 task printVersion {
     doFirst {
@@ -41,19 +48,30 @@ def loadConfiguration() {
     project.ext.setProperty("profile", profile)
     project.ext.setProperty("database", database)
     project.ext.setProperty("buildNumber", buildNumber)
+    if (profile == "jar") {
+        tasks.withType(War).all { it.enabled = false }
+        apply plugin: "java"
+        jar {
+            archiveName "catgenome.jar"
+        }
+    } else bootRepackage {
+        enabled = false
+        apply plugin: "war"
+        war {
+            archiveName "catgenome.war"
+        }
+    }
 }
 
 apply from: "profiles.gradle"
 
 // >>>>> applied plugins
-apply plugin: "war"
+
+apply plugin: "java"
+apply plugin: "application"
 apply plugin: "checkstyle"
 apply plugin: "pmd"
 apply plugin: "jacoco"
-
-war {
-    archiveName "catgenome.war"
-}
 
 test {
     jvmArgs = ["-XX:MaxDirectMemorySize=7937m"]
@@ -65,7 +83,7 @@ ext {
     versionJackson = "2.7.5"
     versionSpring = "4.3.1.RELEASE"
     versionJayWayJsonPath = "1.1.0"
-    versionSpringSecurity = "4.0.3.RELEASE"
+    versionSpringSecurity = "4.1.1.RELEASE"
     versionJUnit = "4.12"
     versionUnitils = "3.4.2"
     versionJavaXServlet = "3.1.0"
@@ -84,19 +102,27 @@ repositories {
 dependencies {
     // >>>>> dependencies used to compile application and include into artifact
     // Spring Framework
-    compile group: "org.springframework", name: "spring-tx", version: project.ext.versionSpring
-    compile group: "org.springframework", name: "spring-aop", version: project.ext.versionSpring
-    compile group: "org.springframework", name: "spring-web", version: project.ext.versionSpring
+    configurations {
+        all*.exclude module : 'spring-boot-starter-logging'
+    }
     compile group: "org.springframework", name: "spring-jdbc", version: project.ext.versionSpring
-    compile group: "org.springframework", name: "spring-core", version: project.ext.versionSpring
-    compile group: "org.springframework", name: "spring-beans", version: project.ext.versionSpring
-    compile group: "org.springframework", name: "spring-webmvc", version: project.ext.versionSpring
     compile group: "org.springframework", name: "spring-context", version: project.ext.versionSpring
     compile group: "org.springframework", name: "spring-context-support", version: project.ext.versionSpring
-    compile group: "org.springframework", name: "spring-expression", version: project.ext.versionSpring
     compile group: "org.springframework.security", name: "spring-security-core", version: versionSpringSecurity
     compile group: "org.springframework.security", name: "spring-security-web", version: versionSpringSecurity
     compile group: "org.springframework.security", name: "spring-security-config", version: versionSpringSecurity
+    compile group:"org.springframework.security.oauth", name:"spring-security-oauth2", version: "2.0.12.RELEASE"
+    compile("org.springframework.boot:spring-boot-starter-thymeleaf")
+    compile("org.springframework.boot:spring-boot-devtools")
+
+    if (profile == "jar") {
+        compile('org.apache.tomcat.embed:tomcat-embed-jasper')
+        compile("org.springframework.boot:spring-boot-starter-tomcat")
+    } else {
+        providedRuntime('org.apache.tomcat.embed:tomcat-embed-jasper')
+        providedRuntime("org.springframework.boot:spring-boot-starter-tomcat")
+    }
+
     // Jackson
     compile group: "com.fasterxml.jackson.core", name: "jackson-core", version: versionJackson //project.ext.versionJackson
     compile group: "com.fasterxml.jackson.core", name: "jackson-databind", version:  versionJackson //project.ext.versionJackson
@@ -128,7 +154,6 @@ dependencies {
 
     compile 'commons-fileupload:commons-fileupload:1.3.1'
 
-    compile group:"org.springframework.security.oauth", name:"spring-security-oauth2", version: "1.0.5.RELEASE"
     //Ehcache
     compile group: "net.sf.ehcache", name: "ehcache", version: "2.10.1"
     // Lucene
@@ -144,23 +169,23 @@ dependencies {
     compile group: "org.jetbrains.bio", name: "big", version: "0.3.4"
 
     // >>>>> dependencies used to compile tests; in fact no need to include them into artifact
-    testCompile group: "junit", name: "junit", version: project.ext.versionJUnit
+    testCompile("org.springframework.boot:spring-boot-starter-test")
     testCompile group: "org.unitils", name: "unitils-core", version: project.ext.versionUnitils
     testCompile group: "javax.servlet", name: "javax.servlet-api", version: project.ext.versionJavaXServlet
-    testCompile group: "org.springframework", name: "spring-test", version: project.ext.versionSpring
     testCompile group: "com.jayway.jsonpath", name: "json-path", version: project.ext.versionJayWayJsonPath
     testCompile group: "com.jayway.jsonpath", name: "json-path-assert", version: project.ext.versionJayWayJsonPath
-    testCompile group: "org.mockito", name: "mockito-all", version: project.ext.versionMockito
     testCompile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.3.13.v20161014'
 }
 
 // >>>>> To configure Run/Debug with Local Tomcat on dev environment an exploded WAR archive should be
 // >>>>> created. See also: https://issues.gradle.org/browse/GRADLE-1445
-task warExploded(type: Sync) {
-    into "$buildDir/catgenome"
-    with war
+if (profile != "jar") {
+    task warExploded(type: Sync) {
+        into "$buildDir/catgenome"
+        with war
+    }
+    war.dependsOn warExploded
 }
-war.dependsOn warExploded
 
 // >>>>> processes profiles
 processResources.dependsOn copyConfiguration
@@ -192,4 +217,148 @@ tasks.withType(Pmd) {
 
 def escape(String s) {
     return s.replace("\\", "\\\\")
+}
+
+//Distributions
+//distribution properties
+def appName = 'ngb-server'
+def springBootlauncherClass = 'org.springframework.boot.loader.JarLauncher'
+def springBootJarName = 'catgenome.jar'
+def ngbJvmOptions = ["-Xms512m", "-Xmx2g"]
+def jreURL = "http://download.oracle.com/otn-pub/java/jdk/8-b132/"
+def windowsJre = "jre-8-windows-x64.tar.gz"
+def linuxJre = "jre-8-linux-x64.tar.gz"
+
+startScripts {
+    applicationName = appName
+    mainClassName = springBootlauncherClass
+    classpath = files(springBootJarName)
+    defaultJvmOpts = ngbJvmOptions
+}
+
+task zip(type: Zip) {
+    dependsOn bootRepackage
+    from('build/libs/') {
+        include '**/*.jar'
+        into('lib')
+    }
+    from('build/scripts') {
+        into('bin')
+    }
+    baseName = appName
+    archiveName = 'ngb-server.zip'
+}
+
+task tar(type: Tar) {
+    dependsOn bootRepackage
+    from('build/libs/') {
+        include '**/*.jar'
+        into('lib')
+    }
+    from('build/scripts') {
+        into('bin')
+    }
+    baseName = appName
+    archiveName = 'ngb-server.tgz'
+    extension = 'tgz'
+    compression = Compression.GZIP
+}
+
+//Windows Distribution
+task customStartScriptsWin (type: CreateStartScripts) {
+    applicationName = appName
+    mainClassName = springBootlauncherClass
+    classpath = files(springBootJarName)
+    defaultJvmOpts = ngbJvmOptions
+    outputDir = file("$buildDir/scripts")
+    doLast {
+        windowsScript.text = windowsScript.text.replace("set JAVA_EXE=%JAVA_HOME%/bin/java.exe",
+                "set JAVA_EXE=%APP_HOME%/jre1.8.0/bin/java.exe")
+        unixScript.text = unixScript.text.replace("exec \"\$JAVACMD\" \"\$@\"",
+                "exec \"\$APP_HOME/jre1.8.0/bin/java\" \"\$@\"")
+    }
+}
+
+task downloadJreWin(type: Download) {
+    dependsOn bootRepackage
+    src jreURL + windowsJre
+    dest "$buildDir/downloads/$windowsJre"
+    header 'Cookie', 'oraclelicense=accept-securebackup-cookie'
+    overwrite true
+}
+
+task bundleWindows(type: Zip) {
+    dependsOn downloadJreWin
+    dependsOn customStartScriptsWin, bootRepackage
+    from (tarTree(resources.gzip("$buildDir/downloads/$windowsJre"))) {
+    }
+
+    from("$buildDir/downloads/jre1.8.0") {
+    }
+
+    from("$buildDir/libs") {
+        include '**/*.jar'
+        into('lib')
+    }
+
+    from("$buildDir/scripts") {
+        into('bin')
+    }
+
+    baseName = appName
+    archiveName = 'ngb-server-windows.zip'
+}
+
+//Linux Distribution
+
+task customStartScriptsLinux (type: CreateStartScripts) {
+    applicationName = appName
+    mainClassName = springBootlauncherClass
+    classpath = files(springBootJarName)
+    defaultJvmOpts = ngbJvmOptions
+    outputDir = file("$buildDir/scripts")
+    doLast {
+        unixScript.text = unixScript.text.replace("exec \"\$JAVACMD\" \"\$@\"",
+                "exec \"\$APP_HOME/jre1.8.0/bin/java\" \"\$@\"")
+    }
+}
+
+task downloadJreLinux(type: Download) {
+    dependsOn bootRepackage
+    src jreURL + linuxJre
+    dest "$buildDir/downloads/$linuxJre"
+    header 'Cookie', 'oraclelicense=accept-securebackup-cookie'
+    overwrite true
+}
+
+task bundleLinux(type: Tar) {
+    dependsOn downloadJreLinux
+    dependsOn customStartScriptsLinux, bootRepackage
+    from (tarTree(resources.gzip("$buildDir/downloads/$linuxJre"))) {
+    }
+
+    from("$buildDir/downloads/jre1.8.0") {
+    }
+
+    from("$buildDir/libs") {
+        include '**/*.jar'
+        into('lib')
+    }
+
+    from("$buildDir/scripts/ngb-server") {
+        into('bin')
+    }
+
+    baseName = appName
+    archiveName = 'ngb-server-linux.tgz'
+    extension = 'tgz'
+    compression = Compression.GZIP
+}
+
+distTar {
+    enabled = false
+}
+
+distZip {
+    enabled = false
 }

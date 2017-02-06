@@ -43,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.vo.registration.FileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.entity.reference.Chromosome;
@@ -60,7 +61,7 @@ import com.epam.catgenome.util.Utils;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class WigManagerTest {
+public class WigManagerTest extends AbstractManagerTest {
 
     @Autowired
     ApplicationContext context;
@@ -75,14 +76,13 @@ public class WigManagerTest {
 
     private Logger logger = LoggerFactory.getLogger(WigManagerTest.class);
 
-    private static final String TEST_NSAME = "BIG";
-
+    private static final String TEST_NSAME = "BIG " + WigManagerTest.class.getSimpleName();
+    private static final String TEST_REF = "//dm606.X.fa";
+    private static final String TEST_WIG = "//agnX1.09-28.trim.dm606.realign.bw";
     private Resource resource;
     private Reference testReference;
     private long testChromosomeId;
     private String chromosomeName = "X";
-    /*private Chromosome testChromosome;
-    private Long referenceId;*/
     private static final int TEST_START_INDEX = 12587700;
     private static final int TEST_END_INDEX = 12589800;
     private static final double TEST_SCALE_FACTOR = 0.01;
@@ -91,11 +91,8 @@ public class WigManagerTest {
     @Before
     public void setup() throws IOException {
 
-
         resource = context.getResource("classpath:templates");
-        File fastaFile = new File(resource.getFile().getAbsolutePath() + "//dm606.X.fa");
-
-
+        File fastaFile = new File(resource.getFile().getAbsolutePath() + TEST_REF);
         ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
         request.setName(TEST_NSAME);
         request.setPath(fastaFile.getPath());
@@ -108,26 +105,17 @@ public class WigManagerTest {
                 break;
             }
         }
-
-        /*testChromosome = EntityHelper.createNewChromosome();
-        testChromosome.setName("1");
-        testChromosome.setSize(248956422);
-        testReference = EntityHelper.createNewReference(testChromosome, referenceGenomeManager.createReferenceId());
-
-        referenceGenomeManager.register(testReference);
-        referenceId = testReference.getId();*/
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void saveWigTest() throws IOException, NoSuchAlgorithmException {
 
-        final String path = resource.getFile().getAbsolutePath() + "//agnX1.09-28.trim.dm606.realign.bw";
+        final String path = resource.getFile().getAbsolutePath() + TEST_WIG;
         FileRegistrationRequest request = new FileRegistrationRequest();
         request.setPath(path);
         request.setReferenceId(testReference.getId());
-        request.setName(TEST_NSAME);
-
+        request.setName(TEST_WIG);
 
         WigFile wigFile = wigManager.registerWigFile(request);
         Assert.assertNotNull(wigFile);

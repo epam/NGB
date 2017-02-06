@@ -152,6 +152,7 @@ public class ReferenceGenomeDaoTest extends AbstractDaoTest {
         Reference newreference = getTestReference();
 
         final Long referenceId = newreference.getId();
+        newreference.setName(newreference.getName() + referenceId);
         biologicalDataItemDao.createBiologicalDataItem(newreference);
         referenceGenomeDao.createReferenceGenome(newreference, referenceId);
 
@@ -168,10 +169,11 @@ public class ReferenceGenomeDaoTest extends AbstractDaoTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testLoadReferenceBiBioItemID() {
+    public void testLoadReferenceBioItemID() {
         Reference testReference = getTestReference();
 
         final Long referenceId = testReference.getId();
+        testReference.setName(testReference.getName() + referenceId);
         biologicalDataItemDao.createBiologicalDataItem(testReference);
         referenceGenomeDao.createReferenceGenome(testReference, referenceId);
 
@@ -190,6 +192,7 @@ public class ReferenceGenomeDaoTest extends AbstractDaoTest {
         Reference testReference = getTestReference();
 
         final Long referenceId = testReference.getId();
+        testReference.setName(testReference.getName() + referenceId);
         biologicalDataItemDao.createBiologicalDataItem(testReference);
         referenceGenomeDao.createReferenceGenome(testReference, referenceId);
 
@@ -227,6 +230,7 @@ public class ReferenceGenomeDaoTest extends AbstractDaoTest {
         testReference2.setGeneFile(geneFile);
 
         final Long referenceId2 = testReference2.getId();
+        testReference2.setName(testReference2.getName() + referenceId2);
         biologicalDataItemDao.createBiologicalDataItem(testReference2);
         referenceGenomeDao.createReferenceGenome(testReference2, referenceId2);
 

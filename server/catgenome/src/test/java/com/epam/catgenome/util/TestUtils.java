@@ -74,6 +74,14 @@ public final class TestUtils {
         }
     }
 
+    public static <A> void warmUp(PreparationTask<A> preparation, TestFunction<A> task, int warmingCount)
+        throws Exception {
+        for (int i = 0; i < warmingCount; i++) {
+            A arg = preparation.doPrapare();
+            task.doTest(arg);
+        }
+    }
+
     public static double measurePerformance(TestTask task, int attemptsCount) throws Exception {
         List<Double> timings = new ArrayList<>();
         for (int i = 0; i < attemptsCount; i++) {
@@ -87,8 +95,44 @@ public final class TestUtils {
         return timings.stream().collect(Collectors.averagingDouble(x -> x));
     }
 
+    public static <T> double measurePerformance(PreparationTask<T> preparation, TestFunction<T> task,
+                                                int attemptsCount) throws Exception {
+        List<Double> timings = measurePerformanceTimings(preparation, task, attemptsCount);
+
+        return calculateAverage(timings);
+    }
+
+    public static <T> List<Double> measurePerformanceTimings(PreparationTask<T> preparation, TestFunction<T> task,
+                                                             int attemptsCount) throws Exception {
+        List<Double> timings = new ArrayList<>();
+        for (int i = 0; i < attemptsCount; i++) {
+            T arg = preparation.doPrapare();
+            double time1 = Utils.getSystemTimeMilliseconds();
+            task.doTest(arg);
+            double time2 = Utils.getSystemTimeMilliseconds();
+
+            timings.add(time2 - time1);
+        }
+
+        return timings;
+    }
+
+    public static double calculateAverage(List<Double> values) {
+        return values.stream().collect(Collectors.averagingDouble(x -> x));
+    }
+
     @FunctionalInterface
     public interface TestTask {
         void doTest() throws Exception;
+    }
+
+    @FunctionalInterface
+    public interface PreparationTask<T> {
+        T doPrapare() throws Exception;
+    }
+
+    @FunctionalInterface
+    public interface TestFunction<T> {
+        void doTest(T arg) throws Exception;
     }
 }

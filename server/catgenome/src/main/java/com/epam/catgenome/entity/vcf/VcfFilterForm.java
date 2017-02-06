@@ -57,6 +57,10 @@ public class VcfFilterForm {
     private List<Float> quality;
     private Boolean isExon;
 
+    private Integer page;
+    private Integer pageSize;
+    private List<OrderBy> orderBy;
+
     /**
      * Additional fields to show in Variations table
      */
@@ -164,10 +168,10 @@ public class VcfFilterForm {
         if (genes != null && !genes.field.isEmpty()) {
             BooleanQuery.Builder genesBuilder = new BooleanQuery.Builder();
             for (int i = 0; i < genes.field.size(); i++) {
-                PrefixQuery geneIdPrefixQuery = new PrefixQuery(new Term(FeatureIndexFields.GENE.getFieldName(),
+                PrefixQuery geneIdPrefixQuery = new PrefixQuery(new Term(FeatureIndexFields.GENE_ID.getFieldName(),
                         genes.field.get(i).toLowerCase()));
                 PrefixQuery geneNamePrefixQuery = new PrefixQuery(
-                    new Term(FeatureIndexFields.GENE_REAL_NAME.getFieldName(), genes.field.get(i).toLowerCase()));
+                    new Term(FeatureIndexFields.GENE_NAME.getFieldName(), genes.field.get(i).toLowerCase()));
                 BooleanQuery.Builder geneIdOrNameQuery = new BooleanQuery.Builder();
                 geneIdOrNameQuery.add(geneIdPrefixQuery, BooleanClause.Occur.SHOULD);
                 geneIdOrNameQuery.add(geneNamePrefixQuery, BooleanClause.Occur.SHOULD);
@@ -347,6 +351,30 @@ public class VcfFilterForm {
         isExon = exon;
     }
 
+    public Integer getPage() {
+        return page;
+    }
+
+    public void setPage(Integer page) {
+        this.page = page;
+    }
+
+    public Integer getPageSize() {
+        return pageSize;
+    }
+
+    public void setPageSize(Integer pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    public List<OrderBy> getOrderBy() {
+        return orderBy;
+    }
+
+    public void setOrderBy(List<OrderBy> orderBy) {
+        this.orderBy = orderBy;
+    }
+
     public static class FilterSection<T> {
         private T field;
         private boolean conjunction = false;
@@ -378,6 +406,36 @@ public class VcfFilterForm {
 
         public void setConjunction(boolean conjunction) {
             this.conjunction = conjunction;
+        }
+    }
+
+    public static class OrderBy {
+        private String field;
+        private boolean desc = false;
+
+        public OrderBy() {
+            // no-op
+        }
+
+        public OrderBy(String field, boolean desc) {
+            this.field = field;
+            this.desc = desc;
+        }
+
+        public String getField() {
+            return field;
+        }
+
+        public void setField(String field) {
+            this.field = field;
+        }
+
+        public boolean isDesc() {
+            return desc;
+        }
+
+        public void setDesc(boolean desc) {
+            this.desc = desc;
         }
     }
 }

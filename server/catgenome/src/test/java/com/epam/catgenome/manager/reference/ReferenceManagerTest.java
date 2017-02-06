@@ -43,11 +43,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
@@ -73,7 +73,7 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class ReferenceManagerTest extends AbstractTransactionalJUnit4SpringContextTests {
+public class ReferenceManagerTest extends AbstractManagerTest {
 
     private static final double SCALE_FACTOR_4_BASE = 1D;
     private static final double SCALE_FACTOR_4_GC = 0.0001;
@@ -172,7 +172,7 @@ public class ReferenceManagerTest extends AbstractTransactionalJUnit4SpringConte
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Throwable.class)
     public void nibFileToNucleotide() throws ReferenceReadingException {
 
         Track<Sequence> track = new Track<>();
@@ -188,7 +188,7 @@ public class ReferenceManagerTest extends AbstractTransactionalJUnit4SpringConte
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Throwable.class)
     public void getGCContentTest() throws ReferenceReadingException {
         Track<Sequence> track = new Track<>();
         Chromosome chromosome = new Chromosome();
@@ -204,7 +204,7 @@ public class ReferenceManagerTest extends AbstractTransactionalJUnit4SpringConte
 
     @Ignore
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Throwable.class)
     public void testUnregister() throws IOException {
         ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
         request.setType(BiologicalDataItemResourceType.GA4GH);
@@ -223,6 +223,7 @@ public class ReferenceManagerTest extends AbstractTransactionalJUnit4SpringConte
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void getOtherGCContentTest() throws ReferenceReadingException {
         Track<Sequence> track = new Track<>();
         Chromosome chromosome = new Chromosome();
@@ -269,12 +270,12 @@ public class ReferenceManagerTest extends AbstractTransactionalJUnit4SpringConte
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testRegisterWithGeneFile() throws IOException {
         Resource resource = context.getResource(A3_FA_PATH);
 
         ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
-        request.setName("testReference");
+        request.setName("testReference1 " + this.getClass().getSimpleName());
         request.setPath(resource.getFile().getPath());
         request.setType(BiologicalDataItemResourceType.FILE);
 
@@ -304,7 +305,7 @@ public class ReferenceManagerTest extends AbstractTransactionalJUnit4SpringConte
 
         resource = context.getResource(A3_FA_PATH);
         request = new ReferenceRegistrationRequest();
-        request.setName("testReference2");
+        request.setName("testReference2 " + this.getClass().getSimpleName());
         request.setPath(resource.getFile().getPath());
         request.setType(BiologicalDataItemResourceType.FILE);
         request.setGeneFileId(testRef.getGeneFile().getId());
@@ -320,12 +321,12 @@ public class ReferenceManagerTest extends AbstractTransactionalJUnit4SpringConte
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testDeleteReferenceGeneFile() throws IOException {
         Resource resource = context.getResource(A3_FA_PATH);
 
         ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
-        request.setName("testReference");
+        request.setName("testReference " + this.getClass().getSimpleName());
         request.setPath(resource.getFile().getPath());
         request.setType(BiologicalDataItemResourceType.FILE);
 
@@ -344,12 +345,12 @@ public class ReferenceManagerTest extends AbstractTransactionalJUnit4SpringConte
     }
 
     @Test
-    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testFailDeleteReferenceGeneFile() throws IOException {
         Resource resource = context.getResource(A3_FA_PATH);
 
         ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
-        request.setName("testReference");
+        request.setName("testReference3");
         request.setPath(resource.getFile().getPath());
         request.setType(BiologicalDataItemResourceType.FILE);
 

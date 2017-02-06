@@ -9,7 +9,8 @@ export default {
     bindings: {
         open: '=?isOpen',
         closeExpandOther: '<?',
-        disableOthers: '<?'
+        disableOthers: '<?',
+        tooltip: '<'
     },
     controller: function() {
         this.$onInit = function() {

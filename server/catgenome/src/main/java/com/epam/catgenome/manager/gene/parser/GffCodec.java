@@ -125,8 +125,8 @@ public class GffCodec extends AsciiFeatureCodec<GeneFeature> {
         if (StringUtils.isBlank(line)) {
             return null;
         }
-
-        if (HEADER_MARKERS.stream().anyMatch(line::startsWith) || !line.matches(".*\t.*")) { // we don't parse headers
+        //we don't parse headers
+        if (HEADER_MARKERS.stream().anyMatch(line::startsWith) || !line.contains("\t")) {
             return null;
         }
 

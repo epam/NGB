@@ -21,9 +21,9 @@ $ CLI_HOME=/opt/catgenome/cli
 $ mkdir $CLI_HOME && cd $CLI_HOME
 
 //Download and unpack ngb-cli
-$ wget http://ngb.opensource.epam.com/distr/latest/ngb-cli.tar.gz && \
-    tar -zxvf ngb-cli.tar.gz && \
-    rm ngb-cli.tar.gz
+$ wget http://ngb.opensource.epam.com/distr/latest/ngb-cli-latest.tar.gz && \
+    tar -zxvf ngb-cli-latest.tar.gz && \
+    rm ngb-cli-latest.tar.gz
 
 //Write ngb-cli location to $PATH
 $ export PATH="$CLI_HOME/bin:$PATH

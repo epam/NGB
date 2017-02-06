@@ -31,6 +31,9 @@
     <category name="com.mchange">
         <priority value="ERROR"/>
     </category>
+    <category name="org.springframework.jndi">
+        <priority value="ERROR"/>
+    </category>
 
     <root>
         <level value="DEBUG"/>

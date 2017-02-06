@@ -79,7 +79,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
     render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
         super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
         const featurePxStart = Math.max(viewport.project.brushBP2pixel(feature.startIndex), - viewport.canvasSize);
-        const featurePxEnd = Math.min(viewport.project.brushBP2pixel(feature.endIndex), 2 * viewport.canvasSize);
+        const featurePxEnd = Math.min(viewport.project.brushBP2pixel(feature.endIndex + 1), 2 * viewport.canvasSize);
         const width = featurePxEnd - featurePxStart;
         if (width < 0) {
             return;

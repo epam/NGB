@@ -112,10 +112,18 @@ public class SegManager {
         if (request.getType() == null) {
             request.setType(BiologicalDataItemResourceType.FILE);
         }
-        SegFile segFile = getSegFile(request, requestPath);
-        LOGGER.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, segFile.getId(), segFile.getPath()));
-        biologicalDataItemManager.createBiologicalDataItem(segFile.getIndex());
-        segFileManager.createSegFile(segFile);
+        SegFile segFile = null;
+        try {
+            segFile = getSegFile(request, requestPath);
+            LOGGER.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, segFile.getId(), segFile.getPath()));
+            biologicalDataItemManager.createBiologicalDataItem(segFile.getIndex());
+            segFileManager.createSegFile(segFile);
+        } finally {
+            if (segFile != null && segFile.getId() != null &&
+                    segFileManager.loadSegFile(segFile.getId()) == null) {
+                biologicalDataItemManager.deleteBiologicalDataItem(segFile.getBioDataItemId());
+            }
+        }
         return segFile;
     }
 
@@ -216,6 +224,11 @@ public class SegManager {
         segFile.setCreatedDate(new Date());
         segFile.setCreatedBy(AuthUtils.getCurrentUserId());
         segFile.setReferenceId(request.getReferenceId());
+
+        long id = segFile.getId();
+        biologicalDataItemManager.createBiologicalDataItem(segFile);
+        segFile.setBioDataItemId(segFile.getId());
+        segFile.setId(id);
 
         fileManager.makeSegDir(segFile.getId(), AuthUtils.getCurrentUserId());
 

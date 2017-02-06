@@ -5,3 +5,17 @@ div {
 .hide-feature {
   display: none;
 }
+
+.menu-with-golden-layout{
+  height: 100%;
+}
+
+.menu-with-golden-layout .left-menu{
+  width: 50px;
+  background: #4285f4;
+  height: 100%;
+}
+
+.menu-with-golden-layout .golden-layout{
+  height: 100%;
+}

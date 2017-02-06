@@ -65,6 +65,7 @@ public abstract class AbstractDaoTest extends AbstractTransactionalJUnit4SpringC
         final Long referenceId = referenceGenomeDao.createReferenceGenomeId();
         assertNotNull("Reference ID cannot be generated.", referenceId);
         reference.setId(referenceId);
+        reference.setName(reference.getName() + " " + referenceId);
 
         biologicalDataItemDao.createBiologicalDataItem(reference);
         referenceGenomeDao.createReferenceGenome(reference, referenceId);

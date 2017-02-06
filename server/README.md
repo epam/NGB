@@ -19,7 +19,8 @@ Several profiles are available for NGB server build:
     
   * **dev** - builds NGB server with a default configuration, in this case server's files and the database are stored in the root directory of the project
   * **release** - builds NGB server with an empty configuration for further deploying on Tomcat and external configuration (see installation documentation for details)
-
+  * **jar** - configuration for a standalone jar build, configures NGB server to store the files and the database in
+   the runtime directory of NGB server
 Default profile is **dev**. You can specify the profile by adding the **"-Pprofile"** option to Gradle command:
    ```
    $ ./gradlew catgenome:clean catgenome:build -Pprofile=release
