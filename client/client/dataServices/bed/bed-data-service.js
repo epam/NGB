@@ -9,8 +9,15 @@ export class BedDataService extends DataService {
      * @returns {promise}
      */
     getBedTrack(bed) {
+        let url = 'bed/track/get';
+        if (bed.openByUrl) {
+            url = `bed/track/get?fileUrl=${encodeURIComponent(bed.fileUrl)}&indexUrl=${encodeURIComponent(bed.indexUrl)}`;
+            bed.openByUrl = undefined;
+            bed.fileUrl = undefined;
+            bed.indexUrl = undefined;
+        }
         return new Promise((resolve, reject) => {
-            this.post('bed/track/get', bed).then((data)=> {
+            this.post(url, bed).then((data)=> {
                 if (data) {
                     resolve(data.blocks ? data.blocks : []);
                 }else {
@@ -23,6 +30,9 @@ export class BedDataService extends DataService {
         });
     }
     getBedHistogram(bed){
+        if (bed.openByUrl) {
+            return new Promise((resolve) => { resolve([]); });
+        }
         return new Promise((resolve, reject) => {
             this.post('bed/track/histogram', bed).then((data)=> {
                 if (data) {

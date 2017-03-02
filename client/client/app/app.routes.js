@@ -18,13 +18,16 @@ export default function routes($urlRouterProvider, $httpProvider, $stateProvider
                 rewrite:null,
                 screenshot: null,
                 toolbar: null,
-                tracks: null
+                tracks: null,
+                filterByGenome: null,
+                collapsedTrackHeaders: null
             },
             resolve: {
                 $stateParams: '$stateParams'
             },
+            reloadOnSearch: false,
             template: require('./app.tpl.html'),
-            url: '/:referenceId/:chromosome/:start/:end?rewrite&bookmark&screenshot&toolbar&layout&tracks'
+            url: '/:referenceId/:chromosome/:start/:end?rewrite&bookmark&screenshot&toolbar&layout&tracks&filterByGenome&collapsedTrackHeaders'
         });
 
 }

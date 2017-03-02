@@ -31,7 +31,7 @@ function _preprocessNode(node: Node, parent: Node = null) {
     const mapTrackFn = function(track) {
         track.isTrack = true;
         track.project = node;
-        track.projectId = node.id;
+        track.projectId = node.name;
         track.reference = reference;
         track.hint = `${track.name}${reference ? `\r\nReference: ${reference.name}` : ''}`;
         track.searchFilterPassed = true;
@@ -45,6 +45,7 @@ function _preprocessNode(node: Node, parent: Node = null) {
     node.filesCount = tracks.length - (reference ? 1 : 0);
     node.datasetsCount = (node.nestedProjects || []).length;
     node.reference = reference;
+    node.tracks = tracks;
     return node;
 }
 
@@ -123,7 +124,7 @@ export function updateTracksStateFn(tree, manager, opts, reference) {
         return;
     }
     return function (item: Node) {
-        if (item.isTrack && item.reference.bioDataItemId !== reference.bioDataItemId) {
+        if (item.isTrack && item.reference.name !== reference.name) {
             manager.deselect(tree, item, opts);
         }
         return true;
@@ -141,18 +142,18 @@ export function selectRecursively(item: Node, isSelected) {
 
 export function mapTrackFn(track: Node){
     return {
-        bioDataItemId: track.bioDataItemId,
+        bioDataItemId: track.name,
         projectId: track.projectId
     };
 }
 
 export function findProject(datasets: Array<Node>, project) {
-    const {id} = project;
+    const {name} = project;
     for (let i = 0; i < datasets.length; i++) {
         const dataset = datasets[i];
         if (!dataset.isProject)
             continue;
-        if (dataset.id === id) {
+        if (dataset.name === name) {
             return dataset;
         }
         let items = dataset.items;
@@ -203,8 +204,20 @@ export function expandToProject(datasets: Array<Node>, project, manager, options
     }
 }
 
-export function filter(node: Node) {
+export function treeFilter(node: Node) {
     return node.format !== 'REFERENCE' && node.searchFilterPassed;
+}
+
+export function getGenomeFilter(genome) {
+    if (!genome) {
+        return function () {
+            return true;
+        };
+    } else {
+        return function (node:Node) {
+            return !node.reference || node.reference.name.toLowerCase() === genome.toLowerCase();
+        };
+    }
 }
 
 export function search(pattern, items: Array<Node>) {

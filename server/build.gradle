@@ -1,8 +1,0 @@
-
-group "com.epam"
-version "1.0-SNAPSHOT"
-
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.2.1'
-}

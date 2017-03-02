@@ -64,6 +64,7 @@ public class Track<T extends Block> extends AbstractTrack {
         this.scaleFactor = track.getScaleFactor();
         this.startIndex = track.getStartIndex();
         this.type = track.getType();
+        this.mode = track.getMode();
     }
 
     public Track(final TrackType type) {

@@ -11,6 +11,9 @@ export class GeneDataService extends DataService {
     }
 
     loadGeneHistogramTrack(gene) {
+        if (gene.openByUrl) {
+            return new Promise((resolve) => { resolve([]); });
+        }
         return new Promise((resolve, reject) => {
             this.post('gene/track/histogram', gene).then((data)=> {
                 if (data) {
@@ -24,8 +27,16 @@ export class GeneDataService extends DataService {
     }
 
     loadGeneTrack(gene, referenceId) {
+        let url = `gene/${referenceId}/track/get`;
+        if (gene.openByUrl) {
+            url = `gene/${referenceId}/track/get?fileUrl=${encodeURIComponent(gene.fileUrl)}&indexUrl=${encodeURIComponent(gene.indexUrl)}`;
+            gene.openByUrl = undefined;
+            gene.fileUrl = undefined;
+            gene.indexUrl = undefined;
+            gene.id = 1;
+        }
         return new Promise((resolve, reject) => {
-            this.post(`gene/${referenceId}/track/get`, gene).catch(() => { resolve([]); }).then((data)=> {
+            this.post(url, gene).catch(() => { resolve([]); }).then((data)=> {
                 if (data) {
                     resolve(data.blocks ? data.blocks : []);
                 } else {

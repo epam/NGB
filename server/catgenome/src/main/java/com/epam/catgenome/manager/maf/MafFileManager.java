@@ -74,7 +74,17 @@ public class MafFileManager {
     public MafFile loadMafFile(long mafFileId) {
         MafFile mafFile = mafFileDao.loadMafFile(mafFileId);
         Assert.notNull(mafFile, "MAF file with requested ID not found: " + mafFileId);
+        return mafFile;
+    }
 
+    /**
+     * Loads a persisted {@code MafFile} record by it's ID
+     * @param mafFileId {@code long} a MafFile ID
+     * @return {@code MafFile} instance
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public MafFile loadMafFileNullable(long mafFileId) {
+        MafFile mafFile = mafFileDao.loadMafFile(mafFileId);
         return mafFile;
     }
 

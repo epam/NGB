@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.manager.bam;
 
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -34,6 +35,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.epam.catgenome.common.AbstractManagerTest;
+import com.epam.catgenome.component.MessageHelper;
+import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.util.MultipartFileSender;
 import com.epam.catgenome.controller.util.UrlTestingUtils;
 import com.epam.catgenome.controller.vo.ReadQuery;
@@ -50,6 +53,7 @@ import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.manager.bucket.BucketManager;
 import com.epam.catgenome.manager.reference.ReferenceManager;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -343,7 +347,7 @@ public class BamManagerTest extends AbstractManagerTest {
         query.setEndIndex(read.getEndIndex());
         query.setId(bamFile.getId());
 
-        Read loadedRead = bamManager.loadRead(query);
+        Read loadedRead = bamManager.loadRead(query, null, null);
         Assert.assertNotNull(loadedRead);
         Assert.assertTrue(StringUtils.isNotBlank(loadedRead.getSequence()));
         Assert.assertTrue(!loadedRead.getTags().isEmpty());
@@ -390,6 +394,20 @@ public class BamManagerTest extends AbstractManagerTest {
             testBamTrack(fullTrack);
             Read testRead = fullTrack.getBlocks().get(0);
             testRead(testRead);
+
+            // Test loading read by url
+            ReadQuery query = new ReadQuery();
+            query.setName(testRead.getName());
+            query.setChromosomeId(testChromosome.getId());
+            query.setStartIndex(testRead.getStartIndex());
+            query.setEndIndex(testRead.getEndIndex());
+
+            Read loadedRead = bamManager.loadRead(query, bamUrl, indexUrl);
+            Assert.assertNotNull(loadedRead);
+            Assert.assertTrue(StringUtils.isNotBlank(loadedRead.getSequence()));
+            Assert.assertTrue(!loadedRead.getTags().isEmpty());
+            Assert.assertTrue(StringUtils.isNotBlank(loadedRead.getQualities()));
+            Assert.assertEquals(testRead.getName(), loadedRead.getName());
         } finally {
             server.stop();
         }
@@ -557,4 +575,32 @@ public class BamManagerTest extends AbstractManagerTest {
         Assert.assertTrue(fullTrack.getSpliceJunctions().isEmpty());
 
     }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testRegisterInvalidHeader() throws IOException, InterruptedException {
+        String invalidBam = "invalid_header.bam";
+        testRegisterInvalidFile("classpath:templates/invalid/" + invalidBam,
+                MessageHelper.getMessage(MessagesConstants.WRONG_HEADER_BAM_FILE));
+        Assert.assertTrue(biologicalDataItemDao.loadFilesByNameStrict(invalidBam).isEmpty());
+    }
+
+    private void testRegisterInvalidFile(String path, String expectedMessage) throws IOException {
+        String errorMessage = "";
+        try {
+            Resource resource = context.getResource(path);
+            IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
+            request.setPath(resource.getFile().getAbsolutePath());
+            request.setIndexPath(resource.getFile().getAbsolutePath() + BAI_EXTENSION);
+            request.setName(TEST_NSAME);
+            request.setReferenceId(testReference.getId());
+            request.setType(BiologicalDataItemResourceType.FILE);
+            bamManager.registerBam(request);
+        } catch (IllegalArgumentException | AssertionError e) {
+            errorMessage = e.getMessage();
+        }
+        //check that we received an appropriate message
+        Assert.assertTrue(errorMessage.contains(expectedMessage));
+    }
+
 }

@@ -1,0 +1,5 @@
+rootProject.name = "ngb"
+include 'client', 'server:catgenome', 'server:ngb-cli', 'desktop'
+
+
+

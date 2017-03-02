@@ -57,7 +57,7 @@ export default class RulerRenderer {
         ruler.addChild(body);
 
         const ticksArea = new PIXI.Container();
-        ticksArea.y = _config.body.height;
+        ticksArea.y = _config.tickArea.margin;
         ruler.addChild(ticksArea);
 
         this.tickConfigs.set(ticksArea, _config);

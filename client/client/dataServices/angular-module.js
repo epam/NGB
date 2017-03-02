@@ -3,6 +3,7 @@ import * as dataServices from './index';
 import LocalDataService from './local/local-data-service';
 
 export default angular.module('ngbDataServices', [])
+    .service('utilsDataService', dataServices.UtilsDataService.serviceFactory)
     .service('bamDataService', dataServices.BamDataService.serviceFactory)
     .service('bedDataService', dataServices.BedDataService.serviceFactory)
     .service('bookmarkDataService', dataServices.BookmarkDataService.serviceFactory)

@@ -12,7 +12,10 @@ export default class DataTrack extends ScrollableTrack {
                 configurable: false,
                 value: {
                     chromosomeId: opts.chromosomeId,
-                    id: opts.id
+                    id: opts.openByUrl ? undefined : opts.id,
+                    fileUrl: opts.openByUrl ? opts.id : undefined,
+                    indexUrl: opts.openByUrl ? opts.indexPath : undefined,
+                    openByUrl: opts.openByUrl
                 }
             }
         });

@@ -1,0 +1,22 @@
+.ngb-tool-menu.ngb-open-file-menu {
+  width: 180px;
+  min-width: 180px;
+}
+
+.change-reference-warning {
+  padding: 10px;
+  color: #666666;
+  ng-md-icon {
+    fill: orange;
+    margin-right: 10px;
+  }
+}
+
+.ngb-open-file-menu-button {
+  text-align: left;
+}
+
+.open-from-ngb-server-dialog {
+  width: 66%;
+  height: 90%;
+}

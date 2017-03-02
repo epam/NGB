@@ -80,6 +80,11 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
      */
     private boolean printTable;
 
+    /**
+     * If true, the GC content files won't be created for a reference during registration.
+     */
+    private boolean noGCContent = false;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ReferenceRegistrationHandler.class);
 
     /**
@@ -111,6 +116,7 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
         }
         printJson = options.isPrintJson();
         printTable = options.isPrintTable();
+        noGCContent = options.isNoGCContent();
     }
 
     /**
@@ -128,6 +134,9 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
         registration.setName(referenceName);
         registration.setPath(referencePath);
         registration.setGeneFileId(geneFileId);
+        if (noGCContent) {
+            registration.setNoGCContent(noGCContent);
+        }
         if (geneFilePath != null) {
             RegistrationRequest geneRegistration = new RegistrationRequest();
             geneRegistration.setPath(geneFilePath);

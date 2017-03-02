@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import org.junit.Assert;
@@ -113,20 +112,11 @@ public class BookmarksControllerTest extends AbstractControllerTest {
     public void setup() throws Exception {
         super.setup();
 
-        referenceId = referenceGenomeManager.createReferenceId();
-        testReference = new Reference();
-        testReference.setId(referenceId);
-        testReference.setName("testReference " + this.getClass().getSimpleName());
-        testReference.setSize(0L);
-        testReference.setPath("");
-        testReference.setCreatedDate(new Date());
-
         testChromosome = EntityHelper.createNewChromosome();
-
-        testReference.setChromosomes(Collections.singletonList(testChromosome));
-
+        testReference = EntityHelper.createNewReference(testChromosome,
+                referenceGenomeManager.createReferenceId());
         referenceGenomeManager.register(testReference);
-
+        referenceId = testReference.getId();
         VcfFile file = addVcfFile(TEST_VCF_FILE_NAME1, TEST_VCF_FILE_PATH);
         BiologicalDataItem item = new BiologicalDataItem();
         item.setId(file.getBioDataItemId());

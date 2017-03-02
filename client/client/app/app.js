@@ -1,6 +1,8 @@
-
-
 import './shared/hotkeys';
+
+// Import modules for work on Safari
+import 'intl';
+import 'intl/locale-data/jsonp/en.js';
 
 // Import base modules
 import angular from 'angular';

@@ -53,7 +53,7 @@ import com.epam.ngb.cli.manager.command.CommandManager;
  * arguments. Options are handled with the help of args4j library and arguments are processed
  * by the CLI classes.
  */
-public final class Application {
+public class Application {
 
     //TODO: move documentation to an outer file
     private static final String HELP = "CLI for NGB server\n"
@@ -63,9 +63,9 @@ public final class Application {
             + "dr\tdel_ref\t\t: unregisters a reference file\t{dr grch38}\n"
             + "lr\tlist_ref\t: lists all reference files, registered on the server\t{lr}\n"
             + "ag\tadd_genes\t: adds a gene file to the reference\t{ag grch38 genes.gtf}\n"
-            + "rg\tremove_genes\t: removes a gene file from the reference\t{ag grch38 genes.gtf}\n\n"
+            + "rg\tremove_genes\t: removes a gene file from the reference\t{rg grch38}\n\n"
             + "FILE commands:\n"
-            + "rf\tref_file\t: registers a feature file for a specified reference\t"
+            + "rf\treg_file\t: registers a feature file for a specified reference\t"
             + "{rf grch38 \\path\\to\\file.bam?\\path\\to\\file.bam.bai -n my_vcf}\n"
             + "df\tdel_file\t: deletes a feature file one\t{df my_vcf}\n"
             + "if\tindex_file\t\t: creates a feature index for a file. \t {if genes.gtf}\n\n"
@@ -84,6 +84,9 @@ public final class Application {
             + " if option isn't provided, the dataset will be moved to the top level of the datasets hierarchy"
             + "\t{md my_dataset -p parent}\n"
             + "ld\tlist_dataset\t: lists all datasets, registered on the server\t{ld}\n\n"
+            + "ADDITIONAL COMMANDS:\n"
+            + "url\t\t: generate url for displaying required files. "
+                                       + "{url my_dataset}\n\n"
             + "CONFIGURATION COMMANDS\n"
             + "srv\tset_srv\t\t: sets working server url for CLI\tsrv http://{SERVER_IP_OR_NAME}:"
             + "{SERVER_PORT}/catgenome\n\n"
@@ -124,6 +127,14 @@ public final class Application {
     @Option(name = "-h", usage = "prints help", aliases = {"--help"})
     private boolean helpOption;
 
+    @Option(name = "-loc", usage = "location of view port in format: chr:start-end",  aliases = {"--location"})
+    private String location;
+
+    @Option(name = "-ngc", usage = "specifies if GC content shouldn't be calculated during reference registration",
+            aliases = {"--nogccontent"})
+    private boolean noGCContent = false;
+
+
     @Argument
     private List<String> arguments;
 
@@ -160,10 +171,13 @@ public final class Application {
                     .collect(Collectors.joining(" "))));
             LOGGER.info(HELP);
             parser.printUsage(System.out);
+            exit(1);
         } catch (ApplicationException | IllegalArgumentException e) {
             LOGGER.debug(e.getMessage(), e);
             LOGGER.error(e.getMessage());
+            exit(1);
         }
+
         return 1;
     }
 
@@ -201,9 +215,15 @@ public final class Application {
         options.setPrintJson(printJson);
         options.setStrictSearch(!nonStrictSearch);
         options.setGeneFile(genes);
+        options.setLocation(location);
+        options.setNoGCContent(noGCContent);
         if (doNotIndex) {
             options.setDoIndex(false);
         }
         return options;
+    }
+
+    protected void exit(int code) {
+        System.exit(code);
     }
 }

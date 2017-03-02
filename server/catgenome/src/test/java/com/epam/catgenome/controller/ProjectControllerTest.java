@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -135,20 +134,12 @@ public class ProjectControllerTest extends AbstractControllerTest {
     @Before
     public void setup() throws Exception {
         super.setup();
-
-        referenceId = referenceGenomeManager.createReferenceId();
-        testReference = new Reference();
-        testReference.setId(referenceId);
-        testReference.setName("testReference " + this.getClass().getSimpleName());
-        testReference.setSize(0L);
-        testReference.setPath("");
-        testReference.setCreatedDate(new Date());
-
         Chromosome testChromosome = EntityHelper.createNewChromosome();
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
-        testReference.setChromosomes(Collections.singletonList(testChromosome));
-
+        testReference = EntityHelper.createNewReference(testChromosome,
+                referenceGenomeManager.createReferenceId());
         referenceGenomeManager.register(testReference);
+        referenceId = testReference.getId();
     }
 
     @Test
@@ -640,7 +631,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
         actions.andDo(MockMvcResultHandlers.print());
 
-        ResponseResult<IndexSearchResult> indexEntriesRes = getObjectMapper()
+        ResponseResult<IndexSearchResult<FeatureIndexEntry>> indexEntriesRes = getObjectMapper()
                 .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
                         getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
                                 IndexSearchResult.class));

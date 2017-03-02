@@ -418,6 +418,53 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         }
     }
 
+    protected <T> void checkAndPrintResult(String result, boolean printJson, boolean printTable, Class<T> respClass) {
+        try {
+            ResponseResult<T> responseResult = getMapper().readValue(result, getMapper().getTypeFactory()
+                .constructParametrizedType(ResponseResult.class, ResponseResult.class, respClass));
+            if (ERROR_STATUS.equals(responseResult.getStatus())) {
+                throw new ApplicationException(responseResult.getMessage());
+            } else {
+                if (printJson || printTable) {
+                    AbstractResultPrinter printer = AbstractResultPrinter.getPrinter(printTable, "%s");
+                    printer.printSimple(responseResult.getPayload().toString());
+                }
+            }
+        } catch (IOException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Checks if result contains no errors. If it does, throws {@link ApplicationException}
+     * @param result request result
+     */
+    protected void isResultOk(String result) {
+        try {
+            ResponseResult<Object> responseResult = getMapper().readValue(result, getMapper().getTypeFactory()
+                .constructParametrizedType(ResponseResult.class, ResponseResult.class, Object.class));
+            if (ERROR_STATUS.equals(responseResult.getStatus())) {
+                throw new ApplicationException(responseResult.getMessage());
+            }
+        } catch (IOException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
+    }
+
+    protected <T> T getResult(String result, Class<T> respClass) {
+        try {
+            ResponseResult<T> responseResult = getMapper().readValue(result, getMapper().getTypeFactory()
+                .constructParametrizedType(ResponseResult.class, ResponseResult.class, respClass));
+            if (ERROR_STATUS.equals(responseResult.getStatus())) {
+                throw new ApplicationException(responseResult.getMessage());
+            } else {
+                return responseResult.getPayload();
+            }
+        } catch (IOException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
+    }
+
     /**
      * Checks that dataset(project) registration request completed successfully,
      * serializes a request result to an {@code {@link Project}} object and prints it

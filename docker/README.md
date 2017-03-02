@@ -16,13 +16,13 @@ $ cd ngb
 Build war
 
 ```
-$ cd server && ./gradlew catgenome:build 
+$ ./gradlew buildWar
 ```
 
 Copy war to docker folder
 
 ```
-$ cp server/catgenome/build/libs/catgenome.war docker/core/
+$ cp dist/catgenome.war docker/core/catgenome.war
 ```
 
 ## Build NGB Command Line Interface tarball
@@ -30,13 +30,13 @@ $ cp server/catgenome/build/libs/catgenome.war docker/core/
 Build CLI
 
 ```
-$ cd server/cli && ./gradlew ngb-cli:build
+$ ./gradlew buildCli
 ```
 
 Copy CLI to docker folder
 
 ```
-$ cp server/ngb-cli/build/distributions/ngb-cli.tar docker/core/
+$ cp dist/ngb-cli.tar docker/core/ngb-cli.tar
 ```
 
 ## Build docker image

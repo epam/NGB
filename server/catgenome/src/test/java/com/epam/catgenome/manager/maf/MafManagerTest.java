@@ -30,6 +30,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.epam.catgenome.component.MessageHelper;
+import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.dao.BiologicalDataItemDao;
+import htsjdk.tribble.TribbleException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -69,6 +73,9 @@ public class MafManagerTest extends AbstractManagerTest {
 
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
+
+    @Autowired
+    private BiologicalDataItemDao biologicalDataItemDao;
 
     @Autowired
     private ApplicationContext context;
@@ -189,4 +196,45 @@ public class MafManagerTest extends AbstractManagerTest {
         File dir = new File(baseDirPath + "/42/maf/" + mafFile.getId());
         Assert.assertFalse(dir.exists());
     }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterUnsorted() throws IOException, InterruptedException, NoSuchAlgorithmException {
+        String invalidMaf = "unsorted.maf";
+        testRegisterInvalidFile("classpath:templates/invalid/" + invalidMaf,
+                MessageHelper.getMessage(MessagesConstants.ERROR_UNSORTED_FILE));
+        //check that name is not reserved
+        Assert.assertTrue(biologicalDataItemDao
+                .loadFilesByNameStrict(invalidMaf).isEmpty());
+
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterExtraChromosome() throws IOException, InterruptedException, NoSuchAlgorithmException {
+        Resource resource = context.getResource("classpath:templates/invalid/extra_chr.maf");
+        IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
+        request.setPath(resource.getFile().getAbsolutePath());
+        request.setReferenceId(referenceId);
+        MafFile mafFile = mafManager.registerMafFile(request);
+        //check that name is not reserved
+        Assert.assertTrue(mafFile != null);
+
+    }
+
+    private void testRegisterInvalidFile(String path, String expectedMessage) throws IOException {
+        String errorMessage = "";
+        try {
+            Resource resource = context.getResource(path);
+            IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
+            request.setPath(resource.getFile().getAbsolutePath());
+            request.setReferenceId(referenceId);
+            mafManager.registerMafFile(request);
+        } catch (TribbleException | IllegalArgumentException | AssertionError e) {
+            errorMessage = e.getMessage();
+        }
+        //check that we received an appropriate message
+        Assert.assertTrue(errorMessage.contains(expectedMessage));
+    }
+
 }

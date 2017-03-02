@@ -103,14 +103,27 @@ public class TestHttpServer extends AbstractCliTest{
                 .withStatus(HTTP_STATUS_OK);
     }
 
-    public void addFeatureIndexedFileRegistration(Long refId, String path, String index, String name, Long fileId,
+    public void addFileRegistration(Long refId, String path, String name, Long fileId,
+                                    Long fileBioId, BiologicalDataItemFormat format) {
+        onRequest()
+                .havingMethodEqualTo(HTTP_POST)
+                .havingPathEqualTo(String.format(REGISTRATION_URL,
+                        format.name().toLowerCase()))
+                .havingBodyEqualTo(TestDataProvider.getRegistrationJson(refId, path,
+                        name, null))
+                .respond()
+                .withBody(TestDataProvider.getFilePayloadJson(fileId, fileBioId, format,
+                        path, name == null ? FilenameUtils.getName(path) : name))
+                .withStatus(HTTP_STATUS_OK);
+    }
+
+    public void addFeatureIndexedFileRegistration(Long refId, String path, String name, Long fileId,
                                     Long fileBioId, BiologicalDataItemFormat format, boolean doIndex) {
         onRequest()
             .havingMethodEqualTo(HTTP_POST)
             .havingPathEqualTo(String.format(REGISTRATION_URL,
                                              format.name().toLowerCase()))
-            .havingBodyEqualTo(TestDataProvider.getRegistrationJson(refId, path,
-                                                                    name, index, doIndex))
+            .havingBodyEqualTo(TestDataProvider.getRegistrationJson(refId, path, name, doIndex))
             .respond()
             .withBody(TestDataProvider.getFilePayloadJson(fileId, fileBioId, format,
                                                           path, name == null ? FilenameUtils.getName(path) : name))
@@ -124,7 +137,7 @@ public class TestHttpServer extends AbstractCliTest{
         onRequest()
                 .havingMethodEqualTo(HTTP_POST)
                 .havingPathEqualTo(DATASET_REGISTRATION_URL)
-                .havingBodyEqualTo(TestDataProvider.getRegistrationJson(null, null,
+                .havingBodyEqualTo(TestDataProvider.getNotTypedRegistrationJson(null, null,
                         name, null, items.stream()
                                 .map(i -> new ProjectItem(i.getBioDataItemId(), false))
                                 .collect(Collectors.toList())))
@@ -197,7 +210,7 @@ public class TestHttpServer extends AbstractCliTest{
                 .havingMethodEqualTo(HTTP_POST)
                 .havingPathEqualTo(DATASET_REGISTRATION_URL)
                 .havingParameterEqualTo("parentId", String.valueOf(parentId))
-                .havingBodyEqualTo(TestDataProvider.getRegistrationJson(null, null,
+                .havingBodyEqualTo(TestDataProvider.getNotTypedRegistrationJson(null, null,
                     name, null, items.stream()
                             .map(i -> new ProjectItem(i.getBioDataItemId(), false))
                             .collect(Collectors.toList())))
@@ -266,7 +279,7 @@ public class TestHttpServer extends AbstractCliTest{
                 .havingMethodEqualTo(HTTP_POST)
                 .havingPathEqualTo(REF_REGISTRATION_URL)
                 .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
-                .havingBodyEqualTo(TestDataProvider.getRegistrationJson(null, path,
+                .havingBodyEqualTo(TestDataProvider.getNotTypedRegistrationJson(null, path,
                         name, null, null))
                 .respond()
                 .withBody(TestDataProvider.getFilePayloadJson(refId, refBioId, BiologicalDataItemFormat.REFERENCE,
@@ -376,5 +389,28 @@ public class TestHttpServer extends AbstractCliTest{
                 .respond()
                 .withBody(TestDataProvider.getPayloadJson("OK"))
                 .withStatus(HTTP_STATUS_OK);
+    }
+
+    public void addUrlGenerationRequest(String referenceName, String chromosomeName, Integer startIndex,
+                                        Integer endIndex, Long bioItemId, Long projectId) {
+        String resp;
+        if (chromosomeName != null) {
+            if (startIndex != null && endIndex != null) {
+                resp = String.format("/#/%s/%s/%d/%d?tracks=[{\"b\":%d, \"p\":%d}]", referenceName, chromosomeName,
+                                     startIndex, endIndex, bioItemId, projectId);
+            } else {
+                resp = String.format("/#/%s/%s?tracks=[{\"b\":%d, \"p\":%d}]", referenceName, chromosomeName,
+                                     bioItemId, projectId);
+            }
+        } else {
+            resp = String.format("/#/%s?tracks=[{\"b\":%d, \"p\":%d}]", referenceName, bioItemId, projectId);
+        }
+
+        onRequest()
+            .havingMethodEqualTo(HTTP_POST)
+            .havingPathEqualTo(URL_GENERATION_URL)
+            .respond()
+            .withBody(TestDataProvider.getPayloadJson(resp))
+            .withStatus(HTTP_STATUS_OK);
     }
 }

@@ -4,7 +4,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,19 +80,12 @@ public class FilterControllerTest extends AbstractControllerTest {
     public void setup() throws Exception {
         super.setup();
 
-        referenceId = referenceGenomeManager.createReferenceId();
-        testReference = new Reference();
-        testReference.setId(referenceId);
-        testReference.setName("testReference " + this.getClass().getSimpleName());
-        testReference.setSize(0L);
-        testReference.setPath("");
-        testReference.setCreatedDate(new Date());
-
         Chromosome testChromosome = EntityHelper.createNewChromosome();
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
-        testReference.setChromosomes(Collections.singletonList(testChromosome));
-
+        testReference = EntityHelper.createNewReference(testChromosome,
+                referenceGenomeManager.createReferenceId());
         referenceGenomeManager.register(testReference);
+        referenceId = testReference.getId();
 
         Resource resource = wac.getResource(CLASSPATH_TEMPLATES_GENES_SORTED);
 

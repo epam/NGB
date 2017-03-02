@@ -15,7 +15,7 @@ export default class ngbBookmarksTableController extends baseController {
         headerRowHeight: 48,
         height: '100%',
         multiSelect: false,
-        rowHeight: 48,
+        rowHeight: 35,
         showHeader: true,
         treeRowHeaderAlwaysVisible: false
     };

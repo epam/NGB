@@ -69,6 +69,10 @@ public abstract class AbstractResultPrinter {
      */
     public abstract void printItem(Printable item);
 
+    public void printSimple(String str) {
+        LOGGER.info(str);
+    }
+
     private static final class TablePrinter extends AbstractResultPrinter {
 
         private String format;

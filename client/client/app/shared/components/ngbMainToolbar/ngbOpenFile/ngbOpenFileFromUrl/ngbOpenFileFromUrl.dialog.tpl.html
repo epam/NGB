@@ -1,0 +1,22 @@
+<md-dialog aria-label="open file from url" class="open-from-url-dialog">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>Open file from URL</h2>
+            <span flex></span>
+            <md-button class="md-icon-button" ng-click="close()" aria-label="Close">
+                <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    <md-dialog-content flex>
+        <ngb-open-file-from-url tracks="tracks" flex></ngb-open-file-from-url>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+        <md-button aria-label="load" ng-click="load()" class="md-primary" ng-disabled="loadingDisabled()">
+            Load
+        </md-button>
+        <md-button aria-label="cancel" ng-click="close()">
+            Cancel
+        </md-button>
+    </md-dialog-actions>
+</md-dialog>

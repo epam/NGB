@@ -68,6 +68,12 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
 
     private String insertTemporaryListItemQuery;
 
+    private String createTemporaryStringListQuery;
+
+    private String insertTemporaryStringListItemQuery;
+
+    private String clearTemporaryStringListQuery;
+
     @Required
     public void setCreateIdQuery(final String createIdQuery) {
         this.createIdQuery = createIdQuery;
@@ -154,11 +160,16 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
+    public Long createTempStringList(final Collection<String> list) {
+        Assert.isTrue(CollectionUtils.isNotEmpty(list));
+        return createTempStringList(createListId(), list);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
     public Long createTempList(final Collection<? extends BaseEntity> list) {
         Assert.isTrue(CollectionUtils.isNotEmpty(list));
         return createTempList(createListId(), list);
     }
-
 
     @Required
     public void setCreateTemporaryListQuery(final String createTemporaryListQuery) {
@@ -205,6 +216,27 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
+    public Long createTempStringList(final Long listId, final Collection<String> list) {
+        Assert.notNull(listId);
+        Assert.isTrue(CollectionUtils.isNotEmpty(list));
+        // creates a new local temporary table if it doesn't exists to handle temporary lists
+        getJdbcTemplate().update(createTemporaryStringListQuery);
+        // fills in a temporary list by given values
+        int i = 0;
+        final Iterator<String> iterator = list.iterator();
+        final MapSqlParameterSource[] batchArgs = new MapSqlParameterSource[list.size()];
+        while (iterator.hasNext()) {
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue(HelperParameters.LIST_ID.name(), listId);
+            params.addValue(HelperParameters.LIST_VALUE.name(), iterator.next());
+            batchArgs[i] = params;
+            i++;
+        }
+        getNamedParameterJdbcTemplate().batchUpdate(insertTemporaryStringListItemQuery, batchArgs);
+        return listId;
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
     public Long createTempList(final Long listId, final Collection<? extends BaseEntity> list) {
         Assert.notNull(listId);
         Assert.isTrue(CollectionUtils.isNotEmpty(list));
@@ -243,10 +275,31 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
             new MapSqlParameterSource(HelperParameters.LIST_ID.name(), listId));
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
+    public int clearTempStringList(final Long listId) {
+        Assert.notNull(listId);
+        return getNamedParameterJdbcTemplate().update(clearTemporaryStringListQuery,
+                                                  new MapSqlParameterSource(HelperParameters.LIST_ID.name(), listId));
+    }
+
     enum HelperParameters {
         LIST_ID,
         LIST_VALUE,
         SEQUENCE_NAME
     }
 
+    @Required
+    public void setCreateTemporaryStringListQuery(String createTemporaryStringListQuery) {
+        this.createTemporaryStringListQuery = createTemporaryStringListQuery;
+    }
+
+    @Required
+    public void setInsertTemporaryStringListItemQuery(String insertTemporaryStringListItemQuery) {
+        this.insertTemporaryStringListItemQuery = insertTemporaryStringListItemQuery;
+    }
+
+    @Required
+    public void setClearTemporaryStringListQuery(String clearTemporaryStringListQuery) {
+        this.clearTemporaryStringListQuery = clearTemporaryStringListQuery;
+    }
 }

@@ -195,7 +195,7 @@ public class VcfController extends AbstractRESTController {
         }
     }
 
-    @RequestMapping (value = "/vcf/{trackId}/{chromosomeId}/next", method = RequestMethod.GET)
+    @RequestMapping (value = "/vcf/{chromosomeId}/next", method = RequestMethod.GET)
     @ResponseBody
     @ApiOperation(
             value = "Returns the next feature for a given track",
@@ -207,14 +207,17 @@ public class VcfController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Variation> jumpToNextGene(@RequestParam int fromPosition,
-                                      @PathVariable(value = "trackId") long geneFileId,
-                                      @PathVariable(value = "chromosomeId") long chromosomeId,
-                                      @RequestParam(required = false) Long sampleId) throws VcfReadingException {
-        return Result.success(vcfManager.getNextOrPreviousVariation(fromPosition, geneFileId, sampleId, chromosomeId,
-                true));
+                                        @PathVariable(value = "chromosomeId") long chromosomeId,
+                                        @RequestParam(required = false) Long trackId,
+                                        @RequestParam(required = false) Long sampleId,
+                                        @RequestParam(required = false) final String fileUrl,
+                                        @RequestParam(required = false) final String indexUrl)
+            throws VcfReadingException {
+        return Result.success(vcfManager.getNextOrPreviousVariation(fromPosition, trackId, sampleId, chromosomeId,
+                                                                    true, fileUrl, indexUrl));
     }
 
-    @RequestMapping (value = "/vcf/{trackId}/{chromosomeId}/prev", method = RequestMethod.GET)
+    @RequestMapping (value = "/vcf/{chromosomeId}/prev", method = RequestMethod.GET)
     @ResponseBody
     @ApiOperation(
             value = "Returns the previous feature for a given track",
@@ -226,11 +229,14 @@ public class VcfController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Variation> jumpToPrevGene(@RequestParam int fromPosition,
-                                       @PathVariable(value = "trackId") long geneFileId,
-                                       @PathVariable(value = "chromosomeId") long chromosomeId,
-                                       @RequestParam(required = false) Long sampleId) throws VcfReadingException {
-        return Result.success(vcfManager.getNextOrPreviousVariation(fromPosition, geneFileId, sampleId, chromosomeId,
-                false));
+                                        @PathVariable(value = "chromosomeId") long chromosomeId,
+                                        @RequestParam(required = false) Long trackId,
+                                        @RequestParam(required = false) Long sampleId,
+                                        @RequestParam(required = false) final String fileUrl,
+                                        @RequestParam(required = false) final String indexUrl)
+            throws VcfReadingException {
+        return Result.success(vcfManager.getNextOrPreviousVariation(fromPosition, trackId, sampleId, chromosomeId,
+                                                                    false, fileUrl, indexUrl));
     }
 
     @ResponseBody

@@ -7,13 +7,13 @@
 Obtain the source code from github:
 ```
 $ git clone https://github.com/epam/NGB.git
-$ cd NGB/server
+$ cd NGB
 ```
 ## Build NGS server  using gradle
 
 *This will compile, run tests, check PMD and checkstyle rules, package into war-file*
 ```
-$ ./gradlew catgenome:clean catgenome:build 
+$ ./gradlew server:catgenome:clean server:catgenome:build 
 ```
 Several profiles are available for NGB server build:
     
@@ -23,12 +23,12 @@ Several profiles are available for NGB server build:
    the runtime directory of NGB server
 Default profile is **dev**. You can specify the profile by adding the **"-Pprofile"** option to Gradle command:
    ```
-   $ ./gradlew catgenome:clean catgenome:build -Pprofile=release
+   $ ./gradlew server:catgenome:clean server:catgenome:build -Pprofile=release
    ```
    
 ## Build NGB Command Line Interface using gradle
 
 *This will compile, run tests, check PMD and checkstyle rules, package into tarball*
 ```
-$ ./gradlew ngb-cli:clean ngb-cli:build
+$ ./gradlew server:ngb-cli:clean server:ngb-cli:build
 ```

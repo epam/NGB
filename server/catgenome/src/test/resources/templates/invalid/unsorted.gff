@@ -1,0 +1,130 @@
+A1	Felis_catus_6.2	chromosome	1	239302903	.	.	.	ID=chromosome:A1;Alias=CM001378.1,NC_018723.1
+###
+A1	ensembl	gene	35459	46532	.	+	.	ID=gene:ENSFCAG00000011704;Name=PGLYRP4;biotype=protein_coding;description=peptidoglycan recognition protein 4 [Source:HGNC Symbol%3BAcc:HGNC:30015];gene_id=ENSFCAG00000011704;logic_name=ensembl;version=2
+A1	ensembl	transcript	35459	46532	.	+	.	ID=transcript:ENSFCAT00000011707;Parent=gene:ENSFCAG00000011704;Name=PGLYRP4-201;biotype=protein_coding;transcript_id=ENSFCAT00000011707;version=2
+A1	ensembl	gene	77114	78383	.	+	.	ID=gene:ENSFCAG00000024737;biotype=protein_coding;description=Uncharacterized protein {ECO:0000313|Ensembl:ENSFCAP00000022022}  [Source:UniProtKB/TrEMBL%3BAcc:M3X5X1];gene_id=ENSFCAG00000024737;logic_name=ensembl;version=1
+A1	ensembl	exon	35459	35501	.	+	.	Parent=transcript:ENSFCAT00000011707;Name=ENSFCAE00000118589;constitutive=1;ensembl_end_phase=1;ensembl_phase=0;exon_id=ENSFCAE00000118589;rank=1;version=1
+A1	ensembl	CDS	35459	35501	.	+	0	ID=CDS:ENSFCAP00000010862;Parent=transcript:ENSFCAT00000011707;protein_id=ENSFCAP00000010862
+A1	ensembl	exon	36353	36460	.	+	.	Parent=transcript:ENSFCAT00000011707;Name=ENSFCAE00000118591;constitutive=1;ensembl_end_phase=1;ensembl_phase=1;exon_id=ENSFCAE00000118591;rank=2;version=2
+A1	ensembl	CDS	36353	36460	.	+	2	ID=CDS:ENSFCAP00000010862;Parent=transcript:ENSFCAT00000011707;protein_id=ENSFCAP00000010862
+A1	ensembl	exon	37247	37448	.	+	.	Parent=transcript:ENSFCAT00000011707;Name=ENSFCAE00000118593;constitutive=1;ensembl_end_phase=2;ensembl_phase=1;exon_id=ENSFCAE00000118593;rank=3;version=2
+A1	ensembl	CDS	37247	37448	.	+	2	ID=CDS:ENSFCAP00000010862;Parent=transcript:ENSFCAT00000011707;protein_id=ENSFCAP00000010862
+A1	ensembl	exon	38854	38972	.	+	.	Parent=transcript:ENSFCAT00000011707;Name=ENSFCAE00000323755;constitutive=1;ensembl_end_phase=1;ensembl_phase=2;exon_id=ENSFCAE00000323755;rank=4;version=1
+A1	ensembl	CDS	38854	38972	.	+	1	ID=CDS:ENSFCAP00000010862;Parent=transcript:ENSFCAT00000011707;protein_id=ENSFCAP00000010862
+A1	ensembl	exon	40215	40367	.	+	.	Parent=transcript:ENSFCAT00000011707;Name=ENSFCAE00000118602;constitutive=1;ensembl_end_phase=1;ensembl_phase=1;exon_id=ENSFCAE00000118602;rank=5;version=1
+A1	ensembl	CDS	40215	40367	.	+	2	ID=CDS:ENSFCAP00000010862;Parent=transcript:ENSFCAT00000011707;protein_id=ENSFCAP00000010862
+A1	ensembl	exon	41787	41985	.	+	.	Parent=transcript:ENSFCAT00000011707;Name=ENSFCAE00000316608;constitutive=1;ensembl_end_phase=2;ensembl_phase=1;exon_id=ENSFCAE00000316608;rank=6;version=1
+A1	ensembl	CDS	41787	41985	.	+	2	ID=CDS:ENSFCAP00000010862;Parent=transcript:ENSFCAT00000011707;protein_id=ENSFCAP00000010862
+A1	ensembl	exon	45188	45306	.	+	.	Parent=transcript:ENSFCAT00000011707;Name=ENSFCAE00000232463;constitutive=1;ensembl_end_phase=1;ensembl_phase=2;exon_id=ENSFCAE00000232463;rank=7;version=1
+A1	ensembl	CDS	45188	45306	.	+	1	ID=CDS:ENSFCAP00000010862;Parent=transcript:ENSFCAT00000011707;protein_id=ENSFCAP00000010862
+A1	ensembl	exon	46354	46532	.	+	.	Parent=transcript:ENSFCAT00000011707;Name=ENSFCAE00000025270;constitutive=1;ensembl_end_phase=0;ensembl_phase=1;exon_id=ENSFCAE00000025270;rank=8;version=1
+A1	ensembl	CDS	46354	46532	.	+	2	ID=CDS:ENSFCAP00000010862;Parent=transcript:ENSFCAT00000011707;protein_id=ENSFCAP00000010862
+###
+A1	ensembl	transcript	77114	78383	.	+	.	ID=transcript:ENSFCAT00000026734;Parent=gene:ENSFCAG00000024737;biotype=protein_coding;transcript_id=ENSFCAT00000026734;version=1
+A1	ensembl	exon	77114	77313	.	+	.	Parent=transcript:ENSFCAT00000026734;Name=ENSFCAE00000227760;constitutive=1;ensembl_end_phase=2;ensembl_phase=0;exon_id=ENSFCAE00000227760;rank=1;version=1
+A1	ensembl	CDS	77114	77313	.	+	0	ID=CDS:ENSFCAP00000022022;Parent=transcript:ENSFCAT00000026734;protein_id=ENSFCAP00000022022
+A1	ensembl	exon	77327	77507	.	+	.	Parent=transcript:ENSFCAT00000026734;Name=ENSFCAE00000293630;constitutive=1;ensembl_end_phase=0;ensembl_phase=2;exon_id=ENSFCAE00000293630;rank=2;version=1
+A1	ensembl	CDS	77327	77507	.	+	1	ID=CDS:ENSFCAP00000022022;Parent=transcript:ENSFCAT00000026734;protein_id=ENSFCAP00000022022
+A1	ensembl	exon	77509	77730	.	+	.	Parent=transcript:ENSFCAT00000026734;Name=ENSFCAE00000259717;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=ENSFCAE00000259717;rank=3;version=1
+A1	ensembl	CDS	77509	77730	.	+	0	ID=CDS:ENSFCAP00000022022;Parent=transcript:ENSFCAT00000026734;protein_id=ENSFCAP00000022022
+A1	ensembl	exon	77811	78383	.	+	.	Parent=transcript:ENSFCAT00000026734;Name=ENSFCAE00000319539;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=ENSFCAE00000319539;rank=4;version=1
+A1	ensembl	CDS	77811	78383	.	+	0	ID=CDS:ENSFCAP00000022022;Parent=transcript:ENSFCAT00000026734;protein_id=ENSFCAP00000022022
+###
+A1	ensembl	gene	100779	106020	.	-	.	ID=gene:ENSFCAG00000031547;Name=CCDC115;biotype=protein_coding;description=coiled-coil domain containing 115 [Source:HGNC Symbol%3BAcc:HGNC:28178];gene_id=ENSFCAG00000031547;logic_name=ensembl;version=1
+A1	ensembl	transcript	100779	106020	.	-	.	ID=transcript:ENSFCAT00000031141;Parent=gene:ENSFCAG00000031547;Name=CCDC115-201;biotype=protein_coding;transcript_id=ENSFCAT00000031141;version=1
+A1	ensembl	three_prime_UTR	100779	102932	.	-	.	Parent=transcript:ENSFCAT00000031141
+A1	ensembl	exon	100779	103045	.	-	.	Parent=transcript:ENSFCAT00000031141;Name=ENSFCAE00000231719;constitutive=1;ensembl_end_phase=-1;ensembl_phase=1;exon_id=ENSFCAE00000231719;rank=5;version=1
+A1	ensembl	CDS	102933	103045	.	-	2	ID=CDS:ENSFCAP00000016430;Parent=transcript:ENSFCAT00000031141;protein_id=ENSFCAP00000016430
+A1	ensembl	exon	104811	104942	.	-	.	Parent=transcript:ENSFCAT00000031141;Name=ENSFCAE00000242758;constitutive=1;ensembl_end_phase=1;ensembl_phase=1;exon_id=ENSFCAE00000242758;rank=4;version=1
+A1	ensembl	CDS	104811	104942	.	-	2	ID=CDS:ENSFCAP00000016430;Parent=transcript:ENSFCAT00000031141;protein_id=ENSFCAP00000016430
+A1	ensembl	exon	105561	105643	.	-	.	Parent=transcript:ENSFCAT00000031141;Name=ENSFCAE00000308177;constitutive=1;ensembl_end_phase=1;ensembl_phase=2;exon_id=ENSFCAE00000308177;rank=3;version=1
+A1	ensembl	CDS	105561	105643	.	-	1	ID=CDS:ENSFCAP00000016430;Parent=transcript:ENSFCAT00000031141;protein_id=ENSFCAP00000016430
+A1	ensembl	exon	105732	105835	.	-	.	Parent=transcript:ENSFCAT00000031141;Name=ENSFCAE00000299306;constitutive=1;ensembl_end_phase=2;ensembl_phase=0;exon_id=ENSFCAE00000299306;rank=2;version=1
+A1	ensembl	CDS	105732	105835	.	-	0	ID=CDS:ENSFCAP00000016430;Parent=transcript:ENSFCAT00000031141;protein_id=ENSFCAP00000016430
+A1	ensembl	exon	105910	106020	.	-	.	Parent=transcript:ENSFCAT00000031141;Name=ENSFCAE00000240072;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=ENSFCAE00000240072;rank=1;version=1
+A1	ensembl	CDS	105910	106020	.	-	0	ID=CDS:ENSFCAP00000016430;Parent=transcript:ENSFCAT00000031141;protein_id=ENSFCAP00000016430
+###
+A1	ensembl	gene	106795	113784	.	+	.	ID=gene:ENSFCAG00000031008;Name=IMP4;biotype=protein_coding;description=IMP4%2C U3 small nucleolar ribonucleoprotein [Source:HGNC Symbol%3BAcc:HGNC:30856];gene_id=ENSFCAG00000031008;logic_name=ensembl;version=1
+A1	ensembl	transcript	106795	113784	.	+	.	ID=transcript:ENSFCAT00000026021;Parent=gene:ENSFCAG00000031008;Name=IMP4-201;biotype=protein_coding;transcript_id=ENSFCAT00000026021;version=1
+A1	ensembl	exon	106795	106797	.	+	.	Parent=transcript:ENSFCAT00000026021;Name=ENSFCAE00000302442;constitutive=1;ensembl_end_phase=0;ensembl_phase=-1;exon_id=ENSFCAE00000302442;rank=1;version=1
+A1	ensembl	CDS	106795	106797	.	+	0	ID=CDS:ENSFCAP00000024822;Parent=transcript:ENSFCAT00000026021;protein_id=ENSFCAP00000024822
+A1	ensembl	exon	106940	107048	.	+	.	Parent=transcript:ENSFCAT00000026021;Name=ENSFCAE00000274179;constitutive=1;ensembl_end_phase=1;ensembl_phase=0;exon_id=ENSFCAE00000274179;rank=2;version=1
+A1	ensembl	CDS	106940	107048	.	+	0	ID=CDS:ENSFCAP00000024822;Parent=transcript:ENSFCAT00000026021;protein_id=ENSFCAP00000024822
+A1	ensembl	exon	109045	109128	.	+	.	Parent=transcript:ENSFCAT00000026021;Name=ENSFCAE00000154225;constitutive=1;ensembl_end_phase=1;ensembl_phase=1;exon_id=ENSFCAE00000154225;rank=3;version=2
+A1	ensembl	CDS	109045	109128	.	+	2	ID=CDS:ENSFCAP00000024822;Parent=transcript:ENSFCAT00000026021;protein_id=ENSFCAP00000024822
+A1	ensembl	exon	109836	109945	.	+	.	Parent=transcript:ENSFCAT00000026021;Name=ENSFCAE00000154227;constitutive=1;ensembl_end_phase=0;ensembl_phase=1;exon_id=ENSFCAE00000154227;rank=4;version=1
+A1	ensembl	CDS	109836	109945	.	+	2	ID=CDS:ENSFCAP00000024822;Parent=transcript:ENSFCAT00000026021;protein_id=ENSFCAP00000024822
+A1	ensembl	exon	110024	110156	.	+	.	Parent=transcript:ENSFCAT00000026021;Name=ENSFCAE00000311647;constitutive=1;ensembl_end_phase=1;ensembl_phase=0;exon_id=ENSFCAE00000311647;rank=5;version=1
+A1	ensembl	CDS	110024	110156	.	+	0	ID=CDS:ENSFCAP00000024822;Parent=transcript:ENSFCAT00000026021;protein_id=ENSFCAP00000024822
+A1	ensembl	exon	110255	110409	.	+	.	Parent=transcript:ENSFCAT00000026021;Name=ENSFCAE00000245805;constitutive=1;ensembl_end_phase=0;ensembl_phase=1;exon_id=ENSFCAE00000245805;rank=6;version=1
+A1	ensembl	CDS	110255	110409	.	+	2	ID=CDS:ENSFCAP00000024822;Parent=transcript:ENSFCAT00000026021;protein_id=ENSFCAP00000024822
+A1	ensembl	exon	110492	110586	.	+	.	Parent=transcript:ENSFCAT00000026021;Name=ENSFCAE00000154233;constitutive=1;ensembl_end_phase=2;ensembl_phase=0;exon_id=ENSFCAE00000154233;rank=7;version=1
+A1	ensembl	CDS	110492	110586	.	+	0	ID=CDS:ENSFCAP00000024822;Parent=transcript:ENSFCAT00000026021;protein_id=ENSFCAP00000024822
+A1	ensembl	exon	110707	110780	.	+	.	Parent=transcript:ENSFCAT00000026021;Name=ENSFCAE00000154236;constitutive=1;ensembl_end_phase=1;ensembl_phase=2;exon_id=ENSFCAE00000154236;rank=8;version=1
+A1	ensembl	CDS	110707	110780	.	+	1	ID=CDS:ENSFCAP00000024822;Parent=transcript:ENSFCAT00000026021;protein_id=ENSFCAP00000024822
+A1	ensembl	CDS	110871	110983	.	+	2	ID=CDS:ENSFCAP00000024822;Parent=transcript:ENSFCAT00000026021;protein_id=ENSFCAP00000024822
+A1	ensembl	exon	110871	113784	.	+	.	Parent=transcript:ENSFCAT00000026021;Name=ENSFCAE00000250382;constitutive=1;ensembl_end_phase=-1;ensembl_phase=1;exon_id=ENSFCAE00000250382;rank=9;version=1
+A1	ensembl	three_prime_UTR	110984	113784	.	+	.	Parent=transcript:ENSFCAT00000026021
+###
+A1	ensembl	rRNA_gene	224987	225116	.	+	.	ID=gene:ENSFCAG00000023750;Name=5S_rRNA;biotype=rRNA;description=5S ribosomal RNA [Source:RFAM%3BAcc:RF00001];gene_id=ENSFCAG00000023750;logic_name=ncrna;version=1
+A1	ensembl	rRNA	224987	225116	.	+	.	ID=transcript:ENSFCAT00000026124;Parent=gene:ENSFCAG00000023750;Name=5S_rRNA-201;biotype=rRNA;transcript_id=ENSFCAT00000026124;version=1
+A1	ensembl	exon	224987	225116	.	+	.	Parent=transcript:ENSFCAT00000026124;Name=ENSFCAE00000247486;constitutive=1;ensembl_end_phase=-1;ensembl_phase=-1;exon_id=ENSFCAE00000247486;rank=1;version=1
+###
+A1	ensembl	gene	232182	235614	.	+	.	ID=gene:ENSFCAG00000031108;biotype=protein_coding;description=Uncharacterized protein {ECO:0000313|Ensembl:ENSFCAP00000023663}  [Source:UniProtKB/TrEMBL%3BAcc:M3XAK9];gene_id=ENSFCAG00000031108;logic_name=ensembl;version=1
+A1	ensembl	transcript	232182	235614	.	+	.	ID=transcript:ENSFCAT00000031359;Parent=gene:ENSFCAG00000031108;biotype=protein_coding;transcript_id=ENSFCAT00000031359;version=1
+A1	ensembl	exon	232182	232308	.	+	.	Parent=transcript:ENSFCAT00000031359;Name=ENSFCAE00000282875;constitutive=1;ensembl_end_phase=1;ensembl_phase=0;exon_id=ENSFCAE00000282875;rank=1;version=1
+A1	ensembl	CDS	232182	232308	.	+	0	ID=CDS:ENSFCAP00000023663;Parent=transcript:ENSFCAT00000031359;protein_id=ENSFCAP00000023663
+A1	ensembl	exon	232627	232788	.	+	.	Parent=transcript:ENSFCAT00000031359;Name=ENSFCAE00000315152;constitutive=1;ensembl_end_phase=1;ensembl_phase=1;exon_id=ENSFCAE00000315152;rank=2;version=1
+A1	ensembl	CDS	232627	232788	.	+	2	ID=CDS:ENSFCAP00000023663;Parent=transcript:ENSFCAT00000031359;protein_id=ENSFCAP00000023663
+A1	ensembl	exon	234964	235090	.	+	.	Parent=transcript:ENSFCAT00000031359;Name=ENSFCAE00000281127;constitutive=1;ensembl_end_phase=2;ensembl_phase=1;exon_id=ENSFCAE00000281127;rank=3;version=1
+A1	ensembl	CDS	234964	235090	.	+	2	ID=CDS:ENSFCAP00000023663;Parent=transcript:ENSFCAT00000031359;protein_id=ENSFCAP00000023663
+A1	ensembl	exon	235398	235614	.	+	.	Parent=transcript:ENSFCAT00000031359;Name=ENSFCAE00000259697;constitutive=1;ensembl_end_phase=0;ensembl_phase=2;exon_id=ENSFCAE00000259697;rank=4;version=1
+A1	ensembl	CDS	235398	235614	.	+	1	ID=CDS:ENSFCAP00000023663;Parent=transcript:ENSFCAT00000031359;protein_id=ENSFCAP00000023663
+###
+A1	ensembl	gene	253201	254903	.	+	.	ID=gene:ENSFCAG00000023124;biotype=protein_coding;description=Uncharacterized protein {ECO:0000313|Ensembl:ENSFCAP00000023811}  [Source:UniProtKB/TrEMBL%3BAcc:M3XB07];gene_id=ENSFCAG00000023124;logic_name=ensembl;version=1
+A1	ensembl	transcript	253201	254903	.	+	.	ID=transcript:ENSFCAT00000023886;Parent=gene:ENSFCAG00000023124;biotype=protein_coding;transcript_id=ENSFCAT00000023886;version=1
+A1	ensembl	exon	253201	253338	.	+	.	Parent=transcript:ENSFCAT00000023886;Name=ENSFCAE00000300688;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=ENSFCAE00000300688;rank=1;version=1
+A1	ensembl	CDS	253201	253338	.	+	0	ID=CDS:ENSFCAP00000023811;Parent=transcript:ENSFCAT00000023886;protein_id=ENSFCAP00000023811
+A1	ensembl	exon	254700	254903	.	+	.	Parent=transcript:ENSFCAT00000023886;Name=ENSFCAE00000297493;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=ENSFCAE00000297493;rank=2;version=1
+A1	ensembl	CDS	254700	254903	.	+	0	ID=CDS:ENSFCAP00000023811;Parent=transcript:ENSFCAT00000023886;protein_id=ENSFCAP00000023811
+###
+A1	ensembl	gene	329509	357255	.	+	.	ID=gene:ENSFCAG00000006891;Name=ATP12A;biotype=protein_coding;description=ATPase%2C H+/K+ transporting%2C nongastric%2C alpha polypeptide [Source:HGNC Symbol%3BAcc:HGNC:13816];gene_id=ENSFCAG00000006891;logic_name=ensembl;version=3
+A1	ensembl	transcript	329509	357255	.	+	.	ID=transcript:ENSFCAT00000006897;Parent=gene:ENSFCAG00000006891;Name=ATP12A-201;biotype=protein_coding;transcript_id=ENSFCAT00000006897;version=3
+A1	ensembl	exon	329509	329643	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000069922;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=ENSFCAE00000069922;rank=1;version=2
+A1	ensembl	CDS	329509	329643	.	+	0	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	333213	333302	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000265080;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=ENSFCAE00000265080;rank=2;version=1
+A1	ensembl	CDS	333213	333302	.	+	0	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	335728	335931	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000305646;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=ENSFCAE00000305646;rank=3;version=1
+A1	ensembl	CDS	335728	335931	.	+	0	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	336702	336815	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000069924;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=ENSFCAE00000069924;rank=4;version=1
+A1	ensembl	CDS	336702	336815	.	+	0	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	337779	337913	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000069929;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=ENSFCAE00000069929;rank=5;version=1
+A1	ensembl	CDS	337779	337913	.	+	0	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	338044	338161	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000069934;constitutive=1;ensembl_end_phase=1;ensembl_phase=0;exon_id=ENSFCAE00000069934;rank=6;version=1
+A1	ensembl	CDS	338044	338161	.	+	0	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	338398	338684	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000069937;constitutive=1;ensembl_end_phase=0;ensembl_phase=1;exon_id=ENSFCAE00000069937;rank=7;version=1
+A1	ensembl	CDS	338398	338684	.	+	2	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	339344	339542	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000262803;constitutive=1;ensembl_end_phase=1;ensembl_phase=0;exon_id=ENSFCAE00000262803;rank=8;version=1
+A1	ensembl	CDS	339344	339542	.	+	0	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	339691	339800	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000069943;constitutive=1;ensembl_end_phase=0;ensembl_phase=1;exon_id=ENSFCAE00000069943;rank=9;version=1
+A1	ensembl	CDS	339691	339800	.	+	2	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	341358	341492	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000069946;constitutive=1;ensembl_end_phase=0;ensembl_phase=0;exon_id=ENSFCAE00000069946;rank=10;version=1
+A1	ensembl	CDS	341358	341492	.	+	0	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	345076	345268	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000069949;constitutive=1;ensembl_end_phase=1;ensembl_phase=0;exon_id=ENSFCAE00000069949;rank=11;version=1
+A1	ensembl	CDS	345076	345268	.	+	0	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	347217	347392	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000069950;constitutive=1;ensembl_end_phase=0;ensembl_phase=1;exon_id=ENSFCAE00000069950;rank=12;version=1
+A1	ensembl	CDS	347217	347392	.	+	2	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	348073	348209	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000069951;constitutive=1;ensembl_end_phase=2;ensembl_phase=0;exon_id=ENSFCAE00000069951;rank=13;version=1
+A1	ensembl	CDS	348073	348209	.	+	0	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	350613	350763	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000291800;constitutive=1;ensembl_end_phase=0;ensembl_phase=2;exon_id=ENSFCAE00000291800;rank=14;version=1
+A1	ensembl	CDS	350613	350763	.	+	1	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	351793	351961	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000069954;constitutive=1;ensembl_end_phase=1;ensembl_phase=0;exon_id=ENSFCAE00000069954;rank=15;version=1
+A1	ensembl	CDS	351793	351961	.	+	0	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	352045	352199	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000322393;constitutive=1;ensembl_end_phase=0;ensembl_phase=1;exon_id=ENSFCAE00000322393;rank=16;version=1
+A1	ensembl	CDS	352045	352199	.	+	2	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	354206	354329	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000069961;constitutive=1;ensembl_end_phase=1;ensembl_phase=0;exon_id=ENSFCAE00000069961;rank=17;version=1
+A1	ensembl	CDS	354206	354329	.	+	0	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	354519	354664	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000069964;constitutive=1;ensembl_end_phase=0;ensembl_phase=1;exon_id=ENSFCAE00000069964;rank=18;version=1
+A1	ensembl	CDS	354519	354664	.	+	2	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402
+A1	ensembl	exon	355144	355277	.	+	.	Parent=transcript:ENSFCAT00000006897;Name=ENSFCAE00000069969;constitutive=1;ensembl_end_phase=2;ensembl_phase=0;exon_id=ENSFCAE00000069969;rank=19;version=1
+A1	ensembl	CDS	355144	355277	.	+	0	ID=CDS:ENSFCAP00000006402;Parent=transcript:ENSFCAT00000006897;protein_id=ENSFCAP00000006402

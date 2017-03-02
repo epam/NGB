@@ -18,6 +18,9 @@ export default function run($mdDialog, dispatcher, projectContext) {
 
                 $scope.variantRequest = Object.assign({
                     vcfFileId: variant.vcfFileId,
+                    openByUrl: variant.openByUrl,
+                    fileUrl: variant.fileUrl,
+                    indexUrl: variant.indexUrl,
                     position: variant.position,
                     chromosomeId: variant.chromosome.id,
                     projectId: variant.projectId

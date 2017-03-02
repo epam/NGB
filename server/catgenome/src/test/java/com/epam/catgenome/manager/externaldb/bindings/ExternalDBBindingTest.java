@@ -34,13 +34,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang.math.RandomUtils;
 import org.junit.Test;
 
 import com.epam.catgenome.manager.externaldb.bindings.dbsnp.ObjectFactory;
-import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl;
 
 /**
  * Source:      DbsnpBindingTest
@@ -139,7 +140,11 @@ public class ExternalDBBindingTest {
         } else if (type == List.class) {
             param = new ArrayList<>();
         } else if (type == XMLGregorianCalendar.class) {
-            param = new XMLGregorianCalendarImpl();
+            try {
+                param = DatatypeFactory.newInstance().newXMLGregorianCalendar();
+            } catch (DatatypeConfigurationException e) {
+                throw new IllegalArgumentException(e.getMessage(), e);
+            }
         } else {
             Constructor[] constructors = type.getConstructors();
             param = constructors[0].newInstance();

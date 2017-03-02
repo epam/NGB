@@ -34,6 +34,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.component.MessageHelper;
+import com.epam.catgenome.constant.MessagesConstants;
+import htsjdk.tribble.TribbleException;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.codehaus.jettison.json.JSONObject;
 import org.eclipse.jetty.server.Server;
@@ -729,6 +732,12 @@ public class VcfManagerTest extends AbstractManagerTest {
             Track<Variation> trackResult = vcfManager.loadVariations(variationTrack, vcfUrl, indexUrl,
                                                                      null, true, true);
             Assert.assertFalse(trackResult.getBlocks().isEmpty());
+
+            Variation var = vcfManager.getNextOrPreviousVariation(trackResult.getBlocks().get(3).getEndIndex(), null,
+                                                  null, testChromosome.getId(), true, vcfUrl, indexUrl);
+            Assert.assertNotNull(var);
+            Assert.assertEquals(var.getStartIndex(), trackResult.getBlocks().get(4).getStartIndex());
+            Assert.assertEquals(var.getEndIndex(), trackResult.getBlocks().get(4).getEndIndex());
         } finally {
             server.stop();
         }
@@ -838,12 +847,12 @@ public class VcfManagerTest extends AbstractManagerTest {
         switch (type) {
             case GA4GH: {
                 loadedNextVar = vcfManager.getNextOrPreviousVariation(var1.getEndIndex(), vcfFile.getId(), sampleId,
-                        testChrGA4GH.getId(), true);
+                        testChrGA4GH.getId(), true, null, null);
                 break;
             }
             default: {
                 loadedNextVar = vcfManager.getNextOrPreviousVariation(var1.getEndIndex(), vcfFile.getId(), null,
-                        testChromosome.getId(), true);
+                        testChromosome.getId(), true, null, null);
             }
         }
         double time2 = Utils.getSystemTimeMilliseconds();
@@ -857,12 +866,12 @@ public class VcfManagerTest extends AbstractManagerTest {
         switch (type) {
             case GA4GH: {
                 loadedPrevVar = vcfManager.getNextOrPreviousVariation(var2.getStartIndex(), vcfFile.getId(), sampleId,
-                        testChrGA4GH.getId(), false);
+                        testChrGA4GH.getId(), false, null, null);
                 break;
             }
             default: {
                 loadedPrevVar = vcfManager.getNextOrPreviousVariation(var2.getStartIndex(), vcfFile.getId(), null,
-                        testChromosome.getId(), false);
+                        testChromosome.getId(), false, null, null);
                 break;
             }
         }
@@ -946,4 +955,42 @@ public class VcfManagerTest extends AbstractManagerTest {
         String pathStr = resource.getFile().getPath();
         return new String(Files.readAllBytes(Paths.get(pathStr)), Charset.defaultCharset());
     }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testSaveUnsorted() throws IOException, ClassNotFoundException, InterruptedException,
+            ParseException, VcfReadingException {
+        String invalidVcf = "unsorted.vcf";
+        testRegisterInvalidFile("classpath:templates/invalid/" + invalidVcf,  MessageHelper
+                .getMessage(MessagesConstants.ERROR_UNSORTED_FILE));
+
+        Assert.assertTrue(biologicalDataItemDao
+                .loadFilesByNameStrict(invalidVcf).isEmpty());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testRegisterFileExtraChr()
+            throws IOException, ClassNotFoundException, InterruptedException, ParseException, NoSuchAlgorithmException,
+            VcfReadingException {
+        VcfFile vcfFile = testSave("classpath:templates/invalid/extra_chr.vcf");
+        Assert.assertTrue(vcfFile != null);
+    }
+
+
+    private void testRegisterInvalidFile(String path, String expectedMessage) throws IOException {
+        String errorMessage = "";
+        try {
+            Resource resource = context.getResource(path);
+            FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+            request.setPath(resource.getFile().getAbsolutePath());
+            request.setReferenceId(referenceId);
+            vcfManager.registerVcfFile(request);
+        } catch (TribbleException | IllegalArgumentException | AssertionError e) {
+            errorMessage = e.getMessage();
+        }
+        //check that we received an appropriate message
+        Assert.assertTrue(errorMessage.contains(expectedMessage));
+    }
+
 }

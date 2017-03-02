@@ -1,6 +1,8 @@
 package com.epam.catgenome.util;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
@@ -16,6 +18,12 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
  * @author Mikhail Miroliubov
  */
 public final class NgbFileUtils {
+    protected static final List<BiologicalDataItemFormat> ALLOWED_BROWSING_FORMATS = Arrays.asList(
+        BiologicalDataItemFormat.VCF, BiologicalDataItemFormat.VCF_INDEX, BiologicalDataItemFormat.BAM,
+        BiologicalDataItemFormat.BAM_INDEX, BiologicalDataItemFormat.INDEX,
+        BiologicalDataItemFormat.BED, BiologicalDataItemFormat.BED_INDEX,
+        BiologicalDataItemFormat.GENE, BiologicalDataItemFormat.GENE_INDEX);
+
     private static final String[] SUPPORTED_EXTENSIONS = {".fasta", ".fasta.gz", ".fa", ".fa.gz", ".fna, " +
                                                           ".fna.gz", ".txt", ".txt.gz",
                                                           ".vcf", ".vcf.gz",
@@ -116,5 +124,9 @@ public final class NgbFileUtils {
 
         String extension = FilenameUtils.getExtension(fileName);
         return  extension.length() > 0 && FORMAT_MAP.containsKey("." + extension) ? "." + extension : "";
+    }
+
+    public static boolean isFileBrowsingAllowed(BiologicalDataItemFormat format) {
+        return ALLOWED_BROWSING_FORMATS.contains(format);
     }
 }

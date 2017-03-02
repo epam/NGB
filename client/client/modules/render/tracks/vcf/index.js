@@ -140,7 +140,7 @@ export class VCFTrack extends GENETrack{
 
     get renderer() {
         if (!this._renderer) {
-            this._renderer = new VCFExpandedRenderer(this.trackLocalConfig, this.transformer);
+            this._renderer = new VCFExpandedRenderer(this.trackLocalConfig, this.transformer, this._pixiRenderer);
         }
         if (!this._collapsedRenderer) {
             this._collapsedRenderer = new VCFCollapsedRenderer(VcfConfig);

@@ -40,6 +40,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.manager.BiologicalDataItemManager;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.bio.big.BigSummary;
@@ -104,6 +105,9 @@ public class WigManager {
     private ReferenceGenomeManager referenceGenomeManager;
 
     @Autowired
+    private BiologicalDataItemManager biologicalDataItemManager;
+
+    @Autowired
     private FileManager fileManager;
 
     @Autowired
@@ -136,7 +140,7 @@ public class WigManager {
         final String requestPath = request.getPath();
         Assert.notNull(requestPath, getMessage(MessagesConstants.WRONG_WIG_FILE));
         Assert.notNull(request.getReferenceId(), getMessage(MessageCode.NO_SUCH_REFERENCE));
-        WigFile wigFile;
+        WigFile wigFile = null;
         try {
             Assert.isTrue(parseWig(requestPath), getMessage(MessagesConstants.WRONG_WIG_FILE));
             if (request.getType() == null) {
@@ -155,12 +159,21 @@ public class WigManager {
                 default:
                     throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
             }
-            wigFileManager.save(wigFile);
-            fileManager.makeWigDir(wigFile.getId(), AuthUtils.getCurrentUserId());
+            long id = wigFileManager.createWigFileId();
+            biologicalDataItemManager.createBiologicalDataItem(wigFile);
+            wigFile.setBioDataItemId(wigFile.getId());
+            wigFile.setId(id);
 
+            fileManager.makeWigDir(wigFile.getId(), AuthUtils.getCurrentUserId());
             splitWigFile(wigFile);
+            wigFileManager.save(wigFile);
         } catch (IOException e) {
             throw new RegistrationException(getMessage(MessagesConstants.ERROR_REGISTER_FILE, request.getName()), e);
+        } finally {
+            if (wigFile != null && wigFile.getId() != null &&
+                    wigFileManager.loadWigFile(wigFile.getId()) == null) {
+                biologicalDataItemManager.deleteBiologicalDataItem(wigFile.getBioDataItemId());
+            }
         }
         return wigFile;
     }

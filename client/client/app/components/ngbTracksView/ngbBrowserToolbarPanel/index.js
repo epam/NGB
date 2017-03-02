@@ -5,9 +5,7 @@ import angular from 'angular';
 import controller from './ngbBrowserToolbarPanel.controller';
 import component from './ngbBrowserToolbarPanel.component';
 
-import ngbBookmark from './ngbBookmark';
-
-export default angular.module('ngbBrowserToolbarPanelModule', [ngbBookmark])
+export default angular.module('ngbBrowserToolbarPanelModule',[])
     .controller(controller.UID, controller)
     .component('ngbBrowserToolbarPanel', component)
     .name;

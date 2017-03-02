@@ -38,11 +38,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * Represents basic properties of a feature file instance in the system (e.g. VCF file, GFF file)
  * </p>
  */
-public class FeatureFile extends BiologicalDataItem {
+public class FeatureFile extends IndexedDataItem {
     private Long referenceId;
     private Long bioDataItemId;
-    @JsonIgnore
-    private BiologicalDataItem index;
     @JsonIgnore
     private Boolean compressed;
 
@@ -68,14 +66,6 @@ public class FeatureFile extends BiologicalDataItem {
 
     public void setBioDataItemId(Long bioDataItemId) {
         this.bioDataItemId = bioDataItemId;
-    }
-
-    public BiologicalDataItem getIndex() {
-        return index;
-    }
-
-    public void setIndex(BiologicalDataItem index) {
-        this.index = index;
     }
 
     @Override

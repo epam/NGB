@@ -39,7 +39,7 @@ export class AlignmentsRenderProcessor {
                 font: 'normal 6pt arial'
             });
             text.resolution = drawingConfiguration.resolution;
-            const texture = text.generateTexture(renderer, drawingConfiguration.resolution);
+            const texture = text.generateTexture(renderer, drawingConfiguration.resolution, drawingConfiguration.scale);
             texture.offsetX = Math.round(text.width / 2);
             texture.offsetY = Math.round(text.height / 2);
             texture.width = text.width;

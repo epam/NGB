@@ -67,6 +67,7 @@ public abstract class AbstractCliTest {
     public static final String  AUTHENTICATION_URL = "/catgenome/oauth/token";
     public static final String  AUTHENTICATION_PAYLOAD = "client_id=restapp&client_secret=restapp&username="
             + "default_admin&password=admin&grant_type=password&scope=read";
+    public static final String URL_GENERATION_URL = "/catgenome/restapi/url";
 
     //server properties
     public static final String TEST_SERVER_PROPERTIES = "server.properties";

@@ -37,9 +37,9 @@ public final class MessagesConstants {
     public static final String ERROR_FILES_MISSING_RESOURCE_AT_PATH = "error.files.missing.resource.at.path";
     public static final String ERROR_NO_CHROMOSOME_NAME = "error.no.chromosome.name";
     public static final String ERROR_NO_SUCH_FILE = "error.no.such.file";
-    public static final String ERROR_CHROMOSOME_ID_NOT_FOUND = "error.reference.id.not.found";
+    public static final String ERROR_CHROMOSOME_ID_NOT_FOUND = "";
     public static final String ERROR_REGISTER_FILE = "error.register.file";
-
+    public static final String ERROR_CHROMOSOME_NAME_NOT_FOUND = "error.chromosome.name.not.found";
     public static final String ERROR_LENGTH_ABOVE_ZERO = "error.length.above.zero";
     public static final String ERROR_START_POSITION_ABOVE_ZERO = "error.start.position.above.zero";
     public static final String ERROR_WRONG_SIGNATURE = "wrong.signature";
@@ -97,7 +97,9 @@ public final class MessagesConstants {
                                                                                        ".greater.chromosome";
     public static final String ERROR_INVALID_PARAM_TRACK_IS_NULL = "error.invalid.param.query.null";
 
-    //Reference
+    //Common to all feature files
+    public static final String ERROR_INVALID_CONTIG = "error.file.illegal.contig";
+    public static final String ERROR_UNSORTED_FILE = "error.file.unsorted";
     public static final String ERROR_REFERENCE_ID_NULL = "error.reference.id.null";
     public static final String ERROR_REFERENCE_READING = "error.reference.reading";
     public static final String ERROR_REFERENCE_REGISTRATION_PARAMS = "error.reference.registration.params.ambiguous";
@@ -175,12 +177,14 @@ public final class MessagesConstants {
     public static final String ERROR_FILE_NOT_FOUND = "error.file.not.found";
     public static final String ERROR_FILE_HEADER_READING = "error.file..header.reading";
     public static final String ERROR_BIO_ID_NOT_FOUND = "error.file.id.not.found";
+    public static final String ERROR_BIO_NAME_NOT_FOUND = "error.file.name.not.found";
     public static final String ERROR_UNSUPPORTED_FILE_FORMAT = "error.unsupported.file.format";
     public static final String ERROR_FILE_CORRUPTED_OR_EMPTY = "error.file.corrupted.or.empty";
 
     //PROJECT
     public static final String INFO_PROJECT_DELETED = "info.project.deleted";
     public static final String ERROR_PROJECT_FEATURE_INDEX_NOT_FOUND = "error.project.feature.index.not.found";
+    public static final String ERROR_PROJECT_FILE_NOT_FOUND = "error.project.file.not.found";
 
     //DOWNLOAD FILE
     public static final String INFO_START_DOWNLOAD_FILE = "info.start.download.file";

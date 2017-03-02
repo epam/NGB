@@ -101,7 +101,8 @@ public final class EntityHelper {
         reference.setCreatedDate(DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH));
         reference.setCreatedBy(AuthUtils.getCurrentUserId());
         reference.setType(BiologicalDataItemResourceType.FILE);
-
+        reference.setIndex(createIndex(BiologicalDataItemFormat.REFERENCE_INDEX,
+                BiologicalDataItemResourceType.FILE, ""));
         final String[] dictionary = new String[]{"A1", "A2", "X"};
         for (String name : dictionary) {
             final Chromosome chromosome = new Chromosome(name, CHROMOSOME_LENGTH);
@@ -138,6 +139,8 @@ public final class EntityHelper {
         reference.setPath("");
         reference.setCreatedDate(new Date());
         reference.setChromosomes(Collections.singletonList(chromosome));
+        reference.setIndex(createIndex(BiologicalDataItemFormat.REFERENCE_INDEX,
+                BiologicalDataItemResourceType.FILE, ""));
         return reference;
     }
 
@@ -149,6 +152,8 @@ public final class EntityHelper {
         reference.setPath("");
         reference.setCreatedDate(new Date());
         reference.setChromosomes(chromosomes);
+        reference.setIndex(createIndex(BiologicalDataItemFormat.REFERENCE_INDEX,
+                BiologicalDataItemResourceType.FILE, ""));
         return reference;
     }
 

@@ -112,18 +112,10 @@ public class SegManager {
         if (request.getType() == null) {
             request.setType(BiologicalDataItemResourceType.FILE);
         }
-        SegFile segFile = null;
-        try {
-            segFile = getSegFile(request, requestPath);
-            LOGGER.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, segFile.getId(), segFile.getPath()));
-            biologicalDataItemManager.createBiologicalDataItem(segFile.getIndex());
-            segFileManager.createSegFile(segFile);
-        } finally {
-            if (segFile != null && segFile.getId() != null &&
-                    segFileManager.loadSegFile(segFile.getId()) == null) {
-                biologicalDataItemManager.deleteBiologicalDataItem(segFile.getBioDataItemId());
-            }
-        }
+
+        SegFile  segFile = getSegFile(request, requestPath);
+        LOGGER.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, segFile.getId(), segFile.getPath()));
+
         return segFile;
     }
 
@@ -240,12 +232,19 @@ public class SegManager {
             LOGGER.debug("Sorting SEG file {}", segFile.getPath());
             Collections.sort(allFeatures, new FeatureComparator());
             writeSegFeatures(segFile, allFeatures);
+            fileManager.makeSegIndex(segFile);
+            segFile.setSamples(samples);
+            biologicalDataItemManager.createBiologicalDataItem(segFile.getIndex());
+            segFileManager.createSegFile(segFile);
         } catch (IOException e) {
             LOGGER.error(getMessage(ERROR_REGISTER_FILE, request.getName()), e);
             throw new RegistrationException(getMessage(ERROR_REGISTER_FILE, request.getName()));
+        } finally {
+            if (segFile.getId() != null &&
+                    segFileManager.loadSegFile(segFile.getId()) == null) {
+                biologicalDataItemManager.deleteBiologicalDataItem(segFile.getBioDataItemId());
+            }
         }
-        fileManager.makeSegIndex(segFile);
-        segFile.setSamples(samples);
         return segFile;
     }
 

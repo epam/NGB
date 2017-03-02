@@ -37,8 +37,7 @@ export default class RulerBrush {
             this._globalRulerHeight +
             this._config.rulersVerticalMargin +
             this._config.brush.line.thickness;
-        const globalBodyYEnd = this._globalRulerOffsetY + this._config.global.body.height;
-        this._cursorYOffset = globalBodyYEnd + (this._localRulerOffsetY - globalBodyYEnd - this._config.brush.cursor.height) / 2;
+        this._cursorYOffset = this._globalRulerOffsetY - this._config.brush.line.thickness;
         this.moveBrush = callback;
         this.container = new PIXI.Container();
         this.brush = new PIXI.Graphics();
@@ -93,22 +92,18 @@ export default class RulerBrush {
         const normalize = (val) => Math.max(halfThickness, Math.min(this.viewport.canvasSize - halfThickness, val));
         this.brush
             .lineStyle(thickness, this.viewport.isShortenedIntronsMode ? this._config.brushColor.shortenedIntrons : this._config.brushColor.normal, 1)
-            .moveTo(0, this._localRulerOffsetY - halfThickness)
+            .moveTo(0, this._localRulerOffsetY)
             .lineTo(normalize(this.viewport.project.chromoBP2pixel(this.viewport.brush.start) + halfThickness),
-                this._localRulerOffsetY - halfThickness)
+                this._localRulerOffsetY)
             .moveTo(normalize(this.viewport.project.chromoBP2pixel(this.viewport.brush.start)), this._localRulerOffsetY)
             .lineTo(normalize(this.viewport.project.chromoBP2pixel(this.viewport.brush.start)),
                 this._globalRulerOffsetY - thickness)
-            .moveTo(normalize(this.viewport.project.chromoBP2pixel(this.viewport.brush.start) - halfThickness),
-                this._globalRulerOffsetY - halfThickness)
-            .lineTo(normalize(this.viewport.project.chromoBP2pixel(this.viewport.brush.end) + halfThickness),
-                this._globalRulerOffsetY - halfThickness)
             .moveTo(normalize(this.viewport.project.chromoBP2pixel(this.viewport.brush.end)),
                 this._globalRulerOffsetY - thickness)
             .lineTo(normalize(this.viewport.project.chromoBP2pixel(this.viewport.brush.end)), this._localRulerOffsetY)
             .moveTo(normalize(this.viewport.project.chromoBP2pixel(this.viewport.brush.end) - halfThickness),
-                this._localRulerOffsetY - halfThickness)
-            .lineTo(this.viewport.canvasSize, this._localRulerOffsetY - halfThickness);
+                this._localRulerOffsetY)
+            .lineTo(this.viewport.canvasSize, this._localRulerOffsetY);
     }
 
     changeShortenedBrush() {

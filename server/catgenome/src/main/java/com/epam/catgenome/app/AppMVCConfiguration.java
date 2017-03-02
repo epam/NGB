@@ -3,6 +3,10 @@ package com.epam.catgenome.app;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
@@ -34,6 +38,17 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    //to skip tld scan completely
+    @Bean
+    @ConditionalOnClass({EmbeddedServletContainerFactory.class })
+    public EmbeddedServletContainerCustomizer tomcatContainerCustomizer() {
+        return container -> {
+            TomcatEmbeddedServletContainerFactory tomcat = (TomcatEmbeddedServletContainerFactory) container;
+            tomcat.setTldSkip("*.jar");
+
+        };
+    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {

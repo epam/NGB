@@ -1,0 +1,232 @@
+group "com.epam"
+
+def uiFilesDestination = "$rootDir/server/catgenome/src/main/resources/static"
+def serverBuilds = "$rootDir/server/catgenome/build/libs"
+def cliBuilds = "$rootDir/server/ngb-cli/build/distributions"
+def distDir = "$rootDir/dist"
+def dockerDir = "$rootDir/docker/core"
+def runTests = !hasProperty("noTest")
+def database = hasProperty("database") ? database : "h2"
+def buildNumber = hasProperty("buildNumber") ? buildNumber : ""
+
+allprojects {
+    version = new Version(major: 2, minor: 3, build: buildNumber)
+    task printVersion {
+        doFirst {
+            println "Project version is $version"
+        }
+    }
+}
+
+class Version {
+    int major, minor
+    String build
+
+    String toString() {
+        "$major.$minor${build ? ".$build" : ''}"
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.3'
+}
+
+task ui(type: Copy) {
+    dependsOn ':client:buildUI'
+    doFirst {
+        delete fileTree(uiFilesDestination) {
+            exclude 'swagger-ui/**'
+        }
+    }
+    from "$rootDir/client/dist"
+    into uiFilesDestination
+}
+
+task buildWar(type: GradleBuild) {
+    dependsOn ui
+    if (runTests) {
+        tasks = ['clean', 'build']
+    } else {
+        tasks = ['clean', 'assemble']
+    }
+
+    startParameter.projectProperties = [profile    : 'release',
+                                        database   : database,
+                                        buildNumber: buildNumber]
+
+    buildFile = "$rootDir/server/catgenome/build.gradle"
+    dir = "$rootDir/server/catgenome"
+
+    doLast {
+        copy {
+            from "$serverBuilds/catgenome.war"
+            into distDir
+        }
+    }
+}
+
+task buildJar(type: GradleBuild) {
+    dependsOn ui
+    if (runTests) {
+        tasks = ['clean', 'build']
+    } else {
+        tasks = ['clean', 'bootRepackage']
+    }
+    startParameter.projectProperties = [profile    : 'jar',
+                                        database   : database,
+                                        buildNumber: buildNumber]
+    buildFile = "$rootDir/server/catgenome/build.gradle"
+    dir = "$rootDir/server/catgenome"
+    doLast {
+        copy {
+            from "$serverBuilds/catgenome.jar"
+            into distDir
+        }
+    }
+}
+
+task buildCli(type: GradleBuild) {
+    if (runTests) {
+        tasks = ['clean', 'build']
+    } else {
+        tasks = ['clean', 'assemble']
+    }
+    buildFile = "$rootDir/server/ngb-cli/build.gradle"
+    dir = "$rootDir/ngb-cli/catgenome"
+    doLast {
+        copy {
+            from "$cliBuilds/ngb-cli.tar"
+            into distDir
+        }
+    }
+}
+
+task runMkdocs(type: Exec) {
+    doFirst {
+        delete fileTree("$rootDir/docs/site")
+        delete fileTree(dir: "$rootDir/docs", include: '**/ngb_docs_*')
+    }
+    commandLine "mkdocs", "build"
+    workingDir = "$rootDir/docs"
+}
+
+task buildDoc(type: Tar) {
+    dependsOn runMkdocs
+    from("$rootDir/docs/site") {
+    }
+    archiveName = "ngb-docs.tgz"
+    destinationDir file(distDir)
+    extension = 'tgz'
+    compression = Compression.GZIP
+}
+
+task buildDocker(type: Exec) {
+    dependsOn buildWar, buildCli
+    doFirst {
+        delete file("$dockerDir/ngb-cli.tar")
+        delete file("$dockerDir/catgenome.war")
+        copy {
+            from "$distDir/catgenome.war"
+            into dockerDir
+        }
+        copy {
+            from "$distDir/ngb-cli.tar"
+            into dockerDir
+        }
+    }
+    commandLine "docker", "build", "-t", "ngb:latest", "."
+    workingDir = "$rootDir/docker/core"
+    doLast {
+        delete file("$dockerDir/ngb-cli.tar")
+        delete file("$dockerDir/catgenome.war")
+    }
+}
+
+task buildDesktopUI(type: GradleBuild) {
+    doFirst {
+        delete fileTree(uiFilesDestination) {
+            exclude 'swagger-ui/**'
+        }
+    }
+
+    tasks = ['buildUI']
+
+    buildFile = "$rootDir/client/build.gradle"
+    dir = "$rootDir/client"
+
+    startParameter.projectProperties = [desktop : ""]
+
+    doLast {
+        copy {
+            from "$rootDir/client/dist"
+            into uiFilesDestination
+        }
+    }
+}
+
+task buildDesktopJar(type: GradleBuild) {
+    dependsOn buildDesktopUI
+
+    doFirst {
+        delete fileTree("$rootDir/desktop/lib/logs")
+        delete file("$rootDir/desktop/lib/catgenome.jar")
+    }
+
+    if (runTests) {
+        tasks = ['clean', 'build']
+    } else {
+        tasks = ['clean', 'bootRepackage']
+    }
+    startParameter.projectProperties = [profile    : 'jar',
+                                        database   : database,
+                                        buildNumber: buildNumber]
+    buildFile = "$rootDir/server/catgenome/build.gradle"
+    dir = "$rootDir/server/catgenome"
+    doLast {
+        copy {
+            from "$serverBuilds/catgenome.jar"
+            into "$rootDir/desktop/lib"
+        }
+    }
+}
+
+task buildDesktop(type: GradleBuild) {
+    dependsOn buildDesktopJar
+
+    doFirst {
+        delete file ("$rootDir/dist/ngb-linux-x64")
+        delete file ("$rootDir/dist/ngb-darwin-x64")
+        delete file ("$rootDir/dist/ngb-win32-x64")
+        delete file ("$rootDir/desktop/dist")
+    }
+
+    tasks = ['buildWrapper']
+
+    buildFile = "$rootDir/desktop/build.gradle"
+    dir = "$rootDir/desktop"
+
+    doLast {
+        copy {
+            from "$rootDir/desktop/dist"
+            into distDir
+        }
+
+        delete file("$rootDir/desktop/dist")
+    }
+}
+
+task buildAll(type: GradleBuild) {
+    tasks = ['buildWar', 'buildCli', 'buildJar', 'buildDoc', 'buildDocker', 'buildDesktop']
+    buildFile = "$rootDir/build.gradle"
+    dir = "$rootDir"
+    if (runTests) {
+        startParameter.projectProperties = [database   : database,
+                                            buildNumber: buildNumber]
+    } else {
+        startParameter.projectProperties = [database   : database,
+                                            buildNumber: buildNumber,
+                                            noTest: '']
+    }
+}
+
+

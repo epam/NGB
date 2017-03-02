@@ -25,6 +25,7 @@
 package com.epam.catgenome.manager.reference.io;
 
 import java.io.IOException;
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,24 +36,24 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.epam.catgenome.common.AbstractManagerTest;
+import com.epam.catgenome.common.AbstractJUnitTest;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.manager.reference.ReferenceManager;
+
 import htsjdk.samtools.reference.ReferenceSequence;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class ChromosomeReferenceSequenceTest extends AbstractManagerTest {
+public class ChromosomeReferenceSequenceTest extends AbstractJUnitTest {
 
     @Autowired
     ApplicationContext context;
@@ -105,11 +106,11 @@ public class ChromosomeReferenceSequenceTest extends AbstractManagerTest {
 
     @Before
     public void setUp() throws IOException {
-        Resource resource = context.getResource("classpath:templates/reference/hp.genome.fa");
-
+        File fasta = getTemplate("reference/hp.genome.fa");
+        FastaUtils.indexFasta(fasta);
         ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
         request.setName(REFERENCE_NAME);
-        request.setPath(resource.getFile().getPath());
+        request.setPath(fasta.getPath());
         request.setType(BiologicalDataItemResourceType.FILE);
 
         Reference reference = referenceManager.registerGenome(request);
@@ -117,6 +118,7 @@ public class ChromosomeReferenceSequenceTest extends AbstractManagerTest {
         referenceId = reference.getId();
         chromosomes = reference.getChromosomes();
     }
+
 
     @Test
     @Transactional(propagation = Propagation.REQUIRED)

@@ -17,6 +17,7 @@ export const entry = (() => {
             'expose?jQuery!jquery',
             './client/babel-polyfill-custom.js',
             'jquery-mousewheel',
+            'babel-polyfill',
             './client/app/app.js'
         ]
     };
@@ -27,6 +28,7 @@ export const entry = (() => {
 export const output = {
     path: path.resolve(context, 'dist'),
     publicPath: global.buildOptions.publicPath || '/',
+    desktopBuild: !!global.buildOptions.desktop,
     filename: '[name].bundle.js',
     chunkFilename: '[id].[name].js'
 };

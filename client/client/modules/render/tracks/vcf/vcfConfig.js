@@ -13,7 +13,7 @@ export default {
     },
     chromosomeLine: {
         fill: 0x92AEE7,
-        thickness: 1
+        thickness: 0
     },
     height: 70,
     maxHeight: 200,

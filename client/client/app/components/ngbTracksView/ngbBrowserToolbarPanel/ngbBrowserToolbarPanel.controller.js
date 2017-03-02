@@ -4,7 +4,6 @@ export default class ngbBrowserToolbarPanelController {
         return 'ngbBrowserToolbarPanelController';
     }
 
-    showBookmark = true;
     showScreenShot = true;
     projectContext;
 
@@ -13,9 +12,7 @@ export default class ngbBrowserToolbarPanelController {
     }
 
     $onInit() {
-        const bookmarkVisibility = this.projectContext.bookmarkVisibility;
         const screenShotVisibility = this.projectContext.screenShotVisibility;
-        this.showBookmark = bookmarkVisibility;
         this.showScreenShot = screenShotVisibility;
     }
 

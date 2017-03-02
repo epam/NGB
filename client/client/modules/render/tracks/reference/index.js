@@ -1,3 +1,4 @@
+import * as modes from './reference.modes';
 import {CachedTrack} from '../../core';
 import {GenomeDataService} from '../../../../dataServices';
 import ReferenceConfig from './referenceConfig';
@@ -15,9 +16,21 @@ export class REFERENCETrack extends CachedTrack {
         const reqToken = this.__currentDataUpdateReq = {};
         const data = await this.dataService.loadReferenceTrack(this.cacheUpdateParameters(this.viewport));
         if (reqToken === this.__currentDataUpdateReq && this.cache) {
+            if (data.mode) {
+                switch (data.mode) {
+                    case modes.gcContentNotProvided: this.hideTrack(); break;
+                    default: this.showTrack(); break;
+                }
+            }
             const transformedData = ReferenceTransformer.transform(data, this.viewport, this.cache.data);
             if (!this.cache) {
                 return false;
+            }
+            if (transformedData.mode) {
+                switch (transformedData.mode) {
+                    case modes.gcContentNotProvided: this.hideTrack(); break;
+                    default: this.showTrack(); break;
+                }
             }
             this.cache.data = transformedData;
             return await super.updateCache();

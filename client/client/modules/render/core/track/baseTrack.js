@@ -9,7 +9,7 @@ export default class BaseTrack {
         BaseTrack.tracks.splice(BaseTrack.tracks.indexOf(this), 1);
     }
 
-    constructor({viewport, config, dataItemClicked, ...configRest}) {
+    constructor({viewport, config, dataItemClicked, changeTrackVisibility, ...configRest}) {
         BaseTrack.tracks.push(this);
 
         const configChain = [];
@@ -25,6 +25,10 @@ export default class BaseTrack {
 
         Reflect.defineProperty(this, 'dataItemClicked', {
             value: dataItemClicked
+        });
+
+        Reflect.defineProperty(this, 'changeTrackVisibility', {
+            value: changeTrackVisibility
         });
 
         const mapDefaultHeightFn = function(constructor) {

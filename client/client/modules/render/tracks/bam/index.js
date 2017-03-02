@@ -151,7 +151,9 @@ export class BAMTrack extends ScrollableTrack {
 
         const bamSettings = {
             chromosomeId: this.config.chromosomeId,
-            id: this.config.id,
+            id: this.config.openByUrl ? undefined : this.config.id,
+            file: this.config.openByUrl ? this.config.bioDataItemId : undefined,
+            index: this.config.openByUrl ? this.config.indexPath : undefined,
             scaleFactor: 1
         };
         const bamRenderSettings = Object.assign({
@@ -208,7 +210,9 @@ export class BAMTrack extends ScrollableTrack {
         let shouldReloadData = this._bamRenderer.globalSettingsChanged(state);
         const bamSettings = {
             chromosomeId: this.config.chromosomeId,
-            id: this.config.id,
+            id: this.config.openByUrl ? undefined : this.config.id,
+            file: this.config.openByUrl ? this.config.bioDataItemId : undefined,
+            index: this.config.openByUrl ? this.config.indexPath : undefined,
             scaleFactor: 1
         };
         const maxBpCount = 10000;

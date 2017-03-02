@@ -2,6 +2,7 @@
 New Genome Browser (NGB) is a Web client-server tool that has been developed with the several key distinctive features in mind:  
 * Visualization of Structural Variations (SVs) and their supporting reads
 * Performance and scalability while working with big/cloud genome data
+* CRAM format support
 * Integration with various data sources, including ENSEMBL, UniPROT and other internal/external databases
 * User experience that is based on a set of useful features like hotkeys, variation tables, docking widgets, etc.
 * Web 3D molecular viewer integrated
@@ -46,7 +47,7 @@ $ cd NGB
 Build sources and package binaries into docker container
 
 ```
-$ ./build.sh --docker
+$ ./gradlew buildDocker
 ```
 
 Image with name **ngb:latest** will be created. Verify that it was created correctly
@@ -65,7 +66,13 @@ Run NGB from a created image
 $ docker run -p 8080:8080 -d --name ngbcore -v <YOUR_NGS_DATA_FOLDER>:/ngs ngb:latest
 ```
 
-Verify that NGB is up and running: navigate with your web-browser (**Chrome** prefered) to [http://localhost:8080/catgenome](http://localhost:8080/catgenome)
+Verify that NGB is up and running: navigate with your web-browser to [http://localhost:8080/catgenome](http://localhost:8080/catgenome)
+
+Please note that the following web-browsers are supported at the moment
+* Chrome (>= 56)
+* Firefox (>= 51)
+* Safari (>= 9)
+* EDGE (>= 25)
 
 Default NGB page should be shown
 
@@ -78,29 +85,28 @@ That's it. Now NGS files could be added and viewed. Please refer to [NGB Command
 ## Requirements
 
 * **[Oracle JDK 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html)** or **[Open JDK 8](http://openjdk.java.net/install/)**
-* **[Node.js](https://nodejs.org/en/download/package-manager/)** 
+* **[Node.js >= 6.9.5](https://nodejs.org/en/download/package-manager/)** 
 * **[Docker engine](https://docs.docker.com/engine/installation/)** *used to build docker images, if it is not a case - then could not be installed*
-* **[MkDocs](http://www.mkdocs.org/#installation)** *used to build documentation, if it is not a case - then could not be installed*
+* **[MkDocs >= 0.16.0](http://www.mkdocs.org/#installation)** and **[mkdocs-material](http://squidfunk.github.io/mkdocs-material/getting-started/#installing-mkdocs)** *used to build documentation, if it is not a case - then could not be installed*
 
 ## General build process
 
-`build.sh` script is provided for building NGB components
-
-Right now only bash version is provided. To run it on Linux bash ports could be used. E.g. **[GIT BASH](https://git-for-windows.github.io/)**, that ships with GIT for Windows could be used to run build scripts
+Gradle build script is provided for building NGB components
 
 ```
-$ ./build.sh [options]
+$ ./gradlew [tasks]
 
-Options:
--w (--war)      builds java web application archive, containing client and server binaries
--c (--cli)      builds ngb command line interface, used to manipulate data within ngb
--i (--docker)   builds war-file and packages it into a docker image, using docker/core/Dockerfile
--d (--docs)     builds markdown documents into html web-site
--j (--jar)      builds standalone jar-file with embedded Tomcat
--a (--all)      builds all components, listed above (used as default, if no options are specified)
+Available tasks:
+buildWar      builds java web application archive, containing client and server binaries
+buildCli      builds ngb command line interface, used to manipulate data within ngb
+buildDocker   builds war-file and packages it into a docker image, using docker/core/Dockerfile
+buildDoc      builds markdown documents into html web-site
+buildJar      builds standalone jar-file with embedded Tomcat
+buildDesktop  builds standalone desktop NGB application
+buildAll      builds all components, listed above
 ```
 
-All options could be combined, except for `--all` option
+All tasks could be combined.
 
 Build artifacts are placed into `dist/` folder in a root level of a cloned repository
 
@@ -108,9 +114,9 @@ If this script does not fit - each component could be built on it's own. Build p
 
 ## Examples for typical tasks
 ```
-# Build NGB into war, command line interface tools and documentation
-$ ./build.sh --war --cli --docs
+# Build NGB as a standalone JAR file with Command Line Interface tools
+$ ./gradlew buildJar buildCli
 
 # Build docker with documentation
-$ ./build.sh --docker --docs
+$ ./gradlew buildDocker buildDoc
 ```

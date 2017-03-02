@@ -306,7 +306,9 @@ public class BamController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<Read> loadRead(@RequestBody final ReadQuery query) throws IOException {
-        return Result.success(bamManager.loadRead(query));
+    public Result<Read> loadRead(@RequestBody final ReadQuery query,
+                                 @RequestParam(required = false) final String fileUrl,
+                                 @RequestParam(required = false) final String indexUrl) throws IOException {
+        return Result.success(bamManager.loadRead(query, fileUrl, indexUrl));
     }
 }

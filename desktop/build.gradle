@@ -1,0 +1,19 @@
+plugins {
+    id "com.moowork.node" version "1.1.1"
+}
+
+task npmPrune(type: NpmTask) {
+    args = ['prune']
+}
+
+npmInstall.dependsOn npmPrune
+
+task buildWrapper(type: NpmTask) {
+    dependsOn npmInstall
+    args = ['run', 'build']
+}
+
+node {
+    //use installed in the system npm version
+    download = false
+}

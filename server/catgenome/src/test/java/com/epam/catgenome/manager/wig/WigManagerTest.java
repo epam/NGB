@@ -24,10 +24,10 @@
 
 package com.epam.catgenome.manager.wig;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -46,11 +46,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.vo.registration.FileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
+import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.entity.wig.WigFile;
+import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.epam.catgenome.util.Utils;
 /**
@@ -68,8 +70,12 @@ public class WigManagerTest extends AbstractManagerTest {
 
     @Autowired
     private WigManager wigManager;
+
     @Autowired
     private WigFileManager wigFileManager;
+
+    @Autowired
+    private BiologicalDataItemDao biologicalDataItemDao;
 
     @Autowired
     private ReferenceManager referenceManager;
@@ -152,5 +158,38 @@ public class WigManagerTest extends AbstractManagerTest {
         wigManager.unregisterWigFile(loadWigFile.getId());
         loadWigFile = wigFileManager.loadWigFile(wigFile.getId());
         Assert.assertNull(loadWigFile);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterUnsorted()
+            throws IOException, FeatureFileReadingException {
+
+//        Resource file = context.getResource("classpath:templates" + TEST_WIG);
+//        try (InputStream in = new FileInputStream(file.getFile());
+//             OutputStream out = new FileOutputStream(new File("invalid.bw"))) {
+//            byte[] data = new byte[50_000];
+//            in.read(data);
+//            out.write(data);
+//        }
+
+        String invalidWig = "invalid.bw";
+        Assert.assertTrue(testRegisterInvalidFile("classpath:templates/invalid/" + invalidWig));
+        //check that name is not reserved
+        Assert.assertTrue(biologicalDataItemDao
+                .loadFilesByNameStrict(invalidWig).isEmpty());
+    }
+
+    private boolean testRegisterInvalidFile(String path) throws IOException {
+        try {
+            Resource resource = context.getResource(path);
+            FileRegistrationRequest request = new FileRegistrationRequest();
+            request.setPath(resource.getFile().getAbsolutePath());
+            request.setReferenceId(testReference.getId());
+            wigManager.registerWigFile(request);
+        } catch (IllegalArgumentException | AssertionError e) {
+            return true;
+        }
+        return false;
     }
 }

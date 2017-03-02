@@ -1,0 +1,9 @@
+<md-menu>
+    <md-button aria-label="Open file" class="md-icon-button" ng-click="$ctrl.openMenu($mdOpenMenu, $event)">
+        <ng-md-icon icon="folder_open"></ng-md-icon>
+    </md-button>
+    <md-menu-content width="4" class="ngb-tool-menu ngb-open-file-menu" md-whiteframe="4">
+        <md-button aria-label="From NGB server" ng-click="$ctrl.openFileFromNGBServer();" class="ngb-open-file-menu-button">From NGB Server...</md-button>
+        <md-button aria-label="From URL" ng-click="$ctrl.openFileFromURL();" class="ngb-open-file-menu-button">From URL...</md-button>
+    </md-menu-content>
+</md-menu>

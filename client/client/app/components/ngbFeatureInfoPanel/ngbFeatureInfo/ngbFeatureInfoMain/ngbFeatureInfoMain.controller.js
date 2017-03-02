@@ -62,7 +62,7 @@ export default class ngbFeatureInfoMainController {
     loadRead() {
         this.isReadLoadingis = true;
         this.sequenceWithQualities = [];
-        this.bamDataService.loadRead(this.infoForRead.id, this.infoForRead.chromosomeId, this.infoForRead.startIndex, this.infoForRead.endIndex, this.infoForRead.name).then(read => {
+        this.bamDataService.loadRead(this.infoForRead).then(read => {
             for (let i = 0; i < read.qualities.length; i++) {
                 this.sequenceWithQualities.push({nucleotide : read.sequence[i], qualitie: read.qualities.charCodeAt(i) - 33});
             }
@@ -77,7 +77,8 @@ export default class ngbFeatureInfoMainController {
             callback(referenceBuffer);
             return;
         }
-        this.genomeDataService.loadReferenceTrack(blocks[index]).then(refBlocks => {
+        this.genomeDataService.loadReferenceTrack(blocks[index]).then(data => {
+            const refBlocks = data.blocks || [];
             this.sequenceProgress = 100.0 * (index + 1) / blocks.length;
             this.$scope.$apply();
             if (!refBlocks) {

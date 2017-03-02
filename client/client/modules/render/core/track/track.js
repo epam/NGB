@@ -89,6 +89,10 @@ export class Track extends BaseTrack {
         return this._actions;
     }
 
+    get trackIsHidden() {
+        return this._trackIsHidden;
+    }
+
     tick(time) {
         if (this._pixiRenderer) {
             let somethingChanged = this.render(this._flags);
@@ -154,10 +158,12 @@ export class Track extends BaseTrack {
             return;
         }
         const track = {
-            bioDataItemId: this.config.bioDataItemId,
+            bioDataItemId: this.config.name,
+            index: this.config.indexPath,
             projectId: this.config.projectId,
             height: this.height,
-            state: this.state
+            state: this.state,
+            format: this.config.format
         };
         this.projectContext.applyTrackState(track);
     }
@@ -226,6 +232,18 @@ export class Track extends BaseTrack {
     }
 
     clearData() {
+    }
+
+    hideTrack() {
+        if (this.changeTrackVisibility) {
+            this.changeTrackVisibility(false);
+        }
+    }
+
+    showTrack() {
+        if (this.changeTrackVisibility) {
+            this.changeTrackVisibility(true);
+        }
     }
 
     _refreshCache() {

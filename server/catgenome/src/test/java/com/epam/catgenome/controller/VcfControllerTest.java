@@ -93,8 +93,8 @@ public class VcfControllerTest extends AbstractControllerTest {
     private static final String URL_LOAD_VARIATION_INFO = "/vcf/variation/load";
     private static final String URL_LOAD_VCF_FILES = "/vcf/%d/loadAll";
     private static final String URL_LOAD_VCF_FILTERS = "/vcf/%d/fieldInfo";
-    private static final String URL_VCF_NEXT_VARIATION = "/vcf/%d/%d/next";
-    private static final String URL_VCF_PREV_VARIATION = "/vcf/%d/%d/prev";
+    private static final String URL_VCF_NEXT_VARIATION = "/vcf/%d/next";
+    private static final String URL_VCF_PREV_VARIATION = "/vcf/%d/prev";
 
     private static final String VCF_FILE_REGISTER = "/vcf/register";
 
@@ -340,8 +340,9 @@ public class VcfControllerTest extends AbstractControllerTest {
         Variation var2 = vcfRes.getPayload().getBlocks().get(middle + 1);
 
         ResultActions actions = mvc()
-                .perform(get(String.format(URL_VCF_NEXT_VARIATION, fileId, testChromosome.getId()))
-                        .param("fromPosition", var1.getEndIndex().toString())
+                .perform(get(String.format(URL_VCF_NEXT_VARIATION, testChromosome.getId()))
+                             .param("trackId", fileId.toString())
+                             .param("fromPosition", var1.getEndIndex().toString())
                         .param("sampleId", vcfFilesRes.getPayload().get(0).getSamples().get(0).getId().toString())
                         .contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(status().isOk())
@@ -360,8 +361,9 @@ public class VcfControllerTest extends AbstractControllerTest {
         Assert.assertEquals(var2.getEndIndex(), nextVarRes.getPayload().getEndIndex());
 
         actions = mvc()
-                .perform(get(String.format(URL_VCF_PREV_VARIATION, fileId, testChromosome.getId()))
-                        .param("fromPosition", var2.getStartIndex().toString())
+                .perform(get(String.format(URL_VCF_PREV_VARIATION, testChromosome.getId()))
+                             .param("trackId", fileId.toString())
+                             .param("fromPosition", var2.getStartIndex().toString())
                         .param("sampleId", vcfFilesRes.getPayload().get(0).getSamples().get(0).getId().toString())
                         .contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(status().isOk())

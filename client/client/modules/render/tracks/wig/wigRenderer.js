@@ -1,6 +1,8 @@
 import {CachedTrackRenderer} from '../../core';
 import PIXI from 'pixi.js';
 
+const Math = window.Math;
+
 export default class WIGRenderer extends CachedTrackRenderer{
 
     _height = null;
@@ -46,32 +48,32 @@ export default class WIGRenderer extends CachedTrackRenderer{
             const item = items[i];
             if (item.points.length > 0) {
                 const start = item.points[0];
-                if (wig.isDetailed && pixelsPerBp >= this._config.wig.detailedStyleStartingAtPixelsPerBP){
+                if (item.points.length === 1 || (wig.isDetailed && pixelsPerBp >= this._config.wig.detailedStyleStartingAtPixelsPerBP)){
                     const pixelsOffset = 0.5;
-                    const padding = pixelsPerBp / 2.0 - pixelsOffset;
-                    block.moveTo(this.correctedXPosition(start.xStart) - padding,
+                    const padding = Math.max(0.5, pixelsPerBp / 2.0 - pixelsOffset);
+                    block.moveTo(Math.round(this.correctedXPosition(start.xStart) - padding),
                         this._getYValue(wig.baseAxis, coordinateSystem));
 
-                    block.lineTo(this.correctedXPosition(start.xStart) - padding,
+                    block.lineTo(Math.round(this.correctedXPosition(start.xStart) - padding),
                         this._getYValue(start.dataValue, coordinateSystem));
-                    block.lineTo(this.correctedXPosition(start.xEnd) + padding,
+                    block.lineTo(Math.round(this.correctedXPosition(start.xEnd) + padding),
                         this._getYValue(start.dataValue, coordinateSystem));
-                    block.lineTo(this.correctedXPosition(start.xEnd) + padding,
+                    block.lineTo(Math.round(this.correctedXPosition(start.xEnd) + padding),
                         this._getYValue(wig.baseAxis, coordinateSystem));
 
                     for (let j = 1; j < item.points.length; j++){
                         const point = item.points[j];
-                        block.lineTo(this.correctedXPosition(point.xStart) - padding,
+                        block.lineTo(Math.round(this.correctedXPosition(point.xStart) - padding),
                             this._getYValue(wig.baseAxis, coordinateSystem));
-                        block.lineTo(this.correctedXPosition(point.xStart) - padding,
+                        block.lineTo(Math.round(this.correctedXPosition(point.xStart) - padding),
                             this._getYValue(point.dataValue, coordinateSystem));
-                        block.lineTo(this.correctedXPosition(point.xEnd) + padding,
+                        block.lineTo(Math.round(this.correctedXPosition(point.xEnd) + padding),
                             this._getYValue(point.dataValue, coordinateSystem));
-                        block.lineTo(this.correctedXPosition(point.xEnd) + padding,
+                        block.lineTo(Math.round(this.correctedXPosition(point.xEnd) + padding),
                             this._getYValue(wig.baseAxis, coordinateSystem));
                     }
 
-                    block.lineTo(this.correctedXPosition(start.xStart) - padding,
+                    block.lineTo(Math.round(this.correctedXPosition(start.xStart) - padding),
                         this._getYValue(wig.baseAxis, coordinateSystem));
                 }
                 else {

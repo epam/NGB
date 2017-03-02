@@ -17,8 +17,16 @@ export class VcfDataService extends DataService {
     }
 
     getVariantInfo(variantData) {
+        let url = 'vcf/variation/load';
+        if (variantData.openByUrl) {
+            url = `vcf/variation/load?fileUrl=${encodeURIComponent(variantData.fileUrl)}&indexUrl=${encodeURIComponent(variantData.indexUrl)}`;
+            variantData.openByUrl = undefined;
+            variantData.fileUrl = undefined;
+            variantData.indexUrl = undefined;
+            variantData.projectId = undefined;
+        }
         return new Promise((resolve) => {
-            this.post('vcf/variation/load', variantData)
+            this.post(url, variantData)
                 .catch(() => {
                     resolve(null);
                 })
@@ -35,7 +43,14 @@ export class VcfDataService extends DataService {
 
     loadVcfTrack(vcf) {
         return new Promise((resolve, reject) => {
-            this.post('vcf/track/get', vcf).then((data) => {
+            let url = 'vcf/track/get';
+            if (vcf.openByUrl) {
+                url = `vcf/track/get?fileUrl=${encodeURIComponent(vcf.fileUrl)}&indexUrl=${encodeURIComponent(vcf.indexUrl)}`;
+                vcf.openByUrl = undefined;
+                vcf.fileUrl = undefined;
+                vcf.indexUrl = undefined;
+            }
+            this.post(url, vcf).then((data) => {
                 if (data) {
                     resolve(data.blocks ? data.blocks : []);
                 } else {
@@ -55,7 +70,11 @@ export class VcfDataService extends DataService {
             const promises = [];
             tracksVCF.forEach(trackVCF => {
                 const promise = new Promise((resolve) => {
-                    this.get(`vcf/${trackVCF.id}/${chromosomeId}/next/?fromPosition=${fromPosition}`).then((data) => {
+                    let url = `vcf/${chromosomeId}/next?trackId=${trackVCF.id}&fromPosition=${fromPosition}`;
+                    if (trackVCF.openByUrl) {
+                        url = `vcf/${chromosomeId}/next?fileUrl=${encodeURIComponent(trackVCF.id)}&indexUrl=${encodeURIComponent(trackVCF.indexPath)}&fromPosition=${fromPosition}`;
+                    }
+                    this.get(url).then((data) => {
                         if (data) {
                             resolve(data);
                         }
@@ -69,8 +88,12 @@ export class VcfDataService extends DataService {
                 });
             });
         }
+        let url = `vcf/${chromosomeId}/next?trackId=${tracksVCF.id}&fromPosition=${fromPosition}`;
+        if (tracksVCF.openByUrl) {
+            url = `vcf/${chromosomeId}/next?fileUrl=${encodeURIComponent(tracksVCF.id)}&indexUrl=${encodeURIComponent(tracksVCF.indexPath)}&fromPosition=${fromPosition}`;
+        }
         return new Promise((resolve, reject) => {
-            this.get(`vcf/${tracksVCF.id}/${chromosomeId}/next/?fromPosition=${fromPosition}`).catch(() => {
+            this.get(url).catch(() => {
                 resolve([]);
             }).then((data) => {
                 if (data) {
@@ -85,7 +108,11 @@ export class VcfDataService extends DataService {
             const promises = [];
             tracksVCF.forEach(trackVCF => {
                 const promise = new Promise((resolve) => {
-                    this.get(`vcf/${trackVCF.id}/${chromosomeId}/prev/?fromPosition=${fromPosition}`).then((data) => {
+                    let url = `vcf/${chromosomeId}/prev?trackId=${trackVCF.id}&fromPosition=${fromPosition}`;
+                    if (trackVCF.openByUrl) {
+                        url = `vcf/${chromosomeId}/prev?fileUrl=${encodeURIComponent(trackVCF.id)}&indexUrl=${encodeURIComponent(trackVCF.indexPath)}&fromPosition=${fromPosition}`;
+                    }
+                    this.get(url).then((data) => {
                         if (data) {
                             resolve(data);
                         }
@@ -99,8 +126,12 @@ export class VcfDataService extends DataService {
                 });
             });
         }
+        let url = `vcf/${chromosomeId}/prev?trackId=${tracksVCF.id}&fromPosition=${fromPosition}`;
+        if (tracksVCF.openByUrl) {
+            url = `vcf/${chromosomeId}/prev?fileUrl=${encodeURIComponent(tracksVCF.id)}&indexUrl=${encodeURIComponent(tracksVCF.indexPath)}&fromPosition=${fromPosition}`;
+        }
         return new Promise((resolve, reject) => {
-            this.get(`vcf/${tracksVCF.id}/${chromosomeId}/prev/?fromPosition=${fromPosition}`).catch(() => {
+            this.get(url).catch(() => {
                 resolve([]);
             }).then((data) => {
                 if (data) {

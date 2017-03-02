@@ -44,6 +44,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.epam.catgenome.common.AbstractManagerTest;
+import com.epam.catgenome.component.MessageHelper;
+import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.util.UrlTestingUtils;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
@@ -60,6 +62,7 @@ import com.epam.catgenome.exception.HistogramReadingException;
 import com.epam.catgenome.helper.EntityHelper;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 
+import htsjdk.tribble.TribbleException;
 /**
  * Source:      BedManagerTest
  * Created:     17.05.16, 18:09
@@ -256,5 +259,40 @@ public class BedManagerTest extends AbstractManagerTest {
 
         File dir = new File(baseDirPath + "/42/bed/" + bedFile.getId());
         Assert.assertFalse(dir.exists());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterUnsorted()
+            throws IOException, FeatureFileReadingException {
+        String unsortedBed = "unsorted.bed";
+        testRegisterInvalidBed("classpath:templates/invalid/" + unsortedBed,
+                MessageHelper.getMessage(MessagesConstants.ERROR_UNSORTED_FILE));
+        //check that name is not reserved
+        Assert.assertTrue(biologicalDataItemDao
+                .loadFilesByNameStrict(unsortedBed).isEmpty());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterInvalidChromosome()
+            throws IOException, FeatureFileReadingException {
+        BedFile bedFile = testRegisterBed("classpath:templates/invalid/extra_chr.bed");
+        Assert.assertTrue(testLoadBedRecords(bedFile));
+    }
+
+    private void testRegisterInvalidBed(String path, String expectedMessage) throws IOException {
+        String errorMessage = "";
+        try {
+            Resource resource = context.getResource(path);
+            IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
+            request.setPath(resource.getFile().getAbsolutePath());
+            request.setReferenceId(referenceId);
+            bedManager.registerBed(request);
+        } catch (TribbleException | IllegalArgumentException | AssertionError e) {
+            errorMessage = e.getMessage();
+        }
+        //check that we received an appropriate message
+        Assert.assertTrue(errorMessage.contains(expectedMessage));
     }
 }

@@ -7,7 +7,7 @@ export default function Interceptor($q, $location, dispatcher) {
         },
 
         // optional method
-        'responseError': function (rejection) {            
+        'responseError': function (rejection) {
             dispatcher.emitServiceError(rejection);
 
             return $q.reject(rejection);

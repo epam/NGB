@@ -19,8 +19,10 @@ export default class ngbVariantInfoService{
     loadVariantInfo(variantRequest, callback, errorCallback){
         const request = {
             chromosomeId: variantRequest.chromosomeId,
-            id: variantRequest.vcfFileId,
-            projectId: variantRequest.projectId,
+            id: variantRequest.openByUrl ? undefined : variantRequest.vcfFileId,
+            openByUrl: variantRequest.openByUrl,
+            fileUrl: variantRequest.openByUrl ? variantRequest.fileUrl : undefined,
+            indexUrl: variantRequest.openByUrl ? variantRequest.indexUrl : undefined,
             position: variantRequest.position
         };
 

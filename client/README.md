@@ -1,6 +1,6 @@
 # Requirements
 
-**[Node.js](https://nodejs.org/en/download/package-manager/)** 
+**[Node.js >= 6.9.5](https://nodejs.org/en/download/package-manager/)** 
 
 # How to build NGB client
 

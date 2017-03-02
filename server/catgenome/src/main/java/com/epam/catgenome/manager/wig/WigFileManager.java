@@ -78,8 +78,12 @@ public class WigFileManager {
         Assert.notNull(wigFile.getPath());
         Assert.notNull(wigFile.getType());
         Assert.notNull(wigFile.getFormat());
-        biologicalDataItemDao.createBiologicalDataItem(wigFile);
         wigFileDao.createWigFile(wigFile);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Long createWigFileId() {
+        return wigFileDao.createWigFileId();
     }
 
     /**

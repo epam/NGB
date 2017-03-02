@@ -65,11 +65,11 @@ public class FileRegistrationHandlerTest extends AbstractCliTest {
         server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
 
         //register vcf, no name, no index
-        server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF, null, null, VCF_ID,
+        server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF, null, VCF_ID,
                 VCF_BIO_ID, BiologicalDataItemFormat.VCF, true);
 
         // add another without feature index
-        server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF, null, null, VCF_ID,
+        server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF, null, VCF_ID,
                                                  VCF_BIO_ID, BiologicalDataItemFormat.VCF, false);
 
         //register BAM with name

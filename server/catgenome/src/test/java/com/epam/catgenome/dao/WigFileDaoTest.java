@@ -80,7 +80,10 @@ public class WigFileDaoTest extends AbstractDaoTest {
         wigFile.setType(BiologicalDataItemResourceType.FILE);
         wigFile.setFormat(BiologicalDataItemFormat.WIG);
         wigFile.setPath("///");
+        long id = wigFileDao.createWigFileId();
         biologicalDataItemDao.createBiologicalDataItem(wigFile);
+        wigFile.setBioDataItemId(wigFile.getId());
+        wigFile.setId(id);
         wigFileDao.createWigFile(wigFile);
 
         WigFile loadedFile = wigFileDao.loadWigFile(wigFile.getId());

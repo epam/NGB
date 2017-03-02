@@ -141,12 +141,12 @@ public class BookmarkManager {
      * @return an {@link IndexSearchResult} object, that contains search results
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public IndexSearchResult searchBookmarks(String searchStr, int limit) {
+    public IndexSearchResult<FeatureIndexEntry> searchBookmarks(String searchStr, int limit) {
         int bookmarksCount = bookmarkDao.searchBookmarkCount(searchStr, AuthUtils.getCurrentUserId());
         List<Bookmark> bookmarks = bookmarkDao.searchBookmarks(searchStr, AuthUtils.getCurrentUserId(), limit);
         List<FeatureIndexEntry> bookmarkEntries = bookmarks.stream().map(BookmarkIndexEntry::new).collect(
             Collectors.toList());
 
-        return new IndexSearchResult(bookmarkEntries, bookmarksCount > limit, bookmarksCount);
+        return new IndexSearchResult<>(bookmarkEntries, bookmarksCount > limit, bookmarksCount);
     }
 }

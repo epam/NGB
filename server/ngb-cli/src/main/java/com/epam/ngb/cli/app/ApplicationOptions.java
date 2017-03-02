@@ -68,6 +68,14 @@ public class ApplicationOptions {
     private boolean doIndex = true;
 
     /**
+     * Option fo reference registration, if true, the GC content files will be created for
+     * a reference during registration.
+     */
+    private boolean noGCContent = false;
+
+    private String location;
+
+    /**
      * Creates object with default option's values
      */
     public ApplicationOptions() {
@@ -128,5 +136,21 @@ public class ApplicationOptions {
 
     public void setDoIndex(boolean doIndex) {
         this.doIndex = doIndex;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public boolean isNoGCContent() {
+        return noGCContent;
+    }
+
+    public void setNoGCContent(boolean noGCContent) {
+        this.noGCContent = noGCContent;
     }
 }

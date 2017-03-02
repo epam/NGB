@@ -30,8 +30,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 
+import htsjdk.tribble.TribbleException;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,6 +127,33 @@ public class SegManagerTest extends AbstractManagerTest {
         SegFile segFile = testRegisterSeg("classpath:templates/test_seg.seg.gz");
         Assert.assertNotNull(segFile);
     }
+
+    @Test
+    @Ignore
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterNonExistingSeg() throws IOException, InterruptedException, NoSuchAlgorithmException {
+        String invalidSeg = "unsorted.seg";
+        testRegisterInvalidFile(invalidSeg, "The system cannot find the file specified");
+        //check that name is not reserved
+        Assert.assertTrue(biologicalDataItemDao
+                .loadFilesByNameStrict(invalidSeg).isEmpty());
+
+    }
+
+    private void testRegisterInvalidFile(String path, String expectedMessage) throws IOException {
+        String errorMessage = "";
+        try {
+            IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
+            request.setPath(path);
+            request.setReferenceId(referenceId);
+            segManager.registerSegFile(request);
+        } catch (TribbleException | IllegalArgumentException | AssertionError e) {
+            errorMessage = e.getMessage();
+        }
+        //check that we received an appropriate message
+        Assert.assertTrue(errorMessage.contains(expectedMessage));
+    }
+
 
     private SegFile testRegisterSeg(String path) throws IOException, InterruptedException, NoSuchAlgorithmException {
         Resource resource = context.getResource(path);

@@ -26,6 +26,7 @@ package com.epam.catgenome.dao;
 
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -99,5 +100,34 @@ public class GeneDaoTest extends AbstractDaoTest {
         List<GeneFile> files = geneFileDao.loadGeneFilesByReferenceId(reference.getId());
         assertNotNull(files);
         Assert.assertFalse(files.isEmpty());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testLoadGeneFiles() {
+        GeneFile geneFile = new GeneFile();
+
+        geneFile.setId(geneFileDao.createGeneFileId());
+        geneFile.setName("testFile");
+        geneFile.setCreatedBy(AuthUtils.getCurrentUserId());
+        geneFile.setCreatedDate(new Date());
+        geneFile.setReferenceId(reference.getId());
+        geneFile.setType(BiologicalDataItemResourceType.FILE);
+        geneFile.setFormat(BiologicalDataItemFormat.GENE);
+        geneFile.setPath("///");
+
+        BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.GENE_INDEX,
+                BiologicalDataItemResourceType.FILE, "////");
+        geneFile.setIndex(index);
+
+        biologicalDataItemDao.createBiologicalDataItem(index);
+        final Long realId = geneFile.getId();
+        biologicalDataItemDao.createBiologicalDataItem(geneFile);
+        geneFileDao.createGeneFile(geneFile, realId);
+
+        List<Long> ids = Arrays.asList(null, geneFile.getId());
+
+        List<GeneFile> geneFiles = geneFileDao.loadGeneFiles(ids);
+        Assert.assertFalse(geneFiles.isEmpty());
     }
 }

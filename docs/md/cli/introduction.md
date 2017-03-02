@@ -14,7 +14,7 @@ NGB data index can be stored in two ways:
 * for small installations - file storage is used
 * for large-scale installations (requiring Network Load Balancing) - PostgreSQL database is used
 
-There are two mechanisms to manage NGB data index:
+There are two mechanisms to manage NGB data index
 
 ### REST API
  NGB provides JSON REST API, that could be used by external systems (like a pipeline) to register files
@@ -76,3 +76,17 @@ To make NGS files visible to a user, the following steps should be performed:
 3. NGS file should be linked to a dataset. *One file could be linked to different datasets*
 
 All these steps can be easily automated with NGB CLI as shown in the sections below.
+
+## Supported file types
+
+NGB, and therefore CLI, supports registration of the following file types:
+* FASTA
+* GFF3
+* GTF
+* BED
+* VCF
+* BAM
+* CRAM
+* SEG
+
+Note that all files being registered via NGB CLI should be sorted by chromosome and position.

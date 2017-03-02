@@ -26,6 +26,12 @@ package com.epam.catgenome.dao;
 
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Date;
+
+import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
@@ -56,6 +62,8 @@ public abstract class AbstractDaoTest extends AbstractTransactionalJUnit4SpringC
 
     protected Reference reference;
 
+    private static final Long DEFAULT_USER = 42L;
+
     @Before
     public void setup() throws Exception {
         assertNotNull("DaoHelper isn't provided.", daoHelper);
@@ -66,8 +74,22 @@ public abstract class AbstractDaoTest extends AbstractTransactionalJUnit4SpringC
         assertNotNull("Reference ID cannot be generated.", referenceId);
         reference.setId(referenceId);
         reference.setName(reference.getName() + " " + referenceId);
-
+        BiologicalDataItem index = createReferenceIndex();
+        reference.setIndex(index);
         biologicalDataItemDao.createBiologicalDataItem(reference);
         referenceGenomeDao.createReferenceGenome(reference, referenceId);
+    }
+
+    @NotNull
+    public BiologicalDataItem createReferenceIndex() {
+        BiologicalDataItem index = new BiologicalDataItem();
+        index.setType(BiologicalDataItemResourceType.FILE);
+        index.setFormat(BiologicalDataItemFormat.REFERENCE_INDEX);
+        index.setName("");
+        index.setPath("");
+        index.setCreatedDate(new Date());
+        index.setCreatedBy(DEFAULT_USER);
+        biologicalDataItemDao.createBiologicalDataItem(index);
+        return index;
     }
 }

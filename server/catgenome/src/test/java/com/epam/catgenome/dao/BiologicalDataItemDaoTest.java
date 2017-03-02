@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.epam.catgenome.dao.gene.GeneFileDao;
+import com.epam.catgenome.helper.EntityHelper;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -182,7 +183,6 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
     private Reference createTestReference(BiologicalDataItem item) {
         Reference reference = new Reference();
 
-
         reference.setSize(1L);
         reference.setName("testReference");
         reference.setPath(TEST_PATH);
@@ -192,7 +192,9 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         reference.setCreatedDate(new Date());
         reference.setCreatedBy(AuthUtils.getCurrentUserId());
         reference.setBioDataItemId(item.getId());
-
+        reference.setIndex(EntityHelper.createIndex(BiologicalDataItemFormat.REFERENCE_INDEX,
+                BiologicalDataItemResourceType.FILE, ""));
+        biologicalDataItemDao.createBiologicalDataItem(reference.getIndex());
         return referenceGenomeDao.createReferenceGenome(reference, referenceGenomeDao.createReferenceGenomeId());
     }
 

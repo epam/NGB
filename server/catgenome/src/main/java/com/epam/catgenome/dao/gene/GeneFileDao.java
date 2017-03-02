@@ -24,9 +24,12 @@
 
 package com.epam.catgenome.dao.gene;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -59,6 +62,7 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
     // New queries
     private String createGeneFileQuery;
     private String loadGeneFileQuery;
+    private String loadGeneFilesQuery;
     private String loadGeneFilesByReferenceIdQuery;
     private String deleteGeneFileQuery;
 
@@ -96,6 +100,20 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
                 .BiologicalDataItemParameters.getRowMapper(), id);
 
         return !files.isEmpty() ? (GeneFile) files.get(0) : null;
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public List<GeneFile> loadGeneFiles(Collection<Long> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return Collections.emptyList();
+        }
+
+        long listId = daoHelper.createTempLongList(ids);
+        List<BiologicalDataItem> files = getJdbcTemplate().query(loadGeneFilesQuery, BiologicalDataItemDao
+                .BiologicalDataItemParameters.getRowMapper(), listId);
+
+        daoHelper.clearTempList(listId);
+        return files.stream().map(f -> (GeneFile) f).collect(Collectors.toList());
     }
 
     /**
@@ -152,6 +170,11 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
     @Required
     public void setDeleteGeneFileQuery(String deleteGeneFileQuery) {
         this.deleteGeneFileQuery = deleteGeneFileQuery;
+    }
+
+    @Required
+    public void setLoadGeneFilesQuery(String loadGeneFilesQuery) {
+        this.loadGeneFilesQuery = loadGeneFilesQuery;
     }
 
     enum GeneParameters {

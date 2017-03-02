@@ -6,6 +6,7 @@ export class Node {
     nestedProjects: Array<Node>;
     items: Array<Node>; // for treeview displaying
     _lazyItems: Array<Node>; // pre-build tree. Used for lazy-building treeview
+    tracks: Array<Node>;
 
     id;
     bioDataItemId;

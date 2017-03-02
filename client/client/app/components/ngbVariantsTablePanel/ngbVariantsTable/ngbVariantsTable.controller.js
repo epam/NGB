@@ -24,7 +24,7 @@ export default class ngbVariantsTableController extends baseController {
         headerRowHeight: 20,
         height: '100%',
         multiSelect: false,
-        rowHeight: 48,
+        rowHeight: 35,
         showHeader: true,
         treeRowHeaderAlwaysVisible: false,
         saveWidths: true,
@@ -62,7 +62,8 @@ export default class ngbVariantsTableController extends baseController {
     events = {
         'reference:change': ::this.initialize,
         'variants:loading:finished': ::this.variantsLoadingFinished,
-        'variants:loading:started': ::this.initialize
+        'variants:loading:started': ::this.initialize,
+        'activeVariants': ::this.resizeGrid
     };
 
     $onInit() {
@@ -189,6 +190,7 @@ export default class ngbVariantsTableController extends baseController {
     }
 
     showInfo(entity, event) {
+        // TODO: manage variants from tracks opened by url
         const state = new EventVariationInfo(
             {
                 chromosome: entity.chromosome,
@@ -216,5 +218,11 @@ export default class ngbVariantsTableController extends baseController {
         this.gridOptions.data = this.projectContext.filteredVariants;
         this.isProgressShown = this.projectContext.isVariantsLoading;
         this.$timeout(::this.$scope.$apply);
+    }
+
+    resizeGrid() {
+        if (this.gridApi) {
+            this.gridApi.core.handleWindowResize();
+        }
     }
 }

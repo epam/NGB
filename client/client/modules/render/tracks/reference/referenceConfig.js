@@ -17,6 +17,13 @@ export default {
         color2: 0xFF8000,
         sensitiveValue: 0.5
     },
+    noGCContent: {
+        labelStyle: {
+            fill: 0x666666,
+            font: 'normal 10pt arial'
+        },
+        text: 'GC content is not provided.'
+    },
     reference: {},
     resizable: false
 };

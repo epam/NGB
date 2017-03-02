@@ -13,10 +13,13 @@ import goldenLayout from './ngbGoldenLayoutObj.service';
 import service from './ngbGoldenLayout.service';
 
 // Import dependencies
+import ngbViewActionsConstant from './ngbViewActions/ngbViewActions.constant';
 import ngbCoordinates from './ngbCoordinates';
+import ngbViewActions from './ngbViewActions';
 
-export default angular.module('ngbGoldenLayout', [ngbCoordinates])
+export default angular.module('ngbGoldenLayout', [ngbCoordinates, ...ngbViewActions])
     .controller(controller.UID, controller)
+    .constant('ngbViewActionsConstant', ngbViewActionsConstant)
     .constant('ngbGoldenLayoutConstant', constant)
     .service('GoldenLayout', goldenLayout.instance)
     .service('ngbGoldenLayoutService', service.instance)

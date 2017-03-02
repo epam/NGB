@@ -1,4 +1,3 @@
 export default {
-    template: require('./ngbInfoProduct.tpl.html'),
-    controller: 'ngbInfoProductController'
+    template: require('./ngbInfoProduct.tpl.html')
 };

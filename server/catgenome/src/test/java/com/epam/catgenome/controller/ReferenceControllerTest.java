@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -65,6 +66,7 @@ import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.helper.EntityHelper;
 import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
+import com.epam.catgenome.manager.reference.io.FastaUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -131,6 +133,7 @@ public class ReferenceControllerTest extends AbstractControllerTest {
         final Reference source = EntityHelper.createReference();
         source.setId(referenceGenomeManager.createReferenceId());
         referenceGenomeManager.register(source);
+        source.setIndex(null);
 
 
         // 0. cleans up 'path' parameters, because they never should be sent to the client
@@ -253,19 +256,20 @@ public class ReferenceControllerTest extends AbstractControllerTest {
         actions.andDo(print());
     }
 
+
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testSaveAndGetTrackData() throws Exception {
-        Resource resource;
         ResultActions actions;
         ReferenceRegistrationRequest request;
 
         // 1. tries to save a genome without the given user-friendly name, a name should be
         //    generated from the original filename by cutting its extension
-        resource = getTemplateResource(HP_GENOME_PATH);
+        File fasta = getTemplate("Test2.fa");
+        FastaUtils.indexFasta(fasta);
 
         request = new ReferenceRegistrationRequest();
-        request.setPath(resource.getFile().getAbsolutePath());
+        request.setPath(fasta.getAbsolutePath());
 
         actions = mvc()
                 .perform(post(REGISTER_GENOME_IN_FASTA_FORMAT).content(getObjectMapper().writeValueAsString(request))
@@ -282,10 +286,9 @@ public class ReferenceControllerTest extends AbstractControllerTest {
         actions.andDo(print());
 
         // 2. tries to save a genome with the specified user-friendly name
-        resource = getTemplateResource(HP_GENOME_PATH);
         request = new ReferenceRegistrationRequest();
         request.setName(HP_GENOME_NAME);
-        request.setPath(resource.getFile().getAbsolutePath());
+        request.setPath(fasta.getAbsolutePath());
         actions = mvc()
                 .perform(post(REGISTER_GENOME_IN_FASTA_FORMAT).content(getObjectMapper().writeValueAsString(request))
                         .contentType(EXPECTED_CONTENT_TYPE))

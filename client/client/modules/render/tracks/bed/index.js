@@ -11,6 +11,7 @@ export class BEDTrack extends GENETrack {
     constructor(opts) {
         super(opts);
         this._actions = null;
+        this.getSettings = undefined;
     }
 
     get downloadHistogramFn() {
@@ -19,10 +20,6 @@ export class BEDTrack extends GENETrack {
 
     get downloadDataFn() {
         return ::this.dataService.getBedTrack;
-    }
-
-    getSettings() {
-        return null;
     }
 
     get dataService() {
@@ -41,7 +38,7 @@ export class BEDTrack extends GENETrack {
 
     get renderer() {
         if (!this._renderer) {
-            this._renderer = new BEDRenderer(this.trackLocalConfig, this.transformer);
+            this._renderer = new BEDRenderer(this.trackLocalConfig, this.transformer, this._pixiRenderer);
         }
         return this._renderer;
     }

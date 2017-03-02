@@ -6,9 +6,11 @@ import {Sorting} from '../../../../../modules/render/utilities';
 const Math = window.Math;
 
 export default class ngbVariantVisualizerService {
-    static instance(dispatcher, constants, vcfDataService, projectDataService, genomeDataService, geneDataService) {
-        return new ngbVariantVisualizerService(dispatcher, constants, vcfDataService, projectDataService, genomeDataService, geneDataService);
+    static instance(dispatcher, constants, vcfDataService, projectContext, projectDataService, genomeDataService, geneDataService) {
+        return new ngbVariantVisualizerService(dispatcher, constants, vcfDataService, projectContext, projectDataService, genomeDataService, geneDataService);
     }
+
+    projectContext;
 
     _constants;
     _vcfDataService: VcfDataService;
@@ -22,7 +24,8 @@ export default class ngbVariantVisualizerService {
     _project;
     _genesFiles: Array;
 
-    constructor(dispatcher, constants, vcfDataService, projectDataService, genomeDataService, geneDataService) {
+    constructor(dispatcher, constants, vcfDataService, projectContext, projectDataService, genomeDataService, geneDataService) {
+        this.projectContext = projectContext;
         this._vcfDataService = vcfDataService;
         this._projectDataService = projectDataService;
         this._genomeDataService = genomeDataService;
@@ -62,40 +65,28 @@ export default class ngbVariantVisualizerService {
         return this._genesFiles;
     }
 
-    async loadChromosomeData(chromosomeId) {
-        if (this.chromosome !== null && this.chromosome !== undefined && this.chromosome.id === parseInt(chromosomeId))
-            return;
-        this.chromosome = await this._genomeDataService.loadChromosome(parseInt(chromosomeId));
+    loadChromosomeData(chromosomeId) {
+        const [chr] = this.projectContext.chromosomes.filter(c => c.id === chromosomeId);
+        this.chromosome = chr;
     }
 
-    async loadProjectData(projectId) {
-        if (this.project !== null && this.project !== undefined && this.project.id === parseInt(projectId))
+    loadProjectData() {
+        if (!this.projectContext.reference) {
             return;
-        this._genesFiles = [];
-        this.referenceId = null;
-        this.project = await this._projectDataService.getProject(projectId);
-        if (this.project !== null) {
-            for (let i = 0; i < this.project.items.length; i++) {
-                const _itemFormat = this.project.items[i].format.toLowerCase();
-                const _identifier = this.project.items[i].id;
-                switch (_itemFormat) {
-                    case 'reference':
-                        this.referenceId = _identifier;
-                        break;
-                    case 'gene':
-                        this.genesFiles.push(this.project.items[i]);
-                        break;
-                    default:
-                        break;
-                }
-            }
         }
+        this.referenceId = this.projectContext.reference.id;
+        this._genesFiles = this.projectContext.reference.geneFile ? [this.projectContext.reference.geneFile] : this.projectContext.geneTracks;
     }
 
     async preAnalyze(variant) {
         try {
-            await this.loadChromosomeData(variant.chromosomeId);
-            await this.loadProjectData(variant.projectId);
+            this.loadChromosomeData(variant.chromosomeId);
+            this.loadProjectData();
+            if (this.genesFiles.length === 0) {
+                return {
+                    error: 'No genes file is available'
+                };
+            }
             return {
                 geneFiles: this.genesFiles,
                 selectedGeneFile: this.genesFiles.length > 0 ? this.genesFiles[0] : null
@@ -109,12 +100,14 @@ export default class ngbVariantVisualizerService {
 
     async analyze(variant, selectedGeneFile) {
         try {
-            await this.loadChromosomeData(variant.chromosomeId);
-            await this.loadProjectData(variant.projectId);
+            this.loadChromosomeData(variant.chromosomeId);
+            this.loadProjectData();
 
             const variantData = await this._vcfDataService.getVariantInfo({
-                id: variant.vcfFileId,
-                projectId: variant.projectId,
+                id: variant.openByUrl ? undefined : variant.vcfFileId,
+                openByUrl: variant.openByUrl,
+                fileUrl: variant.openByUrl ? variant.fileUrl : undefined,
+                indexUrl: variant.openByUrl ? variant.indexUrl : undefined,
                 chromosomeId: variant.chromosomeId,
                 position: variant.position
             });
@@ -862,13 +855,15 @@ export default class ngbVariantVisualizerService {
         };
         range.end = Math.min(this.chromosome.size, range.start + visibleRangeInBp);
         range.start = Math.max(1, range.end - visibleRangeInBp);
-        const reference = await this._genomeDataService.loadReferenceTrack({
+        const referenceData = await this._genomeDataService.loadReferenceTrack({
             id: this.referenceId,
             chromosomeId: this.chromosome.id,
             startIndex: range.start,
             endIndex: range.end,
             scaleFactor: 1
         });
+
+        const reference = referenceData.blocks || [];
 
         if (!reference || reference.length === 0) {
             return {

@@ -1,15 +1,25 @@
+import * as modes from './reference.modes';
+
 export default class ReferenceTransformer {
 
     static transform(data, viewport) {
-        if (data === null || data.length === 0) {
-            return null;
-        }
-        const isDetailed = !data[0].hasOwnProperty('contentGC');
+        let {blocks, mode} = data;
         const pixelsPerBp = viewport.factor;
-        if (viewport.isShortenedIntronsMode) {
-            data = viewport.shortenedIntronsViewport.transformFeaturesArray(data);
+        if (!blocks || blocks.length === 0) {
+            return {
+                mode,
+                pixelsPerBp,
+                items: [],
+                viewport
+            };
         }
-        const mapDetailedItemFn = function(item) {
+        if (!mode) {
+            mode = blocks[0].hasOwnProperty('contentGC') ? modes.gcContent : modes.nucleotides;
+        }
+        if (viewport.isShortenedIntronsMode) {
+            blocks = viewport.shortenedIntronsViewport.transformFeaturesArray(blocks);
+        }
+        const mapNucleotideItemsFn = function(item) {
             return {
                 endIndex: item.endIndex,
                 startIndex: item.startIndex,
@@ -18,7 +28,7 @@ export default class ReferenceTransformer {
                 xStart: viewport.project.brushBP2pixel(item.startIndex)
             };
         };
-        const mapNotDetailedItemFn = function(item) {
+        const mapGCContentItemsFn = function(item) {
             return {
                 endIndex: item.endIndex,
                 startIndex: item.startIndex,
@@ -27,12 +37,14 @@ export default class ReferenceTransformer {
                 xStart: viewport.project.brushBP2pixel(item.startIndex)
             };
         };
-        const items = isDetailed
-            ? data.map(mapDetailedItemFn)
-            : data.map(mapNotDetailedItemFn);
+        let items = [];
+        switch (mode) {
+            case modes.gcContent: items = blocks.map(mapGCContentItemsFn); break;
+            case modes.nucleotides: items = blocks.map(mapNucleotideItemsFn); break;
+        }
 
         return {
-            isDetailed,
+            mode,
             items,
             pixelsPerBp,
             viewport

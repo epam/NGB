@@ -29,6 +29,8 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
+import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
@@ -142,7 +144,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         params.addValue(GenomeParameters.REFERENCE_GENOME_ID.name(), reference.getId());
         params.addValue(GenomeParameters.BIO_DATA_ITEM_ID.name(), reference.getBioDataItemId());
         params.addValue(GenomeParameters.SIZE.name(), reference.getSize());
-
+        params.addValue(GenomeParameters.INDEX_ID.name(), reference.getIndex().getId());
         params.addValue(GenomeParameters.GENE_ITEM_ID.name(), reference.getGeneFile() != null ?
                                                               reference.getGeneFile().getId() : null);
 
@@ -156,7 +158,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         params.addValue(GenomeParameters.REFERENCE_GENOME_ID.name(), reference.getId());
         params.addValue(GenomeParameters.BIO_DATA_ITEM_ID.name(), reference.getBioDataItemId());
         params.addValue(GenomeParameters.SIZE.name(), reference.getSize());
-
+        params.addValue(GenomeParameters.INDEX_ID.name(), reference.getIndex().getId());
         params.addValue(GenomeParameters.GENE_ITEM_ID.name(), reference.getGeneFile() != null ?
                 reference.getGeneFile().getId() : null);
 
@@ -354,6 +356,15 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         BIO_DATA_ITEM_ID,
         GENE_ITEM_ID,
 
+        INDEX_ID,
+        INDEX_NAME,
+        INDEX_TYPE,
+        INDEX_PATH,
+        INDEX_FORMAT,
+        INDEX_CREATED_BY,
+        INDEX_BUCKET_ID,
+        INDEX_CREATED_DATE,
+
         HEADER,
         CHROMOSOME_ID;
 
@@ -369,6 +380,14 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
 
                 Long longVal = rs.getLong(TYPE.name());
                 reference.setType(rs.wasNull() ? null : BiologicalDataItemResourceType.getById(longVal));
+
+                longVal = rs.getLong(GENE_ITEM_ID.name());
+                if (!rs.wasNull()) {
+                    GeneFile geneFile = new GeneFile();
+                    geneFile.setId(longVal);
+
+                    reference.setGeneFile(geneFile);
+                }
                 return reference;
             };
         }
@@ -394,6 +413,19 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
                 GeneFile geneFile = new GeneFile();
                 geneFile.setId(longVal);
                 reference.setGeneFile(geneFile);
+            }
+
+            long indexId = rs.getLong(INDEX_ID.name());
+            if (!rs.wasNull()) {
+                BiologicalDataItem index = new BiologicalDataItem();
+                index.setId(indexId);
+                index.setName(rs.getString(INDEX_NAME.name()));
+                index.setType(BiologicalDataItemResourceType.getById(rs.getLong(INDEX_TYPE.name())));
+                index.setPath(rs.getString(INDEX_PATH.name()));
+                index.setFormat(BiologicalDataItemFormat.getById(rs.getLong(INDEX_FORMAT.name())));
+                index.setCreatedBy(rs.getLong(CREATED_BY.name()));
+                index.setCreatedDate(new Date(rs.getTimestamp(INDEX_CREATED_DATE.name()).getTime()));
+                reference.setIndex(index);
             }
 
             return reference;

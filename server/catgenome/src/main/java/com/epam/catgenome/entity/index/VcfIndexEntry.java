@@ -26,7 +26,6 @@ package com.epam.catgenome.entity.index;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import com.epam.catgenome.entity.vcf.VariationEffect;
 import com.epam.catgenome.entity.vcf.VariationImpact;
@@ -56,7 +55,6 @@ public class VcfIndexEntry extends FeatureIndexEntry {
     private Map<String, Object> info;
     private Double quality;
     private Boolean isExon = false;
-    private UUID uuid;
 
     @JsonIgnore
     private VariantContext variantContext;
@@ -68,7 +66,6 @@ public class VcfIndexEntry extends FeatureIndexEntry {
     public VcfIndexEntry(VcfIndexEntry origin) {
         super(origin);
         super.setFeatureType(FeatureType.VARIATION);
-        uuid = origin.getUuid();
         variationType = origin.getVariationType();
         gene = origin.getGene();
         geneIds = origin.getGeneIds();
@@ -168,14 +165,6 @@ public class VcfIndexEntry extends FeatureIndexEntry {
 
     public void setExon(Boolean exon) {
         isExon = exon;
-    }
-
-    public UUID getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
     }
 
     public VariantContext getVariantContext() {

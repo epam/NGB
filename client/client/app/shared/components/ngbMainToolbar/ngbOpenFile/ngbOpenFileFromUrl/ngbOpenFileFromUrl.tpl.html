@@ -1,0 +1,41 @@
+<form flex class="open-file-form" name="openFileForm">
+    <div layout="row" flex layout-align="start center" class="change-reference-warning" ng-show="$ctrl.switchingReference">
+        <ng-md-icon icon="warning"></ng-md-icon>
+        <span>All opened tracks will be closed</span>
+    </div>
+    <md-input-container class="md-block">
+        <label>Reference</label>
+        <md-select id="reference"
+                   name="reference"
+                   aria-label="references"
+                   ng-model="$ctrl.referenceId"
+                   required>
+            <md-option ng-repeat="reference in $ctrl.references track by reference.id" ng-value="reference.id">{{reference.name}}</md-option>
+        </md-select>
+        <div ng-messages="openFileForm.reference.$error">
+            <div ng-message="required">You must select a reference</div>
+        </div>
+    </md-input-container>
+    <md-input-container class="md-block">
+        <label for="filePath">File path</label>
+        <input id="filePath"
+               name="filePath"
+               aria-label="file path"
+               ng-model="$ctrl.filePath"
+               required>
+        <div ng-messages="openFileForm.filePath.$error">
+            <div ng-message="required">You must enter file path</div>
+        </div>
+    </md-input-container>
+    <md-input-container class="md-block">
+        <label for="indexFilePath">Index file path (required for .bam & .vcf files)</label>
+        <input id="indexFilePath"
+               name="indexFilePath"
+               aria-label="index file path"
+               ng-model="$ctrl.indexFilePath"
+               ng-required="$ctrl.trackNeedsIndexFile">
+        <div ng-messages="openFileForm.indexFilePath.$error">
+            <div ng-message="required">You must enter index file path</div>
+        </div>
+    </md-input-container>
+</form>

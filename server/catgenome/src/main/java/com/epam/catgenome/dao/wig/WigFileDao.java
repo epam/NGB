@@ -61,9 +61,6 @@ public class WigFileDao extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public void createWigFile(WigFile file) {
-        file.setBioDataItemId(file.getId());
-        file.setId(daoHelper.createId(wigFileSequenceName));
-
         getNamedParameterJdbcTemplate().update(createWigFileQuery, BiologicalDataItemDao.FeatureFileParameters
                 .getLinkedTableParameters(BedGraphParameters.BED_GRAPH_ID.name(), file));
     }
@@ -107,6 +104,15 @@ public class WigFileDao extends NamedParameterJdbcDaoSupport {
 
     public String getDeleteWigFileQuery() {
         return deleteWigFileQuery;
+    }
+
+    /**
+     * Creates a new ID for a {@code WigFile} instance
+     * @return {@code Long} new {@code WigFile} ID
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Long createWigFileId() {
+        return daoHelper.createId(wigFileSequenceName);
     }
 
     enum BedGraphParameters {

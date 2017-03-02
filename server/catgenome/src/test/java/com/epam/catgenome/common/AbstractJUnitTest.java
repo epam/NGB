@@ -103,11 +103,12 @@ public abstract class AbstractJUnitTest {
     protected Reference createGenome() throws IOException {
         // prepares data to register a test genome in the system
         final File content = getTemplate(FileTemplates.HP_GENOME.getPath());
-
+        getTemplate(FileTemplates.HP_GENOME.getPath() + ".fai");
 
         ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
         request.setName(HP_GENOME);
         request.setPath(content.getPath());
+        request.setNoGCContent(false);
 
         // register a test genome in the system
         final Reference reference = referenceManager.registerGenome(request);

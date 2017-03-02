@@ -100,6 +100,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     private String loadProjectItemsByProjectIdsQuery;
     private String loadProjectsByBioDataItemIdQuery;
 
+    private String loadProjectIdsByBioDataItemIdsQuery;
 
     /**
      * Persists a new or updates existing project in the database.
@@ -205,6 +206,25 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     public List<Project> loadProjectsByBioDataItemId(final long bioDataItemId) {
         return getJdbcTemplate().query(loadProjectsByBioDataItemIdQuery, ProjectParameters.getRowMapper(),
                                        bioDataItemId);
+    }
+
+    /**
+     * Loads a {@link Map} of {@link String} BioDataItem names to Project names
+     * @param bioDataItemIds a {@link List} of IDs of {@link BiologicalDataItem}
+     * @return a {@link Map} of {@link String} BioDataItem names to Project names
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Map<String, String> loadProjectNamesByBioDataItemIds(List<Long> bioDataItemIds) {
+        long listId = daoHelper.createTempLongList(bioDataItemIds);
+
+        Map<String, String> bioIdToProjectIdMap = new HashMap<>();
+        getJdbcTemplate().query(loadProjectIdsByBioDataItemIdsQuery, rs -> {
+            bioIdToProjectIdMap.put(rs.getString(ProjectItemParameters.NAME.name()),
+                                    rs.getString(ProjectParameters.PROJECT_NAME.name()));
+        }, listId);
+        daoHelper.clearTempList(listId);
+
+        return bioIdToProjectIdMap;
     }
 
     /**
@@ -773,5 +793,10 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadAllProjectsQuery(String loadAllProjectsQuery) {
         this.loadAllProjectsQuery = loadAllProjectsQuery;
+    }
+
+    @Required
+    public void setLoadProjectIdsByBioDataItemIdsQuery(String loadProjectIdsByBioDataItemIdsQuery) {
+        this.loadProjectIdsByBioDataItemIdsQuery = loadProjectIdsByBioDataItemIdsQuery;
     }
 }

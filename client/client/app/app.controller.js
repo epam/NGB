@@ -52,11 +52,13 @@ export default class ngbAppController extends baseController {
     };
 
     _changeStateFromParams(params) {
-        const {referenceId, chromosome, end, rewrite, start, tracks} = params;
+        const {referenceId, chromosome, end, rewrite, start, tracks, filterByGenome, collapsedTrackHeaders} = params;
         const position = start
             ? {end, start}
             : null;
         this.projectContext.rewriteLayout = true;
+        this.projectContext.collapsedTrackHeaders = collapsedTrackHeaders;
+        this.projectContext.datasetsFilter = filterByGenome;
         if (rewrite) {
             this.projectContext.rewriteLayout = this.dictionaryState.on.toLowerCase() === rewrite.toLowerCase();
         }
@@ -65,7 +67,8 @@ export default class ngbAppController extends baseController {
             position: (start && !end) ? start: null,
             reference: {name: referenceId},
             tracksState: tracks ? this.projectContext.convertTracksStateFromJson(tracks) : null,
-            viewport: position
+            viewport: position,
+            filterDatasets: filterByGenome ? filterByGenome : null
         });
     }
 
@@ -100,13 +103,21 @@ export default class ngbAppController extends baseController {
         const end = this.projectContext.viewport ? parseInt(this.projectContext.viewport.end) : null;
         const referenceId = this.projectContext.reference ? this.projectContext.reference.name : null;
         const tracks = this.projectContext.tracksState ? this.projectContext.convertTracksStateToJson(this.projectContext.tracksState) : null;
+        const filterByGenome = this.projectContext.datasetsFilter ? this.projectContext.datasetsFilter : null;
+        const collapsedTrackHeaders = this.projectContext.collapsedTrackHeaders;
         const state = {chromosome,
             end,
             referenceId,
-            start};
+            start,
+            filterByGenome,
+            collapsedTrackHeaders};
+        const options = {
+            notify: false,
+            inherit: false
+        };
         if (tracks) {
             state.tracks = tracks;
         }
-        this.$state.go(this.$state.current.name, state, {notify: false, inherit: false});
+        this.$state.go(this.$state.current.name, state, options);
     }
 }

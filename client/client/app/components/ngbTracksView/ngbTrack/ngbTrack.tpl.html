@@ -3,64 +3,83 @@
         layout="row"
         layout-wrap="100"
         class="ngb-track-container"
-        ng-class="{resizing: isResizing}"
+        ng-class="{'collapsed': !ctrl.showTracksHeaders}"
+        ng-show="ctrl.trackIsVisible"
 >
     <div
             flex="100"
             class="ngb-track-header"
             layout="row"
             layout-align="start center"
-            ng-mousedown="ctrl.onHeaderMouseDown($event)">
+            ng-mousedown="ctrl.onHeaderMouseDown($event)"
+            ng-class="{'collapsed': !ctrl.showTracksHeaders }">
 
         <div class="ngb-track-header-type">{{ctrl.track.format}}</div>
-        <div class="ngb-track-header-file-name">{{ctrl.track.name}}</div>
+        <div class="ngb-track-header-file-name">{{ctrl.trackNameTruncated}}</div>
 
         <ngb-track-settings
                 dnd-nodrag
                 ng-if="ctrl.trackInstance !== undefined && ctrl.trackInstance.getSettings"
                 settings="ctrl.trackInstance.getSettings()"></ngb-track-settings>
-
-        <div class="ngb-track-header-action-buttons" layout="row" layout-align="start center"
-             ng-if="ctrl.trackInstance !== undefined && ctrl.trackInstance.actions">
-            <div class="ngb-track-header-action-button" ng-repeat="action in ctrl.trackInstance.actions">
-                <div ng-if="action.enabled()">
-                    <div ng-if="action.type === 'checkbox'"
-                         layout="row"
-                         layout-align="start center">
-                        <md-checkbox class="ngb-track-header-checkbox md-warn"
-                                     aria-label="action"
-                                     md-no-ink
-                                     ng-mousedown="$event.stopImmediatePropagation();"
-                                     ng-click="action.handleClick();"
-                                     ng-checked="action.value()"
-                        >
-                        </md-checkbox>
-                        {{action.label}}
-                    </div>
-                    <div ng-if="action.type === 'groupLinks'"
-                         class="ngb-track-header-action-group-links"
-                         layout="row"
-                         layout-align="start center">
-                        {{action.label}}:
-                        <div ng-repeat="link in action.links">
-                            <a class="link-action" href="" ng-click="link.handleClick()">{{link.label}}</a>
-                        </div>
-                    </div>
-                </div>
-                <div ng-hide="action.enabled()"
-                     class="ngb-track-header-message"
-                     layout="row"
-                     layout-align="start center">{{action.disabledMessage()}}
-                </div>
-            </div>
-        </div>
+        <ngb-track-actions
+                dnd-nodrag
+                ng-if="ctrl.trackInstance !== undefined && ctrl.trackInstance.actions"
+                actions="ctrl.trackInstance.actions"></ngb-track-actions>
 
         <div ng-show="ctrl.trackDataIsLoading">
             <md-progress-circular md-mode="indeterminate" md-diameter="12"></md-progress-circular>
         </div>
-        <div title="Hide Track" class="buttons-menu-track" dnd-nodrag>
-            <md-button md-no-ink ng-show="ctrl.showHideTrackButton" class="md-icon-button" style="padding-right: 0;margin-right: 0;" ng-click="ctrl.hideTrack($event)" aria-label="Hide Track">
-                <ng-md-icon class="close-icon" icon="clear"></ng-md-icon>
+        <div title="Hide Track" class="buttons-menu-track hide-track" dnd-nodrag>
+            <md-button md-no-ink
+                       ng-show="ctrl.showHideTrackButton"
+                       class="md-icon-button track-button close"
+                       ng-click="ctrl.hideTrack($event)"
+                       aria-label="Hide Track">
+                <ng-md-icon class="button-icon" icon="clear" size="16"></ng-md-icon>
+            </md-button>
+        </div>
+    </div>
+
+    <div class="ngb-track-header-floating md-raised md-button"
+         ng-class="{'collapsed': ctrl.showTracksHeaders || ctrl.isReference}"
+         ng-mouseleave="ctrl.onMinifiedHeaderMouseLeave()"
+         ng-mouseover="ctrl.onMinifiedHeaderMouseOver()"
+         layout="row">
+        <ngb-track-settings
+                dnd-nodrag
+                ng-if="ctrl.minifiedMenuIsOpened && ctrl.trackInstance !== undefined && ctrl.trackInstance.getSettings"
+                settings="ctrl.trackInstance.getSettings()"
+                track-controller="ctrl"
+                on-menu-opened="::ctrl.onMenuOpened"
+                on-menu-closed="::ctrl.onMenuClosed"
+                on-handle="::ctrl.onHandleAction"></ngb-track-settings>
+        <ngb-track-actions
+                dnd-nodrag
+                ng-if="ctrl.minifiedMenuIsOpened && ctrl.trackInstance !== undefined && ctrl.trackInstance.actions"
+                actions="ctrl.trackInstance.actions"
+                track-controller="ctrl"
+                on-handle="::ctrl.onHandleAction"></ngb-track-actions>
+        <div class="buttons-menu-track"
+             dnd-nodrag
+             ng-show="ctrl.isMinifiedMenuButtonVisible">
+            <md-button md-no-ink
+                       class="md-icon-button track-button mini"
+                       aria-label="Menu"
+                       ng-click="ctrl.openOrCloseMinifiedMenu()">
+                <ng-md-icon class="button-icon" icon="menu" size="16"></ng-md-icon>
+            </md-button>
+        </div>
+        <div ng-show="ctrl.trackDataIsLoading" class="track-loader-minified">
+            <md-progress-circular md-mode="indeterminate" md-diameter="12"></md-progress-circular>
+        </div>
+        <div class="track-title">{{ctrl.track.name}}</div>
+        <div class="buttons-menu-track" dnd-nodrag>
+            <md-button md-no-ink
+                       ng-show="ctrl.showHideTrackButton"
+                       class="md-icon-button track-button close mini"
+                       ng-click="ctrl.hideTrack($event)"
+                       aria-label="Hide Track">
+                <ng-md-icon class="button-icon" icon="clear" size="16"></ng-md-icon>
             </md-button>
         </div>
     </div>

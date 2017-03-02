@@ -49,6 +49,7 @@ export default {
         },
         displayAlignmentsCoverageTooltips: true,
         displayTooltips: true,
+        showTracksHeaders: true,
         filterReads: {
             failedVendorChecks: true,
             pcrOpticalDuplicates: true,

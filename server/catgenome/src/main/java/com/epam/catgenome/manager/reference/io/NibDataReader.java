@@ -357,6 +357,16 @@ public class NibDataReader {
         return template;
     }
 
+    public List<Sequence> fillSequenceOfGCFromFasta(final Integer startPosition, final Integer endPosition,
+            final Double scaleFactor, final String sequence)
+            throws IOException {
+        List<Sequence> template = createGCList(startPosition, endPosition, scaleFactor);
+        final int sequenceLength = endPosition - startPosition;
+        Assert.isTrue(sequenceLength >= 0, getMessage(MessagesConstants.ERROR_LENGTH_ABOVE_ZERO));
+        setContentGc(startPosition, endPosition, template, sequence);
+        return template;
+    }
+
     private void setContentGc(Integer startPosition, Integer endPosition, List<Sequence> template,
             String sequenceText) {
         int index = 0;
@@ -468,7 +478,7 @@ public class NibDataReader {
         return nucleotides;
     }
 
-    private List<Sequence> createGCList(int startPosition, final int endPosition, final double scaleFactor) {
+    public List<Sequence> createGCList(int startPosition, final int endPosition, final double scaleFactor) {
         List<Sequence> result = new ArrayList<>();
         final double step = 1 / scaleFactor;
         final int sizeTrack = (int) Math.ceil((endPosition - startPosition + 1) / step);

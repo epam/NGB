@@ -43,6 +43,9 @@ public class FileManagerTest extends AbstractManagerTest {
                 Assert.assertEquals(dir.getFileCount().intValue(), children.size());
             }
         }
+
+        Assert.assertTrue(items.stream()
+                              .anyMatch(i -> i instanceof FsDirectory && ((FsDirectory) i).getFileCount() > 0));
     }
 
     @Test

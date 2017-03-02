@@ -34,12 +34,6 @@ export class dispatcher extends EventEmitter {
         this._emitEventGeneral(event, hub);
     }
 
-    emitSilentEvent(name, object) {
-        const event = new GlobalEvent(name, object);
-        const state = event.state;
-        this.eventsState = deepExtend((this.eventsState || {}), {[event.name]: state});
-    }
-
     emitSimpleEvent(name, object) {
         this.emit(name, object);
     }

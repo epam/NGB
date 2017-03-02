@@ -8,6 +8,8 @@ class BamDataInit {
     scaleFactor: number;
     count: number;
     frame: number;
+    file: string;
+    index: string;
 }
 
 /**
@@ -30,12 +32,6 @@ export class BamDataService extends DataService {
             return this.post('bam/register', {referenceId, path, indexPath, name, type, s3BucketId});
         return this.post('bam/register', {referenceId, path, indexPath, name, type});
     }
-
-    /**
-     * Returns extended data for a read
-     * @returns {promise}
-     */
-    getRead(props: BamDataInit) { return this.post('bam/read/load', props); }
 
     getReads(parameters, showClipping, filter) {
         const self = this;
@@ -193,7 +189,11 @@ export class BamDataService extends DataService {
             scaleFactor: props.scaleFactor,
             startIndex: props.startIndex
         };
-        return this.post('bam/track/get', payload);
+        let url = 'bam/track/get';
+        if (props.file && props.index) {
+            url = `bam/track/get?fileUrl=${encodeURIComponent(props.file)}&indexUrl=${encodeURIComponent(props.index)}`;
+        }
+        return this.post(url, payload);
     }
 
     /**
@@ -219,7 +219,11 @@ export class BamDataService extends DataService {
             scaleFactor: props.scaleFactor,
             startIndex: props.startIndex
         };
-        return this.post('bam/track/get', payload);
+        let url = 'bam/track/get';
+        if (props.file && props.index) {
+            url = `bam/track/get?fileUrl=${encodeURIComponent(props.file)}&indexUrl=${encodeURIComponent(props.index)}`;
+        }
+        return this.post(url, payload);
     }
 
     /**
@@ -246,20 +250,35 @@ export class BamDataService extends DataService {
             scaleFactor: props.scaleFactor,
             startIndex: props.startIndex
         };
-        return this.post('bam/track/get', payload);
+        let url = 'bam/track/get';
+        if (props.file && props.index) {
+            url = `bam/track/get?fileUrl=${encodeURIComponent(props.file)}&indexUrl=${encodeURIComponent(props.index)}`;
+        }
+        return this.post(url, payload);
     }
 
     /**
      * Provides extended data about the particular read
      */
-    loadRead(id,chromosomeId, startIndex, endIndex, name) {
-        const payload = {
-            id: id,
-            chromosomeId: chromosomeId,
-            startIndex: startIndex,
-            endIndex: endIndex,
-            name: name
-        };
-        return this.post('bam/read/load', payload);
+    loadRead(props) {
+        let {id, chromosomeId, startIndex, endIndex, name, openByUrl, file, index} = props;
+        if (openByUrl) {
+            const payload = {
+                chromosomeId: chromosomeId,
+                startIndex: startIndex,
+                endIndex: endIndex,
+                name: name
+            };
+            return this.post(`bam/read/load?fileUrl=${file}&indexUrl=${index}`, payload);
+        } else {
+            const payload = {
+                id: id,
+                chromosomeId: chromosomeId,
+                startIndex: startIndex,
+                endIndex: endIndex,
+                name: name
+            };
+            return this.post('bam/read/load', payload);
+        }
     }
 }

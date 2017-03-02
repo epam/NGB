@@ -24,6 +24,8 @@
 
 package com.epam.catgenome.entity.index;
 
+import java.util.UUID;
+
 import com.epam.catgenome.entity.reference.Chromosome;
 
 
@@ -54,6 +56,8 @@ public class FeatureIndexEntry {
     protected Long featureFileId;
     protected String featureName;
 
+    private UUID uuid;
+
     public FeatureIndexEntry() {
         // no-op
     }
@@ -65,6 +69,7 @@ public class FeatureIndexEntry {
         startIndex = origin.getStartIndex();
         endIndex = origin.getEndIndex();
         featureName = origin.getFeatureName();
+        uuid = origin.getUuid();
     }
 
     public String getFeatureName() {
@@ -113,6 +118,14 @@ public class FeatureIndexEntry {
 
     public void setFeatureType(FeatureType featureType) {
         this.featureType = featureType;
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
     }
 
     @Override

@@ -1,21 +1,29 @@
 const Math = window.Math;
 
 const DEFAULT_VCF_COLUMNS = ['variationType', 'chrName', 'geneNames', 'startIndex', 'info'];
+const FIRST_CHROMOSOME_SELECTOR = '{first-chromosome}';
+const REFERENCE_TRACK_SELECTOR = '{ref}';
+const GENOME_TRACKS_SELECTOR = '{ref_genes}';
+const PREDEFINED_TRACKS_SELECTORS = [REFERENCE_TRACK_SELECTOR, GENOME_TRACKS_SELECTOR];
 
 export default class projectContext {
 
-    static instance(dispatcher, genomeDataService, projectDataService) {
-        return new projectContext(dispatcher, genomeDataService, projectDataService);
+    static instance(dispatcher, genomeDataService, projectDataService, utilsDataService) {
+        return new projectContext(dispatcher, genomeDataService, projectDataService, utilsDataService);
     }
 
     dispatcher;
     genomeDataService;
     projectDataService;
+    utilsDataService;
 
     _tracksStateMinificationRules = {
         bioDataItemId: 'b',
+        name: 'n',
         projectId: 'p',
         height: 'h',
+        format: 'f',
+        index: 'i1',
         state: 's',
         arrows: 'a',
         colorMode: 'c',
@@ -35,7 +43,6 @@ export default class projectContext {
 
     _tracksStateRevertRules = {};
 
-    _project = null;
     _tracks = [];
     _reference = null;
     _references = null;
@@ -63,8 +70,11 @@ export default class projectContext {
     _datasetsLoaded = false;
     _datasets = [];
     _datasetsArePrepared = false;
+    _datasetsFilter = null;
 
     _hotkeys = null;
+
+    _browsingAllowed = false;
 
     get hotkeys() {
         return this._hotkeys;
@@ -74,12 +84,8 @@ export default class projectContext {
         this._hotkeys = value;
     }
 
-    get project() {
-        return this._project;
-    }
-
-    get projectId() {
-        return this._project ? +this._project.id : this._project;
+    get references() {
+        return this._references || [];
     }
 
     get referenceId() {
@@ -106,12 +112,16 @@ export default class projectContext {
         return this._tracks;
     }
 
+    get openedByUrlProjectName() {
+        return '';
+    }
+
     get vcfTracks() {
-        return this._tracks.filter(track => track.format === 'VCF');
+        return this._tracks.filter(track => track.projectId !== this.openedByUrlProjectName && track.format === 'VCF');
     }
 
     get geneTracks() {
-        return this._tracks.filter(track => track.format === 'GENE');
+        return this._tracks.filter(track => track.projectId !== this.openedByUrlProjectName && track.format === 'GENE');
     }
 
     get reference() {
@@ -254,8 +264,8 @@ export default class projectContext {
         return JSON.parse(tracksState).map(mapFn);
     }
 
-    getTrackState(bioDataItemId, projectId) {
-        const key = `track[${bioDataItemId}][${projectId}]`;
+    getTrackState(name, projectId) {
+        const key = `track[${name.toLowerCase()}][${projectId.toLowerCase()}]`;
         if (!localStorage[key]) {
             return null;
         }
@@ -263,9 +273,10 @@ export default class projectContext {
     }
 
     setTrackState(track) {
-        const key = `track[${track.bioDataItemId}][${track.projectId}]`;
+        const name = track.name ? track.name.toLowerCase() : track.bioDataItemId.toString().toLowerCase();
+        const key = `track[${name}][${track.projectId.toLowerCase()}]`;
         const state = {
-            bioDataItemId: track.bioDataItemId,
+            bioDataItemId: name,
             projectId: track.projectId,
             state: track.state,
             height: track.height
@@ -297,6 +308,10 @@ export default class projectContext {
         this._screenShotVisibility = value;
     }
 
+    get browsingAllowed() {
+        return this._browsingAllowed;
+    }
+
     get datasetsLoaded() {
         return this._datasetsLoaded;
     }
@@ -313,21 +328,58 @@ export default class projectContext {
         this._datasetsArePrepared = value;
     }
 
+    get datasetsFilter() {
+        return this._datasetsFilter;
+    }
+
+    set datasetsFilter(value) {
+        this._datasetsFilter = value;
+    }
+
     _viewports = {};
 
     get viewports() {
         return this._viewports;
     }
 
-    constructor(dispatcher, genomeDataService, projectDataService) {
+    _collapsedTrackHeaders = undefined;
+
+    get collapsedTrackHeaders() {
+        return this._collapsedTrackHeaders;
+    }
+
+    set collapsedTrackHeaders(value) {
+        if (value === null) {
+            value = undefined;
+        }
+        if (value && typeof value === 'string') {
+            value = value.toLowerCase() === 'true';
+        }
+        const settingChanged = this._collapsedTrackHeaders !== value;
+        if (settingChanged) {
+            this._collapsedTrackHeaders = value;
+            this.dispatcher.emitGlobalEvent('track:headers:changed', value);
+        }
+    }
+
+    constructor(dispatcher, genomeDataService, projectDataService, utilsDataService) {
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
         this.projectDataService = projectDataService;
+        this.utilsDataService = utilsDataService;
         for (const attr in this._tracksStateMinificationRules) {
             if (this._tracksStateMinificationRules.hasOwnProperty(attr)) {
                 this._tracksStateRevertRules[this._tracksStateMinificationRules[attr]] = attr;
             }
         }
+        (async () => {
+            await this.refreshBrowsingAllowedStatus();
+            await this.refreshReferences();
+        })();
+    }
+
+    async refreshBrowsingAllowedStatus() {
+        this._browsingAllowed = await this.utilsDataService.getFilesAllowed();
     }
 
     _getVcfCallbacks() {
@@ -350,27 +402,57 @@ export default class projectContext {
         return {onFinish, onInit, onSetToDefault, onStart};
     }
 
+    _datasetsAreLoading = false;
+
     async refreshDatasets() {
+        if (this._datasetsAreLoading) {
+            return;
+        }
+        this._datasetsAreLoading = true;
         this._datasetsArePrepared = false;
         this.dispatcher.emitSimpleEvent('datasets:loading:started', null);
         this._datasets = (await this.projectDataService.getProjects() || []);
         this._datasetsLoaded = true;
         this.dispatcher.emitSimpleEvent('datasets:loading:finished', null);
+        this._datasetsAreLoading = false;
+    }
+
+    async refreshReferences(forceRefresh = false) {
+        if (forceRefresh || !this._references) {
+            this._references = await this.genomeDataService.loadAllReference();
+        }
+    }
+
+    findDatasetByName(name) {
+        if (!name || (typeof name) !== 'string') return null;
+        const findFn = (items) => {
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                if (item.name && item.name.toLowerCase() === name.toLowerCase()) {
+                    return item;
+                } else if (item.nestedProjects && item.nestedProjects.length) {
+                    const result = findFn(item.nestedProjects);
+                    if (result) {
+                        return result;
+                    }
+                }
+            }
+            return null;
+        };
+        return findFn(this._datasets);
     }
 
     changeState(state, silent = false) {
-        const dispatcher = this.dispatcher;
         const callbacks = this._getVcfCallbacks();
-        const emitEventFn = function(...opts) {
-            if (silent) {
-                dispatcher.emitSilentEvent(...opts);
-            } else {
-                dispatcher.emitGlobalEvent(...opts);
+        const emitEventFn = (...opts) => {
+            if (!silent) {
+                this.dispatcher.emitGlobalEvent(...opts);
             }
         };
         (async() => {
             const result = await this.changeStateAsync(state, callbacks);
             const {chromosomeDidChange,
+                datasetsFilterChanged,
                 layoutDidChange,
                 positionDidChange,
                 referenceDidChange,
@@ -398,12 +480,15 @@ export default class projectContext {
                 stateChanged = true;
             }
             if (layoutDidChange) {
-                dispatcher.emitSimpleEvent('layout:load', this.layout);
+                this.dispatcher.emitSimpleEvent('layout:load', this.layout);
+            }
+            if (datasetsFilterChanged) {
+                this.dispatcher.emitGlobalEvent('datasets:filter:changed', this.datasetsFilter);
             }
             if (stateChanged) {
                 emitEventFn('state:change', this.getCurrentStateObject());
             }
-            dispatcher.emitGlobalEvent('route:change', this.getCurrentStateObject());
+            this.dispatcher.emitGlobalEvent('route:change', this.getCurrentStateObject());
         })();
     }
 
@@ -412,31 +497,26 @@ export default class projectContext {
             this.changeState({viewport: state}, silent);
             return;
         }
-        const dispatcher = this.dispatcher;
-        const emitEventFn = function(...opts) {
-            if (silent) {
-                dispatcher.emitSilentEvent(...opts);
-            } else {
-                dispatcher.emitGlobalEvent(...opts);
-            }
-        };
         this._viewports[viewportId] = state;
-        emitEventFn(`viewport:position:${viewportId}`, state);
+        if (!silent) {
+            this.dispatcher.emitGlobalEvent(`viewport:position:${viewportId}`, state);
+        }
     }
 
     applyTrackState(track) {
-        const {bioDataItemId, height, projectId, state} = track;
+        const {bioDataItemId, index, format, height, projectId, state} = track;
         const __tracksState = this.tracksState || [];
-        let [existedState] = __tracksState.filter(t => t.bioDataItemId === bioDataItemId && t.projectId === projectId);
-        let index = -1;
+        let [existedState] = __tracksState.filter(t => t.bioDataItemId.toString().toLowerCase() === bioDataItemId.toString().toLowerCase() &&
+        t.projectId.toLowerCase() === projectId.toLowerCase());
+        let elementIndex = -1;
         if (!existedState) {
-            existedState = {bioDataItemId, height, projectId, state};
+            existedState = {bioDataItemId, index, height, format, projectId, state};
         } else {
-            index = __tracksState.indexOf(existedState);
+            elementIndex = __tracksState.indexOf(existedState);
             Object.assign(existedState, {height, state});
         }
-        if (index >= 0) {
-            __tracksState[index] = existedState;
+        if (elementIndex >= 0) {
+            __tracksState[elementIndex] = existedState;
         } else {
             __tracksState.push(existedState);
         }
@@ -460,9 +540,22 @@ export default class projectContext {
     }
 
     async changeStateAsync(state, callbacks) {
-        const {chromosome, position, reference, tracks, tracksState, viewport, layout, forceVariantsFilter} = state;
-        const {referenceDidChange, vcfFilesChanged} = await this._changeProject(reference, tracks, tracksState);
-        const tracksStateDidChange = this._changeTracksState(tracksState);
+        const {chromosome, position, reference, tracks, tracksState, viewport, layout, forceVariantsFilter, tracksReordering, filterDatasets} = state;
+        if (tracksState) {
+            tracksState.forEach(ts => {
+                if (ts.bioDataItemId === undefined) {
+                    return;
+                }
+                if (typeof ts.bioDataItemId === 'string') {
+                    ts.bioDataItemId = unescape(ts.bioDataItemId);
+                }
+                if (typeof ts.index === 'string') {
+                    ts.index = unescape(ts.index);
+                }
+            });
+        }
+        const {referenceDidChange, vcfFilesChanged, recoveredTracksState} = await this._changeProject(reference, tracks, tracksState, tracksReordering);
+        const tracksStateDidChange = await this._changeTracksState(recoveredTracksState || tracksState);
         const chromosomeDidChange = this._changeChromosome(chromosome);
         let positionDidChange = false;
         let viewportDidChange = false;
@@ -483,9 +576,14 @@ export default class projectContext {
         if (layout) {
             this.layout = layout;
         }
+        const datasetsFilterChanged = this._datasetsFilter !== filterDatasets;
+        if (filterDatasets) {
+            this._datasetsFilter = filterDatasets;
+        }
         const layoutDidChange = layout ? true : false;
         return {
             chromosomeDidChange,
+            datasetsFilterChanged,
             layoutDidChange,
             positionDidChange,
             referenceDidChange,
@@ -495,25 +593,27 @@ export default class projectContext {
     }
 
     getCurrentStateObject() {
-        const projectId = this._project ? +this._project.id : null;
+        const referenceId = this._reference ? +this._reference.id : null;
         const chromosome = this.currentChromosome ? `${this.currentChromosome.name}` : null;
         const position = this._position;
         const viewport = this._viewport;
         return {
             chromosome,
             position,
-            projectId,
+            referenceId,
             viewport
         };
     }
 
-    async _changeProject(reference, tracks, tracksState) {
+    async _changeProject(reference, tracks, tracksState, tracksReordering) {
         let vcfFilesChanged = false;
         let referenceDidChange = false;
+        let recoveredTracksState = undefined;
         if (reference !== undefined || tracks !== undefined || tracksState !== undefined) {
-            const result = await this._loadProject(reference, tracks, tracksState);
+            const result = await this._loadProject(reference, tracks, tracksState, tracksReordering);
             vcfFilesChanged = result.vcfFilesChanged;
             referenceDidChange = result.referenceDidChange;
+            recoveredTracksState = result.recoveredTracksState;
         }
 
         if (referenceDidChange) {
@@ -525,13 +625,56 @@ export default class projectContext {
             this._isVariantsInitialized = false;
         }
 
-        return {referenceDidChange, vcfFilesChanged};
+        return {referenceDidChange, vcfFilesChanged, recoveredTracksState};
     }
 
-    _changeTracksState(newTracksState) {
+    async recoverTracksState(tracksState) {
+        const openedByUrlProjectName = this.openedByUrlProjectName;
+        const projectsIds = tracksState.reduce((ids, track) => {
+            if (track.projectId !== openedByUrlProjectName && ids.filter(t => t === track.projectId).length === 0) {
+                return [...ids, track.projectId];
+            }
+            return ids;
+        }, []);
+        if (!this._datasets || this._datasets.length === 0) {
+            await this.refreshDatasets();
+        }
+        for (let i = 0; i < projectsIds.length; i++) {
+            const _project = this.findDatasetByName(projectsIds[i]) || await this.projectDataService.getProject(+projectsIds[i]);
+            if (_project) {
+                const _projectName = _project.name.toLowerCase();
+                const _projectId = _project.id.toString().toLowerCase();
+                const items = _project._lazyItems ? _project._lazyItems : _project.items;
+                for (let j = 0; j < items.length; j++) {
+                    const track = items[j];
+                    if (track.name && track.format) {
+                        const [state] = tracksState.filter(t =>
+                        (t.bioDataItemId.toString().toLowerCase() === track.name.toLowerCase() ||
+                        t.bioDataItemId.toString().toLowerCase() === track.bioDataItemId.toString().toLowerCase()) &&
+                        (t.projectId.toString().toLowerCase() === _projectName ||
+                        t.projectId.toString().toLowerCase() === _projectId));
+                        if (state) {
+                            const index = tracksState.indexOf(state);
+                            state.bioDataItemId = track.name;
+                            tracksState.splice(index, 1, state);
+                        }
+                    }
+                }
+                tracksState.forEach(ts => {
+                    if (ts.projectId === projectsIds[i]) {
+                        ts.projectId = _project.name;
+                    }
+                });
+            }
+        }
+        return tracksState;
+    }
+
+    async _changeTracksState(newTracksState) {
         if (!this.reference || !newTracksState) {
             return false;
         }
+        newTracksState = await this.recoverTracksState(newTracksState);
         const oldTracksStateStr = this.tracksState ? JSON.stringify(this.tracksState) : null;
         const newTracksStateStr = newTracksState ? JSON.stringify(newTracksState) : null;
         this.tracksState = newTracksState;
@@ -539,11 +682,34 @@ export default class projectContext {
     }
 
     async _changeReference(reference) {
-        if (!this._references) {
-            this._references = await this.genomeDataService.loadAllReference();
+        await this.refreshReferences();
+        if (this._tracks) {
+            // mapping reference track
+            this._tracks = this._tracks.map(t => {
+                if (t.format === 'REFERENCE' && t.projectId === this.openedByUrlProjectName) {
+                    const [ref] = this._references.filter(r => r.name.toLowerCase() === t.name.toString().toLowerCase());
+                    ref.projectId = this.openedByUrlProjectName;
+                    return ref;
+                }
+                return t;
+            });
+            // mapping genes tracks
+            const genesFiles = this._references.filter(r => r.geneFile).map(r => r.geneFile);
+            this._tracks = this._tracks.map(t => {
+                if (t.format === 'GENE' && t.projectId === this.openedByUrlProjectName) {
+                    const [gene] = genesFiles.filter(g => g.name.toLowerCase() === t.name.toString().toLowerCase());
+                    if (gene) {
+                        gene.projectId = this.openedByUrlProjectName;
+                        return gene;
+                    }
+                }
+                return t;
+            });
         }
         if (reference && reference.id === undefined && reference.name !== undefined && reference.name !== null) {
             [reference] = this._references.filter(r => r.name.toLowerCase() === reference.name.toLowerCase());
+        } else if (reference && reference.id !== undefined && reference.id !== null) {
+            [reference] = this._references.filter(r => r.id === reference.id);
         }
         const newReferenceId = reference ? +reference.id : null;
         if (+this.referenceId !== newReferenceId) {
@@ -554,36 +720,150 @@ export default class projectContext {
         return false;
     }
 
-    async _loadProject(reference, tracks, tracksState) {
+    async _loadProject(reference, tracks, tracksState, tracksReordering) {
         let referenceDidChange = false;
         const oldVcfFiles = this.vcfTracks || [];
+        if (!reference && !tracks && tracksState && tracksReordering) {
+            return {referenceDidChange, vcfFilesChanged: false, recoveredTracksState: undefined};
+        }
         if (tracks || tracksState) {
             if (tracks) {
                 this._tracks = tracks;
             } else if (tracksState) {
-                const __tracks = [];
+                const openedByUrlProjectName = this.openedByUrlProjectName;
+                const mapOpenByUrlTracksFn = (trackState) => {
+                    return {
+                        id: unescape(trackState.bioDataItemId),
+                        indexPath: unescape(trackState.index),
+                        bioDataItemId: unescape(trackState.bioDataItemId),
+                        projectId: openedByUrlProjectName,
+                        name: unescape(trackState.bioDataItemId),
+                        format: trackState.format,
+                        openByUrl: true
+                    };
+                };
+                const __tracks = tracksState.filter(ts => ts.projectId === openedByUrlProjectName).map(mapOpenByUrlTracksFn);
                 const projectsIds = tracksState.reduce((ids, track) => {
-                    if (ids.filter(t => t === +track.projectId).length === 0) {
-                        return [...ids, +track.projectId];
+                    if (track.projectId !== openedByUrlProjectName && ids.filter(t => t === track.projectId).length === 0) {
+                        return [...ids, track.projectId];
                     }
                     return ids;
                 }, []);
+                const allTracksFromProjectIds = tracksState.filter(ts => ts.bioDataItemId === undefined).reduce((ids, track) => {
+                    if (track.projectId !== openedByUrlProjectName && ids.filter(t => t === track.projectId).length === 0) {
+                        return [...ids, track.projectId];
+                    }
+                    return ids;
+                }, []);
+                const predefinedTracksFromProjectIds = tracksState.filter(ts => ts.bioDataItemId !== undefined && PREDEFINED_TRACKS_SELECTORS.indexOf(ts.bioDataItemId.toLowerCase()) >= 0).reduce((ids, track) => {
+                    if (track.projectId !== openedByUrlProjectName && ids.filter(t => t === track.projectId).length === 0) {
+                        return [...ids, track.projectId];
+                    }
+                    return ids;
+                }, []);
+                if (!this._datasets || this._datasets.length === 0) {
+                    await this.refreshDatasets();
+                }
+                await this.refreshReferences();
                 for (let i = 0; i < projectsIds.length; i++) {
-                    const _project = await this.projectDataService.getProject(projectsIds[i]);
-                    if (_project) {
-                        for (let j = 0; j < _project.items.length; j++) {
-                            const track = _project.items[j];
-                            if (tracksState.filter(t => t.bioDataItemId === track.bioDataItemId && t.projectId === projectsIds[i]).length === 1) {
-                                track.projectId = projectsIds[i];
+                    const _project = this.findDatasetByName(projectsIds[i]) || await this.projectDataService.getProject(projectsIds[i]);
+                    if (_project && (!_project.reference || !reference || (reference.name !== undefined && reference.name.toLowerCase() === _project.reference.name.toLowerCase()))) {
+                        const items = _project._lazyItems ? _project._lazyItems : _project.items;
+                        if (allTracksFromProjectIds.indexOf(projectsIds[i]) >= 0) {
+                            const [trackState] = tracksState.filter(ts => ts.projectId === projectsIds[i]);
+                            const index = tracksState.indexOf(trackState);
+                            if (index >= 0) {
+                                const fn = (item) => {
+                                    return {
+                                        bioDataItemId: item.name,
+                                        projectId: _project.name
+                                    };
+                                };
+                                tracksState.splice(index, 1, ...items.filter(item => item.format !== 'REFERENCE').map(fn));
+                            }
+                        }
+                        if (predefinedTracksFromProjectIds.indexOf(projectsIds[i]) >= 0) {
+                            const [trackState] = tracksState.filter(ts => ts.projectId === projectsIds[i]);
+                            const index = tracksState.indexOf(trackState);
+                            if (index >= 0) {
+                                const fn = (item) => {
+                                    return {
+                                        bioDataItemId: item.name,
+                                        projectId: _project.name
+                                    };
+                                };
+                                let predefinedTracks = [];
+                                switch (trackState.bioDataItemId.toLowerCase()) {
+                                    case REFERENCE_TRACK_SELECTOR: {
+                                        const [__ref] = items.filter(r => r.format === 'REFERENCE');
+                                        if (__ref) {
+                                            predefinedTracks.push(__ref);
+                                        }
+                                    }
+                                        break;
+                                    case GENOME_TRACKS_SELECTOR: {
+                                        const [__ref] = items.filter(r => r.format === 'REFERENCE');
+                                        if (__ref) {
+                                            predefinedTracks.push(__ref);
+                                            if (__ref.geneFile) {
+                                                const [__geneTrack] = items.filter(r => r.format === 'GENE' && r.name.toLowerCase() === __ref.geneFile.name.toLowerCase());
+                                                if (__geneTrack) {
+                                                    predefinedTracks.push(__geneTrack);
+                                                }
+                                            } else {
+                                                const [__predefinedRef] = this._references.filter(r => r.name.toLowerCase() === __ref.name.toLowerCase());
+                                                if (__predefinedRef && __predefinedRef.geneFile) {
+                                                    const [__geneTrack] = items.filter(r => r.format === 'GENE' && r.name.toLowerCase() === __predefinedRef.geneFile.name.toLowerCase());
+                                                    if (__geneTrack) {
+                                                        predefinedTracks.push(__geneTrack);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                        break;
+                                }
+                                tracksState.splice(index, 1, ...predefinedTracks.map(fn));
+                            }
+                        }
+                        for (let j = 0; j < items.length; j++) {
+                            const track = items[j];
+                            if (track.name && track.format && tracksState.filter(t =>
+                                t.bioDataItemId !== undefined &&
+                                (t.bioDataItemId.toString().toLowerCase() === track.name.toLowerCase() ||
+                                t.bioDataItemId.toString().toLowerCase() === track.bioDataItemId.toString().toLowerCase())
+                                && t.projectId.toString().toLowerCase() === projectsIds[i].toString().toLowerCase()).length === 1) {
+                                track.projectId = _project.name;
                                 __tracks.push(track);
                             }
                         }
+                    } else {
+                        const wrongStates = tracksState.filter(ts => ts.projectId === projectsIds[i]);
+                        for (let i = 0; i < wrongStates.length; i++) {
+                            const index = tracksState.indexOf(wrongStates[i]);
+                            tracksState.splice(index, 1);
+                        }
+                    }
+                }
+                if (__tracks.filter(t => t.format === 'REFERENCE').length === 0) {
+                    const [trackWithReference] = __tracks.filter(t => t.reference);
+                    if (trackWithReference) {
+                        __tracks.push(trackWithReference.reference);
+                        tracksState.splice(0, 0, {
+                            bioDataItemId: trackWithReference.reference.name,
+                            projectId: trackWithReference.projectId
+                        });
                     }
                 }
                 this._tracks = __tracks;
             }
             if (!reference) {
-                [reference] = this._tracks.filter(t => t.format === 'REFERENCE');
+                const [referenceCandidate] = this._tracks.filter(t => t.format === 'REFERENCE');
+                if (referenceCandidate) {
+                    reference = {
+                        name: referenceCandidate.name
+                    };
+                }
             }
             referenceDidChange = await this._changeReference(reference);
             this._containsVcfFiles = this.vcfTracks.length > 0;
@@ -597,13 +877,14 @@ export default class projectContext {
         let vcfFilesChanged = oldVcfFiles.length !== this.vcfTracks.length;
         if (!vcfFilesChanged) {
             for (let i = 0; i < oldVcfFiles.length; i++) {
-                if (this.vcfTracks.filter(t => t.bioDataItemId === oldVcfFiles[i].bioDataItemId && t.projectId === oldVcfFiles[i].projectId).length === 0) {
+                if (this.vcfTracks.filter(t => t.bioDataItemId.toString().toLowerCase() === oldVcfFiles[i].bioDataItemId.toString().toLowerCase()
+                    && t.projectId.toLowerCase() === oldVcfFiles[i].projectId.toLowerCase()).length === 0) {
                     vcfFilesChanged = true;
                     break;
                 }
             }
         }
-        return {referenceDidChange, vcfFilesChanged};
+        return {referenceDidChange, vcfFilesChanged, recoveredTracksState: tracksState};
     }
 
     async _initializeVariants(onInit) {
@@ -698,33 +979,37 @@ export default class projectContext {
             return [];
         }
         const tracksSettings = this.tracksState;
-        const referenceId = this.reference.id;
+        tracksSettings.forEach(ts => ts.bioDataItemId = unescape(ts.bioDataItemId));
+        const referenceName = this.reference.name;
         function sortItems(file1, file2) {
             if (!tracksSettings) {
                 // reference should be first;
                 if (file1.id === file2.id) {
                     return 0;
-                } else if (file1.id === referenceId) {
+                } else if (file1.name === referenceName) {
                     return -1;
-                } else if (file2.id === referenceId) {
+                } else if (file2.name === referenceName) {
                     return 1;
                 }
                 return 0;
             }
-            const index1 = tracksSettings.findIndex(findIndex(file1.bioDataItemId, file1.projectId));
-            const index2 = tracksSettings.findIndex(findIndex(file2.bioDataItemId, file2.projectId));
+            const index1 = tracksSettings.findIndex(findIndex(file1.name.toLowerCase(), file1.projectId.toLowerCase()));
+            const index2 = tracksSettings.findIndex(findIndex(file2.name.toLowerCase(), file2.projectId.toLowerCase()));
 
             if (index1 === index2) return 0;
             return index1 > index2 ? 1 : -1;
 
             function findIndex(bioDataItemId, projectId) {
-                return (element) => element.bioDataItemId.toString() === bioDataItemId.toString() && element.projectId === projectId;
+                return (element) => element.bioDataItemId.toString().toLowerCase() === bioDataItemId.toString().toLowerCase() &&
+                element.projectId.toLowerCase() === projectId.toLowerCase();
             }
         }
         function filterItems(projectFiles) {
             if (!tracksSettings) return projectFiles;
             return projectFiles.filter(file => {
-                const [fileSettings]= tracksSettings.filter(m => m.bioDataItemId.toString() === file.bioDataItemId.toString() && m.projectId === file.projectId);
+                const [fileSettings]= tracksSettings.filter(m =>
+                m.bioDataItemId.toLowerCase() === file.name.toString().toLowerCase() &&
+                m.projectId.toLowerCase() === file.projectId.toLowerCase());
                 return fileSettings !== undefined && fileSettings !== null;
             });
         }
@@ -736,6 +1021,9 @@ export default class projectContext {
             return null;
         }
         const {id, name} = chromosome;
+        if (name && name.toLowerCase() === FIRST_CHROMOSOME_SELECTOR.toLowerCase()) {
+            return this._chromosomes[0];
+        }
         const findByIdFn = function (c) {
             return c.id === +id;
         };

@@ -181,9 +181,24 @@ public class BamHelper {
     public BamTrack<Read> getReadsFromUrl(final Track<Read> track, String bamUrl, String bamIndexUrl,
                                           final BamQueryOption options) throws IOException {
         final BamTrack<Read> bamTrack = new BamTrack<>(track);
-        final BamFile bamFile = new BamFile();
         Assert.notNull(track.getChromosome().getReferenceId());
-        bamFile.setReferenceId(track.getChromosome().getReferenceId());
+        final BamFile bamFile = makeUrlBamFile(bamUrl, bamIndexUrl, track.getChromosome().getReferenceId());
+
+        getReads(bamFile, bamTrack, options);
+        return bamTrack;
+    }
+
+    /**
+     * Creates a temporary BamFile, not stored the database, and represented by it's file URL and index URL
+     * @param bamUrl a URL string ,locating BAM file
+     * @param bamIndexUrl a URL string ,locating BAI index file
+     * @param referenceId - ID of the reference, for with this BAM is being browsed
+     * @return
+     */
+    public BamFile makeUrlBamFile(String bamUrl, String bamIndexUrl, long referenceId) {
+        final BamFile bamFile = new BamFile();
+
+        bamFile.setReferenceId(referenceId);
         bamFile.setPath(bamUrl);
         bamFile.setType(BiologicalDataItemResourceType.getTypeFromPath(bamUrl));
 
@@ -193,8 +208,7 @@ public class BamHelper {
         index.setFormat(BiologicalDataItemFormat.BAM_INDEX);
         bamFile.setIndex(index);
 
-        getReads(bamFile, bamTrack, options);
-        return bamTrack;
+        return bamFile;
     }
 
     //for the case when the resource type is file

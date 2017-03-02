@@ -19,8 +19,8 @@ export default class ngbTrackEvents {
         this.appLayout = appLayout;
     }
 
-    async _getGeneTracks(track) {
-        return this.projectContext.geneTracks;
+    _getGeneTracks() {
+        return (this.projectContext.reference && this.projectContext.reference.geneFile) ? [this.projectContext.reference.geneFile] : this.projectContext.geneTracks;
     }
 
     featureClick(trackInstance, data, track, event) {
@@ -29,7 +29,7 @@ export default class ngbTrackEvents {
             (async() => {
                 let geneTracks = [];
                 if (!isGeneTrack) {
-                    geneTracks = await this._getGeneTracks(track);
+                    geneTracks = this._getGeneTracks();
                 }
                 else {
                     geneTracks.push({
@@ -49,7 +49,7 @@ export default class ngbTrackEvents {
                             properties: data.info,
                             referenceId: track.instance.config.referenceId,
                             startIndex: data.feature.startIndex,
-                            geneId: data.feature.attributes.gene_id,
+                            geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
                             title: 'FEATURE'
                         },
                         name: 'feature:info:select'
@@ -107,13 +107,18 @@ export default class ngbTrackEvents {
         }
     }
 
-    variationRequest(trackInstance, data: EventVariationInfo, track, event) {
+    variationRequest(trackInstance, data, track, event) {
         (async() => {
             if (data) {
                 if (data.endPoint && data.endPoint.chromosome) {
                     data.endPoint.chromosome = this.projectContext.getChromosome({name: data.endPoint.chromosome});
                 }
                 const menuData = [];
+                if (track.openByUrl) {
+                    data.openByUrl = track.openByUrl;
+                    data.fileUrl = track.id;
+                    data.indexUrl = track.indexPath;
+                }
                 menuData.push({
                     events: [{
                         data: {variant: data},
@@ -211,7 +216,6 @@ export default class ngbTrackEvents {
                 }],
                 title: 'Open mate region in split view'
             } : null;
-
         const showInfo = {
             events: [
                 {
@@ -229,7 +233,10 @@ export default class ngbTrackEvents {
                             chromosomeId: data.chromosome.id,
                             startIndex: data.read.startIndex,
                             endIndex: data.read.endIndex,
-                            name: data.read.name
+                            name: data.read.name,
+                            openByUrl: track.openByUrl,
+                            file: track.openByUrl ? track.id : null,
+                            index: track.openByUrl ? track.indexPath : null
                         }
                     },
                     name: 'feature:info:select'
@@ -244,7 +251,17 @@ export default class ngbTrackEvents {
             title: 'Copy info to clipboard',
             isLoading: true,
             fn: async function (menuItem) {
-                const read = await self._bamDataService.loadRead(track.id, data.chromosome.id, data.read.startIndex, data.read.endIndex, data.read.name);
+                const payload = {
+                    id: track.id,
+                    chromosomeId: data.chromosome.id,
+                    startIndex: data.read.startIndex,
+                    endIndex: data.read.endIndex,
+                    name: data.read.name,
+                    openByUrl: track.openByUrl,
+                    file: track.openByUrl ? track.id : null,
+                    index: track.openByUrl ? track.indexPath : null
+                };
+                const read = await self._bamDataService.loadRead(payload);
                 const generalInfo = data.info.map(line => line.join(' = ')).join('\r\n');
                 const tags = read.tags.map(tag => tag.tag + ' = ' + tag.value).join('\r\n');
 
@@ -259,7 +276,17 @@ export default class ngbTrackEvents {
             title: 'Copy sequence to clipboard',
             isLoading: true,
             fn: async function (menuItem) {
-                const read = await self._bamDataService.loadRead(track.id, data.chromosome.id, data.read.startIndex, data.read.endIndex, data.read.name);
+                const payload = {
+                    id: track.id,
+                    chromosomeId: data.chromosome.id,
+                    startIndex: data.read.startIndex,
+                    endIndex: data.read.endIndex,
+                    name: data.read.name,
+                    openByUrl: track.openByUrl,
+                    file: track.openByUrl ? track.id : null,
+                    index: track.openByUrl ? track.indexPath : null
+                };
+                const read = await self._bamDataService.loadRead(payload);
                 menuItem.clipboard = read.sequence;
                 menuItem.isLoading = false;
                 self.$scope.$apply();

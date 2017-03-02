@@ -1,7 +1,8 @@
-import  baseController from '../../../../shared/baseController';
-import  {stringParseInt} from '../../../utils/Int';
+import baseController from '../../../../shared/baseController';
+import {stringParseInt} from '../../../utils/Int';
 import $ from 'jquery';
 import angular from 'angular';
+import SearchResults from './ngbCoordinates.search.results';
 
 export default class ngbCoordinatesController extends baseController {
 
@@ -19,6 +20,8 @@ export default class ngbCoordinatesController extends baseController {
 
     hints = [];
     contextMenuItems = [];
+
+    searchResult = new SearchResults();
 
     dispatcher;
     projectContext;
@@ -82,6 +85,7 @@ export default class ngbCoordinatesController extends baseController {
         if (!this.isEnabled) {
             return;
         }
+        this.searchResult = new SearchResults();
         switch (mode) {
             case 'chromosome':
                 this.isChromosomeEditingMode = true;
@@ -90,13 +94,13 @@ export default class ngbCoordinatesController extends baseController {
                 this.isCoordinatesEditingMode = true;
                 break;
         }
-        this.inputChanged(mode);
+        this.inputChanged(mode, true);
     }
 
-    chromosomeInputChanged() {
+    chromosomeInputChanged(initial) {
         if (this.isChromosomeEditingMode) {
             this.hints = [];
-            const searchText = (this.chromosomeText && this.chromosomeText.length > 0) ? this.chromosomeText : null;
+            const searchText = initial ? null : ((this.chromosomeText && this.chromosomeText.length > 0) ? this.chromosomeText : null);
             const chrPrefix = 'chr';
             const mapChromosomeFn = function(chromosome) {
                 let modifiedName = chromosome.name.toLowerCase();
@@ -147,6 +151,7 @@ export default class ngbCoordinatesController extends baseController {
             this.contextMenuItems = (this.filterChromosome(searchText) || []).map(mapChromosomeFn);
             this.contextMenuItems.sort(sortChromosomesFn);
             this.contextMenuItems.splice(0, 0, clearChromosomeSelectionItem);
+            this.searchResult = new SearchResults(this.hints, this.contextMenuItems);
         }
     }
 
@@ -156,19 +161,22 @@ export default class ngbCoordinatesController extends baseController {
             this.hints.push('Enter a position at the chromosome or the name of a bookmark or a feature (gene, mRNA etc.)');
             if (!this.coordinatesText || this.coordinatesText.indexOf(':') >= 0) {
                 this.contextMenuItems = [];
+                this.searchResult = new SearchResults(this.hints, this.contextMenuItems);
             }
             else {
                 (async() => {
                     await this.searchGenes(this.coordinatesText);
+                    this.searchResult = new SearchResults(this.hints, this.contextMenuItems);
+                    this.$scope.$apply();
                 })();
             }
         }
     }
 
-    inputChanged(mode) {
+    inputChanged(mode, initial = false) {
         switch (mode) {
             case 'chromosome':
-                this.chromosomeInputChanged();
+                this.chromosomeInputChanged(initial);
                 break;
             case 'coordinates':
                 this.coordinatesInputChanged();
@@ -222,7 +230,6 @@ export default class ngbCoordinatesController extends baseController {
             }
             this.contextMenuItems = [];
         }
-        this.$scope.$apply();
     }
 
     didTypeChromosome() {
@@ -230,6 +237,7 @@ export default class ngbCoordinatesController extends baseController {
             this.onChromosomeChange(null);
             this.isChromosomeEditingMode = false;
             this.isCoordinatesEditingMode = false;
+            this.searchResult = new SearchResults();
         }
         else {
             const result = this.chromosomes.filter(x => x.name.toLowerCase() === (this.chromosomeText || '').toLowerCase());
@@ -237,6 +245,7 @@ export default class ngbCoordinatesController extends baseController {
                 this.onChromosomeChange(result[0]);
                 this.isChromosomeEditingMode = false;
                 this.isCoordinatesEditingMode = false;
+                this.searchResult = new SearchResults();
             }
             else {
                 this.discardEdit();
@@ -255,7 +264,7 @@ export default class ngbCoordinatesController extends baseController {
         })();
     }
 
-    didSelectContextMenuItem(item) {
+    didSelectSearchItem(item) {
         this.isChromosomeEditingMode = false;
         this.isCoordinatesEditingMode = false;
         switch (item.type) {
@@ -292,6 +301,7 @@ export default class ngbCoordinatesController extends baseController {
         this._createTitle();
         this.isChromosomeEditingMode = false;
         this.isCoordinatesEditingMode = false;
+        this.searchResult = new SearchResults();
     }
 
     onChromosomeChange(value) {
@@ -363,13 +373,13 @@ export default class ngbCoordinatesController extends baseController {
         // 'x : start-stop' - default
         //'5 : 217 - 7726'.match(/(([0-9a-zA-Z]*)\D*\:)\D*(\d*)\D*\-\D*(\d*)/)
         //['5 : 217 - 7726', '5 :', '5', '217', '7726']
-        const regexp_1 = /(([0-9a-zA-Z]*)\D*\:)\D*([0-9,. ]*)\D*\-\D*([0-9,. ]*)/;
+        const regexp_1 = /(([0-9a-zA-Z\D]*)\D*\:)\D*([0-9,. ]*)\D*\-\D*([0-9,. ]*)/;
 
         //2. 'start-stop' - should open specified range on current chromosome
         const regexp_2 = /^([0-9,. ]*)\D*\-\D*([0-9,. ]*)$/;
 
         //3. 'chr:start' - should open specified chromosome and range from start-50bp to start+50bp
-        const regexp_3 = /^([0-9a-zA-Z]*)\D*\:\D*([0-9,. ]*)$/;
+        const regexp_3 = /^([0-9a-zA-Z\D]*)\D*\:\D*([0-9,. ]*)$/;
 
         //4. 'start' - should open range from start-50bp to start+50bp on current chromosome
         const regexp_4 = /^[0-9,. ]+$/;
@@ -384,7 +394,6 @@ export default class ngbCoordinatesController extends baseController {
         } else if (regexp_4.test(this.coordinatesText)) {
             [start] = this.coordinatesText.match(regexp_4);
         }
-
 
         const chr = (!chrName || (this.chromosome && this.chromosome.name === chrName))
             ? this.chromosome

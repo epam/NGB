@@ -17,12 +17,14 @@
                             reference_genome_id,
                             bio_data_item_id,
                             reference_genome_size,
-                            gene_item_id)
+                            gene_item_id,
+                            index_id)
                         VALUES (
                             :REFERENCE_GENOME_ID,
                             :BIO_DATA_ITEM_ID,
                             :SIZE,
-                            :GENE_ITEM_ID)
+                            :GENE_ITEM_ID,
+                            :INDEX_ID)
                 ]]>
             </value>
         </property>
@@ -43,9 +45,20 @@
                         r.bio_data_item_id,
                         r.reference_genome_size,
                         null as compressed,
-                        r.gene_item_id
+                        r.gene_item_id,
+
+                        i.bio_data_item_id as index_id,
+                        i.name as index_name,
+                        i.type as index_type,
+                        i.path as index_path,
+                        i.format as index_format,
+                        i.created_by as index_created_by,
+                        i.bucket_id as index_bucket_id,
+                        i.created_date as index_created_date
+
                     FROM catgenome.reference_genome r
                         JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
+                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = r.index_id
                     WHERE r.reference_genome_id = :REFERENCE_GENOME_ID
                 ]]>
             </value>
@@ -67,9 +80,19 @@
                         r.bio_data_item_id,
                         r.reference_genome_size,
                         null as compressed,
-                        r.gene_item_id
+                        r.gene_item_id,
+
+                        i.bio_data_item_id as index_id,
+                        i.name as index_name,
+                        i.type as index_type,
+                        i.path as index_path,
+                        i.format as index_format,
+                        i.created_by as index_created_by,
+                        i.bucket_id as index_bucket_id,
+                        i.created_date as index_created_date
                     FROM catgenome.reference_genome r
                         JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
+                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = r.index_id
                     WHERE r.bio_data_item_id = :BIO_DATA_ITEM_ID
                 ]]>
             </value>
@@ -87,9 +110,20 @@
                         r.reference_genome_id,
                         r.bio_data_item_id,
                         r.reference_genome_size,
-                        null as compressed
+                        r.gene_item_id,
+                        null as compressed,
+
+                        i.bio_data_item_id as index_id,
+                        i.name as index_name,
+                        i.type as index_type,
+                        i.path as index_path,
+                        i.format as index_format,
+                        i.created_by as index_created_by,
+                        i.bucket_id as index_bucket_id,
+                        i.created_date as index_created_date
                     FROM catgenome.reference_genome r
                         JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
+                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = r.index_id
                     ORDER BY name ASC
                 ]]>
             </value>

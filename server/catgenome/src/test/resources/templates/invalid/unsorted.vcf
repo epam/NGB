@@ -1,0 +1,27 @@
+##fileformat=VCFv4.0
+##ALT=<ID=IGN,Description="Ignore SNVs in Interval">
+##ALT=<ID=MSK,Description="Masked interval (no variants called)">
+##INFO=<ID=AA,Number=1,Type=String,Description="Ancestral Allele, ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/pilot_data/technical/reference/ancestral_alignments/README">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Total Depth">
+##INFO=<ID=HM2,Number=0,Type=Flag,Description="HapMap2 membership">
+##INFO=<ID=HM3,Number=0,Type=Flag,Description="HapMap3 membership">
+##INFO=<ID=SOMATIC,Number=0,Type=Flag,Description="Somatic mutation in primary">
+##INFO=<ID=SVLEN,Number=.,Type=Integer,Description="Difference in length between REF and ALT alleles">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##reference=human_b36_both.fasta
+##FILTER=<ID=q10,Description="Quality below 10">
+##FILTER=<ID=s50,Description="Less than 50% of samples have data">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA19239	NA19238	NA19240
+A1	695744	.	C	T	.	PASS	AA=.;DP=115	GT:GQ:DP	1|0:100:20	0|0:16:13	0|0:100:82
+A1	713682	rs11804171	GT	TG,GTCT	.	PASS	AA=.;DP=137;HM2	GT:GQ:DP	2|2:33:30	0|1:54:14	0|0:100:43
+A1	726158	.	A	T	.	PASS	AA=.;DP=73	GT:GQ:DP	0|1:100:26	0|1:100:20	0|0:72:25
+A1	749000	.	G	<IGN>	100	PASS	END=4084891;SOMATIC;SVLEN=7749;SVTYPE=IGN	GT:GQ:DP	0|1:100:38	0|0:62:20	0|0:100:91
+A1	742429	rs3094315	G	A	.	PASS	AA=g;DP=96;HM2	GT:GQ:DP	1|1:69:23	1|0:98:22	1|1:100:47
+A1	742584	rs3131972	A	G	.	PASS	AA=a;DP=143;HM3	GT:GQ:DP	1|0:100:33	1|0:100:24	1|1:100:85
+A1	743404	rs2073813	G	A	.	PASS	AA=a;DP=103	GT:GQ:DP	0|1:100:24	0|1:75:17	0|0:100:65
+A1	744366	rs3115859	G	A	.	PASS	AA=g;DP=124	GT:GQ:DP	1|0:68:27	1|0:52:23	1|1:100:70
+A1	746966	.	C	T	.	PASS	AA=-;DP=149	GT:GQ:DP	0|1:100:38	0|0:62:20	0|0:100:91
+A1	747000	.	C	<MSK>	.	PASS	SOMATIC;SVTYPE=MSK;END=2246650;SVLEN=1000000	GT:GQ:DP	0|1:100:38	0|0:62:20	0|0:100:91

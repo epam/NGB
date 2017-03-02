@@ -30,16 +30,9 @@ The following sections are currently covered in a documentation
 
 ## Building documentation
 
-[MkDocs](http://www.mkdocs.org) is used to build documentation into **html** representation
+[MkDocs](http://www.mkdocs.org) and `epam-material` theme (based on [mkdocs-material](https://github.com/squidfunk/mkdocs-material)) are used to build documentation into **html** representation
 
-So make sure `mkdocs` is installed before proceeding
-
-```
-$ mkdocs --version
-mkdocs, version 0.16.0
-```
-
-If `mkdocs` is not installed - follow [MkDocs Installation Guide](http://www.mkdocs.org/#installation) before building NGB documentation
+So make sure that both dependencies are installed according to the [installation guide](http://squidfunk.github.io/mkdocs-material/getting-started/#installing-mkdocs)
 
 Once installed, obtain **markdown** sources from github
 ```
@@ -49,11 +42,9 @@ $ cd NGB/docs
 
 Run build 
 ```
-mkdocs build
+$ mkdocs build
 ```
 
 This will create `site/` folder, containing built **html** documentation
-
-By default, `epam-material` theme is used for **html** representation. This theme is based on [mkdocs-material](https://github.com/squidfunk/mkdocs-material)
 
 To view documentation - navigate in `ngb/docs/site/` folder and launch `index.html` with a web-browser

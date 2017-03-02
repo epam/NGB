@@ -32,16 +32,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.ngb.cli.entity.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
-import com.epam.ngb.cli.entity.BiologicalDataItem;
-import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
-import com.epam.ngb.cli.entity.RegistrationRequest;
-import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.printer.AbstractResultPrinter;
@@ -208,6 +205,11 @@ public class FileRegistrationHandler extends AbstractHTTPCommandHandler {
         registration.setPath(file.getLeft());
         registration.setIndexPath(file.getRight());
         registration.setReferenceId(referenceId);
+        registration.setType(BiologicalDataItemResourceType.getTypeFromPath(file.getKey()));
+
+        if (file.getValue() != null) {
+            registration.setIndexType(BiologicalDataItemResourceType.getTypeFromPath(file.getValue()));
+        }
 
         if (format == BiologicalDataItemFormat.VCF || format == BiologicalDataItemFormat.GENE) {
             registration.setDoIndex(doIndex);

@@ -25,19 +25,23 @@
 package com.epam.catgenome.controller;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Collections;
 
+import com.epam.catgenome.controller.vo.UrlRequestVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.epam.catgenome.entity.file.AbstractFsItem;
+import com.epam.catgenome.controller.vo.FilesVO;
+import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.FileManager;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
@@ -56,6 +60,9 @@ import com.wordnik.swagger.annotations.ApiResponses;
 public class UtilsController extends AbstractRESTController {
     @Autowired
     private FileManager fileManager;
+
+    @Autowired
+    private BiologicalDataItemManager biologicalDataItemManager;
 
     @Value("#{catgenome['version']}")
     private String version;
@@ -81,8 +88,41 @@ public class UtilsController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<List<AbstractFsItem>> loadDirectoryContents(@RequestParam(required = false) String path)
+    public Result<FilesVO> loadDirectoryContents(@RequestParam(required = false) String path)
         throws IOException {
-        return Result.success(fileManager.loadDirectoryContents(path));
+        return Result.success(new FilesVO(fileManager.loadDirectoryContents(path), fileManager.getNgsDataRootPath()));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/files/allowed", method = RequestMethod.GET)
+    @ApiOperation(
+            value = "Checks is directory browsing is allowed",
+            notes = "Returns true if directory browsing is allowed and false if not",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> isFilesBrowsingAllowed()
+            throws IOException {
+        return Result.success(fileManager.isFilesBrowsingAllowed());
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/url", method = RequestMethod.POST)
+    @ApiOperation(
+        value = "Generates URL postfix",
+        notes = "Generates URL that displays specified files, optionally on specified interval",
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+        })
+    public Result<String> generateUrl(
+                    @RequestBody UrlRequestVO request,
+                    @RequestParam(required = false) String chromosomeName,
+                    @RequestParam(required = false) Integer startIndex,
+                    @RequestParam(required = false) Integer endIndex) throws JsonProcessingException {
+        return Result.success(biologicalDataItemManager.generateUrl(request.getDataset(),
+                request.getIds() == null ? Collections.emptyList() : request.getIds(), chromosomeName,
+                startIndex, endIndex));
     }
 }

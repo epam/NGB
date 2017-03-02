@@ -250,6 +250,7 @@ public class ReferenceGenomeDaoTest extends AbstractDaoTest {
 
         newreference.setCreatedDate(reference.getCreatedDate());
         newreference.setCreatedBy(AuthUtils.getCurrentUserId());
+        newreference.setIndex(createReferenceIndex());
         return newreference;
     }
 }

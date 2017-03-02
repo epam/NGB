@@ -30,7 +30,7 @@ export default class NumberFormatter{
             return NumberFormatter._findClosestDecimalDegree(val, startDegree + 1, ticksCount);
         }
     }
-    static textWithPrefix(value, displayFractionDigits = true){
+    static textWithPrefix(value, displayFractionDigits = true, prefixMap = null){
         if (value === 0)
             return '1';
         let module = NumberFormatter.findClosestDecimalDegree(value, 1);
@@ -51,19 +51,42 @@ export default class NumberFormatter{
         const P = 15;
 
         if (module === K){
-            prefix = 'K';
+            if (prefixMap && prefixMap['K']) {
+                prefix = prefixMap['K'];
+            } else {
+                prefix = 'K';
+            }
         }
         else if (module === M){
-            prefix = 'M';
+            if (prefixMap && prefixMap['M']) {
+                prefix = prefixMap['M'];
+            } else {
+                prefix = 'M';
+            }
         }
         else if (module === G){
-            prefix = 'G';
+            if (prefixMap && prefixMap['G']) {
+                prefix = prefixMap['G'];
+            } else {
+                prefix = 'G';
+            }
         }
         else if (module === T){
-            prefix = 'T';
+            if (prefixMap && prefixMap['T']) {
+                prefix = prefixMap['T'];
+            } else {
+                prefix = 'T';
+            }
         }
         else if (module === P){
-            prefix = 'P';
+            if (prefixMap && prefixMap['P']) {
+                prefix = prefixMap['P'];
+            } else {
+                prefix = 'P';
+            }
+        }
+        if (!prefix && prefixMap && prefixMap['units']) {
+            prefix = prefixMap['units'];
         }
         if (prefix){
             return NumberFormatter.formattedText(valueCorrected) + prefix;

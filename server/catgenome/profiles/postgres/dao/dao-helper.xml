@@ -80,7 +80,35 @@
                 ]]>
             </value>
         </property>
+        <property name="createTemporaryStringListQuery">
+            <value>
+                <![CDATA[
+                        CREATE LOCAL TEMPORARY TABLE IF NOT EXISTS catgenome.t_str_list (
+                           list_id BIGINT,
+                           list_value VARCHAR(500)
+                        )
+                ]]>
+            </value>
+        </property>
 
+        <property name="insertTemporaryStringListItemQuery">
+            <value>
+                <![CDATA[
+                        INSERT INTO catgenome.t_str_list (list_id, list_value)
+                           VALUES (:LIST_ID, :LIST_VALUE)
+                ]]>
+            </value>
+        </property>
+
+        <property name="clearTemporaryStringListQuery">
+            <value>
+                <![CDATA[
+                        DELETE
+                        FROM catgenome.t_str_list list
+                        WHERE list.list_id = :LIST_ID
+                ]]>
+            </value>
+        </property>
     </bean>
 
 </beans>

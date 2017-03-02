@@ -175,12 +175,19 @@ public class GeneController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Track<GeneHighLevel>> loadTrack(@RequestBody final TrackQuery trackQuery,
-                                                  @PathVariable(value = REFERENCE_ID_FIELD) final Long referenceId)
+            @PathVariable(value = REFERENCE_ID_FIELD) final Long referenceId,
+            @RequestParam(required = false) final String fileUrl,
+            @RequestParam(required = false) final String indexUrl)
         throws GeneReadingException {
         final Track<Gene> geneTrack = Query2TrackConverter.convertToTrack(trackQuery);
         boolean collapsed = trackQuery.getCollapsed() != null && trackQuery.getCollapsed();
 
-        Track<Gene> genes = gffManager.loadGenes(geneTrack, collapsed);
+        Track<Gene> genes;
+        if (fileUrl == null) {
+            genes = gffManager.loadGenes(geneTrack, collapsed);
+        } else  {
+            genes = gffManager.loadGenes(geneTrack, collapsed, fileUrl, indexUrl);
+        }
 
         Map<Gene, List<ProteinSequenceEntry>> aminoAcids = null;
         double time1 = Utils.getSystemTimeMilliseconds();
@@ -218,9 +225,12 @@ public class GeneController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Track<GeneTranscript>> loadTrackWithTranscript(@RequestBody final TrackQuery trackQuery)
+    public Result<Track<GeneTranscript>> loadTrackWithTranscript(@RequestBody final TrackQuery trackQuery,
+            @RequestParam(required = false) final String fileUrl,
+            @RequestParam(required = false) final String indexUrl)
         throws GeneReadingException {
-        return Result.success(gffManager.loadGenesTranscript(Query2TrackConverter.convertToTrack(trackQuery)));
+        return Result.success(gffManager.loadGenesTranscript(Query2TrackConverter.convertToTrack(trackQuery),
+                fileUrl, indexUrl));
     }
 
     @ResponseBody

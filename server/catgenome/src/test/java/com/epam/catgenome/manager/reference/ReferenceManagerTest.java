@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import com.epam.catgenome.dao.BiologicalDataItemDao;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -69,11 +70,10 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
  * Created:     10/12/2015
  * Project:     CATGenome Browser
  * Make:        IntelliJ IDEA 14.1.4, JDK 1.8
- *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class ReferenceManagerTest extends AbstractManagerTest {
+@ContextConfiguration({"classpath:applicationContext-test.xml"}) public class ReferenceManagerTest
+        extends AbstractManagerTest {
 
     private static final double SCALE_FACTOR_4_BASE = 1D;
     private static final double SCALE_FACTOR_4_GC = 0.0001;
@@ -85,37 +85,33 @@ public class ReferenceManagerTest extends AbstractManagerTest {
     private static final String NEW_NAME = "hiMom";
     private static final String A3_FA_PATH = "classpath:templates/A3.fa";
 
-    @Value("${ga4gh.google.referenceSetId}")
-    private String referenseSetID;
+    @Value("${ga4gh.google.referenceSetId}") private String referenseSetID;
 
     private long idRef;
     private long idChrom;
     private Resource resource;
     private Reference reference;
 
-    @Autowired
-    private ApplicationContext context;
+    @Autowired private ApplicationContext context;
 
-    @Autowired
-    private ReferenceManager referenceManager;
+    @Autowired private ReferenceManager referenceManager;
 
-    @Autowired
-    private ReferenceGenomeDao referenceGenomeDao;
+    @Autowired private ReferenceGenomeDao referenceGenomeDao;
 
-    @Autowired
-    private ReferenceGenomeManager referenceGenomeManager;
+    @Autowired private ReferenceGenomeManager referenceGenomeManager;
 
-    @Autowired
-    private GffManager gffManager;
+    @Autowired private GffManager gffManager;
 
-    @Before
-    public void fastaToNibFileTest() throws IOException {
+    @Autowired private BiologicalDataItemDao biologicalDataItemDao;
+
+    @Before public void fastaToNibFileTest() throws IOException {
         resource = context.getResource(A3_FA_PATH);
 
         ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
         request.setName(NEW_NAME);
         request.setPath(resource.getFile().getPath());
         request.setType(BiologicalDataItemResourceType.FILE);
+        request.setNoGCContent(true);
 
         reference = referenceManager.registerGenome(request);
         assertNotNull(reference);
@@ -124,8 +120,7 @@ public class ReferenceManagerTest extends AbstractManagerTest {
         idChrom = chromosome.getId();
     }
 
-    @Ignore
-    @Test
+    @Ignore @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void getReference() {
 
@@ -143,7 +138,8 @@ public class ReferenceManagerTest extends AbstractManagerTest {
             track.setEndIndex(END_INDEX);
             track.setStartIndex(START_INDEX);
             track.setScaleFactor(SCALE_FACTOR_4_BASE);
-            List<Chromosome> list = referenceGenomeDao.loadAllChromosomesByReferenceId(reference.getId());
+            List<Chromosome> list =
+                    referenceGenomeDao.loadAllChromosomesByReferenceId(reference.getId());
             track.setChromosome(list.get(LIST_INDEX));
             trackResult = referenceManager.getNucleotidesTrackFromNib(track);
         } catch (IOException | Ga4ghResourceUnavailableException e) {
@@ -152,16 +148,19 @@ public class ReferenceManagerTest extends AbstractManagerTest {
 
         assertNotNull(reference);
         Reference referenceNew = referenceGenomeDao.loadReferenceGenome(reference.getId());
-        assertEquals("Unexpected id bioData.", reference.getBioDataItemId(), referenceNew.getBioDataItemId());
+        assertEquals("Unexpected id bioData.", reference.getBioDataItemId(),
+                referenceNew.getBioDataItemId());
         assertEquals("Unexpected size reference.", reference.getSize(), referenceNew.getSize());
-        assertEquals("Unexpected chromosome.", trackResult.getChromosome().getName(), track.getChromosome().getName());
+        assertEquals("Unexpected chromosome.", trackResult.getChromosome().getName(),
+                track.getChromosome().getName());
 
         //2 scaleFactor < 0.5
 
         track.setScaleFactor(SCALE_FACTOR_4_GC_NEW);
         try {
             trackResult = referenceManager.getNucleotidesTrackFromNib(track);
-            assertEquals("Unexpected id bioData.", reference.getBioDataItemId(), referenceNew.getBioDataItemId());
+            assertEquals("Unexpected id bioData.", reference.getBioDataItemId(),
+                    referenceNew.getBioDataItemId());
             assertEquals("Unexpected size reference.", reference.getSize(), referenceNew.getSize());
             assertEquals("Unexpected chromosome.", trackResult.getChromosome().getName(),
                     track.getChromosome().getName());
@@ -171,8 +170,7 @@ public class ReferenceManagerTest extends AbstractManagerTest {
         }
     }
 
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Throwable.class)
+    @Test @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Throwable.class)
     public void nibFileToNucleotide() throws ReferenceReadingException {
 
         Track<Sequence> track = new Track<>();
@@ -187,8 +185,7 @@ public class ReferenceManagerTest extends AbstractManagerTest {
         assertNotNull(track);
     }
 
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Throwable.class)
+    @Test @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Throwable.class)
     public void getGCContentTest() throws ReferenceReadingException {
         Track<Sequence> track = new Track<>();
         Chromosome chromosome = new Chromosome();
@@ -202,8 +199,7 @@ public class ReferenceManagerTest extends AbstractManagerTest {
         assertNotNull(track);
     }
 
-    @Ignore
-    @Test
+    @Ignore @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Throwable.class)
     public void testUnregister() throws IOException {
         ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
@@ -222,8 +218,7 @@ public class ReferenceManagerTest extends AbstractManagerTest {
         }
     }
 
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    @Test @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void getOtherGCContentTest() throws ReferenceReadingException {
         Track<Sequence> track = new Track<>();
         Chromosome chromosome = new Chromosome();
@@ -242,8 +237,7 @@ public class ReferenceManagerTest extends AbstractManagerTest {
 
     //test Identical fata from original Fasta-file and data from method getNucleotidesResultFromNib
     //To-do equals '-','?','n'
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    @Test @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void nibFileAndFastaFileIdenticalTest() throws ReferenceReadingException, IOException {
         ReferenceSequenceFile referenceSequenceFile =
                 ReferenceSequenceFileFactory.getReferenceSequenceFile(resource.getFile());
@@ -269,8 +263,7 @@ public class ReferenceManagerTest extends AbstractManagerTest {
         }
     }
 
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    @Test @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testRegisterWithGeneFile() throws IOException {
         Resource resource = context.getResource(A3_FA_PATH);
 
@@ -279,7 +272,8 @@ public class ReferenceManagerTest extends AbstractManagerTest {
         request.setPath(resource.getFile().getPath());
         request.setType(BiologicalDataItemResourceType.FILE);
 
-        FeatureIndexedFileRegistrationRequest geneRequest = new FeatureIndexedFileRegistrationRequest();
+        FeatureIndexedFileRegistrationRequest geneRequest =
+                new FeatureIndexedFileRegistrationRequest();
         resource = context.getResource("classpath:templates/genes_sorted.gtf");
         geneRequest.setPath(resource.getFile().getAbsolutePath());
 
@@ -299,8 +293,8 @@ public class ReferenceManagerTest extends AbstractManagerTest {
         loadedReference = referenceGenomeManager.updateReferenceGeneFileId(testRef.getId(), null);
         assertNull(loadedReference.getGeneFile());
 
-        loadedReference = referenceGenomeManager.updateReferenceGeneFileId(testRef.getId(),
-                                                                           testRef.getGeneFile().getId());
+        loadedReference = referenceGenomeManager
+                .updateReferenceGeneFileId(testRef.getId(), testRef.getGeneFile().getId());
         assertNotNull(loadedReference.getGeneFile());
 
         resource = context.getResource(A3_FA_PATH);
@@ -320,8 +314,7 @@ public class ReferenceManagerTest extends AbstractManagerTest {
         assertEquals(testRef.getGeneFile().getId(), loadedReference.getGeneFile().getId());
     }
 
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    @Test @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testDeleteReferenceGeneFile() throws IOException {
         Resource resource = context.getResource(A3_FA_PATH);
 
@@ -330,7 +323,8 @@ public class ReferenceManagerTest extends AbstractManagerTest {
         request.setPath(resource.getFile().getPath());
         request.setType(BiologicalDataItemResourceType.FILE);
 
-        FeatureIndexedFileRegistrationRequest geneRequest = new FeatureIndexedFileRegistrationRequest();
+        FeatureIndexedFileRegistrationRequest geneRequest =
+                new FeatureIndexedFileRegistrationRequest();
         resource = context.getResource("classpath:templates/genes_sorted.gtf");
         geneRequest.setPath(resource.getFile().getAbsolutePath());
 
@@ -344,8 +338,7 @@ public class ReferenceManagerTest extends AbstractManagerTest {
         gffManager.unregisterGeneFile(testRef.getGeneFile().getId());
     }
 
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    @Test @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testFailDeleteReferenceGeneFile() throws IOException {
         Resource resource = context.getResource(A3_FA_PATH);
 
@@ -354,7 +347,8 @@ public class ReferenceManagerTest extends AbstractManagerTest {
         request.setPath(resource.getFile().getPath());
         request.setType(BiologicalDataItemResourceType.FILE);
 
-        FeatureIndexedFileRegistrationRequest geneRequest = new FeatureIndexedFileRegistrationRequest();
+        FeatureIndexedFileRegistrationRequest geneRequest =
+                new FeatureIndexedFileRegistrationRequest();
         resource = context.getResource("classpath:templates/genes_sorted.gtf");
         geneRequest.setPath(resource.getFile().getAbsolutePath());
 
@@ -365,6 +359,28 @@ public class ReferenceManagerTest extends AbstractManagerTest {
         assertNotNull(testRef.getGeneFile());
 
         TestUtils.assertFail(() -> gffManager.unregisterGeneFile(testRef.getGeneFile().getId()),
-                             Collections.singletonList(DataIntegrityViolationException.class));
+                Collections.singletonList(DataIntegrityViolationException.class));
+    }
+
+
+    @Test @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Throwable.class)
+    public void testRegisterInvalidReference() throws IOException {
+        String invalidReference = "double_chr.fa";
+        Resource resource = context.getResource("classpath:templates/invalid/" + invalidReference);
+        ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
+        request.setPath(resource.getFile().getPath());
+        request.setName(invalidReference);
+        request.setType(BiologicalDataItemResourceType.FILE);
+        String errorMessage = "";
+        String expectedMessage = "Input file must have contiguous chromosomes";
+        try {
+            referenceManager.registerGenome(request);
+        } catch (IllegalArgumentException | AssertionError e) {
+            errorMessage = e.getMessage();
+        }
+        //check that we received an appropriate message
+        assertTrue(errorMessage.contains(expectedMessage));
+        assertTrue(biologicalDataItemDao.loadFilesByNameStrict(invalidReference).isEmpty());
+
     }
 }

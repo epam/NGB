@@ -29,8 +29,23 @@ export default class ngbTrackMenuController {
         };
 
         globalSettingsChanged();
+
+        const menuOpenedFn = () => {
+            if (self.onMenuOpened) {
+                self.onMenuOpened(self.trackController);
+            }
+        };
+        const menuClosedFn = () => {
+            if (self.onMenuClosed) {
+                self.onMenuClosed(self.trackController);
+            }
+        };
+
         dispatcher.on('hotkeyPressed', hotkeyPressedFn);
         dispatcher.on('settings:change', globalSettingsChanged);
+
+        $scope.$on('$mdMenuOpen', menuOpenedFn);
+        $scope.$on('$mdMenuClose', menuClosedFn);
 
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('hotkeyPressed', hotkeyPressedFn);
@@ -43,6 +58,9 @@ export default class ngbTrackMenuController {
         e.stopPropagation();
         field.isEnabled() ? field.disable() : field.enable();
         this.lastActionRepeater.rememberAction(field.name);
+        if (this.onHandle) {
+            this.onHandle(this.trackController);
+        }
         return false;
     }
 
@@ -51,6 +69,9 @@ export default class ngbTrackMenuController {
         e.stopPropagation();
         field.perform();
         this.lastActionRepeater.rememberAction(field.name);
+        if (this.onHandle) {
+            this.onHandle(this.trackController);
+        }
         return false;
     }
 }

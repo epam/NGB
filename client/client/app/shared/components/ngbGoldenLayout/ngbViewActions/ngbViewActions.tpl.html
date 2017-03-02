@@ -1,0 +1,4 @@
+<li ng-repeat="action in viewActions[viewName] track by $index">
+    <ngb-variants-table-column ng-if="action === actions.variantsTableColumn"></ngb-variants-table-column>
+    <ngb-close-all-tracks ng-if="action === actions.closeAllTracks && tracksAreSelected()"></ngb-close-all-tracks>
+</li>

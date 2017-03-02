@@ -30,18 +30,20 @@ ngb-coordinates {
   background-color: white;
   margin: 4px;
   cursor: default;
-  overflow-y: scroll;
   max-height: 300px;
+  width: 300px;
+  height: 300px;
 }
 
 .coordinates-menu-item {
   cursor: hand;
-  width: 300px;
+  width: 290px;
   text-align: left;
 }
 
 .coordinates-menu-item.hint {
   padding: 10px 15px;
+  width: 260px;
   font-size: smaller;
   font-style: italic;
   text-decoration: none;
@@ -54,4 +56,11 @@ ngb-coordinates {
 
 .context-menu-item-subtitle {
   font-size: x-small;
+}
+
+.search-result-item {
+  height: 40px;
+  max-height: 40px;
+  width: 280px;
+  max-width: 280px;
 }

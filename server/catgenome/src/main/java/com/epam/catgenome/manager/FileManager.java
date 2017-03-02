@@ -43,13 +43,7 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -85,6 +79,7 @@ import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.gene.parser.GtfFeature;
 import com.epam.catgenome.manager.maf.parser.MafCodec;
 import com.epam.catgenome.manager.maf.parser.MafFeature;
+import com.epam.catgenome.manager.reference.io.FastaUtils;
 import com.epam.catgenome.manager.seg.parser.SegCodec;
 import com.epam.catgenome.manager.seg.parser.SegFeature;
 import com.epam.catgenome.util.*;
@@ -145,6 +140,7 @@ public class FileManager {
     private static final TabixFormat MAF_TABIX_FORMAT = new TabixFormat(TabixFormat.UCSC_FLAGS, 5, 6, 7, '#', 0);
     private static final TabixFormat BIGMAF_TABIX_FORMAT = new TabixFormat(TabixFormat.UCSC_FLAGS, 6, 7, 8, '#', 0);
 
+
     /**
      * Provides paths' patterns that have to be used to construct real relative paths
      * for file resources of any types.
@@ -166,6 +162,7 @@ public class FileManager {
         REF_CHROMOSOME_SEQUENCE_FILE("/references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/sequences.nib"),
         REF_CHROMOSOME_SEQUENCE_INDEX_FILE("/references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/sequences.nib.ind"),
         REF_CHROMOSOME_CYTOBAND_FILE("/references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/cytobands.txt"),
+        REF_INDEX_FILE("/references/${DIR_ID}/${REF_NAME}.fai"),
 
         // think to do it in other way?
 
@@ -281,6 +278,15 @@ public class FileManager {
     }
 
     /**
+     * Checks if file directory browsing is allowed
+     *
+     * @return true if directory browsing is allowed
+     */
+    public boolean isFilesBrowsingAllowed() {
+        return filesBrowsingAllowed;
+    }
+
+    /**
      * Returns a reference on a catalogue that should be used to handle any temporary resources,
      * e.g. to handle file uploads
      *
@@ -307,8 +313,6 @@ public class FileManager {
         // makes the content root directory to manage resources related to the reference with the given ID
         reference.setId(dirId);
         if (reference.getType() != BiologicalDataItemResourceType.GA4GH) {
-            reference.setPath(substitute(REFERENCE_DIR, params));
-            makeDir(reference.getPath());
             // makes a directory to manage chromosomes
             makeDir(substitute(REF_CHROMOSOMES_DIR, params));
         }
@@ -468,6 +472,7 @@ public class FileManager {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), referenceId);
         params.put(CHROMOSOME_NAME.name(), chromosome.getName());
+        makeDir(substitute(REF_CHROMOSOME_DIR, params));
         // makes a stream resource to write NT sequence corresponded to the given chromosome
         chromosome.setPath(substitute(CHROMOSOME_GC_CONTENT_FILE, params));
         LOGGER.debug(getMessage(MessagesConstants.DEBUG_FILE_OPENING), toRealPath(chromosome.getPath()));
@@ -598,6 +603,20 @@ public class FileManager {
         params.put(DIR_ID.name(), chromosome.getReferenceId());
         params.put(CHROMOSOME_NAME.name(), chromosome.getName());
         return new File(toRealPath(substitute(REF_CHROMOSOME_CYTOBAND_FILE, params)));
+    }
+
+    public String createReferenceIndex(Reference reference) {
+        Assert.notNull(reference.getId(), getMessage(MessageCode.NO_SUCH_REFERENCE));
+        File fasta = new File(reference.getPath());
+        Assert.isTrue(fasta.exists(), getMessage(MessageCode.NO_SUCH_REFERENCE));
+        final Map<String, Object> params = new HashMap<>();
+        params.put(DIR_ID.name(), reference.getId());
+        //ensure that directory exists
+        makeDir(substitute(REFERENCE_DIR, params));
+        params.put(REF_NAME.name(), reference.getName());
+        File index = new File(toRealPath(substitute(REF_INDEX_FILE, params)));
+        FastaUtils.indexFasta(fasta, index);
+        return  index.getAbsolutePath();
     }
 
     /**
@@ -1089,23 +1108,18 @@ public class FileManager {
      * Create a {@code AbstractFeatureReader&lt;GeneFeature, LineIterator&gt;} reader for given file, optionally
      * uses an index
      *
-     * @param file      a gene {@code File} with .gff, .gtf, .gff.gz or .gtf.gz extensions
-     * @param indexFile {@code File} an index file whit .tbi extension, set null if no index should be used
+     * @param path      a path to gene file with .gff, .gtf, .gff.gz or .gtf.gz extensions
+     * @param index a path to index file whith .tbi extension, set null if no index should be used
      * @param useIndex  {@code boolean} determines if index should be used
      * @return {@code AbstractFeatureReader&lt;GeneFeature, LineIterator&gt;} a reader to work with gene file
      */
-    public AbstractFeatureReader<GeneFeature, LineIterator> makeGeneReader(File file, File indexFile,
+    public AbstractFeatureReader<GeneFeature, LineIterator> makeGeneReader(String path, String index,
                                                                            boolean useIndex) {
-        String extension = getGeneFileExtension(file.getName());
+        String extension = getGeneFileExtension(path);
         Assert.notNull(extension, getMessage(MessagesConstants.ERROR_UNSUPPORTED_GENE_FILE_EXTESION));
 
-        String indexPath = null;
-        if (useIndex && indexFile != null) {
-            indexPath = indexFile.getAbsolutePath();
-        }
-
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(GffCodec.GffType.forExt(extension));
-        return AbstractFeatureReader.getFeatureReader(file.getAbsolutePath(), indexPath, codec, useIndex);
+        return AbstractFeatureReader.getFeatureReader(path, index, codec, useIndex);
     }
 
     /**
@@ -1129,9 +1143,13 @@ public class FileManager {
         Assert.notNull(extension, getMessage(MessagesConstants.ERROR_UNSUPPORTED_GENE_FILE_EXTESION));
         Assert.notNull(geneFile.getIndex(), "Gene file should have an index");
 
+
+        if (geneFile.getType() == BiologicalDataItemResourceType.URL) {
+            return makeGeneReader(geneFile.getPath(), geneFile.getIndex().getPath(), true);
+        }
+
         File file;
         File indexFile;
-
         switch (type) {
             case ORIGINAL:
                 file = new File(geneFile.getPath());
@@ -1152,7 +1170,7 @@ public class FileManager {
                                                               type));
         }
 
-        return makeGeneReader(file, indexFile, true);
+        return makeGeneReader(file.getAbsolutePath(), indexFile.getAbsolutePath(), true);
     }
 
     private File tryGetHelperGeneFile(FilePathFormat helperFormat, GeneFile geneFile, GeneFileType type,
@@ -1350,6 +1368,13 @@ public class FileManager {
         try (BlockCompressedDataInputStream refStream = makeRefInputStream(referenceId, chromosomeName);
              DataOutputStream indexStream = makeRefIndexOutputStream(referenceId, chromosomeName)) {
             fillSimpleIndexFile(refStream, indexStream);
+        }
+    }
+
+    public void makeGcIndex(final Long referenceId, final String chromosomeName) throws IOException {
+        try (BlockCompressedDataInputStream streamGC = makeGCInputStream(referenceId, chromosomeName);
+                DataOutputStream indexStream = makeGCIndexOutputStream(referenceId, chromosomeName)) {
+            fillSimpleIndexFile(streamGC, indexStream);
         }
     }
 
@@ -1764,43 +1789,70 @@ public class FileManager {
         }
     }
 
+    /**
+     * Returns contents of a directory, specified by path, to browse NGS files
+     *
+     * @param path a path to directory to browse
+     * @return {@link List} of {@link FsDirectory}s, and {@link FsFile}, representing subdirectories and files
+     * @throws IOException
+     */
     public List<AbstractFsItem> loadDirectoryContents(String path) throws IOException {
         if (!filesBrowsingAllowed) {
             throw new AccessDeniedException("Server file system browsing is not allowed");
         }
 
-        File parentDir;
+        List<File> parentDirs = new ArrayList<>();
         if (path == null) {
-            parentDir = new File(ngsDataRootPath);
+            if ("/".equals(ngsDataRootPath)) {
+                parentDirs = Arrays.asList(File.listRoots());
+            } else {
+                parentDirs.add(new File(ngsDataRootPath));
+            }
         } else {
-            parentDir = new File(path);
+            parentDirs.add(new File(path));
         }
 
-        Assert.isTrue(parentDir.exists(), "Specified path does not exist: " + path);
-        Assert.isTrue(parentDir.isDirectory(), "Specified path is not a directory: " + path);
-
-        if (parentDir.listFiles() == null){
-            return Collections.emptyList();
-        }
+        Assert.isTrue(parentDirs.stream().allMatch(File::exists), "Specified path does not exist: " + path);
+        Assert.isTrue(parentDirs.stream().allMatch(File::isDirectory), "Specified path is not a directory: " + path);
 
         List<AbstractFsItem> items = new ArrayList<>();
 
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(parentDir.toPath())) {
-            for (Path child : dirStream) {
-                File childFile = child.toFile();
-                if (childFile.isDirectory()) {
-                    FsDirectory directory = new FsDirectory();
-                    directory.setPath(childFile.getAbsolutePath());
-                    directory.setFileCount(countChildrenFiles(child));
+        boolean accessDenied = false;
+        String fileName = "";
+        String otherFileName = "";
 
-                    items.add(directory);
-                } else {
-                    addFsFile(items, childFile);
+        for (File parentDir : parentDirs) {
+            if (parentDir.listFiles() == null) {
+                continue;
+            }
+
+            try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(parentDir.toPath())) {
+                for (Path child : dirStream) {
+                    try {
+                        File childFile = child.toFile();
+                        if (childFile.isDirectory()) {
+                            FsDirectory directory = new FsDirectory();
+                            directory.setPath(childFile.getAbsolutePath());
+                            if (childFile.canRead()) {
+                                directory.setFileCount(countChildrenFiles(child));
+                            }
+
+                            items.add(directory);
+                        } else {
+                            addFsFile(items, childFile);
+                        }
+                    } catch (AccessDeniedException e) {
+                        LOGGER.error("Access denied:", e);
+                        accessDenied = true;
+                        fileName = e.getFile();
+                        otherFileName = e.getOtherFile();
+                    }
+                }
+
+                if (items.isEmpty() && accessDenied) {
+                    throw new AccessDeniedException(fileName, otherFileName, "Access denied");
                 }
             }
-        } catch (AccessDeniedException e) {
-            LOGGER.error("Access denied:", e);
-            throw new AccessDeniedException(e.getFile(), e.getOtherFile(), "Access denied");
         }
 
         return items;
@@ -1812,7 +1864,7 @@ public class FileManager {
         fsFile.setSize(childFile.length());
         fsFile.setFormat(NgbFileUtils.getFormatByExtension(childFile.getName()));
 
-        if (fsFile.getFormat() != null && fsFile.getFormat() != BiologicalDataItemFormat.REFERENCE) {
+        if (fsFile.getFormat() != null && NgbFileUtils.isFileBrowsingAllowed(fsFile.getFormat())) {
             items.add(fsFile);
         }
     }
@@ -1828,7 +1880,7 @@ public class FileManager {
             while (iter.hasNext()) {
                 File file = iter.next().toFile();
                 BiologicalDataItemFormat format = NgbFileUtils.getFormatByExtension(file.getName());
-                if (file.isDirectory() || (format != null && format != BiologicalDataItemFormat.REFERENCE)) {
+                if (file.isDirectory() || (format != null && NgbFileUtils.isFileBrowsingAllowed(format))) {
                     count++;
                 }
             }
@@ -1910,8 +1962,12 @@ public class FileManager {
         makeDir(substitute(USER_DIR, params));
     }
 
+    public String getNgsDataRootPath() {
+        return ngsDataRootPath;
+    }
+
     private void makeTabixIndex(final File sourceFile, final File indexFile,
-                               final AsciiFeatureCodec codec, final TabixFormat format) throws IOException {
+                                final AsciiFeatureCodec codec, final TabixFormat format) throws IOException {
         TabixIndex index = IndexFactory.createTabixIndex(sourceFile, codec, format, null);
         index.write(indexFile);
     }
@@ -2004,6 +2060,7 @@ public class FileManager {
     enum FilePathPlaceholder {
         ID,
         DIR_ID,
+        REF_NAME,
         USER_ID,
         PROJECT_ID,
         CHROMOSOME_NAME,

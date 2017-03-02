@@ -108,7 +108,7 @@ public class MafManager {
         if (request.getType() == null) {
             request.setType(BiologicalDataItemResourceType.FILE);
         }
-        MafFile mafFile = null;
+        MafFile mafFile;
         try {
             switch (request.getType()) {
                 case FILE:
@@ -120,16 +120,8 @@ public class MafManager {
                 default:
                     throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
             }
-
-            biologicalDataItemManager.createBiologicalDataItem(mafFile.getIndex());
-            mafFileManager.createMafFile(mafFile);
         } catch (IOException | NoSuchAlgorithmException e) {
             throw new RegistrationException("Error while registering MAF file " + requestPath, e);
-        } finally {
-            if (mafFile != null && mafFile.getId() != null &&
-                    mafFileManager.loadMafFile(mafFile.getId()) == null) {
-                biologicalDataItemManager.deleteBiologicalDataItem(mafFile.getBioDataItemId());
-            }
         }
         return mafFile;
     }
@@ -158,11 +150,18 @@ public class MafManager {
         mafFile.setCreatedBy(AuthUtils.getCurrentUserId());
         mafFile.setReferenceId(request.getReferenceId());
         mafFile.setRealPath(request.getPath());
-
-        processRegistration(mafFile, file, request);
-        double time2 = Utils.getSystemTimeMilliseconds();
-        LOGGER.debug("MAF registration completed in {} ms", time2 - time1);
-
+        try {
+            processRegistration(mafFile, file, request);
+            double time2 = Utils.getSystemTimeMilliseconds();
+            LOGGER.debug("MAF registration completed in {} ms", time2 - time1);
+            biologicalDataItemManager.createBiologicalDataItem(mafFile.getIndex());
+            mafFileManager.createMafFile(mafFile);
+        } finally {
+            if (mafFile.getId() != null && mafFile.getBioDataItemId() != null &&
+                    mafFileManager.loadMafFileNullable(mafFile.getId()) == null) {
+                biologicalDataItemManager.deleteBiologicalDataItem(mafFile.getBioDataItemId());
+            }
+        }
         return mafFile;
     }
 

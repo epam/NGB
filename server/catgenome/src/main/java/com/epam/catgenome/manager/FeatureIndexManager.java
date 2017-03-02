@@ -253,23 +253,52 @@ public class FeatureIndexManager {
      * @return a {@code List} of {@code VcfIndexEntry}, representing variations that satisfy the filter
      * @throws IOException
      */
-    public List<VcfIndexEntry> filterVariations(VcfFilterForm filterForm, long projectId) throws IOException {
+    public IndexSearchResult<VcfIndexEntry> filterVariations(VcfFilterForm filterForm, long projectId)
+        throws IOException {
         Project project = projectManager.loadProject(projectId);
         List<VcfFile> files = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
             .collect(Collectors.toList());
         if (filterForm.getPage() != null && filterForm.getPageSize() != null) {
-            return (List<VcfIndexEntry>) featureIndexDao.searchFileIndexesPaging(files,
+            IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexesPaging(files,
                                                      filterForm.computeQuery2(FeatureType.VARIATION),
                                                      filterForm.getInfoFields(), filterForm.getPage(),
-                                                     filterForm.getPageSize(), filterForm.getOrderBy()).getEntries();
+                                                     filterForm.getPageSize(), filterForm.getOrderBy());
+            res.setTotalPagesCount(getTotalPagesCount(filterForm, projectId));
+            return res;
         } else {
-            return (List<VcfIndexEntry>) featureIndexDao.searchFileIndexes(files,
-                                                                       filterForm.computeQuery2(FeatureType.VARIATION),
-                                                                       filterForm.getInfoFields(), null,
-                                                                       null).getEntries();
+            IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexes(files, filterForm.computeQuery2(
+                FeatureType.VARIATION), filterForm.getInfoFields(), null, null);
+            res.setExceedsLimit(false);
+            return res;
         }
+    }
+
+    public int getTotalPagesCount(VcfFilterForm filterForm) throws IOException {
+        if (filterForm.getPageSize() == null) {
+            throw new IllegalArgumentException("No page size is specified");
+        }
+
+        List<VcfFile> files = vcfFileManager.loadVcfFiles(filterForm.getVcfFileIds());
+        int totalCount = featureIndexDao.getTotalVariationsCountFacet(files, filterForm.computeQuery2(
+            FeatureType.VARIATION));
+        return (int) Math.ceil(totalCount / filterForm.getPageSize().doubleValue());
+    }
+
+    public int getTotalPagesCount(VcfFilterForm filterForm, long projectId) throws IOException {
+        if (filterForm.getPageSize() == null) {
+            throw new IllegalArgumentException("No page size is specified");
+        }
+
+        Project project = projectManager.loadProject(projectId);
+        List<VcfFile> files = project.getItems().stream()
+            .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
+            .map(i -> (VcfFile) i.getBioDataItem())
+            .collect(Collectors.toList());
+        int totalCount = featureIndexDao.getTotalVariationsCountFacet(files, filterForm.computeQuery2(
+            FeatureType.VARIATION));
+        return (int) Math.ceil(totalCount / filterForm.getPageSize().doubleValue());
     }
 
     /**
@@ -310,17 +339,21 @@ public class FeatureIndexManager {
      * @return a {@code List} of {@code VcfIndexEntry}, representing variations that satisfy the filter
      * @throws IOException
      */
-    public List<VcfIndexEntry> filterVariations(VcfFilterForm filterForm) throws IOException {
+    public IndexSearchResult<VcfIndexEntry> filterVariations(VcfFilterForm filterForm) throws IOException {
         List<VcfFile> files = vcfFileManager.loadVcfFiles(filterForm.getVcfFileIds());
         if (filterForm.getPage() != null && filterForm.getPageSize() != null) {
-            return (List<VcfIndexEntry>) featureIndexDao.searchFileIndexesPaging(files,
-                                                     filterForm.computeQuery2(FeatureType.VARIATION),
-                                                     filterForm.getInfoFields(), filterForm.getPage(),
-                                                     filterForm.getPageSize(), filterForm.getOrderBy()).getEntries();
+            IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexesPaging(files,
+                                                                   filterForm.computeQuery2(FeatureType.VARIATION),
+                                                                   filterForm.getInfoFields(), filterForm.getPage(),
+                                                                   filterForm.getPageSize(), filterForm.getOrderBy());
+            res.setTotalPagesCount(getTotalPagesCount(filterForm));
+            return res;
         } else {
-            return (List<VcfIndexEntry>) featureIndexDao.searchFileIndexes(files,
+            IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexes(files,
                                filterForm.computeQuery2(FeatureType.VARIATION), filterForm.getInfoFields(),
-                                                                           null, null).getEntries();
+                                                                           null, null);
+            res.setExceedsLimit(false);
+            return res;
         }
     }
 
@@ -336,14 +369,15 @@ public class FeatureIndexManager {
             return new IndexSearchResult(Collections.emptyList(), false, 0);
         }
 
-        IndexSearchResult bookmarkSearchRes = bookmarkManager.searchBookmarks(featureId, maxFeatureSearchResultsCount);
+        IndexSearchResult<FeatureIndexEntry> bookmarkSearchRes = bookmarkManager.searchBookmarks(featureId,
+                                                                                         maxFeatureSearchResultsCount);
 
         Project project = projectManager.loadProject(projectId);
         Optional<Reference> opt = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE)
             .map(i -> (Reference) i.getBioDataItem()).findFirst();
         if (opt.isPresent() && opt.get().getGeneFile() != null) {
-            IndexSearchResult res = featureIndexDao.searchFeatures(featureId,
+            IndexSearchResult<FeatureIndexEntry> res = featureIndexDao.searchFeatures(featureId,
                                                   geneFileManager.loadGeneFile(opt.get().getGeneFile().getId()),
                                                   maxFeatureSearchResultsCount);
             bookmarkSearchRes.mergeFrom(res);
@@ -355,10 +389,11 @@ public class FeatureIndexManager {
 
     public IndexSearchResult searchFeaturesByReference(String featureId, long referenceId) throws IOException {
         if (featureId == null || featureId.length() < 2) {
-            return new IndexSearchResult(Collections.emptyList(), false, 0);
+            return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
 
-        IndexSearchResult bookmarkSearchRes = bookmarkManager.searchBookmarks(featureId, maxFeatureSearchResultsCount);
+        IndexSearchResult<FeatureIndexEntry> bookmarkSearchRes = bookmarkManager.searchBookmarks(featureId,
+                                                                                         maxFeatureSearchResultsCount);
 
         Reference reference = referenceGenomeManager.loadReferenceGenome(referenceId);
         if (reference.getGeneFile() != null) {
@@ -475,9 +510,8 @@ public class FeatureIndexManager {
             Chromosome chromosome) {
         final NggbIntervalTreeMap<List<Gene>> genesRangeMap = new NggbIntervalTreeMap<>();
         try {
-            IndexSearchResult searchResult = featureIndexDao
-                    .searchFeaturesInInterval(Collections.singletonList(geneFile), start, end,
-                            chromosome);
+            IndexSearchResult<FeatureIndexEntry> searchResult = featureIndexDao.searchFeaturesInInterval(
+                Collections.singletonList(geneFile), start, end, chromosome);
             searchResult.getEntries().stream().filter(f -> f.getFeatureType() == FeatureType.EXON
                     || f.getFeatureType() == FeatureType.GENE).map(f -> {
                         Gene gene = new Gene();
@@ -843,6 +877,7 @@ public class FeatureIndexManager {
                 || chromosomeMap.containsKey(Utils.changeChromosomeName(feature.getContig()))) {
             FeatureIndexEntry masterEntry = new FeatureIndexEntry();
             masterEntry.setFeatureId(feature.getFeatureId());
+            masterEntry.setUuid(UUID.randomUUID());
             masterEntry.setChromosome(chromosomeMap.containsKey(feature.getContig()) ?
                     chromosomeMap.get(feature.getContig()) :
                     chromosomeMap.get(Utils.changeChromosomeName(feature.getContig())));

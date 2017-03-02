@@ -48,6 +48,8 @@ import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.seg.SegFile;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.wig.WigFile;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +77,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     private String loadBiologicalDataItemsByIdsQuery;
     private String deleteBiologicalDataItemQuery;
     private String loadBiologicalDataItemsByNameStrictQuery;
+    private String loadBiologicalDataItemsByNamesStrictQuery;
     private String loadBiologicalDataItemsByNameQuery;
 
     @Autowired
@@ -166,6 +169,21 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         params.addValue(BiologicalDataItemParameters.NAME.name(), name);
         return getNamedParameterJdbcTemplate().query(loadBiologicalDataItemsByNameStrictQuery,
                 params, getRowMapper());
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public List<BiologicalDataItem> loadFilesByNamesStrict(final List<String> names) {
+        if (CollectionUtils.isEmpty(names)) {
+            return Collections.emptyList();
+        }
+
+        long listId = daoHelper.createTempStringList(names);
+
+        List<BiologicalDataItem> items = getJdbcTemplate().query(loadBiologicalDataItemsByNamesStrictQuery,
+                                                     getRowMapper(), listId);
+
+        daoHelper.clearTempStringList(listId);
+        return items;
     }
 
     /**
@@ -535,5 +553,10 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadBiologicalDataItemsByNameQuery(String loadBiologicalDataItemsByNameQuery) {
         this.loadBiologicalDataItemsByNameQuery = loadBiologicalDataItemsByNameQuery;
+    }
+
+    @Required
+    public void setLoadBiologicalDataItemsByNamesStrictQuery(String loadBiologicalDataItemsByNamesStrictQuery) {
+        this.loadBiologicalDataItemsByNamesStrictQuery = loadBiologicalDataItemsByNamesStrictQuery;
     }
 }

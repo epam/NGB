@@ -1,0 +1,11 @@
+<div ng-if="$ctrl.searchItem.__type__ === 'hint'" class="coordinates-menu-item hint">
+    {{$ctrl.searchItem.hint}}
+</div>
+<md-button ng-if="$ctrl.searchItem.__type__ === 'item'"
+           aria-label="{{$ctrl.searchItem.name}} menu button"
+           class="coordinates-menu-item"
+           ng-click="$ctrl.coordinatesController.didSelectSearchItem($ctrl.searchItem);">
+    <span ng-if="$ctrl.searchItem.type === 'feature'" class="context-menu-item">{{$ctrl.searchItem.name}}</span>
+    <span ng-if="$ctrl.searchItem.type === 'feature'" class="context-menu-item-subtitle">{{$ctrl.searchItem.subTitle}}</span>
+    <span ng-if="$ctrl.searchItem.type === 'chromosome'" class="context-menu-item">{{$ctrl.searchItem.name}}</span>
+</md-button>

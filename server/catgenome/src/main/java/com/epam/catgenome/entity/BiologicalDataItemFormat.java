@@ -114,7 +114,13 @@ public enum BiologicalDataItemFormat {
     VG(15),
 
     /**
-     * A some unknown index format. Should not be used
+     * A reference index item
+     */
+    REFERENCE_INDEX(16, true),
+
+
+    /**
+     * A some unknown index format. Used for dummy index reference.
      */
     INDEX(-1, true);
 
@@ -138,6 +144,8 @@ public enum BiologicalDataItemFormat {
         idMap.put(MAF.id, MAF);
         idMap.put(MAF_INDEX.id, MAF_INDEX);
         idMap.put(VG.id, VG);
+        idMap.put(REFERENCE_INDEX.id, REFERENCE_INDEX);
+        idMap.put(INDEX.id, INDEX);
     }
 
     BiologicalDataItemFormat(long id) {

@@ -27,21 +27,21 @@ export default class NgbBookmarksTableService {
                 field: 'chromosome.name',
                 headerCellTemplate: headerCells,
                 minWidth: 50,
-                name: 'Chromosome',
+                name: 'Chr',
                 width: '*'
             },
             {
                 field: 'startIndex',
                 headerCellTemplate: headerCells,
                 minWidth: 50,
-                name: 'Start Position',
+                name: 'Start',
                 width: '*',
             },
             {
                 field: 'endIndex',
                 headerCellTemplate: headerCells,
                 minWidth: 50,
-                name: 'End Position',
+                name: 'End',
                 width: '*',
             },
             {

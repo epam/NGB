@@ -27,15 +27,15 @@ package com.epam.catgenome.entity.reference;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.IndexedDataItem;
 import com.epam.catgenome.entity.gene.GeneFile;
 
 /**
  * {@code Reference} represents a business entity designed to handle information that
  * describes a reference.
  */
-public class Reference extends BiologicalDataItem {
+public class Reference extends IndexedDataItem {
 
     private Long bioDataItemId;
     /**

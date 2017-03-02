@@ -1,0 +1,33 @@
+<div class="ngb-track-header-action-buttons" layout="row" layout-align="start center">
+    <div class="ngb-track-header-action-button" ng-repeat="action in ctrl.actions">
+        <div ng-if="action.enabled()">
+            <div ng-if="action.type === 'checkbox'"
+                 layout="row"
+                 layout-align="start center">
+                <md-checkbox class="ngb-track-header-checkbox md-warn"
+                             aria-label="action"
+                             md-no-ink
+                             ng-mousedown="$event.stopImmediatePropagation();"
+                             ng-click="ctrl.handle(action);"
+                             ng-checked="action.value()"
+                >
+                </md-checkbox>
+                {{action.label}}
+            </div>
+            <div ng-if="action.type === 'groupLinks'"
+                 class="ngb-track-header-action-group-links"
+                 layout="row"
+                 layout-align="start center">
+                {{action.label}}:
+                <div ng-repeat="link in action.links">
+                    <a class="link-action" href="" ng-click="ctrl.handle(link);">{{link.label}}</a>
+                </div>
+            </div>
+        </div>
+        <div ng-hide="action.enabled()"
+             class="ngb-track-header-message"
+             layout="row"
+             layout-align="start center">{{action.disabledMessage()}}
+        </div>
+    </div>
+</div>

@@ -1,0 +1,28 @@
+.ngb-track-header-action-buttons{
+  height: 100%;
+  display: table;
+  margin-right: 5px;
+}
+
+.ngb-track-header-action-button {
+  border-left: 1px solid #cccccc;
+  padding-right: 5px;
+  height: 100%;
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.ngb-track-header-action-button:last-child {
+  border-right: 1px solid #cccccc;
+}
+
+.ngb-track-header-checkbox {
+  transform: scale(.6);
+  margin: 0px;
+  width: 20px;
+}
+
+.ngb-track-header-message {
+  margin-left: 5px;
+  color: #666666;
+}

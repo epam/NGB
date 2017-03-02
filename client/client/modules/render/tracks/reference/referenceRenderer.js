@@ -1,9 +1,12 @@
+import * as modes from './reference.modes';
 import {CachedTrackRenderer, drawingConfiguration} from '../../core';
 import PIXI from 'pixi.js';
 
 const Math = window.Math;
 
 export default class ReferenceRenderer extends CachedTrackRenderer{
+
+    _noGCContentLabel;
 
     constructor(config){
         super();
@@ -18,8 +21,13 @@ export default class ReferenceRenderer extends CachedTrackRenderer{
         super.rebuildContainer(viewport, cache);
         this._changeReferenceGraph(viewport, cache.data);
     }
+
+    translateContainer(viewport, cache) {
+        super.translateContainer(viewport, cache);
+        this._updateNoGCContentLable(viewport, cache.data);
+    }
     
-    _changeDetailedReferenceGraph(viewport, reference) {
+    _changeNucleotidesReferenceGraph(viewport, reference) {
         const block = new PIXI.Graphics();
         const pixelsPerBp = viewport.factor;
         let padding = pixelsPerBp / 2.0;
@@ -57,7 +65,7 @@ export default class ReferenceRenderer extends CachedTrackRenderer{
         }
     }
     
-    _changeHighScaleReferenceGraph(viewport, reference) {
+    _changeGCContentReferenceGraph(viewport, reference) {
         const block = new PIXI.Graphics();
         for (let i = 0; i < reference.items.length; i++){
             const item = reference.items[i];
@@ -88,12 +96,22 @@ export default class ReferenceRenderer extends CachedTrackRenderer{
         if (reference === null || reference === undefined)
             return;
         this.dataContainer.removeChildren();
-        if (!reference.isDetailed){
-            this._changeHighScaleReferenceGraph(viewport, reference);
+        this._updateNoGCContentLable(viewport, reference);
+        switch (reference.mode) {
+            case modes.gcContent: this._changeGCContentReferenceGraph(viewport, reference); break;
+            case modes.nucleotides: this._changeNucleotidesReferenceGraph(viewport, reference); break;
         }
-        else{
-            this._changeDetailedReferenceGraph(viewport, reference);
+    }
+
+    _updateNoGCContentLable(viewport, reference) {
+        if (!this._noGCContentLabel) {
+            this._noGCContentLabel = new PIXI.Text(this._config.noGCContent.text, this._config.noGCContent.labelStyle);
+            this._noGCContentLabel.resolution = drawingConfiguration.resolution;
+            this.container.addChild(this._noGCContentLabel);
         }
+        this._noGCContentLabel.x = Math.round(viewport.canvasSize / 2 - this._noGCContentLabel.width / 2.0);
+        this._noGCContentLabel.y = Math.round(this.height / 2.0 - this._noGCContentLabel.height / 2.0);
+        this._noGCContentLabel.visible = reference.mode === modes.gcContentNotProvided;
     }
 
     _gradientColor(value){

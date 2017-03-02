@@ -46,7 +46,7 @@ ngb-golden-layout {
     background: #3262ba;
     color: #e7e7e7;
     font-size: 12px;
-    height: 34px;
+    height: 24px;
     padding-bottom: 2px;
     margin-right: 2px;
     border: 1px solid #2c4f9e;
@@ -54,13 +54,13 @@ ngb-golden-layout {
   }
 
   .lm_header .lm_tab .lm_title {
-    padding-top: 10px;
+    padding-top: 6px;
     font-size: 14px;
     text-transform: uppercase;
   }
 
   .lm_header .lm_tab .lm_close_tab {
-    padding-top: 18px;
+    padding-top: 9px;
   }
 
   .lm_tab.lm_active,
@@ -102,7 +102,7 @@ ngb-golden-layout {
   }
 
   .lm_header .lm_controls {
-    padding-top: 3px;
+    padding-top: 0px;
     > li {
       width: $lm_controls-font;
       height: $lm_controls-font;
@@ -150,7 +150,7 @@ ngb-golden-layout {
     -ms-transition: opacity 300ms ease;
     -moz-transition: opacity 300ms ease;
     transition: opacity 300ms ease;
-    margin-top: 5px;
+    margin-top: 3px;
   }
 
   .lm_controls > li:hover {

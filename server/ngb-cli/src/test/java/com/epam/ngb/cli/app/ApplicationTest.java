@@ -32,25 +32,32 @@ public class ApplicationTest extends AbstractCliTest{
 
     @Test
     public void runEmpty() throws Exception {
-        Application application = new Application();
+        Application application = new TestApplication();
         Assert.assertNotEquals(RUN_STATUS_OK, application.run(new String[]{}));
     }
 
     @Test
     public void runHelp() throws Exception {
-        Application application = new Application();
+        Application application = new TestApplication();
         Assert.assertEquals(RUN_STATUS_OK, application.run(new String[]{"--help"}));
     }
 
     @Test
     public void runUnknownCommand() throws Exception {
-        Application application = new Application();
+        Application application = new TestApplication();
         Assert.assertNotEquals(RUN_STATUS_OK, application.run(new String[]{"UNKNOWN"}));
     }
 
     @Test
     public void runUnsupportedOption() throws Exception {
-        Application application = new Application();
+        Application application = new TestApplication();
         Assert.assertNotEquals(RUN_STATUS_OK, application.run(new String[]{"search", "query", "-f"}));
+    }
+
+    private class TestApplication extends Application {
+        @Override
+        protected void exit(int code) {
+            // do nothing here
+        }
     }
 }

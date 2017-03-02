@@ -64,6 +64,9 @@ md-toolbar.md-header-toolbar {
   height: 53px;
   width: 53px;
   box-sizing: border-box;
+  md-icon{
+    fill: white;
+  }
 }
 
 md-toolbar.md-project-toolbar {

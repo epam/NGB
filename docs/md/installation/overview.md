@@ -1,10 +1,10 @@
 # NGB installation
 
-There are two options to install NGB
+There are three options to install NGB
 
+* **[Build and run a standalone jar file](standalone.md)**
 * **[Use Docker image](docker.md)**
 * **[Install web-archive (war file) to tomcat](binaries.md)**
-* **[Build and run a standalone jar file](standalone.md)**
 
 These options are described in details in the subsequent sections.
 
@@ -18,3 +18,9 @@ Despite this, the following minimal requirements should be met for the server ho
     * Ubuntu >= 14.04
     * CentOS >= 6
     * RedHat >= 6
+* Client web-browser requirements
+    * Chrome (>= 56)
+    * Firefox (>= 51)
+    * Safari (>= 9)
+    * EDGE (>= 25)
+

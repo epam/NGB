@@ -67,6 +67,8 @@ public abstract class AbstractTrack extends BaseEntity {
      */
     protected Chromosome chromosome;
 
+    protected ReferenceTrackMode mode;
+
     public TrackType getType() {
         return type;
     }
@@ -105,5 +107,13 @@ public abstract class AbstractTrack extends BaseEntity {
 
     public void setChromosome(Chromosome chromosome) {
         this.chromosome = chromosome;
+    }
+
+    public ReferenceTrackMode getMode() {
+        return mode;
+    }
+
+    public void setMode(ReferenceTrackMode mode) {
+        this.mode = mode;
     }
 }

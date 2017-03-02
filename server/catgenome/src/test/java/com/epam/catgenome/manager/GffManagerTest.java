@@ -40,11 +40,15 @@ import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
 
+import com.epam.catgenome.controller.util.UrlTestingUtils;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.jetty.server.Server;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -202,6 +206,41 @@ public class GffManagerTest extends AbstractManagerTest {
     public void testRegisterZippedGtf() throws InterruptedException, FeatureIndexException, IOException,
                                          NoSuchAlgorithmException, HistogramReadingException, GeneReadingException {
         Assert.assertTrue(testRegister("classpath:templates/genes_sorted.gtf.gz"));
+    }
+
+    @Test
+    @Ignore
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterUrl() throws Exception {
+        final String path = "/genes_sorted.gtf";
+        String fileUrl = UrlTestingUtils.TEST_FILE_SERVER_URL + path;
+        String indexUrl = UrlTestingUtils.TEST_FILE_SERVER_URL + "/genes_sorted.gtf.tbi";
+
+        Server server = UrlTestingUtils.getFileServer(context);
+        try {
+            server.start();
+
+            FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+            request.setReferenceId(referenceId);
+            request.setPath(fileUrl);
+            request.setIndexPath(indexUrl);
+            request.setType(BiologicalDataItemResourceType.URL);
+            request.setIndexType(BiologicalDataItemResourceType.URL);
+
+            GeneFile geneFile = gffManager.registerGeneFile(request);
+            Assert.assertNotNull(geneFile);
+            Assert.assertNotNull(geneFile.getId());
+
+            Track<Wig> histogram = new Track<>();
+            histogram.setId(geneFile.getId());
+            histogram.setChromosome(testChromosome);
+            histogram.setScaleFactor(1.0);
+
+            gffManager.loadHistogram(histogram);
+            Assert.assertTrue(histogram.getBlocks().isEmpty());
+        } finally {
+            server.stop();
+        }
     }
 
     @Test
@@ -413,7 +452,7 @@ public class GffManagerTest extends AbstractManagerTest {
         track.setChromosome(otherChromosome);
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
         try {
-            Track<GeneTranscript> featureList = gffManager.loadGenesTranscript(track);
+            Track<GeneTranscript> featureList = gffManager.loadGenesTranscript(track, null, null);
             Assert.assertNotNull(featureList);
             Assert.assertFalse(featureList.getBlocks().isEmpty());
             Gene testGene = featureList.getBlocks().get(0);

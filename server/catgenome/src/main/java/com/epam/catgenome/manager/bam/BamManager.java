@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,7 +124,7 @@ public class BamManager {
         } finally {
             if (newBamFile != null && newBamFile.getId() != null
                     && bamFileManager.loadBamFile(newBamFile.getId()) == null) {
-                biologicalDataItemManager.deleteBiologicalDataItem(newBamFile.getBioDataItemId());
+                biologicalDataItemManager.deleteBiologicalDataItem(newBamFile.getId());
             }
         }
 
@@ -255,16 +257,29 @@ public class BamManager {
      * @return a {@link Read} object
      * @throws IOException if somwthing goes wrong with the filesystem
      */
-    public Read loadRead(final ReadQuery query) throws IOException {
+    public Read loadRead(final ReadQuery query, String fileUrl, String indexUrl) throws IOException {
         Assert.notNull(query, MessagesConstants.ERROR_NULL_PARAM);
-        Assert.notNull(query.getId(), MessagesConstants.ERROR_NULL_PARAM);
+        Assert.isTrue(query.getId() != null ||
+                      (StringUtils.isNotBlank(fileUrl) && StringUtils.isNotBlank(indexUrl)),
+                      MessagesConstants.ERROR_NULL_PARAM);
+
         Assert.notNull(query.getChromosomeId(), MessagesConstants.ERROR_NULL_PARAM);
         Assert.notNull(query.getStartIndex(), MessagesConstants.ERROR_NULL_PARAM);
         Assert.notNull(query.getEndIndex(), MessagesConstants.ERROR_NULL_PARAM);
         Assert.notNull(query.getName(), MessagesConstants.ERROR_NULL_PARAM);
 
         final Chromosome chromosome = referenceGenomeManager.loadChromosome(query.getChromosomeId());
-        BamFile bamFile = bamFileManager.loadBamFile(query.getId());
+        BamFile bamFile;
+        if (query.getId() != null) {
+            bamFile= bamFileManager.loadBamFile(query.getId());
+        } else {
+            bamFile = bamHelper.makeUrlBamFile(fileUrl, indexUrl, chromosome.getReferenceId());
+        }
+        return getReadFromBamFile(query, chromosome, bamFile);
+    }
+
+    @Nullable
+    private Read getReadFromBamFile(ReadQuery query, Chromosome chromosome, BamFile bamFile) throws IOException {
         try (SamReader reader = bamHelper.makeSamReader(bamFile, Collections.singletonList(chromosome),
                                                         chromosome.getReferenceId())) {
             String chromosomeName = chromosome.getName();
@@ -272,7 +287,8 @@ public class BamManager {
                 chromosomeName = Utils.changeChromosomeName(chromosomeName);
             }
 
-            SAMRecordIterator iterator = reader.query(chromosomeName, query.getStartIndex(), query.getEndIndex(), true);
+            SAMRecordIterator iterator = reader.query(chromosomeName, query.getStartIndex(), query.getEndIndex(),
+                                                      true);
             while (iterator.hasNext()) {
                 final SAMRecord samRecord = iterator.next();
                 if (samRecord.getReadName().equals(query.getName())) {
@@ -280,7 +296,7 @@ public class BamManager {
                     option.setRefID(chromosome.getReferenceId());
                     option.setChromosomeName(chromosome.getName());
                     SAMRecordHandler recordHandler = new SAMRecordHandler(query.getStartIndex(), query.getEndIndex(),
-                                                                  referenceManager, null, option);
+                                                                          referenceManager, null, option);
                     List<BasePosition> diffBase = recordHandler.computeDifferentBase(samRecord);
                     return BamUtil.createExtendedRead(samRecord, diffBase);
                 }

@@ -139,49 +139,49 @@ export default angular.module('dndLists', [])
                 offDragging();
                 offDragend();
 
-                scope.$apply(function () {
-                    const dndList = scope.$eval(attr.dndList);
+                const dndList = scope.$eval(attr.dndList);
 
-                    const entryPlaceholder = {};
-                    const originalIndex = dndList.indexOf(transferable);
-                    //replace with placeholder to keep index
-                    if (originalIndex !== -1)
-                        dndList.splice(originalIndex, 1, entryPlaceholder);
+                const entryPlaceholder = {};
+                const originalIndex = dndList.indexOf(transferable);
+                //replace with placeholder to keep index
+                if (originalIndex !== -1)
+                    dndList.splice(originalIndex, 1, entryPlaceholder);
 
 
-                    if (index >= originalIndex)
-                        index++; //It definitely has logic why it works in that way, I just cannot explain it.
+                if (index >= originalIndex)
+                    index++; //It definitely has logic why it works in that way, I just cannot explain it.
 
-                    dndList.splice(index, 0, transferable);
+                dndList.splice(index, 0, transferable);
 
-                    //remove placeholder
-                    if (originalIndex !== -1)
-                        dndList.splice(dndList.indexOf(entryPlaceholder), 1);
+                //remove placeholder
+                if (originalIndex !== -1)
+                    dndList.splice(dndList.indexOf(entryPlaceholder), 1);
 
-                    const tracksSettings = scope.ctrl.projectContext.tracksState || [];
+                const tracksSettings = scope.ctrl.projectContext.tracksState || [];
 
-                    const tracksState = [
-                        ...dndList.map(file => {
-                            const [fileSettings]= tracksSettings.filter(m => m.bioDataItemId.toString() === file.bioDataItemId.toString());
-                            if (!fileSettings) {
-                                return {
-                                    bioDataItemId: file.bioDataItemId,
-                                    projectId: file.projectId
-                                };
-                            } else {
-                                const height = fileSettings.height;
-                                const state = fileSettings.state;
-                                return {
-                                    height, state,
-                                    bioDataItemId: file.bioDataItemId,
-                                    projectId: file.projectId
-                                };
-                            }
-                        })];
+                const tracksState = [
+                    ...dndList.map(file => {
+                        const [fileSettings]= tracksSettings.filter(m => m.bioDataItemId.toString().toLowerCase() === file.name.toString().toLowerCase());
+                        if (!fileSettings) {
+                            return {
+                                bioDataItemId: file.name,
+                                projectId: file.projectId
+                            };
+                        } else {
+                            const height = fileSettings.height;
+                            const state = fileSettings.state;
+                            const index = fileSettings.index;
+                            const format = fileSettings.format;
+                            return {
+                                height, state, index, format,
+                                bioDataItemId: file.name,
+                                projectId: file.projectId
+                            };
+                        }
+                    })];
 
-                    scope.ctrl.projectContext.changeState({tracksState}, true);
-
-                });
+                scope.ctrl.projectContext.changeState({tracksState, tracksReordering: true}, true);
+                scope.$apply();
             });
 
             const completeInit = () => {

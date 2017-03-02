@@ -36,6 +36,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.controller.util.UrlTestingUtils;
+import org.eclipse.jetty.server.Server;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -117,6 +119,72 @@ public class GeneControllerTest extends AbstractControllerTest {
         Assert.assertNotNull(testReference);
         testChromosome = testReference.getChromosomes().get(0);
         referenceId = testReference.getId();
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void saveLoadGeneByUri() throws Exception {
+        Resource resource = context.getResource("classpath:templates/genes_sorted.gtf");
+        Resource index = context.getResource("classpath:templates/genes_sorted.gtf.tbi");
+
+        // Load a track by fileId
+        TrackQuery trackQuery = initTrackQuery(1L);
+        trackQuery.setId(null);
+
+        ResultActions actions = mvc().perform(post(String.format(URL_LOAD_GENES, testReference.getId()))
+                .content(getObjectMapper().writeValueAsString(trackQuery))
+                .param("fileUrl", resource.getFile().getAbsolutePath())
+                .param("indexUrl", index.getFile().getAbsolutePath())
+                .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+        actions.andDo(MockMvcResultHandlers.print());
+
+        ResponseResult<Track<GeneHighLevel>> geneRes = getObjectMapper()
+                .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
+                        getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                                getTypeFactory().constructParametrizedType(Track.class, Track.class,
+                                        GeneHighLevel.class)));
+
+        Assert.assertFalse(geneRes.getPayload().getBlocks().isEmpty());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void saveLoadGeneByUrl() throws Exception {
+        String geneUrl = UrlTestingUtils.TEST_FILE_SERVER_URL + "/genes_sorted.gtf";
+        String indexUrl = UrlTestingUtils.TEST_FILE_SERVER_URL + "/genes_sorted.gtf.tbi";
+        Server server = UrlTestingUtils.getFileServer(context);
+
+        try {
+            server.start();
+
+            // Load a track by fileId
+            TrackQuery trackQuery = initTrackQuery(1L);
+            trackQuery.setId(null);
+            ResultActions actions = mvc().perform(post(String.format(URL_LOAD_GENES, testReference.getId()))
+                    .content(getObjectMapper().writeValueAsString(trackQuery))
+                    .param("fileUrl", geneUrl)
+                    .param("indexUrl", indexUrl)
+                    .contentType(EXPECTED_CONTENT_TYPE))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
+                    .andExpect(jsonPath(JPATH_PAYLOAD).exists())
+                    .andExpect(jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+            actions.andDo(MockMvcResultHandlers.print());
+
+            ResponseResult<Track<GeneHighLevel>> geneRes = getObjectMapper()
+                    .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
+                            getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                                    getTypeFactory().constructParametrizedType(Track.class, Track.class,
+                                            GeneHighLevel.class)));
+
+            Assert.assertFalse(geneRes.getPayload().getBlocks().isEmpty());
+        } finally {
+            server.stop();
+        }
     }
 
     @Test

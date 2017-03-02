@@ -29,7 +29,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.BaseEntity;
+import com.epam.catgenome.entity.reference.Reference;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -359,6 +362,18 @@ public final class Utils {
         }
     }
 
+    /**
+     * Creates a temporary {@link FeatureFile} object, that is not registered int the system, but is used for
+     * temporary processing, e.g. opening files by URL
+     *
+     * @param c class of a file to create
+     * @param fileUrl a URL of a file
+     * @param indexUrl a URL of an index
+     * @param chromosome a chromosome, that is being opened
+     * @param <T> type of a {@link FeatureFile}
+     * @return temporary {@link FeatureFile} object, that is not registered int the system
+     * @throws InvocationTargetException
+     */
     public static <T extends FeatureFile> T createNonRegisteredFile(Class<T> c, String fileUrl, String indexUrl,
                                                                     Chromosome chromosome)
         throws InvocationTargetException {
@@ -379,6 +394,11 @@ public final class Utils {
         notRegisteredFile.setIndex(index);
 
         return notRegisteredFile;
+    }
+
+    public static Map<String, Chromosome> makeChromosomeMap(Reference reference) {
+        return reference.getChromosomes().stream().collect(
+                Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
     }
 
     @FunctionalInterface

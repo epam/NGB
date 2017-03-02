@@ -5,22 +5,6 @@ import {DataService} from '../data-service';
  * @extends DataService
  */
 export class ProjectDataService extends DataService {
-    /**
-     *
-     * @returns {promise}
-     */
-    getServerProjects() {
-        return new Promise((resolve, reject) => {
-            this.get('project/loadMy').then(data => {
-                if (data !== null && data !== undefined) {
-                    resolve(data);
-                }
-                else {
-                    reject();
-                }
-            });
-        });
-    }
 
     getProjects() {
         return new Promise((resolve) => {
@@ -54,7 +38,10 @@ export class ProjectDataService extends DataService {
      * @returns {promise}
      */
     getProject(projectId) {
-        return this.get(`project/${projectId}/load`);
+        if (isNaN(projectId)) {
+            return null;
+        }
+        return this.get(`project/${+projectId}/load`);
     }
 
     /**

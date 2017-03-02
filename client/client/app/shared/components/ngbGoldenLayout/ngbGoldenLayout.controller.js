@@ -21,8 +21,9 @@ export default class ngbGoldenLayoutController extends baseController {
 
     initHub = false;
     projectContext;
+    ngbViewActions;
 
-    constructor($scope, $compile, $window, $element, $timeout, dispatcher, ngbGoldenLayoutService, GoldenLayout, projectContext) {
+    constructor($scope, $compile, $window, $element, $timeout, dispatcher, ngbGoldenLayoutService, GoldenLayout, projectContext, ngbViewActionsConstant) {
         super(dispatcher);
         Object.assign(this, {
             $compile,
@@ -30,7 +31,8 @@ export default class ngbGoldenLayoutController extends baseController {
             $timeout,
             GoldenLayout,
             dispatcher,
-            projectContext
+            projectContext,
+            ngbViewActions: ngbViewActionsConstant
         });
         this.$element = $element.find('[ngb-golden-layout-container]');
         this.service = ngbGoldenLayoutService;
@@ -87,15 +89,20 @@ export default class ngbGoldenLayoutController extends baseController {
 
         this.goldenLayout.on('stackCreated', (stack) => {
             const childScope = this.$scope.$new();
-            childScope.isVariantsActive = false;
+            Object.assign(childScope, this.ngbViewActions);
+            childScope.tracksAreSelected = () => this.projectContext.tracks && this.projectContext.tracks.length > 0;
 
-            const html = this.$compile(
-                '<li ng-if="isVariantsActive"><ngb-variants-table-column></ngb-variants-table-column></li>')(childScope);
+            const viewActionsTemplate = require('./ngbViewActions/ngbViewActions.tpl.html');
+
+            const html = this.$compile(viewActionsTemplate)(childScope);
 
             stack.header.controlsContainer.prepend(html);
 
             stack.on('activeContentItemChanged', (contentItem) => {
-                childScope.isVariantsActive = contentItem.config.componentState.panel === this.panels.ngbVariations;
+                childScope.viewName = contentItem.config.componentState.panel;
+                if(contentItem.config.componentState.panel === this.panels.ngbVariations) {
+                    this.dispatcher.emit('activeVariants');
+                }
             });
 
         });

@@ -4,15 +4,13 @@ export default class ngbShareLinkMenuController extends baseController {
     static get UID() {
         return 'ngbShareLinkMenuController';
     }
-
-    bookmarkButtonVisible = false;
-    bookmarkButtonVisibleValue = true;
     layoutState = false;
     mainToolbarVisible = false;
     mainToolbarVisibleValue = true;
     rewriteLayout = false;
     screenShotVisible = false;
     screenShotVisibleValue = true;
+    panelsHeadersVisibleValue = true;
 
     events = {};
 
@@ -34,15 +32,14 @@ export default class ngbShareLinkMenuController extends baseController {
 
     generatedUrl() {
         const layout = this.projectContext.layout;
+        //TODO: replace indexer with a settings section name
+        layout[0].hasHeaders = (+!this.panelsHeadersVisibleValue).toString();
         const tracksState = this.projectContext.tracksState;
 
         const stateParams = this.stateParamsService.getPathParams();
 
         if (this.rewriteLayout === false) {
             stateParams.rewrite = this.showState(this.rewrite);
-        }
-        if (this.bookmarkButtonVisible === true) {
-            stateParams.bookmark = this.showState(this.bookmarkButtonVisibleValue);
         }
         if (this.layoutState === true) {
             stateParams.layout = JSON.stringify(layout);

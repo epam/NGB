@@ -27,15 +27,22 @@ package com.epam.catgenome.manager.reference;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 import java.io.DataInputStream;
-import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.track.ReferenceTrackMode;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
+import com.epam.catgenome.manager.reference.io.FastaSequenceFile;
+import com.epam.catgenome.manager.reference.io.FastaUtils;
 import com.epam.catgenome.util.AuthUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,9 +81,6 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
 import com.epam.catgenome.util.BlockCompressedDataInputStream;
 import com.epam.catgenome.util.BlockCompressedDataOutputStream;
 import com.epam.catgenome.util.Utils;
-import htsjdk.samtools.reference.ReferenceSequence;
-import htsjdk.samtools.reference.ReferenceSequenceFile;
-import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
 
 /**
  * Source:      ReferenceManager.java
@@ -87,37 +91,27 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
  * logic operations required to manage references and corresponded tracks, e.g. to process
  * reference uploads, position-based and/or zoom queries etc.
  */
-@Service
-public class ReferenceManager {
+@Service public class ReferenceManager {
 
     private JsonMapper objectMapper = new JsonMapper();
 
-    @Autowired
-    private HttpDataManager httpDataManager;
+    @Autowired private HttpDataManager httpDataManager;
 
-    @Autowired
-    private TrackHelper trackHelper;
+    @Autowired private TrackHelper trackHelper;
 
-    @Autowired
-    private FileManager fileManager;
+    @Autowired private FileManager fileManager;
 
-    @Autowired
-    private ReferenceGenomeManager referenceGenomeManager;
+    @Autowired private ReferenceGenomeManager referenceGenomeManager;
 
-    @Autowired
-    private NibDataReader nibDataReader;
+    @Autowired private NibDataReader nibDataReader;
 
-    @Autowired
-    private NibDataWriter nibDataWriter;
+    @Autowired private NibDataWriter nibDataWriter;
 
-    @Autowired
-    private GffManager gffManager;
+    @Autowired private GffManager gffManager;
 
-    @Autowired
-    private GeneFileManager geneFileManager;
+    @Autowired private GeneFileManager geneFileManager;
 
-    @Autowired
-    private BiologicalDataItemManager biologicalDataItemManager;
+    @Autowired private BiologicalDataItemManager biologicalDataItemManager;
 
     private static final Logger LOG = LoggerFactory.getLogger(ReferenceManager.class);
 
@@ -126,8 +120,8 @@ public class ReferenceManager {
      *              (the most important: chromosome name, Id, start index, end index and scaleFactor)
      * @return {@code Track<Sequence>} return the track-filled sequence
      */
-    public Track<Sequence> getNucleotidesResultFromNib(Track<Sequence> track) throws
-            ReferenceReadingException {
+    public Track<Sequence> getNucleotidesResultFromNib(Track<Sequence> track)
+            throws ReferenceReadingException {
         track.setType(TrackType.REF);
         try {
             return getNucleotidesTrackFromNib(track);
@@ -140,6 +134,7 @@ public class ReferenceManager {
     /**
      * Registers a new Reference genome in the database and converts input fasta file into
      * a set of chromosome files, for further efficient querying
+     *
      * @param request client VO
      * @return an {@code Reference} instance persisted in the system
      * @throws IOException
@@ -147,21 +142,22 @@ public class ReferenceManager {
     public Reference registerGenome(final ReferenceRegistrationRequest request) throws IOException {
 
         final String name;
-        File file = null;
         if (request.getType() == null) {
             request.setType(BiologicalDataItemResourceType.FILE);
         }
         if (request.getType() == BiologicalDataItemResourceType.GA4GH) {
             name = request.getName();
         } else {
-            file = new File(request.getPath());
-            name = parse(file, request.getName());
+            name = parse(request.getPath(), request.getName());
         }
         // prepares to start processing of a reference genome: generates ID, creates a directory
         // to store data for a genome
         final Long referenceId = referenceGenomeManager.createReferenceId();
         final Reference reference = new Reference(referenceId, name);
-        fileManager.makeReferenceDir(reference);
+        reference.setPath(request.getPath());
+        if (!request.isNoGCContent()) {
+            fileManager.makeReferenceDir(reference);
+        }
         reference.setType(request.getType());
         // processes data for a genome and generates all required resources: meta-information,
         // files with NT-sequence and GC-content per each chromosome etc.
@@ -182,14 +178,15 @@ public class ReferenceManager {
             if (request.getType() == BiologicalDataItemResourceType.GA4GH) {
                 lengthOfGenome = registerGA4GH(request, referenceId, reference);
             } else {
-                lengthOfGenome = registerReference(file, referenceId, reference);
+                lengthOfGenome =
+                        registerReference(referenceId, reference, !request.isNoGCContent());
             }
             // saves meta-information about the processed genome, including its chromosomes
             reference.setSize(lengthOfGenome);
 
             if (request.getGeneFileId() != null) {
                 Assert.isTrue(request.getGeneFileRequest() == null,
-                              getMessage(MessagesConstants.ERROR_REFERENCE_REGISTRATION_PARAMS));
+                        getMessage(MessagesConstants.ERROR_REFERENCE_REGISTRATION_PARAMS));
                 GeneFile geneFile = geneFileManager.loadGeneFile(request.getGeneFileId());
                 reference.setGeneFile(geneFile);
             }
@@ -205,23 +202,26 @@ public class ReferenceManager {
             // and we cannot create a genome in the system)
             if (!succeeded) {
                 fileManager.deleteDir(reference.getPath());
-                if (reference.getBioDataItemId() != null && !referenceGenomeManager.isRegistered(reference.getId())) {
-                    biologicalDataItemManager.deleteBiologicalDataItem(reference.getBioDataItemId());
+                if (reference.getBioDataItemId() != null && !referenceGenomeManager
+                        .isRegistered(reference.getId())) {
+                    biologicalDataItemManager
+                            .deleteBiologicalDataItem(reference.getBioDataItemId());
                 }
             }
         }
         return reference;
     }
 
-    private void processGeneRegistrationRequest(ReferenceRegistrationRequest request, Reference reference)
-        throws IOException {
+    private void processGeneRegistrationRequest(ReferenceRegistrationRequest request,
+            Reference reference) throws IOException {
         if (request.getGeneFileRequest() != null) {
             try {
                 request.getGeneFileRequest().setReferenceId(reference.getId());
 
                 GeneFile geneFile = gffManager.registerGeneFile(request.getGeneFileRequest());
                 reference.setGeneFile(geneFile);
-                referenceGenomeManager.updateReferenceGeneFileId(reference.getId(), geneFile.getId());
+                referenceGenomeManager
+                        .updateReferenceGeneFileId(reference.getId(), geneFile.getId());
             } catch (RegistrationException e) {
                 fileManager.deleteDir(reference.getPath());
                 unregisterGenome(reference.getId());
@@ -238,17 +238,29 @@ public class ReferenceManager {
      * @return {@code char[]} return char array of nucleotides, at file(relating to referenceId and chromosomeName)
      * started at startPosition and length sequenceLength
      */
-    public List<Sequence> getNucleotidesFromNibFile(int startPosition, final int endPosition, final long referenceId,
-            final String chromosomeName) throws IOException {
-        List<Sequence> sequencesList = null;
-        try (BlockCompressedDataInputStream strm = fileManager.makeRefInputStream(referenceId,
-                chromosomeName);
-                DataInputStream indexStrm = fileManager.makeRefIndexInputStream(referenceId,
-                        chromosomeName)) {
-            sequencesList = nibDataReader
-                    .getNucleotidesFromNibFile(startPosition, endPosition, strm, indexStrm);
+    public List<Sequence> getNucleotidesFromNibFile(int startPosition, final int endPosition,
+            final long referenceId, final String chromosomeName) throws IOException {
+        final Reference reference = referenceGenomeManager.getOnlyReference(referenceId);
+        if (isNibReference(reference.getPath())) {
+            try (BlockCompressedDataInputStream strm = fileManager
+                    .makeRefInputStream(referenceId, chromosomeName);
+                    DataInputStream indexStrm = fileManager
+                            .makeRefIndexInputStream(referenceId, chromosomeName)) {
+                return nibDataReader
+                        .getNucleotidesFromNibFile(startPosition, endPosition, strm, indexStrm);
+            }
+        } else {
+            List<Sequence> sequencesList = new ArrayList<>();
+
+            FastaSequenceFile ref = new FastaSequenceFile(reference.getPath(),
+                    getIndexPath(reference));
+            String bases = new String(ref.getSequence(chromosomeName, startPosition, endPosition),
+                    Charset.defaultCharset());
+            for (int i = 0; i < bases.length(); i++) {
+                sequencesList.add(new Sequence(startPosition + i, String.valueOf(bases.charAt(i))));
+            }
+            return sequencesList;
         }
-        return sequencesList;
     }
 
     /**
@@ -259,10 +271,10 @@ public class ReferenceManager {
      * @throws InterruptedException if the thread is interrupted, either before or during the activity
      * @throws IOException          if an error occurred during deleting directory
      */
-    private ReferenceSet getReferenceSet(final String referenceSetId) throws IOException, InterruptedException,
-            ExternalDbUnavailableException {
+    private ReferenceSet getReferenceSet(final String referenceSetId)
+            throws IOException, InterruptedException, ExternalDbUnavailableException {
 
-        ParameterNameValue[] params = new ParameterNameValue[]{};
+        ParameterNameValue[] params = new ParameterNameValue[] {};
 
         String locationReference =
                 Constants.URL_GOOGLE_GENOMIC_API + Constants.URL_REFERENCE_SET + referenceSetId
@@ -279,10 +291,10 @@ public class ReferenceManager {
      * @throws InterruptedException if the thread is interrupted, either before or during the activity
      * @throws IOException          if an error occurred during deleting directory
      */
-    private ReferenceGA4GH getReference(final String referenceId) throws InterruptedException,
-            IOException, ExternalDbUnavailableException {
+    private ReferenceGA4GH getReference(final String referenceId)
+            throws InterruptedException, IOException, ExternalDbUnavailableException {
 
-        ParameterNameValue[] params = new ParameterNameValue[]{};
+        ParameterNameValue[] params = new ParameterNameValue[] {};
 
         String locationReference =
                 Constants.URL_GOOGLE_GENOMIC_API + Constants.URL_REFERENCE + referenceId
@@ -299,8 +311,8 @@ public class ReferenceManager {
      * @return deleted reference
      * @throws IOException if an error occurred during deleting directory
      */
-    @Transactional(propagation = Propagation.REQUIRED)
-    public Reference unregisterGenome(final long referenceId) throws IOException {
+    @Transactional(propagation = Propagation.REQUIRED) public Reference unregisterGenome(
+            final long referenceId) throws IOException {
         Assert.notNull(referenceId, MessagesConstants.ERROR_INVALID_PARAM);
         Assert.isTrue(referenceId > 0, MessagesConstants.ERROR_INVALID_PARAM);
         Reference reference = referenceGenomeManager.loadReferenceGenome(referenceId);
@@ -314,42 +326,57 @@ public class ReferenceManager {
 
     /**
      * Loads a reference sequence in a given interval for a specified reference ID and chromosome name
-     * @param startIndex of the interval of interest
-     * @param endIndex of the interval of interest
-     * @param referenceId to load
+     *
+     * @param startIndex     of the interval of interest
+     * @param endIndex       of the interval of interest
+     * @param referenceId    to load
      * @param chromosomeName to load
      * @return a {@code String} representation of a reference sequence for the interval of interest
      * @throws IOException
      */
-    public String getSequenceString(final int startIndex, final int endIndex, final Long referenceId,
-                                    final String chromosomeName) throws IOException {
-        String sequencesString;
-        try (BlockCompressedDataInputStream strm = fileManager.makeRefInputStream(referenceId, chromosomeName);
-                DataInputStream indexStrm = fileManager.makeRefIndexInputStream(referenceId, chromosomeName)) {
-            sequencesString = nibDataReader
-                    .getStringFromNibFile(startIndex, endIndex, strm, indexStrm);
+    public String getSequenceString(final int startIndex, final int endIndex,
+            final Long referenceId, final String chromosomeName) throws IOException {
+        final Reference reference = referenceGenomeManager.getOnlyReference(referenceId);
+        if (isNibReference(reference.getPath())) {
+            try (BlockCompressedDataInputStream strm = fileManager
+                    .makeRefInputStream(reference.getId(), chromosomeName);
+                    DataInputStream indexStrm = fileManager
+                            .makeRefIndexInputStream(reference.getId(), chromosomeName)) {
+                return nibDataReader.getStringFromNibFile(startIndex, endIndex, strm, indexStrm);
+            }
+        } else {
+            FastaSequenceFile ref = new FastaSequenceFile(reference.getPath(), getIndexPath(reference));
+            return new String(ref.getSequence(chromosomeName, startIndex, endIndex),
+                    Charset.defaultCharset());
         }
-        return sequencesString;
     }
 
     /**
      * Loads a reference sequence in a given interval for a specified reference ID and chromosome name
-     * @param startIndex of the interval of interest
-     * @param endIndex of the interval of interest
-     * @param referenceId to load
+     *
+     * @param startIndex     of the interval of interest
+     * @param endIndex       of the interval of interest
+     * @param referenceId    to load
      * @param chromosomeName to load
      * @return a byte array representation of a reference sequence for the interval of interest
      * @throws IOException
      */
-    public byte[] getSequenceByteArray(final int startIndex, final int endIndex, final Long referenceId,
-            final String chromosomeName) throws IOException {
-        byte[] sequenceBytes;
-        try (BlockCompressedDataInputStream strm = fileManager.makeRefInputStream(referenceId, chromosomeName);
-                DataInputStream indexStrm = fileManager.makeRefIndexInputStream(referenceId, chromosomeName)) {
-            sequenceBytes = nibDataReader
-                    .getByteNucleotidesFromNibFile(startIndex, endIndex, strm, indexStrm);
+    public byte[] getSequenceByteArray(final int startIndex, final int endIndex,
+            final Long referenceId, final String chromosomeName) throws IOException {
+        final Reference reference = referenceGenomeManager.getOnlyReference(referenceId);
+        if (isNibReference(reference.getPath())) {
+            try (BlockCompressedDataInputStream strm = fileManager
+                    .makeRefInputStream(referenceId, chromosomeName);
+                    DataInputStream indexStrm = fileManager
+                            .makeRefIndexInputStream(referenceId, chromosomeName)) {
+                return nibDataReader
+                        .getByteNucleotidesFromNibFile(startIndex, endIndex, strm, indexStrm);
+            }
+
+        } else {
+            FastaSequenceFile ref = new FastaSequenceFile(reference.getPath(), getIndexPath(reference));
+            return ref.getSequence(chromosomeName, startIndex, endIndex);
         }
-        return sequenceBytes;
     }
 
 
@@ -368,18 +395,24 @@ public class ReferenceManager {
             sequencesList =
                     getReferenceSequenceWithoutGC(chr, trackID, cName, reference, startIndex,
                             endIndex);
+            track.setMode(ReferenceTrackMode.NUCLEOTIDES);
         } else {
             sequencesList =
-                    getReferenceSequenceWithGC(chr, trackID, reference,
-                            startIndex, endIndex, scaleFactor);
+                    getReferenceSequenceWithGC(chr, trackID, reference, startIndex, endIndex,
+                            scaleFactor);
+            if (sequencesList.isEmpty()) {
+                track.setMode(ReferenceTrackMode.NO_GC_DATA);
+            } else {
+                track.setMode(ReferenceTrackMode.GC_CONTENT);
+            }
         }
         track.setBlocks(sequencesList);
         return track;
     }
 
-    private List<Sequence> getReferenceSequenceWithGC(Chromosome chr, long trackID, Reference reference,
-            int startIndex, int endIndex,
-            double scaleFactor) throws IOException {
+    private List<Sequence> getReferenceSequenceWithGC(Chromosome chr, long trackID,
+            Reference reference, int startIndex, int endIndex, double scaleFactor)
+            throws IOException {
         final int chromosomeSize = chr.getSize();
         final String chromosomeName = chr.getName();
         if (reference.getType() == BiologicalDataItemResourceType.GA4GH) {
@@ -389,24 +422,42 @@ public class ReferenceManager {
             return getGCForGA4GH(startIndex, endIndex, scaleFactor, chr.getPath());
         } else {
             return getGCData(trackID, startIndex, endIndex, scaleFactor, chromosomeSize,
-                    chromosomeName);
+                    chromosomeName, reference);
         }
     }
 
     private List<Sequence> getGCData(long trackID, int startIndex, int endIndex, double scaleFactor,
-            int chromosomeSize, String chromosomeName) throws IOException {
+            int chromosomeSize, String chromosomeName, Reference reference) throws IOException {
         if (scaleFactor <= (1.0 / Constants.GC_CONTENT_STEP)
                 && chromosomeSize > Constants.GC_CONTENT_MIN_LENGTH) {
             LOG.debug(getMessage(MessagesConstants.DEBUG_FILE_READING));
-            try (BlockCompressedDataInputStream strm = fileManager.makeGCInputStream(trackID, chromosomeName);
-                    DataInputStream indexStrm = fileManager.makeGCIndexInputStream(trackID, chromosomeName)) {
+            try (BlockCompressedDataInputStream strm = fileManager
+                    .makeGCInputStream(trackID, chromosomeName);
+                    DataInputStream indexStrm = fileManager
+                            .makeGCIndexInputStream(trackID, chromosomeName)) {
                 return getGCFromGCFile(startIndex, endIndex, scaleFactor, strm, indexStrm);
+            } catch (IllegalArgumentException e) {
+                //gc content may be disabled
+                LOG.debug(e.getMessage(), e);
+                return Collections.emptyList();
             }
+
         } else {
-            LOG.debug(getMessage(MessagesConstants.DEBUG_FILE_READING));
-            try (BlockCompressedDataInputStream strm = fileManager.makeRefInputStream(trackID, chromosomeName);
-                    DataInputStream indexStrm = fileManager.makeRefIndexInputStream(trackID, chromosomeName)) {
-                return getGCFromNibFile(startIndex, endIndex, scaleFactor, strm, indexStrm);
+            if (isNibReference(reference.getPath())) {
+                LOG.debug(getMessage(MessagesConstants.DEBUG_FILE_READING));
+                try (BlockCompressedDataInputStream strm = fileManager
+                        .makeRefInputStream(trackID, chromosomeName);
+                        DataInputStream indexStrm = fileManager
+                                .makeRefIndexInputStream(trackID, chromosomeName)) {
+                    return getGCFromNibFile(startIndex, endIndex, scaleFactor, strm, indexStrm);
+                }
+            } else {
+                LOG.debug(getMessage(MessagesConstants.DEBUG_FILE_READING));
+                String sequence =
+                        getSequenceString(startIndex, endIndex, reference.getId(), chromosomeName);
+                return nibDataReader
+                        .fillSequenceOfGCFromFasta(startIndex, endIndex, scaleFactor, sequence);
+
             }
         }
     }
@@ -430,19 +481,18 @@ public class ReferenceManager {
      * custom name for a genome it's possible to use an original name of corresponded file without
      * extension.
      *
-     * @param file {@code File}     Fasta file
+     * @param path {@code File}     Path to fasta file
      * @param name {@code String}   Alternative name
      */
-    private String parse(final File file, String name) {
-        Assert.notNull(file, getMessage(MessageCode.RESOURCE_NOT_FOUND));
-        Assert.isTrue(file.exists(), getMessage(MessageCode.RESOURCE_NOT_FOUND));
+    private String parse(final String path, final String name) {
+        Assert.notNull(path, getMessage(MessageCode.RESOURCE_NOT_FOUND));
         // checks that an original file name is provided, because it is used as a name
         // for a genome if custom name isn't specified
-        String fileName = StringUtils.trimToNull(file.getName());
+        String fileName = StringUtils.trimToNull(FilenameUtils.getName(path));
         Assert.notNull(fileName, getMessage(MessageCode.MANDATORY_FILE_NAME));
         // checks that file is in one of supported formats
         boolean supported = false;
-        final Collection<String> formats = ReferenceSequenceFileFactory.FASTA_EXTENSIONS;
+        final Collection<String> formats = FastaUtils.getFastaExtensions();
         for (final String ext : formats) {
             if (fileName.endsWith(ext)) {
                 supported = true;
@@ -452,70 +502,85 @@ public class ReferenceManager {
         }
         if (!supported) {
             throw new IllegalArgumentException(getMessage("error.reference.illegal.file.type",
-                                                          StringUtils.join(formats, ", ")));
+                    StringUtils.join(formats, ", ")));
         }
         // if no custom name is provided for a genome, then a file name without extension should be
         // used by default
         return StringUtils.defaultString(StringUtils.trimToNull(name), fileName);
     }
 
-    private List<Sequence> getGCFromGCFile(int startPosition, final int endPosition, final double scaleFactor,
-                                           final BlockCompressedDataInputStream gcContentStream,
-                                           final DataInputStream indexStream) throws IOException {
+    private List<Sequence> getGCFromGCFile(int startPosition, final int endPosition,
+            final double scaleFactor, final BlockCompressedDataInputStream gcContentStream,
+            final DataInputStream indexStream) throws IOException {
 
-        return nibDataReader.fillSequenceOfGCFromGCFile(startPosition, endPosition,
-                scaleFactor, gcContentStream, indexStream);
+        return nibDataReader.fillSequenceOfGCFromGCFile(startPosition, endPosition, scaleFactor,
+                gcContentStream, indexStream);
     }
 
     private List<Sequence> getGCForGA4GH(final Integer startPosition, final Integer endPosition,
-                                         final Double scaleFactor, final String referenceId) throws IOException {
+            final Double scaleFactor, final String referenceId) throws IOException {
 
         return nibDataReader
                 .fillSequenceOfGCForGA4GH(startPosition, endPosition, scaleFactor, referenceId);
     }
 
-    private List<Sequence> getGCFromNibFile(int startPosition, final int endPosition, final double scaleFactor,
-                                            final BlockCompressedDataInputStream gcContentStream,
-                                            final DataInputStream indexStream
-    ) throws IOException {
+    private List<Sequence> getGCFromNibFile(int startPosition, final int endPosition,
+            final double scaleFactor, final BlockCompressedDataInputStream gcContentStream,
+            final DataInputStream indexStream) throws IOException {
         //arrays started at zero position, but chromosome started ad first position
-        return nibDataReader.fillSequenceOfGCFromNibFile(startPosition, endPosition,
-                scaleFactor, gcContentStream, indexStream);
+        return nibDataReader.fillSequenceOfGCFromNibFile(startPosition, endPosition, scaleFactor,
+                gcContentStream, indexStream);
     }
 
-    private long registerReference(File file, Long referenceId,
-            Reference reference) throws IOException {
-        ReferenceSequence sequence;
+    private long registerReference(Long referenceId, Reference reference, boolean createGC)
+            throws IOException {
+        String path = reference.getPath();
+        setIndex(reference);
         long lengthOfGenome = 0;
-        try (ReferenceSequenceFile reader =
-                ReferenceSequenceFileFactory.getReferenceSequenceFile(file)) {
-            while ((sequence = reader.nextSequence()) != null) {
-                lengthOfGenome += sequence.length();
-                // prepares meta-information about the current chromosome
-                final Chromosome chromosome = new Chromosome();
-                chromosome.setName(sequence.getName());
-                chromosome.setSize(sequence.length());
-                chromosome.setReferenceId(referenceId);
-                reference.getChromosomes().add(chromosome);
-                // reads, processes and saves data for chromosomes (NT-sequence, GC-content etc.)
-                // make dir and create stream fore GC-content
-                // make dir and create stream fore chromosome and process reference and GC
-                try (BlockCompressedDataOutputStream refStream = fileManager
-                        .makeRefOutputStream(referenceId, chromosome)) {
-                    nibDataWriter.byteArrayToNibFile(sequence.getBases(), refStream);
-                }
-                //work with GC
+        FastaSequenceFile referenceReader = new FastaSequenceFile(path, reference.getIndex().getPath());
+        for (String chr : referenceReader.getChromosomeNames()) {
+            lengthOfGenome += referenceReader.getSequenceSize(chr);
+            // prepares meta-information about the current chromosome
+            final Chromosome chromosome = new Chromosome();
+            chromosome.setName(chr);
+            chromosome.setSize(referenceReader.getSequenceSize(chr));
+            chromosome.setReferenceId(referenceId);
+            chromosome.setPath(reference.getPath());
+            reference.getChromosomes().add(chromosome);
+
+            //work with GC
+            if (!FastaUtils.isRemote(path) && createGC) {
+                byte[] sequence = referenceReader.getChromosome(chr);
                 try (BlockCompressedDataOutputStream gcStream = fileManager
                         .makeGCOutputStream(referenceId, chromosome)) {
-                    nibDataWriter.byteArrayToGCFile(sequence.getBases(), gcStream);
+                    nibDataWriter.byteArrayToGCFile(sequence, gcStream);
                 }
-                fileManager.makeNibIndex(referenceId, chromosome.getName());
+                fileManager.makeGcIndex(referenceId, chromosome.getName());
             }
         }
         return lengthOfGenome;
     }
 
-    private long registerGA4GH(ReferenceRegistrationRequest request, Long referenceId, Reference reference)
+    private void setIndex(Reference reference) {
+        String path = reference.getPath();
+        String indexPath;
+        if (!FastaUtils.isRemote(path) && !FastaUtils.hasIndex(path)) {
+            indexPath = fileManager.createReferenceIndex(reference);
+        } else {
+            indexPath = path + FastaUtils.FASTA_INDEX;
+        }
+        BiologicalDataItem indexItem = new BiologicalDataItem();
+        indexItem.setCreatedDate(new Date());
+        indexItem.setPath(indexPath);
+        indexItem.setFormat(BiologicalDataItemFormat.REFERENCE_INDEX);
+        indexItem.setType(BiologicalDataItemResourceType.FILE);
+        indexItem.setName("");
+        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
+        reference.setIndex(indexItem);
+    }
+
+    private long registerGA4GH(ReferenceRegistrationRequest request, Long referenceId,
+            Reference reference)
             throws IOException, InterruptedException, ExternalDbUnavailableException {
         final List<String> listReferenceId = getReferenceSet(request.getPath()).getReferenceIds();
         long lengthOfGenome = 0;
@@ -530,6 +595,29 @@ public class ReferenceManager {
             chromosome.setPath(referenceGA4GH.getId());
             reference.getChromosomes().add(chromosome);
         }
+        BiologicalDataItem indexItem = new BiologicalDataItem();
+        indexItem.setCreatedDate(new Date());
+        indexItem.setPath(request.getPath());
+        indexItem.setFormat(BiologicalDataItemFormat.REFERENCE_INDEX);
+        indexItem.setType(BiologicalDataItemResourceType.GA4GH);
+        indexItem.setName("");
+        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
+        reference.setIndex(indexItem);
         return lengthOfGenome;
+    }
+
+    private boolean isNibReference(String path) {
+        return !FastaUtils.isRemote(path) && !FastaUtils.isFasta(path);
+    }
+
+    //method to support intermediate references not nib but without registered index item
+    private String getIndexPath(Reference reference) {
+        BiologicalDataItem index = reference.getIndex();
+        //it's a dummy index
+        if (index.getFormat() == BiologicalDataItemFormat.INDEX) {
+            return reference.getPath() + FastaUtils.FASTA_INDEX;
+        } else {
+            return index.getPath();
+        }
     }
 }

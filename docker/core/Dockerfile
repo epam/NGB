@@ -28,7 +28,7 @@ RUN cd ${NGB_HOME} && \
 		rm ngb-cli.tar && \
 		cd ${NGB_HOME}/ngb-cli/bin && \
 		chmod +x ngb
-		
+
 #Write NGB configuration
 #--Add catgenome config location
 RUN echo "CATGENOME_CONF_DIR=${CATALINA_HOME}/conf/catgenome/" >> $CATALINA_HOME/conf/catalina.properties

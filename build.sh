@@ -65,22 +65,21 @@ if [ "$ALL" = true ] || [ "$WAR" = true ] || [ "$JAR" = true ] || [ "$DOCKER" = 
             ;;
     esac
     (cd $BUILD_DIR/client && npm prune && npm install && npm run build:prod -- --publicPath $CATGENOME)
-    cp $BUILD_DIR/client/dist/* $BUILD_DIR/server/catgenome/src/main/resources/static/
+    cp -R $BUILD_DIR/client/dist/* $BUILD_DIR/server/catgenome/src/main/resources/static/
     sleep 5
 fi
 
 
 # Here we build NGB server with UI using gradle
 if [ "$ALL" = true ] || [ "$WAR" = true ] || [ "$JAR" = true ] || [ "$DOCKER" = true ] || [ "$CLI" = true ]; then
-    cd $BUILD_DIR/server 
     chmod +x gradlew
 fi
 
 # build server
-BUILD_TASK="catgenome:build"
+BUILD_TASK="server:catgenome:build"
 if [[ "$NO_TESTS" = true ]]; then
     # if no tests should be run, we use assemble gradle task instead of build
-    BUILD_TASK="catgenome:assemble"
+    BUILD_TASK="server:catgenome:assemble"
 fi
 
 if [ "$ALL" = true ] || [ "$WAR" = true ] || [ "$DOCKER" = true ]; then
@@ -92,9 +91,9 @@ if [ "$ALL" = true ] || [ "$WAR" = true ] || [ "$DOCKER" = true ]; then
     #For Jenkins builds
     BUILD=$BUILD_NUMBER
     if [[ $BUILD =  *[!\ ]* ]]; then
-        ./gradlew catgenome:clean $BUILD_TASK catgenome:war -Pprofile=release -PbuildNumber=$BUILD
+        ./gradlew server:catgenome:clean $BUILD_TASK server:catgenome:war -Pprofile=release -PbuildNumber=$BUILD
     else
-        ./gradlew catgenome:clean $BUILD_TASK catgenome:war -Pprofile=release
+        ./gradlew server:catgenome:clean $BUILD_TASK server:catgenome:war -Pprofile=release
     fi    
 
     if [ ! -d "$BUILD_DIR/dist" ]; then
@@ -118,9 +117,9 @@ if [ "$ALL" = true ] || [ "$JAR" = true ]; then
     #For Jenkins builds
     BUILD=$BUILD_NUMBER
     if [[ $BUILD =  *[!\ ]* ]]; then
-        ./gradlew catgenome:clean $BUILD_TASK -Pprofile=jar -PbuildNumber=$BUILD
+        ./gradlew server:catgenome:clean $BUILD_TASK -Pprofile=jar -PbuildNumber=$BUILD
     else
-        ./gradlew catgenome:clean $BUILD_TASK -Pprofile=jar
+        ./gradlew server:catgenome:clean $BUILD_TASK -Pprofile=jar
     fi    
 
     if [ ! -d "$BUILD_DIR/dist" ]; then
@@ -134,10 +133,10 @@ if [ "$ALL" = true ] || [ "$JAR" = true ]; then
 fi
 
 #build CLI
-CLI_BUILD_TASK="ngb-cli:build"
+CLI_BUILD_TASK="server:ngb-cli:build"
 if [[ "$NO_TESTS" = true ]]; then
     # if no tests should be run, we use assemble gradle task instead of build
-    CLI_BUILD_TASK="ngb-cli:assemble"
+    CLI_BUILD_TASK="server:ngb-cli:assemble"
 fi
 
 if [ "$ALL" = true ] || [ "$CLI" = true ] || [ "$DOCKER" = true ]; then
@@ -145,7 +144,7 @@ if [ "$ALL" = true ] || [ "$CLI" = true ] || [ "$DOCKER" = true ]; then
     echo '################################################'
     echo '              Building NGB CLI'
     echo '################################################'    
-    ./gradlew ngb-cli:clean $CLI_BUILD_TASK
+    ./gradlew server:ngb-cli:clean $CLI_BUILD_TASK
 
     if [ ! -d "$BUILD_DIR/dist" ]; then
         mkdir $BUILD_DIR/dist

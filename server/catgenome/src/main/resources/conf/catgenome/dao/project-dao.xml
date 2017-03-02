@@ -485,5 +485,19 @@
                 ]]>
             </value>
         </property>
+        <property name="loadProjectIdsByBioDataItemIdsQuery">
+            <value>
+                SELECT
+                    p.project_name,
+                    b.name
+                FROM
+                    catgenome.project_item pi
+                    JOIN t_list tmp ON tmp.list_value = pi.referred_bio_data_item_id
+                    JOIN catgenome.biological_data_item b ON b.bio_data_item_id = pi.referred_bio_data_item_id
+                    JOIN catgenome.project p ON p.project_id = pi.referred_project_id
+                WHERE
+                    tmp.list_id = ?
+            </value>
+        </property>
     </bean>
 </beans>

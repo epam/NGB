@@ -1,5 +1,10 @@
-.ngb-variant-panel{
+ngb-variant-panel{
   background-color:#ffffff;
+  md-pagination-wrapper {
+    width: auto !important;
+    // This hack is used for removing 'vanishing' effect of last md-tab.
+    // https://github.com/angular/material/issues/5439
+  }
 }
 
 .ngb-variant-identifier{

@@ -1,0 +1,27 @@
+{
+  "name": "NGB",
+  "version": "2.3.0",
+  "main": "main.js",
+  "description": "Next Generation Genome Browser",
+  "author": "EPAM Systems",
+  "dependencies": {
+    "electron": "^1.4.15",
+    "ps-tree": "^1.1.0",
+    "request": "^2.79.0",
+    "sync-request": "^4.0.1",
+    "tree-kill": "^1.1.0"
+  },
+  "devDependencies": {
+    "electron-packager": "^8.5.1"
+  },
+  "build": {
+    "appId": "ngb.desktop",
+    "productName": "ngb"
+  },
+  "scripts": {
+    "build": "npm run build:win && npm run build:linux && npm run build:mac",
+    "build:win": "electron-packager . ngb --out=dist --ignore='^/dist$' --prune --platform=win32 --overwrite --icon=icons/icon_NGB.ico",
+    "build:mac": "electron-packager . ngb --out=dist --ignore='^/dist$' --prune --platform=darwin --overwrite --icon=icons/icon_NGB.icns",
+    "build:linux": "electron-packager . ngb --out=dist --ignore='^/dist$' --prune --platform=linux --overwrite --icon=icons/icon_NGB_137.png"
+  }
+}

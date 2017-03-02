@@ -27,7 +27,7 @@ export class GenomeDataService extends DataService {
                 const promise = new Promise((resolve, reject) => {
                     this.post('reference/track/get', reference[i]).then((data)=> {
                         if (data) {
-                            resolve(data.blocks ? data.blocks : []);
+                            resolve(data);
                         } else {
                             const code = 'Genome Data Service', message = 'Genome Data Service: error loading reference track';
                             reject({code, message});
@@ -49,9 +49,11 @@ export class GenomeDataService extends DataService {
             });
         }
         return new Promise((resolve, reject) => {
-            this.post('reference/track/get', reference).catch(() => { resolve([]); }).then((data)=> {
+            this.post('reference/track/get', reference).catch(() => { resolve({
+                blocks: []
+            }); }).then((data)=> {
                 if (data) {
-                    resolve(data.blocks ? data.blocks : []);
+                    resolve(data);
                 } else {
                     const code = 'Genome Data Service', message = 'Genome Data Service: error loading reference track';
                     reject({code, message});

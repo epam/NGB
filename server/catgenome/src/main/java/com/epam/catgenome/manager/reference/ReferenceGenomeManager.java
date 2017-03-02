@@ -26,11 +26,15 @@ package com.epam.catgenome.manager.reference;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.util.AuthUtils;
+import com.epam.catgenome.util.ListMapCollector;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -98,6 +102,7 @@ public class ReferenceGenomeManager {
         Assert.isTrue(CollectionUtils.isNotEmpty(reference.getChromosomes()),
                 getMessage("error.reference.aborted.saving.chromosomes"));
         Assert.notNull(reference.getId(), getMessage(MessageCode.UNKNOWN_REFERENCE_ID));
+        biologicalDataItemDao.createBiologicalDataItem(reference.getIndex());
         if (reference.getCreatedDate() == null) {
             reference.setCreatedDate(new Date());
         }
@@ -193,7 +198,22 @@ public class ReferenceGenomeManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public List<Reference> loadAllReferenceGenomes() {
-        return referenceGenomeDao.loadAllReferenceGenomes();
+        List<Reference> references = referenceGenomeDao.loadAllReferenceGenomes();
+        Map<Long, List<Reference>> referenceToGeneIds = references.stream().collect(new ListMapCollector<>(
+            reference -> reference.getGeneFile() != null ? reference.getGeneFile().getId() : null));
+
+        List<GeneFile> geneFiles = geneFileDao.loadGeneFiles(referenceToGeneIds.keySet());
+        List<Reference> result = new ArrayList<>(references.size());
+        for (GeneFile geneFile : geneFiles) {
+            referenceToGeneIds.get(geneFile.getId()).forEach(r -> r.setGeneFile(geneFile));
+            result.addAll(referenceToGeneIds.get(geneFile.getId()));
+        }
+
+        if (referenceToGeneIds.containsKey(null)) {
+            result.addAll(referenceToGeneIds.get(null));
+        }
+
+        return result;
     }
 
     /**

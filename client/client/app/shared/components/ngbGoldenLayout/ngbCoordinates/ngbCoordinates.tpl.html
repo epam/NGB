@@ -39,25 +39,20 @@
                ng-click="$ctrl.startEdit('coordinates')">{{$ctrl.coordinatesText || 'Type coordinates'}}</a>
         </div>
     </div>
-    <div flex
-         layout="column"
-         class="coordinates-menu"
-         md-whiteframe="2"
-         ng-if="$ctrl.isEditingMode && ($ctrl.contextMenuItems.length > 0 || $ctrl.hints.length > 0)"
-         ng-mousedown="$ctrl.preventGoldenLayoutPanelDrag($event)"
-         title="" ngb-safe-scroll>
-        <div ng-repeat="hint in $ctrl.hints" class="coordinates-menu-item hint">
-            {{hint}}
-        </div>
-        <md-divider ng-if="$ctrl.hints.length > 0 && $ctrl.contextMenuItems.length > 0"></md-divider>
-        <md-button aria-label="{{$index}} menu button"
-                   ng-repeat="item in $ctrl.contextMenuItems track by $index"
-                   class="coordinates-menu-item"
-                   ng-click="$ctrl.didSelectContextMenuItem(item);">
-            <span ng-if="item.type === 'feature'" class="context-menu-item">{{item.name}}</span>
-            <span ng-if="item.type === 'feature'" class="context-menu-item-subtitle">{{item.subTitle}}</span>
-            <span ng-if="item.type === 'chromosome'" class="context-menu-item">{{item.name}}</span>
-        </md-button>
-    </div>
+    <md-virtual-repeat-container flex
+                                 layout="column"
+                                 ng-if="$ctrl.isEditingMode && $ctrl.searchResult.getLength()"
+                                 class="coordinates-menu"
+                                 md-whiteframe="2"
+                                 ng-mousedown="$ctrl.preventGoldenLayoutPanelDrag($event)"
+                                 title="">
+        <ngb-search-item
+                md-virtual-repeat="item in $ctrl.searchResult"
+                class="search-result-item"
+                md-on-demand
+                search-item="item"
+                coordinates-controller="$ctrl"
+                md-item-size="40"></ngb-search-item>
+    </md-virtual-repeat-container>
 </div>
 

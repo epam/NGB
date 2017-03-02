@@ -3,12 +3,12 @@
 .md-label {
   &.variation-type {
     display: block;
-    line-height: 18px;
+    line-height: 13px;
     font-size: 12px;
     padding: 3px;
     margin: 0 10px;
     align-self: center;
-    min-width: 40px;
+    min-width: 35px;
   }
 }
 
@@ -22,7 +22,7 @@
 
 .md-icon-button {
   md-icon.icon-info {
-    margin-top: 5px;
+    margin-top: 3px;
     height: 14px;
     min-height: 14px;
     width: 24px;

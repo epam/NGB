@@ -54,10 +54,15 @@ ngb reg_ref|rr [<PATH_TO_GENOME_FASTA>] [options]
 //-t (--table)              Print result as a human-readable table
 //-j (--json)               Print result as a JSON string
 //-g (--genes) [value]      Add a gene (gtf or gff) file to the reference. If file is already registered, it can be addressed by name or an identifier. Otherwise a path to the file should be provided.
+//-ngc (--nogccontent)      Disables calculation of GC-content for large scale reference view
 ```
 *Description*
 
-Registers a specified reference sequence file. FASTA, FA, FASTQ, FQ files are accepted
+Registers a specified reference sequence file. FASTA, FA, FNA files are accepted. GZip-compressed files are not supported.
+Path to local file and remote URL are accepted as a path to the reference. For local files, NGB will try to find a matching "fai" index 
+in the folder with the reference, if index isn't found it will be created. For remote references, "fai" index must be present on the
+remote source. NGB assumes that reference index will have the same name as reference with "fai" extension added. If reference path is
+**"/opt/genomes/hg38.fa"**, NGB will look for index file at path **"/opt/genomes/hg38.fa.fai"**.
 
 *Example*
 ```
@@ -381,7 +386,7 @@ ngb del_dataset|dd [<DATASET_NAME>|<DATASET_ID>] [options]
 
 //Options:
 //-t (--table)          Print result as a human-readable table
-//-j (--json)               Print result as a JSON string
+//-j (--json)           Print result as a JSON string
 ```
 *Description*
 
@@ -396,4 +401,30 @@ ngb del_dataset new_dataset
 
 //Delete dataset with id "1"
 ngb dd 1
+```
+
+
+### Generate URL for browsing selected files
+```
+ngb url [<DATASET_NAME>|<DATASET_ID>] [<FILE_IDS>|<FILE_NAMES>] [options]
+
+//Options:
+//-loc (--location) chr:startIndex-endIndex     Browse selected files on a specific location
+//-loc (--location) chr                         Browse selected files on a specific chromosome
+```
+*Description*
+
+Create an URL, that will open NGB browser with selected tracks, opened on a optionally specified position
+
+*Example*
+```
+
+//Create URL for dataset with name 'data' and files with IDs 42, 45 and a file with name 'sample.vcf'
+ngb url data 42 45 sample.vcf
+
+//Create URL for dataset with ID '5' and a file with name 'sample.vcf' on a chromosome 1 on positions from 13476 to 23476
+ngb url 5 sample.vcf -loc 1:13476-23476
+
+//Create URL for dataset with name 'data' and a file with name 'sample.vcf' on a chromosome 1
+ngb url data sample.vcf -loc 1
 ```

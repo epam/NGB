@@ -42,6 +42,7 @@ public class ReferenceRegistrationRequest extends DefaultFileRegistrationRequest
     private BiologicalDataItemResourceType fileType;
     private Long geneFileId;
     private FeatureIndexedFileRegistrationRequest geneFileRequest;
+    private boolean noGCContent;
 
     public BiologicalDataItemResourceType getType() {
         return fileType;
@@ -65,5 +66,13 @@ public class ReferenceRegistrationRequest extends DefaultFileRegistrationRequest
 
     public void setGeneFileRequest(FeatureIndexedFileRegistrationRequest geneFileRequest) {
         this.geneFileRequest = geneFileRequest;
+    }
+
+    public boolean isNoGCContent() {
+        return noGCContent;
+    }
+
+    public void setNoGCContent(boolean noGCContent) {
+        this.noGCContent = noGCContent;
     }
 }

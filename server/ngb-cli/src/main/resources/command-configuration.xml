@@ -119,4 +119,10 @@
         <type>GET</type>
         <secure>false</secure>
     </index_file>
+    <generate_url>
+        <name>generate_url</name>
+        <type>POST</type>
+        <url>/restapi/url</url>
+        <secure>false</secure>
+    </generate_url>
 </config>

@@ -88,6 +88,29 @@ public final class TestDataProvider {
         request.setName(name);
         request.setIndexPath(indexPath);
         request.setItems(items);
+        request.setType(BiologicalDataItemResourceType.FILE);
+        request.setIndexType(BiologicalDataItemResourceType.FILE);
+        return getJson(request);
+    }
+
+    public static String getNotTypedRegistrationJson(Long referenceID, String path, String name,
+                                                     String indexPath, List<ProjectItem> items) {
+        RegistrationRequest request = new RegistrationRequest();
+        request.setReferenceId(referenceID);
+        request.setPath(path);
+        request.setName(name);
+        request.setIndexPath(indexPath);
+        request.setItems(items);
+        return getJson(request);
+    }
+
+    public static String getRegistrationJson(Long referenceID, String path, String name, List<ProjectItem> items) {
+        RegistrationRequest request = new RegistrationRequest();
+        request.setReferenceId(referenceID);
+        request.setPath(path);
+        request.setName(name);
+        request.setItems(items);
+        request.setType(BiologicalDataItemResourceType.FILE);
         return getJson(request);
     }
 
@@ -99,6 +122,17 @@ public final class TestDataProvider {
         request.setName(name);
         request.setIndexPath(indexPath);
         request.setDoIndex(doIndex);
+        request.setType(BiologicalDataItemResourceType.FILE);
+        return getJson(request);
+    }
+
+    public static String getRegistrationJson(Long referenceID, String path, String name, boolean doIndex) {
+        RegistrationRequest request = new RegistrationRequest();
+        request.setReferenceId(referenceID);
+        request.setPath(path);
+        request.setName(name);
+        request.setDoIndex(doIndex);
+        request.setType(BiologicalDataItemResourceType.FILE);
         return getJson(request);
     }
 

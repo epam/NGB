@@ -21,7 +21,7 @@ export default class ngbDataSetsService {
         this.ivhTreeviewBfs = ivhTreeviewBfs;
         this.ivhTreeviewMgr = ivhTreeviewMgr;
         this.projectDataService = projectDataService;
-        this.filter = utilities.filter;
+        this.filter = utilities.treeFilter;
 
         this.treeviewOptions = Object.assign(ivhTreeviewOptions(), {
             childrenAttribute: 'items',
@@ -40,14 +40,20 @@ export default class ngbDataSetsService {
             projects = projects.map(utilities.preprocessNode);
             this.projectContext.datasetsArePrepared = true;
         }
-        const datasets = projects;
+        const datasets = this.applyGenomeFilter(projects);
         ngbDataSetsService.sort(datasets);
         this.ivhTreeviewMgr.validate(datasets, this.treeviewOptions, false);
         await this.updateSelectionFromState(datasets);
         return datasets;
     }
 
-    getSelectedTracks(datasets) {
+    applyGenomeFilter(projects) {
+        const genomeFilter = this.projectContext.datasetsFilter;
+        const filter = utilities.getGenomeFilter(genomeFilter);
+        return projects.filter(filter);
+    }
+
+    getSelectedTracks(datasets, forceReference) {
         const items = [];
         const findSelectedTracksFn = function (item: Node) {
             if (item && item.__selected && item.isTrack) {
@@ -58,6 +64,10 @@ export default class ngbDataSetsService {
             datasets,
             this.treeviewOptions,
             findSelectedTracksFn);
+        const openedByUrlProjectName = this.projectContext.openedByUrlProjectName;
+        if (forceReference && this.projectContext.reference && forceReference.name.toLowerCase() === this.projectContext.reference.name.toLowerCase()) {
+            items.push(...(this.projectContext.tracks).filter(t => t.projectId === openedByUrlProjectName));
+        }
         const reference = items.map(track => track.reference)[0];
         return {
             reference,
@@ -74,13 +84,13 @@ export default class ngbDataSetsService {
             return;
         }
         const datasetsIds = this.projectContext.tracksState.reduce((ids, track) => {
-            if (ids.filter(t => t === +track.projectId).length === 0) {
-                return [...ids, +track.projectId];
+            if (ids.filter(t => t === track.projectId).length === 0) {
+                return [...ids, track.projectId];
             }
             return ids;
         }, []);
         for (let i = 0; i < datasetsIds.length; i++) {
-            utilities.expandToProject(datasets, {id: datasetsIds[i]}, this.ivhTreeviewMgr, this.treeviewOptions);
+            utilities.expandToProject(datasets, {name: datasetsIds[i]}, this.ivhTreeviewMgr, this.treeviewOptions);
         }
         const mgr = this.ivhTreeviewMgr;
         const opts = this.treeviewOptions;
@@ -88,7 +98,7 @@ export default class ngbDataSetsService {
         const updateStateFn = function (item: Node) {
             let selected = false;
             if (item.isTrack && !item.isPlaceholder) {
-                selected = tracksState.filter(s => s.bioDataItemId === item.bioDataItemId && s.projectId === item.projectId).length;
+                selected = tracksState.filter(s => s.bioDataItemId.toString().toLowerCase() === item.name.toLowerCase() && s.projectId === item.projectId).length;
             }
             mgr.select(datasets, item, opts, selected);
             if (selected) {
@@ -136,7 +146,7 @@ export default class ngbDataSetsService {
                     item.reference.__selected = true;
                 }
             }
-            if (forceReference && this.projectContext.reference && forceReference.bioDataItemId !== this.projectContext.reference.bioDataItemId) {
+            if (forceReference && this.projectContext.reference && forceReference.name.toLowerCase() !== this.projectContext.reference.name.toLowerCase()) {
                 return false;
             }
         }
@@ -163,8 +173,8 @@ export default class ngbDataSetsService {
         }
         this.__previousItem = item;
         item.__previousSelectedState = isSelected;
+        let forceReference = this.projectContext.reference;
         if (isSelected) {
-            let forceReference = this.projectContext.reference;
             if (item.isProject) {
                 utilities.expandNode(item, this.ivhTreeviewMgr, this.treeviewOptions);
                 forceReference = utilities.findProjectReference(item);
@@ -188,41 +198,44 @@ export default class ngbDataSetsService {
         } else if (item.isTrack && item.project && item.project.items.filter(t => t.format !== 'REFERENCE' && t.__selected).length === 0) {
             item.project.items.forEach(t => t.__selected = false);
         }
-        const {tracks} = this.getSelectedTracks(datasets);
+        const {tracks} = this.getSelectedTracks(datasets, forceReference);
         if (tracks.filter(t => t.format !== 'REFERENCE').length === 0) {
             tracks.forEach(t => t.__selected = false);
         }
         this.ivhTreeviewMgr.validate(datasets, this.treeviewOptions, false);
-        this.navigateToTracks(datasets);
+        this.navigateToTracks(datasets, forceReference);
     }
 
-    navigateToTracks(datasets) {
-        const {tracks} = this.getSelectedTracks(datasets);
+    navigateToTracks(datasets, forceReference) {
+        const {tracks} = this.getSelectedTracks(datasets, forceReference);
         this.__lockStatesUpdate = true;
-        const [reference] = tracks.map(track => track.reference);
-        if (reference) {
+        let [reference] = tracks.filter(t => t.format === 'REFERENCE');
+        if (!reference) {
+            [reference] = tracks.filter(t => t.reference).map(t => t.reference);
+        }
+        if (reference && tracks.filter(t => t.format !== 'REFERENCE').length > 0) {
             const tracksState = this.projectContext.tracksState || [];
             if (tracksState.length === 0) {
                 tracksState.push({
-                    bioDataItemId: reference.bioDataItemId,
+                    bioDataItemId: reference.name,
                     projectId: reference.projectId
                 });
             }
-            const tracksIds = tracks.map(track => `[${track.bioDataItemId}][${track.projectId}]`);
-            const tracksStateIds = tracksState.map(track => `[${track.bioDataItemId}][${track.projectId}]`);
+            const tracksIds = tracks.map(track => `[${track.name.toLowerCase()}][${track.projectId.toLowerCase()}]`);
+            const tracksStateIds = tracksState.map(track => `[${track.bioDataItemId.toLowerCase()}][${track.projectId.toLowerCase()}]`);
             const self = this;
             const mapTrackFn = function(track) {
-                const state = self.projectContext.getTrackState(track.bioDataItemId, track.projectId);
+                const state = self.projectContext.getTrackState(track.name.toLowerCase(), track.projectId.toLowerCase());
                 if (state) {
                     return state;
                 }
                 return utilities.mapTrackFn(track);
             };
             let addedTracks = tracks
-                .filter(track => tracksStateIds.indexOf(`[${track.bioDataItemId}][${track.projectId}]`) === -1 && track.format !== 'REFERENCE')
+                .filter(track => tracksStateIds.indexOf(`[${track.name.toLowerCase()}][${track.projectId.toLowerCase()}]`) === -1 && track.format !== 'REFERENCE')
                 .map(mapTrackFn);
-            let existedTracks = tracksState.filter(track => tracksIds.indexOf(`[${track.bioDataItemId}][${track.projectId}]`) >= 0);
-            if (!existedTracks.filter(t => t.bioDataItemId === reference.bioDataItemId).length) {
+            let existedTracks = tracksState.filter(track => tracksIds.indexOf(`[${track.bioDataItemId.toLowerCase()}][${track.projectId.toLowerCase()}]`) >= 0);
+            if (!existedTracks.filter(t => t.bioDataItemId.toString().toLowerCase() === reference.name.toLowerCase()).length) {
                 existedTracks = [utilities.mapTrackFn(reference), ...existedTracks];
             }
             const newTracksState = [...existedTracks, ...addedTracks];

@@ -66,6 +66,7 @@ export default class ngbDataSetsController extends baseController {
     events = {
         'datasets:loading:finished': ::this.loadingFinished,
         'datasets:loading:started': ::this.loadingStarted,
+        'datasets:filter:changed': ::this.loadingFinished,
         'reference:change': ::this.onProjectChanged
     };
 
@@ -83,7 +84,7 @@ export default class ngbDataSetsController extends baseController {
             });
             const confirm = self.$mdDialog.confirm()
                 .title(`Switch reference ${self.projectContext.reference ? self.projectContext.reference.name : ''}${reference ? ` to ${reference.name}` : ''}?`)
-                .textContent('All open tracks will be closed.')
+                .textContent('All opened tracks will be closed.')
                 .ariaLabel('Change reference')
                 .ok('OK')
                 .cancel('Cancel');

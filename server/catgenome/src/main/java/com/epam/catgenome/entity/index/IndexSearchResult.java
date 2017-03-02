@@ -36,12 +36,12 @@ import java.util.List;
  * A value object, representing result of a feature index query
  * </p>
  */
-public class IndexSearchResult {
+public class IndexSearchResult<T extends FeatureIndexEntry> {
 
     /**
      * Relevant index entries
      */
-    private List<FeatureIndexEntry> entries;
+    private List<T> entries;
 
     /**
      * Indicates if total amount of search results exceeds limit
@@ -53,17 +53,19 @@ public class IndexSearchResult {
      */
     private int totalResultsCount;
 
+    private Integer totalPagesCount;
+
     public IndexSearchResult() {
         // no-op
     }
 
-    public IndexSearchResult(List<FeatureIndexEntry> entries, boolean exceedsLimit, int totalResultsCount) {
+    public IndexSearchResult(List<T> entries, boolean exceedsLimit, int totalResultsCount) {
         this.entries = entries;
         this.exceedsLimit = exceedsLimit;
         this.totalResultsCount = totalResultsCount;
     }
 
-    public void mergeFrom(IndexSearchResult that) {
+    public void mergeFrom(IndexSearchResult<T> that) {
         entries.addAll(that.getEntries());
         exceedsLimit = exceedsLimit || that.exceedsLimit;
         totalResultsCount += that.getTotalResultsCount();
@@ -77,11 +79,11 @@ public class IndexSearchResult {
         this.exceedsLimit = exceedsLimit;
     }
 
-    public List<? extends FeatureIndexEntry> getEntries() {
+    public List<T> getEntries() {
         return entries;
     }
 
-    public void setEntries(List<FeatureIndexEntry> entries) {
+    public void setEntries(List<T> entries) {
         this.entries = entries;
     }
 
@@ -91,5 +93,13 @@ public class IndexSearchResult {
 
     public void setTotalResultsCount(int totalResultsCount) {
         this.totalResultsCount = totalResultsCount;
+    }
+
+    public Integer getTotalPagesCount() {
+        return totalPagesCount;
+    }
+
+    public void setTotalPagesCount(Integer totalPagesCount) {
+        this.totalPagesCount = totalPagesCount;
     }
 }

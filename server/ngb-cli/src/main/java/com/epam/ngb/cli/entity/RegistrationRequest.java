@@ -33,11 +33,14 @@ public class RegistrationRequest {
     private String path;
     private String name;
     private String indexPath;
+    private BiologicalDataItemResourceType type;
+    private BiologicalDataItemResourceType indexType;
     private Long referenceId;
     private List<ProjectItem> items;
     private Long geneFileId;
     private RegistrationRequest geneFileRequest;
     private Boolean doIndex;
+    private Boolean noGCContent;
 
     public String getPath() {
         return path;
@@ -101,5 +104,29 @@ public class RegistrationRequest {
 
     public void setDoIndex(Boolean doIndex) {
         this.doIndex = doIndex;
+    }
+
+    public Boolean getNoGCContent() {
+        return noGCContent;
+    }
+
+    public void setNoGCContent(Boolean noGCContent) {
+        this.noGCContent = noGCContent;
+    }
+
+    public BiologicalDataItemResourceType getType() {
+        return type;
+    }
+
+    public void setType(BiologicalDataItemResourceType type) {
+        this.type = type;
+    }
+
+    public BiologicalDataItemResourceType getIndexType() {
+        return indexType;
+    }
+
+    public void setIndexType(BiologicalDataItemResourceType indexType) {
+        this.indexType = indexType;
     }
 }

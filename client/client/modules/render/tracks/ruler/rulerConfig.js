@@ -16,7 +16,7 @@ export default {
             stroke: 0x737373
         },
         cursor: {
-            height: 22,
+            height: 18,
             notch: {
                 color: 0xffffff,
                 count: 2,
@@ -52,7 +52,7 @@ export default {
             }
         },
         line: {
-            thickness: 3
+            thickness: 2
         }
     },
     brushColor: {
@@ -63,23 +63,26 @@ export default {
     global:{
         body:{
             fill: 0xd7d7d7,
-            height:17,
+            height:12,
             stroke: {
                 color: 0x8f8f8f,
                 thickness: 1
             }
         },
+        tickArea:{
+            margin:0
+        },
         tick:{
             formatter: ::NumberFormatter.textWithPrefix,
-            height: 7,
+            height: 0,
             label: {
                 fill: 0x000000,
-                font: 'normal 10pt arial'
+                font: 'normal 7pt arial'
             },
-            margin: 2,
+            margin: 0,
             thickness: 1
         },
-        ticks: 10,
+        ticks: 5,
         ticksMinMargin: 10
     },
     local:{
@@ -90,6 +93,9 @@ export default {
                 color: 0x8f8f8f,
                 thickness: 1
             }
+        },
+        tickArea:{
+            margin:17
         },
         centerTick: {
             background: {
@@ -122,5 +128,5 @@ export default {
         ticksMinMargin: 10
     },
     resizable: false,
-    rulersVerticalMargin: 7
+    rulersVerticalMargin: -5
 };

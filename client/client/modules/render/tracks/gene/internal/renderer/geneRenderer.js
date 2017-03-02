@@ -114,13 +114,16 @@ export default class GeneRenderer extends CachedTrackRenderer {
             const graphics = this.featureRenderer.render(cache.data, viewport, this._labelsContainer, this._dockableElementsContainer, this._attachedElementsContainer);
             if (graphics !== null) {
                 if (this.needConvertGraphicsToTexture) {
+                    let temporaryContainer = new PIXI.Container();
+                    temporaryContainer.addChild(graphics);
                     const coordinates = this.featureRenderer.textureCoordinates;
-                    const sprite = new PIXI.Sprite(graphics.generateTexture(this._pixiRenderer,
-                        drawingConfiguration.resolution, drawingConfiguration.scale));
+                    const texture = temporaryContainer.generateTexture(this._pixiRenderer, drawingConfiguration.resolution, drawingConfiguration.scale);
+                    const sprite = new PIXI.Sprite(texture);
                     sprite.position.x = coordinates.x;
                     sprite.position.y = coordinates.y;
                     this.dataContainer.addChild(sprite);
                     graphics.clear();
+                    temporaryContainer = null;
                 } else {
                     this.dataContainer.addChild(graphics);
                 }

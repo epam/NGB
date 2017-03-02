@@ -1,11 +1,9 @@
-import {drawingConfiguration} from '../../../../../core';
-
 export function renderScrollBar(canvasSize, positionInfo, drawingConfig) {
     const {end, start, total} = positionInfo;
     const {height, width} = canvasSize;
     const {config, graphics, isHovered, topMargin} = drawingConfig;
-    const containerHeight = height / drawingConfiguration.scale - topMargin;
-    const x = width / drawingConfiguration.scale - config.scroll.width - config.scroll.margin;
+    const containerHeight = height - topMargin;
+    const x = width - config.scroll.width - config.scroll.margin;
     const scrollBarHeight = containerHeight * ((end - start) / total);
     let scrollBarFrame = null;
     graphics.clear();

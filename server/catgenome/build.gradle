@@ -20,23 +20,6 @@ plugins {
 
 group "com.epam"
 
-version = new Version(major: 2, minor: 2)
-
-task printVersion {
-    doFirst {
-        println "Project version is $version"
-    }
-}
-
-class Version {
-    int major, minor
-    String build
-
-    String toString() {
-        "$major.$minor${build ? ".$build" : ''}"
-    }
-}
-
 // >>>>> building for different profiles
 // >>>>> For configuration use -Pprofile=profile_name with run ('dev' is used by default)
 loadConfiguration()

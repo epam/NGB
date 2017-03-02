@@ -1,0 +1,50 @@
+<div layout="column" flex layout-fill>
+    <form class="open-file-form" name="openFileForm">
+        <div layout="row" flex layout-align="start center" class="change-reference-warning" ng-show="$ctrl.switchingReference">
+            <ng-md-icon icon="warning"></ng-md-icon>
+            <span>All opened tracks will be closed</span>
+        </div>
+        <md-input-container class="md-block">
+            <label>Reference</label>
+            <md-select id="reference"
+                       name="reference"
+                       aria-label="references"
+                       ng-model="$ctrl.referenceId"
+                       required>
+                <md-option ng-repeat="reference in $ctrl.references track by reference.id" ng-value="reference.id">{{reference.name}}</md-option>
+            </md-select>
+            <div ng-messages="openFileForm.reference.$error">
+                <div ng-message="required">You must select a reference</div>
+            </div>
+        </md-input-container>
+    </form>
+    <div layout="column" layout-margin>
+        <md-input-container class="md-block" ng-if="$ctrl.isDirectoryTyping">
+            <label for="currentDirectory">Folder</label>
+            <input id="currentDirectory"
+                   ng-key-bind="{ enter: '$ctrl.didTypeDirectory()' }"
+                   ng-blur="$ctrl.discardDirectoryTyping();"
+                   name="currentDirectory"
+                   aria-label="current directory"
+                   ng-model="$ctrl.displayDirectory"
+                   ng-auto-focus>
+        </md-input-container>
+        <a class="ngb-open-file-directory-link" ng-if="!$ctrl.isDirectoryTyping"
+           ng-click="$ctrl.startDirectoryTyping()">
+        <span
+                ng-repeat="path in $ctrl.displayDirectoryPath track by $index"
+                class="ngb-open-file-directory-path"
+                ng-click="$ctrl.didClickOnPath(path.value, $event);">
+            /{{path.name}}
+        </span>
+        </a>
+    </div>
+    <div class="ui-grid-container ngb-server-explorer" layout="column" layout-margin flex>
+        <div ui-grid="$ctrl.gridOptions"
+             ui-grid-selection
+             ui-grid-resize-columns
+             ui-grid-auto-resize
+             ui-grid-move-columns
+             ui-grid-pinning flex></div>
+    </div>
+</div>
