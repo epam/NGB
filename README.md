@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/epam/NGB.svg?branch=master)](https://travis-ci.org/epam/NGB)
+
 # NGB
 New Genome Browser (NGB) is a Web client-server tool that has been developed with the several key distinctive features in mind:  
 * Visualization of Structural Variations (SVs) and their supporting reads
