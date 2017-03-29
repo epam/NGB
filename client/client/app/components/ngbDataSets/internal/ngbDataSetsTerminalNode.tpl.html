@@ -1,0 +1,30 @@
+<script type="text/ng-template" id="ngbDataSetsTerminalNode.tpl.html">
+    <div class="ivh-treeview-node-content" title="{{node.hint}}" ng-if="node.isTrack">
+        <div class="dataset-item-row">
+            <div class="folder-horizontal-line"></div>
+            <div layout="row" layout-align="space-between center" class="dataset-item-row-track">
+                <div layout="row" layout-align="start center">
+
+                                                            <span class="ivh-treeview-checkbox-wrapper track">
+                                                                <span class="ng-isolate-scope">
+                                                                    <input type="checkbox"
+                                                                           class="ivh-treeview-checkbox ng-pristine ng-untouched ng-valid ng-empty"
+                                                                           ng-change="$ctrl.toggle(node)"
+                                                                           ng-model="node.__selected"
+                                                                           aria-invalid="false">
+                                                                </span>
+                                                            </span>
+
+                    <div class="dataset-track-format-title {{node.format}} dataset-selectable"
+                         ng-class="{selected: node.__selected}" ng-click="$ctrl.toggleSelected(node)">{{node.format ||
+                        '&nbsp'}}
+                    </div>
+                    <span class="ivh-treeview-node-label dataset-track-title dataset-selectable"
+                          ng-class="{selected: node.__selected}"
+                          ng-click="$ctrl.toggleSelected(node)">{{node.name}}</span>
+                </div>
+                <div class="dataset-genome">{{node.reference.name}}</div>
+            </div>
+        </div>
+    </div>
+</script>

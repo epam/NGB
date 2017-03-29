@@ -20,13 +20,24 @@ export default {
             color: 0x777777
         },
         height: 50,
+        logScaleIndicator: {
+            alpha: 0.8,
+            label: {
+                fill: 0xFFFFFF,
+                font: 'normal 8pt arial'
+            },
+            margin: 1,
+            padding: 2,
+            fill: 0xCCD8DD
+        },
         maxHeight: 50,
         minHeight: 50,
-        resizable: false,
         wig: {
             color: 0xCCD8DD,
+            lineColor: 0xA2ABAF,
             detailedStyleStartingAtPixelsPerBP: 7.5,
-            thresholdColor: 0xFAA3A3
+            thresholdColor: 0xFAA3A3,
+            lineThresholdColor: 0xF87272
         }
     },
     downSampling:{
@@ -62,8 +73,31 @@ export default {
             strokeThickness: 1
         }
     },
-    height: 500,
+    height: (state, config) => {
+        if (state.alignments) {
+            return 250;
+        }
+        let height = 0;
+        if (state.coverage) {
+            height += config.coverage.height;
+        }
+        if (state.spliceJunctions) {
+            height += config.spliceJunctions.height;
+        }
+        return height;
+    },
+    defaultHeight: 250,
     maxHeight: Infinity,
+    regions: {
+        height: 50,
+        lines: {
+            alpha: 0.5,
+            alphaMax: 0.9,
+            fill: 0x92AEE7,
+            step: 5,
+            thickness: 1
+        }
+    },
     requestDebounce: 0.5,
     requestPreCache: 1,
     scroll: {

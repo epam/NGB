@@ -1,23 +1,35 @@
 import {Viewport} from '../viewport/viewport';
-
+import {extractFeaturesForTrack} from '../configuration';
 
 export default class BaseTrack {
     viewport: Viewport;
-    static tracks = [];
 
     destructor() {
-        BaseTrack.tracks.splice(BaseTrack.tracks.indexOf(this), 1);
+
     }
 
-    constructor({viewport, config, dataItemClicked, changeTrackVisibility, ...configRest}) {
-        BaseTrack.tracks.push(this);
+    get stateKeys() {
+        return [];
+    }
 
-        const configChain = [];
-        let protoPointer = this;
-        while (protoPointer && protoPointer instanceof BaseTrack) {
-            configChain.push(protoPointer.constructor);
-            protoPointer = protoPointer.__proto__;
-        }
+    state = {};
+
+    constructor(opts) {
+        const {viewport, config, dataItemClicked, changeTrackVisibility, changeTrackHeight, ...configRest} = opts;
+        const state = extractFeaturesForTrack(Object.assign(opts.defaultFeatures || {}, opts.state || {}), this.stateKeys);
+        const getTrackConfigFn = () => {
+            if (configRest.projectContext) {
+                const serverConfig = configRest.projectContext.getTrackDefaultSettings(configRest.format);
+                if (serverConfig) {
+                    return BaseTrack.recoverConfig(serverConfig, this.constructor.getTrackDefaultConfig());
+                }
+            }
+            return this.constructor.getTrackDefaultConfig();
+        };
+
+        Reflect.defineProperty(this, 'trackConfig', {
+            value: getTrackConfigFn()
+        });
 
         Reflect.defineProperty(this, 'viewport', {
             value: viewport
@@ -31,18 +43,44 @@ export default class BaseTrack {
             value: changeTrackVisibility
         });
 
-        const mapDefaultHeightFn = function(constructor) {
+        Reflect.defineProperty(this, 'changeTrackHeight', {
+            value: changeTrackHeight
+        });
+
+        const mapDefaultHeightFn = () => {
             return {
-                height: constructor.trackDefaultHeight
+                height: (typeof this.trackConfig.height === 'function') ? this.trackConfig.height(state, this.trackConfig) : this.trackConfig.height
             };
+        };
+
+        const defaultConfig = {
+            maxHeight: 500,
+            minHeight: 20
         };
 
         Reflect.defineProperty(this, 'config', {
             value: Object.freeze(
-                [config, configRest, ...configChain.map(constructor => constructor.config).filter(a => a),
-                    ...configChain.map(mapDefaultHeightFn).filter(a => a)]
-                    .reduceRight((acc, config) => ({...acc, ...config})))
+                [config, configRest, defaultConfig, mapDefaultHeightFn()].reduceRight((acc, config) => ({...acc, ...config})))
         });
+        this.state = state;
+    }
 
+    static recoverConfig(serverConfig, localConfig) {
+        if (serverConfig !== null && serverConfig !== undefined) {
+            for (const key in localConfig) {
+                if (localConfig.hasOwnProperty(key) && localConfig[key] !== undefined &&
+                    serverConfig.hasOwnProperty(key) && serverConfig[key] !== undefined && serverConfig[key] !== null) {
+                    switch ((typeof localConfig[key]).toLowerCase()) {
+                        case 'object':
+                            localConfig[key] = BaseTrack.recoverConfig(serverConfig[key], localConfig[key]);
+                            break;
+                        default:
+                            localConfig[key] = serverConfig[key];
+                            break;
+                    }
+                }
+            }
+        }
+        return localConfig;
     }
 }

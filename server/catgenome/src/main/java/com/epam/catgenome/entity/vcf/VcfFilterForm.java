@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
@@ -56,6 +57,8 @@ public class VcfFilterForm {
     private Map<String, Object> additionalFilters;
     private List<Float> quality;
     private Boolean isExon;
+    private Integer startIndex;
+    private Integer endIndex;
 
     private Integer page;
     private Integer pageSize;
@@ -67,14 +70,14 @@ public class VcfFilterForm {
     private List<String> infoFields;
 
     private List<Long> vcfFileIds;
-    private Long chromosomeId;
+    private List<Long> chromosomeIds;
 
     /**
      * Creates a {@code BooleanQuery} for loading all types of features ()
      * @return a {@code BooleanQuery} to a lucene index without filtering by a{@code FeatureType}
      */
-    public BooleanQuery computeQuery2() {
-        return computeQuery2(null);
+    public BooleanQuery computeQuery() {
+        return computeQuery(null);
     }
 
     /**
@@ -82,7 +85,7 @@ public class VcfFilterForm {
      * @param featureType type of features to find
      * @return a {@code BooleanQuery} to a lucene with specified filters
      */
-    public BooleanQuery computeQuery2(FeatureType featureType) {
+    public BooleanQuery computeQuery(FeatureType featureType) {
 
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         addFeatureTypeFilter(featureType, builder);
@@ -93,6 +96,7 @@ public class VcfFilterForm {
         addVariationTypeFilter(builder);
         addFailedFilter(builder);
         addQualityFilter(builder);
+        addPositionFilter(builder);
         addAdditionalFilters(builder);
         return builder.build();
     }
@@ -101,6 +105,25 @@ public class VcfFilterForm {
         if (additionalFilters != null && !additionalFilters.isEmpty()) {
             for (Map.Entry<String, Object> entry : additionalFilters.entrySet()) {
                 addAdditionalFilter(builder, entry);
+            }
+        }
+    }
+
+    /**
+     * Filter variations by positions, using only variation's start index
+     * @param builder
+     */
+    private void addPositionFilter(BooleanQuery.Builder builder) {
+        if (startIndex != null && endIndex != null) {
+            builder.add(IntPoint.newRangeQuery(FeatureIndexFields.START_INDEX.getFieldName(), startIndex, endIndex),
+                    BooleanClause.Occur.MUST);
+        } else {
+            if (startIndex != null) {
+                builder.add(IntPoint.newRangeQuery(FeatureIndexFields.START_INDEX.getFieldName(), startIndex, Integer
+                        .MAX_VALUE), BooleanClause.Occur.MUST);
+            } else if (endIndex != null) {
+                builder.add(IntPoint.newRangeQuery(FeatureIndexFields.START_INDEX.getFieldName(), Integer.MIN_VALUE,
+                        endIndex), BooleanClause.Occur.MUST);
             }
         }
     }
@@ -185,9 +208,10 @@ public class VcfFilterForm {
     }
 
     private void addChromosomeFilter(BooleanQuery.Builder builder) {
-        if (chromosomeId != null) {
-            builder.add(new TermQuery(new Term(FeatureIndexFields.CHROMOSOME_ID.getFieldName(),
-                                               chromosomeId.toString())), BooleanClause.Occur.MUST);
+        if (CollectionUtils.isNotEmpty(chromosomeIds)) {
+            List<Term> chromosomeTerms = chromosomeIds.stream().map(id -> new Term(FeatureIndexFields.CHROMOSOME_ID
+                            .getFieldName(), id.toString())).collect(Collectors.toList());
+            builder.add(new TermsQuery(chromosomeTerms), BooleanClause.Occur.MUST);
         }
     }
 
@@ -263,16 +287,16 @@ public class VcfFilterForm {
         }
     }
 
-    public Long getChromosomeId() {
-        return chromosomeId;
-    }
-
-    public void setChromosomeId(Long chromosomeId) {
-        this.chromosomeId = chromosomeId;
-    }
-
     public void setVariationTypes(FilterSection<List<VariationType>> variationTypes) {
         this.variationTypes = variationTypes;
+    }
+
+    public List<Long> getChromosomeIds() {
+        return chromosomeIds;
+    }
+
+    public void setChromosomeIds(List<Long> chromosomeIds) {
+        this.chromosomeIds = chromosomeIds;
     }
 
     public void setGenes(FilterSection<List<String>> genes) {
@@ -373,6 +397,22 @@ public class VcfFilterForm {
 
     public void setOrderBy(List<OrderBy> orderBy) {
         this.orderBy = orderBy;
+    }
+
+    public Integer getStartIndex() {
+        return startIndex;
+    }
+
+    public void setStartIndex(Integer startIndex) {
+        this.startIndex = startIndex;
+    }
+
+    public Integer getEndIndex() {
+        return endIndex;
+    }
+
+    public void setEndIndex(Integer endIndex) {
+        this.endIndex = endIndex;
     }
 
     public static class FilterSection<T> {

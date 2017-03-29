@@ -119,16 +119,14 @@ export function sortByNameDesc(node1: Node, node2: Node) {
     return node1.name.toLowerCase() > node2.name.toLowerCase() ? -1 : 1;
 }
 
-export function updateTracksStateFn(tree, manager, opts, reference) {
+export function updateTracksStateFn(item: Node, reference) {
     if (!reference) {
         return;
     }
-    return function (item: Node) {
-        if (item.isTrack && item.reference.name !== reference.name) {
-            manager.deselect(tree, item, opts);
-        }
-        return true;
-    };
+    if (item.isTrack && item.reference.name !== reference.name) {
+        item.__selected = false;
+    }
+    return true;
 }
 
 export function selectRecursively(item: Node, isSelected) {
@@ -186,21 +184,33 @@ export function findProjectReference(project: Node) {
     return reference;
 }
 
-export function expandNode(node: Node, manager, options) {
+export function expandNode(node: Node) {
     if (node.items && node.items.length && node.items[0].isPlaceholder) {
         node.items = node._lazyItems;
         node._lazyItems = null;
-        manager.validate(node, options);
     }
     if (node.project) {
-        expandNode(node.project, manager, options);
+        expandNode(node.project);
     }
 }
 
-export function expandToProject(datasets: Array<Node>, project, manager, options) {
+export function expandNodeWithChilds(node: Node) {
+    if (node.items && node.items.length && node.items[0].isPlaceholder) {
+        node.items = node._lazyItems;
+        node._lazyItems = null;
+    }
+
+    if (node.isProject) {
+        node.items.forEach(item => {
+            expandNodeWithChilds(item);
+        });
+    }
+}
+
+export function expandToProject(datasets: Array<Node>, project) {
     const node = findProject(datasets, project);
     if (node) {
-        expandNode(node, manager, options);
+        expandNode(node);
     }
 }
 

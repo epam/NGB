@@ -33,6 +33,11 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 
+import com.epam.ngb.cli.entity.BiologicalDataItem;
+import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
+import com.epam.ngb.cli.entity.Project;
+import com.epam.ngb.cli.entity.RequestPayload;
+import com.epam.ngb.cli.entity.ResponseResult;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -46,11 +51,6 @@ import org.apache.http.entity.StringEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.epam.ngb.cli.entity.BiologicalDataItem;
-import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
-import com.epam.ngb.cli.entity.Project;
-import com.epam.ngb.cli.entity.RegistrationRequest;
-import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.JsonMapper;
 import com.epam.ngb.cli.manager.command.CommandConfiguration;
@@ -354,13 +354,13 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
 
     /**
      * Performs a POST HTTP request to register some data on NGB server
-     * @param registration filled registration form for the server
+     * @param requestObject filled request object for the server
      * @param post request to performs
      * @return response value as a String
      */
-    protected String getPostResult(RegistrationRequest registration, HttpPost post) {
+    protected String getPostResult(RequestPayload requestObject, HttpPost post) {
         try {
-            post.setEntity(new StringEntity(getMapper().writeValueAsString(registration)));
+            post.setEntity(new StringEntity(getMapper().writeValueAsString(requestObject)));
             return RequestManager.executeRequest(post);
         } catch (UnsupportedEncodingException | JsonProcessingException e) {
             throw new ApplicationException(e.getMessage(), e);

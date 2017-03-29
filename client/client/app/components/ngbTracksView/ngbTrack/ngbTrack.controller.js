@@ -22,7 +22,6 @@ export default class ngbTrackController {
         return trackConstructors[this.track.format];
     }
 
-    isResizable = false;
     isResizing = false;
     showTracksHeaders = true;
 
@@ -122,13 +121,24 @@ export default class ngbTrackController {
                 self.showTracksHeaders = state.showTracksHeaders;
             }
         };
+        const trackCoverageSettingsChangedHandler = (state) => {
+            if (!state.cancel && ((state.data.applyToCurrentTrack && this.track.name === state.source) ||
+                (state.data.applyToWIGTracks && this.track.format === 'WIG') ||
+                (state.data.applyToBAMTracks && this.track.format === 'BAM'))) {
+                this.trackInstance.coverageScaleSettingsChanged(state);
+            } else if (state.cancel && state.source === this.track.name && this.trackInstance.trackHasCoverageSubTrack) {
+                this.trackInstance.coverageScaleSettingsChanged(state);
+            }
+        };
         dispatcher.on('settings:change', globalSettingsChangedHandler);
         dispatcher.on('track:headers:changed', globalSettingsChangedHandler);
+        dispatcher.on('tracks:coverage:manual:configure:done', trackCoverageSettingsChangedHandler);
 
         $scope.$on('$destroy', () => {
             if (this.trackInstance) {
                 dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
                 dispatcher.removeListener('track:headers:changed', globalSettingsChangedHandler);
+                dispatcher.removeListener('tracks:coverage:manual:configure:done', trackCoverageSettingsChangedHandler);
                 this.trackInstance.destructor();
             }
             if (this.trackInstance && this.trackInstance.domElement && this.trackInstance.domElement.parentNode) {
@@ -162,6 +172,11 @@ export default class ngbTrackController {
         }
     }
 
+    changeTrackHeight(newHeight) {
+        this.trackInstance.height = newHeight;
+        this.track.height = this.trackInstance.height;
+    }
+
     loadTrackInstance() {
         const tracksState = this.projectContext.tracksState;
         let trackSettings = null;
@@ -177,6 +192,7 @@ export default class ngbTrackController {
         this.trackInstance = new this.instanceConstructor({
             dataItemClicked: ::this.onTrackItemClick,
             changeTrackVisibility: ::this.changeTrackVisibility,
+            changeTrackHeight: ::this.changeTrackHeight,
             dispatcher: this.dispatcher,
             ...this.trackOpts,
             ...this._localDataService.getSettings(),
@@ -189,7 +205,6 @@ export default class ngbTrackController {
 
         this.track.instance = this.trackInstance;
         this.track.height = this.trackInstance.height;
-        this.isResizable = this.trackInstance.config.resizable !== false;
 
         if (this.trackInstance && this.trackInstance.domElement) {
             this.domElement.querySelector('.js-ngb-render-container-target')
@@ -197,6 +212,13 @@ export default class ngbTrackController {
         }
 
         this.isLoaded = true;
+    }
+
+    get isResizable() {
+        if (this.trackInstance) {
+            return this.trackInstance.trackIsResizable;
+        }
+        return false;
     }
 
     hideTrack(event) {

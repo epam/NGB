@@ -125,4 +125,10 @@
         <url>/restapi/url</url>
         <secure>false</secure>
     </generate_url>
+    <sort>
+        <name>sort</name>
+        <type>POST</type>
+        <url>/restapi/tools/sort</url>
+        <secure>false</secure>
+    </sort>
 </config>

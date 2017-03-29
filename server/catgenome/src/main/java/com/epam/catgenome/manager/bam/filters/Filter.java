@@ -24,11 +24,32 @@
 
 package com.epam.catgenome.manager.bam.filters;
 
+import com.epam.catgenome.entity.bam.BasePosition;
 import com.epam.catgenome.manager.bam.sifters.DownsamplingSifter;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Represents a filter for read objects. This interface filters read data before it is given
  * to the (@code DownsamplingSifter) for downsampling.
  */
-public interface Filter<T> extends DownsamplingSifter<T> {
+public interface Filter<T> {
+    /**
+     * @return filter's wrapped Sifter
+     */
+    DownsamplingSifter<T> getSifter();
+
+    /**
+     * @param record representing a read
+     * @param start of the read
+     * @param end of the read
+     * @param differentBase list of read bases that differ from the reference nucleotides
+     * @param headStr soft clipped start of the read
+     * @param tailStr soft clipped end of the read
+     * @throws IOException
+     */
+    void add(T record, int start, int end, List<BasePosition> differentBase, String headStr,
+             String tailStr) throws IOException;
+
 }

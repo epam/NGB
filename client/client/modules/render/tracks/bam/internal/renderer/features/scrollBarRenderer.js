@@ -1,4 +1,4 @@
-export function renderScrollBar(canvasSize, positionInfo, drawingConfig) {
+export function renderScrollBar(canvasSize, positionInfo, drawingConfig, features, viewport, maximumRange) {
     const {end, start, total} = positionInfo;
     const {height, width} = canvasSize;
     const {config, graphics, isHovered, topMargin} = drawingConfig;
@@ -7,6 +7,9 @@ export function renderScrollBar(canvasSize, positionInfo, drawingConfig) {
     const scrollBarHeight = containerHeight * ((end - start) / total);
     let scrollBarFrame = null;
     graphics.clear();
+    if (!features.alignments || viewport.actualBrushSize > maximumRange) {
+        return;
+    }
     if (end - start < total) {
         graphics
             .beginFill(config.scroll.fill, isHovered ? config.scroll.hoveredAlpha : config.scroll.alpha);

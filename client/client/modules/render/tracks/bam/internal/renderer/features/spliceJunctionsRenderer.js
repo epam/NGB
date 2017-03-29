@@ -36,9 +36,9 @@ export function renderSpliceJunctions(spliceJunctions, viewport, drawingConfig) 
                 steps = 100;
             }
             const step = Math.PI / steps;
-            let color = colors.strandDirection.r;
+            let color = colors.strand.forward;
             if (!strand) {
-                color = colors.strandDirection.l;
+                color = colors.strand.reverse;
             }
             graphics.beginFill(color, .5);
             graphics.lineStyle(1, color, 1);

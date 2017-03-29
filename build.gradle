@@ -1,3 +1,7 @@
+plugins {
+    id 'nebula.lint' version '6.1.4'
+}
+
 group "com.epam"
 
 def uiFilesDestination = "$rootDir/server/catgenome/src/main/resources/static"
@@ -8,14 +12,18 @@ def dockerDir = "$rootDir/docker/core"
 def runTests = !hasProperty("noTest")
 def database = hasProperty("database") ? database : "h2"
 def buildNumber = hasProperty("buildNumber") ? buildNumber : ""
+def profile = hasProperty("profile") ? profile : "release"
 
 allprojects {
-    version = new Version(major: 2, minor: 3, build: buildNumber)
+    version = new Version(major: 2, minor: 4, build: buildNumber)
     task printVersion {
         doFirst {
             println "Project version is $version"
         }
     }
+    /*apply plugin: 'nebula.lint'
+    gradleLint.rules = ['unused-dependency']
+    gradleLint.reportFormat = 'text'*/
 }
 
 class Version {
@@ -50,7 +58,7 @@ task buildWar(type: GradleBuild) {
         tasks = ['clean', 'assemble']
     }
 
-    startParameter.projectProperties = [profile    : 'release',
+    startParameter.projectProperties = [profile    : profile,
                                         database   : database,
                                         buildNumber: buildNumber]
 

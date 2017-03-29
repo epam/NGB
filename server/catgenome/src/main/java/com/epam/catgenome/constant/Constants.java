@@ -91,11 +91,6 @@ public final class Constants {
      */
     public static final int BAM_START_INDEX_TEST = 10;
 
-    /**
-     * Indicates maximum interval size of BAM track, that can be displayed
-     */
-    public static final int MAX_BAM_INTERVAL = 50000;
-
     public static final int REFERENCE_STEP = 100;
 
     /**

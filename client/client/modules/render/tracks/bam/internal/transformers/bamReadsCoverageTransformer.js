@@ -12,11 +12,7 @@ export default class BamReadsCoverageTransformer extends WIGTransformer {
         this._bamCache = bamCache;
     }
 
-    transformCoordinateSystem(coverageData, viewport, cachedCoordinateSystem) {
-        return super.transformCoordinateSystem(coverageData, viewport, cachedCoordinateSystem);
-    }
-
-    static getTooltipContent(item) {
+    static getTooltipContent(item, displayOnlyCoverageInfo = false) {
         const percentageBase = 100;
         const percentageFractionBase = 10000;
         const getCell = function(value) {
@@ -24,11 +20,17 @@ export default class BamReadsCoverageTransformer extends WIGTransformer {
         };
 
         if (!item.locusInfo) {
-            return [
-                ['Count', Math.ceil(item.value)],
-                ['DEL:', item.delCov || 0],
-                ['INS:', item.insCov || 0]
-            ];
+            if (displayOnlyCoverageInfo) {
+                return [
+                    ['Count', Math.ceil(item.value)]
+                ];
+            } else {
+                return [
+                    ['Count', Math.ceil(item.value)],
+                    ['DEL:', item.delCov || 0],
+                    ['INS:', item.insCov || 0]
+                ];
+            }
         }
 
         return [

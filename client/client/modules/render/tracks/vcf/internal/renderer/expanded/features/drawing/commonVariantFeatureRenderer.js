@@ -95,7 +95,7 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
                 // homozygous
                 graphics
                     .beginFill(this.config.variant.zygosity.homozygousColor, 1)
-                    .drawRect(cX - width / 2, cY - height / 2, width, height)
+                    .drawRect(Math.floor(cX - width / 2), Math.floor(cY - height / 2), width, height)
                     .endFill();
             }
                 break;
@@ -103,18 +103,18 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
                 // heterozygous
                 graphics
                     .beginFill(this.config.variant.zygosity.homozygousColor, 1)
-                    .drawRect(cX - width / 2, cY - height / 2, width, height / 2)
+                    .drawRect(Math.floor(cX - width / 2), Math.floor(cY - height / 2), width, height / 2)
                     .endFill();
                 graphics
                     .beginFill(this.config.variant.zygosity.heterozygousColor, 1)
-                    .drawRect(cX - width / 2, cY, width, height / 2)
+                    .drawRect(Math.floor(cX - width / 2), Math.floor(cY), width, height / 2)
                     .endFill();
             }
                 break;
             default: {
                 graphics
                     .beginFill(this.config.variant.zygosity.unknownColor, 1)
-                    .drawRect(cX - width / 2, cY - height / 2, width, height)
+                    .drawRect(Math.floor(cX - width / 2), Math.floor(cY - height / 2), width, height)
                     .endFill();
             }
                 break;

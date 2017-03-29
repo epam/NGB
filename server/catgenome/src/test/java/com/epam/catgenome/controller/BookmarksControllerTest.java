@@ -125,7 +125,7 @@ public class BookmarksControllerTest extends AbstractControllerTest {
         testProject.setName("testProject");
 
         ArrayList<ProjectItem> items = new ArrayList<>();
-        items.add(new ProjectItem(testReference));
+        items.add(new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId())));
         items.add(new ProjectItem(item));
         testProject.setItems(items);
 
@@ -206,7 +206,8 @@ public class BookmarksControllerTest extends AbstractControllerTest {
 
         loadedBookmark = loadedOneRes.getPayload();
         Assert.assertFalse(loadedBookmark.getOpenedItems().isEmpty());
-        Assert.assertEquals(bookmarkVO.getOpenedItems().get(0).getId(), loadedBookmark.getOpenedItems().get(0).getId());
+        Assert.assertEquals(bookmarkVO.getOpenedItems().get(0).getBioDataItemId(),
+                loadedBookmark.getOpenedItems().get(0).getBioDataItemId());
 
         // update
 

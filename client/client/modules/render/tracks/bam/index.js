@@ -7,17 +7,17 @@ import {
     HOVERED_ITEM_TYPE_DOWNSAMPLE_INDICATOR,
     HOVERED_ITEM_TYPE_SPLICE_JUNCTION
 } from './internal';
-import {groupModes, sortTypes} from './modes';
+import {dataModes, groupModes, sortTypes} from './modes';
 import Promise from 'bluebird';
 import {ScrollableTrack} from '../../core';
-import config from './bamConfig';
+import BAMConfig from './bamConfig';
 import {default as menu} from './menu';
 import {menu as menuUtilities} from '../../utilities';
+import scaleModes from '../wig/modes';
 
 const Math = window.Math;
 export class BAMTrack extends ScrollableTrack {
-    static config = config;
-    static trackDefaultHeight = config.height;
+
     cacheService: BamCacheService = null;
 
     downsampled = false;
@@ -31,9 +31,14 @@ export class BAMTrack extends ScrollableTrack {
 
     _bamRenderer: BamRenderer = null;
 
+    static getTrackDefaultConfig() {
+        return BAMConfig;
+    }
+
     get stateKeys() {
         return [
             'arrows',
+            'alignments',
             'colorMode',
             'coverage',
             'diffBase',
@@ -44,7 +49,22 @@ export class BAMTrack extends ScrollableTrack {
             'shadeByQuality',
             'softClip',
             'spliceJunctions',
-            'viewAsPairs'];
+            'viewAsPairs',
+            'coverageLogScale',
+            'coverageScaleMode',
+            'coverageScaleFrom',
+            'coverageScaleTo'];
+    }
+
+    get trackHasCoverageSubTrack() {
+        return true;
+    }
+
+    get trackIsResizable() {
+        if (this.state) {
+            return this.state.alignments;
+        }
+        return true;
     }
 
     getSettings() {
@@ -52,10 +72,61 @@ export class BAMTrack extends ScrollableTrack {
             return this._menu;
         }
         const wrapStateFn = (fn) => () => fn(this.state);
-        const wrapMutatorFn = (fn) => () => {
+
+        const getCoverageExtremum = () => {
+            let max = 0;
+            let min = 0;
+            if (this.cacheService && this.cacheService.cache && this.cacheService.cache.coverage && this.cacheService.cache.coverage.coordinateSystem) {
+                max = this.cacheService.cache.coverage.coordinateSystem.realMaximum;
+                min = this.cacheService.cache.coverage.coordinateSystem.realMinimum;
+            } else {
+                min = this.state.coverageScaleFrom;
+                max = this.state.coverageScaleTo;
+            }
+            return {max, min};
+        };
+
+        const wrapMutatorFn = (fn, key) => () => {
             const viewAsPairsFlag = this.state.viewAsPairs;
             const groupingMode = this.state.groupMode;
+            let shouldReportTracksState = true;
+            const currentScaleMode = this.state.coverageScaleMode;
+            const logScaleEnabled = this.state.coverageLogScale;
+            const alignments = this.state.alignments;
             fn(this.state);
+            if ((!this.state.alignments || this.state.alignments !== alignments) && this.changeTrackHeight) {
+                if (this.state.alignments) {
+                    this.changeTrackHeight(this.trackConfig.defaultHeight);
+                } else {
+                    let newHeight = 0;
+                    if (this.state.coverage) {
+                        newHeight += this.trackConfig.coverage.height;
+                    }
+                    if (this.state.spliceJunctions) {
+                        newHeight += this.trackConfig.spliceJunctions.height;
+                    }
+                    this.changeTrackHeight(newHeight);
+                }
+            }
+            if (key === 'coverage>scale>manual' && this.state.coverageScaleMode === scaleModes.manualScaleMode) {
+                shouldReportTracksState = false;
+                if (currentScaleMode !== this.state.coverageScaleMode) {
+                    this.state.coverageScaleMode = scaleModes.defaultScaleMode;
+                }
+                this.config.dispatcher.emitSimpleEvent('tracks:coverage:manual:configure', {
+                    source: this.config.name,
+                    config: {
+                        extremumFn: getCoverageExtremum,
+                        isLogScale: this.state.coverageLogScale
+                    }
+                });
+            } else if (currentScaleMode !== this.state.coverageScaleMode) {
+                this._flags.dataChanged = true;
+                this.state.coverageScaleFrom = undefined;
+                this.state.coverageScaleTo = undefined;
+            } else if (logScaleEnabled !== this.state.coverageLogScale) {
+                this._flags.dataChanged = true;
+            }
             const viewAsPairsFlagChanged = viewAsPairsFlag !== this.state.viewAsPairs;
             if (viewAsPairsFlagChanged) {
                 if (this.state.groupMode === groupModes.groupByReadStrandMode && this.state.viewAsPairs) {
@@ -74,9 +145,14 @@ export class BAMTrack extends ScrollableTrack {
             else if (viewAsPairsFlagChanged) {
                 this.viewAsPairsFlagChanged();
             }
+            if (alignments !== this.state.alignments) {
+                this.alignmentsVisibilityChanged();
+            }
             this._flags.renderFeaturesChanged = true;
             this.requestRenderRefresh();
-            this.reportTrackState();
+            if (shouldReportTracksState) {
+                this.reportTrackState();
+            }
         };
 
         const wrapPerformFn = (fn) => () => {
@@ -101,10 +177,10 @@ export class BAMTrack extends ScrollableTrack {
                                 result[key] = wrapStateFn(menuEntry[key]);
                                 break;
                             case key === 'perform':
-                                result[key] = wrapPerformFn(menuEntry[key]);
+                                result[key] = wrapPerformFn(menuEntry[key], menuEntry.name);
                                 break;
                             default:
-                                result[key] = wrapMutatorFn(menuEntry[key]);
+                                result[key] = wrapMutatorFn(menuEntry[key], menuEntry.name);
                                 break;
                         }
                     }
@@ -146,15 +222,14 @@ export class BAMTrack extends ScrollableTrack {
     constructor(opts) {
         super(opts);
         this.state.readsViewMode = parseInt(this.state.readsViewMode);
-        this.cacheService = new BamCacheService(this, this.config);
-        this._bamRenderer = new BamRenderer(this.viewport, this.config, this._pixiRenderer, this.cacheService, opts);
+        this.cacheService = new BamCacheService(this, this.trackConfig);
+        this._bamRenderer = new BamRenderer(this.viewport, Object.assign({}, this.trackConfig, this.config), this._pixiRenderer, this.cacheService, opts);
 
         const bamSettings = {
             chromosomeId: this.config.chromosomeId,
             id: this.config.openByUrl ? undefined : this.config.id,
             file: this.config.openByUrl ? this.config.bioDataItemId : undefined,
-            index: this.config.openByUrl ? this.config.indexPath : undefined,
-            scaleFactor: 1
+            index: this.config.openByUrl ? this.config.indexPath : undefined
         };
         const bamRenderSettings = Object.assign({
             filterFailedVendorChecks: true,
@@ -197,7 +272,8 @@ export class BAMTrack extends ScrollableTrack {
         this.bamRenderSettings = bamRenderSettings;
 
         this.cacheService.properties = {
-            maxRequestWindow: this._bamRenderer.maximumRange,
+            maxAlignmentsRange: this._bamRenderer.maximumAlignmentsRange,
+            maxCoverageRange: this._bamRenderer.maximumCoverageRange,
             rendering: bamRenderSettings,
             request: this.bamRequestSettings
         };
@@ -212,8 +288,7 @@ export class BAMTrack extends ScrollableTrack {
             chromosomeId: this.config.chromosomeId,
             id: this.config.openByUrl ? undefined : this.config.id,
             file: this.config.openByUrl ? this.config.bioDataItemId : undefined,
-            index: this.config.openByUrl ? this.config.indexPath : undefined,
-            scaleFactor: 1
+            index: this.config.openByUrl ? this.config.indexPath : undefined
         };
         const maxBpCount = 10000;
         const minBpCount = 50;
@@ -266,7 +341,8 @@ export class BAMTrack extends ScrollableTrack {
 
         if (shouldReloadData) {
             this.cacheService.properties = {
-                maxRequestWindow: this._bamRenderer.maximumRange,
+                maxAlignmentsRange: this._bamRenderer.maximumAlignmentsRange,
+                maxCoverageRange: this._bamRenderer.maximumCoverageRange,
                 rendering: bamRenderSettings,
                 request: this.bamRequestSettings
             };
@@ -288,17 +364,30 @@ export class BAMTrack extends ScrollableTrack {
     }
 
     viewAsPairsFlagChanged() {
-        if (this.state.viewAsPairs) {
-            this.cacheService.cache.rearrangeAsPairReads();
-        }
-        else {
-            this.cacheService.cache.rearrangeReads();
+        if (this.state.alignments) {
+            if (this.state.viewAsPairs) {
+                this.cacheService.cache.rearrangeAsPairReads();
+            }
+            else {
+                this.cacheService.cache.rearrangeReads();
+            }
         }
         this.bamRenderSettings.viewAsPairs = this.state.viewAsPairs;
     }
 
     groupingModeChanged() {
         this.cacheService.cache.groupMode = this.state.groupMode;
+    }
+
+    alignmentsVisibilityChanged() {
+        if (this.state.alignments) {
+            this.invalidateCache();
+            Promise.resolve().then(async() => {
+                await this.updateCache();
+                this._flags.renderFeaturesChanged = true;
+                this.requestRenderRefresh();
+            });
+        }
     }
 
     invalidateCache() {
@@ -309,16 +398,36 @@ export class BAMTrack extends ScrollableTrack {
     }
 
     async updateCache() {
-        if (this.viewport.actualBrushSize >= this._bamRenderer.maximumRange) {
-            return false;
-        }
         if (this.cacheService.cache.isUpdating) {
             return false;
         }
         if (this.trackDataLoadingStatusChanged) {
             this.trackDataLoadingStatusChanged(true);
         }
-        const result = await this.cacheService.completeCacheData(this.viewport);
+        const currentMode = this.cacheService.cache.dataMode;
+        let _dataMode = dataModes.full;
+        if (!this.state.alignments) {
+            _dataMode = dataModes.coverage;
+        }
+        if (this.viewport.actualBrushSize > this._bamRenderer.maximumCoverageRange) {
+            _dataMode = dataModes.regions;
+        } else if (this.viewport.actualBrushSize > this._bamRenderer.maximumAlignmentsRange) {
+            _dataMode = dataModes.coverage;
+        }
+        const modeChanged = currentMode !== _dataMode;
+        if (modeChanged) {
+            this.cacheService.cache.dataMode = _dataMode;
+        }
+        const result = await this.cacheService.completeCacheData(this.viewport, this.state, {
+            onStart: () => {
+                this._flags.renderFeaturesChanged = true;
+                this.requestRenderRefresh();
+            }
+        });
+        if (!result && this.cacheService.cache.rangeIsEmpty(this.viewport)) {
+            this._flags.renderFeaturesChanged = true;
+            this.requestRenderRefresh();
+        }
         if (this.trackDataLoadingStatusChanged) {
             this.trackDataLoadingStatusChanged(false);
         }
@@ -339,7 +448,7 @@ export class BAMTrack extends ScrollableTrack {
     }
 
     isScrollable() {
-        if (this.viewport.actualBrushSize > this._bamRenderer.maximumRange) {
+        if (this.viewport.actualBrushSize > this._bamRenderer.maximumAlignmentsRange) {
             return false;
         }
         return this._bamRenderer.isScrollable;
@@ -358,7 +467,8 @@ export class BAMTrack extends ScrollableTrack {
     onClick({x, y}) {
         const hoveredItem = this._bamRenderer.checkFeature({x, y});
         if (hoveredItem && hoveredItem.type === HOVERED_ITEM_TYPE_ALIGNMENT &&
-            this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
+            this.dataItemClicked !== null && this.dataItemClicked !== undefined &&
+            hoveredItem.item && hoveredItem.item.render && hoveredItem.item.render.info) {
             this.tooltip.hide();
             this.dataItemClicked(this, {
                 chromosome: this.config.chromosome,
@@ -387,7 +497,7 @@ export class BAMTrack extends ScrollableTrack {
                 break;
             case HOVERED_ITEM_TYPE_COVERAGE: {
                 if (this.shouldDisplayTooltips || this.shouldDisplayAlignmentsCoverageTooltips) {
-                    return CoverageTransformer.getTooltipContent(hoveredItem.item);
+                    return CoverageTransformer.getTooltipContent(hoveredItem.item.dataItem, this.cacheService.cache.dataMode === dataModes.coverage);
                 }
             }
                 break;
@@ -409,9 +519,18 @@ export class BAMTrack extends ScrollableTrack {
         return null;
     }
 
+    onMouseOut() {
+        super.onMouseOut();
+        if (this._bamRenderer && this._bamRenderer.hoverFeature(null)) {
+            this._flags.hoverChanged = true;
+            this.requestRenderRefresh();
+        }
+    }
+
     onHover({x, y}) {
         if (super.onHover({x, y})) {
             const hoveredItem = this._bamRenderer.checkFeature({x, y});
+            this._bamRenderer.hoverFeature(hoveredItem);
             if (!hoveredItem) {
                 this.tooltip.hide();
                 return true;
@@ -426,6 +545,8 @@ export class BAMTrack extends ScrollableTrack {
                 this.tooltip.show({x, y});
                 return false;
             }
+        } else {
+            this._bamRenderer.hoverFeature(null);
         }
         return false;
     }

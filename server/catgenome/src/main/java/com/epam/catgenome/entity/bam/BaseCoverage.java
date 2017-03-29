@@ -36,7 +36,7 @@ import com.epam.catgenome.entity.track.Block;
  */
 public class BaseCoverage extends Block {
     private Integer cCov;
-    private Integer value;
+    private Float value;
     private Integer aCov;
     private Integer tCov;
     private Integer gCov;
@@ -52,10 +52,14 @@ public class BaseCoverage extends Block {
      * @param startIndex coverage index
      * @param value of coverage
      */
-    public BaseCoverage(final int startIndex, final int value) {
+    public BaseCoverage(final int startIndex, float value) {
         super(startIndex);
         this.value = value;
+    }
 
+    public BaseCoverage(int startIndex, int endIndex, float value) {
+        super(startIndex, endIndex);
+        this.value = value;
     }
 
     public Integer getcCov() {
@@ -128,11 +132,11 @@ public class BaseCoverage extends Block {
         this.insCov = insCov;
     }
 
-    public Integer getValue() {
+    public Float getValue() {
         return value;
     }
 
-    public void setValue(Integer value) {
+    public void setValue(Float value) {
         this.value = value;
     }
 }

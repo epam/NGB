@@ -45,7 +45,7 @@ import com.epam.catgenome.manager.bam.filters.RightSAMRecordFilter;
 import com.epam.catgenome.manager.bam.handlers.Handler;
 import com.epam.catgenome.manager.bam.handlers.SAMRecordHandler;
 import com.epam.catgenome.manager.bam.sifters.DownsamplingSifter;
-import com.epam.catgenome.manager.bam.sifters.NoneSAMRecordShift;
+import com.epam.catgenome.manager.bam.sifters.FullResultSifter;
 import com.epam.catgenome.manager.bam.sifters.StandardSAMRecordSifter;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import htsjdk.samtools.CigarElement;
@@ -121,26 +121,28 @@ public final class BamUtil {
      * @throws IOException
      */
     public static Handler<SAMRecord> createSAMRecordHandler(final Track<Read> track, final BamQueryOption options,
-                                                            final ReferenceManager referenceManager)
+                                                            final ReferenceManager referenceManager, boolean
+                                                                    coverageOnly)
+    // TODO: int maxReadCount - decide reads or coverage by by read count
             throws IOException {
         Handler<SAMRecord> filter;
         final int startTrack = track.getStartIndex();
         final int endTrack = track.getEndIndex();
         switch (options.getTrackDirection()) {
             case LEFT:
-                filter = new SAMRecordHandler(startTrack, endTrack, referenceManager,
-                        new LeftSAMRecordFilter(endTrack, options), options);
+                filter = new SAMRecordHandler(startTrack, endTrack, referenceManager, new LeftSAMRecordFilter(endTrack,
+                        BamUtil.createSifter(endTrack, options, coverageOnly)), options); //maxReadCount
                 break;
             case MIDDLE:
-                filter = new SAMRecordHandler(startTrack, endTrack, referenceManager,
-                        new MiddleSAMRecordFilter(endTrack, options), options);
+                filter = new SAMRecordHandler(startTrack, endTrack, referenceManager, new MiddleSAMRecordFilter(
+                        BamUtil.createSifter(endTrack, options, coverageOnly)), options); //maxReadCount
                 break;
             case RIGHT:
-                filter = new SAMRecordHandler(startTrack, endTrack, referenceManager,
-                        new RightSAMRecordFilter(startTrack, endTrack, options), options);
+                filter = new SAMRecordHandler(startTrack, endTrack, referenceManager, new RightSAMRecordFilter(
+                        startTrack, BamUtil.createSifter(endTrack, options, coverageOnly)), options); //maxReadCount
                 break;
             default:
-                throw new AssertionError("something went wrong ):");
+                throw new IllegalArgumentException("Unexpected track direction: " + options.getTrackDirection());
         }
         return filter;
     }
@@ -189,9 +191,11 @@ public final class BamUtil {
      * @param options options of a BAM query
      * @return
      */
-    public static DownsamplingSifter<SAMRecord> createSifter(final int end, final BamQueryOption options) {
-        return options.isDownSampling() ? new StandardSAMRecordSifter(options.getFrame(), options.getCount(), end)
-                : new NoneSAMRecordShift();
+    public static DownsamplingSifter<SAMRecord> createSifter(final int end, final BamQueryOption options,
+                                                             boolean coverageOnly) {
+        // TODO: int maxReadCount - decide reads or coverage by by read count
+        return options.isDownSampling() ? new StandardSAMRecordSifter(options.getFrame(), options.getCount(), end,
+                coverageOnly) : new FullResultSifter(coverageOnly);
     }
 
     public static boolean checkFlag(final int flagMasc, final int flag) {

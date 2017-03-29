@@ -462,8 +462,10 @@ public class ProjectController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> deleteProject(@PathVariable final long projectId) throws IOException {
-        Project deletedProject = projectManager.deleteProject(projectId);
+    public Result<Boolean> deleteProject(@PathVariable final long projectId,
+                                         @RequestParam(name = "force", required = false, defaultValue = "false")
+                                                 Boolean force) throws IOException {
+        Project deletedProject = projectManager.deleteProject(projectId, force);
         return Result.success(true, MessageHelper.getMessage(MessagesConstants.INFO_PROJECT_DELETED, deletedProject
                 .getId(), deletedProject.getName()));
     }

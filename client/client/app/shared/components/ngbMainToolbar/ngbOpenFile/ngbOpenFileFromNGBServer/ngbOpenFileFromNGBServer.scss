@@ -5,24 +5,61 @@ ngb-open-file-from-ngb-server {
   }
 
   .ngb-server-explorer {
-
+    margin-top: 0;
+    padding-top: 0;
+    >.ngb-server-explorer-grid {
+      margin-top: 0;
+    }
   }
 
-  .ngb-files-explorer-row {
-
+  .ngb-open-file-path-container {
+    margin-bottom: 0;
+    padding-bottom: 0;
   }
 
   .ngb-open-file-directory-path {
     font-size: small;
-    padding: 2px;
     min-width: 50px;
-    text-transform: uppercase;
-    text-decoration: underline;
+    padding: 2px 1px 4px 3px;
+    &:hover {
+      background-color: #e7f4ff;
+      padding: 1px 0 3px 2px;
+      border: 1px solid #c3ced7;
+    }
+    ng-md-icon {
+      margin-top: 4px;
+      min-height: 19px;
+      width: 9px;
+    }
+    &:focus {
+      outline: none;
+    }
   }
 
   .ngb-open-file-directory-link {
-    background-color: #efefef;
-    padding-bottom: 3px;
+    border: 1px solid #cccccc;
+    padding-left: 5px;
+    margin-bottom: -1px;
+    margin-top: 0;
+    min-height: 23px;
+    outline: none;
+  }
+  input.ngb-open-file-directory-link {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .item-not-selectable {
+    color: gray;
+  }
+
+  .ui-grid-cell {
+    cursor: pointer;
+    &:hover {
+      .ngb-server-file-name {
+        text-decoration: underline;
+      }
+    }
   }
 
 }

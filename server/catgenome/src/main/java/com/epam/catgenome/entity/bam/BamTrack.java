@@ -50,6 +50,7 @@ public class BamTrack<T extends Block> extends Track<T> {
 
     private List<BaseCoverage> baseCoverage;
 
+    private List<Wig> regions;
     /**
      * Default constructor creates empty track with BAM type
      */
@@ -104,5 +105,13 @@ public class BamTrack<T extends Block> extends Track<T> {
 
     public void setMinPosition(Integer minPosition) {
         this.minPosition = minPosition;
+    }
+
+    public List<Wig> getRegions() {
+        return regions;
+    }
+
+    public void setRegions(List<Wig> regions) {
+        this.regions = regions;
     }
 }

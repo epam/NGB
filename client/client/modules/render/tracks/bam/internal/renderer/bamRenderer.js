@@ -3,6 +3,7 @@ import {
     BP_OFFSET,
     CAN_SHOW_DETAILS_FACTOR,
     CoverageRenderer,
+    RegionsRenderer,
     PlaceholderRenderer,
     renderCenterLine,
     renderDownSampleIndicators,
@@ -26,16 +27,19 @@ export class BamRenderer {
 
     _alignmentsRenderProcessor: AlignmentsRenderProcessor = null;
     _coverageRenderer: CoverageRenderer = null;
+    _regionsRenderer: RegionsRenderer = null;
     _coverageArea: CoverageArea = null;
 
-    _placeholderRenderer: PlaceholderRenderer = null;
+    _zoomInPlaceholderRenderer: PlaceholderRenderer = null;
+    _noReadsInRangePlaceholderRenderer: PlaceholderRenderer = null;
 
     _config = null;
     _viewport = null;
     _cacheService = null;
 
     _container = null;
-    _placeholderContainer = null;
+    _zoomInPlaceholderContainer = null;
+    _noReadsInRangePlaceholderContainer = null;
     _dataContainer = null;
     _coverageContainer = null;
     _centerLineGraphics = null;
@@ -47,13 +51,16 @@ export class BamRenderer {
     _groupsGraphics = null;
 
     _settings = null;
-    _maximumRange = DEFAULT_MAXIMUM_RANGE;
+    _maximumAlignmentsRange = DEFAULT_MAXIMUM_RANGE;
+    _maximumCoverageRange = DEFAULT_MAXIMUM_RANGE;
     _noDataScaleFactor = 1;
 
     _height;
     _yPosition;
     _state;
     _scrollBarFrame = null;
+
+    _lastHoveredFeature = null;
 
     set height(value) {
         this._height = value;
@@ -71,8 +78,16 @@ export class BamRenderer {
         return this._scrollBarFrame !== null;
     }
 
+    get maximumAlignmentsRange() {
+        return this._maximumAlignmentsRange;
+    }
+
+    get maximumCoverageRange() {
+        return Math.max(this._maximumCoverageRange, this.maximumAlignmentsRange);
+    }
+
     get maximumRange() {
-        return this._maximumRange;
+        return Math.max(this.maximumAlignmentsRange, this.maximumCoverageRange);
     }
 
     set yPosition(value) {
@@ -85,7 +100,7 @@ export class BamRenderer {
     }
 
     canSetYPosition(value) {
-        if (this._viewport.actualBrushSize > this._maximumRange) {
+        if (this._viewport.actualBrushSize > this.maximumAlignmentsRange) {
             return false;
         }
         const rowHeight = this.alignmentsRowHeight;
@@ -129,10 +144,10 @@ export class BamRenderer {
         if (this._settings.isDownSampling) {
             margin += this._config.downSampling.area.height;
         }
-        if (this._state.coverage) {
+        if (this._state && this._state.coverage) {
             margin += this._config.coverage.height;
         }
-        if (this._state.spliceJunctions) {
+        if (this._state && this._state.spliceJunctions) {
             margin += this._config.spliceJunctions.height;
         }
         return margin;
@@ -163,22 +178,27 @@ export class BamRenderer {
         this._pixiRenderer = renderer;
         this._cacheService = cacheService;
         this._settings = opts;
-        this._maximumRange = opts.maxBAMBP || DEFAULT_MAXIMUM_RANGE;
-        this._noDataScaleFactor = this._viewport.canvasSize / this._maximumRange;
+        this._maximumAlignmentsRange = opts.maxBAMBP || DEFAULT_MAXIMUM_RANGE;
+        this._maximumCoverageRange = opts.maxBAMCoverageBP || DEFAULT_MAXIMUM_RANGE;
+        this._noDataScaleFactor = this._viewport.canvasSize / this.maximumAlignmentsRange;
         this._container = new PIXI.Container();
-        this._placeholderContainer = new PIXI.Container();
+        this._zoomInPlaceholderContainer = new PIXI.Container();
+        this._noReadsInRangePlaceholderContainer = new PIXI.Container();
         this._dataContainer = new PIXI.Container();
         this._container.addChild(this._dataContainer);
-        this._container.addChild(this._placeholderContainer);
+        this._container.addChild(this._zoomInPlaceholderContainer);
+        this._container.addChild(this._noReadsInRangePlaceholderContainer);
         this._yPosition = 0;
     }
 
     _initializeSubRenderers() {
-        this._placeholderContainer.removeChildren();
+        this._zoomInPlaceholderContainer.removeChildren();
+        this._noReadsInRangePlaceholderContainer.removeChildren();
         this._dataContainer.removeChildren();
         this._initGroupsBackground();
         this._initAlignments();
         this._initGroupsGraphics();
+        this._initRegions();
         this._initCoverage();
         this._initSpliceJunctionsGraphics();
         this._initDownsampleGraphics();
@@ -190,9 +210,10 @@ export class BamRenderer {
 
     globalSettingsChanged(newSettings) {
         this._settings = newSettings;
-        const changed = this._maximumRange !== newSettings.maxBAMBP;
-        this._maximumRange = newSettings.maxBAMBP || DEFAULT_MAXIMUM_RANGE;
-        this._noDataScaleFactor = this._viewport.canvasSize / this._maximumRange;
+        const changed = this._maximumAlignmentsRange !== newSettings.maxBAMBP || this._maximumCoverageRange !== newSettings.maxBAMCoverageBP;
+        this._maximumAlignmentsRange = newSettings.maxBAMBP || DEFAULT_MAXIMUM_RANGE;
+        this._maximumCoverageRange = newSettings.maxBAMCoverageBP || DEFAULT_MAXIMUM_RANGE;
+        this._noDataScaleFactor = this._viewport.canvasSize / this.maximumAlignmentsRange;
         return changed;
     }
 
@@ -204,6 +225,7 @@ export class BamRenderer {
             || flags.dataChanged
             || flags.renderFeaturesChanged
             || flags.textureCacheUpdated
+            || flags.dragFinished
             || this._alignmentsRenderProcessor.renderedPosition === null
             || this._alignmentsRenderProcessor.renderedPosition !== this._yPosition;
     }
@@ -216,47 +238,53 @@ export class BamRenderer {
         const didSomethingChange = this._flagsChanged(flags);
 
         if (flags.widthChanged) {
-            this._placeholderRenderer.init(this._maximumRange, {
+            this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(), {
                 height: this._pixiRenderer.height,
                 width: this._pixiRenderer.width
             });
         }
 
-        this._dataContainer.visible = this._viewport.actualBrushSize <= this._maximumRange;
-        this._placeholderContainer.visible = this._viewport.actualBrushSize > this._maximumRange;
+        const {rangeIsEmpty, noRegions} = this._cacheService ? this._cacheService.cache.rangeIsEmpty(this._viewport) : true;
 
-        if (didSomethingChange && this._viewport.actualBrushSize <= this._maximumRange) {
-            this._renderAlignments(flags);
-            this._renderCoverage();
-            this._renderGroups();
+        this._dataContainer.visible = !rangeIsEmpty || !noRegions;
+        this._noReadsInRangePlaceholderContainer.visible = rangeIsEmpty && !this._cacheService.cache.isUpdating && this._viewport.actualBrushSize <= this.maximumRange && features.alignments;
+        this._zoomInPlaceholderContainer.visible = this._viewport.actualBrushSize > this.maximumAlignmentsRange && !this._noReadsInRangePlaceholderContainer.visible && features.alignments;
+
+        this._renderPlaceholders();
+
+        if (didSomethingChange) {
+            this._renderAlignments(flags, features);
+            this._renderCoverage(flags, features);
+            this._renderGroups(features);
             renderDownSampleIndicators(this._cacheService.cache.downsampleCoverage, this._viewport, {
                 config: this._config,
                 graphics: this._downSampleGraphics,
                 shouldRender: this._settings.isDownSampling,
                 y: this.downsampleIndicatorsTopMargin
-            });
+            }, features, this.maximumAlignmentsRange);
             renderSpliceJunctions(this._cacheService.cache.spliceJunctions, this._viewport, {
                 colors: this._settings.colors,
                 config: this._config,
                 graphics: this._spliceJunctionsGraphics,
-                shouldRender: this._state.spliceJunctions,
+                shouldRender: features.spliceJunctions && this._viewport.actualBrushSize <= this.maximumAlignmentsRange,
                 y: this.spliceJunctionsTopMargin
             });
             renderCenterLine(this._viewport, {
                 config: this._config,
                 graphics: this._centerLineGraphics,
                 height: this._height,
-                shouldRender: this._settings.showCenterLine
+                shouldRender: this._settings.showCenterLine && (features.coverage || features.alignments || features.spliceJunctions) && !rangeIsEmpty
             });
             const visibleLinesCount = (this._height - this.alignmentsDrawingTopMargin) / this.alignmentsRowHeight;
             this._scrollBarFrame = renderScrollBar(
                 {height: this._height, width: this._viewport.canvasSize},
                 {end: this._yPosition + visibleLinesCount, start: this._yPosition, total: this._cacheService.cache.linesCount},
-                {config: this._config, graphics: this._scrollBarGraphics, isHovered: false, topMargin: this.alignmentsDrawingTopMargin}
+                {config: this._config, graphics: this._scrollBarGraphics, isHovered: false, topMargin: this.alignmentsDrawingTopMargin},
+                features, this._viewport, this.maximumAlignmentsRange
             );
         }
 
-        return didSomethingChange;
+        return didSomethingChange || flags.hoverChanged;
     }
 
     _setScrollBarHoverStatus(hover) {
@@ -264,7 +292,8 @@ export class BamRenderer {
         this._scrollBarFrame = renderScrollBar(
             {height: this._height, width: this._viewport.canvasSize},
             {end: this._yPosition + visibleLinesCount, start: this._yPosition, total: this._cacheService.cache.linesCount},
-            {config: this._config, graphics: this._scrollBarGraphics, isHovered: hover, topMargin: this.alignmentsDrawingTopMargin}
+            {config: this._config, graphics: this._scrollBarGraphics, isHovered: hover, topMargin: this.alignmentsDrawingTopMargin},
+            this._state, this._viewport, this.maximumAlignmentsRange
         );
     }
 
@@ -301,7 +330,15 @@ export class BamRenderer {
         this._coverageRenderer = new CoverageRenderer(this._config.coverage, this._config);
         this._coverageArea = new CoverageArea(this._viewport, this._config.coverage);
         this._coverageContainer.addChild(this._coverageRenderer.container);
+        this._coverageContainer.addChild(this._coverageArea.logScaleIndicator);
         this._coverageContainer.addChild(this._coverageArea.axis);
+    }
+
+    _initRegions() {
+        this._dataContainer.addChild(this._regionsContainer = new PIXI.Container());
+        this._regionsRenderer = new RegionsRenderer(this._config.regions);
+        this._regionsRenderer.height = this._config.coverage.height;
+        this._regionsContainer.addChild(this._regionsRenderer.container);
     }
 
     _initSpliceJunctionsGraphics() {
@@ -324,30 +361,59 @@ export class BamRenderer {
         this._dataContainer.addChild(this._scrollBarGraphics);
     }
 
-    _initPlaceholder() {
-        this._placeholderRenderer = new PlaceholderRenderer();
-        this._placeholderRenderer.init(this._maximumRange, {height: this._pixiRenderer.height, width: this._pixiRenderer.width});
-        this._placeholderContainer.addChild(this._placeholderRenderer.container);
+    _getZoomInPlaceholderText() {
+        const unitThreshold = 1000;
+        const noReadText = {
+            unit: this.maximumAlignmentsRange < unitThreshold ? 'BP' : 'kBP',
+            value: this.maximumAlignmentsRange < unitThreshold ? this.maximumAlignmentsRange : Math.ceil(this.maximumAlignmentsRange / unitThreshold)
+        };
+        return `Zoom in to see reads.
+Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
     }
 
-    _renderGroups() {
+    _initPlaceholder() {
+        this._zoomInPlaceholderRenderer = new PlaceholderRenderer();
+        this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(), {height: this._pixiRenderer.height, width: this._pixiRenderer.width});
+        this._zoomInPlaceholderContainer.addChild(this._zoomInPlaceholderRenderer.container);
+
+        this._noReadsInRangePlaceholderRenderer = new PlaceholderRenderer();
+        this._noReadsInRangePlaceholderRenderer.init('No reads in area', {height: this._pixiRenderer.height, width: this._pixiRenderer.width});
+        this._noReadsInRangePlaceholderContainer.addChild(this._noReadsInRangePlaceholderRenderer.container);
+    }
+
+    _renderPlaceholders() {
+        let topMargin = this.downsampleIndicatorsTopMargin;
+        this._zoomInPlaceholderRenderer.init(this._getZoomInPlaceholderText(),
+            {
+                height: this._pixiRenderer.height - topMargin, width: this._pixiRenderer.width
+            });
+        this._zoomInPlaceholderContainer.y = topMargin;
+    }
+
+    _renderGroups(features) {
         this._groupsBackground.removeChildren();
         this._groupsNamesContainer.removeChildren();
-        renderGroups(this._state, this._cacheService.cache.groups,
-            {
-                alignmentRowHeight: this.alignmentsRowHeight,
-                config: this._config,
-                groupNamesContainer: this._groupsNamesContainer,
-                groupsBackground: this._groupsBackground,
-                groupsSeparatorGraphics: this._groupsGraphics,
-                height: this._height,
-                scrollY: this._yPosition,
-                topMargin: this.alignmentsDrawingTopMargin,
-                viewport: this._viewport
-            });
+        if (features.alignments && this._viewport.actualBrushSize <= this.maximumAlignmentsRange) {
+            renderGroups(this._state, this._cacheService.cache.groups,
+                {
+                    alignmentRowHeight: this.alignmentsRowHeight,
+                    config: this._config,
+                    groupNamesContainer: this._groupsNamesContainer,
+                    groupsBackground: this._groupsBackground,
+                    groupsSeparatorGraphics: this._groupsGraphics,
+                    height: this._height,
+                    scrollY: this._yPosition,
+                    topMargin: this.alignmentsDrawingTopMargin,
+                    viewport: this._viewport
+                });
+        }
     }
 
-    _renderAlignments(flags) {
+    _renderAlignments(flags, features) {
+        this._alignmentsRenderProcessor.container.visible = features.alignments && this._viewport.actualBrushSize <= this.maximumAlignmentsRange;
+        if (!features.alignments || this._viewport.actualBrushSize > this.maximumAlignmentsRange) {
+            return;
+        }
         this._alignmentsRenderProcessor.alignmentHeight = this.alignmentsRowHeight;
         this._alignmentsRenderProcessor.render(
             this._cacheService.cache,
@@ -365,12 +431,18 @@ export class BamRenderer {
         );
     }
 
-    _renderCoverage() {
-        this._coverageContainer.visible = this._state.coverage;
-        if (this._state.coverage) {
-            this._cacheService.transform(this._viewport);
+    _renderCoverage(flags, features) {
+        this._coverageContainer.visible = this._state.coverage && this._viewport.actualBrushSize <= this.maximumCoverageRange;
+        this._regionsContainer.visible = this._state.coverage && this._viewport.actualBrushSize > this.maximumCoverageRange;
+        if (this._state.coverage && this._viewport.actualBrushSize <= this.maximumCoverageRange) {
+            if (flags.dataChanged || flags.dragFinished) {
+                this._cacheService.transform(this._viewport, features);
+            }
             this._coverageArea.render(this._viewport, this._cacheService.cache.coverage.coordinateSystem);
             this._coverageRenderer.render(this._viewport, this._cacheService.cache.coverage, false);
+        }
+        if (this._state.coverage && this._viewport.actualBrushSize > this.maximumCoverageRange) {
+            this._regionsRenderer.render(this._viewport, this._cacheService.cache.regionItems);
         }
     }
 
@@ -450,12 +522,27 @@ export class BamRenderer {
     }
 
     checkFeature({x, y}) {
-        if (this._viewport.actualBrushSize > this._maximumRange) {
+        if (this._viewport.actualBrushSize > this.maximumRange) {
             return null;
         }
         return this._checkCoverage({x, y}) ||
             this._checkSpliceJunction({x, y}) ||
             this._checkDownsampleIndicator({x, y}) ||
             this._checkAlignment({x, y});
+    }
+
+    hoverFeature(feature) {
+        this._coverageRenderer.hoverItem(null);
+        if (feature) {
+            switch (feature.type) {
+                case HOVERED_ITEM_TYPE_COVERAGE:
+                    this._coverageRenderer.hoverItem(feature.item, this._viewport, this._cacheService.cache.coverage.data, this._cacheService.cache.coverage.coordinateSystem);
+                    break;
+            }
+        }
+
+        const hoveredFeatureChanged = ((feature && !this._lastHoveredFeature) || (!feature && this._lastHoveredFeature));
+        this._lastHoveredFeature = feature;
+        return hoveredFeatureChanged;
     }
 }

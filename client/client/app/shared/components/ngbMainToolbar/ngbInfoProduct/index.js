@@ -1,3 +1,4 @@
+import './ngbInfoProduct.scss';
 import angular from 'angular';
 
 // Import internal modules

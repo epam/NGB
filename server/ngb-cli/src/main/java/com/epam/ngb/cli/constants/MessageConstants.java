@@ -55,6 +55,9 @@ public final class MessageConstants {
     public static final String ERROR_FILE_NOT_FOUND = "Failed to find a file by name: %s.";
     public static final String ERROR_PROJECT_NOT_FOUND = "Failed to find a dataset by ID: %d.";
     public static final String ERROR_FILES_NOT_REGISTERED = "Failed to register files: %s.";
+    public static final String ERROR_NEGATIVE_MEMORY = "Max memory value must be positive";
+
+    public static final String INFO_SORT_SUCCESS = "File is successfully sorted and placed to [%s].";
 
     private MessageConstants(){
         //no op

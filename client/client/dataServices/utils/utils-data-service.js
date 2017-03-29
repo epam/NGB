@@ -20,4 +20,12 @@ export class UtilsDataService extends DataService {
             });
         })
     }
+
+    getDefaultTrackSettings() {
+        return new Promise((resolve) => {
+            this.get('defaultTrackSettings').catch(() => { resolve(false); }).then((result) => {
+                resolve(result);
+            });
+        })
+    }
 }

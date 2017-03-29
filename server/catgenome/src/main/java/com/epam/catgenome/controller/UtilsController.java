@@ -26,6 +26,7 @@ package com.epam.catgenome.controller;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Map;
 
 import com.epam.catgenome.controller.vo.UrlRequestVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,5 +125,18 @@ public class UtilsController extends AbstractRESTController {
         return Result.success(biologicalDataItemManager.generateUrl(request.getDataset(),
                 request.getIds() == null ? Collections.emptyList() : request.getIds(), chromosomeName,
                 startIndex, endIndex));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/defaultTrackSettings", method = RequestMethod.GET)
+    @ApiOperation(
+            value = "Return default track settings",
+            notes = "Return default track settings, which specified in catgenome.properties file",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Map<String, Map<String, Object>>> getDefaultTracksSettings() throws IOException {
+        return Result.success(fileManager.getDefaultTrackSettings());
     }
 }

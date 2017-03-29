@@ -4,7 +4,7 @@ import java.util.List;
 
 
 public class UrlRequestVO {
-    String dataset;
+    private String dataset;
     private List<String> ids;
 
     public UrlRequestVO() {

@@ -18,7 +18,6 @@ export default {
     height: 70,
     maxHeight: 200,
     minHeight: 70,
-    resizable: true,
     statistics: {
         bubble: {
             fill: 0x92AEE7,

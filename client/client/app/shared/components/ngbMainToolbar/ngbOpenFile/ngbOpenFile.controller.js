@@ -48,6 +48,7 @@ export default class ngbOpenFileController {
                 $scope.tracks = [];
                 $scope.close = () => $mdDialog.hide();
                 $scope.loadingDisabled = () => $scope.tracks.length === 0;
+                $scope.tracksCount = () => $scope.tracks.length;
                 $scope.load = () => {
                     self.loadTracks($scope.tracks);
                     $mdDialog.hide();

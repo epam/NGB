@@ -1,7 +1,16 @@
 <ngb-tracks-view layout-fill ng-if="$ctrl.isChromosome"></ngb-tracks-view>
 <ngb-project-info-panel layout-fill ng-if="!$ctrl.isChromosome && $ctrl.isProject"></ngb-project-info-panel>
-<div layout-fill ng-if="!$ctrl.isProject && !$ctrl.isChromosome" class="browser-welcome-container">
+<div layout-fill ng-if="$ctrl.isProjectLoading" class="browser-welcome-container">
     <div layout="column" layout-align="center center" class="browser-welcome">
+        <div>
+            <h1>
+                Loading...
+            </h1>
+        </div>
+    </div>
+</div>
+<div layout-fill ng-if="!$ctrl.isProjectLoading && !$ctrl.isProject && !$ctrl.isChromosome" class="browser-welcome-container">
+    <div layout="column" layout-align="center center" class="browser-welcome" ng-if="!$ctrl.projectContext.browserHomePageUrl">
         <div>
             <h1>
                 Choose files or folders<br/>
@@ -15,4 +24,5 @@
                 and select the "Datasets" option.</p>
         </div>
     </div>
+    <iframe ng-if="$ctrl.projectContext.browserHomePageUrl" ng-src="{{$ctrl.browserHomePageUrl()}}"></iframe>
 </div>

@@ -1010,8 +1010,19 @@ public class FeatureIndexDao {
             vcfIndexEntry.setGeneNames(bytes.utf8ToString());
         }
 
-        String isExon = d.get(FeatureIndexFields.IS_EXON.getFieldName());
-        vcfIndexEntry.setExon(isExon != null && Boolean.parseBoolean(isExon));
+        vcfIndexEntry.setInfo(new HashMap<>());
+
+        String isExonStr = d.get(FeatureIndexFields.IS_EXON.getFieldName()); //TODO: remove, in future only binary
+                                                                                // value will remain
+        if (isExonStr == null) {
+            bytes = d.getBinaryValue(FeatureIndexFields.IS_EXON.getFieldName());
+            if (bytes != null) {
+                isExonStr = bytes.utf8ToString();
+            }
+        }
+        boolean isExon = isExonStr != null && Boolean.parseBoolean(isExonStr);
+        vcfIndexEntry.setExon(isExon);
+        vcfIndexEntry.getInfo().put(FeatureIndexFields.IS_EXON.getFieldName(), isExon);
 
         BytesRef featureIdBytes = d.getBinaryValue(FeatureIndexFields.VARIATION_TYPE.getFieldName());
         if (featureIdBytes != null) {
@@ -1025,7 +1036,6 @@ public class FeatureIndexDao {
         }
 
         if (vcfInfoFields != null) {
-            vcfIndexEntry.setInfo(new HashMap<>());
             for (String infoField : vcfInfoFields) {
                 if (d.getBinaryValue(infoField.toLowerCase()) != null) {
                     vcfIndexEntry.getInfo().put(infoField, d.getBinaryValue(infoField.toLowerCase()).utf8ToString());
@@ -1113,8 +1123,8 @@ public class FeatureIndexDao {
                                          vcfIndexEntry.getGeneNames(), true));
         }
 
-        document.add(new StringField(FeatureIndexFields.IS_EXON.getFieldName(),
-                                     vcfIndexEntry.getExon().toString(), Field.Store.YES));
+        document.add(new SortedStringField(FeatureIndexFields.IS_EXON.getFieldName(),
+                                     vcfIndexEntry.getExon().toString()));
 
         if (vcfIndexEntry.getInfo() != null) {
             addVcfDocumentInfoFields(document, vcfIndexEntry);

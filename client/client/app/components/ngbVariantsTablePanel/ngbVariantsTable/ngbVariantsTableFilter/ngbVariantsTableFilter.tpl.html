@@ -1,0 +1,15 @@
+<div flex ng-if="$ctrl.projectContext.displayVariantsFilter">
+    <ngb-variants-filter-list ng-if="$ctrl.isList"
+                              multiple-selection="$ctrl.isMultiselect"
+                              list="$ctrl.list"
+                              field="$ctrl.column"></ngb-variants-filter-list>
+    <div ng-if="$ctrl.isFlag" layout="row" layout-align="center center" flex>
+        <ngb-variants-filter-checkbox field="$ctrl.column"></ngb-variants-filter-checkbox>
+    </div>
+    <div ng-if="$ctrl.isRange" flex>
+        <ngb-variants-filter-range field="$ctrl.column"></ngb-variants-filter-range>
+    </div>
+    <div ng-if="$ctrl.isString" flex>
+        <ngb-variants-filter-input field="$ctrl.column"></ngb-variants-filter-input>
+    </div>
+</div>

@@ -1,9 +1,0 @@
-<div layout="row" layout-wrap flex>
-    <div flex="50" ng-repeat="type in ctrl.vcfTypes">
-        <md-checkbox class="md-primary text__sm"
-                     ng-checked="ctrl.existsVcfVariant(type)"
-                     ng-click="ctrl.toggleVcfTypes(type)" >
-            {{ type.name }}
-        </md-checkbox>
-    </div>
-</div>

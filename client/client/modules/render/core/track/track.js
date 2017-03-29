@@ -1,9 +1,10 @@
 import BaseTrack from './baseTrack';
 import PIXI from 'pixi.js';
 import {Subject} from 'rx';
-import {extractFeaturesForTrack, getRenderer} from '../configuration';
+import {getRenderer} from '../configuration';
 import menuFactory from './menu';
 import tooltipFactory from './tooltip';
+import scaleModes from '../../tracks/wig/modes';
 
 const DEBOUNCE_TIMEOUT = 100;
 const Math = window.Math;
@@ -14,7 +15,9 @@ const getFlags = () => ({
     heightChanged: false,
     renderReset: false,
     settingsChanged: false,
-    widthChanged: false
+    widthChanged: false,
+    dragFinished: false,
+    hoverChanged: false
 });
 
 function refreshRender(render, size) {
@@ -29,10 +32,6 @@ function refreshRender(render, size) {
 }
 
 export class Track extends BaseTrack {
-    static config = {
-        maxHeight: 500,
-        minHeight: 20
-    };
 
     refreshDataSubject = new Subject();
 
@@ -47,7 +46,6 @@ export class Track extends BaseTrack {
     trackDataLoadingStatusChanged = null;
 
     _settings = null;
-    state = {};
     projectContext = null;
 
     _disposables = [
@@ -57,9 +55,12 @@ export class Track extends BaseTrack {
         }),
         this.viewport.brushChangeSubject.subscribe(() =>
             this._flags.brushChanged = true),
-        this.viewport.brushChangeSubject.subscribe(() => {
+        this.viewport.brushChangeSubject.subscribe((opts) => {
+            this._flags.dragFinished = !opts || opts.reload;
             requestAnimationFrame(::this.tick);
-            this.refreshDataSubject.onNext(this);
+            if (!opts || opts.reload) {
+                this.refreshDataSubject.onNext(this);
+            }
         }),
         this.viewport.canvasChangeSubject.subscribe(() => {
             this._refreshPixiRenderer();
@@ -87,6 +88,10 @@ export class Track extends BaseTrack {
 
     get actions() {
         return this._actions;
+    }
+
+    get trackIsResizable() {
+        return true;
     }
 
     get trackIsHidden() {
@@ -131,10 +136,6 @@ export class Track extends BaseTrack {
         }
     }
 
-    get stateKeys() {
-        return [];
-    }
-
     constructor(opts) {
         super(opts);
         this.viewport.shortenedIntronsViewport.intronLength = opts.shortenedIntronLength;
@@ -144,7 +145,6 @@ export class Track extends BaseTrack {
                 this.height = opts.restoredHeight;
             }
             this.shouldDisplayTooltips = opts.displayTooltips;
-            this.state = extractFeaturesForTrack(Object.assign(opts.defaultFeatures || {}, opts.state || {}), this.stateKeys);
             this.projectContext = opts.projectContext;
             this.reportTrackState();
         }
@@ -154,7 +154,7 @@ export class Track extends BaseTrack {
     }
 
     reportTrackState() {
-        if (!this.projectContext) {
+        if (!this.projectContext || this.config.format.toLowerCase() === 'ruler') {
             return;
         }
         const track = {
@@ -220,6 +220,9 @@ export class Track extends BaseTrack {
 
     destructor() {
         super.destructor();
+        if (this.tooltip) {
+            this.tooltip.hide();
+        }
         if (this._pixiRenderer && this._pixiRenderer.view) {
             this.container.removeChildren();
             this.domElement.removeChild(this._pixiRenderer.view);
@@ -279,6 +282,28 @@ export class Track extends BaseTrack {
             this.shouldDisplayTooltips = state.displayTooltips;
             this.viewport.shortenedIntronsViewport.intronLength = state.shortenedIntronLength;
             this.viewport.shortenedIntronsViewport.maximumRange = state.shortenedIntronsMaximumRange;
+        }
+    }
+
+    get trackHasCoverageSubTrack() {
+        return false;
+    }
+
+    coverageScaleSettingsChanged(state) {
+        if (this.trackHasCoverageSubTrack) {
+            if (state.cancel) {
+                this.state.coverageScaleFrom = undefined;
+                this.state.coverageScaleTo = undefined;
+                this.state.coverageScaleMode = scaleModes.defaultScaleMode;
+            } else {
+                this.state.coverageScaleFrom = state.data.from;
+                this.state.coverageScaleTo = state.data.to;
+                this.state.coverageScaleMode = scaleModes.manualScaleMode;
+                this.state.coverageLogScale = state.data.isLogScale;
+            }
+            this._flags.dataChanged = true;
+            this.reportTrackState();
+            this.requestRenderRefresh();
         }
     }
 

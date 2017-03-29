@@ -504,7 +504,8 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
         Project project = new Project();
         project.setName("testProject");
-        project.setItems(Collections.singletonList(projectItem));
+        project.setItems(Arrays.asList(projectItem,
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
 
         ProjectVO projectVO = ProjectConverter.convertTo(project);
 
@@ -545,7 +546,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                                 ProjectVO.class));
 
         loadedProject = res.getPayload();
-        Assert.assertEquals(loadedProject.getItems().size(), 2);
+        Assert.assertEquals(loadedProject.getItems().size(), 3);
 
         // remove item
         actions = mvc()
@@ -563,7 +564,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
                                 ProjectVO.class));
 
         loadedProject = res.getPayload();
-        Assert.assertEquals(loadedProject.getItems().size(), 1);
+        Assert.assertEquals(loadedProject.getItems().size(), 2);
 
         // hide item
         actions = mvc()
@@ -660,7 +661,8 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
         Project project = new Project();
         project.setName(TEST_PROJECT_NAME);
-        project.setItems(Arrays.asList(geneProjectItem, vcfProjectItem));
+        project.setItems(Arrays.asList(geneProjectItem, vcfProjectItem,
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
 
         ProjectVO projectVO = ProjectConverter.convertTo(project);
 
@@ -681,7 +683,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
         ProjectVO loadedProject = res.getPayload();
         Assert.assertNotNull(loadedProject);
-        Assert.assertEquals(loadedProject.getItems().size(), 2);
+        Assert.assertEquals(4, loadedProject.getItems().size());
 
         // filter vcf
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
@@ -814,7 +816,8 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
         Project project = new Project();
         project.setName(TEST_PROJECT_NAME);
-        project.setItems(Arrays.asList(geneProjectItem, vcfProjectItem));
+        project.setItems(Arrays.asList(geneProjectItem, vcfProjectItem,
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
 
         ProjectVO projectVO = ProjectConverter.convertTo(project);
 
@@ -835,7 +838,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
         ProjectVO loadedProject = res.getPayload();
         Assert.assertNotNull(loadedProject);
-        Assert.assertEquals(loadedProject.getItems().size(), 2);
+        Assert.assertEquals(loadedProject.getItems().size(), 3);
 
         // filter vcf
         VcfFilterForm vcfFilterForm = new VcfFilterForm();

@@ -41,8 +41,20 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
+import com.epam.catgenome.entity.bam.*;
+import com.epam.catgenome.entity.wig.Wig;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFlag;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamInputResource;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReaderFactory;
+import htsjdk.samtools.ValidationStringency;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -51,6 +63,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -63,10 +76,6 @@ import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequ
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.bam.BamFile;
-import com.epam.catgenome.entity.bam.BamQueryOption;
-import com.epam.catgenome.entity.bam.BamTrack;
-import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.bucket.Bucket;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Sequence;
@@ -80,15 +89,6 @@ import com.epam.catgenome.util.BamUtil;
 import com.epam.catgenome.util.ConsensusSequenceUtils;
 import com.epam.catgenome.util.HdfsSeekableInputStream;
 import com.epam.catgenome.util.Utils;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFlag;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.SamInputResource;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SamReaderFactory;
-import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.cram.ref.ReferenceSource;
 import htsjdk.samtools.filter.AggregateFilter;
 import htsjdk.samtools.filter.DuplicateReadFilter;
@@ -129,6 +129,12 @@ public class BamHelper {
     @Autowired
     private ReferenceManager referenceManager;
 
+    /*@Value("#{catgenome['bam.max.reads.count'] ?: 500000}")
+    private int maxReadsCount;*/
+
+    @Value("#{catgenome['bam.regions.count'] ?: 20}")
+    private int regionsCount;
+
     /**
      * Calculates the consensus sequence from the reads from a {@code BamFile}
      * @param track to load the consensus sequence
@@ -166,6 +172,42 @@ public class BamHelper {
         Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
 
         getReads(bamFile, bamTrack, options);
+        return bamTrack;
+    }
+
+    /**
+     * Get regions of possible read location from BAM file, accessible by URL
+     * @param track a track, that specifies file ID and start and end indexes
+     * @param bamUrl {@code BamFile} URL
+     * @param bamIndexUrl  {@code BamFile} index URL
+     * @return {@link BamTrack}, filled with regions of possible read location
+     * @throws IOException
+     */
+    public BamTrack<Read> getRegionsFromUrl(final Track<Read> track, String bamUrl, String bamIndexUrl)
+            throws IOException {
+        BamTrack<Read> bamTrack = new BamTrack<>(track);
+        final BamFile bamFile = makeUrlBamFile(bamUrl, bamIndexUrl, track.getChromosome().getReferenceId());
+
+        Chromosome chromosome = bamTrack.getChromosome();
+        bamTrack.setRegions(getRegions(bamFile, chromosome, track.getStartIndex(), track.getEndIndex()));
+
+        return bamTrack;
+    }
+
+    /**
+     * Get regions of possible read location from BAM file
+     * @param track a track, that specifies file ID and start and end indexes
+     * @return {@link BamTrack}, filled with regions of possible read location
+     * @throws IOException
+     */
+    public BamTrack<Read> getRegionsFromFile(final Track<Read> track) throws IOException {
+        final BamTrack<Read> bamTrack = new BamTrack<>(track);
+        final BamFile bamFile = bamFileManager.loadBamFile(bamTrack.getId());
+        Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
+
+        Chromosome chromosome = bamTrack.getChromosome();
+        bamTrack.setRegions(getRegions(bamFile, chromosome, track.getStartIndex(), track.getEndIndex()));
+
         return bamTrack;
     }
 
@@ -276,31 +318,76 @@ public class BamHelper {
                 chromosomeName = Utils.changeChromosomeName(chromosomeName);
             }
 
-            CloseableIterator<SAMRecord> iterator = reader.query(chromosomeName, bamTrack.getStartIndex(),
-                                                                       bamTrack.getEndIndex(), false);
-            LOG.debug(getMessage(MessagesConstants.DEBUG_GET_ITERATOR_QUERY, iterator.toString()));
+            Handler<SAMRecord> filter = filterReads(bamTrack, options, reader, chromosomeName, options.getMode() ==
+                    BamTrackMode.COVERAGE);
+            //maxReadsCount
 
-            iterator = filterIterator(iterator, options);
-
-            final Handler<SAMRecord> filter = BamUtil.createSAMRecordHandler(bamTrack, options, referenceManager);
-
-            while (iterator.hasNext()) {
-                final SAMRecord samRecord = iterator.next();
-                //if read unmapped
-                filter.add(samRecord);
-            }
-            bamTrack.setBlocks(filter.getReadListResult());
+            bamTrack.setBlocks(filter.getSifter().getReadListResult());
             bamTrack.setMinPosition(filter.getMinPosition());
             bamTrack.setReferenceBuffer(filter.getReferenceBuff());
-            bamTrack.setDownsampleCoverage(filter.getDownsampleCoverageResult());
-            bamTrack.setBaseCoverage(filter.getBaseCoverage());
+            bamTrack.setDownsampleCoverage(filter.getSifter().getDownsampleCoverageResult());
+            bamTrack.setBaseCoverage(filter.getBaseCoverage(bamTrack.getScaleFactor()));
             bamTrack.setSpliceJunctions(filter.getSpliceJunctions());
-
         }
     }
 
-    private CloseableIterator<SAMRecord> filterIterator(final CloseableIterator<SAMRecord> iterator,
-                                                        final BamQueryOption options) {
+    private List<Wig> getRegions(BamFile bamFile, Chromosome chromosome, int startIndex, int endIndex)
+            throws IOException {
+        try (SamReader reader = makeSamReader(bamFile, Collections.singletonList(chromosome),
+                chromosome.getReferenceId())) {
+            SAMSequenceRecord sequence = reader.getFileHeader().getSequence(chromosome.getName());
+            if (sequence == null) {
+                sequence = reader.getFileHeader().getSequence(Utils.changeChromosomeName(chromosome.getName()));
+            }
+
+            int chunkSize = (endIndex - startIndex) / regionsCount;
+            List<Wig> result = new ArrayList<>(regionsCount);
+            int chunkStartIndex = startIndex;
+            for (int i = 0; i < regionsCount; i++) {
+                checkAreaForReads(
+                        reader, sequence.getSequenceName(),
+                        chunkStartIndex, chunkStartIndex + chunkSize
+                ).ifPresent(result::add);
+                chunkStartIndex = startIndex + i * chunkSize;
+            }
+
+            checkAreaForReads(
+                    reader, sequence.getSequenceName(),
+                    chunkStartIndex, endIndex
+            ).ifPresent(result::add);
+            return result;
+        }
+    }
+
+    private Optional<Wig> checkAreaForReads(SamReader reader, String sequenceName, int start, int end) {
+        try (SAMRecordIterator query = reader.query(sequenceName, start, end, false)) {
+            return Optional.ofNullable(query.hasNext() ? new Wig(start, end, 1) : null);
+        }
+    }
+
+    private Handler<SAMRecord> filterReads(BamTrack<Read> bamTrack, BamQueryOption options, SamReader reader,
+                                           String chromosomeName, boolean coverageOnly) throws IOException {
+                                                                                            //int maxReadCount
+        CloseableIterator<SAMRecord> iterator = reader.query(chromosomeName, bamTrack.getStartIndex(),
+                                                                   bamTrack.getEndIndex(), false);
+        LOG.debug(getMessage(MessagesConstants.DEBUG_GET_ITERATOR_QUERY, iterator.toString()));
+
+        iterator = setIteratorFiltering(iterator, options);
+
+        final Handler<SAMRecord> filter = BamUtil.createSAMRecordHandler(bamTrack, options, referenceManager,
+                coverageOnly); //maxReadCount
+
+        while (iterator.hasNext()) {
+            final SAMRecord samRecord = iterator.next();
+            //if read unmapped
+            filter.add(samRecord);
+        }
+
+        return filter;
+    }
+
+    private CloseableIterator<SAMRecord> setIteratorFiltering(final CloseableIterator<SAMRecord> iterator,
+                                                              final BamQueryOption options) {
         List<SamRecordFilter> filters = new ArrayList<>();
         if (options.isFilterDuplicate()) {
             filters.add(new DuplicateReadFilter());
@@ -464,15 +551,8 @@ public class BamHelper {
     private void parseBam(final SamReader reader) {
         Assert.notNull(reader, getMessage(RESOURCE_NOT_FOUND));
         final SAMFileHeader samFileHeader = reader.getFileHeader();
-        //check we can read this Bam-file
-        //bam-file is sorted
-        Assert.notNull(samFileHeader.getAttribute(Constants.BAM_FILE_ATTRIBUTE_SORTED_NAME),
-                getMessage(MessagesConstants.WRONG_HEADER_BAM_FILE));
 
-        Assert.isTrue(samFileHeader.getAttribute(Constants.BAM_FILE_ATTRIBUTE_SORTED_NAME)
-                        .equals(Constants.BAM_FILE_ATTRIBUTE_SORTED_VALUE),
-                getMessage(MessagesConstants.WRONG_HEADER_BAM_FILE_NOT_SORT,
-                        samFileHeader.getAttribute(Constants.BAM_FILE_ATTRIBUTE_SORTED_NAME)));
+        //check we can read this Bam-file
         //get list of chromosome
         final List<SAMSequenceRecord> list = samFileHeader.getSequenceDictionary().getSequences();
         Assert.notEmpty(list, getMessage(MessagesConstants.WRONG_HEADER_BAM_FILE_EMPTY_FILE));

@@ -10,7 +10,7 @@ ngb-track {
   z-index: 0;
   width: 100%;
   .hide-track {
-    position: absolute;
+    position: inherit;
     right: 0;
     ng-md-icon svg {
       background-color: $track-header-background-color;

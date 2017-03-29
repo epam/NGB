@@ -160,7 +160,8 @@ public class FileRegistrationHandler extends AbstractHTTPCommandHandler {
             printer.printHeader(items.get(0));
             items.forEach(printer::printItem);
         }
-        return 0;
+        //if we failed to register all files return 1
+        return items.size() != files.size() ? 1 : 0;
     }
 
     protected List<BiologicalDataItem> registerItems() {

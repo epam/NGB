@@ -196,7 +196,7 @@ export class Viewport extends BaseViewport {
         return (this.brush.start + this.brush.end) / 2;
     }
 
-    transform({start = this.brush.start, end = this.brush.end, delta = 0, awakeFromShortenedIntrons = false}) {
+    transform({start = this.brush.start, end = this.brush.end, delta = 0, awakeFromShortenedIntrons = false, finish = true}) {
         const oldBrush = {
             end: this.brush.end,
             start: this.brush.start,
@@ -240,15 +240,19 @@ export class Viewport extends BaseViewport {
                     end,
                     start,
                 });
-                if (!this.initialized || oldBrush.start !== this.brush.start || oldBrush.end !== this.brush.end) {
-                    this.projectContext.changeViewportState(this.browserId, Object.assign({}, this.brush));
-                    this.brushChangeSubject.onNext(this);
+                if (finish || !this.initialized || oldBrush.start !== this.brush.start || oldBrush.end !== this.brush.end) {
+                    if (finish) {
+                        this.projectContext.changeViewportState(this.browserId, Object.assign({}, this.brush));
+                    }
+                    this.brushChangeSubject.onNext({sender: this, reload: finish});
                 }
             })();
         }
-        else if (awakeFromShortenedIntrons || !this.initialized || oldBrush.start !== this.brush.start || oldBrush.end !== this.brush.end) {
-            this.projectContext.changeViewportState(this.browserId, this.brush);
-            this.brushChangeSubject.onNext(this);
+        else if (finish || awakeFromShortenedIntrons || !this.initialized || oldBrush.start !== this.brush.start || oldBrush.end !== this.brush.end) {
+            if (finish) {
+                this.projectContext.changeViewportState(this.browserId, this.brush);
+            }
+            this.brushChangeSubject.onNext({sender: this, reload: finish});
         }
     }
 

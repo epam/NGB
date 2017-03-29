@@ -30,11 +30,12 @@ import java.util.List;
 import com.epam.catgenome.entity.bam.BaseCoverage;
 import com.epam.catgenome.entity.bam.SpliceJunctionsEntity;
 import com.epam.catgenome.manager.bam.filters.Filter;
+import com.epam.catgenome.manager.bam.sifters.DownsamplingSifter;
 
 /**
  * Interface for handling list of reads from a BAM file and getting supplementary data from it.
  */
-public interface Handler<T> extends Filter<T> {
+public interface Handler<T> {
 
     /**
      * @return minimum left coordinate from the added reads
@@ -56,11 +57,20 @@ public interface Handler<T> extends Filter<T> {
     /**
      * @return base coverage calculated from the added records
      */
-    List<BaseCoverage> getBaseCoverage();
+    List<BaseCoverage> getBaseCoverage(double scaleFactor);
 
     /**
      * @return reference sequence for the interval covered by the added records
      */
     String getReferenceBuff();
 
+    /**
+     * @return handler's wrapped sifter
+     */
+    DownsamplingSifter<T> getSifter();
+
+    /**
+     * @return handler's wrapped filter
+     */
+    Filter<T> getFilter();
 }

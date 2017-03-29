@@ -64,4 +64,6 @@ public interface DownsamplingSifter<T> {
      * @return (@code Wig )blocks of downsampled coverage
      */
     List<Wig> getDownsampleCoverageResult();
+
+    int getFilteredReadsCount();
 }

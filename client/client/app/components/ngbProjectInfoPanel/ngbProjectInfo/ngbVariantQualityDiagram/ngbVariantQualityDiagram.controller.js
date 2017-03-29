@@ -1,4 +1,5 @@
 import angular from 'angular';
+import {NumberFormatter} from '../../../../../modules/render/utilities';
 
 export default class ngbVariantQualityDiagramController {
 
@@ -56,13 +57,13 @@ export default class ngbVariantQualityDiagramController {
         const updating = async () => {
             this.isProgressShown = true;
         };
-        this._dispatcher.on('variants:loading:started', updating);
-        this._dispatcher.on('variants:loading:finished', reloadPanel);
+        this._dispatcher.on('variants:group:quality:started', updating);
+        this._dispatcher.on('variants:group:quality:finished', reloadPanel);
         // We must remove event listener when component is destroyed.
 
         $scope.$on('$destroy', () => {
-            __dispatcher.removeListener('variants:loading:started', updating);
-            __dispatcher.removeListener('variants:loading:finished', reloadPanel);
+            __dispatcher.removeListener('variants:group:quality:started', updating);
+            __dispatcher.removeListener('variants:group:quality:finished', reloadPanel);
         });
 
 
@@ -79,12 +80,12 @@ export default class ngbVariantQualityDiagramController {
     }
 
     async INIT() {
-        this.noDataToDisplay = !this.projectContext.filteredVariants ||
-            this.projectContext.filteredVariants.length === 0;
-        if (this.projectContext.reference && this.projectContext.filteredVariants) {
-            await this.updateDiagram(this.projectContext.filteredVariants,
-                this.projectContext.isVariantsLoading);
-            this.isProgressShown = this.projectContext.isVariantsLoading;
+        this.noDataToDisplay = !this.projectContext.variantsDataByQuality ||
+            this.projectContext.variantsDataByQuality.length === 0;
+        if (this.projectContext.reference && this.projectContext.variantsDataByQuality) {
+            await this.updateDiagram(this.projectContext.variantsDataByQuality,
+                this.projectContext.isVariantsGroupByQualityLoading);
+            this.isProgressShown = this.projectContext.isVariantsGroupByQualityLoading;
             this._scope.$apply();
         }
     }
@@ -96,33 +97,37 @@ export default class ngbVariantQualityDiagramController {
             };
 
 
-        let maxQual = variantQualities.length > 0 ? variantQualities[0].quality : undefined;
-        let minQual = variantQualities.length > 0 ? variantQualities[0].quality : undefined;
-        for (const variation of variantQualities) {
-            const quality = variation.quality;
-            if (quality === undefined) {
-                continue;
-            }
+        let maxQual = undefined;
+        let minQual = undefined;
+        for (let i = 0; i < variantQualities.length; i++) {
+            const {groupName} = variantQualities[i];
+            const quality = +groupName;
             minQual = minQual === undefined ? quality : Math.min(minQual, quality);
             maxQual = maxQual === undefined ? quality : Math.max(maxQual, quality);
         }
+
         maxQual = maxQual === undefined ? 0 : maxQual;
         minQual = minQual === undefined ? 0 : minQual;
-        const qualStep = this.constants.qualityStep;
-        const bucketCount = Math.ceil((maxQual - minQual) / qualStep) + 1;
+        const maxBucketCount = this.constants.maximumBars;
+        let qualStep = this.constants.qualityStep;
+        let bucketCount = Math.ceil((maxQual - minQual) / qualStep) + 1;
+        if (bucketCount > maxBucketCount) {
+            bucketCount = maxBucketCount;
+            qualStep = (maxQual - minQual) / (bucketCount - 1);
+        }
 
         const sampleData = Array(bucketCount);
         for (let i = 0; i < bucketCount; ++i) {
-            sampleData[i] = {label: (minQual + qualStep * i + qualStep / 2) | 0, value: 0};
+            sampleData[i] = {label: NumberFormatter.textWithPrefix(Math.ceil((minQual + qualStep * i + qualStep / 2)) | 0), value: 0};
         }
 
-        for (const variation of variantQualities) {
-            const quality = variation.quality;
+        for (let i = 0; i < variantQualities.length; i++) {
+            const {entriesCount, groupName} = variantQualities[i];
+            const quality = +groupName;
             const bucketIdx = quality !== undefined && maxQual !== minQual ?
             ((bucketCount - 1) * (quality - minQual) / (maxQual - minQual)) | 0 : 0;
-            ++sampleData[bucketIdx].value;
+            sampleData[bucketIdx].value += entriesCount;
         }
-
 
         nvd3DataObjectItem.values = sampleData;
         nvd3DataObject.push(nvd3DataObjectItem);

@@ -6,10 +6,12 @@ import SegTransformer from './segTransformer';
 
 export class SEGTrack extends CachedTrack {
 
-    static trackDefaultHeight = SegConfig.height;
-
     _dataService = new SegDataService();
-    _renderer = new SegRenderer(SegConfig);
+    _renderer = new SegRenderer(this.trackConfig);
+
+    static getTrackDefaultConfig() {
+        return SegConfig;
+    }
 
     get dataService() {
         return this._dataService;

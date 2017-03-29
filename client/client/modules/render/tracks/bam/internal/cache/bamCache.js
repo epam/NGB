@@ -1,6 +1,6 @@
 import * as actions from './actions';
 import * as cachePositions from './bamCachePositions';
-import {groupModes} from '../../modes';
+import {dataModes, groupModes} from '../../modes';
 import {layoutReads, transform} from '../transformers';
 import FastSet from 'collections/fast-set';
 import {Line} from './line';
@@ -13,8 +13,10 @@ export default class BamCache {
     readNames = new FastSet();
     downsampleCoverage = [];
     coverageItems = [];
+    regionItems = [];
     spliceJunctions = [];
     coverage = {coordinateSystem: null, data: null};
+    regions = {coordinateSystem: null, data: null};
     _groups = [];
     _renderingProperties = {};
     _isUpdating = false;
@@ -26,6 +28,9 @@ export default class BamCache {
     _groupMode = groupModes.defaultGroupingMode;
     _totalLines = 0;
     _totalPairedLines = 0;
+    _dataMode;
+    _dataModeChanged = false;
+    _delayedInvalidateRequested = false;
 
     get linesCount() {
         return this.renderingProperties.viewAsPairs ? this._totalPairedLines : this._totalLines;
@@ -33,6 +38,51 @@ export default class BamCache {
 
     get groups() {
         return this._groups;
+    }
+
+    get dataMode() {
+        return this._dataMode;
+    }
+
+    set dataMode(value) {
+        this._dataModeChanged = value !== this._dataMode;
+        this._dataMode = value;
+    }
+
+    rangeIsEmpty(viewport) {
+        for (let g = 0; g < this._groups.length; g++) {
+            if (this.renderingProperties.viewAsPairs) {
+                for (let i = 0; i < this._groups[g].pairedLines.length; i++) {
+                    if (!this._groups[g].pairedLines[i].rangeIsEmpty(viewport)) {
+                        return {rangeIsEmpty: false, noRegions: false};
+                    }
+                }
+            }
+            else {
+                for (let i = 0; i < this._groups[g].lines.length; i++) {
+                    if (!this._groups[g].lines[i].rangeIsEmpty(viewport)) {
+                        return {rangeIsEmpty: false, noRegions: false};
+                    }
+                }
+            }
+        }
+        for (let c = 0; c < this.coverageItems.length; c++) {
+            if ((this.coverageItems[c].startIndex >= viewport.brush.start && this.coverageItems[c].startIndex <= viewport.brush.end) ||
+                (this.coverageItems[c].endIndex >= viewport.brush.start && this.coverageItems[c].endIndex <= viewport.brush.end) ||
+                (this.coverageItems[c].startIndex < viewport.brush.start && this.coverageItems[c].endIndex > viewport.brush.end)) {
+                return {rangeIsEmpty: false, noRegions: false};
+            }
+        }
+        if (this.dataMode === dataModes.regions) {
+            for (let c = 0; c < this.regionItems.length; c++) {
+                if ((this.regionItems[c].startIndex >= viewport.brush.start && this.regionItems[c].startIndex <= viewport.brush.end) ||
+                    (this.regionItems[c].endIndex >= viewport.brush.start && this.regionItems[c].endIndex <= viewport.brush.end) ||
+                    (this.regionItems[c].startIndex < viewport.brush.start && this.regionItems[c].endIndex > viewport.brush.end)) {
+                    return {rangeIsEmpty: true, noRegions: false};
+                }
+            }
+        }
+        return {rangeIsEmpty: true, noRegions: true};
     }
 
     getLine(index) {
@@ -90,7 +140,12 @@ export default class BamCache {
         this.invalidate();
     }
 
-    invalidate(): BamCache {
+    invalidate(delayed = false): BamCache {
+        if (delayed) {
+            this._delayedInvalidateRequested = true;
+            return this;
+        }
+        this._delayedInvalidateRequested = false;
         this.coverageRange.startIndex = Infinity;
         this.coverageRange.endIndex = -Infinity;
         for (let i = 0; i < this._groups.length; i++) {
@@ -101,6 +156,7 @@ export default class BamCache {
         }
         this.downsampleCoverage = [];
         this.coverageItems = [];
+        this.regionItems = [];
         this.spliceJunctions = [];
         this._referenceBuffers = [];
         this.coverage = {coordinateSystem: null, data: null};
@@ -115,11 +171,12 @@ export default class BamCache {
 
     check(boundaries) {
         const {startIndex, endIndex} = boundaries;
+        const dataModeChanged = this._dataModeChanged;
         const needUpdateLeftSide = startIndex < this.coverageRange.startIndex - 1;
         const needUpdateRightSide = endIndex > this.coverageRange.endIndex + 1;
-        const cacheIsComplete = startIndex >= this.coverageRange.startIndex && endIndex <= this.coverageRange.endIndex;
+        const cacheIsComplete = !dataModeChanged && startIndex >= this.coverageRange.startIndex && endIndex <= this.coverageRange.endIndex;
         const cacheIsInvalid = startIndex > this.coverageRange.endIndex || endIndex < this.coverageRange.startIndex;
-        return {cacheIsComplete, cacheIsInvalid, needUpdateLeftSide, needUpdateRightSide};
+        return {cacheIsComplete, cacheIsInvalid, dataModeChanged, needUpdateLeftSide, needUpdateRightSide};
     }
 
     startUpdate(boundaries): BamCache {
@@ -131,35 +188,39 @@ export default class BamCache {
         return this;
     }
 
-    endUpdate(viewport, coverageTransformer) {
+    endUpdate(viewport, coverageTransformer, features) {
+        this._dataModeChanged = false;
         if (this._updatingBoundaries) {
             this.coverageRange.startIndex = this._updatingBoundaries.startIndex;
             this.coverageRange.endIndex = this._updatingBoundaries.endIndex;
-            this._preprocess();
+            this._preprocess(features);
             this._updatingBoundaries = null;
         }
         if (this._shouldRearrangeReads) {
-            this.rearrange();
+            this.rearrange(features);
         }
         this._shouldRearrangeReads = false;
-        this.updateCoverageData(viewport, coverageTransformer);
+        this.updateCoverageData(viewport, coverageTransformer, features);
+        this.updateRegionsData();
         this._isUpdating = false;
         return this._cacheUpdated;
     }
 
-    rearrange() {
-        this.preparePairedReads();
-        if (this.renderingProperties.viewAsPairs) {
-            for (let g = 0; g < this._groups.length; g++) {
-                this._groups[g].pairedLines = [];
+    rearrange(features) {
+        if (!features || features.alignments) {
+            this.preparePairedReads();
+            if (this.renderingProperties.viewAsPairs) {
+                for (let g = 0; g < this._groups.length; g++) {
+                    this._groups[g].pairedLines = [];
+                }
+                this.rearrangeAsPairReads();
             }
-            this.rearrangeAsPairReads();
-        }
-        else {
-            for (let g = 0; g < this._groups.length; g++) {
-                this._groups[g].lines = [];
+            else {
+                for (let g = 0; g < this._groups.length; g++) {
+                    this._groups[g].lines = [];
+                }
+                this.rearrangeReads();
             }
-            this.rearrangeReads();
         }
     }
 
@@ -188,15 +249,32 @@ export default class BamCache {
 
     _preprocessCoverage() {
         let _coverageItems = [];
-        for (let i = 0; i < this.coverageItems.length; i++) {
-            if (this.coverageItems[i].startIndex > this._updatingBoundaries.endIndex ||
-                this.coverageItems[i].endIndex < this._updatingBoundaries.startIndex) {
-                continue;
+        if (this.coverageItems) {
+            for (let i = 0; i < this.coverageItems.length; i++) {
+                if (this.coverageItems[i].startIndex > this._updatingBoundaries.endIndex ||
+                    this.coverageItems[i].endIndex < this._updatingBoundaries.startIndex) {
+                    continue;
+                }
+                _coverageItems.push(this.coverageItems[i]);
             }
-            _coverageItems.push(this.coverageItems[i]);
         }
         this.coverageItems = _coverageItems;
         _coverageItems = null;
+    }
+
+    _preprocessRegions() {
+        let _regionItems = [];
+        if (this.regionItems) {
+            for (let i = 0; i < this.regionItems.length; i++) {
+                if (this.regionItems[i].startIndex > this._updatingBoundaries.endIndex ||
+                    this.regionItems[i].endIndex < this._updatingBoundaries.startIndex) {
+                    continue;
+                }
+                _regionItems.push(this.regionItems[i]);
+            }
+        }
+        this.regionItems = _regionItems;
+        _regionItems = null;
     }
 
     _preprocessSpliceJunctions() {
@@ -225,13 +303,16 @@ export default class BamCache {
         _downsampleItems = null;
     }
 
-    _preprocess() {
+    _preprocess(features) {
         if (!this._updatingBoundaries)
             return;
-        this._preprocessReads();
+        if (features.alignments) {
+            this._preprocessReads();
+            this._preprocessDownsampleCoverage();
+        }
         this._preprocessCoverage();
+        this._preprocessRegions();
         this._preprocessSpliceJunctions();
-        this._preprocessDownsampleCoverage();
     }
 
     rearrangeReads() {
@@ -295,9 +376,9 @@ export default class BamCache {
         this.prepareGroups();
     }
 
-    updateCoverageData(viewport, coverageTransformer) {
+    updateCoverageData(viewport, coverageTransformer, scaleConfig) {
         this.coverage.data = coverageTransformer.transform(this.coverageItems, viewport);
-        this.coverage.coordinateSystem = coverageTransformer.transformCoordinateSystem(this.coverage.data, viewport, this.coverage.coordinateSystem);
+        this.coverage.coordinateSystem = coverageTransformer.transformCoordinateSystem(this.coverage.data, viewport, this.coverage.coordinateSystem, scaleConfig);
         this.coverage = Object.assign(this.coverage, {
             dataViewport: {
                 endIndex: Math.round(Math.min(viewport.chromosomeSize, viewport.brush.end + viewport.brushSize / 2)),
@@ -314,6 +395,10 @@ export default class BamCache {
         });
     }
 
+    updateRegionsData() {
+        this.regions.data = this.regionItems;
+    }
+
     _appendDownsampleCoverage(data, cachePosition) {
         if (cachePosition === cachePositions.cachePositionMiddle) {
             this.downsampleCoverage = data.downsampleCoverage || [];
@@ -323,11 +408,27 @@ export default class BamCache {
     }
 
     _appendCoverage(data, cachePosition) {
+        if (!data.baseCoverage) {
+            return;
+        }
         if (cachePosition === cachePositions.cachePositionMiddle) {
             this.coverageItems = data.baseCoverage;
         } else {
             for (let i = 0; i < data.baseCoverage.length; i++) {
                 this.coverageItems.push(data.baseCoverage[i]);
+            }
+        }
+    }
+
+    _appendRegions(data, cachePosition) {
+        if (!data.regions) {
+            return;
+        }
+        if (cachePosition === cachePositions.cachePositionMiddle) {
+            this.regionItems = data.regions;
+        } else {
+            for (let i = 0; i < data.regions.length; i++) {
+                this.regionItems.push(data.regions[i]);
             }
         }
     }
@@ -372,25 +473,34 @@ export default class BamCache {
         return groupNames;
     }
 
-    _appendReads(data) {
-        let groupNames = this._groups.map(x => x.name);
-        if (!this.readNames) {
-            this.readNames = new FastSet();
-        }
-        for (let i = 0; i < (data.blocks || []).length; i++) {
-            const readName = `${data.blocks[i].name}-${data.blocks[i].startIndex}-${data.blocks[i].endIndex}-${data.blocks[i].tlen}`;
-            if (this.readNames.has(readName)) {
-                continue;
-            } else {
-                this.readNames.add(readName);
+    _appendReads(data, features) {
+        if (features.alignments) {
+            let groupNames = this._groups.map(x => x.name);
+            if (!this.readNames) {
+                this.readNames = new FastSet();
             }
-            data.blocks[i].renderDump = transform(data.blocks[i], this.renderingProperties);
-            groupNames = this._appendReadToGroup(data.blocks[i], groupNames);
+            for (let i = 0; i < (data.blocks || []).length; i++) {
+                const readName = `${data.blocks[i].name}-${data.blocks[i].startIndex}-${data.blocks[i].endIndex}-${data.blocks[i].tlen}`;
+                if (this.readNames.has(readName)) {
+                    continue;
+                } else {
+                    this.readNames.add(readName);
+                }
+                data.blocks[i].renderDump = transform(data.blocks[i], this.renderingProperties);
+                groupNames = this._appendReadToGroup(data.blocks[i], groupNames);
+            }
         }
-        for (let i = 0; i < this.coverageItems.length; i++) {
-            this.coverageItems[i].endIndex = this.coverageItems[i].startIndex;
+        if (this.coverageItems) {
+            for (let i = 0; i < this.coverageItems.length; i++) {
+                if (this.coverageItems[i].endIndex === undefined) {
+                    this.coverageItems[i].endIndex = this.coverageItems[i].startIndex;
+                }
+            }
+            this.coverageItems = Sorting.quickSort(this.coverageItems, true, x => x.startIndex);
         }
-        this.coverageItems = Sorting.quickSort(this.coverageItems, true, x => x.startIndex);
+        if (this.regionItems) {
+            this.regionItems = Sorting.quickSort(this.regionItems, true, x => x.startIndex);
+        }
         if (data.referenceBuffer) {
             this._referenceBuffers.push({
                 endIndex: data.minPosition + data.referenceBuffer.length,
@@ -400,36 +510,42 @@ export default class BamCache {
         }
     }
 
-    _appendData(data, cachePosition = cachePositions.cachePositionMiddle): BamCache {
-        if (!data || !data.blocks || data.blocks.length === 0) {
+    _appendData(data, features, cachePosition = cachePositions.cachePositionMiddle): BamCache {
+        if (!data) {
             return this;
+        }
+        if (this._delayedInvalidateRequested) {
+            this.invalidate();
         }
         this._cacheUpdated = true;
         this._shouldRearrangeReads = true;
         this._appendCoverage(data, cachePosition);
-        this._appendDownsampleCoverage(data, cachePosition);
+        this._appendRegions(data, cachePosition);
         this._appendSpliceJunctions(data, cachePosition);
-        this._appendReads(data);
+        if (features.alignments) {
+            this._appendDownsampleCoverage(data, cachePosition);
+        }
+        this._appendReads(data, features);
         data = null;
         return this;
     }
 
-    appendLeft(data): BamCache {
-        return this._appendData(data, cachePositions.cachePositionLeft);
+    appendLeft(data, features): BamCache {
+        return this._appendData(data, features, cachePositions.cachePositionLeft);
     }
 
-    append(data): BamCache {
-        return this._appendData(data);
+    append(data, features): BamCache {
+        return this._appendData(data, features);
     }
 
-    appendRight(data): BamCache {
-        return this._appendData(data, cachePositions.cachePositionRight);
+    appendRight(data, features): BamCache {
+        return this._appendData(data, features, cachePositions.cachePositionRight);
     }
 
     prepareGroups() {
         let totalLines = 0;
         let totalPairedLines = 0;
-        const firstInPairOrders = ['l', 'r', '*'];
+        const firstInPairOrders = ['forward', 'reverse', '*'];
         const pairOrientationOrders = ['ll', 'rr', 'rl', 'lr', '*'];
         const criteria = (a, b) => {
             switch (this.groupMode) {

@@ -127,6 +127,5 @@ export default {
         ticks: 10,
         ticksMinMargin: 10
     },
-    resizable: false,
     rulersVerticalMargin: -5
 };

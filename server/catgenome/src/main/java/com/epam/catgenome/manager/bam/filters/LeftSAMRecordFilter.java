@@ -27,12 +27,8 @@ package com.epam.catgenome.manager.bam.filters;
 import java.io.IOException;
 import java.util.List;
 
-import com.epam.catgenome.entity.bam.BamQueryOption;
 import com.epam.catgenome.entity.bam.BasePosition;
-import com.epam.catgenome.entity.bam.Read;
-import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.manager.bam.sifters.DownsamplingSifter;
-import com.epam.catgenome.util.BamUtil;
 import htsjdk.samtools.SAMRecord;
 
 /**
@@ -43,16 +39,20 @@ import htsjdk.samtools.SAMRecord;
  */
 public class LeftSAMRecordFilter implements Filter<SAMRecord> {
 
-    private final DownsamplingSifter<SAMRecord> shifter;
+    private final DownsamplingSifter<SAMRecord> sifter;
     private final int rightBorder;
 
     /**
      * @param end right border for filtering
-     * @param options for creating the wrapped {@code DownsamplingSifter}
      */
-    public LeftSAMRecordFilter(final int end, final BamQueryOption options) {
-        shifter = BamUtil.createSifter(end, options);
+    public LeftSAMRecordFilter(int end, DownsamplingSifter<SAMRecord> sifter) {
+        this.sifter = sifter;
         rightBorder = end;
+    }
+
+    @Override
+    public DownsamplingSifter<SAMRecord> getSifter() {
+        return sifter;
     }
 
     /**
@@ -70,23 +70,7 @@ public class LeftSAMRecordFilter implements Filter<SAMRecord> {
                     final List<BasePosition> differentBase, final String headStr, final String tailStr)
             throws IOException {
         if (rightBorder > end) {
-            shifter.add(record, start, end, differentBase, headStr, tailStr);
+            sifter.add(record, start, end, differentBase, headStr, tailStr);
         }
-    }
-
-    /**
-     * @return filtered by the right border and downsampled reads list
-     */
-    @Override
-    public List<Read> getReadListResult() {
-        return shifter.getReadListResult();
-    }
-
-    /**
-     * @return filtered by the right border and downsampled reads coverage
-     */
-    @Override
-    public List<Wig> getDownsampleCoverageResult() {
-        return shifter.getDownsampleCoverageResult();
     }
 }

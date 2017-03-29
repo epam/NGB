@@ -87,7 +87,7 @@ That's it. Now NGS files could be added and viewed. Please refer to [NGB Command
 ## Requirements
 
 * **[Oracle JDK 8](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html)** or **[Open JDK 8](http://openjdk.java.net/install/)**
-* **[Node.js >= 6.9.5](https://nodejs.org/en/download/package-manager/)** 
+* **[Node.js = 6.9.5](https://nodejs.org/en/download/package-manager/)** 
 * **[Docker engine](https://docs.docker.com/engine/installation/)** *used to build docker images, if it is not a case - then could not be installed*
 * **[MkDocs >= 0.16.0](http://www.mkdocs.org/#installation)** and **[mkdocs-material](http://squidfunk.github.io/mkdocs-material/getting-started/#installing-mkdocs)** *used to build documentation, if it is not a case - then could not be installed*
 

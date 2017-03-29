@@ -21,6 +21,8 @@ export default class ngbOpenFileFromNGBServerController {
     rootFolder;
     pathSeparator = '/';
 
+    _lockSelection = false;
+
     gridOptions = {
         enableFiltering: false,
         enableGridMenu: false,
@@ -47,10 +49,14 @@ export default class ngbOpenFileFromNGBServerController {
     selectedItems = [];
     _isDirectoryTyping = false;
 
+    static lastCurrentDirectory = null;
+
     constructor($scope, projectContext, utilsDataService) {
         this.utilsDataService = utilsDataService;
+        this.currentDirectory = ngbOpenFileFromNGBServerController.lastCurrentDirectory;
         const headerCells = require('./explorer/ngbExplorer.item.header.tpl.html');
         const typeCells = require('./explorer/ngbExplorer.item.type.tpl.html');
+        const nameCells = require('./explorer/ngbExplorer.item.name.tpl.html');
         this.scope = $scope;
         const columnDefs = [
             {
@@ -66,6 +72,7 @@ export default class ngbOpenFileFromNGBServerController {
             },
             {
                 enableHiding: false,
+                cellTemplate: nameCells,
                 field: 'name',
                 headerCellTemplate: headerCells,
                 minWidth: 50,
@@ -103,11 +110,29 @@ export default class ngbOpenFileFromNGBServerController {
         this.projectContext = projectContext;
         this.references = this.projectContext.references;
         this.referenceId = this.projectContext.reference ? +this.projectContext.reference.id : null;
+        if (!this.referenceId && this.references && this.references.length > 0) {
+            this.referenceId = this.references[0].id;
+        }
+        this.clearSelectionHandler = () => {
+            this._lockSelection = true;
+            for (let i = 0; i < this.selectedItems.length; i++) {
+                const [item] = this.gridOptions.data.filter(d => d.name === this.selectedItems[i].track.name && d.type === this.selectedItems[i].track.type && d.format === this.selectedItems[i].track.format);
+                if (item) {
+                    this.gridApi.selection.unSelectRow(item);
+                }
+            }
+            this._lockSelection = false;
+            this.selectedItems = [];
+            this.check();
+        };
         $scope.$watch('$ctrl.referenceId', ::this.check);
         (async() => {
             await this.loadCurrentDirectory();
             await this.projectContext.refreshReferences(true);
             this.references = this.projectContext.references;
+            if (!this.referenceId && this.references && this.references.length > 0) {
+                this.referenceId = this.references[0].id;
+            }
         })();
     }
 
@@ -127,6 +152,7 @@ export default class ngbOpenFileFromNGBServerController {
             }
         }
         this.currentDirectory = directory;
+        ngbOpenFileFromNGBServerController.lastCurrentDirectory = directory;
         await this.loadCurrentDirectory();
         this._isDirectoryTyping = false;
     }
@@ -146,7 +172,7 @@ export default class ngbOpenFileFromNGBServerController {
             return path;
         };
         const result = [{
-            name: 'ROOT',
+            name: 'NGB',
             value: null
         }];
         for (let i = 0; i < paths.length; i++) {
@@ -162,6 +188,7 @@ export default class ngbOpenFileFromNGBServerController {
     async didClickOnPath(path, event) {
         event.stopImmediatePropagation();
         this.currentDirectory = path;
+        ngbOpenFileFromNGBServerController.lastCurrentDirectory = path;
         await this.loadCurrentDirectory();
     }
 
@@ -171,8 +198,8 @@ export default class ngbOpenFileFromNGBServerController {
 
     discardDirectoryTyping() {
         if (this.currentDirectory && this.rootFolder) {
-            this.displayDirectory = this.currentDirectory.toLowerCase();
-            if (this.displayDirectory.indexOf(this.rootFolder.toLowerCase()) >= 0) {
+            this.displayDirectory = this.currentDirectory;
+            if (this.displayDirectory.toLowerCase().indexOf(this.rootFolder.toLowerCase()) >= 0) {
                 this.displayDirectory = this.displayDirectory.substr(this.rootFolder.length + this.pathSeparator.length);
             }
         }
@@ -184,9 +211,7 @@ export default class ngbOpenFileFromNGBServerController {
         this.switchingReference = this.projectContext.reference && this.projectContext.reference.id !== +this.referenceId;
         const [reference] = this.references.filter(r => r.id === +this.referenceId);
         if (reference) {
-            this.tracks = (this.selectedItems || [])
-                .filter(ngbOpenFileFromNGBServerController.filterTracks)
-                .map(f => this.mapTrack(f, this.selectedItems, reference));
+            this.tracks = (this.selectedItems || []).map(f => this.mapTrack(f, reference));
         } else {
             this.tracks = [];
         }
@@ -216,23 +241,11 @@ export default class ngbOpenFileFromNGBServerController {
         return null;
     }
 
-    static filterTracks(file, index, tracks) {
+    mapTrack(file, reference) {
         const {track} = file;
-        if (ngbOpenFileFromNGBServerController.trackIsIndexFile(track)) {
-            return false;
-        }
-        if (ngbOpenFileFromNGBServerController.trackNeedsIndexFile(track)) {
-            return ngbOpenFileFromNGBServerController.getIndexFileForTrack(track, tracks) !== null;
-        }
-        return true;
-    }
-
-    mapTrack(file, tracks, reference) {
-        const {track} = file;
-        if (ngbOpenFileFromNGBServerController.trackNeedsIndexFile(track)) {
-            const indexFile = ngbOpenFileFromNGBServerController.getIndexFileForTrack(track, tracks);
+        if (track.indexFile) {
             return {
-                index: `${indexFile.folder}${this.pathSeparator}${indexFile.track.name}`,
+                index: `${track.indexFile.folder}${this.pathSeparator}${track.indexFile.track.name}`,
                 path: `${file.folder}${this.pathSeparator}${track.name}`,
                 reference: reference,
                 format: track.format,
@@ -250,6 +263,9 @@ export default class ngbOpenFileFromNGBServerController {
     }
 
     rowClick(cell) {
+        if (this._lockSelection) {
+            return;
+        }
         if (cell.entity.type === 'DIRECTORY') {
             cell.isSelected = false;
             if (cell.entity.isPrevious) {
@@ -257,16 +273,22 @@ export default class ngbOpenFileFromNGBServerController {
                 pathes.splice(pathes.length - 1, 1);
                 this.currentDirectory = pathes.reduce((path, entry) =>
                     (!entry || !entry.length) ? path : path + this.pathSeparator + entry, '');
+                ngbOpenFileFromNGBServerController.lastCurrentDirectory = this.currentDirectory;
                 this.loadCurrentDirectory();
             } else {
                 this.currentDirectory = cell.entity.path;
+                ngbOpenFileFromNGBServerController.lastCurrentDirectory = this.currentDirectory;
                 this.loadCurrentDirectory();
             }
         } else if (cell.isSelected) {
-            this.selectedItems.push({
-                folder: this.currentDirectory || this.rootFolder || '',
-                track: cell.entity
-            });
+            if (!cell.entity.canSelect) {
+                cell.isSelected = false;
+            } else {
+                this.selectedItems.push({
+                    folder: this.currentDirectory || this.rootFolder || '',
+                    track: cell.entity
+                });
+            }
         } else {
             const [item] = this.selectedItems
                 .filter(i => i.track.name === cell.entity.name);
@@ -312,11 +334,11 @@ export default class ngbOpenFileFromNGBServerController {
             }
             return item;
         };
-        files = (files || []).map(mapFn).sort(sortFn);
+        files = this.preprocessFiles((files || []).map(mapFn).sort(sortFn));
         const isRoot = !this.currentDirectory || !this.currentDirectory.length || this.currentDirectory.toLowerCase() === this.rootFolder;
         if (this.currentDirectory && this.rootFolder) {
-            this.displayDirectory = this.currentDirectory.toLowerCase();
-            if (this.displayDirectory.indexOf(this.rootFolder.toLowerCase()) >= 0) {
+            this.displayDirectory = this.currentDirectory;
+            if (this.displayDirectory.toLowerCase().indexOf(this.rootFolder.toLowerCase()) >= 0) {
                 this.displayDirectory = this.displayDirectory.substr(this.rootFolder.length + this.pathSeparator.length);
             }
         } else {
@@ -326,6 +348,39 @@ export default class ngbOpenFileFromNGBServerController {
         this.gridOptions.data = isRoot ? files : [this.previousDirectory, ...files];
         this.isLoading = false;
         this.scope.$apply();
+    }
+
+    preprocessFiles(files) {
+        const result = [];
+        const mapFn = (item) => {
+            return {
+                folder: this.currentDirectory || this.rootFolder || '',
+                track: item
+            }
+        };
+        const allTracks = files.filter(i => i.type === 'FILE').map(mapFn);
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].type === 'DIRECTORY') {
+                result.push(files[i]);
+            } else if (ngbOpenFileFromNGBServerController.trackIsIndexFile(files[i])){
+
+            } else if (!ngbOpenFileFromNGBServerController.trackNeedsIndexFile(files[i])) {
+                files[i].indexRequired = false;
+                result.push(files[i]);
+            } else {
+                files[i].indexRequired = true;
+                files[i].indexFile = ngbOpenFileFromNGBServerController.getIndexFileForTrack(files[i], allTracks);
+                result.push(files[i]);
+            }
+        }
+        result.forEach(t => {
+            if (t.type === 'FILE') {
+                t.canSelect = !t.indexRequired || t.indexFile;
+            } else {
+                t.canSelect = true;
+            }
+        });
+        return result;
     }
 
 }

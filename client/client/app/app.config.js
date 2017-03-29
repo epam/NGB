@@ -34,6 +34,7 @@ export default function config($mdThemingProvider) {
         'INS': '#f3ceb6',
         'INV': '#dce775',
         'SNV': '#d8efdd',
+        'MNP': '#5799C7',
         'UNK': '#ECECEC'
     }));
     definePalette('ngb-warning', extendPalette('red', {}));

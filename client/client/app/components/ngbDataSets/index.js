@@ -4,10 +4,11 @@ import './ngbDataSets.scss';
 import angular from 'angular';
 import component from './ngbDataSets.component';
 import controller from './ngbDataSets.controller';
-import ivhTreeview from '../../compat/angular-ivh-treeview';
 import service from './ngbDataSets.service';
+import indeterminateCheckbox from './internal/ngbDataSets.indeterminateCheckbox';
 
-export default angular.module('ngbDataSets', [ivhTreeview])
+export default angular.module('ngbDataSets', [])
+    .directive('indeterminateCheckbox', indeterminateCheckbox)
     .service('ngbDataSetsService', service.instance)
     .controller(controller.UID, controller)
     .component('ngbDataSets', component)

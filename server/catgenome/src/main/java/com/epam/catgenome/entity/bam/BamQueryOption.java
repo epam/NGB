@@ -39,6 +39,7 @@ public class BamQueryOption {
     private Boolean showClipping;
     private Boolean showSpliceJunction;
     private TrackDirectionType trackDirection;
+    private BamTrackMode mode;
     private Integer frame;
     private Integer count;
     private boolean filterNotPrimary = false;
@@ -57,7 +58,8 @@ public class BamQueryOption {
      * Default constructor for representing missing options
      */
     public BamQueryOption() {
-//        Empty constructor for initialization from the code
+        mode = BamTrackMode.FULL; // FULL query by default
+        //        Empty constructor for initialization from the code
     }
 
     /**
@@ -87,12 +89,12 @@ public class BamQueryOption {
      */
     public BamQueryOption(Boolean showClipping, Boolean showSpliceJunction, TrackDirectionType trackDirection,
             Integer frame, Integer count) {
+        this();
         this.showClipping = showClipping;
         this.count = count;
         this.frame = frame;
         this.showSpliceJunction = showSpliceJunction;
         this.trackDirection = trackDirection;
-
     }
 
     public Boolean getShowClipping() {
@@ -189,5 +191,13 @@ public class BamQueryOption {
 
     public void setFilterSupplementaryAlignment(boolean filterSupplementaryAlignment) {
         this.filterSupplementaryAlignment = filterSupplementaryAlignment;
+    }
+
+    public BamTrackMode getMode() {
+        return mode;
+    }
+
+    public void setMode(BamTrackMode mode) {
+        this.mode = mode;
     }
 }

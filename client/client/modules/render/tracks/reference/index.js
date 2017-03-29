@@ -7,10 +7,16 @@ import ReferenceTransformer from './referenceTransformer';
 
 export class REFERENCETrack extends CachedTrack {
 
-    static trackDefaultHeight = ReferenceConfig.height;
-
-    _referenceRenderer = new ReferenceRenderer(ReferenceConfig);
+    _referenceRenderer = new ReferenceRenderer(this.trackConfig);
     dataService = new GenomeDataService();
+
+    static getTrackDefaultConfig() {
+        return ReferenceConfig;
+    }
+
+    get trackIsResizable() {
+        return false;
+    }
 
     async updateCache() {
         const reqToken = this.__currentDataUpdateReq = {};

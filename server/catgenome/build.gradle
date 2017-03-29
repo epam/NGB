@@ -122,6 +122,7 @@ dependencies {
     compile group: "org.slf4j", name: "slf4j-log4j12", version: project.ext.versionSlf4j
     // Samtools
     compile group: "com.github.samtools", name: "htsjdk", version: "2.2.4"
+    compile "org.xerial.snappy:snappy-java:1.0.3-rc3"
     // Swagger
     compile group: "org.webjars", name: "swagger-ui", version: "2.0.24"
     compile group: "com.mangofactory", name: "swagger-springmvc", version: "1.0.2"

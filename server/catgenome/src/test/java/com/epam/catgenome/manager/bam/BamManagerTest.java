@@ -35,8 +35,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.epam.catgenome.common.AbstractManagerTest;
-import com.epam.catgenome.component.MessageHelper;
-import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.util.MultipartFileSender;
 import com.epam.catgenome.controller.util.UrlTestingUtils;
 import com.epam.catgenome.controller.vo.ReadQuery;
@@ -534,6 +532,77 @@ public class BamManagerTest extends AbstractManagerTest {
         } while (isPerformanceTest);
     }
 
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testGetRegions() throws IOException {
+        final String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
+        IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
+        request.setPath(path);
+        request.setIndexPath(path + BAI_EXTENSION);
+        request.setName(TEST_NSAME);
+        request.setReferenceId(testReference.getId());
+        request.setType(BiologicalDataItemResourceType.FILE);
+
+        BamFile bamFile = bamManager.registerBam(request);
+
+        Track<Read> fullTrackQ = new Track<>();
+        fullTrackQ.setStartIndex(1);
+        fullTrackQ.setEndIndex(testChromosome.getSize());
+        fullTrackQ.setScaleFactor(SCALE_FACTOR_SMALL);
+        fullTrackQ.setChromosome(new Chromosome(testChromosome.getId()));
+        fullTrackQ.setId(bamFile.getId());
+
+        BamQueryOption option = new BamQueryOption();
+        option.setTrackDirection(TrackDirectionType.LEFT);
+        option.setShowSpliceJunction(true);
+        option.setShowClipping(true);
+        option.setFrame(TEST_FRAME_SIZE);
+        option.setCount(TEST_COUNT);
+        option.setMode(BamTrackMode.REGIONS);
+        BamTrack<Read> fullTrack = bamManager.getBamTrack(fullTrackQ, option);
+
+        Assert.assertFalse(fullTrack.getRegions().isEmpty());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testGetCoverage() throws IOException {
+        final String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
+        IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
+        request.setPath(path);
+        request.setIndexPath(path + BAI_EXTENSION);
+        request.setName(TEST_NSAME);
+        request.setReferenceId(testReference.getId());
+        request.setType(BiologicalDataItemResourceType.FILE);
+
+        BamFile bamFile = bamManager.registerBam(request);
+
+        Track<Read> fullTrackQ = new Track<>();
+        fullTrackQ.setStartIndex(TEST_START_INDEX_LARGE_RANGE);
+        fullTrackQ.setEndIndex(TEST_END_INDEX_LARGE_RANGE);
+        fullTrackQ.setScaleFactor(SCALE_FACTOR_SMALL);
+        fullTrackQ.setChromosome(new Chromosome(testChromosome.getId()));
+        fullTrackQ.setId(bamFile.getId());
+
+        BamQueryOption option = new BamQueryOption();
+        option.setTrackDirection(TrackDirectionType.MIDDLE);
+        option.setShowSpliceJunction(true);
+        option.setShowClipping(true);
+        option.setFrame(TEST_FRAME_SIZE);
+        option.setCount(TEST_COUNT);
+        option.setMode(BamTrackMode.COVERAGE);
+        BamTrack<Read> fullTrack = bamManager.getBamTrack(fullTrackQ, option);
+
+        Assert.assertFalse(fullTrack.getBaseCoverage().isEmpty());
+        Assert.assertTrue(StringUtils.isBlank(fullTrack.getReferenceBuffer()));
+        Assert.assertTrue(fullTrack.getBaseCoverage().stream().allMatch(c -> c.getValue() != 0));
+        Assert.assertTrue(fullTrack.getBaseCoverage().stream().allMatch(c -> c.getaCov() == null
+                && c.getaCov() == null && c.gettCov() == null && c.getgCov() == null && c.getnCov() == null
+                && c.getDelCov() == null && c.getInsCov() == null));
+        Assert.assertTrue(fullTrack.getBlocks().isEmpty());
+        Assert.assertTrue(fullTrack.getDownsampleCoverage().isEmpty());
+    }
+
     private BamFile setUpTestFile() throws IOException {
         String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
@@ -578,29 +647,22 @@ public class BamManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testRegisterInvalidHeader() throws IOException, InterruptedException {
-        String invalidBam = "invalid_header.bam";
-        testRegisterInvalidFile("classpath:templates/invalid/" + invalidBam,
-                MessageHelper.getMessage(MessagesConstants.WRONG_HEADER_BAM_FILE));
-        Assert.assertTrue(biologicalDataItemDao.loadFilesByNameStrict(invalidBam).isEmpty());
+    public void testRegisterBamWithHeaderWithoutSOTag() throws IOException, InterruptedException {
+        String bamWithHeaderWithoutSO = "header_without_SO.bam";
+        registerFileWithoutSOTag("classpath:templates/" + bamWithHeaderWithoutSO);
+        List<BiologicalDataItem> biologicalDataItems = biologicalDataItemDao.loadFilesByNameStrict(TEST_NSAME);
+        Assert.assertFalse(biologicalDataItems.isEmpty());
     }
 
-    private void testRegisterInvalidFile(String path, String expectedMessage) throws IOException {
-        String errorMessage = "";
-        try {
-            Resource resource = context.getResource(path);
-            IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
-            request.setPath(resource.getFile().getAbsolutePath());
-            request.setIndexPath(resource.getFile().getAbsolutePath() + BAI_EXTENSION);
-            request.setName(TEST_NSAME);
-            request.setReferenceId(testReference.getId());
-            request.setType(BiologicalDataItemResourceType.FILE);
-            bamManager.registerBam(request);
-        } catch (IllegalArgumentException | AssertionError e) {
-            errorMessage = e.getMessage();
-        }
-        //check that we received an appropriate message
-        Assert.assertTrue(errorMessage.contains(expectedMessage));
+    private void registerFileWithoutSOTag(String path) throws IOException {
+        Resource resource = context.getResource(path);
+        IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
+        request.setPath(resource.getFile().getAbsolutePath());
+        request.setIndexPath(resource.getFile().getAbsolutePath() + BAI_EXTENSION);
+        request.setName(TEST_NSAME);
+        request.setReferenceId(testReference.getId());
+        request.setType(BiologicalDataItemResourceType.FILE);
+        bamManager.registerBam(request);
     }
 
 }

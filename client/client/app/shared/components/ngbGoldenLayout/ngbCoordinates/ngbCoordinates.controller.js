@@ -395,6 +395,7 @@ export default class ngbCoordinatesController extends baseController {
             [start] = this.coordinatesText.match(regexp_4);
         }
 
+        chrName = chrName.trim();
         const chr = (!chrName || (this.chromosome && this.chromosome.name === chrName))
             ? this.chromosome
             : this.projectContext.getChromosome({name: chrName});

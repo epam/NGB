@@ -387,10 +387,11 @@ ngb del_dataset|dd [<DATASET_NAME>|<DATASET_ID>] [options]
 //Options:
 //-t (--table)          Print result as a human-readable table
 //-j (--json)           Print result as a JSON string
+//-f (--force)          Allow to delete project with nested projects
 ```
 *Description*
 
-Delete a specified dataset from NGB server. Dataset could be addressed by name or by an identifier (retrieved from **reg_dataset** command, at registration time, or **search** command)
+Deletes a specified dataset from NGB server. Dataset could be addressed by name or by an identifier (retrieved from **reg_dataset** command, at registration time, or **search** command)
 
 Files that were added to a dataset are not deleted by this command, as soon they might be used (now or later) in other datasets.
 
@@ -428,3 +429,34 @@ ngb url 5 sample.vcf -loc 1:13476-23476
 //Create URL for dataset with name 'data' and a file with name 'sample.vcf' on a chromosome 1
 ngb url data sample.vcf -loc 1
 ```
+
+
+## Utility commands
+### Sort feature file
+```
+ngb sort [<ORIGINAL_FILE_PATH>] [<SORTED_FILE_PATH>] [options]
+
+//Options:
+//-m (--max_memory) [value] Specifies amount of memory in megabytes to use for sorting (default: 500). Since memory usage estimation is approximate, real memory usage may vary to some extend.
+```
+*Description*
+
+Sorts given feature file. At least one argument should be specified:
+* Path to a feature file to be sorted.
+VCF, BED, GTF, GFF, GFF3 formats are supported. Uncompressed and BGZip-compressed files are supported.
+
+Optional argument is:
+* Target path to store a sorted feature file.
+If this argument is not specified, sorted file will be stored in the same folder as the original one with the `.sorted.` suffix in the name.
+Sorted file will be automatically BGZip-compressed, if a target file name contains `.gz` postfix. If target file is not specified, file compression is inherited from the original file.
+
+*Example*
+```
+//Will sort given VCF file and place it in the same folder with original file ('/samples/sample.vcf.gz') with name: sample.sorted.vcf.gz
+ngb sort /samples/sample.vcf.gz
+
+//Will sort given GFF file and place sorted file to the specified path '/samples/sample-sorted.gff'
+ngb sort /samples/sample.gff /samples/sample-sorted.gff
+
+//Will sort given BED file, compress result and place sorted file to the specified path '/samples/sorted_sample.bed.gz'
+ngb sort /samples/unsorted.bed /samples/sorted_sample.bed.gz

@@ -10,7 +10,8 @@ export default {
         labelStyle: {
             fill: 0xFFFFFF,
             font: '24px'
-        }
+        },
+        separateBarsAfterBp: 5
     },
     lowScale: {
         color1: 0x0080FF,
@@ -24,6 +25,5 @@ export default {
         },
         text: 'GC content is not provided.'
     },
-    reference: {},
-    resizable: false
+    reference: {}
 };

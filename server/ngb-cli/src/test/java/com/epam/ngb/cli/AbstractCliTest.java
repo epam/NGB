@@ -64,10 +64,11 @@ public abstract class AbstractCliTest {
     public static final String REF_DELETION_URL = "/catgenome/restapi/secure/reference/register/fasta";
     public static final String GENE_ADDING_URL = "/catgenome/restapi/secure/reference/%d/genes";
     public static final String DATASET_MOVING_URL = "/catgenome/restapi/project/%d/move";
-    public static final String  AUTHENTICATION_URL = "/catgenome/oauth/token";
-    public static final String  AUTHENTICATION_PAYLOAD = "client_id=restapp&client_secret=restapp&username="
+    public static final String AUTHENTICATION_URL = "/catgenome/oauth/token";
+    public static final String AUTHENTICATION_PAYLOAD = "client_id=restapp&client_secret=restapp&username="
             + "default_admin&password=admin&grant_type=password&scope=read";
     public static final String URL_GENERATION_URL = "/catgenome/restapi/url";
+    public static final String SORT_URI = "/catgenome/restapi/tools/sort";
 
     //server properties
     public static final String TEST_SERVER_PROPERTIES = "server.properties";

@@ -98,7 +98,7 @@ export default class LocalDataService {
                     somethingRecovered = true;
                 }
                 else if ((typeof defaultSettingsObject[key]).toLowerCase() === 'object') {
-                    somethingRecovered = somethingRecovered || this.recoverSettings(settingsObject[key], defaultSettingsObject[key]);
+                    somethingRecovered = this.recoverSettings(settingsObject[key], defaultSettingsObject[key]) || somethingRecovered;
                 }
             }
         }

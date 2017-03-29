@@ -8,7 +8,19 @@ There are three options to install NGB
 
 These options are described in details in the subsequent sections.
 
-Despite this, the following minimal requirements should be met for the server host machine
+## Distributions
+
+NGB distributions are avialable at the following locations:
+
+* Jar/War
+    * [http://ngb.opensource.epam.com/distr](http://ngb.opensource.epam.com/distr)
+    * [https://github.com/epam/NGB/releases](https://github.com/epam/NGB/releases)
+* Docker image
+    * [https://hub.docker.com/r/lifescience/ngb](https://hub.docker.com/r/lifescience/ngb/)
+
+## General requirements
+
+The following minimal requirements should be met for the server host machine
 
 * Server hardware requirements
     * CPU: 2 cores
@@ -23,4 +35,5 @@ Despite this, the following minimal requirements should be met for the server ho
     * Firefox (>= 51)
     * Safari (>= 9)
     * EDGE (>= 25)
+
 

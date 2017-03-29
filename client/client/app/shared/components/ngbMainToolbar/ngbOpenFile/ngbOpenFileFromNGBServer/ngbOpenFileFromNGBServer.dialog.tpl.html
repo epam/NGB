@@ -9,14 +9,21 @@
         </div>
     </md-toolbar>
     <md-dialog-content flex>
-        <ngb-open-file-from-ngb-server tracks="tracks" flex></ngb-open-file-from-ngb-server>
+        <ngb-open-file-from-ngb-server tracks="tracks" clear-selection-handler="clearSelectionHandler" flex></ngb-open-file-from-ngb-server>
     </md-dialog-content>
     <md-dialog-actions layout="row">
-        <md-button aria-label="load" ng-click="load()" class="md-primary" ng-disabled="loadingDisabled()">
-            Load
-        </md-button>
-        <md-button aria-label="cancel" ng-click="close()">
-            Cancel
-        </md-button>
+        <div layout="row" layout-align="space-between center" flex="100">
+            <div>
+                <span class="ngb-open-files-count" ng-if="tracksCount() > 0">{{tracksCount()}} files selected. <a ng-click="clearSelectionHandler()">Clear selection</a></span>
+            </div>
+            <div layout="row" layout-align="end center" flex>
+                <md-button aria-label="load" ng-click="load()" class="md-primary" ng-disabled="loadingDisabled()">
+                    Load
+                </md-button>
+                <md-button aria-label="cancel" ng-click="close()">
+                    Cancel
+                </md-button>
+            </div>
+        </div>
     </md-dialog-actions>
 </md-dialog>

@@ -1,5 +1,7 @@
 import angular from 'angular';
 
+const Math = window.Math;
+
 export default class ngbVariantDensityDiagramController {
 
     static get UID() {
@@ -71,14 +73,14 @@ export default class ngbVariantDensityDiagramController {
             const updating = async() => {
                 this.isProgressShown = true;
             };
-            this._dispatcher.on('variants:loading:started', updating);
-            this._dispatcher.on('variants:loading:finished', reloadPanel);
+            this._dispatcher.on('variants:group:chromosome:started', updating);
+            this._dispatcher.on('variants:group:chromosome:finished', reloadPanel);
 
             await this.INIT();
 
             $scope.$on('$destroy', () => {
-                __dispatcher.removeListener('variants:loading:started', updating);
-                __dispatcher.removeListener('variants:loading:finished', reloadPanel);
+                __dispatcher.removeListener('variants:group:chromosome:started', updating);
+                __dispatcher.removeListener('variants:group:chromosome:finished', reloadPanel);
             });
 
             angular.element(window).on('resize', () => {
@@ -89,12 +91,12 @@ export default class ngbVariantDensityDiagramController {
     }
 
     async INIT() {
-        this.noDataToDisplay = !this.projectContext.filteredVariants ||
-            this.projectContext.filteredVariants.length === 0;
-        if (this.projectContext.reference && this.projectContext.filteredVariants) {
-            await this.updateDiagram(this.projectContext.filteredVariants,
-                this.projectContext.isVariantsLoading);
-            this.isProgressShown = this.projectContext.isVariantsLoading;
+        this.noDataToDisplay = !this.projectContext.variantsDataByChromosomes ||
+            this.projectContext.variantsDataByChromosomes.length === 0;
+        if (this.projectContext.reference && this.projectContext.variantsDataByChromosomes) {
+            await this.updateDiagram(this.projectContext.variantsDataByChromosomes,
+                this.projectContext.isVariantsGroupByChromosomesLoading);
+            this.isProgressShown = this.projectContext.isVariantsGroupByChromosomesLoading;
             this._scope.$apply();
         }
     }
@@ -106,7 +108,7 @@ export default class ngbVariantDensityDiagramController {
         if(l <= 19) {
             const arr_w = (20 - l)%2 === 0 ? 20 - l : 21 - l;
             for (let i = 0; i < arr_w; i++) {
-                const fakeObj = {chrId: '', chrName: `fake${i}`, label: `fake${i}`, value: 0, color: '#ffffff'};
+                const fakeObj = {chrName: `fake${i}`, label: `fake${i}`, value: 0, color: '#ffffff'};
                 i%2 === 0 ? obj.values.unshift(fakeObj) : obj.values.push(fakeObj);
             }
         }
@@ -119,18 +121,11 @@ export default class ngbVariantDensityDiagramController {
                 values: []
             };
 
-        for (let i = 0; i < data.length; i++) {
-            const variation = data[i];
-            const chrName = variation.chromosome.name;
-            const chrId = variation.chromosome.id;
-            const idx = nvd3DataObjectItem.values.findIndex((element) =>
-                element.label === chrName
-            );
-            if (idx === -1) {
-                nvd3DataObjectItem.values.push({chrId: chrId, chrName: chrName, label: chrName, value: 1});
-                continue;
-            }
-            ++nvd3DataObjectItem.values[idx].value;
+        const maximumChromosomesCount = 30;
+
+        for (let i = 0; i < Math.min(data.length, maximumChromosomesCount); i++) {
+            const {entriesCount, groupName} = data[i];
+            nvd3DataObjectItem.values.push({chrName: groupName, label: groupName, value: entriesCount});
         }
         nvd3DataObjectItem.values.sort((a, b) => {
             const aIsN = parseInt(a.label, 10);

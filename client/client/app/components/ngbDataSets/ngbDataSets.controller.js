@@ -14,15 +14,14 @@ export default class ngbDataSetsController extends baseController {
 
     service;
 
-    constructor($mdDialog, $scope, $timeout, dispatcher, ivhTreeviewBfs, ivhTreeviewMgr, ngbDataSetsService, projectContext) {
+    constructor($mdDialog, $scope, $element, $timeout, dispatcher, ngbDataSetsService, projectContext) {
         super();
         Object.assign(this, {
             $mdDialog,
             $scope,
             $timeout,
+            $element,
             dispatcher,
-            ivhTreeviewBfs,
-            ivhTreeviewMgr,
             projectContext,
             service: ngbDataSetsService
         });
@@ -31,7 +30,7 @@ export default class ngbDataSetsController extends baseController {
         this._isLoading = true;
 
         const self = this;
-        this.tracksStateChangeListener = async () => {
+        this.tracksStateChangeListener = async() => {
             await self.service.updateSelectionFromState(self.datasets);
         };
         const tracksStateChangeListener = ::this.tracksStateChangeListener;
@@ -39,7 +38,6 @@ export default class ngbDataSetsController extends baseController {
             dispatcher.removeListener('tracks:state:change', tracksStateChangeListener);
         });
         dispatcher.on('tracks:state:change', tracksStateChangeListener);
-
     }
 
     async $onInit() {
@@ -52,11 +50,14 @@ export default class ngbDataSetsController extends baseController {
     }
 
     async loadingFinished() {
-        this.datasets = await this.service.getDatasets();
-        this.nothingFound = false;
-        this.noDatasets = this.datasets.length === 0;
+        if (!this.projectContext.datasetsAreLoading) {
+            this.datasets = await this.service.getDatasets();
+            this.nothingFound = false;
+        }
+        this.noDatasets = !this.datasets || this.datasets.length === 0;
         this._isLoading = !this.projectContext.datasetsLoaded;
         this.$timeout(::this.$scope.$apply);
+        this.onResize();
     }
 
     get isLoading() {
@@ -67,11 +68,13 @@ export default class ngbDataSetsController extends baseController {
         'datasets:loading:finished': ::this.loadingFinished,
         'datasets:loading:started': ::this.loadingStarted,
         'datasets:filter:changed': ::this.loadingFinished,
-        'reference:change': ::this.onProjectChanged
+        'reference:change': ::this.onProjectChanged,
+        'activeDataSets': ::this.onResize
     };
 
     async onProjectChanged() {
         await this.service.updateSelectionFromState(this.datasets);
+        this.onResize();
     }
 
     async select(item, isSelected, tree) {
@@ -79,7 +82,7 @@ export default class ngbDataSetsController extends baseController {
         if (!self.service.checkSelectionAvailable(item, isSelected)) {
             const reference = self.service.getItemReference(item);
             this.$timeout(() => {
-                self.service.deselectItem(item, tree);
+                self.service.deselectItem(item);
                 self.$scope.$apply();
             });
             const confirm = self.$mdDialog.confirm()
@@ -88,9 +91,10 @@ export default class ngbDataSetsController extends baseController {
                 .ariaLabel('Change reference')
                 .ok('OK')
                 .cancel('Cancel');
-            self.$mdDialog.show(confirm).then(function() {
+            self.$mdDialog.show(confirm).then(function () {
                 self.service.selectItem(item, isSelected, tree);
-            }, function() {});
+            }, function () {
+            });
         } else {
             this.$timeout(() => {
                 self.service.selectItem(item, isSelected, tree);
@@ -113,5 +117,43 @@ export default class ngbDataSetsController extends baseController {
         } else {
             this.nothingFound = false;
         }
+    }
+
+    onResize() {
+        this.$timeout(() => {
+            this.$element.resize();
+        });
+    }
+
+    toggleSelected(node) {
+        node.__selected = !node.__selected;
+        this.toggle(node);
+    }
+
+    toggle(node) {
+        if (node.__selected) {
+            node.__expanded = true;
+        }
+        if (node.isProject && !node.__selected) {
+            this.service.deselectItem(node);
+        }
+
+        this.select(node, node.__selected, this.datasets);
+    }
+
+    expanded(node) {
+        node.__expanded = !node.__expanded;
+        this.service.toggle(node);
+    }
+
+    filter() {
+        return this.service.filter;
+    }
+
+    getTemplateNode(node) {
+        if (node.isProject)
+            return 'ngbDataSetsParentNode.tpl.html';
+        else
+            return 'ngbDataSetsTerminalNode.tpl.html';
     }
 }

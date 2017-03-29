@@ -75,6 +75,10 @@ public class ApplicationOptions {
 
     private String location;
 
+    private int maxMemory;
+
+    private boolean forceDeletion;
+
     /**
      * Creates object with default option's values
      */
@@ -152,5 +156,21 @@ public class ApplicationOptions {
 
     public void setNoGCContent(boolean noGCContent) {
         this.noGCContent = noGCContent;
+    }
+
+    public void setMaxMemory(int maxMemory) {
+        this.maxMemory = maxMemory;
+    }
+
+    public int getMaxMemory() {
+        return maxMemory;
+    }
+
+    public void setForceDeletion(boolean forceDeletion) {
+        this.forceDeletion = forceDeletion;
+    }
+
+    public boolean isForceDeletion() {
+        return forceDeletion;
     }
 }

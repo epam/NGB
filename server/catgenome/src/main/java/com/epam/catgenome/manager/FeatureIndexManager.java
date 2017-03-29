@@ -218,7 +218,7 @@ public class FeatureIndexManager {
                 .collect(Collectors.toMap(BaseEntity::getId, chromosome -> chromosome));
 
         List<Long> chromosomeIds = featureIndexDao.getChromosomeIdsWhereVariationsPresentFacet(vcfFiles, filterForm
-                .computeQuery2(FeatureType.VARIATION));
+                .computeQuery(FeatureType.VARIATION));
 
         return chromosomeIds.stream().map(chromosomeMap::get).collect(Collectors.toList());
     }
@@ -240,7 +240,7 @@ public class FeatureIndexManager {
             .collect(Collectors.toMap(BaseEntity::getId, chromosome -> chromosome));
 
         List<Long> chromosomeIds = featureIndexDao.getChromosomeIdsWhereVariationsPresentFacet(vcfFiles, filterForm
-                                                                                .computeQuery2(FeatureType.VARIATION));
+                                                                                .computeQuery(FeatureType.VARIATION));
 
         return chromosomeIds.stream().map(chromosomeMap::get).collect(Collectors.toList());
     }
@@ -262,13 +262,13 @@ public class FeatureIndexManager {
             .collect(Collectors.toList());
         if (filterForm.getPage() != null && filterForm.getPageSize() != null) {
             IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexesPaging(files,
-                                                     filterForm.computeQuery2(FeatureType.VARIATION),
+                                                     filterForm.computeQuery(FeatureType.VARIATION),
                                                      filterForm.getInfoFields(), filterForm.getPage(),
                                                      filterForm.getPageSize(), filterForm.getOrderBy());
             res.setTotalPagesCount(getTotalPagesCount(filterForm, projectId));
             return res;
         } else {
-            IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexes(files, filterForm.computeQuery2(
+            IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexes(files, filterForm.computeQuery(
                 FeatureType.VARIATION), filterForm.getInfoFields(), null, null);
             res.setExceedsLimit(false);
             return res;
@@ -281,7 +281,7 @@ public class FeatureIndexManager {
         }
 
         List<VcfFile> files = vcfFileManager.loadVcfFiles(filterForm.getVcfFileIds());
-        int totalCount = featureIndexDao.getTotalVariationsCountFacet(files, filterForm.computeQuery2(
+        int totalCount = featureIndexDao.getTotalVariationsCountFacet(files, filterForm.computeQuery(
             FeatureType.VARIATION));
         return (int) Math.ceil(totalCount / filterForm.getPageSize().doubleValue());
     }
@@ -296,7 +296,7 @@ public class FeatureIndexManager {
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
             .collect(Collectors.toList());
-        int totalCount = featureIndexDao.getTotalVariationsCountFacet(files, filterForm.computeQuery2(
+        int totalCount = featureIndexDao.getTotalVariationsCountFacet(files, filterForm.computeQuery(
             FeatureType.VARIATION));
         return (int) Math.ceil(totalCount / filterForm.getPageSize().doubleValue());
     }
@@ -316,7 +316,7 @@ public class FeatureIndexManager {
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
             .collect(Collectors.toList());
-        return featureIndexDao.groupVariations(files, filterForm.computeQuery2(FeatureType.VARIATION), groupByField);
+        return featureIndexDao.groupVariations(files, filterForm.computeQuery(FeatureType.VARIATION), groupByField);
     }
 
     /**
@@ -329,7 +329,7 @@ public class FeatureIndexManager {
     public List<Group> groupVariations(VcfFilterForm filterForm, String groupByField)
         throws IOException {
         List<VcfFile> files = vcfFileManager.loadVcfFiles(filterForm.getVcfFileIds());
-        return featureIndexDao.groupVariations(files, filterForm.computeQuery2(FeatureType.VARIATION), groupByField);
+        return featureIndexDao.groupVariations(files, filterForm.computeQuery(FeatureType.VARIATION), groupByField);
     }
 
     /**
@@ -343,14 +343,14 @@ public class FeatureIndexManager {
         List<VcfFile> files = vcfFileManager.loadVcfFiles(filterForm.getVcfFileIds());
         if (filterForm.getPage() != null && filterForm.getPageSize() != null) {
             IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexesPaging(files,
-                                                                   filterForm.computeQuery2(FeatureType.VARIATION),
+                                                                   filterForm.computeQuery(FeatureType.VARIATION),
                                                                    filterForm.getInfoFields(), filterForm.getPage(),
                                                                    filterForm.getPageSize(), filterForm.getOrderBy());
             res.setTotalPagesCount(getTotalPagesCount(filterForm));
             return res;
         } else {
             IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexes(files,
-                               filterForm.computeQuery2(FeatureType.VARIATION), filterForm.getInfoFields(),
+                               filterForm.computeQuery(FeatureType.VARIATION), filterForm.getInfoFields(),
                                                                            null, null);
             res.setExceedsLimit(false);
             return res;

@@ -57,14 +57,27 @@ public class StandardSAMRecordSifter implements DownsamplingSifter<SAMRecord> {
     private int border;
 
     /**
+     * Indicates if BAM records should be saved to memory or just counted. Is set when filteredReadsCount
+     * exceeds maxReadCount
+     */
+    private boolean exceedsMaxReadCount = false;
+
+    //private int maxReadCount;
+    private int filteredReadsCount = 0;
+    private int totalReadsCount = 0;
+
+    /**
      * @param frame size of the frame for downsampling
      * @param count maximum number of reads left after downsampling for each frame
      * @param endTrack left border of the track interval
      */
-    public StandardSAMRecordSifter(final int frame, final int count, final int endTrack) {
+    public StandardSAMRecordSifter(final int frame, final int count, final int endTrack, boolean coverageOnly) {
+        // TODO: int maxReadCount - decide reads or coverage by by read count
         this.frame = frame;
         this.count = count;
         this.endTrack = endTrack;
+        this.exceedsMaxReadCount = coverageOnly;
+        //this.maxReadCount = maxReadCount;
     }
 
     /**
@@ -92,6 +105,7 @@ public class StandardSAMRecordSifter implements DownsamplingSifter<SAMRecord> {
             refreshForNewFrame(start);
         }
         bufferResult.add(BamUtil.createReadFromRecord(record, start, end, differentBase, headStr, tailStr));
+        totalReadsCount++;
     }
 
     /**
@@ -110,6 +124,12 @@ public class StandardSAMRecordSifter implements DownsamplingSifter<SAMRecord> {
     public List<Wig> getDownsampleCoverageResult() {
         flushList();
         return downsampledCoverage;
+    }
+
+    @Override
+    public int getFilteredReadsCount() {
+        flushList();
+        return filteredReadsCount;
     }
 
     private void shuffleArr(final int[] arr, final int minSize) {
@@ -132,14 +152,35 @@ public class StandardSAMRecordSifter implements DownsamplingSifter<SAMRecord> {
             //get random read's
             shuffleArr(helpArr, count);
             // because our client don't need it
-            downsampledCoverage.add(new Wig(statPosition, border, buffSize - count));
+            if (!exceedsMaxReadCount && buffSize - count > 0) {
+                downsampledCoverage.add(new Wig(statPosition, border, buffSize - count));
+            }
+
             for (int i = 0; i < count; i++) {
-                resultList.add(bufferResult.get(helpArr[i]));
+                if (!exceedsMaxReadCount) {
+                    resultList.add(bufferResult.get(helpArr[i]));
+                }
+
+                filteredReadsCount++;
+                //checkExceedsLimit(); TODO: uncomment
             }
         } else {
-            resultList.addAll(bufferResult);
+            if (!exceedsMaxReadCount) {
+                resultList.addAll(bufferResult);
+            }
+
+            filteredReadsCount += bufferResult.size();
+            //checkExceedsLimit(); TODO: uncomment
         }
     }
+
+    /*private void checkExceedsLimit() {
+        if (!exceedsMaxReadCount && filteredReadsCount > maxReadCount) {
+            exceedsMaxReadCount = true;
+            bufferResult.clear();
+            resultList.clear();
+        }
+    }*/
 
     private void refreshForNewFrame(final int start) {
         do {
@@ -150,5 +191,9 @@ public class StandardSAMRecordSifter implements DownsamplingSifter<SAMRecord> {
             border = endTrack;
         }
         bufferResult.clear();
+    }
+
+    public int getTotalReadsCount() {
+        return totalReadsCount;
     }
 }

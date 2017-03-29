@@ -16,7 +16,7 @@ export default [
             {
                 type: 'item',
                 name: 'layout>filter',
-                label: 'Filter Panel',
+                label: 'Show/hide filters',
                 hotkey: ''
             },
             {
@@ -50,6 +50,17 @@ export default [
         label: 'BAM',
         name: 'bam',
         subItems: [
+            {
+                type: 'item',
+                name: 'bam>showAlignments',
+                label: 'Show alignments',
+                hotkey: '',
+                byDefault: {
+                    type: 'checkbox',
+                    name: 'alignments',
+                    model: true
+                }
+            },
             {
                 type: 'item',
                 name: 'bam>showMismatchedBases',
@@ -180,11 +191,11 @@ export default [
                         hotkey: '',
                         colors: [
                             {
-                                name: 'strandDirection.l',
+                                name: 'strand.forward',
                                 label: 'Forward'
                             },
                             {
-                                name: 'strandDirection.r',
+                                name: 'strand.reverse',
                                 label: 'Reverse'
                             }
                         ],

@@ -1,4 +1,6 @@
-<li ng-repeat="action in viewActions[viewName] track by $index">
+<li ng-repeat="action in viewActions[viewName] track by $index" ng-style="action.liStyle">
     <ngb-variants-table-column ng-if="action === actions.variantsTableColumn"></ngb-variants-table-column>
+    <ngb-variants-table-paginate ng-if="action === actions.variantsTablePagination"></ngb-variants-table-paginate>
     <ngb-close-all-tracks ng-if="action === actions.closeAllTracks && tracksAreSelected()"></ngb-close-all-tracks>
+    <ngb-view-action ng-if="action.isDefault && (action.isVisible === undefined || action.isVisible(projectContext))" event="action.event" label="action.label" icon="action.icon"></ngb-view-action>
 </li>

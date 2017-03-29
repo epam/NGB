@@ -27,12 +27,8 @@ package com.epam.catgenome.manager.bam.filters;
 import java.io.IOException;
 import java.util.List;
 
-import com.epam.catgenome.entity.bam.BamQueryOption;
 import com.epam.catgenome.entity.bam.BasePosition;
-import com.epam.catgenome.entity.bam.Read;
-import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.manager.bam.sifters.DownsamplingSifter;
-import com.epam.catgenome.util.BamUtil;
 import htsjdk.samtools.SAMRecord;
 
 /**
@@ -40,14 +36,15 @@ import htsjdk.samtools.SAMRecord;
  * to downsampling
  */
 public class MiddleSAMRecordFilter implements Filter<SAMRecord> {
-    private final DownsamplingSifter<SAMRecord> shifter;
+    private final DownsamplingSifter<SAMRecord> sifter;
 
-    /**
-     * @param end  for creating the wrapped {@code DownsamplingSifter}
-     * @param options for creating the wrapped {@code DownsamplingSifter}
-     */
-    public MiddleSAMRecordFilter(final int end, final BamQueryOption options) {
-        shifter = BamUtil.createSifter(end, options);
+    public MiddleSAMRecordFilter(DownsamplingSifter<SAMRecord> sifter) {
+        this.sifter = sifter;
+    }
+
+    @Override
+    public DownsamplingSifter<SAMRecord> getSifter() {
+        return sifter;
     }
 
     /**
@@ -64,22 +61,6 @@ public class MiddleSAMRecordFilter implements Filter<SAMRecord> {
     public void add(final SAMRecord record, final int start, final int end,
                     final List<BasePosition> differentBase, final String headStr, final String tailStr)
             throws IOException {
-        shifter.add(record, start, end, differentBase, headStr, tailStr);
-    }
-
-    /**
-     * @return list of reads after downsampling
-     */
-    @Override
-    public List<Read> getReadListResult() {
-        return shifter.getReadListResult();
-    }
-
-    /**
-     * @return read coverage after downsampling
-     */
-    @Override
-    public List<Wig> getDownsampleCoverageResult() {
-        return shifter.getDownsampleCoverageResult();
+        sifter.add(record, start, end, differentBase, headStr, tailStr);
     }
 }

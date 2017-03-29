@@ -1,4 +1,4 @@
-<md-menu style="white-space: nowrap" ng-repeat="field in ctrl.settings track by field.label" class="track-menu" md-offset="0 36">
+<md-menu style="white-space: nowrap" ng-repeat="field in ctrl.settings track by field.label" ng-if="field.isVisible === undefined || field.isVisible()" class="track-menu" md-offset="0 36">
     <button
             aria-label="menu"
             ng-click="$mdOpenMenu()"

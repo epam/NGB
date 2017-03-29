@@ -121,7 +121,7 @@ public class BookmarkManagerTest extends AbstractManagerTest {
         project.setName("testProject");
 
         ArrayList<ProjectItem> items = new ArrayList<>();
-        items.add(new ProjectItem(testReference));
+        items.add(new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId())));
         items.add(new ProjectItem(item));
         project.setItems(items);
 

@@ -10,7 +10,6 @@ export default {
         fill: 0x273F70,
         font: 'normal 7pt arial'
     },
-    resizable: true,
     rowHeight: 20,
     scroll:{
         alpha: 0.5,

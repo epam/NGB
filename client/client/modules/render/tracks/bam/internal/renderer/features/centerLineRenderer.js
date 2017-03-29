@@ -12,8 +12,8 @@ export function renderCenterLine(viewport, drawingConfig) {
             graphics.lineStyle(thickness, color, 1);
             for (let i = 0; i < dashesCount; i++) {
                 graphics
-                    .moveTo(x, (2 * i) * length)
-                    .lineTo(x, (2 * i + 1) * length);
+                    .moveTo(Math.floor(x) + thickness / 2.0, (2 * i) * length)
+                    .lineTo(Math.floor(x) + thickness / 2.0, (2 * i + 1) * length);
             }
         };
         const center = Math.round(viewport.centerPosition);

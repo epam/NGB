@@ -44,6 +44,13 @@ export class Line {
         };
     }
 
+    rangeIsEmpty(viewport) {
+        let pointer = this.itemsSortedByStartIndex.findGreatestLessThanOrEqual({startIndex: viewport.brush.start});
+        if (!pointer || pointer.value.endIndex < viewport.brush.end)
+            pointer = this.itemsSortedByStartIndex.findLeastGreaterThan({startIndex: viewport.brush.start});
+        return !(pointer && pointer.value.startIndex >= viewport.brush.start && pointer.value.startIndex <= viewport.brush.end);
+    }
+
     render(start, end, {arrows, diffBase, ins_del, softClip}) {
         let cursor = start;
         let pointer = this.itemsSortedByStartIndex.findGreatestLessThanOrEqual({startIndex: cursor});

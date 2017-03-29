@@ -11,35 +11,42 @@ export class CoverageRenderer extends WIGRenderer {
         this._bamConfig = bamConfig;
     }
 
-    _renderItems(items, color, viewport, cache, coordinateSystem) {
-        const block = super._renderItems(items, color, viewport, cache, coordinateSystem);
-        const pixelsPerBp = viewport.factor;
-        const paddingDiff = 0.5;
-        const padding = pixelsPerBp / 2.0 - paddingDiff;
+    _renderItems(items, color, lineColor, viewport, cache, coordinateSystem) {
+        const {block, line} = super._renderItems(items, color, lineColor, viewport, cache, coordinateSystem);
+        const padding = 0.5;
         const barOrders = ['A', 'C', 'G', 'T', 'N'];
         for (let i = 0; i < items.length; i++) {
             for (let j = 0; j < items[i].points.length; j++) {
                 const point = items[i].points[j];
                 if (point.dataItem.isHighlightedLocus) {
-                    let __y = cache.baseAxis;
+                    const max = this._getYValue(point.dataValue, coordinateSystem) + 1;
+                    const min = this._getYValue(cache.baseAxis, coordinateSystem) -1;
+                    let prevPercentage = 0;
                     for (let k = barOrders.length - 1; k >= 0; k--) {
                         const color = this._bamConfig.colors[barOrders[k]];
                         const value = point.dataItem.locusInfo && point.dataItem.locusInfo[barOrders[k].toLowerCase()] ?
                             point.dataItem.locusInfo[barOrders[k].toLowerCase()] : 0;
+                        if (value === 0) {
+                            continue;
+                        }
+                        const percentage = (value - cache.baseAxis) / (point.dataValue - cache.baseAxis);
+                        const y1 = Math.round(Math.min(this.height - 1, min + (max - min) * (percentage + prevPercentage))) - .5;
+                        const y2 = Math.round(Math.min(this.height - 1, min + (max - min) * prevPercentage)) + .5;
+                        const x1 = Math.round(viewport.project.brushBP2pixel(point.startIndex - 0.5) + padding);
+                        const x2 = Math.round(viewport.project.brushBP2pixel(point.endIndex + 0.5) - padding);
                         block.beginFill(color, 1);
-                        block.drawRect(
-                            Math.floor(this.correctedXPosition(point.xStart) - padding),
-                            Math.floor(this._getYValue(__y, coordinateSystem)),
-                            Math.max(1, this.correctedXPosition(point.xEnd) - this.correctedXPosition(point.xStart) +
-                                2 * padding),
-                            this._getYValue(__y + value, coordinateSystem) - this._getYValue(__y, coordinateSystem)
-                        );
+                        block.lineStyle(1, color, 1);
+                        block.moveTo(x1 + .5, y2);
+                        block.lineTo(x1 + .5, y1);
+                        block.lineTo(x2 - .5, y1);
+                        block.lineTo(x2 - .5, y2);
+                        block.lineTo(x1 + .5, y2);
                         block.endFill();
-                        __y += value;
+                        prevPercentage += percentage;
                     }
                 }
             }
         }
-        return block;
+        return {block, line};
     }
 }

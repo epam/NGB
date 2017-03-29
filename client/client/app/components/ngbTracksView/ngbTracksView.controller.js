@@ -14,7 +14,9 @@ export default class ngbTracksViewController extends baseController {
     domElement: HTMLElement;
     referenceId = null;
 
-    rulerTrack = {};
+    rulerTrack = {
+        format: 'RULER'
+    };
     tracks = [];
     renderable = false;
 

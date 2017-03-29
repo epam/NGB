@@ -3,6 +3,16 @@
         <ng-md-icon icon="menu"></ng-md-icon>
     </md-button>
     <md-menu-content width="4" >
+        <md-menu-item>
+            <div class="for-md-tooltip-work">
+                <md-checkbox flex layout="row" class="text__sm"
+                             ng-change="$ctrl.onDisplayVariantsFilterChange()"
+                             ng-model="$ctrl.displayVariantsFilter">
+                    Show filters
+                </md-checkbox>
+            </div>
+        </md-menu-item>
+        <md-divider></md-divider>
         <md-menu-item ng-repeat="column in $ctrl.columnsList">
             <div class="for-md-tooltip-work">
                 <md-checkbox flex layout="row" class="text__sm"

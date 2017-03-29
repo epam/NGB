@@ -103,7 +103,7 @@ export class AlignmentsRenderer {
     }
 
     _initReadColorModeReadStrand(renderEntry) {
-        this._setColor(this._baseColor = this._colors.strandDirection[renderEntry.spec.strand]);
+        this._setColor(this._baseColor = this._colors.strand[renderEntry.spec.strand]);
     }
 
     _initReadColorModeInsertSize(renderEntry) {
@@ -129,13 +129,13 @@ export class AlignmentsRenderer {
             case 'L1R2':
             case 'L1L2':
             case 'L2L1':
-                this._setColor(this._baseColor = this._colors.strandDirection.l);
+                this._setColor(this._baseColor = this._colors.strand.forward);
                 break;
             case 'R1L2':
             case 'L2R1':
             case 'R1R2':
             case 'R2R1':
-                this._setColor(this._baseColor = this._colors.strandDirection.r);
+                this._setColor(this._baseColor = this._colors.strand.reverse);
                 break;
             default:
                 this._setColor(this._baseColor = this._colors.base);
@@ -173,7 +173,7 @@ export class AlignmentsRenderer {
         const {localYHeight, localYOffset} = AlignmentsRenderer.getRenderEntryVerticalPositioning(renderEntry);
         if (!this._canShowDetails || this._yScale === 1)
             return;
-        this._checkTextureCoordinates({x: this._projectX(renderEntry.startIndex)});
+        this._checkTextureCoordinates({x: Math.floor(this._projectX(renderEntry.startIndex))});
         if (this._contoured) {
             this._setColor(this._colors.bg);
             this._graphics.lineStyle(this._lineWidth, this._baseColor, 1);
@@ -188,8 +188,8 @@ export class AlignmentsRenderer {
                 Math.floor(this._projectY(localYOffset) - this._renderOffset));
             this._graphics.lineStyle(0, this._baseColor, 0);
             this._checkTextureCoordinates({
-                x: this._projectX(renderEntry.startIndex) + direction * this._figOffset,
-                y: this._projectY(localYOffset) - this._renderOffset
+                x: Math.floor(this._projectX(renderEntry.startIndex) + direction * this._figOffset),
+                y: Math.floor(this._projectY(localYOffset) - this._renderOffset)
             });
         } else {
             this._setColor(this._baseColor);
@@ -202,8 +202,8 @@ export class AlignmentsRenderer {
                 Math.floor(this._projectY(localYOffset + localYHeight) - this._renderOffset)
             ]);
             this._checkTextureCoordinates({
-                x: this._projectX(renderEntry.startIndex) + direction * this._figOffset,
-                y: this._projectY(localYOffset) + this._renderOffset
+                x: Math.floor(this._projectX(renderEntry.startIndex) + direction * this._figOffset),
+                y: Math.floor(this._projectY(localYOffset) + this._renderOffset)
             });
         }
     }
@@ -254,14 +254,14 @@ export class AlignmentsRenderer {
         const x2 = Math.floor(x0 + this._figOffset + this._renderOffset);
         const y0 = Math.floor((this._projectY(localYOffset) >> 0) + this._renderOffset);
         const y1 = Math.floor((this._projectY(localYOffset + localYHeight) >> 0) - this._renderOffset);
-        this._graphics.moveTo(x1, y0);
-        this._graphics.lineTo(x2, y0);
-        this._graphics.moveTo(x0, y0);
-        this._graphics.lineTo(x0, y1);
-        this._graphics.moveTo(x1, y1);
-        this._graphics.lineTo(x2, y1);
+        this._graphics.moveTo(x1, y0 + this._lineWidth / 2.0);
+        this._graphics.lineTo(x2, y0 + this._lineWidth / 2.0);
+        this._graphics.moveTo(x0 - this._lineWidth / 2.0, y0);
+        this._graphics.lineTo(x0 - this._lineWidth / 2.0, y1);
+        this._graphics.moveTo(x1, y1 + this._lineWidth / 2.0);
+        this._graphics.lineTo(x2, y1 + this._lineWidth / 2.0);
         this._graphics.lineStyle(0, this._baseColor, 0);
-        this._checkTextureCoordinates({x: x1, y: Math.min(y0, y1)});
+        this._checkTextureCoordinates({x: x1, y: Math.min(y0 + this._lineWidth / 2.0, y1 + this._lineWidth / 2.0)});
     }
 
     _renderDeletion(renderEntry) {
@@ -274,21 +274,21 @@ export class AlignmentsRenderer {
         this._setColor(this._colors.bg);
         this._scaledRect(renderEntry.startIndex, localYOffset, renderEntry.length, localYHeight);
         this._graphics.lineStyle(this._lineWidth, this._colors.del, 1);
-        this._graphics.moveTo(Math.floor(this._projectX(renderEntry.startIndex) - this._renderOffset),
+        this._graphics.moveTo(Math.floor(this._projectX(renderEntry.startIndex) - this._renderOffset) + this._lineWidth / 2.0,
             Math.floor(this._projectY(localYOffset) + this._renderOffset));
-        this._graphics.lineTo(Math.floor(this._projectX(renderEntry.startIndex) - this._renderOffset),
+        this._graphics.lineTo(Math.floor(this._projectX(renderEntry.startIndex) - this._renderOffset) + this._lineWidth / 2.0,
             Math.floor(this._projectY(localYOffset + localYHeight) - this._renderOffset));
         this._graphics.moveTo(Math.floor(this._projectX(renderEntry.startIndex) - this._renderOffset),
-            Math.floor(this._projectY(localYOffset + localYHeight / 2)));
+            Math.floor(this._projectY(localYOffset + localYHeight / 2)) + this._lineWidth / 2.0);
         this._graphics.lineTo(Math.floor(this._projectX(renderEntry.endIndex) - this._renderOffset),
-            Math.floor(this._projectY(localYOffset + localYHeight / 2)));
-        this._graphics.moveTo(Math.floor(this._projectX(renderEntry.endIndex) - this._renderOffset),
+            Math.floor(this._projectY(localYOffset + localYHeight / 2)) + this._lineWidth / 2.0);
+        this._graphics.moveTo(Math.floor(this._projectX(renderEntry.endIndex) - this._renderOffset) + this._lineWidth / 2.0,
             Math.floor(this._projectY(localYOffset) + this._renderOffset));
-        this._graphics.lineTo(Math.floor(this._projectX(renderEntry.endIndex) - this._renderOffset),
+        this._graphics.lineTo(Math.floor(this._projectX(renderEntry.endIndex) - this._renderOffset) + this._lineWidth / 2.0,
             Math.floor(this._projectY(localYOffset + localYHeight) - this._renderOffset));
         this._graphics.lineStyle(0, this._baseColor, 0);
         this._checkTextureCoordinates({
-            x: this._projectX(renderEntry.startIndex) - this._renderOffset,
+            x: Math.floor(this._projectX(renderEntry.startIndex) - this._renderOffset) + this._lineWidth / 2.0,
             y: this._projectY(localYOffset) + this._renderOffset
         });
     }
@@ -348,38 +348,38 @@ export class AlignmentsRenderer {
         }
         const {localYHeight, localYOffset} = AlignmentsRenderer.getRenderEntryVerticalPositioning(renderEntry);
         this._checkTextureCoordinates({
-            x: this._projectX(renderEntry.startIndex) - this._renderOffset,
-            y: this._projectY(localYOffset + localYHeight / 2)
+            x: Math.floor(this._projectX(renderEntry.startIndex) - this._renderOffset),
+            y: Math.floor(this._projectY(localYOffset + localYHeight / 2)) + this._lineWidth / 2.0
         });
         this._graphics.lineStyle(this._lineWidth, this._colors.spliceJunctions, 1);
         this._graphics.moveTo(Math.floor(this._projectX(renderEntry.startIndex) - this._renderOffset),
-            Math.floor(this._projectY(localYOffset + localYHeight / 2)));
+            Math.floor(this._projectY(localYOffset + localYHeight / 2)) + this._lineWidth / 2.0);
         this._graphics.lineTo(Math.floor(this._projectX(renderEntry.endIndex) - this._renderOffset),
-            Math.floor(this._projectY(localYOffset + localYHeight / 2)));
+            Math.floor(this._projectY(localYOffset + localYHeight / 2)) + this._lineWidth / 2.0);
         this._graphics.lineStyle(0, this._baseColor, 0);
     }
 
     _renderSpliceJunction(renderEntry) {
         const {localYHeight, localYOffset} = AlignmentsRenderer.getRenderEntryVerticalPositioning(renderEntry);
         this._checkTextureCoordinates({
-            x: this._projectX(renderEntry.startIndex) - this._renderOffset,
-            y: this._projectY(localYOffset) + this._renderOffset
+            x: Math.floor(this._projectX(renderEntry.startIndex) - this._renderOffset) + this._lineWidth / 2.0,
+            y: Math.floor(this._projectY(localYOffset) + this._renderOffset)
         });
         const spliceJunctionColor = 0x96B8C8; //todo config
         this._setColor(this._colors.bg);
         this._scaledRect(renderEntry.startIndex, localYOffset, renderEntry.length, localYHeight);
         this._graphics.lineStyle(this._lineWidth, spliceJunctionColor, 1);
-        this._graphics.moveTo(Math.floor(this._projectX(renderEntry.startIndex) - this._renderOffset),
+        this._graphics.moveTo(Math.floor(this._projectX(renderEntry.startIndex) - this._renderOffset) + this._lineWidth / 2.0,
             Math.floor(this._projectY(localYOffset) + this._renderOffset));
-        this._graphics.lineTo(Math.floor(this._projectX(renderEntry.startIndex) - this._renderOffset),
+        this._graphics.lineTo(Math.floor(this._projectX(renderEntry.startIndex) - this._renderOffset) + this._lineWidth / 2.0,
             Math.floor(this._projectY(localYOffset + localYHeight) - this._renderOffset));
         this._graphics.moveTo(Math.floor(this._projectX(renderEntry.startIndex) - this._renderOffset),
-            Math.floor(this._projectY(localYOffset + localYHeight / 2)));
+            Math.floor(this._projectY(localYOffset + localYHeight / 2)) + this._lineWidth / 2.0);
         this._graphics.lineTo(Math.floor(this._projectX(renderEntry.endIndex) - this._renderOffset),
-            Math.floor(this._projectY(localYOffset + localYHeight / 2)));
-        this._graphics.moveTo(Math.floor(this._projectX(renderEntry.endIndex) - this._renderOffset),
+            Math.floor(this._projectY(localYOffset + localYHeight / 2)) + this._lineWidth / 2.0);
+        this._graphics.moveTo(Math.floor(this._projectX(renderEntry.endIndex) - this._renderOffset) + this._lineWidth / 2.0,
             Math.floor(this._projectY(localYOffset) + this._renderOffset));
-        this._graphics.lineTo(Math.floor(this._projectX(renderEntry.endIndex) - this._renderOffset),
+        this._graphics.lineTo(Math.floor(this._projectX(renderEntry.endIndex) - this._renderOffset) + this._lineWidth / 2.0,
             Math.floor(this._projectY(localYOffset + localYHeight) - this._renderOffset));
         this._graphics.lineStyle(0, this._baseColor, 0);
     }

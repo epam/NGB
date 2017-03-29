@@ -59,6 +59,8 @@ export default class ScrollableTrack extends InteractiveTrack {
             }
             if (!this._isScrollIndicatorDragging && !wasScroll && delta) {
                 super.onDrag({delta, stage, startLocal});
+            } else if (wasScroll) {
+                super.onDrag({delta: 0, stage});
             }
             return;
         }

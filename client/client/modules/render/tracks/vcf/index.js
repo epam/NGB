@@ -10,12 +10,14 @@ import {EventVariationInfo} from '../../../../app/shared/utils/events';
 
 export class VCFTrack extends GENETrack{
 
-    static trackDefaultHeight = VcfConfig.height;
-    trackLocalConfig = Object.assign(GeneConfig, VcfConfig);
     _collapsedRenderer: VCFCollapsedRenderer = null;
     _lastHovered = null;
 
     projectContext;
+
+    static getTrackDefaultConfig() {
+        return Object.assign(GeneConfig, VcfConfig);
+    }
 
     get stateKeys() {
         return ['variantsView'];
@@ -114,7 +116,7 @@ export class VCFTrack extends GENETrack{
 
     get transformer() {
         if (!this._transformer) {
-            this._transformer = new VcfTransformer(this.trackLocalConfig, this.config.chromosome);
+            this._transformer = new VcfTransformer(this.trackConfig, this.config.chromosome);
         }
         return this._transformer;
     }
@@ -140,7 +142,7 @@ export class VCFTrack extends GENETrack{
 
     get renderer() {
         if (!this._renderer) {
-            this._renderer = new VCFExpandedRenderer(this.trackLocalConfig, this.transformer, this._pixiRenderer);
+            this._renderer = new VCFExpandedRenderer(this.trackConfig, this.transformer, this._pixiRenderer);
         }
         if (!this._collapsedRenderer) {
             this._collapsedRenderer = new VCFCollapsedRenderer(VcfConfig);

@@ -4,9 +4,11 @@ $folder-fill: #666666;
 $folder-line: #cccccc;
 
 .dataset-icon {
+  outline: none;
   margin-top: -2px;
   vertical-align: middle;
   fill: $folder-fill;
+  cursor: pointer;
   &.opened {
     -webkit-transform: rotate(90deg);
     -moz-transform: rotate(90deg);
@@ -15,7 +17,6 @@ $folder-line: #cccccc;
     transform: rotate(90deg);
     margin-top: -4px;
   }
-
   &.empty {
     visibility: hidden;
   }
@@ -24,6 +25,7 @@ $folder-line: #cccccc;
 .ivh-treeview-node-content {
   vertical-align: middle;
   display: block;
+  outline: none;
 }
 
 .dataset-track-format-title {
@@ -71,6 +73,8 @@ $folder-line: #cccccc;
 }
 
 .dataset-project-title {
+  outline: none;
+  font-size: 12px;
   cursor: pointer;
   &.selected {
     font-weight: bold;
@@ -159,4 +163,16 @@ $folder-line: #cccccc;
   padding: 0;
   width: 30px;
   height: 30px;
+}
+
+.vertical-container{
+  .md-virtual-repeat-offsetter{
+    height: 100%;
+  }
+  height:  100%;
+}
+
+ul.treeview{
+  padding-left: 15px;
+  list-style-type: none;
 }

@@ -88,22 +88,9 @@ public final class IndexUtils {
             final long position = iterator.getPosition();
             currentFeature = iterator.next();
 
-            checkSorted(inputFile, lastFeature, currentFeature);
-            //should only visit chromosomes once
-            final String curChr = currentFeature.getContig();
-            final String lastChr = lastFeature != null ? lastFeature.getContig() : null;
-            if (!curChr.equals(lastChr)) {
-                if (visitedChromos.containsKey(curChr)) {
-                    String msg = "Input file must have contiguous chromosomes.";
-                    throw new TribbleException.MalformedFeatureFile(msg,
-                            inputFile.getAbsolutePath());
-                } else {
-                    visitedChromos.put(curChr, currentFeature);
-                }
-            }
+            checkSorted(inputFile, lastFeature, currentFeature, visitedChromos);
 
             creator.addFeature(currentFeature, position);
-
             lastFeature = currentFeature;
         }
 
@@ -111,8 +98,8 @@ public final class IndexUtils {
         return creator.finalizeIndex(iterator.getPosition());
     }
 
-    private static void checkSorted(final File inputFile, final Feature lastFeature,
-            final Feature currentFeature) {
+    public static void checkSorted(final File inputFile, final Feature lastFeature,
+            final Feature currentFeature, Map<String, Feature> visitedChromos) {
         // if the last currentFeature is after the current currentFeature, exception out
         if (lastFeature != null && currentFeature.getStart() < lastFeature.getStart() && lastFeature
                 .getContig().equals(currentFeature.getContig())) {
@@ -123,6 +110,20 @@ public final class IndexUtils {
                             + lastFeature.getContig() + ":" + lastFeature.getStart(),
                     inputFile.getAbsolutePath());
         }
+
+        //should only visit chromosomes once
+        final String curChr = currentFeature.getContig();
+        final String lastChr = lastFeature != null ? lastFeature.getContig() : null;
+        if (!curChr.equals(lastChr)) {
+            if (visitedChromos.containsKey(curChr)) {
+                String msg = "Input file must have contiguous chromosomes.";
+                throw new TribbleException.MalformedFeatureFile(msg,
+                        inputFile.getAbsolutePath());
+            } else {
+                visitedChromos.put(curChr, currentFeature);
+            }
+        }
+
     }
 
     /**

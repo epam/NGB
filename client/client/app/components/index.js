@@ -3,7 +3,6 @@ import ngbBookmarksPanel from './ngbBookmarksPanel';
 import ngbBrowser from './ngbBrowser';
 import ngbDataSets from './ngbDataSets';
 import ngbFeatureInfoPanel from './ngbFeatureInfoPanel';
-import ngbFilterPanel from './ngbFilterPanel';
 import ngbLogModule from './ngbLog';
 import ngbMolecularViewer from './ngbMolecularViewer';
 import ngbProjectInfoPanel from './ngbProjectInfoPanel';
@@ -15,7 +14,6 @@ export default angular.module('NGB_Panels', [
     ngbBookmarksPanel,
     ngbBrowser,
     ngbDataSets,
-    ngbFilterPanel,
     ngbLogModule,
     ngbMolecularViewer,
     ngbProjectInfoPanel,

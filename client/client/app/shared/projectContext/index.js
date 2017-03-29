@@ -1,6 +1,14 @@
 const Math = window.Math;
 
 const DEFAULT_VCF_COLUMNS = ['variationType', 'chrName', 'geneNames', 'startIndex', 'info'];
+const DEFAULT_ORDERBY_VCF_COLUMNS = {
+    'variationType': 'VARIATION_TYPE',
+    'chrName': 'CHROMOSOME_NAME',
+    'geneNames': 'GENE_NAME',
+    'startIndex': 'START_INDEX'
+};
+const FIRST_PAGE = 1;
+const PAGE_SIZE = 50;
 const FIRST_CHROMOSOME_SELECTOR = '{first-chromosome}';
 const REFERENCE_TRACK_SELECTOR = '{ref}';
 const GENOME_TRACKS_SELECTOR = '{ref_genes}';
@@ -25,6 +33,7 @@ export default class projectContext {
         format: 'f',
         index: 'i1',
         state: 's',
+        alignments: 'aa',
         arrows: 'a',
         colorMode: 'c',
         coverage: 'c1',
@@ -38,13 +47,18 @@ export default class projectContext {
         softClip: 's2',
         spliceJunctions: 's3',
         variantsView: 'v',
-        viewAsPairs: 'v1'
+        viewAsPairs: 'v1',
+        coverageScaleMode: 'csm',
+        coverageLogScale: 'cls',
+        coverageScaleFrom: 'csf',
+        coverageScaleTo: 'cst'
     };
 
     _tracksStateRevertRules = {};
 
     _tracks = [];
     _reference = null;
+    _referenceIsPromised = false; // should be set to 'true' if reference requested, but not loaded yet
     _references = null;
     _chromosomes = [];
     _currentChromosome = null;
@@ -52,11 +66,18 @@ export default class projectContext {
     _viewport = null;
 
     _vcfFilter = {};
+    _vcfFilterIsDefault = true;
     _infoFields = [];
     _vcfInfo = [];
     _filteredVariants = [];
+    _variantsDataByChromosomes = [];
+    _variantsDataByType = [];
+    _variantsDataByQuality = [];
     _isVariantsInitialized = false;
     _isVariantsLoading = true;
+    _isVariantsGroupByChromosomesLoading = true;
+    _isVariantsGroupByTypeLoading = true;
+    _isVariantsGroupByQualityLoading = true;
     _containsVcfFiles = true;
 
     _bookmarkVisibility = true;
@@ -74,7 +95,62 @@ export default class projectContext {
 
     _hotkeys = null;
 
+    _firstPageVariations = FIRST_PAGE;
+    _lastPageVariations = FIRST_PAGE;
+    _currentPageVariations = FIRST_PAGE;
+    _orderByVariations = null;
+    _totalPagesCountVariations = null;
+
     _browsingAllowed = false;
+
+    _ngbDefaultSettings;
+
+    get firstPageVariations() {
+        return this._firstPageVariations;
+    }
+
+    set firstPageVariations(value) {
+        this._firstPageVariations = value;
+    }
+
+    get lastPageVariations() {
+        return this._lastPageVariations;
+    }
+
+    set lastPageVariations(value) {
+        this._lastPageVariations = value;
+    }
+
+    set orderByVariations(value) {
+        this._orderByVariations = value;
+    }
+
+    get orderByVariations() {
+        return this._orderByVariations;
+    }
+
+    get orderByColumnsVariations() {
+        return DEFAULT_ORDERBY_VCF_COLUMNS;
+    }
+
+    get totalPagesCountVariations() {
+        return this._totalPagesCountVariations;
+    }
+
+    set totalPagesCountVariations(value) {
+        this._totalPagesCountVariations = value;
+    }
+    get variationsPageSize() {
+        return PAGE_SIZE;
+    }
+
+    set currentPageVariations(value) {
+        this._currentPageVariations = value;
+    }
+
+    get currentPageVariations() {
+        return this._currentPageVariations;
+    }
 
     get hotkeys() {
         return this._hotkeys;
@@ -124,8 +200,16 @@ export default class projectContext {
         return this._tracks.filter(track => track.projectId !== this.openedByUrlProjectName && track.format === 'GENE');
     }
 
+    get referenceIsPromised() {
+        return this._referenceIsPromised;
+    }
+
     get reference() {
         return this._reference;
+    }
+
+    get vcfFilterIsDefault() {
+        return this._vcfFilterIsDefault;
     }
 
     get vcfFilter() {
@@ -144,8 +228,32 @@ export default class projectContext {
         return this._filteredVariants;
     }
 
+    get variantsDataByChromosomes() {
+        return this._variantsDataByChromosomes;
+    }
+
+    get variantsDataByType() {
+        return this._variantsDataByType;
+    }
+
+    get variantsDataByQuality() {
+        return this._variantsDataByQuality;
+    }
+
     get isVariantsLoading() {
         return this._isVariantsLoading;
+    }
+
+    get isVariantsGroupByChromosomesLoading() {
+        return this._isVariantsGroupByChromosomesLoading;
+    }
+
+    get isVariantsGroupByTypeLoading() {
+        return this._isVariantsGroupByTypeLoading;
+    }
+
+    get isVariantsGroupByQualityLoading() {
+        return this._isVariantsGroupByQualityLoading;
     }
 
     get containsVcfFiles() {
@@ -312,6 +420,17 @@ export default class projectContext {
         return this._browsingAllowed;
     }
 
+    get ngbDefaultSettings() {
+        return this._ngbDefaultSettings;
+    }
+
+    get browserHomePageUrl() {
+        if (this.ngbDefaultSettings && this.ngbDefaultSettings['home'] && this.ngbDefaultSettings['home'].url) {
+            return this.ngbDefaultSettings['home'].url;
+        }
+        return null;
+    }
+
     get datasetsLoaded() {
         return this._datasetsLoaded;
     }
@@ -362,6 +481,25 @@ export default class projectContext {
         }
     }
 
+    _displayVariantsFilter;
+
+    get displayVariantsFilter() {
+        if (this._displayVariantsFilter !== undefined) {
+            return this._displayVariantsFilter;
+        } else {
+            this._displayVariantsFilter = JSON.parse(localStorage.getItem('displayVariantsFilter')) || false;
+            return this._displayVariantsFilter;
+        }
+    }
+
+    setDisplayVariantsFilter(value, updateScope = true) {
+        if (value !== this._displayVariantsFilter) {
+            this._displayVariantsFilter = value;
+            localStorage.setItem('displayVariantsFilter', JSON.stringify(value));
+            this.dispatcher.emitSimpleEvent('display:variants:filter', updateScope);
+        }
+    }
+
     constructor(dispatcher, genomeDataService, projectDataService, utilsDataService) {
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
@@ -374,12 +512,60 @@ export default class projectContext {
         }
         (async () => {
             await this.refreshBrowsingAllowedStatus();
+            await this.getDefaultTrackSettings();
             await this.refreshReferences();
         })();
+        this.initEvents();
+    }
+
+    initEvents() {
+        const resetVariantsFilterFn = ::this.resetVariantsFilter;
+        const hotkeyPressedFn = ::this.hotkeyPressed;
+        this.dispatcher.on('variants:reset:filter', resetVariantsFilterFn);
+        this.dispatcher.on('hotkeyPressed', hotkeyPressedFn);
+    }
+
+    hotkeyPressed(event) {
+        if (event === 'layout>filter') {
+            this.setDisplayVariantsFilter(!this.displayVariantsFilter, true);
+        }
+    }
+
+    resetVariantsFilter() {
+        if (!this.vcfFilterIsDefault) {
+            this.clearVcfFilter();
+        }
     }
 
     async refreshBrowsingAllowedStatus() {
         this._browsingAllowed = await this.utilsDataService.getFilesAllowed();
+    }
+
+    async getDefaultTrackSettings() {
+        this._ngbDefaultSettings = projectContext.analyzeTrackSettings(await this.utilsDataService.getDefaultTrackSettings());
+    }
+
+    getTrackDefaultSettings(format) {
+        if (this.ngbDefaultSettings) {
+            return this.ngbDefaultSettings[format.toLowerCase()];
+        }
+        return undefined;
+    }
+
+    static analyzeTrackSettings(settings) {
+        for (const key in settings) {
+            if (settings.hasOwnProperty(key) && settings[key] !== undefined) {
+                switch ((typeof settings[key]).toLowerCase()) {
+                    case 'object': settings[key] = projectContext.analyzeTrackSettings(settings[key]); break;
+                    case 'string': {
+                        if (settings[key].indexOf('#') === 0) {
+                            settings[key] = parseInt(`0x${settings[key].substring(1)}`);
+                        }
+                    } break;
+                }
+            }
+        }
+        return settings;
     }
 
     _getVcfCallbacks() {
@@ -399,10 +585,27 @@ export default class projectContext {
         const onInit = function() {
             dispatcher.emit('variants:initialized', self.vcfInfo);
         };
-        return {onFinish, onInit, onSetToDefault, onStart};
+        const groupByChromosome = {
+            started: () => dispatcher.emitGlobalEvent('variants:group:chromosome:started'),
+            finished: () => dispatcher.emitGlobalEvent('variants:group:chromosome:finished')
+        };
+        const groupByType = {
+            started: () => dispatcher.emitGlobalEvent('variants:group:type:started'),
+            finished: () => dispatcher.emitGlobalEvent('variants:group:type:finished')
+        };
+        const groupByQuality = {
+            started: () => dispatcher.emitGlobalEvent('variants:group:quality:started'),
+            finished: () => dispatcher.emitGlobalEvent('variants:group:quality:finished')
+        };
+        const groupByCallbacks = {groupByChromosome, groupByType, groupByQuality};
+        return {onFinish, onInit, onSetToDefault, onStart, groupByCallbacks};
     }
 
     _datasetsAreLoading = false;
+
+    get datasetsAreLoading() {
+        return this._datasetsAreLoading;
+    }
 
     async refreshDatasets() {
         if (this._datasetsAreLoading) {
@@ -413,8 +616,8 @@ export default class projectContext {
         this.dispatcher.emitSimpleEvent('datasets:loading:started', null);
         this._datasets = (await this.projectDataService.getProjects() || []);
         this._datasetsLoaded = true;
-        this.dispatcher.emitSimpleEvent('datasets:loading:finished', null);
         this._datasetsAreLoading = false;
+        this.dispatcher.emitSimpleEvent('datasets:loading:finished', null);
     }
 
     async refreshReferences(forceRefresh = false) {
@@ -539,18 +742,86 @@ export default class projectContext {
         this.filter({callbacks});
     }
 
+    refreshVcfFilterEmptyStatus() {
+        const additionalFiltersAreEmpty = projectContext.propertyIsEmpty(this.vcfFilter.additionalFilters);
+        const selectedChromosomesIsEmpty = !this.vcfFilter.chromosomeIds || !this.vcfFilter.chromosomeIds.length;
+        const selectedGenesIsEmpty = !this.vcfFilter.selectedGenes || !this.vcfFilter.selectedGenes.length;
+        const selectedVcfTypesIsEmpty = !this.vcfFilter.selectedVcfTypes || !this.vcfFilter.selectedVcfTypes.length;
+        const positionIsEmpty = this.vcfFilter.startIndex === undefined && this.vcfFilter.endIndex === undefined;
+        this._vcfFilterIsDefault = additionalFiltersAreEmpty && selectedChromosomesIsEmpty && selectedGenesIsEmpty && selectedVcfTypesIsEmpty && positionIsEmpty;
+    }
+
+    variantsFieldIsFiltered(fieldName) {
+        let result = false;
+        switch (fieldName) {
+            case 'variationType':
+                result = this.vcfFilter.selectedVcfTypes && this.vcfFilter.selectedVcfTypes.length;
+                break;
+            case 'geneNames':
+                result = this.vcfFilter.selectedGenes && this.vcfFilter.selectedGenes.length;
+                break;
+            case 'chrName':
+                result = this.vcfFilter.chromosomeIds && this.vcfFilter.chromosomeIds.length;
+                break;
+            case 'startIndex':
+                result = this.vcfFilter.startIndex !== undefined || this.vcfFilter.endIndex !== undefined;
+                break;
+            default: {
+                result = this.vcfFilter.additionalFilters && this.vcfFilter.additionalFilters[fieldName] !== undefined;
+            }
+        }
+        return result;
+    }
+
+    clearVariantFieldFilter(fieldName) {
+        switch (fieldName) {
+            case 'variationType':
+                this.vcfFilter.selectedVcfTypes = [];
+                break;
+            case 'geneNames':
+                this.vcfFilter.selectedGenes = [];
+                break;
+            case 'chrName':
+                this.vcfFilter.chromosomeIds = [];
+                break;
+            case 'startIndex': {
+                this.vcfFilter.startIndex = undefined;
+                this.vcfFilter.endIndex = undefined;
+            } break;
+            default: {
+                if (this.vcfFilter.additionalFilters) {
+                    this.vcfFilter.additionalFilters[fieldName] = undefined;
+                }
+            }
+        }
+        this.filterVariants();
+    }
+
+    static propertyIsEmpty(property) {
+        for (const key in property) {
+            if (property.hasOwnProperty(key) && property[key] !== undefined) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     async changeStateAsync(state, callbacks) {
         const {chromosome, position, reference, tracks, tracksState, viewport, layout, forceVariantsFilter, tracksReordering, filterDatasets} = state;
+        if (reference && !this._reference) {
+            this._referenceIsPromised = true;
+            this.dispatcher.emitGlobalEvent('reference:pre:change');
+        }
         if (tracksState) {
             tracksState.forEach(ts => {
                 if (ts.bioDataItemId === undefined) {
                     return;
                 }
                 if (typeof ts.bioDataItemId === 'string') {
-                    ts.bioDataItemId = unescape(ts.bioDataItemId);
+                    ts.bioDataItemId = decodeURIComponent(ts.bioDataItemId);
                 }
                 if (typeof ts.index === 'string') {
-                    ts.index = unescape(ts.index);
+                    ts.index = decodeURIComponent(ts.index);
                 }
             });
         }
@@ -714,6 +985,7 @@ export default class projectContext {
         const newReferenceId = reference ? +reference.id : null;
         if (+this.referenceId !== newReferenceId) {
             this._reference = reference;
+            this._referenceIsPromised = false;
             this._chromosomes = await this._loadChromosomesForReference(this.referenceId);
             return true;
         }
@@ -733,11 +1005,11 @@ export default class projectContext {
                 const openedByUrlProjectName = this.openedByUrlProjectName;
                 const mapOpenByUrlTracksFn = (trackState) => {
                     return {
-                        id: unescape(trackState.bioDataItemId),
-                        indexPath: unescape(trackState.index),
-                        bioDataItemId: unescape(trackState.bioDataItemId),
+                        id: decodeURIComponent(trackState.bioDataItemId),
+                        indexPath: decodeURIComponent(trackState.index),
+                        bioDataItemId: decodeURIComponent(trackState.bioDataItemId),
                         projectId: openedByUrlProjectName,
-                        name: unescape(trackState.bioDataItemId),
+                        name: decodeURIComponent(trackState.bioDataItemId),
                         format: trackState.format,
                         openByUrl: true
                     };
@@ -873,6 +1145,11 @@ export default class projectContext {
             this._containsVcfFiles = false;
             this._vcfInfo = [];
             this._infoFields = [];
+            this._totalPagesCountVariations = 0;
+            this._currentPageVariations = FIRST_PAGE;
+            this._variantsDataByChromosomes = [];
+            this._variantsDataByQuality = [];
+            this._variantsDataByType = [];
         }
         let vcfFilesChanged = oldVcfFiles.length !== this.vcfTracks.length;
         if (!vcfFilesChanged) {
@@ -893,6 +1170,7 @@ export default class projectContext {
             this._vcfInfo = infoItems || [];
             this._vcfFilter = {
                 additionalFilters: {},
+                chromosomeIds: [],
                 exons: false,
                 quality: {},
                 selectedGenes: [],
@@ -979,7 +1257,7 @@ export default class projectContext {
             return [];
         }
         const tracksSettings = this.tracksState;
-        tracksSettings.forEach(ts => ts.bioDataItemId = unescape(ts.bioDataItemId));
+        tracksSettings.forEach(ts => ts.bioDataItemId = decodeURIComponent(ts.bioDataItemId));
         const referenceName = this.reference.name;
         function sortItems(file1, file2) {
             if (!tracksSettings) {
@@ -1059,7 +1337,7 @@ export default class projectContext {
         this._isVariantsLoading = true;
         (async() => {
             const {infoFields, asDefault, callbacks} = opts;
-            const {onError, onFinish, onInit, onSetToDefault, onStart} = callbacks;
+            const {onError, onFinish, onInit, onSetToDefault, onStart, groupByCallbacks} = callbacks;
             if (onStart) {
                 onStart();
             }
@@ -1067,6 +1345,7 @@ export default class projectContext {
             if (asDefault) {
                 this._vcfFilter = {
                     additionalFilters: {},
+                    chromosomeIds: [],
                     exons: false,
                     quality: {},
                     selectedGenes: [],
@@ -1077,7 +1356,8 @@ export default class projectContext {
             if (infoFields) {
                 this._infoFields = infoFields;
             }
-            await this.__filterVariants(onError);
+            this.refreshVcfFilterEmptyStatus();
+            await this.__filterVariants(onError, groupByCallbacks);
             this._isVariantsLoading = false;
             if (onFinish) {
                 onFinish();
@@ -1088,10 +1368,11 @@ export default class projectContext {
         })();
     }
 
-    async __filterVariants(errorCallback) {
+    async __filterVariants(errorCallback, groupByCallbacks) {
         try {
+            this.loadVariationsGroupData(groupByCallbacks);
             if (this.reference) {
-                this._filteredVariants = await this._loadVariations();
+                this._filteredVariants = await this.loadVariations(this.currentPageVariations);
             } else {
                 this._filteredVariants = [];
             }
@@ -1105,7 +1386,93 @@ export default class projectContext {
         }
     }
 
-    async _loadVariations() {
+    loadVariationsGroupData(callbacks) {
+        const {groupByChromosome, groupByType, groupByQuality} = callbacks;
+        if (!this.reference) {
+            this._variantsDataByChromosomes = [];
+            this._variantsDataByQuality = [];
+            this._variantsDataByType = [];
+            this._isVariantsGroupByChromosomesLoading = false;
+            this._isVariantsGroupByTypeLoading = false;
+            this._isVariantsGroupByQualityLoading = false;
+            if (groupByChromosome && groupByChromosome.finished) {
+                groupByChromosome.finished();
+            }
+            if (groupByType && groupByType.finished) {
+                groupByType.finished();
+            }
+            if (groupByQuality && groupByQuality.finished) {
+                groupByQuality.finished();
+            }
+            return;
+        }
+        this._isVariantsGroupByChromosomesLoading = true;
+        this._isVariantsGroupByTypeLoading = true;
+        this._isVariantsGroupByQualityLoading = true;
+        const vcfFileIds = this._vcfFilter && this._vcfFilter.vcfFileIds && this._vcfFilter.vcfFileIds.length ? this._vcfFilter.vcfFileIds : this.vcfTracks.map(t => t.id);
+        const quality = this._vcfFilter ? this._vcfFilter.quality.value : [];
+        const exon = (this._vcfFilter && (this._vcfFilter.exons !== undefined)) ? this._vcfFilter.exons : false;
+        const genes = {
+            conjunction: false,
+            field: this._vcfFilter ? this._vcfFilter.selectedGenes : []
+        };
+        const variationTypes = {
+            conjunction: false,
+            field: this._vcfFilter ? this._vcfFilter.selectedVcfTypes : []
+        };
+        const additionalFilters = this._vcfFilter ? this._vcfFilter.additionalFilters : {};
+        const infoFields = this._infoFields || [];
+        const orderBy = this._orderByVariations;
+        const chromosomeIds = this._vcfFilter.chromosomeIds || [];
+        const startIndex = this._vcfFilter.startIndex;
+        const endIndex = this._vcfFilter.endIndex;
+        const filter = {
+            additionalFilters,
+            chromosomeIds,
+            exon,
+            genes,
+            infoFields,
+            quality,
+            variationTypes,
+            vcfFileIds,
+            orderBy,
+            startIndex,
+            endIndex
+        };
+
+        if (groupByChromosome && groupByChromosome.started) {
+            groupByChromosome.started();
+        }
+        if (groupByType && groupByType.started) {
+            groupByType.started();
+        }
+        if (groupByQuality && groupByQuality.started) {
+            groupByQuality.started();
+        }
+        this.projectDataService.getVcfGroupData(filter, 'CHROMOSOME_NAME').then(data => {
+            this._variantsDataByChromosomes = data;
+            this._isVariantsGroupByChromosomesLoading = false;
+            if (groupByChromosome && groupByChromosome.finished) {
+                groupByChromosome.finished();
+            }
+        });
+        this.projectDataService.getVcfGroupData(filter, 'VARIATION_TYPE').then(data => {
+            this._variantsDataByType = data;
+            this._isVariantsGroupByTypeLoading = false;
+            if (groupByType && groupByType.finished) {
+                groupByType.finished();
+            }
+        });
+        this.projectDataService.getVcfGroupData(filter, 'QUALITY').then(data => {
+            this._variantsDataByQuality = data;
+            this._isVariantsGroupByQualityLoading = false;
+            if (groupByQuality && groupByQuality.finished) {
+                groupByQuality.finished();
+            }
+        });
+    }
+
+    async loadVariations(page) {
         const vcfFileIds = this._vcfFilter && this._vcfFilter.vcfFileIds && this._vcfFilter.vcfFileIds.length ? this._vcfFilter.vcfFileIds : this.vcfTracks.map(t => t.id);
         const quality = this._vcfFilter ? this._vcfFilter.quality.value : [];
         const exon = (this._vcfFilter && (this._vcfFilter.exons !== undefined)) ? this._vcfFilter.exons : false;
@@ -1120,16 +1487,39 @@ export default class projectContext {
         const additionalFilters = this._vcfFilter ? this._vcfFilter.additionalFilters : {};
         const infoFields = this._infoFields || [];
 
+        const pageSize = PAGE_SIZE;
+        const orderBy = this._orderByVariations;
+
+        const chromosomeIds = this._vcfFilter.chromosomeIds || [];
+        const startIndex = this._vcfFilter.startIndex;
+        const endIndex = this._vcfFilter.endIndex;
+
         const filter = {
             additionalFilters,
+            chromosomeIds,
             exon,
             genes,
             infoFields,
             quality,
             variationTypes,
-            vcfFileIds
+            vcfFileIds,
+            page,
+            pageSize,
+            orderBy,
+            startIndex,
+            endIndex
         };
-        const data = await this.projectDataService.getVcfVariationLoad(filter);
+        let data = await this.projectDataService.getVcfVariationLoad(filter);
+
+        if (!data.entries && data.totalPagesCount < page) {
+            filter.page = data.totalPagesCount;
+            this.currentPageVariations = data.totalPagesCount || FIRST_PAGE;
+            this.firstPageVariations = data.totalPagesCount || FIRST_PAGE;
+            this.lastPageVariations = data.totalPagesCount || FIRST_PAGE;
+            if (data.totalPagesCount > 0) {
+                data = await this.projectDataService.getVcfVariationLoad(filter);
+            }
+        }
 
         const infoFieldsObj = {};
         this._infoFields && this._infoFields.forEach(f => infoFieldsObj[f] = null);
@@ -1140,7 +1530,10 @@ export default class projectContext {
             vcfTrackToProjectId[`${vcfTrack.id}`] = vcfTrack.projectId;
         }
 
-        return data.map(item =>
+        this.totalPagesCountVariations = data.totalPagesCount || 0;
+        const entries = data.entries ? data.entries : [];
+
+        return entries.map(item =>
             Object.assign({},
                 {
                     chrId: item.chromosome.id,

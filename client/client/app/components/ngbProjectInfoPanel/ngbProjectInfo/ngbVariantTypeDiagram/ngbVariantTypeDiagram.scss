@@ -3,10 +3,17 @@ ngb-variant-type-diagram {
   height: 100%;
   position: relative;
 }
-.ngb-variant-type-diagram{
+.ngb-variant-type-diagram {
   padding: 0;
   background-color: #ffffff;
   margin: 0;
   .ngbTypeDiagram-holder {
+    nvd3 {
+      g {
+        rect:hover {
+          cursor: pointer;
+        }
+      }
     }
   }
+}

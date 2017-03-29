@@ -13,7 +13,8 @@ export default class ngbGoldenLayoutController extends baseController {
     panels = {
         ngbBrowser: 'ngbBrowser',
         ngbTracksView: 'ngbTracksView',
-        ngbVariations: 'ngbVariantsTablePanel'
+        ngbVariations: 'ngbVariantsTablePanel',
+        ngbDataSets: 'ngbDataSets'
     };
     eventsNotForShareFromParent = ['layout:panels:displayed', 'layout:restore:default', 'layout:load',
         'layout:item:change', 'ngbFilter:setDefault'];
@@ -91,6 +92,7 @@ export default class ngbGoldenLayoutController extends baseController {
             const childScope = this.$scope.$new();
             Object.assign(childScope, this.ngbViewActions);
             childScope.tracksAreSelected = () => this.projectContext.tracks && this.projectContext.tracks.length > 0;
+            childScope.projectContext = this.projectContext;
 
             const viewActionsTemplate = require('./ngbViewActions/ngbViewActions.tpl.html');
 
@@ -102,6 +104,9 @@ export default class ngbGoldenLayoutController extends baseController {
                 childScope.viewName = contentItem.config.componentState.panel;
                 if(contentItem.config.componentState.panel === this.panels.ngbVariations) {
                     this.dispatcher.emit('activeVariants');
+                }
+                if(contentItem.config.componentState.panel === this.panels.ngbDataSets) {
+                    this.dispatcher.emit('activeDataSets');
                 }
             });
 

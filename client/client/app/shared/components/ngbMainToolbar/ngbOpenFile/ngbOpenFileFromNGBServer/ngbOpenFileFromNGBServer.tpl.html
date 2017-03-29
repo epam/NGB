@@ -18,33 +18,36 @@
             </div>
         </md-input-container>
     </form>
-    <div layout="column" layout-margin>
-        <md-input-container class="md-block" ng-if="$ctrl.isDirectoryTyping">
-            <label for="currentDirectory">Folder</label>
-            <input id="currentDirectory"
-                   ng-key-bind="{ enter: '$ctrl.didTypeDirectory()' }"
-                   ng-blur="$ctrl.discardDirectoryTyping();"
-                   name="currentDirectory"
-                   aria-label="current directory"
-                   ng-model="$ctrl.displayDirectory"
-                   ng-auto-focus>
-        </md-input-container>
+    <div layout="column" layout-margin class="ngb-open-file-path-container">
+        <input type="text"
+               class="ngb-open-file-directory-link"
+               ng-if="$ctrl.isDirectoryTyping"
+               ng-key-bind="{ enter: '$ctrl.didTypeDirectory()' }"
+               ng-blur="$ctrl.discardDirectoryTyping();"
+               name="currentDirectory"
+               aria-label="current directory"
+               ng-model="$ctrl.displayDirectory"
+               onfocus="this.setSelectionRange(0, this.value.length)"
+               ng-auto-focus>
         <a class="ngb-open-file-directory-link" ng-if="!$ctrl.isDirectoryTyping"
            ng-click="$ctrl.startDirectoryTyping()">
-        <span
-                ng-repeat="path in $ctrl.displayDirectoryPath track by $index"
-                class="ngb-open-file-directory-path"
-                ng-click="$ctrl.didClickOnPath(path.value, $event);">
-            /{{path.name}}
+        <span ng-repeat="path in $ctrl.displayDirectoryPath track by $index"
+              class="ngb-open-file-directory-path"
+              ng-click="$ctrl.didClickOnPath(path.value, $event);">
+            {{path.name}}<ng-md-icon ng-if="!$last" icon="keyboard_arrow_right" size="14px"></ng-md-icon>
         </span>
         </a>
     </div>
     <div class="ui-grid-container ngb-server-explorer" layout="column" layout-margin flex>
-        <div ui-grid="$ctrl.gridOptions"
+        <div ng-if="!$ctrl.isLoading"
+             ui-grid="$ctrl.gridOptions"
              ui-grid-selection
              ui-grid-resize-columns
              ui-grid-auto-resize
              ui-grid-move-columns
-             ui-grid-pinning flex></div>
+             ui-grid-pinning flex class="ngb-server-explorer-grid"></div>
+        <div ng-if="$ctrl.isLoading" flex layout="row" layout-align="center center">
+            <md-progress-circular md-mode="indeterminate" md-diameter="30px"></md-progress-circular>
+        </div>
     </div>
 </div>

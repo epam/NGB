@@ -30,14 +30,6 @@ export default  {
             title: 'Datasets',
             name: 'layout>dataSets'
         },
-        filter: {
-            displayed: false,
-            icon: 'filter_list',
-            panel: 'ngbFilterPanel',
-            position: 'right',
-            title: 'Filter',
-            name: 'layout>filter'
-        },
         molecularViewer: {
             displayed: false,
             icon: 'device_hub',

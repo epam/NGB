@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.epam.catgenome.entity.index.IndexSearchResult;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,7 +30,6 @@ import com.epam.catgenome.common.ResponseResult;
 import com.epam.catgenome.controller.vo.GeneSearchQuery;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.gene.GeneFile;
-import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.Group;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
@@ -174,14 +174,15 @@ public class FilterControllerTest extends AbstractControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()))
             .andDo(MockMvcResultHandlers.print());
 
-        ResponseResult<List<FeatureIndexEntry>> filterRes = getObjectMapper()
+        ResponseResult<IndexSearchResult<VcfIndexEntry>> filterRes = getObjectMapper()
             .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
                        getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
-                                                                  getTypeFactory().constructParametrizedType(List.class,
-                                                                                                             List.class,
-                                                                                             VcfIndexEntry.class)));
+                                                                  getTypeFactory().constructParametrizedType(
+                                                                          IndexSearchResult.class,
+                                                                          IndexSearchResult.class,
+                                                                          VcfIndexEntry.class)));
 
-        Assert.assertFalse(filterRes.getPayload().isEmpty());
+        Assert.assertFalse(filterRes.getPayload().getEntries().isEmpty());
 
         // filter by additional fields
         Map<String, Object> additionalFilters = new HashMap<>();
@@ -202,11 +203,12 @@ public class FilterControllerTest extends AbstractControllerTest {
         filterRes = getObjectMapper()
             .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
                        getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
-                                                                  getTypeFactory().constructParametrizedType(List.class,
-                                                                                                             List.class,
-                                                                                                 VcfIndexEntry.class)));
+                                                                  getTypeFactory().constructParametrizedType(
+                                                                          IndexSearchResult.class,
+                                                                          IndexSearchResult.class,
+                                                                          VcfIndexEntry.class)));
 
-        Assert.assertFalse(filterRes.getPayload().isEmpty());
+        Assert.assertFalse(filterRes.getPayload().getEntries().isEmpty());
     }
 
     @Test

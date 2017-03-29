@@ -35,18 +35,24 @@ export default class ReferenceRenderer extends CachedTrackRenderer{
         const lowScaleMarginOffset = -0.5;
         if (pixelsPerBp > lowScaleMarginThreshold)
             padding += lowScaleMarginOffset;
+        let prevX = null;
         for (let i = 0; i < reference.items.length; i++){
             const item = reference.items[i];
             if (viewport.isShortenedIntronsMode && !viewport.shortenedIntronsViewport.checkFeature(item))
                 continue;
+            let startX = Math.round(this.correctedXPosition(item.xStart) - padding);
+            const endX = Math.round(this.correctedXPosition(item.xEnd) + padding);
+            if (pixelsPerBp >= this._config.largeScale.separateBarsAfterBp && prevX !== null && prevX === startX) {
+                startX ++;
+            }
             block.beginFill(this._config.largeScale[item.value.toUpperCase()], 1);
-            block.moveTo(this.correctedXPosition(item.xStart) - padding, 0);
-            block.lineTo(this.correctedXPosition(item.xStart) - padding, this.height);
-            block.lineTo(this.correctedXPosition(item.xEnd) + padding, this.height);
-            block.lineTo(this.correctedXPosition(item.xEnd) + padding, 0);
-            block.lineTo(this.correctedXPosition(item.xStart) - padding, 0);
+            block.moveTo(startX, 0);
+            block.lineTo(startX, this.height);
+            block.lineTo(endX, this.height);
+            block.lineTo(endX, 0);
+            block.lineTo(startX, 0);
             block.endFill();
-
+            prevX = endX;
         }
         this.dataContainer.addChild(block);
 

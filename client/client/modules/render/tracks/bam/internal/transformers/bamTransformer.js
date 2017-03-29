@@ -286,7 +286,7 @@ export function transform(block: ServerBlock, renderProps) {
         mateStrand: testBit(block.flagMask, READ_MATE_REVERSE_STRAND_FLAG) ? 'r' : 'l',
         pair: getPairOrientation(block),
         pairSimplified: getPairOrientation(block, true),
-        strand: block.stand ? 'l' : 'r'
+        strand: block.stand ? 'forward' : 'reverse'
     };
 
     const info = dumpInfo(block, spec);

@@ -31,25 +31,20 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import com.epam.catgenome.entity.bam.*;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import com.epam.catgenome.constant.Constants;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.ReadQuery;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.bam.BamFile;
-import com.epam.catgenome.entity.bam.BamQueryOption;
-import com.epam.catgenome.entity.bam.BamTrack;
-import com.epam.catgenome.entity.bam.BasePosition;
-import com.epam.catgenome.entity.bam.Read;
-import com.epam.catgenome.entity.bam.TrackDirectionType;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.Sequence;
@@ -94,6 +89,9 @@ public class BamManager {
 
     @Autowired
     private ReferenceManager referenceManager;
+
+    @Value("#{catgenome['bam.max.coverage.range'] ?: 1000000}")
+    private int maxCoverageRange;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BamHelper.class);
 
@@ -243,7 +241,7 @@ public class BamManager {
      * @throws IOException
      */
     public Track<Sequence> calculateConsensusSequence(final Track<Sequence> track) throws IOException {
-        if (track.getEndIndex() - track.getStartIndex() > Constants.MAX_BAM_INTERVAL) {
+        if (track.getEndIndex() - track.getStartIndex() > maxCoverageRange) {
             return new Track<>(track);
         }
         final Chromosome chromosome = trackHelper.validateTrackWithBlockCount(track);
@@ -307,8 +305,9 @@ public class BamManager {
 
     private BamTrack<Read> getFullResult(final Track<Read> track, final BamQueryOption options)
             throws IOException {
-        if (track.getEndIndex() - track.getStartIndex() > Constants.MAX_BAM_INTERVAL) {
-            return new BamTrack<>(track);
+        if (options.getMode() == BamTrackMode.REGIONS) {
+            // TODO: track.getEndIndex() - track.getStartIndex() > maxCoverageRange
+            return bamHelper.getRegionsFromFile(track);
         } else {
             return bamHelper.getReadsFromFile(track, options);
         }
@@ -317,8 +316,8 @@ public class BamManager {
     private BamTrack<Read> getFullResultFromUrl(final Track<Read> track, String bamUrl, String indexUrl,
                                                 final BamQueryOption options)
             throws IOException {
-        if (track.getEndIndex() - track.getStartIndex() > Constants.MAX_BAM_INTERVAL) {
-            return new BamTrack<>(track);
+        if (track.getEndIndex() - track.getStartIndex() > maxCoverageRange) {
+            return bamHelper.getRegionsFromUrl(track, bamUrl, indexUrl);
         } else {
             return bamHelper.getReadsFromUrl(track, bamUrl, indexUrl, options);
         }

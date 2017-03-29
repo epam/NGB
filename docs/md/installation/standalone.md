@@ -57,7 +57,7 @@ NGB will be avalable at http://localhost:8080/catgenome
 ## Configuring NGB instance
 
 By default NGB will run on port 8080 and locate all the data (files and database) in the runtime folder
-To customize the configuration the following  options are available
+To customize the configuration the following options are available
 
 ### Configure data storage
 
@@ -77,7 +77,10 @@ If you want to enable browsing NGS files directly from server's file system, add
 * **ngs.data.root.path=/opt/catgenome** - sets root of allowed to browsing file system part to /opt/catgenome. 
 
 If this property is not set, root will be set to the root of file system.
- 
+
+If you want to configure default options for tracks visualization on a client side, add the following properties:
+* **config.path=/opt/catgenome/configs** path to a directory that contains `json` configuration files for NGB client
+
 You should put **catgenome.properties** in **config** folder in the runtime folder or provide path to folder with properties file from command line:
  
 ```

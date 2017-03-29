@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -284,8 +285,8 @@ public class VcfControllerTest extends AbstractControllerTest {
 
         Project project = new Project();
         project.setName("testProject");
-        project.setItems(Collections.singletonList(
-            new ProjectItem(new BiologicalDataItem(vcfFile.getBioDataItemId()))));
+        project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(vcfFile.getBioDataItemId())),
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
 
         projectManager.saveProject(project); // Index is created when vcf file is added
 

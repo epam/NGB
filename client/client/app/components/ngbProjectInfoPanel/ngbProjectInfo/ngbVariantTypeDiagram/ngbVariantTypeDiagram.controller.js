@@ -24,6 +24,14 @@ export default class ngbVariantTypeDiagramController {
         $scope.options = {
             chart: {
                 duration: 500,
+                discretebar: {
+                    dispatch: {
+                        elementClick: (e) => {
+                            this.projectContext.vcfFilter.selectedVcfTypes = [e.data.label];
+                            this.projectContext.filterVariants();
+                        }
+                    }
+                },
                 margin: {
                     left: 0,
                     right: 0
@@ -60,12 +68,12 @@ export default class ngbVariantTypeDiagramController {
         const updating = async() => {
             this.isProgressShown = true;
         };
-        this._dispatcher.on('variants:loading:started', updating);
-        this._dispatcher.on('variants:loading:finished', reloadPanel);
+        this._dispatcher.on('variants:group:type:started', updating);
+        this._dispatcher.on('variants:group:type:finished', reloadPanel);
         // We must remove event listener when component is destroyed.
         $scope.$on('$destroy', () => {
-            __dispatcher.removeListener('variants:loading:started', updating);
-            __dispatcher.removeListener('variants:loading:finished', reloadPanel);
+            __dispatcher.removeListener('variants:group:type:started', updating);
+            __dispatcher.removeListener('variants:group:type:finished', reloadPanel);
         });
 
         (async() => {
@@ -92,35 +100,32 @@ export default class ngbVariantTypeDiagramController {
         return obj;
     }
 
-    makeNvD3ChartObjectFromData(variants) {
+    makeNvD3ChartObjectFromData(data) {
         const nvd3DataObject = [],
             nvd3DataObjectItem = {
                 values: []
             },
             typeColors = {
-                'BND' : '#FFF9C4',
-                'DEL' : '#c9d6f0',
-                'DUP' : '#80deea',
-                'INS' : '#f3ceb6',
-                'INV' : '#f48fb1',
-                'SNV' : '#d8efdd'
+                'BND': '#fff9c4',
+                'DEL': '#c9d6f0',
+                'DUP': '#f48fb1',
+                'INS': '#f3ceb6',
+                'INV': '#dce775',
+                'SNV': '#d8efdd',
+                'UNK': '#ECECEC'
             };
 
         this.sampleData = [];
 
         let maxValue = 0;
 
-        for (const variation of variants) {
-            const varType = variation.variationType;
-            const idx = this.sampleData.findIndex(element =>element.label === varType);
-            if (idx === -1) {
-                const bgColor = typeColors[`${varType}`];
-                this.sampleData.push({color : bgColor, label: varType, value: 1});
-                continue;
-            }
-            ++this.sampleData[idx].value;
-            if (maxValue < this.sampleData[idx].value) {
-                maxValue = this.sampleData[idx].value;
+        for (let i = 0; i < data.length; i++) {
+            const {entriesCount, groupName} = data[i];
+            const varType = groupName.toUpperCase();
+            const bgColor = typeColors[`${varType}`];
+            this.sampleData.push({color : bgColor, label: varType, value: entriesCount});
+            if (maxValue < entriesCount) {
+                maxValue = entriesCount;
             }
         }
 
@@ -143,12 +148,12 @@ export default class ngbVariantTypeDiagramController {
     }
 
     async INIT() {
-        this.noDataToDisplay = !this.projectContext.filteredVariants ||
-            this.projectContext.filteredVariants.length === 0;
-        if (this.projectContext.reference && this.projectContext.filteredVariants) {
-            await this.updateDiagram(this.projectContext.filteredVariants,
-                this.projectContext.isVariantsLoading);
-            this.isProgressShown = this.projectContext.isVariantsLoading;
+        this.noDataToDisplay = !this.projectContext.variantsDataByType ||
+            this.projectContext.variantsDataByType.length === 0;
+        if (this.projectContext.reference && this.projectContext.variantsDataByType) {
+            await this.updateDiagram(this.projectContext.variantsDataByType,
+                this.projectContext.isVariantsGroupByTypeLoading);
+            this.isProgressShown = this.projectContext.isVariantsGroupByTypeLoading;
             this._scope.$apply();
         }
     }

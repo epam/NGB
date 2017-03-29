@@ -60,6 +60,7 @@ public final class MessagesConstants {
     public static final String ERROR_START_POSITION = "error.start.position";
     public static final String INFO_FILES_STATUS_RESOURCE_AT_PATH = "info.files.status.resource.at.path";
     public static final String INFO_FILES_STATUS_ALREADY_EXISTS = "info.files.status.already.exists";
+    public static final String ERROR_FILES_STATUS_ALREADY_EXISTS = "error.files.status.already.exists";
     public static final String INFO_FILE_DELETE = "info.files.delete";
     public static final String ERROR_FILE_DELETE = "error.files.delete";
     public static final String ERROR_FILE_IN_USE = "error.files.in.use";
@@ -80,6 +81,7 @@ public final class MessagesConstants {
     public static final String ERROR_PROJECT_NOT_FOUND = "error.project.not.found";
 
     public static final String ERROR_UNSUPPORTED_FEATURE_FILE_TYPE = "error.unsupported.featurefiletype";
+    public static final String ERROR_UNSUPPORTED_FEATURE_FILE_SORT_TYPE = "error.unsupported.featurefilesorttype";
     public static final String INFO_BOUNDS_METADATA_WRITE = "info.bounds.metadata.write";
     public static final String INFO_BOUNDS_METADATA_LOAD = "info.bounds.metadata.load";
     public static final String INFO_HISTOGRAM_WRITE = "info.histogram.write";
@@ -103,6 +105,8 @@ public final class MessagesConstants {
     public static final String ERROR_REFERENCE_ID_NULL = "error.reference.id.null";
     public static final String ERROR_REFERENCE_READING = "error.reference.reading";
     public static final String ERROR_REFERENCE_REGISTRATION_PARAMS = "error.reference.registration.params.ambiguous";
+    public static final String ERROR_DURING_SORTING = "error.file.sorting";
+    public static final String INFO_SORT_SUCCESS = "info.file.sorting";
 
     //Feature index
     public static final String ERROR_FEATURE_INDEX_NOT_FOUND = "error.feature.index.not.found";
@@ -147,7 +151,6 @@ public final class MessagesConstants {
     //BAM
     public static final String WRONG_BAM_INDEX_FILE = "error.bam.index.file";
     public static final String WRONG_HEADER_BAM_FILE = "error.header.bam.file";
-    public static final String WRONG_HEADER_BAM_FILE_NOT_SORT = "error.header.bam.file.not.sort";
     public static final String WRONG_HEADER_BAM_FILE_EMPTY_FILE = "error.header.bam.file.empty";
 
     //WIG
@@ -180,11 +183,15 @@ public final class MessagesConstants {
     public static final String ERROR_BIO_NAME_NOT_FOUND = "error.file.name.not.found";
     public static final String ERROR_UNSUPPORTED_FILE_FORMAT = "error.unsupported.file.format";
     public static final String ERROR_FILE_CORRUPTED_OR_EMPTY = "error.file.corrupted.or.empty";
+    public static final String ERROR_DIRECTORY_NOT_FOUND = "error.directory.not.found";
 
     //PROJECT
     public static final String INFO_PROJECT_DELETED = "info.project.deleted";
     public static final String ERROR_PROJECT_FEATURE_INDEX_NOT_FOUND = "error.project.feature.index.not.found";
     public static final String ERROR_PROJECT_FILE_NOT_FOUND = "error.project.file.not.found";
+    public static final String ERROR_PROJECT_INVALID_REFERENCE = "error.project.reference.invalid";
+    public static final String ERROR_PROJECT_NON_MATCHING_REFERENCE = "error.project.reference.not.match";
+    public static final String ERROR_PROJECT_DELETE_HAS_NESTED = "error.project.delete.has.nested";
 
     //DOWNLOAD FILE
     public static final String INFO_START_DOWNLOAD_FILE = "info.start.download.file";
@@ -202,6 +209,9 @@ public final class MessagesConstants {
 
     //BED
     public static final String ERROR_BED_PARSING = "error.bed.parsing.exception";
+
+    //LOGGER
+    public static final String ERROR_LOGGER_JSON_FILE_INVALID = "logger.error.json.file.invalid";
     private MessagesConstants() {
         // No-op
     }

@@ -80,20 +80,21 @@ export class ProjectDataService extends DataService {
     }
 
     getVcfVariationLoad(filter) {
-        const {
-            vcfFileIds,
-            exon,
-            chromosomeId,
-            genes,
-            variationTypes,
-            additionalFilters,
-            quality,
-            infoFields
-        }=filter;
         return new Promise((resolve, reject) => {
-            this.post('filter', {
-                chromosomeId, exon, vcfFileIds, genes, variationTypes, additionalFilters, quality, infoFields
-            }).catch(()=>resolve([])).then((data) => {
+            this.post('filter', filter).catch(()=>resolve([])).then((data) => {
+                if (data) {
+                    resolve(data);
+                } else {
+                    data = [];
+                    resolve(data);
+                }
+            },reject);
+        });
+    }
+
+    getVcfGroupData(filter, groupBy) {
+        return new Promise((resolve, reject) => {
+            this.post(`filter/group?groupBy=${groupBy}`, filter).catch(()=>resolve([])).then((data) => {
                 if (data) {
                     resolve(data);
                 } else {

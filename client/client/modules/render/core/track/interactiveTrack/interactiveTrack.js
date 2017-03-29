@@ -100,7 +100,7 @@ export default class InteractiveTrack extends Track {
                 stage: DRAG_STAGE_FINISHED,
                 startGlobal: this._startGlobalPosition,
                 startLocal: this._startLocalPosition
-            });
+            }, true);
         }
         this._touched = false;
         this._lastPosition = null;
@@ -183,7 +183,7 @@ export default class InteractiveTrack extends Track {
     onMouseOver() {
     }
 
-    onDrag({delta}) {
+    onDrag({delta, stage}) {
         if (delta) {
             let shouldRefreshRender = false;
             if (this.canScroll(delta.y)) {
@@ -191,12 +191,14 @@ export default class InteractiveTrack extends Track {
                 shouldRefreshRender = true;
             }
             if (this.viewport.canTransform) {
-                this.viewport.transform({delta: -this.viewport.convert.pixel2brushBP(delta.x)});
+                this.viewport.transform({delta: -this.viewport.convert.pixel2brushBP(delta.x), finish: stage === DRAG_STAGE_FINISHED});
                 shouldRefreshRender = false;
             }
             if (shouldRefreshRender) {
                 this.requestRenderRefresh();
             }
+        } else if (stage === DRAG_STAGE_FINISHED) {
+            this.viewport.transform({delta: 0, finish: true});
         }
         this.tooltip.hide();
     }

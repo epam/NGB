@@ -1,0 +1,15 @@
+.report-issues {
+  margin: 0 10px 5px 10px;
+  span {
+    font-size: small;
+    color: #666666;
+    margin-right: 5px;
+  }
+  a {
+    font-size: small;
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

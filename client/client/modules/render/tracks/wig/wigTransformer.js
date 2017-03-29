@@ -1,4 +1,5 @@
-import {NumberFormatter} from '../../utilities';
+import {NumberFormatter, Sorting} from '../../utilities';
+import scaleModes from './modes';
 const Math = window.Math;
 
 export default class WIGTransformer {
@@ -7,13 +8,13 @@ export default class WIGTransformer {
     }
 
     _getExtremumValues(wigData, viewport) {
-        let minimum = this._config.area.minimum;
+
         let maximum = this._config.area.maximum;
         const allowedStart = viewport.project.pixel2brushBP(-viewport.canvasSize);
         const allowedEnd = viewport.project.pixel2brushBP(2 * viewport.canvasSize);
 
         const skipItem = function(item) {
-            return item.startIndex < viewport.brush.start || item.endIndex > viewport.brush.end ||
+            return item.value === 0 || item.startIndex < viewport.brush.start || item.endIndex > viewport.brush.end ||
                 item.startIndex > allowedEnd || item.endIndex < allowedStart;
         };
 
@@ -22,20 +23,52 @@ export default class WIGTransformer {
             if (skipItem(item)) {
                 continue;
             }
-            if (minimum === null || minimum === undefined || minimum > item.value) {
-                minimum = item.value;
-            }
             if (maximum === null || maximum === undefined || maximum < item.value) {
                 maximum = item.value;
             }
         }
-        return {maximum, minimum};
+        return {maximum, minimum: 0};
     }
 
-    transformCoordinateSystem(wigData, viewport, cachedCoordinateSystem) {
+    _getExtremumValues2(wigData, viewport) {
+
+        let maximum = this._config.area.maximum;
+
+        for (let i = 0; i < wigData.extremumSupportStructure.length; i++) {
+            const item = wigData.extremumSupportStructure[i];
+            if (item.startIndex <= viewport.brush.end && item.endIndex >= viewport.brush.start) {
+                maximum = item.value;
+                break;
+            }
+        }
+        return {maximum, minimum: 0};
+    }
+
+    transformCoordinateSystem(wigData, viewport, cachedCoordinateSystem, scaleConfig) {
+        const {coverageScaleMode, coverageLogScale, coverageScaleFrom, coverageScaleTo} = scaleConfig;
         if (wigData === null)
             return;
-        let {maximum, minimum} = this._getExtremumValues(wigData, viewport);
+        let maximum = null;
+        let minimum = 0; // by default
+        const extremumValues = this._getExtremumValues2(wigData, viewport);
+        switch (coverageScaleMode) {
+            case scaleModes.manualScaleMode: {
+                maximum = !isNaN(coverageScaleTo) ? +coverageScaleTo : extremumValues.maximum;
+                minimum = !isNaN(coverageScaleTo) ? +coverageScaleFrom : extremumValues.minimum;
+            } break;
+            default: {
+                maximum = extremumValues.maximum;
+                minimum = extremumValues.minimum;
+            } break;
+        }
+
+        const realMaximum = extremumValues.maximum;
+        const realMinimum = extremumValues.minimum;
+
+        if (coverageLogScale) {
+            maximum = maximum > 0 ? Math.ceil(Math.log(maximum) / Math.log(10)) : 0;
+            minimum = minimum > 0 ? (Math.log(minimum) / Math.log(10)): 0;
+        }
 
         const diff = maximum - minimum;
         let dividers = [];
@@ -73,7 +106,10 @@ export default class WIGTransformer {
         return {
             dividers: dividers,
             maximum: maximum,
-            minimum: minimum
+            minimum: minimum,
+            realMaximum: realMaximum,
+            realMinimum: realMinimum,
+            isLogScale: coverageLogScale
         };
     }
 
@@ -112,6 +148,9 @@ export default class WIGTransformer {
             belowBaseAxis: []
         };
 
+        const _baseAxis = 0;
+        const extremumSupportStructure = [];
+
         const pushItem = function(item) {
             if (item && item.threshold) {
                 if (item.value > _baseAxis) {
@@ -130,13 +169,13 @@ export default class WIGTransformer {
         };
 
         const skipItem = function(item) {
-            return item.startIndex > allowedEnd || item.endIndex < allowedStart ||
+            return item.value === 0 || item.startIndex > allowedEnd || item.endIndex < allowedStart ||
                 (viewport.isShortenedIntronsMode && viewport.shortenedIntronsViewport.shouldSkipFeature(item));
         };
 
         let lastItem = null;
 
-        const _baseAxis = 0;
+        let prevEndIndexPx = null;
 
         for (let index = 0; index < data.length; index++) {
             const dataItem = data[index];
@@ -152,21 +191,42 @@ export default class WIGTransformer {
                 continue;
             }
 
+            extremumSupportStructure.push({
+                value: dataItem.value,
+                startIndex: dataItem.startIndex,
+                endIndex: dataItem.endIndex
+            });
+
             const dataItemThreshold = this.isThresholdValue(dataItem.value);
 
-            if (lastItem && lastItem.endIndex + 1 === dataItem.startIndex) {
+            if (lastItem && (lastItem.endIndex + 1 === dataItem.startIndex || lastItem.endIndex === dataItem.startIndex)) {
                 if (lastItem.threshold !== dataItemThreshold ||
                     (lastItem.value - _baseAxis) * (dataItem.value - _baseAxis) < 0) {
                     pushItem(lastItem);
                     lastItem = null;
                 }
                 else {
+                    if (!isDetailed && dataItem.startIndex === dataItem.endIndex && prevEndIndexPx !== null && lastItem.points.length > 0) {
+                        if (Math.round(viewport.project.brushBP2pixel(dataItem.endIndex + 0.5)) === prevEndIndexPx) {
+                            lastItem.endIndex = dataItem.endIndex;
+                            const startIndex = lastItem.points[lastItem.points.length - 1].startIndex;
+                            const endIndex = dataItem.endIndex;
+                            if (!lastItem.points[lastItem.points.length - 1].dataItem.isHighlightedLocus) {
+                                lastItem.points[lastItem.points.length - 1].dataItem = dataItem;
+                                lastItem.points[lastItem.points.length - 1].dataValue = Math.max(dataItem.value, lastItem.points[lastItem.points.length - 1].dataValue);
+                            }
+                            lastItem.points[lastItem.points.length - 1].startIndex = startIndex;
+                            lastItem.points[lastItem.points.length - 1].endIndex = endIndex;
+                            continue;
+                        }
+                    }
+                    prevEndIndexPx = Math.round(viewport.project.brushBP2pixel(dataItem.endIndex + 0.5));
                     lastItem.points.push(
                         {
                             dataItem: dataItem,
                             dataValue: dataItem.value,
-                            xEnd: viewport.project.brushBP2pixel(dataItem.endIndex),
-                            xStart: viewport.project.brushBP2pixel(dataItem.startIndex)
+                            startIndex: dataItem.startIndex,
+                            endIndex: dataItem.endIndex
                         }
                     );
                     lastItem.endIndex = dataItem.endIndex;
@@ -178,7 +238,10 @@ export default class WIGTransformer {
                 lastItem = null;
             }
 
+            prevEndIndexPx = Math.round(viewport.project.brushBP2pixel(dataItem.endIndex + .5));
+
             lastItem = {
+                startIndex: dataItem.startIndex,
                 endIndex: dataItem.endIndex,
                 points: [],
                 threshold: dataItemThreshold,
@@ -190,8 +253,8 @@ export default class WIGTransformer {
                         {
                             dataItem: dataItem,
                             dataValue: dataItem.value,
-                            xEnd: viewport.project.brushBP2pixel(i),
-                            xStart: viewport.project.brushBP2pixel(i)
+                            startIndex: i,
+                            endIndex: i
                         }
                     );
                 }
@@ -201,17 +264,18 @@ export default class WIGTransformer {
                     {
                         dataItem: dataItem,
                         dataValue: dataItem.value,
-                        xEnd: viewport.project.brushBP2pixel(dataItem.endIndex),
-                        xStart: viewport.project.brushBP2pixel(dataItem.startIndex)
+                        startIndex: dataItem.startIndex,
+                        endIndex: dataItem.endIndex
                     }
                 );
             }
         }
         pushItem(lastItem);
-
+        Sorting.quickSort(extremumSupportStructure, false, x => x.value);
         return {
             baseAxis: _baseAxis,
             dataItems: data,
+            extremumSupportStructure: extremumSupportStructure,
             isDetailed: isDetailed,
             items: items,
             pixelsPerBp: pixelsPerBp,

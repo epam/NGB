@@ -63,9 +63,9 @@ export default class ngbAppController extends baseController {
             this.projectContext.rewriteLayout = this.dictionaryState.on.toLowerCase() === rewrite.toLowerCase();
         }
         this.projectContext.changeState({
-            chromosome: {name: chromosome},
+            chromosome: chromosome ? {name: chromosome} : null,
             position: (start && !end) ? start: null,
-            reference: {name: referenceId},
+            reference: referenceId ? {name: referenceId} : null,
             tracksState: tracks ? this.projectContext.convertTracksStateFromJson(tracks) : null,
             viewport: position,
             filterDatasets: filterByGenome ? filterByGenome : null

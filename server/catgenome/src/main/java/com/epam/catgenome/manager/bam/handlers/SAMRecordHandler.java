@@ -31,14 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.epam.catgenome.constant.Constants;
-import com.epam.catgenome.entity.bam.BamQueryOption;
-import com.epam.catgenome.entity.bam.BamReferenceBuffer;
-import com.epam.catgenome.entity.bam.BaseCoverage;
-import com.epam.catgenome.entity.bam.BasePosition;
-import com.epam.catgenome.entity.bam.Read;
-import com.epam.catgenome.entity.bam.SpliceJunctionsEntity;
-import com.epam.catgenome.entity.wig.Wig;
+import com.epam.catgenome.entity.bam.*;
 import com.epam.catgenome.manager.bam.filters.Filter;
+import com.epam.catgenome.manager.bam.sifters.DownsamplingSifter;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.epam.catgenome.util.BamUtil;
 import htsjdk.samtools.CigarElement;
@@ -81,6 +76,7 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
     private boolean showSpliceJunction;
     private final HashMap<String, SpliceJunctionsEntity> spliceJunctionsHashMap = new HashMap<>();
 
+    private BamTrackMode mode;
 
     /**
      * @param startTrack left track border
@@ -103,8 +99,11 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
         this.chromosomeName = options.getChromosomeName();
         this.showSpliceJunction = options.getShowSpliceJunction() != null && options.getShowSpliceJunction();
         this.filter = filter;
-        referenceBuffer = new BamReferenceBuffer(referenceManager.getSequenceString(min, max, refID, chromosomeName)
-                .toUpperCase());
+
+        if (options.getMode() == BamTrackMode.FULL) {
+            referenceBuffer = new BamReferenceBuffer(referenceManager.getSequenceString(min, max, refID, chromosomeName)
+                    .toUpperCase());
+        }
 
         this.coverageArray = new int[endTrack - startTrack + 1];
         this.cCoverageArray = new int[endTrack - startTrack + 1];
@@ -114,6 +113,7 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
         this.nCoverageArray = new int[endTrack - startTrack + 1];
         this.insCoverageArray = new int[endTrack - startTrack + 1];
         this.delCoverageArray = new int[endTrack - startTrack + 1];
+        this.mode = options.getMode();
     }
 
     /**
@@ -152,10 +152,12 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
             if (end > max) {
                 refreshTailReferenceBuffer(end);
             }
-            List<BasePosition> differentBase = computeDifferentBase(readString, referenceBuffer.getBuffer(), start,
-                    min, cigarList, showClipping, record);
 
-            filter.add(record, start, end, differentBase, head, tail);
+            List<BasePosition> differentBase = computeDifferentBase(readString,
+                    referenceBuffer != null ? referenceBuffer.getBuffer() : null, start, min, cigarList, showClipping,
+                    record);
+
+            filter.add(record, start, end, mode == BamTrackMode.FULL ? differentBase : null, head, tail);
         }
     }
 
@@ -163,21 +165,59 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
      * @return base coverage calculated from the added records
      */
     @Override
-    public List<BaseCoverage> getBaseCoverage() {
+    public List<BaseCoverage> getBaseCoverage(double scaleFactor) {
+        if (scaleFactor < 1 && mode != BamTrackMode.FULL) {
+            return getSummarizedCoverage(scaleFactor);
+        }
+
         int coverageValue = 0;
         int delCoverageValue = 0;
-        final List<BaseCoverage> covetageList = new ArrayList<>();
+        final List<BaseCoverage> coverageList = new ArrayList<>();
         for (int i = 0; i < coverageArray.length; i++) {
             coverageValue += coverageArray[i];
             delCoverageValue += delCoverageArray[i];
-            BaseCoverage baseCoverage =
-                    new BaseCoverage(startTrack + i, coverageValue - delCoverageValue);
-            baseCoverage.setCoverage(cCoverageArray[i], aCoverageArray[i], tCoverageArray[i],
-                    gCoverageArray[i], nCoverageArray[i], delCoverageValue,
-                    insCoverageArray[i]);
-            covetageList.add(baseCoverage);
+
+            if (coverageValue - delCoverageValue > 0) {
+                BaseCoverage baseCoverage =
+                        new BaseCoverage(startTrack + i, coverageValue - delCoverageValue);
+                if (mode == BamTrackMode.FULL) {
+                    baseCoverage.setCoverage(cCoverageArray[i], aCoverageArray[i], tCoverageArray[i],
+                            gCoverageArray[i], nCoverageArray[i], delCoverageValue,
+                            insCoverageArray[i]);
+                }
+                coverageList.add(baseCoverage);
+            }
         }
-        return covetageList;
+        return coverageList;
+    }
+
+    private List<BaseCoverage> getSummarizedCoverage(double scaleFactor) {
+        int coverageValue = 0;
+        int delCoverageValue = 0;
+        final List<BaseCoverage> coverageList = new ArrayList<>();
+        final int step = (int) Math.max(1, Math.round(1.0 / scaleFactor));
+        int summ = 0;
+        int denum = 0;
+        for (int i = 0; i < coverageArray.length; i++) {
+            coverageValue += coverageArray[i];
+            delCoverageValue += delCoverageArray[i];
+
+            summ = Math.max(summ, coverageValue - delCoverageValue);
+            //summ += coverageValue - delCoverageValue;
+            if (i != 0 && i % step == 0) { // end of step
+                if (summ != 0) {
+                    BaseCoverage baseCoverage =
+                            new BaseCoverage(startTrack + i - denum, startTrack + i, summ); // / (float) denum
+                    coverageList.add(baseCoverage);
+                    summ = 0;
+                }
+
+                denum = 0;
+            } else {
+                denum++;
+            }
+        }
+        return coverageList;
     }
 
     /**
@@ -186,38 +226,6 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
     @Override
     public Integer getMinPosition() {
         return min;
-    }
-
-    /**
-     * @param record representing a read
-     * @param start of the read
-     * @param end of the read
-     * @param differentBase list of read bases that differ from the reference nucleotides
-     * @param headStr soft clipped start of the read
-     * @param tailStr soft clipped end of the read
-     * @throws IOException
-     */
-    @Override
-    public void add(final SAMRecord record, final int start, final int end,
-                    final List<BasePosition> differentBase, final String headStr, final String tailStr)
-            throws IOException {
-        filter.add(record, start, end, differentBase, headStr, tailStr);
-    }
-
-    /**
-     * @return list of filtered and downsampled {@code Read} records
-     */
-    @Override
-    public List<Read> getReadListResult() {
-        return filter.getReadListResult();
-    }
-
-    /**
-     * @return (@code Wig )blocks of downsampled coverage
-     */
-    @Override
-    public List<Wig> getDownsampleCoverageResult() {
-        return filter.getDownsampleCoverageResult();
     }
 
     /**
@@ -237,21 +245,35 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
      */
     @Override
     public String getReferenceBuff() {
-        return referenceBuffer.getBuffer();
+        return referenceBuffer != null ? referenceBuffer.getBuffer() : null;
+    }
+
+    @Override
+    public DownsamplingSifter<SAMRecord> getSifter() {
+        return filter.getSifter();
+    }
+
+    @Override
+    public Filter<SAMRecord> getFilter() {
+        return filter;
     }
 
     private void refreshHeadReferenceBuffer(final int start) throws IOException {
-        final int helpMin = min - ((min - start) / Constants.REFERENCE_STEP + 1) * Constants.REFERENCE_STEP;
-        referenceBuffer.addHead(referenceManager.getSequenceString(helpMin, min - 1, refID, chromosomeName)
-                .toUpperCase());
-        min = helpMin;
+        if (mode == BamTrackMode.FULL) {
+            final int helpMin = min - ((min - start) / Constants.REFERENCE_STEP + 1) * Constants.REFERENCE_STEP;
+            referenceBuffer.addHead(referenceManager.getSequenceString(helpMin, min - 1, refID, chromosomeName)
+                    .toUpperCase());
+            min = helpMin;
+        }
     }
 
     private void refreshTailReferenceBuffer(final int end) throws IOException {
-        final int helpMax = max + ((end - max) / Constants.REFERENCE_STEP + 1) * Constants.REFERENCE_STEP;
-        referenceBuffer.addTail(referenceManager.getSequenceString(max + 1, helpMax, refID, chromosomeName)
-                .toUpperCase());
-        max = helpMax;
+        if (mode == BamTrackMode.FULL) {
+            final int helpMax = max + ((end - max) / Constants.REFERENCE_STEP + 1) * Constants.REFERENCE_STEP;
+            referenceBuffer.addTail(referenceManager.getSequenceString(max + 1, helpMax, refID, chromosomeName)
+                    .toUpperCase());
+            max = helpMax;
+        }
     }
 
     private List<SpliceJunctionsEntity> getSpliceJunctionsList() {
@@ -340,8 +362,7 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
             return basePositions;
         }
 
-        private void processCigarOperator(List<BasePosition> basePositions,
-                CigarElement cigarElement) {
+        private void processCigarOperator(List<BasePosition> basePositions, CigarElement cigarElement) {
             final int cigarLength = cigarElement.getLength();
             switch (cigarElement.getOperator()) {
                 case M:
@@ -407,7 +428,7 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
 
         private void processMatch(List<BasePosition> basePositions, int cigarLength) {
             for (int j = 0; j < cigarLength; j++) {
-                if (bufferBase.charAt(bias) != upperReadString.charAt(position)) {
+                if (bufferBase != null && bufferBase.charAt(bias) != upperReadString.charAt(position)) {
                     basePositions.add(
                             new BasePosition(position + corrector, upperReadString.charAt(position)));
                     addBaseCoverage(upperReadString.charAt(position),

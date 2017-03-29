@@ -26,11 +26,20 @@ package com.epam.ngb.cli.manager.command.handler.http;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
+import com.epam.ngb.cli.entity.ResponseResult;
+import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
+import com.epam.ngb.cli.manager.request.RequestManager;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.utils.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@code {@link DatasetDeletionHandler}} represents a tool for handling 'delete_dataset' command and
@@ -40,10 +49,14 @@ import com.epam.ngb.cli.manager.command.handler.Command;
 @Command(type = Command.Type.REQUEST, command = {"delete_dataset"})
 public class DatasetDeletionHandler extends AbstractHTTPCommandHandler {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatasetDeletionHandler.class);
+
     /**
      * ID of dataset to delete
      */
     private Long projectId;
+
+    private boolean force;
 
     /**
      * Verifies that input arguments contain the required parameter:
@@ -59,6 +72,7 @@ public class DatasetDeletionHandler extends AbstractHTTPCommandHandler {
                     getCommand(), 1, arguments.size()));
         }
         projectId = parseProjectId(arguments.get(0));
+        force = options.isForceDeletion();
     }
 
     /**
@@ -70,4 +84,24 @@ public class DatasetDeletionHandler extends AbstractHTTPCommandHandler {
         return 0;
     }
 
+    @Override protected void runDeletion(Long id) {
+        String url = String.format(getRequestUrl(), id);
+        try {
+            URIBuilder requestBuilder = new URIBuilder(String.format(url, projectId));
+            requestBuilder.setParameter("force", String.valueOf(force));
+            HttpRequestBase request = getRequest(requestBuilder.build().toString());
+
+            setDefaultHeader(request);
+            if (isSecure()) {
+                addAuthorizationToRequest(request);
+            }
+
+            String result = RequestManager.executeRequest(request);
+            ResponseResult response = getMapper().readValue(result,
+                    getMapper().getTypeFactory().constructType(ResponseResult.class));
+            LOGGER.info(response.getStatus() + "\t" + response.getMessage());
+        } catch (IOException | URISyntaxException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
+    }
 }

@@ -51,7 +51,7 @@ public class ApplicationTest extends AbstractCliTest{
     @Test
     public void runUnsupportedOption() throws Exception {
         Application application = new TestApplication();
-        Assert.assertNotEquals(RUN_STATUS_OK, application.run(new String[]{"search", "query", "-f"}));
+        Assert.assertNotEquals(RUN_STATUS_OK, application.run(new String[]{"search", "query", "-q"}));
     }
 
     private class TestApplication extends Application {

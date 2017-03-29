@@ -1,6 +1,7 @@
 import BamCache from './bamCache';
 import {BamDataService} from '../../../../../../dataServices';
 import {CoverageTransformer} from '../transformers';
+import {dataModes} from '../../modes';
 
 const Math = window.Math;
 
@@ -9,7 +10,8 @@ export default class BamCacheService {
     dataService = new BamDataService();
 
     _properties = {
-        maxRequestWindow: null,
+        maxAlignmentsRange: null,
+        maxCoverageRange: null,
         rendering: null,
         request: null
     };
@@ -48,11 +50,6 @@ export default class BamCacheService {
                 1
             )
         };
-        if (boundaries.endIndex - boundaries.startIndex > this.properties.maxRequestWindow) {
-            const delta = (boundaries.endIndex - boundaries.startIndex - this.properties.maxRequestWindow) / 2 + 1;
-            boundaries.startIndex = Math.floor(boundaries.startIndex + delta);
-            boundaries.endIndex = Math.ceil(boundaries.endIndex - delta);
-        }
         if (viewport.isShortenedIntronsMode) {
             boundaries.startIndex = Math.floor(viewport.shortenedIntronsViewport
                 .translatePosition(viewport.brush.start, - viewport.shortenedIntronsViewport.brush.shortenedSize));
@@ -62,15 +59,34 @@ export default class BamCacheService {
         return boundaries;
     }
 
-    async _completeCacheWhenInvalid(viewport, boundaries) {
+    async _completeCacheWhenInvalid(viewport, boundaries, features, callbacks) {
+        const {onStart} = callbacks;
         this.cache
             .invalidate()
             .startUpdate(boundaries);
+        if (onStart) {
+            onStart();
+        }
         const dataRequestParameters = BamCacheService.getUpdateParameters(viewport, boundaries);
         let data = await this.createDataRequest(dataRequestParameters.length === 1 ? dataRequestParameters[0] : dataRequestParameters);
-        await this.cache.append(data);
+        await this.cache.append(data, features);
         data = null;
-        return this.cache.endUpdate(viewport, this._coverageTransformer);
+        return this.cache.endUpdate(viewport, this._coverageTransformer, features);
+    }
+
+    async _renewCache(viewport, boundaries, features, callbacks) {
+        const {onStart} = callbacks;
+        this.cache
+            .invalidate(true)
+            .startUpdate(boundaries);
+        if (onStart) {
+            onStart();
+        }
+        const dataRequestParameters = BamCacheService.getUpdateParameters(viewport, boundaries);
+        let data = await this.createDataRequest(dataRequestParameters.length === 1 ? dataRequestParameters[0] : dataRequestParameters);
+        await this.cache.append(data, features);
+        data = null;
+        return this.cache.endUpdate(viewport, this._coverageTransformer, features);
     }
 
     static getUpdateParameters(viewport, boundaries) {
@@ -85,7 +101,8 @@ export default class BamCacheService {
                     {
                         endIndex: Math.min(boundaries.endIndex, range.endIndex),
                         side: 'center',
-                        startIndex: Math.max(boundaries.startIndex, range.startIndex)
+                        startIndex: Math.max(boundaries.startIndex, range.startIndex),
+                        scaleFactor: viewport.factor
                     });
             }
         } else {
@@ -93,7 +110,8 @@ export default class BamCacheService {
                 {
                     endIndex: boundaries.endIndex,
                     side: 'center',
-                    startIndex: boundaries.startIndex
+                    startIndex: boundaries.startIndex,
+                    scaleFactor: viewport.factor
                 });
         }
         return dataRequestParameters;
@@ -112,14 +130,16 @@ export default class BamCacheService {
                         {
                             endIndex: range.endIndex,
                             side: 'center',
-                            startIndex: Math.max(boundaries.startIndex, range.startIndex)
+                            startIndex: Math.max(boundaries.startIndex, range.startIndex),
+                            scaleFactor: viewport.factor
                         });
                 } else {
                     dataRequestParameters.push(
                         {
                             endIndex: endIndex,
                             side: 'left',
-                            startIndex: Math.max(boundaries.startIndex, range.startIndex)
+                            startIndex: Math.max(boundaries.startIndex, range.startIndex),
+                            scaleFactor: viewport.factor
                         });
                 }
             }
@@ -128,7 +148,8 @@ export default class BamCacheService {
                 {
                     endIndex: endIndex,
                     side: 'left',
-                    startIndex: boundaries.startIndex
+                    startIndex: boundaries.startIndex,
+                    scaleFactor: viewport.factor
                 });
         }
         return dataRequestParameters;
@@ -147,14 +168,16 @@ export default class BamCacheService {
                         {
                             endIndex: Math.min(boundaries.endIndex, range.endIndex),
                             side: 'center',
-                            startIndex: range.startIndex
+                            startIndex: range.startIndex,
+                            scaleFactor: viewport.factor
                         });
                 } else {
                     dataRequestParameters.push(
                         {
                             endIndex: Math.min(boundaries.endIndex, range.endIndex),
                             side: 'right',
-                            startIndex: startIndex
+                            startIndex: startIndex,
+                            scaleFactor: viewport.factor
                         });
                 }
             }
@@ -163,45 +186,52 @@ export default class BamCacheService {
                 {
                     endIndex: boundaries.endIndex,
                     side: 'right',
-                    startIndex: startIndex
+                    startIndex: startIndex,
+                    scaleFactor: viewport.factor
                 });
         }
         return dataRequestParameters;
     }
 
-    async completeCacheData(viewport) {
+    async completeCacheData(viewport, features, callbacks) {
         if (this.cache.isUpdating) {
             return false;
         }
+        const {onStart} = callbacks;
         const boundaries = this.getRequestBoundaries(viewport);
         const cacheCompletenessResult = this.cache.check(boundaries);
-        if (cacheCompletenessResult.cacheIsComplete) {
+        if (cacheCompletenessResult.cacheIsComplete && this.cache.dataMode === dataModes.full) {
             return false;
         }
-        if (cacheCompletenessResult.cacheIsInvalid) {
-            return this._completeCacheWhenInvalid(viewport, boundaries);
+        if (cacheCompletenessResult.dataModeChanged || this.cache.dataMode !== dataModes.full) {
+            return this._renewCache(viewport, boundaries, features, callbacks);
+        } else if (cacheCompletenessResult.cacheIsInvalid) {
+            return this._completeCacheWhenInvalid(viewport, boundaries, features, callbacks);
         } else {
             this.cache.startUpdate(boundaries);
+            if (onStart) {
+                onStart();
+            }
             if (cacheCompletenessResult.needUpdateLeftSide) {
                 const dataRequestParameters = BamCacheService.getLeftUpdateParameters(this.cache.coverageRange.startIndex - 1,
                     viewport, boundaries);
                 let data = await this.createDataRequest(dataRequestParameters.length === 1 ?
                     dataRequestParameters[0] : dataRequestParameters);
-                this.cache.appendLeft(data);
+                this.cache.appendLeft(data, features);
                 data = null;
             }
             if (cacheCompletenessResult.needUpdateRightSide) {
                 const dataRequestParameters = BamCacheService.getRightUpdateParameters(this.cache.coverageRange.endIndex + 1, viewport, boundaries);
                 let data = await this.createDataRequest(dataRequestParameters.length === 1 ? dataRequestParameters[0] : dataRequestParameters);
-                this.cache.appendRight(data);
+                this.cache.appendRight(data, features);
                 data = null;
             }
-            return this.cache.endUpdate(viewport, this._coverageTransformer);
+            return this.cache.endUpdate(viewport, this._coverageTransformer, features);
         }
     }
 
-    transform(viewport){
-        this.cache.updateCoverageData(viewport, this._coverageTransformer);
+    transform(viewport, scaleConfig){
+        this.cache.updateCoverageData(viewport, this._coverageTransformer, scaleConfig);
     }
 
     createDataRequest(props) {
@@ -211,14 +241,15 @@ export default class BamCacheService {
             secondaryAlignments: this.properties.rendering.filterSecondaryAlignments,
             supplementaryAlignments: this.properties.rendering.filterSupplementaryAlignments
         };
+
         if (props instanceof Array) {
             const requestParameters = [];
             for (let i = 0; i < props.length; i++) {
-                requestParameters.push({...props[i], ...this.properties.request});
+                requestParameters.push({...props[i], ...this.properties.request, mode: this.cache.dataMode});
             }
             return this.dataService.getReads(requestParameters, this.properties.rendering.isSoftClipping, filter);
         } else {
-            return this.dataService.getReads({...props, ...this.properties.request}, this.properties.rendering.isSoftClipping, filter);
+            return this.dataService.getReads({...props, ...this.properties.request, mode: this.cache.dataMode}, this.properties.rendering.isSoftClipping, filter);
         }
     }
 

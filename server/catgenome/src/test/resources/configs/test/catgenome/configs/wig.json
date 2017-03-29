@@ -1,0 +1,32 @@
+{
+  "area": {
+    "dividers": 2,
+    "maximum": null,
+    "minimum": 0,
+    "thresholdMax": null,
+    "thresholdMin": null
+  },
+  "divider": {
+    "color": "#777777"
+  },
+  "height": 50,
+  "logScaleIndicator": {
+    "alpha": 0.5,
+    "label": {
+      "fill": "#FFFFFF",
+      "font": "normal 8pt arial"
+    },
+    "margin": 1,
+    "padding": 2,
+    "fill": "#92AEE7"
+  },
+  "maxHeight": 150,
+  "minHeight": 50,
+  "wig": {
+    "color": "#92AEE7",
+    "lineColor": "#697EA6",
+    "detailedStyleStartingAtPixelsPerBP": 7.5,
+    "thresholdColor": "#FAA3A3",
+    "lineThresholdColor": "#F87272"
+  }
+}

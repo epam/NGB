@@ -140,7 +140,7 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
         if (geneFilePath != null) {
             RegistrationRequest geneRegistration = new RegistrationRequest();
             geneRegistration.setPath(geneFilePath);
-            geneRegistration.setPath(geneIndexPath);
+            geneRegistration.setIndexPath(geneIndexPath);
             registration.setGeneFileRequest(geneRegistration);
         }
         String result = getPostResult(registration, (HttpPost)request);

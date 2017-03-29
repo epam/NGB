@@ -68,7 +68,7 @@ public class Application {
             + "rf\treg_file\t: registers a feature file for a specified reference\t"
             + "{rf grch38 \\path\\to\\file.bam?\\path\\to\\file.bam.bai -n my_vcf}\n"
             + "df\tdel_file\t: deletes a feature file one\t{df my_vcf}\n"
-            + "if\tindex_file\t\t: creates a feature index for a file. \t {if genes.gtf}\n\n"
+            + "if\tindex_file\t: creates a feature index for a file. \t {if genes.gtf}\n\n"
             + "SEARCH commands:\n"
             + "s\tsearch\t\t: finds a reference or feature file by it's name, "
             + "search can be configured by a '-c' option"
@@ -84,14 +84,16 @@ public class Application {
             + " if option isn't provided, the dataset will be moved to the top level of the datasets hierarchy"
             + "\t{md my_dataset -p parent}\n"
             + "ld\tlist_dataset\t: lists all datasets, registered on the server\t{ld}\n\n"
-            + "ADDITIONAL COMMANDS:\n"
+            + "ADDITIONAL commands:\n"
             + "url\t\t: generate url for displaying required files. "
                                        + "{url my_dataset}\n\n"
-            + "CONFIGURATION COMMANDS\n"
+            + "TOOLS commands:\n"
+            + "sort\t\t: sorts given feature file. If target path is not specified, sorted file will be stored in the "
+            + "same folder as the original one with the `.sorted.` suffix in the name.\n"
+            + "CONFIGURATION commands:\n"
             + "srv\tset_srv\t\t: sets working server url for CLI\tsrv http://{SERVER_IP_OR_NAME}:"
             + "{SERVER_PORT}/catgenome\n\n"
             + "Available options (options may go before, after or between the arguments):\n";
-
 
     @Option(name = "-n", usage = "explicitly specifies file name for registration", aliases = {
             "--name"})
@@ -134,6 +136,14 @@ public class Application {
             aliases = {"--nogccontent"})
     private boolean noGCContent = false;
 
+    @Option(name = "-m", usage = "specifies amount of memory in megabytes to use when sorting (default: 500)",
+            aliases = {"--max_memory"})
+    private int maxMemory = 0;
+
+    @Option(name = "-f", usage = "defines if a dataset will be force deleted",
+            aliases = {"--force"})
+    private boolean forceDeletion = false;
+
 
     @Argument
     private List<String> arguments;
@@ -150,7 +160,7 @@ public class Application {
      */
     public static void main(String[] args) {
         Application app = new Application();
-        app.run(args);
+        app.exit(app.run(args));
     }
 
     //method is package local for the purpose of unit testing
@@ -217,9 +227,11 @@ public class Application {
         options.setGeneFile(genes);
         options.setLocation(location);
         options.setNoGCContent(noGCContent);
+        options.setForceDeletion(forceDeletion);
         if (doNotIndex) {
             options.setDoIndex(false);
         }
+        options.setMaxMemory(maxMemory);
         return options;
     }
 

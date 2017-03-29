@@ -151,7 +151,11 @@ public class BamController extends AbstractRESTController {
                     "default is false;<br/>" +
                     "4) <b>frame</b> - size of frame for downsampling,  default is null;<br/>" +
                     "5) <b>count</b> - count of read in frame, default is null ;<br/>" +
-                    "if frame or count default or incorrect, return track without downsampling",
+                    "if frame or count default or incorrect, return track without downsampling<br/>" +
+                    "6) <b>mode</b> controls BAM display mode: REGIONS - return only regions of possible read " +
+                    "location; <br/>" +
+                    "COVERAGE - return only BAM coverage;<br/>" +
+                    "FULL - return both reads and coverage",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)

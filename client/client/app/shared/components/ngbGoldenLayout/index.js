@@ -1,8 +1,8 @@
 // Import Style
 import './ngbGoldenLayout.scss';
+import './ngbViewActions/ngbViewActions.scss'
 
 import angular from 'angular';
-
 
 // Import internal modules
 import component from './ngbGoldenLayout.component';

@@ -4,34 +4,19 @@ export const SORT_MODE_BY_NAME_ASCENDING = 'sortByNameAsc';
 export const SORT_MODE_BY_NAME_DESCENDING = 'sortByNameDesc';
 
 export default class ngbDataSetsService {
-    static instance(dispatcher, projectContext, ivhTreeviewBfs, ivhTreeviewMgr, ivhTreeviewOptions, projectDataService) {
-        return new ngbDataSetsService(dispatcher, projectContext, ivhTreeviewBfs, ivhTreeviewMgr, ivhTreeviewOptions, projectDataService);
+    static instance(dispatcher, projectContext, projectDataService) {
+        return new ngbDataSetsService(dispatcher, projectContext, projectDataService);
     }
 
-    treeviewOptions;
-    ivhTreeviewBfs;
-    ivhTreeviewMgr;
     dispatcher;
     projectContext;
     projectDataService;
 
-    constructor(dispatcher, projectContext, ivhTreeviewBfs, ivhTreeviewMgr, ivhTreeviewOptions, projectDataService) {
+    constructor(dispatcher, projectContext, projectDataService) {
         this.dispatcher = dispatcher;
         this.projectContext = projectContext;
-        this.ivhTreeviewBfs = ivhTreeviewBfs;
-        this.ivhTreeviewMgr = ivhTreeviewMgr;
         this.projectDataService = projectDataService;
         this.filter = utilities.treeFilter;
-
-        this.treeviewOptions = Object.assign(ivhTreeviewOptions(), {
-            childrenAttribute: 'items',
-            expandedAttribute: '__expanded',
-            idAttribute: 'id',
-            labelAttribute: 'name',
-            nodeTpl: require('./ngbDataSets.node.tpl.html'),
-            selectedAttribute: '__selected',
-            validate: false
-        });
     }
 
     async getDatasets() {
@@ -42,7 +27,6 @@ export default class ngbDataSetsService {
         }
         const datasets = this.applyGenomeFilter(projects);
         ngbDataSetsService.sort(datasets);
-        this.ivhTreeviewMgr.validate(datasets, this.treeviewOptions, false);
         await this.updateSelectionFromState(datasets);
         return datasets;
     }
@@ -56,14 +40,19 @@ export default class ngbDataSetsService {
     getSelectedTracks(datasets, forceReference) {
         const items = [];
         const findSelectedTracksFn = function (item: Node) {
-            if (item && item.__selected && item.isTrack) {
-                items.push(item);
+            if (item.items) {
+                for (let i = 0; i < item.items.length; i++) {
+                    if (item.items[i] && item.items[i].__selected && item.items[i].isTrack) {
+                        items.push(item.items[i]);
+                    }
+                    findSelectedTracksFn(item.items[i]);
+                }
             }
         };
-        this.ivhTreeviewBfs(
-            datasets,
-            this.treeviewOptions,
-            findSelectedTracksFn);
+        for (let i = 0; i < datasets.length; i++) {
+            findSelectedTracksFn(datasets[i]);
+        }
+
         const openedByUrlProjectName = this.projectContext.openedByUrlProjectName;
         if (forceReference && this.projectContext.reference && forceReference.name.toLowerCase() === this.projectContext.reference.name.toLowerCase()) {
             items.push(...(this.projectContext.tracks).filter(t => t.projectId === openedByUrlProjectName));
@@ -80,7 +69,7 @@ export default class ngbDataSetsService {
             return;
         }
         if (!this.projectContext.reference) {
-            this.ivhTreeviewMgr.deselectAll(datasets, this.treeviewOptions);
+            this.deselectAll(datasets);
             return;
         }
         const datasetsIds = this.projectContext.tracksState.reduce((ids, track) => {
@@ -90,26 +79,52 @@ export default class ngbDataSetsService {
             return ids;
         }, []);
         for (let i = 0; i < datasetsIds.length; i++) {
-            utilities.expandToProject(datasets, {name: datasetsIds[i]}, this.ivhTreeviewMgr, this.treeviewOptions);
+            utilities.expandToProject(datasets, {name: datasetsIds[i]});
         }
-        const mgr = this.ivhTreeviewMgr;
-        const opts = this.treeviewOptions;
+        this.updateDatasetState(datasets);
+    }
+
+    updateDatasetState(datasets) {
+        for (let i = 0; i < datasets.length; i++) {
+            datasets[i].isTrack ?  this.updateTerminalNodeStateFn(datasets[i]) :  this.updateParentNodeStateFn(datasets[i]);
+        }
+    }
+
+    updateTerminalNodeStateFn(item: Node) {
         const tracksState = this.projectContext.tracksState;
-        const updateStateFn = function (item: Node) {
-            let selected = false;
-            if (item.isTrack && !item.isPlaceholder) {
-                selected = tracksState.filter(s => s.bioDataItemId.toString().toLowerCase() === item.name.toLowerCase() && s.projectId === item.projectId).length;
+        let selected = false;
+        if (item.isTrack && !item.isPlaceholder) {
+            selected = !!tracksState.filter(s => s.bioDataItemId.toString().toLowerCase() === item.name.toLowerCase() && s.projectId === item.projectId).length;
+        }
+        item.__selected = selected;
+        return {selected: selected, indeterminate: selected};
+    }
+
+
+    updateParentNodeStateFn(item: Node) {
+        let allChildSelected = true;
+        let indeterminate = false;
+
+        if (item.items) {
+            for (let j = 0; j < item.items.length; j++) {
+                if (item.items[j].isTrack && item.items[j].format === 'REFERENCE') {
+                    continue;
+                }
+                const childObj = item.items[j].isTrack ? this.updateTerminalNodeStateFn(item.items[j]) : this.updateParentNodeStateFn(item.items[j]);
+                allChildSelected = allChildSelected && childObj.selected;
+                indeterminate = indeterminate || childObj.indeterminate || childObj.selected;
             }
-            mgr.select(datasets, item, opts, selected);
-            if (selected) {
-                mgr.expandTo(datasets, item, opts);
-            }
-            return true;
-        };
-        this.ivhTreeviewBfs(
-            datasets,
-            this.treeviewOptions,
-            updateStateFn);
+        }
+        const selected = !!(allChildSelected && item.items && item.items.length > 0);
+
+        item.__selected = selected;
+        item.__indeterminate = indeterminate && !selected;
+
+        const expanded = item.__indeterminate || item.__selected;
+        if (expanded) {
+            item.__expanded = expanded;
+        }
+        return {selected: selected,  indeterminate: item.__indeterminate};
     }
 
     static sort(datasets, mode) {
@@ -122,7 +137,7 @@ export default class ngbDataSetsService {
     }
 
     toggle(item: Node) {
-        utilities.expandNode(item, this.ivhTreeviewMgr, this.treeviewOptions);
+        utilities.expandNodeWithChilds(item);
     }
 
     getItemReference(item: Node) {
@@ -137,7 +152,7 @@ export default class ngbDataSetsService {
         if (isSelected) {
             let forceReference = null;
             if (item.isProject) {
-                utilities.expandNode(item, this.ivhTreeviewMgr, this.treeviewOptions);
+                utilities.expandNodeWithChilds(item);
                 forceReference = utilities.findProjectReference(item);
             } else {
                 // we should also select reference:
@@ -153,21 +168,28 @@ export default class ngbDataSetsService {
         return true;
     }
 
-    deselectItem(item: Node, datasets) {
+    deselectItem(item: Node) {
         item.__selected = false;
         if (item.isProject) {
-            item.items.forEach(t => t.__selected = false);
-        } else if (item.isTrack && item.project && item.project.items.filter(t => t.format !== 'REFERENCE' && t.__selected).length === 0){
+            item.items.forEach(t => {t.__selected = false; t.__indeterminate = false; this.deselectItem(t);});
+        } else if (item.isTrack && item.project && item.project.items.filter(t => t.format !== 'REFERENCE' && t.__selected).length === 0) {
             item.project.items.forEach(t => t.__selected = false);
         }
-        this.ivhTreeviewMgr.validate(datasets, this.treeviewOptions, false);
+    }
+
+    deselectAll(datasets) {
+        for (let i = 0; i < datasets.length; i++) {
+            datasets[i].__selected = false;
+            datasets[i].__indeterminate = false;
+            if (datasets[i].items) this.deselectAll(datasets[i].items);
+        }
     }
 
     selectItem(item: Node, isSelected, datasets) {
         if (this.__previousItem === item && item.__previousSelectedState !== undefined &&
             item.__previousSelectedState === isSelected) {
             if (isSelected) {
-                this.ivhTreeviewMgr.deselect(datasets, item, this.treeviewOptions);
+                this.deselectItem(item);
                 isSelected = !isSelected;
             }
         }
@@ -176,7 +198,7 @@ export default class ngbDataSetsService {
         let forceReference = this.projectContext.reference;
         if (isSelected) {
             if (item.isProject) {
-                utilities.expandNode(item, this.ivhTreeviewMgr, this.treeviewOptions);
+                utilities.expandNodeWithChilds(item);
                 forceReference = utilities.findProjectReference(item);
             } else {
                 // we should also select reference:
@@ -186,24 +208,23 @@ export default class ngbDataSetsService {
                 }
             }
             utilities.selectRecursively(item, isSelected);
-            this.ivhTreeviewBfs(
-                datasets,
-                this.treeviewOptions,
-                utilities.updateTracksStateFn(
-                    datasets,
-                    this.ivhTreeviewMgr,
-                    this.treeviewOptions,
-                    forceReference
-                ));
+            this.updateTracksState(datasets, forceReference);
+
         } else if (item.isTrack && item.project && item.project.items.filter(t => t.format !== 'REFERENCE' && t.__selected).length === 0) {
-            item.project.items.forEach(t => t.__selected = false);
+            item.project.items.filter(t => t.format !== 'REFERENCE').forEach(t => t.__selected = false);
         }
         const {tracks} = this.getSelectedTracks(datasets, forceReference);
         if (tracks.filter(t => t.format !== 'REFERENCE').length === 0) {
             tracks.forEach(t => t.__selected = false);
         }
-        this.ivhTreeviewMgr.validate(datasets, this.treeviewOptions, false);
         this.navigateToTracks(datasets, forceReference);
+    }
+
+    updateTracksState(datasets, forceReference) {
+        for (let i = 0; i < datasets.length; i++) {
+            utilities.updateTracksStateFn(datasets[i], forceReference);
+            if (datasets[i].items) this.updateTracksState(datasets[i].items, forceReference);
+        }
     }
 
     navigateToTracks(datasets, forceReference) {
@@ -224,14 +245,14 @@ export default class ngbDataSetsService {
             const tracksIds = tracks.map(track => `[${track.name.toLowerCase()}][${track.projectId.toLowerCase()}]`);
             const tracksStateIds = tracksState.map(track => `[${track.bioDataItemId.toLowerCase()}][${track.projectId.toLowerCase()}]`);
             const self = this;
-            const mapTrackFn = function(track) {
+            const mapTrackFn = function (track) {
                 const state = self.projectContext.getTrackState(track.name.toLowerCase(), track.projectId.toLowerCase());
                 if (state) {
                     return state;
                 }
                 return utilities.mapTrackFn(track);
             };
-            let addedTracks = tracks
+            const addedTracks = tracks
                 .filter(track => tracksStateIds.indexOf(`[${track.name.toLowerCase()}][${track.projectId.toLowerCase()}]`) === -1 && track.format !== 'REFERENCE')
                 .map(mapTrackFn);
             let existedTracks = tracksState.filter(track => tracksIds.indexOf(`[${track.bioDataItemId.toLowerCase()}][${track.projectId.toLowerCase()}]`) >= 0);
@@ -245,7 +266,6 @@ export default class ngbDataSetsService {
         }
         this.__lockStatesUpdate = false;
     }
-
 
     static search(pattern, datasets) {
         return utilities.search(pattern.toLowerCase(), datasets || []);

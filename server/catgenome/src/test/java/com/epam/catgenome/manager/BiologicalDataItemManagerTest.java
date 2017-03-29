@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.util.Utils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -92,7 +93,7 @@ public class BiologicalDataItemManagerTest extends AbstractManagerTest {
         Project testProject = new Project();
         testProject.setName("testProject1");
         testProject.setItems(Arrays.asList(new ProjectItem(testVcf1),
-                                           new ProjectItem(testReference)));
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
 
         projectManager.saveProject(testProject);
         request.setName("testVcf2");
@@ -100,7 +101,7 @@ public class BiologicalDataItemManagerTest extends AbstractManagerTest {
         Project testProject2 = new Project();
         testProject2.setName("testProject2");
         testProject2.setItems(Arrays.asList(new ProjectItem(testVcf2),
-                                           new ProjectItem(testReference)));
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
 
         projectManager.saveProject(testProject2);
         //first dataset with full location

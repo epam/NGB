@@ -27,12 +27,8 @@ package com.epam.catgenome.manager.bam.filters;
 import java.io.IOException;
 import java.util.List;
 
-import com.epam.catgenome.entity.bam.BamQueryOption;
 import com.epam.catgenome.entity.bam.BasePosition;
-import com.epam.catgenome.entity.bam.Read;
-import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.manager.bam.sifters.DownsamplingSifter;
-import com.epam.catgenome.util.BamUtil;
 import htsjdk.samtools.SAMRecord;
 
 /**
@@ -43,17 +39,20 @@ import htsjdk.samtools.SAMRecord;
  */
 public class RightSAMRecordFilter implements Filter<SAMRecord> {
 
-    private final DownsamplingSifter<SAMRecord> shifter;
+    private final DownsamplingSifter<SAMRecord> sifter;
     private final int leftBorder;
 
     /**
      * @param start left border for filtering
-     * @param end  for creating the wrapped {@code DownsamplingSifter}
-     * @param options for creating the wrapped {@code DownsamplingSifter}
      */
-    public RightSAMRecordFilter(final int start, final int end, final BamQueryOption options) {
-        shifter = BamUtil.createSifter(end, options);
-        leftBorder = start;
+    public RightSAMRecordFilter(final int start, final DownsamplingSifter<SAMRecord> sifter) {
+        this.sifter = sifter;
+        this.leftBorder = start;
+    }
+
+    @Override
+    public DownsamplingSifter<SAMRecord> getSifter() {
+        return sifter;
     }
 
     /**
@@ -71,23 +70,7 @@ public class RightSAMRecordFilter implements Filter<SAMRecord> {
                     final List<BasePosition> differentBase, final String headStr, final String tailStr)
             throws IOException {
         if (leftBorder < start) {
-            shifter.add(record, start, end, differentBase, headStr, tailStr);
+            sifter.add(record, start, end, differentBase, headStr, tailStr);
         }
-    }
-
-    /**
-     * @return filtered by the left border and downsampled reads list
-     */
-    @Override
-    public List<Read> getReadListResult() {
-        return shifter.getReadListResult();
-    }
-
-    /**
-     * @return filtered by the left border and downsampled reads coverage
-     */
-    @Override
-    public List<Wig> getDownsampleCoverageResult() {
-        return shifter.getDownsampleCoverageResult();
     }
 }

@@ -792,8 +792,9 @@ public class VcfManagerTest extends AbstractManagerTest {
 
         VcfFilterInfo filterInfo = vcfManager.getFiltersInfo(Collections.singleton(vcfFile.getId()));
         Assert.assertEquals(NUMBER_OF_FILTERS, filterInfo.getAvailableFilters().size());
-        Assert.assertEquals(NUMBER_OF_TRIVIAL_INFO, filterInfo.getInfoItems().size());
-        Assert.assertEquals(NUMBER_OF_TRIVIAL_INFO, filterInfo.getInfoItemMap().size());
+        Assert.assertEquals(NUMBER_OF_TRIVIAL_INFO, filterInfo.getInfoItems().size() - 1);
+        Assert.assertEquals(NUMBER_OF_TRIVIAL_INFO, filterInfo.getInfoItemMap().size() - 1); // -1 refers to is_exon
+                                                                                    // item which is added externally
     }
 
     private void getNextFeature(Long reference, BiologicalDataItemResourceType type) throws IOException,

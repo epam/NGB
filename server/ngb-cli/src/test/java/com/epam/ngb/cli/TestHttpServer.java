@@ -199,6 +199,7 @@ public class TestHttpServer extends AbstractCliTest{
         onRequest()
                 .havingMethodEqualTo(HTTP_DELETE)
                 .havingPathEqualTo(String.format(DATASET_DELETE_URL, id))
+                .havingParameterEqualTo("force", "false")
                 .respond()
                 .withBody(TestDataProvider.getPayloadJson("OK " + id + " Project " + name + " deleted."))
                 .withStatus(HTTP_STATUS_OK);
@@ -412,5 +413,14 @@ public class TestHttpServer extends AbstractCliTest{
             .respond()
             .withBody(TestDataProvider.getPayloadJson(resp))
             .withStatus(HTTP_STATUS_OK);
+    }
+
+    public void enableSortService() {
+        onRequest()
+                .havingMethodEqualTo(HTTP_POST)
+                .havingPathEqualTo(SORT_URI)
+                .respond()
+                .withBody(TestDataProvider.getPayloadJson("OK"))
+                .withStatus(HTTP_STATUS_OK);
     }
 }

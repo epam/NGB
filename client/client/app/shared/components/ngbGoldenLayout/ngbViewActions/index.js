@@ -1,3 +1,4 @@
 import ngbCloseAllTracks from './ngbCloseAllTracks';
+import ngbViewAction from './ngbViewAction';
 
-export default [ngbCloseAllTracks];
+export default [ngbCloseAllTracks, ngbViewAction];

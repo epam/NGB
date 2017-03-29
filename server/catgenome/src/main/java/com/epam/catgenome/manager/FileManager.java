@@ -43,7 +43,14 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -52,6 +59,7 @@ import javax.annotation.PostConstruct;
 
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.controller.JsonMapper;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
@@ -82,7 +90,15 @@ import com.epam.catgenome.manager.maf.parser.MafFeature;
 import com.epam.catgenome.manager.reference.io.FastaUtils;
 import com.epam.catgenome.manager.seg.parser.SegCodec;
 import com.epam.catgenome.manager.seg.parser.SegFeature;
-import com.epam.catgenome.util.*;
+import com.epam.catgenome.util.AuthUtils;
+import com.epam.catgenome.util.BlockCompressedDataInputStream;
+import com.epam.catgenome.util.BlockCompressedDataOutputStream;
+import com.epam.catgenome.util.IndexUtils;
+import com.epam.catgenome.util.NgbFileUtils;
+import com.epam.catgenome.util.PositionalOutputStream;
+import com.epam.catgenome.util.Utils;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
 import htsjdk.tribble.AbstractFeatureReader;
@@ -139,7 +155,8 @@ public class FileManager {
     private static final TabixFormat SEG_TABIX_FORMAT = new TabixFormat(TabixFormat.UCSC_FLAGS, 2, 3, 4, '\'', 0);
     private static final TabixFormat MAF_TABIX_FORMAT = new TabixFormat(TabixFormat.UCSC_FLAGS, 5, 6, 7, '#', 0);
     private static final TabixFormat BIGMAF_TABIX_FORMAT = new TabixFormat(TabixFormat.UCSC_FLAGS, 6, 7, 8, '#', 0);
-
+    private static final String JSON_FILE_EXTENSION = ".json";
+    private static final String EMPTY = "";
 
     /**
      * Provides paths' patterns that have to be used to construct real relative paths
@@ -266,6 +283,12 @@ public class FileManager {
 
     @Value("#{catgenome['file.browsing.allowed'] ?: false}")
     private boolean filesBrowsingAllowed;
+
+    /**
+     * {@code String} specifies the path string to directory with default track configurations.
+     */
+    @Value("${config.path:}")
+    private String defaultTrackSettingsDirPath;
 
     /**
      * Returns the real path of a directory used as the content root to store uploaded content
@@ -585,7 +608,6 @@ public class FileManager {
         Assert.isTrue(file.exists(), getMessage(MessagesConstants.ERROR_NO_SUCH_FILE, referenceId, chromosomeName));
         return new BlockCompressedDataInputStream(file);
     }
-
 
     /**
      * Returns a reference on {@code File}, used to store cytobands data that corresponds to the
@@ -1858,6 +1880,55 @@ public class FileManager {
         return items;
     }
 
+    /**
+     * Returns {@link Map} object contains default track configurations
+     *
+     * @return {@link Map}, representing default track configurations
+     * @throws IOException
+     */
+    public Map<String, Map<String, Object>> getDefaultTrackSettings() throws IOException {
+        Map<String, Map<String, Object>> defaultTracksSettings = new HashMap<>();
+
+        if (StringUtils.isBlank(defaultTrackSettingsDirPath)) {
+            LOGGER.debug("Default configuration isn't provided, empty settings set will be returned.");
+            return defaultTracksSettings;
+        }
+
+        LOGGER.debug("Default configurations directory: {}", defaultTrackSettingsDirPath);
+        Path settingsDirPath = Paths.get(defaultTrackSettingsDirPath);
+        Assert.isTrue(
+                settingsDirPath.toFile().exists() || settingsDirPath.toFile().isDirectory(),
+                getMessage(MessagesConstants.ERROR_DIRECTORY_NOT_FOUND, settingsDirPath)
+        );
+
+        List<File> trackSettingsFiles = Files.walk(settingsDirPath)
+                .filter(Files::isRegularFile)
+                .filter(filePath -> filePath.getFileName().toString().endsWith(JSON_FILE_EXTENSION))
+                .map(Path::toFile)
+                .collect(Collectors.toList());
+
+        for(File trackSettingsFile : trackSettingsFiles) {
+            String trackSettingsFileName = trackSettingsFile.getName();
+            LOGGER.debug("Process configurations file: {}", trackSettingsFileName);
+            JsonMapper jsonMapper = new JsonMapper();
+            try {
+                defaultTracksSettings.put(
+                        trackSettingsFileName.replace(JSON_FILE_EXTENSION, EMPTY),
+                        jsonMapper.readValue(
+                                trackSettingsFile,
+                                TypeFactory.defaultInstance().constructParametricType(
+                                        Map.class, String.class, Object.class
+                                )
+                        )
+                );
+            } catch (JsonParseException e) {
+                LOGGER.error(getMessage(MessagesConstants.ERROR_LOGGER_JSON_FILE_INVALID, trackSettingsFile), e);
+            }
+        }
+
+        return defaultTracksSettings;
+    }
+
     private void addFsFile(List<AbstractFsItem> items, File childFile) {
         FsFile fsFile = new FsFile();
         fsFile.setName(childFile.getName());
@@ -2052,7 +2123,6 @@ public class FileManager {
     private String substitute(final FilePathFormat fmt, final Map<String, Object> parameters) {
         return new StrSubstitutor(parameters).replace(fmt.getPath());
     }
-
     /**
      * Declares names of placeholders, that should be substitute by real values based on provided
      * metadata about file resource which should be read or written.

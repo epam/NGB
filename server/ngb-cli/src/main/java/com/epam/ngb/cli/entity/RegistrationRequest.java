@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * VO for sending registration requests to NGB server
  */
-public class RegistrationRequest {
+public class RegistrationRequest implements RequestPayload {
     private String path;
     private String name;
     private String indexPath;

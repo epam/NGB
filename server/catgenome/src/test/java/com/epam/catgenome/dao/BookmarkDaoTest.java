@@ -129,7 +129,8 @@ public class BookmarkDaoTest extends AbstractDaoTest {
         vcfFileDao.createVcfFile(vcfFile, realId);
 
         Project project = new Project();
-        project.setItems(Arrays.asList(new ProjectItem(reference), new ProjectItem(vcfFile)));
+        project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(reference.getBioDataItemId())),
+                new ProjectItem(vcfFile)));
         project.setName(TEST_NAME);
         project.setCreatedBy(AuthUtils.getCurrentUserId());
         project.setCreatedDate(new Date());
@@ -240,7 +241,8 @@ public class BookmarkDaoTest extends AbstractDaoTest {
 
         // Create a project
         Project project = new Project();
-        project.setItems(Arrays.asList(new ProjectItem(reference), new ProjectItem(vcfFile), new ProjectItem(bedFile)));
+        project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(reference.getBioDataItemId())),
+                new ProjectItem(vcfFile), new ProjectItem(bedFile)));
         project.setName(TEST_NAME);
         project.setCreatedBy(AuthUtils.getCurrentUserId());
         project.setCreatedDate(new Date());

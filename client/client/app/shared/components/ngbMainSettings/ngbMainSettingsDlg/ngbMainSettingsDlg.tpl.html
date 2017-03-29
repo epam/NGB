@@ -145,13 +145,27 @@
                                     <input name="maxRangeBpBam"
                                            type="number"
                                            required
-                                           placeholder="maximum range(bp)"
+                                           placeholder="maximum alignments range(bp)"
                                            ng-model-options="{getterSetter: true}"
                                            ng-model="ctrl.getterSetterMaximumBPForBam"
                                            ng-min="1000"
-                                           ng-max="50000"/>
+                                           ng-max="150000"/>
                                     <div ng-messages="settingsForm.maxRangeBpBam.$error" role="alert">
-                                        <div ng-message="required,min,max">Enter maximum range (bp).<br/>Value must be greater than or equal 1000 and less than or equal 50000.</div>
+                                        <div ng-message="required,min,max">Enter maximum alignments range (bp).<br/>Value must be greater than or equal 1000 and less than or equal 150Kbp.</div>
+                                    </div>
+                                </md-input-container>
+                            </div>
+                            <div class="row">
+                                <md-input-container>
+                                    <input name="maxCoverageRangeBpBam"
+                                           type="number"
+                                           required
+                                           placeholder="maximum coverage range(bp)"
+                                           ng-model="ctrl.settings.maxBAMCoverageBP"
+                                           ng-min="1000"
+                                           ng-max="10000000"/>
+                                    <div ng-messages="settingsForm.maxCoverageRangeBpBam.$error" role="alert">
+                                        <div ng-message="required,min,max">Enter maximum coverage range (bp).<br/>Value must be greater than or equal 1000 and less than or equal 10Mbp.</div>
                                     </div>
                                 </md-input-container>
                             </div>
@@ -187,7 +201,7 @@
                                            ng-min="0"
                                            ng-max="50000"/>
                                     <div ng-messages="settingsForm.shortenedIntronLength.$error" role="alert">
-                                        <div ng-message="required,min,max">Enter intron length (bp).<br/>Value must be greater than or equal 0 and less than or equal 50000.</div>
+                                        <div ng-message="required,min,max">Enter intron length (bp).<br/>Value must be greater than or equal 0 and less than or equal 50Kbp.</div>
                                     </div>
                                 </md-input-container>
                             </div>
@@ -199,9 +213,9 @@
                                            placeholder="maximum range(bp)"
                                            ng-model="ctrl.settings.shortenedIntronsMaximumRange"
                                            ng-min="1000"
-                                           ng-max="50000"/>
+                                           ng-max="10000000"/>
                                     <div ng-messages="settingsForm.maxRangeBpShortenedIntrons.$error" role="alert">
-                                        <div ng-message="required,min,max">Enter maximum range (bp).<br/>Value must be greater than or equal 1000 and less than or equal 50000.</div>
+                                        <div ng-message="required,min,max">Enter maximum range (bp).<br/>Value must be greater than or equal 1000 and less than or equal 10Mbp.</div>
                                     </div>
                                 </md-input-container>
                             </div>

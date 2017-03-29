@@ -37,14 +37,14 @@ function getGroupNamesForGroupByFirstInPairMode(read) {
             case 'L1R2':
             case 'L1L2':
             case 'L2L1':
-                groupName = 'l';
+                groupName = 'forward';
                 groupDisplayName = 'forward strand';
                 break;
             case 'R1L2':
             case 'L2R1':
             case 'R1R2':
             case 'R2R1':
-                groupName = 'r';
+                groupName = 'reverse';
                 groupDisplayName = 'reverse strand';
                 break;
             default:
@@ -73,7 +73,7 @@ function getGroupNamesForGroupByPairOrientationMode(read) {
 function getGroupNamesForGroupByReadStrandMode(read) {
     let groupDisplayName = GROUP_DISPLAY_NAME_NOT_AVAILABLE;
     const groupName = read.renderDump.spec.strand.toLowerCase();
-    if (groupName === 'l') {
+    if (groupName === 'forward') {
         groupDisplayName = 'forward strand';
     }
     else {

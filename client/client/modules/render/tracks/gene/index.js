@@ -7,14 +7,16 @@ import GeneMenuService from './exterior/geneMenuService';
 
 export class GENETrack extends CachedTrack {
 
-    static trackDefaultHeight = GeneConfig.height;
-
     _dataService = null;
     _transformer = null;
     _renderer: GeneRenderer = null;
     _gffColorByFeatureType = true;
     features = {};
     dispatcher = null;
+
+    static getTrackDefaultConfig() {
+        return GeneConfig;
+    }
 
     get stateKeys() {
         return ['geneTranscript'];
@@ -164,14 +166,14 @@ export class GENETrack extends CachedTrack {
 
     get transformer(): GeneTransformer {
         if (!this._transformer) {
-            this._transformer = new GeneTransformer(GeneConfig);
+            this._transformer = new GeneTransformer(this.trackConfig);
         }
         return this._transformer;
     }
 
     get renderer(): GeneRenderer {
         if (!this._renderer) {
-            this._renderer = new GeneRenderer(GeneConfig, this.transformer, this._pixiRenderer);
+            this._renderer = new GeneRenderer(this.trackConfig, this.transformer, this._pixiRenderer);
         }
         return this._renderer;
     }

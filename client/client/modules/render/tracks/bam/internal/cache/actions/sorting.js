@@ -35,10 +35,10 @@ function generateValueFnSortByStrand(viewAsPairs, position) {
     return function(item) {
         if (item.isPairedReads && viewAsPairs) {
             if (item.leftPair.endIndex >= position)
-                return item.leftPair.renderDump.spec.strand.toLowerCase() === 'r' ? 0 : 1;
-            return item.rightPair.renderDump.spec.strand.toLowerCase() === 'r' ? 0 : 1;
+                return item.leftPair.renderDump.spec.strand.toLowerCase() === 'reverse' ? 0 : 1;
+            return item.rightPair.renderDump.spec.strand.toLowerCase() === 'reverse' ? 0 : 1;
         }
-        return item.renderDump.spec.strand.toLowerCase() === 'r' ? 0 : 1;
+        return item.renderDump.spec.strand.toLowerCase() === 'reverse' ? 0 : 1;
     };
 }
 

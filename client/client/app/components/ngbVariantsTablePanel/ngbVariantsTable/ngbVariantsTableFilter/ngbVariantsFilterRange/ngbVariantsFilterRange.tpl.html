@@ -1,0 +1,14 @@
+<input class="ui-grid-filter-input ngb-filter-input"
+       type="text"
+       placeholder="{{$ctrl.placeholderFrom}}"
+       style="margin-bottom: 1px"
+       ng-blur="$ctrl.apply()"
+       ng-key-bind="{enter: '$ctrl.apply()'}"
+       ng-model="$ctrl.valueFrom">
+<input class="ui-grid-filter-input ngb-filter-input"
+       type="text"
+       placeholder="{{$ctrl.placeholderTo}}"
+       style="margin-bottom: 1px"
+       ng-blur="$ctrl.apply()"
+       ng-key-bind="{enter: '$ctrl.apply()'}"
+       ng-model="$ctrl.valueTo">

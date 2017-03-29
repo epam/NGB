@@ -1,3 +1,5 @@
+const Math = window.Math;
+
 export function drawZygosityBar(zygosity, graphics, config, bpLength) {
     const white = 0xFFFFFF;
     graphics.lineStyle(0, white, 0);
@@ -6,7 +8,7 @@ export function drawZygosityBar(zygosity, graphics, config, bpLength) {
             // homozygous
             graphics
                 .beginFill(config.zygosity.homozygousColor, 1)
-                .drawRect(-bpLength / 2, -config.height, bpLength,
+                .drawRect(Math.floor(- bpLength / 2), Math.floor(- config.height), bpLength,
                     config.height);
         }
             break;
@@ -14,26 +16,26 @@ export function drawZygosityBar(zygosity, graphics, config, bpLength) {
             // heterozygous
             graphics
                 .beginFill(config.zygosity.homozygousColor, 1)
-                .drawRect(-bpLength / 2, -config.height, bpLength,
+                .drawRect(Math.floor(- bpLength / 2), Math.floor(- config.height), bpLength,
                     config.height / 2)
                 .beginFill(config.zygosity.heterozygousColor, 1)
-                .drawRect(-bpLength / 2, -config.height / 2, bpLength,
+                .drawRect(Math.floor(- bpLength / 2), Math.floor(- config.height / 2), bpLength,
                     config.height / 2);
         }
             break;
         default: {
             graphics
                 .beginFill(config.zygosity.unknownColor, 1)
-                .drawRect(-bpLength / 2, -config.height, bpLength,
+                .drawRect(Math.floor(- bpLength / 2), Math.floor(- config.height), bpLength,
                     config.height);
         }
             break;
     }
     return {
         rect: {
-            x1: -bpLength / 2,
-            x2: bpLength / 2,
-            y1: -config.height,
+            x1: Math.floor(- bpLength / 2),
+            x2: Math.floor(bpLength / 2),
+            y1: - config.height,
             y2: 0
         }
     };

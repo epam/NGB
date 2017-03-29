@@ -1,5 +1,16 @@
+import {menu} from '../../../utilities';
+
 export default {
     fields:[
+        {
+            disable: state => state.alignments = false,
+            enable: state => state.alignments = true,
+            isEnabled: state => state.alignments,
+            label: 'Show alignments',
+            name: 'bam>showAlignments',
+            type: 'checkbox'
+        },
+        menu.getDivider(),
         {
             disable: state => state.mismatches = false,
             enable: state => state.mismatches = true,

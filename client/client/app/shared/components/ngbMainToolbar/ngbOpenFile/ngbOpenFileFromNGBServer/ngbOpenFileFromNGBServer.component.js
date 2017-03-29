@@ -1,6 +1,7 @@
 export default {
     bindings: {
-        tracks: '='
+        tracks: '=',
+        clearSelectionHandler: '='
     },
     controller: 'ngbOpenFileFromNGBServerController',
     template: require('./ngbOpenFileFromNGBServer.tpl.html')

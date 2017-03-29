@@ -1,6 +1,6 @@
 {
   "name": "NGB",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "license": "MIT",
   "description": "&#34;New Genome Browser&#34;",
   "repository": {
@@ -21,7 +21,6 @@
     "angular": "1.5.7",
     "angular-animate": "1.5.5",
     "angular-aria": "1.5.5",
-    "angular-ivh-treeview": "^2.0.0-alpha.2",
     "angular-material": "1.1.1",
     "angular-material-icons": "0.7.0",
     "angular-messages": "1.5.5",

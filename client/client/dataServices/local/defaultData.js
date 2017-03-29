@@ -1,6 +1,7 @@
 import * as  geneTypes  from '../../modules/render/tracks/gene/geneTypes';
 import {colorModes, groupModes, readsViewTypes} from '../../modules/render/tracks/bam/modes';
 import {variantsView} from '../../modules/render/tracks/vcf/modes';
+import scaleModes from '../../modules/render/tracks/wig/modes';
 
 export default {
     defaultSettings: {
@@ -26,13 +27,14 @@ export default {
             },
             pairedBase: 0xACB5B9,
             spliceJunctions: 0x96B8C8,
-            strandDirection: {
-                l: 0x9696e6,
-                r: 0xe69696
+            strand: {
+                forward: 0xe69696,
+                reverse: 0x9696e6
             }
         },
         defaultFeatures: {
             arrows: true,
+            alignments: true,
             colorMode: colorModes.noColor,
             coverage: true,
             diffBase: true,
@@ -45,7 +47,11 @@ export default {
             softClip: true,
             spliceJunctions: false,
             variantsView: variantsView.variantsViewCollapsed,
-            viewAsPairs: false
+            viewAsPairs: false,
+            coverageScaleMode: scaleModes.defaultScaleMode,
+            coverageLogScale: false,
+            coverageScaleFrom: undefined,
+            coverageScaleTo: undefined
         },
         displayAlignmentsCoverageTooltips: true,
         displayTooltips: true,
@@ -116,6 +122,9 @@ export default {
             'bam>showSpliceJunctions': {
                 hotkey: 'ALT + Z'
             },
+            'bam>showAlignments': {
+                hotkey: 'ALT + W'
+            },
             'bam>sort>base': {
                 hotkey: 'SHIFT + E'
             },
@@ -169,12 +178,14 @@ export default {
             }
         },
         isDownSampling: true,
+        maxBAMBP: 100000,
+        maxBAMCoverageBP: 500000,
         maxBpCount: 10000,
         maxFrameSize: 50,
         maxReadsCount: 300,
         minBpCount: 50,
         shortenedIntronLength: 15,
-        shortenedIntronsMaximumRange: 50000,
+        shortenedIntronsMaximumRange: 500000,
         showCenterLine: true,
         showSoftClippedBase: true
     }

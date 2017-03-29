@@ -5,8 +5,10 @@ import {GENETrack} from '../gene';
 import GeneConfig from '../gene/geneConfig';
 
 export class BEDTrack extends GENETrack {
-    static trackDefaultHeight = GeneConfig.height;
-    trackLocalConfig = Object.assign(GeneConfig, BEDConfig);
+
+    static getTrackDefaultConfig() {
+        return Object.assign(GeneConfig, BEDConfig);
+    }
 
     constructor(opts) {
         super(opts);
@@ -31,14 +33,14 @@ export class BEDTrack extends GENETrack {
 
     get transformer() {
         if (!this._transformer) {
-            this._transformer = new BEDTransformer(this.trackLocalConfig);
+            this._transformer = new BEDTransformer(this.trackConfig);
         }
         return this._transformer;
     }
 
     get renderer() {
         if (!this._renderer) {
-            this._renderer = new BEDRenderer(this.trackLocalConfig, this.transformer, this._pixiRenderer);
+            this._renderer = new BEDRenderer(this.trackConfig, this.transformer, this._pixiRenderer);
         }
         return this._renderer;
     }
@@ -64,7 +66,7 @@ export class BEDTrack extends GENETrack {
             if (bedItem.strand) {
                 tooltipData.push(['Strand', bedItem.strand]);
             }
-            if (bedItem.description && bedItem.description.length < this.trackLocalConfig.bed.description.maximumDisplayLength) {
+            if (bedItem.description && bedItem.description.length < this.trackConfig.bed.description.maximumDisplayLength) {
                 tooltipData.push(['Description', bedItem.description]);
             }
             return tooltipData;

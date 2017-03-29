@@ -208,7 +208,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
                 .get(0)), item.getId());
 
         // Now delete project
-        projectManager.deleteProject(project.getId());
+        projectManager.deleteProject(project.getId(), false);
         try {
             projectManager.loadProject(project.getId());
             Assert.fail("No exception happened, but should happen");
@@ -223,34 +223,97 @@ public class ProjectManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testDeleteProjectWithNested() throws IOException, InterruptedException,
+            NoSuchAlgorithmException, VcfReadingException, FeatureIndexException {
+        Project parent = new Project();
+        parent.setName("testParent");
+        parent.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
+        parent = projectManager.saveProject(parent);
+
+        Project child1 = new Project();
+        child1.setName("testChild1");
+        child1.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
+        child1 = projectManager.saveProject(child1, parent.getId());
+
+        Project child2 = new Project();
+        child2.setName("testChild2");
+        child2.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
+        child2 = projectManager.saveProject(child2, parent.getId());
+
+        Project child11 = new Project();
+        child11.setName("tesChild11");
+        child11.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
+        projectManager.saveProject(child11, child1.getId());
+
+        List<Project> topProjects = projectManager.loadProjectTree(null);
+        Assert.assertEquals(1, topProjects.size());
+
+        Project root = topProjects.get(0);
+        Assert.assertEquals(2, root.getNestedProjects().size());
+
+        // check that we cannot delete parent dataset without force option
+        boolean catchException = false;
+        try {
+            projectManager.deleteProject(root.getId(), false);
+        } catch (IllegalArgumentException e) {
+            catchException = true;
+        }
+        if (!catchException) {
+            Assert.fail("Parent project cannot be deleted without force option");
+        }
+
+        // check that we can delete parent dataset with force option
+        projectManager.deleteProject(root.getId(), true);
+        assertNullLoadProjectWithNested(root);
+    }
+
+    private void assertNullLoadProjectWithNested(Project root) {
+        try {
+            // check that we handle exception as expected
+            Assert.assertNull(projectManager.loadProject(root.getId()));
+        } catch (IllegalArgumentException e) {
+            // continue checking with child projects
+            Optional.ofNullable(root.getNestedProjects())
+                    .orElse(Collections.emptyList())
+                    .forEach(this::assertNullLoadProjectWithNested);
+        }
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testAddRemoveHideItems()
         throws IOException, InterruptedException, NoSuchAlgorithmException, VcfReadingException, FeatureIndexException {
         Project project = new Project();
         project.setName(TEST_PROJECT_NAME);
-
+        project.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         projectManager.saveProject(project);
 
         Project loadedProject = projectManager.loadProject(project.getId());
         Assert.assertNotNull(loadedProject);
-        Assert.assertTrue(loadedProject.getItems().isEmpty());
+        Assert.assertEquals(1, loadedProject.getItems().size());
 
         addVcfFileToProject(project.getId(), TEST_VCF_FILE_NAME1, TEST_VCF_FILE_PATH);
         addVcfFileToProject(project.getId(), TEST_VCF_FILE_NAME2, TEST_VCF_FILE_PATH);
 
         loadedProject = projectManager.loadProject(project.getId());
-        Assert.assertEquals(loadedProject.getItems().size(), 2);
+        Assert.assertEquals(3, loadedProject.getItems().size());
 
         projectManager.removeProjectItem(project.getId(),
                 ((VcfFile) loadedProject.getItems().get(1).getBioDataItem()).getBioDataItemId());
         loadedProject = projectManager.loadProject(project.getId());
-        Assert.assertEquals(loadedProject.getItems().size(), 1);
-        Assert.assertEquals(TEST_VCF_FILE_NAME1, loadedProject.getItems().get(0).getBioDataItem().getName());
+        Assert.assertEquals(2, loadedProject.getItems().size());
+        Assert.assertEquals(TEST_VCF_FILE_NAME2, loadedProject.getItems().get(1).getBioDataItem().getName());
 
         projectManager.hideProjectItem(project.getId(),
-                ((VcfFile) loadedProject.getItems().get(0).getBioDataItem()).getBioDataItemId());
+                ((VcfFile) loadedProject.getItems().get(1).getBioDataItem()).getBioDataItemId());
         loadedProject = projectManager.loadProject(project.getId());
         Assert.assertFalse(loadedProject.getItems().isEmpty());
-        Assert.assertTrue(loadedProject.getItems().get(0).getHidden());
+        Assert.assertTrue(loadedProject.getItems().get(1).getHidden());
     }
 
     @Test
@@ -260,12 +323,14 @@ public class ProjectManagerTest extends AbstractManagerTest {
             NoSuchAlgorithmException, IOException {
         Project parent = new Project();
         parent.setName("testParent");
-
+        parent.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         parent = projectManager.saveProject(parent);
 
         Project child1 = new Project();
         child1.setName("testChild1");
-
+        child1.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         child1 = projectManager.saveProject(child1, parent.getId());
 
         parent = projectManager.loadProject(parent.getId());
@@ -274,7 +339,8 @@ public class ProjectManagerTest extends AbstractManagerTest {
 
         Project child2 = new Project();
         child2.setName("testChild2");
-
+        child2.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         child2 = projectManager.saveProject(child2);
         projectManager.moveProjectToParent(child2.getId(), parent.getId());
         parent = projectManager.loadProject(parent.getId());
@@ -294,6 +360,8 @@ public class ProjectManagerTest extends AbstractManagerTest {
         // test loading tree
         Project child11 = new Project();
         child11.setName("tesChild11");
+        child11.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         projectManager.saveProject(child11, child1.getId());
 
         addVcfFileToProject(parent.getId(), "testVcf", TEST_VCF_FILE_PATH);
@@ -309,7 +377,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
         projectManager.addProjectItem(child1.getId(), geneFile.getBioDataItemId());
 
         referenceGenomeManager.updateReferenceGeneFileId(referenceId, geneFile.getId());
-        projectManager.addProjectItem(parent.getId(), testReference.getBioDataItemId());
+        projectManager.addProjectItem(parent.getId(), geneFile.getBioDataItemId());
 
         topLevel = projectManager.loadProjectTree(null);
         Assert.assertFalse(topLevel.isEmpty());
@@ -332,19 +400,26 @@ public class ProjectManagerTest extends AbstractManagerTest {
             NoSuchAlgorithmException, IOException {
         Project parent = new Project();
         parent.setName("testParent");
-
+        parent.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         parent = projectManager.saveProject(parent);
 
         Project child1 = new Project();
         child1.setName("testChild1");
+        child1.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         child1 = projectManager.saveProject(child1, parent.getId());
 
         Project child2 = new Project();
         child2.setName("testChild2");
+        child2.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         child2 = projectManager.saveProject(child2, parent.getId());
 
         Project child11 = new Project();
         child11.setName("tesChild11");
+        child11.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         projectManager.saveProject(child11, child1.getId());
 
         List<Project> topProjects = projectManager.loadProjectTree(null);
@@ -362,12 +437,13 @@ public class ProjectManagerTest extends AbstractManagerTest {
         throws IOException, InterruptedException, FeatureIndexException, NoSuchAlgorithmException, VcfReadingException {
         Project project = new Project();
         project.setName(TEST_PROJECT_NAME);
-
+        project.setItems(Collections.singletonList(
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         projectManager.saveProject(project);
 
         Project loadedProject = projectManager.loadProject(project.getId());
         Assert.assertNotNull(loadedProject);
-        Assert.assertTrue(loadedProject.getItems().isEmpty());
+        Assert.assertEquals(1, loadedProject.getItems().size());
 
         // Add Vcf
         addVcfFileToProject(project.getId(), TEST_VCF_FILE_NAME1, TEST_VCF_FILE_PATH);
@@ -489,7 +565,8 @@ public class ProjectManagerTest extends AbstractManagerTest {
 
         Project project = new Project();
         project.setName(TEST_PROJECT_NAME);
-        project.setItems(Arrays.asList(new ProjectItem(testReference), new ProjectItem(geneFile1)));
+        project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId())),
+                new ProjectItem(geneFile1)));
 
         projectManager.saveProject(project);
 

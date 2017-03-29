@@ -290,20 +290,21 @@ export class VariantContainer extends VariantBaseContainer {
         if (region.maxLayerIndex === 0 && region.layerIndex === 0 && region.variantsUnderCount === 0) {
             layerHeight = this._config.variant.height / 2;
         }
-        const y = boundaries.y2 - (region.maxLayerIndex - region.layerIndex + 1) * layerHeight;
+        const y = Math.floor(boundaries.y2 - (region.maxLayerIndex - region.layerIndex + 1) * layerHeight);
         const offsetLength = this._config.variant.multipleNucleotideVariant.offsetLength;
         const white = 0xFFFFFF;
+        const thickness = this._config.variant.multipleNucleotideVariant.thickness;
         this._linesGraphics
             .beginFill(white, 0)
-            .lineStyle(this._config.variant.multipleNucleotideVariant.thickness,
+            .lineStyle(thickness,
                 this._config.variant.multipleNucleotideVariant.color,
                 this._config.variant.multipleNucleotideVariant.alpha)
-            .moveTo(x1 - this._bpLength / 2, 0)
-            .lineTo(x1 - this._bpLength / 2, y - offsetLength)
-            .moveTo(x1 - this._bpLength / 2, y)
-            .lineTo(x2 + this._bpLength / 2, y)
-            .moveTo(x2 + this._bpLength / 2, 0)
-            .lineTo(x2 + this._bpLength / 2, y - offsetLength);
+            .moveTo(Math.floor(x1 - this._bpLength / 2) + thickness / 2.0, 0)
+            .lineTo(Math.floor(x1 - this._bpLength / 2) + thickness / 2.0, y - offsetLength)
+            .moveTo(Math.floor(x1 - this._bpLength / 2), y - thickness / 2.0)
+            .lineTo(Math.floor(x2 + this._bpLength / 2), y - thickness / 2.0)
+            .moveTo(Math.floor(x2 + this._bpLength / 2) + thickness / 2.0, 0)
+            .lineTo(Math.floor(x2 + this._bpLength / 2) + thickness / 2.0, y - offsetLength);
         if (alternativeAllele && alternativeAllele.mate) {
             let alignment = 'right';
             let startAlignment = 'left';
@@ -385,8 +386,8 @@ export class VariantContainer extends VariantBaseContainer {
         this._linesGraphics
             .beginFill(white, 0)
             .lineStyle(1, this._config.variant.multipleNucleotideVariant.interChromosome.line.color, 1)
-            .moveTo(0, -this._config.variant.height)
-            .lineTo(0, y);
+            .moveTo(0.5, -this._config.variant.height)
+            .lineTo(0.5, y);
         this.buildVariantEndLabel({
             alignment: attachedAt,
             behaviour: 'end',

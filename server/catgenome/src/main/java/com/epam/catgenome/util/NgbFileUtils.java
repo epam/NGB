@@ -129,4 +129,8 @@ public final class NgbFileUtils {
     public static boolean isFileBrowsingAllowed(BiologicalDataItemFormat format) {
         return ALLOWED_BROWSING_FORMATS.contains(format);
     }
+
+    public static boolean isGzCompressed(String fileName) {
+        return fileName.endsWith(GZ_EXTENSION);
+    }
 }

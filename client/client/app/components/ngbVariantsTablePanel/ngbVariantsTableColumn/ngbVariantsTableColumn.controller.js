@@ -7,6 +7,7 @@ export default class ngbVariantTableColumnController extends baseController {
     }
 
     projectContext;
+    displayVariantsFilter;
 
     constructor(dispatcher, projectContext, $scope, $timeout, projectDataService) {
         super(dispatcher);
@@ -19,25 +20,33 @@ export default class ngbVariantTableColumnController extends baseController {
             projectDataService
         });
 
+        this.displayVariantsFilter = this.projectContext.displayVariantsFilter;
+
         this.initEvents();
     }
 
-
     events = {
         'ngbColumns:change': ::this.onColumnChange,
-        'reference:change': ::this.loadColumns
+        'reference:change': ::this.loadColumns,
+        'display:variants:filter' : ::this.updateDisplayVariantsFilterValue
     };
 
     $onInit() {
         this.loadColumns();
     }
 
+    updateDisplayVariantsFilterValue() {
+        this.displayVariantsFilter = this.projectContext.displayVariantsFilter;
+    }
+
+    onDisplayVariantsFilterChange() {
+        this.projectContext.setDisplayVariantsFilter(this.displayVariantsFilter, false);
+    }
 
     loadColumns() {
         this.onColumnChange([]);
         this.$timeout(::this.$scope.$apply);
     }
-
 
     addColumnToTable() {
         const currentColumns = this.projectContext.vcfInfoColumns;

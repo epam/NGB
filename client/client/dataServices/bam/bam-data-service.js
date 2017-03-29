@@ -10,6 +10,7 @@ class BamDataInit {
     frame: number;
     file: string;
     index: string;
+    mode: string;
 }
 
 /**
@@ -184,7 +185,8 @@ export class BamDataService extends DataService {
                 frame: props.frame,
                 showClipping,
                 showSpliceJunction: true,
-                trackDirection: 'LEFT'
+                trackDirection: 'LEFT',
+                mode: props.mode
             },
             scaleFactor: props.scaleFactor,
             startIndex: props.startIndex
@@ -214,7 +216,8 @@ export class BamDataService extends DataService {
                 frame: props.frame,
                 showClipping,
                 showSpliceJunction: true,
-                trackDirection: 'MIDDLE'
+                trackDirection: 'MIDDLE',
+                mode: props.mode
             },
             scaleFactor: props.scaleFactor,
             startIndex: props.startIndex
@@ -245,7 +248,8 @@ export class BamDataService extends DataService {
                 frame: props.frame,
                 showClipping,
                 showSpliceJunction: true,
-                trackDirection: 'RIGHT'
+                trackDirection: 'RIGHT',
+                mode: props.mode
             },
             scaleFactor: props.scaleFactor,
             startIndex: props.startIndex

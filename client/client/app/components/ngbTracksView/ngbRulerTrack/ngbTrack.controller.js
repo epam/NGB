@@ -4,6 +4,7 @@ export default class ngbTrackController {
     static instanceCache = [];
     domElement = null;
     dispatcher = null;
+    projectContext;
 
     static get UID() {
         return 'ngbRulerTrackController';
@@ -15,9 +16,10 @@ export default class ngbTrackController {
 
     instanceConstructor = trackConstructors.Ruler;
 
-    constructor($scope, $element, dispatcher) {
+    constructor($scope, $element, dispatcher, projectContext) {
         this.dispatcher = dispatcher;
         this.domElement = $element[0];
+        this.projectContext = projectContext;
 
         this.domElement.style.position = 'relative';
         this.domElement.style.top = '0';
@@ -44,7 +46,8 @@ export default class ngbTrackController {
         this.trackInstance = new this.instanceConstructor({
             viewport: this.viewport,
             ...this.trackOpts,
-            ...this.track
+            ...this.track,
+            projectContext: this.projectContext
         });
         ngbTrackController.instanceCache.push(this.trackInstance);
 
