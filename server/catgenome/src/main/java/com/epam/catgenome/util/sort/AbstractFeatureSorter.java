@@ -85,7 +85,7 @@ public abstract class AbstractFeatureSorter {
             Parser parser = getParser();
 
             String firstDataRow = writeHeader(reader, writer);
-            if (firstDataRow != null) {
+            if (firstDataRow != null && !firstDataRow.isEmpty()) {
                 cltn.add(parser.createRecord(firstDataRow));
             }
 
