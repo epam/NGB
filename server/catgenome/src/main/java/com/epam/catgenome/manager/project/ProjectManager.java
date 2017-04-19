@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.entity.FeatureFile;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -125,12 +126,32 @@ public class ProjectManager {
      * @return all project hierarchy for current user, with all items
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public List<Project> loadProjectTree(final Long parentId) {
-        List<Project> allProjects = projectDao.loadAllProjects(AuthUtils.getCurrentUserId());
+    public List<Project> loadProjectTree(final Long parentId, String referenceName) {
+        List<Project> allProjects;
+        if (StringUtils.isEmpty(referenceName)) {
+            allProjects = projectDao.loadAllProjects(AuthUtils.getCurrentUserId());
+        } else {
+            List<BiologicalDataItem> referenceList =
+                    biologicalDataItemDao.loadFilesByNameCaseInsensitive(referenceName);
+            Assert.notNull(referenceList,
+                    MessageHelper.getMessage(MessagesConstants.ERROR_BIO_NAME_NOT_FOUND, referenceName));
+            Assert.isTrue(!referenceList.isEmpty(),
+                    MessageHelper.getMessage(MessagesConstants.ERROR_BIO_NAME_NOT_FOUND, referenceName));
+            Assert.isTrue(referenceList.get(0) instanceof Reference,
+                    MessageHelper.getMessage(MessagesConstants.ERROR_BIO_NAME_NOT_FOUND, referenceName));
+            Reference reference = (Reference) referenceList.get(0);
+            allProjects = projectDao.loadProjectsByBioDataItemId(reference.getBioDataItemId());
+        }
 
         Map<Long, List<Project>> hierarchyMap = new HashMap<>();
+        Map<Long, Set<ProjectItem>> itemMap;
 
-        Map<Long, Set<ProjectItem>> itemMap = projectDao.loadProjectItemsByProjects(allProjects);
+        if (StringUtils.isEmpty(referenceName)) {
+            itemMap = projectDao.loadAllProjectItems();
+        } else {
+            itemMap = projectDao.loadProjectItemsByProjects(allProjects);
+        }
+
         allProjects.stream().forEach(p -> {
             if (itemMap.containsKey(p.getId())) {
                 p.setItems(new ArrayList<>(itemMap.get(p.getId())));
@@ -141,6 +162,7 @@ public class ProjectManager {
             }
             hierarchyMap.get(p.getParentId()).add(p);
         });
+
         if (parentId != null) {
             Project topProject = loadProject(parentId);
             Assert.notNull(topProject,

@@ -249,7 +249,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         projectManager.saveProject(child11, child1.getId());
 
-        List<Project> topProjects = projectManager.loadProjectTree(null);
+        List<Project> topProjects = projectManager.loadProjectTree(null, null);
         Assert.assertEquals(1, topProjects.size());
 
         Project root = topProjects.get(0);
@@ -379,7 +379,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
         referenceGenomeManager.updateReferenceGeneFileId(referenceId, geneFile.getId());
         projectManager.addProjectItem(parent.getId(), geneFile.getBioDataItemId());
 
-        topLevel = projectManager.loadProjectTree(null);
+        topLevel = projectManager.loadProjectTree(null, null);
         Assert.assertFalse(topLevel.isEmpty());
         Assert.assertFalse(topLevel.stream().anyMatch(p -> p.getNestedProjects().isEmpty()));
         Assert.assertTrue(topLevel.stream()
@@ -422,11 +422,11 @@ public class ProjectManagerTest extends AbstractManagerTest {
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         projectManager.saveProject(child11, child1.getId());
 
-        List<Project> topProjects = projectManager.loadProjectTree(null);
+        List<Project> topProjects = projectManager.loadProjectTree(null, null);
         Assert.assertEquals(1, topProjects.size());
         Assert.assertEquals(2, topProjects.get(0).getNestedProjects().size());
 
-        List<Project> childProjects = projectManager.loadProjectTree(child1.getId());
+        List<Project> childProjects = projectManager.loadProjectTree(child1.getId(), null);
         Assert.assertEquals(1, childProjects.size());
         Assert.assertEquals(1, childProjects.get(0).getNestedProjects().size());
     }

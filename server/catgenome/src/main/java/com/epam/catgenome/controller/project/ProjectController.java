@@ -103,8 +103,9 @@ public class ProjectController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<List<ProjectVO>> loadProjectsTreeForCurrentUser(@RequestParam(required = false) Long parentId) {
-        return Result.success(ProjectConverter.convertTo(projectManager.loadProjectTree(parentId)));
+    public Result<List<ProjectVO>> loadProjectsTreeForCurrentUser(@RequestParam(required = false) Long parentId,
+            @RequestParam(required = false) String referenceName) {
+        return Result.success(ProjectConverter.convertTo(projectManager.loadProjectTree(parentId, referenceName)));
     }
 
     @RequestMapping(value = "/project/{projectId}/load", method = RequestMethod.GET)

@@ -79,6 +79,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     private String loadBiologicalDataItemsByNameStrictQuery;
     private String loadBiologicalDataItemsByNamesStrictQuery;
     private String loadBiologicalDataItemsByNameQuery;
+    private String loadBiologicalDataItemsByNameCaseInsensitiveQuery;
 
     @Autowired
     private DaoHelper daoHelper;
@@ -185,6 +186,15 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         daoHelper.clearTempStringList(listId);
         return items;
     }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public List<BiologicalDataItem> loadFilesByNameCaseInsensitive(final String name) {
+        final MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue(BiologicalDataItemParameters.NAME.name(), name.toLowerCase());
+        return getNamedParameterJdbcTemplate().query(loadBiologicalDataItemsByNameCaseInsensitiveQuery,
+                params, getRowMapper());
+    }
+
 
     /**
      * Finds files with names matching a specified file name, performs substring, case insensitive search
@@ -558,5 +568,11 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadBiologicalDataItemsByNamesStrictQuery(String loadBiologicalDataItemsByNamesStrictQuery) {
         this.loadBiologicalDataItemsByNamesStrictQuery = loadBiologicalDataItemsByNamesStrictQuery;
+    }
+
+
+    public void setLoadBiologicalDataItemsByNameCaseInsensitiveQuery(
+            String loadBiologicalDataItemsByNameCaseInsensitiveQuery) {
+        this.loadBiologicalDataItemsByNameCaseInsensitiveQuery = loadBiologicalDataItemsByNameCaseInsensitiveQuery;
     }
 }

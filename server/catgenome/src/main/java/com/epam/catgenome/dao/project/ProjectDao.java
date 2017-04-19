@@ -99,6 +99,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     private String loadProjectItemsByProjectIdQuery;
     private String loadProjectItemsByProjectIdsQuery;
     private String loadProjectsByBioDataItemIdQuery;
+    private String loadAllProjectItemsQuery;
 
     private String loadProjectIdsByBioDataItemIdsQuery;
 
@@ -152,6 +153,23 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public List<Project> loadNestedProjects(long parentId) {
         return getJdbcTemplate().query(loadProjectsByParentIdQuery, ProjectParameters.getRowMapper(), parentId);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Map<Long, Set<ProjectItem>> loadAllProjectItems() {
+        Map<Long, Set<ProjectItem>> itemsMap = new HashMap<>();
+        final RowMapper<ProjectItem> projectItemRowMapper = ProjectItemParameters.getSimpleItemMapper();
+        getJdbcTemplate().query(loadAllProjectItemsQuery, rs -> {
+            ProjectItem item = projectItemRowMapper.mapRow(rs, 0);
+
+            Long projectId = rs.getLong(ProjectItemParameters.REFERRED_PROJECT_ID.name());
+            if (!itemsMap.containsKey(projectId)) {
+                itemsMap.put(projectId, new HashSet<>());
+            }
+
+            itemsMap.get(projectId).add(item);
+        });
+        return itemsMap;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -798,5 +816,11 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadProjectIdsByBioDataItemIdsQuery(String loadProjectIdsByBioDataItemIdsQuery) {
         this.loadProjectIdsByBioDataItemIdsQuery = loadProjectIdsByBioDataItemIdsQuery;
+    }
+
+
+    @Required
+    public void setLoadAllProjectItemsQuery(String loadAllProjectItemsQuery) {
+        this.loadAllProjectItemsQuery = loadAllProjectItemsQuery;
     }
 }
