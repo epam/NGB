@@ -683,7 +683,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
         ProjectVO loadedProject = res.getPayload();
         Assert.assertNotNull(loadedProject);
-        Assert.assertEquals(4, loadedProject.getItems().size());
+        Assert.assertEquals(3, loadedProject.getItems().size());
 
         // filter vcf
         VcfFilterForm vcfFilterForm = new VcfFilterForm();

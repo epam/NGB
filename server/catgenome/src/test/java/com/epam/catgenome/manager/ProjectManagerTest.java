@@ -30,7 +30,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -591,20 +590,6 @@ public class ProjectManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(projectReference.getGeneFile().getId());
         Assert.assertNotNull(projectReference.getGeneFile().getName());
         Assert.assertNotNull(projectReference.getGeneFile().getCreatedDate());
-
-        Optional<BiologicalDataItem> projectReferenceGeneFileOpt = loadedProject.getItems().stream()
-            .filter(i -> Objects.equals(i.getBioDataItem().getId(), geneFile.getId()))
-            .map(ProjectItem::getBioDataItem)
-            .findFirst();
-
-        Assert.assertTrue(projectReferenceGeneFileOpt.isPresent());
-        GeneFile projectReferenceGeneFile = (GeneFile) projectReferenceGeneFileOpt.get();
-        Assert.assertEquals(geneFile.getName(), projectReferenceGeneFile.getName());
-        Assert.assertEquals(geneFile.getId(), projectReferenceGeneFile.getId());
-        Assert.assertEquals(geneFile.getPath(), projectReferenceGeneFile.getPath());
-        Assert.assertEquals(geneFile.getType(), projectReferenceGeneFile.getType());
-        Assert.assertEquals(geneFile.getCreatedBy(), projectReferenceGeneFile.getCreatedBy());
-        Assert.assertEquals(geneFile.getCreatedDate(), projectReferenceGeneFile.getCreatedDate());
     }
 
     private void addVcfFileToProject(long projectId, String name, String path) throws IOException,
