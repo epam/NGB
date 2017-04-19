@@ -327,7 +327,6 @@
                         b.format,
                         b.created_by,
                         b.created_date,
-                        b.pretty_name,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
