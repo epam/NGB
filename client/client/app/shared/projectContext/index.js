@@ -614,7 +614,7 @@ export default class projectContext {
         this._datasetsAreLoading = true;
         this._datasetsArePrepared = false;
         this.dispatcher.emitSimpleEvent('datasets:loading:started', null);
-        this._datasets = (await this.projectDataService.getProjects() || []);
+        this._datasets = (await this.projectDataService.getProjects(this._datasetsFilter) || []);
         this._datasetsLoaded = true;
         this._datasetsAreLoading = false;
         this.dispatcher.emitSimpleEvent('datasets:loading:finished', null);
