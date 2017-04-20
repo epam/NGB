@@ -168,6 +168,13 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
             }
 
             itemsMap.get(projectId).add(item);
+
+            if (item.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE) {
+                Reference reference = (Reference) item.getBioDataItem();
+                if (reference.getGeneFile() != null) {
+                    itemsMap.get(projectId).add(new ProjectItem(reference.getGeneFile()));
+                }
+            }
         });
         return itemsMap;
     }

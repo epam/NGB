@@ -232,6 +232,12 @@ public class ProjectManager {
 
     private void loadProjectItems(Project project) {
         project.setItems(projectDao.loadProjectItemsByProjectId(project.getId()));
+        List<ProjectItem> referenceGeneItems = project.getItems().stream()
+            .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE
+                         && ((Reference) i.getBioDataItem()).getGeneFile() != null)
+            .map(i -> new ProjectItem(((Reference) i.getBioDataItem()).getGeneFile()))
+            .collect(Collectors.toList());
+        project.getItems().addAll(referenceGeneItems);
 
         // Set Vcf files samples
         Set<Long> vcfIds = new HashSet<>();
