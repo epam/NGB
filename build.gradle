@@ -1,7 +1,3 @@
-plugins {
-    id 'nebula.lint' version '6.1.4'
-}
-
 group "com.epam"
 
 def uiFilesDestination = "$rootDir/server/catgenome/src/main/resources/static"
@@ -21,9 +17,6 @@ allprojects {
             println "Project version is $version"
         }
     }
-    /*apply plugin: 'nebula.lint'
-    gradleLint.rules = ['unused-dependency']
-    gradleLint.reportFormat = 'text'*/
 }
 
 class Version {
