@@ -620,9 +620,35 @@ export default class projectContext {
         this.dispatcher.emitSimpleEvent('datasets:loading:finished', null);
     }
 
+    refreshReferencesPromise;
+    _referencesAreLoading = false;
+
     async refreshReferences(forceRefresh = false) {
         if (forceRefresh || !this._references) {
-            this._references = await this.genomeDataService.loadAllReference();
+            if (this._referencesAreLoading) {
+                return this.refreshReferencesPromise;
+            }
+            this._referencesAreLoading = true;
+            this.refreshReferencesPromise = new Promise((resolve) => {
+                this.genomeDataService.loadAllReference().then(data => {
+                    this._references = data;
+                    this._references.forEach(r => {
+                        if (!r.annotationFiles) {
+                            r.annotationFiles = [];
+                        }
+                        if (r.geneFile && r.annotationFiles.filter(a =>
+                                a.name.toLowerCase() === r.geneFile.name.toLowerCase() && a.format.toLowerCase() === r.geneFile.format.toLowerCase()
+                            ).length === 0) {
+                            r.geneFile.selected = true;
+                            r.geneFile.isGeneFile = true;
+                            r.annotationFiles.push(r.geneFile);
+                        }
+                    });
+                    this._referencesAreLoading = false;
+                    resolve();
+                });
+            });
+            return this.refreshReferencesPromise;
         }
     }
 
