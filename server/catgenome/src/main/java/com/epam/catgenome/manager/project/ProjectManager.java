@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
 import com.epam.catgenome.entity.FeatureFile;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,6 +87,9 @@ public class ProjectManager {
     private SegFileDao segFileDao;
 
     @Autowired
+    private ReferenceGenomeDao referenceGenomeDao;
+
+    @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
 
     @Autowired
@@ -131,15 +135,10 @@ public class ProjectManager {
         if (StringUtils.isEmpty(referenceName)) {
             allProjects = projectDao.loadAllProjects(AuthUtils.getCurrentUserId());
         } else {
-            List<BiologicalDataItem> referenceList =
-                    biologicalDataItemDao.loadFilesByNameCaseInsensitive(referenceName);
-            Assert.notNull(referenceList,
+            Reference reference =
+                    referenceGenomeDao.loadReferenceGenomeByName(referenceName.toLowerCase());
+            Assert.notNull(reference,
                     MessageHelper.getMessage(MessagesConstants.ERROR_BIO_NAME_NOT_FOUND, referenceName));
-            Assert.isTrue(!referenceList.isEmpty(),
-                    MessageHelper.getMessage(MessagesConstants.ERROR_BIO_NAME_NOT_FOUND, referenceName));
-            Assert.isTrue(referenceList.get(0) instanceof Reference,
-                    MessageHelper.getMessage(MessagesConstants.ERROR_BIO_NAME_NOT_FOUND, referenceName));
-            Reference reference = (Reference) referenceList.get(0);
             allProjects = projectDao.loadProjectsByBioDataItemId(reference.getBioDataItemId());
         }
 
