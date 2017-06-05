@@ -11,8 +11,8 @@ RUN apt-get -y update && \
 	apt-get -y install wget default-jdk
 
 #Install tomcat 8
-RUN wget -q http://apache-mirror.rbc.ru/pub/apache/tomcat/tomcat-8/v8.0.42/bin/apache-tomcat-8.0.42.tar.gz && \
-        tar -xvf apache-tomcat-8.0.42.tar.gz && \
+RUN wget -q http://apache-mirror.rbc.ru/pub/apache/tomcat/tomcat-8/v8.0.44/bin/apache-tomcat-8.0.44.tar.gz && \
+        tar -xvf apache-tomcat-8.0.44.tar.gz && \
         rm apache-tomcat*.tar.gz && \
         mv apache-tomcat* ${CATALINA_HOME}
 
