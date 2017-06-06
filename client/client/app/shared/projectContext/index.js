@@ -630,7 +630,7 @@ export default class projectContext {
             }
             this._referencesAreLoading = true;
             this.refreshReferencesPromise = new Promise((resolve) => {
-                this.genomeDataService.loadAllReference().then(data => {
+                this.genomeDataService.loadAllReference(this._datasetsFilter).then(data => {
                     this._references = data;
                     this._references.forEach(r => {
                         if (!r.annotationFiles) {
