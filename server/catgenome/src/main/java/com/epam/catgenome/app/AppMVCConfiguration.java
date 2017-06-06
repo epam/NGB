@@ -39,6 +39,7 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
 
     private static final int CACHE_PERIOD = 60 * 60 * 24;
     private static final int CACHE_SIZE = 1024 * 1024 * 100;
+    private static final int TOMCAT_CACHE_SIZE = CACHE_PERIOD * 1000;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -54,10 +55,9 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
                 StandardRoot standardRoot = new StandardRoot(context);
                 standardRoot.setCachingAllowed(true);
                 standardRoot.setCacheMaxSize(CACHE_SIZE);
-                standardRoot.setCacheTtl(CACHE_PERIOD);
+                standardRoot.setCacheTtl(TOMCAT_CACHE_SIZE);
                 context.setResources(standardRoot);
             });
-
         };
     }
 
