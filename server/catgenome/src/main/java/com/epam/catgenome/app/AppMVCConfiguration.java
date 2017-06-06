@@ -2,6 +2,7 @@ package com.epam.catgenome.app;
 
 import java.util.List;
 
+import org.apache.catalina.webresources.StandardRoot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
@@ -36,6 +37,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ComponentScan(basePackages = {"com.epam.catgenome.config", "com.epam.catgenome.controller"})
 public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
 
+    private static final int CACHE_PERIOD = 60 * 60 * 24;
+    private static final int CACHE_SIZE = 1024 * 1024 * 100;
+
     @Autowired
     private ApplicationContext applicationContext;
 
@@ -46,6 +50,13 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
         return container -> {
             TomcatEmbeddedServletContainerFactory tomcat = (TomcatEmbeddedServletContainerFactory) container;
             tomcat.setTldSkip("*.jar");
+            tomcat.addContextCustomizers((context) -> {
+                StandardRoot standardRoot = new StandardRoot(context);
+                standardRoot.setCachingAllowed(true);
+                standardRoot.setCacheMaxSize(CACHE_SIZE);
+                standardRoot.setCacheTtl(CACHE_PERIOD);
+                context.setResources(standardRoot);
+            });
 
         };
     }
@@ -55,6 +66,9 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
         registry.addResourceHandler("/swagger-ui/**")
                 .addResourceLocations("/swagger-ui/", "classpath:/static/swagger-ui/",
                         "classpath:/META-INF/resources/webjars/swagger-ui/2.0.24/");
+        registry.addResourceHandler("/**")
+                .addResourceLocations("classpath:/static/")
+                .setCachePeriod(CACHE_PERIOD);
     }
 
     @Override
