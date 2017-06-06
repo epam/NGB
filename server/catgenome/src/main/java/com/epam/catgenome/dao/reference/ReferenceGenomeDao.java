@@ -212,7 +212,6 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         return CollectionUtils.isNotEmpty(list) ? list.get(0) : null;
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
     public Reference loadReferenceGenomeByName(final String name) {
         final List<Reference> list = getNamedParameterJdbcTemplate().query(loadReferenceGenomeByNameQuery,
                 new MapSqlParameterSource(GenomeParameters.NAME.name(), name),

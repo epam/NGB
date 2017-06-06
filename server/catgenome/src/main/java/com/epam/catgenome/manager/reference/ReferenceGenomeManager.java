@@ -26,10 +26,7 @@ package com.epam.catgenome.manager.reference;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.entity.gene.GeneFile;
@@ -53,6 +50,7 @@ import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
+import org.springframework.util.StringUtils;
 
 /**
  * {@code ReferenceManager} represents a service class designed to encapsulate all business
@@ -198,6 +196,20 @@ public class ReferenceGenomeManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public List<Reference> loadAllReferenceGenomes() {
+        return loadAllReferenceGenomes(null);
+    }
+
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public List<Reference> loadAllReferenceGenomes(String referenceName) {
+        if (!StringUtils.isEmpty(referenceName)) {
+            Reference reference = referenceGenomeDao.loadReferenceGenomeByName(referenceName.toLowerCase());
+            if (reference.getGeneFile() != null && reference.getGeneFile().getId() != null) {
+                GeneFile geneFile = geneFileDao.loadGeneFile(reference.getGeneFile().getId());
+                reference.setGeneFile(geneFile);
+            }
+            return Collections.singletonList(reference);
+        }
         List<Reference> references = referenceGenomeDao.loadAllReferenceGenomes();
         Map<Long, List<Reference>> referenceToGeneIds = references.stream().collect(new ListMapCollector<>(
             reference -> reference.getGeneFile() != null ? reference.getGeneFile().getId() : null));
