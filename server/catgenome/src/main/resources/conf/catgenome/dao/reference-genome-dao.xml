@@ -220,7 +220,6 @@
                         b.created_by,
                         b.created_date,
                         b.bucket_id,
-                        b.pretty_name,
                         r.reference_genome_id,
                         r.bio_data_item_id,
                         r.reference_genome_size,
