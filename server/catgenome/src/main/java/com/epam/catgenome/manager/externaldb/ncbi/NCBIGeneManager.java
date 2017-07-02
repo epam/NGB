@@ -85,17 +85,10 @@ public class NCBIGeneManager {
      */
 
     public NCBIGeneVO fetchGeneById(final String id) throws ExternalDbUnavailableException {
-
-        String realID = id;
         NCBIGeneVO ncbiGeneVO = null;
 
         if (StringUtils.isNotBlank(id)) {
-
-            // if ID contains literals then we consider this external ID and perform search
-            if (!id.matches("\\d+")) {
-                String ncbiId = ncbiAuxiliaryManager.searchDbForId(NCBIDatabase.GENE.name(), realID);
-                realID = StringUtils.isNotBlank(ncbiId) ? ncbiId : id;
-            }
+            String realID = fetchExternalId(id);
 
             String geneInfoXml = ncbiAuxiliaryManager.fetchXmlById(NCBIDatabase.GENE.name(), realID, null);
             ncbiGeneVO = geneInfoParser.parseGeneInfo(geneInfoXml);
@@ -160,6 +153,21 @@ public class NCBIGeneManager {
         }
 
         return ncbiGeneVO;
+    }
+
+    private String fetchExternalId(String id) throws ExternalDbUnavailableException {
+        String externalID = id;
+        // if ID contains literals then we consider this external ID and perform search
+        if (!id.matches("\\d+")) {
+            String ncbiId = ncbiAuxiliaryManager.searchDbForId(NCBIDatabase.GENE.name(), externalID);
+            if (StringUtils.isNotBlank(ncbiId)) {
+                externalID = ncbiId;
+            } else {
+                throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants
+                        .ERROR_NO_RESULT_BY_EXTERNAL_DB));
+            }
+        }
+        return externalID;
     }
 
     public void setGeneInfoParser(NCBIGeneInfoParser geneInfoParser) {
