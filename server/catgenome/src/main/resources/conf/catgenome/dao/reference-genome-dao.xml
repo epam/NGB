@@ -208,6 +208,41 @@
             </value>
         </property>
 
+        <property name="loadReferenceGenomeByNameQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.format,
+                        b.created_by,
+                        b.created_date,
+                        b.bucket_id,
+                        r.reference_genome_id,
+                        r.bio_data_item_id,
+                        r.reference_genome_size,
+                        null as compressed,
+                        r.gene_item_id,
+
+                        i.bio_data_item_id as index_id,
+                        i.name as index_name,
+                        i.type as index_type,
+                        i.path as index_path,
+                        i.format as index_format,
+                        i.created_by as index_created_by,
+                        i.bucket_id as index_bucket_id,
+                        i.created_date as index_created_date
+
+                    FROM catgenome.reference_genome r
+                        JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
+                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = r.index_id
+                    WHERE LOWER(b.name) = :NAME
+                ]]>
+            </value>
+        </property>
+
     </bean>
 
 </beans>

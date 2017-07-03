@@ -30,7 +30,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -249,7 +248,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         projectManager.saveProject(child11, child1.getId());
 
-        List<Project> topProjects = projectManager.loadProjectTree(null);
+        List<Project> topProjects = projectManager.loadProjectTree(null, null);
         Assert.assertEquals(1, topProjects.size());
 
         Project root = topProjects.get(0);
@@ -379,7 +378,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
         referenceGenomeManager.updateReferenceGeneFileId(referenceId, geneFile.getId());
         projectManager.addProjectItem(parent.getId(), geneFile.getBioDataItemId());
 
-        topLevel = projectManager.loadProjectTree(null);
+        topLevel = projectManager.loadProjectTree(null, null);
         Assert.assertFalse(topLevel.isEmpty());
         Assert.assertFalse(topLevel.stream().anyMatch(p -> p.getNestedProjects().isEmpty()));
         Assert.assertTrue(topLevel.stream()
@@ -422,11 +421,11 @@ public class ProjectManagerTest extends AbstractManagerTest {
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         projectManager.saveProject(child11, child1.getId());
 
-        List<Project> topProjects = projectManager.loadProjectTree(null);
+        List<Project> topProjects = projectManager.loadProjectTree(null, null);
         Assert.assertEquals(1, topProjects.size());
         Assert.assertEquals(2, topProjects.get(0).getNestedProjects().size());
 
-        List<Project> childProjects = projectManager.loadProjectTree(child1.getId());
+        List<Project> childProjects = projectManager.loadProjectTree(child1.getId(), null);
         Assert.assertEquals(1, childProjects.size());
         Assert.assertEquals(1, childProjects.get(0).getNestedProjects().size());
     }
@@ -591,20 +590,6 @@ public class ProjectManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(projectReference.getGeneFile().getId());
         Assert.assertNotNull(projectReference.getGeneFile().getName());
         Assert.assertNotNull(projectReference.getGeneFile().getCreatedDate());
-
-        Optional<BiologicalDataItem> projectReferenceGeneFileOpt = loadedProject.getItems().stream()
-            .filter(i -> Objects.equals(i.getBioDataItem().getId(), geneFile.getId()))
-            .map(ProjectItem::getBioDataItem)
-            .findFirst();
-
-        Assert.assertTrue(projectReferenceGeneFileOpt.isPresent());
-        GeneFile projectReferenceGeneFile = (GeneFile) projectReferenceGeneFileOpt.get();
-        Assert.assertEquals(geneFile.getName(), projectReferenceGeneFile.getName());
-        Assert.assertEquals(geneFile.getId(), projectReferenceGeneFile.getId());
-        Assert.assertEquals(geneFile.getPath(), projectReferenceGeneFile.getPath());
-        Assert.assertEquals(geneFile.getType(), projectReferenceGeneFile.getType());
-        Assert.assertEquals(geneFile.getCreatedBy(), projectReferenceGeneFile.getCreatedBy());
-        Assert.assertEquals(geneFile.getCreatedDate(), projectReferenceGeneFile.getCreatedDate());
     }
 
     private void addVcfFileToProject(long projectId, String name, String path) throws IOException,

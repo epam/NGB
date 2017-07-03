@@ -91,8 +91,9 @@ public class ReferenceController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public final Result<List<Reference>> loadAllReferences() throws IOException {
-        return Result.success(referenceGenomeManager.loadAllReferenceGenomes());
+    public final Result<List<Reference>> loadAllReferences(
+            @RequestParam(required = false) String referenceName) throws IOException {
+        return Result.success(referenceGenomeManager.loadAllReferenceGenomes(referenceName));
     }
 
     @ResponseBody

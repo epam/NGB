@@ -72,7 +72,7 @@ public abstract class AbstractFeatureSorter {
                 PrintWriter writer = NgbFileUtils.isGzCompressed(outputFile.getName()) ?
                         new PrintWriter(new OutputStreamWriter(new BlockCompressedOutputStream(outputFile), UTF_8)) :
                         new PrintWriter(outputFile, UTF_8);
-                AsciiLineReader reader = NgbFileUtils.isGzCompressed(outputFile.getName()) ?
+                AsciiLineReader reader = NgbFileUtils.isGzCompressed(inputFile.getName()) ?
                         new AsciiLineReader(new BlockCompressedInputStream(inputFile)) :
                         new AsciiLineReader(new FileInputStream(inputFile))
         ) {

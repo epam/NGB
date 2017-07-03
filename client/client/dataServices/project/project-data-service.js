@@ -6,9 +6,10 @@ import {DataService} from '../data-service';
  */
 export class ProjectDataService extends DataService {
 
-    getProjects() {
+    getProjects(referenceName) {
         return new Promise((resolve) => {
-            this.get('project/tree').catch(() => resolve([])).then(data => {
+            const url = referenceName ? `project/tree?referenceName=${referenceName}` : 'project/tree';
+            this.get(url).catch(() => resolve([])).then(data => {
                 if (data !== null && data !== undefined) {
                     resolve(data);
                 }

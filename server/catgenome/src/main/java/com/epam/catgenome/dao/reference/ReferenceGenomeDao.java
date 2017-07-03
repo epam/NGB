@@ -122,6 +122,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
     private String deleteReferenceChromosomeQuery;
     private String loadBiologicalItemsQuery;
     private String updateReferenceGeneFileIdQuery;
+    private String loadReferenceGenomeByNameQuery;
 
     @Transactional(propagation = Propagation.MANDATORY)
     public Long createReferenceGenomeId() {
@@ -207,6 +208,13 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
     public Reference loadReferenceGenomeByBioItemId(final Long itemID) {
         final List<Reference> list = getNamedParameterJdbcTemplate().query(loadReferenceGenomeByBioIdQuery,
                 new MapSqlParameterSource(GenomeParameters.BIO_DATA_ITEM_ID.name(), itemID),
+                GenomeParameters.getReferenceGenomeMapper());
+        return CollectionUtils.isNotEmpty(list) ? list.get(0) : null;
+    }
+
+    public Reference loadReferenceGenomeByName(final String name) {
+        final List<Reference> list = getNamedParameterJdbcTemplate().query(loadReferenceGenomeByNameQuery,
+                new MapSqlParameterSource(GenomeParameters.NAME.name(), name),
                 GenomeParameters.getReferenceGenomeMapper());
         return CollectionUtils.isNotEmpty(list) ? list.get(0) : null;
     }
@@ -340,6 +348,11 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setUpdateReferenceGeneFileIdQuery(String updateReferenceGeneFileIdQuery) {
         this.updateReferenceGeneFileIdQuery = updateReferenceGeneFileIdQuery;
+    }
+
+    @Required
+    public void setLoadReferenceGenomeByNameQuery(String loadReferenceGenomeByNameQuery) {
+        this.loadReferenceGenomeByNameQuery = loadReferenceGenomeByNameQuery;
     }
 
     enum GenomeParameters {
