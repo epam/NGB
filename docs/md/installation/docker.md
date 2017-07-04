@@ -68,6 +68,38 @@ After all you can leave container's console using
 NGB container will continue running in a background.
 When datasets are created - you can immediately browse NGS data.
 
+## Persisting registered data
+
+When any data was registered in NGB container - it will be lost once a container is removed. To avoid this, cache locations inside a container shall be exposed to the host filesystem.
+
+This can be achieved by mounting of host folders into a container, using paths that contain NGB index database (H2 dir) and files caches (contents dir):
+* /opt/catgenome/H2
+* /opt/catgenome/contents
+
+*Note: these options shall be specified to a `docker run` command at start time*
+
+Example:
+
+Imagine a host machine that contains two folders
+* `/ngs` - stores NGS data that shall be registered in NGB
+* `/ngb-cache` - empty folder that will be used to persist NGB caches
+
+The following command can be used to persist all changes made to a container into that folders:
+
+```bash
+$ docker run -p 8080:8080 \ 
+             -d \
+             --name ngbcore \
+             -v /ngs:/ngs \ 
+             -v /ngb-cache/H2:/opt/catgenome/H2 \
+             -v /ngb-cache/contents:/opt/catgenome/contents \
+             lifescience/ngb
+```
+
+Restarting a container using this command will not cause loss of data or NGB configuration
+
+-v /host/ngs:/ngs -v /host/H2:/opt/catgenome/H2 -v /host/contents:/opt/catgenome/contents
+
 ## Demo data description
 **ngb:latest-demo** container is built to show some basic features of NGB. It uses mostly shrinked data to minimize a container size
 

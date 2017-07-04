@@ -65,8 +65,8 @@ export default class ShortVariantRenderer extends VariantBaseRenderer {
         return this.variantZonesManager.getTotalHeight();
     }
 
-    constructor(variant, heightChanged, showTooltip, updateSceneFn, reRenderScene) {
-        super(variant, heightChanged, showTooltip, updateSceneFn, reRenderScene);
+    constructor(variant, heightChanged, showTooltip, affectedGeneTranscriptChanged, updateSceneFn, reRenderScene) {
+        super(variant, heightChanged, showTooltip, affectedGeneTranscriptChanged, updateSceneFn, reRenderScene);
         this._dragManager = new DragManager(this.config, this.container);
         this._config.nucleotide.size.width.minimum = Math.min(this._config.nucleotide.size.width.minimum, PixiTextSize.getTextSize('W', this._config.nucleotide.label).width + 2 * this._config.nucleotide.margin.x);
     }

@@ -1,4 +1,5 @@
 import * as menu from './menu';
+export {default as ColorProcessor} from './colorProcessor';
 export {default as NumberFormatter} from './numberFormatter';
 export {default as PixiTextSize} from './pixiTextSize';
 export {default as Sorting} from './sorting';

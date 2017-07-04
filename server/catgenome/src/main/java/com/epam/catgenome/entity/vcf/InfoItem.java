@@ -26,6 +26,7 @@ package com.epam.catgenome.entity.vcf;
 
 import java.util.Objects;
 
+import htsjdk.variant.vcf.VCFHeaderLineCount;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 
@@ -55,7 +56,11 @@ public class InfoItem {
 
     public InfoItem(VCFInfoHeaderLine line) {
         this.name = line.getID();
-        this.type = line.getType();
+        if (line.getCountType() != VCFHeaderLineCount.INTEGER) {
+            this.type = VCFHeaderLineType.String;
+        } else {
+            this.type = line.getType();
+        }
         this.description = line.getDescription();
     }
 

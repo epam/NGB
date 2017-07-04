@@ -79,6 +79,8 @@ public class ApplicationOptions {
 
     private boolean forceDeletion;
 
+    private String prettyName;
+
     /**
      * Creates object with default option's values
      */
@@ -172,5 +174,13 @@ public class ApplicationOptions {
 
     public boolean isForceDeletion() {
         return forceDeletion;
+    }
+
+    public void setPrettyName(String prettyName) {
+        this.prettyName = prettyName;
+    }
+
+    public String getPrettyName() {
+        return prettyName;
     }
 }

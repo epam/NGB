@@ -9,6 +9,7 @@ export class BEDTransformer extends GeneTransformer {
     }
 
     analyzeBedItemStructure(bedItem, level = 2) {
+        bedItem.name = bedItem.name || '';
         let structure = null;
         let correctedItems = null;
         switch (level) {

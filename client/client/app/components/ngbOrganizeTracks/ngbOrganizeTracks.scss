@@ -1,0 +1,48 @@
+md-dialog.organize-tracks-dialog{
+  height: 90%;
+  width:66%;
+  md-dialog-content.dialog-organize-tracks {
+    height: 90%;
+  }
+}
+ngb-organize-tracks {
+  .main-row {
+    margin: 10px;
+    height: 95%;
+
+    .ui-grid-cell-contents {
+      font-size: 12px;
+      align-self: center;
+      height: auto;
+    }
+    .ui-grid-cell {
+      display: flex;
+    }
+
+    .grid-column {
+      height: 100%;
+    }
+
+    .left-column {
+      min-width: 400px;
+      width: 100%;
+    }
+    .right-column {
+      width: 150px;
+    }
+  }
+
+  .button-column {
+    .block-button {
+      margin: 10px;
+      .md-button {
+        min-height: 20px;
+        margin: 0;
+        line-height: 10px;
+      }
+    }
+    button {
+      text-align: left;
+    }
+  }
+}

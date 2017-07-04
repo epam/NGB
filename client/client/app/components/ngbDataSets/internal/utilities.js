@@ -101,6 +101,14 @@ export function sortByNameAsc(node1: Node, node2: Node) {
     } else if (!node2.name) {
         return 1;
     }
+    if (node1.isLocal !== node2.isLocal) {
+        if (node1.isLocal) {
+            return -1;
+        }
+        if (node2.isLocal) {
+            return 1;
+        }
+    }
     if (node1.name.toLowerCase() === node2.name.toLowerCase()) {
         return 0;
     }
@@ -113,6 +121,14 @@ export function sortByNameDesc(node1: Node, node2: Node) {
     } else if (!node2.name) {
         return 1;
     }
+    if (node1.isLocal !== node2.isLocal) {
+        if (node1.isLocal) {
+            return -1;
+        }
+        if (node2.isLocal) {
+            return 1;
+        }
+    }
     if (node1.name.toLowerCase() === node2.name.toLowerCase()) {
         return 0;
     }
@@ -123,7 +139,7 @@ export function updateTracksStateFn(item: Node, reference) {
     if (!reference) {
         return;
     }
-    if (item.isTrack && item.reference.name !== reference.name) {
+    if (item.isTrack && item.reference && item.reference.name !== reference.name) {
         item.__selected = false;
     }
     return true;
@@ -141,7 +157,9 @@ export function selectRecursively(item: Node, isSelected) {
 export function mapTrackFn(track: Node){
     return {
         bioDataItemId: track.name,
-        projectId: track.projectId
+        projectId: track.projectId,
+        isLocal: track.isLocal,
+        format: track.format
     };
 }
 

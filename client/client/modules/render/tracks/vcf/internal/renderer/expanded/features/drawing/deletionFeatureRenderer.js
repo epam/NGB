@@ -1,5 +1,5 @@
 import {VariantAltFeatureRenderer} from './variantAltFeatureRenderer';
-import {NumberFormatter} from '../../../../../../../utilities';
+import {ColorProcessor, NumberFormatter} from '../../../../../../../utilities';
 const Math = window.Math;
 
 export default class DeletionFeatureRenderer extends VariantAltFeatureRenderer {
@@ -17,7 +17,7 @@ export default class DeletionFeatureRenderer extends VariantAltFeatureRenderer {
         return boundaries;
     }
 
-    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
         if (feature.startIndex < feature.endIndex) {
             const alternativeAlleleLabelsHeight = feature.alternativeAllelesInfo.length * this.alleleLabelHeight;
             const height = this.config.variant.height;
@@ -27,6 +27,15 @@ export default class DeletionFeatureRenderer extends VariantAltFeatureRenderer {
             graphics
                 .lineStyle(this.config.variant.multipleNucleotideVariant.thickness,
                     this.config.variant.multipleNucleotideVariant.color,
+                    this.config.variant.multipleNucleotideVariant.alpha)
+                .moveTo(cX1, cY - this.config.variant.multipleNucleotideVariant.thickness / 2)
+                .lineTo(cX2, cY - this.config.variant.multipleNucleotideVariant.thickness / 2)
+                .moveTo(cX2 - this.config.variant.multipleNucleotideVariant.thickness / 2, cY - height / 3)
+                .lineTo(cX2 - this.config.variant.multipleNucleotideVariant.thickness / 2, cY + height / 3);
+
+            hoveredGraphics
+                .lineStyle(this.config.variant.multipleNucleotideVariant.thickness,
+                    ColorProcessor.darkenColor(this.config.variant.multipleNucleotideVariant.color),
                     this.config.variant.multipleNucleotideVariant.alpha)
                 .moveTo(cX1, cY - this.config.variant.multipleNucleotideVariant.thickness / 2)
                 .lineTo(cX2, cY - this.config.variant.multipleNucleotideVariant.thickness / 2)
@@ -55,6 +64,6 @@ export default class DeletionFeatureRenderer extends VariantAltFeatureRenderer {
                 y: cY - height / 3
             });
         }
-        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
     }
 }

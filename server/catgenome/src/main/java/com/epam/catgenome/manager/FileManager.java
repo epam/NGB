@@ -342,6 +342,25 @@ public class FileManager {
     }
 
     /**
+     * Delete full catalogue structure used to manage all information associated
+     * with the provided reference.
+     *
+     * @param reference {@code Reference} represents a container that provides access to major properties
+     *                  and can be updated by metadata produced as the result of the current call
+     */
+    public void deleteReferenceDir(final Reference reference) throws IOException {
+        Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
+        Assert.notNull(reference.getId(), getMessage(MessageCode.UNKNOWN_REFERENCE_ID));
+
+        if (reference.getType() != BiologicalDataItemResourceType.GA4GH) {
+            final Map<String, Object> params = new HashMap<>();
+            final Long dirId = reference.getId();
+            params.put(DIR_ID.name(), dirId);
+            deleteDir(substitute(REFERENCE_DIR, params));
+        }
+    }
+
+    /**
      * Creates in the file system initial catalogue structure used to manage all VCF files associated
      * with the provided VCF id and provided user ID.
      *

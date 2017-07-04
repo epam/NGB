@@ -1,6 +1,6 @@
 import FeatureBaseRenderer from './featureBaseRenderer';
 import PIXI from 'pixi.js';
-import {PixiTextSize} from '../../../../../../utilities';
+import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import drawStrandDirection from './strandDrawing';
 import {drawingConfiguration} from '../../../../../../core';
 
@@ -53,27 +53,35 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
     _getBlockDrawingConfig(blockItem, shouldDrawAminoacid) {
         let fill = this.config.transcript.features.fill.other;
         let strandFill = this.config.transcript.features.strand.fill.other;
+        let hoveredFill = this.config.transcript.features.fill.hoveredOther;
+        let hoveredStrandFill = this.config.transcript.features.strand.fill.hoveredOther;
         let shouldDrawStrand = blockItem.hasOwnProperty('strand');
         let shouldFillBlock = true;
         if (blockItem.feature.toLowerCase() === 'cds') {
             fill = this.config.transcript.features.fill.cds;
             strandFill = this.config.transcript.features.strand.fill.cds;
+            hoveredFill = this.config.transcript.features.fill.hoveredCds;
+            hoveredStrandFill = this.config.transcript.features.strand.fill.hoveredCds;
             const aminoacidSequence = blockItem.aminoacidSequence;
             if (shouldDrawAminoacid && aminoacidSequence !== null && aminoacidSequence !== undefined && aminoacidSequence.length > 0) {
                 shouldDrawStrand = false;
                 shouldFillBlock = false;
             }
         }
+        hoveredFill = hoveredFill !== undefined ? hoveredFill : ColorProcessor.darkenColor(fill);
+        hoveredStrandFill = hoveredStrandFill !== undefined ? hoveredStrandFill : ColorProcessor.darkenColor(strandFill);
         return {
             fill,
+            hoveredFill,
             shouldDrawStrand,
             shouldFillBlock,
-            strandFill
+            strandFill,
+            hoveredStrandFill
         };
     }
 
     _renderNonEmptyBlock(opts) {
-        const {viewport, graphics, block, centeredPositionY} = opts;
+        const {viewport, graphics, hoveredGraphics, block, centeredPositionY} = opts;
         const shouldDrawAminoacid = this._aminoacidFeatureRenderer !== null ? this._aminoacidFeatureRenderer.shouldDrawAminoacids(viewport) : false;
         const pixelsInBp = viewport.factor;
         const blockPxStart = Math.max(viewport.project.brushBP2pixel(block.startIndex), -viewport.canvasSize) - pixelsInBp / 2;
@@ -81,12 +89,15 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         const white = 0xFFFFFF;
         const height = this.config.transcript.height;
         graphics.lineStyle(0, white, 0);
+        hoveredGraphics.lineStyle(0, white, 0);
         for (let j = 0; j < block.items.length; j++) {
             const blockItem = block.items[j];
             const {
                 fill,
+                hoveredFill,
                 shouldDrawStrand,
                 strandFill,
+                hoveredStrandFill,
                 shouldFillBlock
             } = this._getBlockDrawingConfig(blockItem, shouldDrawAminoacid);
             const blockItemPxStart = Math.max(viewport.project.brushBP2pixel(blockItem.startIndex), -viewport.canvasSize) - pixelsInBp / 2;
@@ -97,6 +108,14 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
             if (shouldFillBlock) {
                 graphics
                     .beginFill(fill, 1)
+                    .drawRect(
+                        blockItemPxStart,
+                        centeredPositionY - height / 2,
+                        blockItemPxEnd - blockItemPxStart,
+                        height)
+                    .endFill();
+                hoveredGraphics
+                    .beginFill(hoveredFill, 1)
                     .drawRect(
                         blockItemPxStart,
                         centeredPositionY - height / 2,
@@ -124,11 +143,33 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                     1,
                     ::this.updateTextureCoordinates
                 );
+                drawStrandDirection(
+                    block.strand,
+                    {
+                        centerY: centeredPositionY,
+                        height: height,
+                        width: blockItemPxEnd - blockItemPxStart,
+                        x: blockItemPxStart
+                    },
+                    hoveredGraphics,
+                    hoveredStrandFill,
+                    this.config.transcript.features.strand.arrow,
+                    1,
+                    ::this.updateTextureCoordinates
+                );
             }
 
         }
         graphics
             .lineStyle(this.config.transcript.features.border.thickness, this.config.transcript.features.border.color, 1)
+            .drawRect(
+                blockPxStart,
+                centeredPositionY - height / 2,
+                blockPxEnd - blockPxStart,
+                height
+            );
+        hoveredGraphics
+            .lineStyle(this.config.transcript.features.border.thickness, ColorProcessor.darkenColor(this.config.transcript.features.border.color), 1)
             .drawRect(
                 blockPxStart,
                 centeredPositionY - height / 2,
@@ -143,7 +184,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
     }
 
     _renderEmptyBlock(opts) {
-        const {viewport, graphics, block, centeredPositionY} = opts;
+        const {viewport, graphics, hoveredGraphics, block, centeredPositionY} = opts;
         const pixelsInBp = viewport.factor;
         const blockPxStart = Math.max(viewport.project.brushBP2pixel(block.startIndex), -viewport.canvasSize) - pixelsInBp / 2;
         const blockPxEnd = Math.min(viewport.project.brushBP2pixel(block.endIndex), 2 * viewport.canvasSize) + pixelsInBp / 2;
@@ -152,6 +193,12 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         graphics
             .beginFill(white, 0)
             .lineStyle(this.config.transcript.thickness, this.config.transcript.fill, 1)
+            .moveTo(blockPxStart, centeredPositionY)
+            .lineTo(blockPxEnd, centeredPositionY)
+            .endFill();
+        hoveredGraphics
+            .beginFill(white, 0)
+            .lineStyle(this.config.transcript.thickness, ColorProcessor.darkenColor(this.config.transcript.fill), 1)
             .moveTo(blockPxStart, centeredPositionY)
             .lineTo(blockPxEnd, centeredPositionY)
             .endFill();
@@ -175,11 +222,25 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                 1,
                 ::this.updateTextureCoordinates
             );
+            drawStrandDirection(
+                block.strand,
+                {
+                    centerY: centeredPositionY,
+                    height: height,
+                    width: blockPxEnd - blockPxStart,
+                    x: blockPxStart
+                },
+                hoveredGraphics,
+                ColorProcessor.darkenColor(this.config.transcript.strand.fill),
+                this.config.transcript.strand.arrow,
+                1,
+                ::this.updateTextureCoordinates
+            );
         }
     }
 
     _renderAminoacid(opts) {
-        const {block, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position, centeredPositionY} = opts;
+        const {block, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position, centeredPositionY} = opts;
         const shouldDrawAminoacid = this._aminoacidFeatureRenderer !== null ?
             this._aminoacidFeatureRenderer.shouldDrawAminoacids(viewport) : false;
         if (shouldDrawAminoacid) {
@@ -195,6 +256,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                             blockItem,
                             viewport,
                             graphics,
+                            hoveredGraphics,
                             labelContainer,
                             dockableElementsContainer,
                             attachedElementsContainer,
@@ -208,8 +270,8 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         }
     }
 
-    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
-        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
         const pixelsInBp = viewport.factor;
         const transcriptConfig = this.config.transcript;
         const aminoacidsFitsViewport = this._aminoacidFeatureRenderer.aminoacidsFitsViewport(feature, viewport);
@@ -248,6 +310,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                         block,
                         centeredPositionY,
                         graphics,
+                        hoveredGraphics,
                         viewport,
                     });
                     this._renderAminoacid({
@@ -256,6 +319,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                         dockableElementsContainer,
                         attachedElementsContainer,
                         graphics,
+                        hoveredGraphics,
                         labelContainer,
                         position,
                         viewport,
@@ -266,6 +330,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                         block,
                         centeredPositionY,
                         graphics,
+                        hoveredGraphics,
                         viewport,
                     });
                 }

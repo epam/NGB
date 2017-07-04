@@ -36,8 +36,10 @@ package com.epam.catgenome.controller.vo.registration;
  *
  */
 public class DefaultFileRegistrationRequest {
+
     private String path;
     private String name;
+    private String prettyName;
 
     public String getPath() {
         return path;
@@ -53,5 +55,13 @@ public class DefaultFileRegistrationRequest {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPrettyName() {
+        return prettyName;
+    }
+
+    public void setPrettyName(String prettyName) {
+        this.prettyName = prettyName;
     }
 }

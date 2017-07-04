@@ -230,9 +230,22 @@ export default class ngbOpenFileFromNGBServerController {
         if (indexExtensions) {
             for (let i = 0; i < indexExtensions.length; i++) {
                 const extension = indexExtensions[i];
-                const name = `${track.name}.${extension}`.toLowerCase();
+                const nameVersion1 = `${track.name}.${extension}`.toLowerCase();
+                let nameVersion2 = null;
+                if (track.format.toLowerCase() === 'bam') {
+                    const nameParts = track.name.split('.');
+                    nameVersion2 = '';
+                    for (let i = 0; i < nameParts.length - 1; i ++) {
+                        nameVersion2 += `${nameParts[i]}.`;
+                    }
+                    nameVersion2 += `${extension}`;
+                    nameVersion2 = nameVersion2.toLowerCase();
+                }
                 const format = `${track.format.toLowerCase()}_index`;
-                const [indexFile] = files.filter(t => t.track.format.toLowerCase() === format && t.track.name.toLowerCase() === name);
+                const [indexFile] = files.filter(t => t.track.format.toLowerCase() === format &&
+                (
+                    t.track.name.toLowerCase() === nameVersion1 ||
+                    (nameVersion2 !== null && t.track.name.toLowerCase() === nameVersion2)));
                 if (indexFile) {
                     return indexFile;
                 }

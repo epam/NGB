@@ -33,6 +33,7 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 
+import com.epam.ngb.cli.app.Utils;
 import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
 import com.epam.ngb.cli.entity.Project;
@@ -596,19 +597,49 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
      */
     protected Pair<String, String> parseAndVerifyFilePath(String path) {
         Pair<String, String> fileWithIndex = splitFilePath(path);
+        String fileAbsolutePath = Utils.getNormalizeAndAbsolutePath(fileWithIndex.getLeft());
+
+        if (fileWithIndex.getRight() == null) {
+            fileWithIndex = setIndexPathFromServer(fileAbsolutePath, fileWithIndex);
+        }
+
         BiologicalDataItemFormat format = BiologicalDataItemFormat.getByFilePath(fileWithIndex.getLeft());
         if (format.isRequireIndex() && fileWithIndex.getRight() == null) {
             throw new IllegalArgumentException(getMessage(ERROR_INDEX_REQUIRED, fileWithIndex.getLeft()));
         }
+
+        String index = null;
         if (fileWithIndex.getRight() != null) {
             boolean indexSupported = format.verifyIndex(fileWithIndex.getRight());
             //if server doesn't support a given index, but index is also not required
             //we don't pass it to server
-            if (!indexSupported) {
-                return new ImmutablePair<>(fileWithIndex.getLeft(), null);
+            if (indexSupported) {
+                index = Utils.getNormalizeAndAbsolutePath(fileWithIndex.getRight());
             }
         }
-        return fileWithIndex;
+        return Pair.of(fileAbsolutePath, index);
+    }
+
+    private Pair<String, String> setIndexPathFromServer(String path, Pair<String, String> fileWithIndex) {
+        Pair<String, String> fileWithIndexFromServer = fileWithIndex;
+        try {
+            URI existingIndexGetterUri = new URIBuilder(serverParameters.getServerUrl()
+                    + serverParameters.getExistingIndexSearchUrl()).addParameter("filePath", path).build();
+            HttpGet indexSearchRequest = new HttpGet(existingIndexGetterUri);
+            setDefaultHeader(indexSearchRequest);
+            String result = RequestManager.executeRequest(indexSearchRequest);
+            ResponseResult<String> responseResult = getMapper().readValue(result, getMapper().getTypeFactory()
+                    .constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                            getMapper().getTypeFactory()
+                                    .constructType(String.class)));
+            String indexFromServer = responseResult.getPayload();
+            if (indexFromServer != null) {
+                fileWithIndexFromServer = Pair.of(fileWithIndex.getLeft(), indexFromServer);
+            }
+        } catch (URISyntaxException | IOException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
+        return fileWithIndexFromServer;
     }
 
     private Pair<String, String> splitFilePath(String path) {

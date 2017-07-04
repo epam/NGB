@@ -96,10 +96,16 @@ public enum FeatureType {
     /**
      * A project's bookmark
      */
-    BOOKMARK("bookmark");
+    BOOKMARK("bookmark"),
 
+    /**
+     * A gene feature from GFF/GTF file
+     */
+    BED_FEATURE("bed_feature");
+
+    public static final int NUMBER_OF_TYPES = 12;
     private String fileValue;
-    private static Map<String, FeatureType> namesMap = new HashMap<>(10);
+    private static Map<String, FeatureType> namesMap = new HashMap<>(NUMBER_OF_TYPES);
 
     static {
         namesMap.put(GENE.getFileValue().toUpperCase(), GENE);
@@ -113,6 +119,7 @@ public enum FeatureType {
         namesMap.put(STOP_CODON.getFileValue().toUpperCase(), STOP_CODON);
         namesMap.put(VARIATION.getFileValue().toUpperCase(), VARIATION);
         namesMap.put(BOOKMARK.getFileValue().toUpperCase(), BOOKMARK);
+        namesMap.put(BED_FEATURE.getFileValue().toUpperCase(), BED_FEATURE);
     }
 
     FeatureType(String s) {

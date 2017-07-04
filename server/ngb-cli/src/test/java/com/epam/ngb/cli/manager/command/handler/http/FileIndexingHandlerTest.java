@@ -54,12 +54,20 @@ public class FileIndexingHandlerTest extends AbstractCliTest {
     private static final String PATH_TO_VCF = "path/test.vcf";
     private static final String VCF_NAME = "test.vcf";
 
+    private static final Long BED_BIO_ID = 3L;
+    private static final Long BED_ID = 1L;
+    private static final String PATH_TO_BED = "path/example.bed";
+    private static final String BED_NAME = "example.bed";
+
     @BeforeClass
     public static void setUp() {
         server.start();
 
         server.addFile(VCF_BIO_ID, VCF_ID, VCF_NAME, PATH_TO_VCF, BiologicalDataItemFormat.VCF);
         server.addFileIndexing(VCF_ID, VCF_NAME, BiologicalDataItemFormat.VCF);
+
+        server.addFile(BED_BIO_ID, BED_ID, BED_NAME, PATH_TO_BED, BiologicalDataItemFormat.BED);
+        server.addFileIndexing(BED_ID, BED_NAME, BiologicalDataItemFormat.BED);
 
         serverParameters = getDefaultServerOptions(server.getPort());
     }
@@ -71,25 +79,36 @@ public class FileIndexingHandlerTest extends AbstractCliTest {
 
     @Test
     public void testReindexByID() {
-        FileIndexingHandler handler = getFileIndexationHandler();
+        FileIndexingHandler handler = getFileIndexingHandler();
         handler.parseAndVerifyArguments(Collections.singletonList(VCF_BIO_ID.toString()), new ApplicationOptions());
+        Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
+
+        handler = getFileIndexingHandler();
+        handler.parseAndVerifyArguments(Collections.singletonList(BED_BIO_ID.toString()), new ApplicationOptions());
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
     @Test
     public void testReindexByName() {
-        FileIndexingHandler handler = getFileIndexationHandler();
+        FileIndexingHandler handler = getFileIndexingHandler();
         handler.parseAndVerifyArguments(Collections.singletonList(VCF_NAME), new ApplicationOptions());
+        Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
+
+        handler = getFileIndexingHandler();
+        handler.parseAndVerifyArguments(Collections.singletonList(BED_NAME), new ApplicationOptions());
         Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testWrongArguments() {
-        FileIndexingHandler handler = getFileIndexationHandler();
+        FileIndexingHandler handler = getFileIndexingHandler();
         handler.parseAndVerifyArguments(Arrays.asList(VCF_BIO_ID.toString(), VCF_NAME), new ApplicationOptions());
+
+        handler = getFileIndexingHandler();
+        handler.parseAndVerifyArguments(Arrays.asList(BED_BIO_ID.toString(), BED_NAME), new ApplicationOptions());
     }
 
-    private FileIndexingHandler getFileIndexationHandler() {
+    private FileIndexingHandler getFileIndexingHandler() {
         FileIndexingHandler handler = new FileIndexingHandler();
         handler.setServerParameters(serverParameters);
         handler.setConfiguration(getCommandConfiguration(COMMAND));

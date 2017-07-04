@@ -31,8 +31,8 @@ export class StatisticsContainer extends VariantBaseContainer {
         const label = new PIXI.Text(NumberFormatter.textWithPrefix(this._variant.variationsCount, false),
             this._config.statistics.label);
         label.resolution = drawingConfiguration.resolution;
-        label.x = Math.round(-label.width / 2);
-        label.y = Math.round(-this._config.statistics.height - this._variant.bubble.radius - label.height / 2);
+        label.x = Math.floor(-label.width / 2);
+        label.y = Math.floor(-this._config.statistics.height - this._variant.bubble.radius - label.height / 2);
         this._container.addChild(label);
         manager.submitArea('default', {
             global: {
@@ -62,8 +62,8 @@ export class StatisticsContainer extends VariantBaseContainer {
             .lineStyle(0, this._config.statistics.bubble.stroke.color, 0);
         this._graphics
             .beginFill(this._config.statistics.bubble.fill, 1)
-            .drawCircle(0, -this._config.statistics.height - this._variant.bubble.radius,
-                this._variant.bubble.radius + extraSize)
+            .drawCircle(0, Math.floor(-this._config.statistics.height - this._variant.bubble.radius),
+                Math.round(this._variant.bubble.radius + extraSize))
             .endFill();
     }
 

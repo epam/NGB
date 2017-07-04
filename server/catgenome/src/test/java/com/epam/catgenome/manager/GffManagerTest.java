@@ -127,6 +127,7 @@ public class GffManagerTest extends AbstractManagerTest {
     private static final int TEST_CENTER_POSITION = 109836;
     private static final int TEST_VIEW_PORT_SIZE = 30000;
     private static final int TEST_INTRON_LENGTH = 100;
+    public static final String PRETTY_NAME = "pretty";
 
     @Autowired
     ApplicationContext context;
@@ -226,10 +227,13 @@ public class GffManagerTest extends AbstractManagerTest {
             request.setIndexPath(indexUrl);
             request.setType(BiologicalDataItemResourceType.URL);
             request.setIndexType(BiologicalDataItemResourceType.URL);
+            request.setPrettyName(PRETTY_NAME);
 
             GeneFile geneFile = gffManager.registerGeneFile(request);
-            Assert.assertNotNull(geneFile);
-            Assert.assertNotNull(geneFile.getId());
+            GeneFile loadedGeneFile = geneFileManager.loadGeneFile(geneFile.getId());
+            Assert.assertNotNull(loadedGeneFile);
+            Assert.assertNotNull(loadedGeneFile.getId());
+            Assert.assertEquals(PRETTY_NAME, loadedGeneFile.getPrettyName());
 
             Track<Wig> histogram = new Track<>();
             histogram.setId(geneFile.getId());
@@ -305,6 +309,30 @@ public class GffManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(loadPrevExon);
         Assert.assertEquals(firstExon.getStartIndex(), loadPrevExon.getStartIndex());
         Assert.assertEquals(firstExon.getEndIndex(), loadPrevExon.getEndIndex());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testDeleteGeneWithIndex() throws IOException, InterruptedException, FeatureIndexException,
+            NoSuchAlgorithmException, GeneReadingException {
+        Resource resource = context.getResource(GENES_SORTED_GTF_PATH);
+
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        GeneFile geneFile = gffManager.registerGeneFile(request);
+        Assert.assertNotNull(geneFile);
+        Assert.assertNotNull(geneFile.getId());
+        try {
+            referenceGenomeManager.updateReferenceAnnotationFile(referenceId, geneFile.getBioDataItemId(), false);
+            geneFileManager.deleteGeneFile(geneFile);
+        //expected exception
+        } catch (IllegalArgumentException e) {
+            //remove file correctly as expected
+            referenceGenomeManager.updateReferenceAnnotationFile(referenceId, geneFile.getBioDataItemId(), true);
+            geneFileManager.deleteGeneFile(geneFile);
+        }
     }
 
     @Test

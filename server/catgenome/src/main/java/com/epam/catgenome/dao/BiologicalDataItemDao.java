@@ -79,6 +79,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     private String loadBiologicalDataItemsByNameStrictQuery;
     private String loadBiologicalDataItemsByNamesStrictQuery;
     private String loadBiologicalDataItemsByNameQuery;
+    private String loadBiologicalDataItemsByNameCaseInsensitiveQuery;
 
     @Autowired
     private DaoHelper daoHelper;
@@ -113,6 +114,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         params.addValue(BiologicalDataItemParameters.CREATED_DATE.name(), item.getCreatedDate());
         params.addValue(BiologicalDataItemParameters.CREATED_BY.name(), item.getCreatedBy());
         params.addValue(BiologicalDataItemParameters.BUCKET_ID.name(), item.getBucketId());
+        params.addValue(BiologicalDataItemParameters.PRETTY_NAME.name(), item.getPrettyName());
 
         getNamedParameterJdbcTemplate().update(insertBiologicalDataItemQuery, params);
     }
@@ -172,6 +174,14 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
+    public List<BiologicalDataItem> loadFilesByNameCaseInsensitive(final String name) {
+        final MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue(BiologicalDataItemParameters.NAME.name(), name.toLowerCase());
+        return getNamedParameterJdbcTemplate().query(loadBiologicalDataItemsByNameCaseInsensitiveQuery,
+                params, getRowMapper());
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
     public List<BiologicalDataItem> loadFilesByNamesStrict(final List<String> names) {
         if (CollectionUtils.isEmpty(names)) {
             return Collections.emptyList();
@@ -209,6 +219,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         CREATED_BY,
         CREATED_DATE,
         BUCKET_ID,
+        PRETTY_NAME,
 
         VCF_ID,
         VCF_REFERENCE_GENOME_ID,
@@ -313,6 +324,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
             dataItem.setFormat(format);
             dataItem.setCreatedBy(rs.getLong(CREATED_BY.name()));
             dataItem.setCreatedDate(new Date(rs.getTimestamp(CREATED_DATE.name()).getTime()));
+            dataItem.setPrettyName(rs.getString(PRETTY_NAME.name()));
 
             return dataItem;
         }
@@ -558,5 +570,10 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadBiologicalDataItemsByNamesStrictQuery(String loadBiologicalDataItemsByNamesStrictQuery) {
         this.loadBiologicalDataItemsByNamesStrictQuery = loadBiologicalDataItemsByNamesStrictQuery;
+    }
+
+    public void setLoadBiologicalDataItemsByNameCaseInsensitiveQuery(
+            String loadBiologicalDataItemsByNameCaseInsensitiveQuery) {
+        this.loadBiologicalDataItemsByNameCaseInsensitiveQuery = loadBiologicalDataItemsByNameCaseInsensitiveQuery;
     }
 }

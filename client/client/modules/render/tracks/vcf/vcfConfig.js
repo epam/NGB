@@ -17,7 +17,8 @@ export default {
     },
     height: 70,
     maxHeight: 200,
-    minHeight: 70,
+    minHeight: 50,
+    fitHeightFactor: 1.5,
     statistics: {
         bubble: {
             fill: 0x92AEE7,

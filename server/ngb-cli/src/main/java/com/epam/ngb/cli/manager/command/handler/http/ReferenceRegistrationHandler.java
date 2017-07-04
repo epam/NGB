@@ -28,6 +28,7 @@ import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUME
 
 import java.util.List;
 
+import com.epam.ngb.cli.app.Utils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -54,6 +55,10 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
      * Optional reference name for registration
      */
     private String referenceName;
+    /**
+     * Pretty name of a reference
+     */
+    private String prettyName;
     /**
      * Path to the reference file
      */
@@ -99,7 +104,7 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
             throw new IllegalArgumentException(MessageConstants.getMessage(ILLEGAL_COMMAND_ARGUMENTS,
                     getCommand(), 1, arguments.size()));
         }
-        referencePath = arguments.get(0);
+        referencePath = Utils.getNormalizeAndAbsolutePath(arguments.get(0));
         if (options.getName() != null) {
             referenceName = options.getName();
         }
@@ -108,15 +113,17 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
                 geneFileId = loadFileByNameOrBioID(options.getGeneFile()).getId();
             } catch (ApplicationException e) {
                 LOGGER.debug(e.getMessage(), e);
-                Pair<String, String> path =
-                        parseAndVerifyFilePath(options.getGeneFile());
-                geneFilePath = path.getLeft();
-                geneIndexPath = path.getRight();
+                Pair<String, String> path = parseAndVerifyFilePath(options.getGeneFile());
+                geneFilePath = Utils.getNormalizeAndAbsolutePath(path.getLeft());
+                if (geneIndexPath != null) {
+                    geneIndexPath = Utils.getNormalizeAndAbsolutePath(path.getRight());
+                }
             }
         }
         printJson = options.isPrintJson();
         printTable = options.isPrintTable();
         noGCContent = options.isNoGCContent();
+        prettyName = options.getPrettyName();
     }
 
     /**
@@ -132,6 +139,7 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
         }
         RegistrationRequest registration = new RegistrationRequest();
         registration.setName(referenceName);
+        registration.setPrettyName(prettyName);
         registration.setPath(referencePath);
         registration.setGeneFileId(geneFileId);
         if (noGCContent) {

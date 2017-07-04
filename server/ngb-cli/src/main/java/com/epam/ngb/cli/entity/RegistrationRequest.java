@@ -41,6 +41,7 @@ public class RegistrationRequest implements RequestPayload {
     private RegistrationRequest geneFileRequest;
     private Boolean doIndex;
     private Boolean noGCContent;
+    private String prettyName;
 
     public String getPath() {
         return path;
@@ -128,5 +129,13 @@ public class RegistrationRequest implements RequestPayload {
 
     public void setIndexType(BiologicalDataItemResourceType indexType) {
         this.indexType = indexType;
+    }
+
+    public String getPrettyName() {
+        return prettyName;
+    }
+
+    public void setPrettyName(String prettyName) {
+        this.prettyName = prettyName;
     }
 }

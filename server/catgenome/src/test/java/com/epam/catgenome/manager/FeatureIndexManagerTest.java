@@ -38,6 +38,8 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.bed.BedFile;
+import com.epam.catgenome.manager.bed.BedManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -105,6 +107,8 @@ import com.epam.catgenome.util.Utils;
 public class FeatureIndexManagerTest extends AbstractManagerTest {
     private static final String CLASSPATH_TEMPLATES_FELIS_CATUS_VCF = "classpath:templates/Felis_catus.vcf";
     private static final String CLASSPATH_TEMPLATES_GENES_SORTED = "classpath:templates/genes_sorted.gtf";
+    private static final String CLASSPATH_TEMPLATES_BED = "classpath:templates/example.bed";
+
     private static final int SVLEN_VALUE = -150;
     //public static final float QUAL_VALUE = -10.0F;
     private static final int CONST_42 = 42;
@@ -118,6 +122,8 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     private static final int INTERVAL2_END = 650_000;
     private static final int INTERVAL3_START = 35470;
     private static final int INTERVAL3_END = 35490;
+    private static final int BED_FEATURE_START = 127471197;
+    private static final int BED_FEATURE_END = 127472363;
 
     private Logger logger = LoggerFactory.getLogger(FeatureIndexManagerTest.class);
 
@@ -129,6 +135,9 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
     @Autowired
     private GffManager gffManager;
+
+    @Autowired
+    private BedManager bedManager;
 
     @Autowired
     private ProjectManager projectManager;
@@ -162,6 +171,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
     private VcfFile testVcf;
     private GeneFile testGeneFile;
+    private BedFile testBedFile;
     private Project testProject;
 
     @Before
@@ -182,6 +192,15 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         testGeneFile = gffManager.registerGeneFile(request);
 
         referenceGenomeManager.updateReferenceGeneFileId(testReference.getId(), testGeneFile.getId());
+
+        Resource bedResource = context.getResource(CLASSPATH_TEMPLATES_BED);
+        FeatureIndexedFileRegistrationRequest bedFileRequest = new FeatureIndexedFileRegistrationRequest();
+        bedFileRequest.setReferenceId(referenceId);
+        bedFileRequest.setPath(bedResource.getFile().getAbsolutePath());
+
+        testBedFile = bedManager.registerBed(bedFileRequest);
+        // TODO Ask about indexing bed with registration
+        bedManager.reindexBedFile(testBedFile.getId());
 
         resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
@@ -239,7 +258,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         Map<String, Object> additionalFilters = new HashMap<>();
         additionalFilters.put(SVTYPE_FIELD, "DEL");
         //additionalFilters.put("SVLEN", SVLEN_VALUE);
-        additionalFilters.put(SVLEN_FIELD, Arrays.asList(null, SVLEN_VALUE));
+        additionalFilters.put(SVLEN_FIELD, String.valueOf(SVLEN_VALUE));
         vcfFilterForm.setAdditionalFilters(additionalFilters);
         vcfFilterForm.setGenes(null);
         vcfFilterForm.setVariationTypes(null);
@@ -617,8 +636,9 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
                 featureIndexManager.searchFeaturesInProject("", project.getId()).getEntries();
         Assert.assertTrue(entryList.isEmpty());
 
-        entryList = (List<FeatureIndexEntry>) featureIndexManager.searchFeaturesInProject("AM992871",
-                                                                                          project.getId()).getEntries();
+        entryList = (List<FeatureIndexEntry>) featureIndexManager.searchFeaturesInProject(
+                "AM992871", project.getId()
+        ).getEntries();
         Assert.assertTrue(entryList.isEmpty()); // we don't search for exons
     }
 
@@ -763,7 +783,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         Map<String, Object> additionalFilters = new HashMap<>();
         additionalFilters.put(SVTYPE_FIELD, "DEL");
         //additionalFilters.put("SVLEN", SVLEN_VALUE);
-        additionalFilters.put(SVLEN_FIELD, Arrays.asList(null, SVLEN_VALUE));
+        additionalFilters.put(SVLEN_FIELD, String.valueOf(SVLEN_VALUE));
         vcfFilterForm.setAdditionalFilters(additionalFilters);
         vcfFilterForm.setGenes(null);
         vcfFilterForm.setVariationTypes(null);
@@ -809,19 +829,59 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testGeneIndexForFile() throws IOException {
-        IndexSearchResult searchResult = featureIndexDao.searchFeatures("", testGeneFile, null);
+        IndexSearchResult searchResult = featureIndexDao.searchFeatures(
+                "",
+                Collections.singletonList(testGeneFile),
+                null
+        );
         Assert.assertTrue(searchResult.getEntries().isEmpty());
 
-        searchResult = featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), testGeneFile, 10);
+        searchResult = featureIndexDao.searchFeatures(
+                TEST_GENE_PREFIX.toLowerCase(),
+                Collections.singletonList(testGeneFile),
+                10
+        );
         Assert.assertFalse(searchResult.getEntries().isEmpty());
         Assert.assertTrue(searchResult.getEntries().size() <= 10);
         Assert.assertTrue(searchResult.isExceedsLimit());
 
         // ensfcag00000031547 and ccdc115
-        searchResult = featureIndexDao.searchFeatures("ensfcag00000031547", testGeneFile, null);
+        searchResult = featureIndexDao.searchFeatures(
+                "ensfcag00000031547",
+                Collections.singletonList(testGeneFile),
+                null
+        );
         Assert.assertEquals(searchResult.getEntries().size(), 1);
-        searchResult = featureIndexDao.searchFeatures("ccdc115", testGeneFile, null);
+        searchResult = featureIndexDao.searchFeatures(
+                "ccdc115",
+                Collections.singletonList(testGeneFile),
+                null
+        );
         Assert.assertEquals(searchResult.getEntries().size(), 2);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testBedIndexForFile() throws IOException {
+        IndexSearchResult<FeatureIndexEntry> searchResult = featureIndexDao.searchFeatures(
+                "",
+                Collections.singletonList(testBedFile),
+                null
+        );
+        Assert.assertTrue(searchResult.getEntries().isEmpty());
+
+        searchResult = featureIndexDao.searchFeatures(
+                "Pos1",
+                Collections.singletonList(testBedFile),
+                null
+        );
+        List<FeatureIndexEntry> entries = searchResult.getEntries();
+        Assert.assertEquals(1, entries.size());
+        Assert.assertEquals("pos1", entries.get(0).getFeatureName());
+        Assert.assertEquals("A1", entries.get(0).getChromosome().getName());
+        // The BED format uses a first-base-is-zero convention,  Tribble features use 1 => add 1.
+        Assert.assertEquals(BED_FEATURE_START, (int) entries.get(0).getStartIndex());
+        Assert.assertEquals(BED_FEATURE_END, (int) entries.get(0).getEndIndex());
     }
 
     @Test
@@ -865,17 +925,29 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         GeneFile geneFile = gffManager.registerGeneFile(geneRequest);
 
-        IndexSearchResult searchResult = featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), geneFile, 10);
+        IndexSearchResult searchResult = featureIndexDao.searchFeatures(
+                TEST_GENE_PREFIX.toLowerCase(),
+                Collections.singletonList(geneFile),
+                10
+        );
         Assert.assertFalse(searchResult.getEntries().isEmpty());
         Assert.assertTrue(searchResult.getEntries().size() <= 10);
         Assert.assertTrue(searchResult.isExceedsLimit());
 
         fileManager.deleteFileFeatureIndex(geneFile);
-        TestUtils.assertFail(() -> featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), geneFile, 10),
-                             Collections.singletonList(IllegalArgumentException.class));
+        TestUtils.assertFail(() -> featureIndexDao.searchFeatures(
+                TEST_GENE_PREFIX.toLowerCase(),
+                Collections.singletonList(geneFile), 10
+                ),
+                Collections.singletonList(IllegalArgumentException.class)
+        );
 
         gffManager.reindexGeneFile(geneFile.getId(), false);
-        searchResult = featureIndexDao.searchFeatures("ens", geneFile, 10);
+        searchResult = featureIndexDao.searchFeatures(
+                "ens",
+                Collections.singletonList(geneFile),
+                10
+        );
         Assert.assertFalse(searchResult.getEntries().isEmpty());
         Assert.assertTrue(searchResult.getEntries().size() <= 10);
         Assert.assertTrue(searchResult.isExceedsLimit());
@@ -920,8 +992,13 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         GeneFile geneFile = gffManager.registerGeneFile(geneRequest);
         Assert.assertNotNull(geneFile);
 
-        TestUtils.assertFail(() -> featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), geneFile, 10),
-                             Collections.singletonList(IllegalArgumentException.class));
+        TestUtils.assertFail(() -> featureIndexDao.searchFeatures(
+                TEST_GENE_PREFIX.toLowerCase(),
+                Collections.singletonList(geneFile),
+                10
+                ),
+                Collections.singletonList(IllegalArgumentException.class)
+        );
     }
 
     @Test
@@ -1297,7 +1374,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
     private void checkDuplicates(List<VcfIndexEntry> entryList) {
         Map<Pair<Integer, Integer>, FeatureIndexEntry> duplicateMap = new HashMap<>();
-        entryList.stream().forEach(e -> {
+        entryList.forEach(e -> {
             Pair<Integer, Integer> indexPair = new ImmutablePair<>(e.getStartIndex(), e.getEndIndex());
             Assert.assertFalse(String.format("Found duplicate: %d, %d", e.getStartIndex(), e.getEndIndex()),
                     duplicateMap.containsKey(indexPair));

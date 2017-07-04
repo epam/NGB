@@ -17,13 +17,15 @@ export default class VariantRenderer {
     _variantFeatureRenderer: VariantBaseRenderer;
 
     _displayTooltipFn = null;
+    _affectedGeneTranscriptChanged = null;
     _options = null;
 
-    constructor(canvas: HTMLElement, displayTooltip = null) {
+    constructor(canvas: HTMLElement, displayTooltip = null, affectedGeneTranscriptChanged = null) {
         this._canvas = canvas;
         this._width = canvas.clientWidth;
         this._height = 0;
         this._displayTooltipFn = displayTooltip;
+        this._affectedGeneTranscriptChanged = affectedGeneTranscriptChanged;
         this._pixiRenderer = getRenderer({
             width: this.width,
             height: this.height
@@ -57,8 +59,7 @@ export default class VariantRenderer {
     }
 
     set variant(v) {
-        this._variant = v;
-        this.changeFeatureRenderer();
+        this.updateVariant(v, true);
     }
 
     get options() {
@@ -81,7 +82,16 @@ export default class VariantRenderer {
         return this._height;
     }
 
-    variantSelectedAlternativeAlleleChanged() {
+    updateVariant(variant, rebuildRenderer) {
+        this._variant = variant;
+        if (rebuildRenderer) {
+            this.changeFeatureRenderer();
+        } else {
+            this.variantSubFeatureChanged();
+        }
+    }
+
+    variantSubFeatureChanged() {
         if (this.variantFeatureRenderer !== null && this.variantFeatureRenderer !== undefined) {
             const flags = this.getFlags();
             if (flags.widthChanged) {
@@ -102,12 +112,12 @@ export default class VariantRenderer {
                     case 'ins':
                     case 'snp':
                     case 'snv':
-                        this._variantFeatureRenderer = new ShortVariantRenderer(this.variant, ::this.onRendererHeightChanged, ::this._displayTooltipFn, ::this.updateScene, ::this.reRenderScene);
+                        this._variantFeatureRenderer = new ShortVariantRenderer(this.variant, ::this.onRendererHeightChanged, ::this._displayTooltipFn, ::this._affectedGeneTranscriptChanged, ::this.updateScene, ::this.reRenderScene);
                         break;
                 }
             }
             else {
-                this._variantFeatureRenderer = new StructuralVariantRenderer(this.variant, ::this.onRendererHeightChanged, ::this._displayTooltipFn, ::this.updateScene, ::this.reRenderScene);
+                this._variantFeatureRenderer = new StructuralVariantRenderer(this.variant, ::this.onRendererHeightChanged, ::this._displayTooltipFn, ::this._affectedGeneTranscriptChanged, ::this.updateScene, ::this.reRenderScene);
             }
             if (this.variantFeatureRenderer !== null && this.variantFeatureRenderer !== undefined) {
                 this.variantFeatureRenderer._options = this.options;

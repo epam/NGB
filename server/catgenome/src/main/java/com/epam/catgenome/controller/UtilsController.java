@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import com.epam.catgenome.controller.vo.UrlRequestVO;
+import com.epam.catgenome.util.IndexUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -138,5 +139,14 @@ public class UtilsController extends AbstractRESTController {
             })
     public Result<Map<String, Map<String, Object>>> getDefaultTracksSettings() throws IOException {
         return Result.success(fileManager.getDefaultTrackSettings());
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/getPathToExistingIndex", method = RequestMethod.GET)
+    @ApiOperation(value = "Return path of existing index for file, or null if it don't exist",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)})
+    public Result<String> getPathToExistingIndex(@RequestParam String filePath) throws IOException {
+        return Result.success(IndexUtils.checkExistingIndex(filePath));
     }
 }

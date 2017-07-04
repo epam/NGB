@@ -68,8 +68,12 @@ import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class MafManagerTest extends AbstractManagerTest {
+    public static final String PRETTY_NAME = "pretty";
     @Autowired
     private MafManager mafManager;
+
+    @Autowired
+    private MafFileManager mafFileManager;
 
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
@@ -134,9 +138,15 @@ public class MafManagerTest extends AbstractManagerTest {
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(resource.getFile().getAbsolutePath());
         request.setReferenceId(referenceId);
+        request.setPrettyName(PRETTY_NAME);
 
         MafFile mafFile = mafManager.registerMafFile(request);
         Assert.assertNotNull(mafFile);
+
+        MafFile loadedMafFile = mafFileManager.loadMafFile(mafFile.getId());
+        Assert.assertEquals(mafFile.getId(), loadedMafFile.getId());
+        Assert.assertEquals(mafFile.getName(), loadedMafFile.getName());
+        Assert.assertEquals(PRETTY_NAME, loadedMafFile.getPrettyName());
 
         Track<MafRecord> track = new Track<>();
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);

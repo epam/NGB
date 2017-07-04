@@ -1,6 +1,6 @@
 import FeatureBaseRenderer from './featureBaseRenderer';
 import PIXI from 'pixi.js';
-import {PixiTextSize} from '../../../../../../utilities';
+import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import {drawingConfiguration} from '../../../../../../core';
 
 const AMINOACID_LENGTH_IN_BASE_PAIRS = 3;
@@ -135,8 +135,8 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
         return boundaries;
     }
 
-    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
-        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
         feature.aminoacidSequence = feature.aminoacidSequence || [];
 
         const minStartIndex = viewport.project.pixel2brushBP(-viewport.canvasSize);
@@ -189,6 +189,41 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
             graphics
                 .beginFill(fill, 1)
                 .lineStyle(0, fill, 0)
+                .moveTo(
+                    viewport.project.brushBP2pixel(acid.startIndex) - pixelsInBp / 2 + startDiff,
+                    position.y - height / 2
+                )
+                .lineTo(
+                    viewport.project.brushBP2pixel(acid.startIndex) - pixelsInBp / 2 + startDiff +
+                    startStrandFactor * this.config.transcript.features.strand.arrow.height / 2,
+                    position.y
+                )
+                .lineTo(
+                    viewport.project.brushBP2pixel(acid.startIndex) - pixelsInBp / 2 + startDiff,
+                    position.y + height / 2
+                )
+                .lineTo(
+                    viewport.project.brushBP2pixel(acid.endIndex) + pixelsInBp / 2 + endDiff,
+                    position.y + height / 2
+                )
+                .lineTo(
+                    viewport.project.brushBP2pixel(acid.endIndex) + pixelsInBp / 2 + endDiff +
+                    endStrandFactor * this.config.transcript.features.strand.arrow.height / 2,
+                    position.y
+                )
+                .lineTo(
+                    viewport.project.brushBP2pixel(acid.endIndex) + pixelsInBp / 2 + endDiff,
+                    position.y - height / 2
+                )
+                .lineTo(
+                    viewport.project.brushBP2pixel(acid.startIndex) - pixelsInBp / 2 + startDiff,
+                    position.y - height / 2
+                )
+                .endFill();
+
+            hoveredGraphics
+                .beginFill(ColorProcessor.darkenColor(fill, 0.2), 1)
+                .lineStyle(0, ColorProcessor.darkenColor(fill, 0.2), 0)
                 .moveTo(
                     viewport.project.brushBP2pixel(acid.startIndex) - pixelsInBp / 2 + startDiff,
                     position.y - height / 2

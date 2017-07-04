@@ -16,7 +16,7 @@ export class VCFTrack extends GENETrack{
     projectContext;
 
     static getTrackDefaultConfig() {
-        return Object.assign(GeneConfig, VcfConfig);
+        return Object.assign({}, GeneConfig, VcfConfig);
     }
 
     get stateKeys() {
@@ -53,6 +53,7 @@ export class VCFTrack extends GENETrack{
             fn(this.state);
             this.transformer.collapsed = this.state.variantsView === variantsView.variantsViewCollapsed;
             if (oldVariantsView !== this.state.variantsView) {
+                this.cache = {};
                 this._flags.renderReset = true;
             }
             this.updateAndRefresh();
@@ -193,7 +194,7 @@ export class VCFTrack extends GENETrack{
             const checkPositionResult = this.renderer.checkPosition(this.viewport, this.cache,
                 {x, y}, false);
             if (checkPositionResult && checkPositionResult.length > 0) {
-                const variant = checkPositionResult[0];
+                const variant = checkPositionResult[0].feature;
                 const self = this;
                 const mapFn = function(m) {
                     return {
@@ -330,7 +331,7 @@ export class VCFTrack extends GENETrack{
                 ['Count', data[0].value]
             ];
         } else if (data.length > 0) {
-            const variant = data[0];
+            const variant = data[0].feature;
             const tooltip = [
                 ['Chromosome', this.config.chromosome.name],
                 ['Start', variant.startIndex],

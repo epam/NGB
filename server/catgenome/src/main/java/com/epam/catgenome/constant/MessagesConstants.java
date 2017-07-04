@@ -64,6 +64,7 @@ public final class MessagesConstants {
     public static final String INFO_FILE_DELETE = "info.files.delete";
     public static final String ERROR_FILE_DELETE = "error.files.delete";
     public static final String ERROR_FILE_IN_USE = "error.files.in.use";
+    public static final String ERROR_FILE_IN_USE_AS_ANNOTATION = "error.files.in.use.as.annotation";
     public static final String ERROR_FILE_IN_LINK = "error.files.in.link";
     public static final String ERROR_EMPTY_FOLDER= "error.empty.folder";
     public static final String ERROR_FEATURE_FILE_READING = "error.feature.file.reading";
@@ -107,6 +108,10 @@ public final class MessagesConstants {
     public static final String ERROR_REFERENCE_REGISTRATION_PARAMS = "error.reference.registration.params.ambiguous";
     public static final String ERROR_DURING_SORTING = "error.file.sorting";
     public static final String INFO_SORT_SUCCESS = "info.file.sorting";
+    public static final String ERROR_ILLEGAL_FEATURE_FILE_FORMAT = "error.file.feature.illegal.file.format";
+    public static final String ERROR_ANNOTATION_FILE_ALREADY_EXIST = "error.annotation.file.feature.already.exist";
+    public static final String ERROR_ANNOTATION_FILE_NOT_EXIST = "error.annotation.file.feature.not.exist";
+    public static final String ERROR_ILLEGAL_REFERENCE_FOR_ANNOTATION = "error.illegal.reference.for.annotation";
 
     //Feature index
     public static final String ERROR_FEATURE_INDEX_NOT_FOUND = "error.feature.index.not.found";
@@ -178,7 +183,7 @@ public final class MessagesConstants {
 
     //FILE
     public static final String ERROR_FILE_NOT_FOUND = "error.file.not.found";
-    public static final String ERROR_FILE_HEADER_READING = "error.file..header.reading";
+    public static final String ERROR_FILE_HEADER_READING = "error.file.header.reading";
     public static final String ERROR_BIO_ID_NOT_FOUND = "error.file.id.not.found";
     public static final String ERROR_BIO_NAME_NOT_FOUND = "error.file.name.not.found";
     public static final String ERROR_UNSUPPORTED_FILE_FORMAT = "error.unsupported.file.format";

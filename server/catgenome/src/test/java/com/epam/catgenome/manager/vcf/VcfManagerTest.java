@@ -122,6 +122,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     private static final String CLASSPATH_TEMPLATES_FELIS_CATUS_VCF_GOOGLE = "classpath:templates/1000-genomes.chrMT" +
             ".vcf";
     private static final String HTTP_VCF = "http://localhost/vcf/BK0010_S12.vcf";
+    public static final String PRETTY_NAME = "pretty";
 
     @Mock
     private HttpDataManager httpDataManager;
@@ -234,6 +235,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
         VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
         Assert.assertNotNull(file);
+        Assert.assertEquals(PRETTY_NAME, file.getPrettyName());
 
         testLoad(vcfFile, 1D, true);
     }
@@ -888,6 +890,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceId);
         request.setPath(resource.getFile().getAbsolutePath());
+        request.setPrettyName(PRETTY_NAME);
         return vcfManager.registerVcfFile(request);
     }
 

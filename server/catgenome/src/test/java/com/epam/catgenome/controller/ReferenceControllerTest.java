@@ -106,6 +106,7 @@ public class ReferenceControllerTest extends AbstractControllerTest {
     private static final String LOAD_ALL_CHROMOSOMES = "/reference/%s/loadChromosomes";
     private static final String REGISTER_GENOME_IN_FASTA_FORMAT = "/secure/reference/register/fasta";
     private static final String UPDATE_REFERENCE_GENE_FILE = "/secure/reference/%d/genes";
+    private static final String ADD_REFERENCE_GENOME_ANNOTATION_FILE = "/secure/reference/%d/updateAnnotation";
 
     //describes GA4GH API Google genomic
     private static final String REFERENCE_SET_ID = "EJjur6DxjIa6KQ";
@@ -187,7 +188,7 @@ public class ReferenceControllerTest extends AbstractControllerTest {
         actions.andDo(print());
     }
 
-    @Ignore //TODOL fix
+    @Ignore //TODO fix
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testUnregister() throws Exception {
@@ -370,10 +371,53 @@ public class ReferenceControllerTest extends AbstractControllerTest {
         Assert.assertNotNull(updatedRef.getGeneFile().getId());
     }
 
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testUpdateReferenceAnnotationFile() throws Exception {
+        Resource resource = getTemplateResource(HP_GENOME_PATH);
+        ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
+        request.setName(HP_GENOME_NAME);
+        request.setPath(resource.getFile().getAbsolutePath());
+        ResultActions actions = mvc()
+                .perform(post(REGISTER_GENOME_IN_FASTA_FORMAT).content(
+                        getObjectMapper().writeValueAsString(request)
+                ).contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+        final Reference reference = parseReference(
+                actions.andReturn().getResponse().getContentAsByteArray()
+        ).getPayload();
+        Assert.assertNotNull(reference.getId());
+
+        FeatureIndexedFileRegistrationRequest geneRequest = new FeatureIndexedFileRegistrationRequest();
+        resource = getTemplateResource("genes_sorted.gtf");
+        geneRequest.setPath(resource.getFile().getAbsolutePath());
+        geneRequest.setReferenceId(reference.getId());
+
+        GeneFile geneFile = gffManager.registerGeneFile(geneRequest);
+
+        actions = mvc()
+                .perform(
+                        put(String.format(ADD_REFERENCE_GENOME_ANNOTATION_FILE, reference.getId()))
+                        .param("annotationFileId", geneFile.getBioDataItemId().toString())
+                ).andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+
+        final Reference updatedRef = parseReference(
+                actions.andReturn().getResponse().getContentAsByteArray()
+        ).getPayload();
+        Assert.assertNotNull(updatedRef.getId());
+        Assert.assertEquals(1, updatedRef.getAnnotationFiles().size());
+        Assert.assertEquals(1, geneFile.getId(), updatedRef.getAnnotationFiles().get(0).getId());
+    }
+
     private ResponseResult<Reference> parseReference(final byte[] response) throws IOException {
         return getObjectMapper()
                 .readValue(response, getTypeFactory().constructParametrizedType(ResponseResult.class,
                         ResponseResult.class, Reference.class));
     }
-
 }

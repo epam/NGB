@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,13 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTra
 import java.io.IOException;
 import java.util.List;
 
+import com.epam.catgenome.entity.bam.BamFile;
+import com.epam.catgenome.entity.bam.Read;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,12 +51,6 @@ import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.ReadQuery;
 import com.epam.catgenome.controller.vo.TrackQuery;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
-import com.epam.catgenome.entity.bam.BamFile;
-import com.epam.catgenome.entity.bam.BamQueryOption;
-import com.epam.catgenome.entity.bam.BamTrack;
-import com.epam.catgenome.entity.bam.BamTrackQuery;
-import com.epam.catgenome.entity.bam.Read;
-import com.epam.catgenome.entity.bam.TrackDirectionType;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.manager.bam.BamFileManager;
@@ -60,6 +59,7 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 /**
  * Source:      BamController.java
@@ -95,6 +95,7 @@ public class BamController extends AbstractRESTController {
             "5) <b>scaleFactor</b> specifies an inverse value to number of bases per one visible element on a"
             +
             " track (e.g., pixel).";
+    public static final long EMITTER_TIMEOUT = 100000L;
 
     @Autowired
     private BamFileManager bamFileManager;
@@ -135,11 +136,10 @@ public class BamController extends AbstractRESTController {
         return Result.success(bamManager.registerBam(request));
     }
 
-    @ResponseBody
     @RequestMapping(value = "/bam/track/get", method = RequestMethod.POST)
     @ApiOperation(
-            value = "Returns data matching the given query to fill in a bam track. Returns all information about " +
-                    "reads.",
+            value = "Returns data (chunked) matching the given query to fill in a bam track. Returns all information " +
+                    "about reads.",
             notes = NOTES +
                     "<br/>option:<br/>" +
                     "all the following params are <b>optional</b>, if any of the params is incorrect, " +
@@ -160,114 +160,23 @@ public class BamController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public final Result<BamTrack<Read>> loadFullTrack(@RequestBody final TrackQuery query,
-                                                      @RequestParam(required = false) final String fileUrl,
-                                                      @RequestParam(required = false) final String indexUrl)
+    public final ResponseEntity<ResponseBodyEmitter> loadTrackStream(
+            @RequestBody final TrackQuery query,
+            @RequestParam(required = false) final String fileUrl,
+            @RequestParam(required = false) final String indexUrl)
             throws IOException {
-        if (fileUrl == null) {
-            return Result.success(bamManager.getBamTrack(convertToTrack(query), query.getOption()));
-        } else {
-            return Result.success(bamManager.getBamTrackFromUrl(convertToTrack(query), query.getOption(), fileUrl,
-                    indexUrl));
-        }
-    }
 
-    /**
-     * Method provides API for loading a BAM track
-     * @deprecated use {@code loadFullTrack} method with {@code TrackQuery} input argument.
-     */
-    @Deprecated
-    @ResponseBody
-    @RequestMapping(value = "/bam/track/full/get", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Returns data matched the given query to fill in a bam track. Returns all information about " +
-                    "read's.",
-            notes = NOTES + "<br/>6) between  - <i>optional</i> true: does not include the border",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public final Result<BamTrack<Read>> loadFullTrack(@RequestBody final BamTrackQuery query,
-                                                      @RequestParam(required = false) final Boolean showClipping,
-                                                      @RequestParam(required = false) final Boolean showSpliceJunction,
-                                                      @RequestParam(required = false) final String fileUrl,
-                                                      @RequestParam(required = false) final String indexUrl)
-            throws IOException {
-        final BamTrack<Read> track;
+        final ResponseBodyEmitter emitter = new ResponseBodyEmitter(EMITTER_TIMEOUT);
         if (fileUrl == null) {
-            track = bamManager.getFullMiddleReadsResult(convertToTrack(query), query.getFrame(),
-                    query.getCount(), showClipping, showSpliceJunction);
+            bamManager.sendBamTrackToEmitter(convertToTrack(query), query.getOption(), emitter);
         } else {
-            track = bamManager.getFullMiddleReadsResultFromUrl(convertToTrack(query), query.getFrame(), query
-                    .getCount(), showClipping, showSpliceJunction, fileUrl, indexUrl);
+            bamManager.sendBamTrackToEmitterFromUrl(convertToTrack(query), query.getOption(), fileUrl,
+                    indexUrl, emitter);
         }
-        return Result.success(track);
-    }
 
-    /**
-     * Method provides API for loading a BAM track
-     * @deprecated use {@code loadFullTrack} method with {@code TrackQuery} input argument.
-     */
-    @Deprecated
-    @ResponseBody
-    @RequestMapping(value = "/bam/track/left/get", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Returns data matched the given query to fill in a bam track. Result does not contain the " +
-                    "reads which have an intersection with the right boundary.",
-            notes = NOTES,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public final Result<BamTrack<Read>> loadLeftTrack(@RequestBody final BamTrackQuery query,
-                                                      @RequestParam(required = false) final Boolean showClipping,
-                                                      @RequestParam(required = false) final Boolean showSpliceJunction,
-                                                      @RequestParam(required = false) final String fileUrl,
-                                                      @RequestParam(required = false) final String indexUrl)
-            throws IOException {
-        final BamTrack<Read> track;
-        BamQueryOption option = new BamQueryOption(showClipping, showSpliceJunction, TrackDirectionType.LEFT,
-                query.getFrame(), query.getCount());
-        if (fileUrl == null) {
-            track = bamManager.getFullReadsResult(convertToTrack(query), TrackDirectionType.LEFT, query.getFrame(),
-                    query.getCount(), showClipping, showSpliceJunction);
-        } else {
-            track = bamManager.getFullReadsResultFromUrl(convertToTrack(query), option, fileUrl, indexUrl);
-        }
-        return Result.success(track);
-    }
-
-    /**
-     * Method provides API for loading a BAM track
-     * @deprecated use {@code loadFullTrack} method with {@code TrackQuery} input argument.
-     */
-    @Deprecated
-    @ResponseBody
-    @RequestMapping(value = "/bam/track/right/get", method = RequestMethod.POST)
-    @ApiOperation(
-            value = "Returns data matched the given query to fill in a bam track. Result does not contain the " +
-                    "reads which have an intersection with the left boundary.",
-            notes = NOTES,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public final Result<BamTrack<Read>> loadRightTrack(@RequestBody final BamTrackQuery query,
-                                                       @RequestParam(required = false) final Boolean showClipping,
-                                                       @RequestParam(required = false) final Boolean showSpliceJunction,
-                                                       @RequestParam(required = false) final String fileUrl,
-                                                       @RequestParam(required = false) final String indexUrl)
-            throws IOException {
-        final BamTrack<Read> track;
-        BamQueryOption option = new BamQueryOption(showClipping, showSpliceJunction, TrackDirectionType.RIGHT,
-                query.getFrame(), query.getCount());
-        if (fileUrl == null) {
-            track = bamManager.getFullReadsResult(convertToTrack(query), TrackDirectionType.RIGHT, query.getFrame(),
-                    query.getCount(), showClipping, showSpliceJunction);
-        } else {
-            track = bamManager.getFullReadsResultFromUrl(convertToTrack(query), option, fileUrl, indexUrl);
-        }
-        return Result.success(track);
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.setContentType(MediaType.APPLICATION_JSON_UTF8);
+        return new ResponseEntity<>(emitter, responseHeaders, HttpStatus.OK);
     }
 
     @ResponseBody

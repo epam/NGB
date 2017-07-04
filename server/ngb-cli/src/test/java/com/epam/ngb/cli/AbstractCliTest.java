@@ -63,15 +63,18 @@ public abstract class AbstractCliTest {
     public static final String REF_REGISTRATION_URL = "/catgenome/restapi/secure/reference/register/fasta";
     public static final String REF_DELETION_URL = "/catgenome/restapi/secure/reference/register/fasta";
     public static final String GENE_ADDING_URL = "/catgenome/restapi/secure/reference/%d/genes";
+    public static final String ANNOTATION_REFERENCE_UPDATING_URL =
+            "/catgenome/restapi/secure/reference/%d/updateAnnotation";
     public static final String DATASET_MOVING_URL = "/catgenome/restapi/project/%d/move";
     public static final String AUTHENTICATION_URL = "/catgenome/oauth/token";
     public static final String AUTHENTICATION_PAYLOAD = "client_id=restapp&client_secret=restapp&username="
             + "default_admin&password=admin&grant_type=password&scope=read";
     public static final String URL_GENERATION_URL = "/catgenome/restapi/url";
     public static final String SORT_URI = "/catgenome/restapi/tools/sort";
+    public static final String GET_PATH_TO_EXISTING_INDEX_URI = "/catgenome/restapi/getPathToExistingIndex";
 
     //server properties
-    public static final String TEST_SERVER_PROPERTIES = "server.properties";
+    public static final String TEST_SERVER_PROPERTIES = "external/server.properties";
     public static final String AUTHENTICATION_PROPERTY = "authentication";
     public static final String AUTHENTICATION_URL_PROPERTY = "authentication_url";
     public static final String SERVER_URL_PROPERTY = "server_url";
@@ -81,8 +84,9 @@ public abstract class AbstractCliTest {
     public static final String PROJECT_URL_BY_ID_PROPERTY = "project_load_url";
     public static final String FILE_FIND_URL_PROPERTY = "find_url";
     public static final String VERSION_URL_PROPERTY = "version_url";
-    public static final String SERVER_VERSION_PROPERTY = "minimum_server_version";
+    public static final String SERVER_VERSION_PROPERTY = "version";
     public static final String PROJECT_TREE_PROPERTY = "project_load_tree";
+    public static final String GET_EXISTING_INDEX_URL_PROPERTY = "get_existing_index_url";
 
     public static final String SERVER_URL = "http://localhost:%d/catgenome";
 
@@ -101,8 +105,8 @@ public abstract class AbstractCliTest {
         parameters.setFileFindUrl(serverProperties.getProperty(FILE_FIND_URL_PROPERTY));
         parameters.setVersionUrl(serverProperties.getProperty(VERSION_URL_PROPERTY));
         parameters.setProjectTreeUrl(serverProperties.getProperty(PROJECT_TREE_PROPERTY));
-        parameters.setMinSupportedServerVersion(
-                Integer.parseInt(serverProperties.getProperty(SERVER_VERSION_PROPERTY)));
+        parameters.setServerVersion(serverProperties.getProperty(SERVER_VERSION_PROPERTY));
+        parameters.setExistingIndexSearchUrl(serverProperties.getProperty(GET_EXISTING_INDEX_URL_PROPERTY));
         return parameters;
     }
 

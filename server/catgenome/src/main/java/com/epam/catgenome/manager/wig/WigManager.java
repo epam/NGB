@@ -148,13 +148,15 @@ public class WigManager {
             }
             switch (request.getType()) {
                 case FILE:
-                    wigFile = fillWigFile(requestPath, request.getName(), request.getReferenceId());
+                    wigFile = fillWigFile(requestPath, request.getName(),
+                            request.getPrettyName(), request.getReferenceId());
                     break;
                 case DOWNLOAD:
                     final File newFile = downloadFileManager.downloadFromURL(requestPath);
                     request.setName(request.getName() != null ? request.getName() :
                             FilenameUtils.getBaseName(requestPath));
-                    wigFile = fillWigFile(newFile.getPath(), request.getName(), request.getReferenceId());
+                    wigFile = fillWigFile(newFile.getPath(), request.getName(),
+                            request.getPrettyName(), request.getReferenceId());
                     break;
                 default:
                     throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
@@ -173,6 +175,11 @@ public class WigManager {
             if (wigFile != null && wigFile.getId() != null &&
                     wigFileManager.loadWigFile(wigFile.getId()) == null) {
                 biologicalDataItemManager.deleteBiologicalDataItem(wigFile.getBioDataItemId());
+                try {
+                    fileManager.deleteFeatureFileDirectory(wigFile);
+                } catch (IOException e) {
+                    LOGGER.error("Unable to delete directory for " + wigFile.getName(), e);
+                }
             }
         }
         return wigFile;
@@ -212,10 +219,12 @@ public class WigManager {
         return track;
     }
 
-    private WigFile fillWigFile(final String wigFilePath, final String alternativeName, final long referenceId) {
+    private WigFile fillWigFile(final String wigFilePath, final String alternativeName, String prettyName,
+            final long referenceId) {
         final WigFile wigFile = new WigFile();
 
         wigFile.setName(parseName(new File(wigFilePath).getName(), alternativeName));
+        wigFile.setPrettyName(prettyName);
         wigFile.setType(BiologicalDataItemResourceType.FILE);
         wigFile.setFormat(BiologicalDataItemFormat.WIG);
         wigFile.setCreatedBy(AuthUtils.getCurrentUserId());

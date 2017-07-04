@@ -6,6 +6,7 @@ export default {
     edgeValue: 1.5,
     headerHeight: 15,
     height: 20,
+    fitHeightFactor: 1,
     label: {
         fill: 0x273F70,
         font: 'normal 7pt arial'

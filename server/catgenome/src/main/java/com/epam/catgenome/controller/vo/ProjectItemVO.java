@@ -54,11 +54,11 @@ public class ProjectItemVO {
     private BiologicalDataItemFormat format;
     private Long createdBy;
     private Date createdDate;
+    private String prettyName;
 
     // FeatureFile properties
     private Long referenceId;
     private Boolean compressed;
-
     // VCF properties
     private List<VcfSample> samples;
 
@@ -164,5 +164,13 @@ public class ProjectItemVO {
 
     public void setSamples(List<VcfSample> samples) {
         this.samples = samples;
+    }
+
+    public String getPrettyName() {
+        return prettyName;
+    }
+
+    public void setPrettyName(String prettyName) {
+        this.prettyName = prettyName;
     }
 }

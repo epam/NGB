@@ -109,7 +109,7 @@ export default class FeatureRenderer {
            labelContainer: PIXI.Container,
            dockableElementsContainer: PIXI.Container,
            attachedElementsContainer: PIXI.Container,
-           graphics: PIXI.Graphics = null): PIXI.Graphics {
+           graphics: PIXI.Graphics = null, hoveredGraphics: PIXI.Graphics): PIXI.Graphics {
         if (features === null || features === undefined)
             return null;
         this.prepareRenderers();
@@ -124,6 +124,10 @@ export default class FeatureRenderer {
         let featureGraphics = graphics;
         if (featureGraphics === null || featureGraphics === undefined) {
             featureGraphics = new PIXI.Graphics();
+        }
+        let hoveredFeatureGraphics = hoveredGraphics;
+        if (hoveredFeatureGraphics === null || hoveredFeatureGraphics === undefined) {
+            hoveredFeatureGraphics = new PIXI.Graphics();
         }
         this._geneFeatureRenderer._opts = this._opts;
         const maxIterations = 10000000;
@@ -151,7 +155,7 @@ export default class FeatureRenderer {
                 maxIterations);
             if (!boundaries.conflicts) {
                 this._zonesManager.submitArea(ZONES_MANAGER_DEFAULT_ZONE_NAME, boundaries);
-                renderer.render(item, viewport, featureGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, {
+                renderer.render(item, viewport, featureGraphics, hoveredFeatureGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, {
                     height: boundaries.rect.y2 - boundaries.rect.y1,
                     width: boundaries.rect.x2 - boundaries.rect.x1,
                     x: boundaries.rect.x1,
@@ -159,7 +163,7 @@ export default class FeatureRenderer {
                 });
             }
         }
-        return featureGraphics;
+        return {graphics: featureGraphics, hoveredGraphics: hoveredFeatureGraphics};
     }
 
     manageLabels(viewport) {
@@ -361,10 +365,11 @@ export default class FeatureRenderer {
         });
     }
 
-    registerFeaturePosition(feature, boundaries) {
+    registerFeaturePosition(feature, boundaries, graphicsBoundaries) {
         this._featuresPositions.push({
             boundaries,
-            feature
+            feature,
+            graphicsBoundaries: graphicsBoundaries || boundaries
         });
     }
 
@@ -379,12 +384,34 @@ export default class FeatureRenderer {
                 position.y - relativeContainer.y <= this._featuresPositions[i].boundaries.y2) {
                 const featureName = this._featuresPositions[i].feature.feature ?
                     this._featuresPositions[i].feature.feature.toLowerCase() : null;
-                result.push(this._featuresPositions[i].feature);
+                result.push(this._featuresPositions[i]);
                 if (featureName && (featureName === 'mrna' || featureName === 'transcript')) {
                     break;
                 }
             }
         }
         return result;
+    }
+
+    hoverItem(hoveredItem, viewport, container) {
+        container.visible = false;
+        container.mask = null;
+        if (hoveredItem && hoveredItem.length) {
+            const item = hoveredItem[hoveredItem.length - 1];
+            const x1 = Math.max(- viewport.canvasSize, item.graphicsBoundaries.x1) - 1;
+            const x2 = Math.min(2 * viewport.canvasSize, item.graphicsBoundaries.x2) + 2;
+            let y1 = item.graphicsBoundaries.y1 - 1;
+            let y2 = item.graphicsBoundaries.y2 + 1;
+            if (item.graphicsBoundaries.ignore) {
+                return true;
+            }
+            const graphics = new PIXI.Graphics();
+            graphics.beginFill(0x00FF00, 1);
+            graphics.drawRect(x1, y1, x2 - x1, y2 - y1);
+            graphics.endFill();
+            container.mask = graphics;
+            container.visible = true;
+        }
+        return true;
     }
 }

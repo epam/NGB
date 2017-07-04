@@ -48,13 +48,20 @@ public class BaseEntity {
      */
     private String name;
 
+    private String prettyName;
+
     public BaseEntity() {
         // no operations are required by default
     }
 
     public BaseEntity(final Long id, final String name) {
+        this(id, name, null);
+    }
+
+    public BaseEntity(final Long id, final String name, final String prettyName) {
         this.id = id;
         this.name = name;
+        this.prettyName = prettyName;
     }
 
     public final Long getId() {
@@ -71,6 +78,14 @@ public class BaseEntity {
 
     public final void setName(final String name) {
         this.name = name;
+    }
+
+    public String getPrettyName() {
+        return prettyName;
+    }
+
+    public void setPrettyName(String prettyName) {
+        this.prettyName = prettyName;
     }
 
 }

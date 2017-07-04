@@ -61,6 +61,10 @@ public class DatasetRegistrationHandler extends AbstractHTTPCommandHandler {
      */
     private String name;
     /**
+     * Pretty name of a created dataset
+     */
+    private String prettyName;
+    /**
      * ID of a parent dataset in case of hierarchical datasets
      */
     private Long parentId;
@@ -99,6 +103,7 @@ public class DatasetRegistrationHandler extends AbstractHTTPCommandHandler {
                     getCommand(), 2, arguments.size()));
         }
         name = arguments.get(1);
+        prettyName = options.getPrettyName();
         if (options.getParent() != null) {
             parentId = parseProjectId(options.getParent());
         }
@@ -152,6 +157,7 @@ public class DatasetRegistrationHandler extends AbstractHTTPCommandHandler {
             RegistrationRequest registration = new RegistrationRequest();
             registration.setName(name);
             registration.setItems(items);
+            registration.setPrettyName(prettyName);
             String result = getPostResult(registration, post);
             checkAndPrintDatasetResult(result, printJson, printTable);
         } catch (URISyntaxException e) {

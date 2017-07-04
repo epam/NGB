@@ -1,6 +1,3 @@
-plugins {
-    id 'nebula.lint' version '6.1.4'
-}
 
 group "com.epam"
 
@@ -15,23 +12,20 @@ def buildNumber = hasProperty("buildNumber") ? buildNumber : ""
 def profile = hasProperty("profile") ? profile : "release"
 
 allprojects {
-    version = new Version(major: 2, minor: 4, build: buildNumber)
+    version = new Version(major: 2, minor: 5, patch: 0, build: buildNumber)
     task printVersion {
         doFirst {
             println "Project version is $version"
         }
     }
-    /*apply plugin: 'nebula.lint'
-    gradleLint.rules = ['unused-dependency']
-    gradleLint.reportFormat = 'text'*/
 }
 
 class Version {
-    int major, minor
+    int major, minor, patch
     String build
 
     String toString() {
-        "$major.$minor${build ? ".$build" : ''}"
+        "$major.$minor.$patch${build ? ".$build" : ''}"
     }
 }
 
@@ -107,6 +101,11 @@ task buildCli(type: GradleBuild) {
             into distDir
         }
     }
+}
+
+apply from: "e2e/cli/cli-tests.gradle"
+task integrationCliTest() {
+    doLast {e2eCliTests()}
 }
 
 task runMkdocs(type: Exec) {
@@ -236,5 +235,8 @@ task buildAll(type: GradleBuild) {
                                             noTest: '']
     }
 }
+
+
+
 
 

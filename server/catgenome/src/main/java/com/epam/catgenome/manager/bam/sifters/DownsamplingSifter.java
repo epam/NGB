@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.List;
 
 import com.epam.catgenome.entity.bam.BasePosition;
-import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.wig.Wig;
 
 /**
@@ -56,9 +55,9 @@ public interface DownsamplingSifter<T> {
              String tailStr) throws IOException;
 
     /**
-     * @return list of downsampled {@code Read} records
+     * Should be called if no more records will be added. Must be called only once
      */
-    List<Read> getReadListResult();
+    void finish();
 
     /**
      * @return (@code Wig )blocks of downsampled coverage

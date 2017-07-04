@@ -30,6 +30,7 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTra
 import java.io.IOException;
 import java.util.List;
 
+import com.epam.catgenome.exception.FeatureIndexException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -91,8 +92,9 @@ public class ReferenceController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public final Result<List<Reference>> loadAllReferences() throws IOException {
-        return Result.success(referenceGenomeManager.loadAllReferenceGenomes());
+    public final Result<List<Reference>> loadAllReferences(
+            @RequestParam(required = false) String referenceName) throws IOException {
+        return Result.success(referenceGenomeManager.loadAllReferenceGenomes(referenceName));
     }
 
     @ResponseBody
@@ -215,6 +217,24 @@ public class ReferenceController extends AbstractRESTController {
     public Result<Reference> updateReferenceGeneFile(@PathVariable Long referenceId,
                                                      @RequestParam(required = false) Long geneFileId) {
         return Result.success(referenceGenomeManager.updateReferenceGeneFileId(referenceId, geneFileId));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/secure/reference/{referenceId}/updateAnnotation", method = RequestMethod.PUT)
+    @ApiOperation(
+            value = "Update annotation file to the reference.",
+            notes = "Update (add or remove) annotation file for the reference (BED, GTF, GFF).",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Reference> updateReferenceAnnotationFile(@PathVariable Long referenceId,
+                                                           @RequestParam Long annotationFileId,
+                                                           @RequestParam(defaultValue = "false") Boolean remove)
+            throws IOException, FeatureIndexException {
+        return Result.success(
+                referenceGenomeManager.updateReferenceAnnotationFile(referenceId, annotationFileId, remove)
+        );
     }
 
     @ResponseBody

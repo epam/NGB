@@ -1,7 +1,7 @@
 import BaseTrack from './baseTrack';
 import PIXI from 'pixi.js';
 import {Subject} from 'rx';
-import {getRenderer} from '../configuration';
+import {getRenderer, drawingConfiguration} from '../configuration';
 import menuFactory from './menu';
 import tooltipFactory from './tooltip';
 import scaleModes from '../../tracks/wig/modes';
@@ -13,6 +13,7 @@ const getFlags = () => ({
     brushChanged: false,
     dataChanged: false,
     heightChanged: false,
+    heightChanging: false,
     renderReset: false,
     settingsChanged: false,
     widthChanged: false,
@@ -23,7 +24,6 @@ const getFlags = () => ({
 function refreshRender(render, size) {
     if (render) {
         render.resize(size.width, size.height);
-
         Object.assign(render.view.style, {
             height: `${size.height  }px`,
             width: `${size.width  }px`
@@ -72,8 +72,9 @@ export class Track extends BaseTrack {
     ];
 
     _height = this.config.height;
-    _maxHeight = this.config.maxHeight;
-    _minHeight = this.config.minHeight;
+    _isResizing = false;
+    _maxHeight = this.trackConfig.maxHeight || this.config.maxHeight;
+    _minHeight = this.trackConfig.minHeight || this.config.minHeight;
 
     _animating = false;
     _lastAnimationTime = null;
@@ -98,10 +99,18 @@ export class Track extends BaseTrack {
         return this._trackIsHidden;
     }
 
+    getImageData() {
+        if (this._pixiRenderer && this.container) {
+            // this._pixiRenderer.render(this.container);
+            return this._pixiRenderer.view;
+        }
+        return null;
+    }
+
     tick(time) {
         if (this._pixiRenderer) {
             let somethingChanged = this.render(this._flags);
-            somethingChanged = this.animate(time) || somethingChanged;
+            somethingChanged = this.animate(time) || somethingChanged || this._flags.heightChanging;
             this._flags = getFlags();
             if (somethingChanged) {
                 this._pixiRenderer.render(this.container);
@@ -145,6 +154,7 @@ export class Track extends BaseTrack {
                 this.height = opts.restoredHeight;
             }
             this.shouldDisplayTooltips = opts.displayTooltips;
+            this.hoveringEffects = opts.hoveringEffects;
             this.projectContext = opts.projectContext;
             this.reportTrackState();
         }
@@ -153,7 +163,7 @@ export class Track extends BaseTrack {
         requestAnimationFrame(::this.tick);
     }
 
-    reportTrackState() {
+    reportTrackState(silent = false) {
         if (!this.projectContext || this.config.format.toLowerCase() === 'ruler') {
             return;
         }
@@ -163,9 +173,10 @@ export class Track extends BaseTrack {
             projectId: this.config.projectId,
             height: this.height,
             state: this.state,
-            format: this.config.format
+            format: this.config.format,
+            isLocal: this.config.isLocal
         };
-        this.projectContext.applyTrackState(track);
+        this.projectContext.applyTrackState(track, silent);
     }
 
     _getCurrentSize() {
@@ -187,20 +198,25 @@ export class Track extends BaseTrack {
         this._pixiRenderer.render(this.container);
     }
 
-    _refreshPixiRenderer() {
+    _refreshPixiRenderer(force = false) {
         const size = this._getCurrentSize();
         const newSize = this._getExpectedSize();
 
-        if (newSize.width === size.width && newSize.height === size.height)
+        if (this.isResizing) {
+            this._flags.heightChanging = true;
+        }
+
+        if (!force && newSize.width === size.width && newSize.height === size.height)
             return;
 
         if (this._pixiRenderer) {
             refreshRender(this._pixiRenderer, newSize);
-
-            if (size.width !== newSize.width)
-                this._flags.widthChanged = true;
-            if (size.height !== newSize.height)
-                this._flags.heightChanged = true;
+            if (!this.isResizing) {
+                if (size.width !== newSize.width)
+                    this._flags.widthChanged = true;
+                if (size.height !== newSize.height)
+                    this._flags.heightChanged = true;
+            }
         } else {
             this._pixiRenderer = getRenderer(newSize);
             this.domElement.appendChild(this._pixiRenderer.view);
@@ -208,8 +224,9 @@ export class Track extends BaseTrack {
             this._flags.widthChanged = true;
             this._flags.heightChanged = true;
         }
-
-        this._resetRender();
+        if (!this.isResizing) {
+            this._resetRender();
+        }
         requestAnimationFrame(::this.tick);
     }
 
@@ -265,21 +282,40 @@ export class Track extends BaseTrack {
         return this._height;
     }
 
+    get isResizing() {
+        return this._isResizing;
+    }
+
+    set isResizing(value) {
+        this._isResizing = value;
+        if (!value) {
+            this._flags.heightChanged = true;
+            this._refreshPixiRenderer(true);
+        }
+    }
+
     //noinspection JSDuplicatedDeclaration
     set height(val) {
-        const newHeight = Math.max(Math.min(val, this._maxHeight), this._minHeight);
+        const max = typeof this._maxHeight === 'function' ? this._maxHeight(this.state, this.trackConfig) : this._maxHeight;
+        const min = typeof this._minHeight === 'function' ? this._minHeight(this.state, this.trackConfig) : this._minHeight;
+        const newHeight = Math.floor(Math.max(Math.min(val, max), min));
 
         if (newHeight === this.height)
             return;
 
         this._height = newHeight;
-        this._flags.heightChanged = true;
+        if (!this.isResizing) {
+            this._flags.heightChanged = true;
+        } else {
+            this._flags.heightChanging = true;
+        }
         this._refreshPixiRenderer();
     }
 
     globalSettingsChanged(state) {
         if (state) {
             this.shouldDisplayTooltips = state.displayTooltips;
+            this.hoveringEffects = state.hoveringEffects;
             this.viewport.shortenedIntronsViewport.intronLength = state.shortenedIntronLength;
             this.viewport.shortenedIntronsViewport.maximumRange = state.shortenedIntronsMaximumRange;
         }

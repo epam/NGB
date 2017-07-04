@@ -214,8 +214,17 @@ export default class ngbVariantVisualizerService {
                 if (!breakpoints[i].affectedGenes || breakpoints[i].affectedGenes.length === 0) {
                     breakpoints[i].affectedGenes = this.getEmptyAffectedGenes(i);
                 }
-                if (breakpoints[i].affectedGenes.length > 0)
+                if (breakpoints[i].affectedGenes.length > 0) {
                     breakpoints[i].affectedGene = breakpoints[i].affectedGenes[0];
+                    breakpoints[i].affectedGeneTranscript = breakpoints[i].affectedGene.transcripts[0];
+                }
+                breakpoints[i].affectedGeneTranscripts = [];
+                for (let j = 0; j < breakpoints[i].affectedGenes.length; j++) {
+                    const affectedGene = breakpoints[i].affectedGenes[j];
+                    if (!affectedGene.empty && affectedGene.transcripts) {
+                        breakpoints[i].affectedGeneTranscripts.push(...affectedGene.transcripts);
+                    }
+                }
             }
         }
 
@@ -293,6 +302,21 @@ export default class ngbVariantVisualizerService {
         };
     }
 
+    changeAffectedTranscript(visualizerData, transcript) {
+        transcript.gene.selectedTranscript = transcript;
+        const breakpoints = visualizerData.analysisResult.breakpoints;
+
+        for (let i = 0; i < breakpoints.length; i++) {
+            if (breakpoints[i].affectedGene !== undefined &&
+                breakpoints[i].affectedGene !== null &&
+                breakpoints[i].affectedGene.name === transcript.gene.name) {
+                breakpoints[i].affectedGene.selectedTranscript = transcript;
+                this.getAffectedGeneInfo(breakpoints[i], breakpoints[i].affectedGene);
+            }
+        }
+        return this.rebuildStructuralVariantVisualizerData(visualizerData);
+    }
+
     rebuildStructuralVariantVisualizerData(visualizerData) {
         const geneNames = [];
         const genes = {};
@@ -347,7 +371,7 @@ export default class ngbVariantVisualizerService {
         return visualizerData;
     }
 
-    async getAffectedGenes(breakpoint, geneFileId) {
+    async getAffectedGenes(breakpoint, geneFileId, genes) {
         const fakeRange = 1;
         if (breakpoint.chromosome.id === null || breakpoint.chromosome.id === undefined) {
             const chromosome = await this._genomeDataService.loadChromosomeByName(this.referenceId, breakpoint.chromosome.name);
@@ -359,13 +383,16 @@ export default class ngbVariantVisualizerService {
             start: Math.max(1, Math.round(breakpoint.position - fakeRange)),
             end: Math.min(breakpoint.chromosome.size, Math.round(breakpoint.position + fakeRange))
         };
-        let data = await this._geneDataService.loadGeneTranscriptTrack({
-            id: geneFileId,
-            chromosomeId: breakpoint.chromosome.id,
-            startIndex: range.start,
-            endIndex: range.end,
-            scaleFactor: 1
-        }, this.referenceId);
+        let data = genes;
+        if (!data) {
+            data = await this._geneDataService.loadGeneTranscriptTrack({
+                id: geneFileId,
+                chromosomeId: breakpoint.chromosome.id,
+                startIndex: range.start,
+                endIndex: range.end,
+                scaleFactor: 1
+            }, this.referenceId);
+        }
         if (data !== null && data !== undefined && data.length > 0) {
             data = data.filter(x => !x.status || x.status.toLowerCase() === 'ok');
         }
@@ -393,21 +420,37 @@ export default class ngbVariantVisualizerService {
             else {
                 gene.name = gene.name || '';
             }
-            if (gene.transcripts) {
+            if (gene.transcripts && gene.transcripts.length) {
                 for (let i = 0; i < gene.transcripts.length; i++) {
+                    gene.transcripts[i].gene = gene;
+                    gene.transcripts[i].index = i;
                     for (let j = 0; j < gene.transcripts[i].exon.length; j++) {
                         gene.transcripts[i].exon[j].geneName = gene.name;
                     }
                 }
-
-                gene.consensusDomains = this.recoverConsensusDomains(gene.transcripts);
-                gene.consensusExons = this.recoverConsensusTranscript(gene.transcripts, gene.consensusDomains, gene.strand);
-                gene.totalExonsLength = gene.consensusExons.reduce((a, b) => (a instanceof Object ? (a.end - a.start) : a) + (b.end - b.start));
-                for (let i = 0; i < gene.consensusExons.length; i++) {
-                    const exon = gene.consensusExons[i];
-                    exon.strand = gene.strand ? gene.strand.toLowerCase() === 'positive' : null;
-                    exon.index = (gene.strand && gene.strand.toLowerCase() === 'negative') ? (gene.consensusExons.length - i - 1) : i;
+                for (let i = 0; i < gene.transcripts.length; i++) {
+                    this.recoverCanonicalTranscript(gene.transcripts[i], gene.strand);
                 }
+                let protein_coding = gene.transcripts.filter(t => t.bioType && t.bioType === 'protein_coding');
+                let other = gene.transcripts.filter(t => !t.bioType || t.bioType !== 'protein_coding');
+                protein_coding = Sorting.quickSort(protein_coding, false, x => x.exonSize);
+                other = Sorting.quickSort(other, false, x => x.exonSize);
+                gene.transcripts = [...protein_coding, ...other];
+                if (!gene.selectedTranscript) {
+                    for (let i = 0; i < gene.transcripts.length; i++) {
+                        const transcript = gene.transcripts[i];
+                        if (transcript.domain && transcript.domain.length) {
+                            gene.selectedTranscript = transcript;
+                            break;
+                        }
+                    }
+                    if (!gene.selectedTranscript) {
+                        gene.selectedTranscript = gene.transcripts[0];
+                    }
+                }
+                this.buildTranscriptExonsPositions(gene.transcripts);
+                gene.consensusExons = gene.selectedTranscript.canonicalCds;
+                gene.totalExonsLength = gene.consensusExons.reduce((a, b) => (a instanceof Object ? (a.end - a.start) : a) + (b.end - b.start), 0);
                 if (!breakpoint.relativePositions) {
                     breakpoint.relativePositions = {};
                 }
@@ -437,106 +480,77 @@ export default class ngbVariantVisualizerService {
         return null;
     }
 
-    recoverConsensusTranscript(transcripts, domains, strand) {
-        const exons = [];
-        let position = 0;
-        let exonFound = true;
-        for (let i = 0; i < transcripts.length; i++) {
-            transcripts[i].cds = transcripts[i].exon;
+    recoverCanonicalTranscript(transcript, strand) {
+        if (transcript.canonicalCds) {
+            return transcript.canonicalCds;
         }
-        while (exonFound) {
-            let nextExon = null;
-            for (let i = 0; i < transcripts.length; i++) {
-                if (transcripts[i].cds === undefined || transcripts[i].cds === null)
-                    continue;
-                for (let j = 0; j < transcripts[i].cds.length; j++) {
-                    if (transcripts[i].cds[j].start >= position) {
-                        if (!nextExon || nextExon.start > transcripts[i].cds[j].start || (nextExon.start === transcripts[i].cds[j].start && nextExon.end < transcripts[i].cds[j].end)) {
-                            nextExon = Object.assign({}, transcripts[i].cds[j]);
-                        }
-                    }
-                }
-            }
-            exonFound = nextExon !== null;
-            if (exonFound) {
-                exons.push(nextExon);
-                position = nextExon.end + 1;
-            }
+        transcript.canonicalCds = [];
+        let totalCanonicalTranscriptExonLength = 0;
+        if (!transcript.exon) {
+            transcript.exon = [];
         }
+
+        const isForwardStrand  = !strand || strand.toLowerCase() === 'positive';
+
+        for (let i = 0; i < transcript.exon.length; i++) {
+            const exon = Object.assign({}, transcript.exon[i], {domains: []});
+            exon.strand = isForwardStrand;
+            transcript.canonicalCds.push(exon);
+            totalCanonicalTranscriptExonLength += (exon.end - exon.start);
+        }
+
+        transcript.canonicalCds = Sorting.quickSort(transcript.canonicalCds, true, x => x.start);
         let prevPosition = 0;
-        for (let i = 0; i < exons.length; i++) {
-            const exon = exons[i];
+        for (let i = 0; i < transcript.canonicalCds.length; i++) {
+            const exon = transcript.canonicalCds[i];
             exon.domains = [];
+            if (isForwardStrand) {
+                exon.index = i;
+            } else {
+                exon.index = transcript.canonicalCds.length - 1 - i;
+            }
             exon.relativePosition = {
                 start: prevPosition,
                 end: prevPosition + (exon.end - exon.start)
             };
-            prevPosition += (exon.end - exon.start);
-            for (let j = 0; j < domains.length; j++) {
-                if ((domains[j].start >= exon.relativePosition.start && domains[j].start <= exon.relativePosition.end) ||
-                    (domains[j].end >= exon.relativePosition.start && domains[j].end <= exon.relativePosition.end) ||
-                    (domains[j].start <= exon.relativePosition.start && domains[j].end >= exon.relativePosition.end)) {
-                    exon.domains.push({
-                        domain: domains[j],
-                        domainIndex: j,
-                        range: {
-                            start: Math.max(domains[j].start, exon.relativePosition.start),
-                            end: Math.min(domains[j].end, exon.relativePosition.end)
-                        }
-                    });
-                }
-            }
-        }
-        const findConsensusExon = (exon) => {
-            for (let i = 0; i < exons.length; i++) {
-                if (exon.start >= exons[i].start && exon.start <= exons[i].end) {
-                    return exons[i];
-                }
-            }
-            return null;
-        };
-        for (let i = 0; i < transcripts.length; i++) {
-            transcripts[i].cds = Sorting.quickSort(transcripts[i].cds, true, x => x.start);
-            for (let j = 0; j < transcripts[i].cds.length; j++) {
-                transcripts[i].cds[j].strand = strand;
-                if (transcripts[i].cds[j].strand && transcripts[i].cds[j].strand.toLowerCase() === 'positive') {
-                    transcripts[i].cds[j].index = j;
-                }
-                else if (transcripts[i].cds[j].strand && transcripts[i].cds[j].strand.toLowerCase() === 'negative') {
-                    transcripts[i].cds[j].index = transcripts[i].cds.length - j - 1;
-                }
-                const consensusExon = findConsensusExon(transcripts[i].cds[j]);
-                if (consensusExon) {
-                    const diffFromStart = transcripts[i].cds[j].start - consensusExon.start;
-                    transcripts[i].cds[j].relativePosition = {
-                        start: consensusExon.relativePosition.start + diffFromStart,
-                        end: consensusExon.relativePosition.start + diffFromStart + (transcripts[i].cds[j].end - transcripts[i].cds[j].start)
-                    };
-                }
-            }
-        }
-        for (let t = 0; t < transcripts.length; t++) {
-            let prevPosition = 0;
-            for (let i = 0; i < transcripts[t].cds.length; i++) {
-                const exon = transcripts[t].cds[i];
-                exon.domains = [];
-                exon.structurePosition = {
+            if (isForwardStrand) {
+                exon.exonPosition = {
                     start: prevPosition,
-                    end: prevPosition + (exon.relativePosition.end - exon.relativePosition.start)
+                    end: prevPosition + (exon.end - exon.start)
                 };
-                prevPosition += (exon.relativePosition.end - exon.relativePosition.start);
-                const diffFromStart = exon.relativePosition.start - exon.structurePosition.start;
-                if (transcripts[t].domain) {
-                    for (let j = 0; j < transcripts[t].domain.length; j++) {
-                        const domain = transcripts[t].domain[j];
-                        if ((domain.start >= exon.structurePosition.start && domain.start <= exon.structurePosition.end) ||
-                            (domain.end >= exon.structurePosition.start && domain.end <= exon.structurePosition.end) ||
-                            (domain.start <= exon.structurePosition.start && domain.end >= exon.structurePosition.end)) {
+            } else {
+                exon.exonPosition = {
+                    start: totalCanonicalTranscriptExonLength - prevPosition - (exon.end - exon.start),
+                    end: totalCanonicalTranscriptExonLength - prevPosition
+                };
+            }
+            prevPosition += (exon.end - exon.start + 1);
+        }
+        transcript.exonSize = totalCanonicalTranscriptExonLength;
+        for (let i = 0; i < transcript.canonicalCds.length; i++) {
+            const exon = transcript.canonicalCds[i];
+            exon.domains = [];
+            if (transcript.domain) {
+                for (let j = 0; j < transcript.domain.length; j++) {
+                    const domain = transcript.domain[j];
+                    if ((domain.start >= exon.exonPosition.start && domain.start <= exon.exonPosition.end) ||
+                        (domain.end >= exon.exonPosition.start && domain.end <= exon.exonPosition.end) ||
+                        (domain.start <= exon.exonPosition.start && domain.end >= exon.exonPosition.end)) {
+
+                        if (isForwardStrand) {
                             exon.domains.push({
                                 domain: domain,
                                 range: {
-                                    start: diffFromStart + Math.max(domain.start, exon.structurePosition.start),
-                                    end: diffFromStart + Math.min(domain.end, exon.structurePosition.end)
+                                    start: Math.max(domain.start, exon.exonPosition.start),
+                                    end: Math.min(domain.end, exon.exonPosition.end)
+                                }
+                            });
+                        } else {
+                            exon.domains.push({
+                                domain: domain,
+                                range: {
+                                    start: transcript.exonSize - Math.min(domain.end, exon.exonPosition.end),
+                                    end: transcript.exonSize - Math.max(domain.start, exon.exonPosition.start)
                                 }
                             });
                         }
@@ -544,33 +558,95 @@ export default class ngbVariantVisualizerService {
                 }
             }
         }
-        return exons;
+        return transcript.canonicalCds;
     }
 
-    recoverConsensusDomains(transcripts) {
-        const domains = [];
-        let position = 0;
-        let domainFound = true;
-        while (domainFound) {
-            let nextDomain = null;
-            for (let i = 0; i < transcripts.length; i++) {
-                if (transcripts[i].domain === undefined || transcripts[i].domain === null)
-                    continue;
-                for (let j = 0; j < transcripts[i].domain.length; j++) {
-                    if (transcripts[i].domain[j].start >= position) {
-                        if (!nextDomain || nextDomain.start > transcripts[i].domain[j].start || (nextDomain.start === transcripts[i].domain[j].start && nextDomain.end > transcripts[i].domain[j].end)) {
-                            nextDomain = transcripts[i].domain[j];
-                        }
-                    }
+    buildTranscriptExonsPositions(transcripts) {
+        let parts = [];
+        const addPart = ({start, end}) => {
+            let startPartIndex = null;
+            let endPartIndex = null;
+            for (let i = 0; i < parts.length; i++) {
+                const part = parts[i];
+                if (start >= part.start && start <= part.end) {
+                    startPartIndex = i;
+                }
+                if (end >= part.start && end <= part.end) {
+                    endPartIndex = i;
                 }
             }
-            domainFound = nextDomain !== null;
-            if (domainFound) {
-                domains.push(nextDomain);
-                position = nextDomain.end + 1;
+            let partsToDelete = [];
+            if (startPartIndex !== null && endPartIndex !== null) {
+                parts[startPartIndex].end = parts[endPartIndex].end;
+                for (let i = startPartIndex + 1; i <= endPartIndex; i++) {
+                    partsToDelete.push(i);
+                }
+            } else if (startPartIndex !== null) {
+                for (let i = startPartIndex + 1; i < parts.length; i++) {
+                    const part = parts[i];
+                    if (part.end < end) {
+                        partsToDelete.push(i);
+                    }
+                }
+                parts[startPartIndex].end = end;
+            } else if (endPartIndex !== null) {
+                for (let i = 0; i < endPartIndex - 1; i++) {
+                    const part = parts[i];
+                    if (part.start > start) {
+                        partsToDelete.push(i);
+                    }
+                }
+                parts[endPartIndex].start = start;
+            } else {
+                parts.push({start, end});
+            }
+            partsToDelete = Sorting.quickSort(partsToDelete, false);
+            for (let i = 0; i < partsToDelete.length; i++) {
+                parts.splice(partsToDelete[i], 1);
+            }
+            parts = Sorting.quickSort(parts, true, x => x.start);
+        };
+        for (let i = 0; i < transcripts.length; i++) {
+            const transcript = transcripts[i];
+            for (let j = 0; j < transcript.canonicalCds.length; j++) {
+                addPart(transcript.canonicalCds[j]);
             }
         }
-        return domains;
+        const getPositionFromStart = (position) => {
+            let result = 0;
+            for (let i = 0; i < parts.length; i++) {
+                const part = parts[i];
+                if (position > part.end) {
+                    result += part.end - part.start + 1;
+                } else {
+                    if (position > part.start) {
+                        result += (position - part.start);
+                    }
+                    break;
+                }
+            }
+            return result;
+        };
+        for (let i = 0; i < transcripts.length; i++) {
+            const transcript = transcripts[i];
+            for (let j = 0; j < transcript.canonicalCds.length; j++) {
+                const cds = transcript.canonicalCds[j];
+                const p1 = getPositionFromStart(cds.start);
+                const p2 = getPositionFromStart(cds.end);
+                const diff = p1 - cds.relativePosition.start;
+                cds.positionFromStart = {
+                    start: cds.relativePosition.start + diff,
+                    end: cds.relativePosition.end + diff
+                };
+                for (let d = 0; d < cds.domains.length; d++) {
+                    const domain = cds.domains[d];
+                    domain.rangeFromStart = {
+                        start: domain.range.start + diff,
+                        end: domain.range.end + diff
+                    };
+                }
+            }
+        }
     }
 
     recoverAlternativeExonStructure(variantConnection, breakpoints, reverse = false) {
@@ -955,7 +1031,7 @@ function generateAffectedFeaturesStructure(alternativeAlleleInfo) {
                         exonIndex = transcript.exon.length - exonIndex + 1;
                     }
 
-                    const exonName = `exon_${  exonIndex}`;
+                    const exonName = `exon_${exonIndex}`;
 
                     if (!structure[gene.name][transcript.name].hasOwnProperty(exonName)) {
                         structure[gene.name][transcript.name][exonName] = {

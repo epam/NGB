@@ -12,6 +12,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
     _labelsContainer: PIXI.Container = null;
     _attachedElementsContainer: PIXI.Container = null;
     _dockableElementsContainer: PIXI.Container = null;
+    _hoveredItemContainer: PIXI.Container = null;
     _mask: PIXI.Graphics = null;
 
     _transformer: GeneTransformer = null;
@@ -32,6 +33,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
         this._labelsContainer = new PIXI.Container();
         this._dockableElementsContainer = new PIXI.Container();
         this._attachedElementsContainer = new PIXI.Container();
+        this._hoveredItemContainer = new PIXI.Container();
         this._verticalScroll = new PIXI.Graphics();
         this._mask = new PIXI.Graphics();
         this.container.addChild(this.geneHistogram);
@@ -77,7 +79,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
         this._gffShowNumbersAminoacid = _gffShowNumbersAminoacid;
         const isRedraw = gffColorByFeatureTypeChanged||gffShowNumbersAminoacidChanged;
         if (!isRedraw && heightChanged) {
-            this.scroll(viewport, 0);
+            this.scroll(viewport, 0, cache);
         }
         else {
             super.render(viewport, cache, isRedraw);
@@ -101,6 +103,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
         this._dockableElementsContainer.scale = this.dataContainer.scale;
 
         if (this._transformer.isHistogramDrawingModeForViewport(viewport, cache)) {
+            this.geneHistogram.totalHeight = this.height;
             this.geneHistogram.renderHistogram(viewport, GeneTransformer.transformPartialHistogramData(viewport, cache.histogramData));
             this._actualHeight = null;
         }
@@ -111,7 +114,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
                 gffShowNumbersAminoacid: this._gffShowNumbersAminoacid
             };
             this.featureRenderer.prepare();
-            const graphics = this.featureRenderer.render(cache.data, viewport, this._labelsContainer, this._dockableElementsContainer, this._attachedElementsContainer);
+            const {graphics, hoveredGraphics} = this.featureRenderer.render(cache.data, viewport, this._labelsContainer, this._dockableElementsContainer, this._attachedElementsContainer);
             if (graphics !== null) {
                 if (this.needConvertGraphicsToTexture) {
                     let temporaryContainer = new PIXI.Container();
@@ -128,10 +131,29 @@ export default class GeneRenderer extends CachedTrackRenderer {
                     this.dataContainer.addChild(graphics);
                 }
             }
+            if (hoveredGraphics !== null) {
+                this._hoveredItemContainer.removeChildren();
+                if (this.needConvertGraphicsToTexture) {
+                    let temporaryContainer = new PIXI.Container();
+                    temporaryContainer.addChild(hoveredGraphics);
+                    const coordinates = this.featureRenderer.textureCoordinates;
+                    const texture = temporaryContainer.generateTexture(this._pixiRenderer, drawingConfiguration.resolution, drawingConfiguration.scale);
+                    const sprite = new PIXI.Sprite(texture);
+                    sprite.position.x = coordinates.x;
+                    sprite.position.y = coordinates.y;
+                    this._hoveredItemContainer.addChild(sprite);
+                    hoveredGraphics.clear();
+                    temporaryContainer = null;
+                } else {
+                    this._hoveredItemContainer.addChild(hoveredGraphics);
+                }
+                this.hoverItem(null, viewport, false);
+            }
             this.featureRenderer.manageLabels(viewport);
             this.featureRenderer.manageDockableElements(viewport);
             this.featureRenderer.manageAttachedElements(viewport);
             this._actualHeight = this.featureRenderer.getActualHeight();
+            this.dataContainer.addChild(this._hoveredItemContainer);
         }
         this.scroll(viewport, null);
     }
@@ -203,7 +225,13 @@ export default class GeneRenderer extends CachedTrackRenderer {
         this.scroll(viewport, - indicatorPosition * this.actualHeight / this.height - this.dataContainer.y);
     }
 
-    scroll(viewport, yDelta) {
+    scroll(viewport, yDelta, cache) {
+        this.hoverItem(null);
+        if (cache && this._transformer.isHistogramDrawingModeForViewport(viewport, cache)) {
+            this.geneHistogram.totalHeight = this.height;
+            this.geneHistogram.renderHistogram(viewport, GeneTransformer.transformPartialHistogramData(viewport, cache.histogramData));
+            this._actualHeight = null;
+        }
         if (this.actualHeight && this.height < this.actualHeight) {
             let __y = this.dataContainer.y;
             if (yDelta !== null) {
@@ -239,6 +267,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
             this.featureRenderer.manageLabels(viewport);
             this.featureRenderer.manageDockableElements(viewport);
             this.featureRenderer.manageAttachedElements(viewport);
+            this.hoverItem(null);
         }
         this.manageMask(viewport);
     }
@@ -253,9 +282,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
         if (isHistogram) {
             if (this.dataContainer !== null && this.dataContainer !== undefined)
                 return this._geneHistogram.checkPosition(position, GeneTransformer
-                        .transformPartialHistogramData(viewport, cache.histogramData), viewport,
-                    this._geneHistogram._config.levels.margin,
-                    this._geneHistogram._config.histogram.height);
+                        .transformPartialHistogramData(viewport, cache.histogramData), viewport);
 
         }
         else {
@@ -263,6 +290,24 @@ export default class GeneRenderer extends CachedTrackRenderer {
                 return this.featureRenderer.checkPosition(position, this.dataContainer);
         }
         return null;
+    }
+
+    hoverItem(hoveredItem, viewport, isHistogram, cache) {
+        if (!hoveredItem && this._geneHistogram.hoverItem) {
+            this._geneHistogram.hoverItem(null, null, null);
+        }
+        if (this.featureRenderer.hoverItem) {
+            this.featureRenderer.hoverItem(null, null, this._hoveredItemContainer);
+        }
+        if (hoveredItem) {
+            if (isHistogram && this._geneHistogram.hoverItem && cache) {
+                return this._geneHistogram.hoverItem(hoveredItem, viewport, GeneTransformer
+                    .transformPartialHistogramData(viewport, cache.histogramData));
+            } else if (!isHistogram && this.featureRenderer.hoverItem) {
+                return this.featureRenderer.hoverItem(hoveredItem, viewport, this._hoveredItemContainer);
+            }
+        }
+        return true;
     }
 
 }

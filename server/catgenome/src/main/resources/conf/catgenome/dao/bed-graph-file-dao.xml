@@ -30,6 +30,7 @@
                         b.created_by,
                         b.created_date,
                         b.bucket_id,
+                        b.pretty_name,
                         bg.bed_graph_id,
                         bg.reference_genome_id as bed_graph_reference_genome_id,
 
@@ -59,6 +60,7 @@
                         b.created_by,
                         b.created_date,
                         b.bucket_id,
+                        b.pretty_name,
                         bg.bed_graph_id,
                         bg.reference_genome_id as bed_graph_reference_genome_id,
 

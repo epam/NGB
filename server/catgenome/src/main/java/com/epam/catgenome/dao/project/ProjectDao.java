@@ -52,7 +52,6 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.project.ProjectItem;
@@ -99,6 +98,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     private String loadProjectItemsByProjectIdQuery;
     private String loadProjectItemsByProjectIdsQuery;
     private String loadProjectsByBioDataItemIdQuery;
+    private String loadAllProjectItemsQuery;
 
     private String loadProjectIdsByBioDataItemIdsQuery;
 
@@ -290,6 +290,23 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
+    public Map<Long, Set<ProjectItem>> loadAllProjectItems() {
+        Map<Long, Set<ProjectItem>> itemsMap = new HashMap<>();
+        final RowMapper<ProjectItem> projectItemRowMapper = ProjectItemParameters.getSimpleItemMapper();
+        getJdbcTemplate().query(loadAllProjectItemsQuery, rs -> {
+            ProjectItem item = projectItemRowMapper.mapRow(rs, 0);
+
+            Long projectId = rs.getLong(ProjectItemParameters.REFERRED_PROJECT_ID.name());
+            if (!itemsMap.containsKey(projectId)) {
+                itemsMap.put(projectId, new HashSet<>());
+            }
+
+            itemsMap.get(projectId).add(item);
+        });
+        return itemsMap;
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
     public Map<Long, Set<ProjectItem>> loadProjectItemsByProjects(List<Project> projects) {
         if (projects.isEmpty()) {
             return Collections.emptyMap();
@@ -311,13 +328,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
             }
 
             itemsMap.get(projectId).add(item);
-
-            if (item.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE) {
-                Reference reference = (Reference) item.getBioDataItem();
-                if (reference.getGeneFile() != null) {
-                    itemsMap.get(projectId).add(new ProjectItem(reference.getGeneFile()));
-                }
-            }
         }, listId);
 
         daoHelper.clearTempList(listId);
@@ -542,6 +552,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         PROJECT_ID,
         PROJECT_NAME,
         PARENT_ID,
+        PROJECT_PRETTY_NAME,
         CREATED_BY,
         CREATED_DATE,
         LAST_OPENED_DATE;
@@ -554,6 +565,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
             params.addValue(CREATED_BY.name(), project.getCreatedBy());
             params.addValue(CREATED_DATE.name(), project.getCreatedDate());
             params.addValue(PARENT_ID.name(), parentId);
+            params.addValue(PROJECT_PRETTY_NAME.name(), project.getPrettyName());
 
             return params;
         }
@@ -566,6 +578,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
                 project.setName(rs.getString(PROJECT_NAME.name()));
                 project.setCreatedBy(rs.getLong(CREATED_BY.name()));
                 project.setCreatedDate(new Date(rs.getTimestamp(CREATED_DATE.name()).getTime()));
+                project.setPrettyName(rs.getString(PROJECT_PRETTY_NAME.name()));
                 project.setLastOpenedDate(new Date(rs.getTimestamp(LAST_OPENED_DATE.name()).getTime()));
 
                 long longVal = rs.getLong(PARENT_ID.name());
@@ -798,5 +811,10 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadProjectIdsByBioDataItemIdsQuery(String loadProjectIdsByBioDataItemIdsQuery) {
         this.loadProjectIdsByBioDataItemIdsQuery = loadProjectIdsByBioDataItemIdsQuery;
+    }
+
+    @Required
+    public void setLoadAllProjectItemsQuery(String loadAllProjectItemsQuery) {
+        this.loadAllProjectItemsQuery = loadAllProjectItemsQuery;
     }
 }

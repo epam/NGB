@@ -38,7 +38,7 @@ import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.track.Block;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.gene.GeneUtils;
-import com.epam.catgenome.parallel.TreeListMultiset;
+import com.epam.catgenome.manager.parallel.TreeListMultiset;
 import htsjdk.samtools.util.IntervalTreeMap;
 
 /**

@@ -56,7 +56,50 @@ export default class WIGRenderer extends CachedTrackRenderer{
         this.dataContainer.addChild(this._hoveredItemContainer);
     }
 
-    hoverItem() {
+    hoverItem(item, viewport, wig, coordinateSystem) {
+        if (!this._hoveredItemContainer) {
+            return;
+        }
+        this._hoveredItemContainer.removeChildren();
+        if (item) {
+            const block = new PIXI.Graphics();
+            const line = new PIXI.Graphics();
+
+            const isDetailed = wig.isDetailed || viewport.factor > this._config.wig.detailedStyleStartingAtPixelsPerBP;
+
+            block.beginFill(0x000000, viewport.factor > 2 ? 0.125 : 0.5);
+            const lineThickness = 1;
+            line.lineStyle(lineThickness, 0x000000, viewport.factor > 2 ? 0.5 : 1);
+
+            const padding = isDetailed ? 0.5 : 0;
+            const startX1 = Math.round(viewport.project.brushBP2pixel(item.startIndex - 0.5) + padding);
+            let startX2 = Math.round(viewport.project.brushBP2pixel(item.endIndex + 0.5) - padding);
+            if (startX1 === startX2) {
+                startX2 ++;
+            }
+            block.moveTo(startX1, this._getYValue(wig.baseAxis, coordinateSystem));
+            block.lineTo(startX1, this._getYValue(item.dataValue, coordinateSystem));
+            block.lineTo(startX2, this._getYValue(item.dataValue, coordinateSystem));
+            block.lineTo(startX2, this._getYValue(wig.baseAxis, coordinateSystem));
+            block.lineTo(startX1, this._getYValue(wig.baseAxis, coordinateSystem));
+
+
+            line.moveTo(startX1, this._getYValue(item.dataValue, coordinateSystem) - lineThickness / 2);
+            line.lineTo(startX2, this._getYValue(item.dataValue, coordinateSystem) - lineThickness / 2);
+
+            if (!isDetailed) {
+                line.lineStyle(lineThickness, 0xf9f9f9, 1);
+                line.moveTo(startX1 - lineThickness / 2, this._getYValue(wig.baseAxis, coordinateSystem) - lineThickness / 2);
+                line.lineTo(startX1 - lineThickness / 2, 0);
+                line.moveTo(startX2 + lineThickness / 2, this._getYValue(wig.baseAxis, coordinateSystem) - lineThickness / 2);
+                line.lineTo(startX2 + lineThickness / 2, 0);
+            }
+
+            block.endFill();
+
+            this._hoveredItemContainer.addChild(block);
+            this._hoveredItemContainer.addChild(line);
+        }
     }
 
     _renderItems(items, color, lineColor, viewport, wig, coordinateSystem) {

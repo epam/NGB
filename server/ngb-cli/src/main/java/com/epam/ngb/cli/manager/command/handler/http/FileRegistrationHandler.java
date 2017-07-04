@@ -70,6 +70,10 @@ public class FileRegistrationHandler extends AbstractHTTPCommandHandler {
      */
     private String fileName;
     /**
+     * Pretty name of a file
+     */
+    private String prettyName;
+    /**
      * ID of the reference, for which files are registered for
      */
     private Long referenceId;
@@ -114,6 +118,7 @@ public class FileRegistrationHandler extends AbstractHTTPCommandHandler {
         this.printJson = options.isPrintJson();
         this.printTable = options.isPrintTable();
         this.doIndex = options.isDoIndex();
+        this.prettyName = options.getPrettyName();
     }
 
     /**
@@ -144,6 +149,7 @@ public class FileRegistrationHandler extends AbstractHTTPCommandHandler {
         printJson = options.isPrintJson();
         printTable = options.isPrintTable();
         doIndex = options.isDoIndex();
+        prettyName = options.getPrettyName();
     }
 
     /**
@@ -203,6 +209,7 @@ public class FileRegistrationHandler extends AbstractHTTPCommandHandler {
     private RegistrationRequest createRegistrationRequest(Pair<String, String> file, BiologicalDataItemFormat format) {
         RegistrationRequest registration = new RegistrationRequest();
         registration.setName(fileName);
+        registration.setPrettyName(prettyName);
         registration.setPath(file.getLeft());
         registration.setIndexPath(file.getRight());
         registration.setReferenceId(referenceId);

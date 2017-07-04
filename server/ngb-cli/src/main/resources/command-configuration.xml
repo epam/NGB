@@ -131,4 +131,16 @@
         <url>/restapi/tools/sort</url>
         <secure>false</secure>
     </sort>
+    <add_annotation>
+        <name>add_ann</name>
+        <type>POST</type>
+        <url>/restapi/secure/reference/%d/updateAnnotation</url>
+        <secure>true</secure>
+    </add_annotation>
+    <remove_annotation>
+        <name>remove_ann</name>
+        <type>POST</type>
+        <url>/restapi/secure/reference/%d/updateAnnotation</url>
+        <secure>true</secure>
+    </remove_annotation>
 </config>

@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.IndexedDataItem;
 import com.epam.catgenome.entity.gene.GeneFile;
 
@@ -52,6 +53,12 @@ public class Reference extends IndexedDataItem {
      * Represents GeneFile, containing gene annotations, associated with the reference genome
      */
     private GeneFile geneFile;
+
+    /**
+     * Represents annotation files, containing associated with the reference genome
+     */
+    private List<FeatureFile> annotationFiles;
+
 
     public Reference() {
         chromosomes = new ArrayList<>();
@@ -94,6 +101,14 @@ public class Reference extends IndexedDataItem {
 
     public void setGeneFile(GeneFile geneFile) {
         this.geneFile = geneFile;
+    }
+
+    public List<FeatureFile> getAnnotationFiles() {
+        return annotationFiles;
+    }
+
+    public void setAnnotationFiles(List<FeatureFile> annotationFiles) {
+        this.annotationFiles = annotationFiles;
     }
 
     @Override public boolean equals(Object o) {

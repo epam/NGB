@@ -1,5 +1,6 @@
 export default {
     height: 20,
+    fitHeightFactor: 1,
     largeScale: {
         'A': 0x8BC743,
         'C': 0xDD4C46,

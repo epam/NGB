@@ -43,7 +43,7 @@ export default class DataTrack extends ScrollableTrack {
     }
 
     cacheUpdateParameters(viewport) {
-        if ((this.constructor.name === 'ReferenceTrack' || this.constructor.name === 'WIGTrack') && viewport.isShortenedIntronsMode) {
+        if ((this.constructor.name === 'REFERENCETrack' || this.constructor.name === 'WIGTrack') && viewport.isShortenedIntronsMode) {
             const parametersArray = [];
             for (let i = 0; i < viewport.shortenedIntronsViewport._coveredRange.ranges.length; i++) {
                 const range = viewport.shortenedIntronsViewport._coveredRange.ranges[i];

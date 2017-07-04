@@ -65,6 +65,7 @@ import com.epam.catgenome.util.Utils;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class WigManagerTest extends AbstractManagerTest {
 
+    public static final String PRETTY_NAME = "pretty";
     @Autowired
     ApplicationContext context;
 
@@ -122,6 +123,7 @@ public class WigManagerTest extends AbstractManagerTest {
         request.setPath(path);
         request.setReferenceId(testReference.getId());
         request.setName(TEST_WIG);
+        request.setPrettyName(PRETTY_NAME);
 
         WigFile wigFile = wigManager.registerWigFile(request);
         Assert.assertNotNull(wigFile);
@@ -133,6 +135,7 @@ public class WigManagerTest extends AbstractManagerTest {
         Assert.assertTrue(wigFile.getCreatedDate().equals(loadWigFile.getCreatedDate()));
         Assert.assertTrue(wigFile.getReferenceId().equals(loadWigFile.getReferenceId()));
         Assert.assertTrue(wigFile.getPath().equals(loadWigFile.getPath()));
+        Assert.assertEquals(wigFile.getPrettyName(), loadWigFile.getPrettyName());
 
         Track<Wig> wigTrack = new Track<>();
         wigTrack.setChromosome(new Chromosome(testChromosomeId));

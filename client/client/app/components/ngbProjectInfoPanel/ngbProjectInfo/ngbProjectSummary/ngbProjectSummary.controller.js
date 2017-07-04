@@ -35,17 +35,18 @@ export default class ngbProjectSummaryController {
         const items = this.projectContext.tracks;
         for (const item of items) {
             let added = false;
+            const name = item.prettyName || item.name;
             for (const file of files) {
                 if (file.type === item.format) {
-                    if (file.names.indexOf(item.name) === -1) {
-                        file.names.push(item.name);
+                    if (file.names.indexOf(name) === -1) {
+                        file.names.push(name);
                     }
                     added = true;
                     break;
                 }
             }
             if (!added) {
-                files.push({names: [item.name], type: item.format});
+                files.push({names: [name], type: item.format});
             }
         }
         this.files = files;

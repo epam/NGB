@@ -43,6 +43,7 @@ public class TestHttpServer extends AbstractCliTest{
     private static final String AUTHORISATION = "authorization";
     private static final String BEARER = "Bearer ";
     private static final String NAME_PARAMETER = "name";
+    private static final String FILE_PATH_PARAMETER = "filePath";
 
     public void start() {
         initJadler();
@@ -66,24 +67,24 @@ public class TestHttpServer extends AbstractCliTest{
     public void addReference(Long refBioId, Long refId, String name, String path) {
         //load reference by bioitem ID
         onRequest()
-                .havingMethodEqualTo(HTTP_GET)
-                .havingPathEqualTo(FILE_FIND_URL)
-                .havingParameterEqualTo("id", String.valueOf(refBioId))
-                .respond()
-                .withBody(TestDataProvider.getFilePayloadJson(refId, refBioId,
-                        BiologicalDataItemFormat.REFERENCE, path, name))
-                .withStatus(HTTP_STATUS_OK);
+            .havingMethodEqualTo(HTTP_GET)
+            .havingPathEqualTo(FILE_FIND_URL)
+            .havingParameterEqualTo("id", String.valueOf(refBioId))
+            .respond()
+            .withBody(TestDataProvider.getFilePayloadJson(refId, refBioId,
+                    BiologicalDataItemFormat.REFERENCE, path, name))
+            .withStatus(HTTP_STATUS_OK);
 
         //load reference by name
         //when loading files by name we receive only BioItemId
         onRequest()
-                .havingMethodEqualTo(HTTP_GET)
-                .havingPathEqualTo(SEARCH_URL)
-                .havingParameterEqualTo(NAME_PARAMETER, name)
-                .respond()
-                .withBody(TestDataProvider.getFilePayloadJson(refId, refBioId,
-                        BiologicalDataItemFormat.REFERENCE, path, name, true))
-                .withStatus(HTTP_STATUS_OK);
+            .havingMethodEqualTo(HTTP_GET)
+            .havingPathEqualTo(SEARCH_URL)
+            .havingParameterEqualTo(NAME_PARAMETER, name)
+            .respond()
+            .withBody(TestDataProvider.getFilePayloadJson(refId, refBioId,
+                    BiologicalDataItemFormat.REFERENCE, path, name, true))
+            .withStatus(HTTP_STATUS_OK);
     }
 
     /**
@@ -119,15 +120,36 @@ public class TestHttpServer extends AbstractCliTest{
 
     public void addFeatureIndexedFileRegistration(Long refId, String path, String name, Long fileId,
                                     Long fileBioId, BiologicalDataItemFormat format, boolean doIndex) {
+        addFeatureIndexedFileRegistration(refId, path, null, name, fileId, fileBioId, format, doIndex,
+                null);
+    }
+
+    public void addFeatureIndexedFileRegistration(Long refId, String path, String indexPath, String name, Long fileId,
+                                                  Long fileBioId, BiologicalDataItemFormat format, boolean doIndex,
+                                                  String prettyName) {
         onRequest()
-            .havingMethodEqualTo(HTTP_POST)
-            .havingPathEqualTo(String.format(REGISTRATION_URL,
-                                             format.name().toLowerCase()))
-            .havingBodyEqualTo(TestDataProvider.getRegistrationJson(refId, path, name, doIndex))
-            .respond()
-            .withBody(TestDataProvider.getFilePayloadJson(fileId, fileBioId, format,
-                                                          path, name == null ? FilenameUtils.getName(path) : name))
-            .withStatus(HTTP_STATUS_OK);
+                .havingMethodEqualTo(HTTP_POST)
+                .havingPathEqualTo(String.format(REGISTRATION_URL,
+                        format.name().toLowerCase()))
+                .havingBodyEqualTo(TestDataProvider.getRegistrationJsonWithPrettyName(refId, path, indexPath, name,
+                        doIndex, prettyName))
+                .respond()
+                .withBody(TestDataProvider.getFilePayloadJson(fileId, fileBioId, format,
+                        path, name == null ? FilenameUtils.getName(path) : name))
+                .withStatus(HTTP_STATUS_OK);
+    }
+
+    public void addFeatureIndexedFileRegistration(Long refId, String path, String name, String index, Long fileId,
+                                                  Long fileBioId, BiologicalDataItemFormat format,
+                                                  boolean doIndex) {
+        onRequest()
+                .havingMethodEqualTo(HTTP_POST)
+                .havingPathEqualTo(String.format(REGISTRATION_URL, format.name().toLowerCase()))
+                .havingBodyEqualTo(TestDataProvider.getRegistrationJson(refId, path, name, index, doIndex))
+                .respond()
+                .withBody(TestDataProvider.getFilePayloadJson(fileId, fileBioId, format,
+                        path, name == null ? FilenameUtils.getName(path) : name))
+                .withStatus(HTTP_STATUS_OK);
     }
 
     /**
@@ -143,6 +165,23 @@ public class TestHttpServer extends AbstractCliTest{
                                 .collect(Collectors.toList())))
                 .respond()
                 .withBody(TestDataProvider.getProjectPayloadJson(id, name, items))
+                .withStatus(HTTP_STATUS_OK);
+    }
+
+    /**
+     * Enables dataset registration on the server
+     */
+    public void addDatasetRegistrationWithPrettyName(String name, List<BiologicalDataItem> items, Long id,
+                                                     String prettyName) {
+        onRequest()
+                .havingMethodEqualTo(HTTP_POST)
+                .havingPathEqualTo(DATASET_REGISTRATION_URL)
+                .havingBodyEqualTo(TestDataProvider.getNotTypedRegistrationJsonWithPrettyName(
+                        null, null, name, null, items.stream()
+                                .map(i -> new ProjectItem(i.getBioDataItemId(), false))
+                                .collect(Collectors.toList()), prettyName))
+                .respond()
+                .withBody(TestDataProvider.getProjectPayloadJson(id, name, items, prettyName))
                 .withStatus(HTTP_STATUS_OK);
     }
 
@@ -342,6 +381,18 @@ public class TestHttpServer extends AbstractCliTest{
                 .withStatus(HTTP_STATUS_OK);
     }
 
+    public void addAnnotationReferenceUpdating(BiologicalDataItem reference, Long annotationId, boolean remove) {
+        onRequest()
+                .havingMethodEqualTo(HTTP_PUT)
+                .havingPathEqualTo(String.format(ANNOTATION_REFERENCE_UPDATING_URL, reference.getId()))
+                .havingParameterEqualTo("annotationFileId", String.valueOf(annotationId))
+                .havingParameterEqualTo("remove", String.valueOf(remove))
+                .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
+                .respond()
+                .withBody(TestDataProvider.getPayloadJson(reference))
+                .withStatus(HTTP_STATUS_OK);
+    }
+
     public void addGeneRemoving(BiologicalDataItem reference) {
         onRequest()
                 .havingMethodEqualTo(HTTP_PUT)
@@ -421,6 +472,16 @@ public class TestHttpServer extends AbstractCliTest{
                 .havingPathEqualTo(SORT_URI)
                 .respond()
                 .withBody(TestDataProvider.getPayloadJson("OK"))
+                .withStatus(HTTP_STATUS_OK);
+    }
+
+    public void addIndexSearchRequest(String pathToFile, String indexPath) {
+        onRequest()
+                .havingMethodEqualTo(HTTP_GET)
+                .havingPathEqualTo(GET_PATH_TO_EXISTING_INDEX_URI)
+                .havingParameterEqualTo(FILE_PATH_PARAMETER, pathToFile)
+                .respond()
+                .withBody(TestDataProvider.getPayloadJson(indexPath))
                 .withStatus(HTTP_STATUS_OK);
     }
 }

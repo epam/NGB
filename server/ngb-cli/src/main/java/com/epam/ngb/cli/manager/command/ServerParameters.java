@@ -40,7 +40,8 @@ public class ServerParameters {
     private String versionUrl;
     private String projectLoadByIdUrl;
     private String fileFindUrl;
-    private int minSupportedServerVersion;
+    private String serverVersion;
+    private String existingIndexSearchUrl;
 
     public String getServerUrl() {
         return serverUrl;
@@ -98,12 +99,12 @@ public class ServerParameters {
         this.versionUrl = versionUrl;
     }
 
-    public int getMinSupportedServerVersion() {
-        return minSupportedServerVersion;
+    public String getServerVersion() {
+        return serverVersion;
     }
 
-    public void setMinSupportedServerVersion(int minSupportedServerVersion) {
-        this.minSupportedServerVersion = minSupportedServerVersion;
+    public void setServerVersion(String serverVersion) {
+        this.serverVersion = serverVersion;
     }
 
     public String getProjectLoadByIdUrl() {
@@ -128,5 +129,13 @@ public class ServerParameters {
 
     public void setProjectTreeUrl(String projectTreeUrl) {
         this.projectTreeUrl = projectTreeUrl;
+    }
+
+    public String getExistingIndexSearchUrl() {
+        return existingIndexSearchUrl;
+    }
+
+    public void setExistingIndexSearchUrl(String existingIndexSearchUrl) {
+        this.existingIndexSearchUrl = existingIndexSearchUrl;
     }
 }

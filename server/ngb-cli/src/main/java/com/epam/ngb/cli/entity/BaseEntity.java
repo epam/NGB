@@ -40,6 +40,8 @@ public class BaseEntity {
      */
     private String name;
 
+    private String prettyName;
+
     public Long getId() {
         return id;
     }
@@ -54,5 +56,13 @@ public class BaseEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPrettyName() {
+        return prettyName;
+    }
+
+    public void setPrettyName(String prettyName) {
+        this.prettyName = prettyName;
     }
 }

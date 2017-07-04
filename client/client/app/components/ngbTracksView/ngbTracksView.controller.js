@@ -5,17 +5,21 @@ import angular from 'angular';
 import baseController from '../../shared/baseController';
 import {getFormattedDate} from '../../shared/utils/date';
 
+const RULER_TRACK_FORMAT = 'RULER';
+
 export default class ngbTracksViewController extends baseController {
     zoomManager: ngbTracksViewZoomManager;
     bookmarkCamera: ngbTracksViewCameraManager;
     projectDataService;
+    localDataService;
     chromosome;
 
     domElement: HTMLElement;
+    tracksContainer = null;
     referenceId = null;
 
     rulerTrack = {
-        format: 'RULER'
+        format: RULER_TRACK_FORMAT
     };
     tracks = [];
     renderable = false;
@@ -27,13 +31,14 @@ export default class ngbTracksViewController extends baseController {
         return 'ngbTracksViewController';
     }
 
-    constructor($scope, $element, projectDataService, genomeDataService, vcfDataService, dispatcher, projectContext ) {
+    constructor($scope, $element, localDataService, projectDataService, genomeDataService, vcfDataService, dispatcher, projectContext) {
         super();
 
         Object.assign(this, {
             $element,
             $scope,
             dispatcher,
+            localDataService,
             genomeDataService,
             projectContext,
             projectDataService,
@@ -41,6 +46,7 @@ export default class ngbTracksViewController extends baseController {
         });
 
         this.domElement = this.$element[0];
+        this.tracksContainer = $(this.domElement).find('.track-panel-container')[0];
         this.refreshTracksScope = () => $scope.$apply();
 
         (async() => {
@@ -67,8 +73,6 @@ export default class ngbTracksViewController extends baseController {
             this.initEvents();
 
         })();
-
-
     }
 
     events = {
@@ -76,13 +80,27 @@ export default class ngbTracksViewController extends baseController {
             Promise.delay(0)
                 .then(::this.manageTracks)
                 .then(::this.refreshTracksScope);
-        }
+        },
+        'tracks:fit:height': ::this.fitTracksHeights,
+        'hotkeyPressed': ::this.hotKeyListener
     };
+
+    hotKeyListener(event) {
+        if (event === 'bam>showAlignments') {   
+            const bamTracksWithAlignmentTrue = this.projectContext.tracksState.filter(t => t.format === 'BAM' && t.state.alignments === true);
+            const bamTracksWithAlignmentFalse = this.projectContext.tracksState.filter(t => t.format === 'BAM' && t.state.alignments === false);
+
+            this.dispatcher.emitGlobalEvent('bam:showAlignments', {event : event, disableShowAlignmentsForAllTracks: bamTracksWithAlignmentTrue.length > 0 && bamTracksWithAlignmentFalse.length > 0});
+        }
+    }
 
     $onDestroy() {
         if (this.zoomManager && this.zoomManager.destructor instanceof Function) this.zoomManager.destructor();
         if (this.viewport && this.viewport.onDestroy) {
             this.viewport.onDestroy();
+        }
+        if (this._removeHotKeyListener) {
+            this._removeHotKeyListener();
         }
         this.viewport = null;
     }
@@ -170,11 +188,58 @@ export default class ngbTracksViewController extends baseController {
         this.renderable = true;
     }
 
+    fitTracksHeights() {
+        let availableHeight = $(this.tracksContainer).height();
+        let totalTrackWeights = 0;
+        const tracks = [this.rulerTrack, ...this.tracks];
+        let trackHeaderHeight = 20;
+        let trackMargin = 8;
+        const totalMargin = 2;
+        if ((this.projectContext.collapsedTrackHeaders !== undefined && this.projectContext.collapsedTrackHeaders) || !this.localDataService.getSettings().showTracksHeaders) {
+            trackHeaderHeight = 0;
+            trackMargin = 4;
+        }
+        for (let i = 0; i < tracks.length; i++) {
+            const instance = tracks[i].instance;
+            if (instance) {
+                if (instance.config.format === RULER_TRACK_FORMAT) {
+                    availableHeight -= (instance.height + trackMargin);
+                    continue;
+                } else if (!instance.trackIsResizable) {
+                    availableHeight -= instance.height;
+                } else if (typeof instance.trackConfig.fitHeightFactor === 'function') {
+                    totalTrackWeights += instance.trackConfig.fitHeightFactor(instance.state);
+                } else {
+                    totalTrackWeights += instance.trackConfig.fitHeightFactor;
+                }
+                availableHeight -= (trackHeaderHeight + trackMargin);
+            }
+        }
+        availableHeight -= totalMargin;
+        const oneWeight = availableHeight / totalTrackWeights;
+        for (let i = 0; i < tracks.length; i++) {
+            const instance = tracks[i].instance;
+            if (instance) {
+                let trackWeight = 1;
+                if (instance.config.format === RULER_TRACK_FORMAT || !instance.trackIsResizable) {
+                    continue;
+                } else if (typeof instance.trackConfig.fitHeightFactor === 'function') {
+                    trackWeight = instance.trackConfig.fitHeightFactor(instance.state);
+                } else {
+                    trackWeight = instance.trackConfig.fitHeightFactor;
+                }
+                instance.height = oneWeight * trackWeight;
+                instance.reportTrackState(true);
+            }
+        }
+        this.projectContext.submitTracksStates();
+    }
+
     async manageTracks() {
         const oldTracks = this.tracks && this.tracks.length ? this.tracks.reduce((acc, track) => ({
-            ...acc,
-            [this.trackHash(track)]: track
-        })) : [];
+                ...acc,
+                [this.trackHash(track)]: track
+            })) : [];
         this.tracks = (this.projectContext.getActiveTracks())
         //adding old props to new data
             .map(track => ({

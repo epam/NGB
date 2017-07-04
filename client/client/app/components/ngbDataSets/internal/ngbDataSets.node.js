@@ -12,6 +12,7 @@ export class Node {
     bioDataItemId;
     format;
     name;
+    prettyName;
 
     project;
     projectId;
@@ -20,6 +21,7 @@ export class Node {
     isTrack: Boolean;
     isProject: Boolean;
     isEmpty: Boolean;
+    isLocal: Boolean;
 
     isPlaceholder: Boolean;
 

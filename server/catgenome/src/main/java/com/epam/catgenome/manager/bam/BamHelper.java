@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import com.epam.catgenome.entity.bam.*;
+import com.epam.catgenome.entity.bam.BamFile;
+import com.epam.catgenome.entity.bam.BamQueryOption;
+import com.epam.catgenome.entity.bam.BamTrack;
+import com.epam.catgenome.entity.bam.BamTrackMode;
+import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.wig.Wig;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFlag;
@@ -111,11 +115,14 @@ import htsjdk.samtools.util.CloseableIterator;
 @Service
 public class BamHelper {
 
-    private static final Set<String> BAM_EXTENSIONS = new HashSet<>();
+    public static final Set<String> BAM_EXTENSIONS = new HashSet<>();
+    public static final Map<String, String> BAI_EXTENSIONS = new HashMap<>();
 
     static {
         BAM_EXTENSIONS.add(".bam");
         BAM_EXTENSIONS.add(".cram");
+        BAI_EXTENSIONS.put(".bam", ".bai");
+        BAI_EXTENSIONS.put(".cram", ".crai");
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(BamHelper.class);
@@ -162,17 +169,16 @@ public class BamHelper {
      * Loads reads into the track from the file system
      * @param track to load reads
      * @param options track options
-     * @return {@code BamTrack} filled with reads
+     * @param emitter where to write data
      * @throws IOException if {@code BamFile} cannot be read
      */
-    public BamTrack<Read> getReadsFromFile(final Track<Read> track, final BamQueryOption options)
-            throws IOException {
+    public void getReadsFromFile(final Track<Read> track, final BamQueryOption options,
+                                 BamTrackEmitter emitter) throws IOException {
         final BamTrack<Read> bamTrack = new BamTrack<>(track);
         final BamFile bamFile = bamFileManager.loadBamFile(bamTrack.getId());
         Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
 
-        getReads(bamFile, bamTrack, options);
-        return bamTrack;
+        fillEmitterByReads(bamFile, bamTrack, options, emitter);
     }
 
     /**
@@ -217,17 +223,18 @@ public class BamHelper {
      * @param bamUrl {@code BamFile} URL
      * @param bamIndexUrl  {@code BamFile} index URL
      * @param options track options
+     * @param bamTrackEmitter where to write track data
      * @return {@code BamTrack} filled with reads
      * @throws IOException if {@code BamFile} cannot be read
      */
-    public BamTrack<Read> getReadsFromUrl(final Track<Read> track, String bamUrl, String bamIndexUrl,
-                                          final BamQueryOption options) throws IOException {
+    public void fillEmitterByReadsFromUrl(final Track<Read> track, String bamUrl, String bamIndexUrl,
+                                                    final BamQueryOption options, BamTrackEmitter bamTrackEmitter)
+            throws IOException {
         final BamTrack<Read> bamTrack = new BamTrack<>(track);
         Assert.notNull(track.getChromosome().getReferenceId());
         final BamFile bamFile = makeUrlBamFile(bamUrl, bamIndexUrl, track.getChromosome().getReferenceId());
 
-        getReads(bamFile, bamTrack, options);
-        return bamTrack;
+        fillEmitterByReads(bamFile, bamTrack, options, bamTrackEmitter);
     }
 
     /**
@@ -273,6 +280,7 @@ public class BamHelper {
         newBamFile.setCreatedDate(new Date());
         newBamFile.setPath(request.getPath());
         newBamFile.setBucketId(request.getS3BucketId());
+        newBamFile.setPrettyName(request.getPrettyName());
 
         indexItem.setName("");
         indexItem.setType(request.getIndexType() == null ? request.getType() : request.getIndexType());
@@ -306,8 +314,10 @@ public class BamHelper {
         return defaultString(trimToNull(alternativeName), fileName);
     }
 
-    private void getReads(final BamFile bamFile, BamTrack<Read> bamTrack, final BamQueryOption options) throws
+    private void fillEmitterByReads(final BamFile bamFile, BamTrack<Read> bamTrack, final BamQueryOption options,
+                                    BamTrackEmitter trackEmitter) throws
             IOException {
+
         Chromosome chromosome = bamTrack.getChromosome();
         try (SamReader reader = makeSamReader(bamFile, Collections.singletonList(chromosome),
                 chromosome.getReferenceId())) {
@@ -319,15 +329,17 @@ public class BamHelper {
             }
 
             Handler<SAMRecord> filter = filterReads(bamTrack, options, reader, chromosomeName, options.getMode() ==
-                    BamTrackMode.COVERAGE);
-            //maxReadsCount
+                    BamTrackMode.COVERAGE, trackEmitter);
 
-            bamTrack.setBlocks(filter.getSifter().getReadListResult());
+            filter.getSifter().finish();
+
             bamTrack.setMinPosition(filter.getMinPosition());
             bamTrack.setReferenceBuffer(filter.getReferenceBuff());
             bamTrack.setDownsampleCoverage(filter.getSifter().getDownsampleCoverageResult());
             bamTrack.setBaseCoverage(filter.getBaseCoverage(bamTrack.getScaleFactor()));
             bamTrack.setSpliceJunctions(filter.getSpliceJunctions());
+
+            trackEmitter.writeTrackAndFinish(bamTrack);
         }
     }
 
@@ -366,7 +378,8 @@ public class BamHelper {
     }
 
     private Handler<SAMRecord> filterReads(BamTrack<Read> bamTrack, BamQueryOption options, SamReader reader,
-                                           String chromosomeName, boolean coverageOnly) throws IOException {
+                                           String chromosomeName, boolean coverageOnly, BamTrackEmitter trackEmitter)
+            throws IOException {
                                                                                             //int maxReadCount
         CloseableIterator<SAMRecord> iterator = reader.query(chromosomeName, bamTrack.getStartIndex(),
                                                                    bamTrack.getEndIndex(), false);
@@ -375,7 +388,7 @@ public class BamHelper {
         iterator = setIteratorFiltering(iterator, options);
 
         final Handler<SAMRecord> filter = BamUtil.createSAMRecordHandler(bamTrack, options, referenceManager,
-                coverageOnly); //maxReadCount
+                coverageOnly, trackEmitter); //maxReadCount
 
         while (iterator.hasNext()) {
             final SAMRecord samRecord = iterator.next();
@@ -409,9 +422,9 @@ public class BamHelper {
         return iterator;
     }
 
-    private Map<Sequence, List<SAMRecord>> getReadsFromFile(final Chromosome chromosome, final Track<Sequence> track,
-                                                            final BamFile bamFile, final List<Sequence> blocks)
-            throws IOException {
+    private Map<Sequence, List<SAMRecord>> getReadsFromFile(
+            final Chromosome chromosome, final Track<Sequence> track, final BamFile bamFile,
+            final List<Sequence> blocks) throws IOException {
         final Map<Sequence, List<SAMRecord>> records = new HashMap<>();
         try (SamReader reader = makeSamReader(bamFile, Collections.singletonList(chromosome),
                 chromosome.getReferenceId())) {

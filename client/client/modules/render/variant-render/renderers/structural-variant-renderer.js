@@ -1,7 +1,7 @@
 import VariantBaseRenderer from './base-renderer';
 import {BaseViewport, drawingConfiguration} from '../../core';
 import {StructuralVariantConfig, CommonConfig} from '../configs';
-import {PixiTextSize} from '../../utilities';
+import {PixiTextSize, ColorProcessor} from '../../utilities';
 import {
     FeatureCutOffRenderer,
     StrandDirectionRenderer,
@@ -19,20 +19,18 @@ const emptyGeneSize = 20;
 export default class StructuralVariantRenderer extends VariantBaseRenderer {
 
     _config = Object.assign(CommonConfig, StructuralVariantConfig);
-    _domainColorsManager: DomainColorsManager = new DomainColorsManager(this._config);
-    _featureCutOffRenderer: FeatureCutOffRenderer = new FeatureCutOffRenderer(this._config);
-    _variantZonesManager: VariantZonesManager = new VariantZonesManager(this._config);
-    _strandDirectionRenderer: StrandDirectionRenderer = new StrandDirectionRenderer(this._config);
-    _dragManager: DragManager = null;
-    _breakpointPositioning: Map = new Map();
+    _domainColorsManager:DomainColorsManager = new DomainColorsManager(this._config);
+    _featureCutOffRenderer:FeatureCutOffRenderer = new FeatureCutOffRenderer(this._config);
+    _variantZonesManager:VariantZonesManager = new VariantZonesManager(this._config);
+    _strandDirectionRenderer:StrandDirectionRenderer = new StrandDirectionRenderer(this._config);
+    _dragManager:DragManager = null;
+    _breakpointPositioning:Map = new Map();
 
     _legendExpanded = false;
     _transcriptExpandedStatus = null;
 
     _mainOffset = 0;
     _visualAreaOffset = 0;
-
-    _refChromosomeTranscripts = null;
 
     _altChromosomeNames = [];
     _altChromosomeVisualInfo = {};
@@ -46,15 +44,15 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
         return this._config;
     }
 
-    get featureCutOffRenderer(): FeatureCutOffRenderer {
+    get featureCutOffRenderer():FeatureCutOffRenderer {
         return this._featureCutOffRenderer;
     }
 
-    get variantZonesManager(): VariantZonesManager {
+    get variantZonesManager():VariantZonesManager {
         return this._variantZonesManager;
     }
 
-    get dragManager(): DragManager {
+    get dragManager():DragManager {
         return this._dragManager;
     }
 
@@ -62,16 +60,16 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
         return this.variantZonesManager.getTotalHeight();
     }
 
-    get strandDirectionRenderer(): StrandDirectionRenderer {
+    get strandDirectionRenderer():StrandDirectionRenderer {
         return this._strandDirectionRenderer;
     }
 
-    get domainColorsManager(): DomainColorsManager {
+    get domainColorsManager():DomainColorsManager {
         return this._domainColorsManager;
     }
 
-    constructor(variant, heightChanged, showTooltip, updateSceneFn, reRenderScene) {
-        super(variant, heightChanged, showTooltip, updateSceneFn, reRenderScene);
+    constructor(variant, heightChanged, showTooltip, affectedGeneTranscriptChanged, updateSceneFn, reRenderScene) {
+        super(variant, heightChanged, showTooltip, affectedGeneTranscriptChanged, updateSceneFn, reRenderScene);
         this._dragManager = new DragManager(this.config, this.container);
     }
 
@@ -91,7 +89,7 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
         super.manageViewports(config);
         this.domainColorsManager.domainsInfo = this.variant.analysisResult.domainColors;
         this.domainColorsManager.genesInfo = this.variant.analysisResult.geneNames;
-        const refZone = this._manageReferenceViewports(config);
+        const refZonez = this._manageReferenceViewports(config);
         const altZone = this._manageAlternativeViewports(config);
         const buffer = {name: 'buffer'};
         const legendZone = {name: 'legends', zones: [], expanded: this._legendExpanded};
@@ -100,7 +98,7 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
                 legendZone.zones.push({name: legend, zones: [{name: 'legend'}]});
             }
         }
-        this.variantZonesManager.configureZones([refZone, buffer, altZone, buffer, {name: 'legendsLabel'}, legendZone]);
+        this.variantZonesManager.configureZones([...refZonez, buffer, altZone, buffer, {name: 'legendsLabel'}, legendZone]);
     }
 
     _manageReferenceViewports(config) {
@@ -108,7 +106,6 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
         if (!this._transcriptExpandedStatus) {
             this._transcriptExpandedStatus = {};
         }
-        this._refChromosomeTranscripts = {};
         let maximumItemsLength = 0;
         let maximumLeftLength = 0;
         let maximumRightLength = 0;
@@ -116,6 +113,8 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
         const chromosomeVisualInfo = {};
         const refZone = {name: 'reference', zones: []};
         let maxChromosomeLabelSize = 0;
+
+        const geneTranscriptsZones = [];
 
         for (let i = 0; i < this.variant.analysisResult.chromosomes.length; i++) {
             const name = this._getChromosomeDisplayName(this.variant.analysisResult.chromosomes[i]);
@@ -127,17 +126,7 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
         for (let i = 0; i < this.variant.analysisResult.chromosomes.length; i++) {
             const subZone = {
                 name: this.variant.analysisResult.chromosomes[i].toUpperCase(),
-                zones: [
-                    {name: 'gene'},
-                    {
-                        name: 'upper',
-                        zones: [{name: 'edges'}]
-                    },
-                    {name: 'chromosome'},
-                    {
-                        name: 'down',
-                        zones: [{name: 'edges'}]
-                    }]
+                zones: []
             };
             refZone.zones.push(subZone);
             const breakpointsAtChromosome = this.variant.analysisResult.breakpoints.filter(breakpoint => breakpoint.chromosome.name.toLowerCase() === this.variant.analysisResult.chromosomes[i]);
@@ -216,23 +205,10 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
                     }
                 }
             }
-            if (!this._transcriptExpandedStatus.hasOwnProperty(this.variant.analysisResult.chromosomes[i])) {
-                this._transcriptExpandedStatus[this.variant.analysisResult.chromosomes[i]] = false;
-            }
-            const transcriptsZone = {
-                name: 'transcriptsZone',
-                zones: [],
-                expanded: this._transcriptExpandedStatus[this.variant.analysisResult.chromosomes[i]]
-            };
-            this._refChromosomeTranscripts[this.variant.analysisResult.chromosomes[i]] = maxTranscriptsPerChromosome;
-            for (let j = 0; j < maxTranscriptsPerChromosome; j++) {
-                transcriptsZone.zones.push({
-                    name: `transcript_${j}`,
-                    zones: [{name: 'transcriptName'}, {name: 'transcript'}]
-                });
-            }
-            subZone.zones.push({name: 'transcriptLabel'});
-            subZone.zones.push(transcriptsZone);
+            subZone.zones.push({name: 'gene'});
+            subZone.zones.push({name: 'upper', zones: [{name: 'edges'}]});
+            subZone.zones.push({name: 'chromosome'});
+            subZone.zones.push({name: 'down', zones: [{name: 'edges'}]});
 
             for (let j = 0; j < geneNames.length; j++) {
                 itemsLengthAtChromosome += genes[geneNames[j]];
@@ -288,6 +264,58 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
             return viewport;
         };
 
+        const registerViewportByRange = (name, bpRange, canvasRange) => {
+            const viewport = new BaseViewport({chromosome: bpRange, brush: bpRange, canvas: canvasRange});
+            let viewports = this.viewports.get(name.toUpperCase());
+            if (!viewports) {
+                viewports = [];
+            }
+            viewports.push(viewport);
+            this.viewports.set(name.toUpperCase(), viewports);
+            return viewport;
+        };
+
+        for (let i = 0; i < this.variant.analysisResult.geneNames.length; i++) {
+            const gene = this.variant.analysisResult.genes[this.variant.analysisResult.geneNames[i]].gene;
+            if (this._transcriptExpandedStatus[gene.name.toUpperCase()] === undefined) {
+                this._transcriptExpandedStatus[gene.name.toUpperCase()] = false;
+            }
+            const start = 0;
+            let end = null;
+            const zone = {
+                name: `${gene.name} transcripts`,
+                zones: [{name: 'transcriptLabel'}]
+            };
+            const geneTranscriptsZone = {
+                name: 'transcriptsZone',
+                zones: [],
+                expanded: this._transcriptExpandedStatus[gene.name.toUpperCase()]
+            };
+            zone.zones.push(geneTranscriptsZone);
+            geneTranscriptsZones.push(zone);
+            for (let j = 0; j < gene.transcripts.length; j++) {
+                const transcript = gene.transcripts[j];
+                for (let t = 0; t < transcript.canonicalCds.length; t++) {
+                    const cds = transcript.canonicalCds[t];
+                    if (end === null || end < cds.positionFromStart.end) {
+                        end = cds.positionFromStart.end;
+                    }
+                }
+                geneTranscriptsZone.zones.push({
+                    name: `${gene.name}_transcript_${j}`,
+                    zones: [{name: 'transcriptName'}, {name: 'transcript'}]
+                });
+                registerViewportByRange(`${gene.name}_transcript_${j}`,
+                    {start, end},
+                    {
+                        start: offset + this.config.transcript.radio.radius * 2 +
+                        this.config.transcript.radio.margin * 2,
+                        end: config.width - offset
+                    });
+            }
+            geneTranscriptsZone.zones.push({name: 'buffer'});
+        }
+
         for (let i = 0; i < this.variant.analysisResult.chromosomes.length; i++) {
             const chromosomeName = this.variant.analysisResult.chromosomes[i];
             const chromosomeWidthPx = convertBpToPixels(chromosomeVisualInfo[chromosomeName].itemsLength) + chromosomeVisualInfo[chromosomeName].visualBreakpoints.length * this.config.breakpoint.width;
@@ -326,7 +354,7 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
                 }
             }
         }
-        return refZone;
+        return [...geneTranscriptsZones, refZone];
     }
 
     _manageAlternativeViewports(config) {
@@ -437,15 +465,10 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
         this._addInteractionArea(config);
         this._exonPositions = [];
         this._domainLegendPositions = [];
-        for (let i = 0; i < this.variant.analysisResult.chromosomes.length; i++) {
-            if (this._refChromosomeTranscripts[this.variant.analysisResult.chromosomes[i]]) {
-                this._renderTranscriptsBlock(config, this.variant.analysisResult.chromosomes[i]);
-            }
-        }
         for (let i = 0; i < this.variant.analysisResult.geneNames.length; i++) {
             const gene = this.variant.analysisResult.genes[this.variant.analysisResult.geneNames[i]].gene;
             const chromosome = this.variant.analysisResult.genes[this.variant.analysisResult.geneNames[i]].chromosome;
-            this._renderGeneStructure(gene, chromosome);
+            this._renderGeneStructure(config, gene, chromosome);
         }
         this._renderBreakpointConnections();
         this._renderChromosomeNames(config);
@@ -462,7 +485,7 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
         this._renderAltLabel(this.container, config);
     }
 
-    _renderReferenceLabel(container: PIXI.Container, config) {
+    _renderReferenceLabel(container:PIXI.Container, config) {
         let style = this.config.reference.label;
         const label = new PIXI.Text('REF', style);
         label.resolution = drawingConfiguration.resolution;
@@ -620,7 +643,7 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
         this._domainLegendPositions.push({domain, boundaries});
     }
 
-    _addExpandCollapseButton(position, container: PIXI.Container, expanded, onClick) {
+    _addExpandCollapseButton(position, container:PIXI.Container, expanded, onClick) {
         const graphics = new PIXI.Graphics();
         container.addChild(graphics);
 
@@ -668,6 +691,48 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
                 render(true);
                 onClick();
                 shouldRerender();
+            });
+    }
+
+    _addRadioButton(position, container:PIXI.Container, selected, onClick) {
+        const graphics = new PIXI.Graphics();
+        container.addChild(graphics);
+
+        const outerRadius = this.config.transcript.radio.radius;
+        const innerRadius = this.config.transcript.radio.radius / 2.0;
+
+        const color = selected ? 0x4285F4 : 0xcccccc;
+
+        const render = (hovered) => {
+            graphics.clear();
+            graphics
+                .beginFill(0xffffff, 1)
+                .lineStyle(1, hovered ? ColorProcessor.darkenColor(color) : color, 1)
+                .drawCircle(position.x, position.y, outerRadius)
+                .endFill();
+            if (selected) {
+                graphics
+                    .beginFill(hovered ? ColorProcessor.darkenColor(color) : color, 1)
+                    .drawCircle(position.x, position.y, innerRadius)
+                    .endFill();
+            }
+            this._updateSceneFn();
+        };
+
+        render(false);
+
+        graphics.interactive = true;
+        graphics.buttonMode = true;
+        graphics
+            .on('mouseout', () => {
+                render(false);
+            })
+            .on('mouseover', () => {
+                render(true);
+            })
+            .on('mousedown', () => {
+                render(true);
+                onClick();
             });
     }
 
@@ -745,7 +810,7 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
         }
     }
 
-    _renderGeneStructure(gene, chromosome) {
+    _renderGeneStructure(config, gene, chromosome) {
         const viewports = this.viewports.get(`${chromosome.name.toUpperCase()}:${gene.name.toUpperCase()}`);
         if (viewports && viewports.length > 0) {
             for (let i = 0; i < viewports.length; i++) {
@@ -757,9 +822,9 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
                     this.container.addChild(label);
                 }
                 this._renderExonsStructure(viewports[i], chromosome.name, gene);
-                this._renderTranscriptsStructure(viewports[i], chromosome.name, gene);
             }
         }
+        this._renderTranscriptsStructure(config, gene);
     }
 
     _renderAltStructure(altInfo, index, chromosomeName) {
@@ -771,7 +836,7 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
         }
     }
 
-    _renderEmptyGeneStructure(viewport: BaseViewport, chromosomeName, zone = 'reference') {
+    _renderEmptyGeneStructure(viewport:BaseViewport, chromosomeName, zone = 'reference') {
         chromosomeName = chromosomeName.toUpperCase();
         const localContainer = new PIXI.Container();
         this.container.addChild(localContainer);
@@ -832,7 +897,7 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
             .endCuttingOff();
     }
 
-    _renderExonsStructure(viewport: BaseViewport, chromosomeName, gene, zone = 'reference', renderGeneLabels = false) {
+    _renderExonsStructure(viewport:BaseViewport, chromosomeName, gene, zone = 'reference', renderGeneLabels = false) {
         if (!viewport || !chromosomeName || !gene)
             return;
         chromosomeName = chromosomeName.toUpperCase();
@@ -999,8 +1064,12 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
                 }, alphaRatio);
                 for (let j = 0; j < exon.domains.length; j++) {
                     const exonDomain = exon.domains[j];
+                    let domainAlphaRatio = 1;
+                    if (this._hoveredDomain && exonDomain.domain.name !== this._hoveredDomain) {
+                        domainAlphaRatio = .25;
+                    }
                     const domainColor = this.domainColorsManager.getDomainColor(exonDomain.domain.name);
-                    graphics.beginFill(domainColor.fill, domainColor.alpha * alphaRatio);
+                    graphics.beginFill(domainColor.fill, domainColor.alpha * domainAlphaRatio);
                     graphics.lineStyle(0, 0x000000, 0);
                     const innerRect = {
                         x1: Math.max(viewport.project.brushBP2pixel(exonDomain.range.start), viewport.canvas.start),
@@ -1100,70 +1169,88 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
             .endCuttingOff();
     }
 
-    _renderTranscriptsBlock(config, chromosomeName, zone = 'reference') {
-        chromosomeName = chromosomeName.toUpperCase();
+    _renderTranscriptsBlock(config, gene) {
         const localContainer = new PIXI.Container();
         const graphics = new PIXI.Graphics();
         localContainer.addChild(graphics);
         this.container.addChild(localContainer);
 
+        const zoneNames = [`${gene.name} transcripts`];
+
         const borderMargin = 5;
-        const transcriptLegendLabel = new PIXI.Text('TRANSCRIPTS', this.config.transcript.mainLabel);
+        const transcriptLegendLabel = new PIXI.Text(`${gene.name.toUpperCase()} TRANSCRIPTS : ${gene.selectedTranscript.name.toUpperCase()} selected`, this.config.transcript.mainLabel);
         transcriptLegendLabel.resolution = drawingConfiguration.resolution;
         transcriptLegendLabel.x = Math.round(this._mainOffset + borderMargin * 2);
-        transcriptLegendLabel.y = Math.round(this.variantZonesManager.getCenter(zone, chromosomeName, 'transcriptLabel') - transcriptLegendLabel.height / 2);
+        transcriptLegendLabel.y = Math.round(this.variantZonesManager.getCenter(...zoneNames, 'transcriptLabel') - transcriptLegendLabel.height / 2);
         localContainer.addChild(transcriptLegendLabel);
         graphics.lineStyle(1, 0xcccccc, 1);
         graphics
-            .moveTo(Math.round(transcriptLegendLabel.x + transcriptLegendLabel.width + borderMargin) - .5, Math.round(this.variantZonesManager.getCenter(zone, chromosomeName, 'transcriptLabel')) - .5)
-            .lineTo(Math.round(config.width - this._mainOffset) - .5, Math.round(this.variantZonesManager.getCenter(zone, chromosomeName, 'transcriptLabel')) - .5)
-            .moveTo(Math.round(this._mainOffset) - .5, Math.round(this.variantZonesManager.getCenter(zone, chromosomeName, 'transcriptLabel')) - .5)
-            .lineTo(Math.round(this._mainOffset + borderMargin) - .5, Math.round(this.variantZonesManager.getCenter(zone, chromosomeName, 'transcriptLabel')) - .5);
+            .moveTo(Math.round(transcriptLegendLabel.x + transcriptLegendLabel.width + borderMargin) - .5, Math.round(this.variantZonesManager.getCenter(...zoneNames, 'transcriptLabel')) - .5)
+            .lineTo(Math.round(config.width - this._mainOffset) - .5, Math.round(this.variantZonesManager.getCenter(...zoneNames, 'transcriptLabel')) - .5)
+            .moveTo(Math.round(this._mainOffset) - .5, Math.round(this.variantZonesManager.getCenter(...zoneNames, 'transcriptLabel')) - .5)
+            .lineTo(Math.round(this._mainOffset + borderMargin) - .5, Math.round(this.variantZonesManager.getCenter(...zoneNames, 'transcriptLabel')) - .5);
 
         this._addExpandCollapseButton({
             x: config.width - this._mainOffset - expandCollpaseButtonRadius * 1.5,
-            y: this.variantZonesManager.getCenter(zone, chromosomeName, 'transcriptLabel')
-        }, localContainer, this.variantZonesManager.isExpanded(zone, chromosomeName, 'transcriptsZone'), () => {
-            if (!this.variantZonesManager.isExpanded(zone, chromosomeName, 'transcriptsZone')) {
-                this.variantZonesManager.expand(zone, chromosomeName, 'transcriptsZone');
-                this._transcriptExpandedStatus[chromosomeName] = true;
+            y: this.variantZonesManager.getCenter(...zoneNames, 'transcriptLabel')
+        }, localContainer, this.variantZonesManager.isExpanded(...zoneNames, 'transcriptsZone'), () => {
+            if (!this.variantZonesManager.isExpanded(...zoneNames, 'transcriptsZone')) {
+                this.variantZonesManager.expand(...zoneNames, 'transcriptsZone');
+                this._transcriptExpandedStatus[gene.name.toUpperCase()] = true; // todo
             }
             else {
-                this.variantZonesManager.collapse(zone, chromosomeName, 'transcriptsZone');
-                this._transcriptExpandedStatus[chromosomeName] = false;
+                this.variantZonesManager.collapse(...zoneNames, 'transcriptsZone');
+                this._transcriptExpandedStatus[gene.name.toUpperCase()] = false; // todo
             }
         });
 
-        if (!this.variantZonesManager.isExpanded(zone, chromosomeName, 'transcriptsZone')) {
+        if (!this.variantZonesManager.isExpanded(...zoneNames, 'transcriptsZone')) {
             return;
         }
 
         graphics
-            .moveTo(Math.round(this._mainOffset) - .5, Math.round(this.variantZonesManager.getCenter(zone, chromosomeName, 'transcriptLabel')) - .5)
-            .lineTo(Math.round(this._mainOffset) - .5, Math.round(this.variantZonesManager.getEndPosition(zone, chromosomeName, 'transcriptsZone')) - .5)
-            .lineTo(Math.round(config.width - this._mainOffset) - .5, Math.round(this.variantZonesManager.getEndPosition(zone, chromosomeName, 'transcriptsZone')) - .5)
-            .lineTo(Math.round(config.width - this._mainOffset) - .5, Math.round(this.variantZonesManager.getCenter(zone, chromosomeName, 'transcriptLabel')) - .5);
+            .moveTo(Math.round(this._mainOffset) - .5, Math.round(this.variantZonesManager.getCenter(...zoneNames, 'transcriptLabel')) - .5)
+            .lineTo(Math.round(this._mainOffset) - .5, Math.round(this.variantZonesManager.getEndPosition(...zoneNames, 'transcriptsZone')) - .5)
+            .lineTo(Math.round(config.width - this._mainOffset) - .5, Math.round(this.variantZonesManager.getEndPosition(...zoneNames, 'transcriptsZone')) - .5)
+            .lineTo(Math.round(config.width - this._mainOffset) - .5, Math.round(this.variantZonesManager.getCenter(...zoneNames, 'transcriptLabel')) - .5);
         graphics.lineStyle(0, 0xffffff, 0);
     }
 
-    _renderTranscriptsStructure(viewport, chromosomeName, gene, zone = 'reference') {
-        if (!viewport || !chromosomeName || !gene)
+    _renderTranscriptsStructure(config, gene) {
+        if (!gene) {
             return;
-        chromosomeName = chromosomeName.toUpperCase();
+        }
         const localContainer = new PIXI.Container();
         const graphics = new PIXI.Graphics();
         localContainer.addChild(graphics);
         this.container.addChild(localContainer);
 
-        if (gene.empty || !gene.transcripts || !this.variantZonesManager.isExpanded(zone, chromosomeName, 'transcriptsZone')) {
+        this._renderTranscriptsBlock(config, gene);
+
+        if (gene.empty || !gene.transcripts || !this.variantZonesManager.isExpanded(`${gene.name} transcripts`, 'transcriptsZone')) {
             return;
         }
 
         for (let t = 0; t < gene.transcripts.length; t++) {
             const transcript = gene.transcripts[t];
-            for (let i = 0; i < transcript.cds.length; i++) {
-                const exon = transcript.cds[i];
-                if (exon.relativePosition.end <= viewport.chromosome.start || exon.relativePosition.start > viewport.chromosome.end)
+            const name = `${gene.name}_transcript_${t}`.toUpperCase();
+            const viewport = this.viewports.get(name)[0];
+
+            const radioPositionX = this._mainOffset + 5 + this.config.transcript.radio.margin;
+            const radioPositionY = this.variantZonesManager.getCenter(`${gene.name} transcripts`, 'transcriptsZone',
+                    `${gene.name}_transcript_${t}`, 'transcript');
+
+            this._addRadioButton({
+                x: radioPositionX, y: radioPositionY
+            }, localContainer, transcript.name === gene.selectedTranscript.name, () => {
+                if (this._affectedGeneTranscriptChanged) {
+                    this._affectedGeneTranscriptChanged(transcript);
+                }
+            });
+
+            for (let i = 0; i < transcript.canonicalCds.length; i++) {
+                const exon = transcript.canonicalCds[i];
+                if (exon.positionFromStart.end <= viewport.chromosome.start || exon.positionFromStart.start > viewport.chromosome.end)
                     continue;
                 let alphaRatio = 1;
                 if (this._hoveredDomain) {
@@ -1178,17 +1265,20 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
                     }
                 }
                 let rect = {
-                    x1: Math.max(viewport.project.brushBP2pixel(exon.relativePosition.start), viewport.canvas.start),
-                    y1: this.variantZonesManager.getStartPosition(zone, chromosomeName, 'transcriptsZone', `transcript_${t}`, 'transcript') + this.config.transcript.margin,
-                    x2: Math.min(viewport.project.brushBP2pixel(exon.relativePosition.end), viewport.canvas.end),
-                    y2: this.variantZonesManager.getEndPosition(zone, chromosomeName, 'transcriptsZone', `transcript_${t}`, 'transcript') - this.config.transcript.margin
+                    x1: Math.max(viewport.project.brushBP2pixel(exon.positionFromStart.start), viewport.canvas.start),
+                    y1: this.variantZonesManager.getStartPosition(`${gene.name} transcripts`, 'transcriptsZone',
+                        `${gene.name}_transcript_${t}`, 'transcript') + this.config.transcript.margin,
+                    x2: Math.min(viewport.project.brushBP2pixel(exon.positionFromStart.end), viewport.canvas.end),
+                    y2: this.variantZonesManager.getEndPosition(`${gene.name} transcripts`, 'transcriptsZone',
+                        `${gene.name}_transcript_${t}`, 'transcript') - this.config.transcript.margin
                 };
                 this._registerExonPosition(exon, rect);
                 if (i === 0) {
                     const transcriptLabel = new PIXI.Text(transcript.name, this.config.transcriptName.label);
                     transcriptLabel.resolution = drawingConfiguration.resolution;
                     transcriptLabel.x = Math.round(rect.x1);
-                    transcriptLabel.y = Math.round(this.variantZonesManager.getCenter(zone, chromosomeName, 'transcriptsZone', `transcript_${t}`, 'transcriptName') - transcriptLabel.height / 2);
+                    transcriptLabel.y = Math.round(this.variantZonesManager.getCenter(`${gene.name} transcripts`, 'transcriptsZone',
+                            `${gene.name}_transcript_${t}`, 'transcriptName') - transcriptLabel.height / 2);
                     localContainer.addChild(transcriptLabel);
                 }
                 if (exon.domains && exon.domains.length > 0) {
@@ -1205,14 +1295,25 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
                         Math.round(rect.y2 - rect.y1));
                     for (let j = 0; j < exon.domains.length; j++) {
                         const exonDomain = exon.domains[j];
+                        const x1 = Math.max(viewport.project.brushBP2pixel(exonDomain.rangeFromStart.start), viewport.canvas.start);
+                        const x2 = Math.min(viewport.project.brushBP2pixel(exonDomain.rangeFromStart.end), viewport.canvas.end);
+                        if (x1 >= x2) {
+                            continue;
+                        }
+                        let domainAlphaRatio = 1;
+                        if (this._hoveredDomain && exonDomain.domain.name !== this._hoveredDomain) {
+                            domainAlphaRatio = .25;
+                        }
                         const domainColor = this.domainColorsManager.getDomainColor(exonDomain.domain.name);
-                        graphics.beginFill(domainColor.fill, domainColor.alpha * alphaRatio);
+                        graphics.beginFill(domainColor.fill, domainColor.alpha * domainAlphaRatio);
                         graphics.lineStyle(0, 0x000000, 0);
                         const innerRect = {
-                            x1: Math.max(viewport.project.brushBP2pixel(exonDomain.range.start), viewport.canvas.start),
-                            y1: this.variantZonesManager.getStartPosition(zone, chromosomeName, 'transcriptsZone', `transcript_${t}`, 'transcript') + this.config.transcript.margin + .5,
-                            x2: Math.min(viewport.project.brushBP2pixel(exonDomain.range.end), viewport.canvas.end),
-                            y2: this.variantZonesManager.getEndPosition(zone, chromosomeName, 'transcriptsZone', `transcript_${t}`, 'transcript') - this.config.transcript.margin - .5
+                            x1: Math.max(viewport.project.brushBP2pixel(exonDomain.rangeFromStart.start), viewport.canvas.start),
+                            y1: this.variantZonesManager.getStartPosition(`${gene.name} transcripts`, 'transcriptsZone',
+                                `${gene.name}_transcript_${t}`, 'transcript') + this.config.transcript.margin + .5,
+                            x2: Math.min(viewport.project.brushBP2pixel(exonDomain.rangeFromStart.end), viewport.canvas.end),
+                            y2: this.variantZonesManager.getEndPosition(`${gene.name} transcripts`, 'transcriptsZone',
+                                `${gene.name}_transcript_${t}`, 'transcript') - this.config.transcript.margin - .5
                         };
                         graphics.drawRect(innerRect.x1, innerRect.y1, innerRect.x2 - innerRect.x1, innerRect.y2 - innerRect.y1);
                         graphics.endFill();
@@ -1220,10 +1321,12 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
                 }
                 else {
                     rect = {
-                        x1: Math.max(viewport.project.brushBP2pixel(exon.relativePosition.start), viewport.canvas.start),
-                        y1: this.variantZonesManager.getStartPosition(zone, chromosomeName, 'transcriptsZone', `transcript_${t}`, 'transcript') + this.config.transcript.margin,
-                        x2: Math.min(viewport.project.brushBP2pixel(exon.relativePosition.end), viewport.canvas.end),
-                        y2: this.variantZonesManager.getEndPosition(zone, chromosomeName, 'transcriptsZone', `transcript_${t}`, 'transcript') - this.config.transcript.margin
+                        x1: Math.max(viewport.project.brushBP2pixel(exon.positionFromStart.start), viewport.canvas.start),
+                        y1: this.variantZonesManager.getStartPosition(`${gene.name} transcripts`, 'transcriptsZone',
+                            `${gene.name}_transcript_${t}`, 'transcript') + this.config.transcript.margin,
+                        x2: Math.min(viewport.project.brushBP2pixel(exon.positionFromStart.end), viewport.canvas.end),
+                        y2: this.variantZonesManager.getEndPosition(`${gene.name} transcripts`, 'transcriptsZone',
+                            `${gene.name}_transcript_${t}`, 'transcript') - this.config.transcript.margin
                     };
                     this.domainColorsManager.fillEmptyExon(exon.geneName, graphics, {
                         x: rect.x1,
@@ -1264,7 +1367,7 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
         }
     }
 
-    _renderBreakpointConnection(start, startAtRight, end, endAtRight, drawAtUpperLevel, graphics: PIXI.Graphics) {
+    _renderBreakpointConnection(start, startAtRight, end, endAtRight, drawAtUpperLevel, graphics:PIXI.Graphics) {
         if (!start || !end)
             return;
         const startBreakpointXRange = this._breakpointPositioning.get(start);

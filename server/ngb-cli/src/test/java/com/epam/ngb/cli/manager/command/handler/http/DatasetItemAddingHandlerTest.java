@@ -59,8 +59,8 @@ public class DatasetItemAddingHandlerTest extends AbstractCliTest {
 
     private static final Long BAM_BIO_ID = 3L;
     private static final Long BAM_ID = 1L;
-    private static final String PATH_TO_BAM = "path/test.bam";
-    private static final String PATH_TO_BAI = "path/test.bam.bai";
+    private static final String PATH_TO_BAM = "/path/test.bam";
+    private static final String PATH_TO_BAI = "/path/test.bam.bai";
     private static final String BAM_NAME = "test.bam";
 
     @BeforeClass

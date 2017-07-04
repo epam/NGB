@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,12 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.epam.catgenome.constant.Constants;
-import com.epam.catgenome.entity.bam.*;
+import com.epam.catgenome.entity.bam.BamQueryOption;
+import com.epam.catgenome.entity.bam.BamReferenceBuffer;
+import com.epam.catgenome.entity.bam.BamTrackMode;
+import com.epam.catgenome.entity.bam.BaseCoverage;
+import com.epam.catgenome.entity.bam.BasePosition;
+import com.epam.catgenome.entity.bam.SpliceJunctionsEntity;
 import com.epam.catgenome.manager.bam.filters.Filter;
 import com.epam.catgenome.manager.bam.sifters.DownsamplingSifter;
 import com.epam.catgenome.manager.reference.ReferenceManager;

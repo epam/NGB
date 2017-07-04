@@ -167,7 +167,7 @@ export class WIGTrack extends CachedTrack {
         super.onHover({x, y});
         if (this.shouldDisplayTooltips) {
             const hoveredItem = this._wigRenderer.onMove(this.viewport, {x, y}, this.cache.data);
-            this._wigRenderer.hoverItem(hoveredItem, this.viewport, this.cache.data, this.cache.coordinateSystem);
+            if (this.hoveringEffects) this._wigRenderer.hoverItem(hoveredItem, this.viewport, this.cache.data, this.cache.coordinateSystem);
             if (hoveredItem) {
                 const {dataItem} = hoveredItem;
                 this.tooltip.setContent([['Count', Math.ceil(dataItem.value)]]);
@@ -177,5 +177,6 @@ export class WIGTrack extends CachedTrack {
             }
         }
         this.tooltip.hide();
+
     }
 }

@@ -59,8 +59,10 @@ public class CommandManager {
     private static final String FIND_FILE_URL_PROPERTY = "find_url";
     private static final String PROJECT_TREE_URL_PROPERTY = "project_load_tree";
     private static final String VERSION_URL_PROPERTY = "version_url";
-    private static final String SERVER_VERSION_PROPERTY = "minimum_server_version";
+    public static final String SERVER_VERSION_PROPERTY = "version";
     private static final String HANDLER_PACKAGE = "com.epam.ngb.cli.manager.command.handler";
+    public static final String GET_EXISTING_INDEX_URL_PROPERTY = "get_existing_index_url";
+
 
     /**
      * Creates {@code CommandManager} for an input {@param command}, loads it's configuration and
@@ -141,9 +143,9 @@ public class CommandManager {
         parameters.setProjectLoadByIdUrl(serverProperties.getProperty(PROJECT_URL_BY_ID_PROPERTY));
         parameters.setFileFindUrl(serverProperties.getProperty(FIND_FILE_URL_PROPERTY));
         parameters.setVersionUrl(serverProperties.getProperty(VERSION_URL_PROPERTY));
-        parameters.setMinSupportedServerVersion(
-                Integer.parseInt(serverProperties.getProperty(SERVER_VERSION_PROPERTY)));
+        parameters.setServerVersion(serverProperties.getProperty(SERVER_VERSION_PROPERTY));
         parameters.setProjectTreeUrl(serverProperties.getProperty(PROJECT_TREE_URL_PROPERTY));
+        parameters.setExistingIndexSearchUrl(serverProperties.getProperty(GET_EXISTING_INDEX_URL_PROPERTY));
         return parameters;
     }
 

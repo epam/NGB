@@ -155,6 +155,7 @@ import com.epam.catgenome.util.Utils;
         final Long referenceId = referenceGenomeManager.createReferenceId();
         final Reference reference = new Reference(referenceId, name);
         reference.setPath(request.getPath());
+        reference.setPrettyName(request.getPrettyName());
         if (!request.isNoGCContent()) {
             fileManager.makeReferenceDir(reference);
         }
@@ -201,7 +202,7 @@ import com.epam.catgenome.util.Utils;
             // reverts all changes that have been made in the file system, if something was going wrong
             // and we cannot create a genome in the system)
             if (!succeeded) {
-                fileManager.deleteDir(reference.getPath());
+                fileManager.deleteReferenceDir(reference);
                 if (reference.getBioDataItemId() != null && !referenceGenomeManager
                         .isRegistered(reference.getId())) {
                     biologicalDataItemManager
@@ -319,8 +320,7 @@ import com.epam.catgenome.util.Utils;
         Assert.notNull(reference, MessagesConstants.ERROR_NO_SUCH_FILE);
 
         referenceGenomeManager.unregister(reference);
-        fileManager.deleteDir(reference.getPath());
-
+        fileManager.deleteReferenceDir(reference);
         return reference;
     }
 

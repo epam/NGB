@@ -1,4 +1,4 @@
-import {PixiTextSize} from '../../../../../../../utilities';
+import {ColorProcessor, PixiTextSize} from '../../../../../../../utilities';
 import FeatureBaseRenderer from '../../../../../../gene/internal/renderer/features/drawing/featureBaseRenderer';
 import {drawingConfiguration} from '../../../../../../../core';
 const Math = window.Math;
@@ -59,8 +59,8 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
         return feature.symbol || feature.type;
     }
 
-    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position) {
-        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position) {
+        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
         const pixelsInBp = viewport.factor;
         const labelStyle = this.config.variant.allele.label;
         const symbol =  this.getFeatureDisplayText(feature);
@@ -89,12 +89,17 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
             true);
         const white = 0xFFFFFF;
         graphics.lineStyle(0, white, 0);
+        hoveredGraphics.lineStyle(0, white, 0);
         const zygosity = feature.zygosity;
         switch (zygosity) {
             case 1: {
                 // homozygous
                 graphics
                     .beginFill(this.config.variant.zygosity.homozygousColor, 1)
+                    .drawRect(Math.floor(cX - width / 2), Math.floor(cY - height / 2), width, height)
+                    .endFill();
+                hoveredGraphics
+                    .beginFill(ColorProcessor.darkenColor(this.config.variant.zygosity.homozygousColor), 1)
                     .drawRect(Math.floor(cX - width / 2), Math.floor(cY - height / 2), width, height)
                     .endFill();
             }
@@ -109,11 +114,24 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
                     .beginFill(this.config.variant.zygosity.heterozygousColor, 1)
                     .drawRect(Math.floor(cX - width / 2), Math.floor(cY), width, height / 2)
                     .endFill();
+
+                hoveredGraphics
+                    .beginFill(ColorProcessor.darkenColor(this.config.variant.zygosity.homozygousColor), 1)
+                    .drawRect(Math.floor(cX - width / 2), Math.floor(cY - height / 2), width, height / 2)
+                    .endFill();
+                hoveredGraphics
+                    .beginFill(ColorProcessor.darkenColor(this.config.variant.zygosity.heterozygousColor), 1)
+                    .drawRect(Math.floor(cX - width / 2), Math.floor(cY), width, height / 2)
+                    .endFill();
             }
                 break;
             default: {
                 graphics
                     .beginFill(this.config.variant.zygosity.unknownColor, 1)
+                    .drawRect(Math.floor(cX - width / 2), Math.floor(cY - height / 2), width, height)
+                    .endFill();
+                hoveredGraphics
+                    .beginFill(ColorProcessor.darkenColor(this.config.variant.zygosity.unknownColor), 1)
                     .drawRect(Math.floor(cX - width / 2), Math.floor(cY - height / 2), width, height)
                     .endFill();
             }

@@ -46,7 +46,11 @@ import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.util.InfoFieldParser;
-import htsjdk.variant.vcf.*;
+import htsjdk.variant.vcf.VCFCodec;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLineType;
+import htsjdk.variant.vcf.VCFInfoHeaderLine;
+import htsjdk.variant.vcf.VCFSimpleHeaderLine;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -536,6 +540,11 @@ public class VcfManager {
             if (vcfFile != null && vcfFile.getId() != null &&
                     vcfFileManager.loadVcfFile(vcfFile.getId()) == null) {
                 biologicalDataItemManager.deleteBiologicalDataItem(vcfFile.getBioDataItemId());
+                try {
+                    fileManager.deleteFeatureFileDirectory(vcfFile);
+                } catch (IOException e) {
+                    LOGGER.error("Unable to delete directory for " + vcfFile.getName(), e);
+                }
             }
         }
         return vcfFile;
@@ -659,6 +668,7 @@ public class VcfManager {
         vcfFile.setCompressed(true);
         vcfFile.setPath(request.getPath());
         vcfFile.setName(request.getName() != null ? request.getName() : request.getPath());
+        vcfFile.setPrettyName(request.getPrettyName());
         vcfFile.setType(BiologicalDataItemResourceType.GA4GH); // For now we're working only with files
         vcfFile.setCreatedDate(new Date());
         vcfFile.setCreatedBy(AuthUtils.getCurrentUserId());
@@ -729,6 +739,7 @@ public class VcfManager {
 
         vcfFile.setCompressed(resourceType == BiologicalDataItemResourceType.FILE && IOHelper.isGZIPFile(fileName));
         vcfFile.setName(request.getName() != null ? request.getName() : fileName);
+        vcfFile.setPrettyName(request.getPrettyName());
         vcfFile.setId(vcfFileManager.createVcfFileId());
         vcfFile.setPath(request.getPath());
         vcfFile.setType(resourceType);

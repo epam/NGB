@@ -29,6 +29,7 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
+import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import org.apache.commons.collections4.CollectionUtils;
@@ -122,6 +123,12 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
     private String deleteReferenceChromosomeQuery;
     private String loadBiologicalItemsQuery;
     private String updateReferenceGeneFileIdQuery;
+    private String loadAnnotationDataIdsByReferenceIdQuery;
+    private String addAnnotationDataItemByReferenceIdQuery;
+    private String deleteAnnotationDataItemByReferenceIdQuery;
+    private String loadGenomeIdsByAnnotationDataItemIdQuery;
+    private String loadReferenceGenomeByNameQuery;
+
 
     @Transactional(propagation = Propagation.MANDATORY)
     public Long createReferenceGenomeId() {
@@ -211,6 +218,13 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         return CollectionUtils.isNotEmpty(list) ? list.get(0) : null;
     }
 
+    public Reference loadReferenceGenomeByName(final String name) {
+        final List<Reference> list = getNamedParameterJdbcTemplate().query(loadReferenceGenomeByNameQuery,
+                new MapSqlParameterSource(GenomeParameters.NAME.name(), name),
+                GenomeParameters.getReferenceGenomeMapper());
+        return CollectionUtils.isNotEmpty(list) ? list.get(0) : null;
+    }
+
     /**
      * Loads all persisted {@code Reference} entities from the database
      * @return all {@code Reference} instances, saved in the database
@@ -276,6 +290,64 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
             GenomeParameters.REFERENCE_GENOME_ID.name(), referenceId), GenomeParameters.getBioDataMapper());
     }
 
+    /**
+     * Loads a List of annotation files from the database by genome IDs
+     * @param referenceId ID for the genome
+     * @return List of BiologicalDataItem, matching specified IDs
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public List<Long> loadAnnotationFileIdsByReferenceId(Long referenceId) {
+        return getNamedParameterJdbcTemplate().query(
+                loadAnnotationDataIdsByReferenceIdQuery,
+                new MapSqlParameterSource(GenomeParameters.REFERENCE_GENOME_ID.name(), referenceId),
+                GenomeParameters.ID_MAPPER
+        );
+    }
+
+    /**
+     * Add a BiologicalDataItem(only BED or GFF/GTF) as annotation for the genome
+     * @param referenceId List of IDs of BiologicalDataItem instances
+     * @param annotationFileId ID of BiologicalDataItem instance
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void addAnnotationFile(Long referenceId, Long annotationFileId) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue(GenomeParameters.REFERENCE_GENOME_ID.name(), referenceId);
+        params.addValue(
+                BiologicalDataItemDao.BiologicalDataItemParameters.BIO_DATA_ITEM_ID.name(),
+                annotationFileId
+        );
+        getNamedParameterJdbcTemplate().update(addAnnotationDataItemByReferenceIdQuery, params);
+    }
+
+    /**
+     * Remove annotation file from the genome
+     * @param referenceId ID of the genome
+     * @param annotationFileId ID of BiologicalDataItem instance
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void removeAnnotationFile(Long referenceId, Long annotationFileId) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue(GenomeParameters.REFERENCE_GENOME_ID.name(), referenceId);
+        params.addValue(
+                BiologicalDataItemDao.BiologicalDataItemParameters.BIO_DATA_ITEM_ID.name(),
+                annotationFileId
+        );
+        getNamedParameterJdbcTemplate().update(deleteAnnotationDataItemByReferenceIdQuery, params);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public List<Long> loadGenomeIdsByAnnotationDataItemId(Long annotationFileBiologicalItemId) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue(
+                BiologicalDataItemDao.BiologicalDataItemParameters.BIO_DATA_ITEM_ID.name(),
+                annotationFileBiologicalItemId
+        );
+        return getNamedParameterJdbcTemplate().query(
+                loadGenomeIdsByAnnotationDataItemIdQuery, params,
+                GenomeParameters.ID_MAPPER
+        );
+    }
 
     @Required
     public void setReferenceGenomeSequenceName(final String referenceGenomeSequenceName) {
@@ -342,6 +414,41 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         this.updateReferenceGeneFileIdQuery = updateReferenceGeneFileIdQuery;
     }
 
+    @Required
+    public void setLoadAnnotationDataIdsByReferenceIdQuery(String loadAnnotationDataIdsByReferenceIdQuery) {
+        this.loadAnnotationDataIdsByReferenceIdQuery = loadAnnotationDataIdsByReferenceIdQuery;
+    }
+
+    @Required
+    public void setAddAnnotationDataItemByReferenceIdQuery(String addAnnotationDataItemByReferenceIdQuery) {
+        this.addAnnotationDataItemByReferenceIdQuery = addAnnotationDataItemByReferenceIdQuery;
+    }
+
+    @Required
+    public String getDeleteAnnotationDataItemByReferenceIdQuery() {
+        return deleteAnnotationDataItemByReferenceIdQuery;
+    }
+
+    @Required
+    public void setDeleteAnnotationDataItemByReferenceIdQuery(String deleteAnnotationDataItemByReferenceIdQuery) {
+        this.deleteAnnotationDataItemByReferenceIdQuery = deleteAnnotationDataItemByReferenceIdQuery;
+    }
+
+    @Required
+    public String getLoadGenomeIdsByAnnotationDataItemIdQuery() {
+        return loadGenomeIdsByAnnotationDataItemIdQuery;
+    }
+
+    @Required
+    public void setLoadGenomeIdsByAnnotationDataItemIdQuery(String loadGenomeIdsByAnnotationDataItemIdQuery) {
+        this.loadGenomeIdsByAnnotationDataItemIdQuery = loadGenomeIdsByAnnotationDataItemIdQuery;
+    }
+
+    @Required
+    public void setLoadReferenceGenomeByNameQuery(String loadReferenceGenomeByNameQuery) {
+        this.loadReferenceGenomeByNameQuery = loadReferenceGenomeByNameQuery;
+    }
+
     enum GenomeParameters {
         NAME,
         SIZE,
@@ -367,6 +474,8 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
 
         HEADER,
         CHROMOSOME_ID;
+
+        private static final RowMapper<Long> ID_MAPPER = (rs, rowNum) -> rs.getLong(1);
 
         static RowMapper<Reference> getReferenceGenomeMetaDataMapper() {
             return (rs, i) -> {

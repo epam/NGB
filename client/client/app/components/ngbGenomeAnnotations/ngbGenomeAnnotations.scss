@@ -1,0 +1,17 @@
+ngb-genome-annotations {
+  .md-button.md-icon-button {
+    ng-md-icon {
+      fill: #FFF;
+      padding-top: 2px;
+    }
+  }
+}
+
+.genome-annotations-menu {
+  position: absolute;
+  top: 20px;
+  padding: 4px;
+  md-checkbox {
+    margin: 8px;
+  }
+}

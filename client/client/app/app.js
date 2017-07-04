@@ -1,3 +1,6 @@
+import browserDetect from './shared/browserDetect';
+browserDetect();
+
 import './shared/hotkeys';
 
 // Import modules for work on Safari

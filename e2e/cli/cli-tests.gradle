@@ -1,0 +1,85 @@
+ext.e2eCliTests = {
+    def allTestsCount = 0
+    def skippedCount = 0
+    def failedTests = new ArrayList<String>()
+    new File(project.hasProperty('testCases') ? testCases : 'testcases.csv')
+            .readLines()
+            .stream()
+            .filter{line -> !line.isEmpty() && !line.matches('^@.*')}.forEach{ testCase ->
+        allTestsCount++
+        def testCaseParams = testCase.split(',')
+
+        // Parse testcase, construct parameters, get expected results
+        def testcaseName = testCaseParams[0]
+
+        String[] before = testCaseParams[1]?.length() > 0 ? testCaseParams[1].replaceAll('\\$resourcePath', resourcePath).replaceAll('\\$resourceRelativePath', resourceRelativePath).split(';') : null
+        String command = testCaseParams[2].replaceAll('\\$resourcePath', resourcePath).replaceAll('\\$resourceRelativePath', resourceRelativePath)
+        String[] after = testCaseParams[3]?.length() > 0 ? testCaseParams[3].replaceAll('\\$resourcePath', resourcePath).replaceAll('\\$resourceRelativePath', resourceRelativePath).split(';') : null
+
+        def expectedPayload = testCaseParams.length >= 5 && testCaseParams[4] ? testCaseParams[4] : ""
+        //check that we expect an error
+        def expectedError = testCaseParams.length >= 6 && testCaseParams[5] ? testCaseParams[5] : ""
+
+        // Print testcase meta information
+        println "\n\n------- Testcase: ${testcaseName} -------"
+
+        if (testcaseName.matches(/\#.*/)) {
+            println 'SKIPPED'
+            skippedCount++
+            return
+        }
+
+        try {
+            // Execute before actions
+            if (before) {
+                println '\tSetup started'
+
+                for (String beforeCmd : before) {
+                    def processBefore = "$cliPath ${beforeCmd}".execute()
+                    processBefore.err.readLines().forEach{e -> println("\t\t$e")}
+                    if(processBefore.waitFor() != 0) {
+                        println '\tSetup failed.'
+                        failedTests.add("\n$testcaseName")
+                        return
+                    }
+                }
+                println '\tSetup OK'
+            }
+            println "\tCommand: ${command}"
+
+            // Execute action will tested and get results
+            def process = "$cliPath ${command}".execute()
+
+            def payload = process.in.readLines().sum()
+            payload = payload != null ? payload : ""
+
+            def error = process.err.readLines().sum()
+            error = error != null ? error : ""
+
+            // Asserting
+            try {
+                assert payload.matches(expectedPayload)
+                assert error.matches(expectedError)
+            } catch (AssertionError e){
+                println e
+                println '\tCommand failed'
+                failedTests.add("\n$testcaseName")
+                return
+            }
+
+            println '\tCommand OK'
+        } finally {
+            if (after) {
+                println '\tAfter started'
+                for (String afterCmd : after) {
+                    def processAfter = "$cliPath ${afterCmd}".execute()
+                    processAfter.err.readLines().forEach{e -> println("\t\t$e")}
+                }
+                println '\tAfter finished'
+
+            }
+        }
+    }
+    println "$allTestsCount TESTS: ${allTestsCount - failedTests.size() - skippedCount} PASSED, ${failedTests.size()} FAILED, $skippedCount SKIPPED"
+    assert failedTests.empty
+}

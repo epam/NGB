@@ -7,4 +7,4 @@ dist: trusty
 install: 
     - pip install mkdocs
     - pip install mkdocs-material
-script: ./gradlew buildJar buildWar buildCli buildDoc
+script: ./gradlew buildJar buildWar buildCli buildDoc && ./e2e/integration_tests.sh

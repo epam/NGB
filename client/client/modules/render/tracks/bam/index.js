@@ -4,6 +4,7 @@ import {
     CoverageTransformer,
     HOVERED_ITEM_TYPE_ALIGNMENT,
     HOVERED_ITEM_TYPE_COVERAGE,
+    HOVERED_ITEM_TYPE_REGION,
     HOVERED_ITEM_TYPE_DOWNSAMPLE_INDICATOR,
     HOVERED_ITEM_TYPE_SPLICE_JUNCTION
 } from './internal';
@@ -192,8 +193,12 @@ export class BAMTrack extends ScrollableTrack {
 
             return result;
         });
+
         this.hotKeyListener = (event) => {
             if (event) {
+                if (event === 'bam>showAlignments') {
+                    return;
+                }
                 const path = event.split('>');
                 if (path && path[0] === 'bam') {
                     const menuItem = menuUtilities.findMenuItem(this._menu, event);
@@ -201,20 +206,33 @@ export class BAMTrack extends ScrollableTrack {
                         if (menuItem.type === 'button') {
                             menuItem.perform();
                         }
-                        else if (menuItem.type === 'checkbox') {
+                        else if (menuItem.type === 'checkbox' && menuItem.name !== 'bam>showAlignments') {
                             menuItem.isEnabled() ? menuItem.disable() : menuItem.enable();
                         }
-
                     }
                 }
             }
         };
+
+        this.showAlignmentsListener = (params) => {
+            const menuItem = menuUtilities.findMenuItem(this._menu, params.event);
+            if (menuItem && !params.disableShowAlignmentsForAllTracks) {
+                menuItem.isEnabled() ? menuItem.disable() : menuItem.enable();
+            } else {
+                menuItem.disable();
+            }
+        };
+
         const _hotKeyListener = ::this.hotKeyListener;
+        const _showAlignmentsListener = ::this.showAlignmentsListener;
+
         const self = this;
-        this._removeHotKeyListener = function() {
+        this._removeListener = function () {
             self.dispatcher.removeListener('hotkeyPressed', _hotKeyListener);
+            self.dispatcher.removeListener('bam:showAlignments', _showAlignmentsListener);
         };
         this.dispatcher.on('hotkeyPressed', _hotKeyListener);
+        this.dispatcher.on('bam:showAlignments', _showAlignmentsListener);
 
         return this._menu;
     }
@@ -466,7 +484,9 @@ export class BAMTrack extends ScrollableTrack {
 
     onClick({x, y}) {
         const hoveredItem = this._bamRenderer.checkFeature({x, y});
-        if (hoveredItem && hoveredItem.type === HOVERED_ITEM_TYPE_ALIGNMENT &&
+        if (hoveredItem && hoveredItem.type === HOVERED_ITEM_TYPE_REGION) {
+            this.moveBrush({start: hoveredItem.item.startIndex, end: hoveredItem.item.endIndex});
+        } else if (hoveredItem && hoveredItem.type === HOVERED_ITEM_TYPE_ALIGNMENT &&
             this.dataItemClicked !== null && this.dataItemClicked !== undefined &&
             hoveredItem.item && hoveredItem.item.render && hoveredItem.item.render.info) {
             this.tooltip.hide();
@@ -530,7 +550,7 @@ export class BAMTrack extends ScrollableTrack {
     onHover({x, y}) {
         if (super.onHover({x, y})) {
             const hoveredItem = this._bamRenderer.checkFeature({x, y});
-            this._bamRenderer.hoverFeature(hoveredItem);
+            if (this.hoveringEffects) this._bamRenderer.hoverFeature(hoveredItem);
             if (!hoveredItem) {
                 this.tooltip.hide();
                 return true;
@@ -578,8 +598,8 @@ export class BAMTrack extends ScrollableTrack {
 
     destructor() {
         super.destructor();
-        if (this._removeHotKeyListener) {
-            this._removeHotKeyListener();
+        if (this._removeListener) {
+            this._removeListener();
         }
     }
 }

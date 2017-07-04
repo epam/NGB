@@ -53,11 +53,35 @@ export default class ngbDataSetsService {
             findSelectedTracksFn(datasets[i]);
         }
 
-        const openedByUrlProjectName = this.projectContext.openedByUrlProjectName;
+        const trackIsDisplayedInTreeFn = (track, _datasets) => {
+            for (let i = 0; i < _datasets.length; i ++) {
+                const dataset = _datasets[i];
+                if (dataset.name.toLowerCase() === track.projectId.toLowerCase()) {
+                    const items = dataset._lazyItems || dataset.items;
+                    for (let j = 0; j < items.length; i++) {
+                        if (items[i] && items[i].isTrack && items[i].name.toLowerCase() === track.name.toLowerCase()) {
+                            return true;
+                        }
+                    }
+                } else if (dataset.nestedProjects && trackIsDisplayedInTreeFn(track, dataset.nestedProjects)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
         if (forceReference && this.projectContext.reference && forceReference.name.toLowerCase() === this.projectContext.reference.name.toLowerCase()) {
-            items.push(...(this.projectContext.tracks).filter(t => t.projectId === openedByUrlProjectName));
+            const localTracks = (this.projectContext.tracks).filter(t => t.isLocal);
+            for (let i = 0; i < localTracks.length; i++) {
+                const isDisplayed = trackIsDisplayedInTreeFn(localTracks[i], datasets);
+                if (!isDisplayed) {
+                    items.push(localTracks[i]);
+                }
+            }
         }
-        const reference = items.map(track => track.reference)[0];
+
+        const reference = items.map(track => track.reference)[0] | forceReference;
+
         return {
             reference,
             tracks: items
@@ -232,23 +256,31 @@ export default class ngbDataSetsService {
         this.__lockStatesUpdate = true;
         let [reference] = tracks.filter(t => t.format === 'REFERENCE');
         if (!reference) {
-            [reference] = tracks.filter(t => t.reference).map(t => t.reference);
+            const [refTrack] = tracks.filter(t => t.reference);
+            if (refTrack) {
+                reference = refTrack.reference;
+                reference.projectId = refTrack.projectId;
+                reference.isLocal = refTrack.isLocal;
+                tracks.push(reference);
+            }
         }
         if (reference && tracks.filter(t => t.format !== 'REFERENCE').length > 0) {
             const tracksState = this.projectContext.tracksState || [];
             if (tracksState.length === 0) {
                 tracksState.push({
                     bioDataItemId: reference.name,
-                    projectId: reference.projectId
+                    projectId: reference.projectId,
+                    format: 'REFERENCE'
                 });
             }
+            const shouldAddAnnotationTracks = this.projectContext.reference === null || this.projectContext.reference.name.toLowerCase() !== reference.name.toLowerCase();
             const tracksIds = tracks.map(track => `[${track.name.toLowerCase()}][${track.projectId.toLowerCase()}]`);
             const tracksStateIds = tracksState.map(track => `[${track.bioDataItemId.toLowerCase()}][${track.projectId.toLowerCase()}]`);
             const self = this;
             const mapTrackFn = function (track) {
                 const state = self.projectContext.getTrackState(track.name.toLowerCase(), track.projectId.toLowerCase());
                 if (state) {
-                    return state;
+                    return Object.assign(state, {index: track.indexPath, name: track.name, format: track.format, isLocal: track.isLocal});
                 }
                 return utilities.mapTrackFn(track);
             };
@@ -260,7 +292,7 @@ export default class ngbDataSetsService {
                 existedTracks = [utilities.mapTrackFn(reference), ...existedTracks];
             }
             const newTracksState = [...existedTracks, ...addedTracks];
-            this.projectContext.changeState({reference: reference, tracks, tracksState: newTracksState});
+            this.projectContext.changeState({reference: reference, tracks, tracksState: newTracksState, shouldAddAnnotationTracks});
         } else {
             this.projectContext.changeState({reference: null, tracks: null, tracksState: null});
         }

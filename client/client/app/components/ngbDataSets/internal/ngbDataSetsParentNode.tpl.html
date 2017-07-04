@@ -11,7 +11,7 @@
                                                     size="13pt"></ng-md-icon>
                                     </span>
 
-                    <span class="ivh-treeview-checkbox-wrapper project" ng-class="{empty: !node.filesCount}">
+                    <span class="ivh-treeview-checkbox-wrapper project" ng-if="node.reference" ng-class="{empty: !node.filesCount}">
                                         <span class="ng-isolate-scope">
                                             <input type="checkbox" indeterminate-checkbox element="node.__selected"
                                                    indeterminate="{{node.__indeterminate}}"

@@ -67,7 +67,7 @@ export default class ngbTrackController {
                 ? this.instanceConstructor.config.height
                 : DEFAULT_HEIGHT;
 
-        this.trackNameTruncated = this.track.name;
+        this.trackNameTruncated = this.track.prettyName || this.track.name;
         if (this.trackNameTruncated.length > MAX_TRACK_NAME_LENGTH) {
             this.trackNameTruncated = `...${this.trackNameTruncated.substring(this.trackNameTruncated.length - MAX_TRACK_NAME_LENGTH)}`;
         }
@@ -83,6 +83,7 @@ export default class ngbTrackController {
         $scope.$on('resizeStart', () => {
             this.isResizing = true;
             this.heightBeforeResizeStarted = this.trackInstance.height;
+            this.trackInstance.isResizing = true;
             return false;
         });
 
@@ -94,6 +95,7 @@ export default class ngbTrackController {
         });
 
         $scope.$on('resizeEnd', () => {
+            this.trackInstance.isResizing = false;
             if (this.isResizing) {
 
                 const tracksState = this.projectContext.tracksState || [];

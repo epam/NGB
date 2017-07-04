@@ -39,11 +39,14 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import com.epam.catgenome.exception.*;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.exception.GeneReadingException;
+import com.epam.catgenome.exception.HistogramReadingException;
+import com.epam.catgenome.exception.HistogramWritingException;
+import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.FeatureReader;
@@ -102,8 +105,8 @@ import com.epam.catgenome.manager.externaldb.bindings.uniprot.Uniprot;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.reader.AbstractGeneReader;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.parallel.ParallelTaskExecutionUtils;
-import com.epam.catgenome.parallel.TaskExecutor;
+import com.epam.catgenome.manager.parallel.ParallelTaskExecutionUtils;
+import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.IOHelper;
@@ -159,13 +162,15 @@ public class GffManager {
     @Autowired
     private FeatureIndexManager featureIndexManager;
 
+    @Autowired
+    private TaskExecutorService taskExecutorService;
+
     private static final String EXON_FEATURE_NAME = "exon";
+
     private static final String PROTEIN_CODING = "protein_coding";
 
     private static final int EXON_SEARCH_CHUNK_SIZE = 100001;
-
     private static final  Logger LOGGER = LoggerFactory.getLogger(GffManager.class);
-    private ExecutorService executorService = TaskExecutor.getExecutorService();
 
     /**
      * Registers a gene file (GFF/GTF) in the system to make it available to browse. Creates Tabix index if absent
@@ -251,6 +256,7 @@ public class GffManager {
         geneFile.setCreatedDate(new Date());
         geneFile.setCreatedBy(AuthUtils.getCurrentUserId());
         geneFile.setReferenceId(request.getReferenceId());
+        geneFile.setPrettyName(request.getPrettyName());
 
         if (StringUtils.isNotBlank(request.getIndexPath())) {
             BiologicalDataItem indexItem = new BiologicalDataItem();
@@ -279,9 +285,13 @@ public class GffManager {
         } catch (IOException e) {
             throw new RegistrationException("Error while Gene file registration: " + geneFile.getPath(), e);
         }  finally {
-            if (geneFile.getId() != null &&
-                    !geneFileManager.geneFileExists(geneFile.getId())) {
+            if (geneFile.getId() != null && !geneFileManager.geneFileExists(geneFile.getId())) {
                 biologicalDataItemManager.deleteBiologicalDataItem(geneFile.getBioDataItemId());
+                try {
+                    fileManager.deleteFeatureFileDirectory(geneFile);
+                } catch (IOException e) {
+                    LOGGER.error("Unable to delete directory for " + geneFile.getName(), e);
+                }
             }
         }
         return geneFile;
@@ -431,8 +441,10 @@ public class GffManager {
             return track;
         }
 
-        AbstractGeneReader gtfReader = AbstractGeneReader.createGeneReader(executorService, fileManager, geneFile);
-        List<Gene> notSyncGenes = gtfReader.readGenesFromGeneFile(track, chromosome, collapse);
+        AbstractGeneReader gtfReader = AbstractGeneReader.createGeneReader(taskExecutorService.getExecutorService(),
+                fileManager, geneFile);
+        List<Gene> notSyncGenes = gtfReader.readGenesFromGeneFile(track, chromosome, collapse,
+                taskExecutorService.getTaskNumberOfThreads());
 
         track.setBlocks(notSyncGenes);
         return track;
@@ -477,7 +489,8 @@ public class GffManager {
     public NggbIntervalTreeMap<Gene> loadGenesIntervalMap(GeneFile geneFile, int startIndex, int endIndex,
                                                           Chromosome chromosome) throws GeneReadingException {
         double time1 = Utils.getSystemTimeMilliseconds();
-        int numOfSubIntervals = ParallelTaskExecutionUtils.splitFileReadingInterval(startIndex, endIndex, LOGGER);
+        int numOfSubIntervals = ParallelTaskExecutionUtils.splitFileReadingInterval(startIndex, endIndex, LOGGER,
+                taskExecutorService.getTaskNumberOfThreads());
         final List<Callable<Boolean>> callables = new ArrayList<>(numOfSubIntervals);
         final NggbIntervalTreeMap<Gene> genesRangeMap = new NggbIntervalTreeMap<>();
 
@@ -490,7 +503,7 @@ public class GffManager {
 
         List<Future<Boolean>> results;
         try {
-            results = executorService.invokeAll(callables);
+            results = taskExecutorService.getExecutorService().invokeAll(callables);
         } catch (InterruptedException | AssertionError e) {
             throw new GeneReadingException(geneFile, chromosome, startIndex, endIndex, e);
         }
@@ -709,7 +722,7 @@ public class GffManager {
         final List<Pair<Integer, Integer>> intervals = HistogramUtils.createIntervals(0, chromosome.getSize());
 
         final double time1 = Utils.getSystemTimeMilliseconds();
-        final int numberOfThreads = ParallelTaskExecutionUtils.NUMBER_OF_THREADS;
+        final int numberOfThreads = taskExecutorService.getTaskNumberOfThreads();
         final int portionSize = intervals.size() / numberOfThreads;
         final List<Callable<List<Wig>>> callables = new ArrayList<>(numberOfThreads);
 
@@ -727,7 +740,8 @@ public class GffManager {
             callables.add(() -> readHistogramPortion(track, geneFile, chromosome, GeneFileType.ORIGINAL, portion));
         }
 
-        final List<Wig> newHistogram = HistogramUtils.executeHistogramCreation(executorService, callables);
+        final List<Wig> newHistogram =
+                HistogramUtils.executeHistogramCreation(taskExecutorService.getExecutorService(), callables);
         final double time2 = Utils.getSystemTimeMilliseconds();
         LOGGER.debug("Reading histogram, took {} ms", time2 - time1);
 

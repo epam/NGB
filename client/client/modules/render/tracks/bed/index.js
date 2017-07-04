@@ -7,7 +7,7 @@ import GeneConfig from '../gene/geneConfig';
 export class BEDTrack extends GENETrack {
 
     static getTrackDefaultConfig() {
-        return Object.assign(GeneConfig, BEDConfig);
+        return Object.assign({}, GeneConfig, BEDConfig);
     }
 
     constructor(opts) {
@@ -53,10 +53,11 @@ export class BEDTrack extends GENETrack {
                 ['Count', item[0].value]
             ];
         } else if (item && item.length > 0) {
-            const bedItem = item[0];
+            const bedItem = item[0].feature;
             const tooltipData = [];
-
-            tooltipData.push(['Name', bedItem.name]);
+            if (bedItem.name && bedItem.name.length) {
+                tooltipData.push(['Name', bedItem.name]);
+            }
             tooltipData.push(['Start', bedItem.startIndex]);
             tooltipData.push(['End', bedItem.endIndex]);
 

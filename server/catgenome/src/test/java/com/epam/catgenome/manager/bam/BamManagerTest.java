@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +25,9 @@
 package com.epam.catgenome.manager.bam;
 
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.util.MultipartFileSender;
+import com.epam.catgenome.controller.util.ResultReference;
 import com.epam.catgenome.controller.util.UrlTestingUtils;
 import com.epam.catgenome.controller.vo.ReadQuery;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
@@ -50,12 +42,13 @@ import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.manager.bucket.BucketManager;
+import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.ReferenceManager;
-
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -72,6 +65,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
+
 /**
  * Source:      BamManagerTest.java
  * Created:     12/3/2015
@@ -84,6 +86,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class BamManagerTest extends AbstractManagerTest {
+
     private Logger logger = LoggerFactory.getLogger(BamManagerTest.class);
 
     @Autowired
@@ -104,6 +107,9 @@ public class BamManagerTest extends AbstractManagerTest {
     @Autowired
     private BamManager bamManager;
 
+    @Autowired
+    private TaskExecutorService taskExecutorService;
+
     private static final String TEST_NSAME = "BIG " + BamManagerTest.class.getSimpleName();
     private static final String TEST_REF_NAME = "//dm606.X.fa";
     private static final String TEST_BAM_NAME = "//agnX1.09-28.trim.dm606.realign.bam";
@@ -121,6 +127,9 @@ public class BamManagerTest extends AbstractManagerTest {
     private static final int TEST_COUNT = 30;
     private static final int LARGE_TEST_COUNT = 10000000;
     private static final String BAI_EXTENSION = ".bai";
+
+    private static final String PRETTY_NAME = "pretty";
+    private static final long WRONG_FILE_ID = 123L;
 
     private Resource resource;
     private String chromosomeName = "X";
@@ -152,6 +161,8 @@ public class BamManagerTest extends AbstractManagerTest {
         request.setName(TEST_REF_NAME + biologicalDataItemDao.createBioItemId());
         request.setPath(fastaFile.getPath());
 
+        taskExecutorService.setForceSequential(true);
+
         testReference = referenceManager.registerGenome(request);
         List<Chromosome> chromosomeList = testReference.getChromosomes();
         for (Chromosome chromosome : chromosomeList) {
@@ -160,6 +171,21 @@ public class BamManagerTest extends AbstractManagerTest {
                 break;
             }
         }
+    }
+
+    private void assertTrackLoading(BamFile bamFile, Consumer<BamQueryOption> optionsSetter,
+                                    Consumer<BamTrack<Read>> trackAsserter) throws IOException {
+        Track<Read> fullTrackQ = getBaseReadTrack(bamFile);
+
+        BamQueryOption option = getBaseBamQueryOption();
+
+        optionsSetter.accept(option);
+
+        ResponseEmitterMock emitterMock = new ResponseEmitterMock();
+        bamManager.sendBamTrackToEmitter(fullTrackQ, option, emitterMock);
+        BamTrack<Read> fullTrack = emitterMock.getBamTrack();
+
+        trackAsserter.accept(fullTrack);
     }
 
     @Test
@@ -171,6 +197,7 @@ public class BamManagerTest extends AbstractManagerTest {
         request.setIndexPath(path + BAI_EXTENSION);
         request.setName(TEST_NSAME);
         request.setReferenceId(testReference.getId());
+        request.setPrettyName(PRETTY_NAME);
         request.setType(BiologicalDataItemResourceType.FILE);
 
         BamFile bamFile = bamManager.registerBam(request);
@@ -179,131 +206,142 @@ public class BamManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(loadBamFile);
         Assert.assertTrue(bamFile.getId().equals(loadBamFile.getId()));
         Assert.assertTrue(bamFile.getName().equals(loadBamFile.getName()));
+        Assert.assertEquals(PRETTY_NAME, bamFile.getPrettyName());
         Assert.assertTrue(bamFile.getCreatedBy().equals(loadBamFile.getCreatedBy()));
         Assert.assertTrue(bamFile.getCreatedDate().equals(loadBamFile.getCreatedDate()));
         Assert.assertTrue(bamFile.getReferenceId().equals(loadBamFile.getReferenceId()));
         Assert.assertTrue(bamFile.getPath().equals(loadBamFile.getPath()));
         Assert.assertTrue(bamFile.getIndex().getPath().equals(loadBamFile.getIndex().getPath()));
 
-        //full
+        assertTrackLoading(bamFile,
+            (option) -> {},
+            (track) -> {
+                testBamTrack(track);
+                Read testRead = track.getBlocks().get(0);
+                testRead(testRead);
+            });
+
+        assertTrackLoading(bamFile, (option) -> option.setTrackDirection(TrackDirectionType.RIGHT), this::testBamTrack);
+
+        assertTrackLoading(bamFile,
+            (option) -> option.setTrackDirection(TrackDirectionType.MIDDLE), this::testBamTrack);
+
+        assertTrackLoading(bamFile, (option) -> option.setTrackDirection(null), this::testBamTrack);
+
+        assertTrackLoading(bamFile, (option) -> option.setShowSpliceJunction(false), this::testBamTrack);
+
+        assertTrackLoading(bamFile, (option) -> option.setShowSpliceJunction(null), this::testBamTrack);
+
+        assertTrackLoading(bamFile, (option) -> option.setShowClipping(false), this::testBamTrack);
+
+        assertTrackLoading(bamFile, (option) -> option.setShowClipping(null), this::testBamTrack);
+
+        assertTrackLoading(bamFile, (option) -> option.setFilterDuplicate(true), this::testBamTrack);
+
+        assertTrackLoading(bamFile, (option) -> {
+            option.setFilterDuplicate(false);
+            option.setFilterNotPrimary(true);
+        }, this::testBamTrack);
+
+        assertTrackLoading(bamFile, (option) -> {
+            option.setFilterNotPrimary(false);
+            option.setFilterVendorQualityFail(true);
+        }, this::testBamTrack);
+
+        assertTrackLoading(bamFile, (option) -> {
+            option.setFilterVendorQualityFail(false);
+            option.setFilterSupplementaryAlignment(true);
+        }, this::testBamTrack);
+
+        assertTrackLoading(bamFile, (option) -> {
+            option.setFilterSupplementaryAlignment(false);
+            option.setFrame(0);
+            option.setDownSampling(false);
+        }, (track) -> Assert.assertTrue(track.getDownsampleCoverage() == null));
+
+        assertTrackLoading(bamFile, (option) -> {
+            option.setFrame(-TEST_FRAME_SIZE);
+            option.setDownSampling(false);
+        }, (track) -> Assert.assertTrue(track.getDownsampleCoverage() == null));
+
+        assertTrackLoading(bamFile, (option) -> {
+            option.setCount(LARGE_TEST_COUNT);
+            option.setDownSampling(false);
+        }, (track) -> Assert.assertTrue(track.getDownsampleCoverage() == null));
+
+        assertTrackLoading(bamFile, (option) -> {
+            option.setFrame(LARGE_FRAME_SIZE);
+            option.setDownSampling(false);
+        }, (track) -> Assert.assertTrue(track.getDownsampleCoverage() == null));
+
+        assertTrackLoading(bamFile, (option) -> {
+            option.setCount(null);
+            option.setDownSampling(false);
+        }, (track) -> Assert.assertTrue(track.getDownsampleCoverage() == null));
+
+        assertTrackLoading(bamFile, (option) -> {
+            option.setCount(null);
+            option.setDownSampling(false);
+        }, (track) -> Assert.assertTrue(track.getDownsampleCoverage() == null));
+
+        assertTrackLoading(bamFile, (option) -> {
+            option.setTrackDirection(TrackDirectionType.MIDDLE);
+        }, (track) -> {
+                testBamTrack(track);
+                Read testRead = track.getBlocks().get(0);
+                testRead(testRead);
+            }
+        );
+
+        assertTrackLoading(bamFile, (option) -> {
+            option.setTrackDirection(TrackDirectionType.LEFT);
+            option.setShowClipping(false);
+            option.setShowSpliceJunction(true);
+        }, (track) -> {
+                Assert.assertTrue(!track.getBlocks().isEmpty());
+                Read testRead = track.getBlocks().get(0);
+                testRead(testRead);
+            }
+        );
+
+        assertTrackLoading(bamFile, (option) -> {
+            option.setTrackDirection(TrackDirectionType.RIGHT);
+            option.setShowClipping(true);
+            option.setShowSpliceJunction(false);
+        }, (track) -> {
+                Assert.assertTrue(!track.getBlocks().isEmpty());
+                Read testRead = track.getBlocks().get(0);
+                testRead(testRead);
+            }
+        );
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void saveBamExceptionHandlingTest() throws IOException {
+        BamFile bamFile = new BamFile();
+        bamFile.setId(WRONG_FILE_ID);
+
+        Track<Read> fullTrackQ = getBaseReadTrack(bamFile);
+
+        BamQueryOption option = new BamQueryOption();
+
+        ResponseEmitterMock emitterMock = new ResponseEmitterMock();
+        bamManager.sendBamTrackToEmitter(fullTrackQ, option, emitterMock);
+
+        Assert.assertEquals(emitterMock.getResultStatus(), ResultReference.ResultStatus.ERROR.toString());
+        Assert.assertTrue(!emitterMock.getMessage().isEmpty());
+    }
+
+    @NotNull
+    private Track<Read> getBaseReadTrack(BamFile bamFile) {
         Track<Read> fullTrackQ = new Track<>();
         fullTrackQ.setStartIndex(TEST_START_INDEX_SMALL_RANGE);
         fullTrackQ.setEndIndex(TEST_END_INDEX_SMALL_RANGE);
         fullTrackQ.setScaleFactor(SCALE_FACTOR_SMALL);
         fullTrackQ.setChromosome(new Chromosome(testChromosome.getId()));
         fullTrackQ.setId(bamFile.getId());
-
-        BamQueryOption option = new BamQueryOption();
-        option.setTrackDirection(TrackDirectionType.LEFT);
-        option.setShowSpliceJunction(true);
-        option.setShowClipping(true);
-        option.setFrame(TEST_FRAME_SIZE);
-        option.setCount(TEST_COUNT);
-        BamTrack<Read> fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        testBamTrack(fullTrack);
-        Read testRead = fullTrack.getBlocks().get(0);
-        testRead(testRead);
-
-        option.setTrackDirection(TrackDirectionType.RIGHT);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        testBamTrack(fullTrack);
-
-        option.setTrackDirection(TrackDirectionType.MIDDLE);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        testBamTrack(fullTrack);
-
-        option.setTrackDirection(null);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        testBamTrack(fullTrack);
-
-        option.setShowSpliceJunction(false);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        testBamTrack(fullTrack);
-
-        option.setShowSpliceJunction(null);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        testBamTrack(fullTrack);
-
-        option.setShowClipping(false);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        testBamTrack(fullTrack);
-
-        option.setShowClipping(null);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        testBamTrack(fullTrack);
-
-        option.setFilterDuplicate(true);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        testBamTrack(fullTrack);
-
-        option.setFilterDuplicate(false);
-        option.setFilterNotPrimary(true);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        testBamTrack(fullTrack);
-
-        option.setFilterNotPrimary(false);
-        option.setFilterVendorQualityFail(true);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        testBamTrack(fullTrack);
-
-        option.setFilterVendorQualityFail(false);
-        option.setFilterSupplementaryAlignment(true);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        testBamTrack(fullTrack);
-
-        option.setFilterSupplementaryAlignment(false);
-        option.setFrame(0);
-        option.setDownSampling(false);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        Assert.assertTrue(fullTrack.getDownsampleCoverage().isEmpty());
-
-        option.setFrame(-TEST_FRAME_SIZE);
-        option.setDownSampling(false);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        Assert.assertTrue(fullTrack.getDownsampleCoverage().isEmpty());
-
-        option.setCount(LARGE_TEST_COUNT);
-        option.setDownSampling(false);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        Assert.assertTrue(fullTrack.getDownsampleCoverage().isEmpty());
-
-        option.setFrame(LARGE_FRAME_SIZE);
-        option.setDownSampling(false);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        Assert.assertTrue(fullTrack.getDownsampleCoverage().isEmpty());
-        option.setCount(0);
-
-        option.setDownSampling(false);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        Assert.assertTrue(fullTrack.getDownsampleCoverage().isEmpty());
-
-        option.setCount(null);
-        option.setDownSampling(false);
-        fullTrack = bamManager.getBamTrack(fullTrackQ, option);
-        Assert.assertTrue(fullTrack.getDownsampleCoverage().isEmpty());
-
-        //old method, delete next
-        fullTrack = bamManager.getFullMiddleReadsResult(fullTrackQ, TEST_FRAME_SIZE, TEST_COUNT, true,
-                true);
-
-        testBamTrack(fullTrack);
-        testRead = fullTrack.getBlocks().get(0);
-        testRead(testRead);
-
-        //left
-        fullTrack = bamManager.getFullReadsResult(fullTrackQ, TrackDirectionType.LEFT,
-                TEST_FRAME_SIZE, TEST_COUNT, false, true);
-
-        Assert.assertTrue(!fullTrack.getBlocks().isEmpty());
-        testRead = fullTrack.getBlocks().get(0);
-        testRead(testRead);
-
-        fullTrack = bamManager.getFullReadsResult(fullTrackQ, TrackDirectionType.RIGHT,
-                TEST_FRAME_SIZE, TEST_COUNT, true, false);
-
-        Assert.assertTrue(!fullTrack.getBlocks().isEmpty());
-        testRead = fullTrack.getBlocks().get(0);
-        testRead(testRead);
+        return fullTrackQ;
     }
 
     @Test
@@ -320,20 +358,13 @@ public class BamManagerTest extends AbstractManagerTest {
         BamFile bamFile = bamManager.registerBam(request);
         Assert.assertNotNull(bamFile);
 
-        Track<Read> fullTrackQ = new Track<>();
-        fullTrackQ.setStartIndex(TEST_START_INDEX_SMALL_RANGE);
-        fullTrackQ.setEndIndex(TEST_END_INDEX_SMALL_RANGE);
-        fullTrackQ.setScaleFactor(SCALE_FACTOR_SMALL);
-        fullTrackQ.setChromosome(new Chromosome(testChromosome.getId()));
-        fullTrackQ.setId(bamFile.getId());
+        Track<Read> fullTrackQ = getBaseReadTrack(bamFile);
 
-        BamQueryOption option = new BamQueryOption();
-        option.setTrackDirection(TrackDirectionType.LEFT);
-        option.setShowSpliceJunction(true);
-        option.setShowClipping(true);
-        option.setFrame(TEST_FRAME_SIZE);
-        option.setCount(TEST_COUNT);
-        BamTrack<Read> fullTrack = bamManager.getBamTrack(fullTrackQ, option);
+        BamQueryOption option = getBaseBamQueryOption();
+
+        ResponseEmitterMock emitterMock = new ResponseEmitterMock();
+        bamManager.sendBamTrackToEmitter(fullTrackQ, option, emitterMock);
+        BamTrack<Read> fullTrack = emitterMock.getBamTrack();
 
         Assert.assertTrue(!fullTrack.getBlocks().isEmpty());
         Read read = fullTrack.getBlocks().get(0);
@@ -351,6 +382,17 @@ public class BamManagerTest extends AbstractManagerTest {
         Assert.assertTrue(!loadedRead.getTags().isEmpty());
         Assert.assertTrue(StringUtils.isNotBlank(loadedRead.getQualities()));
         Assert.assertEquals(read.getName(), loadedRead.getName());
+    }
+
+    @NotNull
+    private BamQueryOption getBaseBamQueryOption() {
+        BamQueryOption option = new BamQueryOption();
+        option.setTrackDirection(TrackDirectionType.LEFT);
+        option.setShowSpliceJunction(true);
+        option.setShowClipping(true);
+        option.setFrame(TEST_FRAME_SIZE);
+        option.setCount(TEST_COUNT);
+        return option;
     }
 
     @Test
@@ -385,9 +427,16 @@ public class BamManagerTest extends AbstractManagerTest {
             fullTrackQ.setScaleFactor(SCALE_FACTOR_SMALL);
             fullTrackQ.setChromosome(new Chromosome(testChromosome.getId()));
 
-            BamTrack<Read> fullTrack = bamManager.getFullMiddleReadsResultFromUrl(fullTrackQ, TEST_FRAME_SIZE,
-                                                                                  TEST_COUNT,
-                                                              true, true, bamUrl, indexUrl);
+            BamQueryOption option = new BamQueryOption();
+            option.setTrackDirection(TrackDirectionType.MIDDLE);
+            option.setShowSpliceJunction(true);
+            option.setShowClipping(true);
+            option.setFrame(TEST_FRAME_SIZE);
+            option.setCount(TEST_COUNT);
+
+            ResponseEmitterMock emitterMock = new ResponseEmitterMock();
+            bamManager.sendBamTrackToEmitterFromUrl(fullTrackQ, option, bamUrl, indexUrl, emitterMock);
+            BamTrack<Read> fullTrack = emitterMock.getBamTrack();
 
             testBamTrack(fullTrack);
             Read testRead = fullTrack.getBlocks().get(0);
@@ -552,14 +601,12 @@ public class BamManagerTest extends AbstractManagerTest {
         fullTrackQ.setChromosome(new Chromosome(testChromosome.getId()));
         fullTrackQ.setId(bamFile.getId());
 
-        BamQueryOption option = new BamQueryOption();
-        option.setTrackDirection(TrackDirectionType.LEFT);
-        option.setShowSpliceJunction(true);
-        option.setShowClipping(true);
-        option.setFrame(TEST_FRAME_SIZE);
-        option.setCount(TEST_COUNT);
+        BamQueryOption option = getBaseBamQueryOption();
         option.setMode(BamTrackMode.REGIONS);
-        BamTrack<Read> fullTrack = bamManager.getBamTrack(fullTrackQ, option);
+
+        ResponseEmitterMock emitterMock = new ResponseEmitterMock();
+        bamManager.sendBamTrackToEmitter(fullTrackQ, option, emitterMock);
+        BamTrack<Read> fullTrack = emitterMock.getBamTrack();
 
         Assert.assertFalse(fullTrack.getRegions().isEmpty());
     }
@@ -591,7 +638,10 @@ public class BamManagerTest extends AbstractManagerTest {
         option.setFrame(TEST_FRAME_SIZE);
         option.setCount(TEST_COUNT);
         option.setMode(BamTrackMode.COVERAGE);
-        BamTrack<Read> fullTrack = bamManager.getBamTrack(fullTrackQ, option);
+
+        ResponseEmitterMock emitterMock = new ResponseEmitterMock();
+        bamManager.sendBamTrackToEmitter(fullTrackQ, option, emitterMock);
+        BamTrack<Read> fullTrack = emitterMock.getBamTrack();
 
         Assert.assertFalse(fullTrack.getBaseCoverage().isEmpty());
         Assert.assertTrue(StringUtils.isBlank(fullTrack.getReferenceBuffer()));
@@ -600,7 +650,7 @@ public class BamManagerTest extends AbstractManagerTest {
                 && c.getaCov() == null && c.gettCov() == null && c.getgCov() == null && c.getnCov() == null
                 && c.getDelCov() == null && c.getInsCov() == null));
         Assert.assertTrue(fullTrack.getBlocks().isEmpty());
-        Assert.assertTrue(fullTrack.getDownsampleCoverage().isEmpty());
+        Assert.assertTrue(fullTrack.getDownsampleCoverage() == null);
     }
 
     private BamFile setUpTestFile() throws IOException {
@@ -641,7 +691,7 @@ public class BamManagerTest extends AbstractManagerTest {
         Assert.assertTrue(!fullTrack.getBaseCoverage().isEmpty());
         Assert.assertTrue(null != fullTrack.getDownsampleCoverage());
         Assert.assertTrue(!fullTrack.getDownsampleCoverage().isEmpty());
-        Assert.assertTrue(fullTrack.getSpliceJunctions().isEmpty());
+        Assert.assertTrue(null == fullTrack.getSpliceJunctions());
 
     }
 

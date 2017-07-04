@@ -24,12 +24,14 @@
 
 package com.epam.ngb.cli.manager.command.handler.http;
 
+import static com.epam.ngb.cli.Utils.pathToEscapingView;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 import java.util.Collections;
 
 import com.epam.ngb.cli.TestHttpServer;
+import com.epam.ngb.cli.app.Utils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -50,12 +52,19 @@ public class FileRegistrationHandlerTest extends AbstractCliTest {
     private static final Long BAM_ID = 1L;
     private static final String PATH_TO_REFERENCE = "reference/50";
     private static final String REFERENCE_NAME = "hg38";
-    private static final String PATH_TO_VCF = "path/test.vcf";
-    private static final String PATH_TO_BAM = "path/test.bam";
-    private static final String PATH_TO_BAI = "path/test.bam.bai";
+    private static final String PATH_TO_VCF = "/path/test.vcf";
+    private static final String PATH_TO_BAM = "/path/test.bam";
+    private static final String PATH_TO_BAI = "/path/test.bam.bai";
+    private static final String PATH_TO_VCF_WITH_INDEX = "/path/to/vcf/with/index.vcf.gz";
+    private static final String PATH_TO_BAM_WITH_INDEX = "/path/to/bam/with/index.bam";
     private static final String BAM_NAME = "MyBam";
 
+    private static final String RELATIVE_PATH_TO_BAM = "path/test.bam";
+    private static final String RELATIVE_PATH_TO_BAI = "path/test.bam.bai";
+
     private static final String COMMAND = "register_file";
+    public static final String PATH_TO_VCF_WITH_INDEX_VCF_GZ_TBI = "/path/to/vcf/with/index.vcf.gz.tbi";
+    public static final String PATH_TO_BAMFILE_BAM_BAI = "/path/to/bamfile.bam.bai";
     private static ServerParameters serverParameters;
     private static TestHttpServer server = new TestHttpServer();
 
@@ -64,9 +73,15 @@ public class FileRegistrationHandlerTest extends AbstractCliTest {
         server.start();
         server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
 
+
         //register vcf, no name, no index
         server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF, null, VCF_ID,
                 VCF_BIO_ID, BiologicalDataItemFormat.VCF, true);
+        server.addIndexSearchRequest(pathToEscapingView(PATH_TO_VCF), null);
+
+        //register vcf, no name, no index, prettyName
+        server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF, null, null, VCF_ID,
+                VCF_BIO_ID, BiologicalDataItemFormat.VCF, true, "pretty");
 
         // add another without feature index
         server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF, null, VCF_ID,
@@ -78,6 +93,24 @@ public class FileRegistrationHandlerTest extends AbstractCliTest {
 
         //register BAM without name
         server.addFileRegistration(REF_ID, PATH_TO_BAM, PATH_TO_BAI, null, BAM_ID, BAM_BIO_ID,
+                BiologicalDataItemFormat.BAM);
+        server.addIndexSearchRequest(pathToEscapingView(PATH_TO_BAM), null);
+        server.addIndexSearchRequest(pathToEscapingView(PATH_TO_BAM + "bz"), null);
+
+
+        //register vcf, no name
+        server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF_WITH_INDEX, null,
+                PATH_TO_VCF_WITH_INDEX_VCF_GZ_TBI, VCF_ID, VCF_BIO_ID, BiologicalDataItemFormat.VCF, true);
+        server.addIndexSearchRequest(pathToEscapingView(PATH_TO_VCF_WITH_INDEX), PATH_TO_VCF_WITH_INDEX_VCF_GZ_TBI);
+
+        //register BAM without name
+        server.addFileRegistration(REF_ID, PATH_TO_BAM_WITH_INDEX, PATH_TO_BAMFILE_BAM_BAI, null,
+                BAM_ID, BAM_BIO_ID, BiologicalDataItemFormat.BAM);
+        server.addIndexSearchRequest(pathToEscapingView(PATH_TO_BAM_WITH_INDEX), PATH_TO_BAMFILE_BAM_BAI);
+
+        //register BAM with the absolute path for testing transforming of the relative path
+        server.addFileRegistration(REF_ID, Utils.getNormalizeAndAbsolutePath(RELATIVE_PATH_TO_BAM),
+                Utils.getNormalizeAndAbsolutePath(RELATIVE_PATH_TO_BAI), null, BAM_ID, BAM_BIO_ID,
                 BiologicalDataItemFormat.BAM);
 
         serverParameters = getDefaultServerOptions(server.getPort());
@@ -93,6 +126,32 @@ public class FileRegistrationHandlerTest extends AbstractCliTest {
         AbstractHTTPCommandHandler handler = createFileRegCommandHandler(serverParameters, COMMAND);
         handler.parseAndVerifyArguments(Arrays.asList(String.valueOf(REF_BIO_ID),
                 PATH_TO_VCF), new ApplicationOptions());
+        assertEquals(RUN_STATUS_OK, handler.runCommand());
+    }
+
+    @Test
+    public void testFileRegistrationVCFWithExistingIndex() {
+        AbstractHTTPCommandHandler handler = createFileRegCommandHandler(serverParameters, COMMAND);
+        handler.parseAndVerifyArguments(Arrays.asList(String.valueOf(REF_BIO_ID),
+                PATH_TO_VCF_WITH_INDEX), new ApplicationOptions());
+        assertEquals(RUN_STATUS_OK, handler.runCommand());
+    }
+
+    @Test
+    public void testFileRegistrationBAMWithExistingIndex() {
+        AbstractHTTPCommandHandler handler = createFileRegCommandHandler(serverParameters, COMMAND);
+        handler.parseAndVerifyArguments(Arrays.asList(String.valueOf(REF_BIO_ID),
+                PATH_TO_BAM_WITH_INDEX), new ApplicationOptions());
+        assertEquals(RUN_STATUS_OK, handler.runCommand());
+    }
+
+    @Test
+    public void testFileRegistrationWithPrettyName() {
+        AbstractHTTPCommandHandler handler = createFileRegCommandHandler(serverParameters, COMMAND);
+        ApplicationOptions options = new ApplicationOptions();
+        options.setPrettyName("pretty");
+        handler.parseAndVerifyArguments(Arrays.asList(String.valueOf(REF_BIO_ID),
+                PATH_TO_VCF), options);
         assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
@@ -177,5 +236,12 @@ public class FileRegistrationHandlerTest extends AbstractCliTest {
         handler.parseAndVerifyArguments(Arrays.asList(String.valueOf(REF_BIO_ID),
                                                       PATH_TO_VCF), options);
         assertEquals(RUN_STATUS_OK, handler.runCommand());
+    }
+
+    @Test
+    public void testFileRegistrationByRelativePath() {
+        AbstractHTTPCommandHandler handler =  createFileRegCommandHandler(serverParameters, COMMAND);
+        handler.parseAndVerifyArguments(Arrays.asList(String.valueOf(REF_BIO_ID),
+                RELATIVE_PATH_TO_BAM + "?" + RELATIVE_PATH_TO_BAI), new ApplicationOptions());
     }
 }

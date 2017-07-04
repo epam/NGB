@@ -1,5 +1,5 @@
 import SVFeatureRenderer from './svFeatureRenderer';
-import {PixiTextSize, NumberFormatter} from '../../../../../../../utilities';
+import {ColorProcessor, PixiTextSize, NumberFormatter} from '../../../../../../../utilities';
 import {drawingConfiguration} from '../../../../../../../core';
 const Math = window.Math;
 
@@ -26,7 +26,7 @@ export default class InterChromosomeFeatureRenderer extends SVFeatureRenderer {
         return boundaries;
     }
 
-    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
         const [alternativeAlleleInfo] = feature.alternativeAllelesInfo.filter(x => x.mate);
         const displayText = `${alternativeAlleleInfo.mate.chromosome}:${NumberFormatter.formattedText(alternativeAlleleInfo.mate.position)}`;
         let style = this.config.variant.multipleNucleotideVariant.label.default;
@@ -67,6 +67,20 @@ export default class InterChromosomeFeatureRenderer extends SVFeatureRenderer {
                 (textSize.height + 2 * margin) / 2)
             .endFill();
 
+        hoveredGraphics
+            .lineStyle(this.config.variant.multipleNucleotideVariant.thickness,
+                ColorProcessor.darkenColor(this.config.variant.multipleNucleotideVariant.color),
+                this.config.variant.multipleNucleotideVariant.alpha)
+            .moveTo(cX1, cY - this.config.variant.multipleNucleotideVariant.thickness / 2)
+            .lineTo(cX2, cY - this.config.variant.multipleNucleotideVariant.thickness / 2);
+
+        hoveredGraphics
+            .lineStyle(0, 0x000000, 0)
+            .beginFill(ColorProcessor.darkenColor(style.fill), 1)
+            .drawRoundedRect(calloutX, cY - textSize.height / 2 - margin, textSize.width + 2 * margin, textSize.height + 2 * margin,
+                (textSize.height + 2 * margin) / 2)
+            .endFill();
+
         const labelPosition = {
             x: cX1 + margin,
             y: cY - label.height / 2
@@ -92,7 +106,7 @@ export default class InterChromosomeFeatureRenderer extends SVFeatureRenderer {
             x: cX1 - this.config.variant.multipleNucleotideVariant.thickness / 2,
             y: cY - textSize.height / 2
         });
-        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
     }
 
     registerFeature(feature, viewport, position) {

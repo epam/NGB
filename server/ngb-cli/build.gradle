@@ -1,14 +1,15 @@
+import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
     id "com.github.johnrengelman.shadow" version "1.2.4"
     id "org.sonarqube" version "2.2"
+    id "net.saliman.properties" version "1.4.4"
 }
 
 apply plugin: "java"
 apply plugin:'application'
 
 group "com.epam"
-version ""
 
 apply plugin: "checkstyle"
 apply plugin: "pmd"
@@ -54,19 +55,48 @@ dependencies {
 
 mainClassName = "com.epam.ngb.cli.app.Application"
 
+task copyConfiguration {
+    doLast {
+        filterTokens.putAt("version", escape("$version"))
+        copy {
+            from('profiles/server.properties')
+            into("$buildDir/resources/main/external")
+            filter(ReplaceTokens, tokens: project.filterTokens)
+        }
+    }
+}
+
+processResources.dependsOn copyConfiguration
+
 startScripts {
     applicationName = 'ngb'
 }
 
+
+
 distZip {
+    doFirst{
+        setVersion('')
+    }
     doLast {
         file("$destinationDir/$archiveName").renameTo("$destinationDir/"+baseName+'.zip')
     }
 }
 
 distTar {
+    doFirst{
+        setVersion('')
+    }
     doLast {
         file("$destinationDir/$archiveName").renameTo("$destinationDir/" + baseName+'.tar')
+    }
+}
+
+installDist {
+    doLast {
+        from ("$destinationDir/ngb-cli-$version") {
+            into "$destinationDir/ngb-cli"
+        }
     }
 }
 
@@ -93,5 +123,9 @@ checkstyle {
 task regression(type: Exec) {
     executable 'bash'
     args 'script\\regression_test.sh'
+}
+
+def escape(String s) {
+    return s.replace("\\", "\\\\")
 }
 

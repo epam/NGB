@@ -41,6 +41,7 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
  * </p>
  */
 public class ProjectVO {
+
     private Long id;
     private String name;
     private Long createdBy;
@@ -51,6 +52,7 @@ public class ProjectVO {
     private Date lastOpenedDate;
     private List<ProjectVO> nestedProjects;
     private Long parentId;
+    private String prettyName;
 
     public Long getId() {
         return id;
@@ -130,5 +132,13 @@ public class ProjectVO {
 
     public void setParentId(Long parentId) {
         this.parentId = parentId;
+    }
+
+    public String getPrettyName() {
+        return prettyName;
+    }
+
+    public void setPrettyName(String prettyName) {
+        this.prettyName = prettyName;
     }
 }

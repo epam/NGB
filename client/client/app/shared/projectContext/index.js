@@ -1,3 +1,5 @@
+import {utilities} from '../../../app/components/ngbDataSets/internal';
+
 const Math = window.Math;
 
 const DEFAULT_VCF_COLUMNS = ['variationType', 'chrName', 'geneNames', 'startIndex', 'info'];
@@ -32,6 +34,7 @@ export default class projectContext {
         height: 'h',
         format: 'f',
         index: 'i1',
+        isLocal: 'l',
         state: 's',
         alignments: 'aa',
         arrows: 'a',
@@ -104,6 +107,9 @@ export default class projectContext {
     _browsingAllowed = false;
 
     _ngbDefaultSettings;
+
+    _lastLocalTracks = [];
+    _localDataset = null;
 
     get firstPageVariations() {
         return this._firstPageVariations;
@@ -188,16 +194,16 @@ export default class projectContext {
         return this._tracks;
     }
 
-    get openedByUrlProjectName() {
-        return '';
-    }
-
     get vcfTracks() {
-        return this._tracks.filter(track => track.projectId !== this.openedByUrlProjectName && track.format === 'VCF');
+        return this._tracks.filter(track => !track.isLocal && track.format === 'VCF');
     }
 
     get geneTracks() {
-        return this._tracks.filter(track => track.projectId !== this.openedByUrlProjectName && track.format === 'GENE');
+        return this._tracks.filter(track => !track.isLocal && track.format === 'GENE');
+    }
+
+    get lastLocalTracks() {
+        return this._lastLocalTracks;
     }
 
     get referenceIsPromised() {
@@ -387,9 +393,57 @@ export default class projectContext {
             bioDataItemId: name,
             projectId: track.projectId,
             state: track.state,
-            height: track.height
+            height: track.height,
+            isLocal: track.isLocal
         };
         localStorage[key] = JSON.stringify(state);
+    }
+
+    applyAnnotationTracksState() {
+        if (this.reference === null) {
+            return;
+        }
+        const stateStr = localStorage[`${this.reference.name.toLowerCase()}-annotations`];
+        if (!stateStr) {
+            return;
+        }
+        const state = JSON.parse(stateStr);
+        if (!this.reference.annotationFiles) {
+            this.reference.annotationFiles = [];
+        } else if (this.reference.geneFile && this.reference.annotationFiles.filter(af => af.format === 'GENE' && af.name.toLowerCase() === this.reference.geneFile.name.toLowerCase()).length === 0) {
+            this.reference.annotationFiles.push(this.reference.geneFile);
+        }
+        if (state && this.reference.annotationFiles) {
+            this.reference.annotationFiles.forEach(f => {
+                f.selected = state.indexOf(f.name.toLowerCase()) !== -1;
+            });
+            const sortFn = (file1, file2) => {
+                if (file1.selected !== file2.selected) {
+                    if (file1.selected) {
+                        return -1;
+                    } else {
+                        return 1;
+                    }
+                }
+                const index1 = state.indexOf(file1.name.toLowerCase());
+                const index2 = state.indexOf(file2.name.toLowerCase());
+                if (index1 < index2) {
+                    return -1;
+                } else if (index1 > index2) {
+                    return 1;
+                }
+                return 0;
+            };
+            this.reference.annotationFiles.sort(sortFn);
+        }
+    }
+
+    saveAnnotationFilesState() {
+        if (!this.reference || !this.reference.annotationFiles) {
+            return;
+        }
+        const state = this.reference.annotationFiles.filter(f => f.selected).map(f => f.name.toLowerCase());
+        localStorage[`${this.reference.name.toLowerCase()}-annotations`] = JSON.stringify(state);
     }
 
     get toolbarVisibility() {
@@ -607,22 +661,117 @@ export default class projectContext {
         return this._datasetsAreLoading;
     }
 
+    refreshDatasetsPromise;
+
     async refreshDatasets() {
         if (this._datasetsAreLoading) {
-            return;
+            return this.refreshDatasetsPromise;
         }
         this._datasetsAreLoading = true;
         this._datasetsArePrepared = false;
         this.dispatcher.emitSimpleEvent('datasets:loading:started', null);
-        this._datasets = (await this.projectDataService.getProjects() || []);
-        this._datasetsLoaded = true;
-        this._datasetsAreLoading = false;
-        this.dispatcher.emitSimpleEvent('datasets:loading:finished', null);
+        this.refreshDatasetsPromise = new Promise((resolve) => {
+            this.projectDataService.getProjects(this._datasetsFilter).then(data => {
+                this._datasets = data;
+                if (this._localDataset) {
+                    this._datasets.push(this._localDataset);
+                }
+                this._datasetsLoaded = true;
+                this._datasetsAreLoading = false;
+                this.dispatcher.emitSimpleEvent('datasets:loading:finished', null);
+                resolve();
+            });
+        });
+        return this.refreshDatasetsPromise;
     }
+
+    addLastLocalTrack(track) {
+        if (this.lastLocalTracks.filter(t => t.name.toLowerCase() == track.name.toLowerCase()).length === 0) {
+            this.lastLocalTracks.push(track);
+            this._lastLocalTracksUpdated = true;
+        }
+    }
+
+    refreshLocalDatasets() {
+        if (this._lastLocalTracksUpdated) {
+            this._lastLocalTracksUpdated = false;
+            const localDataset = {
+                name: 'Not registered files',
+                id: 0,
+                items: [],
+                nestedProjects: [],
+                isLocal: true
+            };
+            const referencesNames = this.lastLocalTracks.reduce((names, track) => {
+                if (names.filter(t => t === track.projectId).length === 0) {
+                    return [...names, track.projectId];
+                }
+                return names;
+            }, []);
+            localDataset.nestedProjects = [];
+            for (let i = 0; i < referencesNames.length; i++) {
+                const [reference] = this._references.filter(r => r.name.toLowerCase() === referencesNames[i].toLowerCase());
+                if (reference) {
+                    const systemTracks = [];
+                    if (this.lastLocalTracks.filter(t => t.format === 'REFERENCE').length === 0) {
+                        reference.isLocal = true;
+                        reference.projectId = reference.name;
+                        systemTracks.push(reference);
+                    }
+                    const nestedProject = {
+                        name: referencesNames[i],
+                        id: 0,
+                        reference: reference,
+                        items: [...systemTracks, ...this.lastLocalTracks.filter(t => t.projectId.toLowerCase() === referencesNames[i].toLowerCase())],
+                        nestedProjects: null,
+                        isLocal: true
+                    };
+                    localDataset.nestedProjects.push(nestedProject);
+                }
+            }
+            this._localDataset = utilities.preprocessNode(localDataset);
+            const [__localDataset] = this.datasets.filter(d => d.isLocal);
+            if (__localDataset) {
+                const index = this.datasets.indexOf(__localDataset);
+                this.datasets.splice(index, 1);
+            }
+
+            this._datasets.push(this._localDataset);
+
+            return true;
+        }
+        return false;
+    }
+
+    refreshReferencesPromise;
+    _referencesAreLoading = false;
 
     async refreshReferences(forceRefresh = false) {
         if (forceRefresh || !this._references) {
-            this._references = await this.genomeDataService.loadAllReference();
+            if (this._referencesAreLoading) {
+                return this.refreshReferencesPromise;
+            }
+            this._referencesAreLoading = true;
+            this.refreshReferencesPromise = new Promise((resolve) => {
+                this.genomeDataService.loadAllReference(this._datasetsFilter).then(data => {
+                    this._references = data;
+                    this._references.forEach(r => {
+                        if (!r.annotationFiles) {
+                            r.annotationFiles = [];
+                        }
+                        if (r.geneFile && r.annotationFiles.filter(a =>
+                                a.name.toLowerCase() === r.geneFile.name.toLowerCase() && a.format.toLowerCase() === r.geneFile.format.toLowerCase()
+                            ).length === 0) {
+                            r.geneFile.selected = true;
+                            r.geneFile.isGeneFile = true;
+                            r.annotationFiles.push(r.geneFile);
+                        }
+                    });
+                    this._referencesAreLoading = false;
+                    resolve();
+                });
+            });
+            return this.refreshReferencesPromise;
         }
     }
 
@@ -654,13 +803,16 @@ export default class projectContext {
         };
         (async() => {
             const result = await this.changeStateAsync(state, callbacks);
-            const {chromosomeDidChange,
+            const {
+                chromosomeDidChange,
                 datasetsFilterChanged,
+                datasetsUpdated,
                 layoutDidChange,
                 positionDidChange,
                 referenceDidChange,
                 tracksStateDidChange,
-                viewportDidChange} = result;
+                viewportDidChange
+            } = result;
             let stateChanged = false;
             if (referenceDidChange) {
                 emitEventFn('reference:change', this.getCurrentStateObject());
@@ -685,8 +837,11 @@ export default class projectContext {
             if (layoutDidChange) {
                 this.dispatcher.emitSimpleEvent('layout:load', this.layout);
             }
-            if (datasetsFilterChanged) {
+            if (!datasetsUpdated && datasetsFilterChanged) {
                 this.dispatcher.emitGlobalEvent('datasets:filter:changed', this.datasetsFilter);
+            }
+            if (datasetsUpdated) {
+                this.dispatcher.emitSimpleEvent('datasets:loading:finished', null);
             }
             if (stateChanged) {
                 emitEventFn('state:change', this.getCurrentStateObject());
@@ -706,14 +861,14 @@ export default class projectContext {
         }
     }
 
-    applyTrackState(track) {
-        const {bioDataItemId, index, format, height, projectId, state} = track;
+    applyTrackState(track, silent = false) {
+        const {bioDataItemId, index, isLocal, format, height, projectId, state} = track;
         const __tracksState = this.tracksState || [];
         let [existedState] = __tracksState.filter(t => t.bioDataItemId.toString().toLowerCase() === bioDataItemId.toString().toLowerCase() &&
         t.projectId.toLowerCase() === projectId.toLowerCase());
         let elementIndex = -1;
         if (!existedState) {
-            existedState = {bioDataItemId, index, height, format, projectId, state};
+            existedState = {bioDataItemId, index, isLocal, height, format, projectId, state};
         } else {
             elementIndex = __tracksState.indexOf(existedState);
             Object.assign(existedState, {height, state});
@@ -724,6 +879,12 @@ export default class projectContext {
             __tracksState.push(existedState);
         }
         this.tracksState = __tracksState;
+        if (!silent) {
+            this.submitTracksStates();
+        }
+    }
+
+    submitTracksStates() {
         this.dispatcher.emitGlobalEvent('route:change', this.getCurrentStateObject());
     }
 
@@ -807,7 +968,18 @@ export default class projectContext {
     }
 
     async changeStateAsync(state, callbacks) {
-        const {chromosome, position, reference, tracks, tracksState, viewport, layout, forceVariantsFilter, tracksReordering, filterDatasets} = state;
+        const {
+            chromosome,
+            position,
+            reference,
+            tracks,
+            tracksState,
+            viewport,
+            layout,
+            forceVariantsFilter,
+            tracksReordering,
+            filterDatasets,
+            shouldAddAnnotationTracks} = state;
         if (reference && !this._reference) {
             this._referenceIsPromised = true;
             this.dispatcher.emitGlobalEvent('reference:pre:change');
@@ -825,7 +997,7 @@ export default class projectContext {
                 }
             });
         }
-        const {referenceDidChange, vcfFilesChanged, recoveredTracksState} = await this._changeProject(reference, tracks, tracksState, tracksReordering);
+        const {referenceDidChange, vcfFilesChanged, recoveredTracksState} = await this._changeProject(reference, tracks, tracksState, tracksReordering, shouldAddAnnotationTracks);
         const tracksStateDidChange = await this._changeTracksState(recoveredTracksState || tracksState);
         const chromosomeDidChange = this._changeChromosome(chromosome);
         let positionDidChange = false;
@@ -848,6 +1020,7 @@ export default class projectContext {
             this.layout = layout;
         }
         const datasetsFilterChanged = this._datasetsFilter !== filterDatasets;
+        const datasetsUpdated = this.refreshLocalDatasets();
         if (filterDatasets) {
             this._datasetsFilter = filterDatasets;
         }
@@ -855,6 +1028,7 @@ export default class projectContext {
         return {
             chromosomeDidChange,
             datasetsFilterChanged,
+            datasetsUpdated,
             layoutDidChange,
             positionDidChange,
             referenceDidChange,
@@ -876,12 +1050,12 @@ export default class projectContext {
         };
     }
 
-    async _changeProject(reference, tracks, tracksState, tracksReordering) {
+    async _changeProject(reference, tracks, tracksState, tracksReordering, shouldAddAnnotationTracks) {
         let vcfFilesChanged = false;
         let referenceDidChange = false;
         let recoveredTracksState = undefined;
         if (reference !== undefined || tracks !== undefined || tracksState !== undefined) {
-            const result = await this._loadProject(reference, tracks, tracksState, tracksReordering);
+            const result = await this._loadProject(reference, tracks, tracksState, tracksReordering, shouldAddAnnotationTracks);
             vcfFilesChanged = result.vcfFilesChanged;
             referenceDidChange = result.referenceDidChange;
             recoveredTracksState = result.recoveredTracksState;
@@ -900,44 +1074,48 @@ export default class projectContext {
     }
 
     async recoverTracksState(tracksState) {
-        const openedByUrlProjectName = this.openedByUrlProjectName;
         const projectsIds = tracksState.reduce((ids, track) => {
-            if (track.projectId !== openedByUrlProjectName && ids.filter(t => t === track.projectId).length === 0) {
+            if (!track.isLocal && ids.filter(t => t === track.projectId).length === 0) {
                 return [...ids, track.projectId];
             }
             return ids;
         }, []);
+
+        const recoverTracksStateFn = async () => {
+            for (let i = 0; i < projectsIds.length; i++) {
+                const _project = this.findDatasetByName(projectsIds[i]) || await this.projectDataService.getProject(+projectsIds[i]);
+                if (_project) {
+                    const _projectName = _project.name.toLowerCase();
+                    const _projectId = _project.id.toString().toLowerCase();
+                    const items = _project._lazyItems ? _project._lazyItems : _project.items;
+                    for (let j = 0; j < items.length; j++) {
+                        const track = items[j];
+                        if (track.name && track.format) {
+                            const [state] = tracksState.filter(t =>
+                            (t.bioDataItemId.toString().toLowerCase() === track.name.toLowerCase() ||
+                            t.bioDataItemId.toString().toLowerCase() === track.bioDataItemId.toString().toLowerCase()) &&
+                            (t.projectId.toString().toLowerCase() === _projectName ||
+                            t.projectId.toString().toLowerCase() === _projectId));
+                            if (state) {
+                                const index = tracksState.indexOf(state);
+                                state.bioDataItemId = track.name;
+                                tracksState.splice(index, 1, state);
+                            }
+                        }
+                    }
+                    tracksState.forEach(ts => {
+                        if (ts.projectId === projectsIds[i]) {
+                            ts.projectId = _project.name;
+                        }
+                    });
+                }
+            }
+        };
+
         if (!this._datasets || this._datasets.length === 0) {
             await this.refreshDatasets();
         }
-        for (let i = 0; i < projectsIds.length; i++) {
-            const _project = this.findDatasetByName(projectsIds[i]) || await this.projectDataService.getProject(+projectsIds[i]);
-            if (_project) {
-                const _projectName = _project.name.toLowerCase();
-                const _projectId = _project.id.toString().toLowerCase();
-                const items = _project._lazyItems ? _project._lazyItems : _project.items;
-                for (let j = 0; j < items.length; j++) {
-                    const track = items[j];
-                    if (track.name && track.format) {
-                        const [state] = tracksState.filter(t =>
-                        (t.bioDataItemId.toString().toLowerCase() === track.name.toLowerCase() ||
-                        t.bioDataItemId.toString().toLowerCase() === track.bioDataItemId.toString().toLowerCase()) &&
-                        (t.projectId.toString().toLowerCase() === _projectName ||
-                        t.projectId.toString().toLowerCase() === _projectId));
-                        if (state) {
-                            const index = tracksState.indexOf(state);
-                            state.bioDataItemId = track.name;
-                            tracksState.splice(index, 1, state);
-                        }
-                    }
-                }
-                tracksState.forEach(ts => {
-                    if (ts.projectId === projectsIds[i]) {
-                        ts.projectId = _project.name;
-                    }
-                });
-            }
-        }
+        await recoverTracksStateFn();
         return tracksState;
     }
 
@@ -952,27 +1130,16 @@ export default class projectContext {
         return oldTracksStateStr !== newTracksStateStr;
     }
 
-    async _changeReference(reference) {
+    async _changeReference(reference, shouldAddAnnotationTracks) {
         await this.refreshReferences();
         if (this._tracks) {
             // mapping reference track
             this._tracks = this._tracks.map(t => {
-                if (t.format === 'REFERENCE' && t.projectId === this.openedByUrlProjectName) {
+                if (t.format === 'REFERENCE' && t.isLocal) {
                     const [ref] = this._references.filter(r => r.name.toLowerCase() === t.name.toString().toLowerCase());
-                    ref.projectId = this.openedByUrlProjectName;
+                    ref.projectId = t.projectId;
+                    ref.isLocal = true;
                     return ref;
-                }
-                return t;
-            });
-            // mapping genes tracks
-            const genesFiles = this._references.filter(r => r.geneFile).map(r => r.geneFile);
-            this._tracks = this._tracks.map(t => {
-                if (t.format === 'GENE' && t.projectId === this.openedByUrlProjectName) {
-                    const [gene] = genesFiles.filter(g => g.name.toLowerCase() === t.name.toString().toLowerCase());
-                    if (gene) {
-                        gene.projectId = this.openedByUrlProjectName;
-                        return gene;
-                    }
                 }
                 return t;
             });
@@ -982,9 +1149,35 @@ export default class projectContext {
         } else if (reference && reference.id !== undefined && reference.id !== null) {
             [reference] = this._references.filter(r => r.id === reference.id);
         }
+        if (this._tracks && reference) {
+            // mapping reference track
+            const [systemReference] = this._references.filter(r => r.id === reference.id);
+            // mapping annotation tracks
+            if (systemReference && systemReference.annotationFiles) {
+                for (let i = 0; i < systemReference.annotationFiles.length; i++) {
+                    const annotationFile = systemReference.annotationFiles[i];
+                    if (!shouldAddAnnotationTracks) {
+                        annotationFile.selected = false;
+                    }
+                    this._tracks = this._tracks.map(t => {
+                        if (t.format === annotationFile.format && t.name.toLowerCase() === annotationFile.name.toLowerCase()) {
+                            annotationFile.projectId = '';
+                            annotationFile.isLocal = true;
+                            if (!shouldAddAnnotationTracks) {
+                                annotationFile.selected = true;
+                            }
+                            return annotationFile;
+                        }
+                        return t;
+                    });
+                }
+            }
+            this.saveAnnotationFilesState();
+        }
         const newReferenceId = reference ? +reference.id : null;
         if (+this.referenceId !== newReferenceId) {
             this._reference = reference;
+            this.applyAnnotationTracksState();
             this._referenceIsPromised = false;
             this._chromosomes = await this._loadChromosomesForReference(this.referenceId);
             return true;
@@ -992,7 +1185,7 @@ export default class projectContext {
         return false;
     }
 
-    async _loadProject(reference, tracks, tracksState, tracksReordering) {
+    async _loadProject(reference, tracks, tracksState, tracksReordering, shouldAddAnnotationTracks) {
         let referenceDidChange = false;
         const oldVcfFiles = this.vcfTracks || [];
         if (!reference && !tracks && tracksState && tracksReordering) {
@@ -1002,33 +1195,40 @@ export default class projectContext {
             if (tracks) {
                 this._tracks = tracks;
             } else if (tracksState) {
-                const openedByUrlProjectName = this.openedByUrlProjectName;
+                await this.refreshReferences();
                 const mapOpenByUrlTracksFn = (trackState) => {
                     return {
                         id: decodeURIComponent(trackState.bioDataItemId),
                         indexPath: decodeURIComponent(trackState.index),
                         bioDataItemId: decodeURIComponent(trackState.bioDataItemId),
-                        projectId: openedByUrlProjectName,
+                        projectId: trackState.projectId,
                         name: decodeURIComponent(trackState.bioDataItemId),
+                        isLocal: trackState.isLocal,
                         format: trackState.format,
                         openByUrl: true
                     };
                 };
-                const __tracks = tracksState.filter(ts => ts.projectId === openedByUrlProjectName).map(mapOpenByUrlTracksFn);
+                const __tracks = tracksState.filter(ts => ts.isLocal).map(mapOpenByUrlTracksFn);
+                __tracks.forEach(t => {
+                    const [__reference] = this._references.filter(r => r.name.toLowerCase() === t.projectId.toLowerCase());
+                    if (__reference) {
+                        t.reference = __reference;
+                    }
+                });
                 const projectsIds = tracksState.reduce((ids, track) => {
-                    if (track.projectId !== openedByUrlProjectName && ids.filter(t => t === track.projectId).length === 0) {
+                    if (!track.isLocal && ids.filter(t => t === track.projectId).length === 0) {
                         return [...ids, track.projectId];
                     }
                     return ids;
                 }, []);
                 const allTracksFromProjectIds = tracksState.filter(ts => ts.bioDataItemId === undefined).reduce((ids, track) => {
-                    if (track.projectId !== openedByUrlProjectName && ids.filter(t => t === track.projectId).length === 0) {
+                    if (!track.isLocal && ids.filter(t => t === track.projectId).length === 0) {
                         return [...ids, track.projectId];
                     }
                     return ids;
                 }, []);
                 const predefinedTracksFromProjectIds = tracksState.filter(ts => ts.bioDataItemId !== undefined && PREDEFINED_TRACKS_SELECTORS.indexOf(ts.bioDataItemId.toLowerCase()) >= 0).reduce((ids, track) => {
-                    if (track.projectId !== openedByUrlProjectName && ids.filter(t => t === track.projectId).length === 0) {
+                    if (!track.isLocal && ids.filter(t => t === track.projectId).length === 0) {
                         return [...ids, track.projectId];
                     }
                     return ids;
@@ -1036,7 +1236,6 @@ export default class projectContext {
                 if (!this._datasets || this._datasets.length === 0) {
                     await this.refreshDatasets();
                 }
-                await this.refreshReferences();
                 for (let i = 0; i < projectsIds.length; i++) {
                     const _project = this.findDatasetByName(projectsIds[i]) || await this.projectDataService.getProject(projectsIds[i]);
                     if (_project && (!_project.reference || !reference || (reference.name !== undefined && reference.name.toLowerCase() === _project.reference.name.toLowerCase()))) {
@@ -1110,7 +1309,7 @@ export default class projectContext {
                             }
                         }
                     } else {
-                        const wrongStates = tracksState.filter(ts => ts.projectId === projectsIds[i]);
+                        const wrongStates = tracksState.filter(ts => !ts.isLocal && ts.projectId === projectsIds[i]);
                         for (let i = 0; i < wrongStates.length; i++) {
                             const index = tracksState.indexOf(wrongStates[i]);
                             tracksState.splice(index, 1);
@@ -1120,6 +1319,7 @@ export default class projectContext {
                 if (__tracks.filter(t => t.format === 'REFERENCE').length === 0) {
                     const [trackWithReference] = __tracks.filter(t => t.reference);
                     if (trackWithReference) {
+                        trackWithReference.reference.projectId = trackWithReference.projectId;
                         __tracks.push(trackWithReference.reference);
                         tracksState.splice(0, 0, {
                             bioDataItemId: trackWithReference.reference.name,
@@ -1137,7 +1337,32 @@ export default class projectContext {
                     };
                 }
             }
-            referenceDidChange = await this._changeReference(reference);
+            referenceDidChange = await this._changeReference(reference, shouldAddAnnotationTracks);
+            if (shouldAddAnnotationTracks && this._reference && this._reference.annotationFiles) {
+                const [referenceTrack] = this._tracks.filter(t => t.format === 'REFERENCE');
+                let index = this._tracks.indexOf(referenceTrack);
+                if (index < 0) {
+                    index = this._tracks.length - 1;
+                }
+                for (let i = 0; i < this._reference.annotationFiles.length; i++) {
+                    const annotationFile = this._reference.annotationFiles[i];
+                    if (!annotationFile.selected) {
+                        continue;
+                    }
+                    annotationFile.isLocal = true;
+                    annotationFile.projectId = '';
+                    if (this._tracks.filter(t => t.name.toLowerCase() === annotationFile.name.toLowerCase() && t.format.toLowerCase() === annotationFile.format.toLowerCase()).length === 0) {
+                        this._tracks.push(annotationFile);
+                        tracksState.splice(index + 1, 0, {
+                            bioDataItemId: annotationFile.name,
+                            projectId: '',
+                            isLocal: true,
+                            format: annotationFile.format
+                        });
+                        index++;
+                    }
+                }
+            }
             this._containsVcfFiles = this.vcfTracks.length > 0;
         } else if (tracks === null || reference === null) {
             this._tracks = [];

@@ -28,8 +28,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
@@ -84,8 +89,12 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
     private static final int LIST_INDEX = 4;
     private static final String NEW_NAME = "hiMom";
     private static final String A3_FA_PATH = "classpath:templates/A3.fa";
+    public static final String PRETTY_NAME = "pretty";
 
     @Value("${ga4gh.google.referenceSetId}") private String referenseSetID;
+
+    @Value("#{catgenome['files.base.directory.path']}")
+    private String baseDirPath;
 
     private long idRef;
     private long idChrom;
@@ -111,7 +120,7 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
         request.setName(NEW_NAME);
         request.setPath(resource.getFile().getPath());
         request.setType(BiologicalDataItemResourceType.FILE);
-        request.setNoGCContent(true);
+        request.setPrettyName(PRETTY_NAME);
 
         reference = referenceManager.registerGenome(request);
         assertNotNull(reference);
@@ -148,6 +157,7 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
 
         assertNotNull(reference);
         Reference referenceNew = referenceGenomeDao.loadReferenceGenome(reference.getId());
+        assertEquals(PRETTY_NAME, referenceNew.getPrettyName());
         assertEquals("Unexpected id bioData.", reference.getBioDataItemId(),
                 referenceNew.getBioDataItemId());
         assertEquals("Unexpected size reference.", reference.getSize(), referenceNew.getSize());
@@ -199,22 +209,27 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
         assertNotNull(track);
     }
 
-    @Ignore @Test
+    @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Throwable.class)
     public void testUnregister() throws IOException {
-        ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
-        request.setType(BiologicalDataItemResourceType.GA4GH);
-        request.setPath(referenseSetID);
-        request.setName(NEW_NAME);
         try {
-            Reference reference = referenceManager.registerGenome(request);
             assertNotNull(reference);
+            Path metaDataRefDir = Paths.get(baseDirPath + "/references/" + reference.getId());
+            assertTrue(Files.exists(metaDataRefDir));
             Reference unregisterRef = referenceManager.unregisterGenome(reference.getId());
             assertNotNull(unregisterRef);
+            assertFalse(Files.exists(metaDataRefDir));
             Reference refDeleted = referenceGenomeDao.loadReferenceGenome(reference.getId());
             assertTrue("removed fail", refDeleted == null);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
+            request.setName(NEW_NAME);
+            request.setPath(resource.getFile().getPath());
+            request.setType(BiologicalDataItemResourceType.FILE);
+            request.setPrettyName(PRETTY_NAME);
+            referenceManager.registerGenome(request);
         }
     }
 

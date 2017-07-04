@@ -322,7 +322,7 @@ export default class ShortenedIntronsViewport {
                     endIndex: nextSoftIndex,
                     startIndex: prevSoftIndex
                 };
-                prevSoftIndex = nextSoftIndex + 1;
+                prevSoftIndex = nextSoftIndex;
                 relativePosition += length;
             }
             this._coveredRange.relative.endIndex = relativePosition;

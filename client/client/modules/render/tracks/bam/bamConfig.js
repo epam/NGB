@@ -86,8 +86,46 @@ export default {
         }
         return height;
     },
+    fitHeightFactor: (state) => {
+        if (state.alignments) {
+            return 6;
+        }
+        let height = 0;
+        if (state.coverage) {
+            height += 1;
+        }
+        if (state.spliceJunctions) {
+            height += 1;
+        }
+        return height;
+    },
     defaultHeight: 250,
-    maxHeight: Infinity,
+    maxHeight: (state, config) => {
+        if (state.alignments) {
+            return Infinity;
+        }
+        let maxHeight = 0;
+        if (state.coverage) {
+            maxHeight += config.coverage.height;
+        }
+        if (state.spliceJunctions) {
+            maxHeight += config.spliceJunctions.height;
+        }
+        return maxHeight;
+    },
+    minHeight: (state, config) => {
+        if (state.alignments) {
+            return config.coverage.height + config.spliceJunctions.height + 20;
+        }
+        let minHeight = 0;
+        if (state.coverage) {
+            minHeight += config.coverage.height;
+        }
+        if (state.spliceJunctions) {
+            minHeight += config.spliceJunctions.height;
+        }
+        return minHeight;
+    },
     regions: {
         height: 50,
         lines: {

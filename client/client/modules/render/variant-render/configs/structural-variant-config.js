@@ -95,6 +95,10 @@ export default {
         mainLabel: {
             fill: 0x777777,
             font: 'normal 8pt arial'
+        },
+        radio: {
+            margin: 10,
+            radius: 6
         }
     },
     transcriptName: {

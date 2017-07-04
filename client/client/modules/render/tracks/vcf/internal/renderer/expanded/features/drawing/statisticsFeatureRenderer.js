@@ -1,4 +1,4 @@
-import {PixiTextSize} from '../../../../../../../utilities';
+import {ColorProcessor, PixiTextSize} from '../../../../../../../utilities';
 import FeatureBaseRenderer from '../../../../../../gene/internal/renderer/features/drawing/featureBaseRenderer';
 import {drawingConfiguration} from '../../../../../../../core';
 const Math = window.Math;
@@ -34,8 +34,8 @@ export default class StatisticsFeatureRenderer extends FeatureBaseRenderer {
         };
     }
 
-    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position) {
-        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position) {
+        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
         const pixelsInBp = viewport.factor;
         const labelStyle = this.config.variant.allele.label;
         const symbol =  StatisticsFeatureRenderer.getStatisticsText(feature);
@@ -66,6 +66,11 @@ export default class StatisticsFeatureRenderer extends FeatureBaseRenderer {
         graphics.lineStyle(0, white, 0);
         graphics
             .beginFill(this.config.variant.zygosity.unknownColor, 1)
+            .drawRect(cX - width / 2, cY - height / 2, width, height)
+            .endFill();
+        hoveredGraphics.lineStyle(0, white, 0);
+        hoveredGraphics
+            .beginFill(ColorProcessor.darkenColor(this.config.variant.zygosity.unknownColor), 1)
             .drawRect(cX - width / 2, cY - height / 2, width, height)
             .endFill();
         this.registerFeature(feature, viewport, position);

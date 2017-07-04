@@ -59,6 +59,8 @@ import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.FeatureFileReadingException;
+import com.epam.catgenome.exception.FeatureIndexException;
+import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.exception.HistogramReadingException;
 import com.epam.catgenome.exception.HistogramWritingException;
 import com.epam.catgenome.exception.RegistrationException;
@@ -72,6 +74,8 @@ import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.Utils;
+import htsjdk.tribble.bed.BEDCodec;
+import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.Feature;
@@ -82,6 +86,9 @@ import htsjdk.tribble.readers.LineIterator;
  */
 @Service
 public class BedManager {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BedManager.class);
+
     @Autowired
     private FileManager fileManager;
 
@@ -99,6 +106,9 @@ public class BedManager {
 
     @Autowired
     private DownloadFileManager downloadFileManager;
+
+    @Autowired
+    private FeatureIndexManager featureIndexManager;
 
     private static final Logger LOG = LoggerFactory.getLogger(BedManager.class);
 
@@ -276,6 +286,7 @@ public class BedManager {
         bedFile.setCreatedDate(new Date());
         bedFile.setCreatedBy(AuthUtils.getCurrentUserId());
         bedFile.setReferenceId(reference.getId());
+        bedFile.setPrettyName(request.getPrettyName());
 
         long bedId = bedFile.getId();
 
@@ -317,6 +328,11 @@ public class BedManager {
             if (bedFile.getId() != null && bedFile.getBioDataItemId() != null
                     && bedFileManager.loadBedFile(bedFile.getId()) == null) {
                 biologicalDataItemManager.deleteBiologicalDataItem(bedFile.getBioDataItemId());
+                try {
+                    fileManager.deleteFeatureFileDirectory(bedFile);
+                } catch (IOException e) {
+                    LOGGER.error("Unable to delete directory for " + bedFile.getName(), e);
+                }
             }
         }
     }
@@ -530,5 +546,24 @@ public class BedManager {
                 lastRecord.setEndIndex(lastFeature.getEnd());
             }
         }
+    }
+
+    public BedFile reindexBedFile(long bedFileId) throws FeatureIndexException {
+        BedFile bedFile = bedFileManager.loadBedFile(bedFileId);
+        Reference reference = referenceGenomeManager.loadReferenceGenome(bedFile.getReferenceId());
+        Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
+                Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
+
+        try {
+            fileManager.deleteFileFeatureIndex(bedFile);
+            try (AbstractFeatureReader<BEDFeature, LineIterator> reader =
+                         AbstractFeatureReader.getFeatureReader(bedFile.getPath(), new BEDCodec(), false)) {
+                featureIndexManager.makeIndexForBedReader(bedFile, reader, chromosomeMap);
+            }
+        } catch (IOException e) {
+            throw new FeatureIndexException(bedFile, e);
+        }
+
+        return bedFile;
     }
 }

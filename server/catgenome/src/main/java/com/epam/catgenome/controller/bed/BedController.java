@@ -53,6 +53,7 @@ import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.HistogramReadingException;
 import com.epam.catgenome.manager.bed.BedFileManager;
 import com.epam.catgenome.manager.bed.BedManager;
+import com.epam.catgenome.exception.FeatureIndexException;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -173,5 +174,15 @@ public class BedController extends AbstractRESTController {
             throws HistogramReadingException {
         final Track<Wig> histogramTrack = convertToTrack(trackQuery);
         return Result.success(bedManager.loadHistogram(histogramTrack));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/bed/{bedFileId}/index", method = RequestMethod.GET)
+    @ApiOperation(value = "Rebuilds a BED feature index",
+            notes = "Rebuilds a BED feature index", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Result<Boolean> reindexBed(@PathVariable long bedFileId) throws FeatureIndexException {
+        BedFile file = bedManager.reindexBedFile(bedFileId);
+        return Result.success(true, getMessage(MessagesConstants.INFO_FEATURE_INDEX_DONE, file.getId(),
+                file.getName()));
     }
 }

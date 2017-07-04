@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +26,19 @@ package com.epam.catgenome.manager.bam;
 
 import static com.epam.catgenome.component.MessageCode.NO_SUCH_REFERENCE;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.manager.parallel.TaskExecutorService.ExecutionMode.ASYNC;
+import static com.epam.catgenome.manager.parallel.TaskExecutorService.ExecutionMode.SEQUENTIAL;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import com.epam.catgenome.entity.bam.*;
+import com.epam.catgenome.entity.bam.BamFile;
+import com.epam.catgenome.entity.bam.BamQueryOption;
+import com.epam.catgenome.entity.bam.BamTrackMode;
+import com.epam.catgenome.entity.bam.BasePosition;
+import com.epam.catgenome.entity.bam.Read;
+import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -59,6 +66,7 @@ import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SamReader;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 /**
  * Source:      BamManager
@@ -89,6 +97,9 @@ public class BamManager {
 
     @Autowired
     private ReferenceManager referenceManager;
+
+    @Autowired
+    private TaskExecutorService taskExecutorService;
 
     @Value("#{catgenome['bam.max.coverage.range'] ?: 1000000}")
     private int maxCoverageRange;
@@ -145,14 +156,15 @@ public class BamManager {
      * Returns {@code Track} filled with BAM data from a specified BAM file in the server's file system
      * @param track input track
      * @param option BAM track options
-     * @return {@code Track} filled with BAM data
+     * @param emitter where to write data
      * @throws IOException on resource reading errors
      */
-    public BamTrack<Read> getBamTrack(final Track<Read> track, BamQueryOption option) throws IOException {
+    public void sendBamTrackToEmitter(final Track<Read> track, BamQueryOption option, ResponseBodyEmitter emitter)
+            throws IOException {
         final Chromosome chromosome = trackHelper.validateTrack(track);
         BamQueryOption currentOptions = option == null ? new BamQueryOption() : option;
         BamUtil.validateOptions(currentOptions, chromosome);
-        return getFullResult(track, currentOptions);
+        fillEmitterByBamTrack(track, currentOptions, emitter);
     }
 
     /**
@@ -161,77 +173,16 @@ public class BamManager {
      * @param option BAM track options
      * @param bamUrl path to BAM file
      * @param indexUrl path to Bam index file
-     * @return{@code Track} filled with BAM data
+     * @param emitter where to write data
      * @throws IOException on resource reading errors
      */
-    public BamTrack<Read> getBamTrackFromUrl(final Track<Read> track, BamQueryOption option, String bamUrl,
-                                             String indexUrl) throws IOException {
+    public void sendBamTrackToEmitterFromUrl(final Track<Read> track, BamQueryOption option, String bamUrl,
+                                                       String indexUrl, ResponseBodyEmitter emitter)
+            throws IOException {
         final Chromosome chromosome = trackHelper.validateUrlTrack(track, bamUrl, indexUrl);
         BamQueryOption currentOptions = option == null ? new BamQueryOption() : option;
         BamUtil.validateOptions(currentOptions, chromosome);
-        return getFullResultFromUrl(track, bamUrl, indexUrl, currentOptions);
-    }
-
-    /**
-     * @deprecated remove this code when client stops using deprecated API
-     */
-    @Deprecated
-    public BamTrack<Read> getFullMiddleReadsResult(final Track<Read> track, final Integer frame,
-                                                   final Integer count, Boolean showClipping,
-                                                   final Boolean showSpliceJunction) throws IOException {
-        final Chromosome chromosome = trackHelper.validateTrack(track);
-        final BamQueryOption option = new BamQueryOption(showClipping, showSpliceJunction, TrackDirectionType.MIDDLE,
-                frame, count, chromosome);
-
-        return getFullResult(track, option);
-    }
-
-    /**
-     * @deprecated remove this code when client stops using deprecated API
-     */
-    @Deprecated
-    public BamTrack<Read> getFullMiddleReadsResultFromUrl(final Track<Read> track, final Integer frame,
-                                                   final Integer count, Boolean showClipping,
-                                                   final Boolean showSpliceJunction, String bamUrl, String indexUrl)
-            throws IOException {
-        final Chromosome chromosome = trackHelper.validateUrlTrack(track, bamUrl, indexUrl);
-        final BamQueryOption option = new BamQueryOption(showClipping, showSpliceJunction, TrackDirectionType.MIDDLE,
-                frame, count, chromosome);
-
-        return getFullResultFromUrl(track, bamUrl, indexUrl, option);
-    }
-
-    /**
-     * @deprecated remove this code when client stops using deprecated API
-     */
-    @Deprecated
-    public BamTrack<Read> getFullReadsResult(final Track<Read> track, final TrackDirectionType direction,
-                                             final Integer frame,
-                                             final Integer count, final Boolean showClipping,
-                                             final Boolean showSpliceJunction) throws IOException {
-
-        final Chromosome chromosome = trackHelper.validateTrack(track);
-        Assert.notNull(chromosome, getMessage(MessagesConstants.ERROR_CHROMOSOME_ID_NOT_FOUND));
-        final BamQueryOption option = new BamQueryOption(showClipping, showSpliceJunction,
-                direction, frame, count, chromosome);
-
-        return getFullResult(track, option);
-    }
-
-    /**
-     * @deprecated remove this code when client stops using deprecated API
-     */
-    @Deprecated
-    public BamTrack<Read> getFullReadsResultFromUrl(final Track<Read> track, final BamQueryOption option,
-            String bamUrl, String indexUrl)
-            throws IOException {
-        final Chromosome chromosome = trackHelper.validateUrlTrack(track, bamUrl, indexUrl);
-        Assert.notNull(chromosome, getMessage(MessagesConstants.ERROR_CHROMOSOME_ID_NOT_FOUND));
-        final BamQueryOption currentOption = new BamQueryOption(option.getShowClipping(),
-                option.getShowSpliceJunction(), option.getTrackDirection(),
-                option.getFrame(), option.getCount(), chromosome);
-
-        return getFullResultFromUrl(track, bamUrl, indexUrl, currentOption);
+        fillEmitterByBamTrackFromURL(track, bamUrl, indexUrl, currentOptions, emitter);
     }
 
     /**
@@ -303,23 +254,39 @@ public class BamManager {
         return null;
     }
 
-    private BamTrack<Read> getFullResult(final Track<Read> track, final BamQueryOption options)
-            throws IOException {
+    private void fillEmitterByBamTrack(final Track<Read> track, final BamQueryOption options,
+                                                 ResponseBodyEmitter emitter) throws IOException {
+        final BamTrackEmitter bamTrackEmitter = new BamTrackEmitter(emitter);
+
+        // TODO: track.getEndIndex() - track.getStartIndex() > maxCoverageRange
         if (options.getMode() == BamTrackMode.REGIONS) {
-            // TODO: track.getEndIndex() - track.getStartIndex() > maxCoverageRange
-            return bamHelper.getRegionsFromFile(track);
+            taskExecutorService.executeTrackTask(
+                bamTrackEmitter, SEQUENTIAL,
+                () -> bamTrackEmitter.writeTrackAndFinish(bamHelper.getRegionsFromFile(track))
+            );
         } else {
-            return bamHelper.getReadsFromFile(track, options);
+            taskExecutorService.executeTrackTask(
+                bamTrackEmitter, ASYNC,
+                () -> bamHelper.getReadsFromFile(track, options, bamTrackEmitter)
+            );
         }
     }
 
-    private BamTrack<Read> getFullResultFromUrl(final Track<Read> track, String bamUrl, String indexUrl,
-                                                final BamQueryOption options)
+    private void fillEmitterByBamTrackFromURL(final Track<Read> track, String bamUrl, String indexUrl,
+                                                        final BamQueryOption options, ResponseBodyEmitter emitter)
             throws IOException {
+        final BamTrackEmitter bamTrackEmitter = new BamTrackEmitter(emitter);
+
         if (track.getEndIndex() - track.getStartIndex() > maxCoverageRange) {
-            return bamHelper.getRegionsFromUrl(track, bamUrl, indexUrl);
+            taskExecutorService.executeTrackTask(
+                bamTrackEmitter, SEQUENTIAL,
+                () -> bamTrackEmitter.writeTrackAndFinish(bamHelper.getRegionsFromUrl(track, bamUrl, indexUrl))
+            );
         } else {
-            return bamHelper.getReadsFromUrl(track, bamUrl, indexUrl, options);
+            taskExecutorService.executeTrackTask(
+                bamTrackEmitter, ASYNC,
+                () -> bamHelper.fillEmitterByReadsFromUrl(track, bamUrl, indexUrl, options, bamTrackEmitter)
+            );
         }
     }
 }

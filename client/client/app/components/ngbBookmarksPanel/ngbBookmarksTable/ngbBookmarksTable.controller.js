@@ -69,6 +69,11 @@ export default class ngbBookmarksTableController extends baseController {
         };
         const chromosomeName = `${entity.chromosome.name}`.toLowerCase();
         const tracksState = entity.tracks;
+        tracksState.forEach(t => {
+            if (t.projectId === '') {
+                t.isLocal = true;
+            }
+        });
         const layout = entity.layout;
         const vcfColumns = entity.vcfColumns;
         if (vcfColumns) {

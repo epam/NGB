@@ -216,6 +216,7 @@ public class SegManager {
         segFile.setCreatedDate(new Date());
         segFile.setCreatedBy(AuthUtils.getCurrentUserId());
         segFile.setReferenceId(request.getReferenceId());
+        segFile.setPrettyName(request.getPrettyName());
 
         long id = segFile.getId();
         biologicalDataItemManager.createBiologicalDataItem(segFile);
@@ -243,6 +244,11 @@ public class SegManager {
             if (segFile.getId() != null &&
                     segFileManager.loadSegFile(segFile.getId()) == null) {
                 biologicalDataItemManager.deleteBiologicalDataItem(segFile.getBioDataItemId());
+                try {
+                    fileManager.deleteFeatureFileDirectory(segFile);
+                } catch (IOException e) {
+                    LOGGER.error("Unable to delete directory for " + segFile.getName(), e);
+                }
             }
         }
         return segFile;

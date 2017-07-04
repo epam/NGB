@@ -16,6 +16,7 @@
                         b.created_by,
                         b.created_date,
                         b.bucket_id,
+                        b.pretty_name,
                         m.bam_id,
                         m.reference_genome_id as bam_reference_genome_id,
 
@@ -46,6 +47,7 @@
                         b.created_by,
                         b.created_date,
                         b.bucket_id,
+                        b.pretty_name,
                         m.bam_id,
                         m.reference_genome_id as bam_reference_genome_id,
 

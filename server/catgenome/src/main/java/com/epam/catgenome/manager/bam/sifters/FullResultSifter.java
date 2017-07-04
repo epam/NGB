@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,13 +25,12 @@
 package com.epam.catgenome.manager.bam.sifters;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import com.epam.catgenome.entity.bam.BasePosition;
-import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.wig.Wig;
+import com.epam.catgenome.manager.bam.BamTrackEmitter;
 import com.epam.catgenome.util.BamUtil;
 import htsjdk.samtools.SAMRecord;
 
@@ -44,16 +43,16 @@ import htsjdk.samtools.SAMRecord;
  * records list and coverage result.
  */
 public class FullResultSifter implements DownsamplingSifter<SAMRecord> {
-    private final List<Read> readList = new ArrayList<>();
+
     private int filteredReadsCount = 0;
     private boolean exceedsMaxReadCount = false;
+    private BamTrackEmitter trackEmitter;
 
-    //private int maxReadCount;
-
-    public FullResultSifter(boolean coverageOnly) {
+    public FullResultSifter(boolean coverageOnly, BamTrackEmitter trackEmitter) {
         // TODO: int maxReadCount - decide reads or coverage by by read count
         //this.maxReadCount = maxReadCount;
         this.exceedsMaxReadCount = coverageOnly;
+        this.trackEmitter = trackEmitter;
     }
 
     @Override
@@ -61,20 +60,16 @@ public class FullResultSifter implements DownsamplingSifter<SAMRecord> {
                     final List<BasePosition> differentBase, final String headStr, final String tailStr)
             throws IOException {
         if (!exceedsMaxReadCount) {
-            readList.add(BamUtil.createReadFromRecord(record, start, end, differentBase, headStr, tailStr));
+            trackEmitter.writeRecord(BamUtil.createReadFromRecord(record, start, end, differentBase, headStr, tailStr));
         }
 
         filteredReadsCount++;
-        /*if (!exceedsMaxReadCount && filteredReadsCount > maxReadCount) { //TODO: uncomment
-            exceedsMaxReadCount = true;
-            readList.clear();
-        }*/
     }
 
     @Override
-    public List<Read> getReadListResult() {
-        return readList;
+    public void finish() {
     }
+
 
     @Override
     public List<Wig> getDownsampleCoverageResult() {

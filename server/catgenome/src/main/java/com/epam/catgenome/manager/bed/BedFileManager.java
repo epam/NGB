@@ -27,6 +27,7 @@ package com.epam.catgenome.manager.bed;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -52,6 +53,9 @@ public class BedFileManager {
 
     @Autowired
     private BedFileDao bedFileDao;
+
+    @Autowired
+    private ReferenceGenomeDao referenceGenomeDao;
 
     @Autowired
     private ProjectDao projectDao;
@@ -105,9 +109,26 @@ public class BedFileManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public void deleteBedFile(BedFile bedFile) {
         List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(bedFile.getBioDataItemId());
+        List<Long> genomeIdsByAnnotation = referenceGenomeDao.
+                loadGenomeIdsByAnnotationDataItemId(bedFile.getBioDataItemId());
+
+        Assert.isTrue(genomeIdsByAnnotation.isEmpty(),
+                MessageHelper.getMessage(
+                        MessagesConstants.ERROR_FILE_IN_USE_AS_ANNOTATION,
+                        bedFile.getName(),
+                        bedFile.getId(),
+                        genomeIdsByAnnotation
+                                .stream()
+                                .map(referenceGenomeDao::loadReferenceGenome)
+                                .map(BaseEntity::getName)
+                                .collect(Collectors.joining(", "))
+                )
+        );
+
         Assert.isTrue(projectsWhereFileInUse.isEmpty(), MessageHelper.getMessage(MessagesConstants.ERROR_FILE_IN_USE,
-             bedFile.getName(), bedFile.getId(), projectsWhereFileInUse.stream().map(BaseEntity::getName)
-                                                    .collect(Collectors.joining(", "))));
+                bedFile.getName(), bedFile.getId(), projectsWhereFileInUse.stream().map(BaseEntity::getName)
+                        .collect(Collectors.joining(", ")))
+        );
 
         bedFileDao.deleteBedFile(bedFile.getId());
         biologicalDataItemDao.deleteBiologicalDataItem(bedFile.getIndex().getId());

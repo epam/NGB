@@ -7,11 +7,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import com.epam.catgenome.manager.bam.BamHelper;
 import org.apache.commons.io.IOUtils;
 
 import com.epam.catgenome.exception.IndexException;
@@ -44,6 +47,8 @@ import htsjdk.tribble.readers.PositionalBufferedStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.epam.catgenome.util.NgbFileUtils.isGzCompressed;
+
 /**
  * An utility class for creating Tabix (tbi) indexes for tab delimited BGZIP-compressed files (VCF,
  * BED, GFF). All calls to this class should be removed, after creating Tabix indexes will be fixed
@@ -55,6 +60,37 @@ public final class IndexUtils {
 
     private IndexUtils() {
         //no operations
+    }
+
+    /**
+     * Try to find index for given file path. This method checks if the directory with this
+     * file also contains index for it
+     * @param filePath file path for checking
+     * @return index file path for the file otherwise null
+     * */
+    public static String checkExistingIndex(String filePath) {
+        List<String> possibleIndexPathes = new ArrayList<>();
+        if(BamUtil.isBam(filePath)) {
+            String fileExtension = NgbFileUtils.getFileExtension(filePath);
+            String indexExtension = BamHelper.BAI_EXTENSIONS.get(fileExtension);
+            possibleIndexPathes.add(filePath + indexExtension);
+            possibleIndexPathes.add(filePath.replace(fileExtension, indexExtension));
+        } else {
+            if (isGzCompressed(filePath)) {
+                possibleIndexPathes.add(filePath + NgbFileUtils.TBI_EXTENSION);
+                possibleIndexPathes.add(filePath.replace(NgbFileUtils.GZ_EXTENSION, NgbFileUtils.TBI_EXTENSION));
+            } else {
+                possibleIndexPathes.add(filePath + NgbFileUtils.IDX_EXTENSION);
+            }
+        }
+
+        for (String possibleIndexPath : possibleIndexPathes) {
+            File indexFile = new File(possibleIndexPath);
+            if (indexFile.exists() && indexFile.canRead()) {
+                return indexFile.getAbsolutePath();
+            }
+        }
+        return null;
     }
 
     /**

@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
+import com.epam.catgenome.exception.FeatureIndexException;
 import org.eclipse.jetty.server.Server;
 import org.junit.Assert;
 import org.junit.Before;
@@ -74,6 +76,11 @@ import htsjdk.tribble.TribbleException;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class BedManagerTest extends AbstractManagerTest {
+
+    public static final String GENES_SORTED_BED_PATH = "classpath:templates/genes_sorted.bed";
+    public static final String GENES_SORTED_BED_GZ_PATH = "classpath:templates/genes_sorted.bed.gz";
+    public static final String PRETTY_NAME = "pretty";
+
     @Autowired
     private BedManager bedManager;
 
@@ -112,14 +119,14 @@ public class BedManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testRegisterBed() throws IOException, FeatureFileReadingException {
-        BedFile bedFile = testRegisterBed("classpath:templates/genes_sorted.bed");
+        BedFile bedFile = testRegisterBed(GENES_SORTED_BED_PATH);
         Assert.assertTrue(testLoadBedRecords(bedFile));
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testRegisterZippedBed() throws IOException, FeatureFileReadingException {
-        BedFile bedFile = testRegisterBed("classpath:templates/genes_sorted.bed.gz");
+        BedFile bedFile = testRegisterBed(GENES_SORTED_BED_GZ_PATH);
         Assert.assertTrue(testLoadBedRecords(bedFile));
     }
 
@@ -127,7 +134,7 @@ public class BedManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testLoadHistogram()
             throws IOException, HistogramReadingException {
-        BedFile bedFile = testRegisterBed("classpath:templates/genes_sorted.bed");
+        BedFile bedFile = testRegisterBed(GENES_SORTED_BED_PATH);
 
         Track<Wig> histogram = new Track<>();
         histogram.setId(bedFile.getId());
@@ -207,21 +214,24 @@ public class BedManagerTest extends AbstractManagerTest {
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(resource.getFile().getAbsolutePath());
         request.setReferenceId(referenceId);
+        request.setPrettyName(PRETTY_NAME);
 
         BedFile bedFile = bedManager.registerBed(request);
         Assert.assertNotNull(bedFile);
 
-        List<BedFile> bedFiles = bedFileManager.loadBedFilesByReferenceId(referenceId);
-        Assert.assertFalse(bedFiles.isEmpty());
-        bedFiles.forEach(f -> {
-            Assert.assertNotNull(f.getId());
-            Assert.assertNotNull(f.getBioDataItemId());
-            Assert.assertNotNull(f.getIndex());
-            Assert.assertFalse(f.getPath().isEmpty());
-            Assert.assertFalse(f.getIndex().getPath().isEmpty());
-        });
+        BedFile loadedBedFile = bedFileManager.loadBedFile(bedFile.getId());
+        Assert.assertNotNull(loadedBedFile.getId());
+        Assert.assertNotNull(loadedBedFile.getBioDataItemId());
+        Assert.assertEquals(PRETTY_NAME, loadedBedFile.getPrettyName());
+        Assert.assertNotNull(loadedBedFile.getIndex());
+        Assert.assertFalse(loadedBedFile.getPath().isEmpty());
+        Assert.assertFalse(loadedBedFile.getIndex().getPath().isEmpty());
 
-        return bedFile;
+        List<BedFile> bedFiles = bedFileManager.loadBedFilesByReferenceId(referenceId);
+        Assert.assertEquals(1, bedFiles.size());
+        Assert.assertTrue(bedFiles.stream().allMatch(f -> f.getId().equals(bedFile.getId()) &&
+            f.getPrettyName().equals(PRETTY_NAME)));
+        return loadedBedFile;
     }
 
     private boolean testLoadBedRecords(BedFile bedFile) throws FeatureFileReadingException {
@@ -249,7 +259,7 @@ public class BedManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testUnregisterBedFile() throws Exception {
-        BedFile bedFile = testRegisterBed("classpath:templates/genes_sorted.bed");
+        BedFile bedFile = testRegisterBed(GENES_SORTED_BED_PATH);
 
         bedManager.unregisterBedFile(bedFile.getId());
         Assert.assertNull(bedFileManager.loadBedFile(bedFile.getId()));
@@ -279,6 +289,29 @@ public class BedManagerTest extends AbstractManagerTest {
             throws IOException, FeatureFileReadingException {
         BedFile bedFile = testRegisterBed("classpath:templates/invalid/extra_chr.bed");
         Assert.assertTrue(testLoadBedRecords(bedFile));
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testDeleteBedWithIndex() throws IOException, InterruptedException, FeatureIndexException {
+        Resource resource = context.getResource(GENES_SORTED_BED_PATH);
+
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        BedFile bedFile = bedManager.registerBed(request);
+        Assert.assertNotNull(bedFile);
+        Assert.assertNotNull(bedFile.getId());
+        try {
+            referenceGenomeManager.updateReferenceAnnotationFile(referenceId, bedFile.getBioDataItemId(), false);
+            bedFileManager.deleteBedFile(bedFile);
+            //expected exception
+        } catch (IllegalArgumentException e) {
+            //remove file correctly as expected
+            referenceGenomeManager.updateReferenceAnnotationFile(referenceId, bedFile.getBioDataItemId(), true);
+            bedFileManager.deleteBedFile(bedFile);
+        }
     }
 
     private void testRegisterInvalidBed(String path, String expectedMessage) throws IOException {

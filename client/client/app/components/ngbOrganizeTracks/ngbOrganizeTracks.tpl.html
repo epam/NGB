@@ -1,0 +1,45 @@
+<div class="main-row" layout="row" flex>
+    <div class="left-column" layout="column" >
+        <div class="grid-column" ui-grid="$ctrl.gridOptions"
+             ui-grid-selection
+             ui-grid-resize-columns
+             ui-grid-auto-resize
+             ui-grid-pinning>
+        </div>
+    </div>
+    <div class="right-column" layout="column" >
+        <div class="layout-column button-column">
+            <div class="layout-column block-button">
+                <md-button ng-disabled="$ctrl.disabledButton" class="md-primary navigate-button" ng-click="$ctrl.toTop()">
+                    TO TOP
+                </md-button>
+                <md-button  ng-disabled="$ctrl.disabledButton" class="md-primary" ng-click="$ctrl.toBottom()">
+                    TO BOTTOM
+                </md-button>
+            </div>
+            <div class="layout-column block-button">
+                <md-button  ng-disabled="$ctrl.disabledButton" class="md-primary" ng-click="$ctrl.up()">
+                    UP
+                </md-button>
+                <md-button  ng-disabled="$ctrl.disabledButton" class="md-primary" ng-click="$ctrl.down()">
+                    DOWN
+                </md-button>
+            </div>
+
+            <div class="layout-column block-button">
+                <md-button ng-disabled="$ctrl.disabledSortButton" class="md-primary" ng-click="$ctrl.sortByName()">
+                    SORT BY NAME
+                </md-button>
+                <md-button ng-disabled="$ctrl.disabledSortButton" class="md-primary" ng-click="$ctrl.sortByType()">
+                    SORT BY TYPE
+                </md-button>
+            </div>
+
+            <div class="layout-column block-button">
+                <md-button  ng-disabled="$ctrl.disabledButton" class="md-primary" ng-click="$ctrl.close()">
+                    CLOSE
+                </md-button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -165,15 +165,17 @@ export default angular.module('dndLists', [])
                         if (!fileSettings) {
                             return {
                                 bioDataItemId: file.name,
-                                projectId: file.projectId
+                                projectId: file.projectId,
+                                isLocal: file.isLocal
                             };
                         } else {
                             const height = fileSettings.height;
                             const state = fileSettings.state;
                             const index = fileSettings.index;
                             const format = fileSettings.format;
+                            const isLocal = fileSettings.isLocal;
                             return {
-                                height, state, index, format,
+                                height, state, index, format, isLocal,
                                 bioDataItemId: file.name,
                                 projectId: file.projectId
                             };

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.File;
 import java.util.List;
 
+import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -79,9 +80,6 @@ public class BamControllerTest extends AbstractControllerTest {
     private static final String BAM_FILE_REGISTER = "/bam/register";
     private static final String BAM_FILE_UNREGISTER = "/secure/bam/register";
     private static final String LOAD_BAM_FILES = "/bam/%d/loadAll";
-    private static final String BAM_GET_FULL_READ = "/bam/track/full/get";
-    private static final String BAM_GET_LEFT_READ = "/bam/track/left/get";
-    private static final String BAM_GET_RIGHT_READ = "/bam/track/right/get";
     private static final String BAM_TRACK_GET = "/bam/track/get";
     private static final String BAM_READ_LOAD = "/bam/read/load";
     private static final String TEST_NSAME = "BIG " + BamControllerTest.class.getSimpleName();
@@ -101,9 +99,14 @@ public class BamControllerTest extends AbstractControllerTest {
     @Autowired
     private ReferenceManager referenceManager;
 
+    @Autowired
+    private TaskExecutorService taskExecutorService;
+
     @Before
     public void setup() throws Exception {
         super.setup();
+
+        taskExecutorService.setForceSequential(true);
 
         resource = context.getResource("classpath:templates");
         File fastaFile = new File(resource.getFile().getAbsolutePath() + "//dm606.X.fa");
@@ -225,9 +228,11 @@ public class BamControllerTest extends AbstractControllerTest {
         Assert.assertFalse(readSumFullRes.getPayload().getBlocks().isEmpty());
         assertIsReadCorrect(readSumFullRes.getPayload().getBlocks().get(1));
 
+
         // Load a track by fileId full
+        bamQueryOption.setTrackDirection(TrackDirectionType.MIDDLE);
         actions = mvc()
-                .perform(post(BAM_GET_FULL_READ).content(getObjectMapper().writeValueAsString(bamTrackQuery))
+                .perform(post(BAM_TRACK_GET).content(getObjectMapper().writeValueAsString(bamTrackQuery))
                         .contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
@@ -246,8 +251,9 @@ public class BamControllerTest extends AbstractControllerTest {
         Read read = readSumFullRes.getPayload().getBlocks().get(0);
 
         // Load a track by fileId left
+        bamQueryOption.setTrackDirection(TrackDirectionType.LEFT);
         actions = mvc()
-                .perform(post(BAM_GET_LEFT_READ).content(getObjectMapper().writeValueAsString(bamTrackQuery))
+                .perform(post(BAM_TRACK_GET).content(getObjectMapper().writeValueAsString(bamTrackQuery))
                         .contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
@@ -263,8 +269,9 @@ public class BamControllerTest extends AbstractControllerTest {
         assertIsReadCorrect(readSumLeftRes.getPayload().getBlocks().get(1));
 
         // Load a track by fileId right
+        bamQueryOption.setTrackDirection(TrackDirectionType.RIGHT);
         actions = mvc()
-                .perform(post(BAM_GET_RIGHT_READ).content(getObjectMapper().writeValueAsString(bamTrackQuery))
+                .perform(post(BAM_TRACK_GET).content(getObjectMapper().writeValueAsString(bamTrackQuery))
                         .contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))

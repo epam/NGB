@@ -36,7 +36,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
 import com.epam.catgenome.entity.FeatureFile;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -85,6 +87,9 @@ public class ProjectManager {
     private SegFileDao segFileDao;
 
     @Autowired
+    private ReferenceGenomeDao referenceGenomeDao;
+
+    @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
 
     @Autowired
@@ -122,15 +127,31 @@ public class ProjectManager {
     /**
      * Loads all project hierarchy for current user, with all items
      * @param parentId specifies the root project for loading, if null, all projects will be loaded
+     * @param referenceName
      * @return all project hierarchy for current user, with all items
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public List<Project> loadProjectTree(final Long parentId) {
-        List<Project> allProjects = projectDao.loadAllProjects(AuthUtils.getCurrentUserId());
+    public List<Project> loadProjectTree(final Long parentId, String referenceName) {
+        List<Project> allProjects;
+        if (StringUtils.isEmpty(referenceName)) {
+            allProjects = projectDao.loadAllProjects(AuthUtils.getCurrentUserId());
+        } else {
+            Reference reference =
+                    referenceGenomeDao.loadReferenceGenomeByName(referenceName.toLowerCase());
+            Assert.notNull(reference,
+                    MessageHelper.getMessage(MessagesConstants.ERROR_BIO_NAME_NOT_FOUND, referenceName));
+            allProjects = projectDao.loadProjectsByBioDataItemId(reference.getBioDataItemId());
+        }
 
         Map<Long, List<Project>> hierarchyMap = new HashMap<>();
+        Map<Long, Set<ProjectItem>> itemMap;
 
-        Map<Long, Set<ProjectItem>> itemMap = projectDao.loadProjectItemsByProjects(allProjects);
+        if (StringUtils.isEmpty(referenceName)) {
+            itemMap = projectDao.loadAllProjectItems();
+        } else {
+            itemMap = projectDao.loadProjectItemsByProjects(allProjects);
+        }
+
         allProjects.stream().forEach(p -> {
             if (itemMap.containsKey(p.getId())) {
                 p.setItems(new ArrayList<>(itemMap.get(p.getId())));
@@ -141,6 +162,7 @@ public class ProjectManager {
             }
             hierarchyMap.get(p.getParentId()).add(p);
         });
+
         if (parentId != null) {
             Project topProject = loadProject(parentId);
             Assert.notNull(topProject,
@@ -210,12 +232,6 @@ public class ProjectManager {
 
     private void loadProjectItems(Project project) {
         project.setItems(projectDao.loadProjectItemsByProjectId(project.getId()));
-        List<ProjectItem> referenceGeneItems = project.getItems().stream()
-            .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE
-                         && ((Reference) i.getBioDataItem()).getGeneFile() != null)
-            .map(i -> new ProjectItem(((Reference) i.getBioDataItem()).getGeneFile()))
-            .collect(Collectors.toList());
-        project.getItems().addAll(referenceGeneItems);
 
         // Set Vcf files samples
         Set<Long> vcfIds = new HashSet<>();

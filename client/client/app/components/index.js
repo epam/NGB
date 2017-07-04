@@ -9,6 +9,8 @@ import ngbProjectInfoPanel from './ngbProjectInfoPanel';
 import ngbTracksView from './ngbTracksView';
 import ngbVariantPanel from './ngbVariantPanel';
 import ngbVariantsTablePanel from './ngbVariantsTablePanel';
+import ngbOrganizeTracks from './ngbOrganizeTracks';
+import ngbGenomeAnnotations from './ngbGenomeAnnotations';
 
 export default angular.module('NGB_Panels', [
     ngbBookmarksPanel,
@@ -20,5 +22,7 @@ export default angular.module('NGB_Panels', [
     ngbTracksView,
     ngbVariantPanel,
     ngbVariantsTablePanel,
-    ngbFeatureInfoPanel
+    ngbFeatureInfoPanel,
+    ngbOrganizeTracks,
+    ngbGenomeAnnotations
 ]).name;

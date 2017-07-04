@@ -1,0 +1,22 @@
+<md-dialog class="organize-tracks-dialog" aria-label="Organize Tracks">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>Organize Tracks</h2>
+            <span flex></span>
+            <md-button class="md-icon-button" ng-click="close()" aria-label="Close">
+                <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    <md-dialog-content class="dialog-organize-tracks">
+            <ngb-organize-tracks organize-tracks="organizeTracks"></ngb-organize-tracks>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+        <md-button aria-label="save" ng-click="save()" class="md-primary">
+            Save
+        </md-button>
+        <md-button aria-label="cancel" ng-click="close()">
+            Cancel
+        </md-button>
+    </md-dialog-actions>
+</md-dialog>

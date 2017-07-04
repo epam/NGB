@@ -1,4 +1,3 @@
-
 const MODE_URL = 'url';
 const MODE_NGB = 'ngb';
 
@@ -36,15 +35,19 @@ export default class ngbOpenFileController {
         const self = this;
         let template = null;
         switch (mode) {
-            case MODE_URL: template = require('./ngbOpenFileFromUrl/ngbOpenFileFromUrl.dialog.tpl.html'); break;
-            case MODE_NGB: template = require('./ngbOpenFileFromNGBServer/ngbOpenFileFromNGBServer.dialog.tpl.html'); break;
+            case MODE_URL:
+                template = require('./ngbOpenFileFromUrl/ngbOpenFileFromUrl.dialog.tpl.html');
+                break;
+            case MODE_NGB:
+                template = require('./ngbOpenFileFromNGBServer/ngbOpenFileFromNGBServer.dialog.tpl.html');
+                break;
         }
         if (!template) {
             return;
         }
         this.$mdDialog.show({
             template: template,
-            controller: function($scope, $mdDialog) {
+            controller: function ($scope, $mdDialog) {
                 $scope.tracks = [];
                 $scope.close = () => $mdDialog.hide();
                 $scope.loadingDisabled = () => $scope.tracks.length === 0;
@@ -59,10 +62,10 @@ export default class ngbOpenFileController {
     }
 
     loadTracks(selectedFiles) {
-        const openedByUrlProjectName = this.projectContext.openedByUrlProjectName;
         const mapFn = (selectedFile) => {
             return {
                 openByUrl: true,
+                isLocal: true,
                 format: selectedFile.format,
                 id: selectedFile.path,
                 bioDataItemId: selectedFile.path,
@@ -70,35 +73,42 @@ export default class ngbOpenFileController {
                 reference: selectedFile.reference,
                 name: selectedFile.path,
                 indexPath: selectedFile.index,
-                projectId: openedByUrlProjectName
-            }
+                projectId: selectedFile.reference.name
+            };
         };
         const mapTrackStateFn = (t) => {
             return {
                 bioDataItemId: t.name,
                 name: t.name,
                 index: t.indexPath,
+                isLocal: true,
                 format: t.format,
-                projectId: openedByUrlProjectName
+                projectId: t.projectId
             };
         };
-        let tracks = selectedFiles.map(mapFn);
-        tracks.forEach(t => t.projectId = openedByUrlProjectName);
+        let tracks = selectedFiles.map(mapFn).filter(
+            track => this.projectContext.tracks.filter(t => t.isLocal && t.name.toLowerCase() === track.name.toLowerCase()).length === 0);
+
+        if (tracks.length === 0) {
+            return;
+        }
+
+        for (let i = 0; i < tracks.length; i++) {
+            this.projectContext.addLastLocalTrack(tracks[i]);
+        }
+
         const [reference] = tracks.map(t => t.reference);
-        reference.projectId = openedByUrlProjectName;
+        reference.projectId = reference.name;
+        reference.isLocal = true;
+
         if (!this.projectContext.reference || this.projectContext.reference.bioDataItemId !== reference.bioDataItemId) {
-            if (reference.geneFile) {
-                reference.geneFile.projectId = openedByUrlProjectName;
-                tracks = [reference.geneFile, ...tracks];
-            }
             const _tracks = [reference, ...tracks];
             const tracksState = _tracks.map(mapTrackStateFn);
-            this.projectContext.changeState({reference, tracks: _tracks, tracksState});
+            this.projectContext.changeState({reference, tracks: _tracks, tracksState, shouldAddAnnotationTracks: true});
         } else {
             const _tracks = [...this.projectContext.tracks, ...tracks];
             const tracksState = [...(this.projectContext.tracksState || []), ...tracks.map(mapTrackStateFn)];
             this.projectContext.changeState({reference: this.projectContext.reference, tracks: _tracks, tracksState});
         }
     }
-
 }

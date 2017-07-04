@@ -19,6 +19,7 @@ const Math = window.Math;
 const DEFAULT_MAXIMUM_RANGE = 7000;
 
 export const HOVERED_ITEM_TYPE_COVERAGE = 'coverage';
+export const HOVERED_ITEM_TYPE_REGION = 'region';
 export const HOVERED_ITEM_TYPE_SPLICE_JUNCTION = 'splice junction';
 export const HOVERED_ITEM_TYPE_DOWNSAMPLE_INDICATOR = 'downsample indicator';
 export const HOVERED_ITEM_TYPE_ALIGNMENT = 'alignment';
@@ -49,6 +50,7 @@ export class BamRenderer {
     _groupsBackground = null;
     _groupsNamesContainer = null;
     _groupsGraphics = null;
+    _hoveredItemContainer = null;
 
     _settings = null;
     _maximumAlignmentsRange = DEFAULT_MAXIMUM_RANGE;
@@ -184,6 +186,7 @@ export class BamRenderer {
         this._container = new PIXI.Container();
         this._zoomInPlaceholderContainer = new PIXI.Container();
         this._noReadsInRangePlaceholderContainer = new PIXI.Container();
+        this._hoveredItemContainer = new PIXI.Container();
         this._dataContainer = new PIXI.Container();
         this._container.addChild(this._dataContainer);
         this._container.addChild(this._zoomInPlaceholderContainer);
@@ -206,6 +209,7 @@ export class BamRenderer {
         this._initScrollBarGraphics();
         this._initGroupNamesContainer();
         this._initPlaceholder();
+        this._dataContainer.addChild(this._hoveredItemContainer);
     }
 
     globalSettingsChanged(newSettings) {
@@ -264,7 +268,7 @@ export class BamRenderer {
             }, features, this.maximumAlignmentsRange);
             renderSpliceJunctions(this._cacheService.cache.spliceJunctions, this._viewport, {
                 colors: this._settings.colors,
-                config: this._config,
+                config: this._config.spliceJunctions,
                 graphics: this._spliceJunctionsGraphics,
                 shouldRender: features.spliceJunctions && this._viewport.actualBrushSize <= this.maximumAlignmentsRange,
                 y: this.spliceJunctionsTopMargin
@@ -282,6 +286,7 @@ export class BamRenderer {
                 {config: this._config, graphics: this._scrollBarGraphics, isHovered: false, topMargin: this.alignmentsDrawingTopMargin},
                 features, this._viewport, this.maximumAlignmentsRange
             );
+            this.hoverFeature(this._lastHoveredFeature);
         }
 
         return didSomethingChange || flags.hoverChanged;
@@ -412,6 +417,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
     _renderAlignments(flags, features) {
         this._alignmentsRenderProcessor.container.visible = features.alignments && this._viewport.actualBrushSize <= this.maximumAlignmentsRange;
         if (!features.alignments || this._viewport.actualBrushSize > this.maximumAlignmentsRange) {
+            this._alignmentsRenderProcessor.clear();
             return;
         }
         this._alignmentsRenderProcessor.alignmentHeight = this.alignmentsRowHeight;
@@ -448,15 +454,28 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
 
     _checkCoverage({x, y}) {
         if (y <= this.spliceJunctionsTopMargin) {
-            const coverageItem = this._coverageRenderer.onMove(this._viewport, {
-                x: x,
-                y: this.spliceJunctionsTopMargin - y
-            }, this._cacheService.cache.coverage.data);
-            if (coverageItem) {
-                return {
-                    item: coverageItem,
-                    type: HOVERED_ITEM_TYPE_COVERAGE
-                };
+            if (this._state.coverage && this._viewport.actualBrushSize <= this.maximumCoverageRange) {
+                const coverageItem = this._coverageRenderer.onMove(this._viewport, {
+                    x: x,
+                    y: this.spliceJunctionsTopMargin - y
+                }, this._cacheService.cache.coverage.data);
+                if (coverageItem) {
+                    return {
+                        item: coverageItem,
+                        type: HOVERED_ITEM_TYPE_COVERAGE
+                    };
+                }
+            } else if (this._state.coverage && this._viewport.actualBrushSize > this.maximumCoverageRange) {
+                for (let i = 0; i < this._cacheService.cache.regionItems.length; i++) {
+                    const item = this._cacheService.cache.regionItems[i];
+                    if (this._viewport.project.brushBP2pixel(item.startIndex) <= x &&
+                        this._viewport.project.brushBP2pixel(item.endIndex) >= x) {
+                        return {
+                            item: item,
+                            type: HOVERED_ITEM_TYPE_REGION
+                        };
+                    }
+                }
             }
         }
         return null;
@@ -509,12 +528,16 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
     }
 
     _checkAlignment({x, y}) {
+        if (!this._state.alignments || this._viewport.actualBrushSize > this.maximumAlignmentsRange) {
+            return null;
+        }
         const xBp = (this._viewport.project.pixel2brushBP(x) + BP_OFFSET) >> 0;
         const line = ((y - this.alignmentsDrawingTopMargin) / this.alignmentsRowHeight + this._yPosition);
         const alignment = AlignmentsRenderProcessor.checkAlignment({line, x: xBp}, this._cacheService.cache);
         if (alignment) {
             return {
                 item: alignment,
+                line: line >> 0,
                 type: HOVERED_ITEM_TYPE_ALIGNMENT
             };
         }
@@ -523,7 +546,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
 
     checkFeature({x, y}) {
         if (this._viewport.actualBrushSize > this.maximumRange) {
-            return null;
+            return this._checkCoverage({x, y});
         }
         return this._checkCoverage({x, y}) ||
             this._checkSpliceJunction({x, y}) ||
@@ -533,11 +556,47 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
 
     hoverFeature(feature) {
         this._coverageRenderer.hoverItem(null);
+        this._hoveredItemContainer.removeChildren();
         if (feature) {
             switch (feature.type) {
-                case HOVERED_ITEM_TYPE_COVERAGE:
+                case HOVERED_ITEM_TYPE_COVERAGE: {
                     this._coverageRenderer.hoverItem(feature.item, this._viewport, this._cacheService.cache.coverage.data, this._cacheService.cache.coverage.coordinateSystem);
-                    break;
+                } break;
+                case HOVERED_ITEM_TYPE_REGION: {
+                    this._regionsRenderer.render(this._viewport, this._cacheService.cache.regionItems, feature.item);
+                } break;
+                case HOVERED_ITEM_TYPE_SPLICE_JUNCTION: {
+                    const graphics = new PIXI.Graphics();
+                    renderSpliceJunctions(this._cacheService.cache.spliceJunctions, this._viewport, {
+                        colors: this._settings.colors,
+                        config: this._config.spliceJunctions,
+                        graphics: graphics,
+                        shouldRender: this._state.spliceJunctions && this._viewport.actualBrushSize <= this.maximumAlignmentsRange,
+                        y: this.spliceJunctionsTopMargin,
+                        hovered: feature.item
+                    });
+                    this._hoveredItemContainer.addChild(graphics);
+                } break;
+                case HOVERED_ITEM_TYPE_ALIGNMENT: {
+                    this._alignmentsRenderProcessor.hoverRead(
+                        this._cacheService.cache,
+                        this._viewport,
+                        {
+                            colors: this._settings.colors,
+                            config: this._config,
+                            currentY: this._yPosition,
+                            features: this._state,
+                            height: this._height,
+                            renderer: this._pixiRenderer,
+                            topMargin: this.alignmentsDrawingTopMargin
+                        }, this._hoveredItemContainer, feature.item, feature.line
+                    );
+                } break;
+            }
+        } else {
+            this._alignmentsRenderProcessor.container.visible = true;
+            if (this._lastHoveredFeature && this._lastHoveredFeature.type === HOVERED_ITEM_TYPE_REGION) {
+                this._regionsRenderer.render(this._viewport, this._cacheService.cache.regionItems);
             }
         }
 

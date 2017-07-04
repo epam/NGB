@@ -21,10 +21,10 @@ export default class BaseTrack {
             if (configRest.projectContext) {
                 const serverConfig = configRest.projectContext.getTrackDefaultSettings(configRest.format);
                 if (serverConfig) {
-                    return BaseTrack.recoverConfig(serverConfig, this.constructor.getTrackDefaultConfig());
+                    return Object.assign({fitHeightFactor: 1}, BaseTrack.recoverConfig(serverConfig, this.constructor.getTrackDefaultConfig()));
                 }
             }
-            return this.constructor.getTrackDefaultConfig();
+            return Object.assign({fitHeightFactor: 1}, this.constructor.getTrackDefaultConfig());
         };
 
         Reflect.defineProperty(this, 'trackConfig', {

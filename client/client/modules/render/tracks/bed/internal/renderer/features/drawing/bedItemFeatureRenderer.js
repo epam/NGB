@@ -1,6 +1,6 @@
 import FeatureBaseRenderer from '../../../../../gene/internal/renderer/features/drawing/featureBaseRenderer';
 import PIXI from 'pixi.js';
-import {PixiTextSize} from '../../../../../../utilities';
+import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import drawStrandDirection from '../../../../../gene/internal/renderer/features/drawing/strandDrawing';
 import {drawingConfiguration} from '../../../../../../core';
 
@@ -34,8 +34,8 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
         return color;
     }
 
-    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position) {
-        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position) {
+        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
         const pixelsInBp = viewport.factor;
         const label = new PIXI.Text(feature.name, this.config.bed.label);
         label.resolution = drawingConfiguration.resolution;
@@ -99,6 +99,14 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
                 graphics.lineTo(Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2,
                     2 * viewport.canvasSize), position.y + this.config.bed.margin + this.config.bed.height / 2);
                 graphics.endFill();
+
+                hoveredGraphics.beginFill(ColorProcessor.darkenColor(color), 0);
+                hoveredGraphics.lineStyle(1, ColorProcessor.darkenColor(color), 1);
+                hoveredGraphics.moveTo(Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2,
+                    -viewport.canvasSize), position.y + this.config.bed.margin + this.config.bed.height / 2);
+                hoveredGraphics.lineTo(Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2,
+                    2 * viewport.canvasSize), position.y + this.config.bed.margin + this.config.bed.height / 2);
+                hoveredGraphics.endFill();
                 this.updateTextureCoordinates(
                     {
                         x: Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2, -viewport.canvasSize),
@@ -122,6 +130,23 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
                         1,
                         ::this.updateTextureCoordinates
                     );
+                    drawStrandDirection(
+                        block.strand,
+                        {
+                            centerY: position.y + this.config.bed.margin + this.config.bed.height / 2,
+                            height: this.config.bed.height,
+                            width: Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2
+                                - Math.max(viewport.project.brushBP2pixel(block.startIndex), -viewport.canvasSize),
+                                maxViewportsOnScreen * viewport.canvasSize),
+                            x: Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2,
+                                -viewport.canvasSize)
+                        },
+                        hoveredGraphics,
+                        ColorProcessor.darkenColor(color),
+                        this.config.bed.strand.arrow,
+                        1,
+                        ::this.updateTextureCoordinates
+                    );
                 }
             }
             else {
@@ -136,6 +161,16 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
                     this.config.bed.height
                 );
                 graphics.endFill();
+
+                hoveredGraphics.beginFill(ColorProcessor.darkenColor(color), 1);
+                hoveredGraphics.lineStyle(0, ColorProcessor.darkenColor(color), 0);
+                hoveredGraphics.drawRect(
+                    start,
+                    position.y + this.config.bed.margin,
+                    Math.max(1, end - start),
+                    this.config.bed.height
+                );
+                hoveredGraphics.endFill();
                 this.updateTextureCoordinates(
                     {
                         x: start,
@@ -155,6 +190,23 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
                                 -viewport.canvasSize)
                         },
                         graphics,
+                        white,
+                        this.config.bed.strand.arrow,
+                        1,
+                        ::this.updateTextureCoordinates
+                    );
+                    drawStrandDirection(
+                        block.strand,
+                        {
+                            centerY: position.y + this.config.bed.margin + this.config.bed.height / 2,
+                            height: this.config.bed.height,
+                            width: Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2
+                                - Math.max(viewport.project.brushBP2pixel(block.startIndex), -viewport.canvasSize),
+                                maxViewportsOnScreen * viewport.canvasSize),
+                            x: Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2,
+                                -viewport.canvasSize)
+                        },
+                        hoveredGraphics,
                         white,
                         this.config.bed.strand.arrow,
                         1,

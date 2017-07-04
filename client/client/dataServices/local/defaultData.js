@@ -56,6 +56,7 @@ export default {
         displayAlignmentsCoverageTooltips: true,
         displayTooltips: true,
         showTracksHeaders: true,
+        hoveringEffects: true,
         filterReads: {
             failedVendorChecks: true,
             pcrOpticalDuplicates: true,

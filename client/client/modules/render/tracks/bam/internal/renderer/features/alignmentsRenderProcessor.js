@@ -1,5 +1,6 @@
 import {AlignmentsRenderer, BP_OFFSET} from './alignmentsRenderer';
 import PIXI from 'pixi.js';
+import {Line} from '../../cache/line';
 import {drawingConfiguration} from '../../../../../core';
 
 const Math = window.Math;
@@ -48,6 +49,10 @@ export class AlignmentsRenderProcessor {
                 this._lettersCache[letter] = texture;
             }
         }
+    }
+
+    clear() {
+        this._container.removeChildren();
     }
 
     render(cache, viewport, flags, drawingConfig) {
@@ -161,6 +166,34 @@ export class AlignmentsRenderProcessor {
         };
     }
 
+    hoverRead(cache, viewport, drawingConfig, container, read, line) {
+        const {colors, config, currentY, features, height, renderer, topMargin} = drawingConfig;
+        if (!read) {
+            container.removeChildren();
+            return;
+        }
+        const alignmentsRenderer = new AlignmentsRenderer(
+            viewport,
+            config,
+            colors,
+            this._alignmentHeight,
+            topMargin,
+            currentY,
+            features,
+            this._lettersCache,
+            height
+        );
+        alignmentsRenderer.startRender(true);
+        const renderers = Line.renderSimpleRead(read, features);
+        alignmentsRenderer.line = line;
+        for (let j = 0, len = renderers.length; j < len; j++) {
+            alignmentsRenderer.render(renderers[j]);
+        }
+        const sprite = alignmentsRenderer.finishRender(renderer);
+        container.removeChildren();
+        container.addChild(sprite);
+    }
+
     static checkAlignment({x, line}, cache) {
         const target = cache.getLine(line >> 0);
         const targetElement = !target
@@ -186,6 +219,7 @@ export class AlignmentsRenderProcessor {
                 for (let i = 0; i < checkReads.length; i++) {
                     if (checkReads[i].startIndex <= x && checkReads[i].endIndex >= x) {
                         targetRead = checkReads[i];
+                        targetRead.lineIndex = line >> 0;
                         readFound = true;
                         break;
                     }

@@ -1,4 +1,5 @@
 import PIXI from 'pixi.js';
+import {ColorProcessor} from '../../../../../utilities';
 
 const Math = window.Math;
 
@@ -15,7 +16,7 @@ export class RegionsRenderer{
     get height() { return this._height; }
     set height(value) { this._height = value; }
 
-    render(viewport, items) {
+    render(viewport, items, selectedItem) {
         if (items === null || items === undefined || items.length === 0)
             return;
         this.container.removeChildren();
@@ -54,7 +55,8 @@ export class RegionsRenderer{
         const renderFn = (item) => {
             const delta = (this._config.lines.alphaMax - this._config.lines.alpha) / 5;
             const alpha = Math.min(this._config.lines.alpha + delta * (max - item.value), this._config.lines.alphaMax);
-            line.lineStyle(this._config.lines.thickness, this._config.lines.fill, alpha);
+            const hovered = selectedItem && selectedItem.startIndex === item.startIndex && selectedItem.endIndex === item.endIndex;
+            line.lineStyle(this._config.lines.thickness, hovered ? ColorProcessor.darkenColor(this._config.lines.fill) : this._config.lines.fill, alpha);
             const startPx = Math.max(- viewport.canvasSize, viewport.project.brushBP2pixel(item.startIndex));
             const endPx = Math.min(2 * viewport.canvasSize, viewport.project.brushBP2pixel(item.endIndex));
             for (let i = startPx - this.height; i < endPx; i += this._config.lines.step) {
@@ -74,4 +76,6 @@ export class RegionsRenderer{
 
         this.container.addChild(line);
     }
+
+
 }

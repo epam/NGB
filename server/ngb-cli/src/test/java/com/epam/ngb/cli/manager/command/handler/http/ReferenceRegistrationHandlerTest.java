@@ -27,6 +27,7 @@ package com.epam.ngb.cli.manager.command.handler.http;
 import com.epam.ngb.cli.AbstractCliTest;
 import com.epam.ngb.cli.TestHttpServer;
 import com.epam.ngb.cli.app.ApplicationOptions;
+import com.epam.ngb.cli.app.Utils;
 import com.epam.ngb.cli.manager.command.ServerParameters;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -45,7 +46,9 @@ public class ReferenceRegistrationHandlerTest extends AbstractCliTest {
     private static final Long REF_BIO_ID = 1L;
     private static final Long REF_ID = 50L;
     private static final String REFERENCE_NAME = "hg38";
-    private static final String PATH_TO_REFERENCE = "path/ref.fa";
+    private static final String PATH_TO_REFERENCE = "/path/ref.fa";
+    private static final String RELATIVE_PATH_TO_REFERENCE = "path/ref.fa";
+
 
     @BeforeClass
     public static void setUp() {
@@ -54,6 +57,9 @@ public class ReferenceRegistrationHandlerTest extends AbstractCliTest {
         server.addAuthorization();
         server.addReferenceRegistration(REF_ID, REF_BIO_ID, PATH_TO_REFERENCE, REFERENCE_NAME);
         server.addReferenceRegistration(REF_ID, REF_BIO_ID, PATH_TO_REFERENCE, null);
+
+        server.addReferenceRegistration(REF_ID, REF_BIO_ID,
+                Utils.getNormalizeAndAbsolutePath(RELATIVE_PATH_TO_REFERENCE), null);
 
         serverParameters = getDefaultServerOptions(server.getPort());
     }
@@ -94,6 +100,14 @@ public class ReferenceRegistrationHandlerTest extends AbstractCliTest {
         ReferenceRegistrationHandler handler = getReferenceRegistrationHandler();
         ApplicationOptions applicationOptions = new ApplicationOptions();
         handler.parseAndVerifyArguments(Collections.emptyList(), applicationOptions);
+    }
+
+    @Test
+    public void testRelativePathRegistration() {
+        ReferenceRegistrationHandler handler = getReferenceRegistrationHandler();
+        ApplicationOptions applicationOptions = new ApplicationOptions();
+        handler.parseAndVerifyArguments(Collections.singletonList(RELATIVE_PATH_TO_REFERENCE), applicationOptions);
+        Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
     private ReferenceRegistrationHandler getReferenceRegistrationHandler() {

@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
@@ -55,8 +54,7 @@ import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.HistogramWritingException;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.parallel.ParallelTaskExecutionUtils;
-import com.epam.catgenome.parallel.TaskExecutor;
+import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.Utils;
 
@@ -79,7 +77,9 @@ public class TrackHelper {
 
     private static final String CHROMOSOME_FILED = "chromosome";
 
-    private ExecutorService executorService = TaskExecutor.getExecutorService();
+    @Autowired
+    private TaskExecutorService taskExecutorService;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(TrackHelper.class);
 
     /**
@@ -276,7 +276,7 @@ public class TrackHelper {
         final List<Pair<Integer, Integer>> intervals = HistogramUtils.createIntervals(realStart, realEnd);
 
         final double time1 = Utils.getSystemTimeMilliseconds();
-        final int numberOfThreads = ParallelTaskExecutionUtils.NUMBER_OF_THREADS;
+        final int numberOfThreads = taskExecutorService.getTaskNumberOfThreads();
         final int portionSize = intervals.size() / numberOfThreads;
         final List<Callable<List<Wig>>> callables = new ArrayList<>(numberOfThreads);
 
@@ -294,7 +294,8 @@ public class TrackHelper {
 
             callables.add(() -> readerFunction.apply(track, featureFile, chromosome, portion));
         }
-        final List<Wig> newHistogram = HistogramUtils.executeHistogramCreation(executorService, callables);
+        final List<Wig> newHistogram =
+                HistogramUtils.executeHistogramCreation(taskExecutorService.getExecutorService(), callables);
         final double time2 = Utils.getSystemTimeMilliseconds();
         LOGGER.debug("Reading histogram, took {} ms", time2 - time1);
 

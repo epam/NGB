@@ -38,6 +38,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static com.epam.ngb.cli.app.Utils.getNormalizeAndAbsolutePath;
 import static org.junit.Assert.assertEquals;
 
 public class DatasetRegistrationHandlerTest extends AbstractCliTest {
@@ -58,6 +59,9 @@ public class DatasetRegistrationHandlerTest extends AbstractCliTest {
 
     private static final String DATASET_WITH_PARENT_NAME= "data_parent";
     private static final Long DATASET_WIH_PARENT_ID = 4L;
+
+    private static final String DATASET_PRETTY = "dataWithPretty";
+    private static final Long DATASET_PRETTY_ID = 5L;
 
     private static final Long VCF_BIO_ID = 2L;
     private static final Long VCF_ID = 1L;
@@ -91,18 +95,28 @@ public class DatasetRegistrationHandlerTest extends AbstractCliTest {
         //dataset with registered file
         BiologicalDataItem vcf = TestDataProvider.getBioItem(VCF_ID, VCF_BIO_ID,
                 BiologicalDataItemFormat.VCF, PATH_TO_VCF, VCF_NAME);
-        server.addFile(VCF_BIO_ID, VCF_ID, VCF_NAME, PATH_TO_VCF, BiologicalDataItemFormat.VCF);
+        server.addFile(VCF_BIO_ID, VCF_ID, VCF_NAME, getNormalizeAndAbsolutePath(PATH_TO_VCF),
+                BiologicalDataItemFormat.VCF);
         server.addDatasetRegistration(DATASET_WITH_VCF_NAME,
                 Arrays.asList(reference, vcf), DATASET_WITH_VCF_ID);
 
         //dataset with file registration
         BiologicalDataItem bam = TestDataProvider.getBioItem(BAM_ID, BAM_BIO_ID,
                 BiologicalDataItemFormat.BAM, PATH_TO_BAM, BAM_NAME);
-        server.addFileRegistration(REF_ID, PATH_TO_BAM, PATH_TO_BAI, null, BAM_ID, BAM_BIO_ID,
+        server.addFileRegistration(REF_ID, getNormalizeAndAbsolutePath(PATH_TO_BAM),
+                getNormalizeAndAbsolutePath(PATH_TO_BAI), null, BAM_ID, BAM_BIO_ID,
                 BiologicalDataItemFormat.BAM);
         server.addDatasetRegistration(DATASET_WITH_BAM_NAME,
                 Arrays.asList(reference, vcf, bam), DATASET_WITH_BAM_ID);
         serverParameters = getDefaultServerOptions(server.getPort());
+
+        // Data set with prettyName
+        server.addDatasetRegistrationWithPrettyName(
+                DATASET_PRETTY,
+                Collections.singletonList(reference),
+                DATASET_PRETTY_ID,
+                "pretty"
+        );
     }
 
     @AfterClass
@@ -122,6 +136,16 @@ public class DatasetRegistrationHandlerTest extends AbstractCliTest {
     public void testDatasetRegistrationNoArguments() {
         DatasetRegistrationHandler handler = getDatasetRegistrationHandler();
         handler.parseAndVerifyArguments(Collections.emptyList(), new ApplicationOptions());
+    }
+
+    @Test
+    public void testDatasetRegistrationWithPrettyName() {
+        ApplicationOptions options = new ApplicationOptions();
+        options.setPrettyName("pretty");
+        DatasetRegistrationHandler handler = getDatasetRegistrationHandler();
+        handler.parseAndVerifyArguments(Arrays.asList(String.valueOf(REFERENCE_NAME),
+                DATASET_PRETTY), options);
+        assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
     @Test

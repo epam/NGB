@@ -15,7 +15,7 @@ export default class ngbMainSettingsDlgController {
         this._mdDialog = $mdDialog;
         this.settings = settings;
         this.settings && (this.settings.maxBAMBP = this.settings.maxBAMBP || DEFAULT_CONFIG);
-        this.showTrackHeadersIsDisabled = projectContext.collapsedTrackHeaders !== undefined;
+        this.showTrackHeadersIsDisabled = projectContext.collapsedTrackHeaders !== undefined && projectContext.collapsedTrackHeaders;
         this.settingsService = ngbMainSettingsDlgService;
         this.customizeSettings = this.settingsService.getSettings();
 

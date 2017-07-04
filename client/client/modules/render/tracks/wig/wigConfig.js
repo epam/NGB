@@ -10,6 +10,7 @@ export default {
         color: 0x777777
     },
     height: 50,
+    fitHeightFactor: 1,
     logScaleIndicator: {
         alpha: 0.5,
         label: {

@@ -113,7 +113,8 @@ function Bookmark(name, ruler, chromosome, tracks, layout, vcfColumns) {
             projectId: track.projectId,
             state: track.state,
             index: track.index,
-            format: track.format
+            format: track.format,
+            isLocal: track.isLocal
         };
     };
     this.tracks = (tracks || []).map(mapFn);

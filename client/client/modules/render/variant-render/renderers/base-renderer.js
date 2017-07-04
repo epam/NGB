@@ -6,6 +6,7 @@ export default class VariantBaseRenderer {
     _viewports: Map;
     _heightChanged: Function = null;
     _showTooltip: Function = null;
+    _affectedGeneTranscriptChanged: Function = null;
     _height = 0;
     _dataChanged = false;
     _presentationChanged = false;
@@ -14,12 +15,13 @@ export default class VariantBaseRenderer {
     _reRenderSceneFn: Function = null;
     _options = {};
 
-    constructor(variant, heightChanged, showTooltip, updateSceneFn, reRenderScene) {
+    constructor(variant, heightChanged, showTooltip, affectedGeneTranscriptChanged, updateSceneFn, reRenderScene) {
         this._viewports = new Map();
         this._variant = variant;
         this._container = new PIXI.Container();
         this._heightChanged = heightChanged;
         this._showTooltip = showTooltip;
+        this._affectedGeneTranscriptChanged = affectedGeneTranscriptChanged;
         this._updateSceneFn = updateSceneFn;
         this._reRenderSceneFn = reRenderScene;
     }

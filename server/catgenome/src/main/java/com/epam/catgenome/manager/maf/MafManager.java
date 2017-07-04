@@ -150,6 +150,7 @@ public class MafManager {
         mafFile.setCreatedBy(AuthUtils.getCurrentUserId());
         mafFile.setReferenceId(request.getReferenceId());
         mafFile.setRealPath(request.getPath());
+        mafFile.setPrettyName(request.getPrettyName());
         try {
             processRegistration(mafFile, file, request);
             double time2 = Utils.getSystemTimeMilliseconds();
@@ -160,6 +161,11 @@ public class MafManager {
             if (mafFile.getId() != null && mafFile.getBioDataItemId() != null &&
                     mafFileManager.loadMafFileNullable(mafFile.getId()) == null) {
                 biologicalDataItemManager.deleteBiologicalDataItem(mafFile.getBioDataItemId());
+                try {
+                    fileManager.deleteFeatureFileDirectory(mafFile);
+                } catch (IOException e) {
+                    LOGGER.error("Unable to delete directory for " + mafFile.getName(), e);
+                }
             }
         }
         return mafFile;

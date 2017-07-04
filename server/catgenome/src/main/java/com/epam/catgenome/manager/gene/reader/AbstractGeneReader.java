@@ -56,8 +56,8 @@ import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.gene.GeneUtils;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
-import com.epam.catgenome.parallel.ParallelTaskExecutionUtils;
-import com.epam.catgenome.parallel.TreeListMultiset;
+import com.epam.catgenome.manager.parallel.ParallelTaskExecutionUtils;
+import com.epam.catgenome.manager.parallel.TreeListMultiset;
 import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.SAMFormatException;
 import htsjdk.samtools.util.CloseableIterator;
@@ -119,11 +119,12 @@ public abstract class AbstractGeneReader {
      * @return a list of Gene features
      * @throws GeneReadingException
      */
-    public List<Gene> readGenesFromGeneFile(final Track<Gene> track, final Chromosome chromosome, boolean collapse)
+    public List<Gene> readGenesFromGeneFile(final Track<Gene> track, final Chromosome chromosome, boolean collapse,
+                                            int maxTaskCount)
             throws GeneReadingException {
         // Try to paralleling of reading from file.
         double time1 = Utils.getSystemTimeMilliseconds();
-        int numOfSubIntervals = ParallelTaskExecutionUtils.splitFileReadingInterval(track, LOGGER);
+        int numOfSubIntervals = ParallelTaskExecutionUtils.splitFileReadingInterval(track, LOGGER, maxTaskCount);
 
         final ReaderState state = new ReaderState();
 

@@ -41,7 +41,7 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
             this._variantRendererDiv = $($element[0]).find('#cnv')[0];
             this._tooltipElement = $($element[0]).find('#vtooltip')[0];
             this._tooltipTarget = $($element[0]).find('.visualizer-tooltip-target')[0];
-            const variantRenderer = this._variantRenderer = new VariantRenderer(this._variantRendererDiv, ::this.displayTooltip);
+            const variantRenderer = this._variantRenderer = new VariantRenderer(this._variantRendererDiv, ::this.displayTooltip, ::this.affectedGeneTranscriptChanged);
             if (this._variantVisualizerData !== null && this._variantVisualizerData !== undefined) {
                 this.variantRenderer.options = {
                     highlightBreakpoints: this._highlightBreakpoints
@@ -73,7 +73,7 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
                         this._selectedGeneFile = preAnalyzeResult.selectedGeneFile;
                         this._scope.$watch('ctrl._variantVisualizerData.selectedAltField', ()=> {
                             if (this.variantRenderer !== null && this.variantRenderer !== undefined) {
-                                this.variantRenderer.variantSelectedAlternativeAlleleChanged();
+                                this.variantRenderer.variantSubFeatureChanged();
                             }
                         });
                         this._scope.$watch('ctrl._highlightBreakpoints', ()=> {
@@ -141,6 +141,31 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
                         highlightBreakpoints: this._highlightBreakpoints
                     };
                     this.variantRenderer.variant = this._variantVisualizerData;
+                }
+            }
+
+        })();
+        return true;
+    }
+
+    affectedGeneTranscriptChanged(transcript) {
+        (async() => {
+            if (this._variantVisualizerData) {
+                this._variantVisualizerData = this._service.changeAffectedTranscript(this._variantVisualizerData, transcript);
+                await new Promise(resolve => this._timeout(resolve));
+                this._loaded = true;
+                if (this._variantVisualizerData.error) {
+                    this._visualizationError = this._variantVisualizerData.error;
+                }
+                else {
+                    this._visualizationError = null;
+                }
+                this._scope.$apply();
+                if (this.variantRenderer !== null && this.variantRenderer !== undefined) {
+                    this.variantRenderer.options = {
+                        highlightBreakpoints: this._highlightBreakpoints
+                    };
+                    this.variantRenderer.updateVariant(this._variantVisualizerData, false);
                 }
             }
 

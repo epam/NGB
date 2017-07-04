@@ -51,7 +51,7 @@ export class DataService {
     delete(url, data, config = {}) { return this.callMethod('delete', url, data, config); }
 
     callMethod(method, url, ...rest) {
-        return $http(method, this._serverUrl + url, ...rest)  //.delay(5000)imitate low connection
+        return $http(method, this._serverUrl + url, ...rest)
             .then((xhr) =>
                 (xhr.response && xhr.response.status === 'OK') 
                     ? xhr.response.payload 

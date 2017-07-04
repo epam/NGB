@@ -41,6 +41,7 @@
                         b.created_by,
                         b.created_date,
                         b.bucket_id,
+                        b.pretty_name,
                         r.reference_genome_id,
                         r.bio_data_item_id,
                         r.reference_genome_size,
@@ -64,6 +65,42 @@
             </value>
         </property>
 
+        <property name="loadReferenceGenomeByNameQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.format,
+                        b.created_by,
+                        b.created_date,
+                        b.bucket_id,
+                        b.pretty_name,
+                        r.reference_genome_id,
+                        r.bio_data_item_id,
+                        r.reference_genome_size,
+                        null as compressed,
+                        r.gene_item_id,
+
+                        i.bio_data_item_id as index_id,
+                        i.name as index_name,
+                        i.type as index_type,
+                        i.path as index_path,
+                        i.format as index_format,
+                        i.created_by as index_created_by,
+                        i.bucket_id as index_bucket_id,
+                        i.created_date as index_created_date
+
+                    FROM catgenome.reference_genome r
+                        JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
+                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = r.index_id
+                    WHERE LOWER(b.name) = :NAME
+                ]]>
+            </value>
+        </property>
+
         <property name="loadReferenceGenomeByBioIdQuery">
             <value>
                 <![CDATA[
@@ -76,6 +113,7 @@
                         b.created_by,
                         b.created_date,
                         b.bucket_id,
+                        b.pretty_name,
                         r.reference_genome_id,
                         r.bio_data_item_id,
                         r.reference_genome_size,
@@ -107,6 +145,7 @@
                         b.created_date,
                         b.bucket_id,
                         b.type,
+                        b.pretty_name,
                         r.reference_genome_id,
                         r.bio_data_item_id,
                         r.reference_genome_size,
@@ -207,7 +246,42 @@
                 ]]>
             </value>
         </property>
-
+        <property name="addAnnotationDataItemByReferenceIdQuery">
+            <value>
+                <![CDATA[
+                        INSERT INTO catgenome.genome_annotation_data_item (
+                            reference_genome_id,
+                            bio_data_item_id)
+                        VALUES (
+                            :REFERENCE_GENOME_ID,
+                            :BIO_DATA_ITEM_ID)
+                ]]>
+            </value>
+        </property>
+        <property name="loadAnnotationDataIdsByReferenceIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT a.bio_data_item_id
+                    FROM catgenome.genome_annotation_data_item a
+                    WHERE a.reference_genome_id = :REFERENCE_GENOME_ID
+                ]]>
+            </value>
+        </property>
+        <property name="deleteAnnotationDataItemByReferenceIdQuery">
+            <value>
+                <![CDATA[
+                        DELETE FROM catgenome.genome_annotation_data_item
+                        WHERE reference_genome_id = :REFERENCE_GENOME_ID AND bio_data_item_id = :BIO_DATA_ITEM_ID
+                ]]>
+            </value>
+        </property>
+        <property name="loadGenomeIdsByAnnotationDataItemIdQuery">
+            <value>
+                <![CDATA[
+                        SELECT reference_genome_id FROM catgenome.genome_annotation_data_item
+                        WHERE bio_data_item_id = :BIO_DATA_ITEM_ID
+                ]]>
+            </value>
+        </property>
     </bean>
-
 </beans>

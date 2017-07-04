@@ -71,6 +71,7 @@ public final class ProjectConverter {
         vo.setItemsCount(project.getItemsCount());
         vo.setItemsCountPerFormat(project.getItemsCountPerFormat());
         vo.setParentId(project.getParentId());
+        vo.setPrettyName(project.getPrettyName());
 
         if (project.getNestedProjects() != null) {
             vo.setNestedProjects(convertTo(project.getNestedProjects()));
@@ -115,6 +116,7 @@ public final class ProjectConverter {
             vo.setPath(item.getBioDataItem().getPath());
             vo.setCreatedBy(item.getBioDataItem().getCreatedBy());
             vo.setCreatedDate(item.getBioDataItem().getCreatedDate());
+            vo.setPrettyName(item.getBioDataItem().getPrettyName());
 
             vo.setId(item.getBioDataItem().getId());
 
@@ -146,6 +148,7 @@ public final class ProjectConverter {
         project.setCreatedDate(vo.getCreatedDate());
         project.setItemsCount(vo.getItemsCount());
         project.setItemsCountPerFormat(vo.getItemsCountPerFormat());
+        project.setPrettyName(vo.getPrettyName());
 
         if (vo.getItems() != null) {
             project.setItems(vo.getItems().stream().map(ProjectConverter::convertFrom).collect(Collectors.toList()));
@@ -173,6 +176,7 @@ public final class ProjectConverter {
         bioDataItem.setType(vo.getType());
         bioDataItem.setCreatedBy(vo.getCreatedBy());
         bioDataItem.setCreatedDate(vo.getCreatedDate());
+        bioDataItem.setPrettyName(vo.getPrettyName());
 
         item.setBioDataItem(bioDataItem);
 

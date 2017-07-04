@@ -206,11 +206,11 @@ export class GENETrack extends CachedTrack {
         const checkPositionResult = this.renderer.checkPosition(this.viewport, this.cache,
             {x, y}, isHistogram);
 
-        if (checkPositionResult && checkPositionResult.length > 0) {
+        if (!isHistogram && checkPositionResult && checkPositionResult.length > 0) {
             if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
-                let feature = checkPositionResult[0];
+                let feature = checkPositionResult[0].feature;
                 if (feature.feature === 'aminoacid') {
-                    [feature] = checkPositionResult.filter(x => x.feature === 'transcript');
+                    [feature] = checkPositionResult.filter(x => x.feature.feature === 'transcript').map(x => x.feature);
                     if (!feature) {
                         return;
                     }
@@ -227,18 +227,27 @@ export class GENETrack extends CachedTrack {
         }
     }
 
+    onMouseOut() {
+        super.onMouseOut();
+        if (this.renderer && this.renderer.hoverItem) {
+            this.renderer.hoverItem(null);
+            this.requestRenderRefresh();
+        }
+    }
+
     onHover({x, y}) {
         if (super.onHover({x, y})) {
             this.tooltip.hide();
-            if (this.shouldDisplayTooltips) {
-                const isHistogram = this.transformer.isHistogramDrawingModeForViewport(this.viewport, this.cache);
-                const checkPositionResult = this.renderer.checkPosition(this.viewport, this.cache,
-                    {x, y}, isHistogram);
-                if (checkPositionResult && checkPositionResult.length > 0) {
-                    this.tooltip.setContent(this.getTooltipDataObject(isHistogram, checkPositionResult));
-                    this.tooltip.move({x, y});
-                    this.tooltip.show({x, y});
-                }
+            const isHistogram = this.transformer.isHistogramDrawingModeForViewport(this.viewport, this.cache);
+            const checkPositionResult = this.renderer.checkPosition(this.viewport, this.cache,
+                {x, y}, isHistogram);
+            if (this.hoveringEffects && this.renderer.hoverItem(checkPositionResult, this.viewport, isHistogram, this.cache)) {
+                this.requestRenderRefresh();
+            }
+            if (this.shouldDisplayTooltips && checkPositionResult && checkPositionResult.length > 0) {
+                this.tooltip.setContent(this.getTooltipDataObject(isHistogram, checkPositionResult));
+                this.tooltip.move({x, y});
+                this.tooltip.show({x, y});
             }
             return false;
         }
@@ -261,7 +270,7 @@ export class GENETrack extends CachedTrack {
         } else if (geneData.length > 0) {
             const info = [];
             for (let i = 0; i < geneData.length; i++) {
-                const feature = geneData[i];
+                const feature = geneData[i].feature;
                 if (feature.feature && feature.feature.toLowerCase() !== 'aminoacid') {
                     if (feature.name) {
                         info.push([feature.feature, feature.name]);

@@ -25,7 +25,16 @@
 package com.epam.catgenome.dao.index;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -35,7 +44,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.*;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
+import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.facet.FacetResult;
 import org.apache.lucene.facet.Facets;
 import org.apache.lucene.facet.FacetsCollector;
@@ -56,7 +71,16 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.queries.TermsQuery;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.PrefixQuery;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.grouping.AbstractGroupFacetCollector;
 import org.apache.lucene.search.grouping.GroupingSearch;
 import org.apache.lucene.search.grouping.TopGroups;
@@ -79,7 +103,6 @@ import com.epam.catgenome.dao.index.field.SortedFloatPoint;
 import com.epam.catgenome.dao.index.field.SortedStringField;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.FeatureFile;
-import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.index.BookmarkIndexEntry;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.FeatureType;
@@ -244,11 +267,12 @@ public class FeatureIndexDao {
      * Searches genes by it's ID in project's gene files. Minimum featureId prefix length == 2
      *
      * @param featureId a feature ID prefix to search for
-     * @param geneFile a gene file ,from which to search
+     * @param featureFiles a gene file ,from which to search
      * @return a {@code List} of {@code FeatureIndexEntry}
      * @throws IOException
      */
-    public IndexSearchResult<FeatureIndexEntry> searchFeatures(String featureId, GeneFile geneFile,
+    public IndexSearchResult<FeatureIndexEntry> searchFeatures(String featureId,
+                                                               List<? extends FeatureFile> featureFiles,
                                                                Integer maxResultsCount)
             throws IOException {
         if (featureId == null || featureId.length() < 2) {
@@ -273,11 +297,13 @@ public class FeatureIndexDao {
                 FeatureType.MRNA.getFileValue())), BooleanClause.Occur.SHOULD);
         featureTypeBuilder.add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
                 FeatureType.BOOKMARK.getFileValue())), BooleanClause.Occur.SHOULD);
+        featureTypeBuilder.add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
+                FeatureType.BED_FEATURE.getFileValue())), BooleanClause.Occur.SHOULD);
         mainBuilder.add(featureTypeBuilder.build(), BooleanClause.Occur.MUST);
 
-        return searchFileIndexes(Collections.singletonList(geneFile), mainBuilder.build(), null,
-                                 maxResultsCount, new Sort(new SortField(FeatureIndexFields.FEATURE_NAME.getFieldName(),
-                                                                         SortField.Type.STRING)));
+        return searchFileIndexes(featureFiles, mainBuilder.build(), null, maxResultsCount,
+                new Sort(new SortField(FeatureIndexFields.FEATURE_NAME.getFieldName(), SortField.Type.STRING))
+        );
     }
 
     public IndexSearchResult<FeatureIndexEntry> searchFeaturesInInterval(List<? extends FeatureFile> files, int start,

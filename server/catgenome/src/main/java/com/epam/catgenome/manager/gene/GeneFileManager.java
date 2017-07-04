@@ -27,6 +27,7 @@ package com.epam.catgenome.manager.gene;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -65,6 +66,9 @@ public class GeneFileManager {
     @Autowired
     private ProjectDao projectDao;
 
+    @Autowired
+    private ReferenceGenomeDao referenceGenomeDao;
+
     /**
      * Persists {@code GeneFile} record to the database
      *
@@ -83,6 +87,21 @@ public class GeneFileManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public void deleteGeneFile(GeneFile geneFile) {
         List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(geneFile.getBioDataItemId());
+        List<Long> genomeIdsByAnnotation = referenceGenomeDao.
+                loadGenomeIdsByAnnotationDataItemId(geneFile.getBioDataItemId());
+
+        Assert.isTrue(genomeIdsByAnnotation.isEmpty(),
+                MessageHelper.getMessage(
+                        MessagesConstants.ERROR_FILE_IN_USE_AS_ANNOTATION,
+                        geneFile.getName(),
+                        geneFile.getId(),
+                        genomeIdsByAnnotation
+                                .stream()
+                                .map(referenceGenomeDao::loadReferenceGenome)
+                                .map(BaseEntity::getName)
+                                .collect(Collectors.joining(", "))
+                )
+        );
         Assert.isTrue(projectsWhereFileInUse.isEmpty(), MessageHelper.getMessage(MessagesConstants.ERROR_FILE_IN_USE,
                 geneFile.getName(), geneFile.getId(), projectsWhereFileInUse.stream().map(BaseEntity::getName)
                         .collect(Collectors.joining(", "))));

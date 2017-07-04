@@ -1,5 +1,5 @@
 import SVFeatureRenderer from './svFeatureRenderer';
-import {PixiTextSize, NumberFormatter} from '../../../../../../../utilities';
+import {ColorProcessor, PixiTextSize, NumberFormatter} from '../../../../../../../utilities';
 const Math = window.Math;
 
 export default class IntraChromosomeFeatureRenderer extends SVFeatureRenderer {
@@ -21,7 +21,7 @@ export default class IntraChromosomeFeatureRenderer extends SVFeatureRenderer {
         return boundaries;
     }
 
-    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
         let startIndex = feature.startIndex;
         let endIndex = feature.endIndex;
         const [alternativeAlleleInfo] = feature.alternativeAllelesInfo.filter(x => x.mate);
@@ -37,6 +37,10 @@ export default class IntraChromosomeFeatureRenderer extends SVFeatureRenderer {
             graphics
                 .lineStyle(this.config.variant.multipleNucleotideVariant.thickness,
                     this.config.variant.multipleNucleotideVariant.color,
+                    this.config.variant.multipleNucleotideVariant.alpha);
+            hoveredGraphics
+                .lineStyle(this.config.variant.multipleNucleotideVariant.thickness,
+                    ColorProcessor.darkenColor(this.config.variant.multipleNucleotideVariant.color),
                     this.config.variant.multipleNucleotideVariant.alpha);
             if (feature.startIndex !== startIndex) {
                 graphics
@@ -78,7 +82,7 @@ export default class IntraChromosomeFeatureRenderer extends SVFeatureRenderer {
                 y: cY - height / 3
             });
         }
-        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
     }
 
     registerFeature(feature, viewport, position) {

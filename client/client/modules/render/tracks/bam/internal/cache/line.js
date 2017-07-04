@@ -51,6 +51,41 @@ export class Line {
         return !(pointer && pointer.value.startIndex >= viewport.brush.start && pointer.value.startIndex <= viewport.brush.end);
     }
 
+    static renderSimpleRead(read, {arrows, diffBase, ins_del, softClip}) {
+        let result = [];
+        if (read.isPairedReads) {
+            const {commonRange, connectionRange} = Line.getIntersectionRanges(read);
+            if (connectionRange) {
+                result = result.concat([{
+                    endIndex: connectionRange.endIndex,
+                    startIndex: connectionRange.startIndex,
+                    type: partTypes.pairedReadConnection
+                }]);
+            }
+            result = result.concat(Line.getReadRenderers(read.leftPair, {
+                arrows,
+                diffBase,
+                ins_del,
+                softClip
+            }, {isLeftPair: true, isRightPair: false}, commonRange));
+            result = result.concat(Line.getReadRenderers(read.rightPair, {
+                arrows,
+                diffBase,
+                ins_del,
+                softClip
+            }, {isLeftPair: false, isRightPair: true}, commonRange));
+        }
+        else {
+            result = result.concat(Line.getReadRenderers(read, {
+                arrows,
+                diffBase,
+                ins_del,
+                softClip
+            }, null, null));
+        }
+        return result;
+    }
+
     render(start, end, {arrows, diffBase, ins_del, softClip}) {
         let cursor = start;
         let pointer = this.itemsSortedByStartIndex.findGreatestLessThanOrEqual({startIndex: cursor});
@@ -63,18 +98,6 @@ export class Line {
 
             if (render.isPairedReads) {
                 const {commonRange, connectionRange} = Line.getIntersectionRanges(render);
-                result = result.concat(this.getReadRenderers(render.leftPair, {
-                    arrows,
-                    diffBase,
-                    ins_del,
-                    softClip
-                }, {isLeftPair: true, isRightPair: false}, commonRange));
-                result = result.concat(this.getReadRenderers(render.rightPair, {
-                    arrows,
-                    diffBase,
-                    ins_del,
-                    softClip
-                }, {isLeftPair: false, isRightPair: true}, commonRange));
                 if (connectionRange) {
                     result = result.concat([{
                         endIndex: connectionRange.endIndex,
@@ -82,9 +105,21 @@ export class Line {
                         type: partTypes.pairedReadConnection
                     }]);
                 }
+                result = result.concat(Line.getReadRenderers(render.leftPair, {
+                    arrows,
+                    diffBase,
+                    ins_del,
+                    softClip
+                }, {isLeftPair: true, isRightPair: false}, commonRange));
+                result = result.concat(Line.getReadRenderers(render.rightPair, {
+                    arrows,
+                    diffBase,
+                    ins_del,
+                    softClip
+                }, {isLeftPair: false, isRightPair: true}, commonRange));
             }
             else {
-                result = result.concat(this.getReadRenderers(render, {
+                result = result.concat(Line.getReadRenderers(render, {
                     arrows,
                     diffBase,
                     ins_del,
@@ -102,7 +137,7 @@ export class Line {
         return result;
     }
 
-    _splitRenderers(renderers, commonRange, isLeftPair, isRightPair) {
+    static _splitRenderers(renderers, commonRange, isLeftPair, isRightPair) {
         let result = [];
         for (let i = 0; i < renderers.length; i++) {
             renderers[i].isPaired = isLeftPair || isRightPair;
@@ -199,7 +234,7 @@ export class Line {
         return renderers;
     }
 
-    getReadRenderers(read, {arrows, diffBase, ins_del, softClip}, pairInfo = null, commonRange = null) {
+    static getReadRenderers(read, {arrows, diffBase, ins_del, softClip}, pairInfo = null, commonRange = null) {
         if (read.isUnknown)
             return [];
         if (!pairInfo) {
@@ -228,12 +263,12 @@ export class Line {
         if (isLeftPair || isRightPair) {
             if (!read.pairedRender) {
                 read.pairedRender = {
-                    arrows: this._splitRenderers(read.renderDump.arrows.map(undumpPart), commonRange, isLeftPair, isRightPair),
-                    diffBase: this._splitRenderers(read.renderDump.diffBase.map(undumpPart), commonRange, isLeftPair, isRightPair),
+                    arrows: Line._splitRenderers(read.renderDump.arrows.map(undumpPart), commonRange, isLeftPair, isRightPair),
+                    diffBase: Line._splitRenderers(read.renderDump.diffBase.map(undumpPart), commonRange, isLeftPair, isRightPair),
                     info: undumpInfo(read.renderDump.info),
-                    minimal: this._splitRenderers(read.renderDump.minimal.map(undumpPart), commonRange, isLeftPair, isRightPair),
-                    ncigar: this._splitRenderers(read.renderDump.ncigar.map(undumpPart), commonRange, isLeftPair, isRightPair),
-                    softClip: this._splitRenderers(read.renderDump.softClip.map(undumpPart), commonRange, isLeftPair, isRightPair),
+                    minimal: Line._splitRenderers(read.renderDump.minimal.map(undumpPart), commonRange, isLeftPair, isRightPair),
+                    ncigar: Line._splitRenderers(read.renderDump.ncigar.map(undumpPart), commonRange, isLeftPair, isRightPair),
+                    softClip: Line._splitRenderers(read.renderDump.softClip.map(undumpPart), commonRange, isLeftPair, isRightPair),
                     spec: read.renderDump.spec
                 };
             }

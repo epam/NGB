@@ -31,9 +31,9 @@ public final class NgbFileUtils {
                                                           ".gff3", ".gff3.gz", ".bam", ".bai", ".bed", ".bed.gz",
                                                           ".seg", ".seg.gz", ".maf", ".maf.gz", ".bw", ".tbi", ".idx"};
 
-    private static final String GZ_EXTENSION = ".gz";
-    private static final String TBI_EXTENSION = ".tbi";
-    private static final String IDX_EXTENSION = ".idx";
+    public static final String GZ_EXTENSION = ".gz";
+    public static final String TBI_EXTENSION = ".tbi";
+    public static final String IDX_EXTENSION = ".idx";
 
     private static final Map<String, BiologicalDataItemFormat> FORMAT_MAP = new LinkedHashMap<>();
     static {

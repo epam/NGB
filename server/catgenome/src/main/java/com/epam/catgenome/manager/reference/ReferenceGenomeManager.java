@@ -26,13 +26,22 @@ package com.epam.catgenome.manager.reference;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.BaseEntity;
+import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
+import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.gene.GeneFile;
+import com.epam.catgenome.exception.FeatureIndexException;
+import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.ListMapCollector;
 import org.apache.commons.collections4.CollectionUtils;
@@ -48,11 +57,10 @@ import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.dao.gene.GeneFileDao;
 import com.epam.catgenome.dao.project.ProjectDao;
 import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
-import com.epam.catgenome.entity.BaseEntity;
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
+import org.springframework.util.StringUtils;
 
 /**
  * {@code ReferenceManager} represents a service class designed to encapsulate all business
@@ -73,6 +81,9 @@ public class ReferenceGenomeManager {
 
     @Autowired
     private GeneFileDao geneFileDao;
+
+    @Autowired
+    private FeatureIndexManager featureIndexManager;
 
     /**
      * Generates and returns ID value, that has to be used to identify each certain reference
@@ -167,7 +178,18 @@ public class ReferenceGenomeManager {
             reference.setGeneFile(geneFileDao.loadGeneFile(reference.getGeneFile().getId()));
         }
 
+        reference.setAnnotationFiles(
+                getAnnotationFilesByReferenceId(referenceId)
+        );
         return reference;
+    }
+
+    private List<FeatureFile> getAnnotationFilesByReferenceId(Long referenceId) {
+        return biologicalDataItemDao.loadBiologicalDataItemsByIds(
+                referenceGenomeDao.loadAnnotationFileIdsByReferenceId(referenceId))
+                .stream()
+                .map(biologicalDataItem -> (FeatureFile) biologicalDataItem)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -186,6 +208,7 @@ public class ReferenceGenomeManager {
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
 
         reference.setGeneFile(geneFileDao.loadGeneFile(reference.getGeneFile().getId()));
+        reference.setAnnotationFiles(getAnnotationFilesByReferenceId(reference.getId()));
         return reference;
     }
 
@@ -196,8 +219,23 @@ public class ReferenceGenomeManager {
      *
      * @return {@code List} list of reference genomes that are available in the system now
      */
+
     @Transactional(propagation = Propagation.REQUIRED)
     public List<Reference> loadAllReferenceGenomes() {
+        return loadAllReferenceGenomes(null);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public List<Reference> loadAllReferenceGenomes(String referenceName) {
+        if (!StringUtils.isEmpty(referenceName)) {
+            Reference reference = referenceGenomeDao.loadReferenceGenomeByName(referenceName.toLowerCase());
+            if (reference.getGeneFile() != null && reference.getGeneFile().getId() != null) {
+                GeneFile geneFile = geneFileDao.loadGeneFile(reference.getGeneFile().getId());
+                reference.setGeneFile(geneFile);
+                reference.setAnnotationFiles(getAnnotationFilesByReferenceId(reference.getId()));
+            }
+            return Collections.singletonList(reference);
+        }
         List<Reference> references = referenceGenomeDao.loadAllReferenceGenomes();
         Map<Long, List<Reference>> referenceToGeneIds = references.stream().collect(new ListMapCollector<>(
             reference -> reference.getGeneFile() != null ? reference.getGeneFile().getId() : null));
@@ -205,12 +243,19 @@ public class ReferenceGenomeManager {
         List<GeneFile> geneFiles = geneFileDao.loadGeneFiles(referenceToGeneIds.keySet());
         List<Reference> result = new ArrayList<>(references.size());
         for (GeneFile geneFile : geneFiles) {
-            referenceToGeneIds.get(geneFile.getId()).forEach(r -> r.setGeneFile(geneFile));
+            referenceToGeneIds.get(geneFile.getId()).forEach(r -> {
+                r.setGeneFile(geneFile);
+                r.setAnnotationFiles(getAnnotationFilesByReferenceId(r.getId()));
+            });
             result.addAll(referenceToGeneIds.get(geneFile.getId()));
         }
 
         if (referenceToGeneIds.containsKey(null)) {
-            result.addAll(referenceToGeneIds.get(null));
+            List<Reference> refsWithoutGeneFile = referenceToGeneIds.get(null);
+            refsWithoutGeneFile.forEach(reference -> reference.setAnnotationFiles(
+                    getAnnotationFilesByReferenceId(reference.getId())
+            ));
+            result.addAll(refsWithoutGeneFile);
         }
 
         return result;
@@ -287,5 +332,69 @@ public class ReferenceGenomeManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public boolean isRegistered(Long id) {
         return referenceGenomeDao.loadReferenceGenome(id) != null;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public List<BiologicalDataItem> getReferenceAnnotationFiles(Long referenceId) {
+        List<Long> biologicalDataIds = referenceGenomeDao.loadAnnotationFileIdsByReferenceId(referenceId);
+        return biologicalDataItemDao.loadBiologicalDataItemsByIds(biologicalDataIds);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Reference updateReferenceAnnotationFile(Long referenceId, Long annotationFileBiologicalItemId,
+                                                   Boolean remove) throws IOException, FeatureIndexException {
+        FeatureFile annotationFile = fetchFeatureFile(annotationFileBiologicalItemId);
+        List<Long> genomeAnnotationIds = referenceGenomeDao.loadAnnotationFileIdsByReferenceId(referenceId);
+        if (remove) {
+            //check that we have this biological item as annotation file for this genome
+            Assert.isTrue(
+                    genomeAnnotationIds.contains(annotationFileBiologicalItemId),
+                    getMessage(
+                            MessagesConstants.ERROR_ANNOTATION_FILE_NOT_EXIST,
+                            annotationFile.getName(),
+                            loadReferenceGenome(referenceId).getName()
+                    )
+            );
+            referenceGenomeDao.removeAnnotationFile(referenceId, annotationFileBiologicalItemId);
+        } else {
+            //check that we haven't yet this biological item as annotation file for this genome
+            Assert.isTrue(
+                    !genomeAnnotationIds.contains(annotationFileBiologicalItemId),
+                    getMessage(
+                            MessagesConstants.ERROR_ANNOTATION_FILE_ALREADY_EXIST,
+                            annotationFile.getName(),
+                            loadReferenceGenome(referenceId).getName()
+                    )
+            );
+            Assert.isTrue(
+                    annotationFile.getReferenceId().equals(referenceId),
+                    getMessage(
+                            MessagesConstants.ERROR_ILLEGAL_REFERENCE_FOR_ANNOTATION,
+                            loadReferenceGenome(annotationFile.getReferenceId()).getName(),
+                            loadReferenceGenome(referenceId).getName()
+                    )
+            );
+            featureIndexManager.buildIndexForFile(annotationFile);
+            referenceGenomeDao.addAnnotationFile(referenceId, annotationFileBiologicalItemId);
+        }
+        return loadReferenceGenome(referenceId);
+    }
+
+    private FeatureFile fetchFeatureFile(Long annotationFileId) {
+        List<BiologicalDataItem> annotationFiles = biologicalDataItemDao.loadBiologicalDataItemsByIds(
+                Collections.singletonList(annotationFileId));
+        Assert.notNull(annotationFiles, getMessage(MessagesConstants.ERROR_BIO_ID_NOT_FOUND, annotationFileId));
+        Assert.isTrue(
+                !annotationFiles.isEmpty(),
+                getMessage(MessagesConstants.ERROR_BIO_ID_NOT_FOUND, annotationFileId)
+        );
+
+        BiologicalDataItem annotationFile = annotationFiles.get(0);
+        Assert.isTrue(
+                annotationFile.getFormat() == BiologicalDataItemFormat.BED
+                        || annotationFile.getFormat() == BiologicalDataItemFormat.GENE,
+                getMessage(MessagesConstants.ERROR_ILLEGAL_FEATURE_FILE_FORMAT, annotationFile.getPath())
+        );
+        return (FeatureFile) annotationFile;
     }
 }

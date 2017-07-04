@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,7 @@ import htsjdk.samtools.SAMRecord;
  * All added reads are shuffled and only (@code count) first reads will be returned as a result of
  * downsampling. This implementation assumes that reads are added in a sorted by start coordinate order.
  */
+@Deprecated
 public class StandardSAMRecordSifter implements DownsamplingSifter<SAMRecord> {
 
     private final List<Read> resultList = new ArrayList<>();
@@ -112,9 +113,8 @@ public class StandardSAMRecordSifter implements DownsamplingSifter<SAMRecord> {
      * @return downsampled list of the reads, added to the sifter
      */
     @Override
-    public List<Read> getReadListResult() {
+    public void finish() {
         flushList();
-        return resultList;
     }
 
     /**

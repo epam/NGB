@@ -1,6 +1,6 @@
 import FeatureBaseRenderer from './featureBaseRenderer';
 import PIXI from 'pixi.js';
-import {PixiTextSize} from '../../../../../../utilities';
+import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import TranscriptFeatureRenderer from './transcriptFeatureRenderer';
 import drawStrandDirection from './strandDrawing';
 import {drawingConfiguration} from '../../../../../../core';
@@ -71,13 +71,13 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
     static getFeatureFillColor(featureName, opts, config) {
         if (featureName !== 'gene' && opts && opts.gffColorByFeatureType) {
             const colorMask = 0x00FFFFFF;
-            return GeneFeatureRenderer.hashCode(featureName) & colorMask;
+            return GeneFeatureRenderer.hashCode(featureName) & colorMask
         }
         return config.gene.bar.fill;
     }
 
-    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
-        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
         const featurePxStart = Math.max(viewport.project.brushBP2pixel(feature.startIndex), - viewport.canvasSize);
         const featurePxEnd = Math.min(viewport.project.brushBP2pixel(feature.endIndex + 1), 2 * viewport.canvasSize);
         const width = featurePxEnd - featurePxStart;
@@ -124,6 +124,15 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                     Math.round(geneBar.height)
                 )
                 .endFill();
+            hoveredGraphics
+                .beginFill(ColorProcessor.darkenColor(fillColor), 1)
+                .drawRect(
+                    startX,
+                    Math.round(position.y + geneNameLabelHeight),
+                    endX - startX,
+                    Math.round(geneBar.height)
+                )
+                .endFill();
             this.updateTextureCoordinates(
                 {
                     x: startX,
@@ -143,6 +152,21 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                         x: Math.max(project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2, -viewport.canvasSize)
                     },
                     graphics,
+                    white,
+                    gene.strand.arrow,
+                    1,
+                    ::this.updateTextureCoordinates
+                );
+                drawStrandDirection(
+                    feature.strand,
+                    {
+                        centerY: position.y + geneNameLabelHeight + geneBar.height / 2,
+                        height: geneBar.height,
+                        width: Math.min(project.brushBP2pixel(feature.endIndex) + pixelsInBp / 2
+                            - Math.max(project.brushBP2pixel(feature.startIndex), -viewport.canvasSize), maxViewportsOnScreen * viewport.canvasSize),
+                        x: Math.max(project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2, -viewport.canvasSize)
+                    },
+                    hoveredGraphics,
                     white,
                     gene.strand.arrow,
                     1,
@@ -175,7 +199,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
             const transcript = this.config.transcript;
 
             for (let i = 0; i < transcriptLength; i++) {
-                this._transcriptFeatureRenderer.render(transcripts[i], viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, {
+                this._transcriptFeatureRenderer.render(transcripts[i], viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, {
                     x: position.x,
                     y: transcriptY
                 });
@@ -202,7 +226,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                 x2: position.x + width,
                 y1: position.y + geneNameLabelHeight,
                 y2: transcriptY
-            });
+            }, {ignore: true});
         }
     }
 }

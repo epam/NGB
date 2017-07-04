@@ -3,6 +3,7 @@ package com.epam.catgenome.app;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
@@ -36,17 +37,35 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ComponentScan(basePackages = {"com.epam.catgenome.config", "com.epam.catgenome.controller"})
 public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
 
+    private static final int CACHE_PERIOD = 60 * 60 * 24;
+    private static final int CACHE_SIZE = 1024 * 1024 * 100;
+    private static final int TOMCAT_CACHE_PERIOD = CACHE_PERIOD * 1000;
+
     @Autowired
     private ApplicationContext applicationContext;
 
-    //to skip tld scan completely
+    @Value("#{catgenome['use.embedded.tomcat']}")
+    private String useEmbedded;
+
+    @Bean
+    public TomcatConfigurer tomcatConfigurerImpl() {
+        if (useEmbeddedContainer()) {
+            return new TomcatConfigurerImpl();
+        } else {
+            return null;
+        }
+    }
+
     @Bean
     @ConditionalOnClass({EmbeddedServletContainerFactory.class })
     public EmbeddedServletContainerCustomizer tomcatContainerCustomizer() {
         return container -> {
             TomcatEmbeddedServletContainerFactory tomcat = (TomcatEmbeddedServletContainerFactory) container;
             tomcat.setTldSkip("*.jar");
-
+            if (useEmbeddedContainer()) {
+                TomcatConfigurer configurer = applicationContext.getBean(TomcatConfigurer.class);
+                configurer.configure(tomcat, CACHE_SIZE, TOMCAT_CACHE_PERIOD);
+            }
         };
     }
 
@@ -55,6 +74,9 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
         registry.addResourceHandler("/swagger-ui/**")
                 .addResourceLocations("/swagger-ui/", "classpath:/static/swagger-ui/",
                         "classpath:/META-INF/resources/webjars/swagger-ui/2.0.24/");
+        registry.addResourceHandler("/**")
+                .addResourceLocations("classpath:/static/")
+                .setCachePeriod(CACHE_PERIOD);
     }
 
     @Override
@@ -137,5 +159,9 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
         FilterRegistrationBean registration = new FilterRegistrationBean(filter);
         registration.setEnabled(false);
         return registration;
+    }
+
+    private boolean useEmbeddedContainer() {
+        return useEmbedded != null && "true".equals(useEmbedded);
     }
 }

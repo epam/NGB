@@ -16,8 +16,9 @@ export class GenomeDataService extends DataService {
      * Returns all reference genomes that are available in the system at the moment.
      * @returns {promise}
      */
-    loadAllReference() {
-        return this.get('reference/loadAll');
+    loadAllReference(referenceName) {
+        const url = referenceName ? `reference/loadAll?referenceName=${referenceName}` : 'reference/loadAll';
+        return this.get(url);
     }
 
     loadReferenceTrack(reference) {
@@ -38,10 +39,14 @@ export class GenomeDataService extends DataService {
             }
             return new Promise((resolve) => {
                 Promise.all(promises).then(values => {
-                    const data = [];
+                    let data = null;
                     for (let i = 0; i < values.length; i++) {
-                        for (let j = 0; j < values[i].length; j++) {
-                            data.push(values[i][j]);
+                        if (!data) {
+                            data = values[i];
+                        } else {
+                            for (let j = 0; j < values[i].blocks.length; j++) {
+                                data.blocks.push(values[i].blocks[j]);
+                            }
                         }
                     }
                     resolve(data);

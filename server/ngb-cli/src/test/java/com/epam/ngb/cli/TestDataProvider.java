@@ -45,14 +45,20 @@ public final class TestDataProvider {
         //no operations
     }
 
-    public static String getFilePayloadJson(Long id, Long bioItemId, BiologicalDataItemFormat format,
-            String path, String name) {
+    public static String getFilePayloadJson(Long id, Long bioItemId,
+            BiologicalDataItemFormat format, String path, String name) {
         return getFilePayloadJson(id, bioItemId, format, path, name, false);
     }
 
-    public static String getFilePayloadJson(Long id, Long bioItemId, BiologicalDataItemFormat format,
-            String path, String name, boolean wrapInList) {
-        BiologicalDataItem item = getBioItem(id, bioItemId, format, path, name);
+    public static String getFilePayloadJson(Long id, Long bioItemId,
+            BiologicalDataItemFormat format, String path, String name, boolean wrapInList) {
+        return getFilePayloadJson(id, bioItemId, format, path, name, wrapInList, null);
+    }
+
+    public static String getFilePayloadJson(Long id, Long bioItemId,
+            BiologicalDataItemFormat format, String path, String name, boolean wrapInList,
+            String prettyName) {
+        BiologicalDataItem item = getBioItem(id, bioItemId, format, path, name, prettyName);
         if (wrapInList) {
             return getPayloadJson(Collections.singletonList(item));
         } else {
@@ -60,8 +66,13 @@ public final class TestDataProvider {
         }
     }
 
-    public static BiologicalDataItem getBioItem(Long id, Long bioItemId, BiologicalDataItemFormat format,
-            String path, String name) {
+    public static BiologicalDataItem getBioItem(Long id, Long bioItemId,
+            BiologicalDataItemFormat format, String path, String name) {
+        return getBioItem(id, bioItemId, format, path, name, null);
+    }
+
+    public static BiologicalDataItem getBioItem(Long id, Long bioItemId,
+            BiologicalDataItemFormat format, String path, String name, String prettyName) {
         BiologicalDataItem item = new BiologicalDataItem();
         item.setId(id);
         item.setBioDataItemId(bioItemId);
@@ -71,11 +82,18 @@ public final class TestDataProvider {
         item.setFormat(format);
         item.setPath(path);
         item.setName(name);
+        item.setPrettyName(prettyName);
         return item;
     }
 
-    public static String getProjectPayloadJson(Long id, String name, List<BiologicalDataItem> items) {
-        Project project =getProject(id, name, items);
+    public static String getProjectPayloadJson(Long id, String name,
+            List<BiologicalDataItem> items) {
+        return getProjectPayloadJson(id, name, items, null);
+    }
+
+    public static String getProjectPayloadJson(Long id, String name, List<BiologicalDataItem> items,
+            String prettyName) {
+        Project project = getProject(id, name, items, prettyName);
         return getPayloadJson(project);
 
     }
@@ -94,17 +112,25 @@ public final class TestDataProvider {
     }
 
     public static String getNotTypedRegistrationJson(Long referenceID, String path, String name,
-                                                     String indexPath, List<ProjectItem> items) {
+            String indexPath, List<ProjectItem> items) {
+        return getNotTypedRegistrationJsonWithPrettyName(referenceID, path, name, indexPath, items,
+                null);
+    }
+
+    public static String getNotTypedRegistrationJsonWithPrettyName(Long referenceID, String path,
+            String name, String indexPath, List<ProjectItem> items, String prettyName) {
         RegistrationRequest request = new RegistrationRequest();
         request.setReferenceId(referenceID);
         request.setPath(path);
         request.setName(name);
         request.setIndexPath(indexPath);
         request.setItems(items);
+        request.setPrettyName(prettyName);
         return getJson(request);
     }
 
-    public static String getRegistrationJson(Long referenceID, String path, String name, List<ProjectItem> items) {
+    public static String getRegistrationJson(Long referenceID, String path, String name,
+            List<ProjectItem> items) {
         RegistrationRequest request = new RegistrationRequest();
         request.setReferenceId(referenceID);
         request.setPath(path);
@@ -115,23 +141,37 @@ public final class TestDataProvider {
     }
 
     public static String getRegistrationJson(Long referenceID, String path, String name,
-                                             String indexPath, boolean doIndex) {
+            String indexPath, boolean doIndex) {
+        return getRegistrationJsonWithPrettyName(referenceID, path, name, indexPath, doIndex, null);
+    }
+
+    public static String getRegistrationJsonWithPrettyName(Long referenceID, String path, String name,
+                                                           String indexPath, boolean doIndex, String prettyName) {
         RegistrationRequest request = new RegistrationRequest();
         request.setReferenceId(referenceID);
         request.setPath(path);
         request.setName(name);
         request.setIndexPath(indexPath);
+        request.setIndexType(indexPath != null ? BiologicalDataItemResourceType.FILE : null);
+        request.setPrettyName(prettyName);
         request.setDoIndex(doIndex);
         request.setType(BiologicalDataItemResourceType.FILE);
         return getJson(request);
     }
 
-    public static String getRegistrationJson(Long referenceID, String path, String name, boolean doIndex) {
+    public static String getRegistrationJson(Long referenceID, String path, String name,
+            boolean doIndex) {
+        return getRegistrationJson(referenceID, path, name, doIndex, null);
+    }
+
+    public static String getRegistrationJson(Long referenceID, String path, String name,
+            boolean doIndex, String prettyName) {
         RegistrationRequest request = new RegistrationRequest();
         request.setReferenceId(referenceID);
         request.setPath(path);
         request.setName(name);
         request.setDoIndex(doIndex);
+        request.setPrettyName(prettyName);
         request.setType(BiologicalDataItemResourceType.FILE);
         return getJson(request);
     }
@@ -145,7 +185,7 @@ public final class TestDataProvider {
         throw new IllegalArgumentException("Illegal object to serialize to json.");
     }
 
-    protected static <T> String getPayloadJson(T item){
+    protected static <T> String getPayloadJson(T item) {
         ResponseResult<T> result = new ResponseResult<>();
         result.setStatus("OK");
         result.setPayload(item);
@@ -154,15 +194,18 @@ public final class TestDataProvider {
 
     private static Date getDefaultDate() {
         try {
-            return new SimpleDateFormat("yyyy-MM-dd")
-                    .parse("2016-06-08");
+            return new SimpleDateFormat("yyyy-MM-dd").parse("2016-06-08");
         } catch (ParseException e) {
             return new Date();
         }
     }
 
-    public static Project getProject(Long id, String name,
-            List<BiologicalDataItem> items) {
+    public static Project getProject(Long id, String name, List<BiologicalDataItem> items) {
+        return getProject(id, name, items, null);
+    }
+
+    public static Project getProject(Long id, String name, List<BiologicalDataItem> items,
+            String prettyName) {
         Project project = new Project();
         project.setId(id);
         project.setName(name);
@@ -170,6 +213,7 @@ public final class TestDataProvider {
         project.setCreatedDate(DEFAULT_DATE);
         project.setLastOpenedDate(DEFAULT_DATE);
         project.setItems(items);
+        project.setPrettyName(prettyName);
         return project;
     }
 }

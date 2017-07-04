@@ -84,8 +84,10 @@ public class GeneAddingHandler extends AbstractHTTPCommandHandler {
             handler.setRequestUrl(handler.getServerParameters().getRegistrationUrl());
             handler.setRequestType("POST");
 
-            List<BiologicalDataItem> registeredFiles = handler.registerItems();
-            geneFileId = registeredFiles.get(0).getId();
+            List<BiologicalDataItem> registeredItems = handler.registerItems();
+            if (!registeredItems.isEmpty()) {
+                geneFileId = registeredItems.get(0).getId();
+            }
         }
         printJson = options.isPrintJson();
         printTable = options.isPrintTable();

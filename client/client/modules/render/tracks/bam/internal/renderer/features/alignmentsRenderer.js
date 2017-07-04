@@ -1,5 +1,6 @@
 import PIXI from 'pixi.js';
 import {drawingConfiguration} from '../../../../../core';
+import {ColorProcessor} from '../../../../../utilities';
 import {partTypes} from '../../../modes';
 
 const Math = window.Math;
@@ -32,12 +33,14 @@ export class AlignmentsRenderer {
         this._minimumPx = viewport.project.brushBP2pixel(Math.max(0, viewport.brush.start - viewport.actualBrushSize));
         this._maximumPx = viewport.project.brushBP2pixel(Math.min(viewport.chromosome.end, viewport.brush.end + viewport.actualBrushSize));
         this._contoured = false;
+        this._hovered = false;
         const canShowLettersFactor = 10;
         this._canShowDetails = viewport.factor > CAN_SHOW_DETAILS_FACTOR;
         this._canShowLetters = viewport.factor > canShowLettersFactor;
     }
 
-    startRender() {
+    startRender(hovered = false) {
+        this._hovered = hovered;
         this._graphics.lineStyle(0, this._colors.base, 0);
         this._graphics.beginFill(this._colors.base, 1);
     }
@@ -65,14 +68,14 @@ export class AlignmentsRenderer {
         let localYOffset = 0;
         let localYHeight = 1;
         if (renderEntry.isPaired) {
-            const pairedReadHeight = 0.45;
+            const pairedReadHeight = 0.5;
             if (renderEntry.isOverlaps) {
                 if (renderEntry.isLeft) {
                     localYOffset = .0;
                     localYHeight = pairedReadHeight;
                 }
                 else if (renderEntry.isRight) {
-                    localYOffset = 1 - pairedReadHeight;
+                    localYOffset = 1.1 - pairedReadHeight;
                     localYHeight = pairedReadHeight;
                 }
             }
@@ -174,36 +177,47 @@ export class AlignmentsRenderer {
         if (!this._canShowDetails || this._yScale === 1)
             return;
         this._checkTextureCoordinates({x: Math.floor(this._projectX(renderEntry.startIndex))});
-        if (this._contoured) {
-            this._setColor(this._colors.bg);
-            this._graphics.lineStyle(this._lineWidth, this._baseColor, 1);
-            this._graphics.moveTo(Math.floor(this._projectX(renderEntry.startIndex)),
-                Math.floor(this._projectY(localYOffset) + this._renderOffset));
+        this._setColor(this._hovered ? ColorProcessor.darkenColor(this._baseColor, 0.1) : this._baseColor, this._contoured ? 0.5 : 1);
+        if (!this._contoured) {
+            this._graphics.lineStyle(this._lineWidth, this._hovered ? ColorProcessor.darkenColor(this._baseColor, 0.1) : this._baseColor, 1);
+        }
+        this._graphics.moveTo(Math.floor(this._projectX(renderEntry.startIndex)) - direction * this._lineWidth / 2.0,
+            Math.floor(this._projectY(localYOffset)));
+        this._graphics.lineTo(Math.floor(this._projectX(renderEntry.startIndex)) - direction * this._lineWidth / 2.0,
+            Math.floor(this._projectY(localYOffset + localYHeight)) - this._lineWidth);
+        this._graphics.lineStyle(0, this._baseColor, 0);
+        this._graphics.drawPolygon([
+            Math.floor(this._projectX(renderEntry.startIndex)) - direction * this._lineWidth / 2.0,
+            Math.floor(this._projectY(localYOffset)),
+            Math.floor(this._projectX(renderEntry.startIndex) + direction * this._figOffset),
+            Math.floor(this._projectY(localYOffset + localYHeight / 2)),
+            Math.floor(this._projectX(renderEntry.startIndex)) - direction * this._lineWidth / 2.0,
+            Math.floor(this._projectY(localYOffset + localYHeight) - this._lineWidth)
+        ]);
+
+        if (this._hovered) {
+            this._graphics.endFill();
+            this._graphics.lineStyle(this._lineWidth, this._hovered ? ColorProcessor.darkenColor(this._baseColor) : this._baseColor, 1);
+            this._graphics.moveTo(Math.floor(this._projectX(renderEntry.startIndex)) - direction * this._lineWidth / 2.0,
+                Math.floor(this._projectY(localYOffset)));
             this._graphics.lineTo(Math.floor(this._projectX(renderEntry.startIndex) + direction * this._figOffset),
                 Math.floor(this._projectY(localYOffset + localYHeight / 2)));
-            this._graphics.lineTo(Math.floor(this._projectX(renderEntry.startIndex)),
-                Math.floor(this._projectY(localYOffset + localYHeight) - this._renderOffset));
-            this._graphics.lineStyle(this._lineWidth, this._colors.bg, 1);
-            this._graphics.lineTo(Math.floor(this._projectX(renderEntry.startIndex)),
-                Math.floor(this._projectY(localYOffset) - this._renderOffset));
+            this._graphics.moveTo(Math.floor(this._projectX(renderEntry.startIndex) + direction * this._figOffset),
+                Math.floor(this._projectY(localYOffset + localYHeight / 2)));
+            this._graphics.lineTo(Math.floor(this._projectX(renderEntry.startIndex)) - direction * this._lineWidth / 2.0,
+                Math.floor(this._projectY(localYOffset + localYHeight)) - this._lineWidth);
             this._graphics.lineStyle(0, this._baseColor, 0);
+            this._graphics.beginFill(this._currentColor, this._currentAlpha);
             this._checkTextureCoordinates({
-                x: Math.floor(this._projectX(renderEntry.startIndex) + direction * this._figOffset),
-                y: Math.floor(this._projectY(localYOffset) - this._renderOffset)
+                x: Math.min(Math.floor(this._projectX(renderEntry.startIndex) + direction * this._figOffset),
+                    Math.floor(this._projectX(renderEntry.startIndex)) - direction * this._lineWidth / 2.0) - this._lineWidth / 2.0,
+                y: Math.floor(this._projectY(localYOffset)) - this._lineWidth
             });
         } else {
-            this._setColor(this._baseColor);
-            this._graphics.drawPolygon([
-                Math.floor(this._projectX(renderEntry.startIndex)),
-                Math.floor(this._projectY(localYOffset) + this._renderOffset),
-                Math.floor(this._projectX(renderEntry.startIndex)  + direction *this._figOffset),
-                Math.floor(this._projectY(localYOffset + localYHeight / 2)),
-                Math.floor(this._projectX(renderEntry.startIndex)),
-                Math.floor(this._projectY(localYOffset + localYHeight) - this._renderOffset)
-            ]);
             this._checkTextureCoordinates({
-                x: Math.floor(this._projectX(renderEntry.startIndex) + direction * this._figOffset),
-                y: Math.floor(this._projectY(localYOffset) + this._renderOffset)
+                x: Math.min(Math.floor(this._projectX(renderEntry.startIndex) + direction * this._figOffset),
+                    Math.floor(this._projectX(renderEntry.startIndex)) - direction * this._lineWidth / 2.0),
+                y: Math.floor(this._projectY(localYOffset)) - this._lineWidth
             });
         }
     }
@@ -430,10 +444,11 @@ export class AlignmentsRenderer {
     }
 
     _setColor(color, alpha = 1) {
-        if (color !== this._currentColor) {
+        if (color !== this._currentColor || alpha !== this._currentAlpha) {
             this._graphics.endFill();
             this._currentColor = color;
-            this._graphics.beginFill(this._currentColor, alpha);
+            this._currentAlpha = alpha;
+            this._graphics.beginFill(this._currentColor, this._currentAlpha);
         }
     }
     _convertY(y) {
@@ -456,29 +471,50 @@ export class AlignmentsRenderer {
         );
     }
     _renderReadBorders(color, startIndex, endIndex, renderContoured, localYOffset, localYHeight) {
-        if (!this._textureStartX || this._projectX(startIndex) < this._textureStartX) {
-            this._textureStartX = this._projectX(startIndex);
-        }
-        if (renderContoured) {
-            this._setColor(this._colors.bg);
-            this._graphics.lineStyle(this._lineWidth, color, 1);
+        this._setColor(this._hovered ? ColorProcessor.darkenColor(color, 0.1) : color, renderContoured ? 0.5 : 1);
+        this._graphics.lineStyle(0, this._baseColor, 0);
+        this._scaledRect(startIndex, localYOffset, endIndex - startIndex, localYHeight);
+
+        if (this._hovered) {
+            this._graphics.endFill();
+
+            this._graphics.lineStyle(this._lineWidth, ColorProcessor.darkenColor(color), 1);
+
+            this._graphics.moveTo(Math.floor(this._projectX(startIndex)) + this._lineWidth / 2.0,
+                Math.floor(this._projectY(localYOffset)) - this._lineWidth / 2.0);
+
+            this._graphics.lineTo(Math.floor(this._projectX(startIndex)) + this._lineWidth / 2.0,
+                Math.floor(this._projectY(localYOffset + localYHeight)) - this._lineWidth / 2.0);
+
             this._graphics.moveTo(Math.floor(this._projectX(startIndex)),
-                Math.floor(this._projectY(localYOffset) + this._renderOffset));
-            this._graphics.lineTo(Math.floor(this._projectX(startIndex)),
-                Math.floor(this._projectY(localYOffset + localYHeight) - this._renderOffset));
+                Math.floor(this._projectY(localYOffset + localYHeight)) - this._lineWidth);
+
             this._graphics.lineTo(Math.floor(this._projectX(endIndex)),
-                Math.floor(this._projectY(localYOffset + localYHeight) - this._renderOffset));
-            this._graphics.lineTo(Math.floor(this._projectX(endIndex)),
-                Math.floor(this._projectY(localYOffset) + this._renderOffset));
+                Math.floor(this._projectY(localYOffset + localYHeight)) - this._lineWidth);
+
+            this._graphics.moveTo(Math.floor(this._projectX(endIndex)) - this._lineWidth / 2.0,
+                Math.floor(this._projectY(localYOffset + localYHeight)) - this._lineWidth / 2.0);
+
+            this._graphics.lineTo(Math.floor(this._projectX(endIndex)) - this._lineWidth / 2.0,
+                Math.floor(this._projectY(localYOffset)) - this._lineWidth / 2.0);
+
+            this._graphics.moveTo(Math.floor(this._projectX(endIndex)),
+                Math.floor(this._projectY(localYOffset)));
+
             this._graphics.lineTo(Math.floor(this._projectX(startIndex)),
-                Math.floor(this._projectY(localYOffset) + this._renderOffset));
+                Math.floor(this._projectY(localYOffset)));
             this._graphics.lineStyle(0, color, 0);
-            if (!this._textureStartY || this._projectY(localYOffset) + this._renderOffset < this._textureStartY) {
-                this._textureStartY = Math.floor(this._projectY(localYOffset) + this._renderOffset);
+            this._graphics.beginFill(this._currentColor, this._currentAlpha);
+            if (!this._textureStartX || (Math.floor(this._projectX(startIndex)) - this._lineWidth / 2.0) < this._textureStartX) {
+                this._textureStartX = Math.floor(this._projectX(startIndex)) - this._lineWidth / 2.0;
+            }
+            if (!this._textureStartY || this._projectY(localYOffset) - this._lineWidth < this._textureStartY) {
+                this._textureStartY = this._projectY(localYOffset) - this._lineWidth;
             }
         } else {
-            this._setColor(color);
-            this._scaledRect(startIndex, localYOffset, endIndex - startIndex, localYHeight);
+            if (!this._textureStartX || (Math.floor(this._projectX(startIndex))) < this._textureStartX) {
+                this._textureStartX = Math.floor(this._projectX(startIndex));
+            }
             if (!this._textureStartY || this._projectY(localYOffset) < this._textureStartY) {
                 this._textureStartY = this._projectY(localYOffset);
             }

@@ -91,6 +91,7 @@ import com.epam.catgenome.manager.vcf.VcfManager;
 @WebAppConfiguration()
 @ContextConfiguration({"classpath:applicationContext-test.xml", "classpath:catgenome-servlet-test.xml"})
 public class ProjectControllerTest extends AbstractControllerTest {
+    public static final String PRETTY_NAME = "pretty";
     @Autowired
     ApplicationContext context;
 
@@ -152,7 +153,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
         projectItem.setBioDataItem(item);
 
         Project project = new Project();
-        project.setName("testProject");
+        project.setName(TEST_PROJECT_NAME);
         project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId())),
                 projectItem));
 
@@ -260,6 +261,63 @@ public class ProjectControllerTest extends AbstractControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).doesNotExist())
                 .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.ERROR.name()));
         actions.andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testSaveLoadProjectWithPrettyName() throws Exception {
+        VcfFile file = addVcfFile(TEST_VCF_FILE_NAME1, TEST_VCF_FILE_PATH);
+        BiologicalDataItem item = new BiologicalDataItem();
+        item.setId(file.getBioDataItemId());
+        ProjectItem projectItem = new ProjectItem();
+        projectItem.setBioDataItem(item);
+
+        Project project = new Project();
+        project.setName(TEST_PROJECT_NAME);
+        project.setPrettyName(PRETTY_NAME);
+        project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId())),
+                projectItem));
+
+        ProjectVO projectVO = ProjectConverter.convertTo(project);
+
+        // save project
+        ResultActions actions = mvc()
+                .perform(post(URL_SAVE_PROJECT).content(getObjectMapper().writeValueAsString(projectVO))
+                        .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+        actions.andDo(MockMvcResultHandlers.print());
+
+        ResponseResult<ProjectVO> res = getObjectMapper()
+                .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
+                        getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                                ProjectVO.class));
+
+        ProjectVO loadedProject = res.getPayload();
+        Assert.assertNotNull(loadedProject);
+        Assert.assertFalse(loadedProject.getItems().isEmpty());
+        Assert.assertEquals(PRETTY_NAME, loadedProject.getPrettyName());
+
+        actions = mvc()
+                .perform(get(URL_LOAD_PROJECT_BY_NAME).param("projectName", TEST_PROJECT_NAME)
+                        .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+        actions.andDo(MockMvcResultHandlers.print());
+
+        res = getObjectMapper()
+                .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
+                        getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                                ProjectVO.class));
+
+        loadedProject = res.getPayload();
+        Assert.assertNotNull(loadedProject);
+        Assert.assertFalse(loadedProject.getItems().isEmpty());
+        Assert.assertEquals("pretty", loadedProject.getPrettyName());
     }
 
     @Test
@@ -683,7 +741,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
         ProjectVO loadedProject = res.getPayload();
         Assert.assertNotNull(loadedProject);
-        Assert.assertEquals(4, loadedProject.getItems().size());
+        Assert.assertEquals(3, loadedProject.getItems().size());
 
         // filter vcf
         VcfFilterForm vcfFilterForm = new VcfFilterForm();

@@ -60,6 +60,7 @@ export default {
         }
     },
     height: 100,
+    fitHeightFactor: 1.5,
     histogram: {
         fill: 0x92AEE7,
         height: 30,
@@ -67,7 +68,7 @@ export default {
         thresholdWidth: 20
     },
     levels: {
-        margin: 1
+        margin: 5
     },
     maxHeight: 400,
     minHeight: 30,
@@ -86,7 +87,8 @@ export default {
             },
             fill: {
                 cds: 0x92AEE7,
-                other: 0xFFFFFF
+                other: 0xFFFFFF,
+                hoveredOther: 0xFFFFFF
             },
             strand: {
                 arrow: {
@@ -97,7 +99,8 @@ export default {
                 },
                 fill: {
                     cds: 0xFFFFFF,
-                    other: 0x92AEE7
+                    other: 0x92AEE7,
+                    hoveredCds: 0xFFFFFF
                 }
             }
         },

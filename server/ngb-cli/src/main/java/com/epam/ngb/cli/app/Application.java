@@ -63,6 +63,9 @@ public class Application {
             + "dr\tdel_ref\t\t: unregisters a reference file\t{dr grch38}\n"
             + "lr\tlist_ref\t: lists all reference files, registered on the server\t{lr}\n"
             + "ag\tadd_genes\t: adds a gene file to the reference\t{ag grch38 genes.gtf}\n"
+            + "an\tadd_ann\t: adds a annotation file to the reference\t{an grch38 annotations.gtf}\n"
+            + "ran\tremove_ann\t: remove a annotation file from the list of reference annotation files"
+            + "\t{ran grch38 annotations.gtf}\n"
             + "rg\tremove_genes\t: removes a gene file from the reference\t{rg grch38}\n\n"
             + "FILE commands:\n"
             + "rf\treg_file\t: registers a feature file for a specified reference\t"
@@ -92,7 +95,8 @@ public class Application {
             + "same folder as the original one with the `.sorted.` suffix in the name.\n"
             + "CONFIGURATION commands:\n"
             + "srv\tset_srv\t\t: sets working server url for CLI\tsrv http://{SERVER_IP_OR_NAME}:"
-            + "{SERVER_PORT}/catgenome\n\n"
+            + "{SERVER_PORT}/catgenome\n"
+            + "v\tversion\t\t: prints CLI version to the console standard output\n\n"
             + "Available options (options may go before, after or between the arguments):\n";
 
     @Option(name = "-n", usage = "explicitly specifies file name for registration", aliases = {
@@ -143,6 +147,10 @@ public class Application {
     @Option(name = "-f", usage = "defines if a dataset will be force deleted",
             aliases = {"--force"})
     private boolean forceDeletion = false;
+
+    @Option(name = "-pt", usage = "pretty name for datasets or biological data file",
+            aliases = {"--pretty"})
+    private String prettyName;
 
 
     @Argument
@@ -228,6 +236,7 @@ public class Application {
         options.setLocation(location);
         options.setNoGCContent(noGCContent);
         options.setForceDeletion(forceDeletion);
+        options.setPrettyName(prettyName);
         if (doNotIndex) {
             options.setDoIndex(false);
         }

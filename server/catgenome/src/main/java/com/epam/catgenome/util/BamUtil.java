@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,9 @@ package com.epam.catgenome.util;
 import java.io.IOException;
 import java.util.List;
 
+import com.epam.catgenome.manager.bam.BamHelper;
+import com.epam.catgenome.manager.bam.BamTrackEmitter;
+import com.epam.catgenome.manager.bam.sifters.ConstantMemorySAMRecordSampler;
 import org.springframework.util.Assert;
 
 import com.epam.catgenome.component.MessageHelper;
@@ -46,7 +49,6 @@ import com.epam.catgenome.manager.bam.handlers.Handler;
 import com.epam.catgenome.manager.bam.handlers.SAMRecordHandler;
 import com.epam.catgenome.manager.bam.sifters.DownsamplingSifter;
 import com.epam.catgenome.manager.bam.sifters.FullResultSifter;
-import com.epam.catgenome.manager.bam.sifters.StandardSAMRecordSifter;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.SAMFlag;
@@ -117,12 +119,13 @@ public final class BamUtil {
      * @param track a track to create Handler
      * @param options options to determine, which Handler is neeeded
      * @param referenceManager ReferenceManager is required for Handler construction
+     * @param trackEmitter
      * @return a valid SAMRecordHandler for a track and options
      * @throws IOException
      */
     public static Handler<SAMRecord> createSAMRecordHandler(final Track<Read> track, final BamQueryOption options,
                                                             final ReferenceManager referenceManager, boolean
-                                                                    coverageOnly)
+                                                                    coverageOnly, BamTrackEmitter trackEmitter)
     // TODO: int maxReadCount - decide reads or coverage by by read count
             throws IOException {
         Handler<SAMRecord> filter;
@@ -131,15 +134,18 @@ public final class BamUtil {
         switch (options.getTrackDirection()) {
             case LEFT:
                 filter = new SAMRecordHandler(startTrack, endTrack, referenceManager, new LeftSAMRecordFilter(endTrack,
-                        BamUtil.createSifter(endTrack, options, coverageOnly)), options); //maxReadCount
+                        BamUtil.createSifter(endTrack, options, coverageOnly, trackEmitter)), options); //maxReadCount
                 break;
             case MIDDLE:
                 filter = new SAMRecordHandler(startTrack, endTrack, referenceManager, new MiddleSAMRecordFilter(
-                        BamUtil.createSifter(endTrack, options, coverageOnly)), options); //maxReadCount
+                        BamUtil.createSifter(endTrack, options, coverageOnly, trackEmitter)), options); //maxReadCount
                 break;
             case RIGHT:
-                filter = new SAMRecordHandler(startTrack, endTrack, referenceManager, new RightSAMRecordFilter(
-                        startTrack, BamUtil.createSifter(endTrack, options, coverageOnly)), options); //maxReadCount
+                filter = new SAMRecordHandler(startTrack, endTrack, referenceManager,
+                        new RightSAMRecordFilter(
+                                startTrack,
+                                BamUtil.createSifter(endTrack, options, coverageOnly, trackEmitter)),
+                        options); //maxReadCount
                 break;
             default:
                 throw new IllegalArgumentException("Unexpected track direction: " + options.getTrackDirection());
@@ -189,13 +195,14 @@ public final class BamUtil {
      * Creates a valid DownsamplingSifter
      * @param end track's end index
      * @param options options of a BAM query
+     * @param trackEmitter
      * @return
      */
     public static DownsamplingSifter<SAMRecord> createSifter(final int end, final BamQueryOption options,
-                                                             boolean coverageOnly) {
+                                                             boolean coverageOnly, BamTrackEmitter trackEmitter) {
         // TODO: int maxReadCount - decide reads or coverage by by read count
-        return options.isDownSampling() ? new StandardSAMRecordSifter(options.getFrame(), options.getCount(), end,
-                coverageOnly) : new FullResultSifter(coverageOnly);
+        return options.isDownSampling() ? new ConstantMemorySAMRecordSampler(options.getFrame(), options.getCount(),
+                end, coverageOnly, trackEmitter) : new FullResultSifter(coverageOnly, trackEmitter);
     }
 
     public static boolean checkFlag(final int flagMasc, final int flag) {
@@ -205,5 +212,19 @@ public final class BamUtil {
     private static boolean validDownsempleParams(final Integer frame, final Integer count) {
         return null != frame && null != count && frame > Constants.BAM_DOWNSAMPLING_MIN_FRAME_SIZE &&
                count > Constants.BAM_DOWNSAMPLING_MIN_COUNT && count < Constants.BAM_DOWNSAMPLING_MAX_COUNT;
+    }
+
+    /**
+     * Check that path to bam file ends with .bam
+     * @param filePath bam file path for checking
+     * @return true if filePath ends with .bam and otherwise false
+     * */
+    public static boolean isBam(String filePath) {
+        for (String bamExtension : BamHelper.BAM_EXTENSIONS) {
+            if (filePath.endsWith(bamExtension)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -68,6 +68,7 @@ import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class SegManagerTest extends AbstractManagerTest {
+    public static final String PRETTY_NAME = "pretty";
     @Autowired
     private SegManager segManager;
 
@@ -161,31 +162,34 @@ public class SegManagerTest extends AbstractManagerTest {
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(resource.getFile().getAbsolutePath());
         request.setReferenceId(referenceId);
+        request.setPrettyName(PRETTY_NAME);
 
         SegFile segFile = segManager.registerSegFile(request);
         Assert.assertNotNull(segFile);
 
-        List<SegFile> bedFiles = segFileManager.loadSedFilesByReferenceId(referenceId);
-        Assert.assertFalse(bedFiles.isEmpty());
-        bedFiles.forEach(f -> {
-            Assert.assertNotNull(f.getId());
-            Assert.assertNotNull(f.getBioDataItemId());
-            Assert.assertNotNull(f.getIndex());
-            Assert.assertFalse(f.getPath().isEmpty());
-        });
+        SegFile loadedSegFile = segFileManager.loadSegFile(segFile.getId());
+        Assert.assertNotNull(loadedSegFile.getId());
+        Assert.assertNotNull(loadedSegFile.getBioDataItemId());
+        Assert.assertNotNull(loadedSegFile.getIndex());
+        Assert.assertFalse(loadedSegFile.getPath().isEmpty());
+        Assert.assertEquals(PRETTY_NAME, loadedSegFile.getPrettyName());
+
+        List<SegFile> segFiles = segFileManager.loadSedFilesByReferenceId(referenceId);
+        Assert.assertEquals(1, segFiles.size());
+        Assert.assertTrue(segFiles.stream().allMatch(s -> s.getId().equals(segFile.getId()) &&
+            s.getPrettyName().equals(PRETTY_NAME)));
 
         SampledTrack<SegRecord> sampledTrack = new SampledTrack<>();
         sampledTrack.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
         sampledTrack.setStartIndex(1);
         sampledTrack.setEndIndex(TEST_END_INDEX);
         sampledTrack.setChromosome(testChromosome);
-        sampledTrack.setId(segFile.getId());
+        sampledTrack.setId(loadedSegFile.getId());
 
         sampledTrack = segManager.loadFeatures(sampledTrack);
         Assert.assertFalse(sampledTrack.getTracks().isEmpty());
-        Assert.assertTrue(sampledTrack.getTracks().values().parallelStream().filter(t -> !t.isEmpty()).findAny()
-                .isPresent());
+        Assert.assertTrue(sampledTrack.getTracks().values().parallelStream().anyMatch(t -> !t.isEmpty()));
 
-        return segFile;
+        return loadedSegFile;
     }
 }

@@ -22,6 +22,15 @@ When URL is set - it would be stored and used next time CLI is launched
 ngb set_srv http://10.248.33.51:8080/catgenome
 ```
 
+## Display CLI version
+
+```
+ngb version|v
+```
+*Description*
+
+Prints CLI version to the console standard output.
+
 ## Search an object on a server
 ```
 ngb search|s [<QUERY>] [options]
@@ -55,6 +64,7 @@ ngb reg_ref|rr [<PATH_TO_GENOME_FASTA>] [options]
 //-j (--json)               Print result as a JSON string
 //-g (--genes) [value]      Add a gene (gtf or gff) file to the reference. If file is already registered, it can be addressed by name or an identifier. Otherwise a path to the file should be provided.
 //-ngc (--nogccontent)      Disables calculation of GC-content for large scale reference view
+//-pt (--pretty)            Add pretty name to the reference genome
 ```
 *Description*
 
@@ -155,6 +165,46 @@ ngb remove_genes grch38
 ngb rg 1
 ```
 
+### Add annotation file to the reference
+```
+ngb add_ann|an [<REFERENCE_NAME|REFERENCE_ID>] [<FILE_NAMES|FILE_IDS|FILE_PATHS>] [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+Adds an annotation (GFF, GTF, BED) file to the reference on NGB server. Reference file can be addressed by name or an identifier (retrieved from **reg_ref** command, at registration time or search command).
+If annotation file is already registered on NGb server, it can be addressed by name or by an identifier. Otherwise a path to the annotation file should be provided.
+
+*Example*
+```
+//Add a regitered gene file to the reference with name "grch38"
+ngb add_ann grch38 annotation.gtf
+
+//Add a new annotation file to the reference with name ID "1"
+ngb an 1 /opt/tracks/annotation.gtf
+```
+
+### Remove annotation file from the reference
+```
+ngb remove_ann|ran [<REFERENCE_NAME|REFERENCE_ID>] [<FILE_NAMES|FILE_IDS|FILE_PATHS>] [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+Removes an annotation (GFF, GTF, BED) file from the reference on NGB server. Reference file can be addressed by name or an identifier (retrieved from **reg_ref** command, at registration time or search command).
+Annotation file can be addressed by name or by an identifier.
+
+*Example*
+```
+//Remove an annotation file from the reference with name "grch38"
+ngb remove_ann grch38 annotation.gtf
+```
 
 ## File commands
 ### Register file
@@ -166,13 +216,17 @@ ngb reg_file|rf [<REFERENCE_NAME>|<REFERENCE_ID>] [<PATH_TO_NGS_FILE>] [options]
 //-ni (--no_index)          Defines if a feature index should not be built during file registration (could be used to speed up registration process)
 //-t (--table)              Print result as a human-readable table
 //-j (--json)               Print result as a JSON string
+//-pt (--pretty)            Add pretty name to the file
 ```
 *Description*
 
 Registers a specified file. At least two arguments have to be specified:
 Previously registered reference sequence file from NGB server. Reference file can be addressed by name or an identifier
 Flesystem path foor the file to be registered. BAM, VCF, GFF, GTF, BED, SEG files are accepted. GZipped files are also accepted in a format <FILE_NAME>.<FILE_EXT>.gz, e.g.: my_variants.vcf.gz.
-BAM file path has to be followed by a '?' symbol and a path to an index file (.BAI).
+BAM file path has to be followed by a '?' symbol and a path to an index file (.BAI) 
+(If a folder with BAM file also contains index for this BAM with the same name, CLI will find this index automatically. 
+It also works well for vcf, bed and gene files). 
+If and only if cli located on the same filesystem with NGB server relative path can be used.
 
 *Example*
 ```
@@ -184,6 +238,12 @@ ngb reg_file grch38 /opt/tracks/sample.vcf -n sample
 
 //Register indexed file, use "sample.bam" as name
 ngb reg_file grch38 /opt/tracks/sample.bam?/opt/tracks/sample.bam.bai
+
+//Register indexed file, use "sample.bam" as name, index for the BAM file is contained in the same directory as the BAM file
+ngb reg_file grch38 /opt/tracks/sample.bam
+
+//Register file with relative path
+ngb reg_file hg19 ../tracks/sample.vcf
 ```
 
 ### Delete file
@@ -242,6 +302,7 @@ ngb reg_dataset|rd [<REFERENCE_NAME>|<REFERENCE_ID>] [<DATASET_NAME>] [<files_na
 //-p (--parent) [value] Specifies dataset parent for registration. Parent could addressed using a name or an indentifier
 //-t (--table)          Print result as a human-readable table
 //-j (--json)           Print result as a JSON string
+//-pt (--pretty)        Add pretty name to the dataset
 ```
 *Description*
 
