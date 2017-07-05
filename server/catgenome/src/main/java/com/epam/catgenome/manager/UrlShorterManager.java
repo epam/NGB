@@ -57,7 +57,7 @@ public class UrlShorterManager {
      * Generate a postfix id for short url by given the original one.
      * */
     @Transactional(propagation = Propagation.REQUIRED)
-    public String generateAndSaveShortUrlPostfix(String url) {
+    public String generateAndSaveShortUrlPostfix(String url, String name) {
 
         if (!validator.isValid(url)) {
             throw new IllegalArgumentException("Invalid url format: " + url);
@@ -66,8 +66,13 @@ public class UrlShorterManager {
         Date expiredDate = new Date(System.currentTimeMillis() - expiredPeriodParam * MILLISECONDS_PER_DAY);
         urlShorterDao.deleteExpiredUrls(expiredDate);
 
-        final String id = Hashing.murmur3_32()
-                .hashString(url, StandardCharsets.UTF_8).toString();
+        String id;
+        if (name != null && !urlShorterDao.loadUrlById(name).isPresent()) {
+            id = name;
+        } else {
+            id  = Hashing.murmur3_32()
+                    .hashString(url, StandardCharsets.UTF_8).toString();
+        }
         urlShorterDao.storeUrl(id, url);
 
         return id;

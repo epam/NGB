@@ -38,14 +38,16 @@ import java.util.Optional;
 public class UrlShorterManagerTest {
 
     private static final String CORRECT = "http://fake.com/faaaaake";
+    private static final String CORRECT2 = "http://fake2.com/faaaaake";
     private static final String INCORRECT = "asdasd'awd'";
 
     @Autowired
     UrlShorterManager urlShorterManager;
+    private String alias = "alias";
 
     @Test
     public void generateAndSaveShortUrlPostfixShouldSaveCorrectUrl() throws Exception {
-        String shortPrefix = urlShorterManager.generateAndSaveShortUrlPostfix(CORRECT);
+        String shortPrefix = urlShorterManager.generateAndSaveShortUrlPostfix(CORRECT, null);
         Optional<String> loaded = urlShorterManager.getOriginalUrl(shortPrefix);
         Assert.assertTrue(loaded.isPresent());
         Assert.assertEquals(loaded.get(), CORRECT);
@@ -53,7 +55,27 @@ public class UrlShorterManagerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void generateAndSaveShortUrlPostfixShouldThowExceptionWithWrongUrl() throws Exception {
-        urlShorterManager.generateAndSaveShortUrlPostfix(INCORRECT);
+        urlShorterManager.generateAndSaveShortUrlPostfix(INCORRECT, null);
+    }
+
+    @Test
+    public void generateAndSaveShortUrlPostfixShouldSaveAcceptAlias() throws Exception {
+        String shortPrefix = urlShorterManager.generateAndSaveShortUrlPostfix(CORRECT, alias);
+        Assert.assertEquals(shortPrefix, alias);
+        Optional<String> loaded = urlShorterManager.getOriginalUrl(shortPrefix);
+        Assert.assertTrue(loaded.isPresent());
+        Assert.assertEquals(loaded.get(), CORRECT);
+    }
+
+    @Test
+    public void generateAndSaveShortUrlPostfixShouldNotSaveAcceptAliasInTheSecondTime() throws Exception {
+        urlShorterManager.generateAndSaveShortUrlPostfix(CORRECT, alias);
+        String shortPrefix = urlShorterManager.generateAndSaveShortUrlPostfix(CORRECT2,  alias);
+
+        Assert.assertNotEquals(shortPrefix, alias);
+        Optional<String> loaded = urlShorterManager.getOriginalUrl(shortPrefix);
+        Assert.assertTrue(loaded.isPresent());
+        Assert.assertEquals(loaded.get(), CORRECT2);
     }
 
 }

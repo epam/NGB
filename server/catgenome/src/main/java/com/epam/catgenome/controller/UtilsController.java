@@ -144,12 +144,13 @@ public class UtilsController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<String> generateShortUrl(@RequestParam String url) throws JsonProcessingException {
-        return Result.success(urlShorterManager.generateAndSaveShortUrlPostfix(url));
+    public Result<String> generateShortUrl(@RequestParam String url,
+                                           @RequestParam(required = false) String alias) {
+        return Result.success(urlShorterManager.generateAndSaveShortUrlPostfix(url, alias));
     }
 
     @ResponseBody
-    @RequestMapping(value = "/{id:(?!.*html$).{8}$}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{id:[a-z0-9]+}", method = RequestMethod.GET)
     @ApiOperation(
             value = "redirect on a original URL by short URL postfix, or on the 404 if short url doesn't exist",
             produces = MediaType.APPLICATION_JSON_VALUE)

@@ -33,7 +33,7 @@
             <value>
                 <![CDATA[
                     DELETE FROM catgenome.SHORT_URLS
-                    WHERE created_date < ?
+                    WHERE created_date <= ?
                 ]]>
             </value>
         </property>
