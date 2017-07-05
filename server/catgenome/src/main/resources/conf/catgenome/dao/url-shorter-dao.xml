@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.UrlShorterDao" id="urlShorterDao" autowire="byName">
+        <property name="insertUrlQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.SHORT_URLS (
+                        id,
+                        created_date,
+                        url)
+                    VALUES (
+                        :ID,
+                        :CREATED_DATE,
+                        :URL)
+
+                ]]>
+            </value>
+        </property>
+
+        <property name="loadUrlByIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT u.url
+                    FROM catgenome.short_urls u
+                    WHERE u.id = :ID
+                ]]>
+            </value>
+        </property>
+
+        <property name="deleteExpiredUrlsQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.SHORT_URLS
+                    WHERE created_date < ?
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

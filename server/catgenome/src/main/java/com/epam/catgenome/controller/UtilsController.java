@@ -27,8 +27,12 @@ package com.epam.catgenome.controller;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
+
+import javax.servlet.http.HttpServletResponse;
 
 import com.epam.catgenome.controller.vo.UrlRequestVO;
+import com.epam.catgenome.manager.UrlShorterManager;
 import com.epam.catgenome.util.IndexUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import com.epam.catgenome.controller.vo.FilesVO;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
@@ -62,6 +67,9 @@ import com.wordnik.swagger.annotations.ApiResponses;
 public class UtilsController extends AbstractRESTController {
     @Autowired
     private FileManager fileManager;
+
+    @Autowired
+    private UrlShorterManager urlShorterManager;
 
     @Autowired
     private BiologicalDataItemManager biologicalDataItemManager;
@@ -126,6 +134,38 @@ public class UtilsController extends AbstractRESTController {
         return Result.success(biologicalDataItemManager.generateUrl(request.getDataset(),
                 request.getIds() == null ? Collections.emptyList() : request.getIds(), chromosomeName,
                 startIndex, endIndex));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/generateShortUrl", method = RequestMethod.POST)
+    @ApiOperation(
+            value = "Generates short URL postfix",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<String> generateShortUrl(@RequestParam String url) throws JsonProcessingException {
+        return Result.success(urlShorterManager.generateAndSaveShortUrlPostfix(url));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/{id:(?!.*html$).{8}$}", method = RequestMethod.GET)
+    @ApiOperation(
+            value = "redirect on a original URL by short URL postfix, or on the 404 if short url doesn't exist",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public void redirectByShortUrl(@PathVariable String id, HttpServletResponse resp) throws IOException {
+        Optional<String> maybeOriginalUrl = urlShorterManager.getOriginalUrl(id);
+        if (maybeOriginalUrl.isPresent()) {
+            String url = maybeOriginalUrl.get();
+            resp.addHeader("Location", url);
+            resp.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+            resp.sendRedirect(url);
+        } else {
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Page doesn't exist or short url has been expired.");
+        }
     }
 
     @ResponseBody
