@@ -217,6 +217,11 @@ public final class MessagesConstants {
 
     //LOGGER
     public static final String ERROR_LOGGER_JSON_FILE_INVALID = "logger.error.json.file.invalid";
+
+    //SHORT_URLS
+    public static final String ERROR_URL_WAS_EXPIRED = "error.url.was.expired";
+    public static final String ALIAS_ALREADY_EXIST_MASSAGE = "info.alias.already.exist";
+
     private MessagesConstants() {
         // No-op
     }

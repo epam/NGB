@@ -31,6 +31,7 @@ import java.util.Optional;
 
 import javax.servlet.http.HttpServletResponse;
 
+import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.UrlRequestVO;
 import com.epam.catgenome.manager.UrlShorterManager;
 import com.epam.catgenome.util.IndexUtils;
@@ -65,6 +66,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
  */
 @Controller
 public class UtilsController extends AbstractRESTController {
+
     @Autowired
     private FileManager fileManager;
 
@@ -146,7 +148,15 @@ public class UtilsController extends AbstractRESTController {
             })
     public Result<String> generateShortUrl(@RequestParam String url,
                                            @RequestParam(required = false) String alias) {
-        return Result.success(urlShorterManager.generateAndSaveShortUrlPostfix(url, alias));
+        String payload = urlShorterManager.generateAndSaveShortUrlPostfix(url, alias);
+
+        Result<String> result;
+        if (alias != null && !alias.equals(payload)) {
+            result = Result.success(payload, MessagesConstants.ALIAS_ALREADY_EXIST_MASSAGE);
+        } else {
+            result = Result.success(payload);
+        }
+        return result;
     }
 
     @ResponseBody
@@ -165,7 +175,7 @@ public class UtilsController extends AbstractRESTController {
             resp.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
             resp.sendRedirect(url);
         } else {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Page doesn't exist or short url has been expired.");
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND, MessagesConstants.ERROR_URL_WAS_EXPIRED);
         }
     }
 
