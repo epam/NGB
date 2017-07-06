@@ -1,4 +1,4 @@
 module.exports = {
     env: 'production',
-    urlPrefix: '/catgenome/restapi/'
+    urlPrefix: '/catgenome/'
 };
