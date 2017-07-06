@@ -65,7 +65,7 @@ export default class ngbShareLinkMenuController extends baseController {
         if (tracksState) {
             stateParams.tracks = this.projectContext.convertTracksStateToJson(tracksState);
         }
-        const fullUrl = encodeURI(this.stateParamsService.createUrl(stateParams));
+        const fullUrl = this.stateParamsService.createUrl(stateParams);
         this.url = await this.utilsDataService.generateShortUrl(fullUrl, this.alias);
     }
 

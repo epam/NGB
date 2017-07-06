@@ -43,10 +43,12 @@ export class UtilsDataService extends DataService {
             }).catch(() => {
                 resolve('');
             }).then((result) => {
-                const shortUrl = this._serverUrl.endsWith('/') ?
-                    `${this._serverUrl}${result}` :
-                    `${this._serverUrl}/${result}`;
-                resolve(shortUrl);
+                const a = window.document.createElement('a');
+                const baseUrl = this._serverUrl;
+                a.href = baseUrl.endsWith('/') ?
+                    `${baseUrl}navigate?alias=${result}` :
+                    `${baseUrl}/navigate?alias=${result}`;
+                resolve(a.href);
             });
         })
     }
