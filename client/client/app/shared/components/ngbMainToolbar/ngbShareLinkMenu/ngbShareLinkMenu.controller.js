@@ -11,26 +11,38 @@ export default class ngbShareLinkMenuController extends baseController {
     screenShotVisible = false;
     screenShotVisibleValue = true;
     panelsHeadersVisibleValue = true;
+    alias = null;
 
     events = {};
-
     projectContext;
+    utilsDataService;
 
-    constructor($scope, dispatcher, projectContext, localDataService, stateParamsService) {
+    constructor($scope, dispatcher, projectContext, localDataService, stateParamsService, utilsDataService) {
         super(dispatcher);
 
         Object.assign(this, {
             $scope,
             localDataService,
             projectContext,
-            stateParamsService
+            stateParamsService,
+            utilsDataService
         });
 
         this.state = localDataService.getDictionary().State;
+
+        $scope.$watch('$ctrl.layoutState', ::this.generateUrl);
+        $scope.$watch('$ctrl.mainToolbarVisible', ::this.generateUrl);
+        $scope.$watch('$ctrl.mainToolbarVisibleValue', ::this.generateUrl);
+        $scope.$watch('$ctrl.rewriteLayout', ::this.generateUrl);
+        $scope.$watch('$ctrl.screenShotVisible', ::this.generateUrl);
+        $scope.$watch('$ctrl.screenShotVisibleValue', ::this.generateUrl);
+        $scope.$watch('$ctrl.panelsHeadersVisibleValue', ::this.generateUrl);
+        $scope.$watch('$ctrl.alias', ::this.generateUrl);
+
+        this.generateUrl();
     }
 
-
-    generatedUrl() {
+    async generateUrl() {
         const layout = this.projectContext.layout;
         //TODO: replace indexer with a settings section name
         layout[0].hasHeaders = (+!this.panelsHeadersVisibleValue).toString();
@@ -53,8 +65,8 @@ export default class ngbShareLinkMenuController extends baseController {
         if (tracksState) {
             stateParams.tracks = this.projectContext.convertTracksStateToJson(tracksState);
         }
-        this.url = this.stateParamsService.createUrl(stateParams);
-        return this.url;
+        const fullUrl = encodeURI(this.stateParamsService.createUrl(stateParams));
+        this.url = await this.utilsDataService.generateShortUrl(fullUrl, this.alias);
     }
 
     showState(value) {
