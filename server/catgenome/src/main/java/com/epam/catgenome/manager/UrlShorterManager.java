@@ -45,7 +45,7 @@ public class UrlShorterManager {
 
     public static final int MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
-    @Value("#{catgenome['urls.expired.period'] ?: 7}")
+    @Value("#{catgenome['short.link.expired.period'] ?: 7}")
     private int expiredPeriodParam;
 
     @Autowired

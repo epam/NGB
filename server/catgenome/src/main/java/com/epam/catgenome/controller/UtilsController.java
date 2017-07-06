@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -54,6 +55,8 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+
 /**
  * Source:      UtilsController
  * Created:     25.04.16, 16:11
@@ -66,6 +69,8 @@ import com.wordnik.swagger.annotations.ApiResponses;
  */
 @Controller
 public class UtilsController extends AbstractRESTController {
+
+    public static final String SHORT_URLS_REGEXP = "[a-zA-Z0-9_]+";
 
     @Autowired
     private FileManager fileManager;
@@ -148,11 +153,18 @@ public class UtilsController extends AbstractRESTController {
             })
     public Result<String> generateShortUrl(@RequestParam String url,
                                            @RequestParam(required = false) String alias) {
+        if (alias != null) {
+            Assert.isTrue(
+                    alias.matches(SHORT_URLS_REGEXP),
+                    getMessage(MessagesConstants.ERROR_WRONG_ALIAS, alias, SHORT_URLS_REGEXP)
+            );
+        }
+
         String payload = urlShorterManager.generateAndSaveShortUrlPostfix(url, alias);
 
         Result<String> result;
         if (alias != null && !alias.equals(payload)) {
-            result = Result.success(payload, MessagesConstants.ALIAS_ALREADY_EXIST_MASSAGE);
+            result = Result.success(payload, MessagesConstants.INFO_ALIAS_ALREADY_EXIST_MASSAGE);
         } else {
             result = Result.success(payload);
         }
@@ -160,7 +172,7 @@ public class UtilsController extends AbstractRESTController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/{id:[a-z0-9]+}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{id:" + SHORT_URLS_REGEXP + "}", method = RequestMethod.GET)
     @ApiOperation(
             value = "redirect on a original URL by short URL postfix, or on the 404 if short url doesn't exist",
             produces = MediaType.APPLICATION_JSON_VALUE)

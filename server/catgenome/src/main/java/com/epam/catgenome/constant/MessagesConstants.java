@@ -220,7 +220,8 @@ public final class MessagesConstants {
 
     //SHORT_URLS
     public static final String ERROR_URL_WAS_EXPIRED = "error.url.was.expired";
-    public static final String ALIAS_ALREADY_EXIST_MASSAGE = "info.alias.already.exist";
+    public static final String INFO_ALIAS_ALREADY_EXIST_MASSAGE = "info.alias.already.exist";
+    public static final String ERROR_WRONG_ALIAS = "error.alias.is.wrong";
 
     private MessagesConstants() {
         // No-op
