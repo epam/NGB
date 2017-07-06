@@ -35,6 +35,7 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.UrlRequestVO;
 import com.epam.catgenome.manager.UrlShorterManager;
 import com.epam.catgenome.util.IndexUtils;
+import com.epam.catgenome.entity.UrlWithAliasItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -147,8 +148,10 @@ public class UtilsController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<String> generateShortUrl(@RequestParam String url,
-                                           @RequestParam(required = false) String alias) {
+    public Result<String> generateShortUrl(@RequestBody UrlWithAliasItem urlWithAlias) {
+        String alias = urlWithAlias.getAlias();
+        String url = urlWithAlias.getUrl();
+
         String payload = urlShorterManager.generateAndSaveShortUrlPostfix(url, alias);
 
         Result<String> result;
