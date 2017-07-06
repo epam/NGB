@@ -48,5 +48,6 @@
     <import resource="classpath:conf/catgenome/dao/bed-file-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/seg-file-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/maf-file-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/url-shorter-dao.xml" />
 
 </beans>

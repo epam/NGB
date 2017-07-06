@@ -39,11 +39,13 @@
                 Rewrite layout
             </md-checkbox>
         </div>
-
-        <div >
-            <textarea readonly class="shared-link-area">{{$ctrl.generatedUrl()}}</textarea>
-        </div>
-
-
+        <md-divider ></md-divider>
+        <md-input-container class="md-block">
+            <label for="alias">URL Alias</label>
+            <input id="alias"
+                   name="alias"
+                   aria-label="URL Alias"
+                   ng-model="$ctrl.alias">
+        </md-input-container>
     </div>
 </div>
