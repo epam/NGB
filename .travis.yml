@@ -6,7 +6,7 @@ dist: trusty
 install: 
     - pip install mkdocs
     - pip install mkdocs-material
-script: ./gradlew buildCli buildDoc -PnoTest -PbuildNumber=${TRAVIS_JOB_ID}
+script: ./gradlew buildCli buildDoc -PnoTest -PbuildNumber=${TRAVIS_JOB_NUMBER}
 deploy:
   - provider: script
     skip_cleanup: true
