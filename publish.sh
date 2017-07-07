@@ -20,6 +20,7 @@ cd ${DIST}
 VERSIONS=(latest $NGB_VERSION)
 for VERSION in ${VERSIONS[*]}
 do
+    DOCS_VERSION=''
     echo "Creating ${VERSION} distribution"
     test -d ${VERSION} || mkdir ${VERSION}
     for file in *
@@ -29,7 +30,12 @@ do
         fi
         ext="${file#*.}"
         filename="${file%%.*}"
-        cp -rf "$file" "${VERSION}/${filename}-${VERSION}.${ext}"
+        versioned_file=${filename}-${VERSION}.${ext}
+        cp -rf "$file" "${VERSION}/${versioned_file}"
+        
+        if [[ $versioned_file == *"ngb-docs"* ]]; then
+            DOCS_VERSION=$versioned_file
+        fi
     done
 
     echo "Publishing ${VERSION} distribution"
