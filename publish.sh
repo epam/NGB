@@ -27,9 +27,9 @@ do
         if [[ -d $file ]]; then
             continue
         fi
-        ext="${file##*.}"
-        filename="${file%.*}"
-        cp -rf "$file" "${VERSION}/${filename}-${VERSION}.${ext}"
+        ext="${file#*.}"
+        filename="${file%%.*}"
+        echo cp -rf "$file" "${VERSION}/${filename}-${VERSION}.${ext}"
     done
 
     echo "Publishing ${VERSION} distribution"
