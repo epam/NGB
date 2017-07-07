@@ -12,7 +12,7 @@ def buildNumber = hasProperty("buildNumber") ? buildNumber : ""
 def profile = hasProperty("profile") ? profile : "release"
 
 allprojects {
-    version = new Version(major: 2, minor: 5, patch: 0, build: buildNumber)
+    version = new Version(major: 2, minor: 5, patch: 0, build: buildNumber)    
     task printVersion {
         doFirst {
             println "Project version is $version"
@@ -97,7 +97,7 @@ task buildCli(type: GradleBuild) {
     dir = "$rootDir/ngb-cli/catgenome"
     doLast {
         copy {
-            from "$cliBuilds/ngb-cli.tar"
+            from "$cliBuilds/ngb-cli.tar.gz"
             into distDir
         }
     }
@@ -121,9 +121,9 @@ task buildDoc(type: Tar) {
     dependsOn runMkdocs
     from("$rootDir/docs/site") {
     }
-    archiveName = "ngb-docs.tgz"
+    archiveName = "ngb-docs.tar.gz"
     destinationDir file(distDir)
-    extension = 'tgz'
+    extension = 'tar.gz'
     compression = Compression.GZIP
 }
 
