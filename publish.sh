@@ -29,7 +29,7 @@ do
         fi
         ext="${file#*.}"
         filename="${file%%.*}"
-        echo cp -rf "$file" "${VERSION}/${filename}-${VERSION}.${ext}"
+        cp -rf "$file" "${VERSION}/${filename}-${VERSION}.${ext}"
     done
 
     echo "Publishing ${VERSION} distribution"
