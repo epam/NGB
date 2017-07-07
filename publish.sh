@@ -12,8 +12,11 @@ echo "Starting deployment"
 NGB_VERSION=$(./gradlew :printVersion -PbuildNumber=$TRAVIS_JOB_NUMBER |  grep "Project version is " | sed 's/^.*is //')
 echo "Current version is ${NGB_VERSION}"
 
-# Demo server - binaries
+# Store ssh key
+echo -e ${DEMO_KEY} > demo.pem
+sudo chmod 600 demo.pem
 
+# Demo server - binaries
 DIST="dist"
 cd ${DIST}
 
@@ -40,15 +43,12 @@ do
 
     echo "Publishing ${VERSION} distribution"
 
-    echo -e ${DEMO_KEY} > demo.pem
-    sudo chmod 600 demo.pem
-
-    sudo ssh ${DEMO_USER}@${DEMO_SRV} -o StrictHostKeyChecking=no -i demo.pem \
+    sudo ssh ${DEMO_USER}@${DEMO_SRV} -o StrictHostKeyChecking=no -i ../demo.pem \
         "test -d ${DEMO_PATH}/${VERSION} || mkdir -p ${DEMO_PATH}/${VERSION}"
 
-    sudo rsync -rave "ssh -o StrictHostKeyChecking=no -i demo.pem" ${VERSION}/* ${DEMO_USER}@${DEMO_SRV}:${DEMO_PATH}/${VERSION}
+    sudo rsync -rave "ssh -o StrictHostKeyChecking=no -i ../demo.pem" ${VERSION}/* ${DEMO_USER}@${DEMO_SRV}:${DEMO_PATH}/${VERSION}
 
-    sudo ssh ${DEMO_USER}@${DEMO_SRV} -o StrictHostKeyChecking=no -i demo.pem \
+    sudo ssh ${DEMO_USER}@${DEMO_SRV} -o StrictHostKeyChecking=no -i ../demo.pem \
         "cd ${DEMO_PATH} &&" \
         "rm -rf ${VERSION}/docs &&" \
         "mkdir -p ${VERSION}/docs &&" \
