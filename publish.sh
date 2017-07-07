@@ -38,7 +38,7 @@ do
     sudo chmod 600 demo.pem
 
     sudo ssh ${DEMO_USER}@${DEMO_SRV} -o StrictHostKeyChecking=no -i demo.pem \
-        "test -d ${DEMO_PATH}/${VERSION} || mkdir -R ${DEMO_PATH}/${VERSION}"
+        "test -d ${DEMO_PATH}/${VERSION} || mkdir -p ${DEMO_PATH}/${VERSION}"
 
     sudo rsync -rave "ssh -o StrictHostKeyChecking=no -i demo.pem" ${VERSION}/* ${DEMO_USER}@${DEMO_SRV}:${DEMO_PATH}/${VERSION}
 
