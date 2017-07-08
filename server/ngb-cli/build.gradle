@@ -84,11 +84,12 @@ distZip {
 }
 
 distTar {
+    compression = Compression.GZIP
     doFirst{
         setVersion('')
     }
     doLast {
-        file("$destinationDir/$archiveName").renameTo("$destinationDir/" + baseName+'.tar')
+        file("$destinationDir/$archiveName").renameTo("$destinationDir/" + baseName+'.tar.gz')
     }
 }
 
