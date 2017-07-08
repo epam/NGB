@@ -28,6 +28,6 @@ done
 # Run tests
 ./gradlew integrationCliTest -PcliPath=${CLI_BIN_PATH} -PresourcePath=${TEST_DATA_PATH} -PresourceRelativePath=${TEST_DATA_RELATIVE_PATH} -PtestCases=${TEST_CASES_PATH}
 
-rm -r $TEST_DATA_PATH
-rm catgenome
-rm nohup.out
+rm -rf $TEST_DATA_PATH
+rm -f catgenome
+rm -f nohup.out
