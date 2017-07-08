@@ -12,4 +12,9 @@ deploy:
     skip_cleanup: true
     script: DEMO_PATH=${DEMO_PATH}/dev && ./publish.sh
     on:
-      branch: f_auto_publish
+      branch: develop
+  - provider: script
+    skip_cleanup: true
+    script: ./publish.sh
+    on:
+      branch: master
