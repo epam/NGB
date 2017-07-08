@@ -19,7 +19,7 @@ cp "$TEST_DATA_PATH/CantonS.09-28.trim.dm606.realign_X_2L.bam" "$TEST_DATA_PATH/
 tar -zxf $CLI_PATH -C $DIST_PATH
 
 # Run NGB server
-nohup java -jar ${JAR_PATH} & 
+nohup java -jar ${JAR_PATH} 1>nohup.log 2>nohup.stderr.log &
 printf 'Waiting for NGB to start'
 until $(wget http://localhost:8080/catgenome); do
     sleep 3
