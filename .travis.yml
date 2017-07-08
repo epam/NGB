@@ -10,6 +10,11 @@ script: ./gradlew buildJar buildWar buildCli buildDoc -PbuildNumber=${TRAVIS_JOB
 deploy:
   - provider: script
     skip_cleanup: true
+    script: DEMO_PATH=${DEMO_PATH}/f_auto_publish && ./publish.sh
+    on:
+      branch: f_auto_publish
+  - provider: script
+    skip_cleanup: true
     script: DEMO_PATH=${DEMO_PATH}/dev && ./publish.sh
     on:
       branch: develop
