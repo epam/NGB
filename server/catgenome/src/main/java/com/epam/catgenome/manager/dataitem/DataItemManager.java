@@ -86,7 +86,7 @@ public class DataItemManager {
      *               otherwise a substring, case insensitive search is performed
      * @return list of found files
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BiologicalDataItem> findFilesByName(final String name, boolean strict) {
         if (strict) {
             return biologicalDataItemDao.loadFilesByNameStrict(name);

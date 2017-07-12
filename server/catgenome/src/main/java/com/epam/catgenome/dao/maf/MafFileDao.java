@@ -98,7 +98,7 @@ public class MafFileDao extends NamedParameterJdbcDaoSupport {
      * @param referenceId {@code long} a reference ID in the system
      * @return a {@code List} of {@code MafFile} instances
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<MafFile> loadMafFilesByReferenceId(long referenceId) {
         return getJdbcTemplate().query(loadMafFilesByReferenceIdQuery, BiologicalDataItemDao
                 .BiologicalDataItemParameters.getRowMapper(), referenceId)
@@ -110,7 +110,7 @@ public class MafFileDao extends NamedParameterJdbcDaoSupport {
      * @param id {@code long} a MafFile ID
      * @return {@code MafFile} instance
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public MafFile loadMafFile(long id) {
         List<BiologicalDataItem> files = getJdbcTemplate().query(loadMafFileQuery, BiologicalDataItemDao
                 .BiologicalDataItemParameters.getRowMapper(), id);

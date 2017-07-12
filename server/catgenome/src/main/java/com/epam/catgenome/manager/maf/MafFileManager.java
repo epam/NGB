@@ -70,7 +70,7 @@ public class MafFileManager {
      * @param mafFileId {@code long} a MafFile ID
      * @return {@code MafFile} instance
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public MafFile loadMafFile(long mafFileId) {
         MafFile mafFile = mafFileDao.loadMafFile(mafFileId);
         Assert.notNull(mafFile, "MAF file with requested ID not found: " + mafFileId);
@@ -82,7 +82,7 @@ public class MafFileManager {
      * @param mafFileId {@code long} a MafFile ID
      * @return {@code MafFile} instance
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public MafFile loadMafFileNullable(long mafFileId) {
         MafFile mafFile = mafFileDao.loadMafFile(mafFileId);
         return mafFile;
@@ -102,7 +102,7 @@ public class MafFileManager {
      * @param referenceId {@code long} a reference ID in the system
      * @return {@code List&lt;MafFile&gt;} instance
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<MafFile> loadMafFilesByReferenceId(long referenceId) {
         return mafFileDao.loadMafFilesByReferenceId(referenceId);
     }

@@ -89,7 +89,7 @@ public class VcfFileManager {
      * @param vcfFileId {@code long} a VcfFile ID
      * @return {@code VcfFile} instance
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public VcfFile loadVcfFile(Long vcfFileId) {
         VcfFile vcfFile = vcfFileDao.loadVcfFile(vcfFileId);
         if (vcfFile != null) {
@@ -154,7 +154,7 @@ public class VcfFileManager {
      * @param referenceId {@code long} a reference ID in the system
      * @return {@code List&lt;VcfFile&gt;} instance
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<VcfFile> loadVcfFilesByReferenceId(long referenceId) {
         List<VcfFile> files = vcfFileDao.loadVcfFilesByReferenceId(referenceId);
 

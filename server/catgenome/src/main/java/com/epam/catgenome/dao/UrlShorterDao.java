@@ -59,7 +59,7 @@ public class UrlShorterDao extends NamedParameterJdbcDaoSupport {
         getNamedParameterJdbcTemplate().update(insertUrlQuery, params);
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Optional<String> loadUrlById(String id) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(Parameters.ID.name(), id);

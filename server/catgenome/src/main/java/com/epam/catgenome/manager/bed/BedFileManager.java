@@ -75,7 +75,7 @@ public class BedFileManager {
      * @param bedFileId {@code long} a BedFile ID
      * @return {@code BedFile} instance
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public BedFile loadBedFile(long bedFileId) {
         return bedFileDao.loadBedFile(bedFileId);
     }
@@ -96,7 +96,7 @@ public class BedFileManager {
      * @param referenceId {@code long} a reference ID in the system
      * @return {@code List&lt;BedFile&gt;} instance
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BedFile> loadBedFilesByReferenceId(long referenceId) {
         return bedFileDao.loadBedFilesByReferenceId(referenceId);
     }

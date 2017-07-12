@@ -173,7 +173,7 @@ public class FeatureIndexManager {
      */
     public Set<String> searchGenesInVcfFilesInProject(long projectId, String gene, List<Long> vcfFileIds)
             throws IOException {
-        Project project = projectManager.loadProject(projectId);
+        Project project = projectManager.loadProjectAndUpdateLastOpenedDate(projectId);
         List<VcfFile> vcfFiles = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
@@ -214,7 +214,7 @@ public class FeatureIndexManager {
     public List<Chromosome> filterChromosomes(VcfFilterForm filterForm, long projectId) throws IOException {
         Assert.isTrue(filterForm.getVcfFileIds() != null && !filterForm.getVcfFileIds().isEmpty(), MessageHelper
                 .getMessage(MessagesConstants.ERROR_NULL_PARAM, VCF_FILE_IDS_FIELD));
-        Project project = projectManager.loadProject(projectId);
+        Project project = projectManager.loadProjectAndUpdateLastOpenedDate(projectId);
         List<VcfFile> vcfFiles = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
@@ -262,7 +262,7 @@ public class FeatureIndexManager {
      */
     public IndexSearchResult<VcfIndexEntry> filterVariations(VcfFilterForm filterForm, long projectId)
         throws IOException {
-        Project project = projectManager.loadProject(projectId);
+        Project project = projectManager.loadProjectAndUpdateLastOpenedDate(projectId);
         List<VcfFile> files = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
@@ -298,7 +298,7 @@ public class FeatureIndexManager {
             throw new IllegalArgumentException("No page size is specified");
         }
 
-        Project project = projectManager.loadProject(projectId);
+        Project project = projectManager.loadProjectAndUpdateLastOpenedDate(projectId);
         List<VcfFile> files = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
@@ -318,7 +318,7 @@ public class FeatureIndexManager {
      */
     public List<Group> groupVariations(VcfFilterForm filterForm, long projectId, String groupByField)
         throws IOException {
-        Project project = projectManager.loadProject(projectId);
+        Project project = projectManager.loadProjectAndUpdateLastOpenedDate(projectId);
         List<VcfFile> files = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
@@ -379,7 +379,7 @@ public class FeatureIndexManager {
         IndexSearchResult<FeatureIndexEntry> bookmarkSearchRes = bookmarkManager.searchBookmarks(featureId,
                                                                                          maxFeatureSearchResultsCount);
 
-        Project project = projectManager.loadProject(projectId);
+        Project project = projectManager.loadProjectAndUpdateLastOpenedDate(projectId);
         Optional<Reference> maybeReference = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE)
             .map(i -> (Reference) i.getBioDataItem()).findFirst();
@@ -440,7 +440,7 @@ public class FeatureIndexManager {
      * @throws IOException
      */
     public VcfFilterInfo loadVcfFilterInfoForProject(long projectId) throws IOException {
-        Project project = projectManager.loadProject(projectId);
+        Project project = projectManager.loadProjectAndUpdateLastOpenedDate(projectId);
         List<Long> vcfIds = project.getItems().stream()
                 .filter(item -> item.getBioDataItem() != null
                         && item.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)

@@ -90,7 +90,7 @@ public class BamFileDao extends NamedParameterJdbcDaoSupport {
      * @param id {@code long} a BamFile ID
      * @return {@code BamFile} instance
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public BamFile loadBamFile(long id) {
         List<BiologicalDataItem> files = getJdbcTemplate().query(loadBamFileQuery, BiologicalDataItemDao
                 .BiologicalDataItemParameters.getRowMapper(), id);
@@ -103,7 +103,7 @@ public class BamFileDao extends NamedParameterJdbcDaoSupport {
      * @param referenceId {@code long} a reference ID in the system
      * @return {@code List&lt;BamFile&gt;} instance
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BamFile> loadBamFilesByReferenceId(long referenceId) {
         return getJdbcTemplate().query(loadBamFilesByReferenceIdQuery, BiologicalDataItemDao
                 .BiologicalDataItemParameters.getRowMapper(), referenceId)
@@ -115,7 +115,7 @@ public class BamFileDao extends NamedParameterJdbcDaoSupport {
      * @param name BAM file name
      * @return true, is file is already registered otherwise false
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Boolean hasThisName(String name) {
         List<String> names = getJdbcTemplate().query(searchByNameBamFileQuery,
                 new SingleColumnRowMapper<>(), name);

@@ -80,7 +80,7 @@ public class SegFileManager {
      * @param segFileId {@code long} a BedFile ID
      * @return {@code SegFile} instance
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public SegFile loadSegFile(long segFileId) {
         SegFile segFile = segFileDao.loadSegFile(segFileId);
 
@@ -107,7 +107,7 @@ public class SegFileManager {
      * @param referenceId {@code long} a reference ID in the system
      * @return {@code List&lt;SegFile&gt;} instance
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<SegFile> loadSedFilesByReferenceId(long referenceId) {
         return segFileDao.loadSegFilesByReferenceId(referenceId);
     }

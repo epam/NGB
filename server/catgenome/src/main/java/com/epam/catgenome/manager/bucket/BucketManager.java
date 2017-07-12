@@ -66,7 +66,7 @@ public class BucketManager {
      * @param bucketId {@code Long} a bucket ID
      * @return {@code Bucket} instance
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Bucket loadBucket(final Long bucketId) {
         return bucketDao.loadBucketById(bucketId);
     }
@@ -76,7 +76,7 @@ public class BucketManager {
      *
      * @return {@code List&lt;Bucket&gt;} instance
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Bucket> loadAllBucket() {
         return bucketDao.loadAllBucket();
     }

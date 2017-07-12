@@ -83,7 +83,7 @@ public class BamFileManager {
      * @param bamFileId {@code long} a BamFile ID
      * @return {@code BamFile} instance
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public BamFile loadBamFile(Long bamFileId) {
         return bamFileDao.loadBamFile(bamFileId);
     }
@@ -94,7 +94,7 @@ public class BamFileManager {
      * @param referenceId {@code long} a reference ID in the system
      * @return {@code List&lt;BamFile&gt;} instance
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BamFile> loadBamFilesByReferenceId(long referenceId) {
         return bamFileDao.loadBamFilesByReferenceId(referenceId);
     }
