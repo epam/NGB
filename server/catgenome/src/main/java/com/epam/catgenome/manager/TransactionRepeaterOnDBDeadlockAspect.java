@@ -12,17 +12,17 @@ import org.springframework.stereotype.Component;
 
 @Aspect
 @Component
-public class TransactionRetryerOnDBDeadlockAspect implements Ordered {
+public class TransactionRepeaterOnDBDeadlockAspect implements Ordered {
 
-	public static final Logger logger = LoggerFactory.getLogger(TransactionRetryerOnDBDeadlockAspect.class);
+	public static final Logger logger = LoggerFactory.getLogger(TransactionRepeaterOnDBDeadlockAspect.class);
 
-	private static final int ASPECT_ORDER = -1;
+	private static final int ASPECT_ORDER = Ordered.HIGHEST_PRECEDENCE;
 
 	/** Order for this aspect, should be lower than for transaction manager which has 100 **/
 	protected int order = ASPECT_ORDER;
 
 	/** How many retries should be tried on deadlock **/
-	@Value("#{catgenome['transaction.retry.attempts'] ?: 3}")
+	@Value("#{catgenome['transaction.retry.attempts'] ?: 5}")
 	private int maxRetryCount;
 
 	/** How big is delay between deadlock retry (in ms) **/
@@ -37,10 +37,7 @@ public class TransactionRetryerOnDBDeadlockAspect implements Ordered {
 		int numAttempts = 0;
 		DataAccessException dataAccessException;
 		do {
-
-			if (logger.isDebugEnabled() && numAttempts > 0) {
-				logger.debug("Try to proceed transaction with after failure. Attempt = %d", numAttempts);
-			}
+			delayBeforeRetry(numAttempts);
 
 			numAttempts++;
 			try {
@@ -52,8 +49,17 @@ public class TransactionRetryerOnDBDeadlockAspect implements Ordered {
 		}
 		while(numAttempts <= this.maxRetryCount);
 
-		logger.error("All transaction attempts failed, %s will thrown", dataAccessException.getClass().getName());
+		logger.error("All transaction attempts failed, {} will thrown", dataAccessException.getClass().getName());
 		throw dataAccessException;
+	}
+
+	private void delayBeforeRetry(int numAttempts) throws InterruptedException {
+		if (numAttempts > 0) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Try to proceed transaction with after failure. Attempt = {}", numAttempts);
+            }
+            Thread.sleep(delay);
+        }
 	}
 
 	@Override
