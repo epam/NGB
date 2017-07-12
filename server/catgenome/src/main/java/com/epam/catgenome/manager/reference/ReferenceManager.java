@@ -312,8 +312,8 @@ import com.epam.catgenome.util.Utils;
      * @return deleted reference
      * @throws IOException if an error occurred during deleting directory
      */
-    @Transactional(propagation = Propagation.REQUIRED) public Reference unregisterGenome(
-            final long referenceId) throws IOException {
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Reference unregisterGenome(final long referenceId) throws IOException {
         Assert.notNull(referenceId, MessagesConstants.ERROR_INVALID_PARAM);
         Assert.isTrue(referenceId > 0, MessagesConstants.ERROR_INVALID_PARAM);
         Reference reference = referenceGenomeManager.loadReferenceGenome(referenceId);

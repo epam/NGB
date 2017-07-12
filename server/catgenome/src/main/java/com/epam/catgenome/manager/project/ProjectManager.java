@@ -164,7 +164,7 @@ public class ProjectManager {
         });
 
         if (parentId != null) {
-            Project topProject = loadProject(parentId);
+            Project topProject = loadProjectAndUpdateLastOpenedDate(parentId);
             Assert.notNull(topProject,
                     MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, parentId));
             topProject.setNestedProjects(hierarchyMap.get(parentId));
@@ -181,7 +181,7 @@ public class ProjectManager {
      * @return a {@code Project} from the database
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public Project loadProject(long projectId) {
+    public Project loadProjectAndUpdateLastOpenedDate(long projectId) {
         Project project = projectDao.loadProject(projectId);
         Assert.notNull(project, MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, projectId));
 
@@ -197,11 +197,12 @@ public class ProjectManager {
      * @return a {@code Project} from the database
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public Project loadProject(String projectName) {
+    public Project loadProjectAndUpdateLastOpenedDate(String projectName) {
         Project project = projectDao.loadProject(projectName);
         Assert.notNull(project, MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, projectName));
 
         loadProjectStuff(project);
+        updateLastOpenedDate(project);
 
         return project;
     }
@@ -209,6 +210,9 @@ public class ProjectManager {
     private void loadProjectStuff(Project project) {
         loadProjectItems(project);
         project.setNestedProjects(projectDao.loadNestedProjects(project.getId()));
+    }
+
+    private void updateLastOpenedDate(Project project) {
         projectDao.updateLastOpenedDate(project.getId());
     }
 
@@ -290,7 +294,7 @@ public class ProjectManager {
             List<ProjectItem> newProjectItems = helpProject.getItems()
                     .stream().distinct().collect(Collectors.toList());
             if (!newProject) {
-                Project loadedProject = loadProject(helpProject.getId());
+                Project loadedProject = loadProjectAndUpdateLastOpenedDate(helpProject.getId());
 
                 Set<Long> existingBioIds = new HashSet<>();
                 Set<Long> newBioIds = new HashSet<>();
@@ -348,7 +352,7 @@ public class ProjectManager {
                 List<VcfFile> vcfFilesToDelete = new ArrayList<>();
                 itemsRemoved.stream().forEach(item -> fillFileTypeLists(item, geneFileToDelete, vcfFilesToDelete));
 
-                helpProject = loadProject(helpProject.getId());
+                helpProject = loadProjectAndUpdateLastOpenedDate(helpProject.getId());
 
             } else {
                 List<BiologicalDataItem> dataItems = biologicalDataItemDao.loadBiologicalDataItemsByIds(
@@ -360,7 +364,7 @@ public class ProjectManager {
                 checkReference(reference, dataItems);
 
                 projectDao.addProjectItems(helpProject.getId(), newProjectItems);
-                helpProject = loadProject(helpProject.getId());
+                helpProject = loadProjectAndUpdateLastOpenedDate(helpProject.getId());
                 List<VcfFile> newVcfFiles = new ArrayList<>();
                 List<GeneFile> newGeneFiles = new ArrayList<>();
                 dataItems.forEach(i -> fillFileTypeLists(i, newGeneFiles, newVcfFiles));
@@ -414,7 +418,8 @@ public class ProjectManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public Project deleteProject(Long projectId, Boolean force) throws IOException {
-        Project projectToDelete = loadProject(projectId); // Throws an error if there is no such project
+        // Throws an error if there is no such project
+        Project projectToDelete = loadProjectAndUpdateLastOpenedDate(projectId);
         //if force flag is disabled that we can't delete parent project
         if (!force) {
             List<Project> nestedProjects = projectDao.loadNestedProjects(projectId);
@@ -439,7 +444,7 @@ public class ProjectManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public Project addProjectItem(long projectId, long biologicalItemId) {
-        Project loadedProject = loadProject(projectId);
+        Project loadedProject = loadProjectAndUpdateLastOpenedDate(projectId);
         Reference reference = findReference(loadedProject.getItems());
         List<BiologicalDataItem> itemsToAdd = biologicalDataItemDao
                 .loadBiologicalDataItemsByIds(Collections.singletonList(biologicalItemId));
@@ -453,7 +458,7 @@ public class ProjectManager {
             checkReference(reference, itemsToAdd);
             projectDao.addProjectItem(projectId, biologicalItemId);
         }
-        return loadProject(projectId);
+        return loadProjectAndUpdateLastOpenedDate(projectId);
     }
 
     /**
@@ -467,7 +472,7 @@ public class ProjectManager {
             throws FeatureIndexException {
         projectDao.deleteProjectItem(projectId, biologicalItemId);
 
-        return loadProject(projectId);
+        return loadProjectAndUpdateLastOpenedDate(projectId);
     }
 
     /**

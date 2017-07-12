@@ -94,7 +94,7 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
      * @param id {@code long} a GeneFile ID
      * @return {@code GeneFile} instance
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public GeneFile loadGeneFile(long id) {
         List<BiologicalDataItem> files = getJdbcTemplate().query(loadGeneFileQuery, BiologicalDataItemDao
                 .BiologicalDataItemParameters.getRowMapper(), id);
@@ -121,7 +121,7 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
      * @param referenceId {@code long} a reference ID in the system
      * @return {@code List&lt;GeneFile&gt;} instance
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<GeneFile> loadGeneFilesByReferenceId(long referenceId) {
         return getJdbcTemplate().query(loadGeneFilesByReferenceIdQuery, BiologicalDataItemDao
                 .BiologicalDataItemParameters.getRowMapper(), referenceId)

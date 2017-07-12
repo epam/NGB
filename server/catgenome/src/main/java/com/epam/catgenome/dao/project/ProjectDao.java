@@ -122,14 +122,14 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param userId {@code Long} an ID of a user to load projects for.
      * @return a {@code List&lt;Project&gt;} of projects, created by specified user.
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Project> loadTopLevelProjectsOrderByLastOpened(long userId) {
         return getJdbcTemplate().query(loadTopLevelProjectsForUserOrderByLastOpenedQuery,
                                        ProjectParameters.getRowMapper(), userId);
     }
 
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Project> loadAllProjects(long userId) {
         return getJdbcTemplate().query(loadAllProjectsQuery, ProjectParameters.getRowMapper(), userId);
     }
@@ -139,7 +139,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param userId {@code Long} an ID of a user to load projects for.
      * @return a {@code List&lt;Project&gt;} of projects, created by specified user.
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Project> loadTopLevelProjects(long userId) {
         return getJdbcTemplate().query(loadTopLevelProjectsForUserQuery, ProjectParameters.getRowMapper(), userId);
     }
@@ -149,7 +149,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param parentId a parent Project's ID to load nested projects
      * @return a list of nested {@code Project}s
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Project> loadNestedProjects(long parentId) {
         return getJdbcTemplate().query(loadProjectsByParentIdQuery, ProjectParameters.getRowMapper(), parentId);
     }
@@ -183,7 +183,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param projectId {@code Long} an ID of a project from
      * @return a {@code Project} instance from the database
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Project loadProject(long projectId) {
         List<Project> projects = getJdbcTemplate().query(loadProjectByIdQuery, ProjectParameters.getRowMapper(),
                                                          projectId);
@@ -195,14 +195,14 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param projectName {@code String} a name of a project
      * @return a {@code Project} instance from the database
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Project loadProject(String projectName) {
         List<Project> projects = getJdbcTemplate().query(loadProjectByNameQuery, ProjectParameters.getRowMapper(),
                                                          projectName);
         return projects.isEmpty() ? null : projects.get(0);
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Project> loadProjectsByBioDataItemId(final long bioDataItemId) {
         return getJdbcTemplate().query(loadProjectsByBioDataItemIdQuery, ProjectParameters.getRowMapper(),
                                        bioDataItemId);
@@ -268,7 +268,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param projectId Id of a project to load ProjectItems
      * @return a List of ProjectItems
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<ProjectItem> loadProjectItemsByProjectId(long projectId) {
         return getJdbcTemplate().query(loadProjectItemsByProjectIdQuery, ProjectItemParameters.getRowMapper(),
                 projectId);
@@ -289,7 +289,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         return loadProjectItemsByList(listId);
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Map<Long, Set<ProjectItem>> loadAllProjectItems() {
         Map<Long, Set<ProjectItem>> itemsMap = new HashMap<>();
         final RowMapper<ProjectItem> projectItemRowMapper = ProjectItemParameters.getSimpleItemMapper();
@@ -487,7 +487,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
      * @param biologicalItemId {@code Long} ID of an item to test
      * @return {@code true} if project item is hidden, {@code false} if not
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Boolean isProjectItemHidden(long projectId, long biologicalItemId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(ProjectItemParameters.PROJECT_ID.name(), projectId);

@@ -115,7 +115,7 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
      * @param id {@code long} a VcfFile ID
      * @return {@code VcfFile} instance
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public VcfFile loadVcfFile(long id) {
         List<BiologicalDataItem> files = getJdbcTemplate().query(loadVcfFileQuery, BiologicalDataItemDao
                 .BiologicalDataItemParameters.getRowMapper(), id);
@@ -143,7 +143,7 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
      * @param referenceId {@code long} a reference ID in the system
      * @return {@code List&lt;VcfFile&gt;} instance
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<VcfFile> loadVcfFilesByReferenceId(long referenceId) {
         return getJdbcTemplate().query(loadVcfFilesByReferenceIdQuery, BiologicalDataItemDao
                 .BiologicalDataItemParameters.getRowMapper(), referenceId)
@@ -194,7 +194,7 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
      * @param vcfFileId {@code long} file ID for which samples were saved.
      * @return {@code List&lt;Sample&gt;} of samples for given file ID.
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<VcfSample> loadSamplesForFile(long vcfFileId) {
         return getJdbcTemplate().query(loadSamplesForFileQuery, SampleParameters.getVcfSampleMapper(), vcfFileId);
     }
@@ -235,7 +235,7 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
      * @return {@code Map&lt;Long, List&lt;Sample&gt;&gt;} with file IDs for giver reference ID as keys, and with
      * lists of samples, corresponding this file IDs as values.
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Map<Long, List<VcfSample>> loadSamplesForFilesByReference(long vcfFileId) {
         Map<Long, List<VcfSample>> sampleFileMap = new HashMap<>();
 

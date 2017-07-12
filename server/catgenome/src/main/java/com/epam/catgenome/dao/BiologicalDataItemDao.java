@@ -165,7 +165,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
      * @param name search query
      * @return {@code List} of files with a matching name
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BiologicalDataItem> loadFilesByNameStrict(final String name) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(BiologicalDataItemParameters.NAME.name(), name);
@@ -173,7 +173,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
                 params, getRowMapper());
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BiologicalDataItem> loadFilesByNameCaseInsensitive(final String name) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(BiologicalDataItemParameters.NAME.name(), name.toLowerCase());
@@ -201,7 +201,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
      * @param name search query
      * @return {@code List} of files with a matching name
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BiologicalDataItem> loadFilesByName(final String name) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(BiologicalDataItemParameters.NAME.name(), "%" + name.toLowerCase() + "%");

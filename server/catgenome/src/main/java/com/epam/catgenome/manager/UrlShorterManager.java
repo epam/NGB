@@ -82,7 +82,7 @@ public class UrlShorterManager {
     /**
      * Load original url by given short url-postfix.
      * */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Optional<String> getOriginalUrl(String id) {
         return urlShorterDao.loadUrlById(id);
     }

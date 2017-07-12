@@ -79,7 +79,7 @@ public class BookmarkManager {
      * Loads {@code Bookmark} entities for current user
      * @return a {@code List} of {@code Bookmark} entities
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Bookmark> loadBookmarksByProject() {
         return bookmarkDao.loadAllBookmarks(AuthUtils.getCurrentUserId());
     }
@@ -140,7 +140,6 @@ public class BookmarkManager {
      * @param limit search result count
      * @return an {@link IndexSearchResult} object, that contains search results
      */
-    @Transactional(propagation = Propagation.REQUIRED)
     public IndexSearchResult<FeatureIndexEntry> searchBookmarks(String searchStr, int limit) {
         int bookmarksCount = bookmarkDao.searchBookmarkCount(searchStr, AuthUtils.getCurrentUserId());
         List<Bookmark> bookmarks = bookmarkDao.searchBookmarks(searchStr, AuthUtils.getCurrentUserId(), limit);

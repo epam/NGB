@@ -78,14 +78,14 @@ public class PersonManager {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Person loadPersonByNameAndPassword(String name, String password) {
         Person person = personDao.loadPersonByNameAndPassword(name, password);
         Assert.notNull(person, "Unauthorized: Incorrect user name or password");
         return person;
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Person loadPersonById(long personId) {
         return personDao.loadPersonById(personId);
     }

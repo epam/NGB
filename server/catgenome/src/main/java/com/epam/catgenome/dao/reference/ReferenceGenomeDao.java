@@ -197,7 +197,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
      * @param referenceId {@code Reference} ID to load
      * @return loaded {@code Reference} instance
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Reference loadReferenceGenome(final Long referenceId) {
         final List<Reference> list = getNamedParameterJdbcTemplate().query(loadReferenceGenomeByIdQuery,
                 new MapSqlParameterSource(GenomeParameters.REFERENCE_GENOME_ID.name(), referenceId),
@@ -210,7 +210,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
      * @param itemID {@code Reference} Biological DataItemID to load
      * @return loaded {@code Reference} instance
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Reference loadReferenceGenomeByBioItemId(final Long itemID) {
         final List<Reference> list = getNamedParameterJdbcTemplate().query(loadReferenceGenomeByBioIdQuery,
                 new MapSqlParameterSource(GenomeParameters.BIO_DATA_ITEM_ID.name(), itemID),
@@ -229,7 +229,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
      * Loads all persisted {@code Reference} entities from the database
      * @return all {@code Reference} instances, saved in the database
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Reference> loadAllReferenceGenomes() {
         return getNamedParameterJdbcTemplate().query(loadAllReferenceGenomesQuery,
                 GenomeParameters.getReferenceGenomeMetaDataMapper());
@@ -268,7 +268,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         this.loadChromosomeByIdQuery = loadChromosomeByIdQuery;
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Chromosome loadChromosome(final Long chromosomeId) {
         final List<Chromosome> list = getNamedParameterJdbcTemplate().query(loadChromosomeByIdQuery,
                 new MapSqlParameterSource(GenomeParameters.CHROMOSOME_ID.name(), chromosomeId),
@@ -277,14 +277,14 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
     }
 
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Chromosome> loadAllChromosomesByReferenceId(final Long referenceId) {
         return getNamedParameterJdbcTemplate().query(loadAllChromosomesByReferenceIdQuery,
                 new MapSqlParameterSource(GenomeParameters.REFERENCE_GENOME_ID.name(), referenceId),
                 GenomeParameters.getChromosomeMapper());
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BaseEntity> loadAllFileByReferenceId(final Long referenceId) {
         return getNamedParameterJdbcTemplate().query(loadBiologicalItemsQuery, new MapSqlParameterSource(
             GenomeParameters.REFERENCE_GENOME_ID.name(), referenceId), GenomeParameters.getBioDataMapper());
@@ -295,7 +295,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
      * @param referenceId ID for the genome
      * @return List of BiologicalDataItem, matching specified IDs
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Long> loadAnnotationFileIdsByReferenceId(Long referenceId) {
         return getNamedParameterJdbcTemplate().query(
                 loadAnnotationDataIdsByReferenceIdQuery,
@@ -336,7 +336,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         getNamedParameterJdbcTemplate().update(deleteAnnotationDataItemByReferenceIdQuery, params);
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Long> loadGenomeIdsByAnnotationDataItemId(Long annotationFileBiologicalItemId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(
