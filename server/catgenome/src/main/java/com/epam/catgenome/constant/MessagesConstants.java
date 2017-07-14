@@ -160,6 +160,8 @@ public final class MessagesConstants {
 
     //WIG
     public static final String WRONG_WIG_FILE = "error.wig.file";
+    public static final String WRONG_BED_GRAPH_FILE = "error.bedgraph.file";
+
 
     //S3
     public static final String ERROR_S3_BUCKET = "error.not.s3.bucket";

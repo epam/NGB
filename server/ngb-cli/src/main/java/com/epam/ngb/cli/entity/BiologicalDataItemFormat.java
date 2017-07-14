@@ -50,7 +50,7 @@ public enum BiologicalDataItemFormat {
     VCF(2, false, true),
     BAM(3, true),
     GENE(4, false, true),
-    WIG(5),
+    WIG(5, false, true),
     VCF_INDEX(6),
     GENE_INDEX(7),
     BAM_INDEX(8),
@@ -101,6 +101,9 @@ public enum BiologicalDataItemFormat {
         EXTENSIONS_MAP.put("bed", BED);
         EXTENSIONS_MAP.put("maf", MAF);
         EXTENSIONS_MAP.put("vg", VG);
+        EXTENSIONS_MAP.put("bdg", WIG);
+        EXTENSIONS_MAP.put("bg", WIG);
+        EXTENSIONS_MAP.put("bedGraph", WIG);
     }
 
     /**

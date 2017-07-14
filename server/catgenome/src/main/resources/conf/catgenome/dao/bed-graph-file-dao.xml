@@ -10,11 +10,15 @@
                     INSERT INTO catgenome.bed_graph (
                         bed_graph_id,
                         bio_data_item_id,
-                        reference_genome_id)
+                        reference_genome_id,
+                        index_id,
+                        compressed)
                     VALUES (
-                        :BED_GRAPH_ID,
-                        :BIO_DATA_ITEM_ID,
-                        :REFERENCE_GENOME_ID)
+                            :BED_GRAPH_ID,
+                            :BIO_DATA_ITEM_ID,
+                            :REFERENCE_GENOME_ID,
+                            :INDEX_ID,
+                            :COMPRESSED)
                 ]]>
             </value>
         </property>
@@ -33,17 +37,20 @@
                         b.pretty_name,
                         bg.bed_graph_id,
                         bg.reference_genome_id as bed_graph_reference_genome_id,
+                        bg.compressed as bed_graph_compressed,
 
-                        null as index_id,
-                        null as index_name,
-                        null as index_type,
-                        null as index_path,
-                        null as index_format,
-                        null as index_bucket_id,
-                        null as index_created_by,
-                        null as index_created_date
+
+                        i.bio_data_item_id as index_id,
+                        i.name as index_name,
+                        i.type as index_type,
+                        i.path as index_path,
+                        i.format as index_format,
+                        i.created_by as index_created_by,
+                        i.bucket_id as index_bucket_id,
+                        i.created_date as index_created_date
                     FROM catgenome.bed_graph bg
                         JOIN catgenome.biological_data_item b ON bg.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.biological_data_item i ON i.bio_data_item_id = bg.index_id
                     WHERE bg.bed_graph_id = ?
                 ]]>
             </value>
@@ -63,17 +70,20 @@
                         b.pretty_name,
                         bg.bed_graph_id,
                         bg.reference_genome_id as bed_graph_reference_genome_id,
+                        bg.compressed as bed_graph_compressed,
 
-                        null as index_id,
-                        null as index_name,
-                        null as index_type,
-                        null as index_path,
-                        null as index_format,
-                        null as index_bucket_id,
-                        null as index_created_by,
-                        null as index_created_date
+
+                        i.bio_data_item_id as index_id,
+                        i.name as index_name,
+                        i.type as index_type,
+                        i.path as index_path,
+                        i.format as index_format,
+                        i.created_by as index_created_by,
+                        i.bucket_id as index_bucket_id,
+                        i.created_date as index_created_date
                     FROM catgenome.bed_graph bg
                         JOIN catgenome.biological_data_item b ON bg.bio_data_item_id = b.bio_data_item_id
+                        LEFT JOIN catgenome.biological_data_item i ON i.bio_data_item_id = bg.index_id
                     WHERE bg.reference_genome_id = ?
                 ]]>
             </value>

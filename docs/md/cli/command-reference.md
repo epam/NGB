@@ -222,7 +222,7 @@ ngb reg_file|rf [<REFERENCE_NAME>|<REFERENCE_ID>] [<PATH_TO_NGS_FILE>] [options]
 
 Registers a specified file. At least two arguments have to be specified:
 Previously registered reference sequence file from NGB server. Reference file can be addressed by name or an identifier
-Flesystem path foor the file to be registered. BAM, VCF, GFF, GTF, BED, SEG files are accepted. GZipped files are also accepted in a format <FILE_NAME>.<FILE_EXT>.gz, e.g.: my_variants.vcf.gz.
+Flesystem path foor the file to be registered. BAM, VCF, GFF, GTF, BED, SEG, WIG, BED GRAPH files are accepted. GZipped files are also accepted in a format <FILE_NAME>.<FILE_EXT>.gz, e.g.: my_variants.vcf.gz.
 BAM file path has to be followed by a '?' symbol and a path to an index file (.BAI) 
 (If a folder with BAM file also contains index for this BAM with the same name, CLI will find this index automatically. 
 It also works well for vcf, bed and gene files). 
