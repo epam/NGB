@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2016 EPAM Systems
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.epam.catgenome.manager.wig.reader;
 
 import htsjdk.tribble.AsciiFeatureCodec;
@@ -8,6 +32,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+/**
+ * Codec for parsing file with BED GRAPH format. Codec decodes {@link BedGraphFeature}
+ * from file line.
+ */
 public class BedGraphCodec extends AsciiFeatureCodec<BedGraphFeature> {
 
     private static final List<String> BED_GRAPH_EXTENSIONS = new ArrayList<>();
@@ -31,6 +59,11 @@ public class BedGraphCodec extends AsciiFeatureCodec<BedGraphFeature> {
         super(BedGraphFeature.class);
     }
 
+    /**
+     * Creates {@link BedGraphFeature} from file line
+     * @param line to decode
+     * @return parsed {@link BedGraphFeature}
+     */
     @Override
     public BedGraphFeature decode(String line) {
 
@@ -49,6 +82,11 @@ public class BedGraphCodec extends AsciiFeatureCodec<BedGraphFeature> {
         );
     }
 
+    /**
+     * This implementation doesn't parse header
+     * @param reader for a file
+     * @return always null
+     */
     @Override
     public Object readActualHeader(LineIterator reader) {
         while (reader.hasNext() &&  reader.peek().isEmpty() || reader.peek().startsWith(COMMENT_LINE)
@@ -59,6 +97,11 @@ public class BedGraphCodec extends AsciiFeatureCodec<BedGraphFeature> {
         return null;
     }
 
+    /**
+     * Check that the codec can decode provided file
+     * @param path to the file
+     * @return true if the file extension one of the bed graph extensions
+     */
     @Override
     public boolean canDecode(String path) {
         return BED_GRAPH_EXTENSIONS.stream().anyMatch(path::endsWith);

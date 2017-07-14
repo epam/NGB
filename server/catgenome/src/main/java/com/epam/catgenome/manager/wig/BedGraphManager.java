@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2016 EPAM Systems
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.epam.catgenome.manager.wig;
 
 import com.epam.catgenome.constant.MessagesConstants;
@@ -25,10 +49,13 @@ import java.util.Map;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
+/**
+ * Manages all work with BedGraph files.
+ * */
 @Service
 public class BedGraphManager extends AbstractWigManager {
 
-    public static final String IDX_EXTENSION = "idx";
+    private static final String IDX_EXTENSION = ".idx";
 
     @Override
     protected Track<Wig> getWigFromFile(final WigFile wigFile, final Track<Wig> track, final Chromosome chromosome)
@@ -78,6 +105,8 @@ public class BedGraphManager extends AbstractWigManager {
                     int chunkStart = bp;
                     int chunkStop = Math.min(bp + WIG_DOWNSAMPLING_WINDOW - 1, stop);
                     float chunkValue = 0;
+                    // guarantee that next.getStart can't throw NPE because we checked that iterator has next,
+                    // before we got next
                     while (query.hasNext() && next.getStart() <= chunkStop) {
                         if (chunkStart <= next.getStart()) {
                             chunkValue = chunkValue < next.getValue() ? next.getValue() : chunkValue;
@@ -90,7 +119,7 @@ public class BedGraphManager extends AbstractWigManager {
             }
         }
         File downsampled = fileManager.writeToBedGraphFile(wigFile, sectionList);
-        File indexFile = new File(downsampled + ".idx");
+        File indexFile = new File(getDownsampledBedGraphIndex(downsampled.getPath()));
         LOGGER.debug("Writing BED_GRAPH index at {}", indexFile.getAbsolutePath());
         IntervalTreeIndex intervalTreeIndex = IndexFactory.createIntervalIndex(downsampled, new BedGraphCodec());
         IndexFactory.writeIndex(intervalTreeIndex, indexFile); // Write it to a file
@@ -115,6 +144,8 @@ public class BedGraphManager extends AbstractWigManager {
             BedGraphFeature next = wigFeatureIterator.hasNext() ? wigFeatureIterator.next() : null;
             for (Wig wig : track.getBlocks()) {
                 float score = 0.0f;
+                // guarantee that next.getStart can't throw NPE because we checked that iterator has next,
+                // before we got next
                 while (wigFeatureIterator.hasNext() && next.getStart() <= wig.getEndIndex()) {
                     score = score < next.getValue() ? next.getValue() : score;
                     if (wig.getEndIndex() >= next.getEnd()) {

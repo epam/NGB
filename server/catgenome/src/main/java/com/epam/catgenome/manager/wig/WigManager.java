@@ -30,6 +30,9 @@ import java.util.NoSuchElementException;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
+/**
+ * Manages all work with Wig files.
+ * */
 @Service
 public class WigManager extends AbstractWigManager {
 
