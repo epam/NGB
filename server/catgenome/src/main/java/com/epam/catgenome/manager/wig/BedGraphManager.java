@@ -35,6 +35,7 @@ import com.epam.catgenome.manager.wig.reader.BedGraphReader;
 import com.epam.catgenome.manager.wig.reader.BedGraphFeature;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.NgbFileUtils;
+import htsjdk.samtools.util.PeekableIterator;
 import htsjdk.tribble.index.IndexFactory;
 import htsjdk.tribble.index.interval.IntervalTreeIndex;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,6 @@ import org.springframework.util.Assert;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -93,28 +93,18 @@ public class BedGraphManager extends AbstractWigManager {
     protected void splitByChromosome(WigFile wigFile, Map<String, Chromosome> chromosomeMap) throws IOException {
         List<BedGraphFeature> sectionList = new ArrayList<>();
         for (Chromosome chromosome : chromosomeMap.values()) {
-            try (BedGraphReader bedGraphReader = new BedGraphReader(wigFile.getPath(), wigFile.getIndex().getPath())) {
-                Iterator<BedGraphFeature> query = bedGraphReader.query(
-                        chromosome.getName(), 1, chromosome.getSize() - 1
-                );
+            try (PeekableIterator<BedGraphFeature> query = new PeekableIterator<>(
+                    new BedGraphReader(wigFile.getPath(), wigFile.getIndex().getPath()).query(
+                        chromosome.getName(), 1, chromosome.getSize() - 1))) {
                 int start = 0;
                 int stop = chromosome.getSize();
                 int bp = start;
-                BedGraphFeature next = query.hasNext() ? query.next() : null;
                 while (bp < stop) {
                     int chunkStart = bp;
                     int chunkStop = Math.min(bp + WIG_DOWNSAMPLING_WINDOW - 1, stop);
-                    float chunkValue = 0;
-                    // guarantee that next.getStart can't throw NPE because we checked that iterator has next,
-                    // before we got next
-                    while (query.hasNext() && next.getStart() <= chunkStop) {
-                        if (chunkStart <= next.getStart()) {
-                            chunkValue = chunkValue < next.getValue() ? next.getValue() : chunkValue;
-                        }
-                        next = query.next();
-                    }
+                    float chunkScore = getScoreForBounds(query, chunkStart, chunkStop);
                     bp = chunkStop + 1;
-                    sectionList.add(new BedGraphFeature(chromosome.getName(), chunkStart, chunkStop, chunkValue));
+                    sectionList.add(new BedGraphFeature(chromosome.getName(), chunkStart, chunkStop, chunkScore));
                 }
             }
         }
@@ -132,31 +122,41 @@ public class BedGraphManager extends AbstractWigManager {
                 getMessage(MessagesConstants.WRONG_BED_GRAPH_FILE));
     }
 
-    private String getDownsampledBedGraphIndex(String downsamplePath) {
-        return downsamplePath + IDX_EXTENSION;
-    }
-
     private void fillBlocksFromFromFile(String bedGraphPath, String bedGraphIndexPath, Track<Wig> track,
                                         String chromosome) throws IOException {
-        try (BedGraphReader bedGraphReader = new BedGraphReader(bedGraphPath, bedGraphIndexPath)) {
-            Iterator<BedGraphFeature> wigFeatureIterator = bedGraphReader.query(
-                    chromosome, track.getStartIndex(), track.getEndIndex());
-            BedGraphFeature next = wigFeatureIterator.hasNext() ? wigFeatureIterator.next() : null;
-            for (Wig wig : track.getBlocks()) {
-                float score = 0.0f;
-                // guarantee that next.getStart can't throw NPE because we checked that iterator has next,
-                // before we got next
-                while (wigFeatureIterator.hasNext() && next.getStart() <= wig.getEndIndex()) {
-                    score = score < next.getValue() ? next.getValue() : score;
-                    if (wig.getEndIndex() >= next.getEnd()) {
-                        next = wigFeatureIterator.next();
-                    } else {
-                        break;
-                    }
-                }
-                wig.setValue(score);
+        try (PeekableIterator<BedGraphFeature> bedGraphFeatureIterator = new PeekableIterator<>(
+                new BedGraphReader(bedGraphPath, bedGraphIndexPath)
+                        .query(chromosome, track.getStartIndex(), track.getEndIndex()))) {
+            for (Wig trackBlock : track.getBlocks()) {
+                float score = getScoreForBounds(
+                        bedGraphFeatureIterator, track.getStartIndex(), trackBlock.getEndIndex()
+                );
+                trackBlock.setValue(score);
             }
         }
+    }
+
+    private float getScoreForBounds(PeekableIterator<BedGraphFeature> query, int chunkStart, int chunkStop) {
+        float score = 0.0f;
+        while (query.hasNext()) {
+            BedGraphFeature bedGraphFeature = query.peek();
+            if (bedGraphFeature.getStart() < chunkStop && bedGraphFeature.getEnd() > chunkStart) {
+                score = score < bedGraphFeature.getValue() ? bedGraphFeature.getValue() : score;
+            }
+
+            if (chunkStop >= bedGraphFeature.getEnd()) {
+                //let's skip future because we already move forward
+                query.next();
+            } else {
+                // we should keep bedGraphFeature for next track block
+                break;
+            }
+        }
+        return score;
+    }
+
+    private String getDownsampledBedGraphIndex(String downsamplePath) {
+        return downsamplePath + IDX_EXTENSION;
     }
 
 }
