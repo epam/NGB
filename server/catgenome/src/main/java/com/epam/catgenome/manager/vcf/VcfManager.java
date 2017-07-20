@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.index.FeatureIndexDao;
+import com.epam.catgenome.util.AuthUtils;
+import com.epam.catgenome.util.DiskBasedList;
+import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.InfoFieldParser;
+import com.epam.catgenome.util.Utils;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLineType;
@@ -104,9 +108,6 @@ import com.epam.catgenome.manager.vcf.reader.AbstractVcfReader;
 import com.epam.catgenome.manager.vcf.reader.VcfFileReader;
 import com.epam.catgenome.manager.vcf.reader.VcfGa4ghReader;
 import com.epam.catgenome.manager.vcf.reader.VcfReader;
-import com.epam.catgenome.util.AuthUtils;
-import com.epam.catgenome.util.IOHelper;
-import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.FeatureReader;
@@ -591,7 +592,9 @@ public class VcfManager {
         VcfFilterInfo info = getFiltersInfo(reader);
         VcfFileReader vcfFileReader = new VcfFileReader(fileManager, referenceGenomeManager);
         VCFHeader vcfHeader = (VCFHeader) reader.getHeader();
-        List<VcfIndexEntry> allEntries = new ArrayList<>();
+
+        List<VcfIndexEntry> allEntries = new DiskBasedList<VcfIndexEntry>().adaptToList();
+
         List<GeneFile> geneFiles  = reference.getGeneFile() != null ?
                                     Collections.singletonList(reference.getGeneFile()) : Collections.emptyList();
 

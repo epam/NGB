@@ -24,6 +24,8 @@
 
 package com.epam.catgenome.entity;
 
+import java.io.Serializable;
+
 /**
  * Source:      BaseEntity.java
  * Created:     10/2/15, 3:39 PM
@@ -36,7 +38,7 @@ package com.epam.catgenome.entity;
  * It should be used to process data from any dictionary and/or can be extended by any other
  * models which have more complex structure.
  */
-public class BaseEntity {
+public class BaseEntity implements Serializable {
 
     /**
      * {@code Long} represents an entity's identifier.
