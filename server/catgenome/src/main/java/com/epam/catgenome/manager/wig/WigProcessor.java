@@ -6,6 +6,8 @@ import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.entity.wig.WigFile;
+import com.epam.catgenome.manager.BiologicalDataItemManager;
+import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.util.Utils;
 import gnu.trove.list.TFloatList;
@@ -15,26 +17,24 @@ import org.jetbrains.bio.big.BigSummary;
 import org.jetbrains.bio.big.BigWigFile;
 import org.jetbrains.bio.big.FixedStepSection;
 import org.jetbrains.bio.big.WigSection;
-import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 /**
  * Manages all work with Wig files.
  * */
-@Service
-public class WigManager extends AbstractWigManager {
+public class WigProcessor extends AbstractWigProcessor {
+
+    public WigProcessor(BiologicalDataItemManager biologicalDataItemManager, FileManager fileManager) {
+        super(biologicalDataItemManager, fileManager);
+    }
 
     @Override
     protected Track<Wig> getWigFromFile(final WigFile wigFile, final Track<Wig> track, final Chromosome chromosome)
@@ -43,14 +43,14 @@ public class WigManager extends AbstractWigManager {
         TrackHelper.fillBlocks(track, indexes -> new Wig(indexes.getLeft(), indexes.getRight()));
         String downsamplePath = fileManager.getWigFilePath(wigFile, chromosome);
         if (dontNeedToUseDownsampling(track, chromosome)) {
-            fillBlocksFromWig(wigFile.getPath(), track, chromosome.getName());
+            fillBlocksFromFile(wigFile.getPath(), track, chromosome.getName());
         } else {
             if (downsamplePath == null) {
                 LOGGER.debug("Downsampled WIG for file {}:{} not found, using original", wigFile.getId(),
                         wigFile.getPath());
-                fillBlocksFromWig(wigFile.getPath(), track, chromosome.getName());
+                fillBlocksFromFile(wigFile.getPath(), track, chromosome.getName());
             } else {
-                fillBlocksFromWig(downsamplePath, track, chromosome.getName());
+                fillBlocksFromFile(downsamplePath, track, chromosome.getName());
             }
         }
         return track;
@@ -61,7 +61,7 @@ public class WigManager extends AbstractWigManager {
         Assert.isTrue(parseWig(requestPath), getMessage(MessagesConstants.WRONG_WIG_FILE));
     }
 
-    protected void splitByChromosome(final WigFile wigFile, final Map<String, Chromosome> chromosomeMap)
+    void splitByChromosome(final WigFile wigFile, final Map<String, Chromosome> chromosomeMap)
             throws IOException {
         try (BigWigFile bigWigFile = BigWigFile.read(new File(wigFile.getPath()).toPath())) {
             for (Object o : bigWigFile.getChromosomes().values()) {
@@ -110,7 +110,7 @@ public class WigManager extends AbstractWigManager {
         return true;
     }
 
-    private void fillBlocksFromWig(final String filePath, final Track<Wig> track, final String chromosomeName)
+    private void fillBlocksFromFile(final String filePath, final Track<Wig> track, final String chromosomeName)
             throws IOException {
         final Path wigPath = Paths.get(filePath);
         LOGGER.debug(getMessage(MessagesConstants.DEBUG_FILE_READING, filePath));

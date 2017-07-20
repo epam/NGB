@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,16 +29,17 @@ import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.entity.wig.WigFile;
+import com.epam.catgenome.manager.BiologicalDataItemManager;
+import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.wig.reader.BedGraphCodec;
-import com.epam.catgenome.manager.wig.reader.BedGraphReader;
 import com.epam.catgenome.manager.wig.reader.BedGraphFeature;
+import com.epam.catgenome.manager.wig.reader.BedGraphReader;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.NgbFileUtils;
 import htsjdk.samtools.util.PeekableIterator;
 import htsjdk.tribble.index.IndexFactory;
 import htsjdk.tribble.index.interval.IntervalTreeIndex;
-import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.io.File;
@@ -52,10 +53,13 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 /**
  * Manages all work with BedGraph files.
  * */
-@Service
-public class BedGraphManager extends AbstractWigManager {
+public class BedGraphProcessor extends AbstractWigProcessor {
 
     private static final String IDX_EXTENSION = ".idx";
+
+    public BedGraphProcessor(BiologicalDataItemManager biologicalDataItemManager, FileManager fileManager) {
+        super(biologicalDataItemManager, fileManager);
+    }
 
     @Override
     protected Track<Wig> getWigFromFile(final WigFile wigFile, final Track<Wig> track, final Chromosome chromosome)
@@ -64,14 +68,14 @@ public class BedGraphManager extends AbstractWigManager {
         TrackHelper.fillBlocks(track, indexes -> new Wig(indexes.getLeft(), indexes.getRight()));
         String downsamplePath = fileManager.getDownsampledBedGraphFilePath(wigFile);
         if (dontNeedToUseDownsampling(track, chromosome)) {
-            fillBlocksFromFromFile(wigFile.getPath(), wigFile.getIndex().getPath(), track, chromosome.getName());
+            fillBlocksFromFile(wigFile.getPath(), wigFile.getIndex().getPath(), track, chromosome.getName());
         } else {
             if (downsamplePath == null) {
                 LOGGER.debug("Downsampled BedGraph for file {}:{} not found, using original", wigFile.getId(),
                         wigFile.getPath());
-                fillBlocksFromFromFile(wigFile.getPath(), wigFile.getIndex().getPath(), track, chromosome.getName());
+                fillBlocksFromFile(wigFile.getPath(), wigFile.getIndex().getPath(), track, chromosome.getName());
             } else {
-                fillBlocksFromFromFile(
+                fillBlocksFromFile(
                         downsamplePath, getDownsampledBedGraphIndex(downsamplePath), track, chromosome.getName()
                 );
             }
@@ -80,11 +84,10 @@ public class BedGraphManager extends AbstractWigManager {
     }
 
     @Override
-    protected void prepareToWorkWigFile(WigFile wigFile) throws IOException {
+    protected void prepareWigFileToWork(WigFile wigFile) throws IOException {
         wigFile.setCompressed(IOHelper.isGZIPFile(wigFile.getPath()));
         fileManager.makeBedGraphIndex(wigFile);
         biologicalDataItemManager.createBiologicalDataItem(wigFile.getIndex());
-        super.prepareToWorkWigFile(wigFile);
     }
 
 
@@ -117,13 +120,13 @@ public class BedGraphManager extends AbstractWigManager {
 
     @Override
     protected void assertFile(String requestPath) {
-        Assert.isTrue(AbstractWigManager.BED_GRAPH_EXTENSIONS.stream()
+        Assert.isTrue(FacadeWigManager.BED_GRAPH_EXTENSIONS.stream()
                         .anyMatch(NgbFileUtils.getFileExtension(requestPath)::contains),
                 getMessage(MessagesConstants.WRONG_BED_GRAPH_FILE));
     }
 
-    private void fillBlocksFromFromFile(String bedGraphPath, String bedGraphIndexPath, Track<Wig> track,
-                                        String chromosome) throws IOException {
+    private void fillBlocksFromFile(String bedGraphPath, String bedGraphIndexPath, Track<Wig> track,
+                                    String chromosome) throws IOException {
         try (PeekableIterator<BedGraphFeature> bedGraphFeatureIterator = new PeekableIterator<>(
                 new BedGraphReader(bedGraphPath, bedGraphIndexPath)
                         .query(chromosome, track.getStartIndex(), track.getEndIndex()))) {

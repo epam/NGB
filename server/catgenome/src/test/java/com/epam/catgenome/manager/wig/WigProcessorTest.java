@@ -24,11 +24,18 @@
 
 package com.epam.catgenome.manager.wig;
 
-import java.io.*;
-import java.security.NoSuchAlgorithmException;
-import java.util.List;
-
-
+import com.epam.catgenome.common.AbstractManagerTest;
+import com.epam.catgenome.controller.vo.registration.FileRegistrationRequest;
+import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
+import com.epam.catgenome.dao.BiologicalDataItemDao;
+import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.entity.track.Track;
+import com.epam.catgenome.entity.wig.Wig;
+import com.epam.catgenome.entity.wig.WigFile;
+import com.epam.catgenome.exception.FeatureFileReadingException;
+import com.epam.catgenome.manager.reference.ReferenceManager;
+import com.epam.catgenome.util.Utils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,34 +50,27 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.epam.catgenome.common.AbstractManagerTest;
-import com.epam.catgenome.controller.vo.registration.FileRegistrationRequest;
-import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
-import com.epam.catgenome.dao.BiologicalDataItemDao;
-import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.entity.wig.Wig;
-import com.epam.catgenome.entity.wig.WigFile;
-import com.epam.catgenome.exception.FeatureFileReadingException;
-import com.epam.catgenome.manager.reference.ReferenceManager;
-import com.epam.catgenome.util.Utils;
+import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
 /**
- * Source:      WigManagerTest.java
+ * Source:      WigProcessorTest.java
  * Created:     1/26/2016
  * Project:     CATGenome Browser
  * Make:        IntelliJ IDEA 14.1.4, JDK 1.8
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class WigManagerTest extends AbstractManagerTest {
+public class WigProcessorTest extends AbstractManagerTest {
 
     public static final String PRETTY_NAME = "pretty";
+
     @Autowired
     ApplicationContext context;
 
     @Autowired
-    private WigManager wigManager;
+    private FacadeWigManager wigManager;
 
     @Autowired
     private WigFileManager wigFileManager;
@@ -81,11 +81,11 @@ public class WigManagerTest extends AbstractManagerTest {
     @Autowired
     private ReferenceManager referenceManager;
 
-    private Logger logger = LoggerFactory.getLogger(WigManagerTest.class);
+    private Logger logger = LoggerFactory.getLogger(WigProcessorTest.class);
 
-    private static final String TEST_NSAME = "BIG " + WigManagerTest.class.getSimpleName();
-    private static final String TEST_REF = "//dm606.X.fa";
-    private static final String TEST_WIG = "//agnX1.09-28.trim.dm606.realign.bw";
+    private static final String TEST_NSAME = "BIG " + WigProcessorTest.class.getSimpleName();
+    private static final String TEST_REF = "/dm606.X.fa";
+    private static final String TEST_WIG = "/agnX1.09-28.trim.dm606.realign.bw";
     private Resource resource;
     private Reference testReference;
     private long testChromosomeId;
@@ -117,7 +117,6 @@ public class WigManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void saveWigTest() throws IOException, NoSuchAlgorithmException {
-
         final String path = resource.getFile().getAbsolutePath() + TEST_WIG;
         FileRegistrationRequest request = new FileRegistrationRequest();
         request.setPath(path);

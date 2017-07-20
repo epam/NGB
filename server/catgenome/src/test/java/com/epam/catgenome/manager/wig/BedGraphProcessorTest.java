@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,21 +53,22 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 /**
- * Source:      WigManagerTest.java
+ * Source:      BedGraphProcessorTest.java
  * Created:     1/26/2016
  * Project:     CATGenome Browser
  * Make:        IntelliJ IDEA 14.1.4, JDK 1.8
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class BedGraphManagerTest extends AbstractManagerTest {
+public class BedGraphProcessorTest extends AbstractManagerTest {
 
     public static final String PRETTY_NAME = "pretty";
+
     @Autowired
     ApplicationContext context;
 
     @Autowired
-    private BedGraphManager bedGraphManager;
+    private FacadeWigManager wigManager;
 
     @Autowired
     private WigFileManager wigFileManager;
@@ -78,10 +79,10 @@ public class BedGraphManagerTest extends AbstractManagerTest {
     @Autowired
     private ReferenceManager referenceManager;
 
-    private static final String TEST_NSAME = "BIG " + BedGraphManagerTest.class.getSimpleName();
-    private static final String TEST_REF = "//dm606.X.fa";
-    private static final String TEST_BDG = "//bedGraph.bdg";
-    private static final String TEST_BDG_GZ = "//bedGraph.bdg.gz";
+    private static final String TEST_NSAME = "BIG " + BedGraphProcessorTest.class.getSimpleName();
+    private static final String TEST_REF = "/dm606.X.fa";
+    private static final String TEST_BDG = "/bedGraph.bdg";
+    private static final String TEST_BDG_GZ = "/bedGraph.bdg.gz";
     private Resource resource;
     private Reference testReference;
     private long testChromosomeId;
@@ -112,7 +113,6 @@ public class BedGraphManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void saveBedGraphTest() throws IOException, NoSuchAlgorithmException {
-
         final String path = resource.getFile().getAbsolutePath() + TEST_BDG;
         FileRegistrationRequest request = new FileRegistrationRequest();
         request.setPath(path);
@@ -120,7 +120,7 @@ public class BedGraphManagerTest extends AbstractManagerTest {
         request.setName(TEST_BDG);
         request.setPrettyName(PRETTY_NAME);
 
-        WigFile wigFile = bedGraphManager.registerWigFile(request);
+        WigFile wigFile = wigManager.registerWigFile(request);
         Assert.assertNotNull(wigFile);
         WigFile loadWigFile = wigFileManager.loadWigFile(wigFile.getId());
         Assert.assertNotNull(loadWigFile);
@@ -138,11 +138,11 @@ public class BedGraphManagerTest extends AbstractManagerTest {
         wigTrack.setEndIndex(TEST_END_INDEX);
         wigTrack.setScaleFactor(TEST_SCALE_FACTOR);
         wigTrack.setId(loadWigFile.getId());
-        bedGraphManager.getWigTrack(wigTrack);
+        wigManager.getWigTrack(wigTrack);
         Assert.assertFalse(wigTrack.getBlocks().isEmpty());
         Assert.assertTrue(wigTrack.getBlocks().stream().allMatch(wig -> wig.getValue() != null));
 
-        bedGraphManager.unregisterWigFile(loadWigFile.getId());
+        wigManager.unregisterWigFile(loadWigFile.getId());
         loadWigFile = wigFileManager.loadWigFile(wigFile.getId());
         Assert.assertNull(loadWigFile);
     }
@@ -150,7 +150,6 @@ public class BedGraphManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void saveBedGraphGzTest() throws IOException, NoSuchAlgorithmException {
-
         final String path = resource.getFile().getAbsolutePath() + TEST_BDG_GZ;
         FileRegistrationRequest request = new FileRegistrationRequest();
         request.setPath(path);
@@ -158,7 +157,7 @@ public class BedGraphManagerTest extends AbstractManagerTest {
         request.setName(TEST_BDG_GZ);
         request.setPrettyName(PRETTY_NAME);
 
-        WigFile wigFile = bedGraphManager.registerWigFile(request);
+        WigFile wigFile = wigManager.registerWigFile(request);
         Assert.assertNotNull(wigFile);
         WigFile loadWigFile = wigFileManager.loadWigFile(wigFile.getId());
         Assert.assertNotNull(loadWigFile);
@@ -176,11 +175,11 @@ public class BedGraphManagerTest extends AbstractManagerTest {
         wigTrack.setEndIndex(TEST_END_INDEX);
         wigTrack.setScaleFactor(TEST_SCALE_FACTOR);
         wigTrack.setId(loadWigFile.getId());
-        bedGraphManager.getWigTrack(wigTrack);
+        wigManager.getWigTrack(wigTrack);
         Assert.assertFalse(wigTrack.getBlocks().isEmpty());
         Assert.assertTrue(wigTrack.getBlocks().stream().allMatch(wig -> wig.getValue() != null));
 
-        bedGraphManager.unregisterWigFile(loadWigFile.getId());
+        wigManager.unregisterWigFile(loadWigFile.getId());
         loadWigFile = wigFileManager.loadWigFile(wigFile.getId());
         Assert.assertNull(loadWigFile);
     }
@@ -203,7 +202,7 @@ public class BedGraphManagerTest extends AbstractManagerTest {
             FileRegistrationRequest request = new FileRegistrationRequest();
             request.setPath(resource.getFile().getAbsolutePath());
             request.setReferenceId(testReference.getId());
-            bedGraphManager.registerWigFile(request);
+            wigManager.registerWigFile(request);
         } catch (IllegalArgumentException | AssertionError e) {
             return true;
         }
