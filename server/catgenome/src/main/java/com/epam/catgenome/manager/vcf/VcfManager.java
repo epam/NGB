@@ -157,6 +157,9 @@ public class VcfManager {
 
     private InfoFieldParser infoFieldParser;
 
+    @Value("#{catgenome['files.vcf.max.entries.in.memory']}")
+    private int maxVcfIndexEntriesInMemory;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(VcfManager.class);
 
     /**
@@ -593,7 +596,7 @@ public class VcfManager {
         VcfFileReader vcfFileReader = new VcfFileReader(fileManager, referenceGenomeManager);
         VCFHeader vcfHeader = (VCFHeader) reader.getHeader();
 
-        List<VcfIndexEntry> allEntries = new DiskBasedList<VcfIndexEntry>().adaptToList();
+        List<VcfIndexEntry> allEntries = new DiskBasedList<VcfIndexEntry>(maxVcfIndexEntriesInMemory).adaptToList();
 
         List<GeneFile> geneFiles  = reference.getGeneFile() != null ?
                                     Collections.singletonList(reference.getGeneFile()) : Collections.emptyList();
