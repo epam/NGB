@@ -896,4 +896,8 @@ public class VcfManager {
         }
         return infoFieldParser;
     }
+
+    public void setMaxVcfIndexEntriesInMemory(int maxVcfIndexEntriesInMemory) {
+        this.maxVcfIndexEntriesInMemory = maxVcfIndexEntriesInMemory;
+    }
 }
