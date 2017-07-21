@@ -157,7 +157,8 @@ public class VcfManager {
 
     private InfoFieldParser infoFieldParser;
 
-    @Value("#{catgenome['files.vcf.max.entries.in.memory']}")
+    // Will spill to disk after ~10Gb entries in memory by default
+    @Value("#{catgenome['files.vcf.max.entries.in.memory'] ?: 3000000}")
     private int maxVcfIndexEntriesInMemory;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VcfManager.class);
