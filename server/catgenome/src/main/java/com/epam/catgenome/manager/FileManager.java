@@ -67,9 +67,9 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.bed.BedFile;
+import com.epam.catgenome.entity.file.AbstractFsItem;
 import com.epam.catgenome.entity.file.FsDirectory;
 import com.epam.catgenome.entity.file.FsFile;
-import com.epam.catgenome.entity.file.AbstractFsItem;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.gene.GeneFileType;
 import com.epam.catgenome.entity.maf.MafFile;
@@ -191,15 +191,15 @@ public class FileManager {
 
         REF_CYTOBANDS_FILE("/references/${DIR_ID}/cytobands/bands.txt"),
 
-        VCF_DIR("/${USER_ID}/VCF/${DIR_ID}"),
-        VCF_FILE("/${USER_ID}/VCF/${DIR_ID}/${FILE_NAME}"),
-        VCF_INDEX("/${USER_ID}/VCF/${DIR_ID}/variants.idx"),
-        VCF_COMPRESSED_INDEX("/${USER_ID}/VCF/${DIR_ID}/variants.gz.tbi"),
-        VCF_METADATA_FILE("/${USER_ID}/VCF/${DIR_ID}/variants.bounds"),
-        VCF_FEATURE_INDEX_FILE("/${USER_ID}/VCF/${DIR_ID}/variants.feature"),
-        VCF_ROOT_DIR("/${USER_ID}/VCF"),
-        VCF_HISTOGRAM_DIR("/${USER_ID}/VCF/${DIR_ID}/histogram"),
-        VCF_HISTOGRAM_FILE("/${USER_ID}/VCF/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
+        VCF_DIR("${USER_ID}/VCF/${DIR_ID}"),
+        VCF_FILE("${USER_ID}/VCF/${DIR_ID}/${FILE_NAME}"),
+        VCF_INDEX("${USER_ID}/VCF/${DIR_ID}/variants.idx"),
+        VCF_COMPRESSED_INDEX("${USER_ID}/VCF/${DIR_ID}/variants.gz.tbi"),
+        VCF_METADATA_FILE("${USER_ID}/VCF/${DIR_ID}/variants.bounds"),
+        VCF_FEATURE_INDEX_FILE("${USER_ID}/VCF/${DIR_ID}/variants.feature"),
+        VCF_ROOT_DIR("${USER_ID}/VCF"),
+        VCF_HISTOGRAM_DIR("${USER_ID}/VCF/${DIR_ID}/histogram"),
+        VCF_HISTOGRAM_FILE("${USER_ID}/VCF/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
 
         GENE_DIR("/${USER_ID}/genes/${DIR_ID}"),
         GENE_FILE("/${USER_ID}/genes/${DIR_ID}/genes${GENE_EXTENSION}"),
@@ -724,13 +724,16 @@ public class FileManager {
         VCFCodec codec = new VCFCodec();
         File indexFile;
 
+        String relativePath;
         if (vcfFile.getCompressed()) {
-            indexFile = new File(toRealPath(substitute(VCF_COMPRESSED_INDEX, params)));
+            relativePath = substitute(VCF_COMPRESSED_INDEX, params);
+            indexFile = new File(toRealPath(relativePath));
             LOGGER.info(getMessage(MessagesConstants.INFO_VCF_INDEX_WRITING, indexFile.getAbsolutePath()));
             TabixIndex index = IndexUtils.createTabixIndex(file, codec, TabixFormat.VCF);
             index.write(indexFile);
         } else {
-            indexFile = new File(toRealPath(substitute(VCF_INDEX, params)));
+            relativePath = substitute(VCF_INDEX, params);
+            indexFile = new File(toRealPath(relativePath));
             LOGGER.info(getMessage(MessagesConstants.INFO_VCF_INDEX_WRITING, indexFile.getAbsolutePath()));
             IntervalTreeIndex intervalTreeIndex = IndexFactory.createIntervalIndex(file, codec); // Create an index
             IndexFactory.writeIndex(intervalTreeIndex, indexFile); // Write it to a file
@@ -738,7 +741,7 @@ public class FileManager {
 
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
-        indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setPath(relativePath);
         indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
@@ -2179,7 +2182,7 @@ public class FileManager {
     }
 
     private String toRealPath(final String relativePath) {
-        return baseDirPath + relativePath;
+        return baseDirPath + "/" + relativePath;
     }
 
     @NotNull
