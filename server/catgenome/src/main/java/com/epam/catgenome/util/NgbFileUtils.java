@@ -1,13 +1,14 @@
 package com.epam.catgenome.util;
 
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.IndexedDataItem;
+import org.apache.commons.io.FilenameUtils;
+
+import java.io.File;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.io.FilenameUtils;
-
-import com.epam.catgenome.entity.BiologicalDataItemFormat;
 
 /**
  * Source:      FileUtils
@@ -146,5 +147,15 @@ public final class NgbFileUtils {
 
     public static boolean isGzCompressed(String fileName) {
         return fileName.endsWith(GZ_EXTENSION);
+    }
+
+    public static void resolveRelativeIfNeeded(IndexedDataItem file, String baseDirPath) {
+        if(!isFileIndexPathAbsolute(file)) {
+            file.getIndex().setPath(baseDirPath + File.separator + file.getIndex().getPath());
+        }
+    }
+
+    private static boolean isFileIndexPathAbsolute(IndexedDataItem file) {
+        return file.getIndex().getPath().startsWith("/");
     }
 }

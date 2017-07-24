@@ -33,6 +33,7 @@ import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfSample;
+import com.epam.catgenome.util.NgbFileUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,7 +42,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -97,7 +97,7 @@ public class VcfFileManager {
     public VcfFile loadVcfFile(Long vcfFileId) {
         VcfFile vcfFile = vcfFileDao.loadVcfFile(vcfFileId);
         if (vcfFile != null) {
-            resolveRelativeIfNeeded(vcfFile);
+            NgbFileUtils.resolveRelativeIfNeeded(vcfFile, baseDirPath);
             vcfFile.setSamples(vcfFileDao.loadSamplesForFile(vcfFileId));
         }
 
@@ -120,7 +120,7 @@ public class VcfFileManager {
                                                                            .collect(Collectors.joining(", "))));
         }
 
-        files.forEach(this::resolveRelativeIfNeeded);
+        files.forEach(file -> NgbFileUtils.resolveRelativeIfNeeded(file, baseDirPath));
 
         return files;
     }
@@ -168,23 +168,10 @@ public class VcfFileManager {
         Map<Long, List<VcfSample>> sampleMap = vcfFileDao.loadSamplesForFilesByReference(referenceId);
 
         for (VcfFile vcfFile : files) {
-            resolveRelativeIfNeeded(vcfFile);
+            NgbFileUtils.resolveRelativeIfNeeded(vcfFile, baseDirPath);
             vcfFile.setSamples(sampleMap.get(vcfFile.getId()));
         }
 
         return files;
-    }
-
-    private VcfFile resolveRelativeIfNeeded(VcfFile vcfFile) {
-        if(!isVCFFileIndexPathAbsolute(vcfFile)) {
-            vcfFile.getIndex().setPath(baseDirPath + File.separator + vcfFile.getIndex().getPath());
-            return vcfFile;
-        }
-
-        return vcfFile;
-    }
-
-    private boolean isVCFFileIndexPathAbsolute(VcfFile vcfFile) {
-        return vcfFile.getIndex().getPath().startsWith("/");
     }
 }

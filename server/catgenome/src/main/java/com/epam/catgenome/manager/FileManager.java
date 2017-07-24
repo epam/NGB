@@ -201,17 +201,17 @@ public class FileManager {
         VCF_HISTOGRAM_DIR("${USER_ID}/VCF/${DIR_ID}/histogram"),
         VCF_HISTOGRAM_FILE("${USER_ID}/VCF/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
 
-        GENE_DIR("/${USER_ID}/genes/${DIR_ID}"),
-        GENE_FILE("/${USER_ID}/genes/${DIR_ID}/genes${GENE_EXTENSION}"),
-        GENE_LARGE_SCALE_FILE("/${USER_ID}/genes/${DIR_ID}/genes_large_scale${GENE_EXTENSION}"),
-        GENE_TRANSCRIPT_FILE("/${USER_ID}/genes/${DIR_ID}/transcript${GENE_EXTENSION}"),
-        GENE_INDEX("/${USER_ID}/genes/${DIR_ID}/genes.tbi"),
-        GENE_LARGE_SCALE_INDEX("/${USER_ID}/genes/${DIR_ID}/genes_large_scale.tbi"),
-        GENE_TRANSCRIPT_INDEX("/${USER_ID}/genes/${DIR_ID}/transcript.tbi"),
-        GENE_METADATA_FILE("/${USER_ID}/genes/${DIR_ID}/genes.bounds"),
-        GENE_FEATURE_INDEX_FILE("/${USER_ID}/genes/${DIR_ID}/genes.feature"),
-        GENE_HISTOGRAM_DIR("/${USER_ID}/genes/${DIR_ID}/histogram"),
-        GENE_HISTOGRAM_FILE("/${USER_ID}/genes/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
+        GENE_DIR("${USER_ID}/genes/${DIR_ID}"),
+        GENE_FILE("${USER_ID}/genes/${DIR_ID}/genes${GENE_EXTENSION}"),
+        GENE_LARGE_SCALE_FILE("${USER_ID}/genes/${DIR_ID}/genes_large_scale${GENE_EXTENSION}"),
+        GENE_TRANSCRIPT_FILE("${USER_ID}/genes/${DIR_ID}/transcript${GENE_EXTENSION}"),
+        GENE_INDEX("${USER_ID}/genes/${DIR_ID}/genes.tbi"),
+        GENE_LARGE_SCALE_INDEX("${USER_ID}/genes/${DIR_ID}/genes_large_scale.tbi"),
+        GENE_TRANSCRIPT_INDEX("${USER_ID}/genes/${DIR_ID}/transcript.tbi"),
+        GENE_METADATA_FILE("${USER_ID}/genes/${DIR_ID}/genes.bounds"),
+        GENE_FEATURE_INDEX_FILE("${USER_ID}/genes/${DIR_ID}/genes.feature"),
+        GENE_HISTOGRAM_DIR("${USER_ID}/genes/${DIR_ID}/histogram"),
+        GENE_HISTOGRAM_FILE("${USER_ID}/genes/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
 
         BAM_DIR("/${USER_ID}/BAM/${DIR_ID}"),
         BAM_FILE("/${USER_ID}/BAM/${DIR_ID}/${FILE_NAME}"),
@@ -1451,10 +1451,11 @@ public class FileManager {
 
         File file;
         File indexFile;
+        String relativePathGeneIndex = substitute(GENE_INDEX, params);
         switch (type) {
             case ORIGINAL:
                 file = new File(geneFile.getPath());
-                indexFile = new File(toRealPath(substitute(GENE_INDEX, params)));
+                indexFile = new File(toRealPath(relativePathGeneIndex));
                 break;
             case LARGE_SCALE:
                 file = new File(toRealPath(substitute(GENE_LARGE_SCALE_FILE, params)));
@@ -1481,7 +1482,7 @@ public class FileManager {
         if (type.equals(GeneFileType.ORIGINAL)) {
             BiologicalDataItem indexItem = new BiologicalDataItem();
             indexItem.setCreatedDate(new Date());
-            indexItem.setPath(indexFile.getAbsolutePath());
+            indexItem.setPath(relativePathGeneIndex);
             indexItem.setFormat(BiologicalDataItemFormat.GENE_INDEX);
             indexItem.setType(BiologicalDataItemResourceType.FILE);
             indexItem.setName("");
@@ -2246,5 +2247,4 @@ public class FileManager {
         SAMPLE_NAME,
         FEATURE_FILE_DIR
     }
-
 }

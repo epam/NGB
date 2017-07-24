@@ -24,26 +24,6 @@
 
 package com.epam.catgenome.manager.gene;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.util.TextUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
@@ -75,6 +55,17 @@ import htsjdk.tribble.index.tabix.TabixIndexCreator;
 import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.readers.PositionalBufferedStream;
 import htsjdk.tribble.util.LittleEndianOutputStream;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.util.TextUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.nio.charset.Charset;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -365,7 +356,7 @@ public class GeneRegisterer {
         index = (TabixIndex) transcriptIndexCreator.finalizeIndex(transcriptPosition);
         index.write(transcriptIndexFile);
 
-        geneFile.setIndex(doIndex ? createIndexItem(indexFile.getAbsolutePath()) :
+        geneFile.setIndex(doIndex ? createIndexItem(indexFile.getPath()) :
                 createIndexItem(request.getIndexPath()));
     }
 
