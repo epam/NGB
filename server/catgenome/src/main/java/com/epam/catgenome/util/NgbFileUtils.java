@@ -5,6 +5,7 @@ import com.epam.catgenome.entity.IndexedDataItem;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -157,5 +158,11 @@ public final class NgbFileUtils {
 
     private static boolean isFileIndexPathAbsolute(IndexedDataItem file) {
         return file.getIndex().getPath().startsWith("/");
+    }
+
+    public static String convertToRelativePath(String absoluteFilePath, String baseDirPath) {
+        return Paths.get(baseDirPath)
+                .relativize(Paths.get(absoluteFilePath))
+                .toString();
     }
 }

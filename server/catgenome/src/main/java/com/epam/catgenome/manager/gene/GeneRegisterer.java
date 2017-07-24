@@ -44,6 +44,7 @@ import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.IndexUtils;
+import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.PositionalOutputStream;
 import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.util.BlockCompressedInputStream;
@@ -62,9 +63,17 @@ import org.apache.http.util.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -356,7 +365,7 @@ public class GeneRegisterer {
         index = (TabixIndex) transcriptIndexCreator.finalizeIndex(transcriptPosition);
         index.write(transcriptIndexFile);
 
-        geneFile.setIndex(doIndex ? createIndexItem(indexFile.getPath()) :
+        geneFile.setIndex(doIndex ? createIndexItem(NgbFileUtils.convertToRelativePath(indexFile.getAbsolutePath(), fileManager.getBaseDirPath())) :
                 createIndexItem(request.getIndexPath()));
     }
 

@@ -24,7 +24,34 @@
 
 package com.epam.catgenome.manager.reference;
 
-import static com.epam.catgenome.component.MessageHelper.getMessage;
+import com.epam.catgenome.component.MessageCode;
+import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.dao.BiologicalDataItemDao;
+import com.epam.catgenome.dao.gene.GeneFileDao;
+import com.epam.catgenome.dao.project.ProjectDao;
+import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
+import com.epam.catgenome.entity.BaseEntity;
+import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
+import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.gene.GeneFile;
+import com.epam.catgenome.entity.project.Project;
+import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.exception.FeatureIndexException;
+import com.epam.catgenome.manager.FeatureIndexManager;
+import com.epam.catgenome.util.AuthUtils;
+import com.epam.catgenome.util.ListMapCollector;
+import com.epam.catgenome.util.NgbFileUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,33 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.epam.catgenome.entity.BaseEntity;
-import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.BiologicalDataItemFormat;
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.FeatureFile;
-import com.epam.catgenome.entity.gene.GeneFile;
-import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.manager.FeatureIndexManager;
-import com.epam.catgenome.util.AuthUtils;
-import com.epam.catgenome.util.ListMapCollector;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-
-import com.epam.catgenome.component.MessageCode;
-import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.dao.BiologicalDataItemDao;
-import com.epam.catgenome.dao.gene.GeneFileDao;
-import com.epam.catgenome.dao.project.ProjectDao;
-import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
-import com.epam.catgenome.entity.project.Project;
-import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.reference.Reference;
-import org.springframework.util.StringUtils;
+import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 /**
  * {@code ReferenceManager} represents a service class designed to encapsulate all business
@@ -84,6 +85,9 @@ public class ReferenceGenomeManager {
 
     @Autowired
     private FeatureIndexManager featureIndexManager;
+
+    @Value("${files.base.directory.path}")
+    private String baseDirPath;
 
     /**
      * Generates and returns ID value, that has to be used to identify each certain reference
@@ -175,7 +179,9 @@ public class ReferenceGenomeManager {
         reference.setChromosomes(chromosomes);
 
         if (reference.getGeneFile() != null) {
-            reference.setGeneFile(geneFileDao.loadGeneFile(reference.getGeneFile().getId()));
+            GeneFile geneFile = geneFileDao.loadGeneFile(reference.getGeneFile().getId());
+            NgbFileUtils.resolveRelativeIfNeeded(geneFile, baseDirPath);
+            reference.setGeneFile(geneFile);
         }
 
         reference.setAnnotationFiles(
@@ -207,7 +213,9 @@ public class ReferenceGenomeManager {
         final Reference reference = referenceGenomeDao.loadReferenceGenomeByBioItemId(dataItemId);
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
 
-        reference.setGeneFile(geneFileDao.loadGeneFile(reference.getGeneFile().getId()));
+        GeneFile geneFile = geneFileDao.loadGeneFile(reference.getGeneFile().getId());
+        NgbFileUtils.resolveRelativeIfNeeded(geneFile, baseDirPath);
+        reference.setGeneFile(geneFile);
         reference.setAnnotationFiles(getAnnotationFilesByReferenceId(reference.getId()));
         return reference;
     }
@@ -231,6 +239,7 @@ public class ReferenceGenomeManager {
             Reference reference = referenceGenomeDao.loadReferenceGenomeByName(referenceName.toLowerCase());
             if (reference.getGeneFile() != null && reference.getGeneFile().getId() != null) {
                 GeneFile geneFile = geneFileDao.loadGeneFile(reference.getGeneFile().getId());
+                NgbFileUtils.resolveRelativeIfNeeded(geneFile, baseDirPath);
                 reference.setGeneFile(geneFile);
                 reference.setAnnotationFiles(getAnnotationFilesByReferenceId(reference.getId()));
             }
@@ -241,6 +250,7 @@ public class ReferenceGenomeManager {
             reference -> reference.getGeneFile() != null ? reference.getGeneFile().getId() : null));
 
         List<GeneFile> geneFiles = geneFileDao.loadGeneFiles(referenceToGeneIds.keySet());
+        geneFiles.forEach(geneFile -> NgbFileUtils.resolveRelativeIfNeeded(geneFile, baseDirPath));
         List<Reference> result = new ArrayList<>(references.size());
         for (GeneFile geneFile : geneFiles) {
             referenceToGeneIds.get(geneFile.getId()).forEach(r -> {
