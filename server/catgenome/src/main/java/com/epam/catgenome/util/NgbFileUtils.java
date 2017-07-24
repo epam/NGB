@@ -151,13 +151,18 @@ public final class NgbFileUtils {
     }
 
     public static void resolveRelativeIfNeeded(IndexedDataItem file, String baseDirPath) {
-        if(!isFileIndexPathAbsolute(file)) {
-            file.getIndex().setPath(baseDirPath + File.separator + file.getIndex().getPath());
+        String indexPath = file.getIndex().getPath();
+        if(!isFileIndexPathAbsolute(indexPath) && isLocalFilePath(indexPath)) {
+            file.getIndex().setPath(baseDirPath + File.separator + indexPath);
         }
     }
 
-    private static boolean isFileIndexPathAbsolute(IndexedDataItem file) {
-        return file.getIndex().getPath().startsWith("/");
+    private static boolean isFileIndexPathAbsolute(String filePath) {
+        return filePath.startsWith("/");
+    }
+
+    private static boolean isLocalFilePath(String filePath) {
+        return !filePath.matches("^(http|https|ftp|S3|ftsp)://.*$");
     }
 
     public static String convertToRelativePath(String absoluteFilePath, String baseDirPath) {

@@ -216,10 +216,10 @@ public class FileManager {
         BAM_DIR("/${USER_ID}/BAM/${DIR_ID}"),
         BAM_FILE("/${USER_ID}/BAM/${DIR_ID}/${FILE_NAME}"),
 
-        BED_DIR("/${USER_ID}/bed/${DIR_ID}"),
-        BED_INDEX("/${USER_ID}/bed/${DIR_ID}/bed.tbi"),
-        BED_HISTOGRAM_DIR("/${USER_ID}/bed/${DIR_ID}/histogram"),
-        BED_HISTOGRAM_FILE("/${USER_ID}/bed/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
+        BED_DIR("${USER_ID}/bed/${DIR_ID}"),
+        BED_INDEX("${USER_ID}/bed/${DIR_ID}/bed.tbi"),
+        BED_HISTOGRAM_DIR("${USER_ID}/bed/${DIR_ID}/histogram"),
+        BED_HISTOGRAM_FILE("${USER_ID}/bed/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
 
         SEG_DIR("/${USER_ID}/seg/${DIR_ID}"),
         SEG_INDEX("/${USER_ID}/seg/${DIR_ID}/seg.tbi"),
@@ -1560,6 +1560,7 @@ public class FileManager {
      */
     public AbstractFeatureReader<NggbBedFeature, LineIterator> makeBedReader(final BedFile bedFile) {
         NggbBedCodec nggbBedCodec = new NggbBedCodec();
+        NgbFileUtils.resolveRelativeIfNeeded(bedFile, baseDirPath);
         return AbstractFeatureReader.getFeatureReader(bedFile.getPath(), bedFile.getIndex().getPath(),
                 nggbBedCodec, true);
     }
@@ -1574,7 +1575,8 @@ public class FileManager {
         params.put(USER_ID.name(), bedFile.getCreatedBy());
 
         File file = new File(bedFile.getPath());
-        File indexFile = new File(toRealPath(substitute(BED_INDEX, params)));
+        String relativeBedIndexPath = substitute(BED_INDEX, params);
+        File indexFile = new File(toRealPath(relativeBedIndexPath));
         NggbBedCodec bedCodec = new NggbBedCodec();
 
         TabixIndex index = IndexUtils.createTabixIndex(file, bedCodec, TabixFormat.BED);
@@ -1582,7 +1584,7 @@ public class FileManager {
 
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
-        indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setPath(relativeBedIndexPath);
         indexItem.setFormat(BiologicalDataItemFormat.BED_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
