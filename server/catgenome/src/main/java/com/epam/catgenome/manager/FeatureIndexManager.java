@@ -480,7 +480,8 @@ public class FeatureIndexManager {
      * @param chromosome a {@code Chromosome}, from which entries came
      * @param vcfHeader a header of VCF file
      * @param vcfReader a reader for VCF file
-     * @return a list of post-processed index entries, ready to write into index
+     * @return a list of post-processed index entries, ready to write into index, must be cleared
+     * after use because disk-based implementation could be returned
      * @throws GeneReadingException if an exception was thrown when reading genes information
      */
     public List<VcfIndexEntry> postProcessIndexEntries(List<VcfIndexEntry> entries, List<GeneFile> geneFiles,
@@ -722,6 +723,7 @@ public class FeatureIndexManager {
                 List<VcfIndexEntry> processedEntries = postProcessIndexEntries(allEntries, geneFiles,
                                        Utils.getFromChromosomeMap(chromosomeMap, currentKey), vcfHeader, vcfFileReader);
                 featureIndexDao.writeLuceneIndexForFile(vcfFile, processedEntries);
+                processedEntries.clear();
                 LOGGER.info(MessageHelper.getMessage(MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE,
                                                      currentKey));
                 allEntries.clear();
@@ -739,6 +741,7 @@ public class FeatureIndexManager {
             List<VcfIndexEntry> processedEntries = postProcessIndexEntries(allEntries, geneFiles,
                                        Utils.getFromChromosomeMap(chromosomeMap, currentKey), vcfHeader, vcfFileReader);
             featureIndexDao.writeLuceneIndexForFile(vcfFile, processedEntries);
+            processedEntries.clear();
             LOGGER.info(MessageHelper.getMessage(MessagesConstants
                                                      .INFO_FEATURE_INDEX_CHROMOSOME_WROTE, currentKey));
             allEntries.clear();

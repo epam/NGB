@@ -658,6 +658,7 @@ public class VcfManager {
                                                                                            currentChromosome,
                                                                                            vcfHeader, vcfFileReader);
             featureIndexManager.writeLuceneIndexForFile(vcfFile, processedEntries);
+            processedEntries.clear();
             LOGGER.info(getMessage(MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE, currentChromosome.getName()));
             allEntries.clear();
         }
