@@ -117,7 +117,12 @@ public class ReferenceGenomeManager {
         Assert.isTrue(CollectionUtils.isNotEmpty(reference.getChromosomes()),
                 getMessage("error.reference.aborted.saving.chromosomes"));
         Assert.notNull(reference.getId(), getMessage(MessageCode.UNKNOWN_REFERENCE_ID));
-        biologicalDataItemDao.createBiologicalDataItem(reference.getIndex());
+        BiologicalDataItem referenceIndex = reference.getIndex();
+        String referenceIndexPath = referenceIndex.getPath();
+        if(!referenceIndexPath.isEmpty()) {
+            referenceIndex.setPath(NgbFileUtils.convertToRelativePath(referenceIndexPath, baseDirPath));
+        }
+        biologicalDataItemDao.createBiologicalDataItem(referenceIndex);
         if (reference.getCreatedDate() == null) {
             reference.setCreatedDate(new Date());
         }
@@ -174,7 +179,7 @@ public class ReferenceGenomeManager {
     public Reference loadReferenceGenome(final Long referenceId) {
         final Reference reference = referenceGenomeDao.loadReferenceGenome(referenceId);
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
-
+        NgbFileUtils.resolveRelativeIfNeeded(reference, baseDirPath);
         final List<Chromosome> chromosomes = referenceGenomeDao.loadAllChromosomesByReferenceId(referenceId);
         reference.setChromosomes(chromosomes);
 
@@ -212,7 +217,7 @@ public class ReferenceGenomeManager {
     public Reference loadReferenceGenomeByBioItemId(final Long dataItemId) {
         final Reference reference = referenceGenomeDao.loadReferenceGenomeByBioItemId(dataItemId);
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
-
+        NgbFileUtils.resolveRelativeIfNeeded(reference, baseDirPath);
         GeneFile geneFile = geneFileDao.loadGeneFile(reference.getGeneFile().getId());
         NgbFileUtils.resolveRelativeIfNeeded(geneFile, baseDirPath);
         reference.setGeneFile(geneFile);
@@ -237,6 +242,7 @@ public class ReferenceGenomeManager {
     public List<Reference> loadAllReferenceGenomes(String referenceName) {
         if (!StringUtils.isEmpty(referenceName)) {
             Reference reference = referenceGenomeDao.loadReferenceGenomeByName(referenceName.toLowerCase());
+            NgbFileUtils.resolveRelativeIfNeeded(reference, baseDirPath);
             if (reference.getGeneFile() != null && reference.getGeneFile().getId() != null) {
                 GeneFile geneFile = geneFileDao.loadGeneFile(reference.getGeneFile().getId());
                 NgbFileUtils.resolveRelativeIfNeeded(geneFile, baseDirPath);
@@ -246,6 +252,11 @@ public class ReferenceGenomeManager {
             return Collections.singletonList(reference);
         }
         List<Reference> references = referenceGenomeDao.loadAllReferenceGenomes();
+        references.forEach(reference -> {
+            if(reference.getIndex() != null) {
+                NgbFileUtils.resolveRelativeIfNeeded(reference, baseDirPath);
+            }
+        });
         Map<Long, List<Reference>> referenceToGeneIds = references.stream().collect(new ListMapCollector<>(
             reference -> reference.getGeneFile() != null ? reference.getGeneFile().getId() : null));
 
@@ -310,7 +321,7 @@ public class ReferenceGenomeManager {
      * @return {@code List}
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<BaseEntity> loadAllFile(final Long referenceId) {
+    private List<BaseEntity> loadAllFile(final Long referenceId) {
         return referenceGenomeDao.loadAllFileByReferenceId(referenceId);
     }
 
@@ -327,6 +338,7 @@ public class ReferenceGenomeManager {
         Assert.notNull(referenceId, getMessage(MessageCode.NO_SUCH_REFERENCE));
         final Reference reference = referenceGenomeDao.loadReferenceGenome(referenceId);
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
+        NgbFileUtils.resolveRelativeIfNeeded(reference, baseDirPath);
         return reference;
     }
 
@@ -334,9 +346,10 @@ public class ReferenceGenomeManager {
     public Reference updateReferenceGeneFileId(long referenceId, Long geneFileId) {
         final Reference reference = referenceGenomeDao.loadReferenceGenome(referenceId);
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
-
         referenceGenomeDao.updateReferenceGeneFileId(referenceId, geneFileId);
-        return loadReferenceGenome(referenceId);
+        Reference loadReferenceGenome = loadReferenceGenome(referenceId);
+        NgbFileUtils.resolveRelativeIfNeeded(reference, baseDirPath);
+        return loadReferenceGenome;
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)

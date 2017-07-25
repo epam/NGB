@@ -177,19 +177,19 @@ public class FileManager {
 
         // describes the structure of catalogues used to store any resources concerned
         // with managed reference genomes and chromosomes
-        REFERENCE_DIR("/references/${DIR_ID}"),
-        REF_CHROMOSOMES_DIR("/references/${DIR_ID}/chromosomes"),
-        REF_CHROMOSOME_DIR("/references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}"),
-        CHROMOSOME_GC_CONTENT_FILE("/references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/content.gccont"),
-        CHROMOSOME_GC_CONTENT_INDEX_FILE("/references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/content.gccont.ind"),
-        REF_CHROMOSOME_SEQUENCE_FILE("/references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/sequences.nib"),
-        REF_CHROMOSOME_SEQUENCE_INDEX_FILE("/references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/sequences.nib.ind"),
-        REF_CHROMOSOME_CYTOBAND_FILE("/references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/cytobands.txt"),
-        REF_INDEX_FILE("/references/${DIR_ID}/${REF_NAME}.fai"),
+        REFERENCE_DIR("references/${DIR_ID}"),
+        REF_CHROMOSOMES_DIR("references/${DIR_ID}/chromosomes"),
+        REF_CHROMOSOME_DIR("references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}"),
+        CHROMOSOME_GC_CONTENT_FILE("references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/content.gccont"),
+        CHROMOSOME_GC_CONTENT_INDEX_FILE("references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/content.gccont.ind"),
+        REF_CHROMOSOME_SEQUENCE_FILE("references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/sequences.nib"),
+        REF_CHROMOSOME_SEQUENCE_INDEX_FILE("references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/sequences.nib.ind"),
+        REF_CHROMOSOME_CYTOBAND_FILE("references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/cytobands.txt"),
+        REF_INDEX_FILE("references/${DIR_ID}/${REF_NAME}.fai"),
 
         // think to do it in other way?
 
-        REF_CYTOBANDS_FILE("/references/${DIR_ID}/cytobands/bands.txt"),
+        REF_CYTOBANDS_FILE("references/${DIR_ID}/cytobands/bands.txt"),
 
         VCF_DIR("${USER_ID}/VCF/${DIR_ID}"),
         VCF_FILE("${USER_ID}/VCF/${DIR_ID}/${FILE_NAME}"),
