@@ -24,15 +24,6 @@
 
 package com.epam.catgenome.manager.seg;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
@@ -41,6 +32,16 @@ import com.epam.catgenome.dao.seg.SegFileDao;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.seg.SegFile;
+import com.epam.catgenome.util.NgbFileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -57,6 +58,9 @@ public class SegFileManager {
 
     @Autowired
     private ProjectDao projectDao;
+
+    @Value("${files.base.directory.path}")
+    private String baseDirPath;
 
     /**
      * Saves a {@code SegFile} in the system and extracts and saves samples from the file
@@ -85,6 +89,7 @@ public class SegFileManager {
         SegFile segFile = segFileDao.loadSegFile(segFileId);
 
         if (segFile != null) {
+            NgbFileUtils.resolveRelativeIfNeeded(segFile, baseDirPath);
             segFile.setSamples(segFileDao.loadSamplesForFile(segFileId));
         }
 
@@ -109,7 +114,9 @@ public class SegFileManager {
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<SegFile> loadSedFilesByReferenceId(long referenceId) {
-        return segFileDao.loadSegFilesByReferenceId(referenceId);
+        List<SegFile> segFiles = segFileDao.loadSegFilesByReferenceId(referenceId);
+        segFiles.forEach(segFile -> NgbFileUtils.resolveRelativeIfNeeded(segFile, baseDirPath));
+        return segFiles;
     }
 
     /**

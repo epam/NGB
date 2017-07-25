@@ -221,23 +221,22 @@ public class FileManager {
         BED_HISTOGRAM_DIR("${USER_ID}/bed/${DIR_ID}/histogram"),
         BED_HISTOGRAM_FILE("${USER_ID}/bed/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
 
-        SEG_DIR("/${USER_ID}/seg/${DIR_ID}"),
-        SEG_INDEX("/${USER_ID}/seg/${DIR_ID}/seg.tbi"),
-        SEG_SAMPLE_FILE("/${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.seg"),
-        SEG_FILE("/${USER_ID}/seg/${DIR_ID}/segments.seg"),
-        SEG_SAMPLE_COMPRESSED_FILE("/${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.seg.gz"),
-        SEG_SAMPLE_INDEX("/${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.tbi"),
+        SEG_DIR("${USER_ID}/seg/${DIR_ID}"),
+        SEG_INDEX("${USER_ID}/seg/${DIR_ID}/seg.tbi"),
+        SEG_SAMPLE_FILE("${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.seg"),
+        SEG_FILE("${USER_ID}/seg/${DIR_ID}/segments.seg"),
+        SEG_SAMPLE_COMPRESSED_FILE("${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.seg.gz"),
+        SEG_SAMPLE_INDEX("${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.tbi"),
 
-        BED_GRAPH_DIR("/${USER_ID}/wig/${DIR_ID}"),
-        BED_GRAPH_COMPRESSED_INDEX("/${USER_ID}/wig/${DIR_ID}/bedGraph.tbi"),
-        BED_GRAPH_INDEX("/${USER_ID}/wig/${DIR_ID}/bedGraph.idx"),
+        MAF_DIR("${USER_ID}/maf/${DIR_ID}"),
+        MAF_TEMP_DIR("${USER_ID}/maf/${DIR_ID}/tmp"),
+        MAF_INDEX("${USER_ID}/maf/${DIR_ID}/maf.tbi"),
+        MAF_TEMP_INDEX("${USER_ID}/maf/${DIR_ID}/tmp/${FILE_NAME}.tbi"),
+        MAF_FILE("${USER_ID}/maf/${DIR_ID}/maf.bmaf.gz"),
 
-
-        MAF_DIR("/${USER_ID}/maf/${DIR_ID}"),
-        MAF_TEMP_DIR("/${USER_ID}/maf/${DIR_ID}/tmp"),
-        MAF_INDEX("/${USER_ID}/maf/${DIR_ID}/maf.tbi"),
-        MAF_TEMP_INDEX("/${USER_ID}/maf/${DIR_ID}/tmp/${FILE_NAME}.tbi"),
-        MAF_FILE("/${USER_ID}/maf/${DIR_ID}/maf.bmaf.gz"),
+        BED_GRAPH_DIR("${USER_ID}/wig/${DIR_ID}"),
+        BED_GRAPH_COMPRESSED_INDEX("${USER_ID}/wig/${DIR_ID}/bedGraph.tbi"),
+        BED_GRAPH_INDEX("${USER_ID}/wig/${DIR_ID}/bedGraph.idx"),
 
         WIG_DIR("/${USER_ID}/wig/${DIR_ID}/downsampled"),
         WIG_FILE("/${USER_ID}/wig/${DIR_ID}/downsampled/${CHROMOSOME_NAME}.wig"),
@@ -1618,7 +1617,8 @@ public class FileManager {
         params.put(USER_ID.name(), segFile.getCreatedBy());
 
         File file = new File(segFile.getPath());
-        File indexFile = new File(toRealPath(substitute(SEG_INDEX, params)));
+        String relativePath = substitute(SEG_INDEX, params);
+        File indexFile = new File(toRealPath(relativePath));
         LOGGER.debug("Writing SEG index at {}", indexFile.getAbsolutePath());
         SegCodec segCodec = new SegCodec();
 
@@ -1627,7 +1627,7 @@ public class FileManager {
 
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
-        indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setPath(relativePath);
         indexItem.setFormat(BiologicalDataItemFormat.SEG_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
@@ -1779,7 +1779,8 @@ public class FileManager {
         params.put(USER_ID.name(), mafFile.getCreatedBy());
 
         File file = new File(mafFile.getPath());
-        File indexFile = new File(toRealPath(substitute(MAF_INDEX, params)));
+        String relativePath = substitute(MAF_INDEX, params);
+        File indexFile = new File(toRealPath(relativePath));
         LOGGER.debug("Writing MAF index at {}", indexFile.getAbsolutePath());
 
         if (mafFile.getCompressed()) {
@@ -1790,7 +1791,7 @@ public class FileManager {
 
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
-        indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setPath(relativePath);
         indexItem.setFormat(BiologicalDataItemFormat.MAF_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
