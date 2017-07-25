@@ -29,7 +29,8 @@ public final class NgbFileUtils {
                                                           ".vcf", ".vcf.gz",
                                                           ".gff.gz", ".gtf.gz", ".gff", ".gtf",
                                                           ".gff3", ".gff3.gz", ".bam", ".bai", ".bed", ".bed.gz",
-                                                          ".seg", ".seg.gz", ".maf", ".maf.gz", ".bw", ".tbi", ".idx"};
+                                                          ".seg", ".seg.gz", ".maf", ".maf.gz", ".bw", "bdg", "bg",
+                                                          "bedGraph", "bdg.gz", "bg.gz", "bedGraph.gz", ".tbi", ".idx"};
 
     public static final String GZ_EXTENSION = ".gz";
     public static final String TBI_EXTENSION = ".tbi";
@@ -83,6 +84,19 @@ public final class NgbFileUtils {
         FORMAT_MAP.put(".maf.gz.tbi", BiologicalDataItemFormat.MAF_INDEX);
 
         FORMAT_MAP.put(".bw", BiologicalDataItemFormat.WIG);
+        FORMAT_MAP.put(".bdg", BiologicalDataItemFormat.WIG);
+        FORMAT_MAP.put(".bg", BiologicalDataItemFormat.WIG);
+        FORMAT_MAP.put(".bedGraph", BiologicalDataItemFormat.WIG);
+        FORMAT_MAP.put(".bdg.idx", BiologicalDataItemFormat.BED_GRAPH_INDEX);
+        FORMAT_MAP.put(".bg.idx", BiologicalDataItemFormat.BED_GRAPH_INDEX);
+        FORMAT_MAP.put(".bedGraph.idx", BiologicalDataItemFormat.BED_GRAPH_INDEX);
+        FORMAT_MAP.put(".bdg.gz.tbi", BiologicalDataItemFormat.BED_GRAPH_INDEX);
+        FORMAT_MAP.put(".bg.gz.tbi", BiologicalDataItemFormat.BED_GRAPH_INDEX);
+        FORMAT_MAP.put(".bedGraph.gz.tbi", BiologicalDataItemFormat.BED_GRAPH_INDEX);
+        FORMAT_MAP.put(".bdg.tbi", BiologicalDataItemFormat.BED_GRAPH_INDEX);
+        FORMAT_MAP.put(".bg.tbi", BiologicalDataItemFormat.BED_GRAPH_INDEX);
+        FORMAT_MAP.put(".bedGraph.tbi", BiologicalDataItemFormat.BED_GRAPH_INDEX);
+
 
         FORMAT_MAP.put(".tbi", BiologicalDataItemFormat.INDEX);
         FORMAT_MAP.put(".idx", BiologicalDataItemFormat.INDEX);

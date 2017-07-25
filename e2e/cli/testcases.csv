@@ -117,6 +117,8 @@
 [positive] SEG registration,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n ref,rf ref $resourcePath/example.seg -n seg -j,df seg;dr ref,.*"id":.+"name":"seg".+"type":"FILE".+"format":"SEG".*,
 [positive] GFF Registration,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta,rf -j testfasta $resourcePath/example.gff,df example.gff;dr testfasta,.*"id":.+."name":"example.gff"."bioDataItemId":.+."type":"FILE".+"format":"GENE".+,
 [positive] GFF.GZ Registration,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta,rf -j testfasta $resourcePath/example.gff.gz,df example.gff.gz;dr testfasta,.*"id":.+."name":"example.gff.gz"."bioDataItemId":.+."type":"FILE".+"format":"GENE".+,
+[positive] BED_GRAPH Registration,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta,rf -j testfasta $resourcePath/bedGraph.bdg,df bedGraph.bdg;dr testfasta,.*"id":.+."name":"bedGraph.bdg"."bioDataItemId":.+."type":"FILE".+"format":"WIG".+,
+[positive] BED_GRAPH.GZ Registration,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta,rf -j testfasta $resourcePath/bedGraph.bdg.gz,df bedGraph.bdg.gz;dr testfasta,.*"id":.+."name":"bedGraph.bdg.gz"."bioDataItemId":.+."type":"FILE".+"format":"WIG".+,
 
 @Deletion
 [positive] BAM deletion,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim.dm606.realign_X_2L.bam?$resourcePath/CantonS.09-28.trim.dm606.realign_X_2L.bai,df -j CantonS.09-28.trim.dm606.realign_X_2L.bam ,dr testfasta,.*The file.+has been successfully unregistered,
@@ -129,6 +131,8 @@
 [positive] GTF deletion,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/dmel-all-r6.06.sorted.cutted.gtf,df -j dmel-all-r6.06.sorted.cutted.gtf,dr testfasta,.*The file.+has been successfully unregistered,
 [positive] GTF deletion by name,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/dmel-all-r6.06.sorted.cutted.gtf -n vcffile,df -j vcffile,dr testfasta,.*The file.+has been successfully unregistered,
 [negative] GTF deletion by filename — file registred by name,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/dmel-all-r6.06.sorted.cutted.gtf -n gtffile,df -j dmel-all-r6.06.sorted.cutted.gtf,df gtffile;dr testfasta,,.*Failed to find a file by name.*
+[positive] BED_GRAPH Registration,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf -j testfasta $resourcePath/bedGraph.bdg,df bedGraph.bdg,dr testfasta,.*The file.+has been successfully unregistered,
+[positive] BED_GRAPH.GZ Registration,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf -j testfasta $resourcePath/bedGraph.bdg.gz,df bedGraph.bdg.gz,dr testfasta,.*The file.+has been successfully unregistered,
 
 @Create index
 [positive] Create Index VCF (--no_index),rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa -n testfasta;rf testfasta $resourcePath/CantonS.09-28.trim_X.dm606.realign.vcf -ni,if -j CantonS.09-28.trim_X.dm606.realign.vcf,df CantonS.09-28.trim_X.dm606.realign.vcf;dr testfasta,.*Created feature index for file.*,

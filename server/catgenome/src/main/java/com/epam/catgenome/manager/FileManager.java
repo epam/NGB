@@ -35,8 +35,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.file.AccessDeniedException;
@@ -90,6 +92,8 @@ import com.epam.catgenome.manager.maf.parser.MafFeature;
 import com.epam.catgenome.manager.reference.io.FastaUtils;
 import com.epam.catgenome.manager.seg.parser.SegCodec;
 import com.epam.catgenome.manager.seg.parser.SegFeature;
+import com.epam.catgenome.manager.wig.reader.BedGraphCodec;
+import com.epam.catgenome.manager.wig.reader.BedGraphFeature;
 import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.BlockCompressedDataInputStream;
 import com.epam.catgenome.util.BlockCompressedDataOutputStream;
@@ -152,11 +156,13 @@ import org.springframework.util.CollectionUtils;
 public class FileManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileManager.class);
+    private static final TabixFormat BED_GRAPH_TABIX_FORMAT = new TabixFormat(TabixFormat.UCSC_FLAGS, 1, 2, 3, '#', 0);
     private static final TabixFormat SEG_TABIX_FORMAT = new TabixFormat(TabixFormat.UCSC_FLAGS, 2, 3, 4, '\'', 0);
     private static final TabixFormat MAF_TABIX_FORMAT = new TabixFormat(TabixFormat.UCSC_FLAGS, 5, 6, 7, '#', 0);
     private static final TabixFormat BIGMAF_TABIX_FORMAT = new TabixFormat(TabixFormat.UCSC_FLAGS, 6, 7, 8, '#', 0);
     private static final String JSON_FILE_EXTENSION = ".json";
     private static final String EMPTY = "";
+    public static final String BED_GRAPH_FEATURE_TEMPLATE = "%s\t%d\t%d\t%f%n";
 
     /**
      * Provides paths' patterns that have to be used to construct real relative paths
@@ -222,6 +228,11 @@ public class FileManager {
         SEG_SAMPLE_COMPRESSED_FILE("/${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.seg.gz"),
         SEG_SAMPLE_INDEX("/${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.tbi"),
 
+        BED_GRAPH_DIR("/${USER_ID}/wig/${DIR_ID}"),
+        BED_GRAPH_COMPRESSED_INDEX("/${USER_ID}/wig/${DIR_ID}/bedGraph.tbi"),
+        BED_GRAPH_INDEX("/${USER_ID}/wig/${DIR_ID}/bedGraph.idx"),
+
+
         MAF_DIR("/${USER_ID}/maf/${DIR_ID}"),
         MAF_TEMP_DIR("/${USER_ID}/maf/${DIR_ID}/tmp"),
         MAF_INDEX("/${USER_ID}/maf/${DIR_ID}/maf.tbi"),
@@ -230,6 +241,7 @@ public class FileManager {
 
         WIG_DIR("/${USER_ID}/wig/${DIR_ID}/downsampled"),
         WIG_FILE("/${USER_ID}/wig/${DIR_ID}/downsampled/${CHROMOSOME_NAME}.wig"),
+        BED_GRAPH_FILE("/${USER_ID}/wig/${DIR_ID}/downsampled.bdg"),
 
         VG_DIR("/${USER_ID}/vg/${DIR_ID}"),
 
@@ -1619,6 +1631,43 @@ public class FileManager {
     }
 
     /**
+     * Creates an index for a specified BedGraphFile
+     * @param bedGraphFile BedGraphFile to create index for
+     */
+    public void makeBedGraphIndex(final WigFile bedGraphFile) throws IOException {
+        final Map<String, Object> params = new HashMap<>();
+        params.put(DIR_ID.name(), bedGraphFile.getId());
+        params.put(USER_ID.name(), bedGraphFile.getCreatedBy());
+
+        File file = new File(bedGraphFile.getPath());
+        File indexFile;
+        BedGraphCodec bedGraphCodec = new BedGraphCodec();
+
+        if (bedGraphFile.getCompressed()) {
+            indexFile = new File(toRealPath(substitute(BED_GRAPH_COMPRESSED_INDEX, params)));
+            LOGGER.debug("Writing BED_GRAPH index at {}", indexFile.getAbsolutePath());
+            TabixIndex index = IndexUtils.createTabixIndex(file, bedGraphCodec, BED_GRAPH_TABIX_FORMAT);
+            index.write(indexFile);
+        } else {
+            indexFile = new File(toRealPath(substitute(BED_GRAPH_INDEX, params)));
+            LOGGER.debug("Writing BED_GRAPH index at {}", indexFile.getAbsolutePath());
+            // Create an index
+            IntervalTreeIndex intervalTreeIndex = IndexFactory.createIntervalIndex(file, bedGraphCodec);
+            IndexFactory.writeIndex(intervalTreeIndex, indexFile); // Write it to a file
+        }
+
+        BiologicalDataItem indexItem = new BiologicalDataItem();
+        indexItem.setCreatedDate(new Date());
+        indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setFormat(BiologicalDataItemFormat.BED_GRAPH_INDEX);
+        indexItem.setType(BiologicalDataItemResourceType.FILE);
+        indexItem.setName("");
+        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
+
+        bedGraphFile.setIndex(indexItem);
+    }
+
+    /**
      * Creates a writer for a specified SegFile
      *
      * @param segFile a SegFile to create writer for
@@ -1811,6 +1860,39 @@ public class FileManager {
         }
     }
 
+    public File writeToBedGraphFile(WigFile wigFile, List<BedGraphFeature> sectionList) throws IOException {
+        final Map<String, Object> params = new HashMap<>();
+        params.put(DIR_ID.name(), wigFile.getId());
+        params.put(USER_ID.name(), wigFile.getCreatedBy());
+
+        File file = new File(toRealPath(substitute(BED_GRAPH_FILE, params)));
+        Assert.isTrue(file.createNewFile());
+        try (Writer writer = new BufferedWriter(new FileWriter(file))) {
+            for (BedGraphFeature bedGraphFeature : sectionList) {
+                writer.write(String.format(
+                        BED_GRAPH_FEATURE_TEMPLATE, bedGraphFeature.getChr(),
+                        bedGraphFeature.getStart(),
+                        bedGraphFeature.getEnd(),
+                        bedGraphFeature.getValue())
+                );
+            }
+        }
+        return file;
+    }
+
+    public String getDownsampledBedGraphFilePath(WigFile wigFile) {
+        final Map<String, Object> params = new HashMap<>();
+        params.put(DIR_ID.name(), wigFile.getId());
+        params.put(USER_ID.name(), wigFile.getCreatedBy());
+
+        File file = new File(toRealPath(substitute(BED_GRAPH_FILE, params)));
+        if (file.exists()) {
+            return file.getAbsolutePath();
+        } else {
+            return null;
+        }
+    }
+
     /**
      * Deletes a directory, containing all the stuff, related to a feature file
      *
@@ -1996,6 +2078,9 @@ public class FileManager {
                 break;
             case BED:
                 filePathFormat = BED_DIR;
+                break;
+            case WIG:
+                filePathFormat = BED_GRAPH_DIR;
                 break;
             default:
                 throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_UNSUPPORTED_FEATURE_FILE_TYPE,
