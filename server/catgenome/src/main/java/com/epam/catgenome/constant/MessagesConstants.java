@@ -112,7 +112,7 @@ public final class MessagesConstants {
     public static final String ERROR_ANNOTATION_FILE_ALREADY_EXIST = "error.annotation.file.feature.already.exist";
     public static final String ERROR_ANNOTATION_FILE_NOT_EXIST = "error.annotation.file.feature.not.exist";
     public static final String ERROR_ILLEGAL_REFERENCE_FOR_ANNOTATION = "error.illegal.reference.for.annotation";
-    public static final String ERROR_UNSUPPORTED_OPERATION = "error.illegal.reference.for.annotation";
+    public static final String ERROR_UNSUPPORTED_OPERATION = "error.unsupported.operation";
 
     //Feature index
     public static final String ERROR_FEATURE_INDEX_NOT_FOUND = "error.feature.index.not.found";

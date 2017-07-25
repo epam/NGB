@@ -39,6 +39,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.manager.bed.BedManager;
+import com.epam.catgenome.util.DiskBasedList;
 import htsjdk.variant.vcf.VCFHeaderLineCount;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -152,6 +153,9 @@ public class FeatureIndexManager {
 
     @Value("#{catgenome['search.features.max.results'] ?: 100}")
     private Integer maxFeatureSearchResultsCount;
+
+    @Value("#{catgenome['files.vcf.max.entries.in.memory'] ?: 3000000}")
+    private int maxVcfIndexEntriesInMemory;
 
     /**
      * Deletes features from specified feature files from project's index
@@ -482,7 +486,8 @@ public class FeatureIndexManager {
     public List<VcfIndexEntry> postProcessIndexEntries(List<VcfIndexEntry> entries, List<GeneFile> geneFiles,
                                                     Chromosome chromosome, VCFHeader vcfHeader, VcfFileReader vcfReader)
         throws GeneReadingException {
-        List<VcfIndexEntry> processedEntries = new ArrayList<>();
+        List<VcfIndexEntry> processedEntries =
+                new DiskBasedList<VcfIndexEntry>(maxVcfIndexEntriesInMemory / 2).adaptToList();
         int start = chromosome.getSize();
         int end = 0;
         for (FeatureIndexEntry entry : entries) {

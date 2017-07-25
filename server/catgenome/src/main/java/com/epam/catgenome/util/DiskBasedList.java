@@ -129,7 +129,6 @@ public class DiskBasedList<T> implements Iterable<T> {
         private final Iterator<File> batchFilesIterator = batchFiles.iterator();
         private final Iterator<T> restBufferIterator = buffer.iterator();
 
-        //Must be null if empty
         private ObjectInputStream currentBatchFileInputStream;
         private int objectsAlreadyReadFromFile;
 
@@ -228,7 +227,10 @@ public class DiskBasedList<T> implements Iterable<T> {
 
         @Override
         public boolean addAll(@NotNull Collection<? extends T> c) {
-            throw new UnsupportedOperationException(getMessage(MessagesConstants.ERROR_UNSUPPORTED_OPERATION));
+            for (T t : c) {
+                add(t);
+            }
+            return true;
         }
 
         @Override

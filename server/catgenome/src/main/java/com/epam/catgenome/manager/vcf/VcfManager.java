@@ -157,7 +157,6 @@ public class VcfManager {
 
     private InfoFieldParser infoFieldParser;
 
-    // Will spill to disk after ~10Gb entries in memory by default
     @Value("#{catgenome['files.vcf.max.entries.in.memory'] ?: 3000000}")
     private int maxVcfIndexEntriesInMemory;
 
@@ -597,7 +596,7 @@ public class VcfManager {
         VcfFileReader vcfFileReader = new VcfFileReader(fileManager, referenceGenomeManager);
         VCFHeader vcfHeader = (VCFHeader) reader.getHeader();
 
-        List<VcfIndexEntry> allEntries = new DiskBasedList<VcfIndexEntry>(maxVcfIndexEntriesInMemory).adaptToList();
+        List<VcfIndexEntry> allEntries = new DiskBasedList<VcfIndexEntry>(maxVcfIndexEntriesInMemory / 2).adaptToList();
 
         List<GeneFile> geneFiles  = reference.getGeneFile() != null ?
                                     Collections.singletonList(reference.getGeneFile()) : Collections.emptyList();
