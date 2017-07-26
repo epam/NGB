@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -107,6 +107,7 @@ public final class MessagesConstants {
     public static final String ERROR_REFERENCE_REGISTRATION_PARAMS = "error.reference.registration.params.ambiguous";
     public static final String ERROR_DURING_SORTING = "error.file.sorting";
     public static final String INFO_SORT_SUCCESS = "info.file.sorting";
+    public static final String ERROR_UNSUPPORTED_OPERATION = "error.unsupported.operation";
 
     //Feature index
     public static final String ERROR_FEATURE_INDEX_NOT_FOUND = "error.feature.index.not.found";
