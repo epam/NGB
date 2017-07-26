@@ -24,41 +24,6 @@
 
 package com.epam.catgenome.manager;
 
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.manager.FileManager.FilePathFormat.*;
-import static com.epam.catgenome.manager.FileManager.FilePathPlaceholder.*;
-
-import java.io.BufferedWriter;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.ByteOrder;
-import java.nio.charset.Charset;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-
-import javax.annotation.PostConstruct;
-
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.JsonMapper;
@@ -94,13 +59,7 @@ import com.epam.catgenome.manager.seg.parser.SegCodec;
 import com.epam.catgenome.manager.seg.parser.SegFeature;
 import com.epam.catgenome.manager.wig.reader.BedGraphCodec;
 import com.epam.catgenome.manager.wig.reader.BedGraphFeature;
-import com.epam.catgenome.util.AuthUtils;
-import com.epam.catgenome.util.BlockCompressedDataInputStream;
-import com.epam.catgenome.util.BlockCompressedDataOutputStream;
-import com.epam.catgenome.util.IndexUtils;
-import com.epam.catgenome.util.NgbFileUtils;
-import com.epam.catgenome.util.PositionalOutputStream;
-import com.epam.catgenome.util.Utils;
+import com.epam.catgenome.util.*;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import htsjdk.samtools.util.BlockCompressedInputStream;
@@ -137,6 +96,20 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+
+import javax.annotation.PostConstruct;
+import java.io.*;
+import java.nio.ByteOrder;
+import java.nio.charset.Charset;
+import java.nio.file.*;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.manager.FileManager.FilePathFormat.*;
+import static com.epam.catgenome.manager.FileManager.FilePathPlaceholder.*;
 
 /**
  * Source:      FileManager.java
@@ -240,7 +213,7 @@ public class FileManager {
 
         WIG_DIR("/${USER_ID}/wig/${DIR_ID}/downsampled"),
         WIG_FILE("/${USER_ID}/wig/${DIR_ID}/downsampled/${CHROMOSOME_NAME}.wig"),
-        BED_GRAPH_FILE("/${USER_ID}/wig/${DIR_ID}/downsampled.bdg"),
+        BED_GRAPH_FILE("${USER_ID}/wig/${DIR_ID}/downsampled.bdg"),
 
         VG_DIR("/${USER_ID}/vg/${DIR_ID}"),
 

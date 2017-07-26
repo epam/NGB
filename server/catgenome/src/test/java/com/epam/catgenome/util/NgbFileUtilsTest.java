@@ -1,9 +1,8 @@
 package com.epam.catgenome.util;
 
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.epam.catgenome.entity.BiologicalDataItemFormat;
 
 /**
  * Source:      FileUtilsTest
@@ -14,6 +13,7 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
  * @author Mikhail Miroliubov
  */
 public class NgbFileUtilsTest {
+
     @Test
     public void testGetFileExtension() {
         Assert.assertEquals(".vcf", NgbFileUtils.getFileExtension("vcf_file.vcf"));
@@ -35,5 +35,15 @@ public class NgbFileUtilsTest {
 
         Assert.assertEquals(BiologicalDataItemFormat.INDEX, NgbFileUtils.getFormatByExtension("index.tbi"));
         Assert.assertEquals(BiologicalDataItemFormat.INDEX, NgbFileUtils.getFormatByExtension("index.foo.tbi"));
+    }
+
+    @Test
+    public void resolveRelativePathIfNeededTest() {
+//        Assert.assertEquals(NgbFileUtils.resolveRelativeIfNeeded(););
+    }
+
+    @Test
+    public void convertToRelativePathTest() {
+
     }
 }

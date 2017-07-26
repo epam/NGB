@@ -152,6 +152,7 @@ public final class NgbFileUtils {
 
     public static void resolveRelativeIfNeeded(IndexedDataItem file, String baseDirPath) {
         String indexPath = file.getIndex().getPath();
+        indexPath.trim();
         if(!isFileIndexPathAbsolute(indexPath) && isLocalFilePath(indexPath)) {
             file.getIndex().setPath(baseDirPath + File.separator + indexPath);
         }

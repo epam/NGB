@@ -87,6 +87,7 @@ public class BedGraphProcessor extends AbstractWigProcessor {
     protected void prepareWigFileToWork(WigFile wigFile) throws IOException {
         wigFile.setCompressed(IOHelper.isGZIPFile(wigFile.getPath()));
         fileManager.makeBedGraphIndex(wigFile);
+        wigFile.getIndex().setPath(NgbFileUtils.convertToRelativePath(wigFile.getIndex().getPath(), fileManager.getBaseDirPath()));
         biologicalDataItemManager.createBiologicalDataItem(wigFile.getIndex());
     }
 
@@ -95,6 +96,7 @@ public class BedGraphProcessor extends AbstractWigProcessor {
     @Override
     protected void splitByChromosome(WigFile wigFile, Map<String, Chromosome> chromosomeMap) throws IOException {
         List<BedGraphFeature> sectionList = new ArrayList<>();
+        NgbFileUtils.resolveRelativeIfNeeded(wigFile, fileManager.getBaseDirPath());
         for (Chromosome chromosome : chromosomeMap.values()) {
             try (PeekableIterator<BedGraphFeature> query = new PeekableIterator<>(
                     new BedGraphReader(wigFile.getPath(), wigFile.getIndex().getPath()).query(
