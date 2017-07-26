@@ -222,8 +222,25 @@
                         </div>
                     </md-content>
                 </md-tab>
+                <md-tab label="VCF">
+                    <md-content class="md-padding">
+                        <div class="column">
+                            <div class="row">
+                                <md-input-container>
+                                    <input name="maxRangeVcf"
+                                           type="number"
+                                           required
+                                           placeholder="maximum variants range(bp)"
+                                           ng-model="ctrl.settings.variantsMaximumRange"/>
+                                    <div ng-messages="settingsForm.maxRangeVcf.$error" role="alert">
+                                        <div ng-message="required">Enter maximum range for displaying variants(bp).</div>
+                                    </div>
+                                </md-input-container>
+                            </div>
+                        </div>
+                    </md-content>
+                </md-tab>
                 <md-tab label="Customize">
-
                     <md-content class="customizations">
                         <div class="md-toolbar-panel">
                             <md-button ng-click="ctrl.setToDefaultCustomizations()" class="set-to-default-btn">
