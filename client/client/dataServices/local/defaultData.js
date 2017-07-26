@@ -186,7 +186,7 @@ export default {
         minBpCount: 50,
         shortenedIntronLength: 15,
         shortenedIntronsMaximumRange: 500000,
-        variantsMaximumRange: 100000,
+        variantsMaximumRange: 500000,
         showCenterLine: true,
         showSoftClippedBase: true
     }
