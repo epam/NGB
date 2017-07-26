@@ -39,6 +39,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.manager.bed.BedManager;
+import com.epam.catgenome.util.DiskBasedList;
 import htsjdk.variant.vcf.VCFHeaderLineCount;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -152,6 +153,9 @@ public class FeatureIndexManager {
 
     @Value("#{catgenome['search.features.max.results'] ?: 100}")
     private Integer maxFeatureSearchResultsCount;
+
+    @Value("#{catgenome['files.vcf.max.entries.in.memory'] ?: 3000000}")
+    private int maxVcfIndexEntriesInMemory;
 
     /**
      * Deletes features from specified feature files from project's index
@@ -476,13 +480,15 @@ public class FeatureIndexManager {
      * @param chromosome a {@code Chromosome}, from which entries came
      * @param vcfHeader a header of VCF file
      * @param vcfReader a reader for VCF file
-     * @return a list of post-processed index entries, ready to write into index
+     * @return a list of post-processed index entries, ready to write into index, must be cleared
+     * after use because disk-based implementation could be returned
      * @throws GeneReadingException if an exception was thrown when reading genes information
      */
     public List<VcfIndexEntry> postProcessIndexEntries(List<VcfIndexEntry> entries, List<GeneFile> geneFiles,
                                                     Chromosome chromosome, VCFHeader vcfHeader, VcfFileReader vcfReader)
         throws GeneReadingException {
-        List<VcfIndexEntry> processedEntries = new ArrayList<>();
+        List<VcfIndexEntry> processedEntries =
+                new DiskBasedList<VcfIndexEntry>(maxVcfIndexEntriesInMemory / 2).adaptToList();
         int start = chromosome.getSize();
         int end = 0;
         for (FeatureIndexEntry entry : entries) {
@@ -717,6 +723,7 @@ public class FeatureIndexManager {
                 List<VcfIndexEntry> processedEntries = postProcessIndexEntries(allEntries, geneFiles,
                                        Utils.getFromChromosomeMap(chromosomeMap, currentKey), vcfHeader, vcfFileReader);
                 featureIndexDao.writeLuceneIndexForFile(vcfFile, processedEntries);
+                processedEntries.clear();
                 LOGGER.info(MessageHelper.getMessage(MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE,
                                                      currentKey));
                 allEntries.clear();
@@ -734,6 +741,7 @@ public class FeatureIndexManager {
             List<VcfIndexEntry> processedEntries = postProcessIndexEntries(allEntries, geneFiles,
                                        Utils.getFromChromosomeMap(chromosomeMap, currentKey), vcfHeader, vcfFileReader);
             featureIndexDao.writeLuceneIndexForFile(vcfFile, processedEntries);
+            processedEntries.clear();
             LOGGER.info(MessageHelper.getMessage(MessagesConstants
                                                      .INFO_FEATURE_INDEX_CHROMOSOME_WROTE, currentKey));
             allEntries.clear();

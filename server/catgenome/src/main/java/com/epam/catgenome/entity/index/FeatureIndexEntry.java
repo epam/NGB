@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.entity.index;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 import com.epam.catgenome.entity.reference.Chromosome;
@@ -38,7 +39,7 @@ import com.epam.catgenome.entity.reference.Chromosome;
  * Represents a feature in a feature index
  * </p>
  */
-public class FeatureIndexEntry {
+public class FeatureIndexEntry implements Serializable {
 
     /**
      * {@code Integer} represents the ending interval index, inclusive.
