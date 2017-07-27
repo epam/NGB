@@ -24,15 +24,6 @@
 
 package com.epam.catgenome.manager.maf;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
@@ -41,6 +32,16 @@ import com.epam.catgenome.dao.project.ProjectDao;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.maf.MafFile;
 import com.epam.catgenome.entity.project.Project;
+import com.epam.catgenome.util.NgbFileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  Provides service for managing {@code MafFile} in the system
@@ -55,6 +56,9 @@ public class MafFileManager {
 
     @Autowired
     private ProjectDao projectDao;
+
+    @Value("${files.base.directory.path}")
+    private String baseDirPath;
 
     /**
      * Saves a {@code MafFile} in the system
@@ -74,6 +78,7 @@ public class MafFileManager {
     public MafFile loadMafFile(long mafFileId) {
         MafFile mafFile = mafFileDao.loadMafFile(mafFileId);
         Assert.notNull(mafFile, "MAF file with requested ID not found: " + mafFileId);
+        NgbFileUtils.resolveRelativeIfNeeded(mafFile, baseDirPath);
         return mafFile;
     }
 
@@ -85,6 +90,9 @@ public class MafFileManager {
     @Transactional(propagation = Propagation.SUPPORTS)
     public MafFile loadMafFileNullable(long mafFileId) {
         MafFile mafFile = mafFileDao.loadMafFile(mafFileId);
+        if(mafFile != null) {
+            NgbFileUtils.resolveRelativeIfNeeded(mafFile, baseDirPath);
+        }
         return mafFile;
     }
 
@@ -104,7 +112,9 @@ public class MafFileManager {
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<MafFile> loadMafFilesByReferenceId(long referenceId) {
-        return mafFileDao.loadMafFilesByReferenceId(referenceId);
+        List<MafFile> mafFiles = mafFileDao.loadMafFilesByReferenceId(referenceId);
+        mafFiles.forEach(mafFile -> NgbFileUtils.resolveRelativeIfNeeded(mafFile, baseDirPath));
+        return mafFiles;
     }
 
     /**

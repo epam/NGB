@@ -24,24 +24,25 @@
 
 package com.epam.catgenome.manager.bed;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.dao.bed.BedFileDao;
 import com.epam.catgenome.dao.project.ProjectDao;
+import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.bed.BedFile;
 import com.epam.catgenome.entity.project.Project;
+import com.epam.catgenome.util.NgbFileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Provides service for managing {@code BedFile} in the system
@@ -60,6 +61,9 @@ public class BedFileManager {
     @Autowired
     private ProjectDao projectDao;
 
+    @Value("${files.base.directory.path}")
+    private String baseDirPath;
+
     /**
      * Persists a {@code BedFile} record in the database
      * @param bedFile a {@code BedFile} instance to be persisted
@@ -77,7 +81,11 @@ public class BedFileManager {
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     public BedFile loadBedFile(long bedFileId) {
-        return bedFileDao.loadBedFile(bedFileId);
+        BedFile bedFile = bedFileDao.loadBedFile(bedFileId);
+        if(bedFile != null) {
+            NgbFileUtils.resolveRelativeIfNeeded(bedFile, baseDirPath);
+        }
+        return bedFile;
     }
 
     /**
@@ -98,7 +106,13 @@ public class BedFileManager {
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<BedFile> loadBedFilesByReferenceId(long referenceId) {
-        return bedFileDao.loadBedFilesByReferenceId(referenceId);
+        List<BedFile> bedFiles = bedFileDao.loadBedFilesByReferenceId(referenceId);
+        bedFiles.forEach(bedFile -> {
+            if (bedFile != null) {
+                NgbFileUtils.resolveRelativeIfNeeded(bedFile, baseDirPath);
+            }
+        });
+        return bedFiles;
     }
 
     /**

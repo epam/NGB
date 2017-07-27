@@ -24,24 +24,25 @@
 
 package com.epam.catgenome.manager.gene;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.dao.gene.GeneFileDao;
 import com.epam.catgenome.dao.project.ProjectDao;
+import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.project.Project;
+import com.epam.catgenome.util.NgbFileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Source:      GeneFileManager
@@ -68,6 +69,9 @@ public class GeneFileManager {
 
     @Autowired
     private ReferenceGenomeDao referenceGenomeDao;
+
+    @Value("${files.base.directory.path}")
+    private String baseDirPath;
 
     /**
      * Persists {@code GeneFile} record to the database
@@ -121,6 +125,7 @@ public class GeneFileManager {
     public GeneFile loadGeneFile(long geneFileId) {
         GeneFile geneFile = geneFileDao.loadGeneFile(geneFileId);
         Assert.notNull(geneFile, MessageHelper.getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND, geneFileId));
+        NgbFileUtils.resolveRelativeIfNeeded(geneFile, baseDirPath);
         return geneFile;
     }
 
@@ -148,6 +153,8 @@ public class GeneFileManager {
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<GeneFile> loadGeneFilesByReferenceId(long referenceId) {
-        return geneFileDao.loadGeneFilesByReferenceId(referenceId);
+        List<GeneFile> geneFiles = geneFileDao.loadGeneFilesByReferenceId(referenceId);
+        geneFiles.forEach(geneFile -> NgbFileUtils.resolveRelativeIfNeeded(geneFile, baseDirPath));
+        return geneFiles;
     }
 }

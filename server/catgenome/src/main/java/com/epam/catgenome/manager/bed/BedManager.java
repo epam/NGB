@@ -24,28 +24,6 @@
 
 package com.epam.catgenome.manager.bed;
 
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.BaseEntity;
@@ -60,12 +38,12 @@ import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.exception.HistogramReadingException;
 import com.epam.catgenome.exception.HistogramWritingException;
 import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.DownloadFileManager;
+import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.bed.parser.NggbBedFeature;
@@ -73,13 +51,35 @@ import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.IOHelper;
+import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.Utils;
-import htsjdk.tribble.bed.BEDCodec;
-import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.Feature;
+import htsjdk.tribble.bed.BEDCodec;
+import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.tribble.readers.LineIterator;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 /**
  * Provides service for handling {@code BedFile}: CRUD operations and loading data from the files
@@ -321,6 +321,9 @@ public class BedManager {
             LOG.debug("Making BED histogram took {} ms", time2 - time1);
             LOG.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, bedFile.getId(),
                     bedFile.getPath()));
+            if(NgbFileUtils.isLocalFilePath(bedFile.getIndex().getPath())) {
+                bedFile.getIndex().setPath(NgbFileUtils.convertToRelativePath(bedFile.getIndex().getPath(), fileManager.getBaseDirPath()));
+            }
             biologicalDataItemManager.createBiologicalDataItem(bedFile.getIndex());
             bedFileManager.createBedFile(bedFile);
             return bedFile;

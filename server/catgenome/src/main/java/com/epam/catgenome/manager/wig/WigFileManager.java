@@ -24,15 +24,6 @@
 
 package com.epam.catgenome.manager.wig;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
@@ -41,6 +32,16 @@ import com.epam.catgenome.dao.wig.WigFileDao;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.wig.WigFile;
+import com.epam.catgenome.util.NgbFileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Source:      WigFileManager.java
@@ -64,6 +65,8 @@ public class WigFileManager {
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
 
+    @Value("${files.base.directory.path}")
+    private String baseDirPath;
     /**
      * Persists {@code WigFile} record to the database
      *
@@ -94,7 +97,11 @@ public class WigFileManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public WigFile loadWigFile(Long wigFileId) {
-        return wigFileDao.loadWigFile(wigFileId);
+        WigFile wigFile = wigFileDao.loadWigFile(wigFileId);
+        if(wigFile != null && wigFile.getIndex() != null) {
+            NgbFileUtils.resolveRelativeIfNeeded(wigFile, baseDirPath);
+        }
+        return wigFile;
     }
 
     /**
@@ -105,7 +112,15 @@ public class WigFileManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public List<WigFile> loadWigFilesByReferenceId(long referenceId) {
-        return wigFileDao.loadWigFilesByReferenceId(referenceId);
+        List<WigFile> wigFiles = wigFileDao.loadWigFilesByReferenceId(referenceId);
+        if(!wigFiles.isEmpty()) {
+            wigFiles.forEach(wigFile -> {
+                if(wigFile.getIndex() != null) {
+                    NgbFileUtils.resolveRelativeIfNeeded(wigFile, baseDirPath);
+                }
+            });
+        }
+        return wigFiles;
     }
 
     /**
