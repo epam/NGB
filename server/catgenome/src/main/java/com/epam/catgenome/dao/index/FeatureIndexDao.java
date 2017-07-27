@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.dao.index.indexer.AbstractDocumentCreator;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -121,6 +122,8 @@ import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.reference.BookmarkManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import htsjdk.variant.vcf.VCFHeaderLineType;
+
+import javax.print.Doc;
 
 /**
  * Source:      FeatureIndexDao
@@ -216,12 +219,14 @@ public class FeatureIndexDao {
                     FeatureIndexFields.FACET_CHR_ID.getFieldName());
 
             for (FeatureIndexEntry entry : entries) {
-                Document document = new Document();
+                /*Document document = new Document();
                 addCommonDocumentFields(document, entry, featureFileId);
 
                 if (entry instanceof VcfIndexEntry) {
                     addVcfDocumentFields(document, entry);
-                }
+                }*/
+                AbstractDocumentCreator creator = AbstractDocumentCreator.createDocumentCreator(entry);
+                Document document = creator.createIndexDocument(entry, featureFileId);
 
                 writer.addDocument(facetsConfig.build(document));
             }
@@ -251,12 +256,14 @@ public class FeatureIndexDao {
                                            FeatureIndexFields.FACET_UID.getFieldName());
 
             for (FeatureIndexEntry entry : entries) {
-                Document document = new Document();
+                /*Document document = new Document();
                 addCommonDocumentFields(document, entry, featureFile.getId());
 
                 if (entry instanceof VcfIndexEntry) {
                     addVcfDocumentFields(document, entry);
-                }
+                }*/
+                AbstractDocumentCreator creator = AbstractDocumentCreator.createDocumentCreator(entry);
+                Document document = creator.createIndexDocument(entry, featureFile.getId());
 
                 writer.addDocument(facetsConfig.build(document));
             }
@@ -1072,133 +1079,6 @@ public class FeatureIndexDao {
         }
 
         return vcfIndexEntry;
-    }
-
-    private void addCommonDocumentFields(Document document, FeatureIndexEntry entry, final Long featureFileId) {
-        document.add(new SortedStringField(FeatureIndexFields.FEATURE_ID.getFieldName(), entry.getFeatureId()));
-
-        FieldType fieldType = new FieldType();
-        fieldType.setOmitNorms(true);
-        fieldType.setIndexOptions(IndexOptions.DOCS);
-        fieldType.setStored(true);
-        fieldType.setTokenized(false);
-        fieldType.setDocValuesType(DocValuesType.SORTED);
-        fieldType.freeze();
-        Field field = new Field(FeatureIndexFields.CHROMOSOME_ID.getFieldName(), entry.getChromosome() != null ?
-                                 new BytesRef(entry.getChromosome().getId().toString()) : new BytesRef(""), fieldType);
-        document.add(field);
-        document.add(new SortedStringField(FeatureIndexFields.CHROMOSOME_NAME.getFieldName(),
-                                     entry.getChromosome().getName(), true));
-
-        document.add(new SortedIntPoint(FeatureIndexFields.START_INDEX.getFieldName(), entry.getStartIndex()));
-        document.add(new StoredField(FeatureIndexFields.START_INDEX.getFieldName(), entry.getStartIndex()));
-        document.add(new SortedDocValuesField(FeatureIndexFields.START_INDEX.getGroupName(),
-                                              new BytesRef(entry.getStartIndex().toString())));
-
-        document.add(new SortedIntPoint(FeatureIndexFields.END_INDEX.getFieldName(), entry.getEndIndex()));
-        document.add(new StoredField(FeatureIndexFields.END_INDEX.getFieldName(), entry.getEndIndex()));
-        document.add(new SortedDocValuesField(FeatureIndexFields.END_INDEX.getGroupName(),
-                                              new BytesRef(entry.getStartIndex().toString())));
-
-        document.add(new StringField(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                     entry.getFeatureType() != null ? entry.getFeatureType().getFileValue() : "", Field.Store.YES));
-        document.add(new StringField(FeatureIndexFields.FILE_ID.getFieldName(), featureFileId.toString(),
-                                     Field.Store.YES));
-
-        document.add(new StringField(FeatureIndexFields.FEATURE_NAME.getFieldName(),
-                         entry.getFeatureName() != null ? entry.getFeatureName().toLowerCase() : "", Field.Store.YES));
-        document.add(new SortedDocValuesField(FeatureIndexFields.FEATURE_NAME.getFieldName(),
-                                         new BytesRef(entry.getFeatureName() != null ? entry.getFeatureName() : "")));
-
-        document.add(new SortedSetDocValuesFacetField(FeatureIndexFields.CHR_ID.getFieldName(),
-                                                      entry.getChromosome().getId().toString()));
-
-        document.add(new SortedStringField(FeatureIndexFields.UID.getFieldName(), entry.getUuid().toString()));
-        document.add(new SortedSetDocValuesFacetField(FeatureIndexFields.F_UID.getFieldName(),
-                                                      entry.getUuid().toString()));
-    }
-
-    private void  addVcfDocumentFields(Document document, FeatureIndexEntry entry) {
-        VcfIndexEntry vcfIndexEntry = (VcfIndexEntry) entry;
-        document.add(new SortedStringField(FeatureIndexFields.VARIATION_TYPE.getFieldName(),
-                                           vcfIndexEntry.getVariationType().name()));
-
-        if (StringUtils.isNotBlank(vcfIndexEntry.getFailedFilter())) {
-            document.add(new SortedStringField(FeatureIndexFields.FAILED_FILTER.getFieldName(),
-                                               vcfIndexEntry.getFailedFilter()));
-        }
-
-        document.add(new SortedFloatPoint(FeatureIndexFields.QUALITY.getFieldName(), vcfIndexEntry.getQuality()
-            .floatValue()));
-        document.add(new StoredField(FeatureIndexFields.QUALITY.getFieldName(), vcfIndexEntry.getQuality()
-            .floatValue()));
-        document.add(new SortedDocValuesField(FeatureIndexFields.QUALITY.getGroupName(),
-                                              new BytesRef(vcfIndexEntry.getQuality().toString())));
-
-        if (StringUtils.isNotBlank(vcfIndexEntry.getGene())) {
-            document.add(new StringField(FeatureIndexFields.GENE_ID.getFieldName(),
-                                         vcfIndexEntry.getGene().toLowerCase(), Field.Store.YES));
-            document.add(new SortedStringField(FeatureIndexFields.GENE_IDS.getFieldName(),
-                                               vcfIndexEntry.getGeneIds(), true));
-        }
-
-        if (StringUtils.isNotBlank(vcfIndexEntry.getGeneName())) {
-            document.add(new StringField(FeatureIndexFields.GENE_NAME.getFieldName(),
-                                         vcfIndexEntry.getGeneName().toLowerCase(), Field.Store.YES));
-            document.add(new SortedStringField(FeatureIndexFields.GENE_NAMES.getFieldName(),
-                                         vcfIndexEntry.getGeneNames(), true));
-        }
-
-        document.add(new SortedStringField(FeatureIndexFields.IS_EXON.getFieldName(),
-                                     vcfIndexEntry.getExon().toString()));
-
-        if (vcfIndexEntry.getInfo() != null) {
-            addVcfDocumentInfoFields(document, vcfIndexEntry);
-        }
-    }
-
-    private void addVcfDocumentInfoFields(Document document, VcfIndexEntry vcfIndexEntry) {
-        for (Map.Entry<String, Object> info : vcfIndexEntry.getInfo().entrySet()) {
-            if (viewFieldPattern.matcher(info.getKey()).matches()) { //view fields are for view purposes
-                continue;
-            }
-
-            String viewKey = "_" + info.getKey() + "_v";
-            if (info.getValue() instanceof Integer) {
-                document.add(new SortedIntPoint(info.getKey().toLowerCase(), (Integer) info.getValue()));
-                if (vcfIndexEntry.getInfo().containsKey(viewKey)) {
-                    document.add(new StoredField(info.getKey().toLowerCase(), vcfIndexEntry.getInfo()
-                        .get(viewKey).toString()));
-                    document.add(new SortedDocValuesField(FeatureIndexFields.getGroupName(info.getKey().toLowerCase()),
-                                                      new BytesRef(vcfIndexEntry.getInfo().get(viewKey).toString())));
-                } else {
-                    document.add(new StoredField(info.getKey().toLowerCase(),
-                                                 (Integer) info.getValue()));
-                    document.add(new SortedDocValuesField(FeatureIndexFields.getGroupName(info.getKey().toLowerCase()),
-                                                          new BytesRef(info.getValue().toString())));
-                }
-            } else if (info.getValue() instanceof Float) {
-                document.add(new SortedFloatPoint(info.getKey().toLowerCase(), (Float) info.getValue()));
-
-                if (vcfIndexEntry.getInfo().containsKey(viewKey)) {
-                    document.add(new StoredField(info.getKey().toLowerCase(), vcfIndexEntry.getInfo()
-                        .get(viewKey).toString()));
-                    document.add(new SortedDocValuesField(FeatureIndexFields.getGroupName(info.getKey().toLowerCase()),
-                                                      new BytesRef(vcfIndexEntry.getInfo().get(viewKey).toString())));
-                } else {
-                    document.add(new StoredField(info.getKey().toLowerCase(), (Float) info.getValue()));
-                    document.add(new SortedDocValuesField(FeatureIndexFields.getGroupName(info.getKey().toLowerCase()),
-                                                          new BytesRef(info.getValue().toString())));
-                }
-            } else {
-                if (vcfIndexEntry.getInfo().containsKey(viewKey)) {
-                    document.add(new SortedStringField(info.getKey().toLowerCase(), vcfIndexEntry.getInfo()
-                        .get(viewKey).toString()));
-                } else {
-                    document.add(new SortedStringField(info.getKey().toLowerCase(), info.getValue().toString().trim()));
-                }
-            }
-        }
     }
 
     private void createIndexEntries(final ScoreDoc[] hits, Map<Integer, FeatureIndexEntry> entryMap,

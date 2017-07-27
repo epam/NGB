@@ -54,13 +54,13 @@ public class VcfFeatureIndexer implements FeatureIndexer<VariantContext, VcfInde
     private VCFHeader vcfHeader;
     private FeatureIndexDao featureIndexDao;
 
+    private List<VcfIndexEntry> allEntries = new ArrayList<>();
+
     public VcfFeatureIndexer(VcfFilterInfo filterInfo, VCFHeader vcfHeader, FeatureIndexDao featureIndexDao) {
         this.filterInfo = filterInfo;
         this.vcfHeader = vcfHeader;
         this.featureIndexDao = featureIndexDao;
     }
-
-    private List<VcfIndexEntry> allEntries = new ArrayList<>();
 
     @Override
     public void addFeatureToIndex(VariantContext context, Map<String, Chromosome> chromosomeMap) {
@@ -225,20 +225,20 @@ public class VcfFeatureIndexer implements FeatureIndexer<VariantContext, VcfInde
                 indexEntry.setExon(geneIds.stream().anyMatch(i -> i.isExon));
             }
 
-            processedEntries.addAll(simplify(indexEntry, geneIds, geneIdsString, geneNamesString));
+            Set<VariationType> types = new HashSet<>();
+            for (int i = 0; i < indexEntry.getVariantContext().getAlternateAlleles().size(); i++) {
+                Variation variation = VcfFileReader.createVariation(indexEntry.getVariantContext(), vcfHeader, i);
+                types.add(variation.getType());
+            }
+
+            processedEntries.addAll(simplify(indexEntry, geneIds, geneIdsString, geneNamesString, types));
         }
 
         return processedEntries;
     }
 
     protected List<VcfIndexEntry> simplify(VcfIndexEntry indexEntry, Set<VariationGeneInfo> geneIds,
-                                           String geneIdsString, String geneNamesString) {
-        Set<VariationType> types = new HashSet<>();
-        for (int i = 0; i < indexEntry.getVariantContext().getAlternateAlleles().size(); i++) {
-            Variation variation = VcfFileReader.createVariation(indexEntry.getVariantContext(), vcfHeader, i);
-            types.add(variation.getType());
-        }
-
+                                           String geneIdsString, String geneNamesString, Set<VariationType> types) {
         List<String> ambiguousInfoFields = vcfHeader.getInfoHeaderLines().stream()
                 .filter(l -> l.getCount(indexEntry.getVariantContext()) > 1
                         && !isVariableLength(l.getCountType()))
@@ -420,10 +420,10 @@ public class VcfFeatureIndexer implements FeatureIndexer<VariantContext, VcfInde
         this.allEntries.clear();
     }
 
-    private static class VariationGeneInfo {
-        private String geneId;
-        private String geneName;
-        private boolean isExon;
+    protected static class VariationGeneInfo {
+        protected String geneId;
+        protected String geneName;
+        protected boolean isExon;
 
         VariationGeneInfo(String geneId, String geneName, boolean isExon) {
             this.geneId = geneId;

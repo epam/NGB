@@ -25,7 +25,9 @@
 package com.epam.catgenome.entity.index;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.epam.catgenome.entity.vcf.VariationEffect;
 import com.epam.catgenome.entity.vcf.VariationImpact;
@@ -55,6 +57,11 @@ public class VcfIndexEntry extends FeatureIndexEntry {
     private Map<String, Object> info;
     private Double quality;
     private Boolean isExon = false;
+
+    // Big Vcf Fields
+    private List<String> geneIdList;
+    private List<String> geneNameList;
+    private Set<VariationType> variationTypes;
 
     @JsonIgnore
     private VariantContext variantContext;
@@ -173,6 +180,36 @@ public class VcfIndexEntry extends FeatureIndexEntry {
 
     public void setVariantContext(VariantContext variantContext) {
         this.variantContext = variantContext;
+    }
+
+    public List<String> getGeneIdList()
+    {
+        return geneIdList;
+    }
+
+    public void setGeneIdList(List<String> geneIdList)
+    {
+        this.geneIdList = geneIdList;
+    }
+
+    public List<String> getGeneNameList()
+    {
+        return geneNameList;
+    }
+
+    public void setGeneNameList(List<String> geneNameList)
+    {
+        this.geneNameList = geneNameList;
+    }
+
+    public Set<VariationType> getVariationTypes()
+    {
+        return variationTypes;
+    }
+
+    public void setVariationTypes(Set<VariationType> variationTypes)
+    {
+        this.variationTypes = variationTypes;
     }
 
     @Override public boolean equals(Object o) {
