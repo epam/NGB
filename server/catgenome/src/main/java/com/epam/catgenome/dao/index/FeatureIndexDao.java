@@ -91,6 +91,7 @@ import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
@@ -143,6 +144,9 @@ public class FeatureIndexDao {
 
     @Autowired
     private VcfManager vcfManager;
+
+    @Value("#{catgenome['lucene.index.max.segment.size'] ?: 4L * 1024 * 1024 * 1024}")
+    private long luceneIndexSegmentMaxSize;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureIndexDao.class);
     private static Pattern viewFieldPattern = Pattern.compile("_.*_v$");
@@ -237,7 +241,14 @@ public class FeatureIndexDao {
      * @throws IOException
      */
     public void writeLuceneIndexForFile(final FeatureFile featureFile,
-                                        final List<? extends FeatureIndexEntry> entries) throws IOException {
+            final List<? extends FeatureIndexEntry> entries) throws IOException {
+        writeLuceneIndexForFile(featureFile, entries, false);
+    }
+
+
+    public void writeLuceneIndexForFile(final FeatureFile featureFile,
+                                        final List<? extends FeatureIndexEntry> entries,
+                                        final boolean optimize) throws IOException {
         try (
             StandardAnalyzer analyzer = new StandardAnalyzer();
             Directory index = fileManager.createIndexForFile(featureFile);
@@ -260,7 +271,25 @@ public class FeatureIndexDao {
 
                 writer.addDocument(facetsConfig.build(document));
             }
+            if (optimize) {
+                int segmentNumber = getSegmentNumber(index);
+                LOGGER.debug("Merging lucene index into {} segments.", segmentNumber);
+                writer.forceMerge(segmentNumber);
+            }
         }
+    }
+
+    private int getSegmentNumber(Directory index) throws IOException{
+        long totalFileSize = 0L;
+        String[] files = index.listAll();
+        if (files == null) {
+            return 1;
+        }
+        for (int i = 0; i < files.length; i++) {
+            totalFileSize += index.fileLength(files[i]);
+        }
+        int segments = (int)(totalFileSize / luceneIndexSegmentMaxSize);
+        return segments > 1 ? segments : 1;
     }
 
     /**

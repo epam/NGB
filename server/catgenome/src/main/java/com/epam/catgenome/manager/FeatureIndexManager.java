@@ -658,8 +658,14 @@ public class FeatureIndexManager {
      * @throws IOException if error occurred while writing to file system
      */
     public void writeLuceneIndexForFile(final FeatureFile featureFile, final List<? extends FeatureIndexEntry> entries)
-        throws IOException {
-        featureIndexDao.writeLuceneIndexForFile(featureFile, entries);
+            throws IOException {
+        writeLuceneIndexForFile(featureFile, entries, false);
+    }
+
+    public void writeLuceneIndexForFile(final FeatureFile featureFile, final List<? extends FeatureIndexEntry> entries,
+            final boolean optimize)
+            throws IOException {
+        featureIndexDao.writeLuceneIndexForFile(featureFile, entries, optimize);
     }
 
     public void makeIndexForBedReader(BedFile bedFile, AbstractFeatureReader<BEDFeature, LineIterator> reader,
@@ -722,7 +728,7 @@ public class FeatureIndexManager {
                 Utils.chromosomeMapContains(chromosomeMap, currentKey)) {
                 List<VcfIndexEntry> processedEntries = postProcessIndexEntries(allEntries, geneFiles,
                                        Utils.getFromChromosomeMap(chromosomeMap, currentKey), vcfHeader, vcfFileReader);
-                featureIndexDao.writeLuceneIndexForFile(vcfFile, processedEntries);
+                featureIndexDao.writeLuceneIndexForFile(vcfFile, processedEntries, true);
                 processedEntries.clear();
                 LOGGER.info(MessageHelper.getMessage(MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE,
                                                      currentKey));
