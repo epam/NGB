@@ -10,9 +10,9 @@ import java.util.Map;
 /**
  * Created by Mikhail_Miroliubov on 7/27/2017.
  */
-public interface FeatureIndexer<T> {
-    void addFeatureToIndex(T context, Map<String, Chromosome> chromosomeMap);
-    List<? extends FeatureIndexEntry> postProcessIndexEntries(List<GeneFile> geneFiles,
+public interface FeatureIndexer<F, E extends FeatureIndexEntry> {
+    void addFeatureToIndex(F feature, Map<String, Chromosome> chromosomeMap);
+    List<E> postProcessIndexEntries(List<GeneFile> geneFiles,
                                                     Chromosome chromosome);
     void clear();
 }

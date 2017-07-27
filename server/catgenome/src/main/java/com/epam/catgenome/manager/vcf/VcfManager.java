@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.index.FeatureIndexDao;
+import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexer;
 import com.epam.catgenome.util.InfoFieldParser;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
@@ -101,7 +102,6 @@ import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.vcf.reader.AbstractVcfReader;
-import com.epam.catgenome.manager.vcf.reader.VcfFileReader;
 import com.epam.catgenome.manager.vcf.reader.VcfGa4ghReader;
 import com.epam.catgenome.manager.vcf.reader.VcfReader;
 import com.epam.catgenome.util.AuthUtils;
@@ -144,6 +144,9 @@ public class VcfManager {
 
     @Autowired
     private FeatureIndexManager featureIndexManager;
+
+    @Autowired
+    private FeatureIndexDao featureIndexDao;
 
     public static final double HTSJDK_WRONG_QUALITY = -10.0;
 
@@ -589,12 +592,10 @@ public class VcfManager {
         VariantContext lastFeature = null;
 
         VcfFilterInfo info = getFiltersInfo(reader);
-        VcfFileReader vcfFileReader = new VcfFileReader(fileManager, referenceGenomeManager);
         VCFHeader vcfHeader = (VCFHeader) reader.getHeader();
-        List<VcfIndexEntry> allEntries = new ArrayList<>();
         List<GeneFile> geneFiles  = reference.getGeneFile() != null ?
                                     Collections.singletonList(reference.getGeneFile()) : Collections.emptyList();
-
+        VcfFeatureIndexer indexer = new VcfFeatureIndexer(info, vcfHeader, featureIndexDao);
         while (iterator.hasNext()) {
             variantContext = iterator.next();
 
@@ -602,9 +603,8 @@ public class VcfManager {
                 if (checkMetaMapKey(chromosomeMap, currentKey)) {
                     metaMap.put(currentKey, new ImmutablePair<>(startPosition, endPosition));
 
-                    writeEntriesForChromosome(allEntries, geneFiles,
-                                              Utils.getFromChromosomeMap(chromosomeMap, currentKey), vcfFile, vcfHeader,
-                                              vcfFileReader, doIndex);
+                    writeEntriesForChromosome(indexer, geneFiles,
+                                              Utils.getFromChromosomeMap(chromosomeMap, currentKey), vcfFile, doIndex);
                 }
 
                 startPosition = variantContext.getStart();
@@ -613,7 +613,7 @@ public class VcfManager {
 
             checkSorted(vcfFile, variantContext, lastFeature);
 
-            indexVariation(allEntries, variantContext, chromosomeMap, info, vcfHeader, vcfFileReader, doIndex);
+            indexVariation(variantContext, chromosomeMap, indexer, doIndex);
 
             lastFeature = variantContext;
             // Put the last one in metaMap
@@ -626,34 +626,27 @@ public class VcfManager {
 
         // Put the last one
         if (variantContext != null && checkMetaMapKey(chromosomeMap, currentKey)) {
-            writeEntriesForChromosome(allEntries, geneFiles, Utils.getFromChromosomeMap(chromosomeMap, currentKey),
-                                      vcfFile, vcfHeader, vcfFileReader, doIndex);
+            writeEntriesForChromosome(indexer, geneFiles, Utils.getFromChromosomeMap(chromosomeMap, currentKey),
+                                      vcfFile, doIndex);
         }
 
         return metaMap;
     }
 
-    private void indexVariation(List<VcfIndexEntry> allEntries, VariantContext variantContext,
-                                Map<String, Chromosome> chromosomeMap,
-                                VcfFilterInfo info, VCFHeader vcfHeader,
-                                VcfFileReader vcfFileReader, boolean doIndex) {
+    private void indexVariation(VariantContext variantContext, Map<String, Chromosome> chromosomeMap, VcfFeatureIndexer indexer, boolean doIndex) {
         if (doIndex) {
-            featureIndexManager.addVariationToIndex(allEntries, variantContext, chromosomeMap, info, vcfHeader,
-                                                    vcfFileReader);
+            indexer.addFeatureToIndex(variantContext, chromosomeMap);
         }
     }
 
-    private void writeEntriesForChromosome(List<VcfIndexEntry> allEntries, List<GeneFile> geneFiles,
-                                           Chromosome currentChromosome, VcfFile vcfFile,
-                                           VCFHeader vcfHeader, VcfFileReader vcfFileReader, boolean doIndex)
+    private void writeEntriesForChromosome(VcfFeatureIndexer indexer, List<GeneFile> geneFiles,
+                                           Chromosome currentChromosome, VcfFile vcfFile, boolean doIndex)
         throws GeneReadingException, IOException {
         if (doIndex) {
-            List<VcfIndexEntry> processedEntries = featureIndexManager.postProcessIndexEntries(allEntries, geneFiles,
-                                                                                           currentChromosome,
-                                                                                           vcfHeader, vcfFileReader);
+            List<VcfIndexEntry> processedEntries = indexer.postProcessIndexEntries(geneFiles, currentChromosome);
             featureIndexManager.writeLuceneIndexForFile(vcfFile, processedEntries);
             LOGGER.info(getMessage(MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE, currentChromosome.getName()));
-            allEntries.clear();
+            indexer.clear();
         }
     }
 

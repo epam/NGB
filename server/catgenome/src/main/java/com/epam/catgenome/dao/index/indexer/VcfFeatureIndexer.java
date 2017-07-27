@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 /**
  * Created by Mikhail_Miroliubov on 7/27/2017.
  */
-public class VcfFeatureIndexer implements FeatureIndexer<VariantContext> {
+public class VcfFeatureIndexer implements FeatureIndexer<VariantContext, VcfIndexEntry> {
     private static final Logger LOGGER = LoggerFactory.getLogger(VcfFeatureIndexer.class);
 
     private VcfFilterInfo filterInfo;
@@ -196,7 +196,7 @@ public class VcfFeatureIndexer implements FeatureIndexer<VariantContext> {
     }
 
     @Override
-    public List<? extends FeatureIndexEntry> postProcessIndexEntries(List<GeneFile> geneFiles, Chromosome chromosome) {
+    public List<VcfIndexEntry> postProcessIndexEntries(List<GeneFile> geneFiles, Chromosome chromosome) {
         List<VcfIndexEntry> processedEntries = new ArrayList<>();
         int start = chromosome.getSize();
         int end = 0;
