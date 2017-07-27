@@ -162,7 +162,7 @@ public final class NgbFileUtils {
         return filePath.startsWith("/");
     }
 
-    private static boolean isLocalFilePath(String filePath) {
+    public static boolean isLocalFilePath(String filePath) {
         return !filePath.matches("^(http|https|ftp|S3|ftsp)://.*$");
     }
 

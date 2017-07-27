@@ -59,7 +59,13 @@ import com.epam.catgenome.manager.seg.parser.SegCodec;
 import com.epam.catgenome.manager.seg.parser.SegFeature;
 import com.epam.catgenome.manager.wig.reader.BedGraphCodec;
 import com.epam.catgenome.manager.wig.reader.BedGraphFeature;
-import com.epam.catgenome.util.*;
+import com.epam.catgenome.util.AuthUtils;
+import com.epam.catgenome.util.BlockCompressedDataInputStream;
+import com.epam.catgenome.util.BlockCompressedDataOutputStream;
+import com.epam.catgenome.util.IndexUtils;
+import com.epam.catgenome.util.NgbFileUtils;
+import com.epam.catgenome.util.PositionalOutputStream;
+import com.epam.catgenome.util.Utils;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import htsjdk.samtools.util.BlockCompressedInputStream;
@@ -98,11 +104,31 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -1547,8 +1573,7 @@ public class FileManager {
         params.put(USER_ID.name(), bedFile.getCreatedBy());
 
         File file = new File(bedFile.getPath());
-        String relativeBedIndexPath = substitute(BED_INDEX, params);
-        File indexFile = new File(toRealPath(relativeBedIndexPath));
+        File indexFile = new File(toRealPath(substitute(BED_INDEX, params)));
         NggbBedCodec bedCodec = new NggbBedCodec();
 
         TabixIndex index = IndexUtils.createTabixIndex(file, bedCodec, TabixFormat.BED);
@@ -1556,7 +1581,7 @@ public class FileManager {
 
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
-        indexItem.setPath(relativeBedIndexPath);
+        indexItem.setPath(indexFile.getAbsolutePath());
         indexItem.setFormat(BiologicalDataItemFormat.BED_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");

@@ -44,6 +44,7 @@ import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.ListMapCollector;
 import com.epam.catgenome.util.NgbFileUtils;
+import com.epam.catgenome.util.Utils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -119,7 +120,8 @@ public class ReferenceGenomeManager {
         Assert.notNull(reference.getId(), getMessage(MessageCode.UNKNOWN_REFERENCE_ID));
         BiologicalDataItem referenceIndex = reference.getIndex();
         String referenceIndexPath = referenceIndex.getPath();
-        if(!referenceIndexPath.isEmpty()) {
+        if(!referenceIndexPath.isEmpty()
+                && !reference.getPath().contains(Utils.removeFileExtension(referenceIndexPath, ".fai"))) {
             referenceIndex.setPath(NgbFileUtils.convertToRelativePath(referenceIndexPath, baseDirPath));
         }
         biologicalDataItemDao.createBiologicalDataItem(referenceIndex);
