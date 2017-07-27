@@ -62,6 +62,7 @@ public class VcfIndexEntry extends FeatureIndexEntry {
     private List<String> geneIdList;
     private List<String> geneNameList;
     private Set<VariationType> variationTypes;
+    private Set<String> failedFilters;
 
     @JsonIgnore
     private VariantContext variantContext;
@@ -205,6 +206,16 @@ public class VcfIndexEntry extends FeatureIndexEntry {
     public Set<VariationType> getVariationTypes()
     {
         return variationTypes;
+    }
+
+    public Set<String> getFailedFilters()
+    {
+        return failedFilters;
+    }
+
+    public void setFailedFilters(Set<String> failedFilters)
+    {
+        this.failedFilters = failedFilters;
     }
 
     public void setVariationTypes(Set<VariationType> variationTypes)
