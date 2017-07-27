@@ -365,8 +365,10 @@ public class GeneRegisterer {
         index = (TabixIndex) transcriptIndexCreator.finalizeIndex(transcriptPosition);
         index.write(transcriptIndexFile);
 
-        geneFile.setIndex(doIndex ? createIndexItem(NgbFileUtils.convertToRelativePath(indexFile.getAbsolutePath(), fileManager.getBaseDirPath())) :
-                createIndexItem(request.getIndexPath()));
+        geneFile.setIndex(doIndex
+                ? createIndexItem(NgbFileUtils
+                .convertToRelativePath(indexFile.getAbsolutePath(), fileManager.getBaseDirPath()))
+                : createIndexItem(request.getIndexPath()));
     }
 
     private BiologicalDataItem createIndexItem(String indexPath) {

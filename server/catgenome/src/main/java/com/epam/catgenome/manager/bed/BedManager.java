@@ -321,10 +321,12 @@ public class BedManager {
             LOG.debug("Making BED histogram took {} ms", time2 - time1);
             LOG.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, bedFile.getId(),
                     bedFile.getPath()));
-            if(NgbFileUtils.isLocalFilePath(bedFile.getIndex().getPath())) {
-                bedFile.getIndex().setPath(NgbFileUtils.convertToRelativePath(bedFile.getIndex().getPath(), fileManager.getBaseDirPath()));
+            BiologicalDataItem bedFileIndex = bedFile.getIndex();
+            if(NgbFileUtils.isLocalFilePath(bedFileIndex.getPath())) {
+                bedFileIndex.setPath(NgbFileUtils
+                        .convertToRelativePath(bedFileIndex.getPath(), fileManager.getBaseDirPath()));
             }
-            biologicalDataItemManager.createBiologicalDataItem(bedFile.getIndex());
+            biologicalDataItemManager.createBiologicalDataItem(bedFileIndex);
             bedFileManager.createBedFile(bedFile);
             return bedFile;
         } finally {
