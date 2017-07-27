@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.index.indexer.AbstractDocumentCreator;
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -451,7 +452,9 @@ public class FeatureIndexDao {
             final ScoreDoc[] hits = docs.scoreDocs;
 
             Map<Long, BookmarkIndexEntry> foundBookmarkEntries = new HashMap<>(); // for batch bookmarks loading
-            createIndexEntries(hits, entryMap, foundBookmarkEntries, searcher, vcfInfoFields);
+            AbstractDocumentCreator documentCreator = AbstractDocumentCreator.createDocumentCreator(
+                    BiologicalDataItemFormat.VCF, vcfInfoFields);
+            createIndexEntries(hits, entryMap, foundBookmarkEntries, searcher, documentCreator);
             setBookmarks(foundBookmarkEntries);
         } catch (IOException e) {
             LOGGER.error(MessageHelper.getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
@@ -517,7 +520,9 @@ public class FeatureIndexDao {
             final ScoreDoc[] hits = docs.scoreDocs;
 
             Map<Long, BookmarkIndexEntry> foundBookmarkEntries = new HashMap<>(); // for batch bookmarks loading
-            createIndexEntries(hits, entryMap, foundBookmarkEntries, searcher, vcfInfoFields);
+            AbstractDocumentCreator documentCreator = AbstractDocumentCreator.createDocumentCreator(
+                    files.get(0).getFormat(), vcfInfoFields);
+            createIndexEntries(hits, entryMap, foundBookmarkEntries, searcher, documentCreator);
             setBookmarks(foundBookmarkEntries);
 
             return new IndexSearchResult<>(new ArrayList<T>((Collection<? extends T>) entryMap.values()),
@@ -577,7 +582,9 @@ public class FeatureIndexDao {
 
             entries = new ArrayList<>(hits.length);
             for (ScoreDoc hit : hits) {
-                entries.add(createIndexEntry(hit, new HashMap<>(), searcher, vcfInfoFields));
+                AbstractDocumentCreator documentCreator = AbstractDocumentCreator.createDocumentCreator(
+                        files.get(0).getFormat(), vcfInfoFields);
+                entries.add(documentCreator.createEntryFormDocument(searcher.doc(hit.doc)));
             }
         } finally {
             for (SimpleFSDirectory index : indexes) {
@@ -1083,56 +1090,15 @@ public class FeatureIndexDao {
 
     private void createIndexEntries(final ScoreDoc[] hits, Map<Integer, FeatureIndexEntry> entryMap,
                                     Map<Long, BookmarkIndexEntry> foundBookmarkEntries, IndexSearcher searcher,
-                                    List<String> vcfInfoFields) throws IOException {
+                                    AbstractDocumentCreator documentCreator) throws IOException {
         for (ScoreDoc hit : hits) {
-            FeatureIndexEntry entry = createIndexEntry(hit, foundBookmarkEntries, searcher, vcfInfoFields);
+            FeatureIndexEntry entry = documentCreator.createEntryFormDocument(searcher.doc(hit.doc));
 
             entryMap.put(Objects.hash(entry.getFeatureFileId(), entry.getChromosome() != null ?
                                                                 entry.getChromosome().getId() : null,
                                       entry.getStartIndex(), entry.getEndIndex(), entry.getFeatureId()), entry);
 
         }
-    }
-
-    private FeatureIndexEntry createIndexEntry(ScoreDoc hit, Map<Long, BookmarkIndexEntry> foundBookmarkEntries,
-                                               IndexSearcher searcher, List<String> vcfInfoFields) throws IOException {
-        int docId = hit.doc;
-        Document d = searcher.doc(docId);
-        FeatureType featureType = FeatureType.forValue(d.get(FeatureIndexFields.FEATURE_TYPE.getFieldName()));
-        FeatureIndexEntry entry;
-        switch (featureType) {
-            case VARIATION:
-                entry = createVcfIndexEntry(d, vcfInfoFields);
-                break;
-            case BOOKMARK:
-                BookmarkIndexEntry bookmarkEntry = new BookmarkIndexEntry();
-                foundBookmarkEntries.put(Long.parseLong(d.get(FeatureIndexFields.FILE_ID.getFieldName())),
-                                         bookmarkEntry);
-                entry = bookmarkEntry;
-                break;
-            default:
-                entry = new FeatureIndexEntry();
-        }
-
-        entry.setFeatureType(featureType);
-        BytesRef featureIdBytes = d.getBinaryValue(FeatureIndexFields.FEATURE_ID.getFieldName());
-        if (featureIdBytes != null) {
-            entry.setFeatureId(featureIdBytes.utf8ToString());
-        }
-
-        entry.setStartIndex(d.getField(FeatureIndexFields.START_INDEX.getFieldName()).numericValue().intValue());
-        entry.setEndIndex(d.getField(FeatureIndexFields.END_INDEX.getFieldName()).numericValue().intValue());
-        entry.setFeatureFileId(Long.parseLong(d.get(FeatureIndexFields.FILE_ID.getFieldName())));
-        entry.setFeatureName(d.get(FeatureIndexFields.FEATURE_NAME.getFieldName()));
-
-        String chromosomeId = d.getBinaryValue(FeatureIndexFields.CHROMOSOME_ID.getFieldName()).utf8ToString();
-        if (!chromosomeId.isEmpty()) {
-            entry.setChromosome(new Chromosome(Long.parseLong(chromosomeId)));
-            entry.getChromosome().setName(d.getBinaryValue(FeatureIndexFields.CHROMOSOME_NAME.getFieldName())
-                                              .utf8ToString());
-        }
-
-        return entry;
     }
 
     private Set<String> fetchGeneIds(final ScoreDoc[] hits, IndexSearcher searcher) throws IOException {

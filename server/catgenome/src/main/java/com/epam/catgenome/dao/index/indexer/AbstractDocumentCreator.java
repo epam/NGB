@@ -3,8 +3,12 @@ package com.epam.catgenome.dao.index.indexer;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.field.SortedIntPoint;
 import com.epam.catgenome.dao.index.field.SortedStringField;
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.index.BookmarkIndexEntry;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
+import com.epam.catgenome.entity.index.FeatureType;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
+import com.epam.catgenome.entity.reference.Chromosome;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
@@ -15,6 +19,8 @@ import org.apache.lucene.facet.sortedset.SortedSetDocValuesFacetField;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.util.BytesRef;
+
+import java.util.List;
 
 /**
  * Created by Mikhail_Miroliubov on 7/27/2017.
@@ -69,6 +75,33 @@ public abstract class AbstractDocumentCreator<E extends FeatureIndexEntry> {
         return document;
     }
 
+    public E createEntryFormDocument(Document doc) {
+        FeatureType featureType = FeatureType.forValue(doc.get(FeatureIndexDao.FeatureIndexFields.FEATURE_TYPE.getFieldName()));
+        E entry = createSpecificEntry(doc);
+
+        entry.setFeatureType(featureType);
+        BytesRef featureIdBytes = doc.getBinaryValue(FeatureIndexDao.FeatureIndexFields.FEATURE_ID.getFieldName());
+        if (featureIdBytes != null) {
+            entry.setFeatureId(featureIdBytes.utf8ToString());
+        }
+
+        entry.setStartIndex(doc.getField(FeatureIndexDao.FeatureIndexFields.START_INDEX.getFieldName()).numericValue().intValue());
+        entry.setEndIndex(doc.getField(FeatureIndexDao.FeatureIndexFields.END_INDEX.getFieldName()).numericValue().intValue());
+        entry.setFeatureFileId(Long.parseLong(doc.get(FeatureIndexDao.FeatureIndexFields.FILE_ID.getFieldName())));
+        entry.setFeatureName(doc.get(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName()));
+
+        String chromosomeId = doc.getBinaryValue(FeatureIndexDao.FeatureIndexFields.CHROMOSOME_ID.getFieldName()).utf8ToString();
+        if (!chromosomeId.isEmpty()) {
+            entry.setChromosome(new Chromosome(Long.parseLong(chromosomeId)));
+            entry.getChromosome().setName(doc.getBinaryValue(FeatureIndexDao.FeatureIndexFields.CHROMOSOME_NAME.getFieldName())
+                    .utf8ToString());
+        }
+
+        return entry;
+    }
+
+    abstract E createSpecificEntry(Document doc);
+
     abstract void addExtraFeatureFields(Document document, E entry);
 
     public static AbstractDocumentCreator createDocumentCreator(FeatureIndexEntry entry) {
@@ -76,6 +109,17 @@ public abstract class AbstractDocumentCreator<E extends FeatureIndexEntry> {
             return new VcfDocumentCreator();
         } else {
             return new DefaultDocumentCreator();
+        }
+    }
+
+    public static AbstractDocumentCreator createDocumentCreator(BiologicalDataItemFormat format, List<String> vcfInfoFields) {
+        switch (format) {
+            case VCF:
+                VcfDocumentCreator creator = new VcfDocumentCreator();
+                creator.setVcfInfoFields(vcfInfoFields);
+                return creator;
+            default:
+                return new DefaultDocumentCreator();
         }
     }
 }
