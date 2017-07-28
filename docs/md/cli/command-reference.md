@@ -212,7 +212,7 @@ ngb remove_ann grch38 annotation.gtf
 ngb reg_file|rf [<REFERENCE_NAME>|<REFERENCE_ID>] [<PATH_TO_NGS_FILE>] [options]
 
 //Options:
-//-n (--name)   [value]     Use specified value for file name. If not specified - filesystem name will be used. Should be unique
+//-n (--name)   [value]     Use specified value for file name. If not specified - filesystem name will be used. Should be unique and mustn't be a number (it will be recognized as ID).
 //-ni (--no_index)          Defines if a feature index should not be built during file registration (could be used to speed up registration process)
 //-t (--table)              Print result as a human-readable table
 //-j (--json)               Print result as a JSON string
