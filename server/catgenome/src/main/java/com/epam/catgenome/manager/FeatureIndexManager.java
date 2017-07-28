@@ -510,9 +510,9 @@ public class FeatureIndexManager {
      * @param entries a list of index entries
      * @throws IOException if error occurred while writing to file system
      */
-    public void writeLuceneIndexForFile(final FeatureFile featureFile, final List<? extends FeatureIndexEntry> entries)
+    public void writeLuceneIndexForFile(final FeatureFile featureFile, final List<? extends FeatureIndexEntry> entries, VcfFilterInfo vcfFilterInfo)
         throws IOException {
-        featureIndexDao.writeLuceneIndexForFile(featureFile, entries);
+        featureIndexDao.writeLuceneIndexForFile(featureFile, entries, vcfFilterInfo);
     }
 
     public void makeIndexForBedReader(BedFile bedFile, AbstractFeatureReader<BEDFeature, LineIterator> reader,
@@ -532,7 +532,7 @@ public class FeatureIndexManager {
             entry.setFeatureType(FeatureType.BED_FEATURE);
             allEntries.add(entry);
         }
-        featureIndexDao.writeLuceneIndexForFile(bedFile, allEntries);
+        featureIndexDao.writeLuceneIndexForFile(bedFile, allEntries, null);
     }
 
     /**
@@ -573,7 +573,7 @@ public class FeatureIndexManager {
                 List<VcfIndexEntry> processedEntries = indexer.postProcessIndexEntries(geneFiles,
                         Utils.getFromChromosomeMap(chromosomeMap, currentKey));
 
-                featureIndexDao.writeLuceneIndexForFile(vcfFile, processedEntries);
+                featureIndexDao.writeLuceneIndexForFile(vcfFile, processedEntries, info);
                 LOGGER.info(MessageHelper.getMessage(MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE,
                                                      currentKey));
                 indexer.clear();
@@ -590,7 +590,7 @@ public class FeatureIndexManager {
             List<VcfIndexEntry> processedEntries = indexer.postProcessIndexEntries(geneFiles,
                     Utils.getFromChromosomeMap(chromosomeMap, currentKey));
 
-            featureIndexDao.writeLuceneIndexForFile(vcfFile, processedEntries);
+            featureIndexDao.writeLuceneIndexForFile(vcfFile, processedEntries, indexer.getFilterInfo());
             LOGGER.info(MessageHelper.getMessage(MessagesConstants
                                                      .INFO_FEATURE_INDEX_CHROMOSOME_WROTE, currentKey));
             indexer.clear();
@@ -646,7 +646,7 @@ public class FeatureIndexManager {
             // Put the last one
             if (feature != null && currentKey != null && (chromosomeMap.containsKey(currentKey)
                     || chromosomeMap.containsKey(Utils.changeChromosomeName(currentKey)))) {
-                featureIndexDao.writeLuceneIndexForFile(geneFile, allEntries);
+                featureIndexDao.writeLuceneIndexForFile(geneFile, allEntries, null);
                 allEntries.clear();
             }
         }
@@ -670,7 +670,7 @@ public class FeatureIndexManager {
         // Put the last one
         if (feature != null && currentKey != null && (chromosomeMap.containsKey(currentKey)
                 || chromosomeMap.containsKey(Utils.changeChromosomeName(currentKey)))) {
-            featureIndexDao.writeLuceneIndexForFile(geneFile, allEntries);
+            featureIndexDao.writeLuceneIndexForFile(geneFile, allEntries, null);
             allEntries.clear();
         }
     }
@@ -682,7 +682,7 @@ public class FeatureIndexManager {
             if (currentChromosomeName != null && (chromosomeMap.containsKey(currentChromosomeName) ||
                                       chromosomeMap.containsKey(Utils.changeChromosomeName(currentChromosomeName)))) {
 
-                featureIndexDao.writeLuceneIndexForFile(geneFile, allEntries);
+                featureIndexDao.writeLuceneIndexForFile(geneFile, allEntries, null);
                 LOGGER.info(MessageHelper.getMessage(
                     MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE, currentChromosomeName));
                 allEntries.clear();

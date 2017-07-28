@@ -645,7 +645,7 @@ public class VcfManager {
         throws GeneReadingException, IOException {
         if (doIndex) {
             List<VcfIndexEntry> processedEntries = indexer.postProcessIndexEntries(geneFiles, currentChromosome);
-            featureIndexManager.writeLuceneIndexForFile(vcfFile, processedEntries);
+            featureIndexManager.writeLuceneIndexForFile(vcfFile, processedEntries, indexer.getFilterInfo());
             LOGGER.info(getMessage(MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE, currentChromosome.getName()));
             indexer.clear();
         }

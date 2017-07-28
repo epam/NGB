@@ -415,6 +415,11 @@ public class VcfFeatureIndexer implements FeatureIndexer<VariantContext, VcfInde
         }
     }
 
+    public VcfFilterInfo getFilterInfo()
+    {
+        return filterInfo;
+    }
+
     @Override
     public void clear() {
         this.allEntries.clear();

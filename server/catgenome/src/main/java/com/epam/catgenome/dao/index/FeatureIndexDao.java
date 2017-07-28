@@ -75,10 +75,8 @@ import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.grouping.AbstractGroupFacetCollector;
 import org.apache.lucene.search.grouping.GroupingSearch;
 import org.apache.lucene.search.grouping.TopGroups;
-import org.apache.lucene.search.grouping.term.TermGroupFacetCollector;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
@@ -180,6 +178,14 @@ public class FeatureIndexDao {
             return "G_" + fieldName;
         }
 
+        public String getFacetName() {
+            return "F_" + fieldName;
+        }
+
+        public static String getFacetName(String fieldName) {
+            return "F_" + fieldName;
+        }
+
         public static String getGroupName(String fieldName) {
             return "G_" + fieldName;
         }
@@ -227,21 +233,21 @@ public class FeatureIndexDao {
      *
      * @param featureFile a FeatureFile, for which features to save
      * @param entries a list of FeatureIndexEntry to write to index
+     * @param vcfFilterInfo
      * @throws IOException
      */
-    public void writeLuceneIndexForFile(final FeatureFile featureFile,
-                                        final List<? extends FeatureIndexEntry> entries) throws IOException {
+    public void writeLuceneIndexForFile(final FeatureFile featureFile, final List<? extends FeatureIndexEntry> entries, VcfFilterInfo vcfFilterInfo) throws IOException {
         try (
             StandardAnalyzer analyzer = new StandardAnalyzer();
             Directory index = fileManager.createIndexForFile(featureFile);
             IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
                 IndexWriterConfig.OpenMode.CREATE_OR_APPEND))
         ) {
-            FacetsConfig facetsConfig = new FacetsConfig();
-            facetsConfig.setIndexFieldName(FeatureIndexFields.CHR_ID.getFieldName(),
-                                           FeatureIndexFields.FACET_CHR_ID.getFieldName());
-            facetsConfig.setIndexFieldName(FeatureIndexFields.F_UID.getFieldName(),
-                                           FeatureIndexFields.FACET_UID.getFieldName());
+
+            AbstractDocumentBuilder creator = AbstractDocumentBuilder.createDocumentCreator(entries.isEmpty() ?
+                    new FeatureIndexEntry() : entries.get(0));
+
+            FacetsConfig facetsConfig = creator.createFacetsConfig(vcfFilterInfo);
 
             for (FeatureIndexEntry entry : entries) {
                 /*Document document = new Document();
@@ -250,7 +256,7 @@ public class FeatureIndexDao {
                 if (entry instanceof VcfIndexEntry) {
                     addVcfDocumentFields(document, entry);
                 }*/
-                AbstractDocumentBuilder creator = AbstractDocumentBuilder.createDocumentCreator(entry);
+
                 Document document = creator.createIndexDocument(entry, featureFile.getId());
 
                 writer.addDocument(facetsConfig.build(document));
@@ -679,7 +685,7 @@ public class FeatureIndexDao {
      * @return a {@link List} of {@link Group}s, mapping field value to number of variations, having this value
      * @throws IOException if something goes wrong with the file system
      */
-    public List<Group> groupVariations(List<VcfFile> files, Query query, String groupBy) throws IOException {
+    /*public List<Group> groupVariations(List<VcfFile> files, Query query, String groupBy) throws IOException {
         List<Group> res = new ArrayList<>();
 
         if (CollectionUtils.isEmpty(files)) {
@@ -713,8 +719,8 @@ public class FeatureIndexDao {
 
         return res;
     }
-
-    /*public List<Group> groupVariations(List<VcfFile> files, Query query, String groupBy) throws IOException {
+*/
+    public List<Group> groupVariations(List<VcfFile> files, Query query, String groupBy) throws IOException {
         List<Group> res = new ArrayList<>();
 
         if (CollectionUtils.isEmpty(files)) {
@@ -730,29 +736,18 @@ public class FeatureIndexDao {
 
             IndexSearcher searcher = new IndexSearcher(reader);
 
-            String facetField = getGroupByField(files, groupBy);
+            String groupByField = getGroupByFieldBig(files, groupBy);
             SortedSetDocValuesReaderState state =
-                    new DefaultSortedSetDocValuesReaderState(reader, facetField);
-            FacetsCollector fc = new FacetsCollector();
-            FacetsCollector.search(searcher, query, 10, fc);
-            Facets facets = new SortedSetDocValuesFacetCounts(state, fc);
-            FacetResult result = facets.getTopChildren(10, facetField);
+                    new DefaultSortedSetDocValuesReaderState(reader, FeatureIndexFields.getFacetName(groupByField));
+            FacetsCollector collector = new FacetsCollector();
+            FacetsCollector.search(searcher, query, 10, collector);
+
+            Facets facets = new SortedSetDocValuesFacetCounts(state, collector);
+            FacetResult result = facets.getTopChildren(reader.numDocs(), groupByField);
             for (int i = 0; i < result.childCount; i++) {
                 LabelAndValue lv = result.labelValues[i];
-                System.out.println(String.format("%s (%s)", lv.label, lv.value));
+                res.add(new Group(lv.label, lv.value.intValue()));
             }
-
-            *//*AbstractGroupFacetCollector groupedFacetCollector =
-                    TermGroupFacetCollector.createTermGroupFacetCollector(FeatureIndexFields.UID.fieldName,
-                            getGroupByField(files, groupBy), false, null, GROUP_INITIAL_SIZE);
-            searcher.search(query, groupedFacetCollector); // Computing the grouped facet counts
-            TermGroupFacetCollector.GroupedFacetResult groupedResult = groupedFacetCollector.mergeSegmentResults(
-                    reader.numDocs(), 1, false);
-            List<AbstractGroupFacetCollector.FacetEntry> facetEntries = groupedResult.getFacetEntries(0,
-                    reader.numDocs());
-            for (AbstractGroupFacetCollector.FacetEntry facetEntry : facetEntries) {
-                res.add(new Group(facetEntry.getValue().utf8ToString(), facetEntry.getCount()));
-            }*//*
         } finally {
             for (SimpleFSDirectory index : indexes) {
                 IOUtils.closeQuietly(index);
@@ -760,7 +755,7 @@ public class FeatureIndexDao {
         }
 
         return res;
-    }*/
+    }
 
     private String getGroupByField(List<VcfFile> files, String groupBy) throws IOException {
         IndexSortField sortField = IndexSortField.getByName(groupBy);
@@ -779,6 +774,29 @@ public class FeatureIndexDao {
         } else {
             if (sortField.getType() == SortField.Type.INT || sortField.getType() == SortField.Type.FLOAT) {
                 return sortField.getField().getGroupName();
+            } else {
+                return sortField.getField().fieldName;
+            }
+        }
+    }
+
+    private String getGroupByFieldBig(List<VcfFile> files, String groupBy) throws IOException {
+        IndexSortField sortField = IndexSortField.getByName(groupBy);
+        if (sortField == null) {
+            VcfFilterInfo info = vcfManager.getFiltersInfo(
+                    files.stream().map(BaseEntity::getId).collect(Collectors.toList()));
+
+            InfoItem infoItem = info.getInfoItemMap().get(groupBy);
+            Assert.notNull(infoItem, "Unknown sort field: " + groupBy);
+
+            if (infoItem.getType() == VCFHeaderLineType.Integer || infoItem.getType() == VCFHeaderLineType.Float) {
+                return infoItem.getName().toLowerCase();
+            } else {
+                return infoItem.getName().toLowerCase();
+            }
+        } else {
+            if (sortField.getType() == SortField.Type.INT || sortField.getType() == SortField.Type.FLOAT) {
+                return sortField.getField().fieldName;
             } else {
                 return sortField.getField().fieldName;
             }

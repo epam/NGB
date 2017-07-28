@@ -9,12 +9,12 @@ import org.apache.lucene.document.Document;
 public class DefaultDocumentCreator extends AbstractDocumentBuilder
 {
     @Override
-    FeatureIndexEntry createSpecificEntry(Document doc) {
+    protected FeatureIndexEntry createSpecificEntry(Document doc) {
         return new FeatureIndexEntry();
     }
 
     @Override
-    void addExtraFeatureFields(Document document, FeatureIndexEntry entry) {
+    protected void addExtraFeatureFields(Document document, FeatureIndexEntry entry) {
         // No-op
     }
 }
