@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.index.FeatureIndexDao;
+import com.epam.catgenome.dao.index.indexer.BigVcfFeatureIndexer;
 import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexer;
 import com.epam.catgenome.util.InfoFieldParser;
 import htsjdk.variant.vcf.VCFCodec;
@@ -595,7 +596,7 @@ public class VcfManager {
         VCFHeader vcfHeader = (VCFHeader) reader.getHeader();
         List<GeneFile> geneFiles  = reference.getGeneFile() != null ?
                                     Collections.singletonList(reference.getGeneFile()) : Collections.emptyList();
-        VcfFeatureIndexer indexer = new VcfFeatureIndexer(info, vcfHeader, featureIndexDao);
+        BigVcfFeatureIndexer indexer = new BigVcfFeatureIndexer(info, vcfHeader, featureIndexDao);
         while (iterator.hasNext()) {
             variantContext = iterator.next();
 

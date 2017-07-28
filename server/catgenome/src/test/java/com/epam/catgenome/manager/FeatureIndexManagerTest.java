@@ -161,7 +161,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     private static final String TEST_PROJECT_NAME = "testProject1";
     private static final String TEST_GENE_PREFIX = "ENS";
     private static final String TEST_GENE_NAME = "pglyrp4";
-    private static final String TEST_GENE_AND_FILE_ID_QUERY = "geneId:ENS* AND fileId:%d";
+    private static final String TEST_GENE_AND_FILE_ID_QUERY = "geneId:ens* AND fileId:%d";
     private static final String SVTYPE_FIELD = "SVTYPE";
     private static final String SVLEN_FIELD = "SVLEN";
 
@@ -788,8 +788,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         // filter by additional fields
         Map<String, Object> additionalFilters = new HashMap<>();
-        additionalFilters.put(SVTYPE_FIELD, "DEL");
-        //additionalFilters.put("SVLEN", SVLEN_VALUE);
+        additionalFilters.put(SVTYPE_FIELD, "del");
         additionalFilters.put(SVLEN_FIELD, String.valueOf(SVLEN_VALUE));
         vcfFilterForm.setAdditionalFilters(additionalFilters);
         vcfFilterForm.setGenes(null);

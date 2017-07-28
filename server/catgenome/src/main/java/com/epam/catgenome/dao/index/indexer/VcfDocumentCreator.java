@@ -23,13 +23,14 @@ import java.util.regex.Pattern;
 /**
  * Created by Mikhail_Miroliubov on 7/27/2017.
  */
-public class VcfDocumentCreator extends AbstractDocumentCreator<VcfIndexEntry> {
+public class VcfDocumentCreator extends AbstractDocumentBuilder<VcfIndexEntry>
+{
     private static final Pattern viewFieldPattern = Pattern.compile("_.*_v$");
 
     private List<String> vcfInfoFields;
 
     @Override
-    void addExtraFeatureFields(Document document, VcfIndexEntry entry) {
+    protected void addExtraFeatureFields(Document document, VcfIndexEntry entry) {
         document.add(new SortedStringField(FeatureIndexDao.FeatureIndexFields.VARIATION_TYPE.getFieldName(),
                 entry.getVariationType().name()));
 
@@ -68,7 +69,7 @@ public class VcfDocumentCreator extends AbstractDocumentCreator<VcfIndexEntry> {
     }
 
     @Override
-    VcfIndexEntry createSpecificEntry(Document doc) {
+    protected VcfIndexEntry createSpecificEntry(Document doc) {
         VcfIndexEntry vcfIndexEntry = new VcfIndexEntry();
         vcfIndexEntry.setGene(doc.get(FeatureIndexDao.FeatureIndexFields.GENE_ID.getFieldName()));
 

@@ -26,6 +26,7 @@ public class BigVcfFeatureIndexer extends VcfFeatureIndexer {
         indexEntry.setGeneIds(geneIdsString);
         indexEntry.setGeneNames(geneNamesString);
         indexEntry.setVariationTypes(types);
+        indexEntry.setVariationType(types.stream().findFirst().orElse(VariationType.UNK));
         indexEntry.setFailedFilters(indexEntry.getVariantContext().getFilters());
 
         List<String> geneIdList = new ArrayList<>(geneIds.size());
@@ -36,7 +37,7 @@ public class BigVcfFeatureIndexer extends VcfFeatureIndexer {
         }
 
         indexEntry.setGeneIdList(geneIdList);
-        indexEntry.setGeneIdList(geneNameList);
+        indexEntry.setGeneNameList(geneNameList);
 
         return Collections.singletonList(indexEntry);
     }

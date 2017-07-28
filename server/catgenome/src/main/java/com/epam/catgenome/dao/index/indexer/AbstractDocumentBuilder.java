@@ -4,7 +4,6 @@ import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.field.SortedIntPoint;
 import com.epam.catgenome.dao.index.field.SortedStringField;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
-import com.epam.catgenome.entity.index.BookmarkIndexEntry;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.FeatureType;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
@@ -25,7 +24,7 @@ import java.util.List;
 /**
  * Created by Mikhail_Miroliubov on 7/27/2017.
  */
-public abstract class AbstractDocumentCreator<E extends FeatureIndexEntry> {
+public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
     public Document createIndexDocument(E entry, final Long featureFileId) {
         Document document = new Document();
         document.add(new SortedStringField(FeatureIndexDao.FeatureIndexFields.FEATURE_ID.getFieldName(), entry.getFeatureId()));
@@ -100,22 +99,22 @@ public abstract class AbstractDocumentCreator<E extends FeatureIndexEntry> {
         return entry;
     }
 
-    abstract E createSpecificEntry(Document doc);
+    abstract protected E createSpecificEntry(Document doc);
 
-    abstract void addExtraFeatureFields(Document document, E entry);
+    abstract protected void addExtraFeatureFields(Document document, E entry);
 
-    public static AbstractDocumentCreator createDocumentCreator(FeatureIndexEntry entry) {
+    public static AbstractDocumentBuilder createDocumentCreator(FeatureIndexEntry entry) {
         if (entry instanceof VcfIndexEntry) {
-            return new VcfDocumentCreator();
+            return new BigVcfDocumentBuilder();
         } else {
             return new DefaultDocumentCreator();
         }
     }
 
-    public static AbstractDocumentCreator createDocumentCreator(BiologicalDataItemFormat format, List<String> vcfInfoFields) {
+    public static AbstractDocumentBuilder createDocumentCreator(BiologicalDataItemFormat format, List<String> vcfInfoFields) {
         switch (format) {
             case VCF:
-                VcfDocumentCreator creator = new VcfDocumentCreator();
+                BigVcfDocumentBuilder creator = new BigVcfDocumentBuilder();
                 creator.setVcfInfoFields(vcfInfoFields);
                 return creator;
             default:

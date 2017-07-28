@@ -38,21 +38,15 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.epam.catgenome.dao.index.indexer.AbstractDocumentCreator;
+import com.epam.catgenome.dao.index.indexer.AbstractDocumentBuilder;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.IntPoint;
-import org.apache.lucene.document.SortedDocValuesField;
-import org.apache.lucene.document.StoredField;
-import org.apache.lucene.document.StringField;
 import org.apache.lucene.facet.FacetResult;
 import org.apache.lucene.facet.Facets;
 import org.apache.lucene.facet.FacetsCollector;
@@ -60,10 +54,8 @@ import org.apache.lucene.facet.FacetsConfig;
 import org.apache.lucene.facet.LabelAndValue;
 import org.apache.lucene.facet.sortedset.DefaultSortedSetDocValuesReaderState;
 import org.apache.lucene.facet.sortedset.SortedSetDocValuesFacetCounts;
-import org.apache.lucene.facet.sortedset.SortedSetDocValuesFacetField;
+import org.apache.lucene.facet.sortedset.SortedSetDocValuesReaderState;
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.DocValuesType;
-import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -100,9 +92,6 @@ import org.springframework.util.Assert;
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.index.field.IndexSortField;
-import com.epam.catgenome.dao.index.field.SortedIntPoint;
-import com.epam.catgenome.dao.index.field.SortedFloatPoint;
-import com.epam.catgenome.dao.index.field.SortedStringField;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.index.BookmarkIndexEntry;
@@ -123,8 +112,6 @@ import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.reference.BookmarkManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import htsjdk.variant.vcf.VCFHeaderLineType;
-
-import javax.print.Doc;
 
 /**
  * Source:      FeatureIndexDao
@@ -226,7 +213,7 @@ public class FeatureIndexDao {
                 if (entry instanceof VcfIndexEntry) {
                     addVcfDocumentFields(document, entry);
                 }*/
-                AbstractDocumentCreator creator = AbstractDocumentCreator.createDocumentCreator(entry);
+                AbstractDocumentBuilder creator = AbstractDocumentBuilder.createDocumentCreator(entry);
                 Document document = creator.createIndexDocument(entry, featureFileId);
 
                 writer.addDocument(facetsConfig.build(document));
@@ -263,7 +250,7 @@ public class FeatureIndexDao {
                 if (entry instanceof VcfIndexEntry) {
                     addVcfDocumentFields(document, entry);
                 }*/
-                AbstractDocumentCreator creator = AbstractDocumentCreator.createDocumentCreator(entry);
+                AbstractDocumentBuilder creator = AbstractDocumentBuilder.createDocumentCreator(entry);
                 Document document = creator.createIndexDocument(entry, featureFile.getId());
 
                 writer.addDocument(facetsConfig.build(document));
@@ -452,7 +439,7 @@ public class FeatureIndexDao {
             final ScoreDoc[] hits = docs.scoreDocs;
 
             Map<Long, BookmarkIndexEntry> foundBookmarkEntries = new HashMap<>(); // for batch bookmarks loading
-            AbstractDocumentCreator documentCreator = AbstractDocumentCreator.createDocumentCreator(
+            AbstractDocumentBuilder documentCreator = AbstractDocumentBuilder.createDocumentCreator(
                     BiologicalDataItemFormat.VCF, vcfInfoFields);
             createIndexEntries(hits, entryMap, foundBookmarkEntries, searcher, documentCreator);
             setBookmarks(foundBookmarkEntries);
@@ -520,7 +507,7 @@ public class FeatureIndexDao {
             final ScoreDoc[] hits = docs.scoreDocs;
 
             Map<Long, BookmarkIndexEntry> foundBookmarkEntries = new HashMap<>(); // for batch bookmarks loading
-            AbstractDocumentCreator documentCreator = AbstractDocumentCreator.createDocumentCreator(
+            AbstractDocumentBuilder documentCreator = AbstractDocumentBuilder.createDocumentCreator(
                     files.get(0).getFormat(), vcfInfoFields);
             createIndexEntries(hits, entryMap, foundBookmarkEntries, searcher, documentCreator);
             setBookmarks(foundBookmarkEntries);
@@ -582,7 +569,7 @@ public class FeatureIndexDao {
 
             entries = new ArrayList<>(hits.length);
             for (ScoreDoc hit : hits) {
-                AbstractDocumentCreator documentCreator = AbstractDocumentCreator.createDocumentCreator(
+                AbstractDocumentBuilder documentCreator = AbstractDocumentBuilder.createDocumentCreator(
                         files.get(0).getFormat(), vcfInfoFields);
                 entries.add(documentCreator.createEntryFormDocument(searcher.doc(hit.doc)));
             }
@@ -726,6 +713,54 @@ public class FeatureIndexDao {
 
         return res;
     }
+
+    /*public List<Group> groupVariations(List<VcfFile> files, Query query, String groupBy) throws IOException {
+        List<Group> res = new ArrayList<>();
+
+        if (CollectionUtils.isEmpty(files)) {
+            return Collections.emptyList();
+        }
+
+        SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+
+        try (MultiReader reader = openMultiReader(indexes)) {
+            if (reader.numDocs() == 0) {
+                return Collections.emptyList();
+            }
+
+            IndexSearcher searcher = new IndexSearcher(reader);
+
+            String facetField = getGroupByField(files, groupBy);
+            SortedSetDocValuesReaderState state =
+                    new DefaultSortedSetDocValuesReaderState(reader, facetField);
+            FacetsCollector fc = new FacetsCollector();
+            FacetsCollector.search(searcher, query, 10, fc);
+            Facets facets = new SortedSetDocValuesFacetCounts(state, fc);
+            FacetResult result = facets.getTopChildren(10, facetField);
+            for (int i = 0; i < result.childCount; i++) {
+                LabelAndValue lv = result.labelValues[i];
+                System.out.println(String.format("%s (%s)", lv.label, lv.value));
+            }
+
+            *//*AbstractGroupFacetCollector groupedFacetCollector =
+                    TermGroupFacetCollector.createTermGroupFacetCollector(FeatureIndexFields.UID.fieldName,
+                            getGroupByField(files, groupBy), false, null, GROUP_INITIAL_SIZE);
+            searcher.search(query, groupedFacetCollector); // Computing the grouped facet counts
+            TermGroupFacetCollector.GroupedFacetResult groupedResult = groupedFacetCollector.mergeSegmentResults(
+                    reader.numDocs(), 1, false);
+            List<AbstractGroupFacetCollector.FacetEntry> facetEntries = groupedResult.getFacetEntries(0,
+                    reader.numDocs());
+            for (AbstractGroupFacetCollector.FacetEntry facetEntry : facetEntries) {
+                res.add(new Group(facetEntry.getValue().utf8ToString(), facetEntry.getCount()));
+            }*//*
+        } finally {
+            for (SimpleFSDirectory index : indexes) {
+                IOUtils.closeQuietly(index);
+            }
+        }
+
+        return res;
+    }*/
 
     private String getGroupByField(List<VcfFile> files, String groupBy) throws IOException {
         IndexSortField sortField = IndexSortField.getByName(groupBy);
@@ -1090,7 +1125,7 @@ public class FeatureIndexDao {
 
     private void createIndexEntries(final ScoreDoc[] hits, Map<Integer, FeatureIndexEntry> entryMap,
                                     Map<Long, BookmarkIndexEntry> foundBookmarkEntries, IndexSearcher searcher,
-                                    AbstractDocumentCreator documentCreator) throws IOException {
+                                    AbstractDocumentBuilder documentCreator) throws IOException {
         for (ScoreDoc hit : hits) {
             FeatureIndexEntry entry = documentCreator.createEntryFormDocument(searcher.doc(hit.doc));
 

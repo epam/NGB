@@ -6,7 +6,8 @@ import org.apache.lucene.document.Document;
 /**
  * Created by Mikhail_Miroliubov on 7/27/2017.
  */
-public class DefaultDocumentCreator extends AbstractDocumentCreator {
+public class DefaultDocumentCreator extends AbstractDocumentBuilder
+{
     @Override
     FeatureIndexEntry createSpecificEntry(Document doc) {
         return new FeatureIndexEntry();
