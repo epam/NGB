@@ -59,7 +59,7 @@ ngb search sample_1.bam
 ngb reg_ref|rr [<PATH_TO_GENOME_FASTA>] [options]
 
 //Options:
-//-n (--name) [value]       Use specified value for reference sequence name. If not specified - fasta file name will be used. Should be unique
+//-n (--name) [value]       Use specified value for reference sequence name. If not specified - fasta file name will be used. Should be unique and mustn't be a number (it will be recognized as ID).
 //-t (--table)              Print result as a human-readable table
 //-j (--json)               Print result as a JSON string
 //-g (--genes) [value]      Add a gene (gtf or gff) file to the reference. If file is already registered, it can be addressed by name or an identifier. Otherwise a path to the file should be provided.
