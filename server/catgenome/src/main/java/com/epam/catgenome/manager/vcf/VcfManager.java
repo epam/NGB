@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,6 +45,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.index.FeatureIndexDao;
+import com.epam.catgenome.util.AuthUtils;
+import com.epam.catgenome.util.DiskBasedList;
+import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.InfoFieldParser;
 import htsjdk.variant.vcf.*;
 import org.apache.commons.io.FilenameUtils;
@@ -100,8 +103,6 @@ import com.epam.catgenome.manager.vcf.reader.AbstractVcfReader;
 import com.epam.catgenome.manager.vcf.reader.VcfFileReader;
 import com.epam.catgenome.manager.vcf.reader.VcfGa4ghReader;
 import com.epam.catgenome.manager.vcf.reader.VcfReader;
-import com.epam.catgenome.util.AuthUtils;
-import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.AbstractFeatureReader;
@@ -151,6 +152,9 @@ public class VcfManager {
     private String extendedInfoTemplates;
 
     private InfoFieldParser infoFieldParser;
+
+    @Value("#{catgenome['files.vcf.max.entries.in.memory'] ?: 3000000}")
+    private int maxVcfIndexEntriesInMemory;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VcfManager.class);
 
@@ -582,7 +586,9 @@ public class VcfManager {
         VcfFilterInfo info = getFiltersInfo(reader);
         VcfFileReader vcfFileReader = new VcfFileReader(fileManager, referenceGenomeManager);
         VCFHeader vcfHeader = (VCFHeader) reader.getHeader();
-        List<VcfIndexEntry> allEntries = new ArrayList<>();
+
+        List<VcfIndexEntry> allEntries = new DiskBasedList<VcfIndexEntry>(maxVcfIndexEntriesInMemory / 2).adaptToList();
+
         List<GeneFile> geneFiles  = reference.getGeneFile() != null ?
                                     Collections.singletonList(reference.getGeneFile()) : Collections.emptyList();
 
@@ -643,6 +649,7 @@ public class VcfManager {
                                                                                            currentChromosome,
                                                                                            vcfHeader, vcfFileReader);
             featureIndexManager.writeLuceneIndexForFile(vcfFile, processedEntries);
+            processedEntries.clear();
             LOGGER.info(getMessage(MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE, currentChromosome.getName()));
             allEntries.clear();
         }
@@ -877,5 +884,9 @@ public class VcfManager {
             infoFieldParser = new InfoFieldParser(extendedInfoTemplates);
         }
         return infoFieldParser;
+    }
+
+    public void setMaxVcfIndexEntriesInMemory(int maxVcfIndexEntriesInMemory) {
+        this.maxVcfIndexEntriesInMemory = maxVcfIndexEntriesInMemory;
     }
 }
