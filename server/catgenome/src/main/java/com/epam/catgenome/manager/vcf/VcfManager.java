@@ -610,7 +610,7 @@ public class VcfManager {
 
                     writeEntriesForChromosome(allEntries, geneFiles,
                                               Utils.getFromChromosomeMap(chromosomeMap, currentKey), vcfFile, vcfHeader,
-                                              vcfFileReader, doIndex);
+                                              vcfFileReader, doIndex, false);
                 }
 
                 startPosition = variantContext.getStart();
@@ -633,7 +633,7 @@ public class VcfManager {
         // Put the last one
         if (variantContext != null && checkMetaMapKey(chromosomeMap, currentKey)) {
             writeEntriesForChromosome(allEntries, geneFiles, Utils.getFromChromosomeMap(chromosomeMap, currentKey),
-                                      vcfFile, vcfHeader, vcfFileReader, doIndex);
+                                      vcfFile, vcfHeader, vcfFileReader, doIndex, true);
         }
 
         return metaMap;
@@ -651,13 +651,14 @@ public class VcfManager {
 
     private void writeEntriesForChromosome(List<VcfIndexEntry> allEntries, List<GeneFile> geneFiles,
                                            Chromosome currentChromosome, VcfFile vcfFile,
-                                           VCFHeader vcfHeader, VcfFileReader vcfFileReader, boolean doIndex)
+                                           VCFHeader vcfHeader, VcfFileReader vcfFileReader, boolean doIndex,
+                                           boolean lastEntry)
         throws GeneReadingException, IOException {
         if (doIndex) {
             List<VcfIndexEntry> processedEntries = featureIndexManager.postProcessIndexEntries(allEntries, geneFiles,
                                                                                            currentChromosome,
                                                                                            vcfHeader, vcfFileReader);
-            featureIndexManager.writeLuceneIndexForFile(vcfFile, processedEntries);
+            featureIndexManager.writeLuceneIndexForFile(vcfFile, processedEntries, lastEntry);
             processedEntries.clear();
             LOGGER.info(getMessage(MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE, currentChromosome.getName()));
             allEntries.clear();
