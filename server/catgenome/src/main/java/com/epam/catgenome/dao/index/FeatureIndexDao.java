@@ -24,6 +24,8 @@
 
 package com.epam.catgenome.dao.index;
 
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -96,7 +98,6 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
-import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.index.field.IndexSortField;
 import com.epam.catgenome.dao.index.field.SortedIntPoint;
@@ -463,7 +464,7 @@ public class FeatureIndexDao {
             createIndexEntries(hits, entryMap, foundBookmarkEntries, searcher, vcfInfoFields);
             setBookmarks(foundBookmarkEntries);
         } catch (IOException e) {
-            LOGGER.error(MessageHelper.getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
+            LOGGER.error(getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
             return new IndexSearchResult(Collections.emptyList(), false, 0);
         }
 
@@ -706,7 +707,7 @@ public class FeatureIndexDao {
         SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
         long totalIndexSize = getTotalIndexSize(indexes);
         if (totalIndexSize > luceneIndexMaxSizeForGrouping) {
-            return Collections.emptyList();
+            throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_FEATURE_INEDX_TOO_LARGE));
         }
 
         try (MultiReader reader = openMultiReader(indexes)) {
@@ -955,7 +956,7 @@ public class FeatureIndexDao {
 
             geneIds = fetchGeneIds(hits, searcher);
         } catch (IOException e) {
-            LOGGER.error(MessageHelper.getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
+            LOGGER.error(getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
             return Collections.emptySet();
         }
 
@@ -995,7 +996,7 @@ public class FeatureIndexDao {
 
             geneIds = fetchGeneIds(hits, searcher);
         } catch (IOException e) {
-            LOGGER.error(MessageHelper.getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
+            LOGGER.error(getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
             return Collections.emptySet();
         }
 
