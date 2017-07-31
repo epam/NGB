@@ -2,7 +2,6 @@ package com.epam.catgenome.dao.index.indexer;
 
 import com.epam.catgenome.dao.index.FeatureIndexDao.FeatureIndexFields;
 import com.epam.catgenome.dao.index.field.SortedIntPoint;
-import com.epam.catgenome.dao.index.field.SortedSetFloatPoint;
 import com.epam.catgenome.dao.index.field.SortedStringField;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.vcf.VariationType;
@@ -24,8 +23,11 @@ import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.util.BytesRef;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -36,7 +38,8 @@ import java.util.stream.Collectors;
  */
 public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry>
 {
-    private static Pattern viewFieldPattern = Pattern.compile("_.*_v$");
+    private static final Pattern viewFieldPattern = Pattern.compile("_.*_v$");
+    private static final Logger LOGGER = LoggerFactory.getLogger(BigVcfDocumentBuilder.class);
 
     private List<String> vcfInfoFields;
 
@@ -55,6 +58,8 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                 FeatureIndexFields.GENE_IDS.getFacetName());
         config.setIndexFieldName(FeatureIndexFields.GENE_NAMES.getFieldName(),
                 FeatureIndexFields.GENE_NAMES.getFacetName());
+        config.setIndexFieldName(FeatureIndexFields.QUALITY.getFieldName(),
+                FeatureIndexFields.QUALITY.getFacetName());
         config.setIndexFieldName(FeatureIndexFields.IS_EXON.getFieldName(),
                 FeatureIndexFields.IS_EXON.getFacetName());
 
@@ -152,9 +157,15 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
         vcfIndexEntry.setExon(isExon);
         vcfIndexEntry.getInfo().put(FeatureIndexFields.IS_EXON.getFieldName(), isExon);
 
-        BytesRef featureIdBytes = doc.getBinaryValue(FeatureIndexFields.VARIATION_TYPE.getFieldName());
-        if (featureIdBytes != null) {
-            vcfIndexEntry.setVariationType(VariationType.valueOf(featureIdBytes.utf8ToString().toUpperCase()));
+        String[] variationTypes = doc.getValues(FeatureIndexFields.VARIATION_TYPE.getFieldName());
+        if (variationTypes.length > 0) {
+            vcfIndexEntry.setVariationTypes(new HashSet<>());
+            for (String variationType : variationTypes) {
+                vcfIndexEntry.getVariationTypes().add(VariationType.valueOf(variationType.toUpperCase()));
+            }
+
+            vcfIndexEntry.setVariationType(VariationType.valueOf(doc.get(
+                    FeatureIndexFields.VARIATION_TYPE.getFieldName()).toUpperCase()));
         }
         vcfIndexEntry.setFailedFilter(doc.get(FeatureIndexFields.FAILED_FILTER.getFieldName()));
 
@@ -209,7 +220,9 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
 
         document.add(new SortedSetDocValuesFacetField(FeatureIndexFields.QUALITY.getFieldName(), entry.getQuality()
                 .toString()));
-        document.add(new SortedSetFloatPoint(FeatureIndexFields.QUALITY.getFieldName(), entry.getQuality()
+        document.add(new SortedSetDocValuesField(FeatureIndexFields.QUALITY.getFieldName(), new BytesRef(entry.getQuality()
+                .toString())));
+        document.add(new FloatPoint(FeatureIndexFields.QUALITY.getFieldName(), entry.getQuality()
                 .floatValue()));
         document.add(new StoredField(FeatureIndexFields.QUALITY.getFieldName(), entry.getQuality()
                 .floatValue()));
@@ -272,19 +285,26 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
             String viewKey = "_" + info.getKey() + "_v";
             if (info.getValue() instanceof Object[]) {
                 for (Object value : (Object[]) info.getValue()) {
-                    addInfoField(value, info.getKey(), document, viewKey, vcfIndexEntry);
+                    addInfoField(value, info.getKey(), document);
                 }
                 addViewField(vcfIndexEntry, document, info.getKey(), viewKey);
             } else {
-                addInfoField(info.getValue(), info.getKey(), document, viewKey, vcfIndexEntry);
+                addInfoField(info.getValue(), info.getKey(), document);
+
+                String strValue = info.getValue().toString();
+                if (strValue.length() + info.getKey().length() > 8190) {
+                    LOGGER.warn("{} field value is too long ({}), truncating: {}", info.getKey(), strValue.length(), strValue);
+                    strValue = strValue.substring(0, 8190 - info.getKey().length());
+                }
+
                 document.add(new SortedSetDocValuesField(info.getKey().toLowerCase(), //FeatureIndexDao.FeatureIndexFields.getGroupName(
-                        new BytesRef(info.getValue().toString())));
-                document.add(new SortedSetDocValuesFacetField(info.getKey().toLowerCase(), info.getValue().toString()));
+                        new BytesRef(strValue)));
+                document.add(new SortedSetDocValuesFacetField(info.getKey().toLowerCase(), strValue));
             }
         }
     }
 
-    private void addInfoField(Object value, String key, Document document, String viewKey, VcfIndexEntry vcfIndexEntry) {
+    private void addInfoField(Object value, String key, Document document) {
         if (value instanceof Integer) {
             document.add(new IntPoint(key.toLowerCase(), (Integer) value));
             document.add(new StoredField(key.toLowerCase(), (Integer) value));
@@ -299,9 +319,15 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
     private void addViewField(VcfIndexEntry vcfIndexEntry, Document document, String key, String viewKey) {
         if (vcfIndexEntry.getInfo().containsKey(viewKey)) {
             document.add(new StoredField(key.toLowerCase(), vcfIndexEntry.getInfo().get(viewKey).toString()));
+
+            String strValue = vcfIndexEntry.getInfo().get(viewKey).toString();
+            if (strValue.length() + key.length() > 8190) {
+                LOGGER.warn("{} field value is too long ({}), truncating: {}", key, strValue.length(), strValue);
+                strValue = strValue.substring(0, 8190 - key.length());
+            }
             document.add(new SortedSetDocValuesField(key.toLowerCase(), //FeatureIndexDao.FeatureIndexFields.getGroupName(
-                    new BytesRef(vcfIndexEntry.getInfo().get(viewKey).toString())));
-            document.add(new SortedSetDocValuesFacetField(key.toLowerCase(), vcfIndexEntry.getInfo().get(viewKey).toString()));
+                    new BytesRef(strValue)));
+            document.add(new SortedSetDocValuesFacetField(key.toLowerCase(), strValue));
         }
     }
 

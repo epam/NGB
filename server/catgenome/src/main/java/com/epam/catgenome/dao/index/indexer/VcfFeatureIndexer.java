@@ -277,13 +277,13 @@ public class VcfFeatureIndexer implements FeatureIndexer<VariantContext, VcfInde
                     Collections.singletonList(geneFile), start, end, chromosome);
             searchResult.getEntries().stream().filter(f -> f.getFeatureType() == FeatureType.EXON
                     || f.getFeatureType() == FeatureType.GENE).map(f -> {
-                Gene gene = new Gene();
-                gene.setFeature(f.getFeatureType().name());
-                gene.setStartIndex(f.getStartIndex());
-                gene.setEndIndex(f.getEndIndex());
-                gene.setGroupId(f.getFeatureId());
-                gene.setFeatureName(f.getFeatureName().toUpperCase());
-                return gene;
+                        Gene gene = new Gene();
+                        gene.setFeature(f.getFeatureType().name());
+                        gene.setStartIndex(f.getStartIndex());
+                        gene.setEndIndex(f.getEndIndex());
+                        gene.setGroupId(f.getFeatureId());
+                        gene.setFeatureName(f.getFeatureName().toUpperCase());
+                        return gene;
             }).forEach(g -> {
                 Interval interval = new Interval(chromosome.getName(), g.getStartIndex(), g.getEndIndex());
                 genesRangeMap.putIfAbsent(interval, new ArrayList<>());
@@ -415,8 +415,7 @@ public class VcfFeatureIndexer implements FeatureIndexer<VariantContext, VcfInde
         }
     }
 
-    public VcfFilterInfo getFilterInfo()
-    {
+    public VcfFilterInfo getFilterInfo() {
         return filterInfo;
     }
 

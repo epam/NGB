@@ -1,6 +1,5 @@
 package com.epam.catgenome.dao.index.indexer;
 
-import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.FeatureIndexDao.FeatureIndexFields;
 import com.epam.catgenome.dao.index.field.SortedIntPoint;
 import com.epam.catgenome.dao.index.field.SortedStringField;
@@ -77,13 +76,15 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
         return document;
     }
 
-    public E createEntryFormDocument(Document doc) {
+    public E createEntryFromDocument(Document doc) {
         FeatureType featureType = FeatureType.forValue(doc.get(FeatureIndexFields.FEATURE_TYPE.getFieldName()));
         E entry = createSpecificEntry(doc);
 
         entry.setFeatureType(featureType);
         BytesRef featureIdBytes = doc.getBinaryValue(FeatureIndexFields.FEATURE_ID.getFieldName());
-        if (featureIdBytes != null) {
+        if (featureIdBytes == null) {
+            entry.setFeatureId(doc.get(FeatureIndexFields.FEATURE_ID.getFieldName()));
+        } else {
             entry.setFeatureId(featureIdBytes.utf8ToString());
         }
 
@@ -112,9 +113,9 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
         return facetsConfig;
     }
 
-    abstract protected E createSpecificEntry(Document doc);
+    protected abstract E createSpecificEntry(Document doc);
 
-    abstract protected void addExtraFeatureFields(Document document, E entry);
+    protected abstract void addExtraFeatureFields(Document document, E entry);
 
     public static AbstractDocumentBuilder createDocumentCreator(FeatureIndexEntry entry) {
         if (entry instanceof VcfIndexEntry) {
@@ -124,7 +125,8 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
         }
     }
 
-    public static AbstractDocumentBuilder createDocumentCreator(BiologicalDataItemFormat format, List<String> vcfInfoFields) {
+    public static AbstractDocumentBuilder createDocumentCreator(BiologicalDataItemFormat format,
+                                                                List<String> vcfInfoFields) {
         switch (format) {
             case VCF:
                 BigVcfDocumentBuilder creator = new BigVcfDocumentBuilder();

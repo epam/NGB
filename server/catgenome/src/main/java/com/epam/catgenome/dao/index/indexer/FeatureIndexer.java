@@ -4,7 +4,6 @@ import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.exception.GeneReadingException;
-import org.apache.lucene.document.Document;
 
 import java.util.List;
 import java.util.Map;

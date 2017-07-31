@@ -27,6 +27,7 @@ package com.epam.catgenome.manager;
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
+import com.epam.catgenome.dao.index.indexer.BigVcfFeatureIndexer;
 import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexer;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
@@ -554,7 +555,7 @@ public class FeatureIndexManager {
             CloseableIterator<VariantContext> iterator = reader.iterator();
             String currentKey = null;
             VariantContext variantContext = null;
-            VcfFeatureIndexer indexer = new VcfFeatureIndexer(info, vcfHeader, featureIndexDao);
+            BigVcfFeatureIndexer indexer = new BigVcfFeatureIndexer(info, vcfHeader, featureIndexDao);
             while (iterator.hasNext()) {
                 variantContext = iterator.next();
 

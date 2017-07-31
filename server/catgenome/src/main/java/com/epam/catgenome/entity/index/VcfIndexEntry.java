@@ -183,43 +183,35 @@ public class VcfIndexEntry extends FeatureIndexEntry {
         this.variantContext = variantContext;
     }
 
-    public List<String> getGeneIdList()
-    {
+    public List<String> getGeneIdList() {
         return geneIdList;
     }
 
-    public void setGeneIdList(List<String> geneIdList)
-    {
+    public void setGeneIdList(List<String> geneIdList) {
         this.geneIdList = geneIdList;
     }
 
-    public List<String> getGeneNameList()
-    {
+    public List<String> getGeneNameList() {
         return geneNameList;
     }
 
-    public void setGeneNameList(List<String> geneNameList)
-    {
+    public void setGeneNameList(List<String> geneNameList) {
         this.geneNameList = geneNameList;
     }
 
-    public Set<VariationType> getVariationTypes()
-    {
+    public Set<VariationType> getVariationTypes() {
         return variationTypes;
     }
 
-    public Set<String> getFailedFilters()
-    {
+    public Set<String> getFailedFilters() {
         return failedFilters;
     }
 
-    public void setFailedFilters(Set<String> failedFilters)
-    {
+    public void setFailedFilters(Set<String> failedFilters) {
         this.failedFilters = failedFilters;
     }
 
-    public void setVariationTypes(Set<VariationType> variationTypes)
-    {
+    public void setVariationTypes(Set<VariationType> variationTypes) {
         this.variationTypes = variationTypes;
     }
 

@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 /**
  * Created by Mikhail_Miroliubov on 7/27/2017.
  */
-public class VcfDocumentCreator extends AbstractDocumentBuilder<VcfIndexEntry>
+public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry>
 {
     private static final Pattern viewFieldPattern = Pattern.compile("_.*_v$");
 

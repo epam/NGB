@@ -232,7 +232,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(Collections.singletonList(TEST_GENE_PREFIX), false));
         vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.MNP,
                 VariationType.SNV), false));
-        //vcfFilterForm.setQuality(Collections.singletonList(QUAL_VALUE));
+        vcfFilterForm.setQuality(Arrays.asList(0.5F, 1.0F));
         IndexSearchResult<VcfIndexEntry> entryList2 = featureIndexManager.filterVariations(vcfFilterForm,
                                                                                            testProject.getId());
         Assert.assertFalse(entryList2.getEntries().isEmpty());
@@ -1029,9 +1029,9 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
             if (i < (entryList.getEntries().size() / 10) + 1) { // check if only it is not the last page
                                                     // (there should be 4 variations)
-                Assert.assertEquals(page.getEntries().size(), 10);
+                Assert.assertEquals(10, page.getEntries().size());
             } else {
-                Assert.assertEquals(page.getEntries().size(), 4);
+                Assert.assertEquals(4, page.getEntries().size());
             }
 
             List<VcfIndexEntry> duplicates = page.getEntries().stream().filter(e -> pagedEntries.contains(e))
@@ -1250,6 +1250,10 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         List<Group> counts = featureIndexManager.groupVariations(new VcfFilterForm(), testProject.getId(),
                                                                  IndexSortField.CHROMOSOME_NAME.name());
+        Assert.assertFalse(counts.isEmpty());
+
+        counts = featureIndexManager.groupVariations(new VcfFilterForm(), testProject.getId(),
+                IndexSortField.QUALITY.name());
         Assert.assertFalse(counts.isEmpty());
 
         // test load additional info and group by it
