@@ -38,6 +38,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.dao.index.FeatureIndexDao.FeatureIndexFields;
 import com.epam.catgenome.entity.bed.BedFile;
 import com.epam.catgenome.manager.bed.BedManager;
 import org.apache.commons.lang3.StringUtils;
@@ -238,7 +239,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
                                                                                            testProject.getId());
         Assert.assertFalse(entryList2.getEntries().isEmpty());
         Assert.assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getInfo() != null && (Boolean) e.getInfo()
-                .get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName())));
+                .get(FeatureIndexFields.IS_EXON.getFieldName())));
 
         vcfFilterForm.setChromosomeIds(Collections.singletonList(testChromosome.getId()));
         entryList2 = featureIndexManager.filterVariations(vcfFilterForm, testProject.getId());
@@ -293,7 +294,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         entryList2 = featureIndexManager.filterVariations(vcfFilterForm, testProject.getId());
         Assert.assertFalse(entryList2.getEntries().isEmpty());
         Assert.assertTrue(entryList2.getEntries().stream().allMatch(e -> e.getInfo() != null && (Boolean) e.getInfo()
-                .get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName())));
+                .get(FeatureIndexFields.IS_EXON.getFieldName())));
 
         // check duplicates
         entryList2 = featureIndexManager.filterVariations(new VcfFilterForm(), testProject.getId());
@@ -768,7 +769,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         IndexSearchResult<VcfIndexEntry> entryList2 = featureIndexManager.filterVariations(vcfFilterForm);
         Assert.assertFalse(entryList2.getEntries().isEmpty());
         Assert.assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getInfo() != null && (Boolean) e.getInfo()
-                .get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName())));
+                .get(FeatureIndexFields.IS_EXON.getFieldName())));
 
         vcfFilterForm.setChromosomeIds(Collections.singletonList(testChromosome.getId()));
         entryList2 = featureIndexManager.filterVariations(vcfFilterForm);
@@ -823,7 +824,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         entryList2 = featureIndexManager.filterVariations(vcfFilterForm);
         Assert.assertFalse(entryList2.getEntries().isEmpty());
         Assert.assertTrue(entryList2.getEntries().stream().allMatch(e -> e.getInfo() != null && (Boolean) e.getInfo()
-                .get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName())));
+                .get(FeatureIndexFields.IS_EXON.getFieldName())));
 
         // check duplicates
         vcfFilterForm = new VcfFilterForm();
@@ -1380,6 +1381,53 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
             () -> featureIndexManager.getTotalPagesCount(new VcfFilterForm(), project.getId()),
             PERFORMANCE_TEST_ATTEMPTS_COUNT);
         logger.info("!! Performing total facet page count lookup took: {} ms", averageTime);*/
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testMultipleVariationTypes() throws IOException {
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        Resource resource = context.getResource("classpath:templates/samples.vcf");
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        VcfFile samplesVcf = vcfManager.registerVcfFile(request);
+
+        VcfFilterForm form = new VcfFilterForm();
+        form.setVcfFileIds(Collections.singletonList(samplesVcf.getId()));
+
+        IndexSearchResult<VcfIndexEntry> res = featureIndexManager.filterVariations(form);
+        long mnpCount = res.getEntries().stream()
+                .filter(e -> e.getVariationTypes().contains(VariationType.MNP))
+                .count();
+        long insCount = res.getEntries().stream()
+                .filter(e -> e.getVariationTypes().contains(VariationType.INS))
+                .count();
+
+        List<Group> variationTypes = featureIndexManager.groupVariations(form,
+                FeatureIndexFields.VARIATION_TYPE.name());
+        Group mnp = variationTypes.stream().filter(g -> g.getGroupName().equals("MNP")).findFirst().get();
+        Group ins = variationTypes.stream().filter(g -> g.getGroupName().equals("INS")).findFirst().get();
+
+        Assert.assertEquals((int) mnpCount, mnp.getEntriesCount().intValue());
+        Assert.assertEquals((int) insCount, ins.getEntriesCount().intValue());
+
+        form.setVariationTypes(new VcfFilterForm.FilterSection<>(Collections.singletonList(VariationType.INS)));
+        res = featureIndexManager.filterVariations(form);
+
+        Assert.assertTrue(res.getEntries().stream().anyMatch(e -> e.getFeatureId().equals("rs11804171")));
+
+        form.setVariationTypes(new VcfFilterForm.FilterSection<>(Collections.singletonList(VariationType.MNP)));
+        res = featureIndexManager.filterVariations(form);
+        Assert.assertTrue(res.getEntries().stream().anyMatch(e -> e.getFeatureId().equals("rs11804171")));
+
+        form.setVariationTypes(null);
+        form.setPage(1);
+        form.setPageSize(5);
+        form.setOrderBy(Collections.singletonList(new VcfFilterForm.OrderBy(FeatureIndexFields.VARIATION_TYPE.name(),
+                false)));
+        res = featureIndexManager.filterVariations(form);
+        Assert.assertFalse(res.getEntries().isEmpty());
     }
 
     private void checkDuplicates(List<VcfIndexEntry> entryList) {

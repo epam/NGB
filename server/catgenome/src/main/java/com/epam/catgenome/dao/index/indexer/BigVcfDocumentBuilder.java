@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * An extension of {@link AbstractDocumentBuilder}, that allows indexing and reading entries of large VCF feature
@@ -52,8 +51,12 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                 FeatureIndexFields.CHROMOSOME_NAME.getFacetName());
         config.setIndexFieldName(FeatureIndexFields.VARIATION_TYPE.getFieldName(),
                 FeatureIndexFields.VARIATION_TYPE.getFacetName());
+        config.setMultiValued(FeatureIndexFields.VARIATION_TYPE.getFieldName(), true);
+
         config.setIndexFieldName(FeatureIndexFields.FAILED_FILTER.getFieldName(),
                 FeatureIndexFields.FAILED_FILTER.getFacetName());
+        config.setMultiValued(FeatureIndexFields.FAILED_FILTER.getFieldName(), true);
+
         config.setIndexFieldName(FeatureIndexFields.GENE_IDS.getFieldName(),
                 FeatureIndexFields.GENE_IDS.getFacetName());
         config.setIndexFieldName(FeatureIndexFields.GENE_NAMES.getFieldName(),
@@ -197,14 +200,13 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
 
     @Override
     protected void addExtraFeatureFields(Document document, VcfIndexEntry entry) {
-        document.add(new SortedSetDocValuesField(FeatureIndexFields.VARIATION_TYPE.getFieldName(),
-                new BytesRef(entry.getVariationType().name())));
-        document.add(new SortedSetDocValuesFacetField(FeatureIndexFields.VARIATION_TYPE.getFieldName(),
-                entry.getVariationType().name()));
-
         for (VariationType type : entry.getVariationTypes()) {
             document.add(new StringField(FeatureIndexFields.VARIATION_TYPE.getFieldName(),
                     type.name().toLowerCase(), Field.Store.YES));
+            document.add(new SortedSetDocValuesFacetField(FeatureIndexFields.VARIATION_TYPE.getFieldName(),
+                    type.name()));
+            document.add(new SortedSetDocValuesField(FeatureIndexFields.VARIATION_TYPE.getFieldName(),
+                    new BytesRef(type.name())));
         }
 
         if (CollectionUtils.isNotEmpty(entry.getFailedFilters())) {
@@ -212,14 +214,12 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                 if (StringUtils.isNotBlank(failedFilter)) {
                     document.add(new StringField(FeatureIndexFields.FAILED_FILTER.getFieldName(),
                             failedFilter.toLowerCase(), Field.Store.YES));
+                    document.add(new SortedSetDocValuesField(FeatureIndexFields.FAILED_FILTER.getFieldName(),
+                            new BytesRef(failedFilter)));
+                    document.add(new SortedSetDocValuesFacetField(FeatureIndexFields.FAILED_FILTER.getFieldName(),
+                            failedFilter));
                 }
             }
-
-            String filters = entry.getFailedFilters().stream().collect(Collectors.joining(", "));
-            document.add(new SortedSetDocValuesField(FeatureIndexFields.FAILED_FILTER.getFieldName(),
-                    new BytesRef(filters)));
-            document.add(new SortedSetDocValuesFacetField(FeatureIndexFields.FAILED_FILTER.getFieldName(),
-                    entry.getFailedFilters().stream().collect(Collectors.joining(", "))));
         }
 
         document.add(new SortedSetDocValuesFacetField(FeatureIndexFields.QUALITY.getFieldName(), entry.getQuality()

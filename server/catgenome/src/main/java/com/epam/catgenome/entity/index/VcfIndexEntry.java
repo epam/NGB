@@ -46,10 +46,10 @@ import htsjdk.variant.variantcontext.VariantContext;
  * </p>
  */
 public class VcfIndexEntry extends FeatureIndexEntry {
-    private VariationType variationType;
-    private String gene;
+    private VariationType variationType; //TODO: remove, use variationTypes
+    private String gene; //TODO: remove, use geneIdList
     private String geneIds;
-    private String geneName;
+    private String geneName; //TODO: remove, use geneNameList
     private String geneNames;
     private String failedFilter;
     private VariationImpact impact;
