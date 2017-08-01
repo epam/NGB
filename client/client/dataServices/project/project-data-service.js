@@ -95,7 +95,7 @@ export class ProjectDataService extends DataService {
 
     getVcfGroupData(filter, groupBy) {
         return new Promise((resolve, reject) => {
-            this.post(`filter/group?groupBy=${groupBy}`, filter).catch(()=>resolve([])).then((data) => {
+            this.post(`filter/group?groupBy=${groupBy}`, filter).catch((response)=>reject(response)).then((data) => {
                 if (data) {
                     resolve(data);
                 } else {
