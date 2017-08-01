@@ -59,7 +59,8 @@ export default class ngbVariantDensityDiagramController {
                         return v;
                     }
                 },
-                y: (d) => d.value
+                y: (d) => d.value,
+                noData: 'No Data Available'
             },
             title: {
                 enable: true,
@@ -95,7 +96,8 @@ export default class ngbVariantDensityDiagramController {
             this.projectContext.variantsDataByChromosomes.length === 0;
         if (this.projectContext.reference && this.projectContext.variantsDataByChromosomes) {
             await this.updateDiagram(this.projectContext.variantsDataByChromosomes,
-                this.projectContext.isVariantsGroupByChromosomesLoading);
+                this.projectContext.isVariantsGroupByChromosomesLoading,
+                this.projectContext.variantsGroupByChromosomesError);
             this.isProgressShown = this.projectContext.isVariantsGroupByChromosomesLoading;
             this._scope.$apply();
         }
@@ -153,12 +155,16 @@ export default class ngbVariantDensityDiagramController {
     }
 
 
-    async updateDiagram(variants, isLoading) {
+    async updateDiagram(variants, isLoading, error) {
         if (isLoading) {
             return;
         }
-        (!variants || variants.length === 0) ?
-            this._scope.data = [] : this._scope.data = this.makeNvD3ChartObjectFromData(variants);
+        if (!variants || variants.length === 0) {
+            this._scope.options.chart.noData = error || 'No Data Available';
+            this._scope.data = [];
+        } else {
+            this._scope.data = this.makeNvD3ChartObjectFromData(variants);
+        }
         this._scope.api && angular.isFunction(this._scope.api.update) ? this._scope.api.update() : '';
     }
 }

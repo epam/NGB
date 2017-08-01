@@ -658,7 +658,7 @@ public class FeatureIndexManager {
      * @throws IOException if error occurred while writing to file system
      */
     public void writeLuceneIndexForFile(final FeatureFile featureFile, final List<? extends FeatureIndexEntry> entries)
-        throws IOException {
+            throws IOException {
         featureIndexDao.writeLuceneIndexForFile(featureFile, entries);
     }
 
