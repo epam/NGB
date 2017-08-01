@@ -152,6 +152,7 @@ public class FeatureIndexDao {
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureIndexDao.class);
     private static Pattern viewFieldPattern = Pattern.compile("_.*_v$");
     private static final int FACET_LIMIT = 1000;
+    private static final int GENE_LIMIT = 100;
     private static final int GROUP_INITIAL_SIZE = 128;
 
     public enum FeatureIndexFields {
@@ -1288,10 +1289,15 @@ public class FeatureIndexDao {
 
     private Set<String> fetchGeneIds(final ScoreDoc[] hits, IndexSearcher searcher) throws IOException {
         Set<String> geneIds = new HashSet<>();
-
+        Set<String> requiredFields = new HashSet<>();
+        requiredFields.add(FeatureIndexFields.GENE_ID.getFieldName());
+        requiredFields.add(FeatureIndexFields.GENE_NAME.getFieldName());
         for (ScoreDoc hit : hits) {
+            if (geneIds.size() > GENE_LIMIT) {
+                break;
+            }
             int docId = hit.doc;
-            Document d = searcher.doc(docId);
+            Document d = searcher.doc(docId, requiredFields);
             String geneId = d.get(FeatureIndexFields.GENE_ID.getFieldName());
             String geneName = d.get(FeatureIndexFields.GENE_NAME.getFieldName());
             if (geneId != null) {
