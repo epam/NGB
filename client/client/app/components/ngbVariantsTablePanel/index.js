@@ -11,10 +11,15 @@ import controller from './ngbVariantsTablePanel.controller';
 import  ngbVariantsTable from './ngbVariantsTable';
 import  ngbVariantsTableColumn from './ngbVariantsTableColumn';
 import  ngbVariantsTablePaginate from './ngbVariantsTablePaginate';
+import  ngbVariantsLoadingIndicator from './ngbVariantsLoadingIndicator';
 
 
 // Import external modules
-export default angular.module('ngbVariantsTablePanel', [ngbVariantsTable,ngbVariantsTableColumn,ngbVariantsTablePaginate])
+export default angular.module('ngbVariantsTablePanel', [
+    ngbVariantsTable,
+    ngbVariantsTableColumn,
+    ngbVariantsTablePaginate,
+    ngbVariantsLoadingIndicator])
     .component('ngbVariantsTablePanel', ngbVariantsTablePanel)
     .controller(controller.UID, controller)
     .name;

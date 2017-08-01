@@ -82,6 +82,7 @@ export default class projectContext {
     _isVariantsGroupByTypeLoading = true;
     _isVariantsGroupByQualityLoading = true;
     _variantsGroupByChromosomesError = null;
+    _variantsPageLoading = false;
     _variantsGroupByTypeError = null;
     _variantsGroupByQualityError = null;
     _containsVcfFiles = true;
@@ -280,6 +281,10 @@ export default class projectContext {
 
     get variantsGroupByQualityError() {
         return this._variantsGroupByQualityError;
+    }
+
+    get variantsPageLoading () {
+        return this._variantsPageLoading;
     }
 
     get containsVcfFiles() {
@@ -1788,7 +1793,12 @@ export default class projectContext {
             startIndex,
             endIndex
         };
+        this._variantsPageLoading = true;
+        this.dispatcher.emit('variants:page:loading:started');
         let data = await this.projectDataService.getVcfVariationLoad(filter);
+        if (data.totalPagesCount === 0) {
+            data.totalPagesCount = undefined;
+        }
 
         if (!data.entries && (data.totalPagesCount !== undefined && data.totalPagesCount < page)) {
             filter.page = data.totalPagesCount;
@@ -1797,6 +1807,9 @@ export default class projectContext {
             this.lastPageVariations = data.totalPagesCount || FIRST_PAGE;
             if (data.totalPagesCount > 0) {
                 data = await this.projectDataService.getVcfVariationLoad(filter);
+                if (data.totalPagesCount === 0) {
+                    data.totalPagesCount = undefined;
+                }
             }
         } else if (!data.entries && data.totalPagesCount === undefined) {
             this._hasMoreVariations = false;
@@ -1813,6 +1826,8 @@ export default class projectContext {
 
         this.totalPagesCountVariations = data.totalPagesCount;
         const entries = data.entries ? data.entries : [];
+        this._variantsPageLoading = false;
+        this.dispatcher.emit('variants:page:loading:finished');
 
         return entries.map(item =>
             Object.assign({},

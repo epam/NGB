@@ -9,6 +9,13 @@ const variantsTablePaginationAction = {
     },
     isDefault: false
 };
+const variantsLoadingIndicatorAction = {
+    name: 'variantsLoadingIndicator',
+    liStyle: {
+        width: 'auto'
+    },
+    isDefault: false
+};
 const closeAllTracksAction = {
     name: 'closeAllTracks',
     isDefault: false
@@ -58,15 +65,16 @@ const genomeAnnotationsAction = {
 export default {
     actions: {
         closeAllTracks: closeAllTracksAction,
-        variantsTableColumn: variantsTableColumnAction,
-        variantsTablePagination: variantsTablePaginationAction,
-        variantsResetFilter: variantsResetFilterActions,
         fitAllTracks: fitAllTracksAction,
+        genomeAnnotations: genomeAnnotationsAction,
         organizeTracks: organizeTracksAction,
-        genomeAnnotations: genomeAnnotationsAction
+        variantsLoadingIndicator: variantsLoadingIndicatorAction,
+        variantsResetFilter: variantsResetFilterActions,
+        variantsTableColumn: variantsTableColumnAction,
+        variantsTablePagination: variantsTablePaginationAction
     },
     viewActions: {
         ngbBrowser: [genomeAnnotationsAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
-        ngbVariantsTablePanel: [variantsTablePaginationAction, variantsResetFilterActions, variantsTableColumnAction]
+        ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsResetFilterActions, variantsTableColumnAction]
     }
 };
