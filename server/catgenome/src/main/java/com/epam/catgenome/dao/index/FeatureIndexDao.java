@@ -63,13 +63,17 @@ import org.apache.lucene.facet.sortedset.SortedSetDocValuesFacetCounts;
 import org.apache.lucene.facet.sortedset.SortedSetDocValuesFacetField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.DocValuesType;
+import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.MultiReader;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.queries.TermsQuery;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -152,6 +156,7 @@ public class FeatureIndexDao {
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureIndexDao.class);
     private static Pattern viewFieldPattern = Pattern.compile("_.*_v$");
     private static final int FACET_LIMIT = 1000;
+    private static final int GENE_LIMIT = 100;
     private static final int GROUP_INITIAL_SIZE = 128;
 
     public enum FeatureIndexFields {
@@ -963,25 +968,26 @@ public class FeatureIndexDao {
         return geneIds;
     }
 
-    public Set<String> searchGenesInVcfFiles(String gene, List<VcfFile> vcfFiles) throws IOException {
+    public Set<String> searchGenesInVcfFiles(String gene, List<VcfFile> vcfFiles)
+            throws IOException {
         if (CollectionUtils.isEmpty(vcfFiles)) {
             return Collections.emptySet();
         }
 
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
-        PrefixQuery geneIdPrefixQuery = new PrefixQuery(new Term(FeatureIndexFields.GENE_ID.getFieldName(),
-                gene.toLowerCase()));
-        PrefixQuery geneNamePrefixQuery = new PrefixQuery(new Term(FeatureIndexFields.GENE_NAME.getFieldName(),
-                gene.toLowerCase()));
+        PrefixQuery geneIdPrefixQuery = new PrefixQuery(
+                new Term(FeatureIndexFields.GENE_ID.getFieldName(), gene.toLowerCase()));
+        PrefixQuery geneNamePrefixQuery = new PrefixQuery(
+                new Term(FeatureIndexFields.GENE_NAME.getFieldName(), gene.toLowerCase()));
         BooleanQuery.Builder geneIdOrNameQuery = new BooleanQuery.Builder();
         geneIdOrNameQuery.add(geneIdPrefixQuery, BooleanClause.Occur.SHOULD);
         geneIdOrNameQuery.add(geneNamePrefixQuery, BooleanClause.Occur.SHOULD);
 
         builder.add(geneIdOrNameQuery.build(), BooleanClause.Occur.MUST);
-        BooleanQuery query =  builder.build();
+        BooleanQuery query = builder.build();
 
-        Set<String> geneIds;
+        Set<String> geneIds = new HashSet<>();
 
         SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(vcfFiles);
 
@@ -989,18 +995,35 @@ public class FeatureIndexDao {
             if (reader.numDocs() == 0) {
                 return Collections.emptySet();
             }
+            if (StringUtils.isEmpty(gene)) {
+                Fields fields = MultiFields.getFields(reader);
+                fetchTermValues(geneIds, fields, FeatureIndexFields.GENE_ID.getFieldName());
+                fetchTermValues(geneIds, fields, FeatureIndexFields.GENE_NAME.getFieldName());
+            } else {
+                IndexSearcher searcher = new IndexSearcher(reader);
+                final TopDocs docs = searcher.search(query, reader.numDocs());
+                final ScoreDoc[] hits = docs.scoreDocs;
+                geneIds = fetchGeneIds(hits, searcher);
+            }
 
-            IndexSearcher searcher = new IndexSearcher(reader);
-            final TopDocs docs = searcher.search(query, reader.numDocs());
-            final ScoreDoc[] hits = docs.scoreDocs;
-
-            geneIds = fetchGeneIds(hits, searcher);
         } catch (IOException e) {
             LOGGER.error(getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
             return Collections.emptySet();
         }
 
         return geneIds;
+    }
+
+    private void fetchTermValues(Set<String> geneIds, Fields fields, String fieldName) throws IOException {
+        Terms terms = fields.terms(fieldName);
+        if (terms != null) {
+            TermsEnum iterator = terms.iterator();
+            BytesRef next = iterator.next();
+            while (next != null) {
+                geneIds.add(next.utf8ToString());
+                next = iterator.next();
+            }
+        }
     }
 
     /**
@@ -1288,10 +1311,15 @@ public class FeatureIndexDao {
 
     private Set<String> fetchGeneIds(final ScoreDoc[] hits, IndexSearcher searcher) throws IOException {
         Set<String> geneIds = new HashSet<>();
-
+        Set<String> requiredFields = new HashSet<>();
+        requiredFields.add(FeatureIndexFields.GENE_ID.getFieldName());
+        requiredFields.add(FeatureIndexFields.GENE_NAME.getFieldName());
         for (ScoreDoc hit : hits) {
+            if (geneIds.size() > GENE_LIMIT * 2) {
+                break;
+            }
             int docId = hit.doc;
-            Document d = searcher.doc(docId);
+            Document d = searcher.doc(docId, requiredFields);
             String geneId = d.get(FeatureIndexFields.GENE_ID.getFieldName());
             String geneName = d.get(FeatureIndexFields.GENE_NAME.getFieldName());
             if (geneId != null) {
