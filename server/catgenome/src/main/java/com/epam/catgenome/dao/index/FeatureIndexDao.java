@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.index.indexer.AbstractDocumentBuilder;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
-import com.epam.catgenome.util.Utils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -214,7 +213,7 @@ public class FeatureIndexDao {
                     addVcfDocumentFields(document, entry);
                 }*/
                 AbstractDocumentBuilder creator = AbstractDocumentBuilder.createDocumentCreator(entry);
-                Document document = creator.createIndexDocument(entry, featureFileId);
+                Document document = creator.buildDocument(entry, featureFileId);
 
                 writer.addDocument(facetsConfig.build(document));
             }
@@ -252,7 +251,7 @@ public class FeatureIndexDao {
                     addVcfDocumentFields(document, entry);
                 }*/
 
-                Document document = creator.createIndexDocument(entry, featureFile.getId());
+                Document document = creator.buildDocument(entry, featureFile.getId());
 
                 writer.addDocument(facetsConfig.build(document));
             }
@@ -536,7 +535,8 @@ public class FeatureIndexDao {
      * @return a {List} of {@code FeatureIndexEntry} objects that satisfy index query
      * @throws IOException if something is wrong in the filesystem
      */
-    /*public <T extends FeatureIndexEntry> IndexSearchResult<T> searchFileIndexesPaging(List<? extends FeatureFile> files,
+    /*public <T extends FeatureIndexEntry> IndexSearchResult<T> searchFileIndexesPaging(
+    List<? extends FeatureFile> files,
                                                                   Query query, List<String> vcfInfoFields, Integer page,
                                                                   Integer pageSize, List<VcfFilterForm.OrderBy> orderBy)
         throws IOException {
@@ -572,7 +572,7 @@ public class FeatureIndexDao {
             for (ScoreDoc hit : hits) {
                 AbstractDocumentBuilder documentCreator = AbstractDocumentBuilder.createDocumentCreator(
                         files.get(0).getFormat(), vcfInfoFields);
-                entries.add(documentCreator.createEntryFromDocument(searcher.doc(hit.doc)));
+                entries.add(documentCreator.buildEntry(searcher.doc(hit.doc)));
             }
         } finally {
             for (SimpleFSDirectory index : indexes) {
@@ -584,8 +584,9 @@ public class FeatureIndexDao {
     }*/
 
     public <T extends FeatureIndexEntry> IndexSearchResult<T> searchFileIndexesPaging(List<? extends FeatureFile> files,
-                                                                                      Query query, List<String> vcfInfoFields, Integer page,
-                                                                                      Integer pageSize, List<VcfFilterForm.OrderBy> orderBy)
+                                                                              Query query, List<String> vcfInfoFields,
+                                                                              Integer page, Integer pageSize,
+                                                                              List<VcfFilterForm.OrderBy> orderBy)
             throws IOException {
 
         if (CollectionUtils.isEmpty(files)) {
@@ -603,20 +604,13 @@ public class FeatureIndexDao {
 
             IndexSearcher searcher = new IndexSearcher(reader);
             int numDocs = page == null ? reader.numDocs() : page * pageSize;
-            LOGGER.info("Searching");
-            double time1 = Utils.getSystemTimeMilliseconds();
             final TopDocs docs = performSearch(searcher, query, reader, numDocs, createSorting2(orderBy, files));
-            double time2 = Utils.getSystemTimeMilliseconds();
-            LOGGER.info("Search took: {} ms", time2 - time1);
             int totalHits = docs.totalHits;
             final ScoreDoc[] hits = docs.scoreDocs;
 
             AbstractDocumentBuilder documentCreator = AbstractDocumentBuilder.createDocumentCreator(
                     files.get(0).getFormat(), vcfInfoFields);
-            time1 = Utils.getSystemTimeMilliseconds();
             createIndexEntries(hits, entryMap, searcher, documentCreator, page, pageSize);
-            time2 = Utils.getSystemTimeMilliseconds();
-            LOGGER.info("Getting entries took: {} ms", time2 - time1);
 
             return new IndexSearchResult<>(new ArrayList<T>((Collection<? extends T>) entryMap.values()),
                     false, totalHits);
@@ -828,7 +822,7 @@ public class FeatureIndexDao {
 
             IndexSearcher searcher = new IndexSearcher(reader);
 
-            String groupByField = getGroupByFieldBig2(files, groupBy);
+            String groupByField = getGroupByField2(files, groupBy);
             SortedSetDocValuesReaderState state =
                     new DefaultSortedSetDocValuesReaderState(reader, FeatureIndexFields.getFacetName(groupByField));
             FacetsCollector collector = new FacetsCollector();
@@ -872,7 +866,7 @@ public class FeatureIndexDao {
         }
     }*/
 
-    private String getGroupByFieldBig2(List<VcfFile> files, String groupBy) throws IOException {
+    private String getGroupByField2(List<VcfFile> files, String groupBy) throws IOException {
         IndexSortField sortField = IndexSortField.getByName(groupBy);
         if (sortField == null) {
             VcfFilterInfo info = vcfManager.getFiltersInfo(
@@ -1179,8 +1173,9 @@ public class FeatureIndexDao {
         writer.deleteDocuments(deleteQueryBuilder.build());
     }
 
-    private void createIndexEntries(final ScoreDoc[] hits, Map<Integer, FeatureIndexEntry> entryMap, IndexSearcher searcher,
-                                    AbstractDocumentBuilder documentCreator, Integer page, Integer pageSize) throws IOException {
+    private void createIndexEntries(final ScoreDoc[] hits, Map<Integer, FeatureIndexEntry> entryMap,
+                                    IndexSearcher searcher, AbstractDocumentBuilder documentCreator, Integer page,
+                                    Integer pageSize) throws IOException {
         int from = page != null ? (page - 1) * pageSize : 0;
         int to = page != null ? Math.min(from + pageSize, hits.length) : hits.length;
 
@@ -1189,7 +1184,7 @@ public class FeatureIndexDao {
         }
 
         for (int i = from; i < to; i++) {
-            FeatureIndexEntry entry = documentCreator.createEntryFromDocument(searcher.doc(hits[i].doc));
+            FeatureIndexEntry entry = documentCreator.buildEntry(searcher.doc(hits[i].doc));
 
             entryMap.put(Objects.hash(entry.getFeatureFileId(), entry.getChromosome() != null ?
                                                                 entry.getChromosome().getId() : null,

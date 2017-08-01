@@ -24,10 +24,17 @@ import org.apache.lucene.util.BytesRef;
 import java.util.List;
 
 /**
- * Created by Mikhail_Miroliubov on 7/27/2017.
+ * An abstract class, whose extensions are responsible for building Lucene documents form
+ * {@link FeatureIndexEntry}'es and backwards.
  */
 public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
-    public Document createIndexDocument(E entry, final Long featureFileId) {
+    /**
+     * Builds a Lucene {@link Document} from specified {@link FeatureIndexEntry}
+     * @param entry an entry to index
+     * @param featureFileId an ID of {@link com.epam.catgenome.entity.FeatureFile}, to which feature belongs
+     * @return a document, ready to be written
+     */
+    public Document buildDocument(E entry, final Long featureFileId) {
         Document document = new Document();
         document.add(new SortedStringField(FeatureIndexFields.FEATURE_ID.getFieldName(), entry.getFeatureId()));
 
@@ -76,7 +83,12 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
         return document;
     }
 
-    public E createEntryFromDocument(Document doc) {
+    /**
+     * Creates an {@link FeatureIndexEntry} from fields of a specified Lucene {@link Document}
+     * @param doc a document to read entry from
+     * @return an {@link FeatureIndexEntry}, represented by specified document
+     */
+    public E buildEntry(Document doc) {
         FeatureType featureType = FeatureType.forValue(doc.get(FeatureIndexFields.FEATURE_TYPE.getFieldName()));
         E entry = createSpecificEntry(doc);
 
@@ -103,6 +115,12 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
         return entry;
     }
 
+    /**
+     * Creates {@link FacetsConfig} for Lucene {@link org.apache.lucene.index.IndexWriter} to index fields with facets
+     * @param info is required only for {@link VcfDocumentBuilder} or {@link BigVcfDocumentBuilder}, can be null
+     *             otherwise
+     * @return a {@link FacetsConfig} for Lucene IndexWriter
+     */
     public FacetsConfig createFacetsConfig(VcfFilterInfo info) {
         FacetsConfig facetsConfig = new FacetsConfig();
         facetsConfig.setIndexFieldName(FeatureIndexFields.CHR_ID.getFieldName(),
@@ -113,27 +131,51 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
         return facetsConfig;
     }
 
+    /**
+     * Creates a specific extension of {@link FeatureIndexEntry}. Override this method to allow custom fields
+     * to be loaded
+     * @param doc a Lucene {@link Document}, to load data from
+     * @return a specific extension of {@link FeatureIndexEntry}
+     */
     protected abstract E createSpecificEntry(Document doc);
 
+    /**
+     * Adds extra fields of specific {@link FeatureIndexEntry} extension. Override this method to allow custom fields
+     * to be indexed
+     * @param document a document to add extra fields
+     * @param entry a specific {@link FeatureIndexEntry}
+     */
     protected abstract void addExtraFeatureFields(Document document, E entry);
 
+    /**
+     * Creates a AbstractDocumentBuilder's extension, based on passed {@link FeatureIndexEntry}
+     * @param entry an {@link FeatureIndexEntry} to guess the type of {@link AbstractDocumentBuilder} extension
+     * @return relevant {@link AbstractDocumentBuilder} extension
+     */
     public static AbstractDocumentBuilder createDocumentCreator(FeatureIndexEntry entry) {
         if (entry instanceof VcfIndexEntry) {
             return new BigVcfDocumentBuilder();
         } else {
-            return new DefaultDocumentCreator();
+            return new DefaultDocumentBuilder();
         }
     }
 
+    /**
+     * Creates a AbstractDocumentBuilder's extension, based on passed {@link FeatureIndexEntry}
+     * @param format {@link BiologicalDataItemFormat} to guess the type of {@link AbstractDocumentBuilder} extension
+     * @param info is required only for {@code BiologicalDataItemFormat.VCF}, can be null
+     *             otherwise
+     * @return relevant {@link AbstractDocumentBuilder} extension
+     */
     public static AbstractDocumentBuilder createDocumentCreator(BiologicalDataItemFormat format,
-                                                                List<String> vcfInfoFields) {
+                                                                List<String> info) {
         switch (format) {
             case VCF:
                 BigVcfDocumentBuilder creator = new BigVcfDocumentBuilder();
-                creator.setVcfInfoFields(vcfInfoFields);
+                creator.setVcfInfoFields(info);
                 return creator;
             default:
-                return new DefaultDocumentCreator();
+                return new DefaultDocumentBuilder();
         }
     }
 }

@@ -4,6 +4,7 @@ import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.vcf.VariationType;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
+import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
 
 import java.util.ArrayList;
@@ -12,17 +13,16 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Created by Mikhail_Miroliubov on 7/27/2017.
+ * An implementation of {@link FeatureIndexBuilder}, that indexes <b>large</b> VCF file entries: {@link VariantContext}
  */
-public class BigVcfFeatureIndexer extends VcfFeatureIndexer {
-    public BigVcfFeatureIndexer(VcfFilterInfo filterInfo, VCFHeader vcfHeader, FeatureIndexDao featureIndexDao) {
+public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
+    public BigVcfFeatureIndexBuilder(VcfFilterInfo filterInfo, VCFHeader vcfHeader, FeatureIndexDao featureIndexDao) {
         super(filterInfo, vcfHeader, featureIndexDao);
     }
 
     @Override
     protected List<VcfIndexEntry> simplify(VcfIndexEntry indexEntry, Set<VariationGeneInfo> geneIds,
-                                           String geneIdsString, String geneNamesString, Set<VariationType> types)
-    {
+                                           String geneIdsString, String geneNamesString, Set<VariationType> types) {
         indexEntry.setGeneIds(geneIdsString);
         indexEntry.setGeneNames(geneNamesString);
         indexEntry.setVariationTypes(types);

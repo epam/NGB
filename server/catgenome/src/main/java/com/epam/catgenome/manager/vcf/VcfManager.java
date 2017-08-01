@@ -45,8 +45,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.index.FeatureIndexDao;
-import com.epam.catgenome.dao.index.indexer.BigVcfFeatureIndexer;
-import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexer;
+import com.epam.catgenome.dao.index.indexer.BigVcfFeatureIndexBuilder;
+import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexBuilder;
 import com.epam.catgenome.util.InfoFieldParser;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
@@ -596,7 +596,7 @@ public class VcfManager {
         VCFHeader vcfHeader = (VCFHeader) reader.getHeader();
         List<GeneFile> geneFiles  = reference.getGeneFile() != null ?
                                     Collections.singletonList(reference.getGeneFile()) : Collections.emptyList();
-        BigVcfFeatureIndexer indexer = new BigVcfFeatureIndexer(info, vcfHeader, featureIndexDao);
+        BigVcfFeatureIndexBuilder indexer = new BigVcfFeatureIndexBuilder(info, vcfHeader, featureIndexDao);
         while (iterator.hasNext()) {
             variantContext = iterator.next();
 
@@ -634,17 +634,18 @@ public class VcfManager {
         return metaMap;
     }
 
-    private void indexVariation(VariantContext variantContext, Map<String, Chromosome> chromosomeMap, VcfFeatureIndexer indexer, boolean doIndex) {
+    private void indexVariation(VariantContext variantContext, Map<String, Chromosome> chromosomeMap,
+                                VcfFeatureIndexBuilder indexer, boolean doIndex) {
         if (doIndex) {
-            indexer.addFeatureToIndex(variantContext, chromosomeMap);
+            indexer.add(variantContext, chromosomeMap);
         }
     }
 
-    private void writeEntriesForChromosome(VcfFeatureIndexer indexer, List<GeneFile> geneFiles,
+    private void writeEntriesForChromosome(VcfFeatureIndexBuilder indexer, List<GeneFile> geneFiles,
                                            Chromosome currentChromosome, VcfFile vcfFile, boolean doIndex)
         throws GeneReadingException, IOException {
         if (doIndex) {
-            List<VcfIndexEntry> processedEntries = indexer.postProcessIndexEntries(geneFiles, currentChromosome);
+            List<VcfIndexEntry> processedEntries = indexer.build(geneFiles, currentChromosome);
             featureIndexManager.writeLuceneIndexForFile(vcfFile, processedEntries, indexer.getFilterInfo());
             LOGGER.info(getMessage(MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE, currentChromosome.getName()));
             indexer.clear();

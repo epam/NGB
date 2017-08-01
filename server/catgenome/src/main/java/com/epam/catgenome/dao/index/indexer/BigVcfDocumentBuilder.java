@@ -34,11 +34,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Created by Mikhail_Miroliubov on 7/27/2017.
+ * An extension of {@link AbstractDocumentBuilder}, that allows indexing and reading entries of large VCF feature
+ * indexes
  */
 public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry> {
     private static final Pattern VIEW_FIELD_PATTERN = Pattern.compile("_.*_v$");
     private static final Logger LOGGER = LoggerFactory.getLogger(BigVcfDocumentBuilder.class);
+    private static final int MAX_FACET_LABEL_LEGTH = 8190;
 
     private List<String> vcfInfoFields;
 
@@ -61,17 +63,23 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
         config.setIndexFieldName(FeatureIndexFields.IS_EXON.getFieldName(),
                 FeatureIndexFields.IS_EXON.getFacetName());
 
-        info.getInfoItems().forEach(i -> {
-            config.setIndexFieldName(i.getName().toLowerCase(), FeatureIndexFields.getFacetName(i.getName().toLowerCase()));
-        });
+        info.getInfoItems().forEach(i -> config.setIndexFieldName(i.getName().toLowerCase(),
+                FeatureIndexFields.getFacetName(i.getName().toLowerCase())));
 
         return config;
     }
 
+    /**
+     * Creates a Lucene {@link Document} from specified {@link VcfIndexEntry}
+     * @param entry         an entry to index
+     * @param featureFileId an ID of {@link com.epam.catgenome.entity.FeatureFile}, to which feature belongs
+     * @return a Lucene {@link Document}
+     */
     @Override
-    public Document createIndexDocument(VcfIndexEntry entry, final Long featureFileId) {
+    public Document buildDocument(VcfIndexEntry entry, final Long featureFileId) {
         Document document = new Document();
-        document.add(new StringField(FeatureIndexFields.FEATURE_ID.getFieldName(), entry.getFeatureId(), Field.Store.YES));
+        document.add(new StringField(FeatureIndexFields.FEATURE_ID.getFieldName(), entry.getFeatureId(),
+                Field.Store.YES));
 
         FieldType fieldType = new FieldType();
         fieldType.setOmitNorms(true);
@@ -90,7 +98,6 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                 entry.getChromosome().getName()));
         document.add(new StringField(FeatureIndexFields.CHROMOSOME_NAME.getFieldName(),
                 new BytesRef(entry.getChromosome().getName()), Field.Store.YES)); // TODO: change to string?
-
 
         document.add(new SortedIntPoint(FeatureIndexFields.START_INDEX.getFieldName(), entry.getStartIndex()));
         document.add(new StoredField(FeatureIndexFields.START_INDEX.getFieldName(), entry.getStartIndex()));
@@ -289,12 +296,13 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                 addInfoField(info.getValue(), info.getKey(), document);
 
                 String strValue = info.getValue().toString();
-                if (strValue.length() + info.getKey().length() > 8190) {
-                    LOGGER.warn("{} field value is too long ({}), truncating: {}", info.getKey(), strValue.length(), strValue);
-                    strValue = strValue.substring(0, 8190 - info.getKey().length());
+                if (strValue.length() + info.getKey().length() > MAX_FACET_LABEL_LEGTH) {
+                    LOGGER.warn("{} field value is too long ({}), truncating: {}", info.getKey(), strValue.length(),
+                            strValue);
+                    strValue = strValue.substring(0, MAX_FACET_LABEL_LEGTH - info.getKey().length());
                 }
 
-                document.add(new SortedSetDocValuesField(info.getKey().toLowerCase(), //FeatureIndexDao.FeatureIndexFields.getGroupName(
+                document.add(new SortedSetDocValuesField(info.getKey().toLowerCase(),
                         new BytesRef(strValue)));
                 document.add(new SortedSetDocValuesFacetField(info.getKey().toLowerCase(), strValue));
             }
@@ -318,11 +326,11 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
             document.add(new StoredField(key.toLowerCase(), vcfIndexEntry.getInfo().get(viewKey).toString()));
 
             String strValue = vcfIndexEntry.getInfo().get(viewKey).toString();
-            if (strValue.length() + key.length() > 8190) {
+            if (strValue.length() + key.length() > MAX_FACET_LABEL_LEGTH) {
                 LOGGER.warn("{} field value is too long ({}), truncating: {}", key, strValue.length(), strValue);
-                strValue = strValue.substring(0, 8190 - key.length());
+                strValue = strValue.substring(0, MAX_FACET_LABEL_LEGTH - key.length());
             }
-            document.add(new SortedSetDocValuesField(key.toLowerCase(), //FeatureIndexDao.FeatureIndexFields.getGroupName(
+            document.add(new SortedSetDocValuesField(key.toLowerCase(),
                     new BytesRef(strValue)));
             document.add(new SortedSetDocValuesFacetField(key.toLowerCase(), strValue));
         }

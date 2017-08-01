@@ -27,8 +27,8 @@ package com.epam.catgenome.manager;
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
-import com.epam.catgenome.dao.index.indexer.BigVcfFeatureIndexer;
-import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexer;
+import com.epam.catgenome.dao.index.indexer.BigVcfFeatureIndexBuilder;
+import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexBuilder;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
@@ -258,7 +258,8 @@ public class FeatureIndexManager {
                                                      filterForm.computeQuery(FeatureType.VARIATION),
                                                      filterForm.getInfoFields(), filterForm.getPage(),
                                                      filterForm.getPageSize(), filterForm.getOrderBy());
-            res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount() / filterForm.getPageSize().doubleValue()));
+            res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount() /
+                    filterForm.getPageSize().doubleValue()));
             return res;
         } else {
             IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexes(files, filterForm.computeQuery(
@@ -339,7 +340,8 @@ public class FeatureIndexManager {
                                                                    filterForm.computeQuery(FeatureType.VARIATION),
                                                                    filterForm.getInfoFields(), filterForm.getPage(),
                                                                    filterForm.getPageSize(), filterForm.getOrderBy());
-            res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount() / filterForm.getPageSize().doubleValue()));
+            res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount()
+                    / filterForm.getPageSize().doubleValue()));
             return res;
         } else {
             IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexes(files,
@@ -511,7 +513,8 @@ public class FeatureIndexManager {
      * @param entries a list of index entries
      * @throws IOException if error occurred while writing to file system
      */
-    public void writeLuceneIndexForFile(final FeatureFile featureFile, final List<? extends FeatureIndexEntry> entries, VcfFilterInfo vcfFilterInfo)
+    public void writeLuceneIndexForFile(final FeatureFile featureFile, final List<? extends FeatureIndexEntry> entries,
+                                        VcfFilterInfo vcfFilterInfo)
         throws IOException {
         featureIndexDao.writeLuceneIndexForFile(featureFile, entries, vcfFilterInfo);
     }
@@ -555,7 +558,7 @@ public class FeatureIndexManager {
             CloseableIterator<VariantContext> iterator = reader.iterator();
             String currentKey = null;
             VariantContext variantContext = null;
-            BigVcfFeatureIndexer indexer = new BigVcfFeatureIndexer(info, vcfHeader, featureIndexDao);
+            BigVcfFeatureIndexBuilder indexer = new BigVcfFeatureIndexBuilder(info, vcfHeader, featureIndexDao);
             while (iterator.hasNext()) {
                 variantContext = iterator.next();
 
@@ -565,13 +568,13 @@ public class FeatureIndexManager {
                     currentKey = variantContext.getContig();
                 }
 
-                indexer.addFeatureToIndex(variantContext, chromosomeMap);
+                indexer.add(variantContext, chromosomeMap);
             }
 
             // Put the last one
             if (variantContext != null && currentKey != null &&
                     Utils.chromosomeMapContains(chromosomeMap, currentKey)) {
-                List<VcfIndexEntry> processedEntries = indexer.postProcessIndexEntries(geneFiles,
+                List<VcfIndexEntry> processedEntries = indexer.build(geneFiles,
                         Utils.getFromChromosomeMap(chromosomeMap, currentKey));
 
                 featureIndexDao.writeLuceneIndexForFile(vcfFile, processedEntries, info);
@@ -584,11 +587,11 @@ public class FeatureIndexManager {
         }
     }
 
-    private void putVariationsInIndex(VcfFeatureIndexer indexer, String currentKey, VcfFile vcfFile,
+    private void putVariationsInIndex(VcfFeatureIndexBuilder indexer, String currentKey, VcfFile vcfFile,
                                       List<GeneFile> geneFiles, Map<String, Chromosome> chromosomeMap)
         throws GeneReadingException, IOException {
         if (currentKey != null && Utils.chromosomeMapContains(chromosomeMap, currentKey)) {
-            List<VcfIndexEntry> processedEntries = indexer.postProcessIndexEntries(geneFiles,
+            List<VcfIndexEntry> processedEntries = indexer.build(geneFiles,
                     Utils.getFromChromosomeMap(chromosomeMap, currentKey));
 
             featureIndexDao.writeLuceneIndexForFile(vcfFile, processedEntries, indexer.getFilterInfo());

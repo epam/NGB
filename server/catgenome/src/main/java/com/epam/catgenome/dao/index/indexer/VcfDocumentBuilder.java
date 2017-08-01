@@ -21,11 +21,11 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * Created by Mikhail_Miroliubov on 7/27/2017.
+ * An extension of {@link AbstractDocumentBuilder}, that allows indexing and reading entries of VCF feature
+ * indexes
  */
-public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry>
-{
-    private static final Pattern viewFieldPattern = Pattern.compile("_.*_v$");
+public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry> {
+    private static final Pattern VIEW_FIELD_PATTERN = Pattern.compile("_.*_v$");
 
     private List<String> vcfInfoFields;
 
@@ -87,8 +87,8 @@ public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry>
 
         vcfIndexEntry.setInfo(new HashMap<>());
 
-        String isExonStr = doc.get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName()); //TODO: remove, in future only binary
-        // value will remain
+        String isExonStr = doc.get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName());
+        //TODO: remove, in future only binary value will remain
         if (isExonStr == null) {
             bytes = doc.getBinaryValue(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName());
             if (bytes != null) {
@@ -125,7 +125,7 @@ public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry>
 
     private void addVcfDocumentInfoFields(Document document, VcfIndexEntry vcfIndexEntry) {
         for (Map.Entry<String, Object> info : vcfIndexEntry.getInfo().entrySet()) {
-            if (viewFieldPattern.matcher(info.getKey()).matches()) { //view fields are for view purposes
+            if (VIEW_FIELD_PATTERN.matcher(info.getKey()).matches()) { //view fields are for view purposes
                 continue;
             }
 
@@ -135,12 +135,14 @@ public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry>
                 if (vcfIndexEntry.getInfo().containsKey(viewKey)) {
                     document.add(new StoredField(info.getKey().toLowerCase(), vcfIndexEntry.getInfo()
                             .get(viewKey).toString()));
-                    document.add(new SortedDocValuesField(FeatureIndexDao.FeatureIndexFields.getGroupName(info.getKey().toLowerCase()),
+                    document.add(new SortedDocValuesField(FeatureIndexDao.FeatureIndexFields.getGroupName(
+                            info.getKey().toLowerCase()),
                             new BytesRef(vcfIndexEntry.getInfo().get(viewKey).toString())));
                 } else {
                     document.add(new StoredField(info.getKey().toLowerCase(),
                             (Integer) info.getValue()));
-                    document.add(new SortedDocValuesField(FeatureIndexDao.FeatureIndexFields.getGroupName(info.getKey().toLowerCase()),
+                    document.add(new SortedDocValuesField(FeatureIndexDao.FeatureIndexFields.getGroupName(
+                            info.getKey().toLowerCase()),
                             new BytesRef(info.getValue().toString())));
                 }
             } else if (info.getValue() instanceof Float) {
@@ -149,11 +151,13 @@ public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry>
                 if (vcfIndexEntry.getInfo().containsKey(viewKey)) {
                     document.add(new StoredField(info.getKey().toLowerCase(), vcfIndexEntry.getInfo()
                             .get(viewKey).toString()));
-                    document.add(new SortedDocValuesField(FeatureIndexDao.FeatureIndexFields.getGroupName(info.getKey().toLowerCase()),
+                    document.add(new SortedDocValuesField(FeatureIndexDao.FeatureIndexFields.getGroupName(
+                            info.getKey().toLowerCase()),
                             new BytesRef(vcfIndexEntry.getInfo().get(viewKey).toString())));
                 } else {
                     document.add(new StoredField(info.getKey().toLowerCase(), (Float) info.getValue()));
-                    document.add(new SortedDocValuesField(FeatureIndexDao.FeatureIndexFields.getGroupName(info.getKey().toLowerCase()),
+                    document.add(new SortedDocValuesField(FeatureIndexDao.FeatureIndexFields.getGroupName(
+                            info.getKey().toLowerCase()),
                             new BytesRef(info.getValue().toString())));
                 }
             } else {

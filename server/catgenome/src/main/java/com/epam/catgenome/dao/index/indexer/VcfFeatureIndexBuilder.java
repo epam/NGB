@@ -45,10 +45,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Created by Mikhail_Miroliubov on 7/27/2017.
+ * An implementation of {@link FeatureIndexBuilder}, that indexes VCF file entries: {@link VariantContext}
  */
-public class VcfFeatureIndexer implements FeatureIndexer<VariantContext, VcfIndexEntry> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(VcfFeatureIndexer.class);
+public class VcfFeatureIndexBuilder implements FeatureIndexBuilder<VariantContext, VcfIndexEntry> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(VcfFeatureIndexBuilder.class);
 
     private VcfFilterInfo filterInfo;
     private VCFHeader vcfHeader;
@@ -56,14 +56,14 @@ public class VcfFeatureIndexer implements FeatureIndexer<VariantContext, VcfInde
 
     private List<VcfIndexEntry> allEntries = new ArrayList<>();
 
-    public VcfFeatureIndexer(VcfFilterInfo filterInfo, VCFHeader vcfHeader, FeatureIndexDao featureIndexDao) {
+    public VcfFeatureIndexBuilder(VcfFilterInfo filterInfo, VCFHeader vcfHeader, FeatureIndexDao featureIndexDao) {
         this.filterInfo = filterInfo;
         this.vcfHeader = vcfHeader;
         this.featureIndexDao = featureIndexDao;
     }
 
     @Override
-    public void addFeatureToIndex(VariantContext context, Map<String, Chromosome> chromosomeMap) {
+    public void add(VariantContext context, Map<String, Chromosome> chromosomeMap) {
         if (chromosomeMap.containsKey(context.getContig())
                 || chromosomeMap.containsKey(Utils.changeChromosomeName(context.getContig()))) {
             VcfIndexEntry masterEntry = new VcfIndexEntry();
@@ -196,7 +196,7 @@ public class VcfFeatureIndexer implements FeatureIndexer<VariantContext, VcfInde
     }
 
     @Override
-    public List<VcfIndexEntry> postProcessIndexEntries(List<GeneFile> geneFiles, Chromosome chromosome) {
+    public List<VcfIndexEntry> build(List<GeneFile> geneFiles, Chromosome chromosome) {
         List<VcfIndexEntry> processedEntries = new ArrayList<>();
         int start = chromosome.getSize();
         int end = 0;
@@ -210,7 +210,7 @@ public class VcfFeatureIndexer implements FeatureIndexer<VariantContext, VcfInde
         for (VcfIndexEntry indexEntry : allEntries) {
             String geneIdsString = null;
             String geneNamesString = null;
-            Set<VcfFeatureIndexer.VariationGeneInfo> geneIds = Collections.emptySet();
+            Set<VcfFeatureIndexBuilder.VariationGeneInfo> geneIds = Collections.emptySet();
 
             for (GeneFile geneFile : geneFiles) {
                 if (!intervalMapCache.containsKey(geneFile)) {
@@ -260,7 +260,7 @@ public class VcfFeatureIndexer implements FeatureIndexer<VariantContext, VcfInde
      * @return a {@code Set} of IDs of genes, affected by the variation
      */
     private Set<VariationGeneInfo> fetchGeneIdsFromBatch(NggbIntervalTreeMap<List<Gene>> intervalMap,
-                                                                             int start, int end, Chromosome chromosome) {
+                                                                         int start, int end, Chromosome chromosome) {
         Set<VariationGeneInfo> geneIds = getGeneIds(intervalMap, chromosome, start, start);
         if (end > start) {
             geneIds.addAll(getGeneIds(intervalMap, chromosome, end, end));
@@ -276,7 +276,8 @@ public class VcfFeatureIndexer implements FeatureIndexer<VariantContext, VcfInde
             IndexSearchResult<FeatureIndexEntry> searchResult = featureIndexDao.searchFeaturesInInterval(
                     Collections.singletonList(geneFile), start, end, chromosome);
             searchResult.getEntries().stream().filter(f -> f.getFeatureType() == FeatureType.EXON
-                    || f.getFeatureType() == FeatureType.GENE).map(f -> {
+                    || f.getFeatureType() == FeatureType.GENE)
+                    .map(f -> {
                         Gene gene = new Gene();
                         gene.setFeature(f.getFeatureType().name());
                         gene.setStartIndex(f.getStartIndex());
@@ -284,11 +285,12 @@ public class VcfFeatureIndexer implements FeatureIndexer<VariantContext, VcfInde
                         gene.setGroupId(f.getFeatureId());
                         gene.setFeatureName(f.getFeatureName().toUpperCase());
                         return gene;
-            }).forEach(g -> {
-                Interval interval = new Interval(chromosome.getName(), g.getStartIndex(), g.getEndIndex());
-                genesRangeMap.putIfAbsent(interval, new ArrayList<>());
-                genesRangeMap.get(interval).add(g);
-            });
+                    })
+                    .forEach(g -> {
+                        Interval interval = new Interval(chromosome.getName(), g.getStartIndex(), g.getEndIndex());
+                        genesRangeMap.putIfAbsent(interval, new ArrayList<>());
+                        genesRangeMap.get(interval).add(g);
+                    });
         } catch (IOException e) {
             LOGGER.error(e.getMessage(), e);
         }

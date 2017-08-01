@@ -164,6 +164,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     private static final String TEST_GENE_AND_FILE_ID_QUERY = "geneId:ens* AND fileId:%d";
     private static final String SVTYPE_FIELD = "SVTYPE";
     private static final String SVLEN_FIELD = "SVLEN";
+    private static final List<Float> TEST_QUALITY_BOUNDS = Arrays.asList(0.5F, 1.0F);
 
     private long referenceId;
     private Reference testReference;
@@ -232,7 +233,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(Collections.singletonList(TEST_GENE_PREFIX), false));
         vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.MNP,
                 VariationType.SNV), false));
-        vcfFilterForm.setQuality(Arrays.asList(0.5F, 1.0F));
+        vcfFilterForm.setQuality(TEST_QUALITY_BOUNDS);
         IndexSearchResult<VcfIndexEntry> entryList2 = featureIndexManager.filterVariations(vcfFilterForm,
                                                                                            testProject.getId());
         Assert.assertFalse(entryList2.getEntries().isEmpty());
@@ -360,7 +361,6 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
         vcfFilterForm.setVcfFileIds(Collections.singletonList(vcfFile.getId()));
-        //vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(Collections.singletonList("ENSG00000185070"), false));
         vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.DEL,
                 VariationType.SNV), false));
 
