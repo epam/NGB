@@ -259,6 +259,12 @@ export default class projectContext {
         return this._isVariantsLoading;
     }
 
+    get isVariantsGroupLoading() {
+        return this.isVariantsGroupByChromosomesLoading ||
+                this.isVariantsGroupByQualityLoading ||
+                this.isVariantsGroupByTypeLoading;
+    }
+
     get isVariantsGroupByChromosomesLoading() {
         return this._isVariantsGroupByChromosomesLoading;
     }
@@ -281,6 +287,12 @@ export default class projectContext {
 
     get variantsGroupByQualityError() {
         return this._variantsGroupByQualityError;
+    }
+
+    get variantsGroupError() {
+        return this.variantsGroupByChromosomesError ||
+            this.variantsGroupByQualityError ||
+            this.variantsGroupByTypeError;
     }
 
     get variantsPageLoading () {
@@ -1645,9 +1657,6 @@ export default class projectContext {
 
     loadVariationsGroupData(callbacks) {
         const {groupByChromosome, groupByType, groupByQuality} = callbacks;
-        this._variantsGroupByQualityError = null;
-        this._variantsGroupByTypeError = null;
-        this._variantsGroupByChromosomesError = null;
         if (!this.reference) {
             this._variantsDataByChromosomes = [];
             this._variantsDataByQuality = [];
@@ -1726,6 +1735,9 @@ export default class projectContext {
                 this._variantsGroupByChromosomesError = errorDescription(message);
             })
             .then(data => {
+                if (data) {
+                    this._variantsGroupByChromosomesError = null;
+                }
                 this._variantsDataByChromosomes = data || [];
                 this._isVariantsGroupByChromosomesLoading = false;
                 if (groupByChromosome && groupByChromosome.finished) {
@@ -1737,6 +1749,9 @@ export default class projectContext {
                 this._variantsGroupByTypeError = errorDescription(message);
             })
             .then(data => {
+                if (data) {
+                    this._variantsGroupByTypeError = null;
+                }
                 this._variantsDataByType = data || [];
                 this._isVariantsGroupByTypeLoading = false;
                 if (groupByType && groupByType.finished) {
@@ -1748,6 +1763,9 @@ export default class projectContext {
                 this._variantsGroupByQualityError = errorDescription(message);
             })
             .then(data => {
+                if (data) {
+                    this._variantsGroupByQualityError = null;
+                }
                 this._variantsDataByQuality = data || [];
                 this._isVariantsGroupByQualityLoading = false;
                 if (groupByQuality && groupByQuality.finished) {

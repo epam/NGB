@@ -29,6 +29,11 @@ export default class ngbVariantsTableFilterController {
                 this.isList = true;
                 const vcfIds = this.projectContext.vcfTracks.map(t => t.id);
                 this.list = async (searchText) => {
+                    if (this.projectContext.isVariantsGroupLoading || this.projectContext.variantsGroupError) {
+                        return new Promise((resolve) => {
+                            resolve([]);
+                        });
+                    }
                     return await projectDataService.autocompleteGeneId(
                         searchText || '',
                         (this.projectContext.vcfFilter.vcfFileIds && this.projectContext.vcfFilter.vcfFileIds.length !== 0) ?

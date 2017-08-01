@@ -56,16 +56,30 @@ export default class ngbVariantsFilterListController {
             last = parts[parts.length - 1];
             parts.splice(parts.length - 1, 1);
         }
-        if (this.listElements.fullList) {
+        if (this.listElements.fullList && this.listElements.fullList.length > 0) {
             this.selectedItems = this.listElements.fullList.filter(item => parts.indexOf(item.toLowerCase()) >= 0);
             const [fullMatch] = this.listElements.fullList.filter(item => item.toLowerCase() === last.toLowerCase());
             if (fullMatch) {
                 this.selectedItems.push(fullMatch);
             }
+        } else {
+            this.selectedItems = this.getRawParts();
         }
         if (shouldUpdateScope) {
             this.scope.$apply();
         }
+    }
+
+    getRawParts() {
+        const rawParts = this.displayText.split(',').map(part => part.trim());
+        const selectedParts = [];
+        for (let i = 0; i < rawParts.length; i++) {
+            const part = rawParts[i];
+            if (part && part.length > 0) {
+                selectedParts.push(part);
+            }
+        }
+        return rawParts;
     }
 
     displayList() {
@@ -139,10 +153,12 @@ export default class ngbVariantsFilterListController {
         this.listElements.refreshList(null);
     }
 
-    apply() {
+    apply () {
         const parts = this.displayText.split(',').map(part => part.trim().toLowerCase());
-        if (this.listElements.fullList) {
+        if (this.listElements.fullList && this.listElements.fullList.length > 0) {
             this.selectedItems = this.listElements.fullList.filter(item => parts.indexOf(item.toLowerCase()) >= 0);
+        } else {
+            this.selectedItems = this.getRawParts();
         }
         this.displayText = this.selectedItems.join(", ");
         this.listIsDisplayed = false;
