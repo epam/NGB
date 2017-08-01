@@ -283,6 +283,12 @@ export default class projectContext {
         return this._variantsGroupByQualityError;
     }
 
+    get variantsGroupError() {
+        return this.variantsGroupByChromosomesError ||
+            this.variantsGroupByQualityError ||
+            this.variantsGroupByTypeError;
+    }
+
     get variantsPageLoading () {
         return this._variantsPageLoading;
     }
