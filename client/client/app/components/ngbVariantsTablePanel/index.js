@@ -8,10 +8,10 @@ import ngbVariantsTablePanel from './ngbVariantsTablePanel.component.js';
 import controller from './ngbVariantsTablePanel.controller';
 
 // Import components
+import  ngbVariantsLoadingIndicator from './ngbVariantsLoadingIndicator';
 import  ngbVariantsTable from './ngbVariantsTable';
 import  ngbVariantsTableColumn from './ngbVariantsTableColumn';
 import  ngbVariantsTablePaginate from './ngbVariantsTablePaginate';
-import  ngbVariantsLoadingIndicator from './ngbVariantsLoadingIndicator';
 
 
 // Import external modules

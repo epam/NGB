@@ -3,7 +3,7 @@ import  baseController from '../../../shared/baseController';
 export default class ngbVariantsLoadingIndicatorController extends baseController {
 
     static get UID() {
-        return 'ngbVariantsTablePaginateController';
+        return 'ngbVariantsLoadingIndicatorController';
     }
 
     projectContext;
@@ -28,10 +28,7 @@ export default class ngbVariantsLoadingIndicatorController extends baseControlle
         'variants:page:loading:started': ::this.refresh
     };
 
-    refresh (updateScope = true) {
+    refresh () {
         this.isProgressShown = this.projectContext.variantsPageLoading;
-        if (updateScope) {
-            this._scope.$apply();
-        }
     }
 }
