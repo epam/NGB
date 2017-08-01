@@ -17,6 +17,6 @@ export default class ngbProjectInfoPanelController {
     }
 
     get containsVcfFiles() {
-        return this.projectContext.containsVcfFiles;
+        return this.projectContext.containsVcfFiles && !this.projectContext.variantsGroupError;
     }
 }

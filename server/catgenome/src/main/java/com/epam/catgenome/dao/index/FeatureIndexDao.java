@@ -24,18 +24,36 @@
 
 package com.epam.catgenome.dao.index;
 
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.gene.GeneFile;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.*;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
+import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.facet.FacetResult;
 import org.apache.lucene.facet.Facets;
 import org.apache.lucene.facet.FacetsCollector;
@@ -46,17 +64,30 @@ import org.apache.lucene.facet.sortedset.SortedSetDocValuesFacetCounts;
 import org.apache.lucene.facet.sortedset.SortedSetDocValuesFacetField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.DocValuesType;
+import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexableField;
+import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.MultiReader;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.queries.TermsQuery;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.PrefixQuery;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.grouping.AbstractGroupFacetCollector;
 import org.apache.lucene.search.grouping.GroupingSearch;
 import org.apache.lucene.search.grouping.TopGroups;
@@ -67,11 +98,11 @@ import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
-import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.index.field.IndexSortField;
 import com.epam.catgenome.dao.index.field.SortedIntPoint;
@@ -79,7 +110,6 @@ import com.epam.catgenome.dao.index.field.SortedFloatPoint;
 import com.epam.catgenome.dao.index.field.SortedStringField;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.FeatureFile;
-import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.index.BookmarkIndexEntry;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.FeatureType;
@@ -121,9 +151,13 @@ public class FeatureIndexDao {
     @Autowired
     private VcfManager vcfManager;
 
+    @Value("#{catgenome['lucene.index.max.size.grouping'] ?: 4L * 1024 * 1024 * 1024}")
+    private long luceneIndexMaxSizeForGrouping;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureIndexDao.class);
     private static Pattern viewFieldPattern = Pattern.compile("_.*_v$");
     private static final int FACET_LIMIT = 1000;
+    private static final int GENE_LIMIT = 100;
     private static final int GROUP_INITIAL_SIZE = 128;
 
     public enum FeatureIndexFields {
@@ -238,6 +272,18 @@ public class FeatureIndexDao {
                 writer.addDocument(facetsConfig.build(document));
             }
         }
+    }
+
+    private long getTotalIndexSize(Directory index) throws IOException {
+        long totalFileSize = 0L;
+        String[] files = index.listAll();
+        if (files == null) {
+            return 0;
+        }
+        for (int i = 0; i < files.length; i++) {
+            totalFileSize += index.fileLength(files[i]);
+        }
+        return totalFileSize;
     }
 
     /**
@@ -421,12 +467,12 @@ public class FeatureIndexDao {
             createIndexEntries(hits, entryMap, foundBookmarkEntries, searcher, vcfInfoFields);
             setBookmarks(foundBookmarkEntries);
         } catch (IOException e) {
-            LOGGER.error(MessageHelper.getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
+            LOGGER.error(getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
             return new IndexSearchResult(Collections.emptyList(), false, 0);
         }
 
         return new IndexSearchResult(new ArrayList<>(entryMap.values()), maxResultsCount != null &&
-                                                                         totalHits > maxResultsCount, totalHits);
+                totalHits > maxResultsCount, totalHits);
     }
 
     /**
@@ -561,6 +607,10 @@ public class FeatureIndexDao {
         }
 
         SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+        long totalIndexSize = getTotalIndexSize(indexes);
+        if (totalIndexSize > luceneIndexMaxSizeForGrouping) {
+            return 0;
+        }
 
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
@@ -660,6 +710,10 @@ public class FeatureIndexDao {
         }
 
         SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+        long totalIndexSize = getTotalIndexSize(indexes);
+        if (totalIndexSize > luceneIndexMaxSizeForGrouping) {
+            throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_FEATURE_INEDX_TOO_LARGE));
+        }
 
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
@@ -685,6 +739,14 @@ public class FeatureIndexDao {
         }
 
         return res;
+    }
+
+    private long getTotalIndexSize(SimpleFSDirectory[] indexes) throws IOException {
+        long totalIndexSize = 0;
+        for (SimpleFSDirectory index : indexes) {
+            totalIndexSize += getTotalIndexSize(index);
+        }
+        return totalIndexSize;
     }
 
     private String getGroupByField(List<VcfFile> files, String groupBy) throws IOException {
@@ -899,7 +961,7 @@ public class FeatureIndexDao {
 
             geneIds = fetchGeneIds(hits, searcher);
         } catch (IOException e) {
-            LOGGER.error(MessageHelper.getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
+            LOGGER.error(getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
             return Collections.emptySet();
         }
 
@@ -924,7 +986,7 @@ public class FeatureIndexDao {
         builder.add(geneIdOrNameQuery.build(), BooleanClause.Occur.MUST);
         BooleanQuery query =  builder.build();
 
-        Set<String> geneIds;
+        Set<String> geneIds = new HashSet<>();
 
         SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(vcfFiles);
 
@@ -932,18 +994,35 @@ public class FeatureIndexDao {
             if (reader.numDocs() == 0) {
                 return Collections.emptySet();
             }
+            if (StringUtils.isEmpty(gene)) {
+                Fields fields = MultiFields.getFields(reader);
+                fetchTermValues(geneIds, fields, FeatureIndexFields.GENE_ID.getFieldName());
+                fetchTermValues(geneIds, fields, FeatureIndexFields.GENE_NAME.getFieldName());
+            } else {
+                IndexSearcher searcher = new IndexSearcher(reader);
+                final TopDocs docs = searcher.search(query, reader.numDocs());
+                final ScoreDoc[] hits = docs.scoreDocs;
+                geneIds = fetchGeneIds(hits, searcher);
+            }
 
-            IndexSearcher searcher = new IndexSearcher(reader);
-            final TopDocs docs = searcher.search(query, reader.numDocs());
-            final ScoreDoc[] hits = docs.scoreDocs;
-
-            geneIds = fetchGeneIds(hits, searcher);
         } catch (IOException e) {
-            LOGGER.error(MessageHelper.getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
+            LOGGER.error(getMessage(MessagesConstants.ERROR_FEATURE_INDEX_SEARCH_FAILED), e);
             return Collections.emptySet();
         }
 
         return geneIds;
+    }
+
+    private void fetchTermValues(Set<String> geneIds, Fields fields, String fieldName) throws IOException {
+        Terms terms = fields.terms(fieldName);
+        if (terms != null) {
+            TermsEnum iterator = terms.iterator();
+            BytesRef next = iterator.next();
+            while (next != null) {
+                geneIds.add(next.utf8ToString());
+                next = iterator.next();
+            }
+        }
     }
 
     /**
@@ -1231,10 +1310,15 @@ public class FeatureIndexDao {
 
     private Set<String> fetchGeneIds(final ScoreDoc[] hits, IndexSearcher searcher) throws IOException {
         Set<String> geneIds = new HashSet<>();
-
+        Set<String> requiredFields = new HashSet<>();
+        requiredFields.add(FeatureIndexFields.GENE_ID.getFieldName());
+        requiredFields.add(FeatureIndexFields.GENE_NAME.getFieldName());
         for (ScoreDoc hit : hits) {
+            if (geneIds.size() > GENE_LIMIT * 2) {
+                break;
+            }
             int docId = hit.doc;
-            Document d = searcher.doc(docId);
+            Document d = searcher.doc(docId, requiredFields);
             String geneId = d.get(FeatureIndexFields.GENE_ID.getFieldName());
             String geneName = d.get(FeatureIndexFields.GENE_NAME.getFieldName());
             if (geneId != null) {
