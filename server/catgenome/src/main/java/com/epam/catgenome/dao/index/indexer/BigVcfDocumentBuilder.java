@@ -36,16 +36,14 @@ import java.util.stream.Collectors;
 /**
  * Created by Mikhail_Miroliubov on 7/27/2017.
  */
-public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry>
-{
-    private static final Pattern viewFieldPattern = Pattern.compile("_.*_v$");
+public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry> {
+    private static final Pattern VIEW_FIELD_PATTERN = Pattern.compile("_.*_v$");
     private static final Logger LOGGER = LoggerFactory.getLogger(BigVcfDocumentBuilder.class);
 
     private List<String> vcfInfoFields;
 
     @Override
-    public FacetsConfig createFacetsConfig(VcfFilterInfo info)
-    {
+    public FacetsConfig createFacetsConfig(VcfFilterInfo info) {
         FacetsConfig config = super.createFacetsConfig(info);
 
         config.setIndexFieldName(FeatureIndexFields.CHROMOSOME_NAME.getFieldName(),
@@ -191,8 +189,7 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
     }
 
     @Override
-    protected void addExtraFeatureFields(Document document, VcfIndexEntry entry)
-    {
+    protected void addExtraFeatureFields(Document document, VcfIndexEntry entry) {
         document.add(new SortedSetDocValuesField(FeatureIndexFields.VARIATION_TYPE.getFieldName(),
                 new BytesRef(entry.getVariationType().name())));
         document.add(new SortedSetDocValuesFacetField(FeatureIndexFields.VARIATION_TYPE.getFieldName(),
@@ -220,8 +217,8 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
 
         document.add(new SortedSetDocValuesFacetField(FeatureIndexFields.QUALITY.getFieldName(), entry.getQuality()
                 .toString()));
-        document.add(new SortedSetDocValuesField(FeatureIndexFields.QUALITY.getFieldName(), new BytesRef(entry.getQuality()
-                .toString())));
+        document.add(new SortedSetDocValuesField(FeatureIndexFields.QUALITY.getFieldName(),
+                new BytesRef(entry.getQuality().toString())));
         document.add(new FloatPoint(FeatureIndexFields.QUALITY.getFieldName(), entry.getQuality()
                 .floatValue()));
         document.add(new StoredField(FeatureIndexFields.QUALITY.getFieldName(), entry.getQuality()
@@ -278,7 +275,7 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
 
     private void addVcfDocumentInfoFields(Document document, VcfIndexEntry vcfIndexEntry) {
         for (Map.Entry<String, Object> info : vcfIndexEntry.getInfo().entrySet()) {
-            if (viewFieldPattern.matcher(info.getKey()).matches()) { //view fields are for view purposes
+            if (VIEW_FIELD_PATTERN.matcher(info.getKey()).matches()) { //view fields are for view purposes
                 continue;
             }
 

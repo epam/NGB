@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.index.indexer.AbstractDocumentBuilder;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.util.Utils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -602,14 +603,20 @@ public class FeatureIndexDao {
 
             IndexSearcher searcher = new IndexSearcher(reader);
             int numDocs = page == null ? reader.numDocs() : page * pageSize;
+            LOGGER.info("Searching");
+            double time1 = Utils.getSystemTimeMilliseconds();
             final TopDocs docs = performSearch(searcher, query, reader, numDocs, createSorting2(orderBy, files));
-
+            double time2 = Utils.getSystemTimeMilliseconds();
+            LOGGER.info("Search took: {} ms", time2 - time1);
             int totalHits = docs.totalHits;
             final ScoreDoc[] hits = docs.scoreDocs;
 
             AbstractDocumentBuilder documentCreator = AbstractDocumentBuilder.createDocumentCreator(
                     files.get(0).getFormat(), vcfInfoFields);
+            time1 = Utils.getSystemTimeMilliseconds();
             createIndexEntries(hits, entryMap, searcher, documentCreator, page, pageSize);
+            time2 = Utils.getSystemTimeMilliseconds();
+            LOGGER.info("Getting entries took: {} ms", time2 - time1);
 
             return new IndexSearchResult<>(new ArrayList<T>((Collection<? extends T>) entryMap.values()),
                     false, totalHits);

@@ -258,7 +258,7 @@ public class FeatureIndexManager {
                                                      filterForm.computeQuery(FeatureType.VARIATION),
                                                      filterForm.getInfoFields(), filterForm.getPage(),
                                                      filterForm.getPageSize(), filterForm.getOrderBy());
-            res.setTotalPagesCount(getTotalPagesCount(filterForm, projectId));
+            res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount() / filterForm.getPageSize().doubleValue()));
             return res;
         } else {
             IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexes(files, filterForm.computeQuery(
@@ -339,7 +339,7 @@ public class FeatureIndexManager {
                                                                    filterForm.computeQuery(FeatureType.VARIATION),
                                                                    filterForm.getInfoFields(), filterForm.getPage(),
                                                                    filterForm.getPageSize(), filterForm.getOrderBy());
-            res.setTotalPagesCount(getTotalPagesCount(filterForm));
+            res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount() / filterForm.getPageSize().doubleValue()));
             return res;
         } else {
             IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexes(files,
