@@ -43,7 +43,7 @@ export default class ngbVariantsTablePaginateController extends baseController {
 
     setPage(page, loadData)
     {
-        if (page < 1 || page > this.totalPages) {
+        if (this.totalPages === undefined || page < 1 || page > this.totalPages) {
             return;
         }
 
@@ -57,6 +57,9 @@ export default class ngbVariantsTablePaginateController extends baseController {
     getPages() {
         const totalPages = this.totalPages;
         const currentPage = this.currentPage;
+        if (totalPages === undefined || currentPage === undefined) {
+            return [];
+        }
 
         let minimumPage = Math.max(1, currentPage - 3);
         let maximumPage = Math.min(totalPages, currentPage + 3);

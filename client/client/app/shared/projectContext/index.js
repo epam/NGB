@@ -104,6 +104,7 @@ export default class projectContext {
     _firstPageVariations = FIRST_PAGE;
     _lastPageVariations = FIRST_PAGE;
     _currentPageVariations = FIRST_PAGE;
+    _hasMoreVariations = true;
     _orderByVariations = null;
     _totalPagesCountVariations = null;
 
@@ -159,6 +160,10 @@ export default class projectContext {
 
     get currentPageVariations() {
         return this._currentPageVariations;
+    }
+
+    get hasMoreVariations() {
+        return this._hasMoreVariations;
     }
 
     get hotkeys() {
@@ -1387,6 +1392,9 @@ export default class projectContext {
             this._infoFields = [];
             this._totalPagesCountVariations = 0;
             this._currentPageVariations = FIRST_PAGE;
+            this._lastPageVariations = FIRST_PAGE;
+            this._firstPageVariations = FIRST_PAGE;
+            this._hasMoreVariations = true;
             this._variantsDataByChromosomes = [];
             this._variantsDataByQuality = [];
             this._variantsDataByType = [];
@@ -1583,6 +1591,10 @@ export default class projectContext {
             }
             await this._initializeVariants(onInit);
             if (asDefault) {
+                this.currentPageVariations = FIRST_PAGE;
+                this.firstPageVariations = FIRST_PAGE;
+                this.lastPageVariations = FIRST_PAGE;
+                this._hasMoreVariations = true;
                 this._vcfFilter = {
                     additionalFilters: {},
                     chromosomeIds: [],
@@ -1778,7 +1790,7 @@ export default class projectContext {
         };
         let data = await this.projectDataService.getVcfVariationLoad(filter);
 
-        if (!data.entries && data.totalPagesCount < page) {
+        if (!data.entries && (data.totalPagesCount !== undefined && data.totalPagesCount < page)) {
             filter.page = data.totalPagesCount;
             this.currentPageVariations = data.totalPagesCount || FIRST_PAGE;
             this.firstPageVariations = data.totalPagesCount || FIRST_PAGE;
@@ -1786,6 +1798,8 @@ export default class projectContext {
             if (data.totalPagesCount > 0) {
                 data = await this.projectDataService.getVcfVariationLoad(filter);
             }
+        } else if (!data.entries && data.totalPagesCount === undefined) {
+            this._hasMoreVariations = false;
         }
 
         const infoFieldsObj = {};
@@ -1797,7 +1811,7 @@ export default class projectContext {
             vcfTrackToProjectId[`${vcfTrack.id}`] = vcfTrack.projectId;
         }
 
-        this.totalPagesCountVariations = data.totalPagesCount || 0;
+        this.totalPagesCountVariations = data.totalPagesCount;
         const entries = data.entries ? data.entries : [];
 
         return entries.map(item =>
