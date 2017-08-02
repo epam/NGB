@@ -9,6 +9,13 @@ const variantsTablePaginationAction = {
     },
     isDefault: false
 };
+const variantsLoadingIndicatorAction = {
+    name: 'variantsLoadingIndicator',
+    liStyle: {
+        width: 'auto'
+    },
+    isDefault: false
+};
 const closeAllTracksAction = {
     name: 'closeAllTracks',
     isDefault: false
@@ -27,12 +34,13 @@ const variantsResetFilterActions = {
 export default {
     actions: {
         closeAllTracks: closeAllTracksAction,
+        variantsLoadingIndicator: variantsLoadingIndicatorAction,
+        variantsResetFilter: variantsResetFilterActions,
         variantsTableColumn: variantsTableColumnAction,
-        variantsTablePagination: variantsTablePaginationAction,
-        variantsResetFilter: variantsResetFilterActions
+        variantsTablePagination: variantsTablePaginationAction
     },
     viewActions: {
         ngbBrowser: [closeAllTracksAction],
-        ngbVariantsTablePanel: [variantsTablePaginationAction, variantsResetFilterActions, variantsTableColumnAction]
+        ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsResetFilterActions, variantsTableColumnAction]
     }
 };

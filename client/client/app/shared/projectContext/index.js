@@ -78,6 +78,10 @@ export default class projectContext {
     _isVariantsGroupByChromosomesLoading = true;
     _isVariantsGroupByTypeLoading = true;
     _isVariantsGroupByQualityLoading = true;
+    _variantsGroupByChromosomesError = null;
+    _variantsPageLoading = false;
+    _variantsGroupByTypeError = null;
+    _variantsGroupByQualityError = null;
     _containsVcfFiles = true;
 
     _bookmarkVisibility = true;
@@ -98,6 +102,7 @@ export default class projectContext {
     _firstPageVariations = FIRST_PAGE;
     _lastPageVariations = FIRST_PAGE;
     _currentPageVariations = FIRST_PAGE;
+    _hasMoreVariations = true;
     _orderByVariations = null;
     _totalPagesCountVariations = null;
 
@@ -150,6 +155,10 @@ export default class projectContext {
 
     get currentPageVariations() {
         return this._currentPageVariations;
+    }
+
+    get hasMoreVariations() {
+        return this._hasMoreVariations;
     }
 
     get hotkeys() {
@@ -254,6 +263,28 @@ export default class projectContext {
 
     get isVariantsGroupByQualityLoading() {
         return this._isVariantsGroupByQualityLoading;
+    }
+
+    get variantsGroupByChromosomesError() {
+        return this._variantsGroupByChromosomesError;
+    }
+
+    get variantsGroupByTypeError() {
+        return this._variantsGroupByTypeError;
+    }
+
+    get variantsGroupByQualityError() {
+        return this._variantsGroupByQualityError;
+    }
+
+    get variantsGroupError() {
+        return this.variantsGroupByChromosomesError ||
+            this.variantsGroupByQualityError ||
+            this.variantsGroupByTypeError;
+    }
+
+    get variantsPageLoading () {
+        return this._variantsPageLoading;
     }
 
     get containsVcfFiles() {
@@ -1173,6 +1204,9 @@ export default class projectContext {
             this._infoFields = [];
             this._totalPagesCountVariations = 0;
             this._currentPageVariations = FIRST_PAGE;
+            this._lastPageVariations = FIRST_PAGE;
+            this._firstPageVariations = FIRST_PAGE;
+            this._hasMoreVariations = true;
             this._variantsDataByChromosomes = [];
             this._variantsDataByQuality = [];
             this._variantsDataByType = [];
@@ -1369,6 +1403,10 @@ export default class projectContext {
             }
             await this._initializeVariants(onInit);
             if (asDefault) {
+                this.currentPageVariations = FIRST_PAGE;
+                this.firstPageVariations = FIRST_PAGE;
+                this.lastPageVariations = FIRST_PAGE;
+                this._hasMoreVariations = true;
                 this._vcfFilter = {
                     additionalFilters: {},
                     chromosomeIds: [],
@@ -1414,6 +1452,9 @@ export default class projectContext {
 
     loadVariationsGroupData(callbacks) {
         const {groupByChromosome, groupByType, groupByQuality} = callbacks;
+        this._variantsGroupByQualityError = null;
+        this._variantsGroupByTypeError = null;
+        this._variantsGroupByChromosomesError = null;
         if (!this.reference) {
             this._variantsDataByChromosomes = [];
             this._variantsDataByQuality = [];
@@ -1475,27 +1516,51 @@ export default class projectContext {
         if (groupByQuality && groupByQuality.started) {
             groupByQuality.started();
         }
-        this.projectDataService.getVcfGroupData(filter, 'CHROMOSOME_NAME').then(data => {
-            this._variantsDataByChromosomes = data;
-            this._isVariantsGroupByChromosomesLoading = false;
-            if (groupByChromosome && groupByChromosome.finished) {
-                groupByChromosome.finished();
+
+        const errorDescription = (error) => {
+            if (error.toLowerCase().startsWith('error:')) {
+                error = error.substring('error:'.length);
             }
-        });
-        this.projectDataService.getVcfGroupData(filter, 'VARIATION_TYPE').then(data => {
-            this._variantsDataByType = data;
-            this._isVariantsGroupByTypeLoading = false;
-            if (groupByType && groupByType.finished) {
-                groupByType.finished();
+            if (error.toLowerCase().indexOf('feature index is too large to perform request') >= 0) {
+                return 'VCF file too large, unable to show data';
+            } else {
+                return null;
             }
-        });
-        this.projectDataService.getVcfGroupData(filter, 'QUALITY').then(data => {
-            this._variantsDataByQuality = data;
-            this._isVariantsGroupByQualityLoading = false;
-            if (groupByQuality && groupByQuality.finished) {
-                groupByQuality.finished();
-            }
-        });
+        };
+
+        this.projectDataService.getVcfGroupData(filter, 'CHROMOSOME_NAME')
+            .catch(({message}) => {
+                this._variantsGroupByChromosomesError = errorDescription(message);
+            })
+            .then(data => {
+                this._variantsDataByChromosomes = data || [];
+                this._isVariantsGroupByChromosomesLoading = false;
+                if (groupByChromosome && groupByChromosome.finished) {
+                    groupByChromosome.finished();
+                }
+            });
+        this.projectDataService.getVcfGroupData(filter, 'VARIATION_TYPE')
+            .catch(({message}) => {
+                this._variantsGroupByTypeError = errorDescription(message);
+            })
+            .then(data => {
+                this._variantsDataByType = data || [];
+                this._isVariantsGroupByTypeLoading = false;
+                if (groupByType && groupByType.finished) {
+                    groupByType.finished();
+                }
+            });
+        this.projectDataService.getVcfGroupData(filter, 'QUALITY')
+            .catch(({message}) => {
+                this._variantsGroupByQualityError = errorDescription(message);
+            })
+            .then(data => {
+                this._variantsDataByQuality = data || [];
+                this._isVariantsGroupByQualityLoading = false;
+                if (groupByQuality && groupByQuality.finished) {
+                    groupByQuality.finished();
+                }
+            });
     }
 
     async loadVariations(page) {
@@ -1535,16 +1600,26 @@ export default class projectContext {
             startIndex,
             endIndex
         };
+        this._variantsPageLoading = true;
+        this.dispatcher.emit('variants:page:loading:started');
         let data = await this.projectDataService.getVcfVariationLoad(filter);
+        if (data.totalPagesCount === 0) {
+            data.totalPagesCount = undefined;
+        }
 
-        if (!data.entries && data.totalPagesCount < page) {
+        if (!data.entries && (data.totalPagesCount !== undefined && data.totalPagesCount < page)) {
             filter.page = data.totalPagesCount;
             this.currentPageVariations = data.totalPagesCount || FIRST_PAGE;
             this.firstPageVariations = data.totalPagesCount || FIRST_PAGE;
             this.lastPageVariations = data.totalPagesCount || FIRST_PAGE;
             if (data.totalPagesCount > 0) {
                 data = await this.projectDataService.getVcfVariationLoad(filter);
+                if (data.totalPagesCount === 0) {
+                    data.totalPagesCount = undefined;
+                }
             }
+        } else if (!data.entries && data.totalPagesCount === undefined) {
+            this._hasMoreVariations = false;
         }
 
         const infoFieldsObj = {};
@@ -1556,8 +1631,10 @@ export default class projectContext {
             vcfTrackToProjectId[`${vcfTrack.id}`] = vcfTrack.projectId;
         }
 
-        this.totalPagesCountVariations = data.totalPagesCount || 0;
+        this.totalPagesCountVariations = data.totalPagesCount;
         const entries = data.entries ? data.entries : [];
+        this._variantsPageLoading = false;
+        this.dispatcher.emit('variants:page:loading:finished');
 
         return entries.map(item =>
             Object.assign({},

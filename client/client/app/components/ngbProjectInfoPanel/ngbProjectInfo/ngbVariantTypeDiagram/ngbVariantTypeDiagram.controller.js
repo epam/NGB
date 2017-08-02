@@ -54,7 +54,8 @@ export default class ngbVariantTypeDiagramController {
                         return d;
                     }
                 },
-                y: (d)=> d.value
+                y: (d)=> d.value,
+                noData: 'No Data Available'
             },
             title: {
                 enable: true,
@@ -152,17 +153,23 @@ export default class ngbVariantTypeDiagramController {
             this.projectContext.variantsDataByType.length === 0;
         if (this.projectContext.reference && this.projectContext.variantsDataByType) {
             await this.updateDiagram(this.projectContext.variantsDataByType,
-                this.projectContext.isVariantsGroupByTypeLoading);
+                this.projectContext.isVariantsGroupByTypeLoading,
+                this.projectContext.variantsGroupByTypeError);
             this.isProgressShown = this.projectContext.isVariantsGroupByTypeLoading;
             this._scope.$apply();
         }
     }
 
-    async updateDiagram(variants, isLoading) {
+    async updateDiagram(variants, isLoading, error) {
         if (isLoading) {
             return;
         }
-        (!variants || variants.length === 0) ? this._scope.data = [] : this._scope.data = this.makeNvD3ChartObjectFromData(variants);
-        this._scope.api && angular.isFunction(this._scope.api.update) ? this._scope.api.update() : '';		
+        if (!variants || variants.length === 0) {
+            this._scope.options.chart.noData = error || 'No Data Available';
+            this._scope.data = [];
+        } else {
+            this._scope.data = this.makeNvD3ChartObjectFromData(variants);
+        }
+        this._scope.api && angular.isFunction(this._scope.api.update) ? this._scope.api.update() : '';
     }
 }

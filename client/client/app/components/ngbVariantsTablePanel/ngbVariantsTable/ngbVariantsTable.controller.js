@@ -251,7 +251,10 @@ export default class ngbVariantsTableController extends baseController {
         this.projectContext.loadVariations(this.projectContext.lastPageVariations).then((data) => {
             this.gridApi.infiniteScroll.saveScrollPercentage();
             this.gridOptions.data = this.gridOptions.data.concat(data);
-            this.gridApi.infiniteScroll.dataLoaded(this.projectContext.firstPageVariations > 1, this.projectContext.lastPageVariations < this.projectContext.totalPagesCountVariations);
+            this.gridApi.infiniteScroll.dataLoaded(
+                this.projectContext.firstPageVariations > 1,
+                (this.projectContext.totalPagesCountVariations === undefined && this.projectContext.hasMoreVariations)
+                || this.projectContext.lastPageVariations < this.projectContext.totalPagesCountVariations);
         });
     }
 
@@ -267,7 +270,10 @@ export default class ngbVariantsTableController extends baseController {
 
             const self = this;
             this.$timeout(function () {
-                self.gridApi.infiniteScroll.dataLoaded(self.projectContext.firstPageVariations > 1, self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
+                self.gridApi.infiniteScroll.dataLoaded(
+                    self.projectContext.firstPageVariations > 1,
+                    (self.projectContext.totalPagesCountVariations === undefined && self.projectContext.hasMoreVariations)
+                    || self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
             });
         });
     }
@@ -283,7 +289,10 @@ export default class ngbVariantsTableController extends baseController {
             const self = this;
             this.gridOptions.data = data;
             this.$timeout(function () {
-                self.gridApi.infiniteScroll.resetScroll(self.projectContext.firstPageVariations > 1, self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
+                self.gridApi.infiniteScroll.resetScroll(
+                    self.projectContext.firstPageVariations > 1,
+                    (self.projectContext.totalPagesCountVariations === undefined && self.projectContext.hasMoreVariations)
+                    || self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
             });
         });
     }
@@ -311,7 +320,10 @@ export default class ngbVariantsTableController extends baseController {
             const self = this;
             this.gridOptions.data = data;
             this.$timeout(function () {
-                self.gridApi.infiniteScroll.resetScroll(self.projectContext.firstPageVariations > 1, self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
+                self.gridApi.infiniteScroll.resetScroll(
+                    self.projectContext.firstPageVariations > 1,
+                    (self.projectContext.totalPagesCountVariations === undefined && self.projectContext.hasMoreVariations)
+                    || self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
             });
         });
     }
@@ -337,7 +349,10 @@ export default class ngbVariantsTableController extends baseController {
 
             const self = this;
             this.$timeout(function () {
-                self.gridApi.infiniteScroll.dataLoaded(self.projectContext.firstPageVariations > 1, self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
+                self.gridApi.infiniteScroll.dataLoaded(
+                    self.projectContext.firstPageVariations > 1,
+                    (self.projectContext.totalPagesCountVariations === undefined && self.projectContext.hasMoreVariations)
+                    || self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
             });
         }
     }
