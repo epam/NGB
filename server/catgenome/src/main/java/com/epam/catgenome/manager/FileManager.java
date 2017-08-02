@@ -47,7 +47,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -1927,7 +1926,7 @@ public class FileManager {
         List<File> parentDirs = new ArrayList<>();
         if (path == null) {
             if ("/".equals(ngsDataRootPath)) {
-                parentDirs = Arrays.asList(File.listRoots());
+                parentDirs = getExistingRootDirs();
             } else {
                 parentDirs.add(new File(ngsDataRootPath));
             }
@@ -1979,6 +1978,16 @@ public class FileManager {
         }
 
         return items;
+    }
+
+    private List<File> getExistingRootDirs() {
+        List<File> existingRootDirs = new ArrayList<>();
+        for (File file : File.listRoots()) {
+            if (file.exists()) {
+                existingRootDirs.add(file);
+            }
+        }
+        return existingRootDirs;
     }
 
     /**
