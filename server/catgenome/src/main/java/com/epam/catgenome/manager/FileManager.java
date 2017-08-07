@@ -120,6 +120,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -1924,9 +1925,17 @@ public class FileManager {
         }
 
         List<File> parentDirs = new ArrayList<>();
+        List<AbstractFsItem> items = new ArrayList<>();
+
         if (path == null) {
             if ("/".equals(ngsDataRootPath)) {
                 parentDirs = getExistingRootDirs();
+                if (SystemUtils.IS_OS_WINDOWS) {
+                    for (File dir : parentDirs) {
+                        items.add(createFsDirectory(dir));
+                    }
+                    return items;
+                }
             } else {
                 parentDirs.add(new File(ngsDataRootPath));
             }
@@ -1937,12 +1946,6 @@ public class FileManager {
         Assert.isTrue(parentDirs.stream().allMatch(File::exists), "Specified path does not exist: " + path);
         Assert.isTrue(parentDirs.stream().allMatch(File::isDirectory), "Specified path is not a directory: " + path);
 
-        List<AbstractFsItem> items = new ArrayList<>();
-
-        boolean accessDenied = false;
-        String fileName = "";
-        String otherFileName = "";
-
         for (File parentDir : parentDirs) {
             if (parentDir.listFiles() == null) {
                 continue;
@@ -1952,32 +1955,31 @@ public class FileManager {
                 for (Path child : dirStream) {
                     try {
                         File childFile = child.toFile();
+                        if (childFile.isHidden()) {
+                            continue;
+                        }
                         if (childFile.isDirectory()) {
-                            FsDirectory directory = new FsDirectory();
-                            directory.setPath(childFile.getAbsolutePath());
-                            if (childFile.canRead()) {
-                                directory.setFileCount(countChildrenFiles(child));
-                            }
-
-                            items.add(directory);
+                            items.add(createFsDirectory(childFile));
                         } else {
                             addFsFile(items, childFile);
                         }
                     } catch (AccessDeniedException e) {
-                        LOGGER.error("Access denied:", e);
-                        accessDenied = true;
-                        fileName = e.getFile();
-                        otherFileName = e.getOtherFile();
+                       LOGGER.info("Access denied for " + e.getFile());
                     }
-                }
-
-                if (items.isEmpty() && accessDenied) {
-                    throw new AccessDeniedException(fileName, otherFileName, "Access denied");
                 }
             }
         }
 
         return items;
+    }
+
+    private FsDirectory createFsDirectory(File dir) throws IOException {
+        FsDirectory directory = new FsDirectory();
+        directory.setPath(dir.getAbsolutePath());
+        if (dir.canRead()) {
+            directory.setFileCount(countChildrenFiles(dir.toPath()));
+        }
+        return directory;
     }
 
     private List<File> getExistingRootDirs() {
