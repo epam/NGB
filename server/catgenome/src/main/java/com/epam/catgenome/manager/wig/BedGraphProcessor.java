@@ -37,7 +37,9 @@ import com.epam.catgenome.manager.wig.reader.BedGraphFeature;
 import com.epam.catgenome.manager.wig.reader.BedGraphReader;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.NgbFileUtils;
+import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.util.PeekableIterator;
+import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
 import htsjdk.tribble.index.interval.IntervalTreeIndex;
 import org.springframework.util.Assert;
@@ -90,15 +92,14 @@ public class BedGraphProcessor extends AbstractWigProcessor {
         biologicalDataItemManager.createBiologicalDataItem(wigFile.getIndex());
     }
 
-
-
     @Override
     protected void splitByChromosome(WigFile wigFile, Map<String, Chromosome> chromosomeMap) throws IOException {
         List<BedGraphFeature> sectionList = new ArrayList<>();
         for (Chromosome chromosome : chromosomeMap.values()) {
+            String realChrName = fetchRealChrName(wigFile.getIndex().getPath(), chromosome.getName());
             try (PeekableIterator<BedGraphFeature> query = new PeekableIterator<>(
                     new BedGraphReader(wigFile.getPath(), wigFile.getIndex().getPath()).query(
-                        chromosome.getName(), 1, chromosome.getSize() - 1))) {
+                            realChrName, 1, chromosome.getSize() - 1))) {
                 int start = 0;
                 int stop = chromosome.getSize();
                 int bp = start;
@@ -126,10 +127,12 @@ public class BedGraphProcessor extends AbstractWigProcessor {
     }
 
     private void fillBlocksFromFile(String bedGraphPath, String bedGraphIndexPath, Track<Wig> track,
-                                    String chromosome) throws IOException {
+                                    String chromosomeName) throws IOException {
+        String realChrName = fetchRealChrName(bedGraphIndexPath, chromosomeName);
         try (PeekableIterator<BedGraphFeature> bedGraphFeatureIterator = new PeekableIterator<>(
                 new BedGraphReader(bedGraphPath, bedGraphIndexPath)
-                        .query(chromosome, track.getStartIndex(), track.getEndIndex()))) {
+                        .query(realChrName, track.getStartIndex(), track.getEndIndex())
+        )) {
             for (Wig trackBlock : track.getBlocks()) {
                 float score = getScoreForBounds(
                         bedGraphFeatureIterator, track.getStartIndex(), trackBlock.getEndIndex()
@@ -137,6 +140,21 @@ public class BedGraphProcessor extends AbstractWigProcessor {
                 trackBlock.setValue(score);
             }
         }
+    }
+
+    private String fetchRealChrName(String bedGraphIndexPath, String chromosomeName) {
+        Index index = IndexFactory.loadIndex(bedGraphIndexPath);
+        String realName = chromosomeName;
+        for (String chr : index.getSequenceNames()) {
+            if (chromosomeName.equals(chr)) {
+                realName = chr;
+                break;
+            } else if (Utils.changeChromosomeName(chromosomeName).equals(chr)) {
+                realName = chr;
+                break;
+            }
+        }
+       return realName;
     }
 
     private float getScoreForBounds(PeekableIterator<BedGraphFeature> query, int chunkStart, int chunkStop) {
