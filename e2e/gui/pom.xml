@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>epam.autotests</groupId>
+	<artifactId>ngb_proj</artifactId>
+	<version>1.0-SNAPSHOT</version>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<jdi.version>1.0.34</jdi.version>
+		<selenium.version>2.53.1</selenium.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<version>3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>6.9.10</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>${selenium.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.epam.jdi</groupId>
+			<artifactId>jdi-uitest-web</artifactId>
+			<version>${jdi.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>2.9.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.uncommons</groupId>
+			<artifactId>reportng</artifactId>
+			<version>1.1.4</version>
+		</dependency>
+		<!-- <dependency> <groupId>info.cukes</groupId> <artifactId>cucumber-junit</artifactId> 
+			<version>1.2.4</version> <scope>test</scope> </dependency> <dependency> <groupId>info.cukes</groupId> 
+			<artifactId>cucumber-java8</artifactId> <version>1.2.4</version> <scope>test</scope> 
+			</dependency> -->
+	</dependencies>
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+				<filtering>true</filtering>
+			</testResource>
+		</testResources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.2</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.19.1</version>
+				<configuration>
+					<suiteXmlFiles>
+						<suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
+					</suiteXmlFiles>
+					<properties>
+						<property>
+							<name>usedefaultlisteners</name>
+							<value>true</value>
+							<!-- disabling default listeners is optional -->
+						</property>
+						<property>
+							<name>listener</name>
+							<value>org.uncommons.reportng.HTMLReporter</value>
+						</property>
+					</properties>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<!-- specify UTF-8, ISO-8859-1 or any other file encoding -->
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>chrome_opensource</id>
+			<properties>
+				<domain>http://ngb.opensource.epam.com/catgenome</domain>
+				<driver>chrome</driver>
+				<run.type>REMOTE</run.type>
+				<os>Windows 10</os>
+				<browser.version>57.0</browser.version>
+				<screen.resolution>1280x1024</screen.resolution>
+			</properties>
+		</profile>
+		<profile>
+			<id>firefox_opensource</id>
+			<properties>
+				<domain>http://ngb.opensource.epam.com/catgenome</domain>
+				<driver>firefox</driver>
+				<run.type>REMOTE</run.type>
+				<os>Windows 10</os>
+				<browser.version>45.0</browser.version>
+				<screen.resolution>1280x1024</screen.resolution>
+			</properties>
+		</profile>
+		<profile>
+			<id>ie_opensource</id>
+			<properties>
+				<domain>http://ngb.opensource.epam.com/catgenome</domain>
+				<driver>ie</driver>
+				<run.type>REMOTE</run.type>
+				<os>Windows 10</os>
+				<browser.version>11.103</browser.version>
+				<screen.resolution>1280x1024</screen.resolution>
+			</properties>
+		</profile>
+		<profile>
+			<id>edge_opensource</id>
+			<properties>
+				<domain>http://ngb.opensource.epam.com/catgenome</domain>
+				<driver>edge</driver>
+				<run.type>REMOTE</run.type>
+				<os>Windows 10</os>
+				<browser.version>14.14393</browser.version>
+				<screen.resolution>1280x1024</screen.resolution>
+			</properties>
+		</profile>
+		<profile>
+			<id>safari_opensource</id>
+			<properties>
+				<domain>http://ngb.opensource.epam.com/catgenome</domain>
+				<driver>safari</driver>
+				<run.type>REMOTE</run.type>
+				<os>macOS 10.12</os>
+				<browser.version>10.0</browser.version>
+				<screen.resolution>1280x960</screen.resolution>
+			</properties>
+		</profile>
+	</profiles>
+	<repositories>
+		<repository>
+			<id>oss-sonatype</id>
+			<name>oss-sonatype</name>
+			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<reporting>
+		<excludeDefaults>true</excludeDefaults>
+		<plugins>
+		</plugins>
+	</reporting>
+</project>

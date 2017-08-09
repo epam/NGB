@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="Tests" verbose="5" data-provider-thread-count="1">
+    <test name="MainPageTest">
+        <parameter name="path" value="/"/>
+        <classes>
+            <class name="epam.autotests.CheckingMainPageTest"/>
+        </classes>
+    </test>
+    <test name="ProjectPageTest">
+        <parameter name="path" value="/"/>
+        <classes>
+            <class name="epam.autotests.CheckingFilterPanelTest"/>
+            <class name="epam.autotests.CheckingMainPageTest"/>
+            <class name="epam.autotests.CheckingProjectPageTest"/>
+            <class name="epam.autotests.CheckingSessionsPanelTest"/>
+            <class name="epam.autotests.CheckingTrackGene"/>
+        </classes>
+    </test>
+</suite>

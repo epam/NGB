@@ -1,0 +1,1 @@
+Place in this folder the selenium-server-standalone jar to use for the Grid 2, if you need.
