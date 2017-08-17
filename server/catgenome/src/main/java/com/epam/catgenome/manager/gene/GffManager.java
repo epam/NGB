@@ -64,7 +64,6 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.externaldb.ensemblevo.EnsemblEntryVO;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
-import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
@@ -215,14 +214,15 @@ public class GffManager {
      */
     public GeneFile reindexGeneFile(long geneFileId, boolean full) throws IOException {
         GeneFile geneFile = geneFileManager.loadGeneFile(geneFileId);
-        Reference reference = referenceGenomeManager.loadReferenceGenome(geneFile.getReferenceId());
-        Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
-            Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
-
-        fileManager.deleteFileFeatureIndex(geneFile);
-
-        featureIndexManager.processGeneFile(geneFile, chromosomeMap, full);
-
+        fileManager.deleteFeatureFileDirectory(geneFile);
+        fileManager.makeGeneDir(geneFile.getId(), AuthUtils.getCurrentUserId());
+        GeneRegisterer geneRegisterer =
+                new GeneRegisterer(referenceGenomeManager, fileManager, featureIndexManager,
+                        geneFile);
+        geneRegisterer.processRegistration(null);
+//        Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
+//            Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
+//        featureIndexManager.processGeneFile(geneFile, chromosomeMap, full);
         return geneFile;
     }
 

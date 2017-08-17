@@ -184,7 +184,9 @@ public class GeneRegisterer {
                                      File largeScaleIndexFile, File transcriptIndexFile,
                                           FeatureIndexedFileRegistrationRequest request) throws
             IOException {
-        boolean doIndex = TextUtils.isBlank(request.getIndexPath());
+
+        boolean doIndex = request == null || TextUtils.isBlank(request.getIndexPath());
+        boolean doFeatureIndex = request == null || request.isDoIndex();
         GeneFeature feature = null;
         GeneFeature firstFeature = null;
         lastFeature = null;
@@ -207,11 +209,11 @@ public class GeneRegisterer {
                 initializeHistogram(firstFeature);
             }
 
-            featuresCount = processFeature(feature, featuresCount, doIndex, allEntries, request.isDoIndex(),
+            featuresCount = processFeature(feature, featuresCount, doIndex, allEntries, doFeatureIndex,
                                            filePointer);
         }
 
-        processLastFeature(feature, featuresCount, geneFile, allEntries, request.isDoIndex());
+        processLastFeature(feature, featuresCount, geneFile, allEntries, doFeatureIndex);
 
         makeIndexes(geneFile, metaMap, indexFile, largeScaleIndexFile, transcriptIndexFile, doIndex, request);
 
@@ -433,9 +435,10 @@ public class GeneRegisterer {
     private void openStreams(GeneFile geneFile, IndexedFileRegistrationRequest request)
         throws
         IOException {
-        File file = new File(request.getPath());
+        String path = request == null ? geneFile.getPath() : request.getPath();
+        File file = new File(path);
 
-        final String extension = Utils.getFileExtension(request.getPath());
+        final String extension = Utils.getFileExtension(path);
         GffCodec.GffType gffType = GffCodec.GffType.forExt(extension);
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(gffType);
 
