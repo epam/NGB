@@ -52,7 +52,7 @@
     "babel-regenerator-runtime": "latest",
     "babel-register": "latest",
     "core-js": "2.4.0",
-    "css-loader": "^0.21.0",
+    "css-loader": "0.21.0",
     "ejs-loader": "0.2.1",
     "eslint": "^3.9.1",
     "eslint-loader": "1.4.0",
