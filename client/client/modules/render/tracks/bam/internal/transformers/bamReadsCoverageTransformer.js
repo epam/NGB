@@ -6,10 +6,12 @@ const Math = window.Math;
 export default class BamReadsCoverageTransformer extends WIGTransformer {
 
     _bamCache: BamCache;
+    alleleFrequencyThresholdBam: number;
 
     constructor(bamCache: BamCache, config) {
-        super(config);
+        super(config.coverage);
         this._bamCache = bamCache;
+        this.alleleFrequencyThresholdBam = config.alleleFrequencyThresholdBam;
     }
 
     static getTooltipContent(item, displayOnlyCoverageInfo = false) {
@@ -49,7 +51,7 @@ export default class BamReadsCoverageTransformer extends WIGTransformer {
         super.transformItem(item);
         if (item.isTransformed)
             return;
-        const highlightThreshold = 0.9;
+        const highlightThreshold = this.alleleFrequencyThresholdBam / 100;
         item.aCov = item.aCov || 0;
         item.cCov = item.cCov || 0;
         item.gCov = item.gCov || 0;
