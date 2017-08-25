@@ -6,11 +6,10 @@ const Math = window.Math;
 export default class SegRenderer extends CachedTrackRenderer {
 
     _data;
-    _config;
     _currentY = 0;
     _actualHeight = 0;
-    _height = 0;
     _blocks = [];
+    _showCenterLine;
 
     get config() {
         return this._config;
@@ -69,12 +68,15 @@ export default class SegRenderer extends CachedTrackRenderer {
         this._config = config;
     }
 
-    render(viewport, cache, heightChanged) {
-        if (heightChanged) {
+    render(viewport, cache, heightChanged, _gffColorByFeatureType = false, _gffShowNumbersAminoacid, _showCenterLine) {
+        const showCenterLineChanged = this._showCenterLine !== _showCenterLine;
+        this._showCenterLine = _showCenterLine;
+        const isRedraw = showCenterLineChanged;
+        if (!isRedraw && heightChanged) {
             this.scroll(viewport, 0);
         }
         else {
-            super.render(viewport, cache, false);
+            super.render(viewport, cache, isRedraw, null, _showCenterLine);
         }
     }
 

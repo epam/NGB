@@ -122,5 +122,12 @@ export default {
             fill: 0x92AEE7
         },
         thickness: 1
+    },
+    centerLine:{
+        dash: {
+            fill: 0x000000,
+            length: 5,
+            thickness: 1
+        }
     }
 };

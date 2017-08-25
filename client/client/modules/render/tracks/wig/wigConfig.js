@@ -29,5 +29,12 @@ export default {
         detailedStyleStartingAtPixelsPerBP: 7.5,
         thresholdColor: 0xFAA3A3,
         lineThresholdColor: 0xF87272
+    },
+    centerLine:{
+        dash: {
+            fill: 0x000000,
+            length: 5,
+            thickness: 1
+        }
     }
 };

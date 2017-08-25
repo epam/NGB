@@ -46,6 +46,13 @@
                                     </div>
                                 </md-checkbox>
                             </div>
+                            <div class="row">
+                                <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.showCenterLine">
+                                    <div class="hint">
+                                        Show center line
+                                    </div>
+                                </md-checkbox>
+                            </div>
                         </div>
                     </md-content>
                 </md-tab>
@@ -108,23 +115,16 @@
                                     </div>
                                 </md-checkbox>
                             </div>
-                            <div class="row">
-                                <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.showCenterLine">
-                                    <div class="hint">
-                                        Show center line
-                                    </div>
-                                </md-checkbox>
-                            </div>
                             <div class="row" layout="row">
                                 <div flex="50">
-                                    <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.filterReads.pcrOpticalDuplicates">
+                                    <md-checkbox flex aria-label="Filter PCR/optical duplicates" ng-model="ctrl.settings.filterReads.pcrOpticalDuplicates">
                                         <div class="hint">
                                             Filter PCR/optical duplicates
                                         </div>
                                     </md-checkbox>
                                 </div>
                                 <div flex="50">
-                                    <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.filterReads.supplementaryAlignments">
+                                    <md-checkbox flex aria-label="Filter supplementary alignments" ng-model="ctrl.settings.filterReads.supplementaryAlignments">
                                         <div class="hint">
                                             Filter supplementary alignments
                                         </div>
@@ -133,14 +133,14 @@
                             </div>
                             <div class="row" layout="row">
                                 <div flex="50">
-                                    <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.filterReads.failedVendorChecks">
+                                    <md-checkbox flex aria-label="Filter failed vendor checks" ng-model="ctrl.settings.filterReads.failedVendorChecks">
                                         <div class="hint">
                                             Filter failed vendor checks
                                         </div>
                                     </md-checkbox>
                                 </div>
                                 <div flex="50">
-                                    <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.filterReads.secondaryAlignments">
+                                    <md-checkbox flex aria-label="Filter secondary alignments" ng-model="ctrl.settings.filterReads.secondaryAlignments">
                                         <div class="hint">
                                             Filter secondary alignments
                                         </div>

@@ -19,5 +19,12 @@ export default {
         margin: 2,
         minHeight: 6,
         width: 7
+    },
+    centerLine:{
+        dash: {
+            fill: 0x000000,
+            length: 5,
+            thickness: 1
+        }
     }
 };

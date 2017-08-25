@@ -22,6 +22,17 @@ export class WIGTrack extends CachedTrack {
         return true;
     }
 
+    constructor(opts) {
+        super(opts);
+        this._showCenterLine = opts.showCenterLine;
+    }
+
+    globalSettingsChanged(state) {
+        this._showCenterLine = state.showCenterLine;
+        this._flags.dataChanged = true;
+        this.requestRenderRefresh();
+    }
+
     getSettings() {
         if (this._menu) {
             return this._menu;
@@ -147,10 +158,11 @@ export class WIGTrack extends CachedTrack {
                     this.cache.coordinateSystem = this._wigTransformer.transformCoordinateSystem(this.cache.data,
                         this.viewport, this.cache.coordinateSystem, this.state);
                 }
-                this._wigArea.render(this.viewport, this.cache.coordinateSystem);
-                this._wigRenderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged);
-                somethingChanged = true;
             }
+            this._wigArea.render(this.viewport, this.cache.coordinateSystem);
+            this._wigRenderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, null, this._showCenterLine);
+            somethingChanged = true;
+
         }
         return somethingChanged;
     }

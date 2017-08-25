@@ -237,7 +237,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
             }
             if (flags.brushChanged || flags.widthChanged || flags.heightChanged || flags.renderReset || flags.dataChanged) {
                 this.renderer.height = this.height;
-                this.renderer.render(this.viewport, this.cache, flags.heightChanged, this._gffColorByFeatureType);
+                this.renderer.render(this.viewport, this.cache, flags.heightChanged, this._gffColorByFeatureType, this._showCenterLine);
                 somethingChanged = true;
             }
             return somethingChanged;

@@ -5,7 +5,6 @@ const Math = window.Math;
 
 export default class WIGRenderer extends CachedTrackRenderer{
 
-    _height = null;
     _hoveredItemContainer;
 
     constructor(config){

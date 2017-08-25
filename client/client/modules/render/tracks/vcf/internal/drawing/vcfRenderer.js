@@ -6,12 +6,10 @@ import {ZonesManager} from '../../../../utilities';
 
 export default class VcfRenderer extends CachedTrackRenderer {
 
-    _config = null;
     _transformer: VcfTransformer = null;
     _manager = null;
     _variantContainers = [];
     _mask = null;
-    _height = null;
 
     constructor(config, chromosome) {
         super();

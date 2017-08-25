@@ -54,6 +54,7 @@ export class GENETrack extends CachedTrack {
 
         this._gffColorByFeatureType = opts.gffColorByFeatureType;
         this._gffShowNumbersAminoacid = opts.gffShowNumbersAminoacid;
+        this._showCenterLine = opts.showCenterLine;
 
         if (opts.dispatcher) {
             this.dispatcher = opts.dispatcher;
@@ -182,6 +183,7 @@ export class GENETrack extends CachedTrack {
         super.globalSettingsChanged(state);
         this._gffColorByFeatureType = state.gffColorByFeatureType;
         this._gffShowNumbersAminoacid = state.gffShowNumbersAminoacid;
+        this._showCenterLine = state.showCenterLine;
         this._flags.dataChanged = true;
         this.requestRenderRefresh();
     }
@@ -194,7 +196,7 @@ export class GENETrack extends CachedTrack {
         }
         if (flags.brushChanged || flags.widthChanged || flags.heightChanged || flags.renderReset || flags.dataChanged) {
             this.renderer.height = this.height;
-            this.renderer.render(this.viewport, this.cache, flags.heightChanged, this._gffColorByFeatureType, this._gffShowNumbersAminoacid);
+            this.renderer.render(this.viewport, this.cache, flags.heightChanged, this._gffColorByFeatureType, this._gffShowNumbersAminoacid, this._showCenterLine);
             somethingChanged = true;
         }
         return somethingChanged;

@@ -10,6 +10,17 @@ export class REFERENCETrack extends CachedTrack {
     _referenceRenderer = new ReferenceRenderer(this.trackConfig);
     dataService = new GenomeDataService();
 
+    constructor(opts) {
+        super(opts);
+        this._showCenterLine = opts.showCenterLine;
+    }
+
+    globalSettingsChanged(state) {
+        this._showCenterLine = state.showCenterLine;
+        this._flags.dataChanged = true;
+        this.requestRenderRefresh();
+    }
+
     static getTrackDefaultConfig() {
         return ReferenceConfig;
     }
@@ -55,7 +66,7 @@ export class REFERENCETrack extends CachedTrack {
         if (flags.brushChanged || flags.widthChanged || flags.heightChanged || flags.renderReset || flags.dataChanged) {
             somethingChanged = true;
             this._referenceRenderer.height = this.height;
-            this._referenceRenderer.render(this.viewport, this.cache, flags.heightChanged);
+            this._referenceRenderer.render(this.viewport, this.cache, flags.heightChanged, null, this._showCenterLine);
         }
         return somethingChanged;
     }
