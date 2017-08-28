@@ -22,17 +22,6 @@ export class WIGTrack extends CachedTrack {
         return true;
     }
 
-    constructor(opts) {
-        super(opts);
-        this._showCenterLine = opts.showCenterLine;
-    }
-
-    globalSettingsChanged(state) {
-        this._showCenterLine = state.showCenterLine;
-        this._flags.dataChanged = true;
-        this.requestRenderRefresh();
-    }
-
     getSettings() {
         if (this._menu) {
             return this._menu;

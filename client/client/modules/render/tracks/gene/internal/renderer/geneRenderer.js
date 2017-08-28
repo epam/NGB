@@ -69,16 +69,12 @@ export default class GeneRenderer extends CachedTrackRenderer {
         return this._actualHeight;
     }
 
-    render(viewport, cache, heightChanged, _gffColorByFeatureType = false, _gffShowNumbersAminoacid, _showCenterLine) {
-        const gffColorByFeatureTypeChanged = this._gffColorByFeatureType !== _gffColorByFeatureType;
+    render(viewport, cache, isRedraw, _gffColorByFeatureType = false, _gffShowNumbersAminoacid, _showCenterLine) {
         this._gffColorByFeatureType = _gffColorByFeatureType;
-        const showCenterLineChanged = this._showCenterLine !== _showCenterLine;
         this._showCenterLine = _showCenterLine;
-
-        const gffShowNumbersAminoacidChanged = this._gffShowNumbersAminoacid !== _gffShowNumbersAminoacid;
         this._gffShowNumbersAminoacid = _gffShowNumbersAminoacid;
-        const isRedraw = gffColorByFeatureTypeChanged||gffShowNumbersAminoacidChanged||showCenterLineChanged;
-        if (!isRedraw && heightChanged) {
+
+        if (!isRedraw) {
             this.scroll(viewport, 0, cache);
         }
         else {

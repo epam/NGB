@@ -18,6 +18,7 @@ export default class CachedTrackRenderer{
     constructor(){
         this.container.addChild(this._backgroundContainer);
         this.container.addChild(this.dataContainer);
+        this.container.addChild(this._centerLineGraphics);
     }
 
     get viewport() { return this._viewport; }
@@ -39,14 +40,13 @@ export default class CachedTrackRenderer{
             this.containerIsReady = true;
             cache.isNew = false;
 
+            this.renderCenterLine(viewport, {
+                config: this._config,
+                graphics: this._centerLineGraphics,
+                height: this._height,
+                shouldRender: _showCenterLine
+            });
         }
-        this.renderCenterLine(viewport, {
-            config: this._config,
-            graphics: this._centerLineGraphics,
-            height: this._height,
-            shouldRender: _showCenterLine
-        });
-        this._initCenterLineGraphics();
 
     }
 
@@ -82,10 +82,6 @@ export default class CachedTrackRenderer{
 
     correctedXMeasureValue(measure){
         return measure * this._drawScope.scaleFactor;
-    }
-
-    _initCenterLineGraphics() {
-        this.container.addChild(this._centerLineGraphics);
     }
 
     renderCenterLine(viewport, drawingConfig) {

@@ -9,17 +9,6 @@ export class SEGTrack extends CachedTrack {
     _dataService = new SegDataService();
     _renderer = new SegRenderer(this.trackConfig);
 
-    constructor(opts) {
-        super(opts);
-        this._showCenterLine = opts.showCenterLine;
-    }
-
-    globalSettingsChanged(state) {
-        this._showCenterLine = state.showCenterLine;
-        this._flags.dataChanged = true;
-        this.requestRenderRefresh();
-    }
-
     static getTrackDefaultConfig() {
         return SegConfig;
     }
@@ -51,7 +40,7 @@ export class SEGTrack extends CachedTrack {
         }
         if (flags.brushChanged || flags.widthChanged || flags.heightChanged || flags.renderReset || flags.dataChanged) {
             flags.heightChanged && (this._renderer.height = this.height);
-            this._renderer.render(this.viewport, this.cache, flags.heightChanged, null, null, this._showCenterLine);
+            this._renderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, null, null, this._showCenterLine);
             somethingChanged = true;
         }
         return somethingChanged;
