@@ -83,6 +83,14 @@ Default NGB page should be shown
 
 That's it. Now NGS files could be added and viewed. Please refer to [NGB Command Line Interface - Typical tasks](docs/md/cli/typical-tasks.md) to register genome and NGS files
 
+# Prebuilt binaries
+
+NGB binaries can be retrieved from the following locations:
+* Releases:
+    * GitHub Releases: [https://github.com/epam/NGB/releases](https://github.com/epam/NGB/releases)
+    * Direct HTTP links: [http://ngb.opensource.epam.com/distr](http://ngb.opensource.epam.com/distr)
+* Development builds (created from `develop` branch - each commit): [http://ngb.opensource.epam.com/distr/dev](http://ngb.opensource.epam.com/distr/dev)
+
 # How to build NGB
 
 ## Requirements
