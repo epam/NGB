@@ -237,10 +237,11 @@
                                     <input name="maxRangeVcf"
                                            type="number"
                                            required
+                                           ng-min="0"
                                            placeholder="maximum variants range(bp)"
                                            ng-model="ctrl.settings.variantsMaximumRange"/>
                                     <div ng-messages="settingsForm.maxRangeVcf.$error" role="alert">
-                                        <div ng-message="required">Enter maximum range for displaying variants(bp).</div>
+                                        <div ng-message="required,min">Enter maximum range for displaying variants(bp). Value must be greater than 0.</div>
                                     </div>
                                 </md-input-container>
                             </div>
