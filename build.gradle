@@ -128,25 +128,31 @@ task buildDoc(type: Tar) {
 }
 
 task buildDocker(type: Exec) {
-    dependsOn buildWar, buildCli
+    dependsOn buildJar, buildCli
     doFirst {
-        delete file("$dockerDir/ngb-cli.tar")
-        delete file("$dockerDir/catgenome.war")
+        delete file("$dockerDir/ngb-cli.tar.gz")
+        delete file("$dockerDir/catgenome.jar")
         copy {
-            from "$distDir/catgenome.war"
+            from "$distDir/catgenome.jar"
             into dockerDir
         }
         copy {
-            from "$distDir/ngb-cli.tar"
+            from "$distDir/ngb-cli.tar.gz"
             into dockerDir
         }
     }
     commandLine "docker", "build", "-t", "ngb:latest", "."
     workingDir = "$rootDir/docker/core"
     doLast {
-        delete file("$dockerDir/ngb-cli.tar")
-        delete file("$dockerDir/catgenome.war")
+        delete file("$dockerDir/ngb-cli.tar.gz")
+        delete file("$dockerDir/catgenome.jar")
     }
+}
+
+task buildDockerDemo(type: Exec) {
+    dependsOn buildDocker
+    commandLine "docker", "build", "-t", "ngb:latest-demo", "."
+    workingDir = "$rootDir/docker/demo"
 }
 
 task buildDesktopUI(type: GradleBuild) {

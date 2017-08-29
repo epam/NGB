@@ -108,13 +108,14 @@ Gradle build script is provided for building NGB components
 $ ./gradlew [tasks]
 
 Available tasks:
-buildWar      builds java web application archive, containing client and server binaries
-buildCli      builds ngb command line interface, used to manipulate data within ngb
-buildDocker   builds war-file and packages it into a docker image, using docker/core/Dockerfile
-buildDoc      builds markdown documents into html web-site
-buildJar      builds standalone jar-file with embedded Tomcat
-buildDesktop  builds standalone desktop NGB application
-buildAll      builds all components, listed above
+buildWar        builds java web application archive, containing client and server binaries
+buildCli        builds ngb command line interface, used to manipulate data within ngb
+buildDocker     builds jar-file and packages it into a docker image, using docker/core/Dockerfile
+buildDockerDemo builds "core" docker image and initilizes it with demo data, using docker/demo/Dockerfile
+buildDoc        builds markdown documents into html web-site
+buildJar        builds standalone jar-file with embedded Tomcat
+buildDesktop    builds standalone desktop NGB application
+buildAll        builds all components, listed above
 ```
 
 All tasks could be combined.

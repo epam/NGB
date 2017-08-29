@@ -16,6 +16,33 @@ $ docker run -p 8080:8080 -d --name ngbcore lifescience/ngb:latest-demo
 ```  
 You can go to [http://localhost:8080/catgenome](http://localhost:8080/catgenome) or [http://ip-of-the-host:8080/catgenome](http://ip-of-the-host:8080/catgenome) in a browser and view demo datasets (Sample 1 and Sample 2), which contain Structural Variations
 
+### Using a demo version as a standalone viewer
+
+NGB docker images is preconfigured to provide access to `/ngs` folder via `Open from NGB server` menu. 
+
+This means that if a demo docker is run with `-v` option (mount volume into docker) - it is possible to view own NGS datasets immediately without registration process.
+
+Command to run 
+```
+# This assumes that /ngs directory is available on 
+# a host machine, of course any other host's
+# folder can be used instead of /ngs
+
+$ docker run -v /ngs:/ngs -p 8080:8080 -d --name ngbcore lifescience/ngb:latest-demo
+```
+
+If this is done - navigate to [http://localhost:8080/catgenome](http://localhost:8080/catgenome) in a web-browser and activate `Open from NGB server` menu
+
+Contents of the host's `/ngs` folder will be shown and available to select and visualize
+
+![Open From NGB Server](images/docker-10.png)
+
+*Note: the following reference sequences and genes are available in a demo docker:*
+* *GRCh38*
+* *GRCh37/hg19*
+* *GRCm38/mm10*
+* *dm6*
+
 ## Running core image
 For a **core** version replace <YOUR_NGS_DATA_FOLDER> placeholder with a real path to a folder with NGS data, and then run command
 ```
