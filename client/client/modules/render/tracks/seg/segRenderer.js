@@ -74,6 +74,12 @@ export default class SegRenderer extends CachedTrackRenderer {
         const isRedraw = showCenterLineChanged;
         if (!isRedraw && heightChanged) {
             this.scroll(viewport, 0);
+            this.renderCenterLine(viewport, {
+                config: this._config,
+                graphics: this._centerLineGraphics,
+                height: this._height,
+                shouldRender: _showCenterLine
+            });
         }
         else {
             super.render(viewport, cache, isRedraw, null, _showCenterLine);

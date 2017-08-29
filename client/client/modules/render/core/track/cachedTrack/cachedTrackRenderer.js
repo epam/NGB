@@ -39,15 +39,13 @@ export default class CachedTrackRenderer{
             this.rebuildContainer(viewport, cache);
             this.containerIsReady = true;
             cache.isNew = false;
-
-            this.renderCenterLine(viewport, {
-                config: this._config,
-                graphics: this._centerLineGraphics,
-                height: this._height,
-                shouldRender: _showCenterLine
-            });
         }
-
+        this.renderCenterLine(viewport, {
+            config: this._config,
+            graphics: this._centerLineGraphics,
+            height: this._height,
+            shouldRender: _showCenterLine
+        });
     }
 
     translateContainer(viewport, cache){

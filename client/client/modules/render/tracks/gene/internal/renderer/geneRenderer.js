@@ -76,6 +76,12 @@ export default class GeneRenderer extends CachedTrackRenderer {
 
         if (!isRedraw) {
             this.scroll(viewport, 0, cache);
+            this.renderCenterLine(viewport, {
+                config: this._config,
+                graphics: this._centerLineGraphics,
+                height: this._height,
+                shouldRender: _showCenterLine
+            });
         }
         else {
             super.render(viewport, cache, isRedraw, null, _showCenterLine);
