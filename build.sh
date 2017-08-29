@@ -1,3 +1,5 @@
+# DUMMY COMMIT
+
 #!/bin/bash
 #
 # This is a NGB build automation script. It performs building of client and server components together.
