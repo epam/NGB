@@ -149,7 +149,7 @@ task buildDocker(type: Exec) {
     }
 }
 
-task buildDocker(type: Exec) {
+task buildDockerDemo(type: Exec) {
     dependsOn buildDocker
     commandLine "docker", "build", "-t", "ngb:latest-demo", "."
     workingDir = "$rootDir/docker/demo"
