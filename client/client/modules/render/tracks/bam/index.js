@@ -240,7 +240,7 @@ export class BAMTrack extends ScrollableTrack {
     constructor(opts) {
         super(opts);
         this.state.readsViewMode = parseInt(this.state.readsViewMode);
-        this.cacheService = new BamCacheService(this, this.trackConfig);
+        this.cacheService = new BamCacheService(this,  Object.assign({}, this.trackConfig, this.config));
         this._bamRenderer = new BamRenderer(this.viewport, Object.assign({}, this.trackConfig, this.config), this._pixiRenderer, this.cacheService, opts);
 
         const bamSettings = {
@@ -301,7 +301,10 @@ export class BAMTrack extends ScrollableTrack {
 
     globalSettingsChanged(state) {
         super.globalSettingsChanged(state);
-        let shouldReloadData = this._bamRenderer.globalSettingsChanged(state);
+        let shouldReloadData = this._bamRenderer.globalSettingsChanged(state)
+            || this.cacheService._coverageTransformer.alleleFrequencyThresholdBam !== state.alleleFrequencyThresholdBam;
+        this.cacheService._coverageTransformer.alleleFrequencyThresholdBam = state.alleleFrequencyThresholdBam;
+
         const bamSettings = {
             chromosomeId: this.config.chromosomeId,
             id: this.config.openByUrl ? undefined : this.config.id,

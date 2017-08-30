@@ -181,6 +181,7 @@ export default {
         isDownSampling: true,
         maxBAMBP: 100000,
         maxBAMCoverageBP: 500000,
+        alleleFrequencyThresholdBam: 90,
         maxBpCount: 10000,
         maxFrameSize: 50,
         maxReadsCount: 300,

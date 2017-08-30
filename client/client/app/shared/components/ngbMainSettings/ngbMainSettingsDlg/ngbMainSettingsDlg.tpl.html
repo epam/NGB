@@ -176,6 +176,21 @@
                                     </div>
                                 </md-input-container>
                             </div>
+                            <div class="row"><h4>Coverage options</h4></div>
+                            <div class="row">
+                                <md-input-container>
+                                    <input name="alleleFrequencyThresholdBam"
+                                           type="number"
+                                           required
+                                           placeholder="allele frequency threshold(%)"
+                                           ng-model="ctrl.settings.alleleFrequencyThresholdBam"
+                                           ng-min="0"
+                                           ng-max="100"/>
+                                    <div ng-messages="settingsForm.alleleFrequencyThresholdBam.$error" role="alert">
+                                        <div ng-message="required,min,max">Enter allele frequency threshold (%).</div>
+                                    </div>
+                                </md-input-container>
+                            </div>
                         </div>
                     </md-content>
                 </md-tab>
