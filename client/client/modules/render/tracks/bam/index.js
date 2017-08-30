@@ -301,7 +301,8 @@ export class BAMTrack extends ScrollableTrack {
 
     globalSettingsChanged(state) {
         super.globalSettingsChanged(state);
-        let shouldReloadData = this._bamRenderer.globalSettingsChanged(state);
+        let shouldReloadData = this._bamRenderer.globalSettingsChanged(state)
+            || this.cacheService._coverageTransformer.alleleFrequencyThresholdBam !== state.alleleFrequencyThresholdBam;
         this.cacheService._coverageTransformer.alleleFrequencyThresholdBam = state.alleleFrequencyThresholdBam;
 
         const bamSettings = {
