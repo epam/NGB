@@ -49,7 +49,6 @@ export default class ngbOpenFileFromUrlController {
     get trackNeedsIndexFile() {
         const extension = this.fileExtension();
         return extension === 'bam' ||
-            extension === 'cram' ||
             extension === 'vcf' ||
             extension === 'bed' ||
             extension === 'gff' ||
@@ -83,7 +82,6 @@ export default class ngbOpenFileFromUrlController {
         if (extension) {
             switch (extension.toLowerCase()) {
                 case 'bam': return 'BAM';
-                case 'cram': return 'BAM';
                 case 'vcf': return 'VCF';
                 case 'bed': return 'BED';
                 case 'gff': return 'GENE';
