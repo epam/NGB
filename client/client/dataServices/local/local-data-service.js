@@ -78,6 +78,13 @@ export default class LocalDataService {
         return settings;
     }
 
+    getSettingsCopy() {
+        const settingsCopy = {};
+        const settings = this.getSettings();
+        this.rebuildSettings(settingsCopy, settings);
+        return settingsCopy;
+    }
+
     getDefaultSettings() {
         return DefaultLocalData.defaultSettings;
     }
@@ -103,6 +110,22 @@ export default class LocalDataService {
             }
         }
         return somethingRecovered;
+    }
+
+    rebuildSettings(settingsObject, defaultSettingsObject = null) {
+        if (defaultSettingsObject === null) {
+            defaultSettingsObject = DefaultLocalData.defaultSettings;
+        }
+        for (const key in defaultSettingsObject) {
+            if (defaultSettingsObject.hasOwnProperty(key)) {
+                if ((typeof defaultSettingsObject[key]).toLowerCase() === 'object') {
+                    settingsObject[key] = {};
+                    this.rebuildSettings(settingsObject[key], defaultSettingsObject[key]);
+                } else {
+                    settingsObject[key] = defaultSettingsObject[key];
+                }
+            }
+        }
     }
 
     static newUUUID() {

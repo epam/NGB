@@ -55,7 +55,7 @@ export class REFERENCETrack extends CachedTrack {
         if (flags.brushChanged || flags.widthChanged || flags.heightChanged || flags.renderReset || flags.dataChanged) {
             somethingChanged = true;
             this._referenceRenderer.height = this.height;
-            this._referenceRenderer.render(this.viewport, this.cache, flags.heightChanged);
+            this._referenceRenderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, null, this._showCenterLine);
         }
         return somethingChanged;
     }

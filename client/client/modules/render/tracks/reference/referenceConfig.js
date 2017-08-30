@@ -26,5 +26,12 @@ export default {
         },
         text: 'GC content is not provided.'
     },
-    reference: {}
+    reference: {},
+    centerLine:{
+        dash: {
+            fill: 0x000000,
+            length: 5,
+            thickness: 1
+        }
+    }
 };
