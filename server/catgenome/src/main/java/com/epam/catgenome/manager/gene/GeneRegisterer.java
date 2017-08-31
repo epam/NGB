@@ -230,7 +230,7 @@ public class GeneRegisterer {
                 metaMap.put(currentKey, new ImmutablePair<>(startPosition, endPosition));
                 // Put the last one
                 if (Utils.chromosomeMapContains(chromosomeMap, currentKey) && doFeatureIndex) {
-                    featureIndexManager.writeLuceneIndexForFile(geneFile, allEntries);
+                    featureIndexManager.writeLuceneIndexForFile(geneFile, allEntries, null);
                     allEntries.clear();
                 }
             }
@@ -286,7 +286,7 @@ public class GeneRegisterer {
         throws IOException {
         if (currentKey != null && Utils.chromosomeMapContains(chromosomeMap, currentKey) && doFeatureIndex) {
 
-            featureIndexManager.writeLuceneIndexForFile(geneFile, allEntries);
+            featureIndexManager.writeLuceneIndexForFile(geneFile, allEntries, null);
             LOGGER.info(MessageHelper.getMessage(
                 MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE, currentKey));
             allEntries.clear();
