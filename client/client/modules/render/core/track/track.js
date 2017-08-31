@@ -98,6 +98,13 @@ export class Track extends BaseTrack {
         return this._trackIsHidden;
     }
 
+    getImageData() {
+        if (this._pixiRenderer && this.container) {
+            return this._pixiRenderer.view;
+        }
+        return null;
+    }
+
     tick(time) {
         if (this._pixiRenderer) {
             let somethingChanged = this.render(this._flags);
