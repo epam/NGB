@@ -54,7 +54,10 @@ export default class projectContext {
         coverageScaleMode: 'csm',
         coverageLogScale: 'cls',
         coverageScaleFrom: 'csf',
-        coverageScaleTo: 'cst'
+        coverageScaleTo: 'cst',
+        referenceTranslation: 'rt',
+        referenceShowForwardStrand: 'rsfs',
+        referenceShowReverseStrand: 'rsrs'
     };
 
     _tracksStateRevertRules = {};

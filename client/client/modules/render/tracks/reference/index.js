@@ -4,6 +4,7 @@ import {GenomeDataService} from '../../../../dataServices';
 import ReferenceConfig from './referenceConfig';
 import ReferenceRenderer from './referenceRenderer';
 import ReferenceTransformer from './referenceTransformer';
+import {default as menu} from './menu';
 
 export class REFERENCETrack extends CachedTrack {
 
@@ -16,6 +17,60 @@ export class REFERENCETrack extends CachedTrack {
 
     get trackIsResizable() {
         return false;
+    }
+
+    get stateKeys() {
+        return [
+            'referenceTranslation',
+            'referenceShowForwardStrand',
+            'referenceShowReverseStrand'
+        ];
+    }
+
+    getSettings() {
+        debugger;
+        if (this._menu) {
+            return this._menu;
+        }
+        const wrapStateFn = (fn) => () => fn(this.state);
+        const wrapMutatorFn = (fn) => () => {
+            fn(this.state);
+            this.updateAndRefresh();
+            this.reportTrackState();
+        };
+
+        this._menu = menu.map(function processMenuList(menuEntry) {
+            const result = {};
+            for (const key of Object.keys(menuEntry)) {
+                switch (true) {
+                    case Array.isArray(menuEntry[key]):
+                        result[key] = menuEntry[key].map(processMenuList);
+                        break;
+                    case menuEntry[key] instanceof Function: {
+                        switch (true) {
+                            case key.startsWith('is'):
+                                result[key] = wrapStateFn(menuEntry[key]);
+                                break;
+                            case key.startsWith('display'):
+                                result[key] = wrapStateFn(menuEntry[key]);
+                                break;
+                            default:
+                                result[key] = wrapMutatorFn(menuEntry[key]);
+                                break;
+                        }
+                    }
+                        break;
+                    default: {
+                        result[key] = menuEntry[key];
+                    }
+                        break;
+                }
+            }
+
+            return result;
+        });
+
+        return this._menu;
     }
 
     async updateCache() {
@@ -58,5 +113,11 @@ export class REFERENCETrack extends CachedTrack {
             this._referenceRenderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, null, this._showCenterLine);
         }
         return somethingChanged;
+    }
+
+    async updateAndRefresh() {
+        await this.updateCache();
+        this._flags.dataChanged = true;
+        await this.requestRenderRefresh();
     }
 }
