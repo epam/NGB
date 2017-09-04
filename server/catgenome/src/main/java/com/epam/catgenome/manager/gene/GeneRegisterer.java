@@ -38,16 +38,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.http.util.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
-import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
@@ -157,17 +156,35 @@ public class GeneRegisterer {
      */
     public void processRegistration(final FeatureIndexedFileRegistrationRequest request)
             throws IOException {
+        createFileIndices(request.getPath(), request.getIndexPath(),
+                StringUtils.isEmpty(request.getIndexPath()), request.isDoIndex());
+    }
+
+    public void reIndexFile(boolean createTabix)
+            throws IOException {
+        createFileIndices(geneFile.getPath(), geneFile.getIndex().getPath(), createTabix, true);
+    }
+
+    private void createFileIndices(String filePath, String indexPath,
+            boolean createTabixIndex, boolean createFeatureIndex)
+            throws IOException {
         fileManager.makeGeneDir(geneFile.getId(), AuthUtils.getCurrentUserId());
 
         File indexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.ORIGINAL);
         File largeScaleIndexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.LARGE_SCALE);
+        if (largeScaleIndexFile.exists()) {
+            largeScaleIndexFile.delete();
+        }
         File transcriptIndexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.TRANSCRIPT);
-
+        if (transcriptIndexFile.exists()) {
+            transcriptIndexFile.delete();
+        }
         GeneFeature firstFeature;
         try {
-            openStreams(geneFile, request);
+            openStreams(geneFile, filePath);
 
-            firstFeature = processFileContents(geneFile, indexFile, largeScaleIndexFile, transcriptIndexFile, request);
+            firstFeature = processFileContents(geneFile, indexFile, indexPath,
+                    largeScaleIndexFile, transcriptIndexFile, createTabixIndex, createFeatureIndex);
         } finally {
             closeStreams(geneFile);
         }
@@ -180,11 +197,11 @@ public class GeneRegisterer {
         }
     }
 
-    private GeneFeature processFileContents(GeneFile geneFile, File indexFile,
+    private GeneFeature processFileContents(GeneFile geneFile, File indexFile, String indexPath,
                                      File largeScaleIndexFile, File transcriptIndexFile,
-                                          FeatureIndexedFileRegistrationRequest request) throws
-            IOException {
-        boolean doIndex = TextUtils.isBlank(request.getIndexPath());
+                                     boolean createTabixIndex, boolean createFeatureIndex)
+            throws IOException {
+
         GeneFeature feature = null;
         GeneFeature firstFeature = null;
         lastFeature = null;
@@ -207,13 +224,14 @@ public class GeneRegisterer {
                 initializeHistogram(firstFeature);
             }
 
-            featuresCount = processFeature(feature, featuresCount, doIndex, allEntries, request.isDoIndex(),
+            featuresCount = processFeature(feature, featuresCount, createTabixIndex, allEntries, createFeatureIndex,
                                            filePointer);
         }
 
-        processLastFeature(feature, featuresCount, geneFile, allEntries, request.isDoIndex());
+        processLastFeature(feature, featuresCount, geneFile, allEntries, createFeatureIndex);
 
-        makeIndexes(geneFile, metaMap, indexFile, largeScaleIndexFile, transcriptIndexFile, doIndex, request);
+        makeIndexes(geneFile, metaMap, indexFile, largeScaleIndexFile,
+                transcriptIndexFile, createTabixIndex, indexPath);
 
         writerLargeScale.flush();
         writerTranscript.flush();
@@ -345,7 +363,7 @@ public class GeneRegisterer {
 
     private void makeIndexes(GeneFile geneFile, Map<String, Pair<Integer, Integer>> metaMap, File indexFile,
                              File largeScaleIndexFile, File transcriptIndexFile, boolean doIndex,
-                             IndexedFileRegistrationRequest request)
+                             String indexPath)
             throws IOException {
         fileManager.makeIndexMetadata(geneFile, metaMap);
 
@@ -366,7 +384,7 @@ public class GeneRegisterer {
         index.write(transcriptIndexFile);
 
         geneFile.setIndex(doIndex ? createIndexItem(indexFile.getAbsolutePath()) :
-                createIndexItem(request.getIndexPath()));
+                createIndexItem(indexPath));
     }
 
     private BiologicalDataItem createIndexItem(String indexPath) {
@@ -430,12 +448,12 @@ public class GeneRegisterer {
         return false;
     }
 
-    private void openStreams(GeneFile geneFile, IndexedFileRegistrationRequest request)
+    private void openStreams(GeneFile geneFile, String filePath)
         throws
         IOException {
-        File file = new File(request.getPath());
+        File file = new File(filePath);
 
-        final String extension = Utils.getFileExtension(request.getPath());
+        final String extension = Utils.getFileExtension(filePath);
         GffCodec.GffType gffType = GffCodec.GffType.forExt(extension);
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(gffType);
 

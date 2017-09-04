@@ -853,7 +853,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         TestUtils.assertFail(() -> featureIndexManager.filterVariations(vcfFilterForm),
                              Collections.singletonList(IllegalArgumentException.class));
 
-        vcfManager.reindexVcfFile(vcfFile.getId());
+        vcfManager.reindexVcfFile(vcfFile.getId(), false);
         entryList = featureIndexManager.filterVariations(vcfFilterForm);
         Assert.assertFalse(entryList.getEntries().isEmpty());
     }
@@ -878,7 +878,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         TestUtils.assertFail(() -> featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), geneFile, 10),
                              Collections.singletonList(IllegalArgumentException.class));
 
-        gffManager.reindexGeneFile(geneFile.getId(), false);
+        gffManager.reindexGeneFile(geneFile.getId(), false, false);
         searchResult = featureIndexDao.searchFeatures("ens", geneFile, 10);
         Assert.assertFalse(searchResult.getEntries().isEmpty());
         Assert.assertTrue(searchResult.getEntries().size() <= 10);

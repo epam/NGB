@@ -96,7 +96,7 @@ public class FeatureIndexDao {
     @Autowired
     private VcfManager vcfManager;
 
-    @Value("#{catgenome['lucene.index.max.size.grouping'] ?: 4L * 1024 * 1024 * 1024}")
+    @Value("#{catgenome['lucene.index.max.size.grouping'] ?: 2L * 1024 * 1024 * 1024}")
     private long luceneIndexMaxSizeForGrouping;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureIndexDao.class);
