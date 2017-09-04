@@ -228,7 +228,8 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         double time1 = Utils.getSystemTimeMilliseconds();
         List<Long> chromosomeIds = featureIndexDao.getChromosomeIdsWhereVariationsPresentFacet(
-                Collections.singletonList(testVcf), "geneId:ENS* AND fileId:" + testVcf.getId() + " AND variationType:snv");
+                Collections.singletonList(testVcf), "geneId:ENS* AND fileId:"
+                        + testVcf.getId() + " AND variationType:snv");
         double time2 = Utils.getSystemTimeMilliseconds();
         logger.info("Get chromosomes by facets time: {} ms", time2 - time1);
 

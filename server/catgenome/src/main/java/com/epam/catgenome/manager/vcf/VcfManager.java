@@ -869,4 +869,8 @@ public class VcfManager {
         }
         return infoFieldParser;
     }
+
+    public void setIndexBufferSize(int indexBufferSize) {
+        this.indexBufferSize = indexBufferSize;
+    }
 }
