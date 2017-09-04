@@ -1,4 +1,5 @@
 import * as modes from './reference.modes';
+import { complementNucleotidesConst } from '../../core';
 
 export default class ReferenceTransformer {
 
@@ -19,7 +20,7 @@ export default class ReferenceTransformer {
         if (viewport.isShortenedIntronsMode) {
             blocks = viewport.shortenedIntronsViewport.transformFeaturesArray(blocks);
         }
-        const mapNucleotideItemsFn = function(item) {
+        const mapNucleotideItemsFn = function (item) {
             return {
                 endIndex: item.endIndex,
                 startIndex: item.startIndex,
@@ -28,7 +29,16 @@ export default class ReferenceTransformer {
                 xStart: viewport.project.brushBP2pixel(item.startIndex)
             };
         };
-        const mapGCContentItemsFn = function(item) {
+        const mapReverseNucleotideItemsFn = function (item) {
+            return {
+                endIndex: item.endIndex,
+                startIndex: item.startIndex,
+                value: complementNucleotidesConst[item.text],
+                xEnd: viewport.project.brushBP2pixel(item.endIndex),
+                xStart: viewport.project.brushBP2pixel(item.startIndex)
+            };
+        };
+        const mapGCContentItemsFn = function (item) {
             return {
                 endIndex: item.endIndex,
                 startIndex: item.startIndex,
@@ -38,14 +48,22 @@ export default class ReferenceTransformer {
             };
         };
         let items = [];
+        let reverseItems = [];
         switch (mode) {
-            case modes.gcContent: items = blocks.map(mapGCContentItemsFn); break;
-            case modes.nucleotides: items = blocks.map(mapNucleotideItemsFn); break;
+            case modes.gcContent:
+                items = blocks.map(mapGCContentItemsFn);
+                break;
+            case modes.nucleotides: {
+                items = blocks.map(mapNucleotideItemsFn);
+                reverseItems =  blocks.map(mapReverseNucleotideItemsFn);
+                break;
+            }
         }
 
         return {
             mode,
             items,
+            reverseItems,
             pixelsPerBp,
             viewport
         };

@@ -1,5 +1,6 @@
 export default {
-    height: 20,
+    height: 41,
+    nucleotidesHeight: 20,
     fitHeightFactor: 1,
     largeScale: {
         'A': 0x8BC743,
