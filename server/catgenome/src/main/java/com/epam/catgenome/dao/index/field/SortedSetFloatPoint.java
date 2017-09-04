@@ -30,7 +30,8 @@ public class SortedSetFloatPoint extends Field {
             throw new IllegalArgumentException("this field (name=" + name + ") uses " +
                     type.pointDimensionCount() +
                     " dimensions; cannot change to (incoming) " + point.length + " dimensions");
-        } fieldsData = pack(point);
+        }
+        fieldsData = pack(point);
     }
 
     @Override public void setBytesValue(BytesRef bytes) {
@@ -42,7 +43,8 @@ public class SortedSetFloatPoint extends Field {
             throw new IllegalStateException("this field (name=" + name + ") uses " +
                     type.pointDimensionCount() +
                     " dimensions; cannot convert to a single numeric value");
-        } BytesRef bytes = (BytesRef) fieldsData;
+        }
+        BytesRef bytes = (BytesRef) fieldsData;
         assert bytes.length == Float.BYTES;
         return FloatPoint.decodeDimension(bytes.bytes, bytes.offset);
     }

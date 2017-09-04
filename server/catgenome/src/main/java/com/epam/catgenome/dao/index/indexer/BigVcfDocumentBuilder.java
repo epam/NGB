@@ -1,5 +1,6 @@
 package com.epam.catgenome.dao.index.indexer;
 
+import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.FeatureIndexDao.FeatureIndexFields;
 import com.epam.catgenome.dao.index.field.SortedIntPoint;
 import com.epam.catgenome.dao.index.field.SortedStringField;
@@ -26,10 +27,7 @@ import org.apache.lucene.util.BytesRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -146,29 +144,45 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
         return document;
     }
 
+    @Override protected Set<String> getRequiredFields() {
+        Set<String> requiredFields = new HashSet<>();
+        requiredFields.add(FeatureIndexFields.CHROMOSOME_NAME.getFieldName());
+        requiredFields.add(FeatureIndexFields.CHROMOSOME_ID.getFieldName());
+        requiredFields.add(FeatureIndexFields.FILE_ID.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName());
+        requiredFields.add(FeatureIndexFields.FEATURE_TYPE.getFieldName());
+        requiredFields.add(FeatureIndexFields.FEATURE_ID.getFieldName());
+        requiredFields.add(FeatureIndexFields.START_INDEX.getFieldName());
+        requiredFields.add(FeatureIndexFields.END_INDEX.getFieldName());
+        requiredFields.add(FeatureIndexFields.GENE_NAME.getFieldName());
+        requiredFields.add(FeatureIndexFields.GENE_ID.getFieldName());
+        requiredFields.add(FeatureIndexFields.GENE_NAMES.getFieldName());
+        requiredFields.add(FeatureIndexFields.GENE_IDS.getFieldName());
+        requiredFields.add(FeatureIndexFields.QUALITY.getFieldName());
+        requiredFields.add(FeatureIndexFields.VARIATION_TYPE.getFieldName());
+        requiredFields.add(FeatureIndexFields.IS_EXON.getFieldName());
+        requiredFields.add(FeatureIndexFields.FAILED_FILTER.getFieldName());
+        if (!CollectionUtils.isEmpty(vcfInfoFields)) {
+            for (String infoField : vcfInfoFields) {
+                requiredFields.add(infoField.toLowerCase());
+            }
+        }
+        return requiredFields;
+    }
+
     @Override protected VcfIndexEntry createSpecificEntry(Document doc) {
         VcfIndexEntry vcfIndexEntry = new VcfIndexEntry();
         vcfIndexEntry.setGene(doc.get(FeatureIndexFields.GENE_ID.getFieldName()));
-
-        BytesRef bytes = doc.getBinaryValue(FeatureIndexFields.GENE_IDS.getFieldName());
-        if (bytes != null) {
-            vcfIndexEntry.setGeneIds(bytes.utf8ToString());
-        }
-
+        vcfIndexEntry.setGeneIds(doc.get(FeatureIndexFields.GENE_IDS.getFieldName()));
+        vcfIndexEntry.setGeneNames(doc.get(FeatureIndexFields.GENE_NAMES.getFieldName()));
         vcfIndexEntry.setGeneName(doc.get(FeatureIndexFields.GENE_NAME.getFieldName()));
-
-        bytes = doc.getBinaryValue(FeatureIndexFields.GENE_NAMES.getFieldName());
-        if (bytes != null) {
-            vcfIndexEntry.setGeneNames(bytes.utf8ToString());
-        }
-
         vcfIndexEntry.setInfo(new HashMap<>());
 
         String isExonStr = doc.get(FeatureIndexFields.IS_EXON
                 .getFieldName()); //TODO: remove, in future only binary
         // value will remain
         if (isExonStr == null) {
-            bytes = doc.getBinaryValue(FeatureIndexFields.IS_EXON.getFieldName());
+            BytesRef bytes = doc.getBinaryValue(FeatureIndexFields.IS_EXON.getFieldName());
             if (bytes != null) {
                 isExonStr = bytes.utf8ToString();
             }
@@ -245,8 +259,6 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                 entry.getQuality().floatValue()));
         document.add(new StoredField(FeatureIndexFields.QUALITY.getFieldName(),
                 entry.getQuality().floatValue()));
-                /*document.add(new SortedDocValuesField(FeatureIndexDao.FeatureIndexFields.QUALITY.getGroupName(),
-                new BytesRef(entry.getQuality().toString())));*/
 
         if (CollectionUtils.isNotEmpty(entry.getGeneIdList())) {
             for (String geneId : entry.getGeneIdList()) {
@@ -255,9 +267,6 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                             geneId.toLowerCase(), Field.Store.YES));
                 }
             }
-            
-                                /*document.add(new SortedStringField(FeatureIndexDao.FeatureIndexFields.GENE_IDS.getFieldName(),
-                    entry.getGeneIds(), true));*/
             document.add(
                     new SortedSetDocValuesFacetField(FeatureIndexFields.GENE_IDS.getFieldName(),
                             entry.getGeneIds()));
@@ -274,9 +283,7 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                             geneName.toLowerCase(), Field.Store.YES));
                 }
             }
-            
-                                /*document.add(new SortedStringField(FeatureIndexDao.FeatureIndexFields.GENE_NAMES.getFieldName(),
-                    entry.getGeneNames(), true));*/
+
             document.add(
                     new SortedSetDocValuesFacetField(FeatureIndexFields.GENE_NAMES.getFieldName(),
                             entry.getGeneNames()));
@@ -315,7 +322,7 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                 addInfoField(info.getValue(), info.getKey(), document);
 
                 String strValue = info.getValue().toString();
-                if (strValue.length() + info.getKey().length() > MAX_FACET_LABEL_LEGTH){
+                if (strValue.length() + info.getKey().length() > MAX_FACET_LABEL_LEGTH) {
                     LOGGER.warn("{} field value is too long ({}), truncating: {}", info.getKey(),
                             strValue.length(), strValue);
                     strValue =
@@ -350,7 +357,7 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                     vcfIndexEntry.getInfo().get(viewKey).toString()));
 
             String strValue = vcfIndexEntry.getInfo().get(viewKey).toString();
-            if (strValue.length() + key.length() > MAX_FACET_LABEL_LEGTH){
+            if (strValue.length() + key.length() > MAX_FACET_LABEL_LEGTH) {
                 LOGGER.warn("{} field value is too long ({}), truncating: {}", key,
                         strValue.length(), strValue);
                 strValue = strValue.substring(0, MAX_FACET_LABEL_LEGTH - key.length());

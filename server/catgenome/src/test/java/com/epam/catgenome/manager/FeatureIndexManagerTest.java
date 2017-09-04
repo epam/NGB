@@ -57,6 +57,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.epam.catgenome.dao.index.FeatureIndexDao.FeatureIndexFields;
 import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
@@ -216,10 +217,10 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
                 VariationType.SNV), false));
         vcfFilterForm.setQuality(TEST_QUALITY_BOUNDS);
         IndexSearchResult<VcfIndexEntry> entryList2 = featureIndexManager.filterVariations(vcfFilterForm,
-                                                                                           testProject.getId());
+                testProject.getId());
         Assert.assertFalse(entryList2.getEntries().isEmpty());
         Assert.assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getInfo() != null && (Boolean) e.getInfo()
-                .get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName())));
+                .get(FeatureIndexFields.IS_EXON.getFieldName())));
 
         vcfFilterForm.setChromosomeIds(Collections.singletonList(testChromosome.getId()));
         entryList2 = featureIndexManager.filterVariations(vcfFilterForm, testProject.getId());
@@ -227,7 +228,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         double time1 = Utils.getSystemTimeMilliseconds();
         List<Long> chromosomeIds = featureIndexDao.getChromosomeIdsWhereVariationsPresentFacet(
-            Collections.singletonList(testVcf), "geneId:ENS* AND fileId:" + testVcf.getId() + " AND variationType:snv");
+                Collections.singletonList(testVcf), "geneId:ENS* AND fileId:" + testVcf.getId() + " AND variationType:snv");
         double time2 = Utils.getSystemTimeMilliseconds();
         logger.info("Get chromosomes by facets time: {} ms", time2 - time1);
 
@@ -240,7 +241,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         Map<String, Object> additionalFilters = new HashMap<>();
         additionalFilters.put(SVTYPE_FIELD, "DEL");
         //additionalFilters.put("SVLEN", SVLEN_VALUE);
-        additionalFilters.put(SVLEN_FIELD, Arrays.asList(null, SVLEN_VALUE));
+        additionalFilters.put(SVLEN_FIELD, String.valueOf(SVLEN_VALUE));
         vcfFilterForm.setAdditionalFilters(additionalFilters);
         vcfFilterForm.setGenes(null);
         vcfFilterForm.setVariationTypes(null);
@@ -257,7 +258,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         vcfFilterForm = new VcfFilterForm();
         vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(Collections.singletonList(TEST_GENE_NAME)));
         IndexSearchResult<VcfIndexEntry> entries = featureIndexManager.filterVariations(vcfFilterForm,
-                                                                                        testProject.getId());
+                testProject.getId());
         Assert.assertFalse(entries.getEntries().isEmpty());
 
         genes = featureIndexManager.searchGenesInVcfFilesInProject(testProject.getId(), TEST_GENE_NAME,
@@ -274,7 +275,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         entryList2 = featureIndexManager.filterVariations(vcfFilterForm, testProject.getId());
         Assert.assertFalse(entryList2.getEntries().isEmpty());
         Assert.assertTrue(entryList2.getEntries().stream().allMatch(e -> e.getInfo() != null && (Boolean) e.getInfo()
-                .get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName())));
+                .get(FeatureIndexFields.IS_EXON.getFieldName())));
 
         // check duplicates
         entryList2 = featureIndexManager.filterVariations(new VcfFilterForm(), testProject.getId());
@@ -731,20 +732,20 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testSearchIndexForFile() throws IOException, FeatureIndexException {
         List<FeatureIndexEntry> entryList = (List<FeatureIndexEntry>) featureIndexDao.searchFileIndexes(
-            Collections.singletonList(testVcf), String.format(TEST_GENE_AND_FILE_ID_QUERY, testVcf.getId()),
-            null).getEntries();
+                Collections.singletonList(testVcf), String.format(TEST_GENE_AND_FILE_ID_QUERY, testVcf.getId()),
+                null).getEntries();
         Assert.assertFalse(entryList.isEmpty());
 
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
         vcfFilterForm.setVcfFileIds(Collections.singletonList(testVcf.getId()));
         vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(Collections.singletonList(TEST_GENE_PREFIX), false));
         vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.MNP,
-                                                                                        VariationType.SNV), false));
+                VariationType.SNV), false));
         //vcfFilterForm.setQuality(Collections.singletonList(QUAL_VALUE));
         IndexSearchResult<VcfIndexEntry> entryList2 = featureIndexManager.filterVariations(vcfFilterForm);
         Assert.assertFalse(entryList2.getEntries().isEmpty());
         Assert.assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getInfo() != null && (Boolean) e.getInfo()
-                .get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName())));
+                .get(FeatureIndexFields.IS_EXON.getFieldName())));
 
         vcfFilterForm.setChromosomeIds(Collections.singletonList(testChromosome.getId()));
         entryList2 = featureIndexManager.filterVariations(vcfFilterForm);
@@ -752,8 +753,8 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         double time1 = Utils.getSystemTimeMilliseconds();
         List<Long> chromosomeIds = featureIndexDao.getChromosomeIdsWhereVariationsPresentFacet(
-            Collections.singletonList(testVcf), "geneId:ENS* AND fileId:" + testVcf.getId() +
-                                                " AND variationType:snv");
+                Collections.singletonList(testVcf), "geneId:ENS* AND fileId:" + testVcf.getId() +
+                        " AND variationType:snv");
         double time2 = Utils.getSystemTimeMilliseconds();
         logger.info("Get chromosomes by facets time: {} ms", time2 - time1);
 
@@ -765,7 +766,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         // filter by additional fields
         Map<String, Object> additionalFilters = new HashMap<>();
         additionalFilters.put(SVTYPE_FIELD, "del");
-        additionalFilters.put(SVLEN_FIELD, Arrays.asList(null, SVLEN_VALUE));
+        additionalFilters.put(SVLEN_FIELD, String.valueOf(SVLEN_VALUE));
         vcfFilterForm.setAdditionalFilters(additionalFilters);
         vcfFilterForm.setGenes(null);
         vcfFilterForm.setVariationTypes(null);
@@ -775,7 +776,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         Assert.assertFalse(entryList2.getEntries().stream().anyMatch(e -> e.getInfo().isEmpty()));
 
         Set<String> genes = featureIndexManager.searchGenesInVcfFiles(TEST_GENE_PREFIX, Collections.singletonList(
-                                                                                                    testVcf.getId()));
+                testVcf.getId()));
         Assert.assertFalse(genes.isEmpty());
 
         // search by gene name pglyrp4
@@ -799,7 +800,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         entryList2 = featureIndexManager.filterVariations(vcfFilterForm);
         Assert.assertFalse(entryList2.getEntries().isEmpty());
         Assert.assertTrue(entryList2.getEntries().stream().allMatch(e -> e.getInfo() != null && (Boolean) e.getInfo()
-                .get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName())));
+                .get(FeatureIndexFields.IS_EXON.getFieldName())));
 
         // check duplicates
         vcfFilterForm = new VcfFilterForm();

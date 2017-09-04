@@ -15,9 +15,7 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.util.BytesRef;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -72,6 +70,24 @@ public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry> {
         if (entry.getInfo() != null) {
             addVcfDocumentInfoFields(document, entry);
         }
+    }
+
+    @Override protected Set<String> getRequiredFields() {
+        Set<String> requiredFields = new HashSet<>();
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.CHROMOSOME_NAME.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.CHROMOSOME_ID.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.FILE_ID.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.FEATURE_ID.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.START_INDEX.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.END_INDEX.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.GENE_NAME.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.GENE_ID.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.GENE_NAMES.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.GENE_IDS.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.QUALITY.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.VARIATION_TYPE.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName());
+        return requiredFields;
     }
 
     @Override protected VcfIndexEntry createSpecificEntry(Document doc) {

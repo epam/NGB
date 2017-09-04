@@ -81,9 +81,6 @@ If this property is not set, root will be set to the root of file system.
 If you want to configure default options for tracks visualization on a client side, add the following properties:
 * **config.path=/opt/catgenome/configs** path to a directory that contains `json` configuration files for NGB client
 
-If you want to specify max number of VcfIndexEntries keeping in memory during vcf loading, add the following property. For files, which produce more entries then the number, extra entries will be spilled to disk (temp directory).
-* **files.vcf.max.entries.in.memory=1000000** - 1000000 entries take about 3Gb in the heap
-
 You should put **catgenome.properties** in **config** folder in the runtime folder or provide path to folder with properties file from command line:
  
 ```

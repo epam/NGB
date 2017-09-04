@@ -53,6 +53,10 @@ public enum IndexSortField {
         return field;
     }
 
+    public String getFieldName() {
+        return field.getFieldName();
+    }
+
     public static IndexSortField getByName(String name) {
         return fieldMap.get(name);
     }

@@ -83,13 +83,6 @@ echo "file.browsing.allowed=true" >> $CATGENOME_CONF_DIR/catgenome.properties
 echo "ngs.data.root.path=/opt/catgenome" >> $CATGENOME_CONF_DIR/catgenome.properties
 ```
 
-If you want to specify max number of VcfIndexEntries keeping in memory during vcf loading, add the following property. For files, which produce more entries then the number, extra entries will be spilled to disk (temp directory).
-* **files.vcf.max.entries.in.memory=1000000** - 1000000 entries take about 3Gb in the heap
-
-```
-echo "files.vcf.max.entries.in.memory=1000000" >> $CATGENOME_CONF_DIR/catgenome.properties
-```
-
 Set Tomcat configuration in the file **$CATALINA_HOME/conf/server.xml** by adding the 
  following values to the **"Connector"** XML node
  

@@ -191,9 +191,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Value("${vcf.extended.info.patterns}")
     private String infoTemplate;
 
-    @Value("${files.vcf.max.entries.in.memory}")
-    private int maxEntriesInMemory;
-
     private long referenceId;
     private long referenceIdGA4GH;
     private Reference testReference;
@@ -228,7 +225,6 @@ public class VcfManagerTest extends AbstractManagerTest {
         referenceGenomeManager.register(testReferenceGA4GH);
         referenceIdGA4GH = testReferenceGA4GH.getId();
         vcfManager.setExtendedInfoTemplates(infoTemplate);
-        vcfManager.setMaxVcfIndexEntriesInMemory(maxEntriesInMemory);
     }
 
     @Test

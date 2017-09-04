@@ -19,9 +19,12 @@ import org.apache.lucene.facet.FacetsConfig;
 import org.apache.lucene.facet.sortedset.SortedSetDocValuesFacetField;
 import org.apache.lucene.index.DocValuesType;
 import org.apache.lucene.index.IndexOptions;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.util.BytesRef;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 /**
  * An abstract class, whose extensions are responsible for building Lucene documents form
@@ -97,11 +100,14 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
 
     /**
      * Creates an {@link FeatureIndexEntry} from fields of a specified Lucene {@link Document}
-     *
-     * @param doc a document to read entry from
+     * @param searcher to retrieve document from
+     * @param docId a document ID to read entry from
      * @return an {@link FeatureIndexEntry}, represented by specified document
      */
-    public E buildEntry(Document doc) {
+    public E buildEntry(IndexSearcher searcher, int docId) throws IOException {
+        Set<String> requiredFields = getRequiredFields();
+        Document doc = searcher.doc(docId, requiredFields);
+
         FeatureType featureType =
                 FeatureType.forValue(doc.get(FeatureIndexFields.FEATURE_TYPE.getFieldName()));
         E entry = createSpecificEntry(doc);
@@ -133,6 +139,8 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
 
         return entry;
     }
+
+    protected abstract Set<String> getRequiredFields();
 
     /**
      * Creates {@link FacetsConfig} for Lucene {@link org.apache.lucene.index.IndexWriter} to index fields with facets

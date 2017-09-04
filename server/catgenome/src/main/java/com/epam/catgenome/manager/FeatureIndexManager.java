@@ -24,6 +24,8 @@
 
 package com.epam.catgenome.manager;
 
+import static com.epam.catgenome.dao.index.searcher.AbstractIndexSearcher.getIndexSearcher;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -32,7 +34,7 @@ import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.indexer.BigVcfFeatureIndexBuilder;
-import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexBuilder;
+import com.epam.catgenome.dao.index.searcher.LuceneIndexSearcher;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
@@ -68,6 +70,7 @@ import htsjdk.tribble.readers.LineIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,8 +125,8 @@ public class FeatureIndexManager {
     @Value("#{catgenome['search.features.max.results'] ?: 100}")
     private Integer maxFeatureSearchResultsCount;
 
-    @Value("#{catgenome['files.vcf.max.entries.in.memory'] ?: 3000000}")
-    private int maxVcfIndexEntriesInMemory;
+    @Value("#{catgenome['search.indexer.buffer.size'] ?: 256}")
+    private int indexBufferSize;
 
     /**
      * Deletes features from specified feature files from project's index
@@ -167,7 +170,7 @@ public class FeatureIndexManager {
      *
      * @param gene a prefix of a gene ID to search
      * @param vcfFileIds a {@code List} of IDs of VCF files in project to search for gene IDs
-     * @return a {@code Set} of gene IDs, that are affected by some variations in specified VCf files
+     * @return a {@code Set} of gene IDs, that are affected by some variations in specified VCf fileFs
      * @throws IOException if something goes wrong with file system
      */
     public Set<String> searchGenesInVcfFiles(String gene, List<Long> vcfFileIds) throws IOException {
@@ -239,20 +242,7 @@ public class FeatureIndexManager {
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
             .collect(Collectors.toList());
-        if (filterForm.getPage() != null && filterForm.getPageSize() != null) {
-            IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexesPaging(files,
-                                                     filterForm.computeQuery(FeatureType.VARIATION),
-                                                     filterForm.getInfoFields(), filterForm.getPage(),
-                                                     filterForm.getPageSize(), filterForm.getOrderBy());
-            res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount() /
-                    filterForm.getPageSize().doubleValue()));
-            return res;
-        } else {
-            IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexes(files, filterForm.computeQuery(
-                FeatureType.VARIATION), filterForm.getInfoFields(), null, null);
-            res.setExceedsLimit(false);
-            return res;
-        }
+        return getVcfSearchResult(filterForm, files);
     }
 
     public int getTotalPagesCount(VcfFilterForm filterForm) throws IOException {
@@ -321,11 +311,16 @@ public class FeatureIndexManager {
      */
     public IndexSearchResult<VcfIndexEntry> filterVariations(VcfFilterForm filterForm) throws IOException {
         List<VcfFile> files = vcfFileManager.loadVcfFiles(filterForm.getVcfFileIds());
+        return getVcfSearchResult(filterForm, files);
+    }
+
+    @NotNull private IndexSearchResult<VcfIndexEntry> getVcfSearchResult(VcfFilterForm filterForm,
+            List<VcfFile> files) throws IOException {
         if (filterForm.getPage() != null && filterForm.getPageSize() != null) {
-            IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexesPaging(files,
-                                                                   filterForm.computeQuery(FeatureType.VARIATION),
-                                                                   filterForm.getInfoFields(), filterForm.getPage(),
-                                                                   filterForm.getPageSize(), filterForm.getOrderBy());
+            LuceneIndexSearcher<VcfIndexEntry> indexSearcher =
+                    getIndexSearcher(filterForm, featureIndexDao, fileManager, vcfManager);
+            IndexSearchResult<VcfIndexEntry> res =
+                    indexSearcher.getSearchResults(files, filterForm.computeQuery(FeatureType.VARIATION));
             res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount()
                     / filterForm.getPageSize().doubleValue()));
             return res;
@@ -490,47 +485,32 @@ public class FeatureIndexManager {
             String currentKey = null;
             VariantContext variantContext = null;
             BigVcfFeatureIndexBuilder indexer =
-                    new BigVcfFeatureIndexBuilder(info, vcfHeader, featureIndexDao, maxVcfIndexEntriesInMemory);
+                    new BigVcfFeatureIndexBuilder(info, vcfHeader, featureIndexDao,
+                            vcfFile, fileManager, geneFiles, indexBufferSize);
 
             while (iterator.hasNext()) {
                 variantContext = iterator.next();
 
                 if (!variantContext.getContig().equals(currentKey)) {
-                    putVariationsInIndex(indexer, currentKey, vcfFile, geneFiles, chromosomeMap);
+                    indexer.clear();
                     currentKey = variantContext.getContig();
+                    LOGGER.info(MessageHelper
+                            .getMessage(MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE,
+                                    currentKey));
                 }
                 indexer.add(variantContext, chromosomeMap);
             }
-
             // Put the last one
             if (variantContext != null && currentKey != null && Utils
                     .chromosomeMapContains(chromosomeMap, currentKey)) {
-                List<VcfIndexEntry> processedEntries = indexer.build(geneFiles,
-                        Utils.getFromChromosomeMap(chromosomeMap, currentKey));
-
-                featureIndexDao.writeLuceneIndexForFile(vcfFile, processedEntries, info);
                 LOGGER.info(MessageHelper
                         .getMessage(MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE,
                                 currentKey));
                 indexer.clear();
             }
-        } catch (IOException | GeneReadingException e) {
+            indexer.close();
+        } catch (IOException e) {
             throw new FeatureIndexException(vcfFile, e);
-        }
-    }
-
-    private void putVariationsInIndex(VcfFeatureIndexBuilder indexer, String currentKey,
-            VcfFile vcfFile, List<GeneFile> geneFiles, Map<String, Chromosome> chromosomeMap)
-            throws GeneReadingException, IOException {
-        if (currentKey != null && Utils.chromosomeMapContains(chromosomeMap, currentKey)) {
-            List<VcfIndexEntry> processedEntries =
-                    indexer.build(geneFiles, Utils.getFromChromosomeMap(chromosomeMap, currentKey));
-
-            featureIndexDao
-                    .writeLuceneIndexForFile(vcfFile, processedEntries, indexer.getFilterInfo());
-            LOGGER.info(MessageHelper
-                    .getMessage(MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE, currentKey));
-            indexer.clear();
         }
     }
 
