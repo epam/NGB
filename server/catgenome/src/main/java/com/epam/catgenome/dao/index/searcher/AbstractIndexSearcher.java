@@ -57,7 +57,7 @@ public abstract class AbstractIndexSearcher implements LuceneIndexSearcher<VcfIn
         SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
         long indexSize = featureIndexDao.getTotalIndexSize(indexes);
         if (indexSize > featureIndexDao.getLuceneIndexMaxSizeForGrouping() && vcfFilterForm.filterEmpty()) {
-            throw new IllegalArgumentException("Empty filter is not allowed for large feature indices.");
+            throw new IllegalArgumentException("Variations filter shall be specified");
         }
 
         try (MultiReader reader = featureIndexDao.openMultiReader(indexes)) {

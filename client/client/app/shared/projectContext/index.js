@@ -1574,7 +1574,7 @@ export default class projectContext {
             }
             if (error.toLowerCase().indexOf('feature index is too large to perform request') >= 0) {
                 return 'VCF file too large, unable to show data';
-            } if (error.toLowerCase().indexOf('empty filter is not allowed for large feature indices') >= 0) {
+            } if (error.toLowerCase().indexOf('variations filter shall be specified') >= 0) {
                 return error;
             } else {
                 return null;
