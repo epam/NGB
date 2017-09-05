@@ -148,6 +148,9 @@ export default class ngbVariantsFilterListController {
         }
         this.displayText = this.selectedItems.join(", ");
         this.listIsDisplayed = false;
+        if (!this.projectContext.canScheduleFilterVariants()) {
+            return;
+        }
         switch (this.field.field) {
             case 'variationType': {
                 const prevValue = (this.projectContext.vcfFilter.selectedVcfTypes || []);
@@ -158,7 +161,7 @@ export default class ngbVariantsFilterListController {
                 const currValueStr = JSON.stringify(currValue).toUpperCase();
                 if (currValueStr !== prevValueStr) {
                     this.projectContext.vcfFilter.selectedVcfTypes = this.selectedItems.map(i => i.toUpperCase());
-                    this.projectContext.filterVariants();
+                    this.projectContext.scheduleFilterVariants();
                 }
             } break;
             case 'chrName': {
@@ -171,7 +174,7 @@ export default class ngbVariantsFilterListController {
                 const currValueStr = JSON.stringify(currValue).toUpperCase();
                 if (currValueStr !== prevValueStr) {
                     this.projectContext.vcfFilter.chromosomeIds = currValue;
-                    this.projectContext.filterVariants();
+                    this.projectContext.scheduleFilterVariants();
                 }
             } break;
             case 'geneNames': {
@@ -183,7 +186,7 @@ export default class ngbVariantsFilterListController {
                 const currValueStr = JSON.stringify(currValue).toUpperCase();
                 if (currValueStr !== prevValueStr) {
                     this.projectContext.vcfFilter.selectedGenes = this.selectedItems;
-                    this.projectContext.filterVariants();
+                    this.projectContext.scheduleFilterVariants();
                 }
             } break;
         }
