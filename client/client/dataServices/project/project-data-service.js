@@ -55,6 +55,18 @@ export class ProjectDataService extends DataService {
         return this.get(`reference/${referenceId}/search?featureId=${featureId}`);
     }
 
+    searchGeneNames(referenceId, featureId) {
+        return new Promise((resolve) => {
+            this.get(`reference/${referenceId}/search?featureId=${featureId}`).then((data) => {
+                if (data && data.entries) {
+                    resolve(data.entries.map(e => e.featureName));
+                } else {
+                    resolve([]);
+                }
+            });
+        });
+    }
+
     /**
      *
      * @param {Project} project
@@ -103,19 +115,6 @@ export class ProjectDataService extends DataService {
                     resolve(data);
                 }
             },reject);
-        });
-    }
-
-    autocompleteGeneId(search, vcfIds) {
-        return new Promise((resolve) => {
-            this.post('filter/searchGenes', {search, vcfIds}).then((data) => {
-                if (data) {
-                    resolve(data);
-                } else {
-                    data = [];
-                    resolve(data);
-                }
-            });
         });
     }
 }
