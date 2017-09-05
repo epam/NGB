@@ -70,6 +70,7 @@ You can provide an external file **catgenome.properties** to specify data locati
 * **database.password=** password for NGB database, may be empty
 * **database.max.pool.size=25** NGB database connection pool configuration
 * **database.initial.pool.size=5** NGB database connection pool configuration
+* **request.async.timeout** Timeout for long running requests, e.g., filtering variations table
 
 If you want to enable browsing NGS files directly from server's file system, add the following properties:
 

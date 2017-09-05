@@ -30,7 +30,7 @@ public abstract class AbstractIndexSearcher implements LuceneIndexSearcher<VcfIn
     private FileManager fileManager;
     private VcfManager vcfManager;
     private VcfFilterForm vcfFilterForm;
-    private static  final ExecutorService executor = Executors.newCachedThreadPool();
+    private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
 
     public AbstractIndexSearcher(FeatureIndexDao featureIndexDao, FileManager fileManager,
             VcfManager vcfManager, VcfFilterForm filterForm) {
@@ -62,7 +62,7 @@ public abstract class AbstractIndexSearcher implements LuceneIndexSearcher<VcfIn
             if (reader.numDocs() == 0) {
                 return new IndexSearchResult<>(Collections.emptyList(), false, 0);
             }
-            IndexSearcher searcher = new IndexSearcher(reader, executor);
+            IndexSearcher searcher = new IndexSearcher(reader, EXECUTOR);
             AbstractDocumentBuilder<VcfIndexEntry> documentCreator = AbstractDocumentBuilder
                     .createDocumentCreator(files.get(0).getFormat(), vcfFilterForm.getInfoFields());
             Sort sort = createSorting(vcfFilterForm.getOrderBy(), files);

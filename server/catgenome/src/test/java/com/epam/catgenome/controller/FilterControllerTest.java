@@ -1,6 +1,8 @@
 package com.epam.catgenome.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,6 +21,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -165,9 +168,13 @@ public class FilterControllerTest extends AbstractControllerTest {
         vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.MNP,
                                                                                 VariationType.INS), false));
 
-        ResultActions actions = mvc()
-            .perform(post(URL_FILTER).content(
-                getObjectMapper().writeValueAsString(vcfFilterForm)).contentType(EXPECTED_CONTENT_TYPE))
+        MvcResult mvcResult = mvc()
+                .perform(post(URL_FILTER).content(
+                        getObjectMapper().writeValueAsString(vcfFilterForm)).contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        ResultActions actions = mvc().perform(asyncDispatch(mvcResult))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
             .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
@@ -191,9 +198,14 @@ public class FilterControllerTest extends AbstractControllerTest {
         vcfFilterForm.setGenes(null);
         vcfFilterForm.setVariationTypes(null);
 
+        mvcResult = mvc()
+                .perform(post(URL_FILTER).content(
+                        getObjectMapper().writeValueAsString(vcfFilterForm)).contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
         actions = mvc()
-            .perform(post(URL_FILTER).content(
-                getObjectMapper().writeValueAsString(vcfFilterForm)).contentType(EXPECTED_CONTENT_TYPE))
+            .perform(asyncDispatch(mvcResult))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
             .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
@@ -217,14 +229,19 @@ public class FilterControllerTest extends AbstractControllerTest {
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
         vcfFilterForm.setVcfFileIds(Collections.singletonList(vcfFile.getId()));
 
-        ResultActions actions = mvc()
+        MvcResult mvcResult = mvc()
             .perform(post(URL_FILTER_GROUP).content(getObjectMapper().writeValueAsString(vcfFilterForm))
                          .param("groupBy", "VARIATION_TYPE")
                          .contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(MockMvcResultMatchers.status().isOk())
-            .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
-            .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+            .andExpect(request().asyncStarted())
+            .andReturn();
+
+        ResultActions actions = mvc().perform(asyncDispatch(mvcResult))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(
+                        MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
         actions.andDo(MockMvcResultHandlers.print());
 
         ResponseResult<List<Group>> groupRes = getObjectMapper()
