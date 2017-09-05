@@ -282,7 +282,7 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                             geneName.toLowerCase(), Field.Store.YES));
                 }
             }
-            if (!StringUtils.isNotBlank(entry.getGeneNames())) {
+            if (StringUtils.isNotBlank(entry.getGeneNames())) {
                 document.add(new SortedSetDocValuesFacetField(FeatureIndexFields.GENE_NAMES.getFieldName(),
                         entry.getGeneNames()));
                 document.add(new SortedSetDocValuesField(FeatureIndexFields.GENE_NAMES.getFieldName(),
