@@ -157,7 +157,7 @@ export default class ngbVariantsFilterListController {
                 currValue.sort();
                 const currValueStr = JSON.stringify(currValue).toUpperCase();
                 if (currValueStr !== prevValueStr) {
-                    this.projectContext.vcfFilter.selectedVcfTypes = this.selectedItems;
+                    this.projectContext.vcfFilter.selectedVcfTypes = this.selectedItems.map(i => i.toUpperCase());
                     this.projectContext.filterVariants();
                 }
             } break;
