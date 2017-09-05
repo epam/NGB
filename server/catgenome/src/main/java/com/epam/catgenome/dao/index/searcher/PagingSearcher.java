@@ -54,6 +54,6 @@ public class PagingSearcher extends AbstractIndexSearcher{
             VcfIndexEntry entry = documentCreator.buildEntry(searcher, hits[i].doc);
             entries.add(entry);
         }
-        return hits[to-1];
+        return hits.length == 0 ? null : hits[to-1];
     }
 }
