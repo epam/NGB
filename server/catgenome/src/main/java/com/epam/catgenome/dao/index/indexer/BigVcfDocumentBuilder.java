@@ -101,8 +101,7 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                 new SortedSetDocValuesFacetField(FeatureIndexFields.CHROMOSOME_NAME.getFieldName(),
                         entry.getChromosome().getName()));
         document.add(new StringField(FeatureIndexFields.CHROMOSOME_NAME.getFieldName(),
-                new BytesRef(entry.getChromosome().getName()),
-                Field.Store.YES)); // TODO: change to string?
+                new BytesRef(entry.getChromosome().getName()), Field.Store.YES)); // TODO: change to string?
 
         document.add(new SortedIntPoint(FeatureIndexFields.START_INDEX.getFieldName(),
                 entry.getStartIndex()));
@@ -267,13 +266,13 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                             geneId.toLowerCase(), Field.Store.YES));
                 }
             }
-            document.add(
-                    new SortedSetDocValuesFacetField(FeatureIndexFields.GENE_IDS.getFieldName(),
-                            entry.getGeneIds()));
-            document.add(new SortedSetDocValuesField(FeatureIndexFields.GENE_IDS.getFieldName(),
-                    new BytesRef(entry.getGeneIds())));
-            document.add(new StoredField(FeatureIndexFields.GENE_IDS.getFieldName(),
-                    entry.getGeneIds()));
+            if (StringUtils.isNotBlank(entry.getGeneIds())) {
+                document.add(new SortedSetDocValuesFacetField(FeatureIndexFields.GENE_IDS.getFieldName(),
+                        entry.getGeneIds()));
+                document.add(new SortedSetDocValuesField(FeatureIndexFields.GENE_IDS.getFieldName(),
+                        new BytesRef(entry.getGeneIds())));
+                document.add(new StoredField(FeatureIndexFields.GENE_IDS.getFieldName(), entry.getGeneIds()));
+            }
         }
 
         if (CollectionUtils.isNotEmpty(entry.getGeneNameList())) {
@@ -283,14 +282,13 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                             geneName.toLowerCase(), Field.Store.YES));
                 }
             }
-
-            document.add(
-                    new SortedSetDocValuesFacetField(FeatureIndexFields.GENE_NAMES.getFieldName(),
-                            entry.getGeneNames()));
-            document.add(new SortedSetDocValuesField(FeatureIndexFields.GENE_NAMES.getFieldName(),
-                    new BytesRef(entry.getGeneNames())));
-            document.add(new StoredField(FeatureIndexFields.GENE_NAMES.getFieldName(),
-                    entry.getGeneNames()));
+            if (!StringUtils.isNotBlank(entry.getGeneNames())) {
+                document.add(new SortedSetDocValuesFacetField(FeatureIndexFields.GENE_NAMES.getFieldName(),
+                        entry.getGeneNames()));
+                document.add(new SortedSetDocValuesField(FeatureIndexFields.GENE_NAMES.getFieldName(),
+                        new BytesRef(entry.getGeneNames())));
+                document.add(new StoredField(FeatureIndexFields.GENE_NAMES.getFieldName(), entry.getGeneNames()));
+            }
         }
 
         document.add(new SortedSetDocValuesFacetField(FeatureIndexFields.IS_EXON.getFieldName(),
