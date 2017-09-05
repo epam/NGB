@@ -1,6 +1,7 @@
 package com.epam.catgenome.app;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 
 import com.epam.catgenome.config.SwaggerConfig;
 import com.epam.catgenome.controller.JsonMapper;
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter;
@@ -59,6 +61,7 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
         configurer.setDefaultTimeout(asyncTimeout);
+        configurer.setTaskExecutor(new TaskExecutorAdapter(Executors.newCachedThreadPool()));
     }
 
     @Bean

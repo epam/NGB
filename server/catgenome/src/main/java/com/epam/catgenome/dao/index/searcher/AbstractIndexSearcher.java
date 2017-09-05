@@ -2,8 +2,6 @@ package com.epam.catgenome.dao.index.searcher;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.index.FeatureIndexDao;
@@ -18,6 +16,7 @@ import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
+import com.epam.catgenome.parallel.TaskExecutor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.lucene.index.MultiReader;
@@ -30,7 +29,6 @@ public abstract class AbstractIndexSearcher implements LuceneIndexSearcher<VcfIn
     private FileManager fileManager;
     private VcfManager vcfManager;
     private VcfFilterForm vcfFilterForm;
-    private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
 
     public AbstractIndexSearcher(FeatureIndexDao featureIndexDao, FileManager fileManager,
             VcfManager vcfManager, VcfFilterForm filterForm) {
@@ -62,7 +60,7 @@ public abstract class AbstractIndexSearcher implements LuceneIndexSearcher<VcfIn
             if (reader.numDocs() == 0) {
                 return new IndexSearchResult<>(Collections.emptyList(), false, 0);
             }
-            IndexSearcher searcher = new IndexSearcher(reader, EXECUTOR);
+            IndexSearcher searcher = new IndexSearcher(reader, TaskExecutor.getExecutorService());
             AbstractDocumentBuilder<VcfIndexEntry> documentCreator = AbstractDocumentBuilder
                     .createDocumentCreator(files.get(0).getFormat(), vcfFilterForm.getInfoFields());
             Sort sort = createSorting(vcfFilterForm.getOrderBy(), files);
