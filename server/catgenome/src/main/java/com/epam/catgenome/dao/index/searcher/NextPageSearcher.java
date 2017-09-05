@@ -37,7 +37,8 @@ public class NextPageSearcher extends AbstractIndexSearcher {
             VcfIndexEntry entry = documentCreator.buildEntry(searcher, hits[i].doc);
             entries.add(entry);
         }
-        ScoreDoc lastEntry = hits[hits.length-1];
+
+        ScoreDoc lastEntry = hits.length == 0 ? null : hits[hits.length-1];
         return new IndexSearchResult<>(entries, false, docs.totalHits, lastEntry);
     }
 

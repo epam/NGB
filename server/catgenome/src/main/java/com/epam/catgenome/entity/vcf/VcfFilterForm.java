@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
@@ -98,6 +99,17 @@ public class VcfFilterForm {
         addPositionFilter(builder);
         addAdditionalFilters(builder);
         return builder.build();
+    }
+
+    public boolean filterEmpty() {
+        return isFilterEmpty(variationTypes) && isFilterEmpty(genes) && isFilterEmpty(effects)
+                && isFilterEmpty(impacts) && MapUtils.isEmpty(additionalFilters)
+                && CollectionUtils.isEmpty(quality) && (isExon == null || !isExon) && startIndex == null &&
+                endIndex == null && CollectionUtils.isEmpty(chromosomeIds);
+    }
+
+    private <T> boolean isFilterEmpty(FilterSection<List<T>> filterSection) {
+        return filterSection == null || CollectionUtils.isEmpty(filterSection.field);
     }
 
     private void addAdditionalFilters(BooleanQuery.Builder builder) {
