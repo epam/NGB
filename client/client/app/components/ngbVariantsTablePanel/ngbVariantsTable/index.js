@@ -1,6 +1,7 @@
 
 import angular from 'angular';
 import uiGrid from '../../../compat/uiGrid';
+import './ngbVariantsTable.scss';
 
 // Import internal modules
 import tableController from './ngbVariantsTable.controller';

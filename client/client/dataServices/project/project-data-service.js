@@ -94,7 +94,7 @@ export class ProjectDataService extends DataService {
 
     getVcfVariationLoad(filter) {
         return new Promise((resolve, reject) => {
-            this.post('filter', filter).catch(()=>resolve({})).then((data) => {
+            this.post('filter', filter).catch((response)=>resolve({...response, error: true})).then((data) => {
                 if (data) {
                     resolve(data);
                 } else {
