@@ -809,9 +809,30 @@ export default class projectContext {
         this.filter({callbacks, infoFields});
     }
 
+    _blockFilterVariants;
+
     clearVcfFilter() {
+        const blockFilterVariantsTimeout = 500;
+        if (this._blockFilterVariants) {
+            clearTimeout(this._blockFilterVariants);
+            this._blockFilterVariants = null;
+        }
         const callbacks = this._getVcfCallbacks();
         this.filter({asDefault:true, callbacks});
+        this._blockFilterVariants = setTimeout(() => {
+            this._blockFilterVariants = null;
+        }, blockFilterVariantsTimeout);
+    }
+
+    canScheduleFilterVariants() {
+        return !this._blockFilterVariants;
+    }
+
+    scheduleFilterVariants() {
+        if (this._blockFilterVariants) {
+            return;
+        }
+        this.filterVariants();
     }
 
     filterVariants() {
