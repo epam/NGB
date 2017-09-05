@@ -1,5 +1,5 @@
 import {Sorting} from '../../utilities';
-import { aminoacidsConst , complementNucleotidesConst } from '../../core';
+import { aminoAcidsConst , complementNucleotidesConst } from '../../core';
 
 export default class ShortVariantTransformer{
 
@@ -464,7 +464,7 @@ export default class ShortVariantTransformer{
             aminoacids.push({
                 startIndex: aStart + gene.startIndex,
                 endIndex: aStart + 2 + gene.startIndex,
-                aminoacid: aminoacidsConst[aminoacidStr.toUpperCase()]
+                aminoacid: aminoAcidsConst[aminoacidStr.toUpperCase()]
             });
         }
     }

@@ -1,6 +1,7 @@
 export default {
-    height: 41,
+    height: 100,
     nucleotidesHeight: 20,
+    aminoAcidsHeight: 10,
     fitHeightFactor: 1,
     largeScale: {
         'A': 0x8BC743,
@@ -28,6 +29,39 @@ export default {
         text: 'GC content is not provided.'
     },
     reference: {},
+    aminoacid: {
+        even: {
+            fill: 0x6086D1,
+            label: {
+                fill: 0xFFFFFF
+            }
+        },
+        label: {
+            defaultStyle: {
+                fill: 0x030E24,
+                font: 'normal 7pt arial'
+            },
+            margin: 2
+        },
+        number: {
+            fill: 0x030E24,
+            font: 'normal 7pt arial'
+        },
+        odd: {
+            fill: 0x3D62AC,
+            label: {
+                fill: 0xFFFFFF
+            }
+        },
+        stop: {
+            fill: 0xF47B82,
+            oddFill: 0xED1C24,
+            label: {
+                fill: 0xFFFFFF,
+                font: 'normal 10pt arial'
+            }
+        }
+    },
     centerLine:{
         dash: {
             fill: 0x000000,

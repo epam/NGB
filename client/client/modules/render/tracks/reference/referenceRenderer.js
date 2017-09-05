@@ -32,7 +32,7 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
         this._updateNoGCContentLable(viewport, cache.data);
     }
 
-    render(viewport, cache, forseRedraw = false, _gffShowNumbersAminoacid, _showCenterLine, state){
+    render(viewport, cache, forseRedraw = false, _gffShowNumbersAminoacid, _showCenterLine, state) {
         this.showTranslation = state.referenceTranslation;
         this.showForwardStrand = state.referenceShowForwardStrand;
         this.showReverseStrand = state.referenceShowReverseStrand;
@@ -41,7 +41,12 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
     }
 
     _changeNucleotidesReferenceGraph(viewport, items, isReverse) {
-        const height = this._config.nucleotidesHeight;
+        const height = this._config.height;
+        const heightBlock = this._config.nucleotidesHeight;
+        const startY = isReverse ?
+            height / 2.0 + heightBlock :
+            height / 2.0 - heightBlock;
+
         const block = new PIXI.Graphics();
         const pixelsPerBp = viewport.factor;
         let padding = pixelsPerBp / 2.0;
@@ -60,11 +65,11 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
                 startX++;
             }
             block.beginFill(this._config.largeScale[item.value.toUpperCase()], 1);
-            block.moveTo(startX, isReverse ? height - lowScaleMarginOffset : 0);
-            block.lineTo(startX, isReverse ? 2 * height : height);
-            block.lineTo(endX, isReverse ? 2 * height : height);
-            block.lineTo(endX, isReverse ? height - lowScaleMarginOffset : 0);
-            block.lineTo(startX, isReverse ? height - lowScaleMarginOffset : 0);
+            block.moveTo(startX, isReverse ? (startY + lowScaleMarginOffset) : (startY - lowScaleMarginOffset));
+            block.lineTo(startX, height / 2.0);
+            block.lineTo(endX, height / 2.0);
+            block.lineTo(endX, isReverse ? (startY + lowScaleMarginOffset) : (startY - lowScaleMarginOffset));
+            block.lineTo(startX, isReverse ? (startY + lowScaleMarginOffset) : (startY - lowScaleMarginOffset));
             block.endFill();
             prevX = endX;
         }
@@ -78,10 +83,9 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
                 const label = new PIXI.Text(item.value, this._config.largeScale.labelStyle);
                 label.resolution = drawingConfiguration.resolution;
                 label.x = Math.round(this.correctedXPosition(item.xStart) - label.width / 2.0);
-                label.y = Math.round(height / 2.0 - label.height / 2.0 + (isReverse ? height : 0));
+                label.y = Math.round(isReverse ? (height / 2 + label.width / 2.0) : (startY + label.width / 2.0 - 1));
                 this.dataContainer.addChild(label);
             }
-
         }
     }
 
@@ -112,6 +116,79 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
         this.dataContainer.addChild(block);
     }
 
+    _getLabelStyleConfig(acid) {
+        let fill = this._config.aminoacid.even.fill;
+        let labelStyle = Object.assign({}, this._config.aminoacid.label.defaultStyle, this._config.aminoacid.even.label);
+
+        if (acid.value.toLowerCase() === 'stop') {
+            fill = acid.startIndex % 2 === 1 ? this._config.aminoacid.stop.oddFill : this._config.aminoacid.stop.fill;
+            labelStyle = Object.assign({}, this._config.aminoacid.label.defaultStyle, this._config.aminoacid.stop.label);
+        }
+        else if (acid.startIndex % 2 === 1) {
+            fill = this._config.aminoacid.odd.fill;
+            labelStyle = Object.assign({}, this._config.aminoacid.label.defaultStyle, this._config.aminoacid.odd.label);
+        }
+        return {
+            fill,
+            labelStyle
+        };
+    }
+
+    _changeAminoAcidsGraph(viewport, aminoAcidsData, isReverse) {
+        let index = 0;
+        aminoAcidsData.forEach(aminoAcid => {
+            const heightBlock = this._config.aminoAcidsHeight;
+            const startY = isReverse ?
+                this._config.height / 2.0 + this._config.nucleotidesHeight + index * heightBlock :
+                this._config.height / 2.0 - this._config.nucleotidesHeight - index * heightBlock;
+
+            const block = new PIXI.Graphics();
+            const pixelsPerBp = viewport.factor;
+            let padding = pixelsPerBp / 2.0;
+            const lowScaleMarginOffset = 0.5;
+
+            let prevX = null;
+            for (let i = 0; i < aminoAcid.aminoAcids.length; i++) {
+                const item = aminoAcid.aminoAcids[i];
+                const {fill} = this._getLabelStyleConfig(item);
+
+                if (viewport.isShortenedIntronsMode && !viewport.shortenedIntronsViewport.checkFeature(item))
+                    continue;
+                let startX = Math.round(this.correctedXPosition(item.xStart) - padding);
+                const endX = Math.round(this.correctedXPosition(item.xEnd) + padding);
+
+                block.beginFill(fill, 1).lineStyle(0, fill, 0);
+                block.moveTo(startX, isReverse ? startY + lowScaleMarginOffset : startY - lowScaleMarginOffset);
+                block.lineTo(startX, isReverse ? startY + heightBlock : startY - heightBlock);
+                block.lineTo(endX, isReverse ? startY + heightBlock : startY - heightBlock);
+                block.lineTo(endX, isReverse ? startY + lowScaleMarginOffset : startY - lowScaleMarginOffset);
+                block.lineTo(startX, isReverse ? startY + lowScaleMarginOffset : startY - lowScaleMarginOffset);
+                block.endFill();
+                prevX = endX;
+            }
+            this.dataContainer.addChild(block);
+
+            for (let i = 0; i < aminoAcid.aminoAcids.length; i++) {
+                const item = aminoAcid.aminoAcids[i];
+                const {labelStyle} = this._getLabelStyleConfig(item);
+
+                if (viewport.isShortenedIntronsMode && !viewport.shortenedIntronsViewport.checkFeature(item))
+                    continue;
+
+                const isStopCodon = item.value.toLowerCase() === 'stop';
+                const label = new PIXI.Text(isStopCodon ? '*' : item.value, labelStyle);
+                label.resolution = drawingConfiguration.resolution;
+
+                const labelPadding = isStopCodon  ? label.height / 4.0 : label.height / 2.0;
+
+                label.x = Math.round(this.correctedXPosition(item.xStart) + (item.xEnd - item.xStart) / 2.0 - label.width / 2.0);
+                label.y = Math.round(isReverse ? (startY + heightBlock / 2.0 - labelPadding) : (startY - heightBlock / 2.0 - labelPadding - 1));
+                this.dataContainer.addChild(label);
+            }
+            index++;
+        });
+    }
+
     _changeReferenceGraph(viewport, reference) {
         if (reference === null || reference === undefined)
             return;
@@ -122,12 +199,17 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
                 this._changeGCContentReferenceGraph(viewport, reference);
                 break;
             case modes.nucleotides: {
-                debugger;
-                if(this.showForwardStrand) {
+                if (this.showForwardStrand) {
                     this._changeNucleotidesReferenceGraph(viewport, reference.items, false);
                 }
-                if(this.showReverseStrand) {
+                if (this.showReverseStrand) {
                     this._changeNucleotidesReferenceGraph(viewport, reference.reverseItems, true);
+                }
+                if (this.showForwardStrand && this.showTranslation) {
+                    this._changeAminoAcidsGraph(viewport, reference.aminoAcidsData, false);
+                }
+                if (this.showReverseStrand && this.showTranslation) {
+                    this._changeAminoAcidsGraph(viewport, reference.reverseAminoAcidsData, true);
                 }
                 break;
             }

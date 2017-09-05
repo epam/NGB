@@ -1,4 +1,4 @@
-export const aminoacidsConst = {
+export const aminoAcidsConst = {
     TTT: 'F',
     TTC: 'F',
     TTA: 'L',
