@@ -105,6 +105,8 @@ export default class projectContext {
     _hasMoreVariations = true;
     _orderByVariations = null;
     _totalPagesCountVariations = null;
+    _variationsPointer = null;
+    _variationsPointerPage = null;
 
     _browsingAllowed = false;
 
@@ -145,6 +147,23 @@ export default class projectContext {
     set totalPagesCountVariations(value) {
         this._totalPagesCountVariations = value;
     }
+
+    get variationsPointer() {
+        return this._variationsPointer;
+    }
+
+    set variationsPointer(value) {
+        this._variationsPointer = value;
+    }
+
+    get variationsPointerPage() {
+        return this._variationsPointerPage;
+    }
+
+    set variationsPointerPage(value) {
+        this._variationsPointerPage = value;
+    }
+
     get variationsPageSize() {
         return PAGE_SIZE;
     }
@@ -298,6 +317,7 @@ export default class projectContext {
     set rewriteLayout(value) {
         this._rewriteLayout = value;
     }
+
 
     get layout() {
         if (this._layout)
@@ -1203,6 +1223,8 @@ export default class projectContext {
             this._vcfInfo = [];
             this._infoFields = [];
             this._totalPagesCountVariations = 0;
+            this._variationsPointer = null;
+            this._variationsPointerPage = null;
             this._currentPageVariations = FIRST_PAGE;
             this._lastPageVariations = FIRST_PAGE;
             this._firstPageVariations = FIRST_PAGE;
@@ -1600,6 +1622,12 @@ export default class projectContext {
             startIndex,
             endIndex
         };
+        if (this.variationsPointer && this.variationsPointerPage + 1 === page) {
+            filter.pointer = this.variationsPointer;
+        } else {
+            this.variationsPointer = null;
+            this.variationsPointerPage = null;
+        }
         this._variantsPageLoading = true;
         this.dispatcher.emit('variants:page:loading:started');
         let data = await this.projectDataService.getVcfVariationLoad(filter);
@@ -1609,6 +1637,9 @@ export default class projectContext {
 
         if (!data.entries && (data.totalPagesCount !== undefined && data.totalPagesCount < page)) {
             filter.page = data.totalPagesCount;
+            filter.pointer = null;
+            this.variationsPointer = null;
+            this.variationsPointerPage = null;
             this.currentPageVariations = data.totalPagesCount || FIRST_PAGE;
             this.firstPageVariations = data.totalPagesCount || FIRST_PAGE;
             this.lastPageVariations = data.totalPagesCount || FIRST_PAGE;
@@ -1632,6 +1663,8 @@ export default class projectContext {
         }
 
         this.totalPagesCountVariations = data.totalPagesCount;
+        this.variationsPointer = data.pointer;
+        this.variationsPointerPage = filter.page;
         const entries = data.entries ? data.entries : [];
         this._variantsPageLoading = false;
         this.dispatcher.emit('variants:page:loading:finished');
