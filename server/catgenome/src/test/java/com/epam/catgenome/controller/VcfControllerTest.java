@@ -24,11 +24,8 @@
 
 package com.epam.catgenome.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,6 +43,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.transaction.annotation.Propagation;
@@ -189,9 +187,14 @@ public class VcfControllerTest extends AbstractControllerTest {
         vcfTrackQuery.setSampleId(vcfFilesRes.getPayload().get(0).getSamples().get(0).getId());
         vcfTrackQuery.setId(fileId);
 
-        actions = mvc()
+        MvcResult mvcResult = mvc()
                 .perform(post(URL_LOAD_VARIATIONS).content(getObjectMapper().writeValueAsString(vcfTrackQuery))
                         .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        actions = mvc()
+                .perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(jsonPath(JPATH_PAYLOAD).exists())

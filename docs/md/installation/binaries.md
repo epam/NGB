@@ -64,6 +64,7 @@ properties:
 * **database.password=** password for NGB database, may be empty
 * **database.max.pool.size=25** NGB database connection pool configuration
 * **database.initial.pool.size=5** NGB database connection pool configuration
+* **request.async.timeout** Timeout for long running requests, e.g., filtering variations table
 ```
 echo "files.base.directory.path=/opt/catgenome/contents" > $CATGENOME_CONF_DIR/catgenome.properties
 echo "database.driver.class=org.h2.Driver" >> $CATGENOME_CONF_DIR/catgenome.properties

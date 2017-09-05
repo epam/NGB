@@ -2,6 +2,9 @@ package com.epam.catgenome.app;
 
 import java.util.List;
 
+import com.epam.catgenome.config.SwaggerConfig;
+import com.epam.catgenome.controller.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -22,13 +25,7 @@ import org.springframework.security.oauth2.provider.client.ClientCredentialsToke
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
-
-import com.epam.catgenome.config.SwaggerConfig;
-import com.epam.catgenome.controller.JsonMapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.servlet.config.annotation.*;
 /**
  * Class provides MVC Configuration for Spring Boot application
  */
@@ -47,6 +44,9 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
     @Value("#{catgenome['use.embedded.tomcat']}")
     private String useEmbedded;
 
+    @Value("#{catgenome['request.async.timeout'] ?: 10000}")
+    private long asyncTimeout;
+
     @Bean
     public TomcatConfigurer tomcatConfigurerImpl() {
         if (useEmbeddedContainer()) {
@@ -54,6 +54,11 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+        configurer.setDefaultTimeout(asyncTimeout);
     }
 
     @Bean
@@ -105,13 +110,12 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
     }
 
     @Bean
-    public ServletRegistrationBean dispatcherRegistration(DispatcherServlet dispatcherServlet){
+    public ServletRegistrationBean dispatcherRegistration(DispatcherServlet dispatcherServlet) {
         ServletRegistrationBean bean =
                 new ServletRegistrationBean(dispatcherServlet, "/restapi/*");
         bean.setAsyncSupported(true);
         bean.setName("catgenome");
         bean.setLoadOnStartup(1);
-
         return bean;
     }
 
