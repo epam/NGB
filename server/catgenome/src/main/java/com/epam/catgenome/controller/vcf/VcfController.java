@@ -107,8 +107,10 @@ public class VcfController extends AbstractRESTController {
     @RequestMapping(value = "/vcf/{vcfFileId}/index", method = RequestMethod.GET)
     @ApiOperation(value = "Rebuilds a VCF feature index",
         notes = "Rebuilds a VCF feature index", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Result<Boolean> reindexVcf(@PathVariable long vcfFileId) throws FeatureIndexException {
-        VcfFile file = vcfManager.reindexVcfFile(vcfFileId);
+    public Result<Boolean> reindexVcf(@PathVariable long vcfFileId,
+            @RequestParam(defaultValue = "false") boolean createTabixIndex)
+            throws FeatureIndexException {
+        VcfFile file = vcfManager.reindexVcfFile(vcfFileId, createTabixIndex);
         return Result.success(true, getMessage(MessagesConstants.INFO_FEATURE_INDEX_DONE, file.getId(),
                                                file.getName()));
     }

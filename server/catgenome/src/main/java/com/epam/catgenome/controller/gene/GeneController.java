@@ -135,9 +135,10 @@ public class GeneController extends AbstractRESTController {
                 "<b>full</b> parameter specifies if full original file should be reindexed, or " +
                 "preprocessed large scale and transcript files should be used for indexing.</br>",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Result<Boolean> reindexGeneFile(@PathVariable long geneFileId,  @RequestParam(defaultValue = "false")
-            boolean full) throws IOException {
-        GeneFile geneFile = gffManager.reindexGeneFile(geneFileId, full);
+    public Result<Boolean> reindexGeneFile(@PathVariable long geneFileId,
+            @RequestParam(defaultValue = "false") boolean full,
+            @RequestParam(defaultValue = "false") boolean createTabixIndex) throws IOException {
+        GeneFile geneFile = gffManager.reindexGeneFile(geneFileId, full, createTabixIndex);
         return Result.success(true, MessageHelper.getMessage(MessagesConstants.INFO_FEATURE_INDEX_DONE,
                                                              geneFile.getId(), geneFile.getName()));
     }

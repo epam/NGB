@@ -83,6 +83,12 @@ echo "file.browsing.allowed=true" >> $CATGENOME_CONF_DIR/catgenome.properties
 echo "ngs.data.root.path=/opt/catgenome" >> $CATGENOME_CONF_DIR/catgenome.properties
 ```
 
+Properties for configuring full-text search settings:
+* **search.indexer.buffer.size** Lucene indexer buffer size in MB, larger size of buffer increases speed of file
+ indexing and search performance 
+* **lucene.index.max.size.grouping** Sets maximum Lucene index size in bytes to perform groping requests
+
+
 Set Tomcat configuration in the file **$CATALINA_HOME/conf/server.xml** by adding the 
  following values to the **"Connector"** XML node
  

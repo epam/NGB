@@ -81,6 +81,11 @@ If this property is not set, root will be set to the root of file system.
 If you want to configure default options for tracks visualization on a client side, add the following properties:
 * **config.path=/opt/catgenome/configs** path to a directory that contains `json` configuration files for NGB client
 
+Properties for configuring full-text search settings:
+* **search.indexer.buffer.size** Lucene indexer buffer size in MB, larger size of buffer increases speed of file
+ indexing and search performance 
+* **lucene.index.max.size.grouping** Sets maximum Lucene index size in bytes to perform groping requests
+
 You should put **catgenome.properties** in **config** folder in the runtime folder or provide path to folder with properties file from command line:
  
 ```
