@@ -341,16 +341,17 @@ export default class ngbVariantsTableController extends baseController {
             this.projectContext.orderByVariations = null;
         }
 
-        this.projectContext.firstPageVariations = this.projectContext.currentPageVariations;
-        this.projectContext.lastPageVariations = this.projectContext.currentPageVariations;
+        this.projectContext.firstPageVariations = 1;
+        this.projectContext.lastPageVariations = 1;
 
         this.gridApi.infiniteScroll.setScrollDirections(false, false);
         this.gridOptions.data = [];
-        this.projectContext.loadVariations(this.projectContext.currentPageVariations).then((data) => {
+        this.projectContext.loadVariations(1).then((data) => {
             if (this.projectContext.variantsPageError) {
-                console.log(this.projectContext.variantsPageError);
+                this.variantsLoadError = this.projectContext.variantsPageError;
                 this.gridOptions.data = [];
             } else {
+                this.variantsLoadError = null;
                 const self = this;
                 this.gridOptions.data = data;
                 this.$timeout(function () {

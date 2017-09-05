@@ -840,9 +840,9 @@ export default class projectContext {
         this.filterVariants();
     }
 
-    filterVariants() {
+    filterVariants(keepPage = false) {
         const callbacks = this._getVcfCallbacks();
-        this.filter({callbacks});
+        this.filter({callbacks, keepPage: keepPage});
     }
 
     refreshVcfFilterEmptyStatus() {
@@ -1445,16 +1445,18 @@ export default class projectContext {
         }
         this._isVariantsLoading = true;
         (async() => {
-            const {infoFields, asDefault, callbacks} = opts;
+            const {infoFields, asDefault, callbacks, keepPage} = opts;
             const {onError, onFinish, onInit, onSetToDefault, onStart, groupByCallbacks} = callbacks;
             if (onStart) {
                 onStart();
             }
             await this._initializeVariants(onInit);
-            if (asDefault) {
+            if (!keepPage) {
                 this.currentPageVariations = FIRST_PAGE;
                 this.firstPageVariations = FIRST_PAGE;
                 this.lastPageVariations = FIRST_PAGE;
+            }
+            if (asDefault) {
                 this._hasMoreVariations = true;
                 this._vcfFilter = {
                     additionalFilters: {},
