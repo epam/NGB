@@ -80,6 +80,9 @@ public class Pointer {
     }
 
     public static Pointer fromScoreDoc(ScoreDoc doc) {
+        if (doc == null) {
+            return null;
+        }
         if (doc instanceof FieldDoc) {
             FieldDoc fieldDoc = (FieldDoc)doc;
             Pointer pointer = new Pointer(doc.score, doc.doc, doc.shardIndex);
