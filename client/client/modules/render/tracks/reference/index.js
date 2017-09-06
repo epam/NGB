@@ -21,7 +21,7 @@ export class REFERENCETrack extends CachedTrack {
 
     get stateKeys() {
         return [
-            'referenceTranslation',
+            'referenceShowTranslation',
             'referenceShowForwardStrand',
             'referenceShowReverseStrand'
         ];
@@ -34,6 +34,7 @@ export class REFERENCETrack extends CachedTrack {
         const wrapStateFn = (fn) => () => fn(this.state);
         const wrapMutatorFn = (fn) => () => {
             fn(this.state);
+            this.updateHeight();
             this.updateAndRefresh();
             this.reportTrackState();
         };
@@ -78,8 +79,12 @@ export class REFERENCETrack extends CachedTrack {
         if (reqToken === this.__currentDataUpdateReq && this.cache) {
             if (data.mode) {
                 switch (data.mode) {
-                    case modes.gcContentNotProvided: this.hideTrack(); break;
-                    default: this.showTrack(); break;
+                    case modes.gcContentNotProvided:
+                        this.hideTrack();
+                        break;
+                    default:
+                        this.showTrack();
+                        break;
                 }
             }
             const transformedData = ReferenceTransformer.transform(data, this.viewport, this.cache.data);
@@ -88,8 +93,12 @@ export class REFERENCETrack extends CachedTrack {
             }
             if (transformedData.mode) {
                 switch (transformedData.mode) {
-                    case modes.gcContentNotProvided: this.hideTrack(); break;
-                    default: this.showTrack(); break;
+                    case modes.gcContentNotProvided:
+                        this.hideTrack();
+                        break;
+                    default:
+                        this.showTrack();
+                        break;
                 }
             }
             this.cache.data = transformedData;
@@ -99,8 +108,8 @@ export class REFERENCETrack extends CachedTrack {
     }
 
     render(flags) {
-        super.render(flags);
-        let somethingChanged = false;
+        let somethingChanged = super.render(flags);
+        this.updateHeight();
 
         if (flags.renderReset) {
             somethingChanged = true;
@@ -108,7 +117,6 @@ export class REFERENCETrack extends CachedTrack {
         }
         if (flags.brushChanged || flags.widthChanged || flags.heightChanged || flags.renderReset || flags.dataChanged) {
             somethingChanged = true;
-            this._referenceRenderer.height = this.height;
             this._referenceRenderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, null, this._showCenterLine, this.state);
         }
         return somethingChanged;
@@ -118,5 +126,28 @@ export class REFERENCETrack extends CachedTrack {
         await this.updateCache();
         this._flags.dataChanged = true;
         await this.requestRenderRefresh();
+    }
+
+    updateHeight() {
+        if (this.cache.data && this.cache.data.mode === modes.gcContent) {
+            this._referenceRenderer.height = this.trackConfig.minHeight;
+        }
+        else if (this.state.referenceShowForwardStrand && this.state.referenceShowReverseStrand && this.state.referenceShowTranslation) {
+            this._referenceRenderer.height = this.trackConfig.height;
+        }
+        else if (this.state.referenceShowReverseStrand && this.state.referenceShowTranslation || this.state.referenceShowForwardStrand && this.state.referenceShowTranslation) {
+            this._referenceRenderer.height = this.trackConfig.height / 2;
+        }
+        else if (this.state.referenceShowReverseStrand && this.state.referenceShowForwardStrand && !this.state.referenceShowTranslation) {
+            this._referenceRenderer.height = 2 * this.trackConfig.nucleotidesHeight;
+        }
+        else if (this.state.referenceShowReverseStrand || this.state.referenceShowForwardStrand) {
+            this._referenceRenderer.height = this.trackConfig.nucleotidesHeight;
+        }
+        else {
+            this._referenceRenderer.height = this.trackConfig.minHeight;
+        }
+
+        this.height = this._referenceRenderer.height;
     }
 }

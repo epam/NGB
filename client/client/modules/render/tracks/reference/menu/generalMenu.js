@@ -3,9 +3,9 @@ import {menu} from '../../../utilities';
 export default {
     fields: [
         {
-            disable: state => state.referenceTranslation = false,
-            enable: state => state.referenceTranslation = true,
-            isEnabled: state => state.referenceTranslation,
+            disable: state => state.referenceShowTranslation = false,
+            enable: state => state.referenceShowTranslation = true,
+            isEnabled: state => state.referenceShowTranslation,
             label: 'Show translation',
             name: 'reference>showTranslation',
             type: 'checkbox'

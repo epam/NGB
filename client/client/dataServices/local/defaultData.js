@@ -52,7 +52,7 @@ export default {
             coverageLogScale: false,
             coverageScaleFrom: undefined,
             coverageScaleTo: undefined,
-            referenceTranslation: false,
+            referenceShowTranslation: false,
             referenceShowForwardStrand: true,
             referenceShowReverseStrand: false
         },

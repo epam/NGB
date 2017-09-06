@@ -1,5 +1,6 @@
 export default {
     height: 100,
+    minHeight: 20,
     nucleotidesHeight: 20,
     aminoAcidsHeight: 10,
     fitHeightFactor: 1,

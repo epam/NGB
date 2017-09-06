@@ -33,19 +33,28 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
     }
 
     render(viewport, cache, forseRedraw = false, _gffShowNumbersAminoacid, _showCenterLine, state) {
-        this.showTranslation = state.referenceTranslation;
+        this.showTranslation = state.referenceShowTranslation;
         this.showForwardStrand = state.referenceShowForwardStrand;
         this.showReverseStrand = state.referenceShowReverseStrand;
 
+        this.isRenderingStartsAtMiddle = !(this.showForwardStrand && !this.showReverseStrand || !this.showForwardStrand && this.showReverseStrand);
         super.render(viewport, cache, forseRedraw, _gffShowNumbersAminoacid, _showCenterLine);
     }
 
     _changeNucleotidesReferenceGraph(viewport, items, isReverse) {
-        const height = this._config.height;
+        const height = this.height;
         const heightBlock = this._config.nucleotidesHeight;
-        const startY = isReverse ?
-            height / 2.0 + heightBlock :
-            height / 2.0 - heightBlock;
+        let startY;
+
+        if (this.isRenderingStartsAtMiddle) {
+            startY = isReverse ?
+                height / 2.0 + heightBlock :
+                height / 2.0 - heightBlock;
+        } else {
+            startY = isReverse ?
+                heightBlock :
+                height - heightBlock;
+        }
 
         const block = new PIXI.Graphics();
         const pixelsPerBp = viewport.factor;
@@ -65,11 +74,16 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
                 startX++;
             }
             block.beginFill(this._config.largeScale[item.value.toUpperCase()], 1);
-            block.moveTo(startX, isReverse ? (startY + lowScaleMarginOffset) : (startY - lowScaleMarginOffset));
-            block.lineTo(startX, height / 2.0);
-            block.lineTo(endX, height / 2.0);
-            block.lineTo(endX, isReverse ? (startY + lowScaleMarginOffset) : (startY - lowScaleMarginOffset));
-            block.lineTo(startX, isReverse ? (startY + lowScaleMarginOffset) : (startY - lowScaleMarginOffset));
+            block.moveTo(startX, isReverse ? startY + lowScaleMarginOffset : startY - lowScaleMarginOffset);
+            if (this.isRenderingStartsAtMiddle) {
+                block.lineTo(startX, height / 2.0);
+                block.lineTo(endX, height / 2.0);
+            } else {
+                block.lineTo(startX, isReverse ? 0 : height);
+                block.lineTo(endX, isReverse ? 0 : height);
+            }
+            block.lineTo(endX, isReverse ? startY + lowScaleMarginOffset : startY - lowScaleMarginOffset);
+            block.lineTo(startX, isReverse ? startY + lowScaleMarginOffset : startY - lowScaleMarginOffset);
             block.endFill();
             prevX = endX;
         }
@@ -83,7 +97,12 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
                 const label = new PIXI.Text(item.value, this._config.largeScale.labelStyle);
                 label.resolution = drawingConfiguration.resolution;
                 label.x = Math.round(this.correctedXPosition(item.xStart) - label.width / 2.0);
-                label.y = Math.round(isReverse ? (height / 2 + label.width / 2.0) : (startY + label.width / 2.0 - 1));
+                if (this.isRenderingStartsAtMiddle) {
+                    label.y = Math.round(isReverse ? height / 2 + label.width / 2.0 : startY + label.width / 2.0 - 1);
+                } else {
+                    label.y = Math.round(isReverse ? label.width / 2.0 : height - heightBlock + label.width / 2.0 - 1);
+
+                }
                 this.dataContainer.addChild(label);
             }
         }
@@ -136,11 +155,18 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
 
     _changeAminoAcidsGraph(viewport, aminoAcidsData, isReverse) {
         let index = 0;
-        aminoAcidsData.forEach(aminoAcid => {
+        aminoAcidsData.forEach(aminoAcids => {
             const heightBlock = this._config.aminoAcidsHeight;
-            const startY = isReverse ?
-                this._config.height / 2.0 + this._config.nucleotidesHeight + index * heightBlock :
-                this._config.height / 2.0 - this._config.nucleotidesHeight - index * heightBlock;
+            let startY;
+            if (this.isRenderingStartsAtMiddle) {
+                startY = isReverse ?
+                    this.height / 2.0 + this._config.nucleotidesHeight + index * heightBlock :
+                    this.height / 2.0 - this._config.nucleotidesHeight - index * heightBlock;
+            } else {
+                startY = isReverse ?
+                    this._config.nucleotidesHeight + index * heightBlock :
+                    this.height - this._config.nucleotidesHeight - index * heightBlock;
+            }
 
             const block = new PIXI.Graphics();
             const pixelsPerBp = viewport.factor;
@@ -148,8 +174,8 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
             const lowScaleMarginOffset = 0.5;
 
             let prevX = null;
-            for (let i = 0; i < aminoAcid.aminoAcids.length; i++) {
-                const item = aminoAcid.aminoAcids[i];
+            for (let i = 0; i < aminoAcids.length; i++) {
+                const item = aminoAcids[i];
                 const {fill} = this._getLabelStyleConfig(item);
 
                 if (viewport.isShortenedIntronsMode && !viewport.shortenedIntronsViewport.checkFeature(item))
@@ -168,8 +194,8 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
             }
             this.dataContainer.addChild(block);
 
-            for (let i = 0; i < aminoAcid.aminoAcids.length; i++) {
-                const item = aminoAcid.aminoAcids[i];
+            for (let i = 0; i < aminoAcids.length; i++) {
+                const item = aminoAcids[i];
                 const {labelStyle} = this._getLabelStyleConfig(item);
 
                 if (viewport.isShortenedIntronsMode && !viewport.shortenedIntronsViewport.checkFeature(item))
@@ -179,10 +205,10 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
                 const label = new PIXI.Text(isStopCodon ? '*' : item.value, labelStyle);
                 label.resolution = drawingConfiguration.resolution;
 
-                const labelPadding = isStopCodon  ? label.height / 4.0 : label.height / 2.0;
+                const labelPadding = isStopCodon ? label.height / 4.0 : label.height / 2.0;
 
                 label.x = Math.round(this.correctedXPosition(item.xStart) + (item.xEnd - item.xStart) / 2.0 - label.width / 2.0);
-                label.y = Math.round(isReverse ? (startY + heightBlock / 2.0 - labelPadding) : (startY - heightBlock / 2.0 - labelPadding - 1));
+                label.y = Math.round(isReverse ? startY + heightBlock / 2.0 - labelPadding : startY - heightBlock / 2.0 - labelPadding - 1);
                 this.dataContainer.addChild(label);
             }
             index++;

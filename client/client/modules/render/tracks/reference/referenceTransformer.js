@@ -81,14 +81,17 @@ export default class ReferenceTransformer {
         let aminoAcidsData = [];
         let reverseAminoAcidsData = [];
         if (mode === modes.nucleotides) {
-            for (let j = 0; j < 3; j++) {
-                let firstCoordinate = items[0].startIndex % 3 + j;
-                let aminoAcids = getAminoAcidsFn(items, firstCoordinate);
-                aminoAcidsData.push({firstCoordinate: firstCoordinate, aminoAcids: aminoAcids});
+            let coordinates = [{index: 0, value: items[0].startIndex % 3}, {index: 1, value: items[1].startIndex % 3}, {index: 2, value: items[2].startIndex % 3}];
+            coordinates.sort((a, b) => a.value > b.value ? 1 : -1);
+            let firstCoordinate = coordinates[0];
 
-                let reverseFirstCoordinate = reverseItems[0].startIndex % 3 + j;
-                let reverseAminoAcids = getAminoAcidsFn(reverseItems, reverseFirstCoordinate);
-                reverseAminoAcidsData.push({firstCoordinate: reverseFirstCoordinate, aminoAcids: reverseAminoAcids});
+            coordinates = [{index: 0, value: reverseItems[0].startIndex % 3}, {index: 1, value: reverseItems[1].startIndex % 3}, {index: 2, value: reverseItems[2].startIndex % 3}];
+            coordinates.sort((a, b) => a.value > b.value ? 1 : -1);
+            let reverseFirstCoordinate = coordinates[0];
+
+            for (let j = 0; j < 3; j++) {
+                aminoAcidsData.push(getAminoAcidsFn(items, firstCoordinate.index + j));
+                reverseAminoAcidsData.push(getAminoAcidsFn(reverseItems, reverseFirstCoordinate.index + j));
             }
         }
 

@@ -55,7 +55,7 @@ export default class projectContext {
         coverageLogScale: 'cls',
         coverageScaleFrom: 'csf',
         coverageScaleTo: 'cst',
-        referenceTranslation: 'rt',
+        referenceShowTranslation: 'rt',
         referenceShowForwardStrand: 'rsfs',
         referenceShowReverseStrand: 'rsrs'
     };
