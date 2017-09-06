@@ -19,6 +19,9 @@ export default class ngbVariantsFilterCheckboxController {
     }
 
     apply() {
+        if (!this.projectContext.canScheduleFilterVariants()) {
+            return;
+        }
         const name = this.field.field.toLowerCase();
         switch (name) {
             case 'exons': this.projectContext.vcfFilter.exons = this.value; break;
@@ -26,6 +29,6 @@ export default class ngbVariantsFilterCheckboxController {
                 this.projectContext.vcfFilter.additionalFilters[this.field.field] = this.value ? this.value : undefined;
             } break;
         }
-        this.projectContext.filterVariants();
+        this.projectContext.scheduleFilterVariants();
     }
 }

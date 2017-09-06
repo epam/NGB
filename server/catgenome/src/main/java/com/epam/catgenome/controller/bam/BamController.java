@@ -29,6 +29,7 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTra
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -160,16 +161,17 @@ public class BamController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public final Result<BamTrack<Read>> loadFullTrack(@RequestBody final TrackQuery query,
+    public final Callable<Result<BamTrack<Read>>> loadFullTrack(@RequestBody final TrackQuery query,
                                                       @RequestParam(required = false) final String fileUrl,
-                                                      @RequestParam(required = false) final String indexUrl)
-            throws IOException {
-        if (fileUrl == null) {
-            return Result.success(bamManager.getBamTrack(convertToTrack(query), query.getOption()));
-        } else {
-            return Result.success(bamManager.getBamTrackFromUrl(convertToTrack(query), query.getOption(), fileUrl,
-                    indexUrl));
-        }
+                                                      @RequestParam(required = false) final String indexUrl) {
+        return () -> {
+            if (fileUrl == null) {
+                return Result.success(bamManager.getBamTrack(convertToTrack(query), query.getOption()));
+            } else {
+                return Result.success(bamManager.getBamTrackFromUrl(convertToTrack(query), query.getOption(), fileUrl,
+                        indexUrl));
+            }
+        };
     }
 
     /**

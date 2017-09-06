@@ -30,6 +30,7 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTra
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -107,8 +108,10 @@ public class VcfController extends AbstractRESTController {
     @RequestMapping(value = "/vcf/{vcfFileId}/index", method = RequestMethod.GET)
     @ApiOperation(value = "Rebuilds a VCF feature index",
         notes = "Rebuilds a VCF feature index", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Result<Boolean> reindexVcf(@PathVariable long vcfFileId) throws FeatureIndexException {
-        VcfFile file = vcfManager.reindexVcfFile(vcfFileId);
+    public Result<Boolean> reindexVcf(@PathVariable long vcfFileId,
+            @RequestParam(defaultValue = "false") boolean createTabixIndex)
+            throws FeatureIndexException {
+        VcfFile file = vcfManager.reindexVcfFile(vcfFileId, createTabixIndex);
         return Result.success(true, getMessage(MessagesConstants.INFO_FEATURE_INDEX_DONE, file.getId(),
                                                file.getName()));
     }
@@ -156,21 +159,24 @@ public class VcfController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Track<Variation>> loadTrack(@RequestBody final VcfTrackQuery trackQuery,
+    public Callable<Result<Track<Variation>>> loadTrack(@RequestBody final VcfTrackQuery trackQuery,
                                               @RequestParam(required = false) final String fileUrl,
                                               @RequestParam(required = false) final String indexUrl)
         throws VcfReadingException {
-        final Track<Variation> variationTrack = convertToTrack(trackQuery);
-        final boolean collapsed = trackQuery.getCollapsed() == null || trackQuery.getCollapsed();
+        return () -> {
+            final Track<Variation> variationTrack = convertToTrack(trackQuery);
+            final boolean collapsed = trackQuery.getCollapsed() == null || trackQuery.getCollapsed();
 
-        if (fileUrl == null) {
-            return Result.success(vcfManager.loadVariations(variationTrack, trackQuery.getSampleId(), false,
-                                                            collapsed));
-        } else {
-            return Result.success(vcfManager.loadVariations(variationTrack, fileUrl, indexUrl,
-                                        trackQuery.getSampleId() != null ? trackQuery.getSampleId().intValue() : null,
-                                                            false, collapsed));
-        }
+            if (fileUrl == null) {
+                return Result.success(vcfManager
+                        .loadVariations(variationTrack, trackQuery.getSampleId(), false, collapsed));
+            } else {
+                return Result.success(vcfManager.loadVariations(variationTrack, fileUrl, indexUrl,
+                        trackQuery.getSampleId() != null ?
+                                trackQuery.getSampleId().intValue() :
+                                null, false, collapsed));
+            }
+        };
     }
 
     @ResponseBody

@@ -24,12 +24,8 @@
 
 package com.epam.catgenome.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.io.File;
 import java.util.List;
@@ -44,6 +40,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.transaction.annotation.Propagation;
@@ -186,7 +183,7 @@ public class BamControllerTest extends AbstractControllerTest {
 
         ResultActions actions = mvc()
                 .perform(post(BAM_FILE_REGISTER).content(getObjectMapper().writeValueAsString(request))
-                        .contentType(EXPECTED_CONTENT_TYPE))
+                .contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(jsonPath(JPATH_PAYLOAD).exists())
@@ -208,9 +205,14 @@ public class BamControllerTest extends AbstractControllerTest {
         bamQueryOption.setTrackDirection(TrackDirectionType.LEFT);
         bamTrackQuery.setOption(bamQueryOption);
 
-        actions = mvc()
+        MvcResult mvcResult = mvc()
                 .perform(post(BAM_TRACK_GET).content(getObjectMapper().writeValueAsString(bamTrackQuery))
                         .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        actions = mvc()
+                .perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(jsonPath(JPATH_PAYLOAD).exists())
@@ -290,12 +292,12 @@ public class BamControllerTest extends AbstractControllerTest {
         query.setId(bamFile.getId());
 
         actions = mvc()
-            .perform(post(BAM_READ_LOAD).content(getObjectMapper().writeValueAsString(query))
-                         .contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(jsonPath(JPATH_PAYLOAD).exists())
-            .andExpect(jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+                .perform(post(BAM_READ_LOAD).content(getObjectMapper().writeValueAsString(query))
+                        .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
         actions.andDo(MockMvcResultHandlers.print());
 
         ResponseResult<Read> readRes = getObjectMapper()

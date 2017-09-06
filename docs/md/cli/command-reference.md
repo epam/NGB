@@ -214,13 +214,15 @@ ngb index_file|if [<PATH_TO_NGS_FILE>] [options]
 //Options:
 //-t (--table)              Print result as a human-readable table
 //-j (--json)               Print result as a JSON string
+//-nt (--no-tabix)          Do not rewrite tabix index during file reindexing
 ```
 *Description*
 
 Command builds a feature index for a specified file.
 This can be useful to reindex a file or to create one if a file was registered with `--no_index` option.
 Feature index is used for search and filtering capabilities for BED/VCF/GFF/GTF files.
-File could be address by name or an identifier.
+File could be address by name or an identifier. Option `--no-tabix` determines whether tabix index
+should not be rewritten during file reindexing.
 
 *Note: this command is used for internal NGB indexing - it could not be used to index BAM/CRAM files*
 

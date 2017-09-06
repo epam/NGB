@@ -21,7 +21,7 @@ public enum IndexSortField {
     END_INDEX(FeatureIndexFields.END_INDEX, SortField.Type.INT),
     FILTER(FeatureIndexFields.FAILED_FILTER, SortField.Type.STRING),
     VARIATION_TYPE(FeatureIndexFields.VARIATION_TYPE, SortField.Type.STRING),
-    QUALITY(FeatureIndexFields.QUALITY, SortField.Type.FLOAT),
+    QUALITY(FeatureIndexFields.QUALITY, SortField.Type.STRING),
     GENE_ID(FeatureIndexFields.GENE_IDS, SortField.Type.STRING),
     GENE_NAME(FeatureIndexFields.GENE_NAMES, SortField.Type.STRING);
 
@@ -51,6 +51,10 @@ public enum IndexSortField {
 
     public FeatureIndexFields getField() {
         return field;
+    }
+
+    public String getFieldName() {
+        return field.getFieldName();
     }
 
     public static IndexSortField getByName(String name) {

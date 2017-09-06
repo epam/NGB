@@ -71,7 +71,7 @@ ext {
     versionUnitils = "3.4.2"
     versionJavaXServlet = "3.1.0"
     versionMockito = "1.10.19"
-    versionLucene = "6.0.0"
+    versionLucene = "6.6.0"
 }
 
 // >>>>> repositories that should be used to find any external dependencies
@@ -146,6 +146,7 @@ dependencies {
     compile group: "org.apache.lucene", name:"lucene-analyzers-common", version: versionLucene
     compile group: "org.apache.lucene", name:"lucene-grouping", version: versionLucene
     compile group: "org.apache.lucene", name:"lucene-facet", version: versionLucene
+    compile group: "org.apache.lucene", name:"lucene-backward-codecs", version: versionLucene
 
     //hadoop
     compile group: "org.apache.hadoop", name:"hadoop-client", version: "2.2.0"
