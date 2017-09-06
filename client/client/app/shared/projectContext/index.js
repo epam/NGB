@@ -341,7 +341,19 @@ export default class projectContext {
         if (localStorage.getItem('vcfColumns') === null || localStorage.getItem('vcfColumns') === undefined) {
             localStorage.setItem('vcfColumns', JSON.stringify(DEFAULT_VCF_COLUMNS));
         }
-        return JSON.parse(localStorage.getItem('vcfColumns'));
+        let columns = JSON.parse(localStorage.getItem('vcfColumns'));
+        let defaultColumnsExists = true;
+        for (let i = 0; i < DEFAULT_VCF_COLUMNS.length; i++) {
+            if (columns.map(c => c.toLowerCase()).indexOf(DEFAULT_VCF_COLUMNS[i].toLowerCase()) === -1) {
+                defaultColumnsExists = false;
+                break;
+            }
+        }
+        if (!defaultColumnsExists) {
+            columns = DEFAULT_VCF_COLUMNS.map(c => c);
+            localStorage.setItem('vcfColumns', JSON.stringify(columns || []));
+        }
+        return columns;
     }
 
     set vcfColumns(columns) {
