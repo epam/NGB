@@ -16,6 +16,16 @@ $icon-button-width: rem(4.000) !default;
   }
 }
 
+.md-button__icon-left {
+  .control-label {
+    display: block;
+    margin-left: 20px;
+  }
+  ng-md-icon {
+    float: left;
+  }
+}
+
 .md-button__right {
   float: right;
 }
