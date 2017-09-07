@@ -125,7 +125,7 @@ export default class ngbVariantsTableController extends baseController {
                 return;
             }
             if (this.projectContext.containsVcfFiles) {
-                if (this.projectContext.filteredVariants.length) {
+                if (this.projectContext.filteredVariants.length || this.projectContext.variantsPageError) {
                     this.variantsLoadingFinished();
                 }
             } else {
