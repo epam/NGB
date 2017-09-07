@@ -33,7 +33,7 @@ export default class ReferenceTransformer {
             return {
                 endIndex: item.endIndex,
                 startIndex: item.startIndex,
-                value: complementNucleotidesConst[item.text],
+                value: complementNucleotidesConst[item.text.toUpperCase()],
                 xEnd: viewport.project.brushBP2pixel(item.endIndex),
                 xStart: viewport.project.brushBP2pixel(item.startIndex)
             };
@@ -65,6 +65,9 @@ export default class ReferenceTransformer {
             let aminoAcids = [];
             for (let i = firstCoordinate; i < nucleotideItems.length; i = i + 3) {
                 if (nucleotideItems[i] && nucleotideItems[i + 1] && nucleotideItems[i + 2]) {
+                    console.log(nucleotideItems[i])
+                    console.log(nucleotideItems[i+1])
+                    console.log(nucleotideItems[i+2])
                     const aminoAcidStr = nucleotideItems[i].value + nucleotideItems[i + 1].value + nucleotideItems[i + 2].value;
                     aminoAcids.push({
                         startIndex: nucleotideItems[i].startIndex,
