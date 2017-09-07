@@ -1,6 +1,23 @@
 import {menu} from '../../../utilities';
 
 export default {
+    displayName: state => {
+        let selectedStates = [];
+        if (state.referenceShowForwardStrand) {
+            selectedStates.push('Forward strand');
+        }
+        if (state.referenceShowReverseStrand)  {
+            selectedStates.push('Reverse strand');
+        }
+        if (state.referenceShowTranslation)  {
+            selectedStates.push('Translation');
+        }
+        if(selectedStates.length > 0) {
+            return `General (${selectedStates.join(', ')})`;
+        } else {
+            return `General`
+        }
+    },
     fields: [
         {
             disable: state => state.referenceShowTranslation = false,
@@ -28,7 +45,6 @@ export default {
             type: 'checkbox'
         }
     ],
-    label: 'General',
     name: 'reference>general',
     type: 'submenu'
 };

@@ -31,6 +31,7 @@ export default {
     },
     reference: {},
     aminoacid: {
+        labelDisplayAfterPixelsPerBp: 7,
         even: {
             fill: 0x6086D1,
             label: {
@@ -60,6 +61,13 @@ export default {
             label: {
                 fill: 0xFFFFFF,
                 font: 'normal 10pt arial'
+            }
+        },
+        start: {
+            fill: 0xC8BFE7,
+            oddFill: 0x8774CB,
+            label: {
+                fill: 0xFFFFFF,
             }
         }
     },
