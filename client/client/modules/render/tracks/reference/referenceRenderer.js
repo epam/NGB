@@ -145,6 +145,9 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
         } else if (acid.value.toLowerCase() === 'm') {
             fill = acid.startIndex % 2 === 1 ? this._config.aminoacid.start.oddFill : this._config.aminoacid.start.fill;
             labelStyle = Object.assign({}, this._config.aminoacid.label.defaultStyle, this._config.aminoacid.start.label);
+        }  else if (acid.value.toLowerCase() === 'uncovered') {
+            fill = acid.startIndex % 2 === 1 ? this._config.aminoacid.uncovered.oddFill : this._config.aminoacid.uncovered.fill;
+            labelStyle = Object.assign({}, this._config.aminoacid.label.defaultStyle, this._config.aminoacid.uncovered.label);
         }
         else if (acid.startIndex % 2 === 1) {
             fill = this._config.aminoacid.odd.fill;
@@ -203,11 +206,23 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
                 if (viewport.isShortenedIntronsMode && !viewport.shortenedIntronsViewport.checkFeature(item))
                     continue;
                 if (pixelsPerBp >= this._config.aminoacid.labelDisplayAfterPixelsPerBp) {
-                    const isStopCodon = item.value.toLowerCase() === 'stop';
-                    const label = new PIXI.Text(isStopCodon ? '*' : item.value, labelStyle);
+                    let label;
+                    let labelPadding;
+                    switch (item.value.toLowerCase()) {
+                        case 'stop':
+                            label = new PIXI.Text('*', labelStyle);
+                            labelPadding = label.height / 4.0;
+                            break;
+                        case 'uncovered':
+                            label = new PIXI.Text('n', labelStyle);
+                            labelPadding = label.height / 2.0;
+                            break;
+                        default:
+                            label = new PIXI.Text(item.value, labelStyle);
+                            labelPadding = label.height / 2.0;
+                            break;
+                    }
                     label.resolution = drawingConfiguration.resolution;
-
-                    const labelPadding = isStopCodon ? label.height / 4.0 : label.height / 2.0;
 
                     label.x = Math.round(this.correctedXPosition(item.xStart) + (item.xEnd - item.xStart) / 2.0 - label.width / 2.0);
                     label.y = Math.round(isReverse ? startY + heightBlock / 2.0 - labelPadding : startY - heightBlock / 2.0 - labelPadding - 1);

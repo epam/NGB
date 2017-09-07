@@ -69,6 +69,13 @@ export default {
             label: {
                 fill: 0xFFFFFF,
             }
+        },
+        uncovered: {
+            fill: 0xD7D7D7,
+            oddFill: 0x000000,
+            label: {
+                fill: 0xFFFFFF,
+            }
         }
     },
     centerLine:{

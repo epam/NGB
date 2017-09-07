@@ -33,7 +33,7 @@ export default class ReferenceTransformer {
             return {
                 endIndex: item.endIndex,
                 startIndex: item.startIndex,
-                value: complementNucleotidesConst[item.text.toUpperCase()],
+                value: complementNucleotidesConst[item.text.toUpperCase()] || item.text,
                 xEnd: viewport.project.brushBP2pixel(item.endIndex),
                 xStart: viewport.project.brushBP2pixel(item.startIndex)
             };
@@ -71,7 +71,7 @@ export default class ReferenceTransformer {
                         endIndex: nucleotideItems[i + 2].endIndex,
                         xStart: viewport.project.brushBP2pixel(nucleotideItems[i].startIndex),
                         xEnd: viewport.project.brushBP2pixel(nucleotideItems[i + 2].endIndex),
-                        value: aminoAcidsConst[aminoAcidStr.toUpperCase()]
+                        value: aminoAcidsConst[aminoAcidStr.toUpperCase()] || 'uncovered'
                     })
                 }
             }
