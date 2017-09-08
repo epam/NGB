@@ -322,7 +322,10 @@ public class VcfFileReader extends AbstractVcfReader {
         if (bounds == null) {
             bounds = metaMap.get(Utils.changeChromosomeName(chromosome.getName()));
         }
-        Assert.notNull(bounds, MessageHelper.getMessage(MessageCode.NO_SUCH_CHROMOSOME));
+        if (bounds == null) {
+            track.setBlocks(Collections.emptyList());
+            return true;
+        }
         if (track.getStartIndex() < bounds.getLeft()) {
             track.setStartIndex(bounds.getLeft());
         }
