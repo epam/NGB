@@ -289,7 +289,7 @@ export default class ngbDataSetsService {
                 .map(mapTrackFn);
             let existedTracks = tracksState.filter(track => tracksIds.indexOf(`[${track.bioDataItemId.toLowerCase()}][${track.projectId.toLowerCase()}]`) >= 0);
             if (!existedTracks.filter(t => t.bioDataItemId.toString().toLowerCase() === reference.name.toLowerCase()).length) {
-                existedTracks = [utilities.mapTrackFn(reference), ...existedTracks];
+                existedTracks = [mapTrackFn(reference), ...existedTracks];
             }
             const newTracksState = [...existedTracks, ...addedTracks];
             this.projectContext.changeState({reference: reference, tracks, tracksState: newTracksState, shouldAddAnnotationTracks});
