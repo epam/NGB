@@ -1,7 +1,6 @@
 import webpack, { optimize } from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import ExtractTextPlugin from 'extract-text-webpack-plugin';
-import FaviconsWebpackPlugin from 'favicons-webpack-plugin';
 
 const DEV = global.buildOptions.dev;
 const globals = {
@@ -27,26 +26,8 @@ const prodPlugins = [
 
 export default [
     new webpack.DefinePlugin(globals),
-    new FaviconsWebpackPlugin({
-        logo: './client/app/assets/icons/ngb-logo.png',
-        prefix: 'icons-[hash]/',
-        emitStats: false,
-        persistentCache: true,
-        inject: true,
-        icons: {
-            android: false,
-            appleIcon: false,
-            appleStartup: false,
-            coast: false,
-            favicons: true,
-            firefox: false,
-            opengraph: false,
-            twitter: false,
-            yandex: false,
-            windows: false
-        }
-    }),
     new HtmlWebpackPlugin({
+        favicon: './client/app/assets/icons/ngb-logo.png',
         template: './client/index.html.ejs',
         inject: 'body'
     }),
