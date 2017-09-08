@@ -303,6 +303,4 @@ export default class GeneRenderer extends CachedTrackRenderer {
         }
         return true;
     }
-
 }
-
