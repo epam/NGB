@@ -70,11 +70,14 @@ export default class ReferenceTransformer {
         }
 
 
-        const getAminoAcidsFn = function (nucleotideItems, firstCoordinate) {
+        const getAminoAcidsFn = function (nucleotideItems, firstCoordinate, isRevers) {
             let aminoAcids = [];
             for (let i = firstCoordinate; i < nucleotideItems.length; i = i + 3) {
                 if (nucleotideItems[i] && nucleotideItems[i + 1] && nucleotideItems[i + 2]) {
-                    const aminoAcidStr = nucleotideItems[i].value + nucleotideItems[i + 1].value + nucleotideItems[i + 2].value;
+                    const aminoAcidStr = isRevers ?
+                        nucleotideItems[i+2].value + nucleotideItems[i + 1].value + nucleotideItems[i].value :
+                        nucleotideItems[i].value + nucleotideItems[i + 1].value + nucleotideItems[i + 2].value;
+
                     aminoAcids.push({
                         startIndex: nucleotideItems[i].startIndex,
                         endIndex: nucleotideItems[i + 2].endIndex,
@@ -99,8 +102,8 @@ export default class ReferenceTransformer {
             let reverseFirstCoordinate = coordinates[0];
 
             for (let j = 0; j < 3; j++) {
-                aminoAcidsData.push(getAminoAcidsFn(items, firstCoordinate.index + j));
-                reverseAminoAcidsData.push(getAminoAcidsFn(reverseItems, reverseFirstCoordinate.index + j));
+                aminoAcidsData.push(getAminoAcidsFn(items, firstCoordinate.index + j, false));
+                reverseAminoAcidsData.push(getAminoAcidsFn(reverseItems, reverseFirstCoordinate.index + j, true));
             }
         }
 
