@@ -30,10 +30,19 @@ export default class ReferenceTransformer {
             };
         };
         const mapReverseNucleotideItemsFn = function (item) {
+            let value;
+            if (complementNucleotidesConst.hasOwnProperty(item.text)) {
+                value = complementNucleotidesConst[item.text];
+            } else if (complementNucleotidesConst.hasOwnProperty(item.text.toUpperCase())) {
+                value = complementNucleotidesConst[item.text.toUpperCase()].toLowerCase();
+            } else {
+                value = item.text;
+            }
+
             return {
                 endIndex: item.endIndex,
                 startIndex: item.startIndex,
-                value: complementNucleotidesConst[item.text.toUpperCase()] || item.text,
+                value: value,
                 xEnd: viewport.project.brushBP2pixel(item.endIndex),
                 xStart: viewport.project.brushBP2pixel(item.startIndex)
             };

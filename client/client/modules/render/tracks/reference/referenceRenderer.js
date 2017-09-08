@@ -97,12 +97,8 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
                 const label = new PIXI.Text(item.value, this._config.largeScale.labelStyle);
                 label.resolution = drawingConfiguration.resolution;
                 label.x = Math.round(this.correctedXPosition(item.xStart) - label.width / 2.0);
-                if (this.isRenderingStartsAtMiddle) {
-                    label.y = Math.round(isReverse ? height / 2 + label.width / 2.0 : startY + label.width / 2.0 - 1);
-                } else {
-                    label.y = Math.round(isReverse ? label.width / 2.0 : height - heightBlock + label.width / 2.0 - 1);
+                label.y = Math.round(isReverse ? startY - heightBlock / 2.0 - label.height / 2.0 : startY + heightBlock / 2.0 - label.height / 2.0 - 1);
 
-                }
                 this.dataContainer.addChild(label);
             }
         }
