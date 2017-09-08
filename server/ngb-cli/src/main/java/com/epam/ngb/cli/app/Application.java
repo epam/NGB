@@ -144,6 +144,10 @@ public class Application {
             aliases = {"--force"})
     private boolean forceDeletion = false;
 
+    @Option(name = "-nt", usage = "defines if tabix index shouldn't be rewritten during file reindexing",
+            aliases = {"--no-tabix"})
+    private boolean doNotCreateTabixIndex = false;
+
 
     @Argument
     private List<String> arguments;
@@ -228,6 +232,9 @@ public class Application {
         options.setLocation(location);
         options.setNoGCContent(noGCContent);
         options.setForceDeletion(forceDeletion);
+        if (doNotCreateTabixIndex) {
+            options.setCreateTabixIndex(false);
+        }
         if (doNotIndex) {
             options.setDoIndex(false);
         }

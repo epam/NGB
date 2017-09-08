@@ -64,6 +64,7 @@ properties:
 * **database.password=** password for NGB database, may be empty
 * **database.max.pool.size=25** NGB database connection pool configuration
 * **database.initial.pool.size=5** NGB database connection pool configuration
+* **request.async.timeout** Timeout for long running requests, e.g., filtering variations table
 ```
 echo "files.base.directory.path=/opt/catgenome/contents" > $CATGENOME_CONF_DIR/catgenome.properties
 echo "database.driver.class=org.h2.Driver" >> $CATGENOME_CONF_DIR/catgenome.properties
@@ -83,12 +84,11 @@ echo "file.browsing.allowed=true" >> $CATGENOME_CONF_DIR/catgenome.properties
 echo "ngs.data.root.path=/opt/catgenome" >> $CATGENOME_CONF_DIR/catgenome.properties
 ```
 
-If you want to specify max number of VcfIndexEntries keeping in memory during vcf loading, add the following property. For files, which produce more entries then the number, extra entries will be spilled to disk (temp directory).
-* **files.vcf.max.entries.in.memory=1000000** - 1000000 entries take about 3Gb in the heap
+Properties for configuring full-text search settings:
+* **search.indexer.buffer.size** Lucene indexer buffer size in MB, larger size of buffer increases speed of file
+ indexing and search performance 
+* **lucene.index.max.size.grouping** Sets maximum Lucene index size in bytes to perform groping requests
 
-```
-echo "files.vcf.max.entries.in.memory=1000000" >> $CATGENOME_CONF_DIR/catgenome.properties
-```
 
 Set Tomcat configuration in the file **$CATALINA_HOME/conf/server.xml** by adding the 
  following values to the **"Connector"** XML node

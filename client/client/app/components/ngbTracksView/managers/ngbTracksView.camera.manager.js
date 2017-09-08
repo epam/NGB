@@ -1,4 +1,5 @@
 import {drawingConfiguration} from '../../../../modules/render/core';
+import PIXI from 'pixi.js';
 
 export default class ngbTracksViewBookmarkCamera {
     getTitle;
@@ -12,27 +13,29 @@ export default class ngbTracksViewBookmarkCamera {
     saveBrowserView() {
         const tracks = this.getTracks();
         if (tracks && tracks.length > 0) {
-            const data = tracks
-                .map(track => {
-                    if (track.instance && track.instance.domElement) {
-                        const element = track.instance.domElement;
-                        const canvas = element.getElementsByTagName('CANVAS')[0];
-                        if (canvas) {
-                            return {
-                                'name': track.name,
-                                'format': track.format,
-                                'width': element.clientWidth * drawingConfiguration.scale,
-                                'height': element.clientHeight * drawingConfiguration.scale,
-                                'url': canvas.toDataURL('image/png')
-                            };
+            requestAnimationFrame(() => {
+                const data = tracks
+                    .map(track => {
+                        if (track.instance && track.instance.domElement) {
+                            const element = track.instance.domElement;
+                            const imgData = track.instance.getImageData();
+                            if (imgData) {
+                                return {
+                                    'name': track.name,
+                                    'format': track.format,
+                                    'width': element.clientWidth * drawingConfiguration.scale,
+                                    'height': element.clientHeight * drawingConfiguration.scale,
+                                    'img': imgData
+                                };
+                            }
+                            return null;
                         }
                         return null;
-                    }
-                    return null;
-                })
-                .filter(x => x);
+                    })
+                    .filter(x => x);
 
-            this._downloadView(data);
+                this._downloadView(data);
+            });
         }
     }
 
@@ -49,14 +52,15 @@ export default class ngbTracksViewBookmarkCamera {
                     ctx.fillStyle = '#000000';
                     ctx.fillText(`${x.format} ${x.name}`, 0, y);
                 }
-                const img = new Image();
-                img.src = x.url;
-                ctx.drawImage(img, 0, y);
-                y += x.height;
+                if (x.img) {
+                    ctx.drawImage(x.img, 0, y);
+                    y += x.height;
+                }
             });
 
             Object.assign(document.createElement('a'), {
-                download: `${this.getTitle()  }.png`,
+                download: `${this.getTitle()}.png`,
+                name: `${this.getTitle()}.png`,
                 href: canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream')
             }).click();
         }

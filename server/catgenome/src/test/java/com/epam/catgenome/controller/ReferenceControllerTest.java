@@ -24,10 +24,12 @@
 
 package com.epam.catgenome.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
 import java.io.File;
 import java.io.IOException;
@@ -142,8 +144,13 @@ public class ReferenceControllerTest extends AbstractControllerTest {
 
         // 1. load all references registered in the system, at least one reference should
         //    be returned
-        ResultActions actions = mvc()
+        MvcResult mvcResult = mvc()
                 .perform(get(LOAD_ALL_REFERENCES))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        ResultActions actions = mvc()
+                .perform(asyncDispatch(mvcResult))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())

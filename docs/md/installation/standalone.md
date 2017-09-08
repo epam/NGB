@@ -70,6 +70,7 @@ You can provide an external file **catgenome.properties** to specify data locati
 * **database.password=** password for NGB database, may be empty
 * **database.max.pool.size=25** NGB database connection pool configuration
 * **database.initial.pool.size=5** NGB database connection pool configuration
+* **request.async.timeout** Timeout for long running requests, e.g., filtering variations table
 
 If you want to enable browsing NGS files directly from server's file system, add the following properties:
 
@@ -81,8 +82,10 @@ If this property is not set, root will be set to the root of file system.
 If you want to configure default options for tracks visualization on a client side, add the following properties:
 * **config.path=/opt/catgenome/configs** path to a directory that contains `json` configuration files for NGB client
 
-If you want to specify max number of VcfIndexEntries keeping in memory during vcf loading, add the following property. For files, which produce more entries then the number, extra entries will be spilled to disk (temp directory).
-* **files.vcf.max.entries.in.memory=1000000** - 1000000 entries take about 3Gb in the heap
+Properties for configuring full-text search settings:
+* **search.indexer.buffer.size** Lucene indexer buffer size in MB, larger size of buffer increases speed of file
+ indexing and search performance 
+* **lucene.index.max.size.grouping** Sets maximum Lucene index size in bytes to perform groping requests
 
 You should put **catgenome.properties** in **config** folder in the runtime folder or provide path to folder with properties file from command line:
  

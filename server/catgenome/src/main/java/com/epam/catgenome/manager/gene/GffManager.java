@@ -64,7 +64,6 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.externaldb.ensemblevo.EnsemblEntryVO;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
-import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
@@ -210,19 +209,22 @@ public class GffManager {
      * from scratch
      * @param geneFileId an ID of gene file to reindex.
      * @param full
+     * @param createTabixIndex
      * @return a {@link GeneFile}, for which index was created
      * @throws IOException if an error occurred while writing index
      */
-    public GeneFile reindexGeneFile(long geneFileId, boolean full) throws IOException {
+    public GeneFile reindexGeneFile(long geneFileId, boolean full, boolean createTabixIndex) throws IOException {
         GeneFile geneFile = geneFileManager.loadGeneFile(geneFileId);
-        Reference reference = referenceGenomeManager.loadReferenceGenome(geneFile.getReferenceId());
-        Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
-            Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
-
         fileManager.deleteFileFeatureIndex(geneFile);
-
-        featureIndexManager.processGeneFile(geneFile, chromosomeMap, full);
-
+        if (createTabixIndex) {
+            File index = new File(geneFile.getIndex().getPath());
+            if (index.exists()) {
+                index.delete();
+            }
+        }
+        GeneRegisterer geneRegisterer = new GeneRegisterer(referenceGenomeManager, fileManager, featureIndexManager,
+                geneFile);
+        geneRegisterer.reIndexFile(createTabixIndex);
         return geneFile;
     }
 

@@ -1018,6 +1018,9 @@ public class FileManager {
 
         params.put(CHROMOSOME_NAME.name(), chromosomeName);
         File histogramFile = new File(toRealPath(substitute(filePathFormat, params)));
+        if (histogramFile.exists()) {
+            histogramFile.delete();
+        }
         Assert.isTrue(histogramFile.createNewFile(), "Can't create histogram file " + histogramFile.getAbsolutePath());
 
         return new DataOutputStream(new FileOutputStream(histogramFile));
