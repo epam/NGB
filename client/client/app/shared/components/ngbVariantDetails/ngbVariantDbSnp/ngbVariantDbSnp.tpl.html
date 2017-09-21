@@ -1,0 +1,35 @@
+<div flex layout="row" layout-wrap class="md-variant-properties-table">
+
+    <div flex="100" ng-show="ctrl.isLoading">
+        <div class="progress" layout-align="center center">
+            <span>Loading information...</span>
+        </div>
+        <md-progress-linear md-mode="query"></md-progress-linear>
+    </div>
+    <div flex="100" layout-fill layout-margin ng-show="ctrl.hasError" class="md-variant-info-error">
+        {{ctrl.errorMessage}}
+    </div>
+
+    <div ng-hide="ctrl.isLoading || crtl.hasError" layout="column"  layout-align="stretch middle" flex="100">
+
+        <collapsible ng-if="ctrl.variantDbSnp.snpProperties">
+            <collapsible-panel is-open="true">
+                <collapsible-panel-title>
+                    Summary
+                </collapsible-panel-title>
+                <collapsible-panel-content>
+                    <div layout="column"  layout-align="stretch middle" flex="100">
+                        <div flex="100" layout="row" layout-wrap class="property-row"
+                             ng-repeat="property in ctrl.variantDbSnp.snpProperties" ng-if="::property.title">
+                            <div flex="30" class="property property-name">{{property.title}}</div>
+                            <div flex="70" class="property property-value">{{property.value}}</div>
+                        </div>
+                    </div>
+
+                </collapsible-panel-content>
+            </collapsible-panel>
+        </collapsible>
+
+    </div>
+
+</div>
