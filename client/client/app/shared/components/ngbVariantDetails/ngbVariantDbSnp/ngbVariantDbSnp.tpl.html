@@ -34,13 +34,8 @@
                              ng-repeat="property in collapsible.values" ng-if="::property.title">
                             <div flex="30" class="property property-name">{{property.title}}</div>
                             <div flex="70" class="property property-value">
-                                <div ng-switch="property.valueType">
-                                    <div ng-switch-when="array">
-                                        <div ng-repeat="arrayVal in property.value">
-                                            {{arrayVal}}
-                                        </div>
-                                    </div>
-                                    <div ng-switch-default>{{property.value}}</div>
+                                <div ng-repeat="val in property.values">
+                                    {{val}} <a ng-if="::property.hasLink" ng-href="{{property.linkHref}}">{{property.linkText}}</a>
                                 </div>
                             </div>
                         </div>

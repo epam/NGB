@@ -44,47 +44,57 @@ export default class ngbVariantDbSnpService{
         if(snpData.hasOwnProperty('organism_summary')) {
             snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                 title: 'Organism',
-                value: snpData.organism_summary
+                values: [snpData.organism_summary]
             });
         }
         if (variationExists) {
             if (snpData.variation.hasOwnProperty('genomeLabel')) {
                 snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Map to Genome Build',
-                    value: snpData.variation.genomeLabel
+                    values: [snpData.variation.genomeLabel]
                 });
             }
             if (snpData.variation.hasOwnProperty('snp_class')) {
                 snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Variation Class',
-                    value: snpData.variation.snp_class
+                    values: [snpData.variation.snp_class]
                 });
             }
         }
         if(snpData.hasOwnProperty('refsnp_alleles')) {
             snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                 title: 'RefSNP Alleles',
-                value: snpData.refsnp_alleles
+                values: [snpData.refsnp_alleles]
             });
         }
         if (variationExists) {
             if (snpData.variation.hasOwnProperty('clinical_significance')) {
-                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
+                let clinSignificance = {
                     title: 'Clinical Significance',
-                    value: snpData.variation.clinical_significance
-                });
+                    values: [snpData.variation.clinical_significance]
+                };
+
+
+
+
+                if(snpData.variation.clinical_significance === 'Pathogenic') {
+                    clinSignificance.hasLink = true;
+                    clinSignificance.linkHref = `https://www.ncbi.nlm.nih.gov/clinvar/?term=${rsId}`;//ClinVar Link
+                    clinSignificance.linkText = '[ClinVar]';
+                }
+                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push(clinSignificance);
             }
             if(snpData.variation.hasOwnProperty('global_maf')) {
                 snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'MAF/MinorAlleleCount',
-                    value: snpData.variation.global_maf
+                    values: [snpData.variation.global_maf]
                 });
             }
         }
         if(snpData.hasOwnProperty('maf_source')) {
             snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                 title: 'MAF Source',
-                value: snpData.maf_source
+                values: [snpData.maf_source]
             });
         }
         if (variationExists && snpData.variation.hasOwnProperty('docsum')) {
@@ -98,8 +108,7 @@ export default class ngbVariantDbSnpService{
 
             snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                 title: 'HGVS Names',
-                valueType: 'array',
-                value: hgvs.split(/,/)
+                values: hgvs.split(/,/)
             });
         }
 
@@ -121,31 +130,31 @@ export default class ngbVariantDbSnpService{
             if(genomeLabelExists) {
                 snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Assembly',
-                    value: snpData.variation.genomeLabel
+                    values: [snpData.variation.genomeLabel]
                 });
             }
             if(chrExists) {
                 snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Chr',
-                    value: snpData.variation.chr
+                    values: [snpData.variation.chr]
                 });
             }
             if(chrposExists) {
                 snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Chr Pos',
-                    value: snpData.variation.chrpos
+                    values: [snpData.variation.chrpos]
                 });
             }
             if(contigLabelExists) {
                 snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Contig',
-                    value: snpData.variation.contigLabel
+                    values: [snpData.variation.contigLabel]
                 });
             }
             if(contigposExists) {
                 snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Contig Pos',
-                    value: snpData.variation.contigpos
+                    values: [snpData.variation.contigpos]
                 });
             }
         }
@@ -163,7 +172,7 @@ export default class ngbVariantDbSnpService{
         if (ref_seq_geneExists) {
             snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                 title: 'RefSeqGene',
-                value: snpData.ref_seq_gene
+                values: [snpData.ref_seq_gene]
             });
         }
         if (genesExists) {
@@ -178,7 +187,7 @@ export default class ngbVariantDbSnpService{
 
                 snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Gene (ID)',
-                    value: genesInfo
+                    values: [genesInfo]
                 });
             }
         }
