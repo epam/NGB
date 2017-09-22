@@ -20,7 +20,7 @@ export default class ngbVariantDbSnpService{
         this._dataService.getNcbiVariationInfo(rsId)
             .then(
                 (data) => {
-                    callback(this._mapVariantSnpData(data));
+                    callback(this._mapVariantSnpData(data, rsId));
                 },
                 () => {
                     errorCallback(this._constants.errorMessages.errorLoadingVariantSnpInfo);
@@ -28,13 +28,16 @@ export default class ngbVariantDbSnpService{
 
     }
 
-    _mapVariantSnpData(snpData) {
+    _mapVariantSnpData(snpData, rsId) {
         let snpCollapsiblePanels = [],
             variationExists = snpData.hasOwnProperty('variation');
 
+        let snpHref = `https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs=${rsId.slice(2)}`;//Snp Link
         snpCollapsiblePanels.push({
             title: 'Summary',
             isOpen: true,
+            snpHref: snpHref,
+            rsId: rsId,
             values: []
         });
 

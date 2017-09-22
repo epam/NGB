@@ -13,7 +13,7 @@
     <div ng-hide="ctrl.isLoading || crtl.hasError" layout="column"  layout-align="stretch middle" flex="100">
 
         <collapsible ng-if="ctrl.variantDbSnp.snpCollapsiblePanels"
-            ng-repeat="collapsible in ctrl.variantDbSnp.snpCollapsiblePanels">
+            ng-repeat="collapsible in ctrl.variantDbSnp.snpCollapsiblePanels track by $index">
             <collapsible-panel is-open="collapsible.isOpen">
                 <collapsible-panel-title>
                     {{collapsible.title}}
@@ -21,13 +21,23 @@
                 <collapsible-panel-content>
                     <div layout="column"  layout-align="stretch middle" flex="100">
                         <div flex="100" layout="row" layout-wrap class="property-row"
+                             ng-if="$index == 0 && collapsible.snpHref && collapsible.rsId">
+                            <div flex="30" class="property property-name">
+                                <a ng-href="{{collapsible.snpHref}}" target="_blank" title="SNP Database">
+                                    {{collapsible.rsId}}
+                                </a>
+                            </div>
+                            <div flex="70" class="property property-value">
+                            </div>
+                        </div>
+                        <div flex="100" layout="row" layout-wrap class="property-row"
                              ng-repeat="property in collapsible.values" ng-if="::property.title">
                             <div flex="30" class="property property-name">{{property.title}}</div>
                             <div flex="70" class="property property-value">
                                 <div ng-switch="property.valueType">
                                     <div ng-switch-when="array">
                                         <div ng-repeat="arrayVal in property.value">
-                                            <div>{{arrayVal}}</div>
+                                            {{arrayVal}}
                                         </div>
                                     </div>
                                     <div ng-switch-default>{{property.value}}</div>

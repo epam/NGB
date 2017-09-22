@@ -16,5 +16,18 @@
   .table-property{
     font-size: 13px;
   }
-}
 
+  a{
+    text-decoration: none;
+    font-size: 14px;
+    color: #679edb;
+    & + span{
+      font-size: 14px;
+      color: #666;
+    }
+    &:hover{
+      text-decoration: underline;
+      color: #2165de;
+    }
+  }
+}
