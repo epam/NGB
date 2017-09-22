@@ -85,7 +85,9 @@ export default class ngbVariantDbSnpService{
             });
         }
         if (variationExists && snpData.variation.hasOwnProperty('docsum')) {
-            let hgvs = snpData.variation.docsum.split(/\|/, 1)[0].slice(5),
+            let hgvs = snpData.variation.docsum.slice(snpData.variation.docsum.indexOf('HGVS='))
+                                               .split(/\|/, 1)[0]
+                                               .slice(5),
                 tmpEl = document.createElement('div');
 
             tmpEl.innerHTML = hgvs;
