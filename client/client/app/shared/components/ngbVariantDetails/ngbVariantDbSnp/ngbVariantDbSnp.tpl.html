@@ -23,7 +23,16 @@
                         <div flex="100" layout="row" layout-wrap class="property-row"
                              ng-repeat="property in collapsible.values" ng-if="::property.title">
                             <div flex="30" class="property property-name">{{property.title}}</div>
-                            <div flex="70" class="property property-value">{{property.value}}</div>
+                            <div flex="70" class="property property-value">
+                                <div ng-switch="property.valueType">
+                                    <div ng-switch-when="array">
+                                        <div ng-repeat="arrayVal in property.value">
+                                            <div>{{arrayVal}}</div>
+                                        </div>
+                                    </div>
+                                    <div ng-switch-default>{{property.value}}</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

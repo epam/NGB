@@ -24,7 +24,7 @@ export default class ngbVariantPanelController extends ngbVariantDetailsControll
 
         let ids = this.variant.id.split(/[;,|\s]/)
                                 .filter(
-                                    id => id.match(/^rs[\d]+/)
+                                    id => id.match(/^rs\d+$/)
                                 );
 
         if (ids[0]) {

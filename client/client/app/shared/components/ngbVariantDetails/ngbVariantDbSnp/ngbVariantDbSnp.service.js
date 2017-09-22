@@ -85,9 +85,16 @@ export default class ngbVariantDbSnpService{
             });
         }
         if (variationExists && snpData.variation.hasOwnProperty('docsum')) {
+            let hgvs = snpData.variation.docsum.split(/\|/, 1)[0].slice(5),
+                tmpEl = document.createElement('div');
+
+            tmpEl.innerHTML = hgvs;
+            hgvs = tmpEl.childNodes[0].nodeValue;
+
             snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                 title: 'HGVS Names',
-                value: snpData.variation.docsum
+                valueType: 'array',
+                value: hgvs.split(/,/)
             });
         }
 
