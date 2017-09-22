@@ -109,7 +109,7 @@ export default class ngbVariantDbSnpService{
 
             if (genomeLabelExists || chrExists || chrposExists || contigLabelExists || contigposExists) {
                 snpCollapsiblePanels.push({
-                    title: 'From table with variation location (Primary Assembly Mapping)',
+                    title: 'Primary Assembly Mapping',
                     isOpen: false,
                     values: []
                 });
@@ -152,7 +152,7 @@ export default class ngbVariantDbSnpService{
             genesExists = variationExists && snpData.variation.hasOwnProperty('genes');
         if (ref_seq_geneExists || genesExists) {
             snpCollapsiblePanels.push({
-                title: 'From table RefSeq Gene Mapping',
+                title: 'RefSeq Gene Mapping',
                 isOpen: false,
                 values: []
             });

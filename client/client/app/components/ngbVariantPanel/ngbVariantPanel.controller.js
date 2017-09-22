@@ -20,8 +20,6 @@ export default class ngbVariantPanelController extends ngbVariantDetailsControll
     }
 
     get rsId() {
-        if(this._rsId !== null) return this._rsId;
-
         let ids = this.variant.id.split(/[;,|\s]/)
                                 .filter(
                                     id => id.match(/^rs\d+$/)
@@ -32,7 +30,6 @@ export default class ngbVariantPanelController extends ngbVariantDetailsControll
         } else {
             this._rsId = null;
         }
-
 
         return this._rsId;
     }
