@@ -22,10 +22,10 @@
                 <ngb-variant-info flex variant="$ctrl.variant" variant-request="$ctrl.variantRequest"></ngb-variant-info>
             </md-tab-body>
         </md-tab>
-        <md-tab ng-if="$ctrl.variant.id.indexOf('rs') + 1" id="dbsnp">
+        <md-tab ng-if="$ctrl.rsId" id="dbsnp">
             <md-tab-label>dbSNP</md-tab-label>
             <md-tab-body>
-                <ngb-variant-db-snp flex variant="$ctrl.variant" variant-request="$ctrl.variantRequest"></ngb-variant-db-snp>
+                <ngb-variant-db-snp flex rs-Id="$ctrl.rsId" variant="$ctrl.variant" variant-request="$ctrl.variantRequest"></ngb-variant-db-snp>
             </md-tab-body>
         </md-tab>
     </md-tabs>

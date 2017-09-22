@@ -12,6 +12,7 @@ export default class ngbVariantDbSnpController extends ngbVariantDetailsControll
     _variantDbSnpService = null;
     _variantDBSnpInfo = null;
     _scope;
+    _rsId;
 
     /* @ngInject */
     constructor($scope, ngbVariantDbSnpService, vcfDataService, constants) {
@@ -21,19 +22,22 @@ export default class ngbVariantDbSnpController extends ngbVariantDetailsControll
         this.INIT();
     }
 
+    get rsId() { return this._rsId; }
+    set rsId(rsId) { this._rsId = rsId; this.INIT(); }
+
     get variantDbSnp() { return this._variantDBSnpInfo; }
     set variantDbSnp(info) { this._variantDBSnpInfo = info; }
 
     INIT(){
-        const hasVariantRequest = !(this.variantRequest === undefined || this.variantRequest === null);
+        const hasRsId = !(this.rsId === undefined || this.rsId === null);
 
         this.isLoading = false;
         this.hasError = false;
 
-        if (hasVariantRequest && this._variantDbSnpService !== null && this._variantDbSnpService !== undefined) {
+        if (hasRsId && this._variantDbSnpService !== null && this._variantDbSnpService !== undefined) {
             this.isLoading = true;
             this._variantDbSnpService
-                .loadVariantSnpInfo(this.variantRequest,
+                .loadVariantSnpInfo(this.rsId,
                     (variantSnpInfo) => {
                         this.variantDbSnp = variantSnpInfo;
 

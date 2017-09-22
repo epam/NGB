@@ -6,6 +6,7 @@ export default {
     controller: controller.UID,
     controllerAs: 'ctrl',
     bindings: {
+        rsId: '<',
         variant: '=',
         variantRequest: '='
     }

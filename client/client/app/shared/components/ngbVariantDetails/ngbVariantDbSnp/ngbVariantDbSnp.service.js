@@ -16,10 +16,7 @@ export default class ngbVariantDbSnpService{
         this._dispatcher = dispatcher;
     }
 
-    loadVariantSnpInfo(variantRequest, callback, errorCallback) {
-        let ids = variantRequest.id.slice(variantRequest.id.indexOf('rs')).split(';');
-        const rsId = ids[0];
-
+    loadVariantSnpInfo(rsId, callback, errorCallback) {
         this._dataService.getNcbiVariationInfo(rsId)
             .then(
                 (data) => {
@@ -32,57 +29,63 @@ export default class ngbVariantDbSnpService{
     }
 
     _mapVariantSnpData(snpData) {
-        let snpProperties = [],
+        let snpCollapsiblePanels = [],
             variationExists = snpData.hasOwnProperty('variation');
 
+        snpCollapsiblePanels.push({
+            title: 'Summary',
+            isOpen: true,
+            values: []
+        });
+
         if(snpData.hasOwnProperty('organism_summary')) {
-            snpProperties.push({
+            snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                 title: 'Organism',
                 value: snpData.organism_summary
             });
         }
         if (variationExists) {
             if (snpData.variation.hasOwnProperty('genomeLabel')) {
-                snpProperties.push({
+                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Map to Genome Build',
                     value: snpData.variation.genomeLabel
                 });
             }
             if (snpData.variation.hasOwnProperty('snp_class')) {
-                snpProperties.push({
+                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Variation Class',
                     value: snpData.variation.snp_class
                 });
             }
         }
         if(snpData.hasOwnProperty('refsnp_alleles')) {
-            snpProperties.push({
+            snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                 title: 'RefSNP Alleles',
                 value: snpData.refsnp_alleles
             });
         }
         if (variationExists) {
             if (snpData.variation.hasOwnProperty('clinical_significance')) {
-                snpProperties.push({
+                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Clinical Significance',
                     value: snpData.variation.clinical_significance
                 });
             }
             if(snpData.variation.hasOwnProperty('global_maf')) {
-                snpProperties.push({
+                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'MAF/MinorAlleleCount',
                     value: snpData.variation.global_maf
                 });
             }
         }
         if(snpData.hasOwnProperty('maf_source')) {
-            snpProperties.push({
+            snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                 title: 'MAF Source',
                 value: snpData.maf_source
             });
         }
         if (variationExists && snpData.variation.hasOwnProperty('docsum')) {
-            snpProperties.push({
+            snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                 title: 'HGVS Names',
                 value: snpData.variation.docsum
             });
@@ -96,38 +99,39 @@ export default class ngbVariantDbSnpService{
                 contigposExists = snpData.variation.hasOwnProperty('contigpos');
 
             if (genomeLabelExists || chrExists || chrposExists || contigLabelExists || contigposExists) {
-                snpProperties.push({
+                snpCollapsiblePanels.push({
                     title: 'From table with variation location (Primary Assembly Mapping)',
-                    value: ''
+                    isOpen: false,
+                    values: []
                 });
             }
 
             if(genomeLabelExists) {
-                snpProperties.push({
+                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Assembly',
                     value: snpData.variation.genomeLabel
                 });
             }
             if(chrExists) {
-                snpProperties.push({
+                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Chr',
                     value: snpData.variation.chr
                 });
             }
             if(chrposExists) {
-                snpProperties.push({
+                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Chr Pos',
                     value: snpData.variation.chrpos
                 });
             }
             if(contigLabelExists) {
-                snpProperties.push({
+                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Contig',
                     value: snpData.variation.contigLabel
                 });
             }
             if(contigposExists) {
-                snpProperties.push({
+                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Contig Pos',
                     value: snpData.variation.contigpos
                 });
@@ -138,13 +142,14 @@ export default class ngbVariantDbSnpService{
         let ref_seq_geneExists = snpData.hasOwnProperty('ref_seq_gene'),
             genesExists = variationExists && snpData.variation.hasOwnProperty('genes');
         if (ref_seq_geneExists || genesExists) {
-            snpProperties.push({
+            snpCollapsiblePanels.push({
                 title: 'From table RefSeq Gene Mapping',
-                value: ''
+                isOpen: false,
+                values: []
             });
         }
         if (ref_seq_geneExists) {
-            snpProperties.push({
+            snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                 title: 'RefSeqGene',
                 value: snpData.ref_seq_gene
             });
@@ -159,7 +164,7 @@ export default class ngbVariantDbSnpService{
                     }
                 }
 
-                snpProperties.push({
+                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'Gene (ID)',
                     value: genesInfo
                 });
@@ -172,7 +177,7 @@ export default class ngbVariantDbSnpService{
 
 
         return {
-            snpProperties: snpProperties
+            snpCollapsiblePanels: snpCollapsiblePanels
         }
     }
 
