@@ -263,3 +263,22 @@
     }
   }
 }
+
+@function get-vw($target, $max-width) {
+  $vw-context: ($max-width * .01) * 1px; // 1% viewport width
+  @return ($target/$vw-context) * 1vw;
+}
+
+@mixin font-size-vw($size, $min-size, $max-width, $min-width) {
+  $max-wide-screen: "(min-width: #{$max-width}px)";
+  $min-wide-screen: "(max-width: #{$min-width}px)";
+
+  font-size: get-vw($size, $max-width);
+
+  @media #{$max-wide-screen} {
+    font-size: $size;
+  }
+  @media #{$min-wide-screen} {
+    font-size: $min-size;
+  }
+}
