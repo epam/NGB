@@ -51,7 +51,10 @@ export default {
             coverageScaleMode: scaleModes.defaultScaleMode,
             coverageLogScale: false,
             coverageScaleFrom: undefined,
-            coverageScaleTo: undefined
+            coverageScaleTo: undefined,
+            referenceShowTranslation: false,
+            referenceShowForwardStrand: true,
+            referenceShowReverseStrand: false
         },
         displayAlignmentsCoverageTooltips: true,
         displayTooltips: true,

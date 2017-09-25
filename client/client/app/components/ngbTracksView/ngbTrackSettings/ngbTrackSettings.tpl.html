@@ -3,7 +3,7 @@
             aria-label="menu"
             ng-click="$mdOpenMenu()"
             style="height: 100%;">
-                <label ng-if="field.displayName()"> {{field.label}}: </label>
+                <label ng-if="field.displayName() && field.label"> {{field.label}}: </label>
                 <a class="capitalize" ng-if="field.displayName() == null" href=""> {{field.label}} </a>
                 <a class="capitalize"ng-if="field.displayAdditionalName() == null" href = "">{{field.displayName()}}</a>
                 <a class="capitalize" ng-if="field.displayAdditionalName()" href = "">{{field.displayName()}}/{{field.displayAdditionalName()}}</a>

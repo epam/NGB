@@ -89,6 +89,10 @@ ngb-track.dndDragging .ngb-track-container, ngb-track.resizing .ngb-track-contai
   &.collapsed {
     display: none;
   }
+
+  &.reference{
+    margin-top: 0px;
+  }
 }
 
 .ngb-track-header-hidden {

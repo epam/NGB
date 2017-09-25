@@ -1,4 +1,5 @@
 import * as modes from './reference.modes';
+import {complementNucleotidesConst, aminoAcidsConst} from '../../core';
 
 export default class ReferenceTransformer {
 
@@ -19,7 +20,7 @@ export default class ReferenceTransformer {
         if (viewport.isShortenedIntronsMode) {
             blocks = viewport.shortenedIntronsViewport.transformFeaturesArray(blocks);
         }
-        const mapNucleotideItemsFn = function(item) {
+        const mapNucleotideItemsFn = function (item) {
             return {
                 endIndex: item.endIndex,
                 startIndex: item.startIndex,
@@ -28,7 +29,25 @@ export default class ReferenceTransformer {
                 xStart: viewport.project.brushBP2pixel(item.startIndex)
             };
         };
-        const mapGCContentItemsFn = function(item) {
+        const mapReverseNucleotideItemsFn = function (item) {
+            let value;
+            if (complementNucleotidesConst.hasOwnProperty(item.text)) {
+                value = complementNucleotidesConst[item.text];
+            } else if (complementNucleotidesConst.hasOwnProperty(item.text.toUpperCase())) {
+                value = complementNucleotidesConst[item.text.toUpperCase()].toLowerCase();
+            } else {
+                value = item.text;
+            }
+
+            return {
+                endIndex: item.endIndex,
+                startIndex: item.startIndex,
+                value: value,
+                xEnd: viewport.project.brushBP2pixel(item.endIndex),
+                xStart: viewport.project.brushBP2pixel(item.startIndex)
+            };
+        };
+        const mapGCContentItemsFn = function (item) {
             return {
                 endIndex: item.endIndex,
                 startIndex: item.startIndex,
@@ -38,14 +57,62 @@ export default class ReferenceTransformer {
             };
         };
         let items = [];
+        let reverseItems = [];
         switch (mode) {
-            case modes.gcContent: items = blocks.map(mapGCContentItemsFn); break;
-            case modes.nucleotides: items = blocks.map(mapNucleotideItemsFn); break;
+            case modes.gcContent:
+                items = blocks.map(mapGCContentItemsFn);
+                break;
+            case modes.nucleotides: {
+                items = blocks.map(mapNucleotideItemsFn);
+                reverseItems = blocks.map(mapReverseNucleotideItemsFn);
+                break;
+            }
+        }
+
+
+        const getAminoAcidsFn = function (nucleotideItems, firstCoordinate, isRevers) {
+            let aminoAcids = [];
+            for (let i = firstCoordinate; i < nucleotideItems.length; i = i + 3) {
+                if (nucleotideItems[i] && nucleotideItems[i + 1] && nucleotideItems[i + 2]) {
+                    const aminoAcidStr = isRevers ?
+                        nucleotideItems[i+2].value + nucleotideItems[i + 1].value + nucleotideItems[i].value :
+                        nucleotideItems[i].value + nucleotideItems[i + 1].value + nucleotideItems[i + 2].value;
+
+                    aminoAcids.push({
+                        startIndex: nucleotideItems[i].startIndex,
+                        endIndex: nucleotideItems[i + 2].endIndex,
+                        xStart: viewport.project.brushBP2pixel(nucleotideItems[i].startIndex),
+                        xEnd: viewport.project.brushBP2pixel(nucleotideItems[i + 2].endIndex),
+                        value: aminoAcidsConst[aminoAcidStr.toUpperCase()] || 'uncovered'
+                    })
+                }
+            }
+            return aminoAcids;
+        };
+
+        let aminoAcidsData = [];
+        let reverseAminoAcidsData = [];
+        if (mode === modes.nucleotides) {
+            let coordinates = [{index: 0, value: items[0].startIndex % 3}, {index: 1, value: items[1].startIndex % 3}, {index: 2, value: items[2].startIndex % 3}];
+            coordinates.sort((a, b) => a.value > b.value ? 1 : -1);
+            let firstCoordinate = coordinates[0];
+
+            coordinates = [{index: 0, value: reverseItems[0].startIndex % 3}, {index: 1, value: reverseItems[1].startIndex % 3}, {index: 2, value: reverseItems[2].startIndex % 3}];
+            coordinates.sort((a, b) => a.value > b.value ? 1 : -1);
+            let reverseFirstCoordinate = coordinates[0];
+
+            for (let j = 0; j < 3; j++) {
+                aminoAcidsData.push(getAminoAcidsFn(items, firstCoordinate.index + j, false));
+                reverseAminoAcidsData.push(getAminoAcidsFn(reverseItems, reverseFirstCoordinate.index + j, true));
+            }
         }
 
         return {
             mode,
             items,
+            reverseItems,
+            aminoAcidsData,
+            reverseAminoAcidsData,
             pixelsPerBp,
             viewport
         };
