@@ -35,7 +35,7 @@
                             <div flex="30" class="property property-name">{{property.title}}</div>
                             <div flex="70" class="property property-value">
                                 <div ng-repeat="val in property.values">
-                                    {{val}} <a ng-if="::property.hasLink" ng-href="{{property.linkHref}}">{{property.linkText}}</a>
+                                    {{val}} <a ng-if="::property.hasLink" ng-href="{{property.linkHref}}" target="_blank">{{property.linkText}}</a>
                                 </div>
                             </div>
                         </div>

@@ -19,6 +19,6 @@ export class ExternaldbDataService extends DataService {
     }
 
     getNcbiVariationInfo(id){
-        return this.get(`/externaldb/ncbi/variation/${id}/get`);
+        return this.get(`externaldb/ncbi/variation/${id}/get`);
     }
 }

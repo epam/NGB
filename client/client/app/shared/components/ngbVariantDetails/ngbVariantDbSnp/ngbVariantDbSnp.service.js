@@ -69,21 +69,20 @@ export default class ngbVariantDbSnpService{
         }
         if (variationExists) {
             if (snpData.variation.hasOwnProperty('clinical_significance')) {
-                let clinSignificance = {
+
+                let clinicalSignificance = {
                     title: 'Clinical Significance',
                     values: [snpData.variation.clinical_significance]
                 };
 
-
-
-
-                if(snpData.variation.clinical_significance === 'Pathogenic') {
-                    clinSignificance.hasLink = true;
-                    clinSignificance.linkHref = `https://www.ncbi.nlm.nih.gov/clinvar/?term=${rsId}`;//ClinVar Link
-                    clinSignificance.linkText = '[ClinVar]';
+                if(snpData.hasOwnProperty('clinVar') && snpData.clinVar.hasOwnProperty('clinvar_link') && snpData.clinVar.clinvar_link) {
+                    clinicalSignificance.hasLink = true;
+                    clinicalSignificance.linkHref = snpData.clinVar.clinvar_link;//ClinVar Link
+                    clinicalSignificance.linkText = '[ClinVar]';
                 }
-                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push(clinSignificance);
+                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push(clinicalSignificance);
             }
+
             if(snpData.variation.hasOwnProperty('global_maf')) {
                 snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
                     title: 'MAF/MinorAlleleCount',
@@ -160,34 +159,35 @@ export default class ngbVariantDbSnpService{
         }
 
 
-        let ref_seq_geneExists = snpData.hasOwnProperty('ref_seq_gene'),
-            genesExists = variationExists && snpData.variation.hasOwnProperty('genes');
-        if (ref_seq_geneExists || genesExists) {
+        if (snpData.hasOwnProperty('ref_seq_gene_mapping')) {
             snpCollapsiblePanels.push({
                 title: 'RefSeq Gene Mapping',
                 isOpen: false,
                 values: []
             });
-        }
-        if (ref_seq_geneExists) {
-            snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
-                title: 'RefSeqGene',
-                values: [snpData.ref_seq_gene]
-            });
-        }
-        if (genesExists) {
-            if (snpData.variation.genes.length > 0) {
-                let genesInfo = '';
-                for (let i = 0; i < snpData.variation.genes.length; i++) {
-                    genesInfo += snpData.variation.genes[i].name + ' (' + snpData.variation.genes[i].gene_id + ')';
-                    if (!(i + 1 === snpData.variation.genes.length || snpData.variation.genes.length === 1)) {
-                        genesInfo += '; ';
-                    }
-                }
 
+            if (snpData.ref_seq_gene_mapping.hasOwnProperty('refSeqGene')) {
                 snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
-                    title: 'Gene (ID)',
-                    values: [genesInfo]
+                    title: 'RefSeqGene',
+                    values: [snpData.ref_seq_gene_mapping.refSeqGene]
+                });
+            }
+            if (snpData.ref_seq_gene_mapping.hasOwnProperty('gene')) {
+                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
+                    title: 'Gene:ID',
+                    values: [snpData.ref_seq_gene_mapping.gene]
+                });
+            }
+            if (snpData.ref_seq_gene_mapping.hasOwnProperty('position')) {
+                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
+                    title: 'Position',
+                    values: [snpData.ref_seq_gene_mapping.position]
+                });
+            }
+            if (snpData.ref_seq_gene_mapping.hasOwnProperty('allele')) {
+                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
+                    title: 'Allele',
+                    values: [snpData.ref_seq_gene_mapping.allele]
                 });
             }
         }
