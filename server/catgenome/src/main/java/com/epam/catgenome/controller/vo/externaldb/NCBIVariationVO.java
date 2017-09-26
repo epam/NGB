@@ -50,6 +50,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NCBIVariationVO {
 
+    public static final String PATHOGENIC = "Pathogenic";
+
     @JsonProperty(value = "variation")
     private NCBIShortVarVO ncbiShortVar;
 
@@ -81,6 +83,10 @@ public class NCBIVariationVO {
 
     public void setNcbiTaxonomy(NCBITaxonomyVO ncbiTaxonomy) {
         this.ncbiTaxonomy = ncbiTaxonomy;
+    }
+
+    public boolean isPathogenic() {
+        return StringUtils.equals(ncbiShortVar.getClinicalSignificance(), PATHOGENIC);
     }
 
     @JsonProperty(value = "organism_summary")
