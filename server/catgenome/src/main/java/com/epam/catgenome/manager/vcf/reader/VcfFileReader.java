@@ -243,7 +243,7 @@ public class VcfFileReader extends AbstractVcfReader {
      * @param sampleIndex {@code Integer} a name of a sample.
      * @return a {@code Variation} object, representing desired variation.
      */
-    public Variation createVariation(VariantContext context, VCFHeader header, Integer sampleIndex) {
+    public static Variation createVariation(VariantContext context, VCFHeader header, Integer sampleIndex) {
         String ref = context.getReference().getDisplayString();
         List<String> alt = context.getAlternateAlleles().stream().map(Allele::getDisplayString)
                 .collect(Collectors.toList());
@@ -270,7 +270,7 @@ public class VcfFileReader extends AbstractVcfReader {
         return variation;
     }
 
-    @NotNull private GenotypeData getGenotypeData(VariantContext context, Genotype genotype) {
+    @NotNull private static GenotypeData getGenotypeData(VariantContext context, Genotype genotype) {
         GenotypeData genotypeData;
         if (genotype == null) {
             genotypeData = new GenotypeData();
@@ -322,7 +322,10 @@ public class VcfFileReader extends AbstractVcfReader {
         if (bounds == null) {
             bounds = metaMap.get(Utils.changeChromosomeName(chromosome.getName()));
         }
-        Assert.notNull(bounds, MessageHelper.getMessage(MessageCode.NO_SUCH_CHROMOSOME));
+        if (bounds == null) {
+            track.setBlocks(Collections.emptyList());
+            return true;
+        }
         if (track.getStartIndex() < bounds.getLeft()) {
             track.setStartIndex(bounds.getLeft());
         }

@@ -15,6 +15,12 @@
     <!-- Registers all required post-processors and enables auto-detection of annotated components -->
     <context:annotation-config/>
 
+    <bean id="syncExecutor" class="org.springframework.core.task.SyncTaskExecutor"/>
+
+    <bean id="executor" class="org.springframework.core.task.support.TaskExecutorAdapter">
+        <constructor-arg ref="syncExecutor"/>
+    </bean>
+
     <!-- Registers low-level beans, e.g. DefaultAnnotationHandlerMapping,
          DefaultAnnotationHandlerAdapter which are required to dispatch requests to @Controller's.
          Also it configures beans with sensible defaults based on what is presented in application
@@ -28,6 +34,8 @@
                 <property name="objectMapper" ref="objectMapper"/>
             </bean>
         </mvc:message-converters>
+        <mvc:async-support default-timeout="2500" task-executor="executor">
+        </mvc:async-support>
     </mvc:annotation-driven>
 
     <!-- Registers required post-processors and enables auto-detection of the annotated controllers,

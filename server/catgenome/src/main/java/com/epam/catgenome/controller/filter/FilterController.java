@@ -3,6 +3,7 @@ package com.epam.catgenome.controller.filter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -122,9 +123,9 @@ public class FilterController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<IndexSearchResult<VcfIndexEntry>> filterVcf(@RequestBody final VcfFilterForm filterForm)
+    public Callable<Result<IndexSearchResult<VcfIndexEntry>>> filterVcf(@RequestBody final VcfFilterForm filterForm)
         throws IOException {
-        return Result.success(featureIndexManager.filterVariations(filterForm));
+        return () -> Result.success(featureIndexManager.filterVariations(filterForm));
     }
 
     @RequestMapping(value = "/filter/group", method = RequestMethod.POST)
@@ -180,8 +181,9 @@ public class FilterController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<List<Group>> groupVariations(@RequestBody final VcfFilterForm filterForm,
-                                               @RequestParam String groupBy) throws IOException {
-        return Result.success(featureIndexManager.groupVariations(filterForm, groupBy));
+    public Callable<Result<List<Group>>> groupVariations(
+                                                @RequestBody final VcfFilterForm filterForm,
+                                                @RequestParam String groupBy) {
+        return () -> Result.success(featureIndexManager.groupVariations(filterForm, groupBy));
     }
 }

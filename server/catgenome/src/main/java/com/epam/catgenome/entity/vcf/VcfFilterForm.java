@@ -29,15 +29,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queries.TermsQuery;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.PrefixQuery;
-import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.*;
 import org.springframework.util.Assert;
 
 import com.epam.catgenome.dao.index.FeatureIndexDao.FeatureIndexFields;
@@ -63,6 +61,8 @@ public class VcfFilterForm {
     private Integer page;
     private Integer pageSize;
     private List<OrderBy> orderBy;
+
+    private Pointer pointer;
 
     /**
      * Additional fields to show in Variations table
@@ -99,6 +99,17 @@ public class VcfFilterForm {
         addPositionFilter(builder);
         addAdditionalFilters(builder);
         return builder.build();
+    }
+
+    public boolean filterEmpty() {
+        return isFilterEmpty(variationTypes) && isFilterEmpty(genes) && isFilterEmpty(effects)
+                && isFilterEmpty(impacts) && MapUtils.isEmpty(additionalFilters)
+                && CollectionUtils.isEmpty(quality) && (isExon == null || !isExon) && startIndex == null &&
+                endIndex == null && CollectionUtils.isEmpty(chromosomeIds);
+    }
+
+    private <T> boolean isFilterEmpty(FilterSection<List<T>> filterSection) {
+        return filterSection == null || CollectionUtils.isEmpty(filterSection.field);
     }
 
     private void addAdditionalFilters(BooleanQuery.Builder builder) {
@@ -413,6 +424,14 @@ public class VcfFilterForm {
 
     public void setEndIndex(Integer endIndex) {
         this.endIndex = endIndex;
+    }
+
+    public Pointer getPointer() {
+        return pointer;
+    }
+
+    public void setPointer(Pointer pointer) {
+        this.pointer = pointer;
     }
 
     public static class FilterSection<T> {

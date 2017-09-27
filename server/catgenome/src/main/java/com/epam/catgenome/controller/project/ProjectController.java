@@ -27,6 +27,7 @@ package com.epam.catgenome.controller.project;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -103,9 +104,11 @@ public class ProjectController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<List<ProjectVO>> loadProjectsTreeForCurrentUser(@RequestParam(required = false) Long parentId,
+    public Callable<Result<List<ProjectVO>>> loadProjectsTreeForCurrentUser(
+            @RequestParam(required = false) Long parentId,
             @RequestParam(required = false) String referenceName) {
-        return Result.success(ProjectConverter.convertTo(projectManager.loadProjectTree(parentId, referenceName)));
+        return () -> Result.success(ProjectConverter.convertTo(
+                projectManager.loadProjectTree(parentId, referenceName)));
     }
 
     @RequestMapping(value = "/project/{projectId}/load", method = RequestMethod.GET)

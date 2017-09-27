@@ -45,11 +45,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.index.FeatureIndexDao;
+import com.epam.catgenome.dao.index.indexer.BigVcfFeatureIndexBuilder;
+import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexBuilder;
 import com.epam.catgenome.util.AuthUtils;
-import com.epam.catgenome.util.DiskBasedList;
 import com.epam.catgenome.util.IOHelper;
+import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.InfoFieldParser;
 import com.epam.catgenome.util.Utils;
+import htsjdk.tribble.index.IndexFactory;
+import htsjdk.tribble.index.interval.IntervalTreeIndex;
+import htsjdk.tribble.index.tabix.TabixFormat;
+import htsjdk.tribble.index.tabix.TabixIndex;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLineType;
@@ -80,7 +86,6 @@ import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.gene.GeneFile;
-import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.track.Track;
@@ -105,7 +110,6 @@ import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.vcf.reader.AbstractVcfReader;
-import com.epam.catgenome.manager.vcf.reader.VcfFileReader;
 import com.epam.catgenome.manager.vcf.reader.VcfGa4ghReader;
 import com.epam.catgenome.manager.vcf.reader.VcfReader;
 import htsjdk.samtools.util.CloseableIterator;
@@ -146,6 +150,9 @@ public class VcfManager {
     @Autowired
     private FeatureIndexManager featureIndexManager;
 
+    @Autowired
+    private FeatureIndexDao featureIndexDao;
+
     public static final double HTSJDK_WRONG_QUALITY = -10.0;
 
     @Value("#{catgenome['vcf.filter.whitelist']}")
@@ -157,8 +164,8 @@ public class VcfManager {
 
     private InfoFieldParser infoFieldParser;
 
-    @Value("#{catgenome['files.vcf.max.entries.in.memory'] ?: 3000000}")
-    private int maxVcfIndexEntriesInMemory;
+    @Value("#{catgenome['search.indexer.buffer.size'] ?: 256}")
+    private int indexBufferSize;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VcfManager.class);
 
@@ -442,29 +449,28 @@ public class VcfManager {
      * Creates a feature index for {@link VcfFile}. If an index already exists, it will be deleted and created
      * from scratch
      * @param vcfFileId an ID of VCF file to reindex.
+     * @param rewriteTabixIndex
      * @throws FeatureIndexException if an error occurred while writing index
      */
-    public VcfFile reindexVcfFile(long vcfFileId) throws FeatureIndexException {
+    public VcfFile reindexVcfFile(long vcfFileId, Boolean rewriteTabixIndex) throws FeatureIndexException {
         VcfFile vcfFile = vcfFileManager.loadVcfFile(vcfFileId);
         Reference reference = referenceGenomeManager.loadReferenceGenome(vcfFile.getReferenceId());
         Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
             Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
-        List<GeneFile> geneFiles = reference.getGeneFile() != null ?
-                                   Collections.singletonList(reference.getGeneFile()) :
-                                   Collections.emptyList();
-
         try {
             fileManager.deleteFileFeatureIndex(vcfFile);
-
-            try (FeatureReader<VariantContext> reader = AbstractFeatureReader.getFeatureReader(vcfFile.getPath(),
-                                                                                               new VCFCodec(), false)) {
-                VcfFilterInfo info = getFiltersInfo(reader);
-                featureIndexManager.makeIndexForVcfReader(vcfFile, reader, geneFiles, chromosomeMap, info);
+            if (rewriteTabixIndex) {
+                writeTabixIndex(vcfFile);
             }
-        } catch (IOException e) {
+            try (FeatureReader<VariantContext> reader =
+                    AbstractFeatureReader.getFeatureReader(vcfFile.getPath(), new VCFCodec(), false)) {
+                Map<String, Pair<Integer, Integer>> metaMap =
+                        readMetaMap(vcfFile, chromosomeMap, reader, reference, true);
+                fileManager.makeIndexMetadata(vcfFile, metaMap);
+            }
+        } catch (IOException | GeneReadingException e) {
             throw new FeatureIndexException(vcfFile, e);
         }
-
         return vcfFile;
     }
 
@@ -534,7 +540,7 @@ public class VcfManager {
 
             // In order to fix bugs with zipped VCF
             Map<String, Pair<Integer, Integer>> metaMap =
-                    readMetaMap(chromosomeMap, vcfFile, reader, reference, doIndex);
+                    readMetaMap(vcfFile, chromosomeMap, reader, reference, doIndex);
             fileManager.makeIndexMetadata(vcfFile, metaMap);
             biologicalDataItemManager.createBiologicalDataItem(vcfFile.getIndex());
             vcfFileManager.createVcfFile(vcfFile);
@@ -581,8 +587,8 @@ public class VcfManager {
     }
 
     @NotNull
-    private Map<String, Pair<Integer, Integer>> readMetaMap(Map<String, Chromosome> chromosomeMap,
-            VcfFile vcfFile, FeatureReader<VariantContext> reader, Reference reference, boolean doIndex)
+    private Map<String, Pair<Integer, Integer>> readMetaMap(VcfFile file, Map<String, Chromosome> chromosomeMap,
+            FeatureReader<VariantContext> reader, Reference reference, boolean doIndex)
         throws IOException, GeneReadingException {
         Map<String, Pair<Integer, Integer>> metaMap = new HashMap<>();
         CloseableIterator<VariantContext> iterator = reader.iterator();
@@ -593,74 +599,56 @@ public class VcfManager {
         VariantContext lastFeature = null;
 
         VcfFilterInfo info = getFiltersInfo(reader);
-        VcfFileReader vcfFileReader = new VcfFileReader(fileManager, referenceGenomeManager);
         VCFHeader vcfHeader = (VCFHeader) reader.getHeader();
-
-        List<VcfIndexEntry> allEntries = new DiskBasedList<VcfIndexEntry>(maxVcfIndexEntriesInMemory / 2).adaptToList();
 
         List<GeneFile> geneFiles  = reference.getGeneFile() != null ?
                                     Collections.singletonList(reference.getGeneFile()) : Collections.emptyList();
 
+        BigVcfFeatureIndexBuilder indexer = null;
+        if (doIndex) {
+            indexer = new BigVcfFeatureIndexBuilder(info, vcfHeader, featureIndexDao, file,
+                            fileManager, geneFiles, indexBufferSize);
+        }
+
         while (iterator.hasNext()) {
             variantContext = iterator.next();
-
             if (!variantContext.getContig().equals(currentKey)) {
                 if (checkMetaMapKey(chromosomeMap, currentKey)) {
                     metaMap.put(currentKey, new ImmutablePair<>(startPosition, endPosition));
-
-                    writeEntriesForChromosome(allEntries, geneFiles,
-                                              Utils.getFromChromosomeMap(chromosomeMap, currentKey), vcfFile, vcfHeader,
-                                              vcfFileReader, doIndex);
+                    if (doIndex) {
+                        indexer.clear();
+                        LOGGER.info(getMessage(MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE,
+                                        currentKey));
+                    }
                 }
-
                 startPosition = variantContext.getStart();
                 currentKey = variantContext.getContig();
             }
-
-            checkSorted(vcfFile, variantContext, lastFeature);
-
-            indexVariation(allEntries, variantContext, chromosomeMap, info, vcfHeader, vcfFileReader, doIndex);
-
+            checkSorted(file, variantContext, lastFeature);
+            indexVariation(variantContext, chromosomeMap, indexer, doIndex);
             lastFeature = variantContext;
             // Put the last one in metaMap
             endPosition = variantContext.getStart();
-
             if (checkMetaMapKey(chromosomeMap, currentKey)) {
                 metaMap.put(currentKey, new ImmutablePair<>(startPosition, endPosition));
             }
         }
-
         // Put the last one
-        if (variantContext != null && checkMetaMapKey(chromosomeMap, currentKey)) {
-            writeEntriesForChromosome(allEntries, geneFiles, Utils.getFromChromosomeMap(chromosomeMap, currentKey),
-                                      vcfFile, vcfHeader, vcfFileReader, doIndex);
+        if (variantContext != null && checkMetaMapKey(chromosomeMap, currentKey) && doIndex) {
+            indexer.clear();
+            LOGGER.info(getMessage(MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE,
+                    currentKey));
         }
-
+        if (doIndex) {
+            indexer.close();
+        }
         return metaMap;
     }
 
-    private void indexVariation(List<VcfIndexEntry> allEntries, VariantContext variantContext,
-                                Map<String, Chromosome> chromosomeMap,
-                                VcfFilterInfo info, VCFHeader vcfHeader,
-                                VcfFileReader vcfFileReader, boolean doIndex) {
+    private void indexVariation(VariantContext variantContext, Map<String, Chromosome> chromosomeMap,
+                               VcfFeatureIndexBuilder indexer, boolean doIndex) {
         if (doIndex) {
-            featureIndexManager.addVariationToIndex(allEntries, variantContext, chromosomeMap, info, vcfHeader,
-                                                    vcfFileReader);
-        }
-    }
-
-    private void writeEntriesForChromosome(List<VcfIndexEntry> allEntries, List<GeneFile> geneFiles,
-                                           Chromosome currentChromosome, VcfFile vcfFile,
-                                           VCFHeader vcfHeader, VcfFileReader vcfFileReader, boolean doIndex)
-        throws GeneReadingException, IOException {
-        if (doIndex) {
-            List<VcfIndexEntry> processedEntries = featureIndexManager.postProcessIndexEntries(allEntries, geneFiles,
-                                                                                           currentChromosome,
-                                                                                           vcfHeader, vcfFileReader);
-            featureIndexManager.writeLuceneIndexForFile(vcfFile, processedEntries);
-            processedEntries.clear();
-            LOGGER.info(getMessage(MessagesConstants.INFO_FEATURE_INDEX_CHROMOSOME_WROTE, currentChromosome.getName()));
-            allEntries.clear();
+            indexer.add(variantContext, chromosomeMap);
         }
     }
 
@@ -897,7 +885,22 @@ public class VcfManager {
         return infoFieldParser;
     }
 
-    public void setMaxVcfIndexEntriesInMemory(int maxVcfIndexEntriesInMemory) {
-        this.maxVcfIndexEntriesInMemory = maxVcfIndexEntriesInMemory;
+    public void setIndexBufferSize(int indexBufferSize) {
+        this.indexBufferSize = indexBufferSize;
+    }
+
+    private void writeTabixIndex(VcfFile vcfFile) throws IOException {
+        VCFCodec codec = new VCFCodec();
+        File file = new File(vcfFile.getPath());
+        File indexFile = new File(vcfFile.getIndex().getPath());
+        indexFile.delete();
+        LOGGER.info(getMessage(MessagesConstants.INFO_VCF_INDEX_WRITING, indexFile.getAbsolutePath()));
+        if (vcfFile.getCompressed()) {
+            TabixIndex index = IndexUtils.createTabixIndex(file, codec, TabixFormat.VCF);
+            index.write(indexFile);
+        } else {
+            IntervalTreeIndex intervalTreeIndex = IndexFactory.createIntervalIndex(file, codec);
+            IndexFactory.writeIndex(intervalTreeIndex, indexFile);
+        }
     }
 }

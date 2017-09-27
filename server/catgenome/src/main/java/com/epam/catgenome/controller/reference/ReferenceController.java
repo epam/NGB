@@ -29,6 +29,7 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTra
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import com.epam.catgenome.exception.FeatureIndexException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,9 +93,9 @@ public class ReferenceController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public final Result<List<Reference>> loadAllReferences(
+    public final Callable<Result<List<Reference>>> loadAllReferences(
             @RequestParam(required = false) String referenceName) throws IOException {
-        return Result.success(referenceGenomeManager.loadAllReferenceGenomes(referenceName));
+        return () -> Result.success(referenceGenomeManager.loadAllReferenceGenomes(referenceName));
     }
 
     @ResponseBody
