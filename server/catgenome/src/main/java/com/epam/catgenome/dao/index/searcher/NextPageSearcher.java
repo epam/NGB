@@ -37,7 +37,12 @@ import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import org.apache.lucene.index.MultiReader;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.ConstantScoreQuery;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.TopDocs;
 
 public class NextPageSearcher extends AbstractIndexSearcher {
 
