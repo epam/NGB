@@ -33,6 +33,9 @@ export default class ngbVariantsFilterRangeController {
     }
 
     apply() {
+        if (!this.projectContext.canScheduleFilterVariants()) {
+            return;
+        }
         let shouldUpdate = false;
         let range = [this.prevValueFrom, this.prevValueTo];
         if (this.prevValueFrom !== this.valueFrom) {
@@ -73,7 +76,7 @@ export default class ngbVariantsFilterRangeController {
             } else {
                 this.projectContext.vcfFilter.additionalFilters[this.field.field] = isDefault ? undefined : range;
             }
-            this.projectContext.filterVariants();
+            this.projectContext.scheduleFilterVariants();
         }
     }
 
