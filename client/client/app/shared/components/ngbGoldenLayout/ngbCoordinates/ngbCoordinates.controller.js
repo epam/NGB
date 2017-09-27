@@ -384,42 +384,54 @@ export default class ngbCoordinatesController extends baseController {
         //4. 'start' - should open range from start-50bp to start+50bp on current chromosome
         const regexp_4 = /^[0-9,. ]+$/;
 
+        //5. 'chr:' - should open specified chromosome and range from 1 to end of chromosome
+        const regexp_5 = /^([0-9a-zA-Z\D]*)\D*:$/;
+
         if (regexp_1.test(this.coordinatesText)) {
             [, , chrName, start, end] = this.coordinatesText.match(regexp_1);
-        }
-        else if (regexp_2.test(this.coordinatesText)) {
+        } else if (regexp_2.test(this.coordinatesText)) {
             [, start, end] = this.coordinatesText.match(regexp_2);
+        } else if (regexp_5.test(this.coordinatesText)) {
+            [, chrName] = this.coordinatesText.match(regexp_5);
         } else if (regexp_3.test(this.coordinatesText)) {
             [, chrName, start] = this.coordinatesText.match(regexp_3);
         } else if (regexp_4.test(this.coordinatesText)) {
             [start] = this.coordinatesText.match(regexp_4);
         }
 
-        chrName = chrName.trim();
+        if (chrName) {
+            chrName = chrName.trim();
+        }
+
         const chr = (!chrName || (this.chromosome && this.chromosome.name === chrName))
             ? this.chromosome
             : this.projectContext.getChromosome({name: chrName});
 
-        if (!chr || !start) {
+        if (!chr) {
             return false;
         }
 
-        const testStart = stringParseInt(start);
-        if (testStart < 1 || (end !== null && testStart > end) || testStart > chr.size) {
-            start = 1;
+        if (start) {
+            start = stringParseInt(start);
+            if (start < 1 || (end !== null && start > end) || start > chr.size) {
+                start = 1;
+            }
+
+            if (end) {
+                end = stringParseInt(end);
+                if (end > chr.size) {
+                    end = chr.size;
+                }
+            }
         } else {
-            start = testStart;
+            start = 1;
+            end = chr.size;
         }
 
-        if (end) {
-            end = stringParseInt(end);
-            if (end > chr.size) {
-                end = chr.size;
-            }
-        }
         const viewport = (start && end) ? {end, start} : null;
         const position = (start && !end) ? start : null;
-        this.projectContext.changeState({chromosome: {name: chrName}, position, viewport});
+
+        this.projectContext.changeState({chromosome: {name: chr.name}, position, viewport});
         return true;
     }
 }
