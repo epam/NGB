@@ -97,18 +97,21 @@ export default class ngbVariantDbSnpService{
             });
         }
         if (variationExists && snpData.variation.hasOwnProperty('docsum')) {
-            let hgvs = snpData.variation.docsum.slice(snpData.variation.docsum.indexOf('HGVS='))
-                                               .split(/\|/, 1)[0]
-                                               .slice(5),
-                tmpEl = document.createElement('div');
+            let hgvsIndex = snpData.variation.docsum.indexOf('HGVS=');
+            if (hgvsIndex + 1) {
+                let hgvs = snpData.variation.docsum.slice(hgvsIndex)
+                                                    .split(/\|/, 1)[0]
+                                                    .slice(5),
+                    tmpEl = document.createElement('div');
 
-            tmpEl.innerHTML = hgvs;
-            hgvs = tmpEl.childNodes[0].nodeValue;
+                tmpEl.innerHTML = hgvs;
+                hgvs = tmpEl.childNodes[0].nodeValue;
 
-            snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
-                title: 'HGVS Names',
-                values: hgvs.split(/,/)
-            });
+                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
+                    title: 'HGVS Names',
+                    values: hgvs.split(/,/)
+                });
+            }
         }
 
         if(variationExists) {
@@ -160,35 +163,41 @@ export default class ngbVariantDbSnpService{
 
 
         if (snpData.hasOwnProperty('ref_seq_gene_mapping')) {
-            snpCollapsiblePanels.push({
-                title: 'RefSeq Gene Mapping',
-                isOpen: false,
-                values: []
-            });
+            let refSeqGeneExists = snpData.ref_seq_gene_mapping.hasOwnProperty('refSeqGene'),
+                geneExists = snpData.ref_seq_gene_mapping.hasOwnProperty('gene'),
+                positionExists = snpData.ref_seq_gene_mapping.hasOwnProperty('position'),
+                alleleExists = snpData.ref_seq_gene_mapping.hasOwnProperty('allele');
 
-            if (snpData.ref_seq_gene_mapping.hasOwnProperty('refSeqGene')) {
-                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
-                    title: 'RefSeqGene',
-                    values: [snpData.ref_seq_gene_mapping.refSeqGene]
+            if (refSeqGeneExists || geneExists || positionExists || alleleExists) {
+                snpCollapsiblePanels.push({
+                    title: 'RefSeq Gene Mapping',
+                    isOpen: false,
+                    values: []
                 });
-            }
-            if (snpData.ref_seq_gene_mapping.hasOwnProperty('gene')) {
-                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
-                    title: 'Gene:ID',
-                    values: [snpData.ref_seq_gene_mapping.gene]
-                });
-            }
-            if (snpData.ref_seq_gene_mapping.hasOwnProperty('position')) {
-                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
-                    title: 'Position',
-                    values: [snpData.ref_seq_gene_mapping.position]
-                });
-            }
-            if (snpData.ref_seq_gene_mapping.hasOwnProperty('allele')) {
-                snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
-                    title: 'Allele',
-                    values: [snpData.ref_seq_gene_mapping.allele]
-                });
+                if (refSeqGeneExists) {
+                    snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
+                        title: 'RefSeqGene',
+                        values: [snpData.ref_seq_gene_mapping.refSeqGene]
+                    });
+                }
+                if (geneExists) {
+                    snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
+                        title: 'Gene:ID',
+                        values: [snpData.ref_seq_gene_mapping.gene]
+                    });
+                }
+                if (positionExists) {
+                    snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
+                        title: 'Position',
+                        values: [snpData.ref_seq_gene_mapping.position]
+                    });
+                }
+                if (alleleExists) {
+                    snpCollapsiblePanels[snpCollapsiblePanels.length - 1].values.push({
+                        title: 'Allele',
+                        values: [snpData.ref_seq_gene_mapping.allele]
+                    });
+                }
             }
         }
 
