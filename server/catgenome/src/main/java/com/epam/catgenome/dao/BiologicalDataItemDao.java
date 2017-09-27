@@ -165,7 +165,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
      * @param name search query
      * @return {@code List} of files with a matching name
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BiologicalDataItem> loadFilesByNameStrict(final String name) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(BiologicalDataItemParameters.NAME.name(), name);
@@ -173,7 +173,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
                 params, getRowMapper());
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BiologicalDataItem> loadFilesByNameCaseInsensitive(final String name) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(BiologicalDataItemParameters.NAME.name(), name.toLowerCase());
@@ -201,7 +201,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
      * @param name search query
      * @return {@code List} of files with a matching name
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BiologicalDataItem> loadFilesByName(final String name) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(BiologicalDataItemParameters.NAME.name(), "%" + name.toLowerCase() + "%");
@@ -347,7 +347,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
                     dataItem = mapBamFile(rs, index);
                     break;
                 case WIG:
-                    dataItem = mapWigFile(rs);
+                    dataItem = mapWigFile(rs, index);
                     break;
                 case BED:
                     dataItem = mapBedFile(rs, index);
@@ -408,12 +408,12 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         }
 
         @NotNull
-        private static BiologicalDataItem mapWigFile(ResultSet rs) throws SQLException {
+        private static BiologicalDataItem mapWigFile(ResultSet rs, BiologicalDataItem index) throws SQLException {
             WigFile wigFile = new WigFile();
             wigFile.setId(rs.getLong(BED_GRAPH_ID.name()));
             wigFile.setBioDataItemId(rs.getLong(BIO_DATA_ITEM_ID.name()));
             wigFile.setReferenceId(rs.getLong(BED_GRAPH_REFERENCE_GENOME_ID.name()));
-
+            wigFile.setIndex(index);
             return wigFile;
         }
 

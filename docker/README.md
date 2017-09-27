@@ -8,21 +8,21 @@
 Obtain the source code from github:
 ```
 $ git clone https://github.com/epam/NGB.git
-$ cd ngb
+$ cd NGB
 ```
 
-## Build NGS server war
+## Build NGB server jar
 
 Build war
 
 ```
-$ ./gradlew buildWar
+$ ./gradlew buildJar
 ```
 
-Copy war to docker folder
+Copy jar to docker folder
 
 ```
-$ cp dist/catgenome.war docker/core/catgenome.war
+$ cp dist/catgenome.jar docker/core/catgenome.jar
 ```
 
 ## Build NGB Command Line Interface tarball
@@ -36,7 +36,7 @@ $ ./gradlew buildCli
 Copy CLI to docker folder
 
 ```
-$ cp dist/ngb-cli.tar docker/core/ngb-cli.tar
+$ cp dist/ngb-cli.tar.gz docker/core/ngb-cli.tar.gz
 ```
 
 ## Build docker image
@@ -56,7 +56,7 @@ $ docker build -t ngb:latest .
 Cleanup docker folder
 
 ```
-$ rm catgenome.war && rm ngb-cli.tar
+$ rm catgenome.jar && rm ngb-cli.tar.gz
 ```
 
 # How to run NGB docker image

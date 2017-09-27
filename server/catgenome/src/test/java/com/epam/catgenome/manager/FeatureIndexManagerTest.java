@@ -518,7 +518,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         // add multiple files
         project.getItems().clear();
         projectManager.saveProject(project);
-        Project loadedProject = projectManager.loadProject(project.getId());
+        Project loadedProject = projectManager.loadProjectAndUpdateLastOpenedDate(project.getId());
         Assert.assertTrue(loadedProject.getItems().isEmpty());
         entryList2 = featureIndexManager.filterVariations(new VcfFilterForm(), project.getId());
         Assert.assertTrue(entryList2.getEntries().isEmpty());

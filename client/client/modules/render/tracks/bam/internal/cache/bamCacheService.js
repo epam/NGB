@@ -25,7 +25,7 @@ export default class BamCacheService {
     constructor(track, config) {
         this._cache = new BamCache(track);
         this._config = config;
-        this._coverageTransformer = new CoverageTransformer(this._cache, config.coverage);
+        this._coverageTransformer = new CoverageTransformer(this._cache, config);
         this.cache.invalidate();
     }
 

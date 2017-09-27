@@ -41,7 +41,7 @@
     </div>
 
     <div class="ngb-track-header-floating md-raised md-button"
-         ng-class="{'collapsed': ctrl.showTracksHeaders || ctrl.isReference}"
+         ng-class="{'collapsed': ctrl.showTracksHeaders, 'reference': ctrl.isReference}"
          ng-mouseleave="ctrl.onMinifiedHeaderMouseLeave()"
          ng-mouseover="ctrl.onMinifiedHeaderMouseOver()"
          layout="row">

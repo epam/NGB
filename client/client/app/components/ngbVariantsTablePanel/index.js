@@ -8,13 +8,18 @@ import ngbVariantsTablePanel from './ngbVariantsTablePanel.component.js';
 import controller from './ngbVariantsTablePanel.controller';
 
 // Import components
+import  ngbVariantsLoadingIndicator from './ngbVariantsLoadingIndicator';
 import  ngbVariantsTable from './ngbVariantsTable';
 import  ngbVariantsTableColumn from './ngbVariantsTableColumn';
 import  ngbVariantsTablePaginate from './ngbVariantsTablePaginate';
 
 
 // Import external modules
-export default angular.module('ngbVariantsTablePanel', [ngbVariantsTable,ngbVariantsTableColumn,ngbVariantsTablePaginate])
+export default angular.module('ngbVariantsTablePanel', [
+    ngbVariantsTable,
+    ngbVariantsTableColumn,
+    ngbVariantsTablePaginate,
+    ngbVariantsLoadingIndicator])
     .component('ngbVariantsTablePanel', ngbVariantsTablePanel)
     .controller(controller.UID, controller)
     .name;

@@ -107,7 +107,7 @@ public class SegFileDao extends NamedParameterJdbcDaoSupport {
      * @param id {@code long} a SegFile ID
      * @return {@code SegFile} instance
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public SegFile loadSegFile(long id) {
         List<BiologicalDataItem> files = getJdbcTemplate().query(loadSegFileQuery, BiologicalDataItemDao
                 .BiologicalDataItemParameters.getRowMapper(), id);
@@ -120,7 +120,7 @@ public class SegFileDao extends NamedParameterJdbcDaoSupport {
      * @param referenceId {@code long} a reference ID in the system
      * @return a {@code List} of {@code SegFile} instances
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<SegFile> loadSegFilesByReferenceId(long referenceId) {
         return getJdbcTemplate().query(loadSegFilesByReferenceIdQuery, BiologicalDataItemDao
                 .BiologicalDataItemParameters.getRowMapper(), referenceId)
@@ -170,7 +170,7 @@ public class SegFileDao extends NamedParameterJdbcDaoSupport {
      * @param segFileId {@code long} file ID for which samples were saved.
      * @return {@code List&lt;Sample&gt;} of samples for given file ID.
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<SegSample> loadSamplesForFile(long segFileId) {
         return getJdbcTemplate().query(loadSamplesForFileQuery, SegSampleParameters.getSegSampleMapper(), segFileId);
     }
@@ -212,7 +212,7 @@ public class SegFileDao extends NamedParameterJdbcDaoSupport {
      * @return {@code Map&lt;Long, List&lt;Sample&gt;&gt;} with file IDs for giver reference ID as keys, and with
      * lists of samples, corresponding this file IDs as values.
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Map<Long, List<SegSample>> loadSamplesForFilesByReference(long referenceId) {
         Map<Long, List<SegSample>> sampleFileMap = new HashMap<>();
 

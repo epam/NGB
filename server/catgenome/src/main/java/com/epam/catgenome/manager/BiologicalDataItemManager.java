@@ -116,9 +116,9 @@ public class BiologicalDataItemManager {
         throws JsonProcessingException {
         Project project;
         if (NumberUtils.isDigits(dataset)) {
-            project = projectManager.loadProject(Long.parseLong(dataset));
+            project = projectManager.loadProjectAndUpdateLastOpenedDate(Long.parseLong(dataset));
         } else {
-            project = projectManager.loadProject(dataset);
+            project = projectManager.loadProjectAndUpdateLastOpenedDate(dataset);
         }
 
         Assert.notNull(project, getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, dataset));

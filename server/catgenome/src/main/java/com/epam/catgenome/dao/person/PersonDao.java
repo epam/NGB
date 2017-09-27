@@ -74,7 +74,7 @@ public class PersonDao extends NamedParameterJdbcDaoSupport {
      * @return a loaded {@code Person} instance or
      *          {@code null} if user with a given ID doesn't exist
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Person loadPersonById(long personId) {
         List<Person> persons = getJdbcTemplate().query(loadPersonByIdQuery, PersonParameters.getRowMapper(), personId);
         return persons.isEmpty() ? null : persons.get(0);
@@ -87,7 +87,7 @@ public class PersonDao extends NamedParameterJdbcDaoSupport {
      * @return  a loaded {@code Person} instance or
      *          {@code null} if user with a given name and password doesn't exist
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Person loadPersonByNameAndPassword(String name, String password) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(PersonParameters.NAME.name(), name);
@@ -104,7 +104,7 @@ public class PersonDao extends NamedParameterJdbcDaoSupport {
      * @return  a loaded {@code Person} instance or
      *          {@code null} if user with a given name doesn't exist
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Person loadPersonByName(String name) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(PersonParameters.NAME.name(), name);

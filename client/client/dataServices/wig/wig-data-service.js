@@ -44,6 +44,8 @@ export class WigDataService extends DataService {
                     const code = 'WIG Data Service', message = 'WIG Data Service: error loading wig track';
                     reject({code, message});
                 }
+            }).catch(() => {
+                resolve([]);
             });
         });
     }

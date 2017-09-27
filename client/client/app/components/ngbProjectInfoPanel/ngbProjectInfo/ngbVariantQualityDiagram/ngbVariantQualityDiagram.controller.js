@@ -44,7 +44,7 @@ export default class ngbVariantQualityDiagramController {
                 yAxis : {
                     tickFormat : (t) => t
                 },
-
+                noData: 'No Data Available'
             },
             title: {
                 enable: true,
@@ -84,7 +84,8 @@ export default class ngbVariantQualityDiagramController {
             this.projectContext.variantsDataByQuality.length === 0;
         if (this.projectContext.reference && this.projectContext.variantsDataByQuality) {
             await this.updateDiagram(this.projectContext.variantsDataByQuality,
-                this.projectContext.isVariantsGroupByQualityLoading);
+                this.projectContext.isVariantsGroupByQualityLoading,
+                this.projectContext.variantsGroupByQualityError);
             this.isProgressShown = this.projectContext.isVariantsGroupByQualityLoading;
             this._scope.$apply();
         }
@@ -136,13 +137,16 @@ export default class ngbVariantQualityDiagramController {
 
     }
 
-    async updateDiagram(variantQualities, isLoading) {
+    async updateDiagram(variantQualities, isLoading, error) {
         if (isLoading) {
             return;
         }
-        (!variantQualities || variantQualities.length === 0) ?
-            this._scope.data = [] : this._scope.data = this.makeNvD3ChartObjectFromData(variantQualities);
-
+        if (!variantQualities || variantQualities.length === 0) {
+            this._scope.options.chart.noData = error || 'No Data Available';
+            this._scope.data = [];
+        } else {
+            this._scope.data = this.makeNvD3ChartObjectFromData(variantQualities);
+        }
         this._scope.api && angular.isFunction(this._scope.api.update) ? this._scope.api.update() : '';
     }
 

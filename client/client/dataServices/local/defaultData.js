@@ -51,7 +51,10 @@ export default {
             coverageScaleMode: scaleModes.defaultScaleMode,
             coverageLogScale: false,
             coverageScaleFrom: undefined,
-            coverageScaleTo: undefined
+            coverageScaleTo: undefined,
+            referenceShowTranslation: false,
+            referenceShowForwardStrand: true,
+            referenceShowReverseStrand: false
         },
         displayAlignmentsCoverageTooltips: true,
         displayTooltips: true,
@@ -181,12 +184,14 @@ export default {
         isDownSampling: true,
         maxBAMBP: 100000,
         maxBAMCoverageBP: 500000,
+        alleleFrequencyThresholdBam: 90,
         maxBpCount: 10000,
         maxFrameSize: 50,
         maxReadsCount: 300,
         minBpCount: 50,
         shortenedIntronLength: 15,
         shortenedIntronsMaximumRange: 500000,
+        variantsMaximumRange: 500000,
         showCenterLine: true,
         showSoftClippedBase: true
     }

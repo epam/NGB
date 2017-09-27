@@ -147,10 +147,11 @@ export class WIGTrack extends CachedTrack {
                     this.cache.coordinateSystem = this._wigTransformer.transformCoordinateSystem(this.cache.data,
                         this.viewport, this.cache.coordinateSystem, this.state);
                 }
-                this._wigArea.render(this.viewport, this.cache.coordinateSystem);
-                this._wigRenderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged);
-                somethingChanged = true;
             }
+            this._wigArea.render(this.viewport, this.cache.coordinateSystem);
+            this._wigRenderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, null, this._showCenterLine);
+            somethingChanged = true;
+
         }
         return somethingChanged;
     }

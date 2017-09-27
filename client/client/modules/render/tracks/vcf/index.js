@@ -1,4 +1,10 @@
-import {StatisticsContainer, VariantContainer, VCFCollapsedRenderer, VCFExpandedRenderer, VcfTransformer} from './internal';
+import {
+    StatisticsContainer,
+    VariantContainer,
+    VCFCollapsedRenderer,
+    VCFExpandedRenderer,
+    VcfTransformer,
+    PlaceholderRenderer} from './internal';
 import {GENETrack} from '../gene';
 import VcfConfig from './vcfConfig';
 import {VcfDataService} from '../../../../dataServices';
@@ -12,6 +18,8 @@ export class VCFTrack extends GENETrack{
 
     _collapsedRenderer: VCFCollapsedRenderer = null;
     _lastHovered = null;
+    _variantsMaximumRange;
+    _zoomInRenderer: PlaceholderRenderer = new PlaceholderRenderer();
 
     projectContext;
 
@@ -25,6 +33,7 @@ export class VCFTrack extends GENETrack{
 
     constructor(opts) {
         super(opts);
+        this._variantsMaximumRange = opts.variantsMaximumRange;
         this.transformer.collapsed = this.state.variantsView === variantsView.variantsViewCollapsed;
 
         this._actions = [
@@ -41,6 +50,29 @@ export class VCFTrack extends GENETrack{
                 }]
             }
         ];
+    }
+
+    async updateCache() {
+        if (this._variantsMaximumRange >= this.viewport.actualBrushSize) {
+            return await super.updateCache();
+        }
+        return false;
+    }
+
+    globalSettingsChanged(state) {
+        const changed = this._variantsMaximumRange !== state.variantsMaximumRange;
+        this._variantsMaximumRange = state.variantsMaximumRange;
+        super.globalSettingsChanged(state);
+        Promise.resolve().then(async() => {
+            if (changed && this._variantsMaximumRange > this.viewport.actualBrushSize) {
+                await this.updateCache();
+            }
+            if (changed) {
+                this._flags.renderReset = true;
+            }
+            this._flags.renderFeaturesChanged = true;
+            this.requestRenderRefresh();
+        });
     }
 
     getSettings() {
@@ -168,10 +200,33 @@ export class VCFTrack extends GENETrack{
         return false;
     }
 
+    _getZoomInPlaceholderText() {
+        const unitThreshold = 1000;
+        const noReadText = {
+            unit: this._variantsMaximumRange < unitThreshold ? 'BP' : 'kBP',
+            value: this._variantsMaximumRange < unitThreshold
+                ? this._variantsMaximumRange : Math.ceil(this._variantsMaximumRange / unitThreshold)
+        };
+        return `Zoom in to see variants.
+Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
+    }
+
     render(flags) {
         if (flags.renderReset) {
             this.container.removeChildren();
+            this.container.addChild(this._zoomInRenderer.container);
+            this._zoomInRenderer.init(this._getZoomInPlaceholderText(), {
+                height: this._pixiRenderer.height,
+                width: this._pixiRenderer.width
+            });
+        } else if (flags.widthChanged || flags.heightChanged) {
+            this._zoomInRenderer.init(this._getZoomInPlaceholderText(), {
+                height: this._pixiRenderer.height,
+                width: this._pixiRenderer.width
+            });
         }
+        this._zoomInRenderer.container.visible = this._variantsMaximumRange < this.viewport.actualBrushSize;
+        this.renderer.container.visible = this._variantsMaximumRange >= this.viewport.actualBrushSize;
         if (this.state.variantsView === variantsView.variantsViewExpanded) {
             return super.render(flags);
         } else {
@@ -182,7 +237,7 @@ export class VCFTrack extends GENETrack{
             }
             if (flags.brushChanged || flags.widthChanged || flags.heightChanged || flags.renderReset || flags.dataChanged) {
                 this.renderer.height = this.height;
-                this.renderer.render(this.viewport, this.cache, flags.heightChanged, this._gffColorByFeatureType);
+                this.renderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, this._gffColorByFeatureType, this._showCenterLine);
                 somethingChanged = true;
             }
             return somethingChanged;

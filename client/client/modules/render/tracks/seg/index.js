@@ -40,7 +40,7 @@ export class SEGTrack extends CachedTrack {
         }
         if (flags.brushChanged || flags.widthChanged || flags.heightChanged || flags.renderReset || flags.dataChanged) {
             flags.heightChanged && (this._renderer.height = this.height);
-            this._renderer.render(this.viewport, this.cache, flags.heightChanged);
+            this._renderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, null, null, this._showCenterLine);
             somethingChanged = true;
         }
         return somethingChanged;

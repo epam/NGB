@@ -13,7 +13,7 @@
             </div>
         </md-menu-item>
         <md-divider></md-divider>
-        <md-menu-item ng-repeat="column in $ctrl.columnsList">
+        <md-menu-item ng-repeat="column in $ctrl.columnsList | orderBy: 'name'">
             <div class="for-md-tooltip-work">
                 <md-checkbox flex layout="row" class="text__sm"
                              ng-model="column.selection"

@@ -2,9 +2,23 @@ language: java
 sudo: required
 os:
   - linux
-  - osx
 dist: trusty
 install: 
-    - pip install mkdocs
-    - pip install mkdocs-material
-script: ./gradlew buildJar buildWar buildCli buildDoc && ./e2e/integration_tests.sh
+    - sudo pip install mkdocs
+    - sudo pip install mkdocs-material
+script: 
+    - ./gradlew buildJar buildWar buildCli buildDoc -PbuildNumber=${TRAVIS_JOB_NUMBER} && ./e2e/integration_tests.sh
+    - ./gradlew jacocoTestReport
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+deploy:
+  - provider: script
+    skip_cleanup: true
+    script: DEMO_PATH=${DEMO_PATH}/dev && ./publish.sh
+    on:
+      branch: develop
+  - provider: script
+    skip_cleanup: true
+    script: ./publish.sh
+    on:
+      branch: master

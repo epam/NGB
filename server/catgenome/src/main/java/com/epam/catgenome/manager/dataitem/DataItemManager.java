@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import com.epam.catgenome.manager.wig.FacadeWigManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -46,7 +47,6 @@ import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.manager.maf.MafManager;
 import com.epam.catgenome.manager.seg.SegManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
-import com.epam.catgenome.manager.wig.WigManager;
 
 /**
  * {@code DataItemManager} represents a service class designed to encapsulate all business
@@ -68,7 +68,7 @@ public class DataItemManager {
     private VcfManager vcfManager;
 
     @Autowired
-    private WigManager wigManager;
+    private FacadeWigManager facadeWigManager;
 
     @Autowired
     private SegManager segManager;
@@ -86,7 +86,7 @@ public class DataItemManager {
      *               otherwise a substring, case insensitive search is performed
      * @return list of found files
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BiologicalDataItem> findFilesByName(final String name, boolean strict) {
         if (strict) {
             return biologicalDataItemDao.loadFilesByNameStrict(name);
@@ -139,7 +139,7 @@ public class DataItemManager {
                 geneManager.unregisterGeneFile(itemId);
                 break;
             case WIG:
-                wigManager.unregisterWigFile(itemId);
+                facadeWigManager.unregisterWigFile(itemId);
                 break;
             case SEG:
                 segManager.unregisterSegFile(itemId);

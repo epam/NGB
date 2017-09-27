@@ -1,6 +1,6 @@
 {
   "name": "NGB",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "license": "MIT",
   "description": "&#34;New Genome Browser&#34;",
   "repository": {
@@ -62,7 +62,6 @@
     "eslint-plugin-flowtype": "^2.3.0",
     "expose-loader": "^0.7.1",
     "extract-text-webpack-plugin": "^0.8.2",
-    "favicons-webpack-plugin": "0.0.7",
     "file-loader": "^0.8.5",
     "html-loader": "0.4.3",
     "html-webpack-plugin": "^2.17.0",

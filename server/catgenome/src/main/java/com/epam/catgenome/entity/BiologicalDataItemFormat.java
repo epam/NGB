@@ -122,7 +122,9 @@ public enum BiologicalDataItemFormat {
     /**
      * A some unknown index format. Used for dummy index reference.
      */
-    INDEX(-1, true);
+    INDEX(-1, true),
+
+    BED_GRAPH_INDEX(18, true);
 
     private long id;
     private boolean index = false;
@@ -146,6 +148,7 @@ public enum BiologicalDataItemFormat {
         idMap.put(VG.id, VG);
         idMap.put(REFERENCE_INDEX.id, REFERENCE_INDEX);
         idMap.put(INDEX.id, INDEX);
+        idMap.put(BED_GRAPH_INDEX.id, BED_GRAPH_INDEX);
     }
 
     BiologicalDataItemFormat(long id) {

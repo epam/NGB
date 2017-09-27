@@ -160,6 +160,7 @@ export class Track extends BaseTrack {
         }
         this._refreshPixiRenderer();
         this._refreshCache();
+        this._showCenterLine = opts.showCenterLine;
         requestAnimationFrame(::this.tick);
     }
 
@@ -318,6 +319,11 @@ export class Track extends BaseTrack {
             this.hoveringEffects = state.hoveringEffects;
             this.viewport.shortenedIntronsViewport.intronLength = state.shortenedIntronLength;
             this.viewport.shortenedIntronsViewport.maximumRange = state.shortenedIntronsMaximumRange;
+            if(this._showCenterLine !== state.showCenterLine) {
+                this._showCenterLine = state.showCenterLine;
+                this._flags.dataChanged = true;
+                this.requestRenderRefresh();
+            }
         }
     }
 

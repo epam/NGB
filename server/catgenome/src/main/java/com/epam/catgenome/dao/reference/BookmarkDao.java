@@ -89,12 +89,12 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
      * Loads {@code Bookmark} entities, saved for given project ID and chromosome ID
      * @return {@code List&lt;Bookmark&gt;}
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Bookmark> loadAllBookmarks(long userId) {
         return getJdbcTemplate().query(loadAllBookmarksQuery, BookmarkParameters.getRowMapper(), userId);
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Bookmark> searchBookmarks(String searchStr, long userId, int limit) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(BookmarkParameters.BOOKMARK_NAME.name(), searchStr + '%');
@@ -104,7 +104,7 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
         return getNamedParameterJdbcTemplate().query(searchBookmarksQuery, params, BookmarkParameters.getRowMapper());
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public int searchBookmarkCount(String searchStr, long userId) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(BookmarkParameters.BOOKMARK_NAME.name(), searchStr + '%');
@@ -118,7 +118,7 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
      * @param bookmarkId {@code Long} a {@code Bookmark} to load
      * @return {@code Bookmark}
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Bookmark loadBookmarkById(long bookmarkId) {
         List<Bookmark> bookmarks = getJdbcTemplate().query(loadBookmarkByIdQuery, BookmarkParameters.getRowMapper(),
                 bookmarkId);

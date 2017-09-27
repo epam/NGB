@@ -27,9 +27,15 @@ package com.epam.catgenome.controller;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
+import javax.servlet.http.HttpServletResponse;
+
+import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.UrlRequestVO;
+import com.epam.catgenome.manager.UrlShorterManager;
 import com.epam.catgenome.util.IndexUtils;
+import com.epam.catgenome.entity.UrlWithAliasItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -48,6 +54,8 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+
 /**
  * Source:      UtilsController
  * Created:     25.04.16, 16:11
@@ -60,8 +68,12 @@ import com.wordnik.swagger.annotations.ApiResponses;
  */
 @Controller
 public class UtilsController extends AbstractRESTController {
+
     @Autowired
     private FileManager fileManager;
+
+    @Autowired
+    private UrlShorterManager urlShorterManager;
 
     @Autowired
     private BiologicalDataItemManager biologicalDataItemManager;
@@ -126,6 +138,49 @@ public class UtilsController extends AbstractRESTController {
         return Result.success(biologicalDataItemManager.generateUrl(request.getDataset(),
                 request.getIds() == null ? Collections.emptyList() : request.getIds(), chromosomeName,
                 startIndex, endIndex));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/generateShortUrl", method = RequestMethod.POST)
+    @ApiOperation(
+            value = "Generates short URL postfix",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<String> generateShortUrl(@RequestBody UrlWithAliasItem urlWithAlias) {
+        String alias = urlWithAlias.getAlias();
+        String url = urlWithAlias.getUrl();
+
+        String payload = urlShorterManager.generateAndSaveShortUrlPostfix(url, alias);
+
+        Result<String> result;
+        if (alias != null && !alias.equals(payload)) {
+            result = Result.success(payload, getMessage(MessagesConstants.INFO_ALIAS_ALREADY_EXIST_MASSAGE));
+        } else {
+            result = Result.success(payload);
+        }
+        return result;
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/navigate", method = RequestMethod.GET)
+    @ApiOperation(
+            value = "redirect on a original URL by short URL postfix, or on the 404 if short url doesn't exist",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public void redirectToOriginalUrlByAlias(@RequestParam String alias, HttpServletResponse resp) throws IOException {
+        Optional<String> maybeOriginalUrl = urlShorterManager.getOriginalUrl(alias);
+        if (maybeOriginalUrl.isPresent()) {
+            String url = maybeOriginalUrl.get();
+            resp.addHeader("Location", url);
+            resp.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+            resp.sendRedirect(url);
+        } else {
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND, MessagesConstants.ERROR_URL_WAS_EXPIRED);
+        }
     }
 
     @ResponseBody

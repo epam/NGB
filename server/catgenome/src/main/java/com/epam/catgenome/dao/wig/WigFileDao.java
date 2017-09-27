@@ -70,7 +70,7 @@ public class WigFileDao extends NamedParameterJdbcDaoSupport {
      * @param referenceId {@code long} a reference ID in the system
      * @return a {@code List} of {@code WigFile} instances
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<WigFile> loadWigFilesByReferenceId(long referenceId) {
         return getJdbcTemplate().query(loadWigFilesByReferenceIdQuery, BiologicalDataItemDao
                 .BiologicalDataItemParameters.getRowMapper(), referenceId)
@@ -82,7 +82,7 @@ public class WigFileDao extends NamedParameterJdbcDaoSupport {
      * @param id {@code long} a WigFile ID
      * @return {@code WigFile} instance
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public WigFile loadWigFile(long id) {
         List<BiologicalDataItem> files = getJdbcTemplate().query(loadWigFileQuery, BiologicalDataItemDao
                 .BiologicalDataItemParameters.getRowMapper(), id);

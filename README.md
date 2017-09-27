@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/epam/NGB.svg?branch=master)](https://travis-ci.org/epam/NGB)
+[![codecov](https://codecov.io/gh/epam/NGB/branch/master/graph/badge.svg)](https://codecov.io/gh/epam/NGB)
 
 # NGB
 New Genome Browser (NGB) is a Web client-server tool that has been developed with the several key distinctive features in mind:  
@@ -82,6 +83,14 @@ Default NGB page should be shown
 
 That's it. Now NGS files could be added and viewed. Please refer to [NGB Command Line Interface - Typical tasks](docs/md/cli/typical-tasks.md) to register genome and NGS files
 
+# Prebuilt binaries
+
+NGB binaries can be retrieved from the following locations:
+* Releases:
+    * GitHub Releases: [https://github.com/epam/NGB/releases](https://github.com/epam/NGB/releases)
+    * Direct HTTP links: [http://ngb.opensource.epam.com/distr](http://ngb.opensource.epam.com/distr)
+* Development builds (created from `develop` branch - each commit): [http://ngb.opensource.epam.com/distr/dev](http://ngb.opensource.epam.com/distr/dev)
+
 # How to build NGB
 
 ## Requirements
@@ -99,13 +108,14 @@ Gradle build script is provided for building NGB components
 $ ./gradlew [tasks]
 
 Available tasks:
-buildWar      builds java web application archive, containing client and server binaries
-buildCli      builds ngb command line interface, used to manipulate data within ngb
-buildDocker   builds war-file and packages it into a docker image, using docker/core/Dockerfile
-buildDoc      builds markdown documents into html web-site
-buildJar      builds standalone jar-file with embedded Tomcat
-buildDesktop  builds standalone desktop NGB application
-buildAll      builds all components, listed above
+buildWar        builds java web application archive, containing client and server binaries
+buildCli        builds ngb command line interface, used to manipulate data within ngb
+buildDocker     builds jar-file and packages it into a docker image, using docker/core/Dockerfile
+buildDockerDemo builds "core" docker image and initilizes it with demo data, using docker/demo/Dockerfile
+buildDoc        builds markdown documents into html web-site
+buildJar        builds standalone jar-file with embedded Tomcat
+buildDesktop    builds standalone desktop NGB application
+buildAll        builds all components, listed above
 ```
 
 All tasks could be combined.

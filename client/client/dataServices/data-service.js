@@ -7,6 +7,7 @@ export class DataService {
     static get serviceFactory() { return () => new this(); }
 
     ngbConstants = ngbConstants;
+    _serverUrl;
 
     constructor() {
         this._serverUrl = this.ngbConstants.urlPrefix;

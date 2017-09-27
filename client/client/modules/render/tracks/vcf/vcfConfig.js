@@ -124,5 +124,12 @@ export default {
         tooltip: {
             height: 15
         }
+    },
+    centerLine:{
+        dash: {
+            fill: 0x000000,
+            length: 5,
+            thickness: 1
+        }
     }
 };

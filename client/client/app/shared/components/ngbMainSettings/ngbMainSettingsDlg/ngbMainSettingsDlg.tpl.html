@@ -46,6 +46,13 @@
                                     </div>
                                 </md-checkbox>
                             </div>
+                            <div class="row">
+                                <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.showCenterLine">
+                                    <div class="hint">
+                                        Show center line
+                                    </div>
+                                </md-checkbox>
+                            </div>
                         </div>
                     </md-content>
                 </md-tab>
@@ -108,23 +115,16 @@
                                     </div>
                                 </md-checkbox>
                             </div>
-                            <div class="row">
-                                <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.showCenterLine">
-                                    <div class="hint">
-                                        Show center line
-                                    </div>
-                                </md-checkbox>
-                            </div>
                             <div class="row" layout="row">
                                 <div flex="50">
-                                    <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.filterReads.pcrOpticalDuplicates">
+                                    <md-checkbox flex aria-label="Filter PCR/optical duplicates" ng-model="ctrl.settings.filterReads.pcrOpticalDuplicates">
                                         <div class="hint">
                                             Filter PCR/optical duplicates
                                         </div>
                                     </md-checkbox>
                                 </div>
                                 <div flex="50">
-                                    <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.filterReads.supplementaryAlignments">
+                                    <md-checkbox flex aria-label="Filter supplementary alignments" ng-model="ctrl.settings.filterReads.supplementaryAlignments">
                                         <div class="hint">
                                             Filter supplementary alignments
                                         </div>
@@ -133,14 +133,14 @@
                             </div>
                             <div class="row" layout="row">
                                 <div flex="50">
-                                    <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.filterReads.failedVendorChecks">
+                                    <md-checkbox flex aria-label="Filter failed vendor checks" ng-model="ctrl.settings.filterReads.failedVendorChecks">
                                         <div class="hint">
                                             Filter failed vendor checks
                                         </div>
                                     </md-checkbox>
                                 </div>
                                 <div flex="50">
-                                    <md-checkbox flex aria-label="Show center line" ng-model="ctrl.settings.filterReads.secondaryAlignments">
+                                    <md-checkbox flex aria-label="Filter secondary alignments" ng-model="ctrl.settings.filterReads.secondaryAlignments">
                                         <div class="hint">
                                             Filter secondary alignments
                                         </div>
@@ -173,6 +173,21 @@
                                            ng-max="10000000"/>
                                     <div ng-messages="settingsForm.maxCoverageRangeBpBam.$error" role="alert">
                                         <div ng-message="required,min,max">Enter maximum coverage range (bp).<br/>Value must be greater than or equal 1000 and less than or equal 10Mbp.</div>
+                                    </div>
+                                </md-input-container>
+                            </div>
+                            <div class="row"><h4>Coverage options</h4></div>
+                            <div class="row">
+                                <md-input-container>
+                                    <input name="alleleFrequencyThresholdBam"
+                                           type="number"
+                                           required
+                                           placeholder="allele frequency threshold(%)"
+                                           ng-model="ctrl.settings.alleleFrequencyThresholdBam"
+                                           ng-min="0"
+                                           ng-max="100"/>
+                                    <div ng-messages="settingsForm.alleleFrequencyThresholdBam.$error" role="alert">
+                                        <div ng-message="required,min,max">Enter allele frequency threshold (%).</div>
                                     </div>
                                 </md-input-container>
                             </div>
@@ -229,8 +244,26 @@
                         </div>
                     </md-content>
                 </md-tab>
+                <md-tab label="VCF">
+                    <md-content class="md-padding">
+                        <div class="column">
+                            <div class="row">
+                                <md-input-container>
+                                    <input name="maxRangeVcf"
+                                           type="number"
+                                           required
+                                           ng-min="0"
+                                           placeholder="maximum variants range(bp)"
+                                           ng-model="ctrl.settings.variantsMaximumRange"/>
+                                    <div ng-messages="settingsForm.maxRangeVcf.$error" role="alert">
+                                        <div ng-message="required,min">Enter maximum range for displaying variants(bp). Value must be greater than 0.</div>
+                                    </div>
+                                </md-input-container>
+                            </div>
+                        </div>
+                    </md-content>
+                </md-tab>
                 <md-tab label="Customize">
-
                     <md-content class="customizations">
                         <div class="md-toolbar-panel">
                             <md-button ng-click="ctrl.setToDefaultCustomizations()" class="set-to-default-btn">

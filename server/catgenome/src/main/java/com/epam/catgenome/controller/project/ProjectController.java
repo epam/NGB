@@ -118,7 +118,7 @@ public class ProjectController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<ProjectVO> loadProject(@PathVariable(value = PROJECT_ID_PARAM) final Long projectId) {
-        return Result.success(ProjectConverter.convertTo(projectManager.loadProject(projectId)));
+        return Result.success(ProjectConverter.convertTo(projectManager.loadProjectAndUpdateLastOpenedDate(projectId)));
     }
 
     @RequestMapping(value = "/project/load", method = RequestMethod.GET)
@@ -131,7 +131,9 @@ public class ProjectController extends AbstractRESTController {
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
     public Result<ProjectVO> loadProject(@RequestParam final String projectName) {
-        return Result.success(ProjectConverter.convertTo(projectManager.loadProject(projectName)));
+        return Result.success(ProjectConverter.convertTo(
+                projectManager.loadProjectAndUpdateLastOpenedDate(projectName))
+        );
     }
 
     @RequestMapping(value = "/project/save", method = RequestMethod.POST)
@@ -213,7 +215,7 @@ public class ProjectController extends AbstractRESTController {
     public Result<ProjectVO> hideProjectItem(@PathVariable(value = PROJECT_ID_PARAM) final Long projectId,
                                           @PathVariable(value = BIOLOGICAL_ITEM_ID_PARAM) final Long biologicalItemId) {
         projectManager.hideProjectItem(projectId, biologicalItemId);
-        return Result.success(ProjectConverter.convertTo(projectManager.loadProject(projectId)));
+        return Result.success(ProjectConverter.convertTo(projectManager.loadProjectAndUpdateLastOpenedDate(projectId)));
     }
 
     @RequestMapping(value = "/project/{projectId}/search", method = RequestMethod.GET)

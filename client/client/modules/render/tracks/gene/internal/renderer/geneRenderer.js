@@ -5,8 +5,6 @@ import PIXI from 'pixi.js';
 
 export default class GeneRenderer extends CachedTrackRenderer {
 
-    _config = null;
-
     _featureRenderer: FeatureRenderer = null;
     _geneHistogram: GeneHistogram = null;
     _labelsContainer: PIXI.Container = null;
@@ -18,10 +16,10 @@ export default class GeneRenderer extends CachedTrackRenderer {
     _transformer: GeneTransformer = null;
 
     _verticalScroll: PIXI.Graphics = null;
-    _height = 0;
     _actualHeight = null;
     _gffColorByFeatureType = false;
     _gffShowNumbersAminoacid = false;
+    _showCenterLine;
 
     constructor(config, transformer: GeneTransformer, pixiRenderer) {
         super();
@@ -71,19 +69,15 @@ export default class GeneRenderer extends CachedTrackRenderer {
         return this._actualHeight;
     }
 
-    render(viewport, cache, heightChanged, _gffColorByFeatureType = false, _gffShowNumbersAminoacid) {
-        const gffColorByFeatureTypeChanged = this._gffColorByFeatureType !== _gffColorByFeatureType;
+    render(viewport, cache, isRedraw, _gffColorByFeatureType = false, _gffShowNumbersAminoacid, _showCenterLine) {
         this._gffColorByFeatureType = _gffColorByFeatureType;
-
-        const gffShowNumbersAminoacidChanged = this._gffShowNumbersAminoacid !== _gffShowNumbersAminoacid;
+        this._showCenterLine = _showCenterLine;
         this._gffShowNumbersAminoacid = _gffShowNumbersAminoacid;
-        const isRedraw = gffColorByFeatureTypeChanged||gffShowNumbersAminoacidChanged;
-        if (!isRedraw && heightChanged) {
+
+        if (!isRedraw) {
             this.scroll(viewport, 0, cache);
         }
-        else {
-            super.render(viewport, cache, isRedraw);
-        }
+        super.render(viewport, cache, isRedraw, null, _showCenterLine);
     }
 
     get needConvertGraphicsToTexture() {
@@ -309,6 +303,4 @@ export default class GeneRenderer extends CachedTrackRenderer {
         }
         return true;
     }
-
 }
-

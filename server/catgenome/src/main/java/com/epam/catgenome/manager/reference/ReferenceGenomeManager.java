@@ -220,7 +220,7 @@ public class ReferenceGenomeManager {
      * @return {@code List} list of reference genomes that are available in the system now
      */
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Reference> loadAllReferenceGenomes() {
         return loadAllReferenceGenomes(null);
     }
@@ -270,7 +270,7 @@ public class ReferenceGenomeManager {
      * @throws IllegalArgumentException will be thrown in a case, if no chromosome with the given ID can be
      *                                  found in the system
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Chromosome loadChromosome(final Long chromosomeId) {
         final Chromosome chromosome = referenceGenomeDao.loadChromosome(chromosomeId);
         Assert.notNull(chromosome, getMessage(MessageCode.NO_SUCH_CHROMOSOME));
@@ -286,7 +286,7 @@ public class ReferenceGenomeManager {
      * @throws IllegalArgumentException will be thrown in a case, if no chromosome associated with the given
      *                                  reference ID can be found in the system
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Chromosome> loadChromosomes(final Long referenceId) {
         final List<Chromosome> chromosomes = referenceGenomeDao.loadAllChromosomesByReferenceId(referenceId);
         Assert.isTrue(CollectionUtils.isNotEmpty(chromosomes), getMessage(MessageCode.NO_SUCH_REFERENCE));
@@ -299,7 +299,7 @@ public class ReferenceGenomeManager {
      * @param referenceId {@code Long} specifies ID of a reference genome which chromosomes should be loaded
      * @return {@code List}
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BaseEntity> loadAllFile(final Long referenceId) {
         return referenceGenomeDao.loadAllFileByReferenceId(referenceId);
     }
@@ -312,7 +312,7 @@ public class ReferenceGenomeManager {
      * @throws IllegalArgumentException will be thrown in a case, if no reference with the given ID can be
      *                                  found in the system
      */
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Reference getOnlyReference(final Long referenceId) {
         Assert.notNull(referenceId, getMessage(MessageCode.NO_SUCH_REFERENCE));
         final Reference reference = referenceGenomeDao.loadReferenceGenome(referenceId);
@@ -329,7 +329,7 @@ public class ReferenceGenomeManager {
         return loadReferenceGenome(referenceId);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public boolean isRegistered(Long id) {
         return referenceGenomeDao.loadReferenceGenome(id) != null;
     }

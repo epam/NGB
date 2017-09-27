@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -112,11 +112,13 @@ public final class MessagesConstants {
     public static final String ERROR_ANNOTATION_FILE_ALREADY_EXIST = "error.annotation.file.feature.already.exist";
     public static final String ERROR_ANNOTATION_FILE_NOT_EXIST = "error.annotation.file.feature.not.exist";
     public static final String ERROR_ILLEGAL_REFERENCE_FOR_ANNOTATION = "error.illegal.reference.for.annotation";
+    public static final String ERROR_UNSUPPORTED_OPERATION = "error.unsupported.operation";
 
     //Feature index
     public static final String ERROR_FEATURE_INDEX_NOT_FOUND = "error.feature.index.not.found";
     public static final String INFO_FEATURE_INDEX_LOADING = "info.feature.index.loading";
     public static final String INFO_FEATURE_INDEX_WRITING = "info.feature.index.writing";
+    public static final String ERROR_FEATURE_INEDX_TOO_LARGE = "error.feature.index.too.large";
     public static final String INFO_FEATURE_INDEX_DONE = "info.feature.index.done";
     public static final String ERROR_FEATURE_INDEX_WRITING = "error.feature.index.writing";
     public static final String INFO_FEATURE_INDEX_WRITING_FOR_PROJECT = "info.feature.index.writing.for.project";
@@ -160,6 +162,8 @@ public final class MessagesConstants {
 
     //WIG
     public static final String WRONG_WIG_FILE = "error.wig.file";
+    public static final String WRONG_BED_GRAPH_FILE = "error.bedgraph.file";
+
 
     //S3
     public static final String ERROR_S3_BUCKET = "error.not.s3.bucket";
@@ -217,6 +221,11 @@ public final class MessagesConstants {
 
     //LOGGER
     public static final String ERROR_LOGGER_JSON_FILE_INVALID = "logger.error.json.file.invalid";
+
+    //SHORT_URLS
+    public static final String ERROR_URL_WAS_EXPIRED = "error.url.was.expired";
+    public static final String INFO_ALIAS_ALREADY_EXIST_MASSAGE = "info.alias.already.exist";
+
     private MessagesConstants() {
         // No-op
     }

@@ -90,7 +90,7 @@ public class BedFileDao extends NamedParameterJdbcDaoSupport {
      * @param id {@code long} a BedFile ID
      * @return {@code BedFile} instance
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public BedFile loadBedFile(long id) {
         List<BiologicalDataItem> files = getJdbcTemplate().query(loadBedFileQuery, BiologicalDataItemDao
                 .BiologicalDataItemParameters.getRowMapper(), id);
@@ -103,7 +103,7 @@ public class BedFileDao extends NamedParameterJdbcDaoSupport {
      * @param referenceId {@code long} a reference ID in the system
      * @return a {@code List} of {@code BedFile} instances
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BedFile> loadBedFilesByReferenceId(long referenceId) {
         return getJdbcTemplate().query(loadBedFilesByReferenceIdQuery, BiologicalDataItemDao
                 .BiologicalDataItemParameters.getRowMapper(), referenceId)

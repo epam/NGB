@@ -75,7 +75,7 @@ public class BucketDao extends NamedParameterJdbcDaoSupport {
      * Loads all {@code Bucket} records saved in the database
      * @return a {@code List} of {@code Bucket} instances
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<Bucket> loadAllBucket() {
         return getNamedParameterJdbcTemplate().query(loadAllBucketQuery,
                 BucketParameters.getRowMapper());
@@ -86,7 +86,7 @@ public class BucketDao extends NamedParameterJdbcDaoSupport {
      * @param bucketId a Bucket ID
      * @return {@code Bucket} instance
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public Bucket loadBucketById(final Long bucketId) {
         List<Bucket> buckets = getJdbcTemplate().query(loadBucketByIdQuery, BucketParameters.getPasswordRowMapper(),
                 bucketId);
