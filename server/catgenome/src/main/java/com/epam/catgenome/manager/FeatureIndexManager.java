@@ -380,7 +380,7 @@ public class FeatureIndexManager {
         }
 
         IndexSearchResult<FeatureIndexEntry> bookmarkSearchRes = bookmarkManager.searchBookmarks(featureId,
-                                                                                         maxFeatureSearchResultsCount);
+                maxFeatureSearchResultsCount);
 
         Reference reference = referenceGenomeManager.loadReferenceGenome(referenceId);
 
@@ -394,9 +394,9 @@ public class FeatureIndexManager {
             annotationFiles.add(geneFileManager.loadGeneFile(geneFileId));
         }
 
-        IndexSearchResult res = featureIndexDao.searchFeatures(featureId,
-                geneFileManager.loadGeneFile(reference.getGeneFile().getId()),
-                maxFeatureSearchResultsCount);
+        IndexSearchResult<FeatureIndexEntry> res = featureIndexDao.searchFeatures(
+                featureId, annotationFiles, maxFeatureSearchResultsCount
+        );
         bookmarkSearchRes.mergeFrom(res);
         return bookmarkSearchRes;
     }

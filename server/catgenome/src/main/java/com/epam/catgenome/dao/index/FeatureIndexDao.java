@@ -189,16 +189,24 @@ public class FeatureIndexDao {
         }
     }
 
+    public IndexSearchResult<FeatureIndexEntry> searchFeatures(String featureId,
+            FeatureFile featureFile,
+            Integer maxResultsCount)
+            throws IOException {
+        return searchFeatures(featureId, Collections.singletonList(featureFile), maxResultsCount);
+    }
+
     /**
      * Searches genes by it's ID in project's gene files. Minimum featureId prefix length == 2
      *
      * @param featureId a feature ID prefix to search for
-     * @param featureFile a gene file ,from which to search
+     * @param featureFiles a gene file ,from which to search
      * @return a {@code List} of {@code FeatureIndexEntry}
      * @throws IOException
      */
-    public IndexSearchResult<FeatureIndexEntry> searchFeatures(String featureId, FeatureFile featureFile,
-                                                               Integer maxResultsCount)
+    public IndexSearchResult<FeatureIndexEntry> searchFeatures(String featureId,
+            List<? extends FeatureFile> featureFiles,
+            Integer maxResultsCount)
             throws IOException {
         if (featureId == null || featureId.length() < 2) {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
@@ -226,7 +234,7 @@ public class FeatureIndexDao {
                 FeatureType.BED_FEATURE.getFileValue())), BooleanClause.Occur.SHOULD);
         mainBuilder.add(featureTypeBuilder.build(), BooleanClause.Occur.MUST);
 
-        return searchFileIndexes(Collections.singletonList(featureFile), mainBuilder.build(), null,
+        return searchFileIndexes(featureFiles, mainBuilder.build(), null,
                                  maxResultsCount, new Sort(new SortField(FeatureIndexFields.FEATURE_NAME.getFieldName(),
                                                                          SortField.Type.STRING)));
     }
