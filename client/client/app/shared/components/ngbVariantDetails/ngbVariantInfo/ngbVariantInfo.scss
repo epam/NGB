@@ -16,5 +16,19 @@
   .table-property{
     font-size: 13px;
   }
+  .md-variant-properties-info-table{
+    padding: 5px;
+    > div {
+      padding-top: 10px;
+    }
+  }
+  .md-variant-properties-collapse-label{
+    color: #6699ff;
+    border-bottom: 1px dashed #6699ff;
+    cursor: pointer;
+    outline: none;
+    width: auto;
+    font-size: 14px;
+  }
 }
 

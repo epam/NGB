@@ -10,14 +10,16 @@ export default class ngbVariantInfoController extends ngbVariantDetailsControlle
     hasError = false;
     errorMessage = null;
     _variantInfoService = null;
+    _localDataService = null;
     _variantInfo = null;
     _scope;
 
     /* @ngInject */
-    constructor($scope, ngbVariantInfoService, vcfDataService, constants) {
+    constructor($scope, ngbVariantInfoService, vcfDataService, constants, localDataService) {
         super($scope, vcfDataService, constants);
         this._scope = $scope;
         this._variantInfoService = ngbVariantInfoService;
+        this._localDataService = localDataService;
         this.INIT();
     }
 
@@ -35,6 +37,10 @@ export default class ngbVariantInfoController extends ngbVariantDetailsControlle
             this._variantInfoService
                 .loadVariantInfo(this.variantRequest,
                     (variantInfo) => {
+                        const excludeColumns = this._localDataService.getExcludeVariantInfoColumns();
+                        variantInfo.properties.forEach((property)=>{
+                            property.selection = excludeColumns.indexOf(property.title) === -1
+                        })
                         this.variantInfo = variantInfo;
                         this.isLoading = false;
                         if (this._scope !== null && this._scope !== undefined) {
@@ -54,5 +60,12 @@ export default class ngbVariantInfoController extends ngbVariantDetailsControlle
         this.isLoading = false;
         this.hasError = true;
         this.errorMessage = message;
+    }
+
+    onVariantInfoColumnsChange(){
+        const excludeVariantInfoColumns = this.variantInfo.properties
+            .filter(property => property.selection === false)
+            .map(m => m.title);
+        this._localDataService.updateExcludeVariantInfoColumns(excludeVariantInfoColumns);
     }
 }
