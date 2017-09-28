@@ -1,39 +1,39 @@
 # NGB installation
 
-There are three options to install NGB
+There are three options to install NGB:
 
 * **[Build and run a standalone jar file](standalone.md)**
-* **[Use Docker image](docker.md)**
-* **[Install web-archive (war file) to tomcat](binaries.md)**
+* **[Use a Docker image](docker.md)**
+* **[Install a web-archive (war file) to Tomcat](binaries.md)**
 
-These options are described in details in the subsequent sections.
+Find the detailed description of these options in the subsequent sections.
 
 ## Distributions
 
-NGB distributions are avialable at the following locations:
+NGB distributions are available at the following locations:
 
-* Jar/War
+* Jar/War:
     * [http://ngb.opensource.epam.com/distr](http://ngb.opensource.epam.com/distr)
     * [https://github.com/epam/NGB/releases](https://github.com/epam/NGB/releases)
-* Docker image
+* Docker image:
     * [https://hub.docker.com/r/lifescience/ngb](https://hub.docker.com/r/lifescience/ngb/)
 
 ## General requirements
 
-The following minimal requirements should be met for the server host machine
+The server host machine should meet the following minimal requirements:
 
-* Server hardware requirements
+* Server hardware requirements:
     * CPU: 2 cores
     * RAM: 4Gb
     * HDD: 20 Gb free space
-* Server software requirements
-    * Ubuntu >= 14.04
-    * CentOS >= 6
-    * RedHat >= 6
-* Client web-browser requirements
-    * Chrome (>= 56)
-    * Firefox (>= 51)
-    * Safari (>= 9)
-    * EDGE (>= 25)
+* Server software requirements:
+    * Ubuntu 14.04 or later
+    * CentOS 6 or later
+    * RedHat 6 or later
+* Client web-browser requirements:
+    * Chrome 56 or later
+    * Firefox 51 or later
+    * Safari 9 or later
+    * EDGE 25 or later
 
 
