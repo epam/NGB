@@ -135,7 +135,7 @@ export default class LocalDataService {
     getExcludeVariantInfoColumns() {
         let columns = angular.fromJson(this._localStorage.excludeVariantInfoColumns);
         if (!columns) {
-           return [];
+            return [];
         }
         return columns;
     }
@@ -146,6 +146,7 @@ export default class LocalDataService {
                 .toString(16)
                 .substring(1);
         }
+
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
             s4() + '-' + s4() + s4() + s4();
     }

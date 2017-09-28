@@ -8,7 +8,7 @@
         {{ctrl.errorMessage}}
     </div>
 
-    <div flex="100" layout="row" layout-wrap class="md-variant-properties-info">
+    <div flex="100" layout="row" layout-wrap>
         <div ng-hide="ctrl.isLoading || crtl.hasError"
              layout="row"
              ng-repeat="property in ctrl.variantInfo.properties | filter: { selection: true} | orderBy: 'title'"
@@ -33,9 +33,10 @@
             </div>
         </div>
 
-        <div ng-hide="ctrl.isLoading || crtl.hasError" class="md-variant-properties-info-table" layout-wrap flex="100" ng-init="isCollapsed=true">
+        <div ng-hide="ctrl.isLoading || crtl.hasError" class="md-variant-properties-info-table" layout-wrap flex="100"
+             ng-init="isCollapsed=true">
             <span class="md-variant-properties-collapse-label" ng-click="isCollapsed = !isCollapsed">{{isCollapsed ? 'show all' : 'collapse'}}</span>
-            <div  ng-if="!isCollapsed" flex layout="row" layout-wrap>
+            <div ng-if="!isCollapsed" flex layout="row" layout-wrap>
                 <div flex="50" layout="column" ng-repeat="property in ctrl.variantInfo.properties | orderBy: 'title'">
                     <div class="for-md-tooltip-work">
                         <md-checkbox flex

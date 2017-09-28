@@ -1,8 +1,8 @@
 import {ngbVariantDetailsController} from '../ngbVariantDetails.controller';
 
 
-export default class ngbVariantInfoController extends ngbVariantDetailsController{
-    static get UID(){
+export default class ngbVariantInfoController extends ngbVariantDetailsController {
+    static get UID() {
         return 'ngbVariantInfoController';
     }
 
@@ -23,10 +23,15 @@ export default class ngbVariantInfoController extends ngbVariantDetailsControlle
         this.INIT();
     }
 
-    get variantInfo() { return this._variantInfo; }
-    set variantInfo(info) { this._variantInfo = info; }
+    get variantInfo() {
+        return this._variantInfo;
+    }
 
-    INIT(){
+    set variantInfo(info) {
+        this._variantInfo = info;
+    }
+
+    INIT() {
         const hasVariantRequest = !(this.variantRequest === undefined || this.variantRequest === null);
 
         this.isLoading = false;
@@ -38,7 +43,7 @@ export default class ngbVariantInfoController extends ngbVariantDetailsControlle
                 .loadVariantInfo(this.variantRequest,
                     (variantInfo) => {
                         const excludeColumns = this._localDataService.getExcludeVariantInfoColumns();
-                        variantInfo.properties.forEach((property)=>{
+                        variantInfo.properties.forEach((property) => {
                             property.selection = excludeColumns.indexOf(property.title) === -1
                         })
                         this.variantInfo = variantInfo;
@@ -49,20 +54,20 @@ export default class ngbVariantInfoController extends ngbVariantDetailsControlle
                     },
                     ::this._handleError);
         }
-        else{
+        else {
             if (this._constants !== null && this._constants !== undefined)
                 this._handleError(this._constants.errorMessages.errorLoadingVariantInfo);
         }
     }
 
-    
-    _handleError(message){
+
+    _handleError(message) {
         this.isLoading = false;
         this.hasError = true;
         this.errorMessage = message;
     }
 
-    onVariantInfoColumnsChange(){
+    onVariantInfoColumnsChange() {
         const excludeVariantInfoColumns = this.variantInfo.properties
             .filter(property => property.selection === false)
             .map(m => m.title);
