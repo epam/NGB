@@ -430,7 +430,7 @@ public class FeatureIndexDao {
                 return new IndexSearchResult<>(Collections.emptyList(), false, 0);
             }
 
-            IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getExecutorService());
+            IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
             final TopDocs docs = performSearch(searcher, query, reader, maxResultsCount, sort);
 
             int totalHits = docs.totalHits;

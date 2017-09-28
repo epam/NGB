@@ -329,7 +329,7 @@ public class FeatureIndexManager {
         if (filterForm.getPage() != null && filterForm.getPageSize() != null) {
             LuceneIndexSearcher<VcfIndexEntry> indexSearcher =
                     getIndexSearcher(filterForm, featureIndexDao,
-                            fileManager, vcfManager, taskExecutorService.getExecutorService());
+                            fileManager, vcfManager, taskExecutorService.getSearchExecutor());
             IndexSearchResult<VcfIndexEntry> res =
                     indexSearcher.getSearchResults(files, filterForm.computeQuery(FeatureType.VARIATION));
             res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount()
