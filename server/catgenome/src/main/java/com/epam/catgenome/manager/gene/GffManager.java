@@ -1083,10 +1083,14 @@ public class GffManager {
         final List<Transcript> transcriptList = ExtenalDBUtils.ensemblEntryVO2Transcript(vo);
         for (Transcript transcript : transcriptList) {
             if (transcript.getBioType().equals(PROTEIN_CODING)) {
-                final Uniprot un = uniprotDataManager.fetchUniprotEntry(transcript.getId());
-                ExtenalDBUtils.fillDomain(un, transcript);
-                ExtenalDBUtils.fillPBP(un, transcript);
-                ExtenalDBUtils.fillSecondaryStructure(un, transcript);
+                try {
+                    final Uniprot un = uniprotDataManager.fetchUniprotEntry(transcript.getId());
+                    ExtenalDBUtils.fillDomain(un, transcript);
+                    ExtenalDBUtils.fillPBP(un, transcript);
+                    ExtenalDBUtils.fillSecondaryStructure(un, transcript);
+                } catch (ExternalDbUnavailableException e) {
+                    LOGGER.debug(e.getMessage(), e);
+                }
             }
         }
         return transcriptList;
