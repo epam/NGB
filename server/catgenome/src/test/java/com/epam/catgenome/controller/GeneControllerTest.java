@@ -44,7 +44,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.transaction.annotation.Propagation;
@@ -128,17 +127,12 @@ public class GeneControllerTest extends AbstractControllerTest {
         TrackQuery trackQuery = initTrackQuery(1L);
         trackQuery.setId(null);
 
-        MvcResult mvcResult = mvc()
+        ResultActions actions = mvc()
                 .perform(post(String.format(URL_LOAD_GENES, testReference.getId()))
                         .content(getObjectMapper().writeValueAsString(trackQuery))
                         .param("fileUrl", resource.getFile().getAbsolutePath())
                         .param("indexUrl", index.getFile().getAbsolutePath())
                         .contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(request().asyncStarted())
-                .andReturn();
-
-        ResultActions actions = mvc()
-                .perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(jsonPath(JPATH_PAYLOAD).exists())
@@ -168,17 +162,12 @@ public class GeneControllerTest extends AbstractControllerTest {
             TrackQuery trackQuery = initTrackQuery(1L);
             trackQuery.setId(null);
 
-            MvcResult mvcResult = mvc()
+            ResultActions actions = mvc()
                     .perform(post(String.format(URL_LOAD_GENES, testReference.getId()))
                             .content(getObjectMapper().writeValueAsString(trackQuery))
                             .param("fileUrl", geneUrl)
                             .param("indexUrl", indexUrl)
                             .contentType(EXPECTED_CONTENT_TYPE))
-                    .andExpect(request().asyncStarted())
-                    .andReturn();
-
-            ResultActions actions = mvc()
-                    .perform(asyncDispatch(mvcResult))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
                     .andExpect(jsonPath(JPATH_PAYLOAD).exists())
@@ -246,15 +235,10 @@ public class GeneControllerTest extends AbstractControllerTest {
         // Load a track by fileId
         TrackQuery trackQuery = initTrackQuery(fileId);
 
-        MvcResult mvcResult = mvc()
+        actions = mvc()
                 .perform(post(String.format(URL_LOAD_GENES, testReference.getId()))
                         .content(getObjectMapper().writeValueAsString(trackQuery))
                         .contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(request().asyncStarted())
-                .andReturn();
-
-        actions = mvc()
-                .perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(jsonPath(JPATH_PAYLOAD).exists())

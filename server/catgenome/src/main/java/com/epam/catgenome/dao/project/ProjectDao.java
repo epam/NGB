@@ -52,7 +52,6 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.project.ProjectItem;
@@ -168,13 +167,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
             }
 
             itemsMap.get(projectId).add(item);
-
-            if (item.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE) {
-                Reference reference = (Reference) item.getBioDataItem();
-                if (reference.getGeneFile() != null) {
-                    itemsMap.get(projectId).add(new ProjectItem(reference.getGeneFile()));
-                }
-            }
         });
         return itemsMap;
     }
