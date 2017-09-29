@@ -1,13 +1,15 @@
 package com.epam.catgenome.util;
 
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.IndexedDataItem;
+import org.apache.commons.io.FilenameUtils;
+
+import java.io.File;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.io.FilenameUtils;
-
-import com.epam.catgenome.entity.BiologicalDataItemFormat;
 
 /**
  * Source:      FileUtils
@@ -146,5 +148,27 @@ public final class NgbFileUtils {
 
     public static boolean isGzCompressed(String fileName) {
         return fileName.endsWith(GZ_EXTENSION);
+    }
+
+    public static void resolveRelativeIfNeeded(IndexedDataItem file, String baseDirPath) {
+        String indexPath = file.getIndex().getPath();
+        indexPath.trim();
+        if(!isFileIndexPathAbsolute(indexPath) && isLocalFilePath(indexPath)) {
+            file.getIndex().setPath(baseDirPath + File.separator + indexPath);
+        }
+    }
+
+    private static boolean isFileIndexPathAbsolute(String filePath) {
+        return filePath.startsWith("/");
+    }
+
+    public static boolean isLocalFilePath(String filePath) {
+        return !filePath.matches("^(http|https|ftp|S3|ftsp)://.*$");
+    }
+
+    public static String convertToRelativePath(String absoluteFilePath, String baseDirPath) {
+        return Paths.get(baseDirPath)
+                .relativize(Paths.get(absoluteFilePath))
+                .toString();
     }
 }

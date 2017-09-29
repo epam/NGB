@@ -24,41 +24,6 @@
 
 package com.epam.catgenome.manager;
 
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.manager.FileManager.FilePathFormat.*;
-import static com.epam.catgenome.manager.FileManager.FilePathPlaceholder.*;
-
-import java.io.BufferedWriter;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.ByteOrder;
-import java.nio.charset.Charset;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-
-import javax.annotation.PostConstruct;
-
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.JsonMapper;
@@ -67,9 +32,9 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.bed.BedFile;
+import com.epam.catgenome.entity.file.AbstractFsItem;
 import com.epam.catgenome.entity.file.FsDirectory;
 import com.epam.catgenome.entity.file.FsFile;
-import com.epam.catgenome.entity.file.AbstractFsItem;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.gene.GeneFileType;
 import com.epam.catgenome.entity.maf.MafFile;
@@ -138,6 +103,40 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.PostConstruct;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.ByteOrder;
+import java.nio.charset.Charset;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.manager.FileManager.FilePathFormat.*;
+import static com.epam.catgenome.manager.FileManager.FilePathPlaceholder.*;
+
 /**
  * Source:      FileManager.java
  * Created:     10/12/15, 7:53 PM
@@ -177,71 +176,70 @@ public class FileManager {
 
         // describes the structure of catalogues used to store any resources concerned
         // with managed reference genomes and chromosomes
-        REFERENCE_DIR("/references/${DIR_ID}"),
-        REF_CHROMOSOMES_DIR("/references/${DIR_ID}/chromosomes"),
-        REF_CHROMOSOME_DIR("/references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}"),
-        CHROMOSOME_GC_CONTENT_FILE("/references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/content.gccont"),
-        CHROMOSOME_GC_CONTENT_INDEX_FILE("/references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/content.gccont.ind"),
-        REF_CHROMOSOME_SEQUENCE_FILE("/references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/sequences.nib"),
-        REF_CHROMOSOME_SEQUENCE_INDEX_FILE("/references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/sequences.nib.ind"),
-        REF_CHROMOSOME_CYTOBAND_FILE("/references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/cytobands.txt"),
-        REF_INDEX_FILE("/references/${DIR_ID}/${REF_NAME}.fai"),
+        REFERENCE_DIR("references/${DIR_ID}"),
+        REF_CHROMOSOMES_DIR("references/${DIR_ID}/chromosomes"),
+        REF_CHROMOSOME_DIR("references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}"),
+        CHROMOSOME_GC_CONTENT_FILE("references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/content.gccont"),
+        CHROMOSOME_GC_CONTENT_INDEX_FILE("references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/content.gccont.ind"),
+        REF_CHROMOSOME_SEQUENCE_FILE("references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/sequences.nib"),
+        REF_CHROMOSOME_SEQUENCE_INDEX_FILE("references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/sequences.nib.ind"),
+        REF_CHROMOSOME_CYTOBAND_FILE("references/${DIR_ID}/chromosomes/${CHROMOSOME_NAME}/cytobands.txt"),
+        REF_INDEX_FILE("references/${DIR_ID}/${REF_NAME}.fai"),
 
         // think to do it in other way?
 
-        REF_CYTOBANDS_FILE("/references/${DIR_ID}/cytobands/bands.txt"),
+        REF_CYTOBANDS_FILE("references/${DIR_ID}/cytobands/bands.txt"),
 
-        VCF_DIR("/${USER_ID}/VCF/${DIR_ID}"),
-        VCF_FILE("/${USER_ID}/VCF/${DIR_ID}/${FILE_NAME}"),
-        VCF_INDEX("/${USER_ID}/VCF/${DIR_ID}/variants.idx"),
-        VCF_COMPRESSED_INDEX("/${USER_ID}/VCF/${DIR_ID}/variants.gz.tbi"),
-        VCF_METADATA_FILE("/${USER_ID}/VCF/${DIR_ID}/variants.bounds"),
-        VCF_FEATURE_INDEX_FILE("/${USER_ID}/VCF/${DIR_ID}/variants.feature"),
-        VCF_ROOT_DIR("/${USER_ID}/VCF"),
-        VCF_HISTOGRAM_DIR("/${USER_ID}/VCF/${DIR_ID}/histogram"),
-        VCF_HISTOGRAM_FILE("/${USER_ID}/VCF/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
+        VCF_DIR("${USER_ID}/VCF/${DIR_ID}"),
+        VCF_FILE("${USER_ID}/VCF/${DIR_ID}/${FILE_NAME}"),
+        VCF_INDEX("${USER_ID}/VCF/${DIR_ID}/variants.idx"),
+        VCF_COMPRESSED_INDEX("${USER_ID}/VCF/${DIR_ID}/variants.gz.tbi"),
+        VCF_METADATA_FILE("${USER_ID}/VCF/${DIR_ID}/variants.bounds"),
+        VCF_FEATURE_INDEX_FILE("${USER_ID}/VCF/${DIR_ID}/variants.feature"),
+        VCF_ROOT_DIR("${USER_ID}/VCF"),
+        VCF_HISTOGRAM_DIR("${USER_ID}/VCF/${DIR_ID}/histogram"),
+        VCF_HISTOGRAM_FILE("${USER_ID}/VCF/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
 
-        GENE_DIR("/${USER_ID}/genes/${DIR_ID}"),
-        GENE_FILE("/${USER_ID}/genes/${DIR_ID}/genes${GENE_EXTENSION}"),
-        GENE_LARGE_SCALE_FILE("/${USER_ID}/genes/${DIR_ID}/genes_large_scale${GENE_EXTENSION}"),
-        GENE_TRANSCRIPT_FILE("/${USER_ID}/genes/${DIR_ID}/transcript${GENE_EXTENSION}"),
-        GENE_INDEX("/${USER_ID}/genes/${DIR_ID}/genes.tbi"),
-        GENE_LARGE_SCALE_INDEX("/${USER_ID}/genes/${DIR_ID}/genes_large_scale.tbi"),
-        GENE_TRANSCRIPT_INDEX("/${USER_ID}/genes/${DIR_ID}/transcript.tbi"),
-        GENE_METADATA_FILE("/${USER_ID}/genes/${DIR_ID}/genes.bounds"),
-        GENE_FEATURE_INDEX_FILE("/${USER_ID}/genes/${DIR_ID}/genes.feature"),
-        GENE_HISTOGRAM_DIR("/${USER_ID}/genes/${DIR_ID}/histogram"),
-        GENE_HISTOGRAM_FILE("/${USER_ID}/genes/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
+        GENE_DIR("${USER_ID}/genes/${DIR_ID}"),
+        GENE_FILE("${USER_ID}/genes/${DIR_ID}/genes${GENE_EXTENSION}"),
+        GENE_LARGE_SCALE_FILE("${USER_ID}/genes/${DIR_ID}/genes_large_scale${GENE_EXTENSION}"),
+        GENE_TRANSCRIPT_FILE("${USER_ID}/genes/${DIR_ID}/transcript${GENE_EXTENSION}"),
+        GENE_INDEX("${USER_ID}/genes/${DIR_ID}/genes.tbi"),
+        GENE_LARGE_SCALE_INDEX("${USER_ID}/genes/${DIR_ID}/genes_large_scale.tbi"),
+        GENE_TRANSCRIPT_INDEX("${USER_ID}/genes/${DIR_ID}/transcript.tbi"),
+        GENE_METADATA_FILE("${USER_ID}/genes/${DIR_ID}/genes.bounds"),
+        GENE_FEATURE_INDEX_FILE("${USER_ID}/genes/${DIR_ID}/genes.feature"),
+        GENE_HISTOGRAM_DIR("${USER_ID}/genes/${DIR_ID}/histogram"),
+        GENE_HISTOGRAM_FILE("${USER_ID}/genes/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
 
         BAM_DIR("/${USER_ID}/BAM/${DIR_ID}"),
         BAM_FILE("/${USER_ID}/BAM/${DIR_ID}/${FILE_NAME}"),
 
-        BED_DIR("/${USER_ID}/bed/${DIR_ID}"),
-        BED_INDEX("/${USER_ID}/bed/${DIR_ID}/bed.tbi"),
-        BED_HISTOGRAM_DIR("/${USER_ID}/bed/${DIR_ID}/histogram"),
-        BED_HISTOGRAM_FILE("/${USER_ID}/bed/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
+        BED_DIR("${USER_ID}/bed/${DIR_ID}"),
+        BED_INDEX("${USER_ID}/bed/${DIR_ID}/bed.tbi"),
+        BED_HISTOGRAM_DIR("${USER_ID}/bed/${DIR_ID}/histogram"),
+        BED_HISTOGRAM_FILE("${USER_ID}/bed/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
 
-        SEG_DIR("/${USER_ID}/seg/${DIR_ID}"),
-        SEG_INDEX("/${USER_ID}/seg/${DIR_ID}/seg.tbi"),
-        SEG_SAMPLE_FILE("/${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.seg"),
-        SEG_FILE("/${USER_ID}/seg/${DIR_ID}/segments.seg"),
-        SEG_SAMPLE_COMPRESSED_FILE("/${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.seg.gz"),
-        SEG_SAMPLE_INDEX("/${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.tbi"),
+        SEG_DIR("${USER_ID}/seg/${DIR_ID}"),
+        SEG_INDEX("${USER_ID}/seg/${DIR_ID}/seg.tbi"),
+        SEG_SAMPLE_FILE("${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.seg"),
+        SEG_FILE("${USER_ID}/seg/${DIR_ID}/segments.seg"),
+        SEG_SAMPLE_COMPRESSED_FILE("${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.seg.gz"),
+        SEG_SAMPLE_INDEX("${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.tbi"),
 
-        BED_GRAPH_DIR("/${USER_ID}/wig/${DIR_ID}"),
-        BED_GRAPH_COMPRESSED_INDEX("/${USER_ID}/wig/${DIR_ID}/bedGraph.tbi"),
-        BED_GRAPH_INDEX("/${USER_ID}/wig/${DIR_ID}/bedGraph.idx"),
+        MAF_DIR("${USER_ID}/maf/${DIR_ID}"),
+        MAF_TEMP_DIR("${USER_ID}/maf/${DIR_ID}/tmp"),
+        MAF_INDEX("${USER_ID}/maf/${DIR_ID}/maf.tbi"),
+        MAF_TEMP_INDEX("${USER_ID}/maf/${DIR_ID}/tmp/${FILE_NAME}.tbi"),
+        MAF_FILE("${USER_ID}/maf/${DIR_ID}/maf.bmaf.gz"),
 
-
-        MAF_DIR("/${USER_ID}/maf/${DIR_ID}"),
-        MAF_TEMP_DIR("/${USER_ID}/maf/${DIR_ID}/tmp"),
-        MAF_INDEX("/${USER_ID}/maf/${DIR_ID}/maf.tbi"),
-        MAF_TEMP_INDEX("/${USER_ID}/maf/${DIR_ID}/tmp/${FILE_NAME}.tbi"),
-        MAF_FILE("/${USER_ID}/maf/${DIR_ID}/maf.bmaf.gz"),
+        BED_GRAPH_DIR("${USER_ID}/wig/${DIR_ID}"),
+        BED_GRAPH_COMPRESSED_INDEX("${USER_ID}/wig/${DIR_ID}/bedGraph.tbi"),
+        BED_GRAPH_INDEX("${USER_ID}/wig/${DIR_ID}/bedGraph.idx"),
 
         WIG_DIR("/${USER_ID}/wig/${DIR_ID}/downsampled"),
         WIG_FILE("/${USER_ID}/wig/${DIR_ID}/downsampled/${CHROMOSOME_NAME}.wig"),
-        BED_GRAPH_FILE("/${USER_ID}/wig/${DIR_ID}/downsampled.bdg"),
+        BED_GRAPH_FILE("${USER_ID}/wig/${DIR_ID}/downsampled.bdg"),
 
         VG_DIR("/${USER_ID}/vg/${DIR_ID}"),
 
@@ -724,13 +722,16 @@ public class FileManager {
         VCFCodec codec = new VCFCodec();
         File indexFile;
 
+        String relativePath;
         if (vcfFile.getCompressed()) {
-            indexFile = new File(toRealPath(substitute(VCF_COMPRESSED_INDEX, params)));
+            relativePath = substitute(VCF_COMPRESSED_INDEX, params);
+            indexFile = new File(toRealPath(relativePath));
             LOGGER.info(getMessage(MessagesConstants.INFO_VCF_INDEX_WRITING, indexFile.getAbsolutePath()));
             TabixIndex index = IndexUtils.createTabixIndex(file, codec, TabixFormat.VCF);
             index.write(indexFile);
         } else {
-            indexFile = new File(toRealPath(substitute(VCF_INDEX, params)));
+            relativePath = substitute(VCF_INDEX, params);
+            indexFile = new File(toRealPath(relativePath));
             LOGGER.info(getMessage(MessagesConstants.INFO_VCF_INDEX_WRITING, indexFile.getAbsolutePath()));
             IntervalTreeIndex intervalTreeIndex = IndexFactory.createIntervalIndex(file, codec); // Create an index
             IndexFactory.writeIndex(intervalTreeIndex, indexFile); // Write it to a file
@@ -738,7 +739,7 @@ public class FileManager {
 
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
-        indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setPath(relativePath);
         indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
@@ -1448,10 +1449,11 @@ public class FileManager {
 
         File file;
         File indexFile;
+        String relativePathGeneIndex = substitute(GENE_INDEX, params);
         switch (type) {
             case ORIGINAL:
                 file = new File(geneFile.getPath());
-                indexFile = new File(toRealPath(substitute(GENE_INDEX, params)));
+                indexFile = new File(toRealPath(relativePathGeneIndex));
                 break;
             case LARGE_SCALE:
                 file = new File(toRealPath(substitute(GENE_LARGE_SCALE_FILE, params)));
@@ -1478,7 +1480,7 @@ public class FileManager {
         if (type.equals(GeneFileType.ORIGINAL)) {
             BiologicalDataItem indexItem = new BiologicalDataItem();
             indexItem.setCreatedDate(new Date());
-            indexItem.setPath(indexFile.getAbsolutePath());
+            indexItem.setPath(relativePathGeneIndex);
             indexItem.setFormat(BiologicalDataItemFormat.GENE_INDEX);
             indexItem.setType(BiologicalDataItemResourceType.FILE);
             indexItem.setName("");
@@ -1556,6 +1558,7 @@ public class FileManager {
      */
     public AbstractFeatureReader<NggbBedFeature, LineIterator> makeBedReader(final BedFile bedFile) {
         NggbBedCodec nggbBedCodec = new NggbBedCodec();
+        NgbFileUtils.resolveRelativeIfNeeded(bedFile, baseDirPath);
         return AbstractFeatureReader.getFeatureReader(bedFile.getPath(), bedFile.getIndex().getPath(),
                 nggbBedCodec, true);
     }
@@ -1612,7 +1615,8 @@ public class FileManager {
         params.put(USER_ID.name(), segFile.getCreatedBy());
 
         File file = new File(segFile.getPath());
-        File indexFile = new File(toRealPath(substitute(SEG_INDEX, params)));
+        String relativePath = substitute(SEG_INDEX, params);
+        File indexFile = new File(toRealPath(relativePath));
         LOGGER.debug("Writing SEG index at {}", indexFile.getAbsolutePath());
         SegCodec segCodec = new SegCodec();
 
@@ -1621,7 +1625,7 @@ public class FileManager {
 
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
-        indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setPath(relativePath);
         indexItem.setFormat(BiologicalDataItemFormat.SEG_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
@@ -1773,7 +1777,8 @@ public class FileManager {
         params.put(USER_ID.name(), mafFile.getCreatedBy());
 
         File file = new File(mafFile.getPath());
-        File indexFile = new File(toRealPath(substitute(MAF_INDEX, params)));
+        String relativePath = substitute(MAF_INDEX, params);
+        File indexFile = new File(toRealPath(relativePath));
         LOGGER.debug("Writing MAF index at {}", indexFile.getAbsolutePath());
 
         if (mafFile.getCompressed()) {
@@ -1784,7 +1789,7 @@ public class FileManager {
 
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
-        indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setPath(relativePath);
         indexItem.setFormat(BiologicalDataItemFormat.MAF_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
@@ -2179,7 +2184,7 @@ public class FileManager {
     }
 
     private String toRealPath(final String relativePath) {
-        return baseDirPath + relativePath;
+        return baseDirPath + "/" + relativePath;
     }
 
     @NotNull
@@ -2243,5 +2248,4 @@ public class FileManager {
         SAMPLE_NAME,
         FEATURE_FILE_DIR
     }
-
 }

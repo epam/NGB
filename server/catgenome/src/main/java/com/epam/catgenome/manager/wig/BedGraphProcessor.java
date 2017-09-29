@@ -25,6 +25,7 @@
 package com.epam.catgenome.manager.wig;
 
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
@@ -89,12 +90,15 @@ public class BedGraphProcessor extends AbstractWigProcessor {
     protected void prepareWigFileToWork(WigFile wigFile) throws IOException {
         wigFile.setCompressed(IOHelper.isGZIPFile(wigFile.getPath()));
         fileManager.makeBedGraphIndex(wigFile);
-        biologicalDataItemManager.createBiologicalDataItem(wigFile.getIndex());
+        BiologicalDataItem wigFileIndex = wigFile.getIndex();
+        wigFileIndex.setPath(NgbFileUtils.convertToRelativePath(wigFileIndex.getPath(), fileManager.getBaseDirPath()));
+        biologicalDataItemManager.createBiologicalDataItem(wigFileIndex);
     }
 
     @Override
     protected void splitByChromosome(WigFile wigFile, Map<String, Chromosome> chromosomeMap) throws IOException {
         List<BedGraphFeature> sectionList = new ArrayList<>();
+        NgbFileUtils.resolveRelativeIfNeeded(wigFile, fileManager.getBaseDirPath());
         for (Chromosome chromosome : chromosomeMap.values()) {
             String realChrName = fetchRealChrName(wigFile.getIndex().getPath(), chromosome.getName());
             try (PeekableIterator<BedGraphFeature> query = new PeekableIterator<>(

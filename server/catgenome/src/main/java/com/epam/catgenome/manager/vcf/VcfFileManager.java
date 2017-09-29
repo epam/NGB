@@ -24,19 +24,6 @@
 
 package com.epam.catgenome.manager.vcf;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
@@ -46,6 +33,20 @@ import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfSample;
+import com.epam.catgenome.util.NgbFileUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -70,6 +71,9 @@ public class VcfFileManager {
     @Autowired
     private ProjectDao projectDao;
 
+    @Value("${files.base.directory.path}")
+    private String baseDirPath;
+
     /**
      * Persists {@code VcfFile} record to the database
      *
@@ -93,6 +97,7 @@ public class VcfFileManager {
     public VcfFile loadVcfFile(Long vcfFileId) {
         VcfFile vcfFile = vcfFileDao.loadVcfFile(vcfFileId);
         if (vcfFile != null) {
+            NgbFileUtils.resolveRelativeIfNeeded(vcfFile, baseDirPath);
             vcfFile.setSamples(vcfFileDao.loadSamplesForFile(vcfFileId));
         }
 
@@ -114,6 +119,8 @@ public class VcfFileManager {
                                                                            .map(i -> i.toString())
                                                                            .collect(Collectors.joining(", "))));
         }
+
+        files.forEach(file -> NgbFileUtils.resolveRelativeIfNeeded(file, baseDirPath));
 
         return files;
     }
@@ -161,6 +168,7 @@ public class VcfFileManager {
         Map<Long, List<VcfSample>> sampleMap = vcfFileDao.loadSamplesForFilesByReference(referenceId);
 
         for (VcfFile vcfFile : files) {
+            NgbFileUtils.resolveRelativeIfNeeded(vcfFile, baseDirPath);
             vcfFile.setSamples(sampleMap.get(vcfFile.getId()));
         }
 
