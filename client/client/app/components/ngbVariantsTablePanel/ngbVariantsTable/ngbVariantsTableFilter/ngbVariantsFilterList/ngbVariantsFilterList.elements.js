@@ -41,11 +41,16 @@ export default class ListElements {
                 items = this.fullList;
                 shouldUpdateScope = false;
             } else {
-                if (!this.fullList) {
+                if (!this.fullList || this.fullList.length === 0) {
                     items = await this.listFn(searchString);
                 } else if (searchString && searchString.length > 0) {
-                    items = this.fullList.filter(i => i.toLowerCase().indexOf(searchString.toLowerCase()) === 0);
-                    shouldUpdateScope = false;
+                    if (this.fullList && this.fullList.length) {
+                        items = this.fullList.filter(i => i.toLowerCase().indexOf(searchString.toLowerCase()) === 0);
+                        shouldUpdateScope = false;
+                    } else {
+                        items = await this.listFn(searchString);
+                        shouldUpdateScope = true;
+                    }
                 } else {
                     items = this.fullList;
                     shouldUpdateScope = false;

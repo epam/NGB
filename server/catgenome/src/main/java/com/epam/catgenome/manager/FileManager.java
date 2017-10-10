@@ -62,10 +62,7 @@ import javax.annotation.PostConstruct;
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.JsonMapper;
-import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.BiologicalDataItemFormat;
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.*;
 import com.epam.catgenome.entity.bed.BedFile;
 import com.epam.catgenome.entity.file.FsDirectory;
 import com.epam.catgenome.entity.file.FsFile;
@@ -886,7 +883,7 @@ public class FileManager {
         }
 
         Assert.isTrue(!indexes.isEmpty(), getMessage(MessagesConstants.ERROR_FEATURE_INDEX_NOT_FOUND,
-                         featureFiles.stream().map(f -> f.getId().toString()).collect(Collectors.joining(", "))));
+                         featureFiles.stream().map(BaseEntity::getName).collect(Collectors.joining(", "))));
 
         return indexes.toArray(new SimpleFSDirectory[indexes.size()]);
     }
@@ -1049,6 +1046,9 @@ public class FileManager {
 
         params.put(CHROMOSOME_NAME.name(), chromosomeName);
         File histogramFile = new File(toRealPath(substitute(filePathFormat, params)));
+        if (histogramFile.exists()) {
+            histogramFile.delete();
+        }
         Assert.isTrue(histogramFile.createNewFile(), "Can't create histogram file " + histogramFile.getAbsolutePath());
 
         return new DataOutputStream(new FileOutputStream(histogramFile));

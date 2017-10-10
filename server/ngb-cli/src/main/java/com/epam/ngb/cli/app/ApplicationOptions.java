@@ -68,10 +68,16 @@ public class ApplicationOptions {
     private boolean doIndex = true;
 
     /**
-     * Option fo reference registration, if true, the GC content files will be created for
+     * Option for reference registration, if true, the GC content files will be created for
      * a reference during registration.
      */
     private boolean noGCContent = false;
+
+    /**
+     * Specifies if tabix index should be rewritten along with feature index during file reindexing
+     */
+    private boolean createTabixIndex = true;
+
 
     private String location;
 
@@ -176,11 +182,19 @@ public class ApplicationOptions {
         return forceDeletion;
     }
 
-    public void setPrettyName(String prettyName) {
-        this.prettyName = prettyName;
+    public boolean isCreateTabixIndex() {
+        return createTabixIndex;
+    }
+
+    public void setCreateTabixIndex(boolean createTabixIndex) {
+        this.createTabixIndex = createTabixIndex;
     }
 
     public String getPrettyName() {
         return prettyName;
+    }
+
+    public void setPrettyName(String prettyName) {
+        this.prettyName = prettyName;
     }
 }

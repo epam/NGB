@@ -154,7 +154,7 @@ public class BedGraphProcessor extends AbstractWigProcessor {
                 break;
             }
         }
-       return realName;
+        return realName;
     }
 
     private float getScoreForBounds(PeekableIterator<BedGraphFeature> query, int chunkStart, int chunkStop) {

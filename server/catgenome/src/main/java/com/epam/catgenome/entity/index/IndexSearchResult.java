@@ -26,6 +26,9 @@ package com.epam.catgenome.entity.index;
 
 import java.util.List;
 
+import com.epam.catgenome.entity.vcf.Pointer;
+import org.apache.lucene.search.ScoreDoc;
+
 /**
  * Source:      IndexSearchResult
  * Created:     09.09.16, 17:32
@@ -55,6 +58,8 @@ public class IndexSearchResult<T extends FeatureIndexEntry> {
 
     private Integer totalPagesCount;
 
+    private Pointer pointer;
+
     public IndexSearchResult() {
         // no-op
     }
@@ -63,6 +68,12 @@ public class IndexSearchResult<T extends FeatureIndexEntry> {
         this.entries = entries;
         this.exceedsLimit = exceedsLimit;
         this.totalResultsCount = totalResultsCount;
+    }
+
+    public IndexSearchResult(List<T> entries, boolean exceedsLimit,
+            int totalResultsCount, ScoreDoc pointer) {
+        this(entries, exceedsLimit, totalResultsCount);
+        this.pointer = Pointer.fromScoreDoc(pointer);
     }
 
     public void mergeFrom(IndexSearchResult<T> that) {
@@ -101,5 +112,13 @@ public class IndexSearchResult<T extends FeatureIndexEntry> {
 
     public void setTotalPagesCount(Integer totalPagesCount) {
         this.totalPagesCount = totalPagesCount;
+    }
+
+    public Pointer getPointer() {
+        return pointer;
+    }
+
+    public void setPointer(Pointer pointer) {
+        this.pointer = pointer;
     }
 }
