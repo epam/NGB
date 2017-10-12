@@ -1,0 +1,33 @@
+.md-variant-info-error{
+  text-align:center;
+  color:#FF0000;
+  font-size:smaller;
+}
+.md-variant-properties-table {
+  .ui-grid, .ui-grid-render-container {
+    height: auto !important;
+    max-height: 200px;
+  }
+  collapsible-panel-title{
+    color: rgba(0,0,0,0.87);
+    font-size: 15px;
+    padding-left: 0;
+  }
+  .table-property{
+    font-size: 13px;
+  }
+
+  a{
+    text-decoration: none;
+    font-size: 14px;
+    color: #679edb;
+    & + span{
+      font-size: 14px;
+      color: #666;
+    }
+    &:hover{
+      text-decoration: underline;
+      color: #2165de;
+    }
+  }
+}
