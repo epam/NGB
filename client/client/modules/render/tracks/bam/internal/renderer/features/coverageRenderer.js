@@ -23,7 +23,10 @@ export class CoverageRenderer extends WIGRenderer {
                     const min = this._getYValue(cache.baseAxis, coordinateSystem) -1;
                     let prevPercentage = 0;
                     for (let k = barOrders.length - 1; k >= 0; k--) {
-                        const color = this._bamConfig.colors[barOrders[k]];
+                        let color = this._bamConfig.colors[barOrders[k]];
+                        if(point.dataItem.locusLetter.toLowerCase() === barOrders[k].toLowerCase()) {
+                            color = this._bamConfig.colors.base;
+                        }
                         const value = point.dataItem.locusInfo && point.dataItem.locusInfo[barOrders[k].toLowerCase()] ?
                             point.dataItem.locusInfo[barOrders[k].toLowerCase()] : 0;
                         if (value === 0) {
