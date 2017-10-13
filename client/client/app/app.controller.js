@@ -19,7 +19,8 @@ export default class ngbAppController extends baseController {
                 $state,
                 projectDataService,
                 genomeDataService,
-                localDataService) {
+                localDataService,
+                apiService) {
         super();
         Object.assign(this, {
             $scope,
@@ -29,7 +30,8 @@ export default class ngbAppController extends baseController {
             eventHotkey,
             genomeDataService,
             projectContext,
-            projectDataService
+            projectDataService,
+            apiService
         });
         this.dictionaryState = localDataService.getDictionary().State;
 
@@ -45,11 +47,32 @@ export default class ngbAppController extends baseController {
             this._changeStateFromParams(toParams);
         });
 
+        if (window.addEventListener) {
+            window.addEventListener("message",() => this._listener(event));
+        } else {
+            // IE8
+            window.attachEvent("onmessage",() => this._listener(event));
+        }
     }
 
     events = {
         'route:change': ::this._goToState
     };
+
+    _listener(event) {
+        switch (event.data.method){
+            case "loadDataSet":
+                console.log(event.data);
+                const id = event.data.params ? event.data.params.id : null;
+                if (id)
+                    this.apiService.loadDataSet(event.data.params);
+                else
+                    console.log("Api error: loadDataSet wrong param" + event.data);
+                break;
+            default:
+                console.log("Api error: " + event.data);
+        }
+    }
 
     _changeStateFromParams(params) {
         const {referenceId, chromosome, end, rewrite, start, tracks, filterByGenome, collapsedTrackHeaders} = params;
@@ -64,7 +87,7 @@ export default class ngbAppController extends baseController {
         }
         this.projectContext.changeState({
             chromosome: chromosome ? {name: chromosome} : null,
-            position: (start && !end) ? start: null,
+            position: (start && !end) ? start : null,
             reference: referenceId ? {name: referenceId} : null,
             tracksState: tracks ? this.projectContext.convertTracksStateFromJson(tracks) : null,
             viewport: position,
@@ -75,7 +98,7 @@ export default class ngbAppController extends baseController {
     initStateFromParams() {
         this._changeStateFromParams(this.$stateParams);
 
-        const {toolbar, layout, bookmark, screenshot}=this.$stateParams;
+        const {toolbar, layout, bookmark, screenshot} = this.$stateParams;
 
         if (toolbar) {
             const toolbarVisibility = this.dictionaryState.on.toLowerCase() === toolbar.toLowerCase();
@@ -105,12 +128,14 @@ export default class ngbAppController extends baseController {
         const tracks = this.projectContext.tracksState ? this.projectContext.convertTracksStateToJson(this.projectContext.tracksState) : null;
         const filterByGenome = this.projectContext.datasetsFilter ? this.projectContext.datasetsFilter : null;
         const collapsedTrackHeaders = this.projectContext.collapsedTrackHeaders;
-        const state = {chromosome,
+        const state = {
+            chromosome,
             end,
             referenceId,
             start,
             filterByGenome,
-            collapsedTrackHeaders};
+            collapsedTrackHeaders
+        };
         const options = {
             notify: false,
             inherit: false

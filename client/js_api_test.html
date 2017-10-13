@@ -1,0 +1,16 @@
+<html>
+<head>
+    <title>Api test</title>
+</head>
+<body>
+<input type="button" id="button" value="loadDataSet"><br><br>
+<iframe height="90%" width="100%" id="ngbIframe" src="http://localhost:8080/#"></iframe>
+<script type="text/javascript">
+    var button = document.getElementById('button');
+    var iframe = document.getElementById('ngbIframe');
+    button.onclick = function () {
+        iframe.contentWindow.postMessage({method: "loadDataSet", params: {id: 3}}, "http://localhost:8080");
+    }
+</script>
+</body>
+</html>
