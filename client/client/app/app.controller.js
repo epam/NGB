@@ -62,10 +62,9 @@ export default class ngbAppController extends baseController {
     _listener(event) {
         switch (event.data.method){
             case "loadDataSet":
-                console.log(event.data);
                 const id = event.data.params ? event.data.params.id : null;
                 if (id)
-                    this.apiService.loadDataSet(event.data.params);
+                    this.apiService.loadDataSet(id);
                 else
                     console.log("Api error: loadDataSet wrong param" + event.data);
                 break;
