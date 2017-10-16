@@ -48,10 +48,10 @@ export default class ngbAppController extends baseController {
         });
 
         if (window.addEventListener) {
-            window.addEventListener("message",() => this._listener(event));
+            window.addEventListener("message", () => this._listener(event));
         } else {
             // IE8
-            window.attachEvent("onmessage",() => this._listener(event));
+            window.attachEvent("onmessage", () => this._listener(event));
         }
     }
 
@@ -69,10 +69,36 @@ export default class ngbAppController extends baseController {
                 else
                     console.log("Api error: loadDataSet wrong param" + event.data);
                 break;
+            case "navigateToCoordinate":
+                if(event.data.params) {
+                    const coordinates = event.data.params.coordinates ? event.data.params.coordinates : null;
+                    if (coordinates) {
+                        this._apiResponse(this.apiService.navigateToCoordinate(coordinates));
+                    } else {
+                        console.log('Api error: navigateToCoordinate wrong param' + event.data);
+                        this._apiResponse({
+                            message: 'Api error: navigateToCoordinate wrong param' + event.data,
+                            completedSuccessfully: false
+                        });
+                    }
+                } else {
+                    console.log("Api error: navigateToCoordinate wrong param" + event.data);
+                    this._apiResponse({
+                        message: 'Api error: navigateToCoordinate wrong param' + event.data,
+                        completedSuccessfully: false
+                    });
+                }
+                break;
             default:
-                console.log("Api error: " + event.data);
+                console.log("Api error: No such method.");
+                console.log(event.data);
         }
     }
+
+    _apiResponse(params) {
+        window.parent.postMessage(params, '*');
+    }
+
 
     _changeStateFromParams(params) {
         const {referenceId, chromosome, end, rewrite, start, tracks, filterByGenome, collapsedTrackHeaders} = params;

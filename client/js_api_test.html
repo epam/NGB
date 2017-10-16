@@ -3,14 +3,29 @@
     <title>Api test</title>
 </head>
 <body>
-<input type="button" id="button" value="loadDataSet"><br><br>
-<iframe height="90%" width="100%" id="ngbIframe" src="http://localhost:8080/#"></iframe>
-<script type="text/javascript">
-    var button = document.getElementById('button');
-    var iframe = document.getElementById('ngbIframe');
-    button.onclick = function () {
-        iframe.contentWindow.postMessage({method: "loadDataSet", params: {id: 3}}, "http://localhost:8080");
-    }
-</script>
+    <input type="button" id="button" value="loadDataSet">&nbsp;<input type="button" id="navigateToCoordinate" value="navigateToCoordinate"><br><br>
+    <iframe height="90%" width="100%" id="ngbIframe" src="http://localhost:8080/#"></iframe>
+    <script type="text/javascript">
+        var button = document.getElementById('button'),
+            navigateToCoordinate = document.getElementById('navigateToCoordinate'),
+            iframe = document.getElementById('ngbIframe');
+        button.onclick = function () {
+            iframe.contentWindow.postMessage({method: "loadDataSet", params: {id: 3}}, "http://localhost:8080");
+        };
+        navigateToCoordinate.onclick = function () {
+            iframe.contentWindow.postMessage({
+                method: "navigateToCoordinate",
+                params: { coordinates: "40 - 5555" }
+            }, "http://localhost:8080");
+        };
+
+        if (window.addEventListener) {
+            window.addEventListener("message", () => { console.log(event); console.log(event.data.message); });
+        } else {
+            // IE8
+            window.attachEvent("onmessage", () => { console.log(event); console.log(event.data.message); });
+        }
+
+    </script>
 </body>
 </html>
