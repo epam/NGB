@@ -48,10 +48,10 @@ export default class ngbAppController extends baseController {
         });
 
         if (window.addEventListener) {
-            window.addEventListener("message",() => this._listener(event));
+            window.addEventListener("message", () => this._listener(event));
         } else {
             // IE8
-            window.attachEvent("onmessage",() => this._listener(event));
+            window.attachEvent("onmessage", () => this._listener(event));
         }
     }
 
@@ -60,18 +60,41 @@ export default class ngbAppController extends baseController {
     };
 
     _listener(event) {
-        switch (event.data.method){
+        switch (event.data.method) {
             case "loadDataSet":
-                const id = event.data.params ? event.data.params.id : null;
-                if (id)
-                    this.apiService.loadDataSet(id);
-                else
+                const id = event.data.params && event.data.params.id ? event.data.params.id : null;
+                if (id) {
+                    this._apiResponse(this.apiService.loadDataSet(id));
+                } else {
                     console.log("Api error: loadDataSet wrong param" + event.data);
+                    this._apiResponse({
+                        message: 'Api error: loadDataSet wrong param' + event.data,
+                        completedSuccessfully: false
+                    });
+                }
+                break;
+            case "navigateToCoordinate":
+                const coordinates = event.data.params && event.data.params.coordinates ? event.data.params.coordinates : null;
+                if (coordinates) {
+                    this._apiResponse(this.apiService.navigateToCoordinate(coordinates));
+                } else {
+                    console.log('Api error: navigateToCoordinate wrong param' + event.data);
+                    this._apiResponse({
+                        message: 'Api error: navigateToCoordinate wrong param' + event.data,
+                        completedSuccessfully: false
+                    });
+                }
                 break;
             default:
-                console.log("Api error: " + event.data);
+                console.log("Api error: No such method.");
+                console.log(event.data);
         }
     }
+
+    _apiResponse(params) {
+        window.parent.postMessage(params, '*');
+    }
+
 
     _changeStateFromParams(params) {
         const {referenceId, chromosome, end, rewrite, start, tracks, filterByGenome, collapsedTrackHeaders} = params;
