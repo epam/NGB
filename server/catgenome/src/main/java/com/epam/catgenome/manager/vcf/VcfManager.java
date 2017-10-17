@@ -439,6 +439,12 @@ public class VcfManager {
         infoItems.put(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName(), new InfoItem(FeatureIndexDao
                 .FeatureIndexFields.IS_EXON.getFieldName(), VCFHeaderLineType.Flag, "Defines if a variation is " +
                 "located in exon region"));
+        //TODO VCFHeaderLineType.String because now in lucene index we can't sort with float
+        //TODO Also, We add QUALITY to infoItems with name 'quality' but will try to find it in
+        //TODO AbstractIndexSearcher.createSort with name 'QUALITY'
+        infoItems.put(FeatureIndexDao.FeatureIndexFields.QUALITY.getFieldName(), new InfoItem(FeatureIndexDao
+                .FeatureIndexFields.QUALITY.getFieldName(), VCFHeaderLineType.String, "Quality of the given" +
+                " variation"));
         filterInfo.setInfoItemMap(infoItems);
         filterInfo.setAvailableFilters(availableFilters);
 
