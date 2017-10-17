@@ -4,18 +4,20 @@
 </head>
 <body>
 <input type="button" id="loadDataSet" value="loadDataSet">&nbsp;
-<input type="button" id="navigateToCoordinate" value="navigateToCoordinate"><br>
+<input type="button" id="navigateToCoordinate" value="navigateToCoordinate">&nbsp;
+<input type="button" id="setGlobalSettings" value="setGlobalSettings"><br>
 <iframe height="90%" width="100%" id="ngbIframe" src="http://localhost:8080/#"></iframe>
 <script type="text/javascript">
     var btnLoadDataSet = document.getElementById('loadDataSet'),
         btnNavigateToCoordinate = document.getElementById('navigateToCoordinate'),
+        btnSetGlobalSettings = document.getElementById('setGlobalSettings'),
         iframe = document.getElementById('ngbIframe');
 
     btnLoadDataSet.onclick = function () {
         iframe.contentWindow.postMessage({
             method: "loadDataSet",
             params: {id: 3}
-            }, "*");
+        }, "*");
     };
 
     btnNavigateToCoordinate.onclick = function () {
@@ -23,6 +25,18 @@
             method: "navigateToCoordinate",
             params: {coordinates: "12585134 - 12585207"}
         }, "*");
+    };
+
+    btnSetGlobalSettings.onclick = function () {
+        iframe.contentWindow.postMessage({
+            method: "setGlobalSettings",
+            params: {
+                showCenterLine: true,
+                colors: {
+                    strand:
+                        {forward: 14363949}
+                }
+            }}, "*");
     };
 
     if (window.addEventListener) {

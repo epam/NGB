@@ -85,6 +85,18 @@ export default class ngbAppController extends baseController {
                     });
                 }
                 break;
+            case "setGlobalSettings":
+                const params = event.data.params;
+                if (params) {
+                    this._apiResponse(this.apiService.setGlobalSettings(params));
+                } else {
+                    console.log('Api error: setGlobalSettings wrong param' + event.data);
+                    this._apiResponse({
+                        message: 'Api error: setGlobalSettings wrong param' + event.data,
+                        completedSuccessfully: false
+                    });
+                }
+                break;
             default:
                 console.log("Api error: No such method.");
                 console.log(event.data);

@@ -2,20 +2,24 @@ import {stringParseInt} from '../utils/Int';
 
 export default class ngbApiService {
 
-    static instance($state, projectContext, ngbDataSetsService, $mdDialog) {
-        return new ngbApiService($state, projectContext, ngbDataSetsService, $mdDialog);
+    static instance($state, projectContext, ngbDataSetsService, $mdDialog, localDataService, dispatcher) {
+        return new ngbApiService($state, projectContext, ngbDataSetsService, $mdDialog, localDataService, dispatcher);
     }
 
     projectContext;
     ngbDataSetsService;
     $mdDialog;
+    localDataService;
+    dispatcher;
 
-    constructor($state, projectContext, ngbDataSetsService, $mdDialog) {
+    constructor($state, projectContext, ngbDataSetsService, $mdDialog, localDataService, dispatcher) {
         Object.assign(this, {
             $state,
             projectContext,
             ngbDataSetsService,
-            $mdDialog
+            $mdDialog,
+            localDataService,
+            dispatcher
         });
     }
 
@@ -144,6 +148,17 @@ export default class ngbApiService {
 
     }
 
+    setGlobalSettings(params){
+        let settings = this.localDataService.getSettingsCopy();
+        settings = this._mergeDeep(settings, params);
+        this.localDataService.updateSettings(settings);
+        this.dispatcher.emitGlobalEvent('settings:change', settings);
+        return {
+            message: 'Ok',
+            completedSuccessfully: true
+        };
+    }
+
     _selectDataset(item, isSelected, tree) {
         const self = this;
         if (!this.ngbDataSetsService.checkSelectionAvailable(item, isSelected)) {
@@ -165,5 +180,27 @@ export default class ngbApiService {
             message: 'Ok',
             completedSuccessfully: true
         };
+    }
+
+    _isObject(item) {
+        return (item && typeof item === 'object' && !Array.isArray(item));
+    }
+
+    _mergeDeep(target, ...sources) {
+        if (!sources.length) return target;
+        const source = sources.shift();
+
+        if (this._isObject(target) && this._isObject(source)) {
+            for (const key in source) {
+                if (this._isObject(source[key])) {
+                    if (!target[key]) Object.assign(target, { [key]: {} });
+                    this._mergeDeep(target[key], source[key]);
+                } else {
+                    Object.assign(target, { [key]: source[key] });
+                }
+            }
+        }
+
+        return this._mergeDeep(target, ...sources);
     }
 }
