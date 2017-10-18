@@ -46,16 +46,19 @@ public class FileRegistrationHandlerTest extends AbstractCliTest {
 
     private static final Long REF_BIO_ID = 1L;
     private static final Long REF_ID = 50L;
-    private static final Long VCF_BIO_ID = 2L;
-    private static final Long VCF_ID = 1L;
+    private static final Long VCF_GZ_BIO_ID = 2L;
+    private static final Long VCF_GZ_ID = 1L;
     private static final Long BAM_BIO_ID = 3L;
     private static final Long BAM_ID = 1L;
+    private static final Long VCF_BIO_ID = 4L;
+    private static final Long VCF_ID = 2L;
     private static final String PATH_TO_REFERENCE = "reference/50";
     private static final String REFERENCE_NAME = "hg38";
     private static final String PATH_TO_VCF = "/path/test.vcf";
     private static final String PATH_TO_BAM = "/path/test.bam";
     private static final String PATH_TO_BAI = "/path/test.bam.bai";
-    private static final String PATH_TO_VCF_WITH_INDEX = "/path/to/vcf/with/index.vcf.gz";
+    private static final String PATH_TO_VCF_GZ_WITH_INDEX = "/path/to/vcfgz/with/index.vcf.gz";
+    private static final String PATH_TO_VCF_WITH_INDEX = "/path/to/vcf/with/index.vcf";
     private static final String PATH_TO_BAM_WITH_INDEX = "/path/to/bam/with/index.bam";
     private static final String BAM_NAME = "MyBam";
 
@@ -63,8 +66,9 @@ public class FileRegistrationHandlerTest extends AbstractCliTest {
     private static final String RELATIVE_PATH_TO_BAI = "path/test.bam.bai";
 
     private static final String COMMAND = "register_file";
-    public static final String PATH_TO_VCF_WITH_INDEX_VCF_GZ_TBI = "/path/to/vcf/with/index.vcf.gz.tbi";
-    public static final String PATH_TO_BAMFILE_BAM_BAI = "/path/to/bamfile.bam.bai";
+    private static final String PATH_TO_VCF_WITH_INDEX_VCF_GZ_TBI = "/path/to/vcfgz/with/index.vcf.gz.tbi";
+    private static final String PATH_TO_VCF_WITH_INDEX_VCF_IDX = "/path/to/vcf/with/index.vcf.idx";
+    private static final String PATH_TO_BAMFILE_BAM_BAI = "/path/to/bamfile.bam.bai";
     private static ServerParameters serverParameters;
     private static TestHttpServer server = new TestHttpServer();
 
@@ -75,17 +79,17 @@ public class FileRegistrationHandlerTest extends AbstractCliTest {
 
 
         //register vcf, no name, no index
-        server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF, null, VCF_ID,
-                VCF_BIO_ID, BiologicalDataItemFormat.VCF, true);
+        server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF, null, VCF_GZ_ID,
+                VCF_GZ_BIO_ID, BiologicalDataItemFormat.VCF, true);
         server.addIndexSearchRequest(pathToEscapingView(PATH_TO_VCF), null);
 
         //register vcf, no name, no index, prettyName
-        server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF, null, null, VCF_ID,
-                VCF_BIO_ID, BiologicalDataItemFormat.VCF, true, "pretty");
+        server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF, null, null, VCF_GZ_ID,
+                VCF_GZ_BIO_ID, BiologicalDataItemFormat.VCF, true, "pretty");
 
         // add another without feature index
-        server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF, null, VCF_ID,
-                                                 VCF_BIO_ID, BiologicalDataItemFormat.VCF, false);
+        server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF, null, VCF_GZ_ID,
+                VCF_GZ_BIO_ID, BiologicalDataItemFormat.VCF, false);
 
         //register BAM with name
         server.addFileRegistration(REF_ID, PATH_TO_BAM, PATH_TO_BAI, BAM_NAME, BAM_ID, BAM_BIO_ID,
@@ -98,10 +102,15 @@ public class FileRegistrationHandlerTest extends AbstractCliTest {
         server.addIndexSearchRequest(pathToEscapingView(PATH_TO_BAM + "bz"), null);
 
 
+        //register vcf.gz, no name
+        server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF_GZ_WITH_INDEX, null,
+                PATH_TO_VCF_WITH_INDEX_VCF_GZ_TBI, VCF_GZ_ID, VCF_GZ_BIO_ID, BiologicalDataItemFormat.VCF, true);
+        server.addIndexSearchRequest(pathToEscapingView(PATH_TO_VCF_GZ_WITH_INDEX), PATH_TO_VCF_WITH_INDEX_VCF_GZ_TBI);
+
         //register vcf, no name
         server.addFeatureIndexedFileRegistration(REF_ID, PATH_TO_VCF_WITH_INDEX, null,
-                PATH_TO_VCF_WITH_INDEX_VCF_GZ_TBI, VCF_ID, VCF_BIO_ID, BiologicalDataItemFormat.VCF, true);
-        server.addIndexSearchRequest(pathToEscapingView(PATH_TO_VCF_WITH_INDEX), PATH_TO_VCF_WITH_INDEX_VCF_GZ_TBI);
+                PATH_TO_VCF_WITH_INDEX_VCF_IDX, VCF_ID, VCF_BIO_ID, BiologicalDataItemFormat.VCF, true);
+        server.addIndexSearchRequest(pathToEscapingView(PATH_TO_VCF_WITH_INDEX), PATH_TO_VCF_WITH_INDEX_VCF_IDX);
 
         //register BAM without name
         server.addFileRegistration(REF_ID, PATH_TO_BAM_WITH_INDEX, PATH_TO_BAMFILE_BAM_BAI, null,
@@ -132,6 +141,11 @@ public class FileRegistrationHandlerTest extends AbstractCliTest {
     @Test
     public void testFileRegistrationVCFWithExistingIndex() {
         AbstractHTTPCommandHandler handler = createFileRegCommandHandler(serverParameters, COMMAND);
+        handler.parseAndVerifyArguments(Arrays.asList(String.valueOf(REF_BIO_ID),
+                PATH_TO_VCF_GZ_WITH_INDEX), new ApplicationOptions());
+        assertEquals(RUN_STATUS_OK, handler.runCommand());
+
+        handler = createFileRegCommandHandler(serverParameters, COMMAND);
         handler.parseAndVerifyArguments(Arrays.asList(String.valueOf(REF_BIO_ID),
                 PATH_TO_VCF_WITH_INDEX), new ApplicationOptions());
         assertEquals(RUN_STATUS_OK, handler.runCommand());
