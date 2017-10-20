@@ -73,7 +73,7 @@ export class GENETrack extends CachedTrack {
             }
         };
         this.trackSettingsListener = (params) => {
-            if(this.config.bioDataItemId === params.id) {
+            if(this.config.bioDataItemId === params.id && this.config.format.toLowerCase() === 'gene') {
                 const settings = params.settings;
                 settings.forEach(setting => {
                     if (setting.name === 'shortenIntrons') {
@@ -100,6 +100,7 @@ export class GENETrack extends CachedTrack {
 
     clearData() {
         this.hotKeyListenerDestructor();
+        this._removeTrackSettingsListener();
         super.clearData();
     }
 

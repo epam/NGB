@@ -52,11 +52,10 @@ export class VCFTrack extends GENETrack{
         ];
 
         this.trackSettingsListener = (params) => {
-            if(this.config.bioDataItemId === params.id) {
+            if(this.config.bioDataItemId === params.id && this.config.format.toLowerCase() === 'vcf') {
                 const settings = params.settings;
                 settings.forEach(setting => {
                     const menuItem = menuUtilities.findMenuItem(this._menu, setting.name);
-                    debugger;
                     if (menuItem.type === 'checkbox') {
                         menuItem.enable();
                     }

@@ -1,4 +1,3 @@
-import angular from 'angular';
 import baseController from './shared/baseController';
 
 export default class ngbAppController extends baseController {
@@ -48,10 +47,18 @@ export default class ngbAppController extends baseController {
         });
 
         if (window.addEventListener) {
-            window.addEventListener("message", () => this._listener(event));
+            window.addEventListener("message", () => {
+                if (event.data) {
+                    this._listener(event);
+                }
+            });
         } else {
             // IE8
-            window.attachEvent("onmessage", () => this._listener(event));
+            window.attachEvent("onmessage", () => {
+                if (event.data) {
+                    this._listener(event);
+                }
+            });
         }
     }
 
@@ -60,41 +67,52 @@ export default class ngbAppController extends baseController {
     };
 
     _listener(event) {
+        const callerId = event.data.callerId ? event.data.callerId : null;
         switch (event.data.method) {
             case "loadDataSet":
                 const id = event.data.params && event.data.params.id ? event.data.params.id : null;
                 if (id) {
-                    this._apiResponse(this.apiService.loadDataSet(id));
+                    this._apiResponse(this.apiService.loadDataSet(id), callerId);
                 } else {
-                    console.log("Api error: loadDataSet wrong param" + event.data);
                     this._apiResponse({
                         message: 'Api error: loadDataSet wrong param' + event.data,
-                        completedSuccessfully: false
-                    });
+                        isSuccessful: false
+                    }, callerId);
                 }
                 break;
             case "navigateToCoordinate":
                 const coordinates = event.data.params && event.data.params.coordinates ? event.data.params.coordinates : null;
                 if (coordinates) {
-                    this._apiResponse(this.apiService.navigateToCoordinate(coordinates));
+                    this._apiResponse(this.apiService.navigateToCoordinate(coordinates), callerId);
                 } else {
-                    console.log('Api error: navigateToCoordinate wrong param' + event.data);
                     this._apiResponse({
                         message: 'Api error: navigateToCoordinate wrong param' + event.data,
-                        completedSuccessfully: false
-                    });
+                        isSuccessful: false
+                    }, callerId);
+                }
+                break;
+            case "loadTrack":
+                const track = event.data.params && event.data.params.track ? event.data.params.track : null,
+                    mode = event.data.params && event.data.params.mode ? event.data.params.mode : null;
+                if (track && mode) {
+                    this._apiResponse(this.apiService.loadTrack(track, mode), callerId);
+                } else {
+                    this._apiResponse({
+                        message: 'Api error: loadTrack wrong params' + event.data,
+                        isSuccessful: false
+                    }, callerId);
                 }
                 break;
             case "setGlobalSettings":
                 const globalSettingsParams = event.data.params;
                 if (globalSettingsParams) {
-                    this._apiResponse(this.apiService.setGlobalSettings(globalSettingsParams));
+                    this._apiResponse(this.apiService.setGlobalSettings(globalSettingsParams), callerId);
                 } else {
-                    console.log('Api error: setGlobalSettings wrong param' + event.data);
+                    // console.log('Api error: setGlobalSettings wrong param' + event.data);
                     this._apiResponse({
                         message: 'Api error: setGlobalSettings wrong param' + event.data,
-                        completedSuccessfully: false
-                    });
+                        isSuccessful: false
+                    }, callerId);
                 }
                 break;
             case "setTrackSettings":
@@ -102,20 +120,22 @@ export default class ngbAppController extends baseController {
                 if (trackSettingParams) {
                     this._apiResponse(this.apiService.setTrackSettings(trackSettingParams));
                 } else {
-                    console.log('Api error: setTrackSettings wrong param' + event.data);
                     this._apiResponse({
                         message: 'Api error: setTrackSettings wrong param' + event.data,
-                        completedSuccessfully: false
+                        isSuccessful: false
                     });
                 }
                 break;
             default:
-                console.log("Api error: No such method.");
-                console.log(event.data);
+                this._apiResponse({
+                    message: 'Api error: No such method.',
+                    isSuccessful: false,
+                }, callerId);
         }
     }
 
-    _apiResponse(params) {
+    _apiResponse(params, callerId) {
+        params.callerId = callerId;
         window.parent.postMessage(params, '*');
     }
 

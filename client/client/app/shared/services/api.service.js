@@ -1,4 +1,5 @@
 import {stringParseInt} from '../utils/Int';
+import {Node} from '../../components/ngbDataSets/internal';
 
 export default class ngbApiService {
 
@@ -11,6 +12,7 @@ export default class ngbApiService {
     $mdDialog;
     localDataService;
     dispatcher;
+    datasets;
 
     constructor($state, projectContext, ngbDataSetsService, $mdDialog, localDataService, dispatcher) {
         Object.assign(this, {
@@ -29,19 +31,23 @@ export default class ngbApiService {
             this.projectContext.refreshDatasets().then(async () => {
                 datasets = await this.ngbDataSetsService.getDatasets();
                 const [item] = datasets.filter(m => m.id === id);
-                if(!item){ return {
-                    message: `No dataset with id = ${id}`,
-                    completedSuccessfully: false
-                };}
-                return this._selectDataset(item, true, datasets);
+                if (!item) {
+                    return {
+                        message: `No dataset with id = ${id}`,
+                        isSuccessful: false
+                    };
+                }
+                return this._select(item, true, datasets);
             })
         } else {
             const [item] = datasets.filter(m => m.id === id);
-            if(!item){ return {
-                message: `No dataset with id = ${id}`,
-                completedSuccessfully: false
-            };}
-            return this._selectDataset(item, true, datasets);
+            if (!item) {
+                return {
+                    message: `No dataset with id = ${id}`,
+                    isSuccessful: false
+                };
+            }
+            return this._select(item, true, datasets);
         }
     }
 
@@ -49,7 +55,7 @@ export default class ngbApiService {
         if (!this.projectContext.tracks.length) {
             return {
                 message: 'No tracks selected.',
-                completedSuccessfully: false
+                isSuccessful: false
             };
         }
 
@@ -66,12 +72,12 @@ export default class ngbApiService {
                 this.projectContext.changeState({viewport: {end, start}});
                 return {
                     message: 'Ok',
-                    completedSuccessfully: true
+                    isSuccessful: true
                 };
             }
             return {
                 message: 'No coordinates provided',
-                completedSuccessfully: false
+                isSuccessful: false
             };
         }
 
@@ -115,7 +121,7 @@ export default class ngbApiService {
         if (!chr) {
             return {
                 message: 'No chromosome specified',
-                completedSuccessfully: false
+                isSuccessful: false
             };
         }
 
@@ -143,31 +149,323 @@ export default class ngbApiService {
 
         return {
             message: 'Success.',
-            completedSuccessfully: true
+            isSuccessful: true
         };
 
     }
 
-    setGlobalSettings(params){
+    setGlobalSettings(params) {
         let settings = this.localDataService.getSettingsCopy();
         settings = this._mergeDeep(settings, params);
         this.localDataService.updateSettings(settings);
         this.dispatcher.emitGlobalEvent('settings:change', settings);
         return {
             message: 'Ok',
-            completedSuccessfully: true
+            isSuccessful: true
         };
     }
 
-    setTrackSettings(params){
-        this.dispatcher.emitGlobalEvent('trackSettings:change', params);
+    setTrackSettings(params) {
+        const trackId = params ? params.id : null;
+        const tracks = this.projectContext.tracks;
+
+        if (trackId) {
+            let isSelectedTrack = false;
+            for (let i = 0; i < tracks.length; i++) {
+                if (tracks[i].bioDataItemId === trackId) {
+                    isSelectedTrack = true;
+                }
+            }
+
+            if (isSelectedTrack) {
+                this.dispatcher.emitGlobalEvent('trackSettings:change', params);
+                return {
+                    message: 'Ok',
+                    isSuccessful: true
+                };
+            } else {
+                return {
+                    message: 'No selected tracks found with id specified.',
+                    isSuccessful: true
+                };
+            }
+        } else {
+            return {
+                message: 'No track id',
+                isSuccessful: true
+            };
+        }
+    }
+
+    loadTrack(track, mode) {
+
+        //check track request mode
+        switch (mode) {
+            case 'id':
+                const trackId = stringParseInt(track);
+                if (trackId) {
+                    return this._selectTrackById(trackId);
+                } else {
+                    return {
+                        message: 'No track id specified.',
+                        isSuccessful: false
+                    };
+                }
+                break;
+
+            case 'url':
+            case 'ngbServer':
+
+                if (!track.entities || !track.referenceId) {
+                    return {
+                        message: 'Not enough params specified',
+                        isSuccessful: false,
+                    }
+                }
+
+                let errors = [],
+                    references = this.projectContext.references,
+                    [chosenReference] = references.filter(r => r.id === track.referenceId),
+                    selectedItems = [];
+
+                if (!chosenReference) {
+                    return {
+                        message: 'Reference not found',
+                        isSuccessful: false,
+                    }
+                }
+
+                selectedItems = (track.entities || []).map(t => {
+                    let shouldReturn = t.index ? true : !this._trackNeedsIndexFile(t);
+
+                    if (shouldReturn) {
+                        return {
+                            index: t.index ? t.index : null,
+                            path: t.path,
+                            reference: chosenReference,
+                            format: this._trackFormat(t),
+                            name: this._fileName(t),
+                        };
+                    } else {
+                        errors.push(`Index file required for ${t.path}.`);
+                    }
+                });
+
+                this._loadTracks(selectedItems);
+
+                return {
+                    message: errors.length ? errors.join(' | ') : 'Ok',
+                    isSuccessful: !errors.length
+                };
+
+                break;
+        }
+
         return {
-            message: 'Ok',
-            completedSuccessfully: true
+            message: 'Something went wrong.',
+            isSuccessful: false
         };
+
     }
 
-    _selectDataset(item, isSelected, tree) {
+    _trackNeedsIndexFile(track) {
+        const extension = this._fileExtension(track);
+        return extension === 'bam' ||
+            extension === 'vcf' ||
+            extension === 'bed' ||
+            extension === 'gff' ||
+            extension === 'gff3' ||
+            extension === 'gtf';
+
+    }
+
+    _fileExtension(track) {
+        if (!track.path || !track.path.length) {
+            return null;
+        }
+        const listForCheckingFileType = track.path.split('.');
+        if (listForCheckingFileType[listForCheckingFileType.length - 1].toLowerCase() === 'gz') {
+            listForCheckingFileType.splice(listForCheckingFileType.length - 1, 1);
+        }
+        return listForCheckingFileType[listForCheckingFileType.length - 1].toLowerCase();
+    }
+
+    _fileName(track) {
+        if (!track.path || !track.path.length) {
+            return null;
+        }
+        let list = track.path.split('/');
+        list = list[list.length - 1].split('\\');
+        return list[list.length - 1];
+    }
+
+    _trackFormat(track) {
+        const extension = this._fileExtension(track);
+        if (extension) {
+            switch (extension.toLowerCase()) {
+                case 'bam':
+                    return 'BAM';
+                case 'vcf':
+                    return 'VCF';
+                case 'bed':
+                    return 'BED';
+                case 'gff':
+                    return 'GENE';
+                case 'gff3':
+                    return 'GENE';
+                case 'gtf':
+                    return 'GENE';
+            }
+        }
+        return null;
+    }
+
+    _loadTracks(selectedFiles) {
+        const mapFn = (selectedFile) => {
+            // console.log(selectedFile);//todo remove log
+            return {
+                openByUrl: true,
+                isLocal: true,
+                format: selectedFile.format,
+                id: selectedFile.path,
+                bioDataItemId: selectedFile.path,
+                referenceId: selectedFile.reference.id,
+                reference: selectedFile.reference,
+                name: selectedFile.path,
+                indexPath: selectedFile.index,
+                projectId: selectedFile.reference.name
+            };
+        };
+        const mapTrackStateFn = (t) => {
+            return {
+                bioDataItemId: t.name,
+                name: t.name,
+                index: t.indexPath,
+                isLocal: true,
+                format: t.format,
+                projectId: t.projectId
+            };
+        };
+        let tracks = selectedFiles.map(mapFn).filter(
+            track => this.projectContext.tracks.filter(t => t.isLocal && t.name.toLowerCase() === track.name.toLowerCase()).length === 0);
+
+        if (tracks.length === 0) {
+            return;
+        }
+
+        for (let i = 0; i < tracks.length; i++) {
+            this.projectContext.addLastLocalTrack(tracks[i]);
+        }
+
+        const [reference] = tracks.map(t => t.reference);
+        reference.projectId = reference.name;
+        reference.isLocal = true;
+
+        if (!this.projectContext.reference || this.projectContext.reference.bioDataItemId !== reference.bioDataItemId) {
+            const _tracks = [reference, ...tracks];
+            const tracksState = _tracks.map(mapTrackStateFn);
+            this.projectContext.changeState({reference, tracks: _tracks, tracksState, shouldAddAnnotationTracks: true});
+        } else {
+            const _tracks = [...this.projectContext.tracks, ...tracks];
+            const tracksState = [...(this.projectContext.tracksState || []), ...tracks.map(mapTrackStateFn)];
+            this.projectContext.changeState({reference: this.projectContext.reference, tracks: _tracks, tracksState});
+        }
+    }
+
+    _getAllDataSets() {
+        this.datasets = this.projectContext.datasets;
+        if (!this.datasets || this.datasets.length === 0) {
+            this.projectContext.refreshDatasets().then(async () => {
+                this.datasets = await this.ngbDataSetsService.getDatasets();
+                if (!this.datasets.length) {
+                    return null;
+                }
+            });
+        } else {
+            if (!this.datasets) {
+                return null;
+            }
+        }
+
+        return this.datasets;
+    }
+
+    _selectTrackById(id) {
+
+        this._getAllDataSets();
+
+        const tracks = [];
+        const findTrackFn = function (item: Node) {
+            if (item.nestedProjects && item.nestedProjects.length > 0) {
+                for (let i = 0; i < item.nestedProjects.length; i++) {
+                    findTrackFn(item.nestedProjects[i]);
+                }
+            }
+            if (item.tracks.length > 0) {
+                for (let i = 0; i < item.tracks.length; i++) {
+                    if (item.tracks[i] &&
+                        item.tracks[i].format !== 'REFERENCE' &&
+                        item.tracks[i].bioDataItemId === id) {
+                        tracks.push(item.tracks[i]);
+                    }
+                }
+            }
+        };
+        for (let i = 0; i < this.datasets.length; i++) {
+            findTrackFn(this.datasets[i]);
+        }
+
+        const [selectedTrack] = tracks;
+        // console.log(this.datasets);//todo remove log
+
+        if (selectedTrack) {
+
+            const trackParents = [];
+            const getTrackParents = function (track: Node) {
+                if (track.project) {
+                    trackParents.push(track.project);
+                    getTrackParents(track.project);
+                }
+            };
+            getTrackParents(selectedTrack);
+
+            trackParents.reverse().map(parent => {
+                if (parent) {
+                    parent.__expanded = !parent.__expanded;
+                    this.ngbDataSetsService.toggle(parent);
+                }
+            });
+
+            // console.log(selectedTrack);//todo remove log
+
+            return this._toggleSelected(selectedTrack);
+
+        } else {
+            return {
+                message: 'No tracks found with id specified.',
+                isSuccessful: false
+            };
+        }
+    }
+
+    _toggleSelected(node) {
+        node.__selected = !node.__selected;
+        return this._toggle(node);
+    }
+
+    _toggle(node) {
+        // console.log(node);//todo remove log
+        if (node.__selected) {
+            node.__expanded = true;
+        }
+        if (node.isProject && !node.__selected) {
+            this.ngbDataSetsService.deselectItem(node);
+        }
+
+        return this._select(node, node.__selected, this.datasets);
+    }
+
+    _select(item, isSelected, tree) {
         const self = this;
         if (!this.ngbDataSetsService.checkSelectionAvailable(item, isSelected)) {
             const reference = this.ngbDataSetsService.getItemReference(item);
@@ -186,7 +484,7 @@ export default class ngbApiService {
         }
         return {
             message: 'Ok',
-            completedSuccessfully: true
+            isSuccessful: true
         };
     }
 
@@ -201,10 +499,10 @@ export default class ngbApiService {
         if (this._isObject(target) && this._isObject(source)) {
             for (const key in source) {
                 if (this._isObject(source[key])) {
-                    if (!target[key]) Object.assign(target, { [key]: {} });
+                    if (!target[key]) Object.assign(target, {[key]: {}});
                     this._mergeDeep(target[key], source[key]);
                 } else {
-                    Object.assign(target, { [key]: source[key] });
+                    Object.assign(target, {[key]: source[key]});
                 }
             }
         }
