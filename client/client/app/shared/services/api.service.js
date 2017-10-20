@@ -33,7 +33,7 @@ export default class ngbApiService {
                 const [item] = datasets.filter(m => m.id === id);
                 if(!item){ return {
                     message: `No dataset with id = ${id}`,
-                    completedSuccessfully: false
+                    isSuccessful: false
                 };}
                 return this._select(item, true, datasets);
             })
@@ -41,7 +41,7 @@ export default class ngbApiService {
             const [item] = datasets.filter(m => m.id === id);
             if(!item){ return {
                 message: `No dataset with id = ${id}`,
-                completedSuccessfully: false
+                isSuccessful: false
             };}
             return this._select(item, true, datasets);
         }
@@ -51,7 +51,7 @@ export default class ngbApiService {
         if (!this.projectContext.tracks.length) {
             return {
                 message: 'No tracks selected.',
-                completedSuccessfully: false
+                isSuccessful: false
             };
         }
 
@@ -68,12 +68,12 @@ export default class ngbApiService {
                 this.projectContext.changeState({viewport: {end, start}});
                 return {
                     message: 'Ok',
-                    completedSuccessfully: true
+                    isSuccessful: true
                 };
             }
             return {
                 message: 'No coordinates provided',
-                completedSuccessfully: false
+                isSuccessful: false
             };
         }
 
@@ -117,7 +117,7 @@ export default class ngbApiService {
         if (!chr) {
             return {
                 message: 'No chromosome specified',
-                completedSuccessfully: false
+                isSuccessful: false
             };
         }
 
@@ -145,7 +145,7 @@ export default class ngbApiService {
 
         return {
             message: 'Success.',
-            completedSuccessfully: true
+            isSuccessful: true
         };
 
     }
@@ -157,7 +157,7 @@ export default class ngbApiService {
         this.dispatcher.emitGlobalEvent('settings:change', settings);
         return {
             message: 'Ok',
-            completedSuccessfully: true
+            isSuccessful: true
         };
     }
 
@@ -172,7 +172,7 @@ export default class ngbApiService {
                 } else {
                     return {
                         message: 'No track id specified.',
-                        completedSuccessfully: false
+                        isSuccessful: false
                     };
                 }
                 break;
@@ -183,7 +183,7 @@ export default class ngbApiService {
                 if (!track.entities || !track.referenceId) {
                     return {
                         message: 'Not enough params specified',
-                        completedSuccessfully: false,
+                        isSuccessful: false,
                     }
                 }
 
@@ -195,7 +195,7 @@ export default class ngbApiService {
                 if(!chosenReference) {
                     return {
                         message: 'Reference not found',
-                        completedSuccessfully: false,
+                        isSuccessful: false,
                     }
                 }
 
@@ -219,7 +219,7 @@ export default class ngbApiService {
 
                 return {
                   message: errors.length ? errors.join(' | ') : 'Ok',
-                  completedSuccessfully: !errors.length
+                  isSuccessful: !errors.length
                 };
 
                 break;
@@ -227,7 +227,7 @@ export default class ngbApiService {
 
         return {
             message: 'Something went wrong.',
-            completedSuccessfully: false
+            isSuccessful: false
         };
 
     }
@@ -401,7 +401,7 @@ export default class ngbApiService {
         } else {
             return {
                 message: 'No tracks found with id specified.',
-                completedSuccessfully: false
+                isSuccessful: false
             };
         }
     }
@@ -442,7 +442,7 @@ export default class ngbApiService {
         }
         return {
             message: 'Ok',
-            completedSuccessfully: true
+            isSuccessful: true
         };
     }
 

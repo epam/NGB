@@ -69,62 +69,66 @@ export default class ngbAppController extends baseController {
 
     _listener(event) {
         //console.log(this.projectContext);
+        const callerId = event.data.callerId ? event.data.callerId : null;
         switch (event.data.method) {
             case "loadDataSet":
                 const id = event.data.params && event.data.params.id ? event.data.params.id : null;
                 if (id) {
-                    this._apiResponse(this.apiService.loadDataSet(id));
+                    this._apiResponse(this.apiService.loadDataSet(id), callerId);
                 } else {
                     console.log("Api error: loadDataSet wrong param" + event.data);
                     this._apiResponse({
                         message: 'Api error: loadDataSet wrong param' + event.data,
-                        completedSuccessfully: false
-                    });
+                        isSuccessful: false
+                    }, callerId);
                 }
                 break;
             case "navigateToCoordinate":
                 const coordinates = event.data.params && event.data.params.coordinates ? event.data.params.coordinates : null;
                 if (coordinates) {
-                    this._apiResponse(this.apiService.navigateToCoordinate(coordinates));
+                    this._apiResponse(this.apiService.navigateToCoordinate(coordinates), callerId);
                 } else {
                     this._apiResponse({
                         message: 'Api error: navigateToCoordinate wrong param' + event.data,
-                        completedSuccessfully: false
-                    });
+                        isSuccessful: false
+                    }, callerId);
                 }
                 break;
             case "loadTrack":
                 console.log(event);
-                const track = event.data.params && event.data.params.track ? event.data.params.track : null;
-                const mode = event.data.params && event.data.params.mode ? event.data.params.mode : null;
+                const track = event.data.params && event.data.params.track ? event.data.params.track : null,
+                    mode = event.data.params && event.data.params.mode ? event.data.params.mode : null;
                 if (track && mode) {
-                    this._apiResponse(this.apiService.loadTrack(track, mode));
+                    this._apiResponse(this.apiService.loadTrack(track, mode), callerId);
                 } else {
                     this._apiResponse({
                         message: 'Api error: loadTrack wrong params' + event.data,
-                        completedSuccessfully: false
-                    });
+                        isSuccessful: false
+                    }, callerId);
                 }
                 break;
             case "setGlobalSettings":
                 const params = event.data.params;
                 if (params) {
-                    this._apiResponse(this.apiService.setGlobalSettings(params));
+                    this._apiResponse(this.apiService.setGlobalSettings(params), callerId);
                 } else {
-                    console.log('Api error: setGlobalSettings wrong param' + event.data);
+                    // console.log('Api error: setGlobalSettings wrong param' + event.data);
                     this._apiResponse({
                         message: 'Api error: setGlobalSettings wrong param' + event.data,
-                        completedSuccessfully: false
-                    });
+                        isSuccessful: false
+                    }, callerId);
                 }
                 break;
             default:
-                console.log("Api error: No such method.");
-                console.log(event.data);
+                this._apiResponse({
+                    message: 'Api error: No such method.',
+                    isSuccessful: false,
+                }, callerId);
         }
     }
 
-    _apiResponse(params) {
+    _apiResponse(params, callerId) {
+        params.callerId = callerId;
         window.parent.postMessage(params, '*');
     }
 
