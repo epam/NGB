@@ -92,10 +92,10 @@ export default class ngbAppController extends baseController {
                 }
                 break;
             case "loadTrack":
-                const track = event.data.params && event.data.params.track ? event.data.params.track : null,
+                const tracks = event.data.params && event.data.params.tracks ? event.data.params.tracks : null,
                     mode = event.data.params && event.data.params.mode ? event.data.params.mode : null;
-                if (track && mode) {
-                    this._apiResponse(this.apiService.loadTrack(track, mode), callerId);
+                if (tracks && mode) {
+                    this._apiResponse(this.apiService.loadTrack(event.data.params), callerId);
                 } else {
                     this._apiResponse({
                         message: 'Api error: loadTrack wrong params' + event.data,

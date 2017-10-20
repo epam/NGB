@@ -13,6 +13,7 @@ export default class ngbApiService {
     localDataService;
     dispatcher;
     datasets;
+    references;
 
     constructor($state, projectContext, ngbDataSetsService, $mdDialog, localDataService, dispatcher) {
         Object.assign(this, {
@@ -23,6 +24,10 @@ export default class ngbApiService {
             localDataService,
             dispatcher
         });
+        (async() => {
+            await this.projectContext.refreshReferences(true);
+            this.references = this.projectContext.references;
+        })();
     }
 
     loadDataSet(id) {
@@ -197,17 +202,19 @@ export default class ngbApiService {
         }
     }
 
-    loadTrack(track, mode) {
-
+    loadTrack(params) {
         //check track request mode
-        switch (mode) {
+        switch (params.mode) {
             case 'id':
-                const trackId = stringParseInt(track);
-                if (trackId) {
-                    return this._selectTrackById(trackId);
+                let tracksIds = params.tracks.map(t => {
+                    let id = stringParseInt(t);
+                    if (id > 0) return id;
+                });
+                if (tracksIds.length) {
+                    return this._selectMultipleTracksByIds(tracksIds);
                 } else {
                     return {
-                        message: 'No track id specified.',
+                        message: 'No tracks ids specified.',
                         isSuccessful: false
                     };
                 }
@@ -216,7 +223,7 @@ export default class ngbApiService {
             case 'url':
             case 'ngbServer':
 
-                if (!track.entities || !track.referenceId) {
+                if (!params.tracks || !params.referenceId) {
                     return {
                         message: 'Not enough params specified',
                         isSuccessful: false,
@@ -224,8 +231,7 @@ export default class ngbApiService {
                 }
 
                 let errors = [],
-                    references = this.projectContext.references,
-                    [chosenReference] = references.filter(r => r.id === track.referenceId),
+                    [chosenReference] = this.references.filter(r => r.id === params.referenceId),
                     selectedItems = [];
 
                 if (!chosenReference) {
@@ -235,7 +241,7 @@ export default class ngbApiService {
                     }
                 }
 
-                selectedItems = (track.entities || []).map(t => {
+                selectedItems = (params.tracks || []).map(t => {
                     let shouldReturn = t.index ? true : !this._trackNeedsIndexFile(t);
 
                     if (shouldReturn) {
@@ -390,6 +396,34 @@ export default class ngbApiService {
         return this.datasets;
     }
 
+    _selectMultipleTracksByIds(ids) {
+        if(!ids.length) {
+            return {
+                message: 'No tracks ids specified.',
+                isSuccessful: false
+            };
+        }
+
+        let errorMessages = [];
+        ids.map(id => {
+            if(!this._selectTrackById(id)) {
+                errorMessages.push(`Error adding track with id = ${id}.`);
+            }
+        });
+
+        if(errorMessages.length) {
+            return {
+                message: errorMessages.join(' | '),
+                isSuccessful: false,
+            }
+        } else {
+            return {
+                message: 'Ok',
+                isSuccessful: true,
+            }
+        }
+    }
+
     _selectTrackById(id) {
 
         this._getAllDataSets();
@@ -438,19 +472,18 @@ export default class ngbApiService {
 
             // console.log(selectedTrack);//todo remove log
 
-            return this._toggleSelected(selectedTrack);
+            this._toggleSelected(selectedTrack);
+
+            return true;
 
         } else {
-            return {
-                message: 'No tracks found with id specified.',
-                isSuccessful: false
-            };
+            return false;
         }
     }
 
     _toggleSelected(node) {
         node.__selected = !node.__selected;
-        return this._toggle(node);
+        this._toggle(node);
     }
 
     _toggle(node) {
