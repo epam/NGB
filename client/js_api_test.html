@@ -48,31 +48,24 @@
             iframe.contentWindow.postMessage({
                 method: "loadTrack",
                 params: {
-                    track: {
-                        entities: [
-                            {
-                                path: "/opt/catgenome/MCF7-PIK3CA.bam",
-                                index: "/opt/catgenome/MCF7-PIK3CA.bam.bai",
-                            },
-                            {
-                                path: "/opt/catgenome/beds-test/1.bed.gz",
-                                index: "/opt/catgenome/beds-test/1.bed.gz.tbi",
-                            },
-                            {
-                                path: "/opt/catgenome/beds-test/2.bed.gz",
-                                index: "/opt/catgenome/beds-test/2.bed.gz.tbi",
-                            },
-                            {
-                                path: "/opt/catgenome/beds-test/3.bed.gz",
-                                index: "/opt/catgenome/beds-test/3.bed.gz.tbi",
-                            },
-                            {
-                                path: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz",
-                                index: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz.tbi",
-                            },
-                        ],
-                        referenceId: 1
-                    },
+                    tracks: [{
+                            path: "/opt/catgenome/MCF7-PIK3CA.bam",
+                            index: "/opt/catgenome/MCF7-PIK3CA.bam.bai",
+                        }, {
+                            path: "/opt/catgenome/beds-test/1.bed.gz",
+                            index: "/opt/catgenome/beds-test/1.bed.gz.tbi",
+                        }, {
+                            path: "/opt/catgenome/beds-test/2.bed.gz",
+                            index: "/opt/catgenome/beds-test/2.bed.gz.tbi",
+                        }, {
+                            path: "/opt/catgenome/beds-test/3.bed.gz",
+                            index: "/opt/catgenome/beds-test/3.bed.gz.tbi",
+                        }, {
+                            path: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz",
+                            index: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz.tbi",
+                        },
+                    ],
+                    referenceId: 1,
                     mode: loadTrackModeSelect.value
                 }
             }, "*");
@@ -80,31 +73,24 @@
             iframe.contentWindow.postMessage({
                 method: "loadTrack",
                 params: {
-                    track: {
-                        entities: [
-                            {
-                                path: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz",
-                                index: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz.tbi",
-                            },
-                            {
-                                path: "http://ngb.opensource.epam.com/distr/data/genome/dm6/dmel-all-r6.06.sorted.gtf.gz",
-                                index: "http://ngb.opensource.epam.com/distr/data/genome/dm6/dmel-all-r6.06.sorted.gtf.gz.tbi",
-                            },
-                            {
-                                path: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.gff3.gz",
-                                index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.gff3.gz.tbi",
-                            },
-                            {
-                                path: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/PIK3CA-E545K.bam",
-                                index: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/PIK3CA-E545K.bam.bai",
-                            },
-                            {
-                                path: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz",
-                                index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz.tbi",
-                            },
-                        ],
-                        referenceId: 1
-                    },
+                    tracks: [{
+                            path: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz",
+                            index: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz.tbi",
+                        }, {
+                            path: "http://ngb.opensource.epam.com/distr/data/genome/dm6/dmel-all-r6.06.sorted.gtf.gz",
+                            index: "http://ngb.opensource.epam.com/distr/data/genome/dm6/dmel-all-r6.06.sorted.gtf.gz.tbi",
+                        }, {
+                            path: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.gff3.gz",
+                            index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.gff3.gz.tbi",
+                        }, {
+                            path: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/PIK3CA-E545K.bam",
+                            index: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/PIK3CA-E545K.bam.bai",
+                        }, {
+                            path: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz",
+                            index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz.tbi",
+                        },
+                    ],
+                    referenceId: 1,
                     mode: loadTrackModeSelect.value
                 }
             }, "*");
@@ -112,7 +98,7 @@
             iframe.contentWindow.postMessage({
                 method: "loadTrack",
                 params: {
-                    track: loadTrackRequestInput.value,
+                    tracks: ['21','23','25'],
                     mode: loadTrackModeSelect.value
                 }
             }, "*");
