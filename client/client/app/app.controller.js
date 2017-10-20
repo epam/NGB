@@ -48,10 +48,18 @@ export default class ngbAppController extends baseController {
         });
 
         if (window.addEventListener) {
-            window.addEventListener("message", () => this._listener(event));
+            window.addEventListener("message", () => {
+                if(event.data) {
+                    this._listener(event);
+                }
+            });
         } else {
             // IE8
-            window.attachEvent("onmessage", () => this._listener(event));
+            window.attachEvent("onmessage", () => {
+                if(event.data) {
+                    this._listener(event);
+                }
+            });
         }
     }
 
@@ -60,6 +68,7 @@ export default class ngbAppController extends baseController {
     };
 
     _listener(event) {
+        //console.log(this.projectContext);
         switch (event.data.method) {
             case "loadDataSet":
                 const id = event.data.params && event.data.params.id ? event.data.params.id : null;
@@ -78,9 +87,21 @@ export default class ngbAppController extends baseController {
                 if (coordinates) {
                     this._apiResponse(this.apiService.navigateToCoordinate(coordinates));
                 } else {
-                    console.log('Api error: navigateToCoordinate wrong param' + event.data);
                     this._apiResponse({
                         message: 'Api error: navigateToCoordinate wrong param' + event.data,
+                        completedSuccessfully: false
+                    });
+                }
+                break;
+            case "loadTrack":
+                console.log(event);
+                const track = event.data.params && event.data.params.track ? event.data.params.track : null;
+                const mode = event.data.params && event.data.params.mode ? event.data.params.mode : null;
+                if (track && mode) {
+                    this._apiResponse(this.apiService.loadTrack(track, mode));
+                } else {
+                    this._apiResponse({
+                        message: 'Api error: loadTrack wrong params' + event.data,
                         completedSuccessfully: false
                     });
                 }

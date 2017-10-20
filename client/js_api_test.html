@@ -4,12 +4,28 @@
 </head>
 <body>
 <input type="button" id="loadDataSet" value="loadDataSet">&nbsp;
+
+<input type="text" id="coordinatesText" value="" placeholder="chromosome: coordinates">
 <input type="button" id="navigateToCoordinate" value="navigateToCoordinate">&nbsp;
+
+<input type="text" id="loadTrackRequest" value="" placeholder="id/url/ngbServer">
+<select name="loadTrackMode" id="loadTrackMode">
+    <option value="id">id</option>
+    <option value="url">url</option>
+    <option value="ngbServer">ngbServer</option>
+</select>
+<input type="button" id="loadTrackBtn" value="loadTrack">
+<br>
+
 <input type="button" id="setGlobalSettings" value="setGlobalSettings"><br>
 <iframe height="90%" width="100%" id="ngbIframe" src="http://localhost:8080/#"></iframe>
 <script type="text/javascript">
     var btnLoadDataSet = document.getElementById('loadDataSet'),
         btnNavigateToCoordinate = document.getElementById('navigateToCoordinate'),
+        coordinatesInput = document.getElementById('coordinatesText'),
+        btnLoadTrack = document.getElementById('loadTrackBtn'),
+        loadTrackRequestInput = document.getElementById('loadTrackRequest'),
+        loadTrackModeSelect = document.getElementById('loadTrackMode'),
         btnSetGlobalSettings = document.getElementById('setGlobalSettings'),
         iframe = document.getElementById('ngbIframe');
 
@@ -17,14 +33,90 @@
         iframe.contentWindow.postMessage({
             method: "loadDataSet",
             params: {id: 3}
-        }, "*");
+            }, "*");
     };
 
     btnNavigateToCoordinate.onclick = function () {
         iframe.contentWindow.postMessage({
             method: "navigateToCoordinate",
-            params: {coordinates: "12585134 - 12585207"}
+            params: {coordinates: coordinatesInput.value}
         }, "*");
+    };
+
+    btnLoadTrack.onclick = function () {
+        if(loadTrackModeSelect.value === 'ngbServer') {
+            iframe.contentWindow.postMessage({
+                method: "loadTrack",
+                params: {
+                    track: {
+                        entities: [
+                            {
+                                path: "/opt/catgenome/MCF7-PIK3CA.bam",
+                                index: "/opt/catgenome/MCF7-PIK3CA.bam.bai",
+                            },
+                            {
+                                path: "/opt/catgenome/beds-test/1.bed.gz",
+                                index: "/opt/catgenome/beds-test/1.bed.gz.tbi",
+                            },
+                            {
+                                path: "/opt/catgenome/beds-test/2.bed.gz",
+                                index: "/opt/catgenome/beds-test/2.bed.gz.tbi",
+                            },
+                            {
+                                path: "/opt/catgenome/beds-test/3.bed.gz",
+                                index: "/opt/catgenome/beds-test/3.bed.gz.tbi",
+                            },
+                            {
+                                path: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz",
+                                index: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz.tbi",
+                            },
+                        ],
+                        referenceId: 1
+                    },
+                    mode: loadTrackModeSelect.value
+                }
+            }, "*");
+        } else if(loadTrackModeSelect.value === 'url') {
+            iframe.contentWindow.postMessage({
+                method: "loadTrack",
+                params: {
+                    track: {
+                        entities: [
+                            {
+                                path: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz",
+                                index: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz.tbi",
+                            },
+                            {
+                                path: "http://ngb.opensource.epam.com/distr/data/genome/dm6/dmel-all-r6.06.sorted.gtf.gz",
+                                index: "http://ngb.opensource.epam.com/distr/data/genome/dm6/dmel-all-r6.06.sorted.gtf.gz.tbi",
+                            },
+                            {
+                                path: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.gff3.gz",
+                                index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.gff3.gz.tbi",
+                            },
+                            {
+                                path: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/PIK3CA-E545K.bam",
+                                index: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/PIK3CA-E545K.bam.bai",
+                            },
+                            {
+                                path: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz",
+                                index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz.tbi",
+                            },
+                        ],
+                        referenceId: 1
+                    },
+                    mode: loadTrackModeSelect.value
+                }
+            }, "*");
+        } else {
+            iframe.contentWindow.postMessage({
+                method: "loadTrack",
+                params: {
+                    track: loadTrackRequestInput.value,
+                    mode: loadTrackModeSelect.value
+                }
+            }, "*");
+        }
     };
 
     btnSetGlobalSettings.onclick = function () {
@@ -42,13 +134,17 @@
     if (window.addEventListener) {
         window.addEventListener("message", () => {
             console.log(event);
-            console.log(event.data.message);
+            if (event.data) {
+                console.log(event.data.message);
+            }
         });
     } else {
         // IE8
         window.attachEvent("onmessage", () => {
             console.log(event);
-            console.log(event.data.message);
+            if (event.data) {
+                console.log(event.data.message);
+            }
         });
     }
 </script>
