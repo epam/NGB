@@ -240,7 +240,7 @@ export class BAMTrack extends ScrollableTrack {
     constructor(opts) {
         super(opts);
         this.state.readsViewMode = parseInt(this.state.readsViewMode);
-        this.cacheService = new BamCacheService(this,  Object.assign({}, this.trackConfig, this.config));
+        this.cacheService = new BamCacheService(this, Object.assign({}, this.trackConfig, this.config));
         this._bamRenderer = new BamRenderer(this.viewport, Object.assign({}, this.trackConfig, this.config), this._pixiRenderer, this.cacheService, opts);
 
         const bamSettings = {
@@ -297,6 +297,33 @@ export class BAMTrack extends ScrollableTrack {
         };
 
         this.cacheService.cache.groupMode = this.state.groupMode;
+
+        this.trackSettingsListener = (params) => {
+            if (this.config.bioDataItemId === params.id) {
+                const settings = params.settings;
+                settings.forEach(setting => {                   
+                    const menuItem = menuUtilities.findMenuItem(this._menu, setting.name);
+                    if (menuItem.type === 'checkbox') {
+                        if (setting.name === 'coverage>scale>manual') {
+                            this.state.coverageScaleFrom = setting.extraOptions.from;
+                            this.state.coverageScaleTo = setting.extraOptions.to;
+                            this.state.coverageScaleMode = scaleModes.manualScaleMode;
+                            this._flags.dataChanged = true;
+                        } else {
+                            setting.value ? menuItem.enable() : menuItem.disable();
+                        }
+                    } else if (menuItem.type === 'button') {
+                        menuItem.perform();
+                    }
+                })
+            }
+        };
+        const _trackSettingsListener = ::this.trackSettingsListener;
+        const self = this;
+        this._removeTrackSettingsListener = function () {
+            self.dispatcher.removeListener('trackSettings:change', _trackSettingsListener);
+        };
+        this.dispatcher.on('trackSettings:change', _trackSettingsListener);
     }
 
     globalSettingsChanged(state) {
@@ -369,7 +396,7 @@ export class BAMTrack extends ScrollableTrack {
             };
         }
 
-        Promise.resolve().then(async() => {
+        Promise.resolve().then(async () => {
             if (shouldReloadData) {
                 await this.updateCache();
             }
@@ -403,7 +430,7 @@ export class BAMTrack extends ScrollableTrack {
     alignmentsVisibilityChanged() {
         if (this.state.alignments) {
             this.invalidateCache();
-            Promise.resolve().then(async() => {
+            Promise.resolve().then(async () => {
                 await this.updateCache();
                 this._flags.renderFeaturesChanged = true;
                 this.requestRenderRefresh();

@@ -102,6 +102,9 @@ export default class ngbTracksViewController extends baseController {
         if (this._removeHotKeyListener) {
             this._removeHotKeyListener();
         }
+        if (this._removeTrackSettingsListener) {
+            this._removeTrackSettingsListener();
+        }
         this.viewport = null;
     }
 

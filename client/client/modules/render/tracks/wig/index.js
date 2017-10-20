@@ -6,6 +6,7 @@ import WIGTransformer from './wigTransformer';
 import {WigDataService} from '../../../../dataServices';
 import {default as menu} from './menu';
 import scaleModes from './modes';
+import {menu as menuUtilities} from '../../utilities';
 
 export class WIGTrack extends CachedTrack {
 
@@ -13,6 +14,37 @@ export class WIGTrack extends CachedTrack {
     _wigRenderer = new WIGRenderer(this.trackConfig);
     _wigTransformer = new WIGTransformer(this.trackConfig);
     dataService = new WigDataService();
+
+    constructor(opts) {
+        super(opts);
+        if (opts.dispatcher) {
+            this.dispatcher = opts.dispatcher;
+        }
+        this.trackSettingsListener = (params) => {
+            if(this.config.bioDataItemId === params.id) {
+                const settings = params.settings;
+                settings.forEach(setting => {
+                    const menuItem = menuUtilities.findMenuItem(this._menu, setting.name);
+                    if (menuItem.type === 'checkbox') {
+                        if (setting.name === 'coverage>scale>manual'){
+                            this.state.coverageScaleFrom = setting.extraOptions.from;
+                            this.state.coverageScaleTo = setting.extraOptions.to;
+                            this.state.coverageScaleMode = scaleModes.manualScaleMode;
+                            this._flags.dataChanged = true;
+                        }else{
+                            setting.value ? menuItem.enable() : menuItem.disable();
+                        }
+                    }
+                })
+            }
+        };
+        const _trackSettingsListener = ::this.trackSettingsListener;
+        const self = this;
+        this._removeTrackSettingsListener = function() {
+            self.dispatcher.removeListener('trackSettings:change', _trackSettingsListener);
+        };
+        this.dispatcher.on('trackSettings:change', _trackSettingsListener);
+    }
 
     static getTrackDefaultConfig() {
         return WIGConfig;

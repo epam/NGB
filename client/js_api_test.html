@@ -5,12 +5,14 @@
 <body>
 <input type="button" id="loadDataSet" value="loadDataSet">&nbsp;
 <input type="button" id="navigateToCoordinate" value="navigateToCoordinate">&nbsp;
-<input type="button" id="setGlobalSettings" value="setGlobalSettings"><br>
+<input type="button" id="setGlobalSettings" value="setGlobalSettings">&nbsp;
+<input type="button" id="setTrackSettings" value="setTrackSettings"><br>
 <iframe height="90%" width="100%" id="ngbIframe" src="http://localhost:8080/#"></iframe>
 <script type="text/javascript">
     var btnLoadDataSet = document.getElementById('loadDataSet'),
         btnNavigateToCoordinate = document.getElementById('navigateToCoordinate'),
         btnSetGlobalSettings = document.getElementById('setGlobalSettings'),
+        btnSetTrackSettings = document.getElementById('setTrackSettings'),
         iframe = document.getElementById('ngbIframe');
 
     btnLoadDataSet.onclick = function () {
@@ -32,11 +34,126 @@
             method: "setGlobalSettings",
             params: {
                 showCenterLine: true,
+                hotkeys: {
+                    "layout>variants": {
+                        "hotkey": "ALT + !"
+                    },
+                    'gene>transcript>expanded': {
+                        "hotkey": "ALT + $"
+                    }
+                },
                 colors: {
-                    strand:
-                        {forward: 14363949}
+                    strand: {forward: 14363949}
                 }
-            }}, "*");
+            }
+        }, "*");
+    };
+
+    btnSetTrackSettings.onclick = function () {
+        //vcf
+        iframe.contentWindow.postMessage({
+            method: "setTrackSettings",
+            params: {
+                id: 23,
+                settings: [
+                    {name: "vcf>variantsView>collapsed"},
+                    {name: "vcf>variantsView>expanded"}
+                ]
+            }
+        }, "*");
+
+        //referense
+        iframe.contentWindow.postMessage({
+            method: "setTrackSettings",
+            params: {
+                id: 5,
+                settings: [
+                    {name: "reference>showTranslation", value: true},
+                    {name: "reference>showForwardStrand", value: true},
+                    {name: "reference>showReverseStrand", value: true}
+                ]
+            }
+        }, "*");
+
+        //wig
+        iframe.contentWindow.postMessage({
+            method: "setTrackSettings",
+            params: {
+                id: 28,
+                settings: [
+                    {name: "coverage>scale>default", value: false},
+                    {
+                        name: "coverage>scale>manual", value: true, extraOptions: {
+                        from: 10,
+                        to: 150
+                    }
+                    },
+                    {name: "coverage>scale>log", value: true}
+                ]
+            }
+        }, "*");
+
+        //bam
+        iframe.contentWindow.postMessage({
+            method: "setTrackSettings",
+            params: {
+                id: 43,
+                settings: [
+                    {name: "bam>color>noColor", value: false},
+                    {name: "bam>color>pairOrientation", value: false},
+                    {name: "bam>color>insertSize", value: false},
+                    {name: "bam>color>insertSizeAndPairOrientation", value: false},
+                    {name: "bam>color>readStrand", value: false},
+                    {name: "bam>color>firstInPairStrand", value: true},
+                    {name: "bam>color>shadeByQuality", value: true},
+
+                    {name: "bam>group>default", value: false},
+                    {name: "bam>group>firstInPairStrand", value: true},
+                    {name: "bam>group>pairOrientation", value: false},
+                    {name: "bam>group>chromosomeOfMate", value: false},
+                    {name: "bam>group>readStrand", value: false},
+
+                    {name: "bam>readsView>collapsed", value: false},
+                    {name: "bam>readsView>expanded", value: false},
+                    {name: "bam>readsView>automatic", value: true},
+                    {name: "bam>readsView>pairs", value: true},
+
+                    {name: "bam>sort>default"},
+                    {name: "bam>sort>strandLocation"},
+                    {name: "bam>sort>base"},
+                    {name: "bam>sort>strand"},
+                    {name: "bam>sort>mappingQuality"},
+                    {name: "bam>sort>insertSize"},
+
+                    {name: "bam>showAlignments", value: true},
+                    {name: "bam>showMismatchedBases", value: true},
+                    {name: "bam>showCoverage", value: true},
+                    {name: "bam>showSpliceJunctions", value: true},
+
+                    {name: "coverage>scale>default", value: false},
+                    {
+                        name: "coverage>scale>manual", value: true, extraOptions: {
+                        from: 10,
+                        to: 150
+                    }
+                    },
+                    {name: "coverage>scale>log", value: true}
+                ]
+            }
+        }, "*");
+
+        //gene
+        iframe.contentWindow.postMessage({
+            method: "setTrackSettings",
+            params: {
+                id: 59,
+                settings: [
+                    {name: "gene>transcript>collapsed", value: false},
+                    {name: "gene>transcript>expanded", value: true},
+                    {name: "shortenIntrons", value: true}
+                ]
+            }
+        }, "*");
     };
 
     if (window.addEventListener) {

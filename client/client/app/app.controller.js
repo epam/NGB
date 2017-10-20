@@ -86,13 +86,25 @@ export default class ngbAppController extends baseController {
                 }
                 break;
             case "setGlobalSettings":
-                const params = event.data.params;
-                if (params) {
-                    this._apiResponse(this.apiService.setGlobalSettings(params));
+                const globalSettingsParams = event.data.params;
+                if (globalSettingsParams) {
+                    this._apiResponse(this.apiService.setGlobalSettings(globalSettingsParams));
                 } else {
                     console.log('Api error: setGlobalSettings wrong param' + event.data);
                     this._apiResponse({
                         message: 'Api error: setGlobalSettings wrong param' + event.data,
+                        completedSuccessfully: false
+                    });
+                }
+                break;
+            case "setTrackSettings":
+                const trackSettingParams = event.data.params;
+                if (trackSettingParams) {
+                    this._apiResponse(this.apiService.setTrackSettings(trackSettingParams));
+                } else {
+                    console.log('Api error: setTrackSettings wrong param' + event.data);
+                    this._apiResponse({
+                        message: 'Api error: setTrackSettings wrong param' + event.data,
                         completedSuccessfully: false
                     });
                 }

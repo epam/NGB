@@ -50,6 +50,25 @@ export class VCFTrack extends GENETrack{
                 }]
             }
         ];
+
+        this.trackSettingsListener = (params) => {
+            if(this.config.bioDataItemId === params.id) {
+                const settings = params.settings;
+                settings.forEach(setting => {
+                    const menuItem = menuUtilities.findMenuItem(this._menu, setting.name);
+                    debugger;
+                    if (menuItem.type === 'checkbox') {
+                        menuItem.enable();
+                    }
+                })
+            }
+        };
+        const _trackSettingsListener = ::this.trackSettingsListener;
+        const self = this;
+        this._removeTrackSettingsListener = function() {
+            self.dispatcher.removeListener('trackSettings:change', _trackSettingsListener);
+        };
+        this.dispatcher.on('trackSettings:change', _trackSettingsListener);
     }
 
     async updateCache() {

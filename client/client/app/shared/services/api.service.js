@@ -159,6 +159,14 @@ export default class ngbApiService {
         };
     }
 
+    setTrackSettings(params){
+        this.dispatcher.emitGlobalEvent('trackSettings:change', params);
+        return {
+            message: 'Ok',
+            completedSuccessfully: true
+        };
+    }
+
     _selectDataset(item, isSelected, tree) {
         const self = this;
         if (!this.ngbDataSetsService.checkSelectionAvailable(item, isSelected)) {
