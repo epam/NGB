@@ -25,12 +25,12 @@
 
 package com.epam.catgenome.dao.index.indexer;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import org.apache.lucene.document.Document;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Default implementation of AbstractDocumentBuilder. No specific actions is taken for specific entries fields
@@ -42,6 +42,7 @@ public class DefaultDocumentBuilder extends AbstractDocumentBuilder {
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.CHROMOSOME_NAME.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.CHROMOSOME_ID.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.FILE_ID.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.SOURCE_FILE.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.FEATURE_ID.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.FEATURE_TYPE.getFieldName());

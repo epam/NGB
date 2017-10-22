@@ -24,12 +24,6 @@
 
 package com.epam.catgenome.dao.index;
 
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.index.field.IndexSortField;
 import com.epam.catgenome.dao.index.indexer.AbstractDocumentBuilder;
@@ -39,7 +33,9 @@ import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.index.*;
 import com.epam.catgenome.entity.reference.Bookmark;
 import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.vcf.*;
+import com.epam.catgenome.entity.vcf.InfoItem;
+import com.epam.catgenome.entity.vcf.VcfFile;
+import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
@@ -72,6 +68,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 /**
  * Source:      FeatureIndexDao
@@ -126,6 +128,7 @@ public class FeatureIndexDao {
         GENE_NAMES("geneNames"), // gene names, concatenated by coma
         QUALITY("quality"),
         IS_EXON("is_exon"),
+        SOURCE_FILE("source_file"),
 
         // Facet fields
         CHR_ID("chrId"),

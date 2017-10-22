@@ -24,16 +24,16 @@
 
 package com.epam.catgenome.entity.index;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.epam.catgenome.entity.vcf.VariationEffect;
 import com.epam.catgenome.entity.vcf.VariationImpact;
 import com.epam.catgenome.entity.vcf.VariationType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import htsjdk.variant.variantcontext.VariantContext;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Source:      VcfIndexEntry
@@ -52,6 +52,7 @@ public class VcfIndexEntry extends FeatureIndexEntry {
     private String geneName; //TODO: remove, use geneNameList
     private String geneNames;
     private String failedFilter;
+    private String vcfFileName;
     private VariationImpact impact;
     private VariationEffect effect;
     private Map<String, Object> info;
@@ -86,6 +87,7 @@ public class VcfIndexEntry extends FeatureIndexEntry {
         info = origin.getInfo() != null ? new HashMap<>(origin.getInfo()) : null;
         quality = origin.getQuality();
         isExon = origin.getExon();
+        vcfFileName = origin.getVcfFileName();
     }
 
     public VariationImpact getImpact() {
@@ -216,6 +218,13 @@ public class VcfIndexEntry extends FeatureIndexEntry {
         this.variationTypes = variationTypes;
     }
 
+    public String getVcfFileName() {
+        return vcfFileName;
+    }
+
+    public void setVcfFileName(String vcfFileName) {
+        this.vcfFileName = vcfFileName;
+    }
 
     @Override public boolean equals(Object o) {
         if (this == o) {

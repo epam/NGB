@@ -24,10 +24,8 @@
 
 package com.epam.catgenome.entity.vcf;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import com.epam.catgenome.dao.index.FeatureIndexDao.FeatureIndexFields;
+import com.epam.catgenome.entity.index.FeatureType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,11 +33,15 @@ import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queries.TermsQuery;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.PrefixQuery;
+import org.apache.lucene.search.TermQuery;
 import org.springframework.util.Assert;
 
-import com.epam.catgenome.dao.index.FeatureIndexDao.FeatureIndexFields;
-import com.epam.catgenome.entity.index.FeatureType;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * {@code VcfFilterForm} represents a VO used to handle query parameters
@@ -68,7 +70,7 @@ public class VcfFilterForm {
      * Additional fields to show in Variations table
      */
     private List<String> infoFields;
-
+    private List<String> vcfFileName;
     private List<Long> vcfFileIds;
     private List<Long> chromosomeIds;
 
@@ -90,6 +92,7 @@ public class VcfFilterForm {
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         addFeatureTypeFilter(featureType, builder);
         addVcfFileFilter(builder);
+        addVcfFileNameFilter(builder);
         addChromosomeFilter(builder);
         addGeneFilter(builder);
         addExonFilter(builder);
@@ -223,6 +226,16 @@ public class VcfFilterForm {
             List<Term> chromosomeTerms = chromosomeIds.stream().map(id -> new Term(FeatureIndexFields.CHROMOSOME_ID
                             .getFieldName(), id.toString())).collect(Collectors.toList());
             builder.add(new TermsQuery(chromosomeTerms), BooleanClause.Occur.MUST);
+        }
+    }
+
+    private void addVcfFileNameFilter(BooleanQuery.Builder builder) {
+        if (vcfFileName != null && !vcfFileName.isEmpty()) {
+            List<Term> terms = vcfFileName.stream()
+                    .map(fileName -> new Term(FeatureIndexFields.SOURCE_FILE.getFieldName(), fileName))
+                    .collect(Collectors.toList());
+            TermsQuery termsQuery = new TermsQuery(terms);
+            builder.add(termsQuery, BooleanClause.Occur.MUST);
         }
     }
 
@@ -432,6 +445,10 @@ public class VcfFilterForm {
 
     public void setPointer(Pointer pointer) {
         this.pointer = pointer;
+    }
+
+    public void setVcfFileName(List<String> vcfFileName) {
+        this.vcfFileName = vcfFileName;
     }
 
     public static class FilterSection<T> {

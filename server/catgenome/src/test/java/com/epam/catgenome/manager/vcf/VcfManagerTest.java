@@ -24,44 +24,9 @@
 
 package com.epam.catgenome.manager.vcf;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
-import htsjdk.tribble.TribbleException;
-import org.apache.lucene.queryparser.classic.ParseException;
-import org.codehaus.jettison.json.JSONObject;
-import org.eclipse.jetty.server.Server;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.Resource;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.util.UrlTestingUtils;
 import com.epam.catgenome.controller.vo.Query2TrackConverter;
 import com.epam.catgenome.controller.vo.TrackQuery;
@@ -76,23 +41,10 @@ import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.track.TrackType;
-import com.epam.catgenome.entity.vcf.Variation;
-import com.epam.catgenome.entity.vcf.VariationQuery;
-import com.epam.catgenome.entity.vcf.VariationType;
-import com.epam.catgenome.entity.vcf.VcfFile;
-import com.epam.catgenome.entity.vcf.VcfFilterInfo;
-import com.epam.catgenome.entity.vcf.VcfSample;
-import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.exception.FeatureFileReadingException;
-import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.exception.Ga4ghResourceUnavailableException;
-import com.epam.catgenome.exception.VcfReadingException;
+import com.epam.catgenome.entity.vcf.*;
+import com.epam.catgenome.exception.*;
 import com.epam.catgenome.helper.EntityHelper;
-import com.epam.catgenome.manager.BiologicalDataItemManager;
-import com.epam.catgenome.manager.DownloadFileManager;
-import com.epam.catgenome.manager.FeatureIndexManager;
-import com.epam.catgenome.manager.FileManager;
-import com.epam.catgenome.manager.TrackHelper;
+import com.epam.catgenome.manager.*;
 import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.externaldb.ParameterNameValue;
 import com.epam.catgenome.manager.gene.GffManager;
@@ -100,6 +52,36 @@ import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.epam.catgenome.manager.vcf.reader.VcfGa4ghReader;
 import com.epam.catgenome.util.Utils;
+import htsjdk.tribble.TribbleException;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.codehaus.jettison.json.JSONObject;
+import org.eclipse.jetty.server.Server;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.Resource;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Source:      VcfManagerTest.java
@@ -178,7 +160,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     private static final int GENE_POSTION = 35471;
     private static final String SAMPLE_NAME = "HG00702";
     private static final int NUMBER_OF_FILTERS = 2;
-    private static final int NUMBER_OF_TRIVIAL_INFO = 18;
+    private static final int NUMBER_OF_TRIVIAL_INFO = 19;
     private static final int INDEX_BUFFER_SIZE = 32;
     @Value("${ga4gh.google.variantSetId}")
     private String varSet;
