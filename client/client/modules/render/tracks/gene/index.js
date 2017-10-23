@@ -78,10 +78,11 @@ export class GENETrack extends CachedTrack {
                 settings.forEach(setting => {
                     if (setting.name === 'shortenIntrons') {
                         setting.value ? self.viewport.shortenedIntronsViewport.enable(this) : self.viewport.shortenedIntronsViewport.disable();
-                    }
-                    const menuItem = menuUtilities.findMenuItem(this._menu, setting.name);
-                    if (menuItem.type === 'checkbox') {
-                        setting.value ? menuItem.enable() : menuItem.disable();
+                    }else {
+                        const menuItem = menuUtilities.findMenuItem(this._menu, setting.name);
+                        if (menuItem.type === 'checkbox') {
+                            menuItem.enable();
+                        }
                     }
                 })
             }

@@ -305,9 +305,13 @@ export class BAMTrack extends ScrollableTrack {
                     const menuItem = menuUtilities.findMenuItem(this._menu, setting.name);
                     if (menuItem.type === 'checkbox') {
                         if (setting.name === 'coverage>scale>manual') {
-                            this.state.coverageScaleFrom = setting.extraOptions.from;
-                            this.state.coverageScaleTo = setting.extraOptions.to;
-                            this.state.coverageScaleMode = scaleModes.manualScaleMode;
+                            if (setting.value) {
+                                this.state.coverageScaleFrom = setting.extraOptions.from;
+                                this.state.coverageScaleTo = setting.extraOptions.to;
+                                this.state.coverageScaleMode = scaleModes.manualScaleMode;
+                            } else {
+                                this.state.coverageScaleMode = scaleModes.defaultScaleMode;
+                            }
                             this._flags.dataChanged = true;
                         } else {
                             setting.value ? menuItem.enable() : menuItem.disable();
@@ -316,6 +320,7 @@ export class BAMTrack extends ScrollableTrack {
                         menuItem.perform();
                     }
                 })
+                this.updateCache();
             }
         };
         const _trackSettingsListener = ::this.trackSettingsListener;
