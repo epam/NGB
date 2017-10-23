@@ -26,6 +26,8 @@ package com.epam.catgenome.manager.reference;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
+import com.epam.catgenome.dao.reference.SpeciesDao;
+import com.epam.catgenome.entity.reference.Species;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -83,6 +85,9 @@ public class ReferenceGenomeManager {
 
     @Autowired
     private GeneFileDao geneFileDao;
+
+    @Autowired
+    private SpeciesDao speciesDao;
 
     @Autowired
     private FeatureIndexManager featureIndexManager;
@@ -387,6 +392,16 @@ public class ReferenceGenomeManager {
             referenceGenomeDao.addAnnotationFile(referenceId, annotationFileBiologicalItemId);
         }
         return loadReferenceGenome(referenceId);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Species registerSpecies(Species species) {
+        return speciesDao.saveSpecies(species);
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public List<Species> loadAllSpecies() {
+        return speciesDao.loadAllSpecies();
     }
 
     private FeatureFile fetchFeatureFile(Long annotationFileId) {
