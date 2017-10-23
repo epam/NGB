@@ -91,11 +91,21 @@ export default class ngbAppController extends baseController {
                     }, callerId);
                 }
                 break;
-            case "loadTrack":
+            case "toggleSelectTrack":
+                if (event.data.params && event.data.params.tracks ? event.data.params.tracks : null) {
+                    this._apiResponse(this.apiService.toggleSelectTrack(event.data.params), callerId);
+                } else {
+                    this._apiResponse({
+                        message: 'Api error: loadTrack wrong params' + event.data,
+                        isSuccessful: false
+                    }, callerId);
+                }
+                break;
+            case "loadTracks":
                 const tracks = event.data.params && event.data.params.tracks ? event.data.params.tracks : null,
                     mode = event.data.params && event.data.params.mode ? event.data.params.mode : null;
                 if (tracks && mode) {
-                    this._apiResponse(this.apiService.loadTrack(event.data.params), callerId);
+                    this._apiResponse(this.apiService.loadTracks(event.data.params), callerId);
                 } else {
                     this._apiResponse({
                         message: `Api error: loadTrack wrong params ${JSON.stringify(event.data.params)}`,

@@ -202,24 +202,20 @@ export default class ngbApiService {
         }
     }
 
-    loadTrack(params) {
+    toggleSelectTrack(params) {
+        if (params.track) {
+            return this._selectTrackById(params.track);
+        } else {
+            return {
+                message: 'No tracks ids specified.',
+                isSuccessful: false
+            };
+        }
+    }
+
+    loadTracks(params) {
         //check track request mode
         switch (params.mode) {
-            case 'id':
-                let tracksIds = params.tracks.map(t => {
-                    let id = stringParseInt(t);
-                    if (id > 0) return id;
-                });
-                if (tracksIds.length) {
-                    return this._selectMultipleTracksByIds(tracksIds);
-                } else {
-                    return {
-                        message: 'No tracks ids specified.',
-                        isSuccessful: false
-                    };
-                }
-                break;
-
             case 'url':
             case 'ngbServer':
 
@@ -396,34 +392,6 @@ export default class ngbApiService {
         return this.datasets;
     }
 
-    _selectMultipleTracksByIds(ids) {
-        if(!ids.length) {
-            return {
-                message: 'No tracks ids specified.',
-                isSuccessful: false
-            };
-        }
-
-        let errorMessages = [];
-        ids.map(id => {
-            if(!this._selectTrackById(id)) {
-                errorMessages.push(`Error adding track with id = ${id}.`);
-            }
-        });
-
-        if(errorMessages.length) {
-            return {
-                message: errorMessages.join(' | '),
-                isSuccessful: false,
-            }
-        } else {
-            return {
-                message: 'Ok',
-                isSuccessful: true,
-            }
-        }
-    }
-
     _selectTrackById(id) {
 
         this._getAllDataSets();
@@ -472,18 +440,19 @@ export default class ngbApiService {
 
             // console.log(selectedTrack);//todo remove log
 
-            this._toggleSelected(selectedTrack);
-
-            return true;
+            return this._toggleSelected(selectedTrack);
 
         } else {
-            return false;
+            return {
+                message: 'No tracks found with id specified.',
+                isSuccessful: false
+            };
         }
     }
 
     _toggleSelected(node) {
         node.__selected = !node.__selected;
-        this._toggle(node);
+        return this._toggle(node);
     }
 
     _toggle(node) {
@@ -499,6 +468,7 @@ export default class ngbApiService {
     }
 
     _select(item, isSelected, tree) {
+        console.log('select');
         const self = this;
         if (!this.ngbDataSetsService.checkSelectionAvailable(item, isSelected)) {
             const reference = this.ngbDataSetsService.getItemReference(item);

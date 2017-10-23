@@ -7,13 +7,11 @@
 <input type="button" id="loadDataSet" value="loadDataSet">&nbsp;
 <input type="text" id="coordinatesText" value="" placeholder="chromosome: coordinates">
 <input type="button" id="navigateToCoordinate" value="navigateToCoordinate">&nbsp;
-<select name="loadTrackMode" id="loadTrackMode">
-    <option value="id">id</option>
-    <option value="url">url</option>
-    <option value="ngbServer">ngbServer</option>
-</select>
-<input type="button" id="loadTrackBtn" value="loadTrack"><br>
-</p>
+<input type="button" id="loadTrackIDBtn" value="toggleSelectTrack (by id)">
+<input type="button" id="loadTrackUrl" value="loadTrack (Url)">
+<input type="button" id="loadTrackNgb" value="loadTrack (path on ngbServer)">
+<input type="button" id="toggleLoadedTracks" value="toggleLoadedTracks"><br>
+<p>
 <textarea rows="10" cols="35" id="globalSettings"></textarea>
 <input type="button" id="setGlobalSettings" value="setGlobalSettings">
 <textarea rows="10" cols="35" id="trackSettings"></textarea>
@@ -32,8 +30,10 @@
         btnLoadDataSet = document.getElementById('loadDataSet'),
         btnNavigateToCoordinate = document.getElementById('navigateToCoordinate'),
         coordinatesInput = document.getElementById('coordinatesText'),
-        btnLoadTrack = document.getElementById('loadTrackBtn'),
-        loadTrackModeSelect = document.getElementById('loadTrackMode'),
+        btnLoadTrack = document.getElementById('loadTrackIDBtn'),
+        btnLoadTrackUrl = document.getElementById('loadTrackUrl'),
+        btnLoadTrackNgb = document.getElementById('loadTrackNgb'),
+        btnToggleLoadedTracks = document.getElementById('toggleLoadedTracks'),
         globalSettings = document.getElementById('globalSettings'),
         btnSetGlobalSettings = document.getElementById('setGlobalSettings'),
         trackSettings = document.getElementById('trackSettings'),
@@ -50,6 +50,7 @@
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
             s4() + '-' + s4() + s4() + s4();
     }
+    console.log(guid());
 
     globalSettings.value = JSON.stringify({
         showCenterLine: false,
@@ -90,68 +91,76 @@
     };
 
     btnLoadTrack.onclick = function () {
-        if(loadTrackModeSelect.value === 'ngbServer') {
-            iframe.contentWindow.postMessage({
-                callerId: guid(),
-                method: "loadTrack",
-                params: {
-                    tracks: [{
-                            path: "/opt/catgenome/MCF7-PIK3CA.bam",
-                            index: "/opt/catgenome/MCF7-PIK3CA.bam.bai",
-                        }, {
-                            path: "/opt/catgenome/beds-test/1.bed.gz",
-                            index: "/opt/catgenome/beds-test/1.bed.gz.tbi",
-                        }, {
-                            path: "/opt/catgenome/beds-test/2.bed.gz",
-                            index: "/opt/catgenome/beds-test/2.bed.gz.tbi",
-                        }, {
-                            path: "/opt/catgenome/beds-test/3.bed.gz",
-                            index: "/opt/catgenome/beds-test/3.bed.gz.tbi",
-                        }, {
-                            path: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz",
-                            index: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz.tbi",
-                        },
-                    ],
-                    referenceId: 1,
-                    mode: loadTrackModeSelect.value
-                }
-            }, "*");
-        } else if(loadTrackModeSelect.value === 'url') {
-            iframe.contentWindow.postMessage({
-                callerId: guid(),
-                method: "loadTrack",
-                params: {
-                    tracks: [{
-                            path: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz",
-                            index: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz.tbi",
-                        }, {
-                            path: "http://ngb.opensource.epam.com/distr/data/genome/dm6/dmel-all-r6.06.sorted.gtf.gz",
-                            index: "http://ngb.opensource.epam.com/distr/data/genome/dm6/dmel-all-r6.06.sorted.gtf.gz.tbi",
-                        }, {
-                            path: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.gff3.gz",
-                            index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.gff3.gz.tbi",
-                        }, {
-                            path: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/PIK3CA-E545K.bam",
-                            index: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/PIK3CA-E545K.bam.bai",
-                        }, {
-                            path: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz",
-                            index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz.tbi",
-                        },
-                    ],
-                    referenceId: 1,
-                    mode: loadTrackModeSelect.value
-                }
-            }, "*");
-        } else {
-            iframe.contentWindow.postMessage({
-                callerId: guid(),
-                method: "loadTrack",
-                params: {
-                    tracks: ['21','23','25'],
-                    mode: loadTrackModeSelect.value
-                }
-            }, "*");
-        }
+        iframe.contentWindow.postMessage({
+            callerId: guid(),
+            method: "toggleSelectTrack",
+            params: {
+                track: 21,
+            }
+        }, "*");
+    };
+    btnToggleLoadedTracks.onclick = function () {
+        iframe.contentWindow.postMessage({
+            callerId: guid(),
+            method: "toggleSelectTrack",
+            params: {
+                track: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz",
+            }
+        }, "*");
+    };
+    btnLoadTrackUrl.onclick = function () {
+        iframe.contentWindow.postMessage({
+            callerId: guid(),
+            method: "loadTracks",
+            params: {
+                tracks: [{
+                        path: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz",
+                        index: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz.tbi",
+                    }, {
+                        path: "http://ngb.opensource.epam.com/distr/data/genome/dm6/dmel-all-r6.06.sorted.gtf.gz",
+                        index: "http://ngb.opensource.epam.com/distr/data/genome/dm6/dmel-all-r6.06.sorted.gtf.gz.tbi",
+                    }, {
+                        path: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.gff3.gz",
+                        index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.gff3.gz.tbi",
+                    }, {
+                        path: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/PIK3CA-E545K.bam",
+                        index: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/PIK3CA-E545K.bam.bai",
+                    }, {
+                        path: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz",
+                        index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz.tbi",
+                    },
+                ],
+                referenceId: 1,
+                mode: 'url',
+            }
+        }, "*");
+    };
+    btnLoadTrackNgb.onclick = function () {
+        iframe.contentWindow.postMessage({
+            callerId: guid(),
+            method: "loadTracks",
+            params: {
+                tracks: [{
+                        path: "/opt/catgenome/MCF7-PIK3CA.bam",
+                        index: "/opt/catgenome/MCF7-PIK3CA.bam.bai",
+                    }, {
+                        path: "/opt/catgenome/beds-test/1.bed.gz",
+                        index: "/opt/catgenome/beds-test/1.bed.gz.tbi",
+                    }, {
+                        path: "/opt/catgenome/beds-test/2.bed.gz",
+                        index: "/opt/catgenome/beds-test/2.bed.gz.tbi",
+                    }, {
+                        path: "/opt/catgenome/beds-test/3.bed.gz",
+                        index: "/opt/catgenome/beds-test/3.bed.gz.tbi",
+                    }, {
+                        path: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz",
+                        index: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz.tbi",
+                    },
+                ],
+                referenceId: 1,
+                mode: 'ngbServer',
+            }
+        }, "*");
     };
 
     btnSetGlobalSettings.onclick = function () {
@@ -248,6 +257,7 @@
 
     if (window.addEventListener) {
         window.addEventListener("message", () => {
+            console.log(event.data);
             if (event.data) {
                 console.log(event.data.callerId);
                 console.log(event.data.message);
