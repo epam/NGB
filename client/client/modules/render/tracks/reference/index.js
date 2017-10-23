@@ -12,28 +12,16 @@ export class REFERENCETrack extends CachedTrack {
     _referenceRenderer = new ReferenceRenderer(this.trackConfig);
     dataService = new GenomeDataService();
 
-    constructor(opts) {
-        super(opts);
-        if (opts.dispatcher) {
-            this.dispatcher = opts.dispatcher;
+    trackSettingsChanged(params) {
+        if(this.config.bioDataItemId === params.id) {
+            const settings = params.settings;
+            settings.forEach(setting => {
+                const menuItem = menuUtilities.findMenuItem(this._menu, setting.name);
+                if (menuItem.type === 'checkbox') {
+                    setting.value ? menuItem.enable() : menuItem.disable();
+                }
+            })
         }
-        this.trackSettingsListener = (params) => {
-            if(this.config.bioDataItemId === params.id) {
-                const settings = params.settings;
-                settings.forEach(setting => {
-                    const menuItem = menuUtilities.findMenuItem(this._menu, setting.name);
-                    if (menuItem.type === 'checkbox') {
-                        setting.value ? menuItem.enable() : menuItem.disable();
-                    }
-                })
-            }
-        };
-        const _trackSettingsListener = ::this.trackSettingsListener;
-        const self = this;
-        this._removeTrackSettingsListener = function() {
-            self.dispatcher.removeListener('trackSettings:change', _trackSettingsListener);
-        };
-        this.dispatcher.on('trackSettings:change', _trackSettingsListener);
     }
 
     static getTrackDefaultConfig() {

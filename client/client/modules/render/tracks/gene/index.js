@@ -72,36 +72,16 @@ export class GENETrack extends CachedTrack {
                 }
             }
         };
-        this.trackSettingsListener = (params) => {
-            if(this.config.bioDataItemId === params.id && this.config.format.toLowerCase() === 'gene') {
-                const settings = params.settings;
-                settings.forEach(setting => {
-                    if (setting.name === 'shortenIntrons') {
-                        setting.value ? self.viewport.shortenedIntronsViewport.enable(this) : self.viewport.shortenedIntronsViewport.disable();
-                    }else {
-                        const menuItem = menuUtilities.findMenuItem(this._menu, setting.name);
-                        if (menuItem.type === 'checkbox') {
-                            menuItem.enable();
-                        }
-                    }
-                })
-            }
-        };
+
         const _hotKeyListener = ::this.hotKeyListener;
-        const _trackSettingsListener = ::this.trackSettingsListener;
         this.dispatcher.on('hotkeyPressed', _hotKeyListener);
-        this.dispatcher.on('trackSettings:change', _trackSettingsListener);
         this.hotKeyListenerDestructor = function() {
             self.dispatcher.removeListener('hotkeyPressed', _hotKeyListener);
-        };
-        this._removeTrackSettingsListener = function() {
-            self.dispatcher.removeListener('trackSettings:change', _trackSettingsListener);
         };
     }
 
     clearData() {
         this.hotKeyListenerDestructor();
-        this._removeTrackSettingsListener();
         super.clearData();
     }
 
@@ -198,6 +178,22 @@ export class GENETrack extends CachedTrack {
             this._renderer = new GeneRenderer(this.trackConfig, this.transformer, this._pixiRenderer);
         }
         return this._renderer;
+    }
+
+    trackSettingsChanged(params) {
+        if(this.config.bioDataItemId === params.id && this.config.format.toLowerCase() === 'gene') {
+            const settings = params.settings;
+            settings.forEach(setting => {
+                if (setting.name === 'shortenIntrons') {
+                    setting.value ? this.viewport.shortenedIntronsViewport.enable(this) : this.viewport.shortenedIntronsViewport.disable();
+                }else {
+                    const menuItem = menuUtilities.findMenuItem(this._menu, setting.name);
+                    if (menuItem.type === 'checkbox') {
+                        menuItem.enable();
+                    }
+                }
+            })
+        }
     }
 
     globalSettingsChanged(state) {

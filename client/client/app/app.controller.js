@@ -70,12 +70,12 @@ export default class ngbAppController extends baseController {
         const callerId = event.data.callerId ? event.data.callerId : null;
         switch (event.data.method) {
             case "loadDataSet":
-                const id = event.data.params && event.data.params.id ? event.data.params.id : null;
+                const id = parseInt(event.data.params && event.data.params.id ? event.data.params.id : null);
                 if (id) {
                     this._apiResponse(this.apiService.loadDataSet(id), callerId);
                 } else {
                     this._apiResponse({
-                        message: 'Api error: loadDataSet wrong param' + event.data,
+                        message: `Api error: loadDataSet wrong param ${JSON.stringify(event.data.params)}`,
                         isSuccessful: false
                     }, callerId);
                 }
@@ -86,7 +86,7 @@ export default class ngbAppController extends baseController {
                     this._apiResponse(this.apiService.navigateToCoordinate(coordinates), callerId);
                 } else {
                     this._apiResponse({
-                        message: 'Api error: navigateToCoordinate wrong param' + event.data,
+                        message: `Api error: navigateToCoordinate wrong param ${JSON.stringify(event.data.params)}`,
                         isSuccessful: false
                     }, callerId);
                 }
@@ -98,7 +98,7 @@ export default class ngbAppController extends baseController {
                     this._apiResponse(this.apiService.loadTrack(event.data.params), callerId);
                 } else {
                     this._apiResponse({
-                        message: 'Api error: loadTrack wrong params' + event.data,
+                        message: `Api error: loadTrack wrong params ${JSON.stringify(event.data.params)}`,
                         isSuccessful: false
                     }, callerId);
                 }
@@ -110,7 +110,7 @@ export default class ngbAppController extends baseController {
                 } else {
                     // console.log('Api error: setGlobalSettings wrong param' + event.data);
                     this._apiResponse({
-                        message: 'Api error: setGlobalSettings wrong param' + event.data,
+                        message: `Api error: setGlobalSettings wrong param ${JSON.stringify(event.data.params)}`,
                         isSuccessful: false
                     }, callerId);
                 }
@@ -118,12 +118,12 @@ export default class ngbAppController extends baseController {
             case "setTrackSettings":
                 const trackSettingParams = event.data.params;
                 if (trackSettingParams) {
-                    this._apiResponse(this.apiService.setTrackSettings(trackSettingParams));
+                    this._apiResponse(this.apiService.setTrackSettings(trackSettingParams), callerId);
                 } else {
                     this._apiResponse({
-                        message: 'Api error: setTrackSettings wrong param' + event.data,
+                        message: `Api error: setTrackSettings wrong param ${JSON.stringify(event.data.params)}`,
                         isSuccessful: false
-                    });
+                    }, callerId);
                 }
                 break;
             default:
