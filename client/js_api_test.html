@@ -6,7 +6,6 @@
 <input type="button" id="loadDataSet" value="loadDataSet">&nbsp;
 <input type="text" id="coordinatesText" value="" placeholder="chromosome: coordinates">
 <input type="button" id="navigateToCoordinate" value="navigateToCoordinate">&nbsp;
-<input type="text" id="loadTrackRequest" value="" placeholder="id/url/ngbServer">
 <select name="loadTrackMode" id="loadTrackMode">
     <option value="id">id</option>
     <option value="url">url</option>
@@ -32,7 +31,6 @@
         btnNavigateToCoordinate = document.getElementById('navigateToCoordinate'),
         coordinatesInput = document.getElementById('coordinatesText'),
         btnLoadTrack = document.getElementById('loadTrackBtn'),
-        loadTrackRequestInput = document.getElementById('loadTrackRequest'),
         loadTrackModeSelect = document.getElementById('loadTrackMode'),
         globalSettings = document.getElementById('globalSettings'),
         btnSetGlobalSettings = document.getElementById('setGlobalSettings'),
@@ -40,6 +38,16 @@
         typeTrackSelect = document.getElementById('typeTrack'),
         btnSetTrackSettings = document.getElementById('setTrackSettings'),
         iframe = document.getElementById('ngbIframe');
+
+    function guid() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+            s4() + '-' + s4() + s4() + s4();
+    }
 
     globalSettings.value = JSON.stringify({
         showCenterLine: false,
@@ -65,6 +73,7 @@
 
     btnLoadDataSet.onclick = function () {
         iframe.contentWindow.postMessage({
+            callerId: guid(),
             method: "loadDataSet",
             params: {id: 3}
             }, "*");
@@ -72,6 +81,7 @@
 
     btnNavigateToCoordinate.onclick = function () {
         iframe.contentWindow.postMessage({
+            callerId: guid(),
             method: "navigateToCoordinate",
             params: {coordinates: coordinatesInput.value}
         }, "*");
@@ -80,6 +90,7 @@
     btnLoadTrack.onclick = function () {
         if(loadTrackModeSelect.value === 'ngbServer') {
             iframe.contentWindow.postMessage({
+                callerId: guid(),
                 method: "loadTrack",
                 params: {
                     tracks: [{
@@ -105,6 +116,7 @@
             }, "*");
         } else if(loadTrackModeSelect.value === 'url') {
             iframe.contentWindow.postMessage({
+                callerId: guid(),
                 method: "loadTrack",
                 params: {
                     tracks: [{
@@ -130,6 +142,7 @@
             }, "*");
         } else {
             iframe.contentWindow.postMessage({
+                callerId: guid(),
                 method: "loadTrack",
                 params: {
                     tracks: ['21','23','25'],
@@ -141,6 +154,7 @@
 
     btnSetGlobalSettings.onclick = function () {
         iframe.contentWindow.postMessage({
+            callerId: guid(),
             method: "setGlobalSettings",
             params: JSON.parse(globalSettings.value)
         }, "*");
@@ -148,6 +162,7 @@
 
     btnSetTrackSettings.onclick = function () {
         iframe.contentWindow.postMessage({
+            callerId: guid(),
             method: "setTrackSettings",
             params: JSON.parse(trackSettings.value)
         }, "*");
@@ -227,7 +242,7 @@
                 });
                 break;
         }
-    }
+    };
 
     if (window.addEventListener) {
         window.addEventListener("message", () => {
