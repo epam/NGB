@@ -27,6 +27,8 @@ package com.epam.catgenome.controller.reference;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
 
+import com.epam.catgenome.controller.vo.SpeciesVO;
+import com.epam.catgenome.entity.reference.Species;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -245,5 +247,30 @@ public class ReferenceController extends AbstractRESTController {
     public Result<Boolean> unregisterFastaFile(@RequestParam final long referenceId) throws IOException {
         Reference reference = referenceManager.unregisterGenome(referenceId);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, reference.getName()));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/secure/reference/register/species", method = RequestMethod.POST)
+    @ApiOperation(
+        value = "Handles species register.",
+        notes = "Register new species in the system.",
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+        })
+    public Result<Species> registerSpecies(@RequestBody SpeciesVO request) throws IOException {
+        return Result.success(referenceGenomeManager.registerSpecies(request.getSpecies()));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/reference/loadAllSpecies", method = RequestMethod.GET)
+    @ApiOperation(
+        value = "Returns all species that are available in the system at the moment.",
+        notes = "Returns all species that are available in the system at the moment.",
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)})
+    public final Result<List<Species>> loadAllSpecies() throws IOException {
+        return Result.success(referenceGenomeManager.loadAllSpecies());
     }
 }

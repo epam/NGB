@@ -35,6 +35,13 @@
         <secure>true</secure>
         <help></help>
     </register_reference>
+    <register_species>
+        <name>register_species</name>
+        <url>/restapi/secure/reference/register/species</url>
+        <type>POST</type>
+        <secure>true</secure>
+        <help></help>
+    </register_species>
     <delete_reference>
         <name>delete_reference</name>
         <url>/restapi/secure/reference/register/fasta?referenceId=%d</url>
@@ -95,6 +102,12 @@
         <type>GET</type>
         <secure>false</secure>
     </list_references>
+    <list_species>
+        <name>list_species</name>
+        <url>/restapi/reference/loadAllSpecies</url>
+        <type>GET</type>
+        <secure>false</secure>
+    </list_species>
     <list_datasets>
         <name>list_datasets</name>
         <url>/restapi/project/loadMy</url>
