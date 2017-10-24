@@ -24,22 +24,31 @@
 
 package com.epam.catgenome.manager;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
-
+import com.epam.catgenome.common.AbstractManagerTest;
+import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
+import com.epam.catgenome.dao.index.FeatureIndexDao;
+import com.epam.catgenome.dao.index.field.IndexSortField;
+import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.bed.BedFile;
+import com.epam.catgenome.entity.gene.GeneFile;
+import com.epam.catgenome.entity.index.*;
+import com.epam.catgenome.entity.project.Project;
+import com.epam.catgenome.entity.project.ProjectItem;
+import com.epam.catgenome.entity.reference.Bookmark;
+import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.entity.vcf.*;
+import com.epam.catgenome.exception.FeatureIndexException;
+import com.epam.catgenome.exception.VcfReadingException;
+import com.epam.catgenome.helper.EntityHelper;
 import com.epam.catgenome.manager.bed.BedManager;
+import com.epam.catgenome.manager.gene.GffManager;
+import com.epam.catgenome.manager.project.ProjectManager;
+import com.epam.catgenome.manager.reference.BookmarkManager;
+import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
+import com.epam.catgenome.manager.vcf.VcfManager;
+import com.epam.catgenome.util.TestUtils;
+import com.epam.catgenome.util.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -59,40 +68,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.epam.catgenome.common.AbstractManagerTest;
-import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
-import com.epam.catgenome.dao.index.FeatureIndexDao;
-import com.epam.catgenome.dao.index.field.IndexSortField;
-import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.gene.GeneFile;
-import com.epam.catgenome.entity.index.BookmarkIndexEntry;
-import com.epam.catgenome.entity.index.FeatureIndexEntry;
-import com.epam.catgenome.entity.index.FeatureType;
-import com.epam.catgenome.entity.index.Group;
-import com.epam.catgenome.entity.index.IndexSearchResult;
-import com.epam.catgenome.entity.index.VcfIndexEntry;
-import com.epam.catgenome.entity.project.Project;
-import com.epam.catgenome.entity.project.ProjectItem;
-import com.epam.catgenome.entity.reference.Bookmark;
-import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.entity.vcf.InfoItem;
-import com.epam.catgenome.entity.vcf.Variation;
-import com.epam.catgenome.entity.vcf.VariationQuery;
-import com.epam.catgenome.entity.vcf.VariationType;
-import com.epam.catgenome.entity.vcf.VcfFile;
-import com.epam.catgenome.entity.vcf.VcfFilterForm;
-import com.epam.catgenome.entity.vcf.VcfFilterInfo;
-import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.exception.VcfReadingException;
-import com.epam.catgenome.helper.EntityHelper;
-import com.epam.catgenome.manager.gene.GffManager;
-import com.epam.catgenome.manager.project.ProjectManager;
-import com.epam.catgenome.manager.reference.BookmarkManager;
-import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.manager.vcf.VcfManager;
-import com.epam.catgenome.util.TestUtils;
-import com.epam.catgenome.util.Utils;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 /**
  * Source:      FeatureIndexManagerTest
@@ -367,9 +347,12 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         vcfFilterForm.setInfoFields(info.getInfoItems().stream().map(InfoItem::getName).collect(Collectors.toList()));
         vcfFilterForm.setAdditionalFilters(Collections.singletonMap(cipos95, Arrays.asList(CONST_42, CONST_42)));
         vcfFilterForm.setVcfFileIds(Collections.singletonList(vcfFile.getId()));
+        vcfFilterForm.setVcfFilesName(Arrays.asList(vcfFile.getName()));
 
         IndexSearchResult<VcfIndexEntry> entryList2 = featureIndexManager.filterVariations(vcfFilterForm);
         Assert.assertFalse(entryList2.getEntries().isEmpty());
+        Assert.assertTrue(entryList2.getEntries().stream()
+                .allMatch(e -> e.getVcfFileName().matches(vcfFile.getName())));
         Assert.assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getInfo().containsKey(cipos95)));
         Assert.assertTrue(entryList2.getEntries().stream().filter(e -> e.getInfo().containsKey(cipos95)).allMatch(e -> {
             String cipos = (String) e.getInfo().get(cipos95);
@@ -404,6 +387,8 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         IndexSearchResult<VcfIndexEntry> entryList21 = featureIndexManager.filterVariations(vcfFilterForm);
 
         Assert.assertFalse(entryList21.getEntries().isEmpty());
+        Assert.assertTrue(entryList2.getEntries().stream()
+                .allMatch(e -> e.getVcfFileName().matches(vcfFile.getName())));
         Assert.assertEquals(entryList21.getEntries().size(), entryList2.getEntries().size());
         Assert.assertEquals(entryList21.getEntries().get(0).getGene(), entryList2.getEntries().get(0).getGene());
 

@@ -220,8 +220,9 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
         boolean isExon = isExonStr != null && Boolean.parseBoolean(isExonStr);
         vcfIndexEntry.setExon(isExon);
         vcfIndexEntry.getInfo().put(FeatureIndexFields.IS_EXON.getFieldName(), isExon);
-
         vcfIndexEntry.setVcfFileName(doc.get(FeatureIndexFields.FEATURE_NAME.getFieldName()));
+        vcfIndexEntry.getInfo().put(FeatureIndexFields.SOURCE_FILE.getFieldName(), vcfIndexEntry.getVcfFileName());
+
 
         String[] variationTypes = doc.getValues(FeatureIndexFields.VARIATION_TYPE.getFieldName());
         if (variationTypes.length > 0) {

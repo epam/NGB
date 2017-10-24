@@ -46,6 +46,12 @@ export default class ngbVariantsFilterListController {
                     this.displayText = [...this.selectedItems].join(', ');
                 }
             } break;
+            case 'source_file': {
+                if (this.projectContext.vcfTracks) {
+                   this.selectedItems = (this.projectContext.vcfTracks || []).map(t => t);
+                   this.displayText = [...this.selectedItems].join(', ');
+                }
+            } break;
         }
     }
 

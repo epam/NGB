@@ -70,7 +70,7 @@ public class VcfFilterForm {
      * Additional fields to show in Variations table
      */
     private List<String> infoFields;
-    private List<String> vcfFileName;
+    private List<String> vcfFilesName;
     private List<Long> vcfFileIds;
     private List<Long> chromosomeIds;
 
@@ -230,9 +230,9 @@ public class VcfFilterForm {
     }
 
     private void addVcfFileNameFilter(BooleanQuery.Builder builder) {
-        if (vcfFileName != null && !vcfFileName.isEmpty()) {
-            List<Term> terms = vcfFileName.stream()
-                    .map(fileName -> new Term(FeatureIndexFields.SOURCE_FILE.getFieldName(), fileName))
+        if (vcfFilesName != null && !vcfFilesName.isEmpty()) {
+            List<Term> terms = vcfFilesName.stream()
+                    .map(vcfFileName -> new Term(FeatureIndexFields.SOURCE_FILE.getFieldName(), vcfFileName))
                     .collect(Collectors.toList());
             TermsQuery termsQuery = new TermsQuery(terms);
             builder.add(termsQuery, BooleanClause.Occur.MUST);
@@ -447,8 +447,12 @@ public class VcfFilterForm {
         this.pointer = pointer;
     }
 
-    public void setVcfFileName(List<String> vcfFileName) {
-        this.vcfFileName = vcfFileName;
+    public List<String> getVcfFilesName() {
+        return vcfFilesName;
+    }
+
+    public void setVcfFilesName(List<String> vcfFileName) {
+        this.vcfFilesName = vcfFileName;
     }
 
     public static class FilterSection<T> {

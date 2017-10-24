@@ -155,6 +155,8 @@ public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry> {
                 .put(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName(), isExon);
 
         vcfIndexEntry.setVcfFileName(doc.get(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName()));
+        vcfIndexEntry.getInfo()
+                .put(FeatureIndexDao.FeatureIndexFields.SOURCE_FILE.getFieldName(), vcfIndexEntry.getVcfFileName());
 
         BytesRef featureIdBytes = doc.getBinaryValue(
                 FeatureIndexDao.FeatureIndexFields.VARIATION_TYPE.getFieldName());
