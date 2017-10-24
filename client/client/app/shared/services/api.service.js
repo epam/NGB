@@ -125,7 +125,7 @@ export default class ngbApiService {
 
         if (!chr) {
             return {
-                message: 'No chromosome specified',
+                message: 'No chromosome found',
                 isSuccessful: false
             };
         }
