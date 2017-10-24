@@ -43,8 +43,7 @@ export default class ngbVariantsTableFilterController {
             } break;
             case 'source_file': {
                 this.isList = true;
-                this.list =  this.projectContext.vcfTracks;
-                console.log(this.projectContext.vcfTracks);
+                this.list =  (this.projectContext.vcfTracks || []).map(t => t.name);
             } break;
             default: {
                 const [vcfField] = this.projectContext.vcfInfo.filter(f => f.name.toLowerCase() === this.column.field.toLowerCase());

@@ -47,9 +47,11 @@ export default class ngbVariantsFilterListController {
                 }
             } break;
             case 'source_file': {
-                if (this.projectContext.vcfTracks) {
-                   this.selectedItems = (this.projectContext.vcfTracks || []).map(t => t);
-                   this.displayText = [...this.selectedItems].join(', ');
+                if (this.projectContext.vcfFilter.additionalFilters) {
+                    const source_file = this.projectContext.vcfFilter.additionalFilters.source_file || [];
+                    this.selectedItems = (this.projectContext.vcfTracks || [])
+                        .map(t => t).filter(t => source_file.indexOf(t.id) >= 0).map(t => t.name);
+                    this.displayText = [...this.selectedItems].join(', ');
                 }
             } break;
         }
@@ -192,6 +194,24 @@ export default class ngbVariantsFilterListController {
                 const currValueStr = JSON.stringify(currValue).toUpperCase();
                 if (currValueStr !== prevValueStr) {
                     this.projectContext.vcfFilter.selectedGenes = this.selectedItems;
+                    this.projectContext.scheduleFilterVariants();
+                }
+            } break;
+            case 'source_file': {
+                const prevValue =
+                    this.projectContext.vcfFilter.additionalFilters
+                        ? (this.projectContext.vcfFilter.additionalFilters.source_file || []) : [];
+                prevValue.sort();
+                const prevValueStr = JSON.stringify(prevValue).toUpperCase();
+                const currValue = (this.selectedItems || []);
+                currValue.sort();
+                const currValueStr = JSON.stringify(currValue).toUpperCase();
+                if (currValueStr !== prevValueStr) {
+                    if (!this.projectContext.vcfFilter.additionalFilters) {
+                        this.projectContext.vcfFilter.additionalFilters = {};
+                    }
+                    this.projectContext.vcfFilter.additionalFilters.source_file =
+                        (this.projectContext.vcfTracks || []).filter(t => currValue.indexOf(t.name) >= 0).map(t => t.id);
                     this.projectContext.scheduleFilterVariants();
                 }
             } break;
