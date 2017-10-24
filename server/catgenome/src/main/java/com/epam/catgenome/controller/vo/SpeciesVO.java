@@ -9,13 +9,13 @@ import com.epam.catgenome.entity.reference.Species;
  */
 public class SpeciesVO {
 
-	private Species species;
+    private Species species;
 
-	public Species getSpecies() {
-		return species;
-	}
+    public Species getSpecies() {
+        return species;
+    }
 
-	public void setSpecies(Species species) {
-		this.species = species;
-	}
+    public void setSpecies(Species species) {
+        this.species = species;
+    }
 }

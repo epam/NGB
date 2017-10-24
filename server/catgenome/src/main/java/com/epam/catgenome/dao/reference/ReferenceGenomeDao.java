@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.dao.reference;
 
+import com.epam.catgenome.entity.reference.Species;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
@@ -128,6 +129,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
     private String deleteAnnotationDataItemByReferenceIdQuery;
     private String loadGenomeIdsByAnnotationDataItemIdQuery;
     private String loadReferenceGenomeByNameQuery;
+    private String updateSpeciesQuery;
 
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -154,6 +156,8 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         params.addValue(GenomeParameters.INDEX_ID.name(), reference.getIndex().getId());
         params.addValue(GenomeParameters.GENE_ITEM_ID.name(), reference.getGeneFile() != null ?
                                                               reference.getGeneFile().getId() : null);
+        params.addValue(GenomeParameters.SPECIES_VERSION.name(), reference.getSpecies() != null ?
+                                                                 reference.getSpecies().getVersion() : null);
 
         getNamedParameterJdbcTemplate().update(createReferenceGenomeQuery, params);
         return reference;
@@ -168,6 +172,8 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         params.addValue(GenomeParameters.INDEX_ID.name(), reference.getIndex().getId());
         params.addValue(GenomeParameters.GENE_ITEM_ID.name(), reference.getGeneFile() != null ?
                 reference.getGeneFile().getId() : null);
+        params.addValue(GenomeParameters.SPECIES_VERSION.name(), reference.getSpecies() != null ?
+                                                                 reference.getSpecies().getVersion() : null);
 
         getNamedParameterJdbcTemplate().update(createReferenceGenomeQuery, params);
         return reference;
@@ -180,6 +186,15 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         params.addValue(GenomeParameters.GENE_ITEM_ID.name(), geneFileId);
 
         getNamedParameterJdbcTemplate().update(updateReferenceGeneFileIdQuery, params);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updateSpecies(long referenceId, String speciesVersion) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue(GenomeParameters.REFERENCE_GENOME_ID.name(), referenceId);
+        params.addValue(GenomeParameters.SPECIES_VERSION.name(), speciesVersion);
+
+        getNamedParameterJdbcTemplate().update(updateSpeciesQuery, params);
     }
 
     /**
@@ -449,6 +464,10 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         this.loadReferenceGenomeByNameQuery = loadReferenceGenomeByNameQuery;
     }
 
+    public void setUpdateSpeciesQuery(String updateSpeciesQuery) {
+        this.updateSpeciesQuery = updateSpeciesQuery;
+    }
+
     enum GenomeParameters {
         NAME,
         SIZE,
@@ -473,7 +492,10 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         INDEX_CREATED_DATE,
 
         HEADER,
-        CHROMOSOME_ID;
+        CHROMOSOME_ID,
+
+        SPECIES_NAME,
+        SPECIES_VERSION;
 
         private static final RowMapper<Long> ID_MAPPER = (rs, rowNum) -> rs.getLong(1);
 
@@ -497,6 +519,18 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
 
                     reference.setGeneFile(geneFile);
                 }
+
+                String speciesVersion = rs.getString(SPECIES_VERSION.name());
+                if (!rs.wasNull()) {
+                    String speciesName = rs.getString(SPECIES_NAME.name());
+                    if (!rs.wasNull()) {
+                        Species species = new Species();
+                        species.setName(speciesName);
+                        species.setVersion(speciesVersion);
+                        reference.setSpecies(species);
+                    }
+                }
+
                 return reference;
             };
         }
@@ -535,6 +569,17 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
                 index.setCreatedBy(rs.getLong(CREATED_BY.name()));
                 index.setCreatedDate(new Date(rs.getTimestamp(INDEX_CREATED_DATE.name()).getTime()));
                 reference.setIndex(index);
+            }
+
+            String speciesVersion = rs.getString(SPECIES_VERSION.name());
+            if (!rs.wasNull()) {
+                String speciesName = rs.getString(SPECIES_NAME.name());
+                if (!rs.wasNull()) {
+                    Species species = new Species();
+                    species.setName(speciesName);
+                    species.setVersion(speciesVersion);
+                    reference.setSpecies(species);
+                }
             }
 
             return reference;
