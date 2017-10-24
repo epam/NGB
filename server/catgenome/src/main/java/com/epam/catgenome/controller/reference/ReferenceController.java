@@ -273,4 +273,11 @@ public class ReferenceController extends AbstractRESTController {
     public final Result<List<Species>> loadAllSpecies() throws IOException {
         return Result.success(referenceGenomeManager.loadAllSpecies());
     }
+
+    @ResponseBody
+    @RequestMapping(value = "/secure/reference/{referenceId}/species", method = RequestMethod.PUT)
+    public Result<Reference> updateSpecies(@PathVariable Long referenceId,
+        @RequestParam(required = false) String speciesVersion) {
+        return Result.success(referenceGenomeManager.updateSpecies(referenceId, speciesVersion));
+    }
 }

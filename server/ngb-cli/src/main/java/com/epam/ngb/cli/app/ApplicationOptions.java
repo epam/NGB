@@ -78,6 +78,11 @@ public class ApplicationOptions {
      */
     private boolean createTabixIndex = true;
 
+    /**
+     * Option for reference registration, specifies a version of species during registration.
+     */
+    private String speciesVersion;
+
 
     private String location;
 
@@ -196,5 +201,13 @@ public class ApplicationOptions {
 
     public void setPrettyName(String prettyName) {
         this.prettyName = prettyName;
+    }
+
+    public String getSpeciesVersion() {
+        return speciesVersion;
+    }
+
+    public void setSpeciesVersion(String speciesVersion) {
+        this.speciesVersion = speciesVersion;
     }
 }

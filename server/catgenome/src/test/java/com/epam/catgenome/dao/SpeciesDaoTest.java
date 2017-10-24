@@ -19,38 +19,39 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class SpeciesDaoTest {
 
-	private final static String TEST_NAME = "TEST_NAME";
-	private final static String TEST_VERSION = "TEST_VERSION";
-
 	@Autowired
 	private SpeciesDao speciesDao;
 
-	@Test
-	@Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-	public void testSaveAndLoad() throws Exception {
-		Species testSpecies = new Species();
-		testSpecies.setName(TEST_NAME);
-		testSpecies.setVersion(TEST_VERSION);
+	private final static String TEST_NAME = "TEST_NAME";
+	private final static String TEST_VERSION = "TEST_VERSION";
 
-		speciesDao.saveSpecies(testSpecies);
 
-		Species species = speciesDao.loadSpeciesByVersion(TEST_VERSION);
-		Assert.assertNotNull(species);
-		Assert.assertEquals(species.getName(), TEST_NAME);
-		Assert.assertEquals(species.getVersion(), TEST_VERSION);
-	}
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testSaveAndLoad() throws Exception {
+        Species testSpecies = new Species();
+        testSpecies.setName(TEST_NAME);
+        testSpecies.setVersion(TEST_VERSION);
 
-	@Test
-	@Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-	public void testLoadAllSpecies() throws Exception {
-		for (int i = 0; i < 3; i++) {
-			Species species = new Species();
-			species.setName(TEST_NAME);
-			species.setVersion(TEST_VERSION + i);
-			speciesDao.saveSpecies(species);
-		}
-		List<Species> speciesList = speciesDao.loadAllSpecies();
-		Assert.assertEquals(speciesList.size(), 3);
-	}
+        speciesDao.saveSpecies(testSpecies);
+
+        Species species = speciesDao.loadSpeciesByVersion(TEST_VERSION);
+        Assert.assertNotNull(species);
+        Assert.assertEquals(species.getName(), TEST_NAME);
+        Assert.assertEquals(species.getVersion(), TEST_VERSION);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testLoadAllSpecies() throws Exception {
+        for (int i = 0; i < 3; i++) {
+            Species species = new Species();
+            species.setName(TEST_NAME);
+            species.setVersion(TEST_VERSION + i);
+            speciesDao.saveSpecies(species);
+        }
+        List<Species> speciesList = speciesDao.loadAllSpecies();
+        Assert.assertEquals(speciesList.size(), 3);
+    }
 
 }

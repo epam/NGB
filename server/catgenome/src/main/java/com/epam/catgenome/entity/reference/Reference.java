@@ -59,6 +59,10 @@ public class Reference extends IndexedDataItem {
      */
     private List<FeatureFile> annotationFiles;
 
+    /**
+     * Represents a species associated with the reference genome
+     */
+    private Species species;
 
     public Reference() {
         chromosomes = new ArrayList<>();
@@ -109,6 +113,14 @@ public class Reference extends IndexedDataItem {
 
     public void setAnnotationFiles(List<FeatureFile> annotationFiles) {
         this.annotationFiles = annotationFiles;
+    }
+
+    public Species getSpecies() {
+        return species;
+    }
+
+    public void setSpecies(Species species) {
+        this.species = species;
     }
 
     @Override public boolean equals(Object o) {

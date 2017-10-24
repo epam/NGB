@@ -159,6 +159,9 @@ public class Application {
             aliases = {"--no-tabix"})
     private boolean doNotCreateTabixIndex = false;
 
+    @Option(name = "-s", usage = "specifies reference genome species version for registration", aliases = {"--species"})
+    private String speciesVersion;
+
 
     @Argument
     private List<String> arguments;
@@ -244,6 +247,7 @@ public class Application {
         options.setNoGCContent(noGCContent);
         options.setForceDeletion(forceDeletion);
         options.setPrettyName(prettyName);
+        options.setSpeciesVersion(speciesVersion);
         if (doNotCreateTabixIndex) {
             options.setCreateTabixIndex(false);
         }

@@ -334,6 +334,19 @@ public class ReferenceGenomeManager {
         return loadReferenceGenome(referenceId);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Reference updateSpecies(long referenceId, String speciesVersion) {
+        final Reference reference = referenceGenomeDao.loadReferenceGenome(referenceId);
+        Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
+        if (speciesVersion != null) {
+            final Species species = speciesDao.loadSpeciesByVersion(speciesVersion);
+            Assert.notNull(species, getMessage(MessageCode.NO_SUCH_SPECIES));
+        }
+
+        referenceGenomeDao.updateSpecies(referenceId, speciesVersion);
+        return loadReferenceGenome(referenceId);
+    }
+
     @Transactional(propagation = Propagation.SUPPORTS)
     public boolean isRegistered(Long id) {
         return referenceGenomeDao.loadReferenceGenome(id) != null;
@@ -393,6 +406,11 @@ public class ReferenceGenomeManager {
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<Species> loadAllSpecies() {
         return speciesDao.loadAllSpecies();
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public Species loadSpeciesByVersion(String version) {
+        return speciesDao.loadSpeciesByVersion(version);
     }
 
     private FeatureFile fetchFeatureFile(Long annotationFileId) {
