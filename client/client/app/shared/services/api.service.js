@@ -1,11 +1,21 @@
 import {stringParseInt} from '../utils/Int';
 import {Node} from '../../components/ngbDataSets/internal';
-import {registerTrackLocalComputerMode} from '../components/ngbProject/registerTrack/ngbRegisterTrack.constants';
 
 export default class ngbApiService {
 
-    static instance($state, projectContext, ngbDataSetsService, $mdDialog, localDataService, dispatcher) {
-        return new ngbApiService($state, projectContext, ngbDataSetsService, $mdDialog, localDataService, dispatcher);
+    static instance($state,
+                    projectContext,
+                    ngbDataSetsService,
+                    $mdDialog,
+                    localDataService,
+                    dispatcher) {
+        return new ngbApiService(
+            $state,
+            projectContext,
+            ngbDataSetsService,
+            $mdDialog,
+            localDataService,
+            dispatcher);
     }
 
     projectContext;
@@ -25,14 +35,14 @@ export default class ngbApiService {
             localDataService,
             dispatcher
         });
-        (async() => {
+        (async () => {
             await this.projectContext.refreshReferences(true);
             this.references = this.projectContext.references;
         })();
     }
 
     /** returns a Promise */
-    loadDataSet(id, forceSwitchRef) {
+    loadDataSet(id, forceSwitchRef = false) {
         let datasets = this.projectContext.datasets;
         if (!datasets || datasets.length === 0) {
             this.projectContext.refreshDatasets().then(async () => {
@@ -197,13 +207,13 @@ export default class ngbApiService {
             } else {
                 return {
                     message: 'No selected tracks found with id specified.',
-                    isSuccessful: true
+                    isSuccessful: false
                 };
             }
         } else {
             return {
                 message: 'No track id',
-                isSuccessful: true
+                isSuccessful: false
             };
         }
     }
@@ -226,58 +236,49 @@ export default class ngbApiService {
     /** returns a Promise */
     loadTracks(params) {
         let forceSwitchRef = params.forceSwitchRef ? params.forceSwitchRef : false;
-        //check track request mode
-        switch (params.mode) {
-            case 'url':
-            case 'ngbServer':
 
-                if (!params.tracks || !params.referenceId) {
-                    return new Promise(() => {
-                        return {
-                            message: 'Not enough params specified',
-                            isSuccessful: false,
-                        }
-                    });
+        if (!params.tracks || !params.referenceId) {
+            return new Promise(() => {
+                return {
+                    message: 'Not enough params specified',
+                    isSuccessful: false,
                 }
+            });
+        }
 
-                let [chosenReference] = this.references.filter(r => r.id === params.referenceId);
+        let [chosenReference] = this.references.filter(r => r.id === params.referenceId);
 
-                if (!chosenReference) {
-                    return new Promise(() => {
-                            return {
-                            message: 'Reference not found',
-                            isSuccessful: false,
-                        }
-                    });
+        if (!chosenReference) {
+            return new Promise(() => {
+                return {
+                    message: 'Reference not found',
+                    isSuccessful: false,
                 }
+            });
+        }
 
-                let switchingReference = this.projectContext.reference && this.projectContext.reference.id !== +chosenReference.id;
+        let switchingReference = this.projectContext.reference && this.projectContext.reference.id !== +chosenReference.id;
 
+        if (!forceSwitchRef && switchingReference) {
+            const confirm = this.$mdDialog.confirm()
+                .title(`Switch reference ${this.projectContext.reference ? this.projectContext.reference.name : ''}${chosenReference ? ` to ${chosenReference.name}` : ''}?`)
+                .textContent('All opened tracks will be closed.')
+                .ariaLabel('Change reference')
+                .ok('OK')
+                .cancel('Cancel');
 
-                if(!forceSwitchRef && switchingReference) {
-                    const confirm = this.$mdDialog.confirm()
-                        .title(`Switch reference ${this.projectContext.reference ? this.projectContext.reference.name : ''}${chosenReference ? ` to ${chosenReference.name}` : ''}?`)
-                        .textContent('All opened tracks will be closed.')
-                        .ariaLabel('Change reference')
-                        .ok('OK')
-                        .cancel('Cancel');
-
-                    return this.$mdDialog.show(confirm).then(() => {
-                        return this._processTracks(params.tracks, chosenReference);
-                    }).catch(() => {
-                        return {
-                            message: 'Aborted by user',
-                            isSuccessful: false
-                        };
-                    });
-                } else {
-                    return new Promise(() => {
-                        return this._processTracks(params.tracks, chosenReference);
-                    });
-                }
-
-
-                break;
+            return this.$mdDialog.show(confirm).then(() => {
+                return this._processTracks(params.tracks, chosenReference);
+            }).catch(() => {
+                return {
+                    message: 'Aborted by user',
+                    isSuccessful: false
+                };
+            });
+        } else {
+            return new Promise(() => {
+                return this._processTracks(params.tracks, chosenReference);
+            });
         }
 
         return {
@@ -287,7 +288,7 @@ export default class ngbApiService {
 
     }
 
-    _processTracks (tracks, chosenReference) {
+    _processTracks(tracks, chosenReference) {
         let errors = [], selectedItems;
 
         selectedItems = (tracks || []).map(t => {
@@ -315,7 +316,6 @@ export default class ngbApiService {
 
         return this._loadTracks(selectedItems);
     }
-
 
     _trackNeedsIndexFile(track) {
         const extension = this._fileExtension(track);
@@ -371,7 +371,6 @@ export default class ngbApiService {
 
     _loadTracks(selectedFiles) {
         const mapFn = (selectedFile) => {
-            // console.log(selectedFile);//todo remove log
             return {
                 openByUrl: true,
                 isLocal: true,
@@ -427,26 +426,25 @@ export default class ngbApiService {
     }
 
     _getAllDataSets() {
-        this.datasets = this.projectContext.datasets;
-        if (!this.datasets || this.datasets.length === 0) {
+        let datasets = this.projectContext.datasets;
+        if (!datasets || datasets.length === 0) {
             this.projectContext.refreshDatasets().then(async () => {
-                this.datasets = await this.ngbDataSetsService.getDatasets();
-                if (!this.datasets.length) {
+                datasets = await this.ngbDataSetsService.getDatasets();
+                if (!datasets.length) {
                     return null;
                 }
             });
         } else {
-            if (!this.datasets) {
+            if (!datasets) {
                 return null;
             }
         }
 
-        return this.datasets;
+        return datasets;
     }
 
     _selectTrackById(id, forceSwitchRef = false) {
-
-        this._getAllDataSets();
+        let datasets = this._getAllDataSets();
 
         const tracks = [];
         const findTrackFn = function (item: Node) {
@@ -465,15 +463,13 @@ export default class ngbApiService {
                 }
             }
         };
-        for (let i = 0; i < this.datasets.length; i++) {
-            findTrackFn(this.datasets[i]);
+        for (let i = 0; i < datasets.length; i++) {
+            findTrackFn(datasets[i]);
         }
 
         const [selectedTrack] = tracks;
-        // console.log(this.datasets);//todo remove log
 
         if (selectedTrack) {
-
             const trackParents = [];
             const getTrackParents = function (track: Node) {
                 if (track.project) {
@@ -490,10 +486,7 @@ export default class ngbApiService {
                 }
             });
 
-            // console.log(selectedTrack);//todo remove log
-
-            return this._toggleSelected(selectedTrack, forceSwitchRef);
-
+            return this._toggleSelected(datasets, selectedTrack, forceSwitchRef);
         } else {
             return new Promise(() => {
                 return {
@@ -504,13 +497,13 @@ export default class ngbApiService {
         }
     }
 
-    _toggleSelected(node, forceSwitchRef = false) {
+    _toggleSelected(datasets, node, forceSwitchRef = false) {
         node.__selected = !node.__selected;
-        return this._toggle(node, forceSwitchRef);
+
+        return this._toggle(datasets, node, forceSwitchRef);
     }
 
-    _toggle(node, forceSwitchRef = false) {
-        // console.log(node);//todo remove log
+    _toggle(datasets, node, forceSwitchRef = false) {
         if (node.__selected) {
             node.__expanded = true;
         }
@@ -518,7 +511,7 @@ export default class ngbApiService {
             this.ngbDataSetsService.deselectItem(node);
         }
 
-        return this._select(node, node.__selected, this.datasets, forceSwitchRef);
+        return this._select(node, node.__selected, datasets, forceSwitchRef);
     }
 
     _select(item, isSelected, tree, forceSwitchRef = false) {

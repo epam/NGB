@@ -5,74 +5,56 @@
 <body>
 <input type="text" id="dataSetId" value="4" placeholder="DataSet id">
 <input type="button" id="loadDataSet" value="loadDataSet">&nbsp;
-<input type="text" id="coordinatesText" value="" placeholder="chromosome: coordinates">
-<input type="button" id="navigateToCoordinate" value="navigateToCoordinate">&nbsp;
-<input type="button" id="loadTrackIDBtn" value="toggleSelectTrack (by id)">
-<input type="button" id="loadTrackUrl" value="loadTrack (Url)">
-<input type="button" id="loadTrackNgb" value="loadTrack (path on ngbServer)">
-<input type="button" id="toggleLoadedTracks" value="toggleLoadedTracks"><br>
+Force switch reference:&nbsp;
+<input type="checkbox" id="forceSwitchRefDataSet">
 <p>
-<textarea rows="10" cols="35" id="globalSettings"></textarea>
-<input type="button" id="setGlobalSettings" value="setGlobalSettings">
-<textarea rows="10" cols="35" id="trackSettings"></textarea>
-<select name="typeTrack" id="typeTrack">
-    <option value="vcf">vcf</option>
-    <option value="referense">referense</option>
-    <option value="wig">wig</option>
-    <option value="bam">bam</option>
-    <option value="gene">gene</option>
-</select>
-<input type="button" id="setTrackSettings" value="setTrackSettings">
+    <input type="text" id="coordinatesText" value="" placeholder="chromosome: coordinates">
+    <input type="button" id="navigateToCoordinate" value="navigateToCoordinate">&nbsp;
+<p>
+    <input type="button" id="toggleSelectTrackId" value="toggleSelectTrack (by id)">
+    <input type="button" id="toggleSelectTrackUrl" value="toggleSelectTrack (by Url)">
+    <input type="button" id="loadTrackUrl" value="loadTrack (Url)">
+    <input type="button" id="loadTrackNgb" value="loadTrack (path on ngbServer)">&nbsp;
+    Force switch reference:&nbsp;
+    <input type="checkbox" id="forceSwitchRefTrack">
+<p>
+<p>
+    <textarea rows="10" cols="35" id="globalSettings"></textarea>
+    <input type="button" id="setGlobalSettings" value="setGlobalSettings">
+    <textarea rows="10" cols="35" id="trackSettings"></textarea>
+    <select name="typeTrack" id="typeTrack">
+        <option value="vcf">vcf</option>
+        <option value="referense">referense</option>
+        <option value="wig">wig</option>
+        <option value="bam">bam</option>
+        <option value="gene">gene</option>
+    </select>
+    <input type="button" id="setTrackSettings" value="setTrackSettings">
 </p>
 <iframe height="90%" width="100%" id="ngbIframe" src="http://localhost:8080/#"></iframe>
 <script type="text/javascript">
     var dataSetId = document.getElementById('dataSetId'),
+        forceSwitchRefDataSet = document.getElementById('forceSwitchRefDataSet'),
         btnLoadDataSet = document.getElementById('loadDataSet'),
+
         btnNavigateToCoordinate = document.getElementById('navigateToCoordinate'),
         coordinatesInput = document.getElementById('coordinatesText'),
-        btnLoadTrack = document.getElementById('loadTrackIDBtn'),
+
+        btnToggleSelectTrackId = document.getElementById('toggleSelectTrackId'),
         btnLoadTrackUrl = document.getElementById('loadTrackUrl'),
         btnLoadTrackNgb = document.getElementById('loadTrackNgb'),
-        btnToggleLoadedTracks = document.getElementById('toggleLoadedTracks'),
+        btnToggleSelectTrackUrl = document.getElementById('toggleSelectTrackUrl'),
+        forceSwitchRefTrack = document.getElementById('forceSwitchRefTrack'),
+
         globalSettings = document.getElementById('globalSettings'),
         btnSetGlobalSettings = document.getElementById('setGlobalSettings'),
         trackSettings = document.getElementById('trackSettings'),
         typeTrackSelect = document.getElementById('typeTrack'),
         btnSetTrackSettings = document.getElementById('setTrackSettings'),
+
         iframe = document.getElementById('ngbIframe');
 
-    function guid() {
-        function s4() {
-            return Math.floor((1 + Math.random()) * 0x10000)
-                .toString(16)
-                .substring(1);
-        }
-        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-            s4() + '-' + s4() + s4() + s4();
-    }
-    console.log(guid());
-
-    globalSettings.value = JSON.stringify({
-        showCenterLine: false,
-        hotkeys: {
-            "layout>variants": {
-                "hotkey": "ALT + !"
-            },
-            'gene>transcript>expanded': {
-                "hotkey": "ALT + $"
-            }
-        },
-        colors: {
-            strand: {forward: 14363949}
-        }
-    });
-
-    trackSettings.value = JSON.stringify({
-        id: 23, // id or path like "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz"
-        settings: [
-            {name: "vcf>variantsView>expanded"}
-        ]
-    });
+    init();
 
     btnLoadDataSet.onclick = function () {
         iframe.contentWindow.postMessage({
@@ -80,7 +62,7 @@
             method: "loadDataSet",
             params: {
                 id: dataSetId.value,
-//                forceSwitchRef: false,
+                forceSwitchRef: forceSwitchRefDataSet.checked,
             }
         }, "*");
     };
@@ -93,77 +75,80 @@
         }, "*");
     };
 
-    btnLoadTrack.onclick = function () {
+    btnToggleSelectTrackId.onclick = function () {
         iframe.contentWindow.postMessage({
             callerId: guid(),
             method: "toggleSelectTrack",
             params: {
                 track: 21,
-                forceSwitchRef: false,
+                forceSwitchRef: forceSwitchRefTrack.checked,
             }
         }, "*");
     };
-    btnToggleLoadedTracks.onclick = function () {
+
+    btnToggleSelectTrackUrl.onclick = function () {
         iframe.contentWindow.postMessage({
             callerId: guid(),
             method: "toggleSelectTrack",
             params: {
                 track: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz",
-                forceSwitchRef: false,
+                forceSwitchRef: forceSwitchRefTrack.checked,
             }
         }, "*");
     };
+
     btnLoadTrackUrl.onclick = function () {
         iframe.contentWindow.postMessage({
             callerId: guid(),
             method: "loadTracks",
             params: {
                 tracks: [{
-                        path: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz",
-                        index: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz.tbi",
-                    }, {
-                        path: "http://ngb.opensource.epam.com/distr/data/genome/dm6/dmel-all-r6.06.sorted.gtf.gz",
-                        index: "http://ngb.opensource.epam.com/distr/data/genome/dm6/dmel-all-r6.06.sorted.gtf.gz.tbi",
-                    }, {
-                        path: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.gff3.gz",
-                        index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.gff3.gz.tbi",
-                    }, {
-                        path: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/PIK3CA-E545K.bam",
-                        index: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/PIK3CA-E545K.bam.bai",
-                    }, {
-                        path: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz",
-                        index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz.tbi",
-                    },
+                    path: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz",
+                    index: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz.tbi",
+                }, {
+                    path: "http://ngb.opensource.epam.com/distr/data/genome/dm6/dmel-all-r6.06.sorted.gtf.gz",
+                    index: "http://ngb.opensource.epam.com/distr/data/genome/dm6/dmel-all-r6.06.sorted.gtf.gz.tbi",
+                }, {
+                    path: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.gff3.gz",
+                    index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.gff3.gz.tbi",
+                }, {
+                    path: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/PIK3CA-E545K.bam",
+                    index: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/PIK3CA-E545K.bam.bai",
+                }, {
+                    path: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz",
+                    index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz.tbi",
+                },
                 ],
-                forceSwitchRef: false,
+                forceSwitchRef: forceSwitchRefTrack.checked,
                 referenceId: 3,
                 mode: 'url',
             }
         }, "*");
     };
+
     btnLoadTrackNgb.onclick = function () {
         iframe.contentWindow.postMessage({
             callerId: guid(),
             method: "loadTracks",
             params: {
                 tracks: [{
-                        path: "/opt/catgenome/MCF7-PIK3CA.bam",
-                        index: "/opt/catgenome/MCF7-PIK3CA.bam.bai",
-                    }, {
-                        path: "/opt/catgenome/beds-test/1.bed.gz",
-                        index: "/opt/catgenome/beds-test/1.bed.gz.tbi",
-                    }, {
-                        path: "/opt/catgenome/beds-test/2.bed.gz",
-                        index: "/opt/catgenome/beds-test/2.bed.gz.tbi",
-                    }, {
-                        path: "/opt/catgenome/beds-test/3.bed.gz",
-                        index: "/opt/catgenome/beds-test/3.bed.gz.tbi",
-                    }, {
-                        path: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz",
-                        index: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz.tbi",
-                    },
+                    path: "/opt/catgenome/MCF7-PIK3CA.bam",
+                    index: "/opt/catgenome/MCF7-PIK3CA.bam.bai",
+                }, {
+                    path: "/opt/catgenome/beds-test/1.bed.gz",
+                    index: "/opt/catgenome/beds-test/1.bed.gz.tbi",
+                }, {
+                    path: "/opt/catgenome/beds-test/2.bed.gz",
+                    index: "/opt/catgenome/beds-test/2.bed.gz.tbi",
+                }, {
+                    path: "/opt/catgenome/beds-test/3.bed.gz",
+                    index: "/opt/catgenome/beds-test/3.bed.gz.tbi",
+                }, {
+                    path: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz",
+                    index: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz.tbi",
+                },
                 ],
-                forceSwitchRef: false,
+                forceSwitchRef: forceSwitchRefTrack.checked,
                 referenceId: 1,
                 mode: 'ngbServer',
             }
@@ -262,15 +247,43 @@
         }
     };
 
-    if (window.addEventListener) {
-        window.addEventListener("message", () => {
-            if (event.data) {
-                console.log(event.data);
+    function guid() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+            s4() + '-' + s4() + s4() + s4();
+    }
+
+    function init() {
+        globalSettings.value = JSON.stringify({
+            showCenterLine: false,
+            hotkeys: {
+                "layout>variants": {
+                    "hotkey": "ALT + !"
+                },
+                'gene>transcript>expanded': {
+                    "hotkey": "ALT + $"
+                }
+            },
+            colors: {
+                strand: {forward: 14363949}
             }
         });
-    } else {
-        // IE8
-        window.attachEvent("onmessage", () => {
+
+        trackSettings.value = JSON.stringify({
+            id: 23, // id or path like "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz"
+            settings: [
+                {name: "vcf>variantsView>expanded"}
+            ]
+        });
+    }
+
+    if (window.addEventListener) {
+        window.addEventListener("message", () => {
             if (event.data) {
                 console.log(event.data);
             }

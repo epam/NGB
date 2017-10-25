@@ -47,15 +47,8 @@ export default class ngbAppController extends baseController {
         });
 
         if (window.addEventListener) {
-            window.addEventListener("message", () => {
-                if (event.data) {
-                    this._listener(event);
-                }
-            });
-        } else {
-            // IE8
-            window.attachEvent("onmessage", () => {
-                if (event.data) {
+            window.addEventListener("message", (event) => {
+                if (!!event.data && typeof event.data === 'object' && !Array.isArray(event.data)) {
                     this._listener(event);
                 }
             });
@@ -71,7 +64,7 @@ export default class ngbAppController extends baseController {
         switch (event.data.method) {
             case "loadDataSet":
                 const id = parseInt(event.data.params && event.data.params.id ? event.data.params.id : null);
-                const forceSwitchRef = event.data.params.forceSwitchRef ? event.data.params.forceSwitchRef : false;
+                const forceSwitchRef = event.data.params && event.data.params.forceSwitchRef ? event.data.params.forceSwitchRef : false;
                 if (id) {
                     this.apiService.loadDataSet(id, forceSwitchRef).then((response) => {
                         this._apiResponse(response, callerId);
@@ -88,7 +81,7 @@ export default class ngbAppController extends baseController {
                 this._apiResponse(this.apiService.navigateToCoordinate(coordinates), callerId);
                 break;
             case "toggleSelectTrack":
-                if (event.data.params && event.data.params.track ? event.data.params.track : null) {
+                if (event.data.params && event.data.params.track) {
                     this.apiService.toggleSelectTrack(event.data.params).then((response) => {
                         this._apiResponse(response, callerId);
                     });
@@ -118,7 +111,6 @@ export default class ngbAppController extends baseController {
                 if (globalSettingsParams) {
                     this._apiResponse(this.apiService.setGlobalSettings(globalSettingsParams), callerId);
                 } else {
-                    // console.log('Api error: setGlobalSettings wrong param' + event.data);
                     this._apiResponse({
                         message: `Api error: setGlobalSettings wrong param ${JSON.stringify(event.data.params)}`,
                         isSuccessful: false
@@ -148,7 +140,6 @@ export default class ngbAppController extends baseController {
         params.callerId = callerId;
         window.parent.postMessage(params, '*');
     }
-
 
     _changeStateFromParams(params) {
         const {referenceId, chromosome, end, rewrite, start, tracks, filterByGenome, collapsedTrackHeaders} = params;

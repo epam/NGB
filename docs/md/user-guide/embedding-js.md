@@ -2,9 +2,9 @@
 
 NGB could be embedded into 3rd paty web application using an iFrame approach. Detailed information about embedding NGB via iFrame and controlling it with URL can be viewed [here](./embedding-url.md)
 
-Communication with NGB window is implemented with [postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage "MDN web docks"), that is safely enables cross-origin communication.
+Communication with NGB window implemented with [postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage "MDN web docks"), that is safely enables cross-origin communication.
 
-You can start using postMessage when NGB window loaded.
+You can start using postMessage when NGB window loaded
 
 Common request structure:
 ```javascript
@@ -19,19 +19,18 @@ Common request structure:
 ```
 
 `callerId` - unique ID to recognize method sending response
-идентификатор для определения от какого метода пришел ответ
 
 `method` - method's name
 
 `params` - method's parameters object
 
-To call JS API methods you need to send this object to NGB window via postMessage. 
+To call JS API methods you need to send this object to NGB window via postMessage
 
 #### Example
 
 For following request:
 ```javascript
-iframe.contentWindow.postMessage({
+NGBiFrame.contentWindow.postMessage({
         callerId: "loadDatasetUniqueID1",
         method: "loadDataSet",
         params: {
@@ -69,12 +68,98 @@ This example demonstrates major capabilities of a JS API
 
 ## Methods
 
-* [navigateToCoordinate](#navigateToCoordinate)
+* [loadDataSet](#loadDataSet)
 * [loadTracks](#loadTracks)
 * [toggleSelectTrack](#toggleSelectTrack)
-* [loadDataSet](#loadDataSet)
+* [navigateToCoordinate](#navigateToCoordinate)
 * [setGlobalSettings](#setGlobalSettings)
 * [setTrackSettings](#setTrackSettings)
+
+### loadDataSet
+
+Opens/closes dataset according to its current state
+
+The object to be passed to NGB window:
+
+```javascript
+{
+    //some unique identifier that will be in returned object
+    callerId: "unique string",
+    //method name
+    method: "loadDataSet",
+    //method params object
+    params: {
+        //dataset ID
+        id: 4,
+        //force reference switching (false by default)
+        //if true no confirmation by user will be requested else confirmation dialog will appear
+        forceSwitchRef: false,
+    }
+}
+```
+
+###  loadTracks
+
+Loads track and opens it in a Browser panel.
+
+The object to be passed to NGB window:
+
+```javascript
+{
+    //some unique identifier that will be in returned object
+    callerId: "unique string",
+    //method name
+    method: "loadTracks",
+    //method params object
+    params: {
+        //array with tracks links
+        tracks: [
+            {
+                //track's file URL or path on NGB Server according to tracks loading mode
+                path: "url" or "path",
+                //track's index file URL or path on NGB Server according to tracks loading mode
+                index: "url" or "path",
+            },
+            ...
+        ],
+        //reference ID
+        referenceId: 1,
+        //force reference switching (false by default)
+        //if true no confirmation by user will be requested else confirmation dialog will appear
+        forceSwitchRef: false,
+        //tracks loading mode
+        mode: 'url' or 'ngbServer',
+    }
+}
+```
+
+**When track is loaded from URL or NGB Server the URL or the path becomes track's ID so further operations with track are performing by this ID.**
+
+
+### toggleSelectTrack
+
+Opens/closes track according to its current state
+
+The object to be passed to NGB window:
+
+```javascript
+{
+    //some unique identifier that will be in returned object
+    callerId: "unique string",
+    //method name
+    method: "toggleSelectTrack",
+    //method params object
+    params: {
+        //track ID
+        //number or string when loaded by URL or path
+        track: 21,
+        //force reference switching (false by default)
+        //if true no confirmation by user will be requested else confirmation dialog will appear
+        forceSwitchRef: false,
+
+    }
+}
+```
 
 ### navigateToCoordinate
 
@@ -108,92 +193,6 @@ If chromosome have been already selected:
 `start - end` - moves to requested range on current chromosome
 
 `empty string` - if chromosome is selected opens current chromosome on minimum zoom level
-
-###  loadTracks
-
-Loads track and opens it in a Browser panel.
-
-The object to be passed to NGB window:
-
-```javascript
-{
-    //some unique identifier that will be in returned object
-    callerId: "unique string",
-    //method name
-    method: "loadTracks",
-    //method params object
-    params: {
-        //array with tracks links
-        tracks: [
-            {
-                //track's file URL or path on NGB Server according to tracks loading mode
-                path: "url" or "path",
-                //track's index file URL or path on NGB Server according to tracks loading mode
-                index: "url" or "path",
-            }, 
-            ...
-        ],
-        //reference ID
-        referenceId: 1,
-        //force reference switching (false by default)
-        //if true no confirmation by user will be requested else confirmation dialog will appear
-        forceSwitchRef: false,
-        //tracks loading mode 
-        mode: 'url' or 'ngbServer',
-    }
-}
-```
-
-**When track is loaded from URL or NGB Server the URL or the path becomes track's ID so further operations with track are performing by this ID.**
-
-
-### toggleSelectTrack
-
-Opens/closes track according to its current state
-
-The object to be passed to NGB window:
-
-```javascript
-{
-    //some unique identifier that will be in returned object
-    callerId: "unique string",
-    //method name
-    method: "toggleSelectTrack",
-    //method params object    
-    params: {
-        //track ID
-        //number or string when loaded by URL or path
-        track: 21,
-        //force reference switching (false by default)
-        //if true no confirmation by user will be requested else confirmation dialog will appear
-        forceSwitchRef: false,
-
-    }
-}
-```
-
-### loadDataSet
-
-Opens/closes dataset according to its current state
-
-The object to be passed to NGB window:
-
-```javascript
-{
-    //some unique identifier that will be in returned object
-    callerId: "unique string",
-    //method name
-    method: "loadDataSet",
-    //method params object    
-    params: {
-        //dataset ID
-        id: 4,
-        //force reference switching (false by default)
-        //if true no confirmation by user will be requested else confirmation dialog will appear
-        forceSwitchRef: false,
-    }
-}
-```
 
 ### setGlobalSettings
 
@@ -260,7 +259,7 @@ The object to be passed to NGB window:
 
 ### setTrackSettings
 
-Sets settings for requested track
+Sets requested opened track settings
 
 The object to be passed to NGB window:
 
@@ -277,6 +276,7 @@ The object to be passed to NGB window:
         settings: [
             //all possible parameters are presented in the table below
             {...},
+            ...
         ]
     }
 }
