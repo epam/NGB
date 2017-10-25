@@ -68,12 +68,12 @@ This example demonstrates major capabilities of a JS API
 
 ## Methods
 
-* [loadDataSet](#loadDataSet)
-* [loadTracks](#loadTracks)
-* [toggleSelectTrack](#toggleSelectTrack)
-* [navigateToCoordinate](#navigateToCoordinate)
-* [setGlobalSettings](#setGlobalSettings)
-* [setTrackSettings](#setTrackSettings)
+* [loadDataSet](#loaddataset)
+* [loadTracks](#loadtracks)
+* [toggleSelectTrack](#toggleselecttrack)
+* [navigateToCoordinate](#navigatetocoordinate)
+* [setGlobalSettings](#setglobalsettings)
+* [setTrackSettings](#settracksettings)
 
 ### loadDataSet
 
