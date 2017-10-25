@@ -1,5 +1,6 @@
 import {stringParseInt} from '../utils/Int';
 import {Node} from '../../components/ngbDataSets/internal';
+import {registerTrackLocalComputerMode} from '../components/ngbProject/registerTrack/ngbRegisterTrack.constants';
 
 export default class ngbApiService {
 
@@ -30,29 +31,34 @@ export default class ngbApiService {
         })();
     }
 
-    loadDataSet(id) {
+    /** returns a Promise */
+    loadDataSet(id, forceSwitchRef) {
         let datasets = this.projectContext.datasets;
         if (!datasets || datasets.length === 0) {
             this.projectContext.refreshDatasets().then(async () => {
                 datasets = await this.ngbDataSetsService.getDatasets();
                 const [item] = datasets.filter(m => m.id === id);
                 if (!item) {
-                    return {
-                        message: `No dataset with id = ${id}`,
-                        isSuccessful: false
-                    };
+                    return new Promise(() => {
+                        return {
+                            message: `No dataset with id = ${id}`,
+                            isSuccessful: false
+                        };
+                    });
                 }
-                return this._select(item, true, datasets);
+                return this._select(item, true, datasets, forceSwitchRef);
             })
         } else {
             const [item] = datasets.filter(m => m.id === id);
             if (!item) {
-                return {
-                    message: `No dataset with id = ${id}`,
-                    isSuccessful: false
-                };
+                return new Promise(() => {
+                    return {
+                        message: `No dataset with id = ${id}`,
+                        isSuccessful: false
+                    };
+                });
             }
-            return this._select(item, true, datasets);
+            return this._select(item, true, datasets, forceSwitchRef);
         }
     }
 
@@ -202,63 +208,74 @@ export default class ngbApiService {
         }
     }
 
+    /** returns a Promise */
     toggleSelectTrack(params) {
+        let forceSwitchRef = params.forceSwitchRef ? params.forceSwitchRef : false;
         if (params.track) {
-            return this._selectTrackById(params.track);
+            return this._selectTrackById(params.track, forceSwitchRef);
         } else {
-            return {
-                message: 'No tracks ids specified.',
-                isSuccessful: false
-            };
+            return new Promise(() => {
+                return {
+                    message: 'No tracks ids specified.',
+                    isSuccessful: false
+                };
+            });
         }
     }
 
+    /** returns a Promise */
     loadTracks(params) {
+        let forceSwitchRef = params.forceSwitchRef ? params.forceSwitchRef : false;
         //check track request mode
         switch (params.mode) {
             case 'url':
             case 'ngbServer':
 
                 if (!params.tracks || !params.referenceId) {
-                    return {
-                        message: 'Not enough params specified',
-                        isSuccessful: false,
-                    }
+                    return new Promise(() => {
+                        return {
+                            message: 'Not enough params specified',
+                            isSuccessful: false,
+                        }
+                    });
                 }
 
-                let errors = [],
-                    [chosenReference] = this.references.filter(r => r.id === params.referenceId),
-                    selectedItems = [];
+                let [chosenReference] = this.references.filter(r => r.id === params.referenceId);
 
                 if (!chosenReference) {
-                    return {
-                        message: 'Reference not found',
-                        isSuccessful: false,
-                    }
+                    return new Promise(() => {
+                            return {
+                            message: 'Reference not found',
+                            isSuccessful: false,
+                        }
+                    });
                 }
 
-                selectedItems = (params.tracks || []).map(t => {
-                    let shouldReturn = t.index ? true : !this._trackNeedsIndexFile(t);
+                let switchingReference = this.projectContext.reference && this.projectContext.reference.id !== +chosenReference.id;
 
-                    if (shouldReturn) {
+
+                if(!forceSwitchRef && switchingReference) {
+                    const confirm = this.$mdDialog.confirm()
+                        .title(`Switch reference ${this.projectContext.reference ? this.projectContext.reference.name : ''}${chosenReference ? ` to ${chosenReference.name}` : ''}?`)
+                        .textContent('All opened tracks will be closed.')
+                        .ariaLabel('Change reference')
+                        .ok('OK')
+                        .cancel('Cancel');
+
+                    return this.$mdDialog.show(confirm).then(() => {
+                        return this._processTracks(params.tracks, chosenReference);
+                    }).catch(() => {
                         return {
-                            index: t.index ? t.index : null,
-                            path: t.path,
-                            reference: chosenReference,
-                            format: this._trackFormat(t),
-                            name: this._fileName(t),
+                            message: 'Aborted by user',
+                            isSuccessful: false
                         };
-                    } else {
-                        errors.push(`Index file required for ${t.path}.`);
-                    }
-                });
+                    });
+                } else {
+                    return new Promise(() => {
+                        return this._processTracks(params.tracks, chosenReference);
+                    });
+                }
 
-                this._loadTracks(selectedItems);
-
-                return {
-                    message: errors.length ? errors.join(' | ') : 'Ok',
-                    isSuccessful: !errors.length
-                };
 
                 break;
         }
@@ -269,6 +286,36 @@ export default class ngbApiService {
         };
 
     }
+
+    _processTracks (tracks, chosenReference) {
+        let errors = [], selectedItems;
+
+        selectedItems = (tracks || []).map(t => {
+            let shouldReturn = t.index ? true : !this._trackNeedsIndexFile(t);
+
+            if (shouldReturn) {
+                return {
+                    index: t.index ? t.index : null,
+                    path: t.path,
+                    reference: chosenReference,
+                    format: this._trackFormat(t),
+                    name: this._fileName(t),
+                };
+            } else {
+                errors.push(`Index file required for ${t.path}.`);
+            }
+        });
+
+        if (errors.length) {
+            return {
+                message: errors.length ? errors.join(' | ') : 'Ok',
+                isSuccessful: !errors.length
+            };
+        }
+
+        return this._loadTracks(selectedItems);
+    }
+
 
     _trackNeedsIndexFile(track) {
         const extension = this._fileExtension(track);
@@ -372,6 +419,11 @@ export default class ngbApiService {
             const tracksState = [...(this.projectContext.tracksState || []), ...tracks.map(mapTrackStateFn)];
             this.projectContext.changeState({reference: this.projectContext.reference, tracks: _tracks, tracksState});
         }
+
+        return {
+            message: 'Ok',
+            isSuccessful: true,
+        };
     }
 
     _getAllDataSets() {
@@ -392,7 +444,7 @@ export default class ngbApiService {
         return this.datasets;
     }
 
-    _selectTrackById(id) {
+    _selectTrackById(id, forceSwitchRef = false) {
 
         this._getAllDataSets();
 
@@ -440,22 +492,24 @@ export default class ngbApiService {
 
             // console.log(selectedTrack);//todo remove log
 
-            return this._toggleSelected(selectedTrack);
+            return this._toggleSelected(selectedTrack, forceSwitchRef);
 
         } else {
-            return {
-                message: 'No tracks found with id specified.',
-                isSuccessful: false
-            };
+            return new Promise(() => {
+                return {
+                    message: 'No tracks found with id specified.',
+                    isSuccessful: false
+                };
+            });
         }
     }
 
-    _toggleSelected(node) {
+    _toggleSelected(node, forceSwitchRef = false) {
         node.__selected = !node.__selected;
-        return this._toggle(node);
+        return this._toggle(node, forceSwitchRef);
     }
 
-    _toggle(node) {
+    _toggle(node, forceSwitchRef = false) {
         // console.log(node);//todo remove log
         if (node.__selected) {
             node.__expanded = true;
@@ -464,13 +518,11 @@ export default class ngbApiService {
             this.ngbDataSetsService.deselectItem(node);
         }
 
-        return this._select(node, node.__selected, this.datasets);
+        return this._select(node, node.__selected, this.datasets, forceSwitchRef);
     }
 
-    _select(item, isSelected, tree) {
-        console.log('select');
-        const self = this;
-        if (!this.ngbDataSetsService.checkSelectionAvailable(item, isSelected)) {
+    _select(item, isSelected, tree, forceSwitchRef = false) {
+        if (!this.ngbDataSetsService.checkSelectionAvailable(item, isSelected) && !forceSwitchRef) {
             const reference = this.ngbDataSetsService.getItemReference(item);
             this.ngbDataSetsService.deselectItem(item);
             const confirm = this.$mdDialog.confirm()
@@ -479,16 +531,31 @@ export default class ngbApiService {
                 .ariaLabel('Change reference')
                 .ok('OK')
                 .cancel('Cancel');
-            this.$mdDialog.show(confirm).then(function () {
-                self.ngbDataSetsService.selectItem(item, isSelected, tree);
+
+            return this.$mdDialog.show(confirm).then(() => {
+                this.ngbDataSetsService.selectItem(item, isSelected, tree);
+
+                return {
+                    message: 'Ok',
+                    isSuccessful: true
+                };
+            }).catch(() => {
+                return {
+                    message: 'Aborted by user',
+                    isSuccessful: false
+                }
             });
+
         } else {
-            this.ngbDataSetsService.selectItem(item, isSelected, tree);
+            return new Promise(() => {
+                this.ngbDataSetsService.selectItem(item, isSelected, tree);
+
+                return {
+                    message: 'Ok',
+                    isSuccessful: true
+                };
+            });
         }
-        return {
-            message: 'Ok',
-            isSuccessful: true
-        };
     }
 
     _isObject(item) {

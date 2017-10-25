@@ -68,7 +68,7 @@
     });
 
     trackSettings.value = JSON.stringify({
-        id: 23, // id or path "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz"
+        id: 23, // id or path like "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz"
         settings: [
             {name: "vcf>variantsView>expanded"}
         ]
@@ -78,8 +78,11 @@
         iframe.contentWindow.postMessage({
             callerId: guid(),
             method: "loadDataSet",
-            params: {id: dataSetId.value}
-            }, "*");
+            params: {
+                id: dataSetId.value,
+                forceSwitchRef: true,
+            }
+        }, "*");
     };
 
     btnNavigateToCoordinate.onclick = function () {
@@ -96,6 +99,7 @@
             method: "toggleSelectTrack",
             params: {
                 track: 21,
+                forceSwitchRef: false,
             }
         }, "*");
     };
@@ -105,6 +109,7 @@
             method: "toggleSelectTrack",
             params: {
                 track: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz",
+                forceSwitchRef: false,
             }
         }, "*");
     };
@@ -130,7 +135,8 @@
                         index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz.tbi",
                     },
                 ],
-                referenceId: 1,
+                forceSwitchRef: false,
+                referenceId: 3,
                 mode: 'url',
             }
         }, "*");
@@ -157,6 +163,7 @@
                         index: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz.tbi",
                     },
                 ],
+                forceSwitchRef: false,
                 referenceId: 1,
                 mode: 'ngbServer',
             }
