@@ -48,9 +48,7 @@ export default class ngbVariantsFilterListController {
             } break;
             case 'source_file': {
                 if (this.projectContext.vcfFilter.additionalFilters) {
-                    const source_file = this.projectContext.vcfFilter.additionalFilters.source_file || [];
-                    this.selectedItems = (this.projectContext.vcfTracks || [])
-                        .map(t => t).filter(t => source_file.indexOf(t.id) >= 0).map(t => t.name);
+                    this.selectedItems = this.projectContext.vcfFilter.additionalFilters.source_file || [];
                     this.displayText = [...this.selectedItems].join(', ');
                 }
             } break;
@@ -210,8 +208,7 @@ export default class ngbVariantsFilterListController {
                     if (!this.projectContext.vcfFilter.additionalFilters) {
                         this.projectContext.vcfFilter.additionalFilters = {};
                     }
-                    this.projectContext.vcfFilter.additionalFilters.source_file =
-                        (this.projectContext.vcfTracks || []).filter(t => currValue.indexOf(t.name) >= 0).map(t => t.id);
+                    this.projectContext.vcfFilter.additionalFilters.source_file = currValue;
                     this.projectContext.scheduleFilterVariants();
                 }
             } break;
