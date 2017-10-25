@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>Api test</title>
+    <title>Embedding JS demonstration</title>
 </head>
 <body>
 <input type="text" id="dataSetId" value="4" placeholder="DataSet id">
@@ -80,7 +80,7 @@
             method: "loadDataSet",
             params: {
                 id: dataSetId.value,
-                forceSwitchRef: true,
+//                forceSwitchRef: false,
             }
         }, "*");
     };
@@ -264,18 +264,15 @@
 
     if (window.addEventListener) {
         window.addEventListener("message", () => {
-            console.log(event.data);
             if (event.data) {
-                console.log(event.data.callerId);
-                console.log(event.data.message);
+                console.log(event.data);
             }
         });
     } else {
         // IE8
         window.attachEvent("onmessage", () => {
             if (event.data) {
-                console.log(event.data.callerId);
-                console.log(event.data.message);
+                console.log(event.data);
             }
         });
     }
