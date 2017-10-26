@@ -24,12 +24,6 @@
 
 package com.epam.catgenome.manager;
 
-import static com.epam.catgenome.dao.index.searcher.AbstractIndexSearcher.getIndexSearcher;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
@@ -82,6 +76,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.epam.catgenome.dao.index.searcher.AbstractIndexSearcher.getIndexSearcher;
 
 /**
  * Source:      VcfIndexManager
@@ -252,7 +252,7 @@ public class FeatureIndexManager {
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
             .collect(Collectors.toList());
-        return getVcfSearchResult(filterForm, files);
+        return getVcfSearchResult(filterForm, filterVcfFile(files, filterForm));
     }
 
     public int getTotalPagesCount(VcfFilterForm filterForm) throws IOException {
@@ -321,7 +321,25 @@ public class FeatureIndexManager {
      */
     public IndexSearchResult<VcfIndexEntry> filterVariations(VcfFilterForm filterForm) throws IOException {
         List<VcfFile> files = vcfFileManager.loadVcfFiles(filterForm.getVcfFileIds());
-        return getVcfSearchResult(filterForm, files);
+        return getVcfSearchResult(filterForm, filterVcfFile(files, filterForm));
+    }
+
+    /**
+     * Filter vcf files according to the additional filter, specified by VCF file names
+     * @param files a {@code List} of {@code VcfFile}s, representing VCF file instance in a database
+     * @param filterForm {@code VcfFilterForm}, setting filter options
+     * @return a {@link List} of {@link VcfFile}s, representing VCF files that satisfy the additional filter
+     */
+    private List<VcfFile> filterVcfFile(List<VcfFile> files, VcfFilterForm filterForm) {
+        String additionalFilterName = FeatureIndexDao.FeatureIndexFields.SOURCE_FILE.getFieldName();
+        if(filterForm.getAdditionalFilters() != null
+                && filterForm.getAdditionalFilters().containsKey(additionalFilterName)) {
+            List<String> fileNames = (List<String>) filterForm.getAdditionalFilters().get(additionalFilterName);
+            return files.stream()
+                    .filter(vcfFile -> fileNames.contains(vcfFile.getName()))
+                    .collect(Collectors.toList());
+        }
+        return files;
     }
 
     @NotNull private IndexSearchResult<VcfIndexEntry> getVcfSearchResult(VcfFilterForm filterForm,
