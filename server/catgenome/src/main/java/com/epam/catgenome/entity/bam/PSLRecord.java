@@ -1,20 +1,27 @@
 package com.epam.catgenome.entity.bam;
 
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  *
  */
 public class PSLRecord {
 
+    @JsonIgnore
     private int tSize;
+
     private int start;
     private int end;
     private String chr;
     private int match;
     private int misMatch;
     private int repMatch;
+
+    @JsonIgnore
     private int qNumInsert;
+
+    @JsonIgnore
     private int tNumInsert;
     private int qGapCount;
     private int tGapCount;
@@ -23,9 +30,13 @@ public class PSLRecord {
     private int tGapBases;
     private long score;
     private StrandSerializable strand;
+
     private String name;
 
+    @JsonIgnore
     private int qSize;
+
+    @JsonIgnore
     private String text;
 
     public int gettSize() {

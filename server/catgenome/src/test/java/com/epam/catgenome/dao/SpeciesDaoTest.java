@@ -19,12 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class SpeciesDaoTest {
 
-	@Autowired
-	private SpeciesDao speciesDao;
+    @Autowired
+    private SpeciesDao speciesDao;
 
-	private final static String TEST_NAME = "TEST_NAME";
-	private final static String TEST_VERSION = "TEST_VERSION";
-
+    private static final String TEST_NAME = "TEST_NAME";
+    private static final String TEST_VERSION = "TEST_VERSION";
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)

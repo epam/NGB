@@ -30,6 +30,7 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTra
 import java.io.IOException;
 import java.util.List;
 
+import com.epam.catgenome.controller.vo.ReadSequenceVO;
 import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.PSLRecord;
 import com.epam.catgenome.entity.bam.Read;
@@ -236,8 +237,9 @@ public class BamController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<PSLRecord> blatReadSequence(@RequestParam final Long bamTrackId, @RequestParam final String readSequence)
+    public Result<List<PSLRecord>> blatReadSequence(@RequestParam final Long bamTrackId,
+                                                    @RequestBody final ReadSequenceVO readSequence)
             throws IOException, ExternalDbUnavailableException {
-        return Result.success(bamManager.findBlatReadSequence(bamTrackId, readSequence));
+        return Result.success(bamManager.findBlatReadSequence(bamTrackId, readSequence.getReadSequence()));
     }
 }
