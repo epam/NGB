@@ -24,21 +24,27 @@
 
 package com.epam.catgenome.manager.bam;
 
-import static com.epam.catgenome.component.MessageCode.NO_SUCH_REFERENCE;
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.manager.parallel.TaskExecutorService.ExecutionMode.ASYNC;
-import static com.epam.catgenome.manager.parallel.TaskExecutorService.ExecutionMode.SEQUENTIAL;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-
-import com.epam.catgenome.entity.bam.BamFile;
-import com.epam.catgenome.entity.bam.BamQueryOption;
-import com.epam.catgenome.entity.bam.BamTrackMode;
-import com.epam.catgenome.entity.bam.BasePosition;
-import com.epam.catgenome.entity.bam.Read;
+import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.controller.vo.ReadQuery;
+import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
+import com.epam.catgenome.entity.bam.*;
+import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.entity.reference.Sequence;
+import com.epam.catgenome.entity.track.Track;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.manager.BiologicalDataItemManager;
+import com.epam.catgenome.manager.TrackHelper;
+import com.epam.catgenome.manager.bam.handlers.SAMRecordHandler;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
+import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
+import com.epam.catgenome.manager.reference.ReferenceManager;
+import com.epam.catgenome.util.BamUtil;
+import com.epam.catgenome.util.Utils;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SamReader;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -47,26 +53,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-
-import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.controller.vo.ReadQuery;
-import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.entity.reference.Sequence;
-import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.manager.BiologicalDataItemManager;
-import com.epam.catgenome.manager.TrackHelper;
-import com.epam.catgenome.manager.bam.handlers.SAMRecordHandler;
-import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.manager.reference.ReferenceManager;
-import com.epam.catgenome.util.BamUtil;
-import com.epam.catgenome.util.Utils;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SamReader;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+
+import static com.epam.catgenome.component.MessageCode.NO_SUCH_REFERENCE;
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.manager.parallel.TaskExecutorService.ExecutionMode.ASYNC;
+import static com.epam.catgenome.manager.parallel.TaskExecutorService.ExecutionMode.SEQUENTIAL;
 
 /**
  * Source:      BamManager
@@ -100,6 +96,9 @@ public class BamManager {
 
     @Autowired
     private TaskExecutorService taskExecutorService;
+
+    @Autowired
+    private BlatSearchManager blatSearchManager;
 
     @Value("#{catgenome['bam.max.coverage.range'] ?: 1000000}")
     private int maxCoverageRange;
@@ -225,6 +224,16 @@ public class BamManager {
             bamFile = bamHelper.makeUrlBamFile(fileUrl, indexUrl, chromosome);
         }
         return getReadFromBamFile(query, chromosome, bamFile);
+    }
+
+    public PSLRecord findBlatReadSequence(Long bamTrackId, String readSequence) throws ExternalDbUnavailableException {
+        Assert.isTrue(bamTrackId != null && StringUtils.isNotBlank(readSequence),
+                MessagesConstants.ERROR_NULL_PARAM);
+        BamFile bamFile = bamFileManager.loadBamFile(bamTrackId);
+        Reference reference = referenceGenomeManager.loadReferenceGenome(bamFile.getReferenceId());
+        Assert.notNull(reference.getSpecies(), MessagesConstants.NULL_SPECIES_FOR_GENOME);
+
+        return blatSearchManager.find(readSequence, reference.getSpecies());
     }
 
     @Nullable
