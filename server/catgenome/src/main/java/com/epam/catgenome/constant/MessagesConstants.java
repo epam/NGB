@@ -160,6 +160,9 @@ public final class MessagesConstants {
     public static final String WRONG_HEADER_BAM_FILE = "error.header.bam.file";
     public static final String WRONG_HEADER_BAM_FILE_EMPTY_FILE = "error.header.bam.file.empty";
 
+    //BLAT SEARCH
+    public static final String NULL_SPECIES_FOR_GENOME = "error.reference.species.empty";
+
     //WIG
     public static final String WRONG_WIG_FILE = "error.wig.file";
     public static final String WRONG_BED_GRAPH_FILE = "error.bedgraph.file";
