@@ -226,7 +226,8 @@ public class BamManager {
         return getReadFromBamFile(query, chromosome, bamFile);
     }
 
-    public PSLRecord findBlatReadSequence(Long bamTrackId, String readSequence) throws ExternalDbUnavailableException {
+    public List<PSLRecord> findBlatReadSequence(Long bamTrackId, String readSequence)
+            throws ExternalDbUnavailableException {
         Assert.isTrue(bamTrackId != null && StringUtils.isNotBlank(readSequence),
                 MessagesConstants.ERROR_NULL_PARAM);
         BamFile bamFile = bamFileManager.loadBamFile(bamTrackId);
