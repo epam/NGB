@@ -25,12 +25,12 @@
 
 package com.epam.catgenome.dao.index.indexer;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import org.apache.lucene.document.Document;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Default implementation of AbstractDocumentBuilder. No specific actions is taken for specific entries fields

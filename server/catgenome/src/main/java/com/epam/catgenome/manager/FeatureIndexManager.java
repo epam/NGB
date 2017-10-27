@@ -24,6 +24,12 @@
 
 package com.epam.catgenome.manager;
 
+import static com.epam.catgenome.dao.index.searcher.AbstractIndexSearcher.getIndexSearcher;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
@@ -76,12 +82,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.epam.catgenome.dao.index.searcher.AbstractIndexSearcher.getIndexSearcher;
 
 /**
  * Source:      VcfIndexManager

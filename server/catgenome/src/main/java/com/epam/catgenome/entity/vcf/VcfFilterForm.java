@@ -24,8 +24,10 @@
 
 package com.epam.catgenome.entity.vcf;
 
-import com.epam.catgenome.dao.index.FeatureIndexDao.FeatureIndexFields;
-import com.epam.catgenome.entity.index.FeatureType;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,15 +35,11 @@ import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queries.TermsQuery;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.PrefixQuery;
-import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.*;
 import org.springframework.util.Assert;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.epam.catgenome.dao.index.FeatureIndexDao.FeatureIndexFields;
+import com.epam.catgenome.entity.index.FeatureType;
 
 /**
  * {@code VcfFilterForm} represents a VO used to handle query parameters
