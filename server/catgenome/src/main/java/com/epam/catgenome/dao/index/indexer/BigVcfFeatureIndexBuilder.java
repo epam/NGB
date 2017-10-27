@@ -24,6 +24,14 @@
 
 package com.epam.catgenome.dao.index.indexer;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.index.FeatureType;
@@ -45,9 +53,6 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.*;
 
 /**
  * An implementation of {@link FeatureIndexBuilder}, that indexes <b>large</b> VCF file entries: {@link VariantContext}

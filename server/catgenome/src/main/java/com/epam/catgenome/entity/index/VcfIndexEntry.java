@@ -24,16 +24,16 @@
 
 package com.epam.catgenome.entity.index;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.epam.catgenome.entity.vcf.VariationEffect;
 import com.epam.catgenome.entity.vcf.VariationImpact;
 import com.epam.catgenome.entity.vcf.VariationType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import htsjdk.variant.variantcontext.VariantContext;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Source:      VcfIndexEntry
