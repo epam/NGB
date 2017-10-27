@@ -71,8 +71,8 @@ export class SEGTrack extends CachedTrack {
     }
 
     onScroll({delta}) {
-        this._renderer.scroll(this.viewport, delta);
         this.tooltip.hide();
+        this._renderer.scroll(this.viewport, delta);
         this.updateScene();
     }
 
