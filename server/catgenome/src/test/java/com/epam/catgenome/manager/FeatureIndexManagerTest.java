@@ -347,12 +347,9 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         vcfFilterForm.setInfoFields(info.getInfoItems().stream().map(InfoItem::getName).collect(Collectors.toList()));
         vcfFilterForm.setAdditionalFilters(Collections.singletonMap(cipos95, Arrays.asList(CONST_42, CONST_42)));
         vcfFilterForm.setVcfFileIds(Collections.singletonList(vcfFile.getId()));
-        vcfFilterForm.setVcfFilesName(Arrays.asList(vcfFile.getName()));
 
         IndexSearchResult<VcfIndexEntry> entryList2 = featureIndexManager.filterVariations(vcfFilterForm);
         Assert.assertFalse(entryList2.getEntries().isEmpty());
-        Assert.assertTrue(entryList2.getEntries().stream()
-                .allMatch(e -> e.getVcfFileName().matches(vcfFile.getName())));
         Assert.assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getInfo().containsKey(cipos95)));
         Assert.assertTrue(entryList2.getEntries().stream().filter(e -> e.getInfo().containsKey(cipos95)).allMatch(e -> {
             String cipos = (String) e.getInfo().get(cipos95);
@@ -387,8 +384,6 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         IndexSearchResult<VcfIndexEntry> entryList21 = featureIndexManager.filterVariations(vcfFilterForm);
 
         Assert.assertFalse(entryList21.getEntries().isEmpty());
-        Assert.assertTrue(entryList2.getEntries().stream()
-                .allMatch(e -> e.getVcfFileName().matches(vcfFile.getName())));
         Assert.assertEquals(entryList21.getEntries().size(), entryList2.getEntries().size());
         Assert.assertEquals(entryList21.getEntries().get(0).getGene(), entryList2.getEntries().get(0).getGene());
 
@@ -521,6 +516,53 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         Assert.assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getFeatureFileId().equals(vcfFile.getId())));
         Assert.assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getFeatureFileId().equals(
             vcfFile2.getId())));
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testAdditionalFilterWithVcfFileName() throws IOException {
+        Resource vcfResource1 = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
+        Resource vcfResource2 = context.getResource("classpath:templates/sample_2-lumpy.vcf");
+
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(testReference.getId());
+        request.setPath(vcfResource1.getFile().getAbsolutePath());
+        request.setName("testVcf");
+        VcfFile vcfFile = vcfManager.registerVcfFile(request);
+
+        FeatureIndexedFileRegistrationRequest request2 = new FeatureIndexedFileRegistrationRequest();
+        request2.setReferenceId(testReference.getId());
+        request2.setPath(vcfResource2.getFile().getAbsolutePath());
+        request2.setName(vcfResource2.getFilename() + "2");
+        VcfFile vcfFile2 = vcfManager.registerVcfFile(request2);
+
+        Project project = new Project();
+        project.setName(TEST_PROJECT_NAME + "_additionalFilter");
+        project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(vcfFile.getBioDataItemId())),
+                new ProjectItem(new BiologicalDataItem(vcfFile2.getBioDataItemId())),
+                new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
+        projectManager.saveProject(project); // Index is created when vcf file is added
+
+        VcfFilterInfo info = featureIndexManager.loadVcfFilterInfoForProject(project.getId());
+
+        VcfFilterForm vcfFilterForm = new VcfFilterForm();
+        vcfFilterForm.setInfoFields(info.getInfoItems().stream().map(InfoItem::getName).collect(Collectors.toList()));
+        vcfFilterForm.setVcfFileIds(Arrays.asList(vcfFile.getId(), vcfFile2.getId()));
+        vcfFilterForm.setVcfFilesName(Arrays.asList(vcfFile.getName(), vcfFile2.getName()));
+        vcfFilterForm.setAdditionalFilters(new HashMap<String, Object>() {
+            { put(FeatureIndexDao.FeatureIndexFields.SOURCE_FILE.getFieldName(), Arrays.asList(vcfFile.getName())); }
+        });
+
+        IndexSearchResult<VcfIndexEntry> entryList = featureIndexManager.filterVariations(vcfFilterForm,
+                project.getId());
+
+        Assert.assertFalse(entryList.getEntries().isEmpty());
+
+        //check the right filtration by vcf file name
+        Assert.assertTrue(entryList.getEntries().stream()
+                .allMatch(e -> e.getInfo() != null
+                        && e.getInfo().get(FeatureIndexDao.FeatureIndexFields.SOURCE_FILE.getFieldName())
+                        .equals(vcfFile.getName().toLowerCase())));
     }
 
     @Test

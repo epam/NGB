@@ -270,6 +270,9 @@ public class VcfIndexEntry extends FeatureIndexEntry {
         if ((quality != null) ? !quality.equals(that.quality) : (that.quality != null)) {
             return false;
         }
+        if ((vcfFileName != null) ? !vcfFileName.equals(that.vcfFileName) : (that.vcfFileName != null)) {
+            return false;
+        }
         return (isExon != null) ? isExon.equals(that.isExon) : (that.isExon == null);
     }
 
@@ -285,6 +288,7 @@ public class VcfIndexEntry extends FeatureIndexEntry {
         result = 31 * result + (effect != null ? effect.hashCode() : 0);
         result = 31 * result + (info != null ? info.hashCode() : 0);
         result = 31 * result + (quality != null ? quality.hashCode() : 0);
+        result = 31 * result + (vcfFileName != null ? vcfFileName.hashCode() : 0);
         result = 31 * result + (isExon != null ? isExon.hashCode() : 0);
         return result;
     }

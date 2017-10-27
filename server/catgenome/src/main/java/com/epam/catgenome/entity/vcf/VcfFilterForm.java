@@ -92,7 +92,6 @@ public class VcfFilterForm {
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         addFeatureTypeFilter(featureType, builder);
         addVcfFileFilter(builder);
-        addVcfFileNameFilter(builder);
         addChromosomeFilter(builder);
         addGeneFilter(builder);
         addExonFilter(builder);
@@ -226,16 +225,6 @@ public class VcfFilterForm {
             List<Term> chromosomeTerms = chromosomeIds.stream().map(id -> new Term(FeatureIndexFields.CHROMOSOME_ID
                             .getFieldName(), id.toString())).collect(Collectors.toList());
             builder.add(new TermsQuery(chromosomeTerms), BooleanClause.Occur.MUST);
-        }
-    }
-
-    private void addVcfFileNameFilter(BooleanQuery.Builder builder) {
-        if (vcfFilesName != null && !vcfFilesName.isEmpty()) {
-            List<Term> terms = vcfFilesName.stream()
-                    .map(vcfFileName -> new Term(FeatureIndexFields.SOURCE_FILE.getFieldName(), vcfFileName))
-                    .collect(Collectors.toList());
-            TermsQuery termsQuery = new TermsQuery(terms);
-            builder.add(termsQuery, BooleanClause.Occur.MUST);
         }
     }
 
