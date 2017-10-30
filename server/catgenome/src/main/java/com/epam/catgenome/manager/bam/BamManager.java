@@ -227,7 +227,7 @@ public class BamManager {
     }
 
     public List<PSLRecord> findBlatReadSequence(Long bamTrackId, String readSequence)
-            throws ExternalDbUnavailableException {
+            throws ExternalDbUnavailableException, IOException {
         Assert.isTrue(bamTrackId != null && StringUtils.isNotBlank(readSequence),
                 MessagesConstants.ERROR_NULL_PARAM);
         BamFile bamFile = bamFileManager.loadBamFile(bamTrackId);

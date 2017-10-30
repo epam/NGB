@@ -1,51 +1,32 @@
 package com.epam.catgenome.entity.bam;
 
+import com.epam.catgenome.entity.track.Block;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.io.Serializable;
 
 /**
  *
  */
-public class PSLRecord {
+public class PSLRecord extends Block implements Serializable {
 
-    @JsonIgnore
-    private int tSize;
-
-    private int start;
-    private int end;
     private String chr;
     private int match;
     private int misMatch;
     private int repMatch;
-
-    @JsonIgnore
-    private int qNumInsert;
-
-    @JsonIgnore
-    private int tNumInsert;
     private int qGapCount;
     private int tGapCount;
     private int ns;
     private int qGapBases;
     private int tGapBases;
-    private long score;
+    private double score;
     private StrandSerializable strand;
 
     private String name;
 
     @JsonIgnore
     private int qSize;
-
-    @JsonIgnore
-    private String text;
-
-    public int gettSize() {
-        return tSize;
-    }
-
-    public void settSize(int tSize) {
-        this.tSize = tSize;
-    }
 
     public int getMatch() {
         return match;
@@ -69,22 +50,6 @@ public class PSLRecord {
 
     public void setRepMatch(int repMatch) {
         this.repMatch = repMatch;
-    }
-
-    public int getqNumInsert() {
-        return qNumInsert;
-    }
-
-    public void setqNumInsert(int qNumInsert) {
-        this.qNumInsert = qNumInsert;
-    }
-
-    public int gettNumInsert() {
-        return tNumInsert;
-    }
-
-    public void settNumInsert(int tNumInsert) {
-        this.tNumInsert = tNumInsert;
     }
 
     public int getqGapCount() {
@@ -135,30 +100,6 @@ public class PSLRecord {
         this.tGapBases = tGapBases;
     }
 
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-
-    public int getStart() {
-        return start;
-    }
-
-    public void setStart(int start) {
-        this.start = start;
-    }
-
-    public int getEnd() {
-        return end;
-    }
-
-    public void setEnd(int end) {
-        this.end = end;
-    }
-
     public String getChr() {
         return chr;
     }
@@ -167,11 +108,11 @@ public class PSLRecord {
         this.chr = chr;
     }
 
-    public long getScore() {
+    public double getScore() {
         return score;
     }
 
-    public void setScore(long score) {
+    public void setScore(double score) {
         this.score = score;
     }
 
@@ -189,5 +130,77 @@ public class PSLRecord {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o){
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()){
+            return false;
+        }
+
+        PSLRecord record = (PSLRecord) o;
+
+        if (match != record.match) {
+            return false;
+        }
+        if (misMatch != record.misMatch) {
+            return false;
+        }
+        if (repMatch != record.repMatch) {
+            return false;
+        }
+        if (qGapCount != record.qGapCount) {
+            return false;
+        }
+        if (tGapCount != record.tGapCount) {
+            return false;
+        }
+        if (ns != record.ns) {
+            return false;
+        }
+        if (qGapBases != record.qGapBases) {
+            return false;
+        }
+        if (tGapBases != record.tGapBases) {
+            return false;
+        }
+        if (Double.compare(record.score, score) != 0) {
+            return false;
+        }
+        if (qSize != record.qSize) {
+            return false;
+        }
+        if (!chr.equals(record.chr)) {
+            return false;
+        }
+        if (strand != record.strand) {
+            return false;
+        }
+        return name.equals(record.name);
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        result = chr.hashCode();
+        result = 31 * result + match;
+        result = 31 * result + misMatch;
+        result = 31 * result + repMatch;
+        result = 31 * result + qGapCount;
+        result = 31 * result + tGapCount;
+        result = 31 * result + ns;
+        result = 31 * result + qGapBases;
+        result = 31 * result + tGapBases;
+        temp = Double.doubleToLongBits(score);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        result = 31 * result + strand.hashCode();
+        result = 31 * result + name.hashCode();
+        result = 31 * result + qSize;
+        return result;
     }
 }
