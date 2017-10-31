@@ -162,6 +162,7 @@ public final class MessagesConstants {
 
     //BLAT SEARCH
     public static final String NULL_SPECIES_FOR_GENOME = "error.reference.species.empty";
+    public static final String ERROR_NO_SUCH_SPECIES = "error.no.such.species";
 
     //WIG
     public static final String WRONG_WIG_FILE = "error.wig.file";

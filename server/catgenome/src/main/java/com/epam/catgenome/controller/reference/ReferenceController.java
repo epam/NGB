@@ -263,6 +263,16 @@ public class ReferenceController extends AbstractRESTController {
     }
 
     @ResponseBody
+    @RequestMapping(value = "/secure/reference/register/species", method = RequestMethod.DELETE)
+    @ApiOperation(
+            value = "Unregister a species in the system.",
+            notes = "Delete all information about this species by it`s version.")
+    public Result<Boolean> unregisterSpecies(@RequestParam String speciesVersion) throws IOException {
+        Species species = referenceGenomeManager.unregisterSpecies(speciesVersion);
+        return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, species.getName()));
+    }
+
+    @ResponseBody
     @RequestMapping(value = "/reference/loadAllSpecies", method = RequestMethod.GET)
     @ApiOperation(
         value = "Returns all species that are available in the system at the moment.",

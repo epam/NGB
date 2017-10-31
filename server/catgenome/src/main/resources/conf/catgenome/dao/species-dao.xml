@@ -37,5 +37,13 @@
                 ]]>
 			</value>
 		</property>
+
+		<property name="deleteSpeciesQuery">
+			<value>
+				<![CDATA[
+                        DELETE FROM catgenome.genome_species WHERE species_version = :SPECIES_VERSION
+                ]]>
+			</value>
+		</property>
 	</bean>
 </beans>
