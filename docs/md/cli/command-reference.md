@@ -571,6 +571,24 @@ List all species registered on NGB server.
 ngb list_spec
 ```
 
+### Delete species
+```
+ngb del_spec|ds [<SPECIES_VESRSION>] [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+Deletes a specified species from NGB server. Species is be addressed by version.
+
+*Example*
+```
+//Delete species with version "hg19"
+ngb del_spec "hg19"
+```
+
 
 ## Utility commands
 ### Sort feature file

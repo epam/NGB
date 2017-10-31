@@ -44,6 +44,8 @@ public class SpeciesDao extends NamedParameterJdbcDaoSupport {
     private String saveSpeciesQuery;
     private String loadSpeciesByVersionQuery;
     private String loadAllSpeciesQuery;
+    private String deleteSpeciesQuery;
+
 
     /**
      * Saves or updates a {@code Species} instance in the database
@@ -82,6 +84,16 @@ public class SpeciesDao extends NamedParameterJdbcDaoSupport {
         return getNamedParameterJdbcTemplate().query(loadAllSpeciesQuery, SpeciesParameters.getRowMapper());
     }
 
+    /**
+     * Deletes a persisted {@code Species} entity from the database by a specified version
+     * @param species {@code Species} to delete
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void deleteSpecies(Species species) {
+        getNamedParameterJdbcTemplate().update(deleteSpeciesQuery, SpeciesParameters.getParameters(species));
+    }
+
+
     @Required
     public void setLoadSpeciesByVersionQuery(String loadSpeciesByVersionQuery) {
         this.loadSpeciesByVersionQuery = loadSpeciesByVersionQuery;
@@ -95,6 +107,11 @@ public class SpeciesDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadAllSpeciesQuery(String loadAllSpeciesQuery) {
         this.loadAllSpeciesQuery = loadAllSpeciesQuery;
+    }
+
+    @Required
+    public void setDeleteSpeciesQuery(String deleteSpeciesQuery) {
+        this.deleteSpeciesQuery = deleteSpeciesQuery;
     }
 
     enum SpeciesParameters {

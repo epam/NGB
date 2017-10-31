@@ -413,6 +413,16 @@ public class ReferenceGenomeManager {
         return speciesDao.loadSpeciesByVersion(version);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Species unregisterSpecies(String speciesVersion) {
+        Assert.notNull(speciesVersion, MessagesConstants.ERROR_INVALID_PARAM);
+        Species species = speciesDao.loadSpeciesByVersion(speciesVersion);
+        Assert.notNull(species, MessagesConstants.ERROR_NO_SUCH_SPECIES);
+        speciesDao.deleteSpecies(species);
+
+        return species;
+    }
+
     private FeatureFile fetchFeatureFile(Long annotationFileId) {
         List<BiologicalDataItem> annotationFiles = biologicalDataItemDao.loadBiologicalDataItemsByIds(
                 Collections.singletonList(annotationFileId));

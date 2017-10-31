@@ -48,6 +48,12 @@
         <type>DELETE</type>
         <secure>true</secure>
     </delete_reference>
+    <delete_species>
+        <name>delete_species</name>
+        <url>/restapi/secure/reference/register/species?speciesVersion=%s</url>
+        <type>DELETE</type>
+        <secure>true</secure>
+    </delete_species>
     <register_file>
         <name>register_file</name>
         <url>/restapi/%s/register</url>
