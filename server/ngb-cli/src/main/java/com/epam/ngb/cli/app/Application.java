@@ -69,6 +69,8 @@ public class Application {
             + "rg\tremove_genes\t: removes a gene file from the reference\t{rg grch38}\n\n"
             + "SPECIES commands:\n"
             + "rs\treg_spec\t: register a species\t{rs \\species\\name \\species\\version}\n"
+            + "as\tadd_spec\t: adds a registered species to the reference\t{remove_spec grch38 \"hg19\"}\n"
+            + "remove_spec\t: removes a species from the reference\t{as grch38}\n"
             + "ls\tlist_spec\t: lists all species, registered on the server\t{ls}\n\n"
             + "FILE commands:\n"
             + "rf\treg_file\t: registers a feature file for a specified reference\t"

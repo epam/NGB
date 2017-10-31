@@ -174,7 +174,8 @@ public class BiologicalDataItem extends BaseEntity implements Printable<Biologic
         String idStr = String.valueOf(bioDataItemId == null ? getId() : bioDataItemId);
         return String.format(formatString, idStr, String.valueOf(getId()), getName(), type,
                 path, format.name(),
-                String.valueOf(createdBy), DATE_FORMAT.format(createdDate), species == null ? "" : species.getVersion());
+                String.valueOf(createdBy), DATE_FORMAT.format(createdDate),
+                species == null ? "" : species.getVersion());
     }
 
     /**

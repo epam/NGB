@@ -1,5 +1,28 @@
-package com.epam.catgenome.manager.bam;
+/*
+ * MIT License
+ *
+ * Copyright (c) 2017 EPAM Systems
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
+package com.epam.catgenome.manager.bam;
 
 import com.epam.catgenome.entity.bam.PSLRecord;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
@@ -15,24 +38,26 @@ import java.util.regex.Pattern;
 @Service
 public class PSLRecordParser  {
 
-    private final static int FIELDS_COUNT = 21;
-    private final static Pattern WHITESPACE = Pattern.compile("\\s+");
-    private final static String TABLE_START = "<TT><PRE>";
-    private final static String TABLE_END = "</PRE></TT>";
-    private final static int NAME_INDEX = 9;
-    private final static int CHR_INDEX = 13;
-    private final static int START_INDEX = 15;
-    private final static int END_INDEX = 16;
-    private final static int STRAND_INDEX = 8;
-    private final static int MATCH_INDEX = 0;
-    private final static int MISMATCH_INDEX = 1;
-    private final static int REPMATCH_INDEX = 2;
-    private final static int NS_INDEX = 3;
-    private final static int Q_GAP_COUNT_INDEX = 4;
-    private final static int Q_GAP_BASES_INDEX = 5;
-    private final static int T_GAP_COUNT_INDEX = 6;
-    private final static int T_GAP_BASES_INDEX = 7;
-    private final static int Q_SIZE_INDEX = 10;
+    private static final int FIELDS_COUNT = 21;
+    private static final Pattern WHITESPACE = Pattern.compile("\\s+");
+    private static final String TABLE_START = "<TT><PRE>";
+    private static final String TABLE_END = "</PRE></TT>";
+    private static final int NAME_INDEX = 9;
+    private static final int CHR_INDEX = 13;
+    private static final int START_INDEX = 15;
+    private static final int END_INDEX = 16;
+    private static final int STRAND_INDEX = 8;
+    private static final int MATCH_INDEX = 0;
+    private static final int MISMATCH_INDEX = 1;
+    private static final int REPMATCH_INDEX = 2;
+    private static final int NS_INDEX = 3;
+    private static final int Q_GAP_COUNT_INDEX = 4;
+    private static final int Q_GAP_BASES_INDEX = 5;
+    private static final int T_GAP_COUNT_INDEX = 6;
+    private static final int T_GAP_BASES_INDEX = 7;
+    private static final int Q_SIZE_INDEX = 10;
+
+    private static final float SCORE_CONSTANT = 1000.0f;
 
     public List<PSLRecord> parse(String result) throws IOException {
         List<PSLRecord> records = new ArrayList<>();
@@ -87,7 +112,7 @@ public class PSLRecordParser  {
         record.setqGapBases(Integer.parseInt(tokens[T_GAP_BASES_INDEX]));
         record.setqSize(Integer.parseInt(tokens[Q_SIZE_INDEX]));
 
-        double score = (1000.0f * (record.getMatch() + record.getRepMatch() - record.getMisMatch()
+        double score = (SCORE_CONSTANT * (record.getMatch() + record.getRepMatch() - record.getMisMatch()
                 - record.getqGapCount() - record.gettGapCount())) / record.getqSize();
         record.setScore(score);
 
