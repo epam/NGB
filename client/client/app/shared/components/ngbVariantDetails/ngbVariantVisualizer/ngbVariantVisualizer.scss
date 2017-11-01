@@ -62,3 +62,31 @@ md-radio-button.alt-single-field {
   color: #888888;
   font-size: small;
 }
+
+.visualizer-camera-panel {
+  display: block;
+  position: absolute;
+  width: 36px;
+  right: 28px;
+  margin-top: -36px;
+  top: 40%;
+  z-index: 2;
+  opacity: .25;
+
+  &:hover,
+  &:active,
+  &:focus {
+    opacity: 1;
+  }
+
+  .md-button {
+    &:hover {
+      opacity: 1;
+    }
+
+    margin: 0;
+    min-width: 0;
+    padding: 0;
+    width: 100%;
+  }
+}

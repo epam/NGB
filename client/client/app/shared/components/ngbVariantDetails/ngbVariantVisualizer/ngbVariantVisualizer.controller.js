@@ -35,7 +35,7 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
         this._scope = $scope;
         this._timeout = $timeout;
         this._service = ngbVariantVisualizerService;
-        (async() => {
+        (async () => {
             await new Promise(resolve => $timeout(resolve));
 
             this._variantRendererDiv = $($element[0]).find('#cnv')[0];
@@ -58,7 +58,7 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
 
     INIT() {
         if (this._service !== undefined && this._service !== null) {
-            (async() => {
+            (async () => {
                 if (this.variantRequest !== null && this.variantRequest !== undefined) {
                     const preAnalyzeResult = await this._service.preAnalyze(this.variantRequest);
                     if (preAnalyzeResult.error) {
@@ -71,12 +71,12 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
                         this._geneFilesLoaded = true;
                         this._geneFiles = preAnalyzeResult.geneFiles;
                         this._selectedGeneFile = preAnalyzeResult.selectedGeneFile;
-                        this._scope.$watch('ctrl._variantVisualizerData.selectedAltField', ()=> {
+                        this._scope.$watch('ctrl._variantVisualizerData.selectedAltField', () => {
                             if (this.variantRenderer !== null && this.variantRenderer !== undefined) {
                                 this.variantRenderer.variantSubFeatureChanged();
                             }
                         });
-                        this._scope.$watch('ctrl._highlightBreakpoints', ()=> {
+                        this._scope.$watch('ctrl._highlightBreakpoints', () => {
                             if (this.variantRenderer !== null && this.variantRenderer !== undefined) {
                                 this.variantRenderer.options = {
                                     highlightBreakpoints: this._highlightBreakpoints
@@ -84,7 +84,7 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
                                 this.variantRenderer.reRenderScene(true);
                             }
                         });
-                        this._scope.$watch('ctrl._selectedGeneFile', ()=> {
+                        this._scope.$watch('ctrl._selectedGeneFile', () => {
                             this.getVariantVisualizerData();
                         });
                     }
@@ -95,7 +95,7 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
     }
 
     getVariantVisualizerData() {
-        (async() => {
+        (async () => {
             if (this.variantRequest !== null && this.variantRequest !== undefined) {
                 if (!this._variantVisualizerData || this._variantVisualizerData.geneFile !== this._selectedGeneFile) {
                     this._loaded = false;
@@ -124,7 +124,7 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
 
     affectedGeneChanged(breakpoint, gene) {
         breakpoint.affectedGene = gene;
-        (async() => {
+        (async () => {
             if (this._variantVisualizerData) {
                 this._variantVisualizerData = this._service.rebuildStructuralVariantVisualizerData(this._variantVisualizerData);
                 await new Promise(resolve => this._timeout(resolve));
@@ -149,7 +149,7 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
     }
 
     affectedGeneTranscriptChanged(transcript) {
-        (async() => {
+        (async () => {
             if (this._variantVisualizerData) {
                 this._variantVisualizerData = this._service.changeAffectedTranscript(this._variantVisualizerData, transcript);
                 await new Promise(resolve => this._timeout(resolve));
@@ -213,4 +213,41 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
         }
     }
 
+    saveVisualizerView() {
+        if (this.variantRenderer !== null && this.variantRenderer !== undefined) {
+            var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("version", 1.1);
+            svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+            svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
+            svg.setAttribute("width", this.variantRenderer.width);
+            svg.setAttribute("height", this.variantRenderer.height);
+
+            var svgImage = document.createElementNS("http://www.w3.org/2000/svg", "image");
+            svgImage.setAttribute("width", this.variantRenderer.width);
+            svgImage.setAttribute("height", this.variantRenderer.height);
+            svgImage.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", this.variantRenderer.canvasElement.querySelector('canvas').toDataURL());
+
+            svg.appendChild(svgImage);
+
+            var serializer = new XMLSerializer();
+            var source = serializer.serializeToString(svg);
+
+            if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+                source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+            }
+            if (!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)) {
+                source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+            }
+
+            source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+            var url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+
+            Object.assign(document.createElement('a'), {
+                download: `viariation.svg`,
+                name: `viariation.svg`,
+                href: url
+            }).click();
+        }
+    }
 }

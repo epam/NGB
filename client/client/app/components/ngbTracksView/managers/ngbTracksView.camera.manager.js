@@ -44,7 +44,6 @@ export default class ngbTracksViewBookmarkCamera {
     }
 
     _downloadPNGView(data) {
-        debugger;
         if (data && data.length > 0) {
 
             const canvas = this._getPureCanvas(data);
@@ -72,7 +71,6 @@ export default class ngbTracksViewBookmarkCamera {
     }
 
     _downloadSVGView(data) {
-        debugger;
         if (data && data.length > 0) {
             const width = this._getCanvasWidth(data);
             const height = this._getCanvasHeight(data);
