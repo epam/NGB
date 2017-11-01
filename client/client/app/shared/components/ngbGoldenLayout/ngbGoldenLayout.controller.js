@@ -52,8 +52,7 @@ export default class ngbGoldenLayoutController extends baseController {
         'ngbFilter:change': ::this.panelRemoveExtraWindows,
         'reference:change': ::this.panelRemoveExtraWindows,
         'read:show:mate': ::this.panelAddBrowserWithPairRead,
-        //todo implement
-        //'read:show:blat': ::this.panelAddBlatSearchPanel,
+        'read:show:blat': ::this.panelAddBlatSearchPanel,
         'variant:show:pair': ::this.panelAddBrowserWithVariation
     };
 
@@ -294,6 +293,17 @@ export default class ngbGoldenLayoutController extends baseController {
         } else {
             this.addGLItemByPosition(newItem);
         }
+    }
+
+    panelAddBlatSearchPanel(event: PairReadInfo){
+        const panelItem = {
+            panel: 'ngbLog',
+            position: 'right',
+            title: 'Blat',
+            name: 'layout>blatSearch'
+        };
+        let glItem = this.service.createItem(panelItem);
+        this.addGLItemByPosition(glItem);
     }
 
     addGLItemByPosition(newItem) {
