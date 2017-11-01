@@ -52,6 +52,8 @@ export default class ngbGoldenLayoutController extends baseController {
         'ngbFilter:change': ::this.panelRemoveExtraWindows,
         'reference:change': ::this.panelRemoveExtraWindows,
         'read:show:mate': ::this.panelAddBrowserWithPairRead,
+        //todo implement
+        //'read:show:blat': ::this.panelAddBlatSearchPanel,
         'variant:show:pair': ::this.panelAddBrowserWithVariation
     };
 
