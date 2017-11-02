@@ -39,6 +39,7 @@ import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
 import com.epam.ngb.cli.entity.Project;
 import com.epam.ngb.cli.entity.RequestPayload;
 import com.epam.ngb.cli.entity.ResponseResult;
+import com.epam.ngb.cli.entity.SpeciesEntity;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -460,6 +461,36 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
                 throw new ApplicationException(responseResult.getMessage());
             } else {
                 return responseResult.getPayload();
+            }
+        } catch (IOException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Checks that species registration request completed successfully,
+     * serializes a request result to an {@code {@link SpeciesEntity}} object and prints it
+     * to StdOut, id it's required by the print options
+     * @param result of a registration result
+     * @param printJson if true, result wil be printed in Json format
+     * @param printTable if true, result wil be printed in table format
+     */
+    protected void checkAndPrintSpeciesResult(String result, boolean printJson, boolean printTable) {
+        try {
+            ResponseResult<SpeciesEntity> responseResult = getMapper().readValue(result,
+                    getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                            SpeciesEntity.class));
+            if (ERROR_STATUS.equals(responseResult.getStatus())) {
+                throw new ApplicationException(responseResult.getMessage());
+            } else {
+                if (printJson || printTable) {
+                    List<SpeciesEntity> items =
+                            Collections.singletonList(responseResult.getPayload());
+                    AbstractResultPrinter printer = AbstractResultPrinter.getPrinter(printTable,
+                            items.get(0).getFormatString(items));
+                    printer.printHeader(items.get(0));
+                    items.forEach(printer::printItem);
+                }
             }
         } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);

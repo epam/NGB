@@ -53,8 +53,6 @@ public class SpeciesDao extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public Species saveSpecies(Species species) {
-        Assert.isTrue(StringUtils.isNotBlank(species.getName()));
-        Assert.isTrue(StringUtils.isNotBlank(species.getVersion()));
         getNamedParameterJdbcTemplate().update(saveSpeciesQuery, SpeciesParameters.getParameters(species));
         return species;
     }
