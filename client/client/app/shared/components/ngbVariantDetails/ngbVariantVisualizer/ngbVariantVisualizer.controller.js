@@ -30,11 +30,12 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
     _highlightBreakpoints = true;
 
     /* @ngInject */
-    constructor($scope, $element, vcfDataService, constants, $timeout, ngbVariantVisualizerService) {
+    constructor($scope, $element, vcfDataService, constants, $timeout, ngbVariantVisualizerService, projectContext) {
         super($scope, vcfDataService, constants);
         this._scope = $scope;
         this._timeout = $timeout;
         this._service = ngbVariantVisualizerService;
+        this.projectContext = projectContext;
         (async () => {
             await new Promise(resolve => $timeout(resolve));
 
@@ -242,10 +243,13 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
             source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
 
             var url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+            const reference = this.projectContext.reference;
+            const startIndex = this._variantVisualizerData.variantInfo.startIndex;
+            const endIndex = this._variantVisualizerData.variantInfo.endIndex;
 
             Object.assign(document.createElement('a'), {
-                download: `viariation.svg`,
-                name: `viariation.svg`,
+                download: `NGB_Variation_${reference.name}_${startIndex}_${endIndex}.svg`,
+                name: `NGB_Variation_${reference.name}_${startIndex}_${endIndex}.svg`,
                 href: url
             }).click();
         }
