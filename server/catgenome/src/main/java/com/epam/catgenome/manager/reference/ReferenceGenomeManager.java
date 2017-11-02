@@ -349,7 +349,7 @@ public class ReferenceGenomeManager {
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
         if (speciesVersion != null) {
             final Species species = speciesDao.loadSpeciesByVersion(speciesVersion);
-            Assert.notNull(species, getMessage(MessageCode.NO_SUCH_SPECIES));
+            Assert.notNull(species, getMessage(MessageCode.NO_SUCH_SPECIES, speciesVersion));
         }
 
         referenceGenomeDao.updateSpecies(referenceId, speciesVersion);
@@ -409,6 +409,11 @@ public class ReferenceGenomeManager {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public Species registerSpecies(Species species) {
+        Assert.isTrue(!StringUtils.isEmpty(species.getName()));
+        Assert.isTrue(!StringUtils.isEmpty(species.getVersion()));
+        Species registeredSpecies = speciesDao.loadSpeciesByVersion(species.getVersion());
+        Assert.isNull(registeredSpecies,
+                getMessage(MessagesConstants.ERROR_SPECIES_EXISTS, species.getVersion()));
         return speciesDao.saveSpecies(species);
     }
 
@@ -426,7 +431,7 @@ public class ReferenceGenomeManager {
     public Species unregisterSpecies(String speciesVersion) {
         Assert.notNull(speciesVersion, MessagesConstants.ERROR_INVALID_PARAM);
         Species species = speciesDao.loadSpeciesByVersion(speciesVersion);
-        Assert.notNull(species, MessagesConstants.ERROR_NO_SUCH_SPECIES);
+        Assert.notNull(species, getMessage(MessagesConstants.ERROR_NO_SUCH_SPECIES, speciesVersion));
         speciesDao.deleteSpecies(species);
 
         return species;

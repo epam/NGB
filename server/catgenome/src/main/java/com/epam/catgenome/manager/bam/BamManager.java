@@ -232,7 +232,8 @@ public class BamManager {
                 MessagesConstants.ERROR_NULL_PARAM);
         BamFile bamFile = bamFileManager.loadBamFile(bamTrackId);
         Reference reference = referenceGenomeManager.loadReferenceGenome(bamFile.getReferenceId());
-        Assert.notNull(reference.getSpecies(), MessagesConstants.NULL_SPECIES_FOR_GENOME);
+        Assert.notNull(reference.getSpecies(),
+                getMessage(MessagesConstants.NULL_SPECIES_FOR_GENOME, reference.getName()));
 
         return blatSearchManager.find(readSequence, reference.getSpecies());
     }

@@ -83,7 +83,7 @@ public class SpeciesRegistrationHandler extends AbstractHTTPCommandHandler {
         RegistrationRequest registration = new RegistrationRequest();
         registration.setSpecies(entity);
         String result = getPostResult(registration, (HttpPost) request);
-        checkAndPrintRegistrationResult(result, printJson, printTable);
+        checkAndPrintSpeciesResult(result, printJson, printTable);
         return 0;
     }
 }
