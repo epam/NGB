@@ -3,6 +3,7 @@ import ngbVariantVisualizerService from './ngbVariantVisualizer.service';
 import {VariantRenderer} from '../../../../../modules/render';
 import Tether from 'tether';
 import $ from 'jquery';
+import {SVG} from '../../../utils/svg';
 
 export default class ngbVariantVisualizerController extends ngbVariantDetailsController {
     static get UID() {
@@ -216,33 +217,10 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
 
     saveVisualizerView() {
         if (this.variantRenderer !== null && this.variantRenderer !== undefined) {
-            var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-            svg.setAttribute("version", 1.1);
-            svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-            svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
-            svg.setAttribute("width", this.variantRenderer.width);
-            svg.setAttribute("height", this.variantRenderer.height);
+            let svg = new SVG(this.variantRenderer.width, this.variantRenderer.height);
+            svg.addImage(this.variantRenderer.width, this.variantRenderer.height, this.variantRenderer.canvasElement.querySelector('canvas').toDataURL());
+            let url = svg.getUrl();
 
-            var svgImage = document.createElementNS("http://www.w3.org/2000/svg", "image");
-            svgImage.setAttribute("width", this.variantRenderer.width);
-            svgImage.setAttribute("height", this.variantRenderer.height);
-            svgImage.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", this.variantRenderer.canvasElement.querySelector('canvas').toDataURL());
-
-            svg.appendChild(svgImage);
-
-            var serializer = new XMLSerializer();
-            var source = serializer.serializeToString(svg);
-
-            if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
-                source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
-            }
-            if (!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)) {
-                source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
-            }
-
-            source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
-
-            var url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
             const reference = this.projectContext.reference;
             const startIndex = this._variantVisualizerData.variantInfo.startIndex;
             const endIndex = this._variantVisualizerData.variantInfo.endIndex;
