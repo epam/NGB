@@ -269,7 +269,8 @@ public class ReferenceController extends AbstractRESTController {
             notes = "Delete all information about this species by it`s version.")
     public Result<Boolean> unregisterSpecies(@RequestParam String speciesVersion) throws IOException {
         Species species = referenceGenomeManager.unregisterSpecies(speciesVersion);
-        return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, species.getName()));
+        return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTERED_SPECIES, species.getName(),
+                species.getVersion()));
     }
 
     @ResponseBody
