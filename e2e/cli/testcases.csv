@@ -177,3 +177,10 @@
 [positive] Set server (check that server is really changed),set_srv http://localhost:8081/catgenome,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa,set_srv http://localhost:8080/catgenome,,.*ERROR.*Failed to execute a request.*
 [negative] Set server with wrong number of args,,set_srv http://localhost:8081/catgenome bam.bam,set_srv http://localhost:8080/catgenome,,.*ERROR.*Wrong number of arguments.*
 #FAILS [negative] Set server with wrong server format,,set_srv abra-cadabra,set_srv http://localhost:8080/catgenome,ERROR.*
+
+@Species
+[positive] Species Registration,,rs human hg19 -j,ds hg19,.*"name":"human".+"version":"hg19".*
+[negative] Species Registration {species already registred},rs human hg19,rs human hg19,del_spec hg19,,.*Species with version 'hg19' already exists.*
+[positive] Species Deletion,rs human hg19,del_spec hg19,,.*Species 'human' with version 'hg19' has been successfully unregistered.*
+[positive] Add Species To Reference,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa;rs human hg19,add_spec dmel-all-chromosome-r6.06.cutted hg19 -j,dr dmel-all-chromosome-r6.06.cutted;del_spec hg19,.*"id":.+"name":"dmel-all-chromosome-r6.06.cutted".+"type":"FILE".+"format":"REFERENCE".+"name":"human".+"version":"hg19".*
+[positive] Remove Species From Reference,rr $resourcePath/dmel-all-chromosome-r6.06.cutted.fa;rs human hg19;add_spec dmel-all-chromosome-r6.06.cutted hg19,remove_spec dmel-all-chromosome-r6.06.cutted -j,dr dmel-all-chromosome-r6.06.cutted;del_spec hg19,.*"id":.+"name":"dmel-all-chromosome-r6.06.cutted".+"type":"FILE".+"format":"REFERENCE".*
