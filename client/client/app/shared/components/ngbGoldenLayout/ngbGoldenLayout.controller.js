@@ -14,7 +14,8 @@ export default class ngbGoldenLayoutController extends baseController {
         ngbBrowser: 'ngbBrowser',
         ngbTracksView: 'ngbTracksView',
         ngbVariations: 'ngbVariantsTablePanel',
-        ngbDataSets: 'ngbDataSets'
+        ngbDataSets: 'ngbDataSets',
+        ngbLog: 'ngbLog'
     };
     eventsNotForShareFromParent = ['layout:panels:displayed', 'layout:restore:default', 'layout:load',
         'layout:item:change', 'ngbFilter:setDefault'];
@@ -24,7 +25,7 @@ export default class ngbGoldenLayoutController extends baseController {
     projectContext;
     ngbViewActions;
 
-    constructor($scope, $compile, $window, $element, $timeout, dispatcher, ngbGoldenLayoutService, GoldenLayout, projectContext, ngbViewActionsConstant) {
+    constructor($scope, $compile, $window, $element, $timeout, dispatcher, ngbGoldenLayoutService, GoldenLayout, projectContext, ngbViewActionsConstant, bamDataService) {
         super(dispatcher);
         Object.assign(this, {
             $compile,
@@ -33,6 +34,7 @@ export default class ngbGoldenLayoutController extends baseController {
             GoldenLayout,
             dispatcher,
             projectContext,
+            bamDataService,
             ngbViewActions: ngbViewActionsConstant
         });
         this.$element = $element.find('[ngb-golden-layout-container]');
@@ -103,10 +105,10 @@ export default class ngbGoldenLayoutController extends baseController {
 
             stack.on('activeContentItemChanged', (contentItem) => {
                 childScope.viewName = contentItem.config.componentState.panel;
-                if(contentItem.config.componentState.panel === this.panels.ngbVariations) {
+                if (contentItem.config.componentState.panel === this.panels.ngbVariations) {
                     this.dispatcher.emit('activeVariants');
                 }
-                if(contentItem.config.componentState.panel === this.panels.ngbDataSets) {
+                if (contentItem.config.componentState.panel === this.panels.ngbDataSets) {
                     this.dispatcher.emit('activeDataSets');
                 }
             });
@@ -138,7 +140,7 @@ export default class ngbGoldenLayoutController extends baseController {
         const handledPattern = new RegExp(/^layout>([\w-]*)$/);
         const testResult = handledPattern.exec(event);
         if (testResult) {
-            const [,panelName]=testResult;
+            const [, panelName] = testResult;
             if (panelName && this.service.layout.Panels[panelName]) {
                 const panelItem = this.service.layout.Panels[panelName];
 
@@ -295,15 +297,44 @@ export default class ngbGoldenLayoutController extends baseController {
         }
     }
 
-    panelAddBlatSearchPanel(event: PairReadInfo){
+    panelAddBlatSearchPanel(event) {
+        //change ngbLog to new component
         const panelItem = {
             panel: 'ngbLog',
             position: 'right',
             title: 'Blat',
             name: 'layout>blatSearch'
         };
-        let glItem = this.service.createItem(panelItem);
-        this.addGLItemByPosition(glItem);
+
+        const [blatSearchItem] = this.goldenLayout.root
+            .getItemsByFilter((obj) => obj.config && obj.config.componentState
+            && obj.config.componentState.panel === this.panels.ngbLog);
+
+        if (!blatSearchItem) {
+            //move to new component
+            const payload = {
+                id: event.id,
+                chromosomeId: event.chromosomeId,
+                startIndex: event.startIndex,
+                endIndex: event.endIndex,
+                name: event.name,
+                openByUrl: event.openByUrl,
+                file: event.file,
+                index: event.index
+            };
+            this.bamDataService.loadRead(payload).then((read) => {
+                this.bamDataService.getBlatSearchResults(event.id, read.sequence).then((data) => {
+                    //console.log(data);
+                })
+            });
+
+            this.panelAdd(panelItem);
+        } else {
+            const parent = blatSearchItem.parent;
+            if (parent && parent.type === 'stack') {
+                parent.setActiveContentItem(blatSearchItem);
+            }
+        }
     }
 
     addGLItemByPosition(newItem) {
