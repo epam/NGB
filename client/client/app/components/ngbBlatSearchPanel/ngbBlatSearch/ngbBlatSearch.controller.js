@@ -1,0 +1,176 @@
+import  baseController from '../../../shared/baseController';
+
+const ROW_HEIGHT = 35;
+
+export default class ngbBlatSearchController extends baseController {
+
+    static get UID() {
+        return 'ngbBlatSearchController';
+    }
+
+
+    projectContext;
+    blatSearchMessages;
+
+    isProgressShown = true;
+    errorMessageList = [];
+    blatSearchLoadError = null;
+
+    read = null;
+
+    readSequence = null;
+
+    gridOptions = {
+        infiniteScrollRowsFromEnd: 10,
+        infiniteScrollUp: true,
+        infiniteScrollDown: true,
+        enableFiltering: false,
+        enableGridMenu: false,
+        enableHorizontalScrollbar: 0,
+        enablePinning: false,
+        enableRowHeaderSelection: false,
+        enableRowSelection: true,
+        headerRowHeight: 20,
+        height: '100%',
+        multiSelect: false,
+        rowHeight: ROW_HEIGHT,
+        showHeader: true,
+        treeRowHeaderAlwaysVisible: false,
+        saveWidths: true,
+        saveOrder: true,
+        saveScroll: false,
+        saveFocus: false,
+        saveVisible: true,
+        saveSort: true,
+        saveFilter: false,
+        savePinning: true,
+        saveGrouping: false,
+        saveGroupingExpandedStates: false,
+        saveTreeView: false,
+        saveSelection: false
+    };
+
+    constructor($scope, $timeout, blatSearchMessages, blatSearchService, uiGridConstants, dispatcher, bamDataService, projectContext, GoldenLayout) {
+        super();
+
+        Object.assign(this, {
+            $scope,
+            $timeout,
+            dispatcher,
+            projectContext,
+            uiGridConstants,
+            blatSearchMessages,
+            blatSearchService,
+            bamDataService,
+            GoldenLayout
+        });
+
+        this.initEvents();
+    }
+
+    events = {
+        'reference:change': ::this.initialize,
+        'read:show:blat': ::this.initialize,
+    };
+
+    async $onInit() {
+        await this.initialize();
+    }
+
+    get isReadSelected() {
+        return !!this.blatSearchService.blatRequest;
+    }
+
+    async initialize() {
+        this.errorMessageList = [];
+        if (this.isReadSelected) {
+            this.isProgressShown = true;
+            this.blatSearchLoadError = null;
+            Object.assign(this.gridOptions, {
+                appScopeProvider: this.$scope,
+                columnDefs: this.blatSearchService.getBlatSearchGridColumns([], []),
+                onRegisterApi: (gridApi) => {
+                    this.gridApi = gridApi;
+                    this.gridApi.core.handleWindowResize();
+                    this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
+                }
+            });
+            await this.loadData();
+
+            this.$timeout(this.$scope.$apply());
+        } else {
+            this.blatSearchLoadError = null;
+            this.isProgressShown = false;
+            this.gridOptions.columnDefs = [];
+
+            this.$timeout(this.$scope.$apply());
+        }
+    }
+
+    async loadData() {
+        try {
+            if (!this.projectContext.reference) {
+                this.isProgressShown = false;
+                this.blatSearchLoadError = null;
+                return;
+            }
+            await this.blatSearchLoadingFinished();
+        }
+        catch (errorObj) {
+            this.onError(errorObj.message);
+        }
+    }
+
+    onError(message) {
+        this.errorMessageList.push(message);
+    }
+
+    async blatSearchLoadingFinished() {
+        if (!this.projectContext.reference) {
+            this.gridOptions.columnDefs = [];
+            return;
+        }
+
+        this.blatSearchLoadError = null;
+        this.gridOptions.columnDefs = this.blatSearchService.getBlatSearchGridColumns();
+        this.gridOptions.data = await this.blatSearchService.getBlatSearchResults();
+        this.readSequence = this.blatSearchService.readSequence;
+
+        if(this.gridOptions.data.length) {
+            this.blatSearchLoadError = null;
+        } else {
+            this.blatSearchLoadError = this.blatSearchMessages.ErrorMessage.EmptySearchResults;
+        }
+
+        this.isProgressShown = false;
+    }
+
+    rowClick(row) {
+        const entity = row.entity;
+        const chromosomeName = `${entity.chr.slice(3)}`.toLowerCase();
+        const chromosome = this.projectContext.currentChromosome ?
+            this.projectContext.currentChromosome.name : null;
+
+        let addition = (entity.endIndex - entity.startIndex) * 0.1;
+
+        if (chromosome !== chromosomeName) {
+            this.projectContext.changeState({
+                chromosome: {
+                    name: chromosomeName
+                },
+                viewport: {
+                    start: entity.startIndex - addition,
+                    end: entity.endIndex + addition,
+                }
+            });
+        }
+        else {
+            this.projectContext.changeState({
+                viewport: {
+                    start: entity.startIndex - addition,
+                    end: entity.endIndex + addition,
+                }
+            });
+        }
+    }
+}

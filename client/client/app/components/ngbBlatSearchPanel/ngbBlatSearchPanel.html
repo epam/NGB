@@ -1,0 +1,14 @@
+<div layout="row" class="u-height__full">
+    <div layout="column" flex>
+        <md-content flex>
+            <div ng-if="$ctrl.isProgressShown">
+                <div class="progress" layout-align="center center">
+                    <span>Loading BLAT Search results...</span>
+                </div>
+                <md-progress-linear md-mode="query"></md-progress-linear>
+            </div>
+            <ngb-blat-search is-progress-shown="$ctrl.isProgressShown"></ngb-blat-search>
+        </md-content>
+    </div>
+</div>
+
