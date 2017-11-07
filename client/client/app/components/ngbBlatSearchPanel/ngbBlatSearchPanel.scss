@@ -1,0 +1,34 @@
+.md-label {
+  &.variation-type {
+    display: block;
+    line-height: 13px;
+    font-size: 12px;
+    padding: 3px;
+    margin: 0 10px;
+    align-self: center;
+    min-width: 35px;
+  }
+}
+
+.z-index-more {
+  z-index: 9999;
+}
+
+.for-md-tooltip-work {
+  pointer-events: auto
+}
+
+.md-icon-button {
+  md-icon.icon-info {
+    margin-top: 3px;
+    height: 14px;
+    min-height: 14px;
+    width: 24px;
+    min-width: 24px;
+  }
+}
+.filters-not-displayed {
+  .variant-column-filtered {
+    background-color: #dcffe7;
+  }
+}

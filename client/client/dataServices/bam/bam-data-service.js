@@ -293,7 +293,7 @@ export class BamDataService extends DataService {
     getBlatSearchResults(bamTrackId, readSequence){
         const payload = {
             readSequence: readSequence
-        }
+        };
         return this.post(`bam/read/blat?bamTrackId=${encodeURIComponent(bamTrackId)}`, payload);
     }
 }
