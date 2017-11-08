@@ -92,7 +92,10 @@ export default class ngbBlatSearchController extends baseController {
                 onRegisterApi: (gridApi) => {
                     this.gridApi = gridApi;
                     this.gridApi.core.handleWindowResize();
+                    this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
                     this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
+                    this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
+                    this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
                 }
             });
             await this.loadData();
@@ -172,5 +175,51 @@ export default class ngbBlatSearchController extends baseController {
                 }
             });
         }
+    }
+
+    sortChanged(grid, sortColumns) {
+        this.saveColumnsState();
+        if (sortColumns && sortColumns.length > 0) {
+            this.blatSearchService.orderBy = sortColumns.map(sc => {
+                return {
+                    field: sc.field,
+                    desc: sc.sort.direction === 'desc'
+                };
+            });
+        } else {
+            this.blatSearchService.orderBy = null;
+        }
+    }
+
+    saveColumnsState() {
+        if (!this.gridApi) {
+            return;
+        }
+        const {columns} = this.gridApi.saveState.save();
+        const mapNameToField = function ({name}) {
+            return (name.charAt(0).toLowerCase() + name.slice(1)).replace(/[\s\n\t]/g, '');
+        };
+        const orders = columns.map(mapNameToField);
+        const r = [];
+        const names = this.blatSearchService.blatColumns;
+        for (let i = 0; i < names.length; i++) {
+            const name = names[i];
+            if (orders.indexOf(name) >= 0) {
+                r.push(1);
+            } else {
+                r.push(0);
+            }
+        }
+        let index = 0;
+        const result = [];
+        for (let i = 0; i < r.length; i++) {
+            if (r[i] === 1) {
+                result.push(orders[index]);
+                index++;
+            } else {
+                result.push(names[i]);
+            }
+        }
+        this.blatSearchService.blatColumns = result;
     }
 }
