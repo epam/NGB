@@ -57,6 +57,7 @@ export default class ngbGoldenLayoutController extends baseController {
         'reference:change': ::this.panelRemoveExtraWindows,
         'read:show:mate': ::this.panelAddBrowserWithPairRead,
         'read:show:blat': ::this.panelAddBlatSearchPanel,
+        'tracks:state:change': ::this.panelRemoveBlatSearchPanel,
         'variant:show:pair': ::this.panelAddBrowserWithVariation
     };
 
@@ -302,15 +303,23 @@ export default class ngbGoldenLayoutController extends baseController {
         }
     }
 
+    panelRemoveBlatSearchPanel(event) {
+        let savedBlatRequest = JSON.parse(localStorage.getItem('blatSearchRequest')) || null;
+
+        if(!savedBlatRequest) return;
+
+        let [currentBlatSearchBamTrack] = this.projectContext.tracks.filter( t => t.format === 'BAM' && t.id === savedBlatRequest.id);
+
+        if(!currentBlatSearchBamTrack) {
+            localStorage.removeItem('blatSearchRequest');
+            localStorage.removeItem('blatColumns');
+            this.panelRemove(this.appLayout.Panels.blat);
+        }
+    }
+
     panelAddBlatSearchPanel(event) {
         let layoutChange = this.appLayout.Panels.blat;
         layoutChange.displayed = true;
-/*
-        this.dispatcher.emitEvent([{
-                data: {layoutChange: layoutChange},
-                name: 'layout:item:change'
-            }]);
-*/
 
         const [blatSearchItem] = this.goldenLayout.root
             .getItemsByFilter((obj) => obj.config && obj.config.componentState
