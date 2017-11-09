@@ -288,6 +288,14 @@ export default class ngbApiService {
 
     }
 
+    setToken(token){
+        localStorage.setItem('token', token);
+        return {
+            message: 'Ok',
+            isSuccessful: true
+        };
+    }
+
     _processTracks(tracks, chosenReference) {
         let errors = [], selectedItems;
 

@@ -31,6 +31,10 @@ Force switch reference:&nbsp;
     </select>
     <input type="button" id="setTrackSettings" value="setTrackSettings">
 </p>
+<p>
+    <input type="text" id="token" value="" placeholder="token">
+    <input type="button" id="setToken" value="setToken">&nbsp;
+</p>
 <iframe height="90%" width="100%" id="ngbIframe" src="http://localhost:8080/#"></iframe>
 <script type="text/javascript">
     var dataSetId = document.getElementById('dataSetId'),
@@ -51,6 +55,9 @@ Force switch reference:&nbsp;
         trackSettings = document.getElementById('trackSettings'),
         typeTrackSelect = document.getElementById('typeTrack'),
         btnSetTrackSettings = document.getElementById('setTrackSettings'),
+
+        token = document.getElementById('token'),
+        btnSetToken = document.getElementById('setToken'),
 
         iframe = document.getElementById('ngbIframe');
 
@@ -170,6 +177,14 @@ Force switch reference:&nbsp;
             params: trackSettings.value ? JSON.parse(trackSettings.value) : null
         }, "*");
     };
+
+    btnSetToken.onclick = function () {
+        iframe.contentWindow.postMessage({
+            callerId: guid(),
+            method: "setToken",
+            params: {token: token.value}
+        }, "*");
+    }
 
     typeTrackSelect.onchange = function () {
         switch (typeTrackSelect.value) {

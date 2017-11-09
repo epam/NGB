@@ -74,6 +74,7 @@ This example demonstrates major capabilities of a JS API
 * [navigateToCoordinate](#navigatetocoordinate)
 * [setGlobalSettings](#setglobalsettings)
 * [setTrackSettings](#settracksettings)
+* [setToken](#settoken)
 
 ### loadDataSet
 
@@ -300,4 +301,25 @@ The object to be passed to NGB window:
 | | **Gene  track** |
 | ```{name: "gene>transcript>collapsed"}, {name: "gene>transcript>expanded"}``` | Transcript View <br> "gene>transcript>collapsed" - Collapsed <br> "gene>transcript>expanded" - Expanded  <br>  |  |
 | ```{name: "shortenIntrons", value: true}``` | Shorten introns |  |
+
+### setToken
+
+Set value of a token item in a localStorage.
+
+Token will be added into HTTP header `Authorization` with value `Bearer {params.token}`
+
+The object to be passed to NGB window:
+
+```javascript
+{
+    //some unique identifier that will be in returned object
+    callerId: "unique string",
+    //method name
+    method: "setToken",
+    //coordinates string
+    params: {
+        token: token
+    }
+}
+```
 

@@ -128,6 +128,17 @@ export default class ngbAppController extends baseController {
                     }, callerId);
                 }
                 break;
+            case "setToken":
+                const token = event.data.params && event.data.params.token ? event.data.params.token : null;
+                if (token) {
+                    this._apiResponse(this.apiService.setToken(token), callerId);
+                } else {
+                    this._apiResponse({
+                        message: `Api error: setToken wrong param ${JSON.stringify(event.data.params)}`,
+                        isSuccessful: false
+                    }, callerId);
+                }
+                break;
             default:
                 this._apiResponse({
                     message: 'Api error: No such method.',
