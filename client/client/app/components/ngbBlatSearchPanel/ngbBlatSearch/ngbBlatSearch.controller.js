@@ -19,9 +19,6 @@ export default class ngbBlatSearchController extends baseController {
     readSequence = null;
 
     gridOptions = {
-        infiniteScrollRowsFromEnd: 10,
-        infiniteScrollUp: true,
-        infiniteScrollDown: true,
         enableFiltering: false,
         enableGridMenu: false,
         enableHorizontalScrollbar: 0,
@@ -48,7 +45,7 @@ export default class ngbBlatSearchController extends baseController {
         saveSelection: false
     };
 
-    constructor($scope, $timeout, blatSearchMessages, blatSearchService, uiGridConstants, dispatcher, projectContext) {
+    constructor($scope, $timeout, blatSearchMessages, blatSearchService, dispatcher, projectContext) {
         super();
 
         Object.assign(this, {
@@ -56,7 +53,6 @@ export default class ngbBlatSearchController extends baseController {
             $timeout,
             dispatcher,
             projectContext,
-            uiGridConstants,
             blatSearchMessages,
             blatSearchService
         });
@@ -111,6 +107,7 @@ export default class ngbBlatSearchController extends baseController {
             if (!this.projectContext.reference) {
                 this.isProgressShown = false;
                 this.blatSearchLoadError = null;
+                this.gridOptions.columnDefs = [];
                 return;
             }
             await this.blatSearchLoadingFinished();
@@ -125,11 +122,6 @@ export default class ngbBlatSearchController extends baseController {
     }
 
     async blatSearchLoadingFinished() {
-        if (!this.projectContext.reference) {
-            this.gridOptions.columnDefs = [];
-            return;
-        }
-
         this.blatSearchLoadError = null;
         this.gridOptions.columnDefs = this.blatSearchService.getBlatSearchGridColumns();
         this.gridOptions.data = await this.blatSearchService.getBlatSearchResults();

@@ -1,6 +1,6 @@
 <div layout="column">
     <div role="columnheader"
-         ng-class="{'sortable': sortable, 'variant-column-filtered': col.colDef.filterApplied()}"
+         ng-class="{'sortable': sortable}"
          ui-grid-one-bind-aria-labelledby-grid="col.uid + '-header-text ' + col.uid + '-sortdir-text'"
          aria-sort="{{col.sort.direction == asc ? 'ascending' : ( col.sort.direction == desc ? 'descending' : (!col.sort.direction ? 'none' : 'other'))}}"
          flex>
@@ -8,7 +8,7 @@
             <md-button  tabindex="0" class="ui-grid-cell-contents ui-grid-header-cell-primary-focus"
                         col-index="renderIndex"
             >
-                <span class="ui-grid-header-cell-label" ui-grid-one-bind-id-grid="col.uid + '-header-text'">{{ col.displayName CUSTOM_FILTERS }}</span>
+                <span class="ui-grid-header-cell-label" ui-grid-one-bind-id-grid="col.uid + '-header-text'">{{ col.displayName }}</span>
                 <span ui-grid-one-bind-id-grid="col.uid +'-sortdir-text'" ui-grid-visible="col.sort.direction"
                       aria-label="{{getSortDirectionAriaLabel()}}">
 
@@ -25,8 +25,6 @@
                  ui-grid-one-bind-aria-label="i18n.headerCell.aria.columnMenuButtonLabel" aria-haspopup="true">
                 <i class="ui-grid-icon-angle-down" aria-hidden="true">&nbsp;</i>
             </div>
-            <div ui-grid-filter ng-class="{'enabled-filter': grid.options.enableFiltering}"></div>
         </div>
     </div>
-    <ngb-blat-search-filter column="col"></ngb-blat-search-filter>
 </div>
