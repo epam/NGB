@@ -18,13 +18,14 @@ export default class ngbBlatSearchService {
     _detailedRead = null;
     _columnsWidth = { 'chr' : 45, 'startIndex' : 110, 'endIndex' : 110, 'strand' : 90, 'score' : 120 };
     bamDataService;
+    uiGridConstants;
 
     constructor(uiGridConstants, bamDataService) {
         Object.assign(this, {uiGridConstants, bamDataService});
     }
 
     get blatColumns() {
-        if (localStorage.getItem('blatColumns') === null || localStorage.getItem('blatColumns') === undefined) {
+        if (!localStorage.getItem('blatColumns')) {
             localStorage.setItem('blatColumns', JSON.stringify(DEFAULT_BLAT_COLUMNS));
         }
         let columns = JSON.parse(localStorage.getItem('blatColumns'));
@@ -106,7 +107,7 @@ export default class ngbBlatSearchService {
             let sortDirection = 0;
             if(this.orderBy) {
                 const currentOrderByField = this.orderBy[0].field;
-                const currentOrderByDirection = this.orderBy[0].desc ? 'desc' : 'asc';
+                const currentOrderByDirection = this.orderBy[0].desc ? this.uiGridConstants.DESC : this.uiGridConstants.ASC;
                 sortDirection = currentOrderByField === column ? currentOrderByDirection : 0;
             }
 
