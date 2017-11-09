@@ -26,7 +26,7 @@ export default class ngbGoldenLayoutController extends baseController {
     projectContext;
     ngbViewActions;
 
-    constructor($scope, $compile, $window, $element, $timeout, dispatcher, ngbGoldenLayoutService, GoldenLayout, projectContext, ngbViewActionsConstant, bamDataService, appLayout) {
+    constructor($scope, $compile, $window, $element, $timeout, dispatcher, ngbGoldenLayoutService, GoldenLayout, projectContext, ngbViewActionsConstant, appLayout) {
         super(dispatcher);
         Object.assign(this, {
             $compile,
@@ -35,7 +35,6 @@ export default class ngbGoldenLayoutController extends baseController {
             GoldenLayout,
             dispatcher,
             projectContext,
-            bamDataService,
             appLayout,
             ngbViewActions: ngbViewActionsConstant
         });
@@ -279,9 +278,6 @@ export default class ngbGoldenLayoutController extends baseController {
     }
 
     panelAddBrowserWithPairRead(event: PairReadInfo) {
-        debugger;
-        console.log(event);
-
         this.panelRemoveExtraWindows();
 
         const newItem = this.service.createBrowserItem(event);

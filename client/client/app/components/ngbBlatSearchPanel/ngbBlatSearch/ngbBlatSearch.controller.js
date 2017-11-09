@@ -16,8 +16,6 @@ export default class ngbBlatSearchController extends baseController {
     errorMessageList = [];
     blatSearchLoadError = null;
 
-    read = null;
-
     readSequence = null;
 
     gridOptions = {
@@ -50,7 +48,7 @@ export default class ngbBlatSearchController extends baseController {
         saveSelection: false
     };
 
-    constructor($scope, $timeout, blatSearchMessages, blatSearchService, uiGridConstants, dispatcher, bamDataService, projectContext, GoldenLayout) {
+    constructor($scope, $timeout, blatSearchMessages, blatSearchService, uiGridConstants, dispatcher, projectContext) {
         super();
 
         Object.assign(this, {
@@ -60,9 +58,7 @@ export default class ngbBlatSearchController extends baseController {
             projectContext,
             uiGridConstants,
             blatSearchMessages,
-            blatSearchService,
-            bamDataService,
-            GoldenLayout
+            blatSearchService
         });
 
         this.initEvents();
