@@ -10,8 +10,8 @@ const DEFAULT_BLAT_COLUMNS = [
 
 export default class ngbBlatSearchService {
 
-    static instance(genomeDataService, projectDataService, variantsTableMessages, uiGridConstants, bamDataService) {
-        return new ngbBlatSearchService(genomeDataService, projectDataService, variantsTableMessages, uiGridConstants, bamDataService);
+    static instance(uiGridConstants, bamDataService) {
+        return new ngbBlatSearchService(uiGridConstants, bamDataService);
     }
 
     _orderBy = null;
@@ -19,8 +19,8 @@ export default class ngbBlatSearchService {
     _columnsWidth = { 'chr' : 45, 'startIndex' : 110, 'endIndex' : 110, 'strand' : 90, 'score' : 120 };
     bamDataService;
 
-    constructor(genomeDataService, projectDataService, variantsTableMessages, uiGridConstants, bamDataService) {
-        Object.assign(this, {genomeDataService, projectDataService, variantsTableMessages, uiGridConstants, bamDataService});
+    constructor(uiGridConstants, bamDataService) {
+        Object.assign(this, {uiGridConstants, bamDataService});
     }
 
     get blatColumns() {
@@ -45,19 +45,14 @@ export default class ngbBlatSearchService {
 
     set blatColumns(columns) {
         localStorage.setItem('blatColumns', JSON.stringify(columns || []));
-        const oldColumns = this.blatColumns.sort().reduce((names, name) => {
-            return `${names}|${name}`;
-        }, '');
-        const newColumns = columns.sort().reduce((names, name) => {
-            return `${names}|${name}`;
-        }, '');
-        if (newColumns !== oldColumns) {
-            this._isBlatInitialized = false;
-        }
     }
 
     get columnsWidth() {
         return this._columnsWidth;
+    }
+
+    set columnsWidth(columnsWidth) {
+        this._columnsWidth = columnsWidth;
     }
 
     get orderBy() {
@@ -110,9 +105,9 @@ export default class ngbBlatSearchService {
 
             let sortDirection = 0;
             if(this.orderBy) {
-                const currentOrderByFieldVariations = this.orderBy[0].field;
-                const currentOrderByDirectionVariations = this.orderBy[0].desc ? 'desc' : 'asc';
-                sortDirection = currentOrderByFieldVariations === column ? currentOrderByDirectionVariations : 0;
+                const currentOrderByField = this.orderBy[0].field;
+                const currentOrderByDirection = this.orderBy[0].desc ? 'desc' : 'asc';
+                sortDirection = currentOrderByField === column ? currentOrderByDirection : 0;
             }
 
             result.push({
