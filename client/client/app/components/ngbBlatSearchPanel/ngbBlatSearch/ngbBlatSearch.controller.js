@@ -14,7 +14,7 @@ export default class ngbBlatSearchController extends baseController {
 
     isProgressShown = true;
     errorMessageList = [];
-    blatSearchLoadError = null;
+    blatSearchEmptyResult = null;
 
     readSequence = null;
 
@@ -77,7 +77,7 @@ export default class ngbBlatSearchController extends baseController {
         this.errorMessageList = [];
         if (this.isReadSelected) {
             this.isProgressShown = true;
-            this.blatSearchLoadError = null;
+            this.blatSearchEmptyResult = null;
             Object.assign(this.gridOptions, {
                 appScopeProvider: this.$scope,
                 columnDefs: this.blatSearchService.getBlatSearchGridColumns([], []),
@@ -94,7 +94,7 @@ export default class ngbBlatSearchController extends baseController {
 
             this.$timeout(this.$scope.$apply());
         } else {
-            this.blatSearchLoadError = null;
+            this.blatSearchEmptyResult = null;
             this.isProgressShown = false;
             this.gridOptions.columnDefs = [];
 
@@ -106,7 +106,7 @@ export default class ngbBlatSearchController extends baseController {
         try {
             if (!this.projectContext.reference) {
                 this.isProgressShown = false;
-                this.blatSearchLoadError = null;
+                this.blatSearchEmptyResult = null;
                 this.gridOptions.columnDefs = [];
                 return;
             }
@@ -122,15 +122,15 @@ export default class ngbBlatSearchController extends baseController {
     }
 
     async blatSearchLoadingFinished() {
-        this.blatSearchLoadError = null;
+        this.blatSearchEmptyResult = null;
         this.gridOptions.columnDefs = this.blatSearchService.getBlatSearchGridColumns();
         this.gridOptions.data = await this.blatSearchService.getBlatSearchResults();
         this.readSequence = this.blatSearchService.readSequence;
 
         if(this.gridOptions.data.length) {
-            this.blatSearchLoadError = null;
+            this.blatSearchEmptyResult = null;
         } else {
-            this.blatSearchLoadError = this.blatSearchMessages.ErrorMessage.EmptySearchResults;
+            this.blatSearchEmptyResult = this.blatSearchMessages.ErrorMessage.EmptySearchResults;
         }
 
         this.isProgressShown = false;
