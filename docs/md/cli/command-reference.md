@@ -175,8 +175,8 @@ ngb add_ann|an [<REFERENCE_NAME|REFERENCE_ID>] [<FILE_NAMES|FILE_IDS|FILE_PATHS>
 ```
 *Description*
 
-Adds an annotation (GFF, GTF, BED) file to the reference on NGB server. Reference file can be addressed by name or an identifier (retrieved from **reg_ref** command, at registration time or search command).
-If annotation file is already registered on NGb server, it can be addressed by name or by an identifier. Otherwise a path to the annotation file should be provided.
+Adds an annotation (GFF, GTF, BED, VCF) file to the reference on NGB server. Reference file can be addressed by name or an identifier (retrieved from **reg_ref** command, at registration time or search command).
+If annotation file is already registered on NGB server, it can be addressed by name or by an identifier. Otherwise a path to the annotation file should be provided.
 
 *Example*
 ```
@@ -197,7 +197,7 @@ ngb remove_ann|ran [<REFERENCE_NAME|REFERENCE_ID>] [<FILE_NAMES|FILE_IDS|FILE_PA
 ```
 *Description*
 
-Removes an annotation (GFF, GTF, BED) file from the reference on NGB server. Reference file can be addressed by name or an identifier (retrieved from **reg_ref** command, at registration time or search command).
+Removes an annotation (GFF, GTF, BED, VCF) file from the reference on NGB server. Reference file can be addressed by name or an identifier (retrieved from **reg_ref** command, at registration time or search command).
 Annotation file can be addressed by name or by an identifier.
 
 *Example*
