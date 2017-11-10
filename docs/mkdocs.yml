@@ -24,8 +24,9 @@ pages:
         - BED track: user-guide/tracks-bed.md
         - Aignments track: user-guide/tracks-bam.md
         - Working with Annotations: user-guide/annotations.md
-        - Embedding NGB: user-guide/embedding.md
-theme: material  
+        - Embedding NGB with URL: user-guide/embedding-url.md
+        - Embedding NGB with JS: user-guide/embedding-js.md
+theme: material
 theme_dir: material-epam-theme
 docs_dir: md
 use_directory_urls: false

@@ -1,4 +1,4 @@
-# Embedding NGB via iFrame 
+# Embedding NGB via iFrame controlled with URL
 
 NGB could be embedded into 3rd paty web application using an iFrame approach
 
