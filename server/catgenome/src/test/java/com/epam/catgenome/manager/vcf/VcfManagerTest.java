@@ -888,11 +888,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     private VcfFile testSave(String filePath) throws IOException, InterruptedException {
         Resource resource = context.getResource(filePath);
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        request.setReferenceId(referenceId);
-        request.setPath(resource.getFile().getAbsolutePath());
-        request.setPrettyName(PRETTY_NAME);
-        return vcfManager.registerVcfFile(request);
+        return registerVcf(resource, referenceId, vcfManager, PRETTY_NAME);
     }
 
     private Track<Variation> testLoad(VcfFile vcfFile, Double scaleFactor, boolean checkBlocks)
@@ -996,6 +992,15 @@ public class VcfManagerTest extends AbstractManagerTest {
         }
         //check that we received an appropriate message
         Assert.assertTrue(errorMessage.contains(expectedMessage));
+    }
+
+    public static VcfFile registerVcf(Resource vcfFile, Long referenceId, VcfManager vcfManager,
+            String prettyName) throws IOException {
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setPath(vcfFile.getFile().getAbsolutePath());
+        request.setPrettyName(prettyName);
+        return vcfManager.registerVcfFile(request);
     }
 
 }
