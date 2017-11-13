@@ -114,6 +114,7 @@ export default class ngbBlatSearchController extends baseController {
         }
         catch (errorObj) {
             this.onError(errorObj.message);
+            this.isProgressShown = false;
         }
     }
 
@@ -127,7 +128,7 @@ export default class ngbBlatSearchController extends baseController {
         this.gridOptions.data = await this.blatSearchService.getBlatSearchResults();
         this.readSequence = this.blatSearchService.readSequence;
 
-        if(this.gridOptions.data.length) {
+        if(this.gridOptions.data && this.gridOptions.data.length) {
             this.blatSearchEmptyResult = null;
         } else {
             this.blatSearchEmptyResult = this.blatSearchMessages.ErrorMessage.EmptySearchResults;
