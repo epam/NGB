@@ -72,6 +72,11 @@ public abstract class AbstractCliTest {
     public static final String URL_GENERATION_URL = "/catgenome/restapi/url";
     public static final String SORT_URI = "/catgenome/restapi/tools/sort";
     public static final String GET_PATH_TO_EXISTING_INDEX_URI = "/catgenome/restapi/getPathToExistingIndex";
+    public static final String SPEC_REGISTRATION_URL = "/catgenome/restapi/secure/reference/register/species";
+    public static final String SPEC_LIST_URL = "/catgenome/restapi/reference/loadAllSpecies";
+    public static final String SPEC_DELETION_URL = "/catgenome/restapi/secure/reference/register/species";
+    public static final String SPEC_ADDING_URL = "/catgenome/restapi/secure/reference/%d/species";
+    public static final String SPEC_REMOVING_URL = "/catgenome/restapi/secure/reference/%d/species";
 
     //server properties
     public static final String TEST_SERVER_PROPERTIES = "external/server.properties";
