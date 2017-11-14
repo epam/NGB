@@ -17,8 +17,6 @@
          transaction management through AOP
      -->
     <import resource="classpath:conf/catgenome/applicationContext-database.xml"/>
-    <!-- Registers and configures Spring Security through Oauth2.0 -->
-    <import resource="classpath:conf/catgenome/applicationContext-security.xml"/>
     <!-- Registers and configures caching -->
     <import resource="classpath:conf/catgenome/applicationContext-cache.xml"/>
 
