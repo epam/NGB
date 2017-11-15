@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -557,7 +558,8 @@ public class BedManager {
         try {
             fileManager.deleteFileFeatureIndex(bedFile);
             try (AbstractFeatureReader<BEDFeature, LineIterator> reader =
-                         AbstractFeatureReader.getFeatureReader(bedFile.getPath(), new BEDCodec(), false)) {
+                    AbstractEnhancedFeatureReader
+                                 .getFeatureReader(bedFile.getPath(), new BEDCodec(), false)) {
                 featureIndexManager.makeIndexForBedReader(bedFile, reader, chromosomeMap);
             }
         } catch (IOException e) {

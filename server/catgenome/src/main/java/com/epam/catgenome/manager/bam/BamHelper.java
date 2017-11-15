@@ -32,6 +32,7 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ import com.epam.catgenome.entity.bam.BamTrack;
 import com.epam.catgenome.entity.bam.BamTrackMode;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.wig.Wig;
+import com.epam.catgenome.exception.FeatureFileReadingException;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFlag;
 import htsjdk.samtools.SAMRecord;
@@ -192,7 +194,7 @@ public class BamHelper {
     public BamTrack<Read> getRegionsFromUrl(final Track<Read> track, String bamUrl, String bamIndexUrl)
             throws IOException {
         BamTrack<Read> bamTrack = new BamTrack<>(track);
-        final BamFile bamFile = makeUrlBamFile(bamUrl, bamIndexUrl, track.getChromosome().getReferenceId());
+        final BamFile bamFile = makeUrlBamFile(bamUrl, bamIndexUrl, track.getChromosome());
 
         Chromosome chromosome = bamTrack.getChromosome();
         bamTrack.setRegions(getRegions(bamFile, chromosome, track.getStartIndex(), track.getEndIndex()));
@@ -232,7 +234,7 @@ public class BamHelper {
             throws IOException {
         final BamTrack<Read> bamTrack = new BamTrack<>(track);
         Assert.notNull(track.getChromosome().getReferenceId());
-        final BamFile bamFile = makeUrlBamFile(bamUrl, bamIndexUrl, track.getChromosome().getReferenceId());
+        final BamFile bamFile = makeUrlBamFile(bamUrl, bamIndexUrl, track.getChromosome());
 
         fillEmitterByReads(bamFile, bamTrack, options, bamTrackEmitter);
     }
@@ -241,23 +243,16 @@ public class BamHelper {
      * Creates a temporary BamFile, not stored the database, and represented by it's file URL and index URL
      * @param bamUrl a URL string ,locating BAM file
      * @param bamIndexUrl a URL string ,locating BAI index file
-     * @param referenceId - ID of the reference, for with this BAM is being browsed
+     * @param chromosome - chromosome with which BAM is being browsed
      * @return
      */
-    public BamFile makeUrlBamFile(String bamUrl, String bamIndexUrl, long referenceId) {
-        final BamFile bamFile = new BamFile();
-
-        bamFile.setReferenceId(referenceId);
-        bamFile.setPath(bamUrl);
-        bamFile.setType(BiologicalDataItemResourceType.getTypeFromPath(bamUrl));
-
-        BiologicalDataItem index = new BiologicalDataItem();
-        index.setPath(bamIndexUrl);
-        index.setType(BiologicalDataItemResourceType.getTypeFromPath(bamIndexUrl));
-        index.setFormat(BiologicalDataItemFormat.BAM_INDEX);
-        bamFile.setIndex(index);
-
-        return bamFile;
+    public BamFile makeUrlBamFile(String bamUrl, String bamIndexUrl, Chromosome chromosome)
+            throws FeatureFileReadingException {
+        try {
+            return Utils.createNonRegisteredFile(BamFile.class, bamUrl, bamIndexUrl, chromosome);
+        } catch (InvocationTargetException e) {
+            throw new FeatureFileReadingException(bamUrl, e);
+        }
     }
 
     //for the case when the resource type is file

@@ -222,7 +222,7 @@ public class BamManager {
         if (query.getId() != null) {
             bamFile= bamFileManager.loadBamFile(query.getId());
         } else {
-            bamFile = bamHelper.makeUrlBamFile(fileUrl, indexUrl, chromosome.getReferenceId());
+            bamFile = bamHelper.makeUrlBamFile(fileUrl, indexUrl, chromosome);
         }
         return getReadFromBamFile(query, chromosome, bamFile);
     }
