@@ -2,7 +2,7 @@ import {camelPad} from '../../../shared/utils/String.js'
 
 const DEFAULT_BLAT_COLUMNS = [
     'chr', 'startIndex', 'endIndex', 'strand', 'score',
-    'match', 'misMatch', 'repMatch',
+    'match', 'mismatch', 'repMatch',
     'ns',
     'qGapCount', 'qGapBases',
     'tGapCount', 'tGapBases',
@@ -16,7 +16,7 @@ export default class ngbBlatSearchService {
 
     _orderBy = null;
     _detailedRead = null;
-    _columnsWidth = { 'chr' : 45, 'startIndex' : 110, 'endIndex' : 110, 'strand' : 90, 'score' : 120 };
+    _columnsWidth = { 'chr' : 45, 'startIndex' : 100, 'endIndex' : 100, 'strand' : 80 };
     bamDataService;
     uiGridConstants;
 
@@ -115,7 +115,7 @@ export default class ngbBlatSearchService {
                 enableHiding: false,
                 field: column,
                 headerCellTemplate: headerCells,
-                minWidth: this.columnsWidth[column] ? this.columnsWidth[column] : 50,
+                minWidth: this.columnsWidth[column] ? this.columnsWidth[column] : 40,
                 name: camelPad(column),
                 width: '*',
                 sort: {
