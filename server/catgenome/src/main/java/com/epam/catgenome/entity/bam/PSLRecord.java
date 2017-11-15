@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2017 EPAM Systems
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.epam.catgenome.entity.bam;
 
 import com.epam.catgenome.entity.track.Block;
@@ -13,14 +37,14 @@ public class PSLRecord extends Block implements Serializable {
 
     private String chr;
     private int match;
-    private int misMatch;
+    private int mismatch;
     private int repMatch;
     private int qGapCount;
     private int tGapCount;
     private int ns;
     private int qGapBases;
     private int tGapBases;
-    private double score;
+    private int score;
     private StrandSerializable strand;
 
     private String name;
@@ -36,12 +60,12 @@ public class PSLRecord extends Block implements Serializable {
         this.match = match;
     }
 
-    public int getMisMatch() {
-        return misMatch;
+    public int getMismatch() {
+        return mismatch;
     }
 
-    public void setMisMatch(int misMatch) {
-        this.misMatch = misMatch;
+    public void setMismatch(int mismatch) {
+        this.mismatch = mismatch;
     }
 
     public int getRepMatch() {
@@ -108,11 +132,11 @@ public class PSLRecord extends Block implements Serializable {
         this.chr = chr;
     }
 
-    public double getScore() {
+    public int getScore() {
         return score;
     }
 
-    public void setScore(double score) {
+    public void setScore(int score) {
         this.score = score;
     }
 
@@ -147,7 +171,7 @@ public class PSLRecord extends Block implements Serializable {
         if (match != record.match) {
             return false;
         }
-        if (misMatch != record.misMatch) {
+        if (mismatch != record.mismatch) {
             return false;
         }
         if (repMatch != record.repMatch) {
@@ -189,7 +213,7 @@ public class PSLRecord extends Block implements Serializable {
         long temp;
         result = chr.hashCode();
         result = 31 * result + match;
-        result = 31 * result + misMatch;
+        result = 31 * result + mismatch;
         result = 31 * result + repMatch;
         result = 31 * result + qGapCount;
         result = 31 * result + tGapCount;

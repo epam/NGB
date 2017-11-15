@@ -81,6 +81,13 @@ public class SpeciesRegistrationTest extends AbstractCliTest {
         handler.parseAndVerifyArguments(Collections.emptyList(), applicationOptions);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testNonAlphanumericValues() {
+        SpeciesRegistrationHandler handler = getSpeciesRegistrationHandler();
+        ApplicationOptions applicationOptions = new ApplicationOptions();
+        handler.parseAndVerifyArguments(Arrays.asList("Homo Sapiens", "*%^\n"), applicationOptions);
+    }
+
     private SpeciesRegistrationHandler getSpeciesRegistrationHandler() {
         SpeciesRegistrationHandler handler = new SpeciesRegistrationHandler();
         handler.setServerParameters(serverParameters);
