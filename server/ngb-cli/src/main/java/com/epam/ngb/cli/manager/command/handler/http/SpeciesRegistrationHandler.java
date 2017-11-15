@@ -65,9 +65,17 @@ public class SpeciesRegistrationHandler extends AbstractHTTPCommandHandler {
             throw new IllegalArgumentException(MessageConstants.getMessage(MessageConstants.ILLEGAL_COMMAND_ARGUMENTS,
                 getCommand(), 2, arguments.size()));
         }
+
+        String speciesName = StringUtils.trim(arguments.get(0));
+        String speciesVersion = StringUtils.trim(arguments.get(1));
+        if (!StringUtils.isAlphanumeric(speciesName) || !StringUtils.isAlphanumeric(speciesVersion)) {
+            throw new IllegalArgumentException(MessageConstants.getMessage(MessageConstants.NOT_ALPHANUMERIC_ARGUMENTS,
+                    getCommand()));
+        }
+
         entity = new SpeciesEntity();
-        entity.setName(StringUtils.trim(arguments.get(0)));
-        entity.setVersion(StringUtils.trim(arguments.get(1)));
+        entity.setName(speciesName);
+        entity.setVersion(speciesVersion);
 
         printJson = options.isPrintJson();
         printTable = options.isPrintTable();

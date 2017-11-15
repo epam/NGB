@@ -57,7 +57,7 @@ public class PSLRecordParser  {
     private static final int T_GAP_BASES_INDEX = 7;
     private static final int Q_SIZE_INDEX = 10;
 
-    private static final float SCORE_CONSTANT = 1000.0f;
+    private static final int SCORE_CONSTANT = 1000;
 
     public List<PSLRecord> parse(String result) throws IOException {
         List<PSLRecord> records = new ArrayList<>();
@@ -103,7 +103,7 @@ public class PSLRecordParser  {
         record.setEndIndex(Integer.parseInt(tokens[END_INDEX]));
         record.setStrand(StrandSerializable.forValue(tokens[STRAND_INDEX]));
         record.setMatch(Integer.parseInt(tokens[MATCH_INDEX]));
-        record.setMisMatch(Integer.parseInt(tokens[MISMATCH_INDEX]));
+        record.setMismatch(Integer.parseInt(tokens[MISMATCH_INDEX]));
         record.setRepMatch(Integer.parseInt(tokens[REPMATCH_INDEX]));
         record.setNs(Integer.parseInt(tokens[NS_INDEX]));
         record.setqGapCount(Integer.parseInt(tokens[Q_GAP_COUNT_INDEX]));
@@ -112,7 +112,7 @@ public class PSLRecordParser  {
         record.setqGapBases(Integer.parseInt(tokens[T_GAP_BASES_INDEX]));
         record.setqSize(Integer.parseInt(tokens[Q_SIZE_INDEX]));
 
-        double score = (SCORE_CONSTANT * (record.getMatch() + record.getRepMatch() - record.getMisMatch()
+        int score = (SCORE_CONSTANT * (record.getMatch() + record.getRepMatch() - record.getMismatch()
                 - record.getqGapCount() - record.gettGapCount())) / record.getqSize();
         record.setScore(score);
 

@@ -55,7 +55,7 @@ public class BlatSearchManagerTest {
     private static final int TEST_MATCH = 27;
     private static final int EMPTY = 0;
     private static final int TEST_Q_SIZE = 69;
-    private static final float TEST_SCORE = 27000f / 69;
+    private static final int TEST_SCORE = 27000 / 69;
     private static final List<PSLRecord> EXPECTED = mockPSLRecord();
 
     @Autowired
@@ -76,7 +76,7 @@ public class BlatSearchManagerTest {
         record.setEndIndex(TEST_END);
         record.setStrand(StrandSerializable.POSITIVE);
         record.setMatch(TEST_MATCH);
-        record.setMisMatch(EMPTY);
+        record.setMismatch(EMPTY);
         record.setRepMatch(EMPTY);
         record.setNs(EMPTY);
         record.setqGapCount(EMPTY);
