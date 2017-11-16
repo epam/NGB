@@ -295,12 +295,7 @@ public class BedManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testDeleteBedWithIndex() throws IOException, InterruptedException, FeatureIndexException {
         Resource resource = context.getResource(GENES_SORTED_BED_PATH);
-
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        request.setReferenceId(referenceId);
-        request.setPath(resource.getFile().getAbsolutePath());
-
-        BedFile bedFile = bedManager.registerBed(request);
+        BedFile bedFile = registerTestBed(resource, referenceId, bedManager);
         Assert.assertNotNull(bedFile);
         Assert.assertNotNull(bedFile.getId());
         try {
@@ -312,6 +307,15 @@ public class BedManagerTest extends AbstractManagerTest {
             referenceGenomeManager.updateReferenceAnnotationFile(referenceId, bedFile.getBioDataItemId(), true);
             bedFileManager.deleteBedFile(bedFile);
         }
+    }
+
+    public static BedFile registerTestBed(Resource bedFile, Long referenceId, BedManager bedManager)
+            throws IOException {
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setPath(bedFile.getFile().getAbsolutePath());
+
+        return bedManager.registerBed(request);
     }
 
     private void testRegisterInvalidBed(String path, String expectedMessage) throws IOException {

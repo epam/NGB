@@ -30,8 +30,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.entity.BaseEntity;
@@ -84,6 +86,13 @@ public class ReferenceGenomeManager {
 
     @Autowired
     private FeatureIndexManager featureIndexManager;
+
+    private static final Set<BiologicalDataItemFormat> ANNOTATION_FORMATS = new HashSet<>();
+    static {
+        ANNOTATION_FORMATS.add(BiologicalDataItemFormat.BED);
+        ANNOTATION_FORMATS.add(BiologicalDataItemFormat.VCF);
+        ANNOTATION_FORMATS.add(BiologicalDataItemFormat.GENE);
+    }
 
     /**
      * Generates and returns ID value, that has to be used to identify each certain reference
@@ -390,9 +399,7 @@ public class ReferenceGenomeManager {
         );
 
         BiologicalDataItem annotationFile = annotationFiles.get(0);
-        Assert.isTrue(
-                annotationFile.getFormat() == BiologicalDataItemFormat.BED
-                        || annotationFile.getFormat() == BiologicalDataItemFormat.GENE,
+        Assert.isTrue(ANNOTATION_FORMATS.contains(annotationFile.getFormat()),
                 getMessage(MessagesConstants.ERROR_ILLEGAL_FEATURE_FILE_FORMAT, annotationFile.getPath())
         );
         return (FeatureFile) annotationFile;
