@@ -48,6 +48,7 @@ import com.epam.catgenome.exception.HistogramReadingException;
 import com.epam.catgenome.exception.HistogramWritingException;
 import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.FeatureReader;
 import org.apache.commons.collections4.CollectionUtils;
@@ -309,7 +310,7 @@ public class GffManager {
         GffCodec.GffType gffType = GffCodec.GffType.forExt(extension);
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(gffType);
 
-        try (FeatureReader<GeneFeature> reader = AbstractFeatureReader.getFeatureReader(request.getPath(),
+        try (FeatureReader<GeneFeature> reader = AbstractEnhancedFeatureReader.getFeatureReader(request.getPath(),
                 request.getIndexPath(), codec, true)) {
             geneFile = createGeneFile(request);
             boolean hasGenes = false;

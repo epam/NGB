@@ -31,6 +31,7 @@ import static com.epam.catgenome.constant.MessagesConstants.ERROR_VCF_INDEX;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,6 +53,7 @@ import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.InfoFieldParser;
 import com.epam.catgenome.util.Utils;
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import htsjdk.tribble.index.IndexFactory;
 import htsjdk.tribble.index.interval.IntervalTreeIndex;
 import htsjdk.tribble.index.tabix.TabixFormat;
@@ -113,7 +115,6 @@ import com.epam.catgenome.manager.vcf.reader.AbstractVcfReader;
 import com.epam.catgenome.manager.vcf.reader.VcfGa4ghReader;
 import com.epam.catgenome.manager.vcf.reader.VcfReader;
 import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.TribbleException;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -394,8 +395,6 @@ public class VcfManager {
         } else {
             vcfFile = makeTemporaryVcfFileFromUrl(fileUrl, indexUrl, chromosome);
         }
-
-
         VcfReader vcfReader = AbstractVcfReader.createVcfReader(vcfFile.getType(), httpDataManager, fileManager,
                 referenceGenomeManager);
         Integer sampleIndex = getSampleIndex(sampleId, vcfFile);
@@ -417,7 +416,8 @@ public class VcfManager {
             VcfFile vcfFile = vcfFileManager.loadVcfFile(fileId);
             Assert.notNull(vcfFile, getMessage(ERROR_VCF_ID_INVALID, fileId));
 
-            try (FeatureReader<VariantContext> reader = AbstractFeatureReader.getFeatureReader(vcfFile.getPath(),
+            try (FeatureReader<VariantContext> reader =
+                    AbstractEnhancedFeatureReader.getFeatureReader(vcfFile.getPath(),
                     new VCFCodec(), false)) {
                 VCFHeader header = (VCFHeader) reader.getHeader();
                 Collection<VCFInfoHeaderLine> headerLines = header.getInfoHeaderLines();
@@ -463,29 +463,26 @@ public class VcfManager {
                 writeTabixIndex(vcfFile);
             }
             try (FeatureReader<VariantContext> reader =
-                    AbstractFeatureReader.getFeatureReader(vcfFile.getPath(), new VCFCodec(), false)) {
+                    AbstractEnhancedFeatureReader
+                            .getFeatureReader(vcfFile.getPath(), new VCFCodec(), false)) {
                 Map<String, Pair<Integer, Integer>> metaMap =
                         readMetaMap(vcfFile, chromosomeMap, reader, reference, true);
                 fileManager.makeIndexMetadata(vcfFile, metaMap);
             }
-        } catch (IOException | GeneReadingException e) {
+        } catch (IOException e) {
             throw new FeatureIndexException(vcfFile, e);
         }
         return vcfFile;
     }
 
     @NotNull
-    private VcfFile makeTemporaryVcfFileFromUrl(String fileUrl, String indexUrl, Chromosome chromosome) {
-        VcfFile notRegisteredFile = new VcfFile();
-        notRegisteredFile.setPath(fileUrl);
-        notRegisteredFile.setCompressed(false);
-        notRegisteredFile.setType(BiologicalDataItemResourceType.URL);
-        notRegisteredFile.setReferenceId(chromosome.getReferenceId());
-
-        BiologicalDataItem index = new BiologicalDataItem();
-        index.setPath(indexUrl);
-        notRegisteredFile.setIndex(index);
-        return notRegisteredFile;
+    private VcfFile makeTemporaryVcfFileFromUrl(String fileUrl, String indexUrl, Chromosome chromosome)
+            throws VcfReadingException {
+        try {
+            return Utils.createNonRegisteredFile(VcfFile.class, fileUrl, indexUrl, chromosome);
+        } catch (InvocationTargetException e) {
+            throw new VcfReadingException(fileUrl, e);
+        }
     }
 
     private VcfFilterInfo getFiltersInfo(FeatureReader<VariantContext> reader) throws IOException {
@@ -529,7 +526,7 @@ public class VcfManager {
     private VcfFile createVcfFromFile(final IndexedFileRegistrationRequest request,
             final Map<String, Chromosome> chromosomeMap, Reference reference, boolean doIndex) {
         VcfFile vcfFile = null;
-        try (FeatureReader<VariantContext> reader = AbstractFeatureReader
+        try (FeatureReader<VariantContext> reader = AbstractEnhancedFeatureReader
                 .getFeatureReader(request.getPath(), request.getIndexPath(), new VCFCodec(),
                         request.getIndexPath() != null)) {
             vcfFile = createVcfFile(request, reader);
@@ -544,7 +541,7 @@ public class VcfManager {
             fileManager.makeIndexMetadata(vcfFile, metaMap);
             biologicalDataItemManager.createBiologicalDataItem(vcfFile.getIndex());
             vcfFileManager.createVcfFile(vcfFile);
-        }  catch (IOException | GeneReadingException e) {
+        }  catch (IOException e) {
             throw new RegistrationException(getMessage(ERROR_REGISTER_FILE, request.getName()), e);
         } finally {
             if (vcfFile != null && vcfFile.getId() != null &&
@@ -563,7 +560,7 @@ public class VcfManager {
     private VcfFile createVcfFromUrl(final IndexedFileRegistrationRequest request,
                                       final Map<String, Chromosome> chromosomeMap, Reference reference) {
         final VcfFile vcfFile;
-        try (FeatureReader<VariantContext> reader = AbstractFeatureReader.getFeatureReader(request.getPath(),
+        try (FeatureReader<VariantContext> reader = AbstractEnhancedFeatureReader.getFeatureReader(request.getPath(),
                                            request.getIndexPath(), new VCFCodec(), true)) {
             vcfFile = createVcfFile(request, reader);
             boolean hasVariations = false;
