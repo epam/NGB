@@ -102,7 +102,8 @@ public class Application {
             + "CONFIGURATION commands:\n"
             + "srv\tset_srv\t\t: sets working server url for CLI\tsrv http://{SERVER_IP_OR_NAME}:"
             + "{SERVER_PORT}/catgenome\n"
-            + "v\tversion\t\t: prints CLI version to the console standard output\n\n"
+            + "v\tversion\t\t: prints CLI version to the console standard output\n"
+            + "st\tset token\t\t: sets given token to property file\n\n"
             + "Available options (options may go before, after or between the arguments):\n";
 
     @Option(name = "-n", usage = "explicitly specifies file name for registration", aliases = {

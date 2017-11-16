@@ -89,13 +89,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
             if (endIndex != null) {
                 builder.addParameter("endIndex", endIndex.toString());
             }
-
-            HttpPost post = new HttpPost(builder.build());
-            setDefaultHeader(post);
-            post.setEntity(
+            HttpPost request = (HttpPost) getRequestFromURLByType(HttpPost.METHOD_NAME, builder.build().toString());
+            request.setEntity(
                     new StringEntity(getMapper().writeValueAsString(new UrlRequest(dataset, ids))));
 
-            String result = RequestManager.executeRequest(post);
+            String result = RequestManager.executeRequest(request);
 
             isResultOk(result);
             String url = getResult(result, String.class);

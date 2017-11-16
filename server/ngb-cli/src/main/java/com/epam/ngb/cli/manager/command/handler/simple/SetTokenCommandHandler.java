@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,52 +22,37 @@
  * SOFTWARE.
  */
 
-package com.epam.ngb.cli.manager.command.handler.http;
-
-import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
-
-import java.util.List;
-
-import org.apache.http.client.methods.HttpRequestBase;
+package com.epam.ngb.cli.manager.command.handler.simple;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.manager.command.handler.Command;
-import com.epam.ngb.cli.manager.request.RequestManager;
+
+import java.util.List;
+import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
+import static com.epam.ngb.cli.manager.command.CommandManager.JWT_AUTHENTICATION_TOKEN_PROPERTY;
 
 /**
- * {@code {@link GeneRemovingHandler}} represents a tool for handling 'remove_genes' command and
- * removing any gene file from a reference, registered on NGB server. This command requires strictly one argument:
- * - reference ID or name
+ * {@code {@link SetTokenCommandHandler}} represents a tool handling "set_token" command and
+ * sets authentication token to property file.
  */
-@Command(type = Command.Type.REQUEST, command = {"remove_genes"})
-public class GeneRemovingHandler extends AbstractHTTPCommandHandler{
+@Command(type = Command.Type.SIMPLE, command = {"set_token"})
+public class SetTokenCommandHandler extends SetPropertyCommandHandler {
 
-    private Long referenceId;
-    /**
-     * If true command will output result of reference registration in a json format
-     */
-    private boolean printJson;
-    /**
-     * If true command will output result of reference registration in a table format
-     */
-    private boolean printTable;
+    private String authenticationToken;
 
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
-        if (arguments.size() != 1) {
+        if (arguments.isEmpty() || arguments.size() != 1) {
             throw new IllegalArgumentException(MessageConstants.getMessage(ILLEGAL_COMMAND_ARGUMENTS,
                     getCommand(), 1, arguments.size()));
         }
-        referenceId = loadReferenceId(arguments.get(0));
-        printJson = options.isPrintJson();
-        printTable = options.isPrintTable();
+        authenticationToken = arguments.get(0);
     }
 
-    @Override public int runCommand() {
-        HttpRequestBase request = getRequest(String.format(getRequestUrl(), referenceId));
-        String result = RequestManager.executeRequest(request);
-        checkAndPrintRegistrationResult(result, printJson, printTable);
+    @Override
+    public int runCommand() {
+        addPropertyToConfigurationFile(JWT_AUTHENTICATION_TOKEN_PROPERTY, authenticationToken);
         return 0;
     }
 }

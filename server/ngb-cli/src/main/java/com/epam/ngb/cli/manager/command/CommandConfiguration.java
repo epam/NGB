@@ -31,20 +31,17 @@ public class CommandConfiguration {
     private String name;
     private String requestUrl;
     private String requestType;
-    private boolean secure;
 
-    public CommandConfiguration(String name, String requestUrl, String requestType, boolean secure) {
+    public CommandConfiguration(String name, String requestUrl, String requestType) {
         this.name = name;
         this.requestUrl = requestUrl;
         this.requestType = requestType;
-        this.secure = secure;
     }
 
     public CommandConfiguration(CommandConfiguration other) {
         this.name = other.getName();
         this.requestUrl = other.getRequestUrl();
         this.requestType = other.getRequestType();
-        this.secure = other.isSecure();
     }
 
     public String getName() {
@@ -69,14 +66,6 @@ public class CommandConfiguration {
 
     public void setRequestType(String requestType) {
         this.requestType = requestType;
-    }
-
-    public boolean isSecure() {
-        return secure;
-    }
-
-    public void setSecure(boolean secure) {
-        this.secure = secure;
     }
 
 }

@@ -50,8 +50,7 @@ public class CommandManager {
     private CommandHandler commandHandler;
 
     public static final String SERVER_URL_PROPERTY = "server_url";
-    private static final String AUTHENTICATION_PROPERTY = "authentication";
-    private static final String AUTHENTICATION_URL_PROPERTY = "authentication_url";
+    public static final String JWT_AUTHENTICATION_TOKEN_PROPERTY = "token";
     private static final String SEARCH_URL_PROPERTY = "search_url";
     private static final String REGISTRATION_URL_PROPERTY = "register_url";
     private static final String PROJECT_URL_PROPERTY = "project_url";
@@ -134,9 +133,8 @@ public class CommandManager {
 
     private ServerParameters loadServerParameters(Properties serverProperties) {
         ServerParameters parameters = new ServerParameters();
+        parameters.setJwtAuthenticationToken(serverProperties.getProperty(JWT_AUTHENTICATION_TOKEN_PROPERTY));
         parameters.setServerUrl(serverProperties.getProperty(SERVER_URL_PROPERTY));
-        parameters.setAuthPayload(serverProperties.getProperty(AUTHENTICATION_PROPERTY));
-        parameters.setAuthenticationUrl(serverProperties.getProperty(AUTHENTICATION_URL_PROPERTY));
         parameters.setSearchUrl(serverProperties.getProperty(SEARCH_URL_PROPERTY));
         parameters.setRegistrationUrl(serverProperties.getProperty(REGISTRATION_URL_PROPERTY));
         parameters.setProjectLoadUrl(serverProperties.getProperty(PROJECT_URL_PROPERTY));

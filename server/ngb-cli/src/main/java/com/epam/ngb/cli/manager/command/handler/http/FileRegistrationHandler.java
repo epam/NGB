@@ -177,10 +177,6 @@ public class FileRegistrationHandler extends AbstractHTTPCommandHandler {
             BiologicalDataItemFormat format = BiologicalDataItemFormat.getByFilePath(file.getLeft());
             String url = String.format(getRequestUrl(), format.name().toLowerCase());
             HttpRequestBase request = getRequest(url);
-            setDefaultHeader(request);
-            if (isSecure()) {
-                addAuthorizationToRequest(request);
-            }
 
             RegistrationRequest registration = createRegistrationRequest(file, format);
 
@@ -189,7 +185,7 @@ public class FileRegistrationHandler extends AbstractHTTPCommandHandler {
                 ResponseResult<BiologicalDataItem> responseResult = getMapper().readValue(result,
                         getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class,
                                 ResponseResult.class, BiologicalDataItem.class));
-                if (ERROR_STATUS.equals(responseResult.getStatus())) {
+                if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
                     LOGGER.error(responseResult.getMessage());
                     failed.add(file);
                 } else {

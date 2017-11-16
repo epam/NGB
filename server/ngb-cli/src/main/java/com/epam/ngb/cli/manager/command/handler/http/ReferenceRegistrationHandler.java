@@ -138,10 +138,6 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
      */
     @Override public int runCommand() {
         HttpRequestBase request = getRequest(getRequestUrl());
-        setDefaultHeader(request);
-        if (isSecure()) {
-            addAuthorizationToRequest(request);
-        }
         RegistrationRequest registration = new RegistrationRequest();
         registration.setName(referenceName);
         registration.setPrettyName(prettyName);

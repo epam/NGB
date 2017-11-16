@@ -54,7 +54,6 @@ public class ReferenceRegistrationHandlerTest extends AbstractCliTest {
     public static void setUp() {
         server.start();
 
-        server.addAuthorization();
         server.addReferenceRegistration(REF_ID, REF_BIO_ID, PATH_TO_REFERENCE, REFERENCE_NAME);
         server.addReferenceRegistration(REF_ID, REF_BIO_ID, PATH_TO_REFERENCE, null);
 
