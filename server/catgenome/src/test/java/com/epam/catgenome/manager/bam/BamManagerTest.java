@@ -49,9 +49,12 @@ import com.epam.catgenome.entity.bucket.Bucket;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.Sequence;
+import com.epam.catgenome.entity.reference.Species;
 import com.epam.catgenome.entity.track.Track;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.bucket.BucketManager;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
+import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Request;
@@ -102,6 +105,9 @@ public class BamManagerTest extends AbstractManagerTest {
 
     @Autowired
     private ReferenceManager referenceManager;
+
+    @Autowired
+    private ReferenceGenomeManager referenceGenomeManager;
 
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
@@ -193,7 +199,7 @@ public class BamManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void saveBamTest() throws IOException, InterruptedException {
-        final String path = resource.getFile().getAbsolutePath() + "//agnX1.09-28.trim.dm606.realign.bam";
+        final String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(path);
         request.setIndexPath(path + BAI_EXTENSION);
@@ -349,7 +355,7 @@ public class BamManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadRead() throws IOException {
-        final String path = resource.getFile().getAbsolutePath() + "//agnX1.09-28.trim.dm606.realign.bam";
+        final String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(path);
         request.setIndexPath(path + BAI_EXTENSION);
@@ -704,6 +710,51 @@ public class BamManagerTest extends AbstractManagerTest {
         registerFileWithoutSOTag("classpath:templates/" + bamWithHeaderWithoutSO);
         List<BiologicalDataItem> biologicalDataItems = biologicalDataItemDao.loadFilesByNameStrict(TEST_NSAME);
         Assert.assertFalse(biologicalDataItems.isEmpty());
+    }
+
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testFindBlatReadSequence() throws IOException, ExternalDbUnavailableException {
+        final String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
+        IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
+        request.setPath(path);
+        request.setIndexPath(path + BAI_EXTENSION);
+        request.setName(TEST_NSAME);
+        request.setReferenceId(testReference.getId());
+        request.setPrettyName(PRETTY_NAME);
+        request.setType(BiologicalDataItemResourceType.FILE);
+        BamFile bamFile = bamManager.registerBam(request);
+
+        Species testSpecies = new Species();
+        testSpecies.setName("human");
+        testSpecies.setVersion("hg19");
+
+        referenceGenomeManager.registerSpecies(testSpecies);
+        referenceGenomeManager.updateSpecies(bamFile.getReferenceId(), testSpecies.getVersion());
+
+        String readSequence = "CAGTATCGTCCTTACTATTACATAGTGTGGTAGCGATGCAGTCCCAGTGAAAAAAAAAAAAAAAAAAAC";
+        List<PSLRecord> records = bamManager.findBlatReadSequence(bamFile.getId(), readSequence);
+        Assert.assertNotNull(records);
+        Assert.assertEquals(1, records.size());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testFindBlatReadSequenceEmptySpecies() throws IOException, ExternalDbUnavailableException {
+        final String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
+        IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
+        request.setPath(path);
+        request.setIndexPath(path + BAI_EXTENSION);
+        request.setName(TEST_NSAME);
+        request.setReferenceId(testReference.getId());
+        request.setPrettyName(PRETTY_NAME);
+        request.setType(BiologicalDataItemResourceType.FILE);
+        BamFile bamFile = bamManager.registerBam(request);
+
+        referenceGenomeManager.updateSpecies(bamFile.getReferenceId(), "hg19");
+        String readSequence = "CAGTATCGTCCTTACTATTACATAGTGTGGTAGCGATGCAGTCCCAGTGAAAAAAAAAAAAAAAAAAAC";
+        bamManager.findBlatReadSequence(bamFile.getId(), readSequence);
     }
 
     private void registerFileWithoutSOTag(String path) throws IOException {
