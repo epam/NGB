@@ -34,6 +34,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Class represents information about user
+ */
 @Getter
 @Setter
 @NoArgsConstructor

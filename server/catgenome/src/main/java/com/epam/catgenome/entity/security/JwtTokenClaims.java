@@ -31,6 +31,9 @@ import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
 
+/**
+ * Class represents claims required for JWT token verification
+ */
 @Getter
 @Setter
 @Builder

@@ -24,6 +24,9 @@
 
 package com.epam.catgenome.security.jwt;
 
+/**
+ * Class represents exception if an error occurred during JWT token initialization
+ */
 public class JwtInitializationException extends RuntimeException {
 
     public JwtInitializationException(Throwable cause) {

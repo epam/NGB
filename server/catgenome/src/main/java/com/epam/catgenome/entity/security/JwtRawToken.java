@@ -32,6 +32,9 @@ import javax.servlet.http.Cookie;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
+/**
+ * Class represents initial JWT token checks. It provides two way for getting JWT token: from header and from cookie.
+ */
 @Getter
 @AllArgsConstructor
 public class JwtRawToken {

@@ -30,6 +30,9 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import java.util.Collection;
 
+/**
+ * Class represents basic JWT token structure
+ */
 public class JwtAuthenticationToken extends AbstractAuthenticationToken {
 
     private JwtRawToken jwtRawToken;

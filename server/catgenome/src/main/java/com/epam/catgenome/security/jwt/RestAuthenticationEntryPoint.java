@@ -33,6 +33,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * Class represents an end point to commence an authentication scheme
+ */
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override

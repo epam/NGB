@@ -40,6 +40,9 @@ import java.util.Base64;
 import static com.epam.catgenome.entity.security.JwtTokenClaims.CLAIM_ORG_UNIT_ID;
 import static com.epam.catgenome.entity.security.JwtTokenClaims.CLAIM_USER_ID;
 
+/**
+ * Class represents JWT token verification
+ */
 public class JwtTokenVerifier {
 
     private RSAPublicKey publicKey;

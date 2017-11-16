@@ -24,6 +24,9 @@
 
 package com.epam.catgenome.security.jwt;
 
+/**
+ * Class represents exception if an error occurred during JWT token verification
+ */
 public class TokenVerificationException extends RuntimeException {
 
     public TokenVerificationException(String message) {

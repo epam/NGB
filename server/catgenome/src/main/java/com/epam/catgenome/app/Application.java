@@ -16,11 +16,13 @@ import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 /**
  * Main entry point for Spring Boot Application
  */
 @Import(AppConfiguration.class)
+@EnableWebSecurity
 @SpringBootApplication(exclude = {
         SecurityAutoConfiguration.class,
         AuthenticationManagerConfiguration.class,

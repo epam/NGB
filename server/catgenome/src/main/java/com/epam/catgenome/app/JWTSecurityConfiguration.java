@@ -40,6 +40,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+/**
+ * Class provides JWT Security Configuration for Spring Boot application according to property file
+ */
 @Configuration
 @ConditionalOnProperty(prefix = "jwt.security.", name = "enable", havingValue = "true")
 @ComponentScan(basePackages = {"com.epam.catgenome.security.jwt"})
