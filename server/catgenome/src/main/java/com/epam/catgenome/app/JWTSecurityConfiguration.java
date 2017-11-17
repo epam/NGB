@@ -108,12 +108,12 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     protected String getSecuredResources() {
-        return "/restapi/**";
+        return "/**";
     }
 
     protected String[] getUnsecuredResources() {
         return new String[] {
-            "/restapi/swagger-ui/**",
+            "/restapi/swagger-ui/**", "/", "/index.html", "/app.css", "/app.bundle.js", "/ngb-logo.png"
         };
     }
 
