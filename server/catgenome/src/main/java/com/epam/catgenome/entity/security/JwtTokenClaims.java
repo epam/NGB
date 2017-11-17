@@ -30,6 +30,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Class represents claims required for JWT token verification
@@ -42,6 +43,8 @@ public class JwtTokenClaims {
     public static final String CLAIM_USER_ID = "user_id";
     public static final String CLAIM_ORG_UNIT_ID = "org_unit_id";
     public static final String SECURITY_DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+    public static final String CLAIM_ROLES = "roles";
+    public static final String CLAIM_GROUPS = "groups";
 
     @JsonProperty("jti")
     private String jwtTokenId;
@@ -62,4 +65,7 @@ public class JwtTokenClaims {
     @JsonProperty("expires_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = SECURITY_DATE_TIME_FORMAT)
     private LocalDateTime expiresAt;
+
+    private List<String> roles;
+    private List<String> groups;
 }

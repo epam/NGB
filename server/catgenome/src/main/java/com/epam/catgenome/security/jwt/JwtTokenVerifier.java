@@ -29,7 +29,10 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.epam.catgenome.entity.security.JwtTokenClaims;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
@@ -37,8 +40,12 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.ZoneId;
 import java.util.Base64;
+import java.util.List;
+
 import static com.epam.catgenome.entity.security.JwtTokenClaims.CLAIM_ORG_UNIT_ID;
 import static com.epam.catgenome.entity.security.JwtTokenClaims.CLAIM_USER_ID;
+import static com.epam.catgenome.entity.security.JwtTokenClaims.CLAIM_GROUPS;
+import static com.epam.catgenome.entity.security.JwtTokenClaims.CLAIM_ROLES;
 
 /**
  * Class represents JWT token verification
@@ -46,11 +53,13 @@ import static com.epam.catgenome.entity.security.JwtTokenClaims.CLAIM_USER_ID;
 public class JwtTokenVerifier {
 
     private RSAPublicKey publicKey;
+    private List<Pair<String, String>> requiredClaims;
 
-    public JwtTokenVerifier(String publicKey) {
+    public JwtTokenVerifier(String publicKey, List<Pair<String, String>> requiredClaims) {
         try {
             this.publicKey = (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(
                     new X509EncodedKeySpec(Base64.getDecoder().decode(publicKey)));
+            this.requiredClaims = requiredClaims;
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new JwtInitializationException(e);
         }
@@ -74,6 +83,12 @@ public class JwtTokenVerifier {
                 .issuedAt(decodedToken.getIssuedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
                 .expiresAt(decodedToken.getExpiresAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
                 .build();
+        if (decodedToken.getClaim(CLAIM_ROLES) != null) {
+            tokenClaims.setRoles(decodedToken.getClaim(CLAIM_ROLES).asList(String.class));
+        }
+        if (decodedToken.getClaim(CLAIM_GROUPS) != null) {
+            tokenClaims.setGroups(decodedToken.getClaim(CLAIM_GROUPS).asList(String.class));
+        }
         return validateClaims(tokenClaims);
     }
 
@@ -87,6 +102,34 @@ public class JwtTokenVerifier {
         if (StringUtils.isEmpty(tokenClaims.getUserName())) {
             throw new TokenVerificationException("Invalid token: user name is empty");
         }
+        validateRequiredClaims(tokenClaims);
         return tokenClaims;
+    }
+
+    private void validateRequiredClaims(JwtTokenClaims tokenClaims) {
+        if (CollectionUtils.isEmpty(requiredClaims)) {
+            return;
+        }
+        requiredClaims.forEach(claimPair -> {
+            switch (claimPair.getLeft()) {
+                case CLAIM_ORG_UNIT_ID:
+                    if (!tokenClaims.getOrgUnitId().equals(claimPair.getRight())) {
+                        throw new TokenVerificationException("Invalid token: invalid org unit id claim");
+                    }
+                    break;
+                case CLAIM_ROLES:
+                    if (tokenClaims.getRoles().stream().noneMatch(v -> v.equals(claimPair.getRight()))) {
+                        throw new TokenVerificationException("Invalid token: invalid roles claim");
+                    }
+                    break;
+                case CLAIM_GROUPS:
+                    if (tokenClaims.getGroups().stream().noneMatch(v -> v.equals(claimPair.getRight()))) {
+                        throw new TokenVerificationException("Invalid token: invalid groups claim");
+                    }
+                    break;
+                default:
+                    throw new TokenVerificationException("Unsupported claim: " + claimPair.getRight());
+            }
+        });
     }
 }

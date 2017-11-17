@@ -28,6 +28,9 @@ import com.epam.catgenome.security.jwt.JwtAuthenticationProvider;
 import com.epam.catgenome.security.jwt.JwtFilterAuthenticationFilter;
 import com.epam.catgenome.security.jwt.JwtTokenVerifier;
 import com.epam.catgenome.security.jwt.RestAuthenticationEntryPoint;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.*;
@@ -40,6 +43,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Class provides JWT Security Configuration for Spring Boot application according to property file
  */
@@ -50,6 +57,11 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Value("${jwt.key.public}")
     private String publicKey;
+
+    @Value("#{'${jwt.required.claims}'.split(',')}")
+    private List<String> requiredClaims;
+
+    private static final String CLAIM_DELIMITER = "=";
 
     protected String getPublicKey() {
         return publicKey;
@@ -84,7 +96,7 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Bean
     public JwtTokenVerifier jwtTokenVerifier() {
-        return new JwtTokenVerifier(getPublicKey());
+        return new JwtTokenVerifier(getPublicKey(), splitRequiredClaims());
     }
 
     protected JwtFilterAuthenticationFilter getJwtAuthenticationFilter() {
@@ -101,8 +113,19 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     protected String[] getUnsecuredResources() {
         return new String[] {
-                "/restapi/swagger-ui/**",
+            "/restapi/swagger-ui/**",
         };
     }
 
+    private List<Pair<String, String>> splitRequiredClaims() {
+        if (CollectionUtils.isEmpty(requiredClaims)) {
+            return Collections.emptyList();
+        }
+        return requiredClaims.stream()
+                .filter(v -> v.contains(CLAIM_DELIMITER))
+                .map(v -> {
+                    String[] splittedClaims = v.split(CLAIM_DELIMITER);
+                    return new ImmutablePair<>(splittedClaims[0], splittedClaims[1]);
+                }).collect(Collectors.toList());
+    }
 }
