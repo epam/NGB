@@ -26,6 +26,8 @@ package com.epam.catgenome.manager.reference;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
+import com.epam.catgenome.dao.reference.SpeciesDao;
+import com.epam.catgenome.entity.reference.Species;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -83,6 +85,9 @@ public class ReferenceGenomeManager {
 
     @Autowired
     private GeneFileDao geneFileDao;
+
+    @Autowired
+    private SpeciesDao speciesDao;
 
     @Autowired
     private FeatureIndexManager featureIndexManager;
@@ -338,6 +343,19 @@ public class ReferenceGenomeManager {
         return loadReferenceGenome(referenceId);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Reference updateSpecies(long referenceId, String speciesVersion) {
+        final Reference reference = referenceGenomeDao.loadReferenceGenome(referenceId);
+        Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
+        if (speciesVersion != null) {
+            final Species species = speciesDao.loadSpeciesByVersion(speciesVersion);
+            Assert.notNull(species, getMessage(MessageCode.NO_SUCH_SPECIES, speciesVersion));
+        }
+
+        referenceGenomeDao.updateSpecies(referenceId, speciesVersion);
+        return loadReferenceGenome(referenceId);
+    }
+
     @Transactional(propagation = Propagation.SUPPORTS)
     public boolean isRegistered(Long id) {
         return referenceGenomeDao.loadReferenceGenome(id) != null;
@@ -387,6 +405,36 @@ public class ReferenceGenomeManager {
             referenceGenomeDao.addAnnotationFile(referenceId, annotationFileBiologicalItemId);
         }
         return loadReferenceGenome(referenceId);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Species registerSpecies(Species species) {
+        Assert.isTrue(!StringUtils.isEmpty(species.getName()));
+        Assert.isTrue(!StringUtils.isEmpty(species.getVersion()));
+        Species registeredSpecies = speciesDao.loadSpeciesByVersion(species.getVersion());
+        Assert.isNull(registeredSpecies,
+                getMessage(MessagesConstants.ERROR_SPECIES_EXISTS, species.getVersion()));
+        return speciesDao.saveSpecies(species);
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public List<Species> loadAllSpecies() {
+        return speciesDao.loadAllSpecies();
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public Species loadSpeciesByVersion(String version) {
+        return speciesDao.loadSpeciesByVersion(version);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Species unregisterSpecies(String speciesVersion) {
+        Assert.notNull(speciesVersion, MessagesConstants.ERROR_INVALID_PARAM);
+        Species species = speciesDao.loadSpeciesByVersion(speciesVersion);
+        Assert.notNull(species, getMessage(MessagesConstants.ERROR_NO_SUCH_SPECIES, speciesVersion));
+        speciesDao.deleteSpecies(species);
+
+        return species;
     }
 
     private FeatureFile fetchFeatureFile(Long annotationFileId) {

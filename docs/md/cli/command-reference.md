@@ -68,7 +68,7 @@ ngb reg_ref|rr [<PATH_TO_GENOME_FASTA>] [options]
 ```
 *Description*
 
-Registers a specified reference sequence file. FASTA, FA, FNA files are accepted. GZip-compressed files are not supported.
+Registers a specified reference sequence file. FASTA, FA, FNA files are accepted. Compressed files are not supported.
 Path to local file and remote URL are accepted as a path to the reference. For local files, NGB will try to find a matching "fai" index 
 in the folder with the reference, if index isn't found it will be created. For remote references, "fai" index must be present on the
 remote source. NGB assumes that reference index will have the same name as reference with "fai" extension added. If reference path is
@@ -81,6 +81,9 @@ ngb reg_ref /opt/genomes/grch.38.fa
 
 //Register reference, use "grch38" as name
 ngb rr /opt/genomes/grch.38.fa -n grch38
+
+//Options:
+//-s (--species)        Add species version to registering reference
 ```
 ### List reference sequences
 ```
@@ -204,6 +207,43 @@ Annotation file can be addressed by name or by an identifier.
 ```
 //Remove an annotation file from the reference with name "grch38"
 ngb remove_ann grch38 annotation.gtf
+```
+
+### Add species to the reference
+```
+ngb add_spec|as [<REFERENCE_NAME|REFERENCE_ID>] [<REGISTERED_SPECIES_VERSION>] [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+Adds a species version to the reference on NGB server. Reference file can be addressed by name or an identifier (retrieved from **reg_ref** command, at registration time or search command).
+Note: species with specified version should be already registered on NGB server.
+
+*Example*
+```
+//Add a regitered species version to the reference with name "grch38"
+ngb add_spec grch38 "hg19"
+```
+
+### Remove species from the reference
+```
+ngb remove_spec [<REFERENCE_NAME|REFERENCE_ID>] [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+Removes a species version from the reference on NGB server. Reference file can be addressed by name or an identifier (retrieved from **reg_ref** command, at registration time or search command).
+
+*Example*
+```
+//Remove an annotation file from the reference with name "grch38"
+ngb remove_spec grch38
 ```
 
 ## File commands
@@ -489,6 +529,64 @@ ngb url 5 sample.vcf -loc 1:13476-23476
 
 //Create URL for dataset with name 'data' and a file with name 'sample.vcf' on a chromosome 1
 ngb url data sample.vcf -loc 1
+```
+
+
+## Species commands
+### Register species
+```
+ngb reg_spec|rs [<SPECIES_NAME>] [<SPECIES_VERSION>] [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+Registers a species. Two arguments have to be specified:
+* Species name
+* Species version
+
+*Example*
+```
+//Create new species with name "human" and version "hg19"
+ngb reg_spec "human" "hg19"
+```
+
+### List species
+```
+ngb list_spec [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+List all species registered on NGB server.
+
+*Example*
+```
+//List all species registered on NGB server
+ngb list_spec
+```
+
+### Delete species
+```
+ngb del_spec|ds [<SPECIES_VESRSION>] [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+Deletes a specified species from NGB server. Species is be addressed by version.
+
+*Example*
+```
+//Delete species with version "hg19"
+ngb del_spec "hg19"
 ```
 
 

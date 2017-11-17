@@ -42,6 +42,12 @@ export default [
                 name: 'layout>molecularViewer',
                 label: 'Molecular Viewer',
                 hotkey: ''
+            },
+            {
+                type: 'item',
+                name: 'layout>blatSearch',
+                label: 'Blat',
+                hotkey: ''
             }
         ],
         type: 'category'

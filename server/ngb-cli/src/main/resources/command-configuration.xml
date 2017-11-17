@@ -35,12 +35,25 @@
         <secure>true</secure>
         <help></help>
     </register_reference>
+    <register_species>
+        <name>register_species</name>
+        <url>/restapi/secure/reference/register/species</url>
+        <type>POST</type>
+        <secure>true</secure>
+        <help></help>
+    </register_species>
     <delete_reference>
         <name>delete_reference</name>
         <url>/restapi/secure/reference/register/fasta?referenceId=%d</url>
         <type>DELETE</type>
         <secure>true</secure>
     </delete_reference>
+    <delete_species>
+        <name>delete_species</name>
+        <url>/restapi/secure/reference/register/species?speciesVersion=%s</url>
+        <type>DELETE</type>
+        <secure>true</secure>
+    </delete_species>
     <register_file>
         <name>register_file</name>
         <url>/restapi/%s/register</url>
@@ -95,6 +108,12 @@
         <type>GET</type>
         <secure>false</secure>
     </list_references>
+    <list_species>
+        <name>list_species</name>
+        <url>/restapi/reference/loadAllSpecies</url>
+        <type>GET</type>
+        <secure>false</secure>
+    </list_species>
     <list_datasets>
         <name>list_datasets</name>
         <url>/restapi/project/loadMy</url>
@@ -143,4 +162,16 @@
         <url>/restapi/secure/reference/%d/updateAnnotation</url>
         <secure>true</secure>
     </remove_annotation>
+    <add_species>
+        <name>add_species</name>
+        <type>PUT</type>
+        <url>/restapi/secure/reference/%d/species</url>
+        <secure>true</secure>
+    </add_species>
+    <remove_species>
+        <name>remove_species</name>
+        <type>PUT</type>
+        <url>/restapi/secure/reference/%d/species</url>
+        <secure>true</secure>
+    </remove_species>
 </config>

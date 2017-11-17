@@ -293,12 +293,30 @@ export default class ngbTrackEvents {
             }
         };
 
+        const openBlatSearchMenuItem = {
+            title: "BLAT Search",
+            events: [{
+                data: {
+                    id: track.id,
+                    chromosomeId: data.chromosome.id,
+                    startIndex: data.read.startIndex,
+                    endIndex: data.read.endIndex,
+                    name: data.read.name,
+                    openByUrl: track.openByUrl,
+                    file: track.openByUrl ? track.id : null,
+                    index: track.openByUrl ? track.indexPath : null
+                },
+                name: 'read:show:blat',
+            }],
+        };
+
         const menuData = [];
         menuData.push(showInfo);
         if (hasPairRead && !chromosomeNotFoundError) {
             menuData.push(goToMateMenuItem);
             menuData.push(openMateMenuItem);
         }
+        menuData.push(openBlatSearchMenuItem);
         menuData.push(copyToClipboard);
         menuData.push(copySequenceToClipboard);
         if (chromosomeNotFoundError) {

@@ -14,7 +14,9 @@ export default class ngbGoldenLayoutController extends baseController {
         ngbBrowser: 'ngbBrowser',
         ngbTracksView: 'ngbTracksView',
         ngbVariations: 'ngbVariantsTablePanel',
-        ngbDataSets: 'ngbDataSets'
+        ngbDataSets: 'ngbDataSets',
+        ngbLog: 'ngbLog',
+        ngbBlatSearchPanel: 'ngbBlatSearchPanel'
     };
     eventsNotForShareFromParent = ['layout:panels:displayed', 'layout:restore:default', 'layout:load',
         'layout:item:change', 'ngbFilter:setDefault'];
@@ -24,7 +26,7 @@ export default class ngbGoldenLayoutController extends baseController {
     projectContext;
     ngbViewActions;
 
-    constructor($scope, $compile, $window, $element, $timeout, dispatcher, ngbGoldenLayoutService, GoldenLayout, projectContext, ngbViewActionsConstant) {
+    constructor($scope, $compile, $window, $element, $timeout, dispatcher, ngbGoldenLayoutService, GoldenLayout, projectContext, ngbViewActionsConstant, appLayout) {
         super(dispatcher);
         Object.assign(this, {
             $compile,
@@ -33,6 +35,7 @@ export default class ngbGoldenLayoutController extends baseController {
             GoldenLayout,
             dispatcher,
             projectContext,
+            appLayout,
             ngbViewActions: ngbViewActionsConstant
         });
         this.$element = $element.find('[ngb-golden-layout-container]');
@@ -52,6 +55,8 @@ export default class ngbGoldenLayoutController extends baseController {
         'ngbFilter:change': ::this.panelRemoveExtraWindows,
         'reference:change': ::this.panelRemoveExtraWindows,
         'read:show:mate': ::this.panelAddBrowserWithPairRead,
+        'read:show:blat': ::this.panelAddBlatSearchPanel,
+        'tracks:state:change': ::this.panelRemoveBlatSearchPanel,
         'variant:show:pair': ::this.panelAddBrowserWithVariation
     };
 
@@ -102,10 +107,10 @@ export default class ngbGoldenLayoutController extends baseController {
 
             stack.on('activeContentItemChanged', (contentItem) => {
                 childScope.viewName = contentItem.config.componentState.panel;
-                if(contentItem.config.componentState.panel === this.panels.ngbVariations) {
+                if (contentItem.config.componentState.panel === this.panels.ngbVariations) {
                     this.dispatcher.emit('activeVariants');
                 }
-                if(contentItem.config.componentState.panel === this.panels.ngbDataSets) {
+                if (contentItem.config.componentState.panel === this.panels.ngbDataSets) {
                     this.dispatcher.emit('activeDataSets');
                 }
             });
@@ -137,7 +142,7 @@ export default class ngbGoldenLayoutController extends baseController {
         const handledPattern = new RegExp(/^layout>([\w-]*)$/);
         const testResult = handledPattern.exec(event);
         if (testResult) {
-            const [,panelName]=testResult;
+            const [, panelName] = testResult;
             if (panelName && this.service.layout.Panels[panelName]) {
                 const panelItem = this.service.layout.Panels[panelName];
 
@@ -291,6 +296,51 @@ export default class ngbGoldenLayoutController extends baseController {
             }
         } else {
             this.addGLItemByPosition(newItem);
+        }
+    }
+
+    panelRemoveBlatSearchPanel(event) {
+        let savedBlatRequest = JSON.parse(localStorage.getItem('blatSearchRequest')) || null;
+
+        if(!savedBlatRequest) return;
+
+        let [currentBlatSearchBamTrack] = this.projectContext.tracks.filter( t => t.format === 'BAM' && t.id === savedBlatRequest.id);
+
+        if(!currentBlatSearchBamTrack) {
+            localStorage.removeItem('blatSearchRequest');
+            localStorage.removeItem('blatColumns');
+            this.panelRemove(this.appLayout.Panels.blat);
+        }
+    }
+
+    panelAddBlatSearchPanel(event) {
+        let layoutChange = this.appLayout.Panels.blat;
+        layoutChange.displayed = true;
+
+        const [blatSearchItem] = this.goldenLayout.root
+            .getItemsByFilter((obj) => obj.config && obj.config.componentState
+            && obj.config.componentState.panel === this.panels.ngbBlatSearchPanel);
+
+        const payload = {
+            id: event.id,
+            chromosomeId: event.chromosomeId,
+            startIndex: event.startIndex,
+            endIndex: event.endIndex,
+            name: event.name,
+            openByUrl: event.openByUrl,
+            file: event.file,
+            index: event.index
+        };
+        localStorage.setItem('blatSearchRequest', JSON.stringify(payload || {}));
+
+
+        if (!blatSearchItem) {
+            this.panelAdd(layoutChange);
+        } else {
+            const parent = blatSearchItem.parent;
+            if (parent && parent.type === 'stack') {
+                parent.setActiveContentItem(blatSearchItem);
+            }
         }
     }
 

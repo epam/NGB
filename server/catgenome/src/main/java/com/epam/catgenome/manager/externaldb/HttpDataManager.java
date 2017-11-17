@@ -212,7 +212,7 @@ public class HttpDataManager {
 
             String inputStr;
             while ((inputStr = streamReader.readLine()) != null) {
-                responseStrBuilder.append(inputStr);
+                responseStrBuilder.append(inputStr).append('\n');
             }
 
             result = responseStrBuilder.toString();

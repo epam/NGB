@@ -61,6 +61,18 @@ Associate genes annotation with a reference sequence
 $ ngb add_genes grch38 grch38_genes
 ```
 
+Register hg38 species
+```
+$ ngb reg_spec "human" "hg38" -t
+NAME  VERSION
+human    hg38
+```
+
+Associate species with a reference sequence
+```
+$ ngb add_spec grch38 "hg38"
+```
+
 Create a dataset mapped to a newly created genome
 ```
 $ ngb reg_dataset grch38 my_first_dataset grch38_genes -t

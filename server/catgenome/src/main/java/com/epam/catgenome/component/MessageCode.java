@@ -46,6 +46,7 @@ public enum MessageCode {
     NO_SUCH_CHROMOSOME("error.no.such.chromosome"),
     NO_CHROMOSOME_NAME("error.no.chromosome.name"),
     UNKNOWN_REFERENCE_ID("error.reference.aborted.saving.id"),
+    NO_SUCH_SPECIES("error.no.such.species"),
 
     UNSORTED_BAM("error.unsorted.bam"),
     WRONG_BAM_INDEX_FILE("error.bam.index.file"),

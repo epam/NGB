@@ -67,6 +67,12 @@ public class Application {
             + "ran\tremove_ann\t: remove a annotation file from the list of reference annotation files"
             + "\t{ran grch38 annotations.gtf}\n"
             + "rg\tremove_genes\t: removes a gene file from the reference\t{rg grch38}\n\n"
+            + "SPECIES commands:\n"
+            + "rs\treg_spec\t: registers a species\t{rs \\species\\name \\species\\version}\n"
+            + "ds\tdel_spec\t: unregisters a species \t{ds \"hg19\"}\n"
+            + "as\tadd_spec\t: adds a registered species to the registered reference\t{as grch38 \"hg19\"}\n"
+            + "remove_spec\t: removes a species from the reference\t{remove_spec grch38}\n"
+            + "list_spec\t: lists all species, registered on the server\t{list_spec}\n\n"
             + "FILE commands:\n"
             + "rf\treg_file\t: registers a feature file for a specified reference\t"
             + "{rf grch38 \\path\\to\\file.bam?\\path\\to\\file.bam.bai -n my_vcf}\n"
@@ -156,6 +162,9 @@ public class Application {
             aliases = {"--no-tabix"})
     private boolean doNotCreateTabixIndex = false;
 
+    @Option(name = "-s", usage = "specifies reference genome species version for registration", aliases = {"--species"})
+    private String speciesVersion;
+
 
     @Argument
     private List<String> arguments;
@@ -241,6 +250,7 @@ public class Application {
         options.setNoGCContent(noGCContent);
         options.setForceDeletion(forceDeletion);
         options.setPrettyName(prettyName);
+        options.setSpeciesVersion(speciesVersion);
         if (doNotCreateTabixIndex) {
             options.setCreateTabixIndex(false);
         }

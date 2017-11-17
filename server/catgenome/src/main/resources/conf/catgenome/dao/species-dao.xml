@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	<bean id="speciesDao" class="com.epam.catgenome.dao.reference.SpeciesDao" autowire="byName">
+		<property name="saveSpeciesQuery">
+			<value>
+				<![CDATA[
+                    INSERT INTO catgenome.genome_species (
+                        species_name,
+                        species_version)
+                    VALUES (
+                        :SPECIES_NAME,
+                        :SPECIES_VERSION)
+                ]]>
+			</value>
+		</property>
+
+		<property name="loadSpeciesByVersionQuery">
+			<value>
+				<![CDATA[
+				    SELECT species_name,
+				           species_version
+				    FROM catgenome.genome_species
+				    WHERE species_version = :SPECIES_VERSION
+                ]]>
+			</value>
+		</property>
+
+		<property name="loadAllSpeciesQuery">
+			<value>
+				<![CDATA[
+				    SELECT species_name,
+				           species_version
+				    FROM catgenome.genome_species
+				    ORDER BY species_name ASC
+                ]]>
+			</value>
+		</property>
+
+		<property name="deleteSpeciesQuery">
+			<value>
+				<![CDATA[
+                        DELETE FROM catgenome.genome_species WHERE species_version = :SPECIES_VERSION
+                ]]>
+			</value>
+		</property>
+	</bean>
+</beans>
