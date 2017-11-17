@@ -27,15 +27,25 @@ package com.epam.catgenome.manager.bam;
 import com.epam.catgenome.entity.bam.PSLRecord;
 import com.epam.catgenome.entity.reference.Species;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.manager.externaldb.HttpDataManager;
+import com.epam.catgenome.manager.externaldb.ParameterNameValue;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
@@ -59,10 +69,21 @@ public class BlatSearchManagerTest {
     private static final List<PSLRecord> EXPECTED = mockPSLRecord();
 
     @Autowired
+    private ApplicationContext context;
+
+    @Mock
+    private HttpDataManager httpDataManager;
+
+    @Autowired
+    @InjectMocks
     private BlatSearchManager blatSearchManager;
 
     @Test
     public void testFind() throws IOException, ExternalDbUnavailableException {
+        Mockito.when(
+                httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class))
+        ).thenReturn(readMockedResponse());
+
         List<PSLRecord> actual = blatSearchManager.find(TEST_SEQUENSE, TEST_SPECIES);
         Assert.assertEquals(1, actual.size());
         Assert.assertEquals(EXPECTED.get(0), actual.get(0));
@@ -86,6 +107,12 @@ public class BlatSearchManagerTest {
         record.setqSize(TEST_Q_SIZE);
         record.setScore(TEST_SCORE);
         return Collections.singletonList(record);
+    }
+
+    private String readMockedResponse() throws IOException {
+        Resource resource = context.getResource("classpath:blat//data//testResponse.html");
+        String pathStr = resource.getFile().getPath();
+        return new String(Files.readAllBytes(Paths.get(pathStr)), Charset.defaultCharset());
     }
 
 }

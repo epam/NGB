@@ -28,6 +28,7 @@ package com.epam.catgenome.manager.bam;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -66,6 +67,9 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,7 +116,11 @@ public class BamManagerTest extends AbstractManagerTest {
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
 
+    @Mock
+    private BlatSearchManager blatSearchManager;
+
     @Autowired
+    @InjectMocks
     private BamManager bamManager;
 
     @Autowired
@@ -733,6 +741,10 @@ public class BamManagerTest extends AbstractManagerTest {
         referenceGenomeManager.registerSpecies(testSpecies);
         referenceGenomeManager.updateSpecies(bamFile.getReferenceId(), testSpecies.getVersion());
 
+        Mockito.when(
+                blatSearchManager.find(Mockito.anyString(), Mockito.any(Species.class))
+        ).thenReturn(Collections.singletonList(new PSLRecord()));
+
         String readSequence = "CAGTATCGTCCTTACTATTACATAGTGTGGTAGCGATGCAGTCCCAGTGAAAAAAAAAAAAAAAAAAAC";
         List<PSLRecord> records = bamManager.findBlatReadSequence(bamFile.getId(), readSequence);
         Assert.assertNotNull(records);
@@ -767,5 +779,4 @@ public class BamManagerTest extends AbstractManagerTest {
         request.setType(BiologicalDataItemResourceType.FILE);
         bamManager.registerBam(request);
     }
-
 }

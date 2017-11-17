@@ -64,8 +64,8 @@ $ ngb add_genes grch38 grch38_genes
 Register hg38 species
 ```
 $ ngb reg_spec "human" "hg38" -t
-ID         NAME TYPE                               PATH FORMAT CREATED_DATE
-1  grch38_genes FILE /ngs_data/genomes/grch38_genes.gtf   GENE   28-02-2017
+NAME  VERSION
+human    hg38
 ```
 
 Associate species with a reference sequence

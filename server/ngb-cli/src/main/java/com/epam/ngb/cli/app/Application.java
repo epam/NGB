@@ -68,7 +68,7 @@ public class Application {
             + "\t{ran grch38 annotations.gtf}\n"
             + "rg\tremove_genes\t: removes a gene file from the reference\t{rg grch38}\n\n"
             + "SPECIES commands:\n"
-            + "rs\treg_spec\t: register a species\t{rs \\species\\name \\species\\version}\n"
+            + "rs\treg_spec\t: registers a species\t{rs \\species\\name \\species\\version}\n"
             + "ds\tdel_spec\t: unregisters a species \t{ds \"hg19\"}\n"
             + "as\tadd_spec\t: adds a registered species to the registered reference\t{as grch38 \"hg19\"}\n"
             + "remove_spec\t: removes a species from the reference\t{remove_spec grch38}\n"
