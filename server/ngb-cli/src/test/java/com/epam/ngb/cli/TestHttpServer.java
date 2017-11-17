@@ -25,7 +25,6 @@
 package com.epam.ngb.cli;
 
 import com.epam.ngb.cli.entity.*;
-import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
 import org.apache.commons.io.FilenameUtils;
 
 import java.util.ArrayList;

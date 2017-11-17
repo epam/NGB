@@ -473,7 +473,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             ResponseResult<SpeciesEntity> responseResult = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
                             SpeciesEntity.class));
-            if (ERROR_STATUS.equals(responseResult.getStatus())) {
+            if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
                 throw new ApplicationException(responseResult.getMessage());
             } else {
                 if (printJson || printTable) {

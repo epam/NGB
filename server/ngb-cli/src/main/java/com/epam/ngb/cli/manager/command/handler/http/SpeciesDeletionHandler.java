@@ -73,10 +73,6 @@ public class SpeciesDeletionHandler extends AbstractHTTPCommandHandler {
     public int runCommand() {
         String url = String.format(getRequestUrl(), speciesVersion);
         HttpRequestBase request = getRequest(url);
-        setDefaultHeader(request);
-        if (isSecure()) {
-            addAuthorizationToRequest(request);
-        }
         String result = RequestManager.executeRequest(request);
         try {
             ResponseResult response = getMapper().readValue(result,

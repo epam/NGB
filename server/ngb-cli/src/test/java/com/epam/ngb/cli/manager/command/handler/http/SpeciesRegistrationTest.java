@@ -48,7 +48,6 @@ public class SpeciesRegistrationTest extends AbstractCliTest {
     @BeforeClass
     public static void setUp() {
         server.start();
-        server.addAuthorization();
         server.addSpeciesRegistration(SPECIES_NAME, SPECIES_VERSION);
 
         serverParameters = getDefaultServerOptions(server.getPort());
