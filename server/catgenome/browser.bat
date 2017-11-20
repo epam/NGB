@@ -1,1 +1,0 @@
-powershell -executionpolicy remotesigned -File browser.ps1
