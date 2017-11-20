@@ -51,7 +51,6 @@ public class ReferenceDeletionHandlerTest extends AbstractCliTest{
     public static void setUp() {
         server.start();
 
-        server.addAuthorization();
         server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
         server.addReferenceDeletion(REF_ID, REFERENCE_NAME);
         serverParameters = getDefaultServerOptions(server.getPort());

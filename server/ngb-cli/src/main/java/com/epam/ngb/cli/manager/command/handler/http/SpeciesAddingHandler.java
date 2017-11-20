@@ -31,6 +31,7 @@ import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.request.RequestManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.net.URISyntaxException;
@@ -79,12 +80,8 @@ public class SpeciesAddingHandler extends AbstractHTTPCommandHandler {
             if (speciesVersion != null) {
                 builder.addParameter("speciesVersion", speciesVersion);
             }
-            HttpPut put = new HttpPut(builder.build());
-            setDefaultHeader(put);
-            if (isSecure()) {
-                addAuthorizationToRequest(put);
-            }
-            String result = RequestManager.executeRequest(put);
+            HttpRequestBase request = getRequestFromURLByType(HttpPut.METHOD_NAME, builder.build().toString());
+            String result = RequestManager.executeRequest(request);
             checkAndPrintRegistrationResult(result, printJson, printTable);
         } catch (URISyntaxException e) {
             throw new ApplicationException(e.getMessage(), e);

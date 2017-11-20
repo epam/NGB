@@ -1,6 +1,7 @@
 # Command reference
 ## General commands
 ### Configure CLI connection to NGB server
+#### Set NGB server URL
 ```
 ngb set_srv|srv [<NGB_API_URL>] [options]
 
@@ -21,7 +22,19 @@ When URL is set - it would be stored and used next time CLI is launched
 //Sets remote server for CLI
 ngb set_srv http://10.248.33.51:8080/catgenome
 ```
+#### Set authorization token
+```
+ngb set_token|st [<JWT_TOKEN>]
 
+```
+*Description*
+
+Sets JWT token to authorize CLI requests to NGB server API. Required if authorization is enabled on NGB.
+*Example*
+```
+//Sets remote server for CLI
+ngb set_token eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0X3VzZXIiLCJ1c2VyX
+```
 ## Display CLI version
 
 ```

@@ -31,8 +31,6 @@ package com.epam.ngb.cli.manager.command;
 public class ServerParameters {
 
     private String serverUrl;
-    private String authenticationUrl;
-    private String authPayload;
     private String searchUrl;
     private String registrationUrl;
     private String projectLoadUrl;
@@ -42,6 +40,7 @@ public class ServerParameters {
     private String fileFindUrl;
     private String serverVersion;
     private String existingIndexSearchUrl;
+    private String jwtAuthenticationToken;
 
     public String getServerUrl() {
         return serverUrl;
@@ -49,22 +48,6 @@ public class ServerParameters {
 
     public void setServerUrl(String serverUrl) {
         this.serverUrl = serverUrl;
-    }
-
-    public String getAuthenticationUrl() {
-        return authenticationUrl;
-    }
-
-    public void setAuthenticationUrl(String authenticationUrl) {
-        this.authenticationUrl = authenticationUrl;
-    }
-
-    public String getAuthPayload() {
-        return authPayload;
-    }
-
-    public void setAuthPayload(String authPayload) {
-        this.authPayload = authPayload;
     }
 
     public String getSearchUrl() {
@@ -137,5 +120,13 @@ public class ServerParameters {
 
     public void setExistingIndexSearchUrl(String existingIndexSearchUrl) {
         this.existingIndexSearchUrl = existingIndexSearchUrl;
+    }
+
+    public String getJwtAuthenticationToken() {
+        return jwtAuthenticationToken;
+    }
+
+    public void setJwtAuthenticationToken(String jwtAuthenticationToken) {
+        this.jwtAuthenticationToken = jwtAuthenticationToken;
     }
 }

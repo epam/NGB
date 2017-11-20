@@ -66,10 +66,6 @@ public class GeneRemovingHandler extends AbstractHTTPCommandHandler{
 
     @Override public int runCommand() {
         HttpRequestBase request = getRequest(String.format(getRequestUrl(), referenceId));
-        setDefaultHeader(request);
-        if (isSecure()) {
-            addAuthorizationToRequest(request);
-        }
         String result = RequestManager.executeRequest(request);
         checkAndPrintRegistrationResult(result, printJson, printTable);
         return 0;

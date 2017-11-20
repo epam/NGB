@@ -49,7 +49,6 @@ public class SpeciesDeletionHandlerTest extends AbstractCliTest {
     public static void setUp() {
         server.start();
 
-        server.addAuthorization();
         server.addSpeciesDeletion(SPECIES_NAME, SPECIES_VERSION);
         serverParameters = getDefaultServerOptions(server.getPort());
     }

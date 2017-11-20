@@ -24,40 +24,27 @@
 
 package com.epam.ngb.cli.manager.command.handler.simple;
 
-import com.epam.ngb.cli.AbstractCliTest;
-import com.epam.ngb.cli.app.ApplicationOptions;
-import com.epam.ngb.cli.exception.ApplicationException;
+import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
-
-public class SetServerCommandHandlerTest extends AbstractCliTest{
+public class SetServerCommandHandlerTest extends SetPropertyCommandHandlerTest {
 
     private static final String COMMAND = "set_server";
-    private static final String URL = "localhost:15666";
 
-    //this will always fail, as we cannot save configuration to an external file in test
-    //as this command works only in distribution
-    @Test(expected = ApplicationException.class)
+    @Test
     public void testSetServer() throws Exception {
-        SetServerCommandHandler handler = new SetServerCommandHandler();
-        handler.setConfiguration(getCommandConfiguration(COMMAND));
-        handler.parseAndVerifyArguments(Collections.singletonList(URL), new ApplicationOptions());
-        handler.runCommand();
+        SetServerCommandHandler handler = (SetServerCommandHandler) initCommandHandler(new SetServerCommandHandler(),
+                COMMAND, SERVER_URL);
+        Assert.assertEquals(SERVER_URL, handler.getProperties().getProperty(SERVER_URL_PROPERTY));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testNoArguments() throws Exception {
-        SetServerCommandHandler handler = new SetServerCommandHandler();
-        handler.setConfiguration(getCommandConfiguration(COMMAND));
-        handler.parseAndVerifyArguments(Collections.emptyList(), new ApplicationOptions());
+        initNoArgsCommandHandler(new SetServerCommandHandler(), COMMAND);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testTooManyArguments() throws Exception {
-        SetServerCommandHandler handler = new SetServerCommandHandler();
-        handler.setConfiguration(getCommandConfiguration(COMMAND));
-        handler.parseAndVerifyArguments(Arrays.asList(URL, URL), new ApplicationOptions());
+        initTooManyArgsCommandHandler(new SetServerCommandHandler(), COMMAND, SERVER_URL);
     }
 }

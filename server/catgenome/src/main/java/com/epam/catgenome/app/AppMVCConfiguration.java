@@ -36,7 +36,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -46,10 +45,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter;
-import org.springframework.security.oauth2.provider.client.ClientCredentialsTokenEndpointFilter;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
@@ -148,52 +143,6 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
         bean.setName("catgenome");
         bean.setLoadOnStartup(1);
         return bean;
-    }
-
-    @Bean
-    public ServletRegistrationBean oauth() {
-        DispatcherServlet dispatcherServlet = new DispatcherServlet();
-        dispatcherServlet.setApplicationContext(applicationContext);
-        ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(dispatcherServlet,
-                "/oauth/token");
-        servletRegistrationBean.setName("oauth");
-        servletRegistrationBean.setLoadOnStartup(1);
-        return servletRegistrationBean;
-    }
-
-    @Bean
-    public FilterRegistrationBean springSecurityFilterChain() {
-        FilterRegistrationBean registrationBean = new FilterRegistrationBean();
-        DelegatingFilterProxy securityFilter = new DelegatingFilterProxy();
-        registrationBean.setFilter(securityFilter);
-        registrationBean.setAsyncSupported(true);
-        registrationBean.addUrlPatterns("/*");
-        return registrationBean;
-    }
-
-    //we need to disable several default security filters, created by Spring boot
-    @Bean
-    public FilterRegistrationBean disableDefaultClientCredentials(
-            ClientCredentialsTokenEndpointFilter filter) {
-        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
-        registration.setEnabled(false);
-        return registration;
-    }
-
-    //we need to disable several default security filters, created by Spring boot
-    @Bean
-    public FilterRegistrationBean disableDefaultUsernameAuth(UsernamePasswordAuthenticationFilter filter) {
-        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
-        registration.setEnabled(false);
-        return registration;
-    }
-
-    //we need to disable several default security filters, created by Spring boot
-    @Bean
-    public FilterRegistrationBean disableDefaultOAuth(OAuth2AuthenticationProcessingFilter filter) {
-        FilterRegistrationBean registration = new FilterRegistrationBean(filter);
-        registration.setEnabled(false);
-        return registration;
     }
 
     private boolean useEmbeddedContainer() {

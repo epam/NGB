@@ -39,7 +39,6 @@ public abstract class AbstractCliTest {
 
     public static final int RUN_STATUS_OK = 0;
     public static final int HTTP_STATUS_OK = 200;
-    public static final String TOKEN = "123456";
     public static final String HTTP_GET = "GET";
     public static final String HTTP_POST = "POST";
     public static final String HTTP_PUT = "PUT";
@@ -66,9 +65,6 @@ public abstract class AbstractCliTest {
     public static final String ANNOTATION_REFERENCE_UPDATING_URL =
             "/catgenome/restapi/secure/reference/%d/updateAnnotation";
     public static final String DATASET_MOVING_URL = "/catgenome/restapi/project/%d/move";
-    public static final String AUTHENTICATION_URL = "/catgenome/oauth/token";
-    public static final String AUTHENTICATION_PAYLOAD = "client_id=restapp&client_secret=restapp&username="
-            + "default_admin&password=admin&grant_type=password&scope=read";
     public static final String URL_GENERATION_URL = "/catgenome/restapi/url";
     public static final String SORT_URI = "/catgenome/restapi/tools/sort";
     public static final String GET_PATH_TO_EXISTING_INDEX_URI = "/catgenome/restapi/getPathToExistingIndex";
@@ -77,11 +73,11 @@ public abstract class AbstractCliTest {
     public static final String SPEC_DELETION_URL = "/catgenome/restapi/secure/reference/register/species";
     public static final String SPEC_ADDING_URL = "/catgenome/restapi/secure/reference/%d/species";
     public static final String SPEC_REMOVING_URL = "/catgenome/restapi/secure/reference/%d/species";
+    public static final String TOKEN = "123456";
 
     //server properties
     public static final String TEST_SERVER_PROPERTIES = "external/server.properties";
-    public static final String AUTHENTICATION_PROPERTY = "authentication";
-    public static final String AUTHENTICATION_URL_PROPERTY = "authentication_url";
+    public static final String TOKEN_PROPERTY = "token";
     public static final String SERVER_URL_PROPERTY = "server_url";
     public static final String SEARCH_URL_PROPERTY = "search_url";
     public static final String REGISTRATION_URL_PROPERTY = "register_url";
@@ -101,8 +97,7 @@ public abstract class AbstractCliTest {
         Properties serverProperties = configLoader.loadServerConfiguration(null);
         ServerParameters parameters = new ServerParameters();
         parameters.setServerUrl(String.format(SERVER_URL, port));
-        parameters.setAuthPayload(serverProperties.getProperty(AUTHENTICATION_PROPERTY));
-        parameters.setAuthenticationUrl(serverProperties.getProperty(AUTHENTICATION_URL_PROPERTY));
+        parameters.setJwtAuthenticationToken(serverProperties.getProperty(TOKEN_PROPERTY));
         parameters.setSearchUrl(serverProperties.getProperty(SEARCH_URL_PROPERTY));
         parameters.setRegistrationUrl(serverProperties.getProperty(REGISTRATION_URL_PROPERTY));
         parameters.setProjectLoadUrl(serverProperties.getProperty(PROJECT_URL_PROPERTY));

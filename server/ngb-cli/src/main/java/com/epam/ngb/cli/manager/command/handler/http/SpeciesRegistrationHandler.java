@@ -84,10 +84,6 @@ public class SpeciesRegistrationHandler extends AbstractHTTPCommandHandler {
     @Override
     public int runCommand() {
         HttpRequestBase request = getRequest(getRequestUrl());
-        setDefaultHeader(request);
-        if (isSecure()) {
-            addAuthorizationToRequest(request);
-        }
         RegistrationRequest registration = new RegistrationRequest();
         registration.setSpecies(entity);
         String result = getPostResult(registration, (HttpPost) request);

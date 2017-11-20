@@ -89,7 +89,6 @@ public class ConfigurationLoaderTest extends AbstractCliTest{
         CommandConfiguration commandConfiguration = loader.loadCommandConfiguration(SEARCH_COMMAND_FULL);
         Assert.assertEquals(SEARCH_COMMAND_FULL, commandConfiguration.getName());
         Assert.assertEquals(HTTP_GET, commandConfiguration.getRequestType());
-        Assert.assertFalse(commandConfiguration.isSecure());
     }
 
     @Test

@@ -76,7 +76,6 @@ public class FileIndexingHandler extends AbstractHTTPCommandHandler {
             url +="?createTabixIndex=true";
         }
         HttpRequestBase request = getRequest(url);
-        setDefaultHeader(request);
         String result = RequestManager.executeRequest(request);
 
         try {

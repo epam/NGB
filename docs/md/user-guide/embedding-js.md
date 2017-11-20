@@ -302,6 +302,11 @@ The object to be passed to NGB window:
 | ```{name: "gene>transcript>collapsed"}, {name: "gene>transcript>expanded"}``` | Transcript View <br> "gene>transcript>collapsed" - Collapsed <br> "gene>transcript>expanded" - Expanded  <br>  |  |
 | ```{name: "shortenIntrons", value: true}``` | Shorten introns |  |
 
+
+## Authorization
+If authorization is enabled for NGB server each call to API should include a valid JWT token either in header (**"Authorization: Bearer {TOKEN_VALUE}"**) or in cookies.
+If token is present in localStorage it will be added to HTTP header to all NGB server API calls 
+
 ### setToken
 
 Set value of a token item in a localStorage.

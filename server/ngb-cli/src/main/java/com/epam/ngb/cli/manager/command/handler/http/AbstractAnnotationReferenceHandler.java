@@ -30,6 +30,7 @@ import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.request.RequestManager;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,12 +103,8 @@ public abstract class AbstractAnnotationReferenceHandler extends AbstractHTTPCom
                 URIBuilder builder = new URIBuilder(String.format(url, referenceId));
                 builder.addParameter("annotationFileId", String.valueOf(annotationFileId));
                 builder.addParameter("remove", String.valueOf(isRemoving()));
-                HttpPut put = new HttpPut(builder.build());
-                setDefaultHeader(put);
-                if (isSecure()) {
-                    addAuthorizationToRequest(put);
-                }
-                String result = RequestManager.executeRequest(put);
+                HttpRequestBase request = getRequestFromURLByType(HttpPut.METHOD_NAME, builder.build().toString());
+                String result = RequestManager.executeRequest(request);
                 checkAndPrintRegistrationResult(result, printJson, printTable);
             } catch (URISyntaxException e) {
                 throw new ApplicationException(e.getMessage(), e);

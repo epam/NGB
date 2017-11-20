@@ -60,7 +60,6 @@ import com.epam.ngb.cli.manager.command.ServerParameters;
 import com.epam.ngb.cli.manager.command.handler.simple.AbstractSimpleCommandHandler;
 import com.epam.ngb.cli.manager.printer.AbstractResultPrinter;
 import com.epam.ngb.cli.manager.request.RequestManager;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -83,12 +82,19 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
     protected static final String ERROR_STATUS = "ERROR";
 
     /**
+     * Constant used to determine that no errors occurred on the server in response to request
+     */
+    protected static final String SUCCESS_STATUS = "OK";
+
+    /**
      * Default values for request header initialization
      */
     private static final String APPLICATION_JSON = "application/json";
     private static final String CONTENT_TYPE = "content-type";
     private static final String CACHE_CONTROL = "cache-control";
     private static final String CACHE_CONTROL_NO_CACHE = "no-cache";
+    private static final String AUTHORIZATION = "Authorization";
+    private static final String BEARER = "Bearer ";
 
     /**
      * Delimiter between path to file and path to index in the input argument string
@@ -117,14 +123,6 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
     protected AbstractHTTPCommandHandler(AbstractHTTPCommandHandler handler) {
         this.serverParameters = handler.getServerParameters();
         this.configuration = new CommandConfiguration(handler.getConfiguration());
-    }
-
-    /**
-     * @return true is authorization is required for performing a HTTP request corresponding to
-     * a command
-     */
-    public boolean isSecure() {
-        return configuration.isSecure();
     }
 
     public ServerParameters getServerParameters() {
@@ -159,44 +157,44 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
      */
     protected HttpRequestBase getRequest(String request) {
         String url = serverParameters.getServerUrl() + request;
-        HttpRequestBase result;
-        switch (getRequestType()) {
-            case "POST":
-                result = new HttpPost(url);
-                break;
-            case "GET":
-                result = new HttpGet(url);
-                break;
-            case "DELETE":
-                result =  new HttpDelete(url);
-                break;
-            case "PUT":
-                result = new HttpPut(url);
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported request type: " + getRequestType());
-        }
-        return result;
+        return getRequestFromURL(url);
     }
 
     /**
-     * Sends request to NGB server, retrieves an authorization token and adds it to an input request.
-     * This is required for secure requests.
-     * @param request to authorize
+     * Creates an empty {@code {@link HttpRequestBase}} with a specified url according to command
+     * configuration
+     * @param url URL
+     * @return {@code {@link HttpRequestBase}} with a specified URL and type
      */
-    protected void addAuthorizationToRequest(HttpRequestBase request) {
-        try {
-            HttpPost post = new HttpPost(serverParameters.getServerUrl() + serverParameters.getAuthenticationUrl());
-            StringEntity input = new StringEntity(serverParameters.getAuthPayload());
-            input.setContentType(APPLICATION_JSON);
-            post.setEntity(input);
-            post.setHeader(CACHE_CONTROL, CACHE_CONTROL_NO_CACHE);
-            post.setHeader(CONTENT_TYPE, "application/x-www-form-urlencoded");
-            String result = RequestManager.executeRequest(post);
-            Authentication authentication = getMapper().readValue(result, Authentication.class);
-            request.setHeader("authorization", "Bearer " + authentication.getAccessToken());
-        } catch (IOException e) {
-            throw new ApplicationException("Failed to authenticate request", e);
+    protected HttpRequestBase getRequestFromURL(String url) {
+        return getRequestFromURLByType(getRequestType(), url);
+    }
+
+    /**
+     * Creates an empty {@code {@link HttpRequestBase}} with a specified url according to command
+     * configuration
+     * @param requestType
+     * @param url
+     * @return {@code {@link HttpRequestBase}} with a specified URL and type
+     */
+    protected HttpRequestBase getRequestFromURLByType(String requestType, String url) {
+        HttpRequestBase result = selectRequestType(requestType, url);
+        setDefaultHeader(result);
+        return result;
+    }
+
+    private HttpRequestBase selectRequestType(String requestType, String url) {
+        switch (requestType) {
+            case HttpPost.METHOD_NAME:
+                return new HttpPost(url);
+            case HttpGet.METHOD_NAME:
+                return new HttpGet(url);
+            case HttpDelete.METHOD_NAME:
+                return new HttpDelete(url);
+            case HttpPut.METHOD_NAME:
+                return new HttpPut(url);
+            default:
+                throw new IllegalArgumentException("Unsupported request type: " + getRequestType());
         }
     }
 
@@ -214,6 +212,9 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
     protected void setDefaultHeader(HttpRequestBase request) {
         request.setHeader(CONTENT_TYPE, APPLICATION_JSON);
         request.setHeader(CACHE_CONTROL, CACHE_CONTROL_NO_CACHE);
+        if (!serverParameters.getJwtAuthenticationToken().isEmpty()) {
+            request.setHeader(AUTHORIZATION, BEARER + serverParameters.getJwtAuthenticationToken());
+        }
     }
 
     /**
@@ -337,9 +338,8 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
                     .addParameter("name", strId)
                     .addParameter("strict", String.valueOf(strict))
                     .build();
-            HttpGet get = new HttpGet(uri);
-            setDefaultHeader(get);
-            String result = RequestManager.executeRequest(get);
+            HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, uri.toString());
+            String result = RequestManager.executeRequest(request);
             ResponseResult<List<BiologicalDataItem>> responseResult = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructParametrizedType(
                             ResponseResult.class, ResponseResult.class,
@@ -376,10 +376,6 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
     protected void runDeletion(Long id) {
         String url = String.format(getRequestUrl(), id);
         HttpRequestBase request = getRequest(url);
-        setDefaultHeader(request);
-        if (isSecure()) {
-            addAuthorizationToRequest(request);
-        }
         String result = RequestManager.executeRequest(request);
         try {
             ResponseResult response = getMapper().readValue(result,
@@ -403,17 +399,16 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             ResponseResult<BiologicalDataItem> responseResult = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
                             BiologicalDataItem.class));
-            if (ERROR_STATUS.equals(responseResult.getStatus())) {
+            if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
                 throw new ApplicationException(responseResult.getMessage());
-            } else {
-                if (printJson || printTable) {
-                    List<BiologicalDataItem> items =
-                            Collections.singletonList(responseResult.getPayload());
-                    AbstractResultPrinter printer = AbstractResultPrinter.getPrinter(printTable,
-                            items.get(0).getFormatString(items));
-                    printer.printHeader(items.get(0));
-                    items.forEach(printer::printItem);
-                }
+            }
+            if (printJson || printTable) {
+                List<BiologicalDataItem> items =
+                        Collections.singletonList(responseResult.getPayload());
+                AbstractResultPrinter printer = AbstractResultPrinter.getPrinter(printTable,
+                        items.get(0).getFormatString(items));
+                printer.printHeader(items.get(0));
+                items.forEach(printer::printItem);
             }
         } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
@@ -424,13 +419,12 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         try {
             ResponseResult<T> responseResult = getMapper().readValue(result, getMapper().getTypeFactory()
                 .constructParametrizedType(ResponseResult.class, ResponseResult.class, respClass));
-            if (ERROR_STATUS.equals(responseResult.getStatus())) {
+            if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
                 throw new ApplicationException(responseResult.getMessage());
-            } else {
-                if (printJson || printTable) {
-                    AbstractResultPrinter printer = AbstractResultPrinter.getPrinter(printTable, "%s");
-                    printer.printSimple(responseResult.getPayload().toString());
-                }
+            }
+            if (printJson || printTable) {
+                AbstractResultPrinter printer = AbstractResultPrinter.getPrinter(printTable, "%s");
+                printer.printSimple(responseResult.getPayload().toString());
             }
         } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
@@ -445,7 +439,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         try {
             ResponseResult<Object> responseResult = getMapper().readValue(result, getMapper().getTypeFactory()
                 .constructParametrizedType(ResponseResult.class, ResponseResult.class, Object.class));
-            if (ERROR_STATUS.equals(responseResult.getStatus())) {
+            if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
                 throw new ApplicationException(responseResult.getMessage());
             }
         } catch (IOException e) {
@@ -457,11 +451,10 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         try {
             ResponseResult<T> responseResult = getMapper().readValue(result, getMapper().getTypeFactory()
                 .constructParametrizedType(ResponseResult.class, ResponseResult.class, respClass));
-            if (ERROR_STATUS.equals(responseResult.getStatus())) {
+            if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
                 throw new ApplicationException(responseResult.getMessage());
-            } else {
-                return responseResult.getPayload();
             }
+            return responseResult.getPayload();
         } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
         }
@@ -480,7 +473,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             ResponseResult<SpeciesEntity> responseResult = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
                             SpeciesEntity.class));
-            if (ERROR_STATUS.equals(responseResult.getStatus())) {
+            if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
                 throw new ApplicationException(responseResult.getMessage());
             } else {
                 if (printJson || printTable) {
@@ -510,17 +503,16 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             ResponseResult<Project> responseResult = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
                             Project.class));
-            if (ERROR_STATUS.equals(responseResult.getStatus())) {
+            if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
                 throw new ApplicationException(responseResult.getMessage());
-            } else {
-                if (printJson || printTable) {
-                    List<Project> items =
-                            Collections.singletonList(responseResult.getPayload());
-                    AbstractResultPrinter printer = AbstractResultPrinter.getPrinter(printTable,
-                            items.get(0).getFormatString(items));
-                    printer.printHeader(items.get(0));
-                    items.forEach(printer::printItem);
-                }
+            }
+            if (printJson || printTable) {
+                List<Project> items =
+                        Collections.singletonList(responseResult.getPayload());
+                AbstractResultPrinter printer = AbstractResultPrinter.getPrinter(printTable,
+                        items.get(0).getFormatString(items));
+                printer.printHeader(items.get(0));
+                items.forEach(printer::printItem);
             }
         } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
@@ -540,10 +532,6 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         for (Long id : items) {
             String url = String.format(getRequestUrl(), datasetId, id);
             HttpRequestBase request = getRequest(url);
-            setDefaultHeader(request);
-            if (isSecure()) {
-                addAuthorizationToRequest(request);
-            }
             result = RequestManager.executeRequest(request);
         }
         if (result != null) {
@@ -552,10 +540,9 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
     }
 
     protected Project loadProject(Long datasetId) throws IOException {
-        HttpGet get = new HttpGet(serverParameters.getServerUrl() +
-                String.format(serverParameters.getProjectLoadByIdUrl(), datasetId));
-        setDefaultHeader(get);
-        String result = RequestManager.executeRequest(get);
+        HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, serverParameters.getServerUrl()
+                + String.format(serverParameters.getProjectLoadByIdUrl(), datasetId));
+        String result = RequestManager.executeRequest(request);
         ResponseResult<Project> responseResult = getMapper().readValue(result,
                 getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class,
                         ResponseResult.class, Project.class));
@@ -570,9 +557,8 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             URI uri = new URIBuilder(serverParameters.getServerUrl() + serverParameters.getFileFindUrl())
                     .addParameter("id", id)
                     .build();
-            HttpGet get = new HttpGet(uri);
-            setDefaultHeader(get);
-            String result = RequestManager.executeRequest(get);
+            HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, uri.toString());
+            String result = RequestManager.executeRequest(request);
             ResponseResult<BiologicalDataItem> responseResult = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
                             BiologicalDataItem.class));
@@ -656,9 +642,8 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         try {
             URI existingIndexGetterUri = new URIBuilder(serverParameters.getServerUrl()
                     + serverParameters.getExistingIndexSearchUrl()).addParameter("filePath", path).build();
-            HttpGet indexSearchRequest = new HttpGet(existingIndexGetterUri);
-            setDefaultHeader(indexSearchRequest);
-            String result = RequestManager.executeRequest(indexSearchRequest);
+            HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, existingIndexGetterUri.toString());
+            String result = RequestManager.executeRequest(request);
             ResponseResult<String> responseResult = getMapper().readValue(result, getMapper().getTypeFactory()
                     .constructParametrizedType(ResponseResult.class, ResponseResult.class,
                             getMapper().getTypeFactory()
@@ -682,25 +667,6 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             return new ImmutablePair<>(paths[0], null);
         } else {
             return new ImmutablePair<>(paths[0], paths[1]);
-        }
-    }
-
-    /**
-     * Represents a result of authorization request to NGB server
-     */
-    public static class Authentication {
-        /**
-         * Token for secure requests authorization
-         */
-        @JsonProperty("access_token")
-        private String accessToken;
-
-        public String getAccessToken() {
-            return accessToken;
-        }
-
-        public void setAccessToken(String accessToken) {
-            this.accessToken = accessToken;
         }
     }
 }

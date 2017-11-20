@@ -32,146 +32,122 @@
         <name>register_reference</name>
         <url>/restapi/secure/reference/register/fasta</url>
         <type>POST</type>
-        <secure>true</secure>
         <help></help>
     </register_reference>
     <register_species>
         <name>register_species</name>
         <url>/restapi/secure/reference/register/species</url>
         <type>POST</type>
-        <secure>true</secure>
         <help></help>
     </register_species>
     <delete_reference>
         <name>delete_reference</name>
         <url>/restapi/secure/reference/register/fasta?referenceId=%d</url>
         <type>DELETE</type>
-        <secure>true</secure>
     </delete_reference>
     <delete_species>
         <name>delete_species</name>
         <url>/restapi/secure/reference/register/species?speciesVersion=%s</url>
         <type>DELETE</type>
-        <secure>true</secure>
     </delete_species>
     <register_file>
         <name>register_file</name>
         <url>/restapi/%s/register</url>
         <type>POST</type>
-        <secure>false</secure>
     </register_file>
     <delete_file>
         <name>delete_file</name>
         <url>/restapi/dataitem/delete?id=%d</url>
         <type>DELETE</type>
-        <secure>false</secure>
     </delete_file>
     <search>
         <name>search</name>
         <url>/restapi/dataitem/search</url>
         <type>GET</type>
-        <secure>false</secure>
     </search>
     <register_dataset>
         <name>register_dataset</name>
         <url>/restapi/project/save</url>
         <type>POST</type>
-        <secure>false</secure>
     </register_dataset>
     <add_to_dataset>
         <name>add_to_dataset</name>
         <url>/restapi/project/%d/add/%d</url>
         <type>PUT</type>
-        <secure>false</secure>
     </add_to_dataset>
     <remove_from_dataset>
         <name>remove_from_dataset</name>
         <url>/restapi/project/%d/remove/%d</url>
         <type>DELETE</type>
-        <secure>false</secure>
     </remove_from_dataset>
     <move_dataset>
         <name>move_dataset</name>
         <url>/restapi/project/%d/move</url>
         <type>PUT</type>
-        <secure>false</secure>
     </move_dataset>
     <delete_dataset>
         <name>delete_dataset</name>
         <url>/restapi/project/%d</url>
         <type>DELETE</type>
-        <secure>false</secure>
     </delete_dataset>
     <list_references>
         <name>list_references</name>
         <url>/restapi/reference/loadAll</url>
         <type>GET</type>
-        <secure>false</secure>
     </list_references>
     <list_species>
         <name>list_species</name>
         <url>/restapi/reference/loadAllSpecies</url>
         <type>GET</type>
-        <secure>false</secure>
     </list_species>
     <list_datasets>
         <name>list_datasets</name>
         <url>/restapi/project/loadMy</url>
         <type>GET</type>
-        <secure>false</secure>
     </list_datasets>
     <add_genes>
         <name>add_genes</name>
         <url>/restapi/secure/reference/%d/genes</url>
         <type>PUT</type>
-        <secure>true</secure>
     </add_genes>
     <remove_genes>
         <name>remove_genes</name>
         <url>/restapi/secure/reference/%d/genes</url>
         <type>PUT</type>
-        <secure>true</secure>
     </remove_genes>
     <index_file>
         <name>index_file</name>
         <url>/restapi/%s/%d/index</url>
         <type>GET</type>
-        <secure>false</secure>
     </index_file>
     <generate_url>
         <name>generate_url</name>
         <type>POST</type>
         <url>/restapi/url</url>
-        <secure>false</secure>
     </generate_url>
     <sort>
         <name>sort</name>
         <type>POST</type>
         <url>/restapi/tools/sort</url>
-        <secure>false</secure>
     </sort>
     <add_annotation>
         <name>add_ann</name>
         <type>POST</type>
         <url>/restapi/secure/reference/%d/updateAnnotation</url>
-        <secure>true</secure>
     </add_annotation>
     <remove_annotation>
         <name>remove_ann</name>
         <type>POST</type>
         <url>/restapi/secure/reference/%d/updateAnnotation</url>
-        <secure>true</secure>
     </remove_annotation>
     <add_species>
         <name>add_species</name>
         <type>PUT</type>
         <url>/restapi/secure/reference/%d/species</url>
-        <secure>true</secure>
     </add_species>
     <remove_species>
         <name>remove_species</name>
         <type>PUT</type>
         <url>/restapi/secure/reference/%d/species</url>
-        <secure>true</secure>
     </remove_species>
 </config>
