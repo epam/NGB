@@ -49,6 +49,7 @@ do
     sudo rsync -rave "ssh -o StrictHostKeyChecking=no -i ../demo.pem" ${VERSION}/* ${DEMO_USER}@${DEMO_SRV}:${DEMO_PATH}/${VERSION}
 
     sudo ssh ${DEMO_USER}@${DEMO_SRV} -o StrictHostKeyChecking=no -i ../demo.pem \
+        "find ${DEMO_PATH}/* -maxdepth 0  -type d -ctime +60 -not -path "*latest" -exec rm -rf {} \; &&" \
         "cd ${DEMO_PATH} &&" \
         "rm -rf ${VERSION}/docs &&" \
         "mkdir -p ${VERSION}/docs &&" \
