@@ -7,7 +7,6 @@ install:
     - sudo pip install mkdocs
     - sudo pip install mkdocs-material
 script: 
-    - '[[ $TRAVIS_BRANCH == "develop" ]] && CLIENT_PATH="-PclientPath=/ngb-dev"'
     - ./gradlew buildJar buildWar buildCli buildDoc -PbuildNumber=${TRAVIS_JOB_NUMBER} ${CLIENT_PATH} && ./e2e/integration_tests.sh
     - ./gradlew jacocoTestReport
 after_success:
