@@ -78,6 +78,7 @@ ngb reg_ref|rr [<PATH_TO_GENOME_FASTA>] [options]
 //-g (--genes) [value]      Add a gene (gtf or gff) file to the reference. If file is already registered, it can be addressed by name or an identifier. Otherwise a path to the file should be provided.
 //-ngc (--nogccontent)      Disables calculation of GC-content for large scale reference view
 //-pt (--pretty)            Add pretty name to the reference genome
+//-s (--species)            Add species version to registering reference. Note: species should be already registered on NGB server.
 ```
 *Description*
 
@@ -95,8 +96,6 @@ ngb reg_ref /opt/genomes/grch.38.fa
 //Register reference, use "grch38" as name
 ngb rr /opt/genomes/grch.38.fa -n grch38
 
-//Options:
-//-s (--species)        Add species version to registering reference
 ```
 ### List reference sequences
 ```
@@ -559,6 +558,8 @@ ngb reg_spec|rs [<SPECIES_NAME>] [<SPECIES_VERSION>] [options]
 Registers a species. Two arguments have to be specified:
 * Species name
 * Species version
+
+Note: species version should be unique. During registration a species with already registered version a proper exception will be thrown.
 
 *Example*
 ```
