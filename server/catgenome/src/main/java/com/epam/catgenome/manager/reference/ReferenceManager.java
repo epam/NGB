@@ -195,7 +195,7 @@ import com.epam.catgenome.util.Utils;
             if (request.getSpecies() != null) {
                 String version = request.getSpecies().getVersion();
                 Species species = referenceGenomeManager.loadSpeciesByVersion(version);
-                Assert.notNull(species, getMessage(MessageCode.NO_SUCH_SPECIES));
+                Assert.notNull(species, getMessage(MessageCode.NO_SUCH_SPECIES, version));
                 reference.setSpecies(species);
             }
 
