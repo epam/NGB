@@ -150,6 +150,9 @@ export default class ngbAppController extends baseController {
     _apiResponse(params, callerId) {
         params.callerId = callerId;
         window.parent.postMessage(params, '*');
+        if (window.opener){
+            window.opener.postMessage(params, '*');
+        }
     }
 
     _changeStateFromParams(params) {
