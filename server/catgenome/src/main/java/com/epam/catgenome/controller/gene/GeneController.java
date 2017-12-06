@@ -135,9 +135,10 @@ public class GeneController extends AbstractRESTController {
                 "<b>full</b> parameter specifies if full original file should be reindexed, or " +
                 "preprocessed large scale and transcript files should be used for indexing.</br>",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Result<Boolean> reindexGeneFile(@PathVariable long geneFileId,  @RequestParam(defaultValue = "false")
-            boolean full) throws IOException {
-        GeneFile geneFile = gffManager.reindexGeneFile(geneFileId, full);
+    public Result<Boolean> reindexGeneFile(@PathVariable long geneFileId,
+            @RequestParam(defaultValue = "false") boolean full,
+            @RequestParam(defaultValue = "false") boolean createTabixIndex) throws IOException {
+        GeneFile geneFile = gffManager.reindexGeneFile(geneFileId, full, createTabixIndex);
         return Result.success(true, MessageHelper.getMessage(MessagesConstants.INFO_FEATURE_INDEX_DONE,
                                                              geneFile.getId(), geneFile.getName()));
     }
@@ -177,22 +178,22 @@ public class GeneController extends AbstractRESTController {
     public Result<Track<GeneHighLevel>> loadTrack(@RequestBody final TrackQuery trackQuery,
             @PathVariable(value = REFERENCE_ID_FIELD) final Long referenceId,
             @RequestParam(required = false) final String fileUrl,
-            @RequestParam(required = false) final String indexUrl)
-        throws GeneReadingException {
+            @RequestParam(required = false) final String indexUrl) throws GeneReadingException {
         final Track<Gene> geneTrack = Query2TrackConverter.convertToTrack(trackQuery);
         boolean collapsed = trackQuery.getCollapsed() != null && trackQuery.getCollapsed();
 
         Track<Gene> genes;
         if (fileUrl == null) {
             genes = gffManager.loadGenes(geneTrack, collapsed);
-        } else  {
+        } else {
             genes = gffManager.loadGenes(geneTrack, collapsed, fileUrl, indexUrl);
         }
 
         Map<Gene, List<ProteinSequenceEntry>> aminoAcids = null;
         double time1 = Utils.getSystemTimeMilliseconds();
         if (geneTrack.getScaleFactor() > Constants.AA_SHOW_FACTOR && !collapsed) {
-            aminoAcids = proteinSequenceManager.loadProteinSequenceWithoutGrouping(genes, referenceId, collapsed);
+            aminoAcids = proteinSequenceManager
+                    .loadProteinSequenceWithoutGrouping(genes, referenceId, collapsed);
         }
         double time2 = Utils.getSystemTimeMilliseconds();
         LOGGER.debug("Loading aminoacids took {} ms", time2 - time1);
@@ -205,7 +206,6 @@ public class GeneController extends AbstractRESTController {
 
         return Result.success(result);
     }
-
 
     @ResponseBody
     @RequestMapping(value = "/gene/transcript/track/get", method = RequestMethod.POST)

@@ -28,6 +28,7 @@ import com.epam.catgenome.common.AbstractJUnitTest;
 import com.epam.catgenome.controller.tools.FeatureFileSortRequest;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.util.NgbFileUtils;
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.CloseableTribbleIterator;
 import htsjdk.tribble.Feature;
@@ -137,7 +138,7 @@ public class SortTest extends AbstractJUnitTest {
         int numlines = 0;
 
         AbstractFeatureReader<F, S> reader =
-                AbstractFeatureReader.getFeatureReader(ofile.getAbsolutePath(), codec, false);
+                AbstractEnhancedFeatureReader.getFeatureReader(ofile.getAbsolutePath(), codec, false);
         CloseableTribbleIterator<F> iterator = reader.iterator();
 
         final Map<String, Feature> visitedChromos = new HashMap<>(40);

@@ -1,6 +1,7 @@
 # Command reference
 ## General commands
 ### Configure CLI connection to NGB server
+#### Set NGB server URL
 ```
 ngb set_srv|srv [<NGB_API_URL>] [options]
 
@@ -21,7 +22,19 @@ When URL is set - it would be stored and used next time CLI is launched
 //Sets remote server for CLI
 ngb set_srv http://10.248.33.51:8080/catgenome
 ```
+#### Set authorization token
+```
+ngb set_token|st [<JWT_TOKEN>]
 
+```
+*Description*
+
+Sets JWT token to authorize CLI requests to NGB server API. Required if authorization is enabled on NGB.
+*Example*
+```
+//Sets remote server for CLI
+ngb set_token eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0X3VzZXIiLCJ1c2VyX
+```
 ## Display CLI version
 
 ```
@@ -65,10 +78,11 @@ ngb reg_ref|rr [<PATH_TO_GENOME_FASTA>] [options]
 //-g (--genes) [value]      Add a gene (gtf or gff) file to the reference. If file is already registered, it can be addressed by name or an identifier. Otherwise a path to the file should be provided.
 //-ngc (--nogccontent)      Disables calculation of GC-content for large scale reference view
 //-pt (--pretty)            Add pretty name to the reference genome
+//-s (--species)            Add species version to registering reference. Note: species should be already registered on NGB server.
 ```
 *Description*
 
-Registers a specified reference sequence file. FASTA, FA, FNA files are accepted. GZip-compressed files are not supported.
+Registers a specified reference sequence file. FASTA, FA, FNA files are accepted. Compressed files are not supported.
 Path to local file and remote URL are accepted as a path to the reference. For local files, NGB will try to find a matching "fai" index 
 in the folder with the reference, if index isn't found it will be created. For remote references, "fai" index must be present on the
 remote source. NGB assumes that reference index will have the same name as reference with "fai" extension added. If reference path is
@@ -81,6 +95,7 @@ ngb reg_ref /opt/genomes/grch.38.fa
 
 //Register reference, use "grch38" as name
 ngb rr /opt/genomes/grch.38.fa -n grch38
+
 ```
 ### List reference sequences
 ```
@@ -175,8 +190,8 @@ ngb add_ann|an [<REFERENCE_NAME|REFERENCE_ID>] [<FILE_NAMES|FILE_IDS|FILE_PATHS>
 ```
 *Description*
 
-Adds an annotation (GFF, GTF, BED) file to the reference on NGB server. Reference file can be addressed by name or an identifier (retrieved from **reg_ref** command, at registration time or search command).
-If annotation file is already registered on NGb server, it can be addressed by name or by an identifier. Otherwise a path to the annotation file should be provided.
+Adds an annotation (GFF, GTF, BED, VCF) file to the reference on NGB server. Reference file can be addressed by name or an identifier (retrieved from **reg_ref** command, at registration time or search command).
+If annotation file is already registered on NGB server, it can be addressed by name or by an identifier. Otherwise a path to the annotation file should be provided.
 
 *Example*
 ```
@@ -197,13 +212,50 @@ ngb remove_ann|ran [<REFERENCE_NAME|REFERENCE_ID>] [<FILE_NAMES|FILE_IDS|FILE_PA
 ```
 *Description*
 
-Removes an annotation (GFF, GTF, BED) file from the reference on NGB server. Reference file can be addressed by name or an identifier (retrieved from **reg_ref** command, at registration time or search command).
+Removes an annotation (GFF, GTF, BED, VCF) file from the reference on NGB server. Reference file can be addressed by name or an identifier (retrieved from **reg_ref** command, at registration time or search command).
 Annotation file can be addressed by name or by an identifier.
 
 *Example*
 ```
 //Remove an annotation file from the reference with name "grch38"
 ngb remove_ann grch38 annotation.gtf
+```
+
+### Add species to the reference
+```
+ngb add_spec|as [<REFERENCE_NAME|REFERENCE_ID>] [<REGISTERED_SPECIES_VERSION>] [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+Adds a species version to the reference on NGB server. Reference file can be addressed by name or an identifier (retrieved from **reg_ref** command, at registration time or search command).
+Note: species with specified version should be already registered on NGB server.
+
+*Example*
+```
+//Add a regitered species version to the reference with name "grch38"
+ngb add_spec grch38 "hg19"
+```
+
+### Remove species from the reference
+```
+ngb remove_spec [<REFERENCE_NAME|REFERENCE_ID>] [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+Removes a species version from the reference on NGB server. Reference file can be addressed by name or an identifier (retrieved from **reg_ref** command, at registration time or search command).
+
+*Example*
+```
+//Remove an annotation file from the reference with name "grch38"
+ngb remove_spec grch38
 ```
 
 ## File commands
@@ -222,7 +274,7 @@ ngb reg_file|rf [<REFERENCE_NAME>|<REFERENCE_ID>] [<PATH_TO_NGS_FILE>] [options]
 
 Registers a specified file. At least two arguments have to be specified:
 Previously registered reference sequence file from NGB server. Reference file can be addressed by name or an identifier
-Flesystem path to the file to be registered. BAM, VCF, GFF, GTF, BED, SEG, WIG, BED GRAPH files are accepted. GZipped files are also accepted in a format <FILE_NAME>.<FILE_EXT>.gz, e.g.: my_variants.vcf.gz.
+Flesystem path to the file to be registered. BAM, VCF, GFF, GTF, BED, SEG, WIG, BED GRAPH files are accepted. BGZipped files are also accepted in a format <FILE_NAME>.<FILE_EXT>.gz, e.g.: my_variants.vcf.gz. (`bgzip` tool is available as a part of [htslib](http://www.htslib.org/) package. Or NGB CLI `sort` command can used for that as well)
 BAM file path has to be followed by a '?' symbol and a path to an index file (.BAI) 
 (If a folder with BAM file also contains index for this BAM with the same name, CLI will find this index automatically. 
 It also works well for vcf, bed and gene files). 
@@ -489,6 +541,66 @@ ngb url 5 sample.vcf -loc 1:13476-23476
 
 //Create URL for dataset with name 'data' and a file with name 'sample.vcf' on a chromosome 1
 ngb url data sample.vcf -loc 1
+```
+
+
+## Species commands
+### Register species
+```
+ngb reg_spec|rs [<SPECIES_NAME>] [<SPECIES_VERSION>] [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+Registers a species. Two arguments have to be specified:
+* Species name
+* Species version
+
+Note: species version should be unique. During registration a species with already registered version a proper exception will be thrown.
+
+*Example*
+```
+//Create new species with name "human" and version "hg19"
+ngb reg_spec "human" "hg19"
+```
+
+### List species
+```
+ngb list_spec [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+List all species registered on NGB server.
+
+*Example*
+```
+//List all species registered on NGB server
+ngb list_spec
+```
+
+### Delete species
+```
+ngb del_spec|ds [<SPECIES_VESRSION>] [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+Deletes a specified species from NGB server. Species is be addressed by version.
+
+*Example*
+```
+//Delete species with version "hg19"
+ngb del_spec "hg19"
 ```
 
 

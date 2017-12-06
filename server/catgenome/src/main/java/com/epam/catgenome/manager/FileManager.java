@@ -62,10 +62,7 @@ import javax.annotation.PostConstruct;
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.JsonMapper;
-import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.BiologicalDataItemFormat;
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.*;
 import com.epam.catgenome.entity.bed.BedFile;
 import com.epam.catgenome.entity.file.FsDirectory;
 import com.epam.catgenome.entity.file.FsFile;
@@ -101,6 +98,7 @@ import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.PositionalOutputStream;
 import com.epam.catgenome.util.Utils;
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import htsjdk.samtools.util.BlockCompressedInputStream;
@@ -692,12 +690,14 @@ public class FileManager {
             Assert.isTrue(indexFile.exists(), getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND,
                                                          vcfFile.getIndex().getPath()));
             time1 = Utils.getSystemTimeMilliseconds();
-            reader = AbstractFeatureReader.getFeatureReader(vcfFile.getPath(), vcfFile.getIndex().getPath(),
+            reader = AbstractEnhancedFeatureReader
+                    .getFeatureReader(vcfFile.getPath(), vcfFile.getIndex().getPath(),
                                                             new VCFCodec(), true);
             time2 = Utils.getSystemTimeMilliseconds();
         } else {
             time1 = Utils.getSystemTimeMilliseconds();
-            reader = AbstractFeatureReader.getFeatureReader(vcfFile.getPath(), new VCFCodec(), false);
+            reader = AbstractEnhancedFeatureReader
+                    .getFeatureReader(vcfFile.getPath(), new VCFCodec(), false);
             time2 = Utils.getSystemTimeMilliseconds();
         }
         LOGGER.debug(getMessage(MessagesConstants.DEBUG_FILE_OPENING, vcfFile.getPath(), time2 - time1));
@@ -886,7 +886,7 @@ public class FileManager {
         }
 
         Assert.isTrue(!indexes.isEmpty(), getMessage(MessagesConstants.ERROR_FEATURE_INDEX_NOT_FOUND,
-                         featureFiles.stream().map(f -> f.getId().toString()).collect(Collectors.joining(", "))));
+                         featureFiles.stream().map(BaseEntity::getName).collect(Collectors.joining(", "))));
 
         return indexes.toArray(new SimpleFSDirectory[indexes.size()]);
     }
@@ -1049,6 +1049,9 @@ public class FileManager {
 
         params.put(CHROMOSOME_NAME.name(), chromosomeName);
         File histogramFile = new File(toRealPath(substitute(filePathFormat, params)));
+        if (histogramFile.exists()) {
+            histogramFile.delete();
+        }
         Assert.isTrue(histogramFile.createNewFile(), "Can't create histogram file " + histogramFile.getAbsolutePath());
 
         return new DataOutputStream(new FileOutputStream(histogramFile));
@@ -1172,7 +1175,7 @@ public class FileManager {
         Assert.notNull(extension, getMessage(MessagesConstants.ERROR_UNSUPPORTED_GENE_FILE_EXTESION));
 
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(GffCodec.GffType.forExt(extension));
-        return AbstractFeatureReader.getFeatureReader(path, index, codec, useIndex);
+        return AbstractEnhancedFeatureReader.getFeatureReader(path, index, codec, useIndex);
     }
 
     /**
@@ -1556,7 +1559,7 @@ public class FileManager {
      */
     public AbstractFeatureReader<NggbBedFeature, LineIterator> makeBedReader(final BedFile bedFile) {
         NggbBedCodec nggbBedCodec = new NggbBedCodec();
-        return AbstractFeatureReader.getFeatureReader(bedFile.getPath(), bedFile.getIndex().getPath(),
+        return AbstractEnhancedFeatureReader.getFeatureReader(bedFile.getPath(), bedFile.getIndex().getPath(),
                 nggbBedCodec, true);
     }
 
@@ -1595,10 +1598,11 @@ public class FileManager {
     public AbstractFeatureReader<SegFeature, LineIterator> makeSegReader(final SegFile segFile) {
         SegCodec segCodec = new SegCodec();
         if (segFile.getIndex() != null) {
-            return AbstractFeatureReader.getFeatureReader(segFile.getPath(), segFile.getIndex().getPath(), segCodec,
+            return AbstractEnhancedFeatureReader
+                    .getFeatureReader(segFile.getPath(), segFile.getIndex().getPath(), segCodec,
                     true);
         } else {
-            return AbstractFeatureReader.getFeatureReader(segFile.getPath(), segCodec, false);
+            return AbstractEnhancedFeatureReader.getFeatureReader(segFile.getPath(), segCodec, false);
         }
     }
 
@@ -1697,10 +1701,11 @@ public class FileManager {
     public AbstractFeatureReader<MafFeature, LineIterator> makeMafReader(final MafFile mafFile) {
         MafCodec mafCodec = new MafCodec(mafFile.getPath());
         if (mafFile.getIndex() != null) {
-            return AbstractFeatureReader.getFeatureReader(mafFile.getPath(), mafFile.getIndex().getPath(), mafCodec,
+            return AbstractEnhancedFeatureReader
+                    .getFeatureReader(mafFile.getPath(), mafFile.getIndex().getPath(), mafCodec,
                     true);
         } else {
-            return AbstractFeatureReader.getFeatureReader(mafFile.getPath(), mafCodec, false);
+            return AbstractEnhancedFeatureReader.getFeatureReader(mafFile.getPath(), mafCodec, false);
         }
     }
 

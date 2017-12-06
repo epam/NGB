@@ -48,6 +48,7 @@ import com.epam.catgenome.exception.HistogramReadingException;
 import com.epam.catgenome.exception.HistogramWritingException;
 import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.FeatureReader;
 import org.apache.commons.collections4.CollectionUtils;
@@ -67,7 +68,6 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.externaldb.ensemblevo.EnsemblEntryVO;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
-import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
@@ -215,19 +215,22 @@ public class GffManager {
      * from scratch
      * @param geneFileId an ID of gene file to reindex.
      * @param full
+     * @param createTabixIndex
      * @return a {@link GeneFile}, for which index was created
      * @throws IOException if an error occurred while writing index
      */
-    public GeneFile reindexGeneFile(long geneFileId, boolean full) throws IOException {
+    public GeneFile reindexGeneFile(long geneFileId, boolean full, boolean createTabixIndex) throws IOException {
         GeneFile geneFile = geneFileManager.loadGeneFile(geneFileId);
-        Reference reference = referenceGenomeManager.loadReferenceGenome(geneFile.getReferenceId());
-        Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
-            Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
-
         fileManager.deleteFileFeatureIndex(geneFile);
-
-        featureIndexManager.processGeneFile(geneFile, chromosomeMap, full);
-
+        if (createTabixIndex) {
+            File index = new File(geneFile.getIndex().getPath());
+            if (index.exists()) {
+                index.delete();
+            }
+        }
+        GeneRegisterer geneRegisterer = new GeneRegisterer(referenceGenomeManager, fileManager, featureIndexManager,
+                geneFile);
+        geneRegisterer.reIndexFile(createTabixIndex);
         return geneFile;
     }
 
@@ -307,7 +310,7 @@ public class GffManager {
         GffCodec.GffType gffType = GffCodec.GffType.forExt(extension);
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(gffType);
 
-        try (FeatureReader<GeneFeature> reader = AbstractFeatureReader.getFeatureReader(request.getPath(),
+        try (FeatureReader<GeneFeature> reader = AbstractEnhancedFeatureReader.getFeatureReader(request.getPath(),
                 request.getIndexPath(), codec, true)) {
             geneFile = createGeneFile(request);
             boolean hasGenes = false;
@@ -1083,10 +1086,14 @@ public class GffManager {
         final List<Transcript> transcriptList = ExtenalDBUtils.ensemblEntryVO2Transcript(vo);
         for (Transcript transcript : transcriptList) {
             if (transcript.getBioType().equals(PROTEIN_CODING)) {
-                final Uniprot un = uniprotDataManager.fetchUniprotEntry(transcript.getId());
-                ExtenalDBUtils.fillDomain(un, transcript);
-                ExtenalDBUtils.fillPBP(un, transcript);
-                ExtenalDBUtils.fillSecondaryStructure(un, transcript);
+                try {
+                    final Uniprot un = uniprotDataManager.fetchUniprotEntry(transcript.getId());
+                    ExtenalDBUtils.fillDomain(un, transcript);
+                    ExtenalDBUtils.fillPBP(un, transcript);
+                    ExtenalDBUtils.fillSecondaryStructure(un, transcript);
+                } catch (ExternalDbUnavailableException e) {
+                    LOGGER.debug(e.getMessage(), e);
+                }
             }
         }
         return transcriptList;

@@ -49,12 +49,13 @@ import com.epam.ngb.cli.manager.request.RequestManager;
  * Make:        IntelliJ IDEA 15.0.3, JDK 1.8
  *
  * {@code {@link FileIndexingHandler }} represents a tool handling "index_file" command and
- * sending request to NGB server for file reindexation. This command requires at least one argument:
+ * sending request to NGB server for file reindexing. This command requires at least one argument:
  * file ID or name
  */
 @Command(type = Command.Type.REQUEST, command = {"index_file"})
 public class FileIndexingHandler extends AbstractHTTPCommandHandler {
     private BiologicalDataItem item;
+    private boolean createTabixIndex;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileIndexingHandler.class);
 
@@ -65,13 +66,16 @@ public class FileIndexingHandler extends AbstractHTTPCommandHandler {
                                                                            getCommand(), 1, arguments.size()));
         }
         item = loadFileByNameOrBioID(arguments.get(0));
+        createTabixIndex = options.isCreateTabixIndex();
     }
 
     @Override
     public int runCommand() {
         String url = String.format(getRequestUrl(), item.getFormat().toString().toLowerCase(), item.getId());
+        if (createTabixIndex) {
+            url +="?createTabixIndex=true";
+        }
         HttpRequestBase request = getRequest(url);
-        setDefaultHeader(request);
         String result = RequestManager.executeRequest(request);
 
         try {

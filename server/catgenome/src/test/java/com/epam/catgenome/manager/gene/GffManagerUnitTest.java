@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -74,7 +75,8 @@ public class GffManagerUnitTest {
     public void setup() throws IOException {
         MockitoAnnotations.initMocks(this);
         Resource resource = context.getResource("classpath:templates/genes_sorted.gtf");
-        try (AbstractFeatureReader<GeneFeature, LineIterator> reader = AbstractFeatureReader.getFeatureReader(
+        try (AbstractFeatureReader<GeneFeature, LineIterator> reader = AbstractEnhancedFeatureReader
+                .getFeatureReader(
             resource.getFile().getAbsolutePath(), new GffCodec(
             GffCodec.GffType.GTF), false)) {
             featureList = reader.iterator().toList();

@@ -76,6 +76,7 @@ export default class BamReadsCoverageTransformer extends WIGTransformer {
             locusInfo = null;
         }
 
+        item.locusLetter = locusLetter;
         item.locusInfo = locusInfo;
     }
 }

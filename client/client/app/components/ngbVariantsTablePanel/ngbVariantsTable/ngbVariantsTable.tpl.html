@@ -1,6 +1,9 @@
 <div layout="row" class="golden-layout-content-0" layout-fill>
 
     <div ng-if="!$ctrl.isProgressShown" class="ui-grid-container" ng-hide="$ctrl.errorMessageList.length">
+        <div ng-if="$ctrl.variantsLoadError" class="variants-load-error-container">
+            <small>{{$ctrl.variantsLoadError}}</small>
+        </div>
         <div ui-grid="$ctrl.gridOptions"
              ui-grid-save-state
              ui-grid-selection

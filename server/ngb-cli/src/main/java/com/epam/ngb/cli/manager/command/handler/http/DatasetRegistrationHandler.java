@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,7 +131,7 @@ public class DatasetRegistrationHandler extends AbstractHTTPCommandHandler {
             FileRegistrationHandler handler =
                     new FileRegistrationHandler(file, referenceUniqueId, this, registerOptions);
             handler.setRequestUrl(handler.getServerParameters().getRegistrationUrl());
-            handler.setRequestType("POST");
+            handler.setRequestType(HttpPost.METHOD_NAME);
             List<BiologicalDataItem> registeredFiles = handler.registerItems();
             if (!registeredFiles.isEmpty()) {
                 registeredFiles.forEach(f -> items.add(new ProjectItem(f.getBioDataItemId(), false)));
@@ -149,16 +150,12 @@ public class DatasetRegistrationHandler extends AbstractHTTPCommandHandler {
             if (parentId != null) {
                 builder.addParameter("parentId", String.valueOf(parentId));
             }
-            HttpPost post = new HttpPost(builder.build());
-            setDefaultHeader(post);
-            if (isSecure()) {
-                addAuthorizationToRequest(post);
-            }
+            HttpRequestBase request = getRequestFromURLByType(HttpPost.METHOD_NAME, builder.build().toString());
             RegistrationRequest registration = new RegistrationRequest();
             registration.setName(name);
             registration.setItems(items);
             registration.setPrettyName(prettyName);
-            String result = getPostResult(registration, post);
+            String result = getPostResult(registration, (HttpPost) request);
             checkAndPrintDatasetResult(result, printJson, printTable);
         } catch (URISyntaxException e) {
             throw new ApplicationException(e.getMessage(), e);

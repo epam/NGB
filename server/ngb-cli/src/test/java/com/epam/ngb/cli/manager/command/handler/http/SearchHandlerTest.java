@@ -58,7 +58,6 @@ public class SearchHandlerTest extends AbstractCliTest {
     @BeforeClass
     public static void setUp() {
         server.start();
-        server.addAuthorization();
         server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
         server.addFile(GENE_BIO_ID, GENE_ID, GENE_NAME, PATH_TO_GENE, BiologicalDataItemFormat.GENE);
         serverParameters = getDefaultServerOptions(server.getPort());

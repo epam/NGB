@@ -42,6 +42,15 @@ public class RegistrationRequest implements RequestPayload {
     private Boolean doIndex;
     private Boolean noGCContent;
     private String prettyName;
+    private SpeciesEntity species;
+
+    public SpeciesEntity getSpecies() {
+        return species;
+    }
+
+    public void setSpecies(SpeciesEntity species) {
+        this.species = species;
+    }
 
     public String getPath() {
         return path;

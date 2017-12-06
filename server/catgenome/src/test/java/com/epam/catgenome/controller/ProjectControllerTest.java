@@ -24,10 +24,12 @@
 
 package com.epam.catgenome.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -48,6 +50,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -375,13 +378,18 @@ public class ProjectControllerTest extends AbstractControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
         actions.andDo(MockMvcResultHandlers.print());
 
+        MvcResult mvcResult = mvc()
+                .perform(get(URL_LOAD_TREE)
+                        .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
         actions = mvc()
-            .perform(get(URL_LOAD_TREE)
-                         .contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(MockMvcResultMatchers.status().isOk())
-            .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
-            .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+                .perform(asyncDispatch(mvcResult))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
         actions.andDo(MockMvcResultHandlers.print());
 
         ResponseResult<List<ProjectVO>> treeRes = getObjectMapper()
@@ -441,9 +449,14 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
         saveProject(child11, createdChild1.getId());
 
-        ResultActions actions = mvc()
+        MvcResult mvcResult = mvc()
                 .perform(get(URL_LOAD_TREE)
                         .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        ResultActions actions = mvc()
+                .perform(asyncDispatch(mvcResult))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
@@ -460,10 +473,15 @@ public class ProjectControllerTest extends AbstractControllerTest {
         Assert.assertFalse(tree.isEmpty());
         Assert.assertEquals(2, tree.get(0).getNestedProjects().size());
 
-        actions = mvc()
+        mvcResult = mvc()
                 .perform(get(URL_LOAD_TREE)
                         .param("parentId", String.valueOf(createdChild1.getId()))
                         .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        actions = mvc()
+                .perform(asyncDispatch(mvcResult))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())

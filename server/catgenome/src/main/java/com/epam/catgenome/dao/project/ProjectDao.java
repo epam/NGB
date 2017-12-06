@@ -155,6 +155,23 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
+    public Map<Long, Set<ProjectItem>> loadAllProjectItems() {
+        Map<Long, Set<ProjectItem>> itemsMap = new HashMap<>();
+        final RowMapper<ProjectItem> projectItemRowMapper = ProjectItemParameters.getSimpleItemMapper();
+        getJdbcTemplate().query(loadAllProjectItemsQuery, rs -> {
+            ProjectItem item = projectItemRowMapper.mapRow(rs, 0);
+
+            Long projectId = rs.getLong(ProjectItemParameters.REFERRED_PROJECT_ID.name());
+            if (!itemsMap.containsKey(projectId)) {
+                itemsMap.put(projectId, new HashSet<>());
+            }
+
+            itemsMap.get(projectId).add(item);
+        });
+        return itemsMap;
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
     public Map<Long, List<Project>> loadNestedProjects(List<Long> parentIds) {
         if (CollectionUtils.isEmpty(parentIds)) {
             return Collections.emptyMap();
@@ -287,23 +304,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
 
         Long listId = daoHelper.createTempLongList(projectIds);
         return loadProjectItemsByList(listId);
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<Long, Set<ProjectItem>> loadAllProjectItems() {
-        Map<Long, Set<ProjectItem>> itemsMap = new HashMap<>();
-        final RowMapper<ProjectItem> projectItemRowMapper = ProjectItemParameters.getSimpleItemMapper();
-        getJdbcTemplate().query(loadAllProjectItemsQuery, rs -> {
-            ProjectItem item = projectItemRowMapper.mapRow(rs, 0);
-
-            Long projectId = rs.getLong(ProjectItemParameters.REFERRED_PROJECT_ID.name());
-            if (!itemsMap.containsKey(projectId)) {
-                itemsMap.put(projectId, new HashSet<>());
-            }
-
-            itemsMap.get(projectId).add(item);
-        });
-        return itemsMap;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)

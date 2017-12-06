@@ -86,6 +86,7 @@ export default class projectContext {
     _isVariantsGroupByQualityLoading = true;
     _variantsGroupByChromosomesError = null;
     _variantsPageLoading = false;
+    _variantsPageError = null;
     _variantsGroupByTypeError = null;
     _variantsGroupByQualityError = null;
     _containsVcfFiles = true;
@@ -111,6 +112,8 @@ export default class projectContext {
     _hasMoreVariations = true;
     _orderByVariations = null;
     _totalPagesCountVariations = null;
+    _variationsPointer = null;
+    _variationsPointerPage = null;
 
     _browsingAllowed = false;
 
@@ -154,6 +157,23 @@ export default class projectContext {
     set totalPagesCountVariations(value) {
         this._totalPagesCountVariations = value;
     }
+
+    get variationsPointer() {
+        return this._variationsPointer;
+    }
+
+    set variationsPointer(value) {
+        this._variationsPointer = value;
+    }
+
+    get variationsPointerPage() {
+        return this._variationsPointerPage;
+    }
+
+    set variationsPointerPage(value) {
+        this._variationsPointerPage = value;
+    }
+
     get variationsPageSize() {
         return PAGE_SIZE;
     }
@@ -296,6 +316,10 @@ export default class projectContext {
         return this._variantsPageLoading;
     }
 
+    get variantsPageError () {
+        return this._variantsPageError;
+    }
+
     get containsVcfFiles() {
         return this._containsVcfFiles;
     }
@@ -325,7 +349,19 @@ export default class projectContext {
         if (localStorage.getItem('vcfColumns') === null || localStorage.getItem('vcfColumns') === undefined) {
             localStorage.setItem('vcfColumns', JSON.stringify(DEFAULT_VCF_COLUMNS));
         }
-        return JSON.parse(localStorage.getItem('vcfColumns'));
+        let columns = JSON.parse(localStorage.getItem('vcfColumns'));
+        let defaultColumnsExists = true;
+        for (let i = 0; i < DEFAULT_VCF_COLUMNS.length; i++) {
+            if (columns.map(c => c.toLowerCase()).indexOf(DEFAULT_VCF_COLUMNS[i].toLowerCase()) === -1) {
+                defaultColumnsExists = false;
+                break;
+            }
+        }
+        if (!defaultColumnsExists) {
+            columns = DEFAULT_VCF_COLUMNS.map(c => c);
+            localStorage.setItem('vcfColumns', JSON.stringify(columns || []));
+        }
+        return columns;
     }
 
     set vcfColumns(columns) {
@@ -927,14 +963,35 @@ export default class projectContext {
         this.filter({callbacks, infoFields});
     }
 
+    _blockFilterVariants;
+
     clearVcfFilter() {
+        const blockFilterVariantsTimeout = 500;
+        if (this._blockFilterVariants) {
+            clearTimeout(this._blockFilterVariants);
+            this._blockFilterVariants = null;
+        }
         const callbacks = this._getVcfCallbacks();
         this.filter({asDefault:true, callbacks});
+        this._blockFilterVariants = setTimeout(() => {
+            this._blockFilterVariants = null;
+        }, blockFilterVariantsTimeout);
     }
 
-    filterVariants() {
+    canScheduleFilterVariants() {
+        return !this._blockFilterVariants;
+    }
+
+    scheduleFilterVariants() {
+        if (this._blockFilterVariants) {
+            return;
+        }
+        this.filterVariants();
+    }
+
+    filterVariants(keepPage = false) {
         const callbacks = this._getVcfCallbacks();
-        this.filter({callbacks});
+        this.filter({callbacks, keepPage: keepPage});
     }
 
     refreshVcfFilterEmptyStatus() {
@@ -1405,10 +1462,13 @@ export default class projectContext {
             this._vcfInfo = [];
             this._infoFields = [];
             this._totalPagesCountVariations = 0;
+            this._variationsPointer = null;
+            this._variationsPointerPage = null;
             this._currentPageVariations = FIRST_PAGE;
             this._lastPageVariations = FIRST_PAGE;
             this._firstPageVariations = FIRST_PAGE;
             this._hasMoreVariations = true;
+            this._variantsPageError = null;
             this._variantsDataByChromosomes = [];
             this._variantsDataByQuality = [];
             this._variantsDataByType = [];
@@ -1598,16 +1658,18 @@ export default class projectContext {
         }
         this._isVariantsLoading = true;
         (async() => {
-            const {infoFields, asDefault, callbacks} = opts;
+            const {infoFields, asDefault, callbacks, keepPage} = opts;
             const {onError, onFinish, onInit, onSetToDefault, onStart, groupByCallbacks} = callbacks;
             if (onStart) {
                 onStart();
             }
             await this._initializeVariants(onInit);
-            if (asDefault) {
+            if (!keepPage) {
                 this.currentPageVariations = FIRST_PAGE;
                 this.firstPageVariations = FIRST_PAGE;
                 this.lastPageVariations = FIRST_PAGE;
+            }
+            if (asDefault) {
                 this._hasMoreVariations = true;
                 this._vcfFilter = {
                     additionalFilters: {},
@@ -1725,6 +1787,8 @@ export default class projectContext {
             }
             if (error.toLowerCase().indexOf('feature index is too large to perform request') >= 0) {
                 return 'VCF file too large, unable to show data';
+            } if (error.toLowerCase().indexOf('variations filter shall be specified') >= 0) {
+                return error;
             } else {
                 return null;
             }
@@ -1802,20 +1866,59 @@ export default class projectContext {
             startIndex,
             endIndex
         };
+        if (this.variationsPointer && this.variationsPointerPage + 1 === page) {
+            filter.pointer = this.variationsPointer;
+        } else {
+            this.variationsPointer = null;
+            this.variationsPointerPage = null;
+        }
         this._variantsPageLoading = true;
         this.dispatcher.emit('variants:page:loading:started');
         let data = await this.projectDataService.getVcfVariationLoad(filter);
+        if (data.error) {
+            this._totalPagesCountVariations = 0;
+            this._variationsPointer = null;
+            this._variationsPointerPage = null;
+            this._currentPageVariations = FIRST_PAGE;
+            this._lastPageVariations = FIRST_PAGE;
+            this._firstPageVariations = FIRST_PAGE;
+            this._hasMoreVariations = true;
+            this._variantsPageLoading = false;
+            this._variantsPageError = data.message;
+            this.dispatcher.emit('variants:page:loading:finished');
+            return [];
+        } else {
+            this._variantsPageError = null;
+        }
         if (data.totalPagesCount === 0) {
             data.totalPagesCount = undefined;
         }
 
         if (!data.entries && (data.totalPagesCount !== undefined && data.totalPagesCount < page)) {
             filter.page = data.totalPagesCount;
+            filter.pointer = null;
+            this.variationsPointer = null;
+            this.variationsPointerPage = null;
             this.currentPageVariations = data.totalPagesCount || FIRST_PAGE;
             this.firstPageVariations = data.totalPagesCount || FIRST_PAGE;
             this.lastPageVariations = data.totalPagesCount || FIRST_PAGE;
             if (data.totalPagesCount > 0) {
                 data = await this.projectDataService.getVcfVariationLoad(filter);
+                if (data.error) {
+                    this._totalPagesCountVariations = 0;
+                    this._variationsPointer = null;
+                    this._variationsPointerPage = null;
+                    this._currentPageVariations = FIRST_PAGE;
+                    this._lastPageVariations = FIRST_PAGE;
+                    this._firstPageVariations = FIRST_PAGE;
+                    this._hasMoreVariations = true;
+                    this._variantsPageLoading = false;
+                    this._variantsPageError = data.message;
+                    this.dispatcher.emit('variants:page:loading:finished');
+                    return [];
+                } else {
+                    this._variantsPageError = null;
+                }
                 if (data.totalPagesCount === 0) {
                     data.totalPagesCount = undefined;
                 }
@@ -1834,6 +1937,8 @@ export default class projectContext {
         }
 
         this.totalPagesCountVariations = data.totalPagesCount;
+        this.variationsPointer = data.pointer;
+        this.variationsPointerPage = filter.page;
         const entries = data.entries ? data.entries : [];
         this._variantsPageLoading = false;
         this.dispatcher.emit('variants:page:loading:finished');

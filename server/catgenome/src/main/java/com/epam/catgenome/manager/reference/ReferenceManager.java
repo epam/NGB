@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.reference;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
+import com.epam.catgenome.entity.reference.Species;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -191,6 +192,13 @@ import com.epam.catgenome.util.Utils;
                 GeneFile geneFile = geneFileManager.loadGeneFile(request.getGeneFileId());
                 reference.setGeneFile(geneFile);
             }
+            if (request.getSpecies() != null) {
+                String version = request.getSpecies().getVersion();
+                Species species = referenceGenomeManager.loadSpeciesByVersion(version);
+                Assert.notNull(species, getMessage(MessageCode.NO_SUCH_SPECIES, version));
+                reference.setSpecies(species);
+            }
+
             referenceGenomeManager.register(reference);
             processGeneRegistrationRequest(request, reference);
             // sets this flag to 'true' that means all activities are performed successfully and no

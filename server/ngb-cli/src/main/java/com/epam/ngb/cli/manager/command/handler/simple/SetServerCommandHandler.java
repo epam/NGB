@@ -24,49 +24,26 @@
 
 package com.epam.ngb.cli.manager.command.handler.simple;
 
-import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 import static com.epam.ngb.cli.manager.command.CommandManager.SERVER_URL_PROPERTY;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
-import java.util.Properties;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
-import com.epam.ngb.cli.app.ConfigurationLoader;
-import com.epam.ngb.cli.constants.MessageConstants;
-import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 
 @Command(type = Command.Type.SIMPLE, command = {"set_server"})
-public class SetServerCommandHandler extends AbstractSimpleCommandHandler {
+public class SetServerCommandHandler extends SetPropertyCommandHandler {
 
     private String serverURL;
 
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
-        if (arguments.isEmpty() || arguments.size() != 1) {
-            throw new IllegalArgumentException(MessageConstants.getMessage(ILLEGAL_COMMAND_ARGUMENTS,
-                    getCommand(), 1, arguments.size()));
-        }
+        super.parseAndVerifyArguments(arguments, options);
         serverURL = arguments.get(0);
     }
 
     @Override
     public int runCommand() {
-        ConfigurationLoader loader = new ConfigurationLoader();
-        Properties properties = loader.loadServerConfiguration(null);
-        properties.setProperty(SERVER_URL_PROPERTY, serverURL);
-        try {
-            File extProps = loader.getConfigFile();
-            try (OutputStream stream = new FileOutputStream(extProps)) {
-                properties.store(stream, "");
-            }
-        } catch (IOException e) {
-            throw new ApplicationException("Failed to save server url to config file", e);
-        }
+        addPropertyToConfigurationFile(SERVER_URL_PROPERTY, serverURL);
         return 0;
     }
 

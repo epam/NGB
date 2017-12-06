@@ -45,6 +45,13 @@ public final class TestDataProvider {
         //no operations
     }
 
+    public static String getSpeciesPayloadJson(String speciesName, String speciesVersion) {
+        SpeciesEntity speciesEntity = new SpeciesEntity();
+        speciesEntity.setName(speciesName);
+        speciesEntity.setVersion(speciesVersion);
+        return getPayloadJson(speciesEntity);
+    }
+
     public static String getFilePayloadJson(Long id, Long bioItemId,
             BiologicalDataItemFormat format, String path, String name) {
         return getFilePayloadJson(id, bioItemId, format, path, name, false);
@@ -108,6 +115,15 @@ public final class TestDataProvider {
         request.setItems(items);
         request.setType(BiologicalDataItemResourceType.FILE);
         request.setIndexType(BiologicalDataItemResourceType.FILE);
+        return getJson(request);
+    }
+
+    public static String getSpecRegistrationJson(String speciesName, String speciesVersion) {
+        RegistrationRequest request = new RegistrationRequest();
+        SpeciesEntity entity = new SpeciesEntity();
+        entity.setName(speciesName);
+        entity.setVersion(speciesVersion);
+        request.setSpecies(entity);
         return getJson(request);
     }
 
