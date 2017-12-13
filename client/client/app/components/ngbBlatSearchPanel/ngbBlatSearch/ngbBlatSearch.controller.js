@@ -143,26 +143,27 @@ export default class ngbBlatSearchController extends baseController {
         const chromosome = this.projectContext.currentChromosome ?
             this.projectContext.currentChromosome.name : null;
 
-        let addition = (entity.endIndex - entity.startIndex) * 0.1;
+        const addition = (entity.endIndex - entity.startIndex) * 0.1;
+        const viewport = {
+            start: entity.startIndex - addition,
+            end: entity.endIndex + addition,
+        };
+        const blatRegion = {
+            start: entity.startIndex,
+            end: entity.endIndex,
+        };
 
         if (chromosome !== chromosomeName) {
             this.projectContext.changeState({
                 chromosome: {
                     name: chromosomeName
                 },
-                viewport: {
-                    start: entity.startIndex - addition,
-                    end: entity.endIndex + addition,
-                }
+                viewport,
+                blatRegion,
             });
         }
         else {
-            this.projectContext.changeState({
-                viewport: {
-                    start: entity.startIndex - addition,
-                    end: entity.endIndex + addition,
-                }
-            });
+            this.projectContext.changeState({ viewport, blatRegion });
         }
     }
 
