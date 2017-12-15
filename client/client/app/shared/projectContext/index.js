@@ -1601,10 +1601,7 @@ export default class projectContext {
         if (blatRegion.forceReset === true) {
             this._blatRegion = null;
         } else if (this._currentChromosome) {
-            this._blatRegion = {
-                start: Math.max(blatRegion.start, 1),
-                end: Math.min(blatRegion.end, this._currentChromosome.size)
-            };
+            this._blatRegion = blatRegion;
         }
 
         return (oldBlatRegion === null && this.blatRegion !== null) ||

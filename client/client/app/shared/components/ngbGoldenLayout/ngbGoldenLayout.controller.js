@@ -299,7 +299,7 @@ export default class ngbGoldenLayoutController extends baseController {
         }
     }
 
-    panelRemoveBlatSearchPanel(event) {
+    panelRemoveBlatSearchPanel() {
         const [blatSearchItem] = this.goldenLayout.root
             .getItemsByFilter((obj) => obj.config && obj.config.componentState
                 && obj.config.componentState.panel === this.panels.ngbBlatSearchPanel);
@@ -324,8 +324,8 @@ export default class ngbGoldenLayoutController extends baseController {
     blatSearchPanelDestroyedHandler(item) {
         if (item.type === 'component') {
             if (item.config.componentState.panel === this.panels.ngbBlatSearchPanel) {
-                this.goldenLayout.off('itemDestroyed', this.blatSearchPanelDestroyedHandler, this);
                 this.blatSearchPanelRemoved();
+                this.goldenLayout.off('itemDestroyed', this.blatSearchPanelDestroyedHandler, this);
             }
         }
     }

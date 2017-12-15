@@ -11,6 +11,7 @@ const MAX_PIXEL_PER_BRUSH_BP = 20;
 export class Viewport extends BaseViewport {
     element: HTMLElement;
     brushChangeSubject = new Subject();
+    blatRegionChangeSubject = new Subject();
     shortenedIntronsChangeSubject = new Subject();
 
     margin = 0;
@@ -144,6 +145,7 @@ export class Viewport extends BaseViewport {
 
     set blatRegion(blatRegion) {
         this._blatRegion = blatRegion;
+        this.blatRegionChangeSubject.onNext(this);
     }
 
     _shortenedConvert = {

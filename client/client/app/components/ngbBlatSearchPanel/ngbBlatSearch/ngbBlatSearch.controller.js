@@ -139,7 +139,7 @@ export default class ngbBlatSearchController extends baseController {
 
     rowClick(row) {
         const entity = row.entity;
-        const chromosomeName = `${entity.chr.slice(3)}`.toLowerCase();
+        const chromosomeName = entity.chr;
         const chromosome = this.projectContext.currentChromosome ?
             this.projectContext.currentChromosome.name : null;
 
@@ -151,6 +151,7 @@ export default class ngbBlatSearchController extends baseController {
         const blatRegion = {
             start: entity.startIndex,
             end: entity.endIndex,
+            chromosomeName,
         };
 
         if (chromosome !== chromosomeName) {
