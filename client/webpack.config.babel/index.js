@@ -28,7 +28,7 @@ export const entry = (() => {
 export const output = {
     path: path.resolve(context, 'dist'),
     publicPath: global.buildOptions.publicPath || '/',
-    desktopBuild: !!global.buildOptions.desktop,
+    // desktopBuild: !!global.buildOptions.desktop,
     filename: '[name].bundle.js',
     chunkFilename: '[id].[name].js'
 };
@@ -38,5 +38,5 @@ export const resolve = {
     }
 };
 export const devtool = DEV ? 'source-map' : undefined;
-export const module = {loaders};
+export const module = {rules: loaders};
 export const cache = DEV;

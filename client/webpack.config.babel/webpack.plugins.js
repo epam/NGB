@@ -13,14 +13,19 @@ const globals = {
 const devPlugins = [
     new webpack.NoErrorsPlugin()
 ];
-export const extractTextPlugin = new ExtractTextPlugin('[name].css');
+// export const extractTextPlugin = new ExtractTextPlugin('[name].css');
+export const extractTextPlugin = new ExtractTextPlugin({
+  filename: '[name].css'
+  // disable: false,
+  // allChunks: true
+});
 
 const prodPlugins = [
     extractTextPlugin,
     new optimize.UglifyJsPlugin({
         mangle: false
     }),
-    new optimize.DedupePlugin(),
+    // new optimize.DedupePlugin(),
     new optimize.AggressiveMergingPlugin()
 ];
 

@@ -17,3 +17,25 @@ export default [
         ]
     })
 ]
+
+// module.exports = {
+//   parser: 'sugarss',
+//   plugins: {
+//     'postcss-import': {},
+//     'postcss-cssnext': {
+//       browsers: DEV
+//         ? ['Chrome >= 45']
+//         : [
+//           'Android 2.3',
+//           'Android >= 4',
+//           'Chrome >= 20',
+//           'Firefox >= 24',
+//           'Explorer >= 10',
+//           'iOS >= 6',
+//           'Opera >= 12',
+//           'Safari >= 6'
+//         ]
+//     },
+//     'cssnano': {}
+//   }
+// };
