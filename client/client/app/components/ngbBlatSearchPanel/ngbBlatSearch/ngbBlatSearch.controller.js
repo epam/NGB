@@ -139,9 +139,15 @@ export default class ngbBlatSearchController extends baseController {
 
     rowClick(row) {
         const entity = row.entity;
-        const chromosomeName = entity.chr;
         const chromosome = this.projectContext.currentChromosome ?
             this.projectContext.currentChromosome.name : null;
+
+        let chromosomeName;
+        if (chromosome.toLowerCase().includes('chr')) {
+            chromosomeName = entity.chr;
+        } else {
+            chromosomeName = `${entity.chr.slice(3)}`.toLowerCase();
+        }
 
         const addition = (entity.endIndex - entity.startIndex) * 0.1;
         const viewport = {
