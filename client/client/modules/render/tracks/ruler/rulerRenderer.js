@@ -27,7 +27,8 @@ export default class RulerRenderer {
 
     get blatRegionConfig() {
         return {
-            fillColor: 0xE6E6E6,
+            fillColor: 0x92AEE7,
+            fillAlpha: 0.7,
             lineColor: 0x000000,
             thinLineThickness: 0.5,
             boldLineThickness: 1.5,
@@ -260,7 +261,7 @@ export default class RulerRenderer {
     }
 
     renderBlatRegion(blatRegionGraphics, region) {
-        const { fillColor, lineColor, thinLineThickness, boldLineThickness, coordinatesAdd, regionHeight } = this.blatRegionConfig;
+        const { fillColor, fillAlpha, lineColor, thinLineThickness, boldLineThickness, coordinatesAdd, regionHeight } = this.blatRegionConfig;
         const BP2Pixel = this.viewport.project.brushBP2pixel;
 
         const renderHatchFn = (start, boundaries) => {
@@ -295,7 +296,7 @@ export default class RulerRenderer {
 
         blatRegionGraphics
             .lineStyle(0, lineColor, 1)
-            .beginFill(fillColor, 1)
+            .beginFill(fillColor, fillAlpha)
             .drawRect(
                 BP2Pixel(region.start - coordinatesAdd),
                 0,
