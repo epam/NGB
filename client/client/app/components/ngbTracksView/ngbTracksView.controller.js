@@ -66,7 +66,8 @@ export default class ngbTracksViewController extends baseController {
                             .then(this.refreshTracksScope);
                     },
                     'position:select': ::this.selectPosition,
-                    'viewport:position': ::this.setViewport
+                    'viewport:position': ::this.setViewport,
+                    'blatRegion:change': ::this.setBlatRegion
                 });
             }
 
@@ -150,10 +151,16 @@ export default class ngbTracksViewController extends baseController {
                 start: this.projectContext.position
             };
         }
+        let blatRegion = undefined;
+        if (this.projectContext.blatRegion) {
+            blatRegion = this.projectContext.blatRegion;
+        } else {
+            blatRegion = null;
+        }
 
         const viewportPxMargin = 6;
         this.viewport = new Viewport(scrollPanel,
-            {brush, chromosomeSize: this.chromosome.size},
+            {brush, chromosomeSize: this.chromosome.size, blatRegion},
             this.dispatcher,
             this.projectContext,
             viewportPxMargin,
@@ -257,6 +264,12 @@ export default class ngbTracksViewController extends baseController {
     setViewport() {
         if (this.renderable) {
             this.viewport.selectInterval(this.projectContext.viewport);
+        }
+    }
+
+    setBlatRegion() {
+        if (this.renderable) {
+            this.viewport.blatRegion = this.projectContext.blatRegion;
         }
     }
 
