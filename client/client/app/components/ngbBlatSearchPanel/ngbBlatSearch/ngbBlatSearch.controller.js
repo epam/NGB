@@ -143,10 +143,10 @@ export default class ngbBlatSearchController extends baseController {
             this.projectContext.currentChromosome.name : null;
 
         let chromosomeName;
-        if (chromosome.toLowerCase().includes('chr')) {
-            chromosomeName = entity.chr;
-        } else {
+        if (chromosome && !chromosome.toLowerCase().includes('chr')) {
             chromosomeName = `${entity.chr.slice(3)}`.toLowerCase();
+        } else {
+            chromosomeName = entity.chr;
         }
 
         const addition = (entity.endIndex - entity.startIndex) * 0.1;
