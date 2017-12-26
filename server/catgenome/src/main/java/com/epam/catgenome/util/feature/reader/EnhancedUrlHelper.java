@@ -39,7 +39,7 @@ import htsjdk.tribble.util.URLHelper;
  */
 public class EnhancedUrlHelper implements URLHelper {
 
-    private static final Pattern S3_PATTERN = Pattern.compile(".*s3\\..*\\.amazonaws\\.com");
+    private static final Pattern S3_PATTERN = Pattern.compile(".*s3.*\\.amazonaws\\.com");
 
     private URLHelper wrappedHelper;
 
