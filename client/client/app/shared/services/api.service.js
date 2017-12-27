@@ -49,11 +49,11 @@ export default class ngbApiService {
                 datasets = await this.ngbDataSetsService.getDatasets();
                 const [item] = datasets.filter(m => m.id === id);
                 if (!item) {
-                    return new Promise(() => {
-                        return {
+                    return new Promise((resolve) => {
+                        resolve({
                             message: `No dataset with id = ${id}`,
                             isSuccessful: false
-                        };
+                        });
                     });
                 }
                 return this._select(item, true, datasets, forceSwitchRef);
@@ -61,11 +61,11 @@ export default class ngbApiService {
         } else {
             const [item] = datasets.filter(m => m.id === id);
             if (!item) {
-                return new Promise(() => {
-                    return {
+                return new Promise((resolve) => {
+                    resolve({
                         message: `No dataset with id = ${id}`,
                         isSuccessful: false
-                    };
+                    });
                 });
             }
             return this._select(item, true, datasets, forceSwitchRef);
@@ -224,11 +224,11 @@ export default class ngbApiService {
         if (params.track) {
             return this._selectTrackById(params.track, forceSwitchRef);
         } else {
-            return new Promise(() => {
-                return {
+            return new Promise((resolve) => {
+                resolve({
                     message: 'No tracks ids specified.',
                     isSuccessful: false
-                };
+                });
             });
         }
     }
@@ -238,22 +238,22 @@ export default class ngbApiService {
         let forceSwitchRef = params.forceSwitchRef ? params.forceSwitchRef : false;
 
         if (!params.tracks || !params.referenceId) {
-            return new Promise(() => {
-                return {
+            return new Promise((resolve) => {
+                resolve({
                     message: 'Not enough params specified',
                     isSuccessful: false,
-                }
+                });
             });
         }
 
         let [chosenReference] = this.references.filter(r => r.id === params.referenceId);
 
         if (!chosenReference) {
-            return new Promise(() => {
-                return {
+            return new Promise((resolve) => {
+                resolve({
                     message: 'Reference not found',
                     isSuccessful: false,
-                }
+                });
             });
         }
 
@@ -276,16 +276,10 @@ export default class ngbApiService {
                 };
             });
         } else {
-            return new Promise(() => {
-                return this._processTracks(params.tracks, chosenReference);
+            return new Promise((resolve) => {
+                resolve(this._processTracks(params.tracks, chosenReference));
             });
         }
-
-        return {
-            message: 'Something went wrong.',
-            isSuccessful: false
-        };
-
     }
 
     setToken(token){
@@ -406,7 +400,10 @@ export default class ngbApiService {
             track => this.projectContext.tracks.filter(t => t.isLocal && t.name.toLowerCase() === track.name.toLowerCase()).length === 0);
 
         if (tracks.length === 0) {
-            return;
+            return {
+                message: 'Ok',
+                isSuccessful: true,
+            };
         }
 
         for (let i = 0; i < tracks.length; i++) {
@@ -496,11 +493,11 @@ export default class ngbApiService {
 
             return this._toggleSelected(datasets, selectedTrack, forceSwitchRef);
         } else {
-            return new Promise(() => {
-                return {
+            return new Promise((resolve) => {
+                resolve({
                     message: 'No tracks found with id specified.',
                     isSuccessful: false
-                };
+                });
             });
         }
     }
@@ -548,13 +545,13 @@ export default class ngbApiService {
             });
 
         } else {
-            return new Promise(() => {
+            return new Promise((resolve) => {
                 this.ngbDataSetsService.selectItem(item, isSelected, tree);
 
-                return {
+                resolve({
                     message: 'Ok',
                     isSuccessful: true
-                };
+                });
             });
         }
     }
