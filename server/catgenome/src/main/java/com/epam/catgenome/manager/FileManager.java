@@ -39,6 +39,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.file.AccessDeniedException;
@@ -1188,7 +1190,7 @@ public class FileManager {
     public AbstractFeatureReader<GeneFeature, LineIterator> makeGeneReader(final GeneFile geneFile,
                                                                            final GeneFileType type) {
         String realFileName = geneFile.getPath() != null ? geneFile.getPath() : geneFile.getName();
-        String extension = Utils.getFileExtension(realFileName);
+        String extension = getGeneFileExtension(realFileName);
         extension = GffCodec.GffType.forExt(extension).getExtensions()[0];
 
         final Map<String, Object> params = new HashMap<>();
@@ -2102,8 +2104,16 @@ public class FileManager {
      * @return gene extension
      */
     public static String getGeneFileExtension(final String fileName) {
+        String name = fileName;
+        if (NgbFileUtils.isRemotePath(fileName)) {
+            try {
+                name = new URL(fileName).getPath();
+            } catch (MalformedURLException e) {
+                throw new IllegalArgumentException("Unsupported remote path: " + fileName);
+            }
+        }
         for (String e : GENE_FILE_EXTENSIONS) {
-            if (fileName.endsWith(e)) {
+            if (name.endsWith(e)) {
                 return e;
             }
         }
