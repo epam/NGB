@@ -20,12 +20,14 @@ const wrapStyleLoader = function (loader) {
 const appJsLoader = {
   test: /\.js$/,
   use: [
-    {
-      loader: 'ng-annotate-loader'
-    },
-    {
-      loader: 'babel-loader'
-    }],
+    'babel-loader'
+    // {
+    //   loader: 'ng-annotate-loader'
+    // },
+    // {
+    //   loader: 'babel-loader'
+    // }
+    ],
   include: /client/,
   exclude: [/3rd-party/, /node_modules/],
   // query: {
@@ -84,7 +86,28 @@ const commonStyleLoader = {
     fallback: 'style-loader',
     use: [
       { loader: 'css-loader', options: { importLoaders: 1 } },
-      'postcss-loader'
+      {
+        loader: 'postcss-loader',
+        options: {
+          plugins: () => [
+            require('postcss-import')(),
+            require('postcss-cssnext')({
+              browsers: DEV
+                ? ['Chrome >= 45']
+                : [
+                  'Android 2.3',
+                  'Android >= 4',
+                  'Chrome >= 20',
+                  'Firefox >= 24',
+                  'Explorer >= 10',
+                  'iOS >= 6',
+                  'Opera >= 12',
+                  'Safari >= 6'
+                ]
+            })
+          ]
+        }
+      }
     ]
   })
   // use: [
@@ -119,7 +142,28 @@ const sassLoader = {
     fallback: 'style-loader',
     use: [
       { loader: 'css-loader', options: { importLoaders: 1 } },
-      'postcss-loader', 'sass-loader'
+      {
+        loader: 'postcss-loader',
+        options: {
+          plugins: () => [
+            require('postcss-import')(),
+            require('postcss-cssnext')({
+              browsers: DEV
+                ? ['Chrome >= 45']
+                : [
+                  'Android 2.3',
+                  'Android >= 4',
+                  'Chrome >= 20',
+                  'Firefox >= 24',
+                  'Explorer >= 10',
+                  'iOS >= 6',
+                  'Opera >= 12',
+                  'Safari >= 6'
+                ]
+            })
+          ]
+        }
+      }, 'sass-loader'
     ]
   })
   // use: [

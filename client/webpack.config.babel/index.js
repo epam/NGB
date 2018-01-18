@@ -3,7 +3,7 @@ import path from 'path';
 import loaders from './webpack.loaders';
 
 export {default as plugins} from './webpack.plugins';
-export {default as postcss} from './webpack.postcss';
+// export {default as postcss} from './webpack.postcss';
 
 const DEV = global.buildOptions.dev;
 

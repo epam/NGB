@@ -1,4 +1,4 @@
 {
-  "presets": [["es2015", { "modules": false }], "node8"],
-  "plugins": ["syntax-flow", "transform-flow-strip-types", "add-module-exports"]
+  "presets": ["env"],
+  "plugins": ["syntax-flow", "transform-flow-strip-types", "add-module-exports", "transform-class-properties"]
 }
