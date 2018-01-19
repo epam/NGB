@@ -11,8 +11,9 @@ script:
     - ./gradlew jacocoTestReport
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-  - docker login -u $DOCKER_USERNAME -p $DOCKER_PSWD
-  - docker tag ngb:latest $DOCKER_USERNAME/ngb:dev && docker push $DOCKER_USERNAME/ngb:dev
+  - docker login -u $DOCKER_USERNAME -p $DOCKER_PSWD && 
+    docker tag ngb:latest $DOCKER_USERNAME/ngb:dev &&
+    docker push $DOCKER_USERNAME/ngb:dev
 deploy:
   - provider: script
     skip_cleanup: true
