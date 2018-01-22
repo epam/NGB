@@ -13,8 +13,8 @@ export const entry = (() => {
     const items = {
 
         app: [
-            'expose?$!jquery',
-            'expose?jQuery!jquery',
+            'expose-loader?$!jquery',
+            'expose-loader?jQuery!jquery',
             './client/babel-polyfill-custom.js',
             'jquery-mousewheel',
             'babel-polyfill',

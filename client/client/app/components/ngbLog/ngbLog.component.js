@@ -1,4 +1,4 @@
-export template from './ngbLog.html';
+export { template } from './ngbLog.html';
 export function controller(dispatcher, ngbLogService, projectContext, $scope, $mdColors, $mdColorUtil) {
 
     const log = (fireEvent) => {
