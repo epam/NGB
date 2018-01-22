@@ -16,12 +16,25 @@ export default class RulerRenderer {
 
     _globalRulerTicks = null;
     _localRulerTicks = null;
+    _localRulerBlatRegion = null;
 
     tickConfigs = new Map();
 
     constructor(viewport, config) {
         this.viewport = viewport;
         this._config = config;
+    }
+
+    get blatRegionConfig() {
+        return {
+            fillColor: 0x92AEE7,
+            fillAlpha: 0.7,
+            lineColor: 0x000000,
+            thinLineThickness: 0.5,
+            boldLineThickness: 1.5,
+            coordinatesAdd: 0.5,
+            regionHeight: this._config.local.body.height - 1,
+        };
     }
 
     init(ticks) {
@@ -36,10 +49,11 @@ export default class RulerRenderer {
         this._globalRulerBody = globalRulerContainers.body;
         this._globalRulerTicks = globalRulerContainers.ticksArea;
 
-        const localRulerContainers = this.createRuler(this._config.local, _localRulerOffsetY);
+        const localRulerContainers = this.createRuler(this._config.local, _localRulerOffsetY, true);
         this._localRuler = localRulerContainers.ruler;
         this._localRulerBody = localRulerContainers.body;
         this._localRulerTicks = localRulerContainers.ticksArea;
+        this._localRulerBlatRegion = localRulerContainers.blatRegion;
 
         container.addChild(this._globalRuler);
         container.addChild(this._localRuler);
@@ -49,7 +63,7 @@ export default class RulerRenderer {
         return container;
     }
 
-    createRuler(_config, rulerYOffset) {
+    createRuler(_config, rulerYOffset, isLocal = false) {
         const ruler = new PIXI.Container();
         ruler.y = rulerYOffset;
 
@@ -60,18 +74,31 @@ export default class RulerRenderer {
         ticksArea.y = _config.tickArea.margin;
         ruler.addChild(ticksArea);
 
+        let blatRegion = null;
+        if (isLocal) {
+            blatRegion = new PIXI.Container();
+            ruler.addChild(blatRegion);
+        }
+
         this.tickConfigs.set(ticksArea, _config);
 
-        return {
+        const res =  {
             body: body,
             ruler: ruler,
             ticksArea: ticksArea
         };
+
+        if (blatRegion) {
+            res.blatRegion = blatRegion;
+        }
+
+        return res;
     }
 
     render(viewport, localTicks) {
         this.viewport = viewport;
         this.changeDividers(this._localRulerTicks, localTicks || [], viewport);
+        this.changeBlatRegion(this._localRulerBlatRegion, viewport);
     }
 
     rebuild(viewport, globalTicks, localTicks) {
@@ -79,6 +106,7 @@ export default class RulerRenderer {
         this.changeRulerBody(this._localRulerBody, this._config.local);
         this.changeDividers(this._globalRulerTicks, globalTicks || [], viewport, true);
         this.changeDividers(this._localRulerTicks, localTicks || [], viewport);
+        this.changeBlatRegion(this._localRulerBlatRegion, viewport);
     }
 
     createRulerBody(_config) {
@@ -220,6 +248,69 @@ export default class RulerRenderer {
             }
             tickLabels = null;
         }
+    }
+
+    changeBlatRegion(container, viewport) {
+        container.removeChildren();
+        if (viewport.blatRegion && viewport.blatRegion.chromosomeName === viewport.projectContext.currentChromosome.name) {
+            const blatRegionGraphics = new PIXI.Graphics();
+            container.addChild(blatRegionGraphics);
+
+            this.renderBlatRegion(blatRegionGraphics, viewport.blatRegion);
+        }
+    }
+
+    renderBlatRegion(blatRegionGraphics, region) {
+        const { fillColor, fillAlpha, lineColor, thinLineThickness, boldLineThickness, coordinatesAdd, regionHeight } = this.blatRegionConfig;
+        const BP2Pixel = this.viewport.project.brushBP2pixel;
+
+        const renderHatchFn = (start, boundaries) => {
+            const { x1, x2 } = boundaries;
+            const pointA = { x: start, y: regionHeight };
+            const pointB = { x: start + regionHeight, y: 0 };
+            if (pointA.x < x1) {
+                pointA.x = x1;
+                pointA.y = pointB.x - x1;
+            }
+            if (pointB.x > x2) {
+                pointB.y = pointB.x - x2;
+                pointB.x = x2;
+            }
+            blatRegionGraphics
+                .moveTo(pointA.x, pointA.y)
+                .lineTo(pointB.x, pointB.y);
+        };
+        const renderHatchingFn = (item) => {
+            const hatchAlpha = 0.5;
+            const hatchStep = 8;
+
+            const startPx = Math.max(- this.viewport.canvasSize, BP2Pixel(item.start - coordinatesAdd));
+            const endPx = Math.min(2 * this.viewport.canvasSize, BP2Pixel(item.end + coordinatesAdd));
+
+            blatRegionGraphics.lineStyle(thinLineThickness, lineColor, hatchAlpha);
+
+            for (let i = startPx - regionHeight; i < endPx; i += hatchStep) {
+                renderHatchFn(i, { x1: startPx, x2: endPx });
+            }
+        };
+
+        blatRegionGraphics
+            .lineStyle(0, lineColor, 1)
+            .beginFill(fillColor, fillAlpha)
+            .drawRect(
+                BP2Pixel(region.start - coordinatesAdd),
+                0,
+                BP2Pixel(region.end + coordinatesAdd) - BP2Pixel(region.start - coordinatesAdd),
+                regionHeight
+            )
+            .endFill()
+            .lineStyle(boldLineThickness, lineColor, 1)
+            .moveTo(BP2Pixel(region.start - coordinatesAdd), 0)
+            .lineTo(BP2Pixel(region.start - coordinatesAdd), regionHeight)
+            .moveTo(BP2Pixel(region.end + coordinatesAdd), 0)
+            .lineTo(BP2Pixel(region.end + coordinatesAdd), regionHeight);
+
+        renderHatchingFn(region);
     }
 
     static appendTickGraphics(graphics, x, _config, viewport) {

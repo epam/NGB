@@ -299,22 +299,46 @@ export default class ngbGoldenLayoutController extends baseController {
         }
     }
 
-    panelRemoveBlatSearchPanel(event) {
-        let savedBlatRequest = JSON.parse(localStorage.getItem('blatSearchRequest')) || null;
+    panelRemoveBlatSearchPanel() {
+        const [blatSearchItem] = this.goldenLayout.root
+            .getItemsByFilter((obj) => obj.config && obj.config.componentState
+                && obj.config.componentState.panel === this.panels.ngbBlatSearchPanel);
 
-        if(!savedBlatRequest) return;
+        if (!blatSearchItem) {
+            return;
+        }
 
-        let [currentBlatSearchBamTrack] = this.projectContext.tracks.filter( t => t.format === 'BAM' && t.id === savedBlatRequest.id);
+        const savedBlatRequest = JSON.parse(localStorage.getItem('blatSearchRequest')) || null;
+
+        if(!savedBlatRequest) {
+            return;
+        }
+
+        const [currentBlatSearchBamTrack] = this.projectContext.tracks.filter(t => t.format === 'BAM' && t.id === savedBlatRequest.id);
 
         if(!currentBlatSearchBamTrack) {
-            localStorage.removeItem('blatSearchRequest');
-            localStorage.removeItem('blatColumns');
             this.panelRemove(this.appLayout.Panels.blat);
         }
     }
 
+    blatSearchPanelDestroyedHandler(item) {
+        if (item.type === 'component') {
+            if (item.config.componentState.panel === this.panels.ngbBlatSearchPanel) {
+                this.blatSearchPanelRemoved();
+                this.goldenLayout.off('itemDestroyed', this.blatSearchPanelDestroyedHandler, this);
+            }
+        }
+    }
+
+    blatSearchPanelRemoved() {
+        localStorage.removeItem('blatSearchRequest');
+        localStorage.removeItem('blatColumns');
+
+        this.projectContext.changeState({ blatRegion: { forceReset: true } });
+    }
+
     panelAddBlatSearchPanel(event) {
-        let layoutChange = this.appLayout.Panels.blat;
+        const layoutChange = this.appLayout.Panels.blat;
         layoutChange.displayed = true;
 
         const [blatSearchItem] = this.goldenLayout.root
@@ -333,6 +357,7 @@ export default class ngbGoldenLayoutController extends baseController {
         };
         localStorage.setItem('blatSearchRequest', JSON.stringify(payload || {}));
 
+        this.goldenLayout.on('itemDestroyed', this.blatSearchPanelDestroyedHandler, this);
 
         if (!blatSearchItem) {
             this.panelAdd(layoutChange);

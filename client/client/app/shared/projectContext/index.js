@@ -70,6 +70,7 @@ export default class projectContext {
     _currentChromosome = null;
     _position = null;
     _viewport = null;
+    _blatRegion = null;
 
     _vcfFilter = {};
     _vcfFilterIsDefault = true;
@@ -220,6 +221,10 @@ export default class projectContext {
 
     get viewport() {
         return this._viewport;
+    }
+
+    get blatRegion() {
+        return this._blatRegion;
     }
 
     get tracks() {
@@ -881,7 +886,8 @@ export default class projectContext {
                 positionDidChange,
                 referenceDidChange,
                 tracksStateDidChange,
-                viewportDidChange
+                viewportDidChange,
+                blatRegionDidChange
             } = result;
             let stateChanged = false;
             if (referenceDidChange) {
@@ -894,6 +900,10 @@ export default class projectContext {
             }
             if (positionDidChange) {
                 emitEventFn('position:select', this.getCurrentStateObject());
+                stateChanged = true;
+            }
+            if (blatRegionDidChange) {
+                emitEventFn('blatRegion:change', this.getCurrentStateObject());
                 stateChanged = true;
             }
             if (viewportDidChange) {
@@ -1070,7 +1080,9 @@ export default class projectContext {
             forceVariantsFilter,
             tracksReordering,
             filterDatasets,
-            shouldAddAnnotationTracks} = state;
+            shouldAddAnnotationTracks,
+            blatRegion
+        } = state;
         if (reference && !this._reference) {
             this._referenceIsPromised = true;
             this.dispatcher.emitGlobalEvent('reference:pre:change');
@@ -1093,6 +1105,12 @@ export default class projectContext {
         const chromosomeDidChange = this._changeChromosome(chromosome);
         let positionDidChange = false;
         let viewportDidChange = false;
+        let blatRegionDidChange = false;
+
+        if (blatRegion) {
+            blatRegionDidChange = this._changeBlatRegion(blatRegion);
+        }
+
         if (viewport) {
             viewportDidChange = this._changeViewport(viewport);
             if (viewportDidChange) {
@@ -1124,7 +1142,8 @@ export default class projectContext {
             positionDidChange,
             referenceDidChange,
             tracksStateDidChange,
-            viewportDidChange
+            viewportDidChange,
+            blatRegionDidChange
         };
     }
 
@@ -1133,11 +1152,13 @@ export default class projectContext {
         const chromosome = this.currentChromosome ? `${this.currentChromosome.name}` : null;
         const position = this._position;
         const viewport = this._viewport;
+        const blatRegion = this.blatRegion;
         return {
             chromosome,
             position,
             referenceId,
-            viewport
+            viewport,
+            blatRegion
         };
     }
 
@@ -1571,6 +1592,23 @@ export default class projectContext {
             (oldViewport !== null && this._viewport !== null && (
                 (oldViewport.start !== this._viewport.start) ||
                 (oldViewport.end !== this._viewport.end)
+            ));
+    }
+
+    _changeBlatRegion(blatRegion) {
+        const oldBlatRegion = this.blatRegion;
+
+        if (blatRegion.forceReset === true) {
+            this._blatRegion = null;
+        } else if (this._currentChromosome) {
+            this._blatRegion = blatRegion;
+        }
+
+        return (oldBlatRegion === null && this.blatRegion !== null) ||
+            (oldBlatRegion !== null && this.blatRegion === null) ||
+            (oldBlatRegion !== null && this.blatRegion !== null && (
+                (oldBlatRegion.start !== this.blatRegion.start) ||
+                (oldBlatRegion.end !== this.blatRegion.end)
             ));
     }
 

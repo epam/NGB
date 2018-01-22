@@ -42,7 +42,7 @@ import com.epam.catgenome.entity.track.ReferenceTrackMode;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.reference.io.FastaSequenceFile;
 import com.epam.catgenome.manager.reference.io.FastaUtils;
-import com.epam.catgenome.util.AuthUtils;
+import com.epam.catgenome.util.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -79,9 +79,6 @@ import com.epam.catgenome.manager.gene.GeneFileManager;
 import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.manager.reference.io.NibDataReader;
 import com.epam.catgenome.manager.reference.io.NibDataWriter;
-import com.epam.catgenome.util.BlockCompressedDataInputStream;
-import com.epam.catgenome.util.BlockCompressedDataOutputStream;
-import com.epam.catgenome.util.Utils;
 
 /**
  * Source:      ReferenceManager.java
@@ -557,7 +554,7 @@ import com.epam.catgenome.util.Utils;
             reference.getChromosomes().add(chromosome);
 
             //work with GC
-            if (!FastaUtils.isRemote(path) && createGC) {
+            if (!NgbFileUtils.isRemotePath(path) && createGC) {
                 byte[] sequence = referenceReader.getChromosome(chr);
                 try (BlockCompressedDataOutputStream gcStream = fileManager
                         .makeGCOutputStream(referenceId, chromosome)) {
@@ -572,7 +569,7 @@ import com.epam.catgenome.util.Utils;
     private void setIndex(Reference reference) {
         String path = reference.getPath();
         String indexPath;
-        if (!FastaUtils.isRemote(path) && !FastaUtils.hasIndex(path)) {
+        if (!NgbFileUtils.isRemotePath(path) && !FastaUtils.hasIndex(path)) {
             indexPath = fileManager.createReferenceIndex(reference);
         } else {
             indexPath = path + FastaUtils.FASTA_INDEX;
@@ -615,7 +612,7 @@ import com.epam.catgenome.util.Utils;
     }
 
     private boolean isNibReference(String path) {
-        return !FastaUtils.isRemote(path) && !FastaUtils.isFasta(path);
+        return !NgbFileUtils.isRemotePath(path) && !FastaUtils.isFasta(path);
     }
 
     //method to support intermediate references not nib but without registered index item
