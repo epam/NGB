@@ -20,16 +20,15 @@ const wrapStyleLoader = function (loader) {
 const appJsLoader = {
   test: /\.js$/,
   use: [
-    'babel-loader'
-    // {
-    //   loader: 'ng-annotate-loader'
-    // },
-    // {
-    //   loader: 'babel-loader'
-    // }
-    ],
+    {
+      loader: 'ng-annotate-loader'
+    },
+    {
+      loader: 'babel-loader'
+    }
+  ],
   include: /client/,
-  exclude: [/3rd-party/, /node_modules/],
+  exclude: [/3rd-party/, /node_modules/]
   // query: {
   //   // https://github.com/babel/babel-loader#options
   //   cacheDirectory: true,
