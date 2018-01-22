@@ -1,4 +1,4 @@
 {
   "presets": ["env"],
-  "plugins": ["syntax-flow", "transform-flow-strip-types", "add-module-exports", "transform-class-properties"]
+  "plugins": ["syntax-flow", "transform-flow-strip-types", "add-module-exports", "transform-class-properties", "transform-function-bind", "transform-object-rest-spread"]
 }

@@ -1,15 +1,15 @@
-import {extractTextPlugin} from './webpack.plugins';
+import ExtractTextPlugin  from 'extract-text-webpack-plugin';
 const DEV = global.buildOptions.dev;
 
 // const wrapStyleLoader = loader => DEV
 //     ? `style?sourceMap!${loader}`
-//     : extractTextPlugin.extract('style?sourceMap', loader);
+//     : ExtractTextPlugin.extract('style?sourceMap', loader);
 
 const wrapStyleLoader = function (loader) {
   if (DEV) {
     `style?sourceMap!${loader}`
   } else {
-    extractTextPlugin.extract({
+    ExtractTextPlugin.extract({
       fallback: 'style-loader?sourceMap',
       use: loader,
       publicPath: "/dist"
@@ -53,7 +53,7 @@ const rawJsLoader = {
 const thirdPartyStyleLoader = {
   test: /\.css$/,
   include: [/node_modules/],
-  use: extractTextPlugin.extract({
+  use: ExtractTextPlugin.extract({
     fallback: 'style-loader',
     use: [
       { loader: 'css-loader', options: { importLoaders: 1 } }
@@ -68,7 +68,7 @@ const thirdPartyStyleLoader = {
 const thirdPartyStyleLoaderMDI = {
   test: /\.css$/,
   include: [/3rd-party/],
-  use: extractTextPlugin.extract({
+  use: ExtractTextPlugin.extract({
     fallback: 'style-loader',
     use: [
       { loader: 'css-loader', options: { importLoaders: 1 } }
@@ -82,7 +82,7 @@ const commonStyleLoader = {
   test: /\.css$/,
   include: /client/,
   exclude: [/3rd-party/, /node_modules/],
-  use: extractTextPlugin.extract({
+  use: ExtractTextPlugin.extract({
     fallback: 'style-loader',
     use: [
       { loader: 'css-loader', options: { importLoaders: 1 } },
@@ -138,7 +138,7 @@ const imagesLoader = {
 const sassLoader = {
   // Sass Loader
   test: /\.scss$/,
-  use: extractTextPlugin.extract({
+  use: ExtractTextPlugin.extract({
     fallback: 'style-loader',
     use: [
       { loader: 'css-loader', options: { importLoaders: 1 } },
@@ -184,7 +184,7 @@ const sassLoader = {
 const HTMLLoader = {
   test: /\.html$/,
   exclude: /node_modules/,
-  loader: 'html-loader?attrs[]=md-icon:md-svg-src'
+  loader: 'raw-loader?attrs[]=md-icon:md-svg-src'
 };
 
 export default [
@@ -199,18 +199,18 @@ export default [
   sassLoader,
   {
     test: /\.woff$/,
-    loader: 'url?limit=65000&mimetype=application/font-woff&name=[name].[ext]'
+    loader: 'url-loader?limit=65000&mimetype=application/font-woff&name=[name].[ext]'
   },
   {
     test: /\.woff2$/,
-    loader: 'url?limit=65000&mimetype=application/font-woff2&name=[name].[ext]'
+    loader: 'url-loader?limit=65000&mimetype=application/font-woff2&name=[name].[ext]'
   },
   {
     test: /\.[ot]tf$/,
-    loader: 'url?limit=65000&mimetype=application/octet-stream&name=[name].[ext]'
+    loader: 'url-loader?limit=65000&mimetype=application/octet-stream&name=[name].[ext]'
   },
   {
     test: /\.eot$/,
-    loader: 'url?limit=65000&mimetype=application/vnd.ms-fontobject&name=[name].[ext]'}
+    loader: 'url-loader?limit=65000&mimetype=application/vnd.ms-fontobject&name=[name].[ext]'}
 
 ];

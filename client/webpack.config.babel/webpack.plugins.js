@@ -10,15 +10,12 @@ const globals = {
     __API_URL__: JSON.stringify(global.buildOptions.publicPath || '/')
 };
 
+export const extractTextPlugin = new ExtractTextPlugin('[name].css');
+
 const devPlugins = [
-    new webpack.NoErrorsPlugin()
+  new webpack.NoErrorsPlugin(),
+  extractTextPlugin
 ];
-// export const extractTextPlugin = new ExtractTextPlugin('[name].css');
-export const extractTextPlugin = new ExtractTextPlugin({
-  filename: '[name].css'
-  // disable: false,
-  // allChunks: true
-});
 
 const prodPlugins = [
     extractTextPlugin,
