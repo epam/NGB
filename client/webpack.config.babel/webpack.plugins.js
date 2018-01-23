@@ -13,7 +13,7 @@ const globals = {
 export const extractTextPlugin = new ExtractTextPlugin('[name].css');
 
 const devPlugins = [
-  new webpack.NoErrorsPlugin(),
+  new webpack.NoEmitOnErrorsPlugin(),
   extractTextPlugin
 ];
 
