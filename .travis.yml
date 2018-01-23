@@ -1,20 +1,21 @@
 language: java
+sudo: required
 os:
   - linux
 dist: trusty
-sudo: required
 install: 
     - sudo pip install mkdocs
     - sudo pip install mkdocs-material
-script: 
+script:
     - ./gradlew buildDoc buildJar buildWar buildCli buildDocker -PbuildNumber=${TRAVIS_JOB_NUMBER} ${CLIENT_PATH} && ./e2e/integration_tests.sh
     - ./gradlew jacocoTestReport
 after_success:
   - bash <(curl -s https://codecov.io/bash)
   - If [ "$TRAVIS_BRANCH" == "develop" ]; then
+    version=$(./gradlew :printVersion | awk '/Project/{print $4}')
     docker login -u $DOCKER_USERNAME -p $DOCKER_PSWD && 
-    docker tag ngb:latest $DOCKER_USERNAME/ngb:dev &&
-    docker push $DOCKER_USERNAME/ngb:dev
+    docker tag ngb:latest $DOCKER_USERNAME/ngb:$version.${TRAVIS_JOB_NUMBER}-dev &&
+    docker push $DOCKER_USERNAME/ngb:$version.${TRAVIS_JOB_NUMBER}-dev 
     fi
 deploy:
   - provider: script
