@@ -14,7 +14,7 @@ after_success:
   - If [ "$TRAVIS_BRANCH" == "develop" ]; then
     VERSION=$(./gradlew :printVersion | awk '/Project/{print $4}')
     docker login -u $DOCKER_USERNAME -p $DOCKER_PSWD && 
-    docker tag ngb:latest $DOCKER_USERNAME/ngb:$version.${TRAVIS_JOB_NUMBER}-dev &&
+    docker tag ngb:latest $DOCKER_USERNAME/ngb:$VERSION.${TRAVIS_JOB_NUMBER}-dev &&
     docker push $DOCKER_USERNAME/ngb:$VERSION.${TRAVIS_JOB_NUMBER}-dev 
     fi
 deploy:
