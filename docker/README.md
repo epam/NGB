@@ -96,9 +96,24 @@ To download the demo data just pull the -dev docker image
 $ docker pull lifescience/ngb:-dev 
 ```
 
-Launch the NGB from a created image
+Launch the NGB from a pulled image
 
-Replace <script_folder> placeholder with a real path to a folder with NGS data
+Replace <script_folder> placeholder with a real path to the folder demo_data_download.sh script and run
 ```
-$ docker run -p 8080:8080 -d --name ngbcore -v <script_folder>:/ngs ngb:-dev
+$ docker run -p 8080:8080 -d --name ngbcore -v <script_folder>:/demo_data ngb:-dev
 ```
+This command will start docker with name ngbcore, mount the folder containing demo_data_download script to the /demo_data mount point and expose the 8080 port for the ngb graphical interface
+
+Now run the script to download demo data 
+```
+docker exec -d ngb_core ./demo_data/demo_data_download.sh
+```
+The demo_data_download.sh script will download genome references to ~/ngb_data/references and demo data to ~/ngb_data/data_files
+But you can change the paths for references and data files by passing -r and -f arguments, respectively
+
+For example:
+```
+./demo_data_download.sh -r ~/references -f ~/some/other/folder  
+```
+The script will download all the necessary files and will register them by itself. But be  patient, please, as the reference donwload may take much time. 
+
