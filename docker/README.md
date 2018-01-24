@@ -86,4 +86,19 @@ Details on usage of these images are available in [DockerHub Readme](https://hub
 
 # Develop versions of docker images
 
-Docker images from develop branch are automatically builded and pushed to DockerHub with -dev tag 
+Docker images from develop branch are automatically builded by and pushed to DockerHub. 
+Due to the large size of demo data and Travis disk space limitations the demo data could not be included in the image.  
+* **ngb:-dev** - contains image of NGB without any data in it, only binaries
+
+To download the demo data just pull the -dev docker image
+
+```
+$ docker pull lifescience/ngb:-dev 
+```
+
+Launch the NGB from a created image
+
+Replace <script_folder> placeholder with a real path to a folder with NGS data
+```
+$ docker run -p 8080:8080 -d --name ngbcore -v <script_folder>:/ngs ngb:-dev
+```
