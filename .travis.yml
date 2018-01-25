@@ -10,13 +10,7 @@ script:
     - ./gradlew buildDoc buildJar buildWar buildCli buildDocker -PbuildNumber=${TRAVIS_JOB_NUMBER} ${CLIENT_PATH} && ./e2e/integration_tests.sh
     - ./gradlew jacocoTestReport
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
-  - If [ "$TRAVIS_BRANCH" == "develop" ]; then
-    VERSION=$(./gradlew :printVersion | awk '/Project/{print $4}')
-    docker login -u $DOCKER_USERNAME -p $DOCKER_PSWD && 
-    docker tag ngb:latest $DOCKER_USERNAME/ngb:$VERSION.${TRAVIS_JOB_NUMBER}-dev &&
-    docker push $DOCKER_USERNAME/ngb:$VERSION.${TRAVIS_JOB_NUMBER}-dev 
-    fi
+    - bash <(curl -s https://codecov.io/bash)
 deploy:
   - provider: script
     skip_cleanup: true
