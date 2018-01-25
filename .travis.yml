@@ -11,6 +11,10 @@ script:
     - ./gradlew jacocoTestReport
 after_success:
   - bash <(curl -s https://codecov.io/bash)
+  - if [ "$TRAVIS_BRANCH" == "develop" ]; then
+    - VERSION=$(./gradlew :printVersion | awk '/Project/{print $4}');
+    - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PSWD" && docker tag ngb:latest $DOCKER_USERNAME/ngb:$VERSION.${TRAVIS_JOB_NUMBER}-dev && docker push $DOCKER_USERNAME/ngb:$VERSION.${TRAVIS_JOB_NUMBER}-dev;
+    - fi
 deploy:
   - provider: script
     skip_cleanup: true
