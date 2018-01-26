@@ -70,7 +70,7 @@ export default class ngbVariantInfoService{
                 `${this.chromosomeName
                     ? `${this.chromosomeName}: `
                     : ''
-                }${variantData.startIndex} ${variantData.referenceAllele} > ${variantData.alternativeAlleles[0]}`
+                }${variantData.startIndex} ${utilities.trimString(variantData.referenceAllele)} > ${utilities.trimString(variantData.alternativeAlleles[0])}`
             ]
         });
         if (variantData.hasOwnProperty('geneNames')) {
