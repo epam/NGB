@@ -10,16 +10,16 @@
     </div>
     <md-divider></md-divider>
     <md-tabs md-dynamic-height>
-        <md-tab id="visualizer">
-            <md-tab-label>Visualizer</md-tab-label>
-            <md-tab-body>
-                <ngb-variant-visualizer flex variant="$ctrl.variant" variant-request="$ctrl.variantRequest"></ngb-variant-visualizer>
-            </md-tab-body>
-        </md-tab>
         <md-tab id="info">
             <md-tab-label>Info</md-tab-label>
             <md-tab-body>
                 <ngb-variant-info flex variant="$ctrl.variant" variant-request="$ctrl.variantRequest"></ngb-variant-info>
+            </md-tab-body>
+        </md-tab>
+        <md-tab id="visualizer">
+            <md-tab-label>Visualizer</md-tab-label>
+            <md-tab-body>
+                <ngb-variant-visualizer flex variant="$ctrl.variant" variant-request="$ctrl.variantRequest"></ngb-variant-visualizer>
             </md-tab-body>
         </md-tab>
         <md-tab ng-if="$ctrl.rsId" id="dbsnp">
