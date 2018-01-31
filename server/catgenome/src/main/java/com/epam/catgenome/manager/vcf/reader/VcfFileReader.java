@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -110,10 +111,10 @@ public class VcfFileReader extends AbstractVcfReader {
      */
     @Override
     public Track<Variation> readVariations(VcfFile vcfFile, final Track<Variation> track, Chromosome chromosome,
-                                           final Integer sampleIndex, final boolean loadInfo, final boolean collapse)
+                                           final Integer sampleIndex, final boolean loadInfo, final boolean collapse, EhCacheBasedIndexCache indexCache)
             throws VcfReadingException {
         try (FeatureReader<VariantContext> reader = AbstractEnhancedFeatureReader.getFeatureReader(vcfFile.getPath(),
-                vcfFile.getIndex().getPath(), new VCFCodec(), true)) {
+                vcfFile.getIndex().getPath(), new VCFCodec(), true, indexCache)) {
             if (checkBounds(vcfFile, track, chromosome, loadInfo)) {
                 return track;
             }
@@ -131,13 +132,17 @@ public class VcfFileReader extends AbstractVcfReader {
 
     @Override
     public Variation getNextOrPreviousVariation(int fromPosition, VcfFile vcfFile, Integer sampleIndex,
-                                                Chromosome chromosome, boolean forward) throws VcfReadingException {
+                                                Chromosome chromosome, boolean forward, EhCacheBasedIndexCache indexCache) throws VcfReadingException {
+        long timesBefore =  System.currentTimeMillis();
         int end = forward ? chromosome.getSize() : 0;
         if (isOutOfBounds(fromPosition, forward, end)) { // no next features
             return null;
         }
+        LOGGER.debug("Millis before abstract: " + (System.currentTimeMillis() - timesBefore));
+
         try (FeatureReader<VariantContext> reader = AbstractEnhancedFeatureReader.getFeatureReader(vcfFile.getPath(),
-                vcfFile.getIndex().getPath(), new VCFCodec(), true)) {
+                vcfFile.getIndex().getPath(), new VCFCodec(), true, indexCache)) {
+            LOGGER.debug("Millis after abstract: " + (System.currentTimeMillis() - timesBefore));
             return readNextOrPreviousVariation(fromPosition, vcfFile, sampleIndex, chromosome,
                     forward, end, reader);
         } catch (IOException e) {

@@ -41,7 +41,7 @@ import com.epam.catgenome.entity.track.Block;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.util.aws.S3Manager;
 import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.TribbleException;

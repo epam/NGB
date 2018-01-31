@@ -37,6 +37,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import net.sf.ehcache.Ehcache;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -78,7 +80,7 @@ import com.epam.catgenome.util.Utils;
 import htsjdk.tribble.bed.BEDCodec;
 import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.readers.LineIterator;
 
@@ -110,6 +112,9 @@ public class BedManager {
 
     @Autowired
     private FeatureIndexManager featureIndexManager;
+
+    @Autowired
+    private EhCacheBasedIndexCache indexCache;
 
     private static final Logger LOG = LoggerFactory.getLogger(BedManager.class);
 
@@ -559,7 +564,7 @@ public class BedManager {
             fileManager.deleteFileFeatureIndex(bedFile);
             try (AbstractFeatureReader<BEDFeature, LineIterator> reader =
                     AbstractEnhancedFeatureReader
-                                 .getFeatureReader(bedFile.getPath(), new BEDCodec(), false)) {
+                                 .getFeatureReader(bedFile.getPath(), new BEDCodec(), false, indexCache)) {
                 featureIndexManager.makeIndexForBedReader(bedFile, reader, chromosomeMap);
             }
         } catch (IOException e) {

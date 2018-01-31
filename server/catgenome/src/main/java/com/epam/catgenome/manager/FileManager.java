@@ -101,11 +101,12 @@ import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.PositionalOutputStream;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureReader;
@@ -119,6 +120,7 @@ import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
+import net.sf.ehcache.Ehcache;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -132,6 +134,7 @@ import org.jetbrains.bio.big.BigWigFile;
 import org.jetbrains.bio.big.WigSection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
@@ -164,6 +167,9 @@ public class FileManager {
     private static final String EMPTY = "";
     public static final String BED_GRAPH_FEATURE_TEMPLATE = "%s\t%d\t%d\t%f%n";
 
+
+    @Autowired
+    private EhCacheBasedIndexCache indexCache;
     /**
      * Provides paths' patterns that have to be used to construct real relative paths
      * for file resources of any types.
@@ -694,12 +700,12 @@ public class FileManager {
             time1 = Utils.getSystemTimeMilliseconds();
             reader = AbstractEnhancedFeatureReader
                     .getFeatureReader(vcfFile.getPath(), vcfFile.getIndex().getPath(),
-                                                            new VCFCodec(), true);
+                                                            new VCFCodec(), true, indexCache);
             time2 = Utils.getSystemTimeMilliseconds();
         } else {
             time1 = Utils.getSystemTimeMilliseconds();
             reader = AbstractEnhancedFeatureReader
-                    .getFeatureReader(vcfFile.getPath(), new VCFCodec(), false);
+                    .getFeatureReader(vcfFile.getPath(), new VCFCodec(), false,  indexCache);
             time2 = Utils.getSystemTimeMilliseconds();
         }
         LOGGER.debug(getMessage(MessagesConstants.DEBUG_FILE_OPENING, vcfFile.getPath(), time2 - time1));
@@ -1177,7 +1183,7 @@ public class FileManager {
         Assert.notNull(extension, getMessage(MessagesConstants.ERROR_UNSUPPORTED_GENE_FILE_EXTESION));
 
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(GffCodec.GffType.forExt(extension));
-        return AbstractEnhancedFeatureReader.getFeatureReader(path, index, codec, useIndex);
+        return AbstractEnhancedFeatureReader.getFeatureReader(path, index, codec, useIndex, indexCache);
     }
 
     /**
@@ -1562,7 +1568,7 @@ public class FileManager {
     public AbstractFeatureReader<NggbBedFeature, LineIterator> makeBedReader(final BedFile bedFile) {
         NggbBedCodec nggbBedCodec = new NggbBedCodec();
         return AbstractEnhancedFeatureReader.getFeatureReader(bedFile.getPath(), bedFile.getIndex().getPath(),
-                nggbBedCodec, true);
+                nggbBedCodec, true, indexCache);
     }
 
     /**
@@ -1602,9 +1608,9 @@ public class FileManager {
         if (segFile.getIndex() != null) {
             return AbstractEnhancedFeatureReader
                     .getFeatureReader(segFile.getPath(), segFile.getIndex().getPath(), segCodec,
-                    true);
+                    true, indexCache);
         } else {
-            return AbstractEnhancedFeatureReader.getFeatureReader(segFile.getPath(), segCodec, false);
+            return AbstractEnhancedFeatureReader.getFeatureReader(segFile.getPath(), segCodec, false, indexCache);
         }
     }
 
@@ -1705,9 +1711,9 @@ public class FileManager {
         if (mafFile.getIndex() != null) {
             return AbstractEnhancedFeatureReader
                     .getFeatureReader(mafFile.getPath(), mafFile.getIndex().getPath(), mafCodec,
-                    true);
+                    true, indexCache);
         } else {
-            return AbstractEnhancedFeatureReader.getFeatureReader(mafFile.getPath(), mafCodec, false);
+            return AbstractEnhancedFeatureReader.getFeatureReader(mafFile.getPath(), mafCodec, false, indexCache);
         }
     }
 

@@ -44,6 +44,7 @@ import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.NgbFileUtils;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -94,6 +95,9 @@ public class FacadeWigManager {
 
     @Autowired
     protected DownloadFileManager downloadFileManager;
+
+    @Autowired
+    protected EhCacheBasedIndexCache indexCache;
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(FacadeWigManager.class);
 
@@ -194,7 +198,7 @@ public class FacadeWigManager {
         track.setType(TrackType.WIG);
         final Chromosome chromosome = trackHelper.validateTrackWithBlockCount(track);
         final WigFile wigFile = wigFileManager.loadWigFile(track.getId());
-        return fetchWigManager(wigFile.getPath()).getWigFromFile(wigFile, track, chromosome);
+        return fetchWigManager(wigFile.getPath()).getWigFromFile(wigFile, track, chromosome,indexCache);
     }
 
     protected void prepareWigFileToWork(final WigFile wigFile) throws IOException {
@@ -203,7 +207,7 @@ public class FacadeWigManager {
         final Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(Collectors.toMap(
                 BaseEntity::getName, chromosome -> chromosome));
         wigProcessor.prepareWigFileToWork(wigFile);
-        wigProcessor.splitByChromosome(wigFile, chromosomeMap);
+        wigProcessor.splitByChromosome(wigFile, chromosomeMap,indexCache);
     }
 
     private WigFile fillWigFile(final String wigFilePath, final String alternativeName, String prettyName,

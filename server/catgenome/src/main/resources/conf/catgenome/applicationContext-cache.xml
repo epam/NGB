@@ -6,16 +6,25 @@
        http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
 
     <!-- Cache -->
-    <cache:annotation-driven cache-manager="cacheManager" />
+    <cache:annotation-driven />
 
-    <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">
-        <property name="cacheManager" ref="ehcache" />
-    </bean>
+     <!-- EhCache library setup -->
+    <!--<bean id="ehcache"-->
+          <!--class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">-->
+        <!--<property name="configLocation" value="classpath:conf/catgenome/ehcache.xml"/>-->
+    <!--</bean>-->
 
-    <!-- EhCache library setup -->
-    <bean id="ehcache"
-          class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
-        <property name="configLocation" value="classpath:/conf/catgenome/ehcache.xml"/>
+    <bean id="indexCache" class="com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache">
+        <constructor-arg>
+                <bean class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+                    <property name="cacheManager">
+                        <bean class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+                            <property name="configLocation" value="classpath:conf/catgenome/ehcache.xml"/>
+                        </bean>
+                </property>
+                <property name="cacheName" value="indexCache"/>
+                </bean>
+        </constructor-arg>
     </bean>
 
     <!-- Task executor for async cache population -->

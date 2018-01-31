@@ -49,8 +49,10 @@ import com.epam.catgenome.exception.HistogramWritingException;
 import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.FeatureReader;
+import net.sf.ehcache.Ehcache;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -115,7 +117,7 @@ import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.samtools.util.Interval;
 import htsjdk.samtools.util.IntervalTree;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.readers.LineIterator;
 
 /**
@@ -164,6 +166,9 @@ public class GffManager {
 
     @Autowired
     private TaskExecutorService taskExecutorService;
+
+    @Autowired
+    private EhCacheBasedIndexCache indexCache;
 
     private static final String EXON_FEATURE_NAME = "exon";
 
@@ -311,7 +316,7 @@ public class GffManager {
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(gffType);
 
         try (FeatureReader<GeneFeature> reader = AbstractEnhancedFeatureReader.getFeatureReader(request.getPath(),
-                request.getIndexPath(), codec, true)) {
+                request.getIndexPath(), codec, true, indexCache)) {
             geneFile = createGeneFile(request);
             boolean hasGenes = false;
             for (Map.Entry<String, Chromosome> chrEntry : chromosomeMap.entrySet()) {

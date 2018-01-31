@@ -30,7 +30,7 @@ import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.vcf.VariationEffect;
 import com.epam.catgenome.entity.vcf.VariationImpact;
 import com.epam.catgenome.entity.vcf.VariationType;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;

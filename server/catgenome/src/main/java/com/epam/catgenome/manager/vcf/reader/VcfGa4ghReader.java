@@ -33,6 +33,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.jetbrains.annotations.NotNull;
@@ -85,7 +86,7 @@ public class VcfGa4ghReader extends AbstractVcfReader {
 
     @Override
     public Track<Variation> readVariations(VcfFile vcfFile, Track<Variation> track, Chromosome chromosome,
-                           Integer sampleIndex, boolean loadInfo, final boolean collapse) throws VcfReadingException {
+                           Integer sampleIndex, boolean loadInfo, final boolean collapse, EhCacheBasedIndexCache indexCache) throws VcfReadingException {
         final String start = track.getStartIndex().toString();
         final String end = track.getEndIndex().toString();
         final List<VariantGA4GH> ghList;
@@ -124,7 +125,7 @@ public class VcfGa4ghReader extends AbstractVcfReader {
     @Override
     public Variation getNextOrPreviousVariation(final int fromPosition, final VcfFile vcfFile,
                                                 final Integer sampleIndex, final Chromosome chromosome,
-                                                final boolean forward) throws VcfReadingException {
+                                                final boolean forward, EhCacheBasedIndexCache indexCache) throws VcfReadingException {
 
         int end = forward ? chromosome.getSize() : 0;
         if ((forward && fromPosition + 1 >= end) || (!forward && fromPosition - 1 <= end)) { // no next features

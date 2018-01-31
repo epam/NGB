@@ -29,6 +29,7 @@ import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.vcf.Variation;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.exception.VcfReadingException;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 
 /**
  *  {@code VcfReader} provides an interface for
@@ -49,7 +50,7 @@ public interface VcfReader {
      * @throws VcfReadingException
      */
     Track<Variation> readVariations(VcfFile vcfFile, Track<Variation> track, Chromosome chromosome,
-                            Integer sampleIndex, boolean loadInfo, boolean collapse) throws VcfReadingException;
+                            Integer sampleIndex, boolean loadInfo, boolean collapse, EhCacheBasedIndexCache indexCache) throws VcfReadingException;
 
     /**
      * Allows navigating between the neighbouring variations
@@ -63,5 +64,5 @@ public interface VcfReader {
      */
     Variation getNextOrPreviousVariation(int fromPosition, VcfFile vcfFile,
                                          Integer sampleIndex, Chromosome chromosome,
-                                         boolean forward) throws VcfReadingException;
+                                         boolean forward, EhCacheBasedIndexCache indexCache) throws VcfReadingException;
 }

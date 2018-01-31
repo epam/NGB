@@ -12,4 +12,13 @@
            transactionalMode="off">
         <persistence strategy="none" />
     </cache>
+    <cache name="indexCache"
+           maxEntriesLocalHeap="1000"
+           eternal="false"
+           diskSpoolBufferSizeMB="100"
+           timeToIdleSeconds="500"
+           memoryStoreEvictionPolicy="FIFO"
+           transactionalMode="off">
+        <persistence strategy="none" />
+    </cache>
 </ehcache>

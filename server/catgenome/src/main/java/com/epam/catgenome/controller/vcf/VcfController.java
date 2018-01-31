@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -84,6 +85,9 @@ public class VcfController extends AbstractRESTController {
 
     @Autowired
     private VcfFileManager vcfFileManager;
+
+    @Autowired
+    private EhCacheBasedIndexCache indexCache;
 
     @ResponseBody
     @RequestMapping(value = "/vcf/register", method = RequestMethod.POST)
