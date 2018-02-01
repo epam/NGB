@@ -155,7 +155,7 @@ public class VcfManager {
     @Autowired
     private FeatureIndexDao featureIndexDao;
 
-    //@Autowired
+    @Autowired
     private EhCacheBasedIndexCache indexCache;
 
     public static final double HTSJDK_WRONG_QUALITY = -10.0;

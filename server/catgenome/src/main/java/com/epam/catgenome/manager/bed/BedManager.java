@@ -112,7 +112,7 @@ public class BedManager {
     @Autowired
     private FeatureIndexManager featureIndexManager;
 
-    //@Autowired
+    @Autowired
     private EhCacheBasedIndexCache indexCache;
 
     private static final Logger LOG = LoggerFactory.getLogger(BedManager.class);

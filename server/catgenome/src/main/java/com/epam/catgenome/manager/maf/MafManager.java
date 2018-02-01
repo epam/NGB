@@ -93,7 +93,7 @@ public class MafManager {
     @Autowired
     private DownloadFileManager downloadFileManager;
 
-    //@Autowired
+    @Autowired
     private EhCacheBasedIndexCache indexCache;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MafManager.class);

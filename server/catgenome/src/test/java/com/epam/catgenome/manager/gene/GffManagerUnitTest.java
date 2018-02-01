@@ -70,7 +70,7 @@ public class GffManagerUnitTest {
     @Autowired
     private ApplicationContext context;
 
-    //@Autowired
+    @Autowired
     private EhCacheBasedIndexCache indexCache;
 
     private List<GeneFeature> featureList;
