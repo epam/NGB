@@ -38,7 +38,6 @@ import java.util.stream.Collectors;
 
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
-import net.sf.ehcache.Ehcache;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;

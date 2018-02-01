@@ -63,7 +63,8 @@ public class WigProcessor extends AbstractWigProcessor {
         Assert.isTrue(parseWig(requestPath), getMessage(MessagesConstants.WRONG_WIG_FILE));
     }
 
-    void splitByChromosome(final WigFile wigFile, final Map<String, Chromosome> chromosomeMap, EhCacheBasedIndexCache indexCache)
+    void splitByChromosome(final WigFile wigFile, final Map<String, Chromosome> chromosomeMap,
+                           EhCacheBasedIndexCache indexCache)
             throws IOException {
         try (BigWigFile bigWigFile = BigWigFile.read(new File(wigFile.getPath()).toPath())) {
             for (Object o : bigWigFile.getChromosomes().values()) {

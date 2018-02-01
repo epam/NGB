@@ -62,7 +62,6 @@ public abstract class AbstractIndex implements MutableIndex {
     public static final int VERSION = 3;
     public static final int MAGIC_NUMBER = 1480870228;   //  byte[]{'T', 'I', 'D', 'X'};
 
-
     private final static String NO_MD5 = "";
     private final static long NO_FILE_SIZE = -1L;
     private final static long NO_TS = -1L;
@@ -103,7 +102,9 @@ public abstract class AbstractIndex implements MutableIndex {
      * @return true if this and obj are 'effectively' equivalent data structures.
      */
     public boolean equalsIgnoreProperties(final Object obj) {
-        if (this == obj) return true;
+        if (this == obj) {
+            return true;
+        }
         if (!(obj instanceof AbstractIndex)) {
             System.err.printf("equals: %s not instance of AbstractIndex", obj);
             return false;
@@ -300,7 +301,9 @@ public abstract class AbstractIndex implements MutableIndex {
      */
     private void readSequenceDictionary(final LittleEndianInputStream dis) throws IOException {
         final int size = dis.readInt();
-        if (size < 0) throw new IllegalStateException("Size of the sequence dictionary entries is negative");
+        if (size < 0) {
+            throw new IllegalStateException("Size of the sequence dictionary entries is negative");
+        }
         for (int x = 0; x < size; x++) {
             dis.readString();
             dis.readInt();
@@ -345,9 +348,12 @@ public abstract class AbstractIndex implements MutableIndex {
 
     @Override
     public void writeBasedOnFeatureFile(final File featureFile) throws IOException {
-        if (!featureFile.isFile()) return;
+        if (!featureFile.isFile()) {
+            return;
+        }
         final LittleEndianOutputStream idxStream =
-                new LittleEndianOutputStream(new BufferedOutputStream(new FileOutputStream(Tribble.indexFile(featureFile))));
+                new LittleEndianOutputStream(new BufferedOutputStream(
+                        new FileOutputStream(Tribble.indexFile(featureFile))));
         write(idxStream);
         idxStream.close();
 
@@ -367,9 +373,11 @@ public abstract class AbstractIndex implements MutableIndex {
             }
 
         } catch (final InstantiationException e) {
-            throw new TribbleException.UnableToCreateCorrectIndexType("Unable to create class " + getChrIndexClass(), e);
+            throw new TribbleException.UnableToCreateCorrectIndexType(
+                    "Unable to create class " + getChrIndexClass(), e);
         } catch (final IllegalAccessException e) {
-            throw new TribbleException.UnableToCreateCorrectIndexType("Unable to create class " + getChrIndexClass(), e);
+            throw new TribbleException.UnableToCreateCorrectIndexType(
+                    "Unable to create class " + getChrIndexClass(), e);
         } finally {
             dis.close();
         }
@@ -398,13 +406,18 @@ public abstract class AbstractIndex implements MutableIndex {
 
                 int nEmptyBlocks = 0;
                 for (final Block b : elt.getValue().getBlocks()) {
-                    if (b.getSize() == 0) nEmptyBlocks++;
+                    if (b.getSize() == 0) {
+                        nEmptyBlocks++;
+                    }
                 }
                 stats.empty += nEmptyBlocks;
                 stats.total += nBlocks;
 
-                if (logDetails)
-                    System.out.println(String.format("  %s => %d blocks, %d empty, %.2f", elt.getKey(), nBlocks, nEmptyBlocks, (100.0 * nEmptyBlocks) / nBlocks));
+                if (logDetails) {
+                    System.out.println(String.format(
+                            "  %s => %d blocks, %d empty, %.2f", elt.getKey(), nBlocks, nEmptyBlocks,
+                            (100.0 * nEmptyBlocks) / nBlocks));
+                }
             }
         }
 
@@ -413,7 +426,8 @@ public abstract class AbstractIndex implements MutableIndex {
 
     protected String statsSummary() {
         final BlockStats stats = getBlockStats(false);
-        return String.format("%12d blocks (%12d empty (%.2f%%))", stats.total, stats.empty, (100.0 * stats.empty) / stats.total);
+        return String.format("%12d blocks (%12d empty (%.2f%%))", stats.total, stats.empty,
+                (100.0 * stats.empty) / stats.total);
     }
 
     public void addProperty(final String key, final String value) {

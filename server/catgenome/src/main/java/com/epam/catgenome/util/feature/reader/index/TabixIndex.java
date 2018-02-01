@@ -112,12 +112,16 @@ public class TabixIndex implements Index {
         formatSpec.numHeaderLinesToSkip = dis.readInt();
         final int nameBlockSize = dis.readInt();
         final byte[] nameBlock = new byte[nameBlockSize];
-        if (dis.read(nameBlock) != nameBlockSize) throw new EOFException("Premature end of file reading Tabix header");
+        if (dis.read(nameBlock) != nameBlockSize) {
+            throw new EOFException("Premature end of file reading Tabix header");
+        }
         final List<String> sequenceNames = new ArrayList<String>(numSequences);
         int startPos = 0;
         for (int i = 0; i < numSequences; ++i) {
             int endPos = startPos;
-            while (nameBlock[endPos] != '\0') ++endPos;
+            while (nameBlock[endPos] != '\0') {
+                ++endPos;
+            }
             sequenceNames.add(StringUtil.bytesToString(nameBlock, startPos, endPos - startPos));
             startPos = endPos + 1;
         }
@@ -127,7 +131,9 @@ public class TabixIndex implements Index {
         for (int i = 0; i < numSequences; ++i) {
             indices[i] = loadSequence(i, dis);
         }
-        if (closeInputStream) CloserUtil.close(dis);
+        if (closeInputStream) {
+            CloserUtil.close(dis);
+        }
         this.sequenceNames = Collections.unmodifiableList(sequenceNames);
     }
 
@@ -182,13 +188,21 @@ public class TabixIndex implements Index {
 
     @Override
     public boolean equalsIgnoreProperties(final Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         final TabixIndex that = (TabixIndex) o;
 
-        if (!formatSpec.equals(that.formatSpec)) return false;
-        if (!Arrays.equals(indices, that.indices)) return false;
+        if (!formatSpec.equals(that.formatSpec)) {
+            return false;
+        }
+        if (!Arrays.equals(indices, that.indices)) {
+            return false;
+        }
         return sequenceNames.equals(that.sequenceNames);
 
     }
@@ -219,7 +233,9 @@ public class TabixIndex implements Index {
      */
     @Override
     public void writeBasedOnFeatureFile(final File featureFile) throws IOException {
-        if (!featureFile.isFile()) return;
+        if (!featureFile.isFile()) {
+            return;
+        }
         write(new File(featureFile.getAbsolutePath() + TabixUtils.STANDARD_INDEX_EXTENSION));
     }
 
@@ -239,7 +255,9 @@ public class TabixIndex implements Index {
         los.writeInt(formatSpec.metaCharacter);
         los.writeInt(formatSpec.numHeaderLinesToSkip);
         int nameBlockSize = sequenceNames.size(); // null terminators
-        for (final String sequenceName : sequenceNames) nameBlockSize += sequenceName.length();
+        for (final String sequenceName : sequenceNames) {
+            nameBlockSize += sequenceName.length();
+        }
         los.writeInt(nameBlockSize);
         for (final String sequenceName : sequenceNames) {
             los.write(StringUtil.stringToBytes(sequenceName));
@@ -270,7 +288,9 @@ public class TabixIndex implements Index {
         }
         final long[] entries = linearIndex.getIndexEntries();
         los.writeInt(entries.length);
-        for (final long entry : entries) los.writeLong(entry);
+        for (final long entry : entries) {
+            los.writeLong(entry);
+        }
     }
 
     private void writeBin(final Bin bin, final LittleEndianOutputStream los) throws IOException {
@@ -292,7 +312,9 @@ public class TabixIndex implements Index {
      */
     private BinningIndexContent loadSequence(final int referenceSequenceIndex, final LittleEndianInputStream dis) throws IOException {
         final int numBins = dis.readInt();
-        if (numBins == 0) return null;
+        if (numBins == 0) {
+            return null;
+        }
         int nonNullBins = 0;
         final ArrayList<Bin> bins = new ArrayList<Bin>();
         for (int i = 0; i < numBins; ++i) {
@@ -309,7 +331,9 @@ public class TabixIndex implements Index {
                 } else {
                     // Grow bins array as needed.
                     bins.ensureCapacity(bin.getBinNumber() + 1);
-                    while (bins.size() < bin.getBinNumber()) bins.add(null);
+                    while (bins.size() < bin.getBinNumber()) {
+                        bins.add(null);
+                    }
                     bins.add(bin);
                 }
             }
@@ -348,14 +372,24 @@ public class TabixIndex implements Index {
 
     @Override
     public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         final TabixIndex index = (TabixIndex) o;
 
-        if (!formatSpec.equals(index.formatSpec)) return false;
-        if (!Arrays.equals(indices, index.indices)) return false;
-        if (!sequenceNames.equals(index.sequenceNames)) return false;
+        if (!formatSpec.equals(index.formatSpec)) {
+            return false;
+        }
+        if (!Arrays.equals(indices, index.indices)) {
+            return false;
+        }
+        if (!sequenceNames.equals(index.sequenceNames)) {
+            return false;
+        }
 
         return true;
     }

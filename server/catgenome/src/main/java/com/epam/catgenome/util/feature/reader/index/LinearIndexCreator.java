@@ -36,10 +36,10 @@ import java.util.LinkedList;
  *
  * @author jrobinso
  */
-public class LinearIndexCreator  extends TribbleIndexCreator {
-    public static int DEFAULT_BIN_WIDTH = 8000;
+public class LinearIndexCreator  extends AbstractTribbleIndexCreator {
+    public static int defaultBinWidth = 8000;
     // the set bin width
-    private int binWidth = DEFAULT_BIN_WIDTH;
+    private int binWidth = defaultBinWidth;
 
     // the input file
     private final File inputFile;
@@ -55,7 +55,7 @@ public class LinearIndexCreator  extends TribbleIndexCreator {
     }
 
     public LinearIndexCreator(final File inputFile) {
-        this(inputFile, DEFAULT_BIN_WIDTH);
+        this(inputFile, defaultBinWidth);
     }
 
     /**
@@ -67,11 +67,12 @@ public class LinearIndexCreator  extends TribbleIndexCreator {
         // fi we don't have a chrIndex yet, or if the last one was for the previous contig, create a new one
         if (chrList.isEmpty() || !chrList.getLast().getName().equals(feature.getChr())) {
             // if we're creating a new chrIndex (not the first), make sure to dump the blocks to the old chrIndex
-            if (!chrList.isEmpty())
+            if (!chrList.isEmpty()) {
                 for (int x = 0; x < blocks.size(); x++) {
                     blocks.get(x).setEndPosition((x + 1 == blocks.size()) ? filePosition : blocks.get(x + 1).getStartPosition());
                     chrList.getLast().addBlock(blocks.get(x));
                 }
+            }
             chrList.add(new LinearIndex.ChrIndex(feature.getChr(),binWidth));
             blocks.clear();
 
@@ -97,8 +98,9 @@ public class LinearIndexCreator  extends TribbleIndexCreator {
      * @return an Index object
      */
     public Index finalizeIndex(final long finalFilePosition) {
-        if (finalFilePosition == 0)
+        if (finalFilePosition == 0) {
             throw new IllegalArgumentException("finalFilePosition != 0, -> " + finalFilePosition);
+        }
 
         for (int x = 0; x < blocks.size(); x++) {
             blocks.get(x).setEndPosition((x + 1 == blocks.size()) ? finalFilePosition : blocks.get(x+1).getStartPosition());
@@ -117,7 +119,7 @@ public class LinearIndexCreator  extends TribbleIndexCreator {
      * @return
      */
     public int defaultBinSize() {
-        return DEFAULT_BIN_WIDTH;
+        return defaultBinWidth;
     }
 
     public int getBinSize() { return binWidth; }

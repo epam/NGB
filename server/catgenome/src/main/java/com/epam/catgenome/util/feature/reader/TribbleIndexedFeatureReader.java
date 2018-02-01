@@ -31,8 +31,6 @@ import com.epam.catgenome.util.feature.reader.index.IndexFactory;
 import htsjdk.tribble.index.Block;
 import htsjdk.tribble.readers.PositionalBufferedStream;
 import htsjdk.tribble.util.ParsingUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -53,7 +51,7 @@ import java.util.zip.GZIPInputStream;
  * @author Jim Robinson
  * @since 2/11/12
  */
-public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends AbstractFeatureReader<T, SOURCE> {
+public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractFeatureReader<T, S> {
 
     private Index index;
 
@@ -67,7 +65,6 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
      */
     private SeekableStream seekableStream = null;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TribbleIndexedFeatureReader.class);
     /**
      * We lazy-load the index but it might not even exist
      * Don't want to keep checking if that's the case
@@ -82,8 +79,9 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
      * @param requireIndex - true if the reader will be queries for specific ranges.  An index (idx) file must exist
      * @throws IOException
      */
-    public TribbleIndexedFeatureReader(final String featurePath, final FeatureCodec<T, SOURCE> codec,
-                                       final boolean requireIndex, final EhCacheBasedIndexCache indexCache) throws IOException {
+    public TribbleIndexedFeatureReader(final String featurePath, final FeatureCodec<T, S> codec,
+                                       final boolean requireIndex, final EhCacheBasedIndexCache indexCache)
+            throws IOException {
 
         super(featurePath, codec);
         this.indexCache = indexCache;
@@ -107,8 +105,10 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
      * @param requireIndex - true if the reader will be queries for specific ranges.  An index (idx) file must exist
      * @throws IOException
      */
-    public TribbleIndexedFeatureReader(final String featureFile, final String indexFile, final FeatureCodec<T, SOURCE> codec,
-                                       final boolean requireIndex, final EhCacheBasedIndexCache indexCache) throws IOException {
+    public TribbleIndexedFeatureReader(final String featureFile, final String indexFile,
+                                       final FeatureCodec<T, S> codec,
+                                       final boolean requireIndex, final EhCacheBasedIndexCache indexCache)
+            throws IOException {
         this(featureFile, codec, false, indexCache); // required to read the header
         if (indexFile != null && ParsingUtils.resourceExists(indexFile)) {
             index = retrieveIndexFromCache(indexFile, indexCache);
@@ -126,13 +126,11 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
     private Index retrieveIndexFromCache(final String indexFile, EhCacheBasedIndexCache indexCache) {
         Index index;
         if (indexCache.contains(indexFile)) {
-            LOGGER.debug("Get from cache Index TribbleReader");
             return (Index)indexCache.getFromCache(indexFile);
         }
         else {
             index = IndexFactory.loadIndex(indexFile);
             indexCache.putInCache(index, indexFile);
-            LOGGER.debug("Put to cache Index TribbleReader");
             return index;
         }
 
@@ -144,7 +142,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
      * @param indexCache  - a cache for Index objects
      * @throws IOException
      */
-    public TribbleIndexedFeatureReader(final String featureFile, final FeatureCodec<T, SOURCE> codec,
+    public TribbleIndexedFeatureReader(final String featureFile, final FeatureCodec<T, S> codec,
                                        final Index index, final EhCacheBasedIndexCache indexCache) throws IOException {
         this(featureFile, codec, false, indexCache); // required to read the header
         this.index = index;
@@ -185,7 +183,9 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
         final SeekableStream result;
         if (reuseStreamInQuery()) {
             // if the stream points to an underlying file, only create the underlying seekable stream once
-            if (seekableStream == null) seekableStream = SeekableStreamFactory.getInstance().getStreamFor(path);
+            if (seekableStream == null) {
+                seekableStream = SeekableStreamFactory.getInstance().getStreamFor(path);
+            }
             result = seekableStream;
         } else {
             // we are not reusing the stream, so make a fresh copy each time we request it
@@ -206,7 +206,9 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
 
     public void close() throws IOException {
         // close the seekable stream if that's necessary
-        if (seekableStream != null) seekableStream.close();
+        if (seekableStream != null) {
+            seekableStream.close();
+        }
     }
 
     /**
@@ -245,13 +247,17 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
                 is = new GZIPInputStream(new BufferedInputStream(is));
             }
             pbs = new PositionalBufferedStream(is);
-            final SOURCE source = codec.makeSourceFromStream(pbs);
+            final S source = codec.makeSourceFromStream(pbs);
             header = codec.readHeader(source);
-        } catch (Exception e) {
-            throw new TribbleException.MalformedFeatureFile("Unable to parse header with error: " + e.getMessage(), path, e);
+        } catch (IOException e) {
+            throw new TribbleException.MalformedFeatureFile(
+                    "Unable to parse header with error: " + e.getMessage(), path, e);
         } finally {
-            if (pbs != null) pbs.close();
-            else if (is != null) is.close();
+            if (pbs != null) {
+                pbs.close();
+            } else if (is != null) {
+                is.close();
+            }
         }
     }
 
@@ -301,7 +307,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
      */
     class WFIterator implements CloseableTribbleIterator<T> {
         private T currentRecord;
-        private SOURCE source;
+        private S source;
 
         /**
          * Constructor for iterating over the entire file (seekableStream).
@@ -401,12 +407,13 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
         int start;
         int end;
         private T currentRecord;
-        private SOURCE source;
+        private S source;
         private SeekableStream mySeekableStream;
         private Iterator<Block> blockIterator;
 
 
-        public QueryIterator(final String chr, final int start, final int end, final List<Block> blocks) throws IOException {
+        public QueryIterator(final String chr, final int start, final int end, final List<Block> blocks)
+                throws IOException {
             this.start = start;
             this.end = end;
             mySeekableStream = getSeekableStream();
@@ -442,7 +449,8 @@ public class TribbleIndexedFeatureReader<T extends Feature, SOURCE> extends Abst
                 final Block block = blockIterator.next();
                 if (block.getSize() > 0) {
                     final int bufferSize = Math.min(2000000, block.getSize() > 100000000 ? 10000000 : (int) block.getSize());
-                    source = codec.makeSourceFromStream(new PositionalBufferedStream(new BlockStreamWrapper(mySeekableStream, block), bufferSize));
+                    source = codec.makeSourceFromStream(new PositionalBufferedStream(
+                            new BlockStreamWrapper(mySeekableStream, block), bufferSize));
                     // note we don't have to skip the header here as the block should never start in the header
                     return;
                 }

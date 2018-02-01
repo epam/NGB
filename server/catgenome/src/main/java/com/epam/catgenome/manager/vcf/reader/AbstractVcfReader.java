@@ -100,7 +100,8 @@ public abstract class AbstractVcfReader implements VcfReader {
      */
     @Override
     public abstract Track<Variation> readVariations(VcfFile vcfFile, Track<Variation> track, Chromosome chromosome,
-                            Integer sampleIndex, boolean loadInfo, boolean collapse, EhCacheBasedIndexCache indexCache) throws VcfReadingException;
+                            Integer sampleIndex, boolean loadInfo, boolean collapse,
+                                                    EhCacheBasedIndexCache indexCache) throws VcfReadingException;
 
     /**
      * Allows navigating between the neighbouring variations
@@ -115,5 +116,6 @@ public abstract class AbstractVcfReader implements VcfReader {
     @Override
     public abstract Variation getNextOrPreviousVariation(int fromPosition, VcfFile vcfFile,
                                                 Integer sampleIndex, Chromosome chromosome,
-                                                boolean forward, EhCacheBasedIndexCache indexCache) throws VcfReadingException;
+                                                boolean forward, EhCacheBasedIndexCache indexCache)
+            throws VcfReadingException;
 }

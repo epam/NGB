@@ -29,7 +29,6 @@ import htsjdk.tribble.util.LittleEndianOutputStream;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -52,7 +51,7 @@ public interface Index extends CacheIndex {
     /**
      * @return true if the index is up to date, false otherwise
      */
-    public boolean isCurrentVersion();
+    boolean isCurrentVersion();
 
     /**
      * @return a list of the sequence names we've seen during indexing, in order
@@ -63,26 +62,26 @@ public interface Index extends CacheIndex {
      * @param chr the chromosome (or contig) name
      * @return true if we have an entry; false otherwise
      */
-    public boolean containsChromosome(final String chr);
+    boolean containsChromosome(String chr);
 
     /**
      * all indexes are writable to disk
      * @param stream the stream to write the index to.  Caller must close after invocation.
      * @throws IOException if the index is unable to write to the specified location
      */
-    public void write(LittleEndianOutputStream stream) throws IOException;
+    void write(LittleEndianOutputStream stream) throws IOException;
 
     /**
      * Write an appropriately named and located Index file based on the name and location of the featureFile.
      * If featureFile is not a normal file, the index will silently not be written.
      * @param featureFile
      */
-    public void writeBasedOnFeatureFile(File featureFile) throws IOException;
+    void writeBasedOnFeatureFile(File featureFile) throws IOException;
 
     /**
      * @return get the list of properties for this index.  Returns null if no properties.
      */
-    public Map<String,String> getProperties();
+    Map<String, String> getProperties();
 
     /**
      * Returns true if this and obj are 'effectively' equivalent indices.  Ignores the
@@ -90,5 +89,5 @@ public interface Index extends CacheIndex {
      * @param obj
      * @return
      */
-    public boolean equalsIgnoreProperties(Object obj);
+    boolean equalsIgnoreProperties(Object obj);
 }

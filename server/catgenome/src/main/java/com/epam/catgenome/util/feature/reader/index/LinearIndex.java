@@ -71,14 +71,16 @@ public class LinearIndex extends AbstractIndex {
      */
     public LinearIndex(final List<ChrIndex> indices, final File featureFile) {
         super(featureFile.getAbsolutePath());
-        for (final ChrIndex index : indices)
+        for (final ChrIndex index : indices) {
             chrIndices.put(index.getName(), index);
+        }
     }
 
     private LinearIndex(final LinearIndex parent, final List<ChrIndex> indices) {
         super(parent);
-        for (final ChrIndex index : indices)
+        for (final ChrIndex index : indices) {
             chrIndices.put(index.getName(), index);
+        }
     }
 
     /**
@@ -100,12 +102,16 @@ public class LinearIndex extends AbstractIndex {
     }
 
     public boolean isCurrentVersion() {
-        if (!super.isCurrentVersion()) return false;
+        if (!super.isCurrentVersion()) {
+            return false;
+        }
 
         // todo fixme nasty hack to determine if this is an old style V3 linear index (without nFeaturesPerBin)
-        for (final htsjdk.tribble.index.ChrIndex chrIndex : chrIndices.values())
-            if (((ChrIndex) chrIndex).OLD_V3_INDEX)
+        for (final htsjdk.tribble.index.ChrIndex chrIndex : chrIndices.values()) {
+            if (((ChrIndex) chrIndex).oldV3Index) {
                 return false;
+            }
+        }
 
         return true;
     }
@@ -153,7 +159,7 @@ public class LinearIndex extends AbstractIndex {
         private int nFeatures;
         private List<Block> blocks;
 
-        private boolean OLD_V3_INDEX = false;
+        private boolean oldV3Index = false;
 
         /**
          * Default constructor needed for factory methods -- DO NOT REMOVE
@@ -196,8 +202,9 @@ public class LinearIndex extends AbstractIndex {
                 // features that start before the bin but extend into it
                 final int adjustedPosition = Math.max(start - longestFeature, 0);
                 final int startBinNumber = adjustedPosition / binWidth;
-                if (startBinNumber >= blocks.size()) // are we off the end of the bin list, so return nothing
+                if (startBinNumber >= blocks.size()) {// are we off the end of the bin list, so return nothing
                     return Collections.emptyList();
+                }
                 else {
                     final int endBinNumber = Math.min((end - 1) / binWidth, blocks.size() - 1);
 
@@ -259,7 +266,7 @@ public class LinearIndex extends AbstractIndex {
             //largestBlockSize = dis.readInt();
             // largestBlockSize and totalBlockSize are old V3 index values.  largest block size should be 0 for
             // all newer V3 block.  This is a nasty hack that should be removed when we go to V4 (XML!) indices
-            OLD_V3_INDEX = dis.readInt() > 0;
+            oldV3Index = dis.readInt() > 0;
             nFeatures = dis.readInt();
 
             // note the code below accounts for > 60% of the total time to read an index
@@ -274,8 +281,12 @@ public class LinearIndex extends AbstractIndex {
         }
 
         public boolean equals(final Object obj) {
-            if (this == obj) return true;
-            if (!(obj instanceof ChrIndex)) return false;
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof ChrIndex)) {
+                return false;
+            }
             final ChrIndex other = (ChrIndex) obj;
             return binWidth == other.binWidth
                     && longestFeature == other.longestFeature
@@ -285,13 +296,24 @@ public class LinearIndex extends AbstractIndex {
                     && blocks.equals(other.blocks);
         }
 
+        @Override
+        public int hashCode() {
+            int result = name != null ? name.hashCode() : 0;
+            result = 31 * result + binWidth;
+            result = 31 * result + longestFeature;
+            result = 31 * result + nFeatures;
+            result = 31 * result + (blocks != null ? blocks.hashCode() : 0);
+            return result;
+        }
+
         /**
          * @return  Total size of all blocks
          */
         public long getTotalSize() {
             long n = 0;
-            for (final Block b : getBlocks())
+            for (final Block b : getBlocks()) {
                 n += b.getSize();
+            }
             return n;
         }
 
@@ -307,7 +329,9 @@ public class LinearIndex extends AbstractIndex {
             double m = -1;
             for (final Block b : getBlocks()) {
                 final double n = b.getSize() / featureSize;
-                if (m == -1 || n > m) m = n;
+                if (m == -1 || n > m) {
+                    m = n;
+                }
             }
             return m;
         }
@@ -321,9 +345,9 @@ public class LinearIndex extends AbstractIndex {
         }
 
         private static boolean badBinWidth(final ChrIndex idx) {
-            if (idx.binWidth > MAX_BIN_WIDTH || idx.binWidth < 0) // an overflow occurred
+            if (idx.binWidth > MAX_BIN_WIDTH || idx.binWidth < 0) { // an overflow occurred
                 return true;
-            else if (MAX_BIN_WIDTH_FOR_OCCUPIED_CHR_INDEX != 0 && idx.getNFeatures() > 1 && idx.binWidth > MAX_BIN_WIDTH_FOR_OCCUPIED_CHR_INDEX) {
+            } else if (MAX_BIN_WIDTH_FOR_OCCUPIED_CHR_INDEX != 0 && idx.getNFeatures() > 1 && idx.binWidth > MAX_BIN_WIDTH_FOR_OCCUPIED_CHR_INDEX) {
                 return true;
             } else {
                 return false;
@@ -336,8 +360,9 @@ public class LinearIndex extends AbstractIndex {
             while (true) {
                 final double score = idx.optimizeScore();
 
-                if (score > threshold || idx.getNBlocks() == 1 || badBinWidth(idx))
+                if (score > threshold || idx.getNBlocks() == 1 || badBinWidth(idx)) {
                     break;
+                }
                 else {
                     best = idx; // remember the last best option
 
@@ -346,7 +371,9 @@ public class LinearIndex extends AbstractIndex {
                     level++;
                 }
 
-                if (level > 30) throw new IllegalStateException("Too many iterations");
+                if (level > 30) {
+                    throw new IllegalStateException("Too many iterations");
+                }
             }
 
             return best;
@@ -358,19 +385,22 @@ public class LinearIndex extends AbstractIndex {
             merged.nFeatures = idx.nFeatures;
 
             final Iterator<Block> blocks = idx.getBlocks().iterator();
-            if (!blocks.hasNext())
+            if (!blocks.hasNext()) {
                 throw new IllegalStateException("Block iterator cannot be empty at the start for " + idx.getName());
+            }
 
             // extremely simple merging algorithm.  Walk left to right, joining up blocks adjacent blocks.
             while (blocks.hasNext()) {
                 final Block b1 = blocks.next();
                 final Block b2 = blocks.hasNext() ? blocks.next() : null;
 
-                if (b2 == null)
+                if (b2 == null) {
                     merged.addBlock(b1);
-                else
+                }
+                else {
                     // the new block is simply the start of the first block and the size of both together
                     merged.addBlock(new Block(b1.getStartPosition(), b1.getSize() + b2.getSize()));
+                }
             }
 
             return merged;

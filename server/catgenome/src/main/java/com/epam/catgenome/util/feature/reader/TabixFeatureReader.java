@@ -33,8 +33,6 @@ import htsjdk.tribble.readers.LineReader;
 import htsjdk.tribble.readers.LineReaderUtil;
 import htsjdk.tribble.readers.PositionalBufferedStream;
 import htsjdk.tribble.util.ParsingUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,13 +44,12 @@ import java.util.List;
  * @author Jim Robinson
  * @since 2/11/12
  */
-public class TabixFeatureReader<T extends Feature, SOURCE> extends AbstractFeatureReader<T, SOURCE> {
+public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureReader<T, S> {
 
     TabixReader tabixReader;
     List<String> sequenceNames;
     EhCacheBasedIndexCache indexCache;
     String indexFile;
-    private static final Logger LOGGER = LoggerFactory.getLogger(TabixFeatureReader.class);
 
     /**
      *
@@ -83,10 +80,7 @@ public class TabixFeatureReader<T extends Feature, SOURCE> extends AbstractFeatu
         tabixReader = new TabixReader(featureFile, indexFile, indexCache);
         sequenceNames = new ArrayList<String>(tabixReader.getChromosomes());
         this.indexFile = indexFile;
-
-        long times = System.currentTimeMillis();
         readHeader();
-        LOGGER.debug(" after creating Tabix header Reader " + (System.currentTimeMillis() - times));
     }
 
     /**
@@ -96,57 +90,19 @@ public class TabixFeatureReader<T extends Feature, SOURCE> extends AbstractFeatu
      * @throws IOException throws an IOException if we can't open the file
      */
     private void readHeader() throws IOException {
-        long times = System.currentTimeMillis();
-        SOURCE source = null;
-
-        if (indexCache.contains(indexFile)) {
-            TabixReader.TIndexCache mIndexCache = (TabixReader.TIndexCache) indexCache.getFromCache(indexFile);
-            if (mIndexCache.used) {
-                source = codec.makeSourceFromStream(new PositionalBufferedStream(new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
-
-                //header = mIndexCache.header;
-                header = codec.readHeader(source);
-                LOGGER.debug(" header " + header);
-                LOGGER.debug(" if contains " + (System.currentTimeMillis() - times));
-            }
-            else {
-                try {
-                    long times1 = System.currentTimeMillis();
-
-                    source = codec.makeSourceFromStream(new PositionalBufferedStream(new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
-                    mIndexCache.header = codec.readHeader(source);
-                    mIndexCache.used = true;
-
-                    header = mIndexCache.header;
-
-                    LOGGER.debug(" header " + header);
-                    indexCache.putInCache(mIndexCache, indexFile);
-                    LOGGER.debug(" if not contains " + (System.currentTimeMillis() - times1));
-
-                } catch (Exception e) {
-                    throw new TribbleException.MalformedFeatureFile("Unable to parse header with error: " + e.getMessage(), path, e);
-                } finally {
-                    if (source != null) {
-                        codec.close(source);
-                    }
-                }
+        S source = null;
+        try {
+            source = codec.makeSourceFromStream(new PositionalBufferedStream(
+                    new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
+            header = codec.readHeader(source);
+        } catch (IOException e) {
+            throw new TribbleException.MalformedFeatureFile("Unable to parse header with error: "
+                    + e.getMessage(), path, e);
+        } finally {
+            if (source != null) {
+                codec.close(source);
             }
         }
-        else {
-            long times1 = System.currentTimeMillis();
-            try {
-                source = codec.makeSourceFromStream(new PositionalBufferedStream(new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
-                header = codec.readHeader(source);
-                LOGGER.debug(" if not contains null " + (System.currentTimeMillis() - times1));
-
-            } catch (Exception e) {
-                throw new TribbleException.MalformedFeatureFile("Unable to parse header with error: " + e.getMessage(), path, e);
-            } finally {
-                if (source != null) {
-                    codec.close(source);
-                }
-            }
-         }
     }
 
     @Override
@@ -170,12 +126,15 @@ public class TabixFeatureReader<T extends Feature, SOURCE> extends AbstractFeatu
      */
     public CloseableTribbleIterator<T> query(final String chr, final int start, final int end) throws IOException {
         final List<String> mp = getSequenceNames();
-        if (mp == null) throw new TribbleException.TabixReaderFailure("Unable to find sequence named " + chr +
-                " in the tabix index. ", path);
+        if (mp == null) {
+            throw new TribbleException.TabixReaderFailure("Unable to find sequence named " + chr +
+                    " in the tabix index. ", path);
+        }
         if (!mp.contains(chr)) {
             return new EmptyIterator<T>();
         }
-        final TabixIteratorLineReader lineReader = new TabixIteratorLineReader(tabixReader.query(tabixReader.chr2tid(chr), start - 1, end));
+        final TabixIteratorLineReader lineReader = new TabixIteratorLineReader(
+                tabixReader.query(tabixReader.chr2tid(chr), start - 1, end));
         return new FeatureIterator<T>(lineReader, start - 1, end);
     }
 

@@ -60,8 +60,9 @@ public class Interval implements Comparable {
 
 
     public boolean equals(Object other) {
-        if (this == other)
+        if (this == other) {
             return true;
+        }
         if (this.getClass().equals(other.getClass())) {
             Interval otherInterval = (Interval) other;
             return (this.start == otherInterval.start &&
@@ -78,15 +79,18 @@ public class Interval implements Comparable {
 
     public int compareTo(Object o) {
         Interval other = (Interval) o;
-        if (this.start < other.start)
+        if (this.start < other.start) {
             return -1;
-        if (this.start > other.start)
+        }
+        if (this.start > other.start) {
             return 1;
-
-        if (this.end < other.end)
+        }
+        if (this.end < other.end) {
             return -1;
-        if (this.end > other.end)
+        }
+        if (this.end > other.end) {
             return 1;
+        }
 
         return 0;
     }

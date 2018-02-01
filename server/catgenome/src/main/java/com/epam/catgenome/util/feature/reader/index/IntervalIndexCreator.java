@@ -29,15 +29,15 @@ import java.util.LinkedList;
  * Creates interval indexes from a stream of features
  * @author jrobinso
  */
-public class IntervalIndexCreator extends TribbleIndexCreator {
+public class IntervalIndexCreator extends AbstractTribbleIndexCreator {
 
-    public static int DEFAULT_FEATURE_COUNT = 600;
+    public static int defaultFeatureCount = 600;
 
     /**
      * Maximum number of features stored per interval.
-     * @see #DEFAULT_FEATURE_COUNT
+     * @see #defaultFeatureCount
      */
-    private int featuresPerInterval = DEFAULT_FEATURE_COUNT;
+    private int featuresPerInterval = defaultFeatureCount;
 
     private final LinkedList<IntervalTreeIndex.ChrIndex> chrList = new LinkedList<IntervalTreeIndex.ChrIndex>();
 
@@ -56,15 +56,16 @@ public class IntervalIndexCreator extends TribbleIndexCreator {
     }
 
     public IntervalIndexCreator(final File inputFile) {
-        this(inputFile, DEFAULT_FEATURE_COUNT);
+        this(inputFile, defaultFeatureCount);
     }
 
     public void addFeature(final Feature feature, final long filePosition) {
         // if we don't have a chrIndex yet, or if the last one was for the previous contig, create a new one
         if (chrList.isEmpty() || !chrList.getLast().getName().equals(feature.getChr())) {
             // if we're creating a new chrIndex (not the first), make sure to dump the intervals to the old chrIndex
-            if (!chrList.isEmpty())
+            if (!chrList.isEmpty()) {
                 addIntervalsToLastChr(filePosition);
+            }
 
             // create a new chr index for the current contig
             chrList.add(new IntervalTreeIndex.ChrIndex(feature.getChr()));
@@ -76,7 +77,9 @@ public class IntervalIndexCreator extends TribbleIndexCreator {
             final MutableInterval i = new MutableInterval();
             i.setStart(feature.getStart());
             i.setStartFilePosition(filePosition);
-            if(!intervals.isEmpty()) intervals.get(intervals.size()-1).setEndFilePosition(filePosition);
+            if(!intervals.isEmpty()) {
+                intervals.get(intervals.size()-1).setEndFilePosition(filePosition);
+            }
             featureCount = 0; // reset the feature count
             intervals.add(i);
         }
@@ -92,7 +95,9 @@ public class IntervalIndexCreator extends TribbleIndexCreator {
      */
     private void addIntervalsToLastChr(final long currentPos) {
         for (int x = 0; x < intervals.size(); x++) {
-            if (x == intervals.size()-1) intervals.get(x).setEndFilePosition(currentPos);
+            if (x == intervals.size()-1) {
+                intervals.get(x).setEndFilePosition(currentPos);
+            }
             chrList.getLast().insert(intervals.get(x).toInterval());
         }
     }
@@ -129,12 +134,16 @@ class MutableInterval {
     private long endFilePosition;
 
     public void setStart(final int start) {
-        if (start < 0) throw new IllegalArgumentException("Start must be greater than 0!");
+        if (start < 0) {
+            throw new IllegalArgumentException("Start must be greater than 0!");
+        }
         this.start = start;
     }
 
     public void setStop(final int stop) {
-        if (stop < 0) throw new IllegalArgumentException("Start must be greater than 0!");
+        if (stop < 0) {
+            throw new IllegalArgumentException("Start must be greater than 0!");
+        }
         this.stop = stop;
     }
 

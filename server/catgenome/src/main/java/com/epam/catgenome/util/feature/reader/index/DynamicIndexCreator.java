@@ -40,9 +40,9 @@ import java.util.TreeMap;
  * the characteristics of the file.  Ultimately this is either a LinearIndex or an IntervalTreeIndex, with index
  * parameters based on whether seek time or file size is to be minimized.
  */
-public class DynamicIndexCreator extends TribbleIndexCreator {
+public class DynamicIndexCreator extends AbstractTribbleIndexCreator {
     IndexFactory.IndexBalanceApproach iba;
-    Map<IndexFactory.IndexType,TribbleIndexCreator> creators;
+    Map<IndexFactory.IndexType,AbstractTribbleIndexCreator> creators;
 
     /**
      * we're interested in two stats:
@@ -60,23 +60,24 @@ public class DynamicIndexCreator extends TribbleIndexCreator {
         this.iba = iba;
         // get a list of index creators
         this.inputFile = inputFile;
-        creators = getIndexCreators(inputFile,iba);
+        creators = getIndexCreators(inputFile, iba);
     }
 
     public Index finalizeIndex(final long finalFilePosition) {
         // finalize all of the indexes
         // return the score of the indexes we've generated
-        final Map<Double,TribbleIndexCreator> mapping = scoreIndexes((double)featureCount/(double)basesSeen, creators, longestFeatureLength, iba);
-        final TribbleIndexCreator creator = getMinIndex(mapping, this.iba);
+        final Map<Double,AbstractTribbleIndexCreator> mapping = scoreIndexes(
+                (double)featureCount/(double)basesSeen, creators, longestFeatureLength, iba);
+        final AbstractTribbleIndexCreator creator = getMinIndex(mapping, this.iba);
 
         for (final Map.Entry<String, String> entry : properties.entrySet()) {
             creator.addProperty(entry.getKey(), entry.getValue());
         }
 
         // add our statistics to the file
-        creator.addProperty("FEATURE_LENGTH_MEAN",String.valueOf(stats.mean()));
-        creator.addProperty("FEATURE_LENGTH_STD_DEV",String.valueOf(stats.standardDeviation()));
-        creator.addProperty("MEAN_FEATURE_VARIANCE",String.valueOf(stats.variance()));
+        creator.addProperty("FEATURE_LENGTH_MEAN", String.valueOf(stats.mean()));
+        creator.addProperty("FEATURE_LENGTH_STD_DEV", String.valueOf(stats.standardDeviation()));
+        creator.addProperty("MEAN_FEATURE_VARIANCE", String.valueOf(stats.variance()));
 
         // add the feature count
         creator.addProperty("FEATURE_COUNT",String.valueOf(featureCount));
@@ -90,17 +91,20 @@ public class DynamicIndexCreator extends TribbleIndexCreator {
      * @param inputFile the input file to use to create the indexes
      * @return a map of index type to the best index for that balancing approach
      */
-    private Map<IndexFactory.IndexType,TribbleIndexCreator> getIndexCreators(final File inputFile, final IndexFactory.IndexBalanceApproach iba) {
-        final Map<IndexFactory.IndexType,TribbleIndexCreator> creators = new HashMap<IndexFactory.IndexType,TribbleIndexCreator>();
+    private Map<IndexFactory.IndexType,AbstractTribbleIndexCreator> getIndexCreators(
+            final File inputFile, final IndexFactory.IndexBalanceApproach iba) {
+        final Map<IndexFactory.IndexType,AbstractTribbleIndexCreator> creators = new HashMap<IndexFactory.IndexType,AbstractTribbleIndexCreator>();
 
         if (iba == IndexFactory.IndexBalanceApproach.FOR_SIZE) {
             // add a linear index with the default bin size
-            final LinearIndexCreator linearNormal = new LinearIndexCreator(inputFile, LinearIndexCreator.DEFAULT_BIN_WIDTH);
-            creators.put(IndexFactory.IndexType.LINEAR,linearNormal);
+            final LinearIndexCreator linearNormal = new LinearIndexCreator(inputFile,
+                    LinearIndexCreator.defaultBinWidth);
+            creators.put(IndexFactory.IndexType.LINEAR, linearNormal);
 
             // create a tree index with the default size
-            final IntervalIndexCreator treeNormal = new IntervalIndexCreator(inputFile, IntervalIndexCreator.DEFAULT_FEATURE_COUNT);
-            creators.put(IndexFactory.IndexType.INTERVAL_TREE,treeNormal);
+            final IntervalIndexCreator treeNormal = new IntervalIndexCreator(inputFile,
+                    IntervalIndexCreator.defaultFeatureCount);
+            creators.put(IndexFactory.IndexType.INTERVAL_TREE, treeNormal);
         }
 
         // this section is a little more arbitrary; we're creating indexes with a bin size that's a portion of the default; these
@@ -108,13 +112,13 @@ public class DynamicIndexCreator extends TribbleIndexCreator {
         if (iba == IndexFactory.IndexBalanceApproach.FOR_SEEK_TIME) {
             // create a linear index with a small bin size
             final LinearIndexCreator linearSmallBin =
-                    new LinearIndexCreator(inputFile, Math.max(200, LinearIndexCreator.DEFAULT_BIN_WIDTH / 4));
-            creators.put(IndexFactory.IndexType.LINEAR,linearSmallBin);
+                    new LinearIndexCreator(inputFile, Math.max(200, LinearIndexCreator.defaultBinWidth / 4));
+            creators.put(IndexFactory.IndexType.LINEAR, linearSmallBin);
 
             // create a tree index with a small index size
             final IntervalIndexCreator treeSmallBin =
-                    new IntervalIndexCreator(inputFile, Math.max(20, IntervalIndexCreator.DEFAULT_FEATURE_COUNT / 8));
-            creators.put(IndexFactory.IndexType.INTERVAL_TREE,treeSmallBin);
+                    new IntervalIndexCreator(inputFile, Math.max(20, IntervalIndexCreator.defaultFeatureCount / 8));
+            creators.put(IndexFactory.IndexType.INTERVAL_TREE, treeSmallBin);
         }
 
         return creators;
@@ -129,16 +133,18 @@ public class DynamicIndexCreator extends TribbleIndexCreator {
 
         // calculate the number of bases seen - we have to watch out for the situation where the last record was on the previous chromosome
         basesSeen = (lastFeature == null) ? basesSeen + f.getStart() :
-                ((f.getStart() - lastFeature.getStart() >= 0) ? basesSeen + (f.getStart() - lastFeature.getStart()) : basesSeen + f.getStart());
+                ((f.getStart() - lastFeature.getStart() >= 0)
+                        ? basesSeen + (f.getStart() - lastFeature.getStart())
+                        : basesSeen + f.getStart());
 
-        longestFeatureLength = Math.max(longestFeatureLength,(f.getEnd()-f.getStart()) + 1);
+        longestFeatureLength = Math.max(longestFeatureLength, (f.getEnd()-f.getStart()) + 1);
 
         // push the longest feature to the running stats
         stats.push(longestFeatureLength);
 
         // now feed the feature to each of our creators
         for (final IndexCreator creator : creators.values()) {
-            creator.addFeature(f,filePosition);
+            creator.addFeature(f, filePosition);
         }
 
         //Redundant check, done in IndexFactory
@@ -165,12 +171,16 @@ public class DynamicIndexCreator extends TribbleIndexCreator {
      * @param iba the index balancing approach
      * @return the best index available for the target indexes
      */
-    protected static LinkedHashMap<Double,TribbleIndexCreator> scoreIndexes(final double densityOfFeatures, final Map<IndexFactory.IndexType,TribbleIndexCreator> indexes, final int longestFeature, final IndexFactory.IndexBalanceApproach iba) {
-        if (indexes.size() < 1) throw new IllegalArgumentException("Please specify at least one index to evaluate");
+    protected static LinkedHashMap<Double, AbstractTribbleIndexCreator> scoreIndexes(
+            final double densityOfFeatures, final Map<IndexFactory.IndexType, AbstractTribbleIndexCreator> indexes,
+            final int longestFeature, final IndexFactory.IndexBalanceApproach iba) {
+        if (indexes.size() < 1) {
+            throw new IllegalArgumentException("Please specify at least one index to evaluate");
+        }
 
-        final LinkedHashMap<Double,TribbleIndexCreator> scores = new LinkedHashMap<Double,TribbleIndexCreator>();
+        final LinkedHashMap<Double, AbstractTribbleIndexCreator> scores = new LinkedHashMap<Double,AbstractTribbleIndexCreator>();
 
-        for (final Map.Entry<IndexFactory.IndexType,TribbleIndexCreator> entry : indexes.entrySet()) {
+        for (final Map.Entry<IndexFactory.IndexType, AbstractTribbleIndexCreator> entry : indexes.entrySet()) {
             // we have different scoring
             if (entry.getValue() instanceof LinearIndexCreator) {
                 final double binSize = ((LinearIndexCreator)(entry.getValue())).getBinSize();
@@ -178,7 +188,8 @@ public class DynamicIndexCreator extends TribbleIndexCreator {
             } else if (entry.getValue() instanceof IntervalIndexCreator) {
                 scores.put((double) ((IntervalIndexCreator)entry.getValue()).getFeaturesPerInterval(), entry.getValue());
             } else {
-                throw new TribbleException.UnableToCreateCorrectIndexType("Unknown index type, we don't have a scoring method for " + entry.getValue().getClass());
+                throw new TribbleException.UnableToCreateCorrectIndexType(
+                        "Unknown index type, we don't have a scoring method for " + entry.getValue().getClass());
             }
         }
         return scores;
@@ -189,18 +200,20 @@ public class DynamicIndexCreator extends TribbleIndexCreator {
      * @param scores the list of scaled features/bin scores for each index type
      * @return the best score <b>index value</b>
      */
-    private TribbleIndexCreator getMinIndex(final Map<Double,TribbleIndexCreator> scores, final IndexFactory.IndexBalanceApproach iba) {
-        final TreeMap<Double,TribbleIndexCreator> map = new TreeMap<Double,TribbleIndexCreator>();
+    private AbstractTribbleIndexCreator getMinIndex(final Map<Double,AbstractTribbleIndexCreator> scores,
+                                                    final IndexFactory.IndexBalanceApproach iba) {
+        final TreeMap<Double,AbstractTribbleIndexCreator> map = new TreeMap<Double,AbstractTribbleIndexCreator>();
         map.putAll(scores);
 
         // if we are optimizing for seek time, choose the lowest score (adjusted features/bin value), if for storage size, choose the opposite
-        final TribbleIndexCreator idx = (iba != IndexFactory.IndexBalanceApproach.FOR_SEEK_TIME) ? map.get(map.lastKey()) : map.get(map.firstKey());
+        final AbstractTribbleIndexCreator idx = (iba != IndexFactory.IndexBalanceApproach.FOR_SEEK_TIME)
+                ? map.get(map.lastKey()) : map.get(map.firstKey());
         return idx;
     }
 
     @Override
     public void addProperty(final String key, final String value) {
-        for (final TribbleIndexCreator creator : creators.values()) {
+        for (final AbstractTribbleIndexCreator creator : creators.values()) {
             creator.addProperty(key, value);
         }
     }

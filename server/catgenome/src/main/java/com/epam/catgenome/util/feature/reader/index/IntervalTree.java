@@ -39,23 +39,23 @@ import java.util.Map;
 public class IntervalTree {
 
     Node root;
-    Node NIL = Node.NIL;
+    Node nil = Node.nil;
 
     /**
      * See {@link #getSize()}
      */
-    int size;
+    int treeSize;
 
     public IntervalTree() {
-        this.root = NIL;
-        this.size = 0;
+        this.root = nil;
+        this.treeSize = 0;
     }
 
 
     public void insert(Interval interval) {
         Node node = new Node(interval);
         insert(node);
-        size++;
+        treeSize++;
     }
 
     /**
@@ -66,7 +66,7 @@ public class IntervalTree {
      * @see #size()
      */
     public int getSize() {
-        return size;
+        return treeSize;
     }
 
     /**
@@ -75,17 +75,17 @@ public class IntervalTree {
      */
     public List<Interval> findOverlapping(Interval interval) {
 
-        if (root().isNull()) {
+        if (getRoot().isNull()) {
             return Collections.emptyList();
         }
 
         List<Interval> results = new ArrayList<Interval>();
-        searchAll(interval, root(), results);
+        searchAll(interval, getRoot(), results);
         return results;
     }
 
     public String toString() {
-        return root().toString();
+        return getRoot().toString();
     }
 
     private List<Interval> searchAll(Interval interval, Node node, List<Interval> results) {
@@ -108,11 +108,11 @@ public class IntervalTree {
      * @return
      */
     public List<Interval> getIntervals() {
-        if (root().isNull()) {
+        if (getRoot().isNull()) {
             return Collections.emptyList();
         }
-        List<Interval> results = new ArrayList<Interval>(size);
-        getAll(root(), results);
+        List<Interval> results = new ArrayList<Interval>(treeSize);
+        getAll(getRoot(), results);
         return results;
     }
 
@@ -144,8 +144,9 @@ public class IntervalTree {
      * @return
      */
     private int getRealMax(Node node) {
-        if (node.isNull())
+        if (node.isNull()) {
             return Integer.MIN_VALUE;
+        }
         int leftMax = getRealMax(node.left);
         int rightMax = getRealMax(node.right);
         int nodeHigh = (node.interval).end;
@@ -161,9 +162,9 @@ public class IntervalTree {
      * @return
      */
     private int getRealMin(Node node) {
-        if (node.isNull())
+        if (node.isNull()) {
             return Integer.MAX_VALUE;
-
+        }
         int leftMin = getRealMin(node.left);
         int rightMin = getRealMin(node.right);
         int nodeLow = (node.interval).start;
@@ -178,47 +179,47 @@ public class IntervalTree {
         assert (!x.isNull());
 
         treeInsert(x);
-        x.color = Node.RED;
-        while (x != this.root && x.parent.color == Node.RED) {
+        x.color = Node.red;
+        while (x != this.root && x.parent.color == Node.red) {
             if (x.parent == x.parent.parent.left) {
                 Node y = x.parent.parent.right;
-                if (y.color == Node.RED) {
-                    x.parent.color = Node.BLACK;
-                    y.color = Node.BLACK;
-                    x.parent.parent.color = Node.RED;
+                if (y.color == Node.red) {
+                    x.parent.color = Node.black;
+                    y.color = Node.black;
+                    x.parent.parent.color = Node.red;
                     x = x.parent.parent;
                 } else {
                     if (x == x.parent.right) {
                         x = x.parent;
                         this.leftRotate(x);
                     }
-                    x.parent.color = Node.BLACK;
-                    x.parent.parent.color = Node.RED;
+                    x.parent.color = Node.black;
+                    x.parent.parent.color = Node.red;
                     this.rightRotate(x.parent.parent);
                 }
             } else {
                 Node y = x.parent.parent.left;
-                if (y.color == Node.RED) {
-                    x.parent.color = Node.BLACK;
-                    y.color = Node.BLACK;
-                    x.parent.parent.color = Node.RED;
+                if (y.color == Node.red) {
+                    x.parent.color = Node.black;
+                    y.color = Node.black;
+                    x.parent.parent.color = Node.red;
                     x = x.parent.parent;
                 } else {
                     if (x == x.parent.left) {
                         x = x.parent;
                         this.rightRotate(x);
                     }
-                    x.parent.color = Node.BLACK;
-                    x.parent.parent.color = Node.RED;
+                    x.parent.color = Node.black;
+                    x.parent.parent.color = Node.red;
                     this.leftRotate(x.parent.parent);
                 }
             }
         }
-        this.root.color = Node.BLACK;
+        this.root.color = Node.black;
     }
 
 
-    private Node root() {
+    private Node getRoot() {
         return this.root;
     }
 
@@ -226,11 +227,11 @@ public class IntervalTree {
     private void leftRotate(Node x) {
         Node y = x.right;
         x.right = y.left;
-        if (y.left != NIL) {
+        if (y.left != nil) {
             y.left.parent = x;
         }
         y.parent = x.parent;
-        if (x.parent == NIL) {
+        if (x.parent == nil) {
             this.root = y;
         } else {
             if (x.parent.left == x) {
@@ -251,11 +252,11 @@ public class IntervalTree {
     private void rightRotate(Node x) {
         Node y = x.left;
         x.left = y.right;
-        if (y.right != NIL) {
+        if (y.right != nil) {
             y.right.parent = x;
         }
         y.parent = x.parent;
-        if (x.parent == NIL) {
+        if (x.parent == nil) {
             this.root = y;
         } else {
             if (x.parent.right == x) {
@@ -281,8 +282,8 @@ public class IntervalTree {
      */
     private void treeInsert(Node x) {
         Node node = this.root;
-        Node y = NIL;
-        while (node != NIL) {
+        Node y = nil;
+        while (node != nil) {
             y = node;
             if (x.interval.start <= node.interval.start) {
                 node = node.left;
@@ -292,9 +293,9 @@ public class IntervalTree {
         }
         x.parent = y;
 
-        if (y == NIL) {
+        if (y == nil) {
             this.root = x;
-            x.left = x.right = NIL;
+            x.left = x.right = nil;
         } else {
             if (x.interval.start <= y.interval.start) {
                 y.left = x;
@@ -327,29 +328,31 @@ public class IntervalTree {
      * @see #getSize()
      */
     public int size() {
-        return _size(this.root);
+        return intervalTreeSize(this.root);
     }
 
 
-    private int _size(Node node) {
-        if (node.isNull())
+    private int intervalTreeSize(Node node) {
+        if (node.isNull()) {
             return 0;
-        return 1 + _size(node.left) + _size(node.right);
+        }
+        return 1 + intervalTreeSize(node.left) + intervalTreeSize(node.right);
     }
 
 
     private boolean allRedNodesFollowConstraints(Node node) {
-        if (node.isNull())
+        if (node.isNull()) {
             return true;
+        }
 
-        if (node.color == Node.BLACK) {
+        if (node.color == Node.black) {
             return (allRedNodesFollowConstraints(node.left) &&
                     allRedNodesFollowConstraints(node.right));
         }
 
-        // At this point, we know we're on a RED node.
-        return (node.left.color == Node.BLACK &&
-                node.right.color == Node.BLACK &&
+        // At this point, we know we're on a red node.
+        return (node.left.color == Node.black &&
+                node.right.color == Node.black &&
                 allRedNodesFollowConstraints(node.left) &&
                 allRedNodesFollowConstraints(node.right));
     }
@@ -358,8 +361,9 @@ public class IntervalTree {
     // Check that both ends are equally balanced in terms of black height.
 
     private boolean isBalancedBlackHeight(Node node) {
-        if (node.isNull())
+        if (node.isNull()) {
             return true;
+        }
         return (blackHeight(node.left) == blackHeight(node.right) &&
                 isBalancedBlackHeight(node.left) &&
                 isBalancedBlackHeight(node.right));
@@ -369,10 +373,11 @@ public class IntervalTree {
     // The black height of a node should be left/right equal.
 
     private int blackHeight(Node node) {
-        if (node.isNull())
+        if (node.isNull()) {
             return 0;
+        }
         int leftBlackHeight = blackHeight(node.left);
-        if (node.color == Node.BLACK) {
+        if (node.color == Node.black) {
             return leftBlackHeight + 1;
         } else {
             return leftBlackHeight;
@@ -386,7 +391,7 @@ public class IntervalTree {
      * <p/>
      * o.  Root is black.
      * <p/>
-     * o.  NIL is black.
+     * o.  nil is black.
      * <p/>
      * o.  Red nodes have black children.
      * <p/>
@@ -399,12 +404,12 @@ public class IntervalTree {
      * assertions and testing.
      */
     public boolean isValid() {
-        if (this.root.color != Node.BLACK) {
+        if (this.root.color != Node.black) {
             //logger.warn("root color is wrong");
             return false;
         }
-        if (NIL.color != Node.BLACK) {
-            //logger.warn("NIL color is wrong");
+        if (nil.color != Node.black) {
+            //logger.warn("nil color is wrong");
             return false;
         }
         if (allRedNodesFollowConstraints(this.root) == false) {
@@ -422,8 +427,9 @@ public class IntervalTree {
 
 
     private boolean hasCorrectMaxFields(Node node) {
-        if (node.isNull())
+        if (node.isNull()) {
             return true;
+        }
         return (getRealMax(node) == (node.max) &&
                 hasCorrectMaxFields(node.left) &&
                 hasCorrectMaxFields(node.right));
@@ -431,8 +437,9 @@ public class IntervalTree {
 
 
     private boolean hasCorrectMinFields(Node node) {
-        if (node.isNull())
+        if (node.isNull()) {
             return true;
+        }
         return (getRealMin(node) == (node.min) &&
                 hasCorrectMinFields(node.left) &&
                 hasCorrectMinFields(node.right));
@@ -441,8 +448,8 @@ public class IntervalTree {
 
     static class Node {
 
-        public static boolean BLACK = false;
-        public static boolean RED = true;
+        public static boolean black = false;
+        public static boolean red = true;
 
         Interval interval;
         int min;
@@ -471,27 +478,27 @@ public class IntervalTree {
 
         public Node(Interval interval) {
             this();
-            this.parent = NIL;
-            this.left = NIL;
-            this.right = NIL;
+            this.parent = nil;
+            this.left = nil;
+            this.right = nil;
             this.interval = interval;
-            this.color = RED;
+            this.color = red;
         }
 
 
-        static Node NIL;
+        static Node nil;
 
         static {
-            NIL = new Node();
-            NIL.color = BLACK;
-            NIL.parent = NIL;
-            NIL.left = NIL;
-            NIL.right = NIL;
+            nil = new Node();
+            nil.color = black;
+            nil.parent = nil;
+            nil.left = nil;
+            nil.right = nil;
         }
 
 
         public boolean isNull() {
-            return this == NIL;
+            return this == nil;
         }
 
 
@@ -500,26 +507,25 @@ public class IntervalTree {
             // Make some shorthand for the nodes
             Map<Interval, Integer> keys = new LinkedHashMap<Interval, Integer>();
 
-            if (this == NIL) {
+            if (this == nil) {
                 return "nil";
             }
 
             StringBuffer buf = new StringBuffer();
-            _toString(buf, keys);
+            toStringIntervalTree(buf, keys);
 
             buf.append('\n');
             for (Map.Entry<Interval, Integer> entry : keys.entrySet()) {
-                buf.append(entry.getValue() + " = " + entry.getKey());
+                buf.append(entry.getValue()).append(" = ").append(entry.getKey());
                 buf.append('\n');
             }
 
             return buf.toString();
         }
 
-        public void _toString(StringBuffer buf, Map<Interval, Integer> keys) {
-            if (this == NIL) {
-                buf.append("nil");
-                buf.append('\n');
+        public void toStringIntervalTree(StringBuffer buf, Map<Interval, Integer> keys) {
+            if (this == nil) {
+                buf.append("nil\n");
                 return;
             }
 
@@ -540,10 +546,10 @@ public class IntervalTree {
             }
 
 
-            buf.append(selfKey + " -> " + leftKey + " , " + rightKey);
+            buf.append(selfKey).append(" -> ").append(leftKey).append(" , ").append(rightKey);
             buf.append('\n');
-            this.left._toString(buf, keys);
-            this.right._toString(buf, keys);
+            this.left.toStringIntervalTree(buf, keys);
+            this.right.toStringIntervalTree(buf, keys);
         }
     }
 }

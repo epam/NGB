@@ -52,7 +52,6 @@ import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.FeatureReader;
-import net.sf.ehcache.Ehcache;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FilenameUtils;

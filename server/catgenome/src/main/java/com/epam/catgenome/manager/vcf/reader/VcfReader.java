@@ -50,7 +50,8 @@ public interface VcfReader {
      * @throws VcfReadingException
      */
     Track<Variation> readVariations(VcfFile vcfFile, Track<Variation> track, Chromosome chromosome,
-                            Integer sampleIndex, boolean loadInfo, boolean collapse, EhCacheBasedIndexCache indexCache) throws VcfReadingException;
+                            Integer sampleIndex, boolean loadInfo, boolean collapse,
+                                    EhCacheBasedIndexCache indexCache) throws VcfReadingException;
 
     /**
      * Allows navigating between the neighbouring variations

@@ -83,10 +83,12 @@ public class TabixIndexCreator implements IndexCreator {
                 throw new IllegalArgumentException("Sequence " + feature + " added out sequence of order");
             }
         }
-        final TabixFeature thisFeature = new TabixFeature(referenceIndex, feature.getStart(), feature.getEnd(), filePosition);
+        final TabixFeature thisFeature = new TabixFeature(referenceIndex, feature.getStart(),
+                feature.getEnd(), filePosition);
         if (previousFeature != null) {
             if (previousFeature.compareTo(thisFeature) > 0) {
-                throw new IllegalArgumentException(String.format("Features added out of order: previous (%s) > next (%s)",
+                throw new IllegalArgumentException(String.format(
+                        "Features added out of order: previous (%s) > next (%s)",
                         previousFeature, thisFeature));
             }
             finalizeFeature(filePosition);
@@ -147,7 +149,8 @@ public class TabixIndexCreator implements IndexCreator {
         // Position after this feature in the file.
         private long featureEndFilePosition = -1;
 
-        private TabixFeature(final int referenceIndex, final int start, final int end, final long featureStartFilePosition) {
+        private TabixFeature(final int referenceIndex, final int start, final int end,
+                             final long featureStartFilePosition) {
             this.referenceIndex = referenceIndex;
             this.start = start;
             this.end = end;
@@ -184,7 +187,9 @@ public class TabixIndexCreator implements IndexCreator {
         @Override
         public int compareTo(final TabixFeature other) {
             final int ret = this.referenceIndex - other.referenceIndex;
-            if (ret != 0) return ret;
+            if (ret != 0) {
+                return ret;
+            }
             return this.start - other.start;
         }
 
