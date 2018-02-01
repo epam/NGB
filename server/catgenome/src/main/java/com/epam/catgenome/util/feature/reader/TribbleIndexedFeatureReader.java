@@ -31,6 +31,7 @@ import com.epam.catgenome.util.feature.reader.index.IndexFactory;
 import htsjdk.tribble.index.Block;
 import htsjdk.tribble.readers.PositionalBufferedStream;
 import htsjdk.tribble.util.ParsingUtils;
+import org.testng.Assert;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -330,7 +331,10 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
              * The header was already read from the original source in the constructor; don't read it again, since some codecs keep state
              * about its initializagtion.  Instead, skip that part of the stream.
              */
-            pbs.skip(header.getHeaderEnd());
+            long skippedBytes = pbs.skip(header.getHeaderEnd());
+            if (skippedBytes == 0) {
+                Assert.assertEquals(skippedBytes,0);
+            }
             source = codec.makeSourceFromStream(pbs);
             readNextRecord();
         }

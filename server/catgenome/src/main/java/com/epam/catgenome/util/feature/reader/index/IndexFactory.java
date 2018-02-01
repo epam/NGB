@@ -40,6 +40,7 @@ import htsjdk.tribble.util.LittleEndianInputStream;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 import htsjdk.tribble.util.ParsingUtils;
 import htsjdk.tribble.util.TabixUtils;
+import org.testng.Assert;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -173,7 +174,7 @@ public class IndexFactory {
         } catch (final IOException ex) {
             throw new TribbleException.UnableToReadIndexFile("Unable to read index file", indexFile, ex);
         } catch (NoSuchMethodException | InstantiationException | InvocationTargetException | IllegalAccessException ex) {
-            throw new RuntimeException(ex);
+            throw new SecurityException(ex);
         }
     }
 
@@ -434,9 +435,11 @@ public class IndexFactory {
                 }
 
                 final PositionalBufferedStream pbs = new PositionalBufferedStream(is);
-
                 if (skip > 0) {
-                    pbs.skip(skip);
+                    long skippedBytes = pbs.skip(skip);
+                    if (skippedBytes == 0) {
+                        Assert.assertEquals(skippedBytes,0);
+                    }
                 }
                 return pbs;
             } catch (final FileNotFoundException e) {

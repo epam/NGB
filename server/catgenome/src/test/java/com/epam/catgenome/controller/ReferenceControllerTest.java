@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;

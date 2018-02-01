@@ -166,7 +166,7 @@ public class GffManager {
     @Autowired
     private TaskExecutorService taskExecutorService;
 
-    @Autowired
+    //@Autowired
     private EhCacheBasedIndexCache indexCache;
 
     private static final String EXON_FEATURE_NAME = "exon";

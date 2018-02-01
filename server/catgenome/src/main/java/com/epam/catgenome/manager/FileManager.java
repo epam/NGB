@@ -166,7 +166,6 @@ public class FileManager {
     private static final String EMPTY = "";
     public static final String BED_GRAPH_FEATURE_TEMPLATE = "%s\t%d\t%d\t%f%n";
 
-
     @Autowired
     private EhCacheBasedIndexCache indexCache;
     /**
