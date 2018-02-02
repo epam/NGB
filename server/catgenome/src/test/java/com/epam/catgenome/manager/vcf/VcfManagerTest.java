@@ -446,8 +446,6 @@ public class VcfManagerTest extends AbstractManagerTest {
         request.setReferenceId(referenceId);
         request.setPath(resource.getFile().getAbsolutePath());
 
-        logger.info(((EhCacheBasedIndexCache) context.getBean("indexCache")).toString());
-
         VcfFile vcfFile = vcfManager.registerVcfFile(request);
         Assert.assertNotNull(vcfFile);
         Assert.assertNotNull(vcfFile.getId());
