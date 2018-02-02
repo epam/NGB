@@ -7,9 +7,9 @@ import net.sf.ehcache.Element;
 import org.springframework.util.Assert;
 
 public class EhCacheBasedIndexCache {
-    public static final String INDEX_URL_REQUIRED = "Index Url required";
-    public static final String CACHE_REQUIRED = "Cache required";
-    public static final String INDEX_REQUIRED = "Index required";
+    private static final String INDEX_URL_REQUIRED = "Index Url required";
+    private static final String CACHE_REQUIRED = "Cache required";
+    private static final String INDEX_REQUIRED = "Index required";
     private final Ehcache cache;
 
     public EhCacheBasedIndexCache(Ehcache cache) {
@@ -30,18 +30,14 @@ public class EhCacheBasedIndexCache {
     public CacheIndex getFromCache(String indexUrl) {
         Assert.notNull(indexUrl, INDEX_URL_REQUIRED);
 
-        Element element = null;
+        Element element;
 
-        try {
+        if (contains(indexUrl)) {
             element = cache.get(indexUrl);
-        } catch (CacheException ignored) {
+            return (CacheIndex) element.getObjectValue();
+        } else {
             return null;
         }
-
-        if (element == null) {
-            return null;
-        }
-        return (CacheIndex) element.getValue();
     }
 
     public void putInCache(CacheIndex index, String indexUrl) {
@@ -54,18 +50,18 @@ public class EhCacheBasedIndexCache {
     public boolean contains(String indexUrl) {
         Assert.notNull(indexUrl, INDEX_URL_REQUIRED);
 
-        Element element = null;
-
-        try {
-            element = cache.get(indexUrl);
-        } catch (CacheException ignored) {
-            return false;
-        }
-
-        return element != null;
+        return cache.isKeyInCache(indexUrl);
     }
 
     public void clearCache() {
         cache.removeAll();
+    }
+
+    @Override
+    public String toString() {
+        return "Cache Name: " + cache.getName() + ", cacheManager: " + cache.getCacheManager() +
+                " cacheSize: " + cache.getSize() + " maxEntriesInHeap: " +
+                cache.getCacheConfiguration().getMaxEntriesLocalHeap() + " timeToIdle: " +
+                cache.getCacheConfiguration().getTimeToIdleSeconds();
     }
 }

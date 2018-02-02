@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.tribble.TribbleException;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.codehaus.jettison.json.JSONObject;
@@ -170,6 +171,10 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Autowired
     private ApplicationContext context;
 
+    @Spy
+    @Autowired
+    private EhCacheBasedIndexCache indexCache;
+
     private static final int TEST_END_INDEX = 187708306;
 
     private static final double TEST_SMALL_SCALE_FACTOR = 0.000007682737;
@@ -231,7 +236,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testSaveLoadVcfFile() throws IOException, InterruptedException, VcfReadingException {
+    public void testSaveLoadVcfFile() throws IOException, InterruptedException {
         VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
         VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
@@ -244,7 +249,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testSaveLoadVcfCompressedFile() throws IOException, ClassNotFoundException, InterruptedException,
-                                                       ParseException, VcfReadingException {
+                                                       ParseException {
         VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF_COMPRESSED);
 
         VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
@@ -264,7 +269,7 @@ public class VcfManagerTest extends AbstractManagerTest {
      */
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testLoadSmallScaleVcfFile() throws IOException, InterruptedException, VcfReadingException {
+    public void testLoadSmallScaleVcfFile() throws IOException, InterruptedException {
         VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
         VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
@@ -288,7 +293,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadSmallScaleVcfFileGa4GH() throws IOException, InterruptedException, NoSuchAlgorithmException,
-                                                        ExternalDbUnavailableException, VcfReadingException {
+                                                        ExternalDbUnavailableException{
 
         String fetchRes1 = readFile("GA4GH_id10473.json");
         String fetchRes2 = readFile("GA4GH_id10473_variant.json");
@@ -324,7 +329,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadExtendedSummary()
             throws IOException, InterruptedException, FeatureIndexException,
-                   NoSuchAlgorithmException, FeatureFileReadingException {
+                   NoSuchAlgorithmException {
         VcfFile vcfFile = testSave("classpath:templates/samples.vcf");
 
         VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
@@ -369,7 +374,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     public VcfFile regesterVcfGA4GH()
-        throws IOException, InterruptedException, NoSuchAlgorithmException, VcfReadingException {
+        throws IOException, InterruptedException, NoSuchAlgorithmException {
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceIdGA4GH);
         request.setType(BiologicalDataItemResourceType.GA4GH);
@@ -383,7 +388,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testAllTrackGa4GH()
-        throws IOException, InterruptedException, NoSuchAlgorithmException, VcfReadingException {
+        throws IOException, InterruptedException, NoSuchAlgorithmException {
         VcfFile vcfFileGA4GH = regesterVcfGA4GH();
         vcfFileGA4GH.setType(BiologicalDataItemResourceType.GA4GH);
         List<VcfSample> vcfSamples = vcfFileGA4GH.getSamples();
@@ -418,7 +423,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testRegisterDownloadFile() throws IOException, ClassNotFoundException, InterruptedException,
-                                                 ParseException, NoSuchAlgorithmException, VcfReadingException {
+                                                 ParseException, NoSuchAlgorithmException {
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceId);
         request.setType(BiologicalDataItemResourceType.DOWNLOAD);
@@ -434,13 +439,14 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testRegisterFile()
-        throws IOException, ClassNotFoundException, InterruptedException, ParseException, NoSuchAlgorithmException,
-               VcfReadingException {
+        throws IOException, ClassNotFoundException, InterruptedException, ParseException, NoSuchAlgorithmException {
         Resource resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceId);
         request.setPath(resource.getFile().getAbsolutePath());
+
+        logger.info(((EhCacheBasedIndexCache) context.getBean("indexCache")).toString());
 
         VcfFile vcfFile = vcfManager.registerVcfFile(request);
         Assert.assertNotNull(vcfFile);
@@ -457,8 +463,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testLoadStructuralVariations()
-            throws IOException, InterruptedException, NoSuchAlgorithmException,
-                   FeatureFileReadingException {
+            throws IOException, InterruptedException, NoSuchAlgorithmException {
         Resource refResource = context.getResource("classpath:templates/A3.fa");
 
         ReferenceRegistrationRequest refRequest = new ReferenceRegistrationRequest();
@@ -504,7 +509,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testRegisterGA4GH()
         throws IOException, ClassNotFoundException, InterruptedException, ParseException, NoSuchAlgorithmException,
-               ExternalDbUnavailableException, VcfReadingException {
+               ExternalDbUnavailableException {
 
         String fetchRes1 = readFile("GA4GH_id10473.json");
         String fetchRes2 = readFile("GA4GH_id10473_variant.json");
@@ -578,7 +583,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Test(expected = IllegalArgumentException.class)
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testUnregisterVcfFile()
-        throws IOException, InterruptedException, NoSuchAlgorithmException, VcfReadingException {
+        throws IOException, InterruptedException, NoSuchAlgorithmException {
         // Register vcf file.
         Resource resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
@@ -630,7 +635,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testGetNextFeature() throws IOException, InterruptedException, NoSuchAlgorithmException,
-                                            ExternalDbUnavailableException, VcfReadingException {
+                                            ExternalDbUnavailableException {
 
 
         String fetchRes1 = readFile("GA4GH_id10473.json");
@@ -787,7 +792,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadExtendedInfo()
             throws IOException, InterruptedException, FeatureIndexException,
-            NoSuchAlgorithmException, FeatureFileReadingException {
+            NoSuchAlgorithmException {
         VcfFile vcfFile = testSave("classpath:templates/extended_info.vcf");
 
         VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
@@ -802,8 +807,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     private void getNextFeature(Long reference, BiologicalDataItemResourceType type) throws IOException,
                                                                                             InterruptedException,
-                                                                                            NoSuchAlgorithmException,
-                                                                                            VcfReadingException {
+                                                                                            NoSuchAlgorithmException {
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
 
         switch (type) {
@@ -892,12 +896,12 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     private Track<Variation> testLoad(VcfFile vcfFile, Double scaleFactor, boolean checkBlocks)
-        throws IOException, VcfReadingException {
+        throws IOException {
         return testLoad(vcfFile, scaleFactor, checkBlocks, true);
     }
 
     private Track<Variation> testLoad(VcfFile vcfFile, Double scaleFactor, boolean checkBlocks, boolean collapse)
-        throws IOException, VcfReadingException {
+        throws IOException {
         TrackQuery vcfTrackQuery = new TrackQuery();
         vcfTrackQuery.setChromosomeId(testChromosome.getId());
         vcfTrackQuery.setStartIndex(1);
@@ -972,8 +976,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testRegisterFileExtraChr()
-            throws IOException, ClassNotFoundException, InterruptedException, ParseException, NoSuchAlgorithmException,
-            VcfReadingException {
+            throws IOException, ClassNotFoundException, InterruptedException, ParseException, NoSuchAlgorithmException {
         VcfFile vcfFile = testSave("classpath:templates/invalid/extra_chr.vcf");
         Assert.assertTrue(vcfFile != null);
     }

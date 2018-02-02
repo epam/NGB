@@ -48,7 +48,7 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
 
     TabixReader tabixReader;
     List<String> sequenceNames;
-    EhCacheBasedIndexCache indexCache;
+    private EhCacheBasedIndexCache indexCache;
     String indexFile;
 
     /**
@@ -59,9 +59,8 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
      */
     public TabixFeatureReader(final String featureFile, final AsciiFeatureCodec codec) throws IOException {
         super(featureFile, codec);
-        this.indexCache = indexCache;
         tabixReader = new TabixReader(featureFile);
-        sequenceNames = new ArrayList<String>(tabixReader.getChromosomes());
+        sequenceNames = new ArrayList<>(tabixReader.getChromosomes());
         readHeader();
     }
 
@@ -77,9 +76,9 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                               final AsciiFeatureCodec codec, EhCacheBasedIndexCache indexCache) throws IOException {
         super(featureFile, codec);
         this.indexCache = indexCache;
-        tabixReader = new TabixReader(featureFile, indexFile, indexCache);
-        sequenceNames = new ArrayList<String>(tabixReader.getChromosomes());
         this.indexFile = indexFile;
+        tabixReader = new TabixReader(featureFile, indexFile, indexCache);
+        sequenceNames = new ArrayList<>(tabixReader.getChromosomes());
         readHeader();
     }
 

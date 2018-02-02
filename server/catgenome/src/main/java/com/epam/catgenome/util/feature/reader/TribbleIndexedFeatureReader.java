@@ -112,7 +112,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             throws IOException {
         this(featureFile, codec, false, indexCache); // required to read the header
         if (indexFile != null && ParsingUtils.resourceExists(indexFile)) {
-            index = retrieveIndexFromCache(indexFile, indexCache);
+            index = retrieveIndexFromCache(indexFile);
             this.needCheckForIndex = false;
         } else {
             if (requireIndex) {
@@ -124,7 +124,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
         }
     }
 
-    private Index retrieveIndexFromCache(final String indexFile, EhCacheBasedIndexCache indexCache) {
+    private Index retrieveIndexFromCache(final String indexFile) {
         Index index;
         if (indexCache.contains(indexFile)) {
             return (Index)indexCache.getFromCache(indexFile);
@@ -159,12 +159,12 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
     private void loadIndex() throws IOException{
         String indexFile = Tribble.indexFile(this.path);
         if (ParsingUtils.resourceExists(indexFile)) {
-            retrieveIndexFromCache(indexFile, indexCache);
+            retrieveIndexFromCache(indexFile);
         } else {
             // See if the index itself is gzipped
             indexFile = ParsingUtils.appendToPath(indexFile, ".gz");
             if (ParsingUtils.resourceExists(indexFile)) {
-                retrieveIndexFromCache(indexFile, indexCache);
+                retrieveIndexFromCache(indexFile);
             }
         }
         this.needCheckForIndex = false;
@@ -218,7 +218,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
      * @return list of strings of the contig names
      */
     public List<String> getSequenceNames() {
-        return !this.hasIndex() ? new ArrayList<String>() : new ArrayList<String>(index.getSequenceNames());
+        return !this.hasIndex() ? new ArrayList<>() : new ArrayList<>(index.getSequenceNames());
     }
 
     @Override
@@ -327,7 +327,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             } else {
                 pbs = new PositionalBufferedStream(inputStream, 512000);
             }
-            /**
+            /*
              * The header was already read from the original source in the constructor; don't read it again, since some codecs keep state
              * about its initializagtion.  Instead, skip that part of the stream.
              */
