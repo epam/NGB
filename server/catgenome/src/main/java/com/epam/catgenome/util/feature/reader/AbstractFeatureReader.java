@@ -43,7 +43,6 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
 
     // the path to underlying data source
     String path;
-    EhCacheBasedIndexCache indexCache;
 
     // the query source, codec, and header
     // protected final QuerySource querySource;

@@ -48,7 +48,7 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
 
     TabixReader tabixReader;
     List<String> sequenceNames;
-    private EhCacheBasedIndexCache indexCache;
+    EhCacheBasedIndexCache indexCache;
     String indexFile;
 
     /**

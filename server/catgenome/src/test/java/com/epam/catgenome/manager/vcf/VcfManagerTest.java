@@ -84,7 +84,6 @@ import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.entity.vcf.VcfSample;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.Ga4ghResourceUnavailableException;
 import com.epam.catgenome.exception.VcfReadingException;
@@ -445,6 +444,8 @@ public class VcfManagerTest extends AbstractManagerTest {
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceId);
         request.setPath(resource.getFile().getAbsolutePath());
+
+        logger.debug(indexCache.toString());
 
         VcfFile vcfFile = vcfManager.registerVcfFile(request);
         Assert.assertNotNull(vcfFile);
