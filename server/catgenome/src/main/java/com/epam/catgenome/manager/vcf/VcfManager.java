@@ -265,7 +265,7 @@ public class VcfManager {
                 referenceGenomeManager).readVariations(vcfFile, track, chromosome, sampleIndex,
                 loadInfo, collapse, indexCache);
         double time2 = Utils.getSystemTimeMilliseconds();
-        LOGGER.debug("Load Variations1 took {} ms", time2 - time1);
+        System.out.println("Load Variations1 took " + (time2 - time1) +" ms");
 
         return track;
     }
@@ -300,7 +300,7 @@ public class VcfManager {
                                                                                  sampleIndex != null ? sampleIndex : 0,
                                                                                     loadInfo, collapse, indexCache);
         double time2 = Utils.getSystemTimeMilliseconds();
-        LOGGER.debug("Load Variations2 took {} ms", time2 - time1);
+        System.out.println("Load Variations2 took " + (time2 - time1) +" ms");
 
         return track;
     }

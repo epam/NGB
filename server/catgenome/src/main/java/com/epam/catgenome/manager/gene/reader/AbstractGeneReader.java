@@ -158,6 +158,7 @@ public abstract class AbstractGeneReader {
 
         double time2 = Utils.getSystemTimeMilliseconds();
         LOGGER.debug("Reading in {} threads, took {} ms", numOfSubIntervals, time2 - time1);
+        System.out.println("Reading in GTF took " + (time2 - time1) +" ms");
 
         time1 = Utils.getSystemTimeMilliseconds();
         List<Gene> passedGenes = processAssembly(state, track, collapse);

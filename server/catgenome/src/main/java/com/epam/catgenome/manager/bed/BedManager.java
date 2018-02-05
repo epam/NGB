@@ -191,6 +191,7 @@ public class BedManager {
             }
             final double time2 = Utils.getSystemTimeMilliseconds();
             LOG.debug("Reading records from bed file, took {} ms", time2 - time1);
+            System.out.println("Reading records from bed file, took " + (time2 - time1) +" ms");
             track.setBlocks(bedRecords);
             return track;
         } catch (IOException e) {

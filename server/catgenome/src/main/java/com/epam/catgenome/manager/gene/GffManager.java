@@ -1066,7 +1066,7 @@ public class GffManager {
 
                     double time21 = Utils.getSystemTimeMilliseconds();
                     LOGGER.debug("Thread {} Query took {} ms", Thread.currentThread().getName(), time21 - time11);
-
+                    System.out.println("Thread Query GTF took " + (time21 - time11) +" ms");
                     time11 = Utils.getSystemTimeMilliseconds();
 
                     int genesCount = iterator.toList().size();
