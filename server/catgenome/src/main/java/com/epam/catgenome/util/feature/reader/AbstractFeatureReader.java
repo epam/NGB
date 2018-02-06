@@ -47,7 +47,7 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
 
     // the query source, codec, and header
     // protected final QuerySource querySource;
-    protected final FeatureCodec<T, S> codec;
+    protected FeatureCodec<T, S> codec;
     protected FeatureCodecHeader header;
 
     private static AbstractFeatureReader.ComponentMethods methods = new AbstractFeatureReader.ComponentMethods();

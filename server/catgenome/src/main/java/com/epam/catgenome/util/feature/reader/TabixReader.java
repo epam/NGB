@@ -30,6 +30,8 @@ import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import htsjdk.samtools.util.BlockCompressedInputStream;
+import htsjdk.tribble.FeatureCodec;
+import htsjdk.tribble.FeatureCodecHeader;
 import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.util.ParsingUtils;
 import htsjdk.tribble.util.TabixUtils;
@@ -101,8 +103,9 @@ public class TabixReader {
         int mBc;
         int mEc;
         int mMeta;
+        FeatureCodecHeader header;
+        FeatureCodec codec;
         SeekableStream fp;
-        boolean used = false;
     }
 
     protected TIndexCache mIndexCache;

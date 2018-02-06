@@ -34,6 +34,8 @@ import htsjdk.tribble.readers.LineReader;
 import htsjdk.tribble.readers.LineReaderUtil;
 import htsjdk.tribble.readers.PositionalBufferedStream;
 import htsjdk.tribble.util.ParsingUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +53,7 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
     List<String> sequenceNames;
     EhCacheBasedIndexCache indexCache;
     String indexFile;
+    private static final Logger LOGGER = LoggerFactory.getLogger(TabixFeatureReader.class);
 
     /**
      *
@@ -62,7 +65,11 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
         super(featureFile, codec);
         tabixReader = new TabixReader(featureFile);
         sequenceNames = new ArrayList<>(tabixReader.getChromosomes());
+        double time2 = Utils.getSystemTimeMilliseconds();
         readHeader();
+        double time3 = Utils.getSystemTimeMilliseconds();
+        LOGGER.debug("Develop TabixFeatureReader1 header took " + (time3 - time2) +" ms");
+        System.out.println("Develop TabixFeatureReader1 header " + (time3 - time2) +" ms");
     }
 
     /**
@@ -84,10 +91,10 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
         sequenceNames = new ArrayList<>(tabixReader.getChromosomes());
 
         double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Develop TabixFeatureReader creating took " + (time2 - time1) +" ms");
+        System.out.println("Develop TabixFeatureReader2 creating took " + (time2 - time1) +" ms");
         readHeader();
         double time3 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Develop TabixFeatureReader header " + (time3 - time2) +" ms");
+        System.out.println("Develop TabixFeatureReader2 header " + (time3 - time2) +" ms");
     }
 
     /**
@@ -98,10 +105,43 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
      */
     private void readHeader() throws IOException {
         S source = null;
+        double time1 = Utils.getSystemTimeMilliseconds();
+        String[] indexFileSplit = indexFile.split("\\?");
+
         try {
-            source = codec.makeSourceFromStream(new PositionalBufferedStream(
-                    new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
-            header = codec.readHeader(source);
+            if (indexCache.contains(indexFileSplit[0])) {
+                TabixReader.TIndexCache mIndexCache = (TabixReader.TIndexCache) indexCache.getFromCache(indexFileSplit[0]);
+                header = mIndexCache.header;
+                double time2 = Utils.getSystemTimeMilliseconds();
+                System.out.println("Develop readHeader0 header header " + (time2 - time1) + " ms");
+
+                if (header == null) {
+                    source = codec.makeSourceFromStream(new PositionalBufferedStream(
+                            new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
+                    header = codec.readHeader(source);
+                    mIndexCache.header = header;
+                    mIndexCache.codec = codec;
+                    indexCache.putInCache(mIndexCache, indexFileSplit[0]);
+                    double time3 = Utils.getSystemTimeMilliseconds();
+                    System.out.println("Develop readHeader1 header header " + (time3 - time1) + " ms");
+                }
+                codec = mIndexCache.codec;
+                //System.out.println("Header: " + header.getHeaderValue());
+                double time3 = Utils.getSystemTimeMilliseconds();
+                System.out.println("Develop readHeader2 header header " + (time3 - time1) + " ms");
+            }
+            else {
+                source = codec.makeSourceFromStream(new PositionalBufferedStream(
+                        new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
+                double time2 = Utils.getSystemTimeMilliseconds();
+                System.out.println("Develop readHeader3 source took " + (time2 - time1) + " ms");
+
+                header = codec.readHeader(source);
+                double time3 = Utils.getSystemTimeMilliseconds();
+                System.out.println("Develop readHeader3 header header " + (time3 - time2) + " ms");
+
+            }
+
         } catch (IOException e) {
             throw new TribbleException.MalformedFeatureFile("Unable to parse header with error: "
                     + e.getMessage(), path, e);
