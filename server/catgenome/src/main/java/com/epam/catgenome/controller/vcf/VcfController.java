@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import com.epam.catgenome.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -163,6 +164,8 @@ public class VcfController extends AbstractRESTController {
                                               @RequestParam(required = false) final String fileUrl,
                                               @RequestParam(required = false) final String indexUrl)
         throws VcfReadingException {
+        double time1 = Utils.getSystemTimeMilliseconds();
+
         return () -> {
             final Track<Variation> variationTrack = convertToTrack(trackQuery);
             final boolean collapsed = trackQuery.getCollapsed() == null || trackQuery.getCollapsed();
@@ -171,10 +174,13 @@ public class VcfController extends AbstractRESTController {
                 return Result.success(vcfManager
                         .loadVariations(variationTrack, trackQuery.getSampleId(), false, collapsed));
             } else {
-                return Result.success(vcfManager.loadVariations(variationTrack, fileUrl, indexUrl,
+                Track<Variation> payload = vcfManager.loadVariations(variationTrack, fileUrl, indexUrl,
                         trackQuery.getSampleId() != null ?
                                 trackQuery.getSampleId().intValue() :
-                                null, false, collapsed));
+                                null, false, collapsed);
+                double time2 = Utils.getSystemTimeMilliseconds();
+                System.out.println("Develop loadTrack took " + (time2 - time1) +" ms");
+                return Result.success(payload);
             }
         };
     }

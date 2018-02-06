@@ -35,6 +35,7 @@ import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.PSLRecord;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -168,6 +169,7 @@ public class BamController extends AbstractRESTController {
             @RequestParam(required = false) final String fileUrl,
             @RequestParam(required = false) final String indexUrl)
             throws IOException {
+        double time1 = Utils.getSystemTimeMilliseconds();
 
         final ResponseBodyEmitter emitter = new ResponseBodyEmitter(EMITTER_TIMEOUT);
         if (fileUrl == null) {
@@ -179,6 +181,8 @@ public class BamController extends AbstractRESTController {
 
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(MediaType.APPLICATION_JSON_UTF8);
+        double time2 = Utils.getSystemTimeMilliseconds();
+        System.out.println("Load Bam took " + (time2 - time1) +" ms");
         return new ResponseEntity<>(emitter, responseHeaders, HttpStatus.OK);
     }
 

@@ -24,6 +24,7 @@ package com.epam.catgenome.util.feature.reader;
  * THE SOFTWARE.
  */
 
+import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.feature.reader.index.CacheIndex;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import htsjdk.samtools.seekablestream.SeekableStream;
@@ -146,6 +147,8 @@ public class TabixReader {
      */
     public TabixReader(final String fn, final String idxFn, SeekableStream stream,
                        EhCacheBasedIndexCache indexCacheMap) throws IOException {
+        double time1 = Utils.getSystemTimeMilliseconds();
+
         mFn = fn;
         mFp = new BlockCompressedInputStream(stream);
         if (idxFn == null) {
@@ -154,7 +157,11 @@ public class TabixReader {
             mIdxFn = idxFn;
         }
         indexCache = indexCacheMap;
+        double time2 = Utils.getSystemTimeMilliseconds();
+        System.out.println("Develop TabixReader creating took " + (time2 - time1) +" ms");
         readIndex();
+        double time3 = Utils.getSystemTimeMilliseconds();
+        System.out.println("Develop TabixReader index " + (time3 - time2) +" ms");
     }
 
     /** return the source (filename/URL) of that reader */

@@ -23,6 +23,7 @@ package com.epam.catgenome.util.feature.reader;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.tribble.AsciiFeatureCodec;
@@ -75,11 +76,18 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
     public TabixFeatureReader(final String featureFile, final String indexFile,
                               final AsciiFeatureCodec codec, EhCacheBasedIndexCache indexCache) throws IOException {
         super(featureFile, codec);
+        double time1 = Utils.getSystemTimeMilliseconds();
+
         this.indexCache = indexCache;
         this.indexFile = indexFile;
         tabixReader = new TabixReader(featureFile, indexFile, indexCache);
         sequenceNames = new ArrayList<>(tabixReader.getChromosomes());
+
+        double time2 = Utils.getSystemTimeMilliseconds();
+        System.out.println("Develop TabixFeatureReader creating took " + (time2 - time1) +" ms");
         readHeader();
+        double time3 = Utils.getSystemTimeMilliseconds();
+        System.out.println("Develop TabixFeatureReader header " + (time3 - time2) +" ms");
     }
 
     /**

@@ -114,15 +114,22 @@ public class VcfFileReader extends AbstractVcfReader {
                                            final Integer sampleIndex, final boolean loadInfo,
                                            final boolean collapse, EhCacheBasedIndexCache indexCache)
             throws VcfReadingException {
+        double time1 = Utils.getSystemTimeMilliseconds();
         try (FeatureReader<VariantContext> reader = AbstractEnhancedFeatureReader.getFeatureReader(vcfFile.getPath(),
                 vcfFile.getIndex().getPath(), new VCFCodec(), true, indexCache)) {
             if (checkBounds(vcfFile, track, chromosome, loadInfo)) {
+                double time2 = Utils.getSystemTimeMilliseconds();
+                System.out.println("Develop readVariations checkBounds took " + (time2 - time1) +" ms");
                 return track;
             }
+            double time2 = Utils.getSystemTimeMilliseconds();
+
             try (CloseableIterator<VariantContext> iterator = Utils.query(reader, chromosome.getName(), track
                     .getStartIndex(), track.getEndIndex())) {
                 VCFHeader header = (VCFHeader) reader.getHeader();
                 track.setBlocks(doReadVariations(iterator, track, header, vcfFile, sampleIndex, loadInfo, collapse));
+                double time3 = Utils.getSystemTimeMilliseconds();
+                System.out.println("Develop readVariations iterator took " + (time3 - time2) +" ms");
             }
         } catch (IOException e) {
             throw new VcfReadingException(vcfFile, e);
