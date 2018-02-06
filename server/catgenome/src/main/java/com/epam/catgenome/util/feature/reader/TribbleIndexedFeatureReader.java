@@ -126,12 +126,13 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
 
     private Index retrieveIndexFromCache(final String indexFile) {
         Index index;
-        if (indexCache.contains(indexFile)) {
-            return (Index)indexCache.getFromCache(indexFile);
+        String indexFileSplit[] = indexFile.split("\\?");
+        if (indexCache.contains(indexFileSplit[0])) {
+            return (Index)indexCache.getFromCache(indexFileSplit[0]);
         }
         else {
             index = IndexFactory.loadIndex(indexFile);
-            indexCache.putInCache(index, indexFile);
+            indexCache.putInCache(index, indexFileSplit[0]);
             return index;
         }
 
