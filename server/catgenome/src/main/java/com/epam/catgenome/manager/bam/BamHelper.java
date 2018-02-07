@@ -52,8 +52,6 @@ import com.epam.catgenome.entity.bam.BamTrackMode;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.FeatureFileReadingException;
-import com.epam.catgenome.util.feature.reader.CacheIndex;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFlag;
 import htsjdk.samtools.SAMRecord;
@@ -139,9 +137,6 @@ public class BamHelper {
 
     @Autowired
     private ReferenceManager referenceManager;
-
-    @Autowired
-    EhCacheBasedIndexCache indexCache;
 
     /*@Value("#{catgenome['bam.max.reads.count'] ?: 500000}")
     private int maxReadsCount;*/
@@ -474,37 +469,22 @@ public class BamHelper {
 
     private SamInputResource loadIndex(final SamInputResource samInputResource, final BiologicalDataItem indexFile)
             throws IOException {
-        double time1 = Utils.getSystemTimeMilliseconds();
-
         SamInputResource resource;
-        String[] indexFileSplit = indexFile.getPath().split("\\?");
-        if (indexCache.contains(indexFileSplit[0])) {
-            SamInputResource index = ((BamCache) indexCache.getFromCache(indexFileSplit[0])).index;
-            double time2 = Utils.getSystemTimeMilliseconds();
-            System.out.println("Develop if Bam index took " + (time2 - time1) +" ms");
-            return index;
-        } else {
-            switch (indexFile.getType()) {
-                case FILE:
-                    resource = samInputResource.index(new File(indexFile.getPath()));
-                    break;
-                case URL:
-                    resource = samInputResource.index(new URL(indexFile.getPath()));
-                    break;
-                case S3:
-                    resource = getS3Index(samInputResource, indexFile);
-                    break;
-                case HDFS:
-                    resource = getHDFSIndex(samInputResource, indexFile);
-                    break;
-                default:
-                    throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
-            }
-            BamCache bamCache = new BamCache();
-            bamCache.index = resource;
-            indexCache.putInCache(bamCache, indexFileSplit[0]);
-            double time2 = Utils.getSystemTimeMilliseconds();
-            System.out.println("Develop else Bam index took " + (time2 - time1) +" ms");
+        switch (indexFile.getType()) {
+            case FILE:
+                resource = samInputResource.index(new File(indexFile.getPath()));
+                break;
+            case URL:
+                resource = samInputResource.index(new URL(indexFile.getPath()));
+                break;
+            case S3:
+                resource = getS3Index(samInputResource, indexFile);
+                break;
+            case HDFS:
+                resource = getHDFSIndex(samInputResource, indexFile);
+                break;
+            default:
+                throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
         }
         return resource;
     }
@@ -593,7 +573,4 @@ public class BamHelper {
         Assert.notNull(iterator);
     }
 
-    protected class BamCache implements CacheIndex {
-        SamInputResource index;
-    }
 }

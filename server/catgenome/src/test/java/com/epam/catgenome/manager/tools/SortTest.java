@@ -65,7 +65,7 @@ public class SortTest extends AbstractJUnitTest {
     private ToolsManager toolsManager;
 
     @Autowired
-    private static EhCacheBasedIndexCache indexCache;
+    private EhCacheBasedIndexCache indexCache;
 
     @Test
     public void testSortBed() throws Exception {
@@ -137,7 +137,7 @@ public class SortTest extends AbstractJUnitTest {
         }
     }
 
-    public static  <F extends Feature, S> int checkFileSorted(File ofile, final FeatureCodec<F, S> codec)
+    public <F extends Feature, S> int checkFileSorted(File ofile, final FeatureCodec<F, S> codec)
             throws IOException {
         int numlines = 0;
 
