@@ -24,8 +24,6 @@
 
 package com.epam.catgenome.entity.track;
 
-import java.io.Serializable;
-
 /**
  * Source:      Block.java
  * Created:     10/8/15, 7:22 PM
@@ -39,7 +37,7 @@ import java.io.Serializable;
  * single genes, variants etc. In fact any such entities are interval with additional data as
  * GC-content value, gene's name or variant definitions etc.
  */
-public class Block implements Serializable{
+public class Block {
 
     /**
      * {@code Integer} represents the ending interval index, inclusive.
