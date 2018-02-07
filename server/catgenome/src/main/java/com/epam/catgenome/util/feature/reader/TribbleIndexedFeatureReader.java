@@ -22,6 +22,8 @@ package com.epam.catgenome.util.feature.reader;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import com.epam.catgenome.util.Utils;
+import com.epam.catgenome.util.feature.reader.index.CacheIndex;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import htsjdk.samtools.util.RuntimeIOException;
@@ -71,8 +73,6 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
      * Don't want to keep checking if that's the case
      */
     private boolean needCheckForIndex = true;
-
-    private EhCacheBasedIndexCache indexCache;
 
     /**
      * @param featurePath  - path to the feature file, can be a local file path, http url, or ftp url
@@ -128,11 +128,14 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
         Index index;
         String indexFileSplit[] = indexFile.split("\\?");
         if (indexCache.contains(indexFileSplit[0])) {
-            return (Index)indexCache.getFromCache(indexFileSplit[0]);
+            IndexCache mIndex = (IndexCache) indexCache.getFromCache(indexFileSplit[0]);
+            return mIndex.index;
         }
         else {
             index = IndexFactory.loadIndex(indexFile);
-            indexCache.putInCache(index, indexFileSplit[0]);
+            IndexCache mIndex = new IndexCache();
+            mIndex.index = index;
+            indexCache.putInCache(mIndex, indexFileSplit[0]);
             return index;
         }
 
@@ -242,6 +245,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
     private void readHeader() throws IOException {
         InputStream is = null;
         PositionalBufferedStream pbs = null;
+        double time1 = Utils.getSystemTimeMilliseconds();
         try {
             is = ParsingUtils.openInputStream(path);
             if (path.endsWith("gz")) {
@@ -249,8 +253,33 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
                 is = new GZIPInputStream(new BufferedInputStream(is));
             }
             pbs = new PositionalBufferedStream(is);
-            final S source = codec.makeSourceFromStream(pbs);
-            header = codec.readHeader(source);
+            final S source;
+            String indexFileSplit[] = Tribble.indexFile(this.path).split("\\?");
+
+            if (indexCache.contains(indexFileSplit[0])) {
+                IndexCache mIndexCache = (IndexCache) indexCache.getFromCache(indexFileSplit[0]);
+                header = mIndexCache.header;
+                double time2 = Utils.getSystemTimeMilliseconds();
+                System.out.println("Develop readHeader0 header header " + (time2 - time1) + " ms");
+                if (header == null) {
+                    source = codec.makeSourceFromStream(pbs);
+                    header = codec.readHeader(source);
+                    mIndexCache.header = header;
+                    mIndexCache.codec = codec;
+                    indexCache.putInCache(mIndexCache, indexFileSplit[0]);
+                    double time3 = Utils.getSystemTimeMilliseconds();
+                    System.out.println("Develop readHeader1 header header " + (time3 - time1) + " ms");
+                }
+                codec = mIndexCache.codec;
+                double time3 = Utils.getSystemTimeMilliseconds();
+                System.out.println("Develop readHeader2 header header " + (time3 - time1) + " ms");
+            }
+            else {
+                source = codec.makeSourceFromStream(pbs);
+                header = codec.readHeader(source);
+                double time3 = Utils.getSystemTimeMilliseconds();
+                System.out.println("Develop readHeader3 header header " + (time3 - time1) + " ms");
+            }
         } catch (IOException e) {
             throw new TribbleException.MalformedFeatureFile(
                     "Unable to parse header with error: " + e.getMessage(), path, e);
@@ -579,5 +608,14 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
 
         }
     }
+
+    protected static class IndexCache <T extends Feature, S> implements CacheIndex {
+        Index index;
+        FeatureCodecHeader header;
+        FeatureCodec <T,S> codec;
+
+    }
+
+    protected IndexCache mIndexCache;
 
 }

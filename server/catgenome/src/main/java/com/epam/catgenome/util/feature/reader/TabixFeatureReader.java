@@ -51,7 +51,6 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
 
     TabixReader tabixReader;
     List<String> sequenceNames;
-    EhCacheBasedIndexCache indexCache;
     String indexFile;
     private static final Logger LOGGER = LoggerFactory.getLogger(TabixFeatureReader.class);
 
@@ -139,7 +138,6 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                 header = codec.readHeader(source);
                 double time3 = Utils.getSystemTimeMilliseconds();
                 System.out.println("Develop readHeader3 header header " + (time3 - time2) + " ms");
-
             }
 
         } catch (IOException e) {

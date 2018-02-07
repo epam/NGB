@@ -37,7 +37,7 @@ import java.util.Map;
  * An index file is used for efficient lookup of features from a feature file;
  * and Index represents that index file.
  */
-public interface Index extends CacheIndex {
+public interface Index {
     /**
      * Query the index.
      * @param chr the chromosome

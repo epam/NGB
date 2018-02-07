@@ -30,6 +30,7 @@ import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import htsjdk.samtools.util.BlockCompressedInputStream;
+import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureCodec;
 import htsjdk.tribble.FeatureCodecHeader;
 import htsjdk.tribble.TribbleException;
@@ -94,7 +95,7 @@ public class TabixReader {
 
     protected TIndex[] mIndex;
 
-    protected static class TIndexCache implements CacheIndex {
+    protected static class TIndexCache <T extends Feature, S> implements CacheIndex {
         TIndex[] mIndex;
         String[] mSeq;
         Map<String, Integer> mChr2tid;
@@ -104,7 +105,7 @@ public class TabixReader {
         int mEc;
         int mMeta;
         FeatureCodecHeader header;
-        FeatureCodec codec;
+        FeatureCodec <T, S> codec;
         SeekableStream fp;
     }
 
