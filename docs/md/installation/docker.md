@@ -141,3 +141,35 @@ Restarting a container using this command will not cause loss of data or NGB con
 * PIK3CA-E545K-Sample dataset: [E545K SNV](http://localhost:8080/catgenome/#/GRCh38/3/179218268/179218337?rewrite=Off&tracks=%5B%7B%22h%22%3A20%2C%22s%22%3A%7B%7D%2C%22b%22%3A%22GRCh38%22%2C%22p%22%3A%22PIK3CA-E545K-Sample%22%7D%2C%7B%22h%22%3A70%2C%22s%22%3A%7B%22v%22%3A%22Collapsed%22%7D%2C%22b%22%3A%22PIK3CA-E545K.vcf%22%2C%22p%22%3A%22PIK3CA-E545K-Sample%22%7D%2C%7B%22h%22%3A80%2C%22s%22%3A%7B%22g%22%3A%22expanded%22%7D%2C%22b%22%3A%22GRCh38_Genes%22%2C%22p%22%3A%22PIK3CA-E545K-Sample%22%7D%2C%7B%22h%22%3A365%2C%22s%22%3A%7B%22a%22%3Atrue%2C%22c%22%3A%22noColor%22%2C%22c1%22%3Atrue%2C%22d%22%3Atrue%2C%22g1%22%3A%22default%22%2C%22i%22%3Atrue%2C%22m%22%3Atrue%2C%22r%22%3A%221%22%2C%22s1%22%3Afalse%2C%22s2%22%3Atrue%2C%22s3%22%3Afalse%2C%22v1%22%3Afalse%7D%2C%22b%22%3A%22PIK3CA-E545K.bam%22%2C%22p%22%3A%22PIK3CA-E545K-Sample%22%7D%5D)
 
 * Fruitfly dataset: [LIMK 1 SNV-INDELS](http://localhost:8080/catgenome/#/DM6/X/12588906/12592411?rewrite=Off&tracks=%5B%7B%22h%22%3A20%2C%22s%22%3A%7B%7D%2C%22b%22%3A%22DM6%22%2C%22p%22%3A%22Fruitfly%22%7D%2C%7B%22h%22%3A69%2C%22s%22%3A%7B%22g%22%3A%22collapsed%22%7D%2C%22b%22%3A%22DM6_Genes%22%2C%22p%22%3A%22Fruitfly%22%7D%2C%7B%22h%22%3A189%2C%22s%22%3A%7B%22v%22%3A%22Expanded%22%7D%2C%22b%22%3A%22CantonS.09-28.trim.dm606.realign.vcf%22%2C%22p%22%3A%22Fruitfly%22%7D%2C%7B%22h%22%3A444%2C%22s%22%3A%7B%22a%22%3Atrue%2C%22c%22%3A%22noColor%22%2C%22c1%22%3Atrue%2C%22d%22%3Atrue%2C%22g1%22%3A%22default%22%2C%22i%22%3Atrue%2C%22m%22%3Atrue%2C%22r%22%3A%221%22%2C%22s1%22%3Afalse%2C%22s2%22%3Atrue%2C%22s3%22%3Afalse%2C%22v1%22%3Afalse%7D%2C%22b%22%3A%22CantonS.09-28.trim.dm606.realign.bam%22%2C%22p%22%3A%22Fruitfly%22%7D%5D)
+
+# Develop versions of docker images
+
+Docker images from develop branch are automatically builded by Travis-CI and pushed to DockerHub.
+Unfourunately, the demo data could not be included in the image due to the large size of demo data and Travis disk space limitations.
+So you have to download data by the demo_data_download.sh script located in the docker/demo/ folder
+
+To launch the docker image put the demo_data_script.sh file to the folder on the host machine you want to be used for the data download.
+Just for the example let it be /home/user/ngb_files
+
+Next, download the pull the -dev docker image and launch it (replace 2.6.0.34.1.34.1 with the version number you want)
+
+```
+$ docker run -d -p 8080:8080 --name ngbcore -v /home/user/ngb_files/:/ngs epam/lifesciences/ngb:2.6.0.34.1.34.1-dev
+```
+This command will start docker with the ngbcore name, mount the folder /home/user/ngb_files on the host machine to the /ngs mount point of the container and expose the 8080 port for the ngb graphical interface
+
+Now run the script to download demo data
+```
+$ docker exec -it ngbcore /ngs/demo_data_download.sh
+```
+demo_data_download.sh script will download genome references to ~/ngb_data/references and demo data to /home /ngb_data/data_files by default
+But you can change the paths for references and data files by passing -r and -f arguments to the demo_data_download.sh script, respectively if you want to
+
+For example:
+```
+./demo_data_download.sh -r ~/references -f ~/some/other/folder
+```
+
+The script will download all the necessary files and will register them by itself. But please be patient, as the reference donwload may take much time.
+
+
