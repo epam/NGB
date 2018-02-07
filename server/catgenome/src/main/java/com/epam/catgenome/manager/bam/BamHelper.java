@@ -474,10 +474,15 @@ public class BamHelper {
 
     private SamInputResource loadIndex(final SamInputResource samInputResource, final BiologicalDataItem indexFile)
             throws IOException {
+        double time1 = Utils.getSystemTimeMilliseconds();
+
         SamInputResource resource;
         String[] indexFileSplit = indexFile.getPath().split("\\?");
         if (indexCache.contains(indexFileSplit[0])) {
-            return ((BamCache) indexCache.getFromCache(indexFileSplit[0])).index;
+            SamInputResource index = ((BamCache) indexCache.getFromCache(indexFileSplit[0])).index;
+            double time2 = Utils.getSystemTimeMilliseconds();
+            System.out.println("Develop if Bam index took " + (time2 - time1) +" ms");
+            return index;
         } else {
             switch (indexFile.getType()) {
                 case FILE:
@@ -498,6 +503,8 @@ public class BamHelper {
             BamCache bamCache = new BamCache();
             bamCache.index = resource;
             indexCache.putInCache(bamCache, indexFileSplit[0]);
+            double time2 = Utils.getSystemTimeMilliseconds();
+            System.out.println("Develop else Bam index took " + (time2 - time1) +" ms");
         }
         return resource;
     }
