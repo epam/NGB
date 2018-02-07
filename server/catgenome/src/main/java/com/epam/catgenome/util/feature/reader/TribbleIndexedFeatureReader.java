@@ -259,7 +259,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
                 IndexCache mIndexCache = (IndexCache) indexCache.getFromCache(indexFileSplit[0]);
                 header = mIndexCache.header;
                 double time2 = Utils.getSystemTimeMilliseconds();
-                System.out.println("Develop readHeader0 header header " + (time2 - time1) + " ms");
+                System.out.println("Develop readHeader0 header header " + (time2 - time1));
                 if (header == null) {
                     source = codec.makeSourceFromStream(pbs);
                     header = codec.readHeader(source);
@@ -267,17 +267,17 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
                     mIndexCache.codec = codec;
                     indexCache.putInCache(mIndexCache, indexFileSplit[0]);
                     double time3 = Utils.getSystemTimeMilliseconds();
-                    System.out.println("Develop readHeader1 header header " + (time3 - time1) + " ms");
+                    System.out.println("Develop readHeader1 header header " + (time3 - time1));
                 }
                 codec = mIndexCache.codec;
                 double time3 = Utils.getSystemTimeMilliseconds();
-                System.out.println("Develop readHeader2 header header " + (time3 - time1) + " ms");
+                System.out.println("Develop readHeader2 header header " + (time3 - time1));
             }
             else {
                 source = codec.makeSourceFromStream(pbs);
                 header = codec.readHeader(source);
                 double time3 = Utils.getSystemTimeMilliseconds();
-                System.out.println("Develop readHeader3 header header " + (time3 - time1) + " ms");
+                System.out.println("Develop readHeader3 header header " + (time3 - time1));
             }
         } catch (IOException e) {
             throw new TribbleException.MalformedFeatureFile(

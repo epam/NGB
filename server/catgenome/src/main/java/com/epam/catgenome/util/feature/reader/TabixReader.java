@@ -161,10 +161,10 @@ public class TabixReader {
         }
         indexCache = indexCacheMap;
         double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Develop TabixReader creating took " + (time2 - time1) +" ms");
+        System.out.println("Develop TabixReader creating took " + (time2 - time1));
         readIndex();
         double time3 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Develop TabixReader index " + (time3 - time2) +" ms");
+        System.out.println("Develop TabixReader index " + (time3 - time2));
     }
 
     /** return the source (filename/URL) of that reader */
@@ -249,7 +249,7 @@ public class TabixReader {
             mSc = mIndexCache.mSc;
             mSeq = mIndexCache.mSeq;
             double time2 = Utils.getSystemTimeMilliseconds();
-            System.out.println("Develop readIndex2 if creating took " + (time2 - time1) +" ms");
+            System.out.println("Develop readIndex2 if creating took " + (time2 - time1));
         }
         //create index and save to cache
         else {
@@ -319,7 +319,7 @@ public class TabixReader {
             //first part of URL for S3 created links
             indexCache.putInCache(mIndexCache, indexFile[0]);
             double time2 = Utils.getSystemTimeMilliseconds();
-            System.out.println("Develop readIndex2 put creating took " + (time2 - time1) +" ms");
+            System.out.println("Develop readIndex2 put creating took " + (time2 - time1));
             // close
             is.close();
         }
@@ -334,14 +334,14 @@ public class TabixReader {
             mIndexCache = (TIndexCache) indexCache.getFromCache(mIdxFn);
             readIndex(mIndexCache.fp);
             double time2 = Utils.getSystemTimeMilliseconds();
-            System.out.println("Develop readIndex if creating took " + (time2 - time1) +" ms");
+            System.out.println("Develop readIndex if creating took " + (time2 - time1));
         } else {
             double time1 = Utils.getSystemTimeMilliseconds();
             ISeekableStreamFactory ssf = SeekableStreamFactory.getInstance();
             SeekableStream bufferedStream = ssf.getBufferedStream(ssf.getStreamFor(mIdxFn), 128000);
             readIndex(bufferedStream);
             double time2 = Utils.getSystemTimeMilliseconds();
-            System.out.println("Develop readIndex else creating took " + (time2 - time1) +" ms");
+            System.out.println("Develop readIndex else creating took " + (time2 - time1));
         }
     }
 

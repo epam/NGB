@@ -67,8 +67,8 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
         double time2 = Utils.getSystemTimeMilliseconds();
         readHeader();
         double time3 = Utils.getSystemTimeMilliseconds();
-        LOGGER.debug("Develop TabixFeatureReader1 header took " + (time3 - time2) +" ms");
-        System.out.println("Develop TabixFeatureReader1 header " + (time3 - time2) +" ms");
+        LOGGER.debug("Develop TabixFeatureReader1 header took " + (time3 - time2));
+        System.out.println("Develop TabixFeatureReader1 header " + (time3 - time2));
     }
 
     /**
@@ -90,10 +90,10 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
         sequenceNames = new ArrayList<>(tabixReader.getChromosomes());
 
         double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Develop TabixFeatureReader2 creating took " + (time2 - time1) +" ms");
+        System.out.println("Develop TabixFeatureReader2 creating took " + (time2 - time1));
         readHeader();
         double time3 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Develop TabixFeatureReader2 header " + (time3 - time2) +" ms");
+        System.out.println("Develop TabixFeatureReader2 header " + (time3 - time2));
     }
 
     /**
@@ -112,7 +112,7 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                 TabixReader.TIndexCache mIndexCache = (TabixReader.TIndexCache) indexCache.getFromCache(indexFileSplit[0]);
                 header = mIndexCache.header;
                 double time2 = Utils.getSystemTimeMilliseconds();
-                System.out.println("Develop readHeader0 header header " + (time2 - time1) + " ms");
+                System.out.println("Develop readHeader0 header header " + (time2 - time1));
 
                 if (header == null) {
                     source = codec.makeSourceFromStream(new PositionalBufferedStream(
@@ -122,22 +122,22 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                     mIndexCache.codec = codec;
                     indexCache.putInCache(mIndexCache, indexFileSplit[0]);
                     double time3 = Utils.getSystemTimeMilliseconds();
-                    System.out.println("Develop readHeader1 header header " + (time3 - time1) + " ms");
+                    System.out.println("Develop readHeader1 header header " + (time3 - time1));
                 }
                 codec = mIndexCache.codec;
                 //System.out.println("Header: " + header.getHeaderValue());
                 double time3 = Utils.getSystemTimeMilliseconds();
-                System.out.println("Develop readHeader2 header header " + (time3 - time1) + " ms");
+                System.out.println("Develop readHeader2 header header " + (time3 - time1));
             }
             else {
                 source = codec.makeSourceFromStream(new PositionalBufferedStream(
                         new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
                 double time2 = Utils.getSystemTimeMilliseconds();
-                System.out.println("Develop readHeader3 source took " + (time2 - time1) + " ms");
+                System.out.println("Develop readHeader3 source took " + (time2 - time1));
 
                 header = codec.readHeader(source);
                 double time3 = Utils.getSystemTimeMilliseconds();
-                System.out.println("Develop readHeader3 header header " + (time3 - time2) + " ms");
+                System.out.println("Develop readHeader3 header header " + (time3 - time2));
             }
 
         } catch (IOException e) {
