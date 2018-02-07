@@ -1,4 +1,4 @@
-package com.epam.catgenome.util.feature.reader.index;
+package com.epam.catgenome.util.feature.reader;
 
 import java.io.Serializable;
 

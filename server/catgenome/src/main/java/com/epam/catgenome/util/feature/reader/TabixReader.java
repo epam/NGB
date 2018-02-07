@@ -25,7 +25,6 @@ package com.epam.catgenome.util.feature.reader;
  */
 
 import com.epam.catgenome.util.Utils;
-import com.epam.catgenome.util.feature.reader.index.CacheIndex;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;

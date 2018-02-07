@@ -29,7 +29,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import htsjdk.tribble.*;
-import com.epam.catgenome.util.feature.reader.index.Index;
+import htsjdk.tribble.index.Index;
 import htsjdk.tribble.util.ParsingUtils;
 import htsjdk.tribble.util.TabixUtils;
 import org.slf4j.Logger;

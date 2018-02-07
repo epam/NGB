@@ -20,7 +20,7 @@ package com.epam.catgenome.util.feature.reader;
 
 import com.epam.catgenome.util.Utils;
 import htsjdk.tribble.*;
-import com.epam.catgenome.util.feature.reader.index.Index;
+import htsjdk.tribble.index.Index;
 import htsjdk.tribble.util.ParsingUtils;
 import htsjdk.tribble.util.TabixUtils;
 

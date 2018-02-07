@@ -23,13 +23,12 @@ package com.epam.catgenome.util.feature.reader;
  * THE SOFTWARE.
  */
 import com.epam.catgenome.util.Utils;
-import com.epam.catgenome.util.feature.reader.index.CacheIndex;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.tribble.*;
-import com.epam.catgenome.util.feature.reader.index.Index;
-import com.epam.catgenome.util.feature.reader.index.IndexFactory;
+import htsjdk.tribble.index.Index;
+import htsjdk.tribble.index.IndexFactory;
 import htsjdk.tribble.index.Block;
 import htsjdk.tribble.readers.PositionalBufferedStream;
 import htsjdk.tribble.util.ParsingUtils;

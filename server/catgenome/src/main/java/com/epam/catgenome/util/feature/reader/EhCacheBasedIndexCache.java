@@ -24,7 +24,6 @@
 
 package com.epam.catgenome.util.feature.reader;
 
-import com.epam.catgenome.util.feature.reader.index.CacheIndex;
 import net.sf.ehcache.CacheException;
 import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
