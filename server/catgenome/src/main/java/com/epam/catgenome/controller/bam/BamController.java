@@ -121,7 +121,7 @@ public class BamController extends AbstractRESTController {
 
         Result<List<BamFile>> success = Result.success(bamFileManager.loadBamFilesByReferenceId(referenceId));
         double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Load Bam register load took " + (time2 - time1) +" ms");
+        System.out.println("Load Bam register load took " + (time2 - time1));
         return success;
     }
 
@@ -146,7 +146,7 @@ public class BamController extends AbstractRESTController {
 
         Result<BamFile> success = Result.success(bamManager.registerBam(request));
         double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Load Bam register load took " + (time2 - time1) +" ms");
+        System.out.println("Load Bam register load took " + (time2 - time1));
         return success;
     }
 
@@ -192,7 +192,7 @@ public class BamController extends AbstractRESTController {
         responseHeaders.setContentType(MediaType.APPLICATION_JSON_UTF8);
         ResponseEntity<ResponseBodyEmitter> responseBodyEmitterResponseEntity = new ResponseEntity<>(emitter, responseHeaders, HttpStatus.OK);
         double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Load Bam get took " + (time2 - time1) +" ms");
+        System.out.println("Load Bam get took " + (time2 - time1));
 
         return responseBodyEmitterResponseEntity;
     }
@@ -205,7 +205,7 @@ public class BamController extends AbstractRESTController {
         BamFile deletedFile = bamManager.unregisterBamFile(bamFileId);
         Result<Boolean> success = Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
         double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Load Bam register load took " + (time2 - time1) +" ms");
+        System.out.println("Load Bam register load took " + (time2 - time1));
         return success; }
 
     @ResponseBody
@@ -233,7 +233,7 @@ public class BamController extends AbstractRESTController {
 
         Track<Sequence> sequenceTrack = bamManager.calculateConsensusSequence(convertToTrack(query));
         double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Load Bam consensus get took " + (time2 - time1) +" ms");
+        System.out.println("Load Bam consensus get took " + (time2 - time1));
         return sequenceTrack;
     }
 
@@ -253,7 +253,7 @@ public class BamController extends AbstractRESTController {
 
         Result<Read> success = Result.success(bamManager.loadRead(query, fileUrl, indexUrl));
         double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Load Bam read load took " + (time2 - time1) +" ms");
+        System.out.println("Load Bam read load took " + (time2 - time1));
         return success;
     }
 
@@ -273,7 +273,7 @@ public class BamController extends AbstractRESTController {
 
         Result<List<PSLRecord>> success = Result.success(bamManager.findBlatReadSequence(bamTrackId, readSequence.getReadSequence()));
         double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Load Bam read blat get took " + (time2 - time1) +" ms");
+        System.out.println("Load Bam read blat get took " + (time2 - time1));
         return success;
     }
 }
