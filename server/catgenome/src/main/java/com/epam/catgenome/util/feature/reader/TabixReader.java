@@ -24,7 +24,6 @@ package com.epam.catgenome.util.feature.reader;
  * THE SOFTWARE.
  */
 
-import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
@@ -105,7 +104,6 @@ public class TabixReader {
         int mMeta;
         FeatureCodecHeader header;
         FeatureCodec <T, S> codec;
-        SeekableStream fp;
     }
 
     protected TIndexCache mIndexCache;
@@ -149,9 +147,7 @@ public class TabixReader {
      * @param stream Seekable stream from which the data is read
      */
     public TabixReader(final String fn, final String idxFn, SeekableStream stream,
-                       EhCacheBasedIndexCache indexCacheMap) throws IOException {
-        double time1 = Utils.getSystemTimeMilliseconds();
-
+                       EhCacheBasedIndexCache indexCache) throws IOException {
         mFn = fn;
         mFp = new BlockCompressedInputStream(stream);
         if (idxFn == null) {
@@ -159,12 +155,8 @@ public class TabixReader {
         } else {
             mIdxFn = idxFn;
         }
-        indexCache = indexCacheMap;
-        double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Develop TabixReader creating took " + (time2 - time1));
+        this.indexCache = indexCache;
         readIndex();
-        double time3 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Develop TabixReader index " + (time3 - time2));
     }
 
     /** return the source (filename/URL) of that reader */
@@ -234,11 +226,11 @@ public class TabixReader {
         if (fp == null) {
             return;
         }
+        //first part of URL for S3 created links
         String indexFile[] = mIdxFn.split("\\?");
-        System.out.println("mIdxFn: " + indexFile[0]);
+
         // read the index cache
-        if (indexCache.contains(indexFile[0])) {
-            double time1 = Utils.getSystemTimeMilliseconds();
+        if (indexCache != null && indexCache.contains(indexFile[0])) {
             mIndexCache = (TIndexCache) indexCache.getFromCache(indexFile[0]);
             mIndex = mIndexCache.mIndex;
             mBc = mIndexCache.mBc;
@@ -248,8 +240,6 @@ public class TabixReader {
             mPreset = mIndexCache.mPreset;
             mSc = mIndexCache.mSc;
             mSeq = mIndexCache.mSeq;
-            double time2 = Utils.getSystemTimeMilliseconds();
-            System.out.println("Develop readIndex2 if creating took " + (time2 - time1));
         }
         //create index and save to cache
         else {
@@ -304,22 +294,19 @@ public class TabixReader {
                     mIndex[i].l[k] = readLong(is);
                 }
             }
+            if (indexCache != null) {
+                mIndexCache = new TIndexCache();
+                mIndexCache.mIndex = mIndex;
+                mIndexCache.mBc = mBc;
+                mIndexCache.mChr2tid = mChr2tid;
+                mIndexCache.mEc = mEc;
+                mIndexCache.mMeta = mMeta;
+                mIndexCache.mPreset = mPreset;
+                mIndexCache.mSc = mSc;
+                mIndexCache.mSeq = mSeq;
 
-            double time1 = Utils.getSystemTimeMilliseconds();
-            mIndexCache = new TIndexCache();
-            mIndexCache.mIndex = mIndex;
-            mIndexCache.mBc = mBc;
-            mIndexCache.mChr2tid = mChr2tid;
-            mIndexCache.mEc = mEc;
-            mIndexCache.mMeta = mMeta;
-            mIndexCache.mPreset = mPreset;
-            mIndexCache.mSc = mSc;
-            mIndexCache.mSeq = mSeq;
-            mIndexCache.fp = fp;
-            //first part of URL for S3 created links
-            indexCache.putInCache(mIndexCache, indexFile[0]);
-            double time2 = Utils.getSystemTimeMilliseconds();
-            System.out.println("Develop readIndex2 put creating took " + (time2 - time1));
+                indexCache.putInCache(mIndexCache, indexFile[0]);
+            }
             // close
             is.close();
         }
@@ -329,20 +316,9 @@ public class TabixReader {
      * Read the Tabix index from the default file.
      */
     private void readIndex() throws IOException {
-        if (indexCache.contains(mIdxFn)) {
-            double time1 = Utils.getSystemTimeMilliseconds();
-            mIndexCache = (TIndexCache) indexCache.getFromCache(mIdxFn);
-            readIndex(mIndexCache.fp);
-            double time2 = Utils.getSystemTimeMilliseconds();
-            System.out.println("Develop readIndex if creating took " + (time2 - time1));
-        } else {
-            double time1 = Utils.getSystemTimeMilliseconds();
-            ISeekableStreamFactory ssf = SeekableStreamFactory.getInstance();
-            SeekableStream bufferedStream = ssf.getBufferedStream(ssf.getStreamFor(mIdxFn), 128000);
-            readIndex(bufferedStream);
-            double time2 = Utils.getSystemTimeMilliseconds();
-            System.out.println("Develop readIndex else creating took " + (time2 - time1));
-        }
+        ISeekableStreamFactory ssf = SeekableStreamFactory.getInstance();
+        SeekableStream bufferedStream = ssf.getBufferedStream(ssf.getStreamFor(mIdxFn), 128000);
+        readIndex(bufferedStream);
     }
 
     /**

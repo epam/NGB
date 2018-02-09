@@ -91,11 +91,11 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
                     throw new TribbleException("Tabix indexed files only work with ASCII codecs, "
                             + "but received non-Ascii codec " + codec.getClass().getSimpleName());
                 }
-                return new TabixFeatureReader<FEATURE, SOURCE>(featureResource, indexResource,
+                return new TabixFeatureReader<>(featureResource, indexResource,
                         (AsciiFeatureCodec) codec, indexCache);
             } else {
                 // Not tabix => tribble index file (might be gzipped, but not block gzipped)
-                return new TribbleIndexedFeatureReader<FEATURE, SOURCE>(featureResource, indexResource,
+                return new TribbleIndexedFeatureReader<>(featureResource, indexResource,
                         codec, requireIndex, indexCache);
             }
         } catch (IOException e) {
@@ -121,7 +121,7 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
             EhCacheBasedIndexCache indexCache)
             throws TribbleException {
         try {
-            return new TribbleIndexedFeatureReader<FEATURE, SOURCE>(featureResource, codec, index, indexCache);
+            return new TribbleIndexedFeatureReader<>(featureResource, codec, index, indexCache);
         } catch (IOException e) {
             throw new TribbleException.MalformedFeatureFile("Unable to create "
                     + "AbstractFeatureReader using feature file ", featureResource, e);

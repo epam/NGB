@@ -249,8 +249,6 @@ public class VcfManager {
     public Track<Variation> loadVariations(final Track<Variation> track, final Long sampleId, boolean loadInfo,
                                            final boolean collapse)
             throws VcfReadingException {
-        double time1 = Utils.getSystemTimeMilliseconds();
-
         Chromosome chromosome = trackHelper.validateTrack(track);
 
         final VcfFile vcfFile = vcfFileManager.loadVcfFile(track.getId());
@@ -264,8 +262,6 @@ public class VcfManager {
         AbstractVcfReader.createVcfReader(vcfFile.getType(), httpDataManager, fileManager,
                 referenceGenomeManager).readVariations(vcfFile, track, chromosome, sampleIndex,
                 loadInfo, collapse, indexCache);
-        double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Load Variations1 took " + (time2 - time1) +" ms");
 
         return track;
     }
@@ -284,9 +280,6 @@ public class VcfManager {
     public Track<Variation> loadVariations(final Track<Variation> track, String fileUrl, String indexUrl,
                                            final Integer sampleIndex, final boolean loadInfo, final boolean collapse)
         throws VcfReadingException {
-
-        double time1 = Utils.getSystemTimeMilliseconds();
-
         Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
 
         VcfFile notRegisteredFile = makeTemporaryVcfFileFromUrl(fileUrl, indexUrl, chromosome);
@@ -299,9 +292,6 @@ public class VcfManager {
                                           referenceGenomeManager).readVariations(notRegisteredFile, track, chromosome,
                                                                                  sampleIndex != null ? sampleIndex : 0,
                                                                                     loadInfo, collapse, indexCache);
-        double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Load Variations2 took " + (time2 - time1) +" ms");
-
         return track;
     }
 

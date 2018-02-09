@@ -27,18 +27,19 @@ package com.epam.catgenome.util.feature.reader;
 import net.sf.ehcache.CacheException;
 import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.ehcache.EhCacheCacheManager;
+import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+@Service
 public class EhCacheBasedIndexCache {
     private static final String INDEX_URL_REQUIRED = "Index Url required";
-    private static final String CACHE_REQUIRED = "Cache required";
     private static final String INDEX_REQUIRED = "Index required";
-    private final Ehcache cache;
+    private static final String INDEX_CACHE = "indexCache";
 
-    public EhCacheBasedIndexCache(Ehcache cache) {
-        Assert.notNull(cache, CACHE_REQUIRED);
-        this.cache = cache;
-    }
+    @Autowired
+    private EhCacheCacheManager cacheManager;
 
     public void evictFromCache(String indexUrl) {
         Assert.notNull(indexUrl, INDEX_URL_REQUIRED);
@@ -46,7 +47,7 @@ public class EhCacheBasedIndexCache {
         CacheIndex index = getFromCache(indexUrl);
 
         if (index != null) {
-            cache.remove(indexUrl);
+            cacheManager.getCacheManager().getCache(INDEX_CACHE).remove(indexUrl);
         }
     }
 
@@ -56,7 +57,7 @@ public class EhCacheBasedIndexCache {
         Element element;
 
         if (contains(indexUrl)) {
-            element = cache.get(indexUrl);
+            element = cacheManager.getCacheManager().getCache(INDEX_CACHE).get(indexUrl);
             return (CacheIndex) element.getObjectValue();
         } else {
             return null;
@@ -67,7 +68,7 @@ public class EhCacheBasedIndexCache {
         Assert.notNull(index, INDEX_REQUIRED);
         Assert.notNull(indexUrl, INDEX_URL_REQUIRED);
 
-        cache.put(new Element(indexUrl, index));
+        cacheManager.getCacheManager().getCache(INDEX_CACHE).put(new Element(indexUrl, index));
     }
 
     public boolean contains(String indexUrl) {
@@ -76,7 +77,7 @@ public class EhCacheBasedIndexCache {
         Element element = null;
 
         try {
-            element = cache.get(indexUrl);
+            element = cacheManager.getCacheManager().getCache(INDEX_CACHE).get(indexUrl);
         } catch (CacheException ignored) {
             return false;
         }
@@ -85,11 +86,13 @@ public class EhCacheBasedIndexCache {
     }
 
     public void clearCache() {
-        cache.removeAll();
+        cacheManager.getCacheManager().getCache(INDEX_CACHE).removeAll();
     }
 
     @Override
     public String toString() {
+        Ehcache cache = cacheManager.getCacheManager().getCache(INDEX_CACHE);
+
         return "Cache Name: " + cache.getName() + ", cacheManager: " + cache.getCacheManager() +
                 " cacheSize: " + cache.getSize() + " maxEntriesInHeap: " +
                 cache.getCacheConfiguration().getMaxEntriesLocalHeap() + " timeToIdle: " +

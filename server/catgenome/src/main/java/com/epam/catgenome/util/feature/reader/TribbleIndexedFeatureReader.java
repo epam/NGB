@@ -22,7 +22,6 @@ package com.epam.catgenome.util.feature.reader;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import htsjdk.samtools.util.RuntimeIOException;
@@ -77,6 +76,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
      * @param featurePath  - path to the feature file, can be a local file path, http url, or ftp url
      * @param codec        - codec to decode the features
      * @param requireIndex - true if the reader will be queries for specific ranges.  An index (idx) file must exist
+     * @param indexCache  - a cache for Index objects
      * @throws IOException
      */
     public TribbleIndexedFeatureReader(final String featurePath, final FeatureCodec<T, S> codec,
@@ -103,6 +103,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
      * @param indexFile    - path to the index file
      * @param codec        - codec to decode the features
      * @param requireIndex - true if the reader will be queries for specific ranges.  An index (idx) file must exist
+     * @param indexCache  - a cache for Index objects
      * @throws IOException
      */
     public TribbleIndexedFeatureReader(final String featureFile, final String indexFile,
@@ -244,7 +245,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
     private void readHeader() throws IOException {
         InputStream is = null;
         PositionalBufferedStream pbs = null;
-        double time1 = Utils.getSystemTimeMilliseconds();
+
         try {
             is = ParsingUtils.openInputStream(path);
             if (path.endsWith("gz")) {
@@ -258,26 +259,19 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             if (indexCache.contains(indexFileSplit[0])) {
                 IndexCache mIndexCache = (IndexCache) indexCache.getFromCache(indexFileSplit[0]);
                 header = mIndexCache.header;
-                double time2 = Utils.getSystemTimeMilliseconds();
-                System.out.println("Develop readHeader0 header header " + (time2 - time1));
+
                 if (header == null) {
                     source = codec.makeSourceFromStream(pbs);
                     header = codec.readHeader(source);
                     mIndexCache.header = header;
                     mIndexCache.codec = codec;
                     indexCache.putInCache(mIndexCache, indexFileSplit[0]);
-                    double time3 = Utils.getSystemTimeMilliseconds();
-                    System.out.println("Develop readHeader1 header header " + (time3 - time1));
                 }
                 codec = mIndexCache.codec;
-                double time3 = Utils.getSystemTimeMilliseconds();
-                System.out.println("Develop readHeader2 header header " + (time3 - time1));
             }
             else {
                 source = codec.makeSourceFromStream(pbs);
                 header = codec.readHeader(source);
-                double time3 = Utils.getSystemTimeMilliseconds();
-                System.out.println("Develop readHeader3 header header " + (time3 - time1));
             }
         } catch (IOException e) {
             throw new TribbleException.MalformedFeatureFile(
@@ -362,7 +356,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
              */
             long skippedBytes = pbs.skip(header.getHeaderEnd());
             if (skippedBytes == 0) {
-                Assert.assertEquals(skippedBytes,0);
+                Assert.assertEquals(skippedBytes, 0);
             }
             source = codec.makeSourceFromStream(pbs);
             readNextRecord();
@@ -611,7 +605,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
     protected static class IndexCache <T extends Feature, S> implements CacheIndex {
         Index index;
         FeatureCodecHeader header;
-        FeatureCodec <T,S> codec;
+        FeatureCodec <T, S> codec;
 
     }
 

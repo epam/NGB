@@ -12,13 +12,10 @@
            transactionalMode="off">
         <persistence strategy="none" />
     </cache>
-    <!-- maxElementsInMemory=1000
-    localhost:8080/ehcahce/rest/indexCache-->
     <cache name="indexCache"
-           maxEntriesLocalHeap="1000"
+           maxBytesLocalHeap="100M"
            eternal="false"
-           diskSpoolBufferSizeMB="100"
-           timeToIdleSeconds="500"
+           timeToIdleSeconds="600"
            memoryStoreEvictionPolicy="FIFO"
            transactionalMode="off">
         <persistence strategy="none" />

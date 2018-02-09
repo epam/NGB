@@ -21,10 +21,7 @@
 
     <bean id="cache" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
         <property name="cacheManager" ref="ehcache"/>
-        <property name="cacheName" value="indexCache"/>
     </bean>
-
-    <bean id="indexCache" class="com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache"/>
 
     <!-- Task executor for async cache population -->
     <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">

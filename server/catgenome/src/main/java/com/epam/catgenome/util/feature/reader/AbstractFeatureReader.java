@@ -18,7 +18,6 @@ package com.epam.catgenome.util.feature.reader;
  * FOREGOING.
  */
 
-import com.epam.catgenome.util.Utils;
 import htsjdk.tribble.*;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.util.ParsingUtils;
@@ -49,7 +48,7 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
     // protected final QuerySource querySource;
     protected FeatureCodec<T, S> codec;
     protected FeatureCodecHeader header;
-    protected EhCacheBasedIndexCache indexCache;
+    EhCacheBasedIndexCache indexCache;
 
     private static AbstractFeatureReader.ComponentMethods methods = new AbstractFeatureReader.ComponentMethods();
 
@@ -87,7 +86,6 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
     public static <F extends Feature, S> AbstractFeatureReader<F, S> getFeatureReader(
             final String featureResource, String indexResource, final FeatureCodec<F, S> codec,
             final boolean requireIndex, EhCacheBasedIndexCache indexCache) throws TribbleException {
-        double time1 = Utils.getSystemTimeMilliseconds();
 
         try {
             // Test for tabix index
@@ -97,19 +95,13 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
                             "Tabix indexed files only work with ASCII codecs, but received non-Ascii codec "
                                     + codec.getClass().getSimpleName());
                 }
-                TabixFeatureReader<F, S> fsTabixFeatureReader = new TabixFeatureReader<>(featureResource, indexResource,
+                return new TabixFeatureReader<F, S>(featureResource, indexResource,
                         (AsciiFeatureCodec) codec, indexCache);
-                double time2 = Utils.getSystemTimeMilliseconds();
-                System.out.println("Develop AbstractFeatureReader:TabixFeatureReader creating took " + (time2 - time1) +" ms");
-                return fsTabixFeatureReader;
             }
             // Not tabix => tribble index file (might be gzipped, but not block gzipped)
             else {
-                TribbleIndexedFeatureReader<F, S> fsTribbleIndexedFeatureReader = new TribbleIndexedFeatureReader<>(featureResource, indexResource, codec,
+                return new TribbleIndexedFeatureReader<F, S>(featureResource, indexResource, codec,
                         requireIndex, indexCache);
-                double time2 = Utils.getSystemTimeMilliseconds();
-                System.out.println("Develop AbstractFeatureReader:TribbleIndexedFeatureReader creating took " + (time2 - time1) +" ms");
-                return fsTribbleIndexedFeatureReader;
             }
         } catch (IOException e) {
             throw new TribbleException.MalformedFeatureFile(

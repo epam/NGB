@@ -35,7 +35,6 @@ import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.PSLRecord;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -117,12 +116,7 @@ public class BamController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<BamFile>> loadBamFiles(@PathVariable(value = "referenceId") final Long referenceId) {
-        double time1 = Utils.getSystemTimeMilliseconds();
-
-        Result<List<BamFile>> success = Result.success(bamFileManager.loadBamFilesByReferenceId(referenceId));
-        double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Load Bam register load took " + (time2 - time1));
-        return success;
+        return Result.success(bamFileManager.loadBamFilesByReferenceId(referenceId));
     }
 
     @ResponseBody
@@ -142,12 +136,7 @@ public class BamController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<BamFile> registerBamFile(@RequestBody IndexedFileRegistrationRequest request) throws IOException {
-        double time1 = Utils.getSystemTimeMilliseconds();
-
-        Result<BamFile> success = Result.success(bamManager.registerBam(request));
-        double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Load Bam register load took " + (time2 - time1));
-        return success;
+        return Result.success(bamManager.registerBam(request));
     }
 
     @RequestMapping(value = "/bam/track/get", method = RequestMethod.POST)
@@ -179,7 +168,7 @@ public class BamController extends AbstractRESTController {
             @RequestParam(required = false) final String fileUrl,
             @RequestParam(required = false) final String indexUrl)
             throws IOException {
-        double time1 = Utils.getSystemTimeMilliseconds();
+
         final ResponseBodyEmitter emitter = new ResponseBodyEmitter(EMITTER_TIMEOUT);
         if (fileUrl == null) {
             bamManager.sendBamTrackToEmitter(convertToTrack(query), query.getOption(), emitter);
@@ -190,23 +179,15 @@ public class BamController extends AbstractRESTController {
 
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(MediaType.APPLICATION_JSON_UTF8);
-        ResponseEntity<ResponseBodyEmitter> responseBodyEmitterResponseEntity = new ResponseEntity<>(emitter, responseHeaders, HttpStatus.OK);
-        double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Load Bam get took " + (time2 - time1));
-
-        return responseBodyEmitterResponseEntity;
+        return new ResponseEntity<>(emitter, responseHeaders, HttpStatus.OK);
     }
 
     @ResponseBody
     @RequestMapping(value = "/secure/bam/register", method = RequestMethod.DELETE)
     public Result<Boolean> unregisterBamFile(@RequestParam final long bamFileId) throws IOException {
-        double time1 = Utils.getSystemTimeMilliseconds();
-
         BamFile deletedFile = bamManager.unregisterBamFile(bamFileId);
-        Result<Boolean> success = Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
-        double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Load Bam register load took " + (time2 - time1));
-        return success; }
+        return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
+    }
 
     @ResponseBody
     @RequestMapping(value = "/bam/consensus/get", method = RequestMethod.POST)
@@ -229,12 +210,7 @@ public class BamController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Track<Sequence> loadConsensusSequence(@RequestBody final TrackQuery query) throws IOException {
-        double time1 = Utils.getSystemTimeMilliseconds();
-
-        Track<Sequence> sequenceTrack = bamManager.calculateConsensusSequence(convertToTrack(query));
-        double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Load Bam consensus get took " + (time2 - time1));
-        return sequenceTrack;
+        return bamManager.calculateConsensusSequence(convertToTrack(query));
     }
 
     @ResponseBody
@@ -249,12 +225,7 @@ public class BamController extends AbstractRESTController {
     public Result<Read> loadRead(@RequestBody final ReadQuery query,
                                  @RequestParam(required = false) final String fileUrl,
                                  @RequestParam(required = false) final String indexUrl) throws IOException {
-        double time1 = Utils.getSystemTimeMilliseconds();
-
-        Result<Read> success = Result.success(bamManager.loadRead(query, fileUrl, indexUrl));
-        double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Load Bam read load took " + (time2 - time1));
-        return success;
+        return Result.success(bamManager.loadRead(query, fileUrl, indexUrl));
     }
 
     @ResponseBody
@@ -269,11 +240,6 @@ public class BamController extends AbstractRESTController {
     public Result<List<PSLRecord>> blatReadSequence(@RequestParam final Long bamTrackId,
                                                     @RequestBody final ReadSequenceVO readSequence)
             throws IOException, ExternalDbUnavailableException {
-        double time1 = Utils.getSystemTimeMilliseconds();
-
-        Result<List<PSLRecord>> success = Result.success(bamManager.findBlatReadSequence(bamTrackId, readSequence.getReadSequence()));
-        double time2 = Utils.getSystemTimeMilliseconds();
-        System.out.println("Load Bam read blat get took " + (time2 - time1));
-        return success;
+        return Result.success(bamManager.findBlatReadSequence(bamTrackId, readSequence.getReadSequence()));
     }
 }
