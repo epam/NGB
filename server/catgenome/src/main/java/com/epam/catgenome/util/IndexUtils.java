@@ -13,6 +13,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.epam.catgenome.manager.bam.BamHelper;
 import org.apache.commons.io.IOUtils;
@@ -57,6 +59,8 @@ import static com.epam.catgenome.util.NgbFileUtils.isGzCompressed;
 public final class IndexUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexUtils.class);
+    private static String patternString = "(.*?)\\?";
+    private static Pattern pattern = Pattern.compile(patternString);
 
     private IndexUtils() {
         //no operations
@@ -457,5 +461,13 @@ public final class IndexUtils {
                 return peek != null ? peek.b : lineReader.getPosition();
             }
         }
+    }
+
+    public static String getFirstPartForIndexPath(String indexPath) {
+        Matcher matcher = pattern.matcher(indexPath);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        else return indexPath;
     }
 }

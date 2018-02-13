@@ -24,6 +24,7 @@ package com.epam.catgenome.util.feature.reader;
  * THE SOFTWARE.
  */
 
+import com.epam.catgenome.util.IndexUtils;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
@@ -227,11 +228,11 @@ public class TabixReader {
             return;
         }
         //first part of URL for S3 created links
-        String indexFile[] = mIdxFn.split("\\?");
+        String indexFilePath = IndexUtils.getFirstPartForIndexPath(mIdxFn);
 
         // read the index cache
-        if (indexCache != null && indexCache.contains(indexFile[0])) {
-            mIndexCache = (TIndexCache) indexCache.getFromCache(indexFile[0]);
+        if (indexCache != null && indexCache.contains(indexFilePath)) {
+            mIndexCache = (TIndexCache) indexCache.getFromCache(indexFilePath);
             mIndex = mIndexCache.mIndex;
             mBc = mIndexCache.mBc;
             mChr2tid = mIndexCache.mChr2tid;
@@ -305,7 +306,7 @@ public class TabixReader {
                 mIndexCache.mSc = mSc;
                 mIndexCache.mSeq = mSeq;
 
-                indexCache.putInCache(mIndexCache, indexFile[0]);
+                indexCache.putInCache(mIndexCache, indexFilePath);
             }
             // close
             is.close();

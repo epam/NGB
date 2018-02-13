@@ -22,6 +22,7 @@ package com.epam.catgenome.util.feature.reader;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import com.epam.catgenome.util.IndexUtils;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import htsjdk.samtools.util.RuntimeIOException;
@@ -44,6 +45,8 @@ import java.util.zip.GZIPInputStream;
 
 
 /**
+ * Copied from HTSJDK library. Added: method retrieveIndexFromCache(final String indexFile) for
+ *
  * A reader for text feature files  (i.e. not tabix files).   This includes tribble-indexed and non-indexed files.  If
  * index both iterate() and query() methods are supported.
  * <p/>
@@ -112,7 +115,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             throws IOException {
         this(featureFile, codec, false, indexCache); // required to read the header
         if (indexFile != null && ParsingUtils.resourceExists(indexFile)) {
-            index = retrieveIndexFromCache(indexFile);
+            index = retrieveIndex(indexFile);
             this.needCheckForIndex = false;
         } else {
             if (requireIndex) {
@@ -124,18 +127,18 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
         }
     }
 
-    private Index retrieveIndexFromCache(final String indexFile) {
+    private Index retrieveIndex(final String indexFile) {
         Index index;
-        String indexFileSplit[] = indexFile.split("\\?");
-        if (indexCache.contains(indexFileSplit[0])) {
-            IndexCache mIndex = (IndexCache) indexCache.getFromCache(indexFileSplit[0]);
+        String indexFilePath = IndexUtils.getFirstPartForIndexPath(Tribble.indexFile(this.path));
+        if (indexCache.contains(indexFilePath)) {
+            IndexCache mIndex = (IndexCache) indexCache.getFromCache(indexFilePath);
             return mIndex.index;
         }
         else {
             index = IndexFactory.loadIndex(indexFile);
             IndexCache mIndex = new IndexCache();
             mIndex.index = index;
-            indexCache.putInCache(mIndex, indexFileSplit[0]);
+            indexCache.putInCache(mIndex, indexFilePath);
             return index;
         }
 
@@ -163,12 +166,12 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
     private void loadIndex() throws IOException{
         String indexFile = Tribble.indexFile(this.path);
         if (ParsingUtils.resourceExists(indexFile)) {
-            retrieveIndexFromCache(indexFile);
+            retrieveIndex(indexFile);
         } else {
             // See if the index itself is gzipped
             indexFile = ParsingUtils.appendToPath(indexFile, ".gz");
             if (ParsingUtils.resourceExists(indexFile)) {
-                retrieveIndexFromCache(indexFile);
+                retrieveIndex(indexFile);
             }
         }
         this.needCheckForIndex = false;
@@ -254,10 +257,10 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             }
             pbs = new PositionalBufferedStream(is);
             final S source;
-            String indexFileSplit[] = Tribble.indexFile(this.path).split("\\?");
+            String indexFilePath = IndexUtils.getFirstPartForIndexPath(Tribble.indexFile(this.path));
 
-            if (indexCache.contains(indexFileSplit[0])) {
-                IndexCache mIndexCache = (IndexCache) indexCache.getFromCache(indexFileSplit[0]);
+            if (indexCache.contains(indexFilePath)) {
+                IndexCache mIndexCache = (IndexCache) indexCache.getFromCache(indexFilePath);
                 header = mIndexCache.header;
 
                 if (header == null) {
@@ -265,7 +268,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
                     header = codec.readHeader(source);
                     mIndexCache.header = header;
                     mIndexCache.codec = codec;
-                    indexCache.putInCache(mIndexCache, indexFileSplit[0]);
+                    indexCache.putInCache(mIndexCache, indexFilePath);
                 }
                 codec = mIndexCache.codec;
             }

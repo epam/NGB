@@ -23,6 +23,7 @@ package com.epam.catgenome.util.feature.reader;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import com.epam.catgenome.util.IndexUtils;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.tribble.AsciiFeatureCodec;
@@ -91,26 +92,26 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
      */
     private void readHeader() throws IOException {
         S source = null;
-        String[] indexFileSplit = indexFile.split("\\?");
+        PositionalBufferedStream pbs = new PositionalBufferedStream(
+                new BlockCompressedInputStream(ParsingUtils.openInputStream(path)));
+
+        String indexFilePath = IndexUtils.getFirstPartForIndexPath(indexFile);
         try {
-            if (indexCache != null && indexCache.contains(indexFileSplit[0])) {
-                TabixReader.TIndexCache mIndexCache = (TabixReader.TIndexCache) indexCache.getFromCache(indexFileSplit[0]);
+            if (indexCache != null && indexCache.contains(indexFilePath)) {
+                TabixReader.TIndexCache mIndexCache = (TabixReader.TIndexCache) indexCache.getFromCache(indexFilePath);
                 header = mIndexCache.header;
 
                 if (header == null) {
-                    source = codec.makeSourceFromStream(new PositionalBufferedStream(
-                            new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
+                    source = codec.makeSourceFromStream(pbs);
                     header = codec.readHeader(source);
                     mIndexCache.header = header;
                     mIndexCache.codec = codec;
-                    indexCache.putInCache(mIndexCache, indexFileSplit[0]);
+                    indexCache.putInCache(mIndexCache, indexFilePath);
                 }
                 codec = mIndexCache.codec;
             }
             else {
-                source = codec.makeSourceFromStream(new PositionalBufferedStream(
-                        new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
-
+                source = codec.makeSourceFromStream(pbs);
                 header = codec.readHeader(source);
             }
 

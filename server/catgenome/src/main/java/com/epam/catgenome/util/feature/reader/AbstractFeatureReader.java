@@ -26,6 +26,7 @@ import htsjdk.tribble.util.TabixUtils;
 import java.io.File;
 import java.io.IOException;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -175,6 +176,14 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
     }
 
     /**
+     * Whether the path of a URI resource ends in one of the BLOCK_COMPRESSED_EXTENSIONS
+     * @param uri a URI representing the resource to check
+     * @return
+     */
+    public static boolean hasBlockCompressedExtension (final URI uri) {
+        return hasBlockCompressedExtension(uri.getPath());
+    }
+    /**
      * get the header
      *
      * @return the header object we've read-in
@@ -191,13 +200,17 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
         @Override public void close() { }
     }
 
+    public static boolean isTabix(String resourcePath, String indexPath) throws IOException {
+        if(indexPath == null){
+            indexPath = ParsingUtils.appendToPath(resourcePath, TabixUtils.STANDARD_INDEX_EXTENSION);
+        }
+        return hasBlockCompressedExtension(resourcePath) && ParsingUtils.resourceExists(indexPath);
+    }
+
     public static class ComponentMethods{
 
         public boolean isTabix(String resourcePath, String indexPath) throws IOException{
-            if(indexPath == null){
-                indexPath = ParsingUtils.appendToPath(resourcePath, TabixUtils.STANDARD_INDEX_EXTENSION);
-            }
-            return hasBlockCompressedExtension(resourcePath) && ParsingUtils.resourceExists(indexPath);
+            return AbstractFeatureReader.isTabix(resourcePath, indexPath);
         }
     }
 }

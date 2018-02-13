@@ -56,8 +56,7 @@ public class EhCacheBasedIndexCache {
 
         Element element;
 
-        if (contains(indexUrl)) {
-            element = cacheManager.getCacheManager().getCache(INDEX_CACHE).get(indexUrl);
+        if ((element = cacheManager.getCacheManager().getCache(INDEX_CACHE).get(indexUrl)) != null) {
             return (CacheIndex) element.getObjectValue();
         } else {
             return null;
@@ -94,8 +93,8 @@ public class EhCacheBasedIndexCache {
         Ehcache cache = cacheManager.getCacheManager().getCache(INDEX_CACHE);
 
         return "Cache Name: " + cache.getName() + ", cacheManager: " + cache.getCacheManager() +
-                " cacheSize: " + cache.getSize() + " maxEntriesInHeap: " +
-                cache.getCacheConfiguration().getMaxEntriesLocalHeap() + " timeToIdle: " +
+                " cacheSize: " + cache.getSize() + " maxBytesLocalHeap: " +
+                cache.getCacheConfiguration().getMaxBytesLocalHeap() + " timeToIdle: " +
                 cache.getCacheConfiguration().getTimeToIdleSeconds();
     }
 }
