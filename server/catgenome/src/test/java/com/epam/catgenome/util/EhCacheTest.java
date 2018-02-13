@@ -13,6 +13,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
  * Test features of EhCacheBasedIndexCache
@@ -36,9 +37,9 @@ public class EhCacheTest {
 
     @Before
     public void setup() {
-        Assert.assertNotNull(context);
-        Assert.assertNotNull(indexCache);
-        Assert.assertNotNull(cacheManager);
+        assertNotNull(context);
+        assertNotNull(indexCache);
+        assertNotNull(cacheManager);
 
         index1 = new TestIndex("indexName1");
         index2 = new TestIndex("indexName2");
@@ -48,21 +49,21 @@ public class EhCacheTest {
 
     @Test
     public void testGetAndEvictCache() {
-        Assert.assertEquals(2, getSize());
-        Assert.assertTrue(indexCache.contains("1"));
+        assertEquals(2, getSize());
+        assertTrue(indexCache.contains("1"));
 
         CacheIndex receivedIndex = indexCache.getFromCache("1");
-        Assert.assertEquals(index1, receivedIndex);
+        assertEquals(index1, receivedIndex);
 
         indexCache.evictFromCache("1");
-        Assert.assertEquals(1, getSize());
-        Assert.assertNull(indexCache.getFromCache("1"));
+        assertEquals(1, getSize());
+        assertNull(indexCache.getFromCache("1"));
     }
 
     @Test
     public void testClearCache() {
         indexCache.clearCache();
-        Assert.assertEquals(0, getSize());
+        assertEquals(0, getSize());
     }
 
     @Test
@@ -72,11 +73,11 @@ public class EhCacheTest {
         Long maxSizeInBytes = cacheConfiguration.getMaxBytesLocalHeap();
 
         cacheConfiguration.setMaxBytesLocalHeap(10L);
-        Assert.assertEquals(0, getSize());
+        assertEquals(0, getSize());
 
         cacheConfiguration.setMaxBytesLocalHeap(maxSizeInBytes);
         indexCache.putInCache(index1, "1");
-        Assert.assertEquals(1, getSize());
+        assertEquals(1, getSize());
     }
 
     private class TestIndex implements CacheIndex {
@@ -88,11 +89,14 @@ public class EhCacheTest {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
 
             TestIndex testIndex = (TestIndex) o;
-
             return name != null ? name.equals(testIndex.name) : testIndex.name == null;
         }
 

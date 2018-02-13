@@ -47,6 +47,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Copied from HTSJDK library. Added class TIndexCache for saving cache values.
+ * Modified readIndex() method for caching index
  * @author Heng Li <hengli@broadinstitute.org>
  */
 public class TabixReader {
@@ -227,7 +229,6 @@ public class TabixReader {
         if (fp == null) {
             return;
         }
-        //first part of URL for S3 created links
         String indexFilePath = IndexUtils.getFirstPartForIndexPath(mIdxFn);
 
         // read the index cache

@@ -42,6 +42,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
+ * Copied from HTSJDK library. Modified readHeader() method for caching header
+ *
  * @author Jim Robinson
  * @since 2/11/12
  */
@@ -92,9 +94,6 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
      */
     private void readHeader() throws IOException {
         S source = null;
-        PositionalBufferedStream pbs = new PositionalBufferedStream(
-                new BlockCompressedInputStream(ParsingUtils.openInputStream(path)));
-
         String indexFilePath = IndexUtils.getFirstPartForIndexPath(indexFile);
         try {
             if (indexCache != null && indexCache.contains(indexFilePath)) {
@@ -102,7 +101,8 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                 header = mIndexCache.header;
 
                 if (header == null) {
-                    source = codec.makeSourceFromStream(pbs);
+                    source = codec.makeSourceFromStream(new PositionalBufferedStream(
+                            new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
                     header = codec.readHeader(source);
                     mIndexCache.header = header;
                     mIndexCache.codec = codec;
@@ -111,7 +111,8 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                 codec = mIndexCache.codec;
             }
             else {
-                source = codec.makeSourceFromStream(pbs);
+                source = codec.makeSourceFromStream(new PositionalBufferedStream(
+                        new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
                 header = codec.readHeader(source);
             }
 

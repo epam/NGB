@@ -463,11 +463,16 @@ public final class IndexUtils {
         }
     }
 
+    /**
+     * Returns first part of URL for S3 created links (if "?" include in path) or else full path
+     */
     public static String getFirstPartForIndexPath(String indexPath) {
         Matcher matcher = pattern.matcher(indexPath);
         if (matcher.find()) {
             return matcher.group(1);
         }
-        else return indexPath;
+        else {
+            return indexPath;
+        }
     }
 }

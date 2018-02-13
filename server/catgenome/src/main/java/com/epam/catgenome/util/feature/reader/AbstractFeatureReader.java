@@ -34,6 +34,8 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
+ * Copied from HTSJDK library. Added: indexCache in getFeatureReader() method
+ *
  * jrobinso
  * <p/>
  * the feature reader class, which uses indices and codecs to read in Tribble file formats.

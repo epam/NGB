@@ -45,7 +45,9 @@ import java.util.zip.GZIPInputStream;
 
 
 /**
- * Copied from HTSJDK library. Added: method retrieveIndexFromCache(final String indexFile) for
+ * Copied from HTSJDK library. Added: class IndexCache for saving cache values,
+ * method retrieveIndexFromCache(final String indexFile) for caching index and
+ * modified readHeader() method for caching header
  *
  * A reader for text feature files  (i.e. not tabix files).   This includes tribble-indexed and non-indexed files.  If
  * index both iterate() and query() methods are supported.
@@ -58,6 +60,7 @@ import java.util.zip.GZIPInputStream;
 public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractFeatureReader<T, S> {
 
     private Index index;
+    private String indexFile;
 
     /**
      * is the path pointing to our source data a regular file?
@@ -115,6 +118,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             throws IOException {
         this(featureFile, codec, false, indexCache); // required to read the header
         if (indexFile != null && ParsingUtils.resourceExists(indexFile)) {
+            this.indexFile = indexFile;
             index = retrieveIndex(indexFile);
             this.needCheckForIndex = false;
         } else {
@@ -129,7 +133,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
 
     private Index retrieveIndex(final String indexFile) {
         Index index;
-        String indexFilePath = IndexUtils.getFirstPartForIndexPath(Tribble.indexFile(this.path));
+        String indexFilePath = IndexUtils.getFirstPartForIndexPath(indexFile);
         if (indexCache.contains(indexFilePath)) {
             IndexCache mIndex = (IndexCache) indexCache.getFromCache(indexFilePath);
             return mIndex.index;
@@ -272,6 +276,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
                 }
                 codec = mIndexCache.codec;
             }
+
             else {
                 source = codec.makeSourceFromStream(pbs);
                 header = codec.readHeader(source);

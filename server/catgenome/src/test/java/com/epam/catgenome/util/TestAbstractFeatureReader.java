@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.junit.Assert;
 import org.junit.Before;
 
 import static org.junit.Assert.assertEquals;
@@ -36,7 +35,7 @@ import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class AbstractFeatureReaderTest  {
+public class TestAbstractFeatureReader  {
 
     @Autowired
     private ApplicationContext context;
@@ -44,13 +43,14 @@ public class AbstractFeatureReaderTest  {
     @Autowired
     private EhCacheBasedIndexCache indexCache;
 
+    final static String LOCAL_MIRROR_HTTP_INDEXED_VCF_PATH = "classpath:templates/ex2.vcf";
     final static String HTTP_INDEXED_VCF_PATH = "https://personal.broadinstitute.org/picard/testdata/ex2.vcf";
     final static String HTTP_INDEXED_VCF_IDX_PATH = "https://personal.broadinstitute.org/picard/testdata/ex2.vcf.idx";
 
     @Before
     public void setup() throws IOException {
-        Assert.assertNotNull(context);
-        Assert.assertNotNull(indexCache);
+        assertNotNull(context);
+        assertNotNull(indexCache);
     }
 
     /**
@@ -61,7 +61,11 @@ public class AbstractFeatureReaderTest  {
         final VCFCodec codec = new VCFCodec();
         final AbstractFeatureReader<VariantContext, LineIterator> featureReaderHttp =
                 AbstractFeatureReader.getFeatureReader(HTTP_INDEXED_VCF_PATH, HTTP_INDEXED_VCF_IDX_PATH, codec, true, indexCache);
-        final CloseableTribbleIterator<VariantContext> localIterator = featureReaderHttp.iterator();
+
+        String resource = context.getResource(LOCAL_MIRROR_HTTP_INDEXED_VCF_PATH).getFile().getAbsolutePath();
+        final AbstractFeatureReader<VariantContext, LineIterator> featureReaderLocal =
+                AbstractFeatureReader.getFeatureReader(resource, codec, false, indexCache);
+        final CloseableTribbleIterator<VariantContext> localIterator = featureReaderLocal.iterator();
         for (final Feature feat : featureReaderHttp.iterator()) {
             assertEquals(feat.toString(), localIterator.next().toString());
         }
@@ -107,11 +111,12 @@ public class AbstractFeatureReaderTest  {
                      new TribbleIndexedFeatureReader<>(testPath, codec, false)) {
             final CloseableTribbleIterator<VariantContext> localIterator = featureReader.iterator();
             int count = 0;
-            for (final Feature feat : featureReader.iterator()) {
+            for (final Feature feature : featureReader.iterator()) {
                 localIterator.next();
+                assertNotNull(feature);
                 count++;
             }
-            org.testng.Assert.assertEquals(count, 5);
+            assertEquals(count, 5);
         }
     }
 
@@ -120,8 +125,8 @@ public class AbstractFeatureReaderTest  {
         final String vcf = "foo.vcf";
         final String expectedIndex = vcf + Tribble.STANDARD_INDEX_EXTENSION;
 
-        org.testng.Assert.assertEquals(Tribble.indexFile(vcf), expectedIndex);
-        org.testng.Assert.assertEquals(Tribble.indexFile(new File(vcf).getAbsolutePath()), new File(expectedIndex).getAbsolutePath());
+        assertEquals(Tribble.indexFile(vcf), expectedIndex);
+        assertEquals(Tribble.indexFile(new File(vcf).getAbsolutePath()), new File(expectedIndex).getAbsolutePath());
     }
 
     @Test
@@ -129,7 +134,7 @@ public class AbstractFeatureReaderTest  {
         final String vcf = "foo.vcf.gz";
         final String expectedIndex = vcf + TabixUtils.STANDARD_INDEX_EXTENSION;
 
-        org.testng.Assert.assertEquals(Tribble.tabixIndexFile(vcf), expectedIndex);
-        org.testng.Assert.assertEquals(Tribble.tabixIndexFile(new File(vcf).getAbsolutePath()), new File(expectedIndex).getAbsolutePath());
+        assertEquals(Tribble.tabixIndexFile(vcf), expectedIndex);
+        assertEquals(Tribble.tabixIndexFile(new File(vcf).getAbsolutePath()), new File(expectedIndex).getAbsolutePath());
     }
 }
