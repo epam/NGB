@@ -57,20 +57,18 @@ public class CacheIndexHeaderTest <T extends Feature, S> extends AbstractManager
     }
 
     @Test
-    public void  testReadTribbleIndexHeaderFromCache() throws IOException {
+    public void  testReadTribbleIndexFromCache() throws IOException {
         // first creating
         FeatureReader<VariantContext> reader = AbstractEnhancedFeatureReader.getFeatureReader(vcf,
                 idx, new VCFCodec(), true, indexCache);
         Assert.assertNotNull(reader);
-        verify(indexCache, times(0)).getFromCache(Tribble.indexFile(vcf));
+        verify(indexCache, times(0)).getFromCache(idx);
 
-
-        //read index and header from cache
+        //read index from cache second time
         reader = AbstractEnhancedFeatureReader.getFeatureReader(vcf,
                 idx, new VCFCodec(), true, indexCache);
         Assert.assertNotNull(reader);
-        //TODO: bug with header
-        // verify(indexCache, times(2)).getFromCache(idx);
+        verify(indexCache, times(1)).getFromCache(idx);
     }
 
     @Test

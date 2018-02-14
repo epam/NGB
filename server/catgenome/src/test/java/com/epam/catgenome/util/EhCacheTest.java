@@ -4,7 +4,6 @@ import com.epam.catgenome.util.feature.reader.CacheIndex;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.config.CacheConfiguration;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

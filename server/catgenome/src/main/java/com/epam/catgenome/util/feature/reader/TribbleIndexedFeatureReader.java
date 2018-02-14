@@ -60,8 +60,6 @@ import java.util.zip.GZIPInputStream;
 public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractFeatureReader<T, S> {
 
     private Index index;
-    private String indexFile;
-
     /**
      * is the path pointing to our source data a regular file?
      */
@@ -118,7 +116,6 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             throws IOException {
         this(featureFile, codec, false, indexCache); // required to read the header
         if (indexFile != null && ParsingUtils.resourceExists(indexFile)) {
-            this.indexFile = indexFile;
             index = retrieveIndex(indexFile);
             this.needCheckForIndex = false;
         } else {
@@ -264,7 +261,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             String indexFilePath = IndexUtils.getFirstPartForIndexPath(Tribble.indexFile(this.path));
 
             if (indexCache.contains(indexFilePath)) {
-                IndexCache mIndexCache = (IndexCache) indexCache.getFromCache(indexFilePath);
+                mIndexCache = (IndexCache) indexCache.getFromCache(indexFilePath);
                 header = mIndexCache.header;
 
                 if (header == null) {
@@ -275,9 +272,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
                     indexCache.putInCache(mIndexCache, indexFilePath);
                 }
                 codec = mIndexCache.codec;
-            }
-
-            else {
+            }  else {
                 source = codec.makeSourceFromStream(pbs);
                 header = codec.readHeader(source);
             }

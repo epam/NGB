@@ -18,7 +18,13 @@ package com.epam.catgenome.util.feature.reader;
  * FOREGOING.
  */
 
-import htsjdk.tribble.*;
+import htsjdk.tribble.Feature;
+import htsjdk.tribble.FeatureCodec;
+import htsjdk.tribble.AsciiFeatureCodec;
+import htsjdk.tribble.CloseableTribbleIterator;
+import htsjdk.tribble.FeatureCodecHeader;
+import htsjdk.tribble.TribbleException;
+import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.util.ParsingUtils;
 import htsjdk.tribble.util.TabixUtils;

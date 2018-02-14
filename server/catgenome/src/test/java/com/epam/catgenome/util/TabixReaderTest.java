@@ -1,6 +1,5 @@
 package com.epam.catgenome.util;
 
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import com.epam.catgenome.util.feature.reader.TabixIteratorLineReader;
 import com.epam.catgenome.util.feature.reader.TabixReader;
 import org.junit.After;
