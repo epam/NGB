@@ -130,10 +130,17 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
 
     private Index retrieveIndex(final String indexFile) {
         Index index;
-        String indexFilePath = IndexUtils.getFirstPartForIndexPath(indexFile);
+        String indexFilePath = IndexUtils.getFirstPartForIndexPath(Tribble.indexFile(this.path));
         if (indexCache.contains(indexFilePath)) {
             IndexCache mIndex = (IndexCache) indexCache.getFromCache(indexFilePath);
-            return mIndex.index;
+            if (mIndex.index!= null) {
+                return mIndex.index;
+            } else {
+                index = IndexFactory.loadIndex(indexFile);
+                mIndex.index = index;
+                indexCache.putInCache(mIndex, indexFilePath);
+                return index;
+            }
         }
         else {
             index = IndexFactory.loadIndex(indexFile);
@@ -275,6 +282,11 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             }  else {
                 source = codec.makeSourceFromStream(pbs);
                 header = codec.readHeader(source);
+
+                mIndexCache = new IndexCache();
+                mIndexCache.header = header;
+                mIndexCache.codec = codec;
+                indexCache.putInCache(mIndexCache, indexFilePath);
             }
         } catch (IOException e) {
             throw new TribbleException.MalformedFeatureFile(

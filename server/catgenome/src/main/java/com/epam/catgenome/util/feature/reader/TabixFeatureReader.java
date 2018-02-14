@@ -94,8 +94,13 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
      */
     private void readHeader() throws IOException {
         S source = null;
-        String indexFilePath = IndexUtils.getFirstPartForIndexPath(indexFile);
         try {
+            String indexFilePath;
+            if (indexFile == null) {
+                indexFilePath = path;
+            } else {
+                indexFilePath = IndexUtils.getFirstPartForIndexPath(indexFile);
+            }
             if (indexCache != null && indexCache.contains(indexFilePath)) {
                 TabixReader.TIndexCache mIndexCache = (TabixReader.TIndexCache) indexCache.getFromCache(indexFilePath);
                 header = mIndexCache.header;
@@ -109,8 +114,7 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                     indexCache.putInCache(mIndexCache, indexFilePath);
                 }
                 codec = mIndexCache.codec;
-            }
-            else {
+            } else {
                 source = codec.makeSourceFromStream(new PositionalBufferedStream(
                         new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
                 header = codec.readHeader(source);
@@ -162,7 +166,8 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
     public CloseableTribbleIterator<T> iterator() throws IOException {
         final InputStream is = new BlockCompressedInputStream(ParsingUtils.openInputStream(path));
         final PositionalBufferedStream stream = new PositionalBufferedStream(is);
-        final LineReader reader = LineReaderUtil.fromBufferedStream(stream, LineReaderUtil.LineReaderOption.SYNCHRONOUS);
+        final LineReader reader = LineReaderUtil.fromBufferedStream(stream,
+                LineReaderUtil.LineReaderOption.SYNCHRONOUS);
         return new FeatureIterator<T>(reader, 0, Integer.MAX_VALUE);
     }
 
@@ -177,7 +182,7 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
         private int start;
         private int end;
 
-        public FeatureIterator(final LineReader lineReader, final int start, final int end) throws IOException {
+        FeatureIterator(final LineReader lineReader, final int start, final int end) throws IOException {
             this.lineReader = lineReader;
             this.start = start;
             this.end = end;

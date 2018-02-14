@@ -6,8 +6,12 @@ import htsjdk.tribble.*;
 import htsjdk.tribble.TribbleIndexedFeatureReader;
 import htsjdk.tribble.bed.BEDCodec;
 import htsjdk.tribble.bed.BEDFeature;
+import htsjdk.tribble.index.Index;
+import htsjdk.tribble.index.IndexFactory;
 import htsjdk.tribble.readers.LineIterator;
+import htsjdk.tribble.readers.PositionalBufferedStream;
 import htsjdk.tribble.util.TabixUtils;
+import htsjdk.variant.bcf2.BCF2Codec;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
 import org.junit.Test;
@@ -24,9 +28,7 @@ import java.net.URISyntaxException;
 
 import org.junit.Before;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * @author jacob
@@ -43,9 +45,10 @@ public class TestAbstractFeatureReader  {
     @Autowired
     private EhCacheBasedIndexCache indexCache;
 
-    final static String LOCAL_MIRROR_HTTP_INDEXED_VCF_PATH = "classpath:templates/ex2.vcf";
-    final static String HTTP_INDEXED_VCF_PATH = "https://personal.broadinstitute.org/picard/testdata/ex2.vcf";
-    final static String HTTP_INDEXED_VCF_IDX_PATH = "https://personal.broadinstitute.org/picard/testdata/ex2.vcf.idx";
+    public static final String LOCAL_MIRROR_HTTP_INDEXED_VCF_PATH = "classpath:templates/ex2.vcf";
+    public static final String HTTP_INDEXED_VCF_PATH = "https://personal.broadinstitute.org/picard/testdata/ex2.vcf";
+    public static final String HTTP_INDEXED_VCF_IDX_PATH =
+            "https://personal.broadinstitute.org/picard/testdata/ex2.vcf.idx";
 
     @Before
     public void setup() throws IOException {
@@ -60,7 +63,8 @@ public class TestAbstractFeatureReader  {
     public void testVcfOverHTTP() throws IOException {
         final VCFCodec codec = new VCFCodec();
         final AbstractFeatureReader<VariantContext, LineIterator> featureReaderHttp =
-                AbstractFeatureReader.getFeatureReader(HTTP_INDEXED_VCF_PATH, HTTP_INDEXED_VCF_IDX_PATH, codec, true, indexCache);
+                AbstractFeatureReader.getFeatureReader(HTTP_INDEXED_VCF_PATH, HTTP_INDEXED_VCF_IDX_PATH,
+                        codec, true, indexCache);
 
         String resource = context.getResource(LOCAL_MIRROR_HTTP_INDEXED_VCF_PATH).getFile().getAbsolutePath();
         final AbstractFeatureReader<VariantContext, LineIterator> featureReaderLocal =
@@ -70,6 +74,12 @@ public class TestAbstractFeatureReader  {
             assertEquals(feat.toString(), localIterator.next().toString());
         }
         assertFalse(localIterator.hasNext());
+
+        Index index = IndexFactory.loadIndex(HTTP_INDEXED_VCF_IDX_PATH);
+        final AbstractFeatureReader<VariantContext, LineIterator> featureReaderLocalIndex =
+                AbstractFeatureReader.getFeatureReader(resource, codec, index, indexCache);
+        assertNotNull(featureReaderLocalIndex);
+
     }
 
     @Test
@@ -81,6 +91,15 @@ public class TestAbstractFeatureReader  {
         for (final Feature feat : bfs.iterator()) {
             assertNotNull(feat);
         }
+    }
+
+    @Test(expected = TribbleException.class)
+    public void testLoadNonExistedBED() throws Exception {
+        final String path = "testzip.bedx";
+        final BEDCodec codec = new BEDCodec();
+        final AbstractFeatureReader<BEDFeature, LineIterator> bfs =
+                AbstractFeatureReader.getFeatureReader(path, codec, false, indexCache);
+        assertNull(bfs);
     }
 
     @Test
@@ -106,8 +125,8 @@ public class TestAbstractFeatureReader  {
     public void testIndexedGZIPVCF() throws IOException {
         String vcfPath = "classpath:templates/test.vcf";
         String testPath = context.getResource(vcfPath).getFile().getAbsolutePath();
-        final VCFCodec codec = new VCFCodec();
-        try (final TribbleIndexedFeatureReader<VariantContext, LineIterator> featureReader =
+        VCFCodec codec = new VCFCodec();
+        try (TribbleIndexedFeatureReader<VariantContext, LineIterator> featureReader =
                      new TribbleIndexedFeatureReader<>(testPath, codec, false)) {
             final CloseableTribbleIterator<VariantContext> localIterator = featureReader.iterator();
             int count = 0;
@@ -118,6 +137,15 @@ public class TestAbstractFeatureReader  {
             }
             assertEquals(count, 5);
         }
+    }
+
+    @Test(expected = TribbleException.class)
+    public void testNotAsciiCodec() {
+        final String vcf = "foo.vcf";
+        final BCF2Codec codec = new BCF2Codec();
+        final AbstractFeatureReader<VariantContext, PositionalBufferedStream> featureReaderLocal =
+                AbstractFeatureReader.getFeatureReader(vcf, codec, false, indexCache);
+        assertNull(featureReaderLocal);
     }
 
     @Test
@@ -135,6 +163,7 @@ public class TestAbstractFeatureReader  {
         final String expectedIndex = vcf + TabixUtils.STANDARD_INDEX_EXTENSION;
 
         assertEquals(Tribble.tabixIndexFile(vcf), expectedIndex);
-        assertEquals(Tribble.tabixIndexFile(new File(vcf).getAbsolutePath()), new File(expectedIndex).getAbsolutePath());
+        assertEquals(Tribble.tabixIndexFile(new File(vcf).getAbsolutePath()),
+                new File(expectedIndex).getAbsolutePath());
     }
 }

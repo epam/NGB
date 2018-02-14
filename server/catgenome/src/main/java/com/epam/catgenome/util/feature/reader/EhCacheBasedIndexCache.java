@@ -54,9 +54,9 @@ public class EhCacheBasedIndexCache {
     public CacheIndex getFromCache(String indexUrl) {
         Assert.notNull(indexUrl, INDEX_URL_REQUIRED);
 
-        Element element;
+        Element element = cacheManager.getCacheManager().getCache(INDEX_CACHE).get(indexUrl);
 
-        if ((element = cacheManager.getCacheManager().getCache(INDEX_CACHE).get(indexUrl)) != null) {
+        if (element != null) {
             return (CacheIndex) element.getObjectValue();
         } else {
             return null;

@@ -242,9 +242,8 @@ public class TabixReader {
             mPreset = mIndexCache.mPreset;
             mSc = mIndexCache.mSc;
             mSeq = mIndexCache.mSeq;
-        }
-        //create index and save to cache
-        else {
+        } else {
+            //create index and save to cache
             BlockCompressedInputStream is = new BlockCompressedInputStream(fp);
             byte[] buf = new byte[4];
 

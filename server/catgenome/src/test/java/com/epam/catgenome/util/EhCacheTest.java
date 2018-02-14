@@ -82,7 +82,7 @@ public class EhCacheTest {
     private class TestIndex implements CacheIndex {
         private String name;
 
-        public TestIndex(String name) {
+        TestIndex(String name) {
             this.name = name;
         }
 

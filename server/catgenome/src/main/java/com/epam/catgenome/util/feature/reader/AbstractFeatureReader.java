@@ -65,7 +65,8 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
             new HashSet<String>(Arrays.asList(".gz", ".gzip", ".bgz", ".bgzf")));
 
     /**
-     * Calls {@link #getFeatureReader(String, FeatureCodec, boolean, EhCacheBasedIndexCache)} with {@code requireIndex} = true
+     * Calls {@link #getFeatureReader(String, FeatureCodec, boolean, EhCacheBasedIndexCache)}
+     * with {@code requireIndex} = true
      */
     public static <F extends Feature, S> AbstractFeatureReader<F, S> getFeatureReader(
             final String featureFile, final FeatureCodec<F, S> codec,
@@ -74,7 +75,8 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
     }
 
     /**
-     * {@link #getFeatureReader(String, String, FeatureCodec, boolean, EhCacheBasedIndexCache)} with {@code null} for indexResource
+     * {@link #getFeatureReader(String, String, FeatureCodec, boolean, EhCacheBasedIndexCache)}
+     * with {@code null} for indexResource
      * @throws TribbleException
      */
     public static <F extends Feature, S> AbstractFeatureReader<F, S> getFeatureReader(
@@ -103,8 +105,7 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
                     throw new TribbleException(
                             "Tabix indexed files only work with ASCII codecs, but received non-Ascii codec "
                                     + codec.getClass().getSimpleName());
-                }
-                return new TabixFeatureReader<F, S>(featureResource, indexResource,
+                } return new TabixFeatureReader<F, S>(featureResource, indexResource,
                         (AsciiFeatureCodec) codec, indexCache);
             }
             // Not tabix => tribble index file (might be gzipped, but not block gzipped)
@@ -165,7 +166,7 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
      * @param fileName
      * @return
      */
-    public static boolean hasBlockCompressedExtension (final String fileName) {
+    public static boolean hasBlockCompressedExtension(final String fileName) {
         for (final String extension : BLOCK_COMPRESSED_EXTENSIONS) {
             if (fileName.toLowerCase().endsWith(extension)) {
                 return true;
@@ -179,7 +180,7 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
      * @param file
      * @return
      */
-    public static boolean hasBlockCompressedExtension (final File file) {
+    public static boolean hasBlockCompressedExtension(final File file) {
         return hasBlockCompressedExtension(file.getName());
     }
 
@@ -188,7 +189,7 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
      * @param uri a URI representing the resource to check
      * @return
      */
-    public static boolean hasBlockCompressedExtension (final URI uri) {
+    public static boolean hasBlockCompressedExtension(final URI uri) {
         return hasBlockCompressedExtension(uri.getPath());
     }
     /**
@@ -201,9 +202,15 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
     }
 
     static class EmptyIterator<T extends Feature> implements CloseableTribbleIterator<T> {
-        public Iterator iterator() { return this; }
-        public boolean hasNext() { return false; }
-        public T next() { return null; }
+        public Iterator iterator() {
+            return this;
+        }
+        public boolean hasNext() {
+            return false;
+        }
+        public T next() {
+            return null;
+        }
         public void remove() { }
         @Override public void close() { }
     }

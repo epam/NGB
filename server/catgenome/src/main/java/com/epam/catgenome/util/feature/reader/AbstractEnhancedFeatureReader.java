@@ -28,7 +28,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import htsjdk.tribble.*;
+import htsjdk.tribble.AsciiFeatureCodec;
+import htsjdk.tribble.Feature;
+import htsjdk.tribble.FeatureCodec;
+import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.util.ParsingUtils;
 import htsjdk.tribble.util.TabixUtils;
@@ -51,7 +54,8 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
     private static ComponentMethods methods = new ComponentMethods();
 
     /**
-     * Calls {@link #getFeatureReader(String, FeatureCodec, boolean, EhCacheBasedIndexCache)} with {@code requireIndex} = true
+     * Calls {@link #getFeatureReader(String, FeatureCodec, boolean, EhCacheBasedIndexCache)}
+     * with {@code requireIndex} = true
      */
     public static <FEATURE extends Feature, SOURCE> AbstractFeatureReader<FEATURE, SOURCE> getFeatureReader(
             final String featureFile, final FeatureCodec<FEATURE, SOURCE> codec,
@@ -60,7 +64,8 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
     }
 
     /**
-     * {@link #getFeatureReader(String, String, FeatureCodec, boolean, EhCacheBasedIndexCache)} with {@code null} for indexResource
+     * {@link #getFeatureReader(String, String, FeatureCodec, boolean, EhCacheBasedIndexCache)}
+     * with {@code null} for indexResource
      * @throws TribbleException
      */
     public static <FEATURE extends Feature, SOURCE> AbstractFeatureReader<FEATURE, SOURCE> getFeatureReader(

@@ -2,6 +2,7 @@ package com.epam.catgenome.util;
 
 import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.util.feature.reader.*;
+import com.epam.catgenome.util.feature.reader.TabixFeatureReader;
 import htsjdk.tribble.*;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
@@ -58,25 +59,26 @@ public class CacheIndexHeaderTest <T extends Feature, S> extends AbstractManager
 
     @Test
     public void  testReadTribbleIndexFromCache() throws IOException {
-        // first creating
+        // first creating, try to read index after header
         FeatureReader<VariantContext> reader = AbstractEnhancedFeatureReader.getFeatureReader(vcf,
                 idx, new VCFCodec(), true, indexCache);
         Assert.assertNotNull(reader);
-        verify(indexCache, times(0)).getFromCache(idx);
+        verify(indexCache, times(1)).getFromCache(Tribble.indexFile(vcf));
 
-        //read index from cache second time
+        //read index and header from cache second time
         reader = AbstractEnhancedFeatureReader.getFeatureReader(vcf,
                 idx, new VCFCodec(), true, indexCache);
         Assert.assertNotNull(reader);
-        verify(indexCache, times(1)).getFromCache(idx);
+        verify(indexCache, times(3)).getFromCache(Tribble.indexFile(vcf));
     }
 
     @Test
     public void  testReadTabixIndexHeaderFromCache() throws IOException {
+        //first creating, try to read header after index
         FeatureReader<VariantContext> reader = AbstractEnhancedFeatureReader.getFeatureReader(vcfGz,
                 tbiGz, new VCFCodec(), true, indexCache);
         Assert.assertNotNull(reader);
-        //try to read header after index
+
         verify(indexCache, times(1)).getFromCache(tbiGz);
 
         reader = AbstractEnhancedFeatureReader.getFeatureReader(vcfGz,
@@ -84,5 +86,8 @@ public class CacheIndexHeaderTest <T extends Feature, S> extends AbstractManager
         Assert.assertNotNull(reader);
         //read both index and header from cache
         verify(indexCache, times(3)).getFromCache(tbiGz);
+
+        TabixFeatureReader readerTabix = new TabixFeatureReader(vcfGz, new VCFCodec());
+        Assert.assertNotNull(readerTabix);
     }
 }

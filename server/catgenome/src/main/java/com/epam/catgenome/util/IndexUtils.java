@@ -470,8 +470,7 @@ public final class IndexUtils {
         Matcher matcher = pattern.matcher(indexPath);
         if (matcher.find()) {
             return matcher.group(1);
-        }
-        else {
+        } else {
             return indexPath;
         }
     }
