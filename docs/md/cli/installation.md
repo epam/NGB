@@ -26,5 +26,5 @@ $ wget http://ngb.opensource.epam.com/distr/latest/ngb-cli-latest.tar.gz && \
     rm ngb-cli-latest.tar.gz
 
 //Write ngb-cli location to $PATH
-$ export PATH="$CLI_HOME/bin:$PATH
+$ export PATH="$CLI_HOME/bin:$PATH"
 ```
