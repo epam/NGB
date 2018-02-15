@@ -106,6 +106,7 @@ public class VcfController extends AbstractRESTController {
             })
     public Result<VcfFile> registerVcfFile(@RequestBody
                                                FeatureIndexedFileRegistrationRequest request) {
+
         return Result.success(vcfManager.registerVcfFile(request));
     }
 
@@ -173,15 +174,17 @@ public class VcfController extends AbstractRESTController {
             final Track<Variation> variationTrack = convertToTrack(trackQuery);
             final boolean collapsed = trackQuery.getCollapsed() == null || trackQuery.getCollapsed();
 
+            Result result = null;
             if (fileUrl == null) {
-                return Result.success(vcfManager
+                result = Result.success(vcfManager
                         .loadVariations(variationTrack, trackQuery.getSampleId(), false, collapsed));
             } else {
-                return Result.success(vcfManager.loadVariations(variationTrack, fileUrl, indexUrl,
+                result =  Result.success(vcfManager.loadVariations(variationTrack, fileUrl, indexUrl,
                         trackQuery.getSampleId() != null ?
                                 trackQuery.getSampleId().intValue() :
                                 null, false, collapsed));
             }
+            return result;
         };
     }
 

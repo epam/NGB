@@ -183,7 +183,6 @@ public class VcfManager {
      * @return a {@code VcfFile} that was registered
      */
     public VcfFile registerVcfFile(FeatureIndexedFileRegistrationRequest request) {
-        LOGGER.debug("Feature indexed file registration request is:" + request.toString());
         final String requestPath = request.getPath();
         Assert.isTrue(StringUtils.isNotBlank(requestPath), getMessage(
                 MessagesConstants.ERROR_NULL_PARAM, "path"));
@@ -784,7 +783,7 @@ public class VcfManager {
 
     private VcfFile downloadVcfFile(IndexedFileRegistrationRequest request, String requestPath,
             Map<String, Chromosome> chromosomeMap, Reference reference, boolean doIndex) {
-
+        LOGGER.debug("Request path to download file is:" + request.getPath());
         final File newFile;
         try {
             newFile = downloadFileManager.downloadFromURL(request.getPath());
