@@ -42,8 +42,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
-
-
 /**
  * Copied from HTSJDK library. Added: class TribbleIndexCache for saving cache values,
  * method retrieveIndexFromCache(final String indexFile) for caching index and

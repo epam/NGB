@@ -73,7 +73,6 @@ public class TabixReaderTest {
         assertNotNull(iter);
         assertNull(iter.next());
 
-
         iter = tabixReader.query("1:10-1");
         assertNotNull(iter);
         assertNull(iter.next());
