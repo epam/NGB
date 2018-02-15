@@ -5,11 +5,6 @@ import com.epam.catgenome.util.feature.reader.TabixReader;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.Before;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,24 +13,21 @@ import java.util.Set;
 
 import static org.junit.Assert.*;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration({"classpath:applicationContext-test.xml"})
+/**
+ * Copied from HTSJDK library.
+ */
 public class TabixReaderTest {
 
-    static String tabixFilePath = "classpath:templates/trioDup.vcf.gz";
-    static String tabixFile;
-    static TabixReader tabixReader;
-    static List<String> sequenceNames;
-
-    @Autowired
-    private ApplicationContext context;
+    private static final String TABIX_FILE_PATH = "templates/trioDup.vcf.gz";
+    private String tabixFile;
+    private TabixReader tabixReader;
+    private List<String> sequenceNames;
 
     @Before
     public void setup() throws IOException {
-        assertNotNull(context);
-        tabixFile = context.getResource(tabixFilePath).getFile().getAbsolutePath();
+        tabixFile = getClass().getClassLoader().getResource(TABIX_FILE_PATH).getFile();
         tabixReader = new TabixReader(tabixFile);
-        sequenceNames = new ArrayList<String>(tabixReader.getChromosomes());
+        sequenceNames = new ArrayList<>(tabixReader.getChromosomes());
     }
 
     @After
@@ -64,7 +56,6 @@ public class TabixReaderTest {
         assertFalse(chroms.isEmpty());
         assertTrue(chroms.contains("1"));
         assertFalse(chroms.contains("MT"));
-
     }
 
     @Test
@@ -109,9 +100,7 @@ public class TabixReaderTest {
         iter = tabixReader.query("1", pos_snp_in_vcf_chr1 + 1, pos_snp_in_vcf_chr1 + 1);
         assertNotNull(iter);
         assertNull(iter.next());
-
     }
-
 
     /**
      * Test reading a local tabix file
@@ -120,7 +109,6 @@ public class TabixReaderTest {
      */
     @Test
     public void testLocalQuery() throws IOException {
-
         TabixIteratorLineReader lineReader = new TabixIteratorLineReader(
                 tabixReader.query(tabixReader.chr2tid("4"), 320, 330));
 
@@ -131,8 +119,6 @@ public class TabixReaderTest {
             nRecords++;
         }
         assertTrue(nRecords > 0);
-
-
     }
 
     /**
@@ -145,7 +131,6 @@ public class TabixReaderTest {
         String tabixFile = "https://personal.broadinstitute.org/picard/testdata/igvdata/tabix/trioDup.vcf.gz";
 
         TabixReader tabixReader = new TabixReader(tabixFile);
-
         TabixIteratorLineReader lineReader = new TabixIteratorLineReader(
                 tabixReader.query(tabixReader.chr2tid("4"), 320, 330));
 
@@ -156,7 +141,6 @@ public class TabixReaderTest {
             nRecords++;
         }
         assertTrue(nRecords > 0);
-
     }
 
     /**

@@ -1,6 +1,6 @@
 package com.epam.catgenome.util;
 
-import com.epam.catgenome.util.feature.reader.CacheIndex;
+import com.epam.catgenome.util.feature.reader.IndexCache;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.config.CacheConfiguration;
@@ -15,23 +15,24 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * Test features of EhCacheBasedIndexCache
+ * Test features of EhCacheBasedIndexCache: general functionality of cache.
  */
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class EhCacheTest {
+
     @Autowired
     private ApplicationContext context;
 
     @Autowired
-    EhCacheBasedIndexCache indexCache;
+    private EhCacheBasedIndexCache indexCache;
 
     @Autowired
     private EhCacheCacheManager cacheManager;
 
-    private CacheIndex index1;
-    private CacheIndex index2;
+    private IndexCache index1;
+    private IndexCache index2;
     private String indexCacheName = "indexCache";
 
     @Before
@@ -40,8 +41,8 @@ public class EhCacheTest {
         assertNotNull(indexCache);
         assertNotNull(cacheManager);
 
-        index1 = new TestIndex("indexName1");
-        index2 = new TestIndex("indexName2");
+        index1 = new TestIndexCache("indexName1");
+        index2 = new TestIndexCache("indexName2");
         indexCache.putInCache(index1, "1");
         indexCache.putInCache(index2, "2");
     }
@@ -51,7 +52,7 @@ public class EhCacheTest {
         assertEquals(2, getSize());
         assertTrue(indexCache.contains("1"));
 
-        CacheIndex receivedIndex = indexCache.getFromCache("1");
+        IndexCache receivedIndex = indexCache.getFromCache("1");
         assertEquals(index1, receivedIndex);
 
         indexCache.evictFromCache("1");
@@ -79,10 +80,29 @@ public class EhCacheTest {
         assertEquals(1, getSize());
     }
 
-    private class TestIndex implements CacheIndex {
+    @Test
+    public void testToString() {
+        Cache cache = cacheManager.getCacheManager().getCache(indexCacheName);
+        CacheConfiguration cacheConfiguration = cache.getCacheConfiguration();
+        Long maxSizeInBytes = cacheConfiguration.getMaxBytesLocalHeap();
+        String cacheName = cacheConfiguration.getName();
+        Long timeToIdleSeconds = cacheConfiguration.getTimeToIdleSeconds();
+
+        cacheConfiguration.setMaxBytesLocalHeap(1L);
+        cacheConfiguration.setName("TestCache");
+        cacheConfiguration.setTimeToIdleSeconds(100);
+
+        assertEquals("Cache Name: TestCache, cacheManager: " + cache.getCacheManager() +
+                " cacheSize: 0 maxBytesLocalHeap: 1 timeToIdle: 100", indexCache.toString());
+        cacheConfiguration.setMaxBytesLocalHeap(maxSizeInBytes);
+        cacheConfiguration.setName(cacheName);
+        cacheConfiguration.setTimeToIdleSeconds(timeToIdleSeconds);
+    }
+
+    private class TestIndexCache implements IndexCache {
         private String name;
 
-        TestIndex(String name) {
+        TestIndexCache(String name) {
             this.name = name;
         }
 
@@ -95,7 +115,7 @@ public class EhCacheTest {
                 return false;
             }
 
-            TestIndex testIndex = (TestIndex) o;
+            TestIndexCache testIndex = (TestIndexCache) o;
             return name != null ? name.equals(testIndex.name) : testIndex.name == null;
         }
 

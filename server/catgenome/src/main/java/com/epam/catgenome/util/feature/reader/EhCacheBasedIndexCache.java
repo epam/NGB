@@ -44,26 +44,24 @@ public class EhCacheBasedIndexCache {
     public void evictFromCache(String indexUrl) {
         Assert.notNull(indexUrl, INDEX_URL_REQUIRED);
 
-        CacheIndex index = getFromCache(indexUrl);
-
+        IndexCache index = getFromCache(indexUrl);
         if (index != null) {
             cacheManager.getCacheManager().getCache(INDEX_CACHE).remove(indexUrl);
         }
     }
 
-    public CacheIndex getFromCache(String indexUrl) {
+    public IndexCache getFromCache(String indexUrl) {
         Assert.notNull(indexUrl, INDEX_URL_REQUIRED);
 
         Element element = cacheManager.getCacheManager().getCache(INDEX_CACHE).get(indexUrl);
-
         if (element != null) {
-            return (CacheIndex) element.getObjectValue();
+            return (IndexCache) element.getObjectValue();
         } else {
             return null;
         }
     }
 
-    public void putInCache(CacheIndex index, String indexUrl) {
+    public void putInCache(IndexCache index, String indexUrl) {
         Assert.notNull(index, INDEX_REQUIRED);
         Assert.notNull(indexUrl, INDEX_URL_REQUIRED);
 
@@ -73,14 +71,12 @@ public class EhCacheBasedIndexCache {
     public boolean contains(String indexUrl) {
         Assert.notNull(indexUrl, INDEX_URL_REQUIRED);
 
-        Element element = null;
-
+        Element element;
         try {
             element = cacheManager.getCacheManager().getCache(INDEX_CACHE).get(indexUrl);
-        } catch (CacheException ignored) {
+        } catch (CacheException ex) {
             return false;
         }
-
         return element != null;
     }
 

@@ -45,7 +45,7 @@ import java.util.zip.GZIPInputStream;
 
 
 /**
- * Copied from HTSJDK library. Added: class IndexCache for saving cache values,
+ * Copied from HTSJDK library. Added: class TribbleIndexCache for saving cache values,
  * method retrieveIndexFromCache(final String indexFile) for caching index and
  * modified readHeader() method for caching header
  *
@@ -86,7 +86,6 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
     public TribbleIndexedFeatureReader(final String featurePath, final FeatureCodec<T, S> codec,
                                        final boolean requireIndex, final EhCacheBasedIndexCache indexCache)
             throws IOException {
-
         super(featurePath, codec);
         this.indexCache = indexCache;
         if (requireIndex) {
@@ -132,24 +131,22 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
         Index index;
         String indexFilePath = IndexUtils.getFirstPartForIndexPath(Tribble.indexFile(this.path));
         if (indexCache.contains(indexFilePath)) {
-            IndexCache mIndex = (IndexCache) indexCache.getFromCache(indexFilePath);
-            if (mIndex.index!= null) {
-                return mIndex.index;
+            tribbleIndexCache = (TribbleIndexCache) indexCache.getFromCache(indexFilePath);
+            if (tribbleIndexCache.index != null) {
+                return tribbleIndexCache.index;
             } else {
                 index = IndexFactory.loadIndex(indexFile);
-                mIndex.index = index;
-                indexCache.putInCache(mIndex, indexFilePath);
+                tribbleIndexCache.index = index;
+                indexCache.putInCache(tribbleIndexCache, indexFilePath);
                 return index;
             }
-        }
-        else {
+        } else {
             index = IndexFactory.loadIndex(indexFile);
-            IndexCache mIndex = new IndexCache();
-            mIndex.index = index;
-            indexCache.putInCache(mIndex, indexFilePath);
+            tribbleIndexCache = new TribbleIndexCache();
+            tribbleIndexCache.index = index;
+            indexCache.putInCache(tribbleIndexCache, indexFilePath);
             return index;
         }
-
     }
     /**
      * @param featureFile - path to the feature file, can be a local file path, http url, or ftp url
@@ -174,12 +171,12 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
     private void loadIndex() throws IOException{
         String indexFile = Tribble.indexFile(this.path);
         if (ParsingUtils.resourceExists(indexFile)) {
-            retrieveIndex(indexFile);
+            index = retrieveIndex(indexFile);
         } else {
             // See if the index itself is gzipped
             indexFile = ParsingUtils.appendToPath(indexFile, ".gz");
             if (ParsingUtils.resourceExists(indexFile)) {
-                retrieveIndex(indexFile);
+                index = retrieveIndex(indexFile);
             }
         }
         this.needCheckForIndex = false;
@@ -207,7 +204,6 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             // we are not reusing the stream, so make a fresh copy each time we request it
             result = SeekableStreamFactory.getInstance().getStreamFor(path);
         }
-
         return result;
     }
 
@@ -268,25 +264,24 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             String indexFilePath = IndexUtils.getFirstPartForIndexPath(Tribble.indexFile(this.path));
 
             if (indexCache.contains(indexFilePath)) {
-                mIndexCache = (IndexCache) indexCache.getFromCache(indexFilePath);
-                header = mIndexCache.header;
-
+                tribbleIndexCache = (TribbleIndexCache) indexCache.getFromCache(indexFilePath);
+                header = tribbleIndexCache.header;
                 if (header == null) {
                     source = codec.makeSourceFromStream(pbs);
                     header = codec.readHeader(source);
-                    mIndexCache.header = header;
-                    mIndexCache.codec = codec;
-                    indexCache.putInCache(mIndexCache, indexFilePath);
+                    tribbleIndexCache.header = header;
+                    tribbleIndexCache.codec = codec;
+                    indexCache.putInCache(tribbleIndexCache, indexFilePath);
                 }
-                codec = mIndexCache.codec;
+                codec = tribbleIndexCache.codec;
             }  else {
                 source = codec.makeSourceFromStream(pbs);
                 header = codec.readHeader(source);
 
-                mIndexCache = new IndexCache();
-                mIndexCache.header = header;
-                mIndexCache.codec = codec;
-                indexCache.putInCache(mIndexCache, indexFilePath);
+                tribbleIndexCache = new TribbleIndexCache();
+                tribbleIndexCache.header = header;
+                tribbleIndexCache.codec = codec;
+                indexCache.putInCache(tribbleIndexCache, indexFilePath);
             }
         } catch (IOException e) {
             throw new TribbleException.MalformedFeatureFile(
@@ -319,7 +314,6 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
      * @throws IOException
      */
     public CloseableTribbleIterator<T> query(final String chr, final int start, final int end) throws IOException {
-
         if (!this.hasIndex()) {
             throw new TribbleException("Index not found for: " + path);
         }
@@ -331,7 +325,6 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             return new EmptyIterator<T>();
         }
     }
-
 
     /**
      * @return Return an iterator to iterate over the entire file
@@ -366,8 +359,8 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
                 pbs = new PositionalBufferedStream(inputStream, 512000);
             }
             /*
-             * The header was already read from the original source in the constructor; don't read it again, since some codecs keep state
-             * about its initializagtion.  Instead, skip that part of the stream.
+             * The header was already read from the original source in the constructor; don't read it again,
+             * since some codecs keep state about its initializagtion.  Instead, skip that part of the stream.
              */
             long skippedBytes = pbs.skip(header.getHeaderEnd());
             if (skippedBytes == 0) {
@@ -393,7 +386,6 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             }
             return ret;
         }
-
 
         /**
          * Advance to the next record in the query interval.
@@ -453,7 +445,6 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
         private SeekableStream mySeekableStream;
         private Iterator<Block> blockIterator;
 
-
         public QueryIterator(final String chr, final int start, final int end, final List<Block> blocks)
                 throws IOException {
             this.start = start;
@@ -466,9 +457,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             // The feature chromosome might not be the query chromosome, due to alias definitions.  We assume
             // the chromosome of the first record is correct and record it here.  This is not pretty.
             chrAlias = (currentRecord == null ? chr : currentRecord.getContig());
-
         }
-
 
         public boolean hasNext() {
             return currentRecord != null;
@@ -485,12 +474,12 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             return ret;
         }
 
-
         private void advanceBlock() throws IOException {
             while (blockIterator != null && blockIterator.hasNext()) {
                 final Block block = blockIterator.next();
                 if (block.getSize() > 0) {
-                    final int bufferSize = Math.min(2000000, block.getSize() > 100000000 ? 10000000 : (int) block.getSize());
+                    final int bufferSize =
+                            Math.min(2000000, block.getSize() > 100000000 ? 10000000 : (int) block.getSize());
                     source = codec.makeSourceFromStream(new PositionalBufferedStream(
                             new BlockStreamWrapper(mySeekableStream, block), bufferSize));
                     // note we don't have to skip the header here as the block should never start in the header
@@ -511,11 +500,9 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
          * @throws IOException
          */
         private void readNextRecord() throws IOException {
-
             if (source == null) {
                 return;  // <= no more features to read
             }
-
             currentRecord = null;
 
             while (true) {   // Loop through blocks
@@ -540,7 +527,6 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
 
                         currentRecord = f;     // Success
                         return;
-
                     } catch (TribbleException e) {
                         e.setSource(path);
                         throw e;
@@ -557,11 +543,9 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             }
         }
 
-
         public void remove() {
             throw new UnsupportedOperationException("Remove is not supported.");
         }
-
 
         public void close() {
             // Note that this depends on BlockStreamWrapper not actually closing the underlying stream
@@ -580,7 +564,6 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             return this;
         }
     }
-
 
     /**
      * Wrapper around a SeekableStream that limits reading to the specified "block" of bytes.  Attempts to
@@ -613,17 +596,40 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
 
             final int bytesToRead = (int) Math.min(len, Math.min(maxBytes, Integer.MAX_VALUE));
             return seekableStream.read(bytes, off, bytesToRead);
-
         }
     }
 
-    protected static class IndexCache <T extends Feature, S> implements CacheIndex {
-        Index index;
-        FeatureCodecHeader header;
-        FeatureCodec <T, S> codec;
+    protected static class TribbleIndexCache <T extends Feature, S> implements IndexCache {
+        private Index index;
+        private FeatureCodecHeader header;
+        private FeatureCodec <T, S> codec;
+
+        public Index getIndex() {
+            return index;
+        }
+
+        public void setIndex(Index index) {
+            this.index = index;
+        }
+
+        public FeatureCodecHeader getHeader() {
+            return header;
+        }
+
+        public void setHeader(FeatureCodecHeader header) {
+            this.header = header;
+        }
+
+        public FeatureCodec<T, S> getCodec() {
+            return codec;
+        }
+
+        public void setCodec(FeatureCodec<T, S> codec) {
+            this.codec = codec;
+        }
 
     }
 
-    protected IndexCache mIndexCache;
+    protected TribbleIndexCache tribbleIndexCache;
 
 }

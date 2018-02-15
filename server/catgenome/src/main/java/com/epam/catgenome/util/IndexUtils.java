@@ -59,8 +59,8 @@ import static com.epam.catgenome.util.NgbFileUtils.isGzCompressed;
 public final class IndexUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexUtils.class);
-    private static String patternString = "(.*?)\\?";
-    private static Pattern pattern = Pattern.compile(patternString);
+    private static final String FIRST_PART_PATH_REGEX = "(.*?)\\?";
+    private static final Pattern FIRST_PART_PATH_PATTERN = Pattern.compile(FIRST_PART_PATH_REGEX);
 
     private IndexUtils() {
         //no operations
@@ -467,7 +467,7 @@ public final class IndexUtils {
      * Returns first part of URL for S3 created links (if "?" include in path) or else full path
      */
     public static String getFirstPartForIndexPath(String indexPath) {
-        Matcher matcher = pattern.matcher(indexPath);
+        Matcher matcher = FIRST_PART_PATH_PATTERN.matcher(indexPath);
         if (matcher.find()) {
             return matcher.group(1);
         } else {

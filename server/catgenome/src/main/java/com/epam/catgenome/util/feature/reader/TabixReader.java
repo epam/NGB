@@ -47,7 +47,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Copied from HTSJDK library. Added class TIndexCache for saving cache values.
+ * Copied from HTSJDK library. Added class TabixIndexCache for saving cache values.
  * Modified readIndex() method for caching index
  * @author Heng Li <hengli@broadinstitute.org>
  */
@@ -96,20 +96,36 @@ public class TabixReader {
 
     protected TIndex[] mIndex;
 
-    protected static class TIndexCache <T extends Feature, S> implements CacheIndex {
-        TIndex[] mIndex;
-        String[] mSeq;
-        Map<String, Integer> mChr2tid;
-        int mPreset;
-        int mSc;
-        int mBc;
-        int mEc;
-        int mMeta;
-        FeatureCodecHeader header;
-        FeatureCodec <T, S> codec;
+    protected static class TabixIndexCache<T extends Feature, S> implements IndexCache {
+        private TIndex[] mIndex;
+        private String[] mSeq;
+        private Map<String, Integer> mChr2tid;
+        private int mPreset;
+        private int mSc;
+        private int mBc;
+        private int mEc;
+        private int mMeta;
+        private FeatureCodecHeader header;
+        private FeatureCodec <T, S> codec;
+
+        public FeatureCodecHeader getHeader() {
+            return header;
+        }
+
+        public void setHeader(FeatureCodecHeader header) {
+            this.header = header;
+        }
+
+        public FeatureCodec<T, S> getCodec() {
+            return codec;
+        }
+
+        public void setCodec(FeatureCodec<T, S> codec) {
+            this.codec = codec;
+        }
     }
 
-    protected TIndexCache mIndexCache;
+    protected TabixIndexCache tabixIndexCache;
 
     private static class TIntv {
         int tid, beg, end;
@@ -233,15 +249,15 @@ public class TabixReader {
 
         // read the index cache
         if (indexCache != null && indexCache.contains(indexFilePath)) {
-            mIndexCache = (TIndexCache) indexCache.getFromCache(indexFilePath);
-            mIndex = mIndexCache.mIndex;
-            mBc = mIndexCache.mBc;
-            mChr2tid = mIndexCache.mChr2tid;
-            mEc = mIndexCache.mEc;
-            mMeta = mIndexCache.mMeta;
-            mPreset = mIndexCache.mPreset;
-            mSc = mIndexCache.mSc;
-            mSeq = mIndexCache.mSeq;
+            tabixIndexCache = (TabixIndexCache) indexCache.getFromCache(indexFilePath);
+            mIndex = tabixIndexCache.mIndex;
+            mBc = tabixIndexCache.mBc;
+            mChr2tid = tabixIndexCache.mChr2tid;
+            mEc = tabixIndexCache.mEc;
+            mMeta = tabixIndexCache.mMeta;
+            mPreset = tabixIndexCache.mPreset;
+            mSc = tabixIndexCache.mSc;
+            mSeq = tabixIndexCache.mSeq;
         } else {
             //create index and save to cache
             BlockCompressedInputStream is = new BlockCompressedInputStream(fp);
@@ -296,17 +312,17 @@ public class TabixReader {
                 }
             }
             if (indexCache != null) {
-                mIndexCache = new TIndexCache();
-                mIndexCache.mIndex = mIndex;
-                mIndexCache.mBc = mBc;
-                mIndexCache.mChr2tid = mChr2tid;
-                mIndexCache.mEc = mEc;
-                mIndexCache.mMeta = mMeta;
-                mIndexCache.mPreset = mPreset;
-                mIndexCache.mSc = mSc;
-                mIndexCache.mSeq = mSeq;
+                tabixIndexCache = new TabixIndexCache();
+                tabixIndexCache.mIndex = mIndex;
+                tabixIndexCache.mBc = mBc;
+                tabixIndexCache.mChr2tid = mChr2tid;
+                tabixIndexCache.mEc = mEc;
+                tabixIndexCache.mMeta = mMeta;
+                tabixIndexCache.mPreset = mPreset;
+                tabixIndexCache.mSc = mSc;
+                tabixIndexCache.mSeq = mSeq;
 
-                indexCache.putInCache(mIndexCache, indexFilePath);
+                indexCache.putInCache(tabixIndexCache, indexFilePath);
             }
             // close
             is.close();

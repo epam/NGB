@@ -102,24 +102,23 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                 indexFilePath = IndexUtils.getFirstPartForIndexPath(indexFile);
             }
             if (indexCache != null && indexCache.contains(indexFilePath)) {
-                TabixReader.TIndexCache mIndexCache = (TabixReader.TIndexCache) indexCache.getFromCache(indexFilePath);
-                header = mIndexCache.header;
+                TabixReader.TabixIndexCache tabixIndexCache = (TabixReader.TabixIndexCache) indexCache.getFromCache(indexFilePath);
+                header = tabixIndexCache.getHeader();
 
                 if (header == null) {
                     source = codec.makeSourceFromStream(new PositionalBufferedStream(
                             new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
                     header = codec.readHeader(source);
-                    mIndexCache.header = header;
-                    mIndexCache.codec = codec;
-                    indexCache.putInCache(mIndexCache, indexFilePath);
+                    tabixIndexCache.setHeader(header);
+                    tabixIndexCache.setCodec(codec);
+                    indexCache.putInCache(tabixIndexCache, indexFilePath);
                 }
-                codec = mIndexCache.codec;
+                codec = tabixIndexCache.getCodec();
             } else {
                 source = codec.makeSourceFromStream(new PositionalBufferedStream(
                         new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
                 header = codec.readHeader(source);
             }
-
         } catch (IOException e) {
             throw new TribbleException.MalformedFeatureFile("Unable to parse header with error: "
                     + e.getMessage(), path, e);
@@ -134,7 +133,6 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
     public boolean hasIndex(){
         return true;
     }
-
 
     public List<String> getSequenceNames() {
         return sequenceNames;
@@ -175,7 +173,6 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
         tabixReader.close();
     }
 
-
     class FeatureIterator<T extends Feature> implements CloseableTribbleIterator<T> {
         private T currentRecord;
         private LineReader lineReader;
@@ -188,7 +185,6 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
             this.end = end;
             readNextRecord();
         }
-
 
         /**
          * Advance to the next record in the query interval.
@@ -211,7 +207,6 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                     if (f.getEnd() <= start) {
                         continue;   // Skip
                     }
-
                     currentRecord = (T) f;
 
                 } catch (TribbleException e) {
@@ -221,11 +216,8 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                     String error = "Error parsing line: " + nextLine;
                     throw new TribbleException.MalformedFeatureFile(error, path, e);
                 }
-
-
             }
         }
-
 
         public boolean hasNext() {
             return currentRecord != null;
@@ -240,7 +232,6 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                         ret.getContig() + ":" + ret.getStart() + "-" + ret.getEnd(), e);
             }
             return ret;
-
         }
 
         public void remove() {
@@ -255,6 +246,4 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
             return this;
         }
     }
-
-
 }
