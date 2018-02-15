@@ -183,6 +183,7 @@ public class VcfManager {
      * @return a {@code VcfFile} that was registered
      */
     public VcfFile registerVcfFile(FeatureIndexedFileRegistrationRequest request) {
+        LOGGER.debug("Feature indexed file registration request is:" + request.toString());
         final String requestPath = request.getPath();
         Assert.isTrue(StringUtils.isNotBlank(requestPath), getMessage(
                 MessagesConstants.ERROR_NULL_PARAM, "path"));
