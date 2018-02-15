@@ -33,6 +33,8 @@ import java.util.regex.Pattern;
 import htsjdk.tribble.util.FTPHelper;
 import htsjdk.tribble.util.HTTPHelper;
 import htsjdk.tribble.util.URLHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * URL Helper class that supports S3 singed url handling
@@ -41,11 +43,13 @@ public class EnhancedUrlHelper implements URLHelper {
 
     private static final Pattern S3_PATTERN = Pattern.compile(".*s3.*\\.amazonaws\\.com");
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(EnhancedUrlHelper.class);
     private URLHelper wrappedHelper;
 
     public EnhancedUrlHelper(URL url) {
         String protocol = url.getProtocol().toLowerCase();
         if (S3_PATTERN.matcher(url.getHost()).matches()) {
+            LOGGER.debug("Creating S3Helper here. Url:" + url);
             this.wrappedHelper = new S3Helper(url);
         } else if (protocol.startsWith("http")) {
             this.wrappedHelper = new HTTPHelper(url);

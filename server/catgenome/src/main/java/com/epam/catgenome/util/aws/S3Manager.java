@@ -45,13 +45,17 @@ public class S3Manager {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Manager.class);
     private static final String DELIMITER = "/";
 
+
     public String generateSingedUrl(String inputUrl) {
         try  {
+
             AmazonS3 client = getClient();
             URI parsedUrl = new URI(inputUrl);
             URL url = client.generatePresignedUrl(parsedUrl.getHost(),
                     normalizePath(parsedUrl.getPath()), Utils.getTimeForS3URL());
-            return url.toExternalForm();
+            String urlInExternalForm = url.toExternalForm();
+            LOGGER.debug("Creating signed url here:" + urlInExternalForm);
+            return urlInExternalForm;
         } catch (AmazonClientException | URISyntaxException e) {
             LOGGER.error(e.getMessage(), e);
             throw new S3ReadingException(inputUrl, e);
