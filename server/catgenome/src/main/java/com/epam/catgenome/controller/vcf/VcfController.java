@@ -32,6 +32,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import com.epam.catgenome.controller.gene.GeneController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -78,6 +81,8 @@ import com.wordnik.swagger.annotations.ApiResponses;
 @Controller
 @Api(value = "VCF", description = "VCF Track Management")
 public class VcfController extends AbstractRESTController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(VcfController.class);
 
     @Autowired
     private VcfManager vcfManager;
@@ -164,6 +169,7 @@ public class VcfController extends AbstractRESTController {
                                               @RequestParam(required = false) final String indexUrl)
         throws VcfReadingException {
         return () -> {
+            LOGGER.debug("VcfController accepted: fileUrl:" + fileUrl + "; indexUrl: " + indexUrl);
             final Track<Variation> variationTrack = convertToTrack(trackQuery);
             final boolean collapsed = trackQuery.getCollapsed() == null || trackQuery.getCollapsed();
 

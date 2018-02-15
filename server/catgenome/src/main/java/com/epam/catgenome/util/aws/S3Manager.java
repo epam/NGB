@@ -48,7 +48,7 @@ public class S3Manager {
 
     public String generateSingedUrl(String inputUrl) {
         try  {
-
+            LOGGER.debug("Input url is:" + inputUrl);
             AmazonS3 client = getClient();
             URI parsedUrl = new URI(inputUrl);
             URL url = client.generatePresignedUrl(parsedUrl.getHost(),
