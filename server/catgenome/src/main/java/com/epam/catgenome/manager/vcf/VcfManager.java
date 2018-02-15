@@ -280,6 +280,8 @@ public class VcfManager {
     public Track<Variation> loadVariations(final Track<Variation> track, String fileUrl, String indexUrl,
                                            final Integer sampleIndex, final boolean loadInfo, final boolean collapse)
         throws VcfReadingException {
+        LOGGER.debug("LoadVariations: fileUrl: " + fileUrl + "; indexUrl: " + indexUrl);
+        
         Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
 
         VcfFile notRegisteredFile = makeTemporaryVcfFileFromUrl(fileUrl, indexUrl, chromosome);
@@ -783,7 +785,6 @@ public class VcfManager {
 
     private VcfFile downloadVcfFile(IndexedFileRegistrationRequest request, String requestPath,
             Map<String, Chromosome> chromosomeMap, Reference reference, boolean doIndex) {
-        LOGGER.debug("Request path to download file is:" + request.getPath());
         final File newFile;
         try {
             newFile = downloadFileManager.downloadFromURL(request.getPath());
