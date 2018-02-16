@@ -281,7 +281,7 @@ public class VcfManager {
                                            final Integer sampleIndex, final boolean loadInfo, final boolean collapse)
         throws VcfReadingException {
         LOGGER.debug("LoadVariations: fileUrl: " + fileUrl + "; indexUrl: " + indexUrl);
-        
+
         Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
 
         VcfFile notRegisteredFile = makeTemporaryVcfFileFromUrl(fileUrl, indexUrl, chromosome);
@@ -289,6 +289,9 @@ public class VcfManager {
         if (track.getType() == null) {
             track.setType(TrackType.VCF);
         }
+
+
+        LOGGER.debug("Not registered file url is: " + notRegisteredFile.getPath()+ "; getTypeFromPath:" + notRegisteredFile.getType());
 
         AbstractVcfReader.createVcfReader(BiologicalDataItemResourceType.URL, httpDataManager, fileManager,
                                           referenceGenomeManager).readVariations(notRegisteredFile, track, chromosome,
@@ -785,6 +788,7 @@ public class VcfManager {
 
     private VcfFile downloadVcfFile(IndexedFileRegistrationRequest request, String requestPath,
             Map<String, Chromosome> chromosomeMap, Reference reference, boolean doIndex) {
+        LOGGER.debug("Request path to download file is:" + request.getPath());
         final File newFile;
         try {
             newFile = downloadFileManager.downloadFromURL(request.getPath());
