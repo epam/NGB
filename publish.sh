@@ -35,7 +35,6 @@ do
         filename="${file%%.*}"
         versioned_file=${filename}-${VERSION}.${ext}
         cp -rf "$file" "${VERSION}/${versioned_file}"
-
         if [[ $versioned_file == *"ngb-docs"* ]]; then
             DOCS_VERSION=$versioned_file
         fi
@@ -59,10 +58,13 @@ do
 done
 
 #Publish the docker image from develop branch to dockerhub
+## Check whether ngb:latest is built
+docker inspect --type=image "ngb:latest" > /dev/null
+NGB_DOCKER_BUILT=$?
 
-if [ "$TRAVIS_BRANCH" == "develop" ]; then
+if [ "$TRAVIS_BRANCH" == "develop" ] && [ $NGB_DOCKER_BUILT == 0 ]; then
   docker login -u $DOCKER_USERNAME -p $DOCKER_PSWD
-  docker tag ngb:latest $DOCKER_USERNAME/ngb:$NGB_VERSION.$TRAVIS_JOB_NUMBER-dev
-  docker push $DOCKER_USERNAME/ngb:$NGB_VERSION.$TRAVIS_JOB_NUMBER-dev
+  docker tag ngb:latest $DOCKER_USERNAME/ngb:$NGB_VERSION-dev
+  docker push $DOCKER_USERNAME/ngb:$NGB_VERSION-dev
 fi
 
