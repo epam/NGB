@@ -26,10 +26,16 @@ package com.epam.catgenome.util.feature.reader;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.regex.Pattern;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.AmazonS3URI;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 import htsjdk.tribble.util.FTPHelper;
 import htsjdk.tribble.util.HTTPHelper;
 import htsjdk.tribble.util.URLHelper;
@@ -61,25 +67,30 @@ public class EnhancedUrlHelper implements URLHelper {
         }
     }
 
-    @Override public URL getUrl() {
+    @Override
+    public URL getUrl() {
         return this.wrappedHelper.getUrl();
     }
 
-    @Override public long getContentLength() throws IOException {
+    @Override
+    public long getContentLength() throws IOException {
         return this.wrappedHelper.getContentLength();
     }
 
-    @Override public InputStream openInputStream() throws IOException {
+    @Override
+    public InputStream openInputStream() throws IOException {
         return this.wrappedHelper.openInputStream();
     }
 
     @Override
-    @Deprecated public InputStream openInputStreamForRange(long start, long end)
+    @Deprecated
+    public InputStream openInputStreamForRange(long start, long end)
             throws IOException {
         return this.wrappedHelper.openInputStreamForRange(start, end);
     }
 
-    @Override public boolean exists() throws IOException {
+    @Override
+    public boolean exists() throws IOException {
         return this.wrappedHelper.exists();
     }
 
@@ -87,33 +98,114 @@ public class EnhancedUrlHelper implements URLHelper {
      * Inner helper class for handling S3 signed URLs. We sign URLs for GET requests so
      * HEAD request will return 403, this is considered to be OK in this case
      */
-    public static class S3Helper extends HTTPHelper {
+    public static class S3Helper implements URLHelper {
 
-        public S3Helper(URL url) {
-            super(url);
+        public S3Helper(URL inputUrl) {
+            this.inputUrl = inputUrl;
         }
 
-        @Override public boolean exists() throws IOException {
-            return urlExists();
+        URL inputUrl = null;
+
+        AmazonS3URI s3URI = new AmazonS3URI(inputUrl.toString());
+
+        AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
+
+        InputStream objectData = null;
+
+        private String bucketName = s3URI.getBucket();
+
+        private String key = s3URI.getKey();
+
+
+        @Override
+        public URL getUrl() {
+            return inputUrl;
         }
 
-        private boolean urlExists() {
-            HttpURLConnection con = null;
+
+        @Override
+        public InputStream openInputStream() throws IOException {
+
             try {
-                URL url = getUrl();
-                con = (HttpURLConnection) url.openConnection();
-                con.setRequestMethod("HEAD");
-                //we allow 403 code since AWS URL will return FORBIDDEN for signed urls HEAD request
-                return (con.getResponseCode() == HttpURLConnection.HTTP_OK
-                        || con.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN);
-            } catch (IOException e) {
-                // This is what we are testing for, so its not really an exception
-                return false;
+                System.out.println("Downloading an object");
+                S3Object s3Object = s3Client.getObject(new GetObjectRequest(bucketName, key));
+                objectData = s3Object.getObjectContent();
+                System.out.println("Content-Type: " + s3Object.getObjectMetadata().getContentType());// Process the objectData stream.
+
+            } catch (AmazonServiceException ase) {
+                System.out.println("Caught an AmazonServiceException, which means your request made it " +
+                        "to Amazon S3, but was rejected with an error response for some reason.");
+                System.out.println("Error Message:    " + ase.getMessage());
+                System.out.println("HTTP Status Code: " + ase.getStatusCode());
+                System.out.println("AWS Error Code:   " + ase.getErrorCode());
+                System.out.println("Error Type:       " + ase.getErrorType());
+                System.out.println("Request ID:       " + ase.getRequestId());
+
+            } catch (AmazonClientException ace) {
+                System.out.println("Caught an AmazonClientException, which means the client encountered an internal error while trying to " +
+                        "communicate with S3, such as not being able to access the network.");
+                System.out.println("Error Message: " + ace.getMessage());
+
             } finally {
-                if (con != null) {
-                    con.disconnect();
-                }
+                objectData.close();
             }
+
+            return objectData;
         }
+
+        @Deprecated
+        public InputStream openInputStreamForRange(long start, long end) throws IOException {
+            InputStream objectData = null;
+            try {
+                System.out.println("Downloading an object");
+                GetObjectRequest rangeObjectRequest = new GetObjectRequest(bucketName, key);
+                rangeObjectRequest.setRange(start, end); // retrieving selected bytes.
+                S3Object objectPortion = s3Client.getObject(rangeObjectRequest);
+
+                objectData = objectPortion.getObjectContent();
+            } catch (AmazonServiceException ase) {
+                    System.out.println("Caught an AmazonServiceException, which means your request made it " +
+                            "to Amazon S3, but was rejected with an error response for some reason.");
+                    System.out.println("Error Message:    " + ase.getMessage());
+                    System.out.println("HTTP Status Code: " + ase.getStatusCode());
+                    System.out.println("AWS Error Code:   " + ase.getErrorCode());
+                    System.out.println("Error Type:       " + ase.getErrorType());
+                    System.out.println("Request ID:       " + ase.getRequestId());
+
+            } catch (AmazonClientException ace) {
+                    System.out.println("Caught an AmazonClientException, which means the client encountered an internal error while trying to " +
+                            "communicate with S3, such as not being able to access the network.");
+                    System.out.println("Error Message: " + ace.getMessage());
+
+                } finally {
+                    objectData.close();
+                }
+
+                return objectData;
+
+            }
+
+        @Override
+        public boolean exists() throws IOException {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public long getContentLength() throws IOException {
+            throw new UnsupportedOperationException();
+        }
+        public AmazonS3 getS3Client() {
+            return s3Client;
+        }
+
+        public URL getInputUrl() {
+            return inputUrl;
+        }
+
+        public AmazonS3URI getS3URI() {
+            return s3URI;
+        }
+
     }
+
 }
