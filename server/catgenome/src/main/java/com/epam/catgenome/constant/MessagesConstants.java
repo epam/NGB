@@ -74,6 +74,8 @@ public final class MessagesConstants {
 
     public static final String ERROR_VARIATIONID_NOT_SPECIFIED = "error.no.variationid";
     public static final String ERROR_SPECIES_NOT_SPECIFIED = "error.no.species";
+    public static final String ERROR_INDEX_NOT_SPECIFIED = "error.no.index.cache";
+    public static final String ERROR_INDEX_URL_NOT_SPECIFIED = "error.no.index.url.cache";
     public static final String ERROR_CHROMOSOME_NOT_SPECIFIED = "error.no.chromosome";
     public static final String ERROR_STARTPOSITION_NOT_SPECIFIED = "error.no.startposition";
     public static final String ERROR_FINISHPOSITION_NOT_SPECIFIED = "error.no.finishposition";

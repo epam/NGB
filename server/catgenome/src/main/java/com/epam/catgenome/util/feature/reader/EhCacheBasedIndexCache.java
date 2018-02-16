@@ -24,6 +24,8 @@
 
 package com.epam.catgenome.util.feature.reader;
 
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+import com.epam.catgenome.constant.MessagesConstants;
 import net.sf.ehcache.CacheException;
 import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
@@ -34,15 +36,13 @@ import org.springframework.util.Assert;
 
 @Service
 public class EhCacheBasedIndexCache {
-    private static final String INDEX_URL_REQUIRED = "Index Url required";
-    private static final String INDEX_REQUIRED = "Index required";
     private static final String INDEX_CACHE = "indexCache";
 
     @Autowired
     private EhCacheCacheManager cacheManager;
 
     public void evictFromCache(String indexUrl) {
-        Assert.notNull(indexUrl, INDEX_URL_REQUIRED);
+        Assert.notNull(indexUrl, getMessage(MessagesConstants.ERROR_INDEX_URL_NOT_SPECIFIED));
 
         IndexCache index = getFromCache(indexUrl);
         if (index != null) {
@@ -51,7 +51,7 @@ public class EhCacheBasedIndexCache {
     }
 
     public IndexCache getFromCache(String indexUrl) {
-        Assert.notNull(indexUrl, INDEX_URL_REQUIRED);
+        Assert.notNull(indexUrl, getMessage(MessagesConstants.ERROR_INDEX_URL_NOT_SPECIFIED));
 
         Element element = cacheManager.getCacheManager().getCache(INDEX_CACHE).get(indexUrl);
         if (element != null) {
@@ -62,14 +62,14 @@ public class EhCacheBasedIndexCache {
     }
 
     public void putInCache(IndexCache index, String indexUrl) {
-        Assert.notNull(index, INDEX_REQUIRED);
-        Assert.notNull(indexUrl, INDEX_URL_REQUIRED);
+        Assert.notNull(indexUrl, getMessage(MessagesConstants.ERROR_INDEX_NOT_SPECIFIED));
+        Assert.notNull(indexUrl, getMessage(MessagesConstants.ERROR_INDEX_URL_NOT_SPECIFIED));
 
         cacheManager.getCacheManager().getCache(INDEX_CACHE).put(new Element(indexUrl, index));
     }
 
     public boolean contains(String indexUrl) {
-        Assert.notNull(indexUrl, INDEX_URL_REQUIRED);
+        Assert.notNull(indexUrl, getMessage(MessagesConstants.ERROR_INDEX_URL_NOT_SPECIFIED));
 
         Element element;
         try {

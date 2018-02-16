@@ -163,10 +163,10 @@ dependencies {
     testCompile("org.springframework.boot:spring-boot-starter-test")
     testCompile group: "org.unitils", name: "unitils-core", version: project.ext.versionUnitils
     testCompile group: "javax.servlet", name: "javax.servlet-api", version: project.ext.versionJavaXServlet
-    testCompile group: "javax.transaction", name: "jta", version: "1.1"
     testCompile group: "com.jayway.jsonpath", name: "json-path", version: project.ext.versionJayWayJsonPath
     testCompile group: "com.jayway.jsonpath", name: "json-path-assert", version: project.ext.versionJayWayJsonPath
     testCompile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.3.13.v20161014'
+    testRuntime group: "javax.transaction", name: "jta", version: "1.1"
 }
 
 // >>>>> To configure Run/Debug with Local Tomcat on dev environment an exploded WAR archive should be
