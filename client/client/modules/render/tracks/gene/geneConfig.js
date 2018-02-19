@@ -73,11 +73,11 @@ export default {
     maxHeight: 400,
     minHeight: 30,
     scroll: {
-        alpha: 0.5,
+        alpha: 0.8,
         fill: 0x92AEE7,
         hoveredAlpha: 1,
         margin: 2,
-        width: 7
+        width: 10
     },
     transcript: {
         features: {
