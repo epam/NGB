@@ -293,7 +293,7 @@ public class VcfManager {
 
         LOGGER.debug("Not registered file url is: " + notRegisteredFile.getPath()+ "; getTypeFromPath:" + notRegisteredFile.getType());
 
-        AbstractVcfReader.createVcfReader(BiologicalDataItemResourceType.URL, httpDataManager, fileManager,
+        AbstractVcfReader.createVcfReader(notRegisteredFile.getType(), httpDataManager, fileManager,
                                           referenceGenomeManager).readVariations(notRegisteredFile, track, chromosome,
                                                                                  sampleIndex != null ? sampleIndex : 0,
                                                                                     loadInfo, collapse, indexCache);

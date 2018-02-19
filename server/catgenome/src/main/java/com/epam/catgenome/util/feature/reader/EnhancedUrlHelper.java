@@ -114,24 +114,24 @@ public class EnhancedUrlHelper implements URLHelper {
 
             try {
                 AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
-                System.out.println("Downloading an object");
+                LOGGER.debug("Downloading an object");
                 S3Object s3Object = s3Client.getObject(new GetObjectRequest((getAmazonS3URIFromUrl(url).getBucket()), getAmazonS3URIFromUrl(url).getKey()));
                 objectData = s3Object.getObjectContent();
-                System.out.println("Content-Type: " + s3Object.getObjectMetadata().getContentType());// Process the objectData stream.
+                LOGGER.debug("Content-Type: " + s3Object.getObjectMetadata().getContentType());// Process the objectData stream.
 
             } catch (AmazonServiceException ase) {
-                System.out.println("Caught an AmazonServiceException, which means your request made it " +
+                LOGGER.debug("Caught an AmazonServiceException, which means your request made it " +
                         "to Amazon S3, but was rejected with an error response for some reason.");
-                System.out.println("Error Message:    " + ase.getMessage());
-                System.out.println("HTTP Status Code: " + ase.getStatusCode());
-                System.out.println("AWS Error Code:   " + ase.getErrorCode());
-                System.out.println("Error Type:       " + ase.getErrorType());
-                System.out.println("Request ID:       " + ase.getRequestId());
+                LOGGER.debug("Error Message:    " + ase.getMessage());
+                LOGGER.debug("HTTP Status Code: " + ase.getStatusCode());
+                LOGGER.debug("AWS Error Code:   " + ase.getErrorCode());
+                LOGGER.debug("Error Type:       " + ase.getErrorType());
+                LOGGER.debug("Request ID:       " + ase.getRequestId());
 
             } catch (AmazonClientException ace) {
-                System.out.println("Caught an AmazonClientException, which means the client encountered an internal error while trying to " +
+                LOGGER.debug("Caught an AmazonClientException, which means the client encountered an internal error while trying to " +
                         "communicate with S3, such as not being able to access the network.");
-                System.out.println("Error Message: " + ace.getMessage());
+                LOGGER.debug("Error Message: " + ace.getMessage());
 
             } finally {
                 objectData.close();
@@ -145,25 +145,25 @@ public class EnhancedUrlHelper implements URLHelper {
 
             try {
                 AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
-                System.out.println("Downloading an object");
+                LOGGER.debug("Downloading an object");
                 GetObjectRequest rangeObjectRequest = new GetObjectRequest(getAmazonS3URIFromUrl(url).getBucket(), getAmazonS3URIFromUrl(url).getKey());
                 rangeObjectRequest.setRange(start, end); // retrieving selected bytes.
                 S3Object objectPortion = s3Client.getObject(rangeObjectRequest);
 
                 objectData = objectPortion.getObjectContent();
             } catch (AmazonServiceException ase) {
-                    System.out.println("Caught an AmazonServiceException, which means your request made it " +
+                LOGGER.debug("Caught an AmazonServiceException, which means your request made it " +
                             "to Amazon S3, but was rejected with an error response for some reason.");
-                    System.out.println("Error Message:    " + ase.getMessage());
-                    System.out.println("HTTP Status Code: " + ase.getStatusCode());
-                    System.out.println("AWS Error Code:   " + ase.getErrorCode());
-                    System.out.println("Error Type:       " + ase.getErrorType());
-                    System.out.println("Request ID:       " + ase.getRequestId());
+                LOGGER.debug("Error Message:    " + ase.getMessage());
+                LOGGER.debug("HTTP Status Code: " + ase.getStatusCode());
+                LOGGER.debug("AWS Error Code:   " + ase.getErrorCode());
+                LOGGER.debug("Error Type:       " + ase.getErrorType());
+                LOGGER.debug("Request ID:       " + ase.getRequestId());
 
             } catch (AmazonClientException ace) {
-                    System.out.println("Caught an AmazonClientException, which means the client encountered an internal error while trying to " +
+                LOGGER.debug("Caught an AmazonClientException, which means the client encountered an internal error while trying to " +
                             "communicate with S3, such as not being able to access the network.");
-                    System.out.println("Error Message: " + ace.getMessage());
+                LOGGER.debug("Error Message: " + ace.getMessage());
 
                 } finally {
                     objectData.close();

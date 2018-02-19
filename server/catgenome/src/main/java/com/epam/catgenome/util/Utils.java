@@ -389,11 +389,11 @@ public final class Utils {
         }
         notRegisteredFile.setPath((fileUrl));
         notRegisteredFile.setCompressed(false);
-        notRegisteredFile.setType(BiologicalDataItemResourceType.URL);
+        notRegisteredFile.setType((!fileUrl.startsWith(S3_SCHEME)) ?  BiologicalDataItemResourceType.URL : BiologicalDataItemResourceType.S3);
         notRegisteredFile.setReferenceId(chromosome.getReferenceId());
 
         BiologicalDataItem index = new BiologicalDataItem();
-        index.setType(BiologicalDataItemResourceType.URL);
+        index.setType((!indexUrl.startsWith(S3_SCHEME)) ?  BiologicalDataItemResourceType.URL : BiologicalDataItemResourceType.S3);
         index.setPath((indexUrl));
         notRegisteredFile.setIndex(index);
         return notRegisteredFile;
