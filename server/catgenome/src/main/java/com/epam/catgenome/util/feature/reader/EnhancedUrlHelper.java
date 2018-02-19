@@ -98,20 +98,15 @@ public class EnhancedUrlHelper implements URLHelper {
      * Inner helper class for handling S3 signed URLs. We sign URLs for GET requests so
      * HEAD request will return 403, this is considered to be OK in this case
      */
-    public static class S3Helper implements URLHelper {
+    public static class S3Helper extends HTTPHelper {
 
-        public S3Helper(URL inputUrl) {
-            this.inputUrl = inputUrl;
+        public S3Helper(URL url) {
+            super(url);
         }
 
-        URL inputUrl;
+        URL url;
 
         InputStream objectData = null;
-
-        @Override
-        public URL getUrl() {
-            return inputUrl;
-        }
 
 
         @Override
@@ -120,7 +115,7 @@ public class EnhancedUrlHelper implements URLHelper {
             try {
                 AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
                 System.out.println("Downloading an object");
-                S3Object s3Object = s3Client.getObject(new GetObjectRequest((getAmazonS3URIFromUrl(inputUrl).getBucket()), getAmazonS3URIFromUrl(inputUrl).getKey()));
+                S3Object s3Object = s3Client.getObject(new GetObjectRequest((getAmazonS3URIFromUrl(url).getBucket()), getAmazonS3URIFromUrl(url).getKey()));
                 objectData = s3Object.getObjectContent();
                 System.out.println("Content-Type: " + s3Object.getObjectMetadata().getContentType());// Process the objectData stream.
 
@@ -151,7 +146,7 @@ public class EnhancedUrlHelper implements URLHelper {
             try {
                 AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
                 System.out.println("Downloading an object");
-                GetObjectRequest rangeObjectRequest = new GetObjectRequest(getAmazonS3URIFromUrl(inputUrl).getBucket(), getAmazonS3URIFromUrl(inputUrl).getKey());
+                GetObjectRequest rangeObjectRequest = new GetObjectRequest(getAmazonS3URIFromUrl(url).getBucket(), getAmazonS3URIFromUrl(url).getKey());
                 rangeObjectRequest.setRange(start, end); // retrieving selected bytes.
                 S3Object objectPortion = s3Client.getObject(rangeObjectRequest);
 
@@ -178,18 +173,9 @@ public class EnhancedUrlHelper implements URLHelper {
 
             }
 
-        @Override
-        public boolean exists() throws IOException {
-            throw new UnsupportedOperationException();
-        }
 
-        @Override
-        public long getContentLength() throws IOException {
-            throw new UnsupportedOperationException();
-        }
-
-        private static AmazonS3URI getAmazonS3URIFromUrl(URL inputUrl) {
-            return new AmazonS3URI(inputUrl.toString());
+        private static AmazonS3URI getAmazonS3URIFromUrl(URL url) {
+            return new AmazonS3URI(url.toString());
         }
     }
 
