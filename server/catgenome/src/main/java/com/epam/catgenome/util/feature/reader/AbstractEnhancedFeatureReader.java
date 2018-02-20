@@ -90,6 +90,8 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
             final String featureResource, String indexResource,
             final FeatureCodec<FEATURE, SOURCE> codec, final boolean requireIndex,
             EhCacheBasedIndexCache indexCache) throws TribbleException {
+
+        LOGGER.debug("featureResource: " + featureResource + "; indexResource: " + indexResource);
         if (!featureResource.startsWith("s3:")) {
             ParsingUtils.registerHelperClass(RemoteURLHelper.class);
         } else {
@@ -97,7 +99,6 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
         }
         try {
             // Test for tabix index
-            LOGGER.debug("featureResource: " + featureResource + "; indexResource: " + indexResource);
             if (methods.isTabix(featureResource, indexResource)) {
                 if (!(codec instanceof AsciiFeatureCodec)) {
                     throw new TribbleException("Tabix indexed files only work with ASCII codecs, "

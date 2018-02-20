@@ -38,6 +38,7 @@ import htsjdk.tribble.util.ParsingUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -124,6 +125,14 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
         } catch (IOException e) {
             throw new TribbleException.MalformedFeatureFile("Unable to parse header with error: "
                     + e.getMessage(), path, e);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
         } finally {
             if (source != null) {
                 codec.close(source);
