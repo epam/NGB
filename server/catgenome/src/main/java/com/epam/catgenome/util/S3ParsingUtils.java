@@ -7,7 +7,7 @@ import com.amazonaws.services.s3.AmazonS3URI;
 import com.epam.catgenome.util.feature.reader.S3Helper;
 import htsjdk.tribble.util.ParsingUtils;
 
-import htsjdk.tribble.util.URLHelper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 
 public class S3ParsingUtils {
@@ -58,6 +60,19 @@ public class S3ParsingUtils {
 
     public static void registerS3HelperClass(Class helperClass) {
         s3HelperClass = helperClass;
+    }
+
+    public static String appendToPath(String filepath, String indexExtension) {
+        String tabxIndex;
+        AmazonS3URI s3URI = new AmazonS3URI(filepath);
+        if (s3URI != null) {
+            String path = s3URI.toString();
+            String indexPath = path + indexExtension;
+            tabxIndex = filepath.replace(path, indexPath);
+        } else {
+            tabxIndex = filepath + indexExtension;
+        }
+        return tabxIndex;
     }
 
 }

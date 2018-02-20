@@ -68,6 +68,7 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
     /**
      * {@link #getFeatureReader(String, String, FeatureCodec, boolean, EhCacheBasedIndexCache)}
      * with {@code null} for indexResource
+     *
      * @throws TribbleException
      */
     public static <FEATURE extends Feature, SOURCE> AbstractFeatureReader<FEATURE, SOURCE> getFeatureReader(
@@ -78,7 +79,6 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
     }
 
     /**
-     *
      * @param featureResource the feature file to create from
      * @param indexResource   the index for the feature file. If null, will auto-generate (if necessary)
      * @param codec
@@ -124,13 +124,13 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
      * Return a reader with a supplied index.
      *
      * @param featureResource the path to the source file containing the features
-     * @param codec used to decode the features
-     * @param index index of featureResource
+     * @param codec           used to decode the features
+     * @param index           index of featureResource
      * @return a reader for this data
      * @throws TribbleException
      */
     public static <FEATURE extends Feature, SOURCE> AbstractFeatureReader<FEATURE, SOURCE> getFeatureReader(
-            final String featureResource, final FeatureCodec<FEATURE, SOURCE>  codec, final Index index,
+            final String featureResource, final FeatureCodec<FEATURE, SOURCE> codec, final Index index,
             EhCacheBasedIndexCache indexCache)
             throws TribbleException {
         try {
@@ -141,8 +141,10 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
         }
 
     }
+
     /**
      * Whether a filename ends in one of the BLOCK_COMPRESSED_EXTENSIONS
+     *
      * @param fileName
      * @return
      */
@@ -168,13 +170,23 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
         return false;
     }
 
-    public static class ComponentMethods{
+    public static class ComponentMethods {
 
-        public boolean isTabix(String resourcePath, String indexPath) throws IOException{
-            if(indexPath == null){
-                indexPath = ParsingUtils.appendToPath(resourcePath, TabixUtils.STANDARD_INDEX_EXTENSION);
-            }
-            return hasBlockCompressedExtension(resourcePath) && S3ParsingUtils.resourceExists(indexPath);
+        public boolean isTabix(String resourcePath, String indexPath) throws IOException {
+
+            if (indexPath == null) {
+
+                if (!resourcePath.startsWith("s3:")) {
+                    indexPath = ParsingUtils.appendToPath(resourcePath, TabixUtils.STANDARD_INDEX_EXTENSION);
+                    return (hasBlockCompressedExtension(resourcePath) && ParsingUtils.resourceExists(indexPath));
+
+                } else {
+                    indexPath = S3ParsingUtils.appendToPath(resourcePath, TabixUtils.STANDARD_INDEX_EXTENSION);
+                    return (hasBlockCompressedExtension(resourcePath) && S3ParsingUtils.resourceExists(indexPath));
+                }
+
+            } else { return false; }
         }
     }
 }
+

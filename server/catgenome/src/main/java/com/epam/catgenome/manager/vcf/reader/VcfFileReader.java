@@ -116,6 +116,7 @@ public class VcfFileReader extends AbstractVcfReader {
             throws VcfReadingException {
         try (FeatureReader<VariantContext> reader = AbstractEnhancedFeatureReader.getFeatureReader(vcfFile.getPath(),
                 vcfFile.getIndex().getPath(), new VCFCodec(), true, indexCache)) {
+            LOGGER.debug("s3path:" + vcfFile.getPath() + "s3 index path:" + vcfFile.getIndex().getPath());
             if (checkBounds(vcfFile, track, chromosome, loadInfo)) {
                 return track;
             }
