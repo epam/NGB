@@ -30,7 +30,8 @@ import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.vcf.VariationEffect;
 import com.epam.catgenome.entity.vcf.VariationImpact;
 import com.epam.catgenome.entity.vcf.VariationType;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
@@ -61,6 +62,9 @@ public class DiskBasedListTest {
     @Autowired
     private ApplicationContext context;
 
+    @Autowired
+    private EhCacheBasedIndexCache indexCache;
+
     @Test
     public void serialisationTest() throws IOException, ClassNotFoundException {
         Resource resource = context.getResource("classpath:templates/samples.vcf");
@@ -68,7 +72,7 @@ public class DiskBasedListTest {
         List<VcfIndexEntry> diskBasedList = new DiskBasedList<VcfIndexEntry>(MAX_IN_MEMORY_ITEMS_COUNT).adaptToList();
 
         try (FeatureReader<VariantContext> reader = AbstractFeatureReader
-                .getFeatureReader(resource.getFile().getAbsolutePath(), new VCFCodec(), false)
+                .getFeatureReader(resource.getFile().getAbsolutePath(), new VCFCodec(), false, indexCache)
         ) {
 
             for (VariantContext variantContext : reader.iterator()) {

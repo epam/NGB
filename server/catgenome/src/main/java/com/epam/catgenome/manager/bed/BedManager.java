@@ -36,7 +36,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.manager.bed.parser.NggbBedCodec;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -75,10 +77,8 @@ import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.Utils;
-import htsjdk.tribble.bed.BEDCodec;
-import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.readers.LineIterator;
 
@@ -110,6 +110,9 @@ public class BedManager {
 
     @Autowired
     private FeatureIndexManager featureIndexManager;
+
+    @Autowired
+    private EhCacheBasedIndexCache indexCache;
 
     private static final Logger LOG = LoggerFactory.getLogger(BedManager.class);
 
@@ -557,9 +560,9 @@ public class BedManager {
 
         try {
             fileManager.deleteFileFeatureIndex(bedFile);
-            try (AbstractFeatureReader<BEDFeature, LineIterator> reader =
+            try (AbstractFeatureReader<NggbBedFeature, LineIterator> reader =
                     AbstractEnhancedFeatureReader
-                                 .getFeatureReader(bedFile.getPath(), new BEDCodec(), false)) {
+                                 .getFeatureReader(bedFile.getPath(), new NggbBedCodec(), false, indexCache)) {
                 featureIndexManager.makeIndexForBedReader(bedFile, reader, chromosomeMap);
             }
         } catch (IOException e) {

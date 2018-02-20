@@ -53,6 +53,7 @@ import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.GeneReadingException;
 import com.epam.catgenome.manager.bed.BedManager;
+import com.epam.catgenome.manager.bed.parser.NggbBedFeature;
 import com.epam.catgenome.manager.gene.GeneFileManager;
 import com.epam.catgenome.manager.gene.GeneUtils;
 import com.epam.catgenome.manager.gene.GffManager;
@@ -66,10 +67,9 @@ import com.epam.catgenome.manager.vcf.VcfFileManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureReader;
-import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.tribble.readers.LineIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
@@ -502,12 +502,12 @@ public class FeatureIndexManager {
         featureIndexDao.writeLuceneIndexForFile(featureFile, entries, vcfFilterInfo);
     }
 
-    public void makeIndexForBedReader(BedFile bedFile, AbstractFeatureReader<BEDFeature, LineIterator> reader,
+    public void makeIndexForBedReader(BedFile bedFile, AbstractFeatureReader<NggbBedFeature, LineIterator> reader,
                                       Map<String, Chromosome> chromosomeMap) throws IOException {
-        CloseableIterator<BEDFeature> iterator = reader.iterator();
+        CloseableIterator<NggbBedFeature> iterator = reader.iterator();
         List<FeatureIndexEntry> allEntries = new ArrayList<>();
         while (iterator.hasNext()) {
-            BEDFeature next = iterator.next();
+            NggbBedFeature next = iterator.next();
             FeatureIndexEntry entry = new FeatureIndexEntry();
             entry.setFeatureFileId(bedFile.getId());
             entry.setChromosome(Utils.getFromChromosomeMap(chromosomeMap, next.getContig()));

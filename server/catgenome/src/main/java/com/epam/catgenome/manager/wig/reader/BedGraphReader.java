@@ -25,6 +25,7 @@
 package com.epam.catgenome.manager.wig.reader;
 
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.tribble.FeatureReader;
 
 import java.io.Closeable;
@@ -38,12 +39,13 @@ public class BedGraphReader implements Closeable {
 
     private FeatureReader<BedGraphFeature> reader;
 
-    public BedGraphReader(String wigFile, String index) {
+    public BedGraphReader(String wigFile, String index, EhCacheBasedIndexCache indexCache) {
         reader = AbstractEnhancedFeatureReader.getFeatureReader(
                 wigFile,
                 index,
                 new BedGraphCodec(),
-                true);
+                true,
+                indexCache);
     }
 
     /**

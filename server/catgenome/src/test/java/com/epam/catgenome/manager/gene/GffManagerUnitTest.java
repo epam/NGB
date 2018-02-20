@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +34,7 @@ import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.util.CachedFeatureReader;
 import htsjdk.samtools.util.Locatable;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.readers.LineIterator;
 
 /**
@@ -69,6 +70,9 @@ public class GffManagerUnitTest {
     @Autowired
     private ApplicationContext context;
 
+    @Autowired
+    private EhCacheBasedIndexCache indexCache;
+
     private List<GeneFeature> featureList;
 
     @Before
@@ -78,7 +82,7 @@ public class GffManagerUnitTest {
         try (AbstractFeatureReader<GeneFeature, LineIterator> reader = AbstractEnhancedFeatureReader
                 .getFeatureReader(
             resource.getFile().getAbsolutePath(), new GffCodec(
-            GffCodec.GffType.GTF), false)) {
+            GffCodec.GffType.GTF), false, indexCache)) {
             featureList = reader.iterator().toList();
         }
     }

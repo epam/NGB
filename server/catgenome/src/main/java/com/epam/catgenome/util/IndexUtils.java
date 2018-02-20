@@ -13,6 +13,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.epam.catgenome.manager.bam.BamHelper;
 import org.apache.commons.io.IOUtils;
@@ -28,7 +30,7 @@ import htsjdk.samtools.util.CloserUtil;
 import htsjdk.samtools.util.LocationAware;
 import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.samtools.util.Tuple;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.CloseableTribbleIterator;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureCodec;
@@ -57,6 +59,8 @@ import static com.epam.catgenome.util.NgbFileUtils.isGzCompressed;
 public final class IndexUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexUtils.class);
+    private static final String FIRST_PART_PATH_REGEX = "(.*?)\\?";
+    private static final Pattern FIRST_PART_PATH_PATTERN = Pattern.compile(FIRST_PART_PATH_REGEX);
 
     private IndexUtils() {
         //no operations
@@ -456,6 +460,18 @@ public final class IndexUtils {
                 // Be careful: peek will be null at the end of the stream.
                 return peek != null ? peek.b : lineReader.getPosition();
             }
+        }
+    }
+
+    /**
+     * Returns first part of URL for S3 created links (if "?" include in path) or else full path
+     */
+    public static String getFirstPartForIndexPath(String indexPath) {
+        Matcher matcher = FIRST_PART_PATH_PATTERN.matcher(indexPath);
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            return indexPath;
         }
     }
 }
