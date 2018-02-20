@@ -98,7 +98,7 @@ public class EnhancedUrlHelper implements URLHelper {
      * Inner helper class for handling S3 signed URLs. We sign URLs for GET requests so
      * HEAD request will return 403, this is considered to be OK in this case
      */
-    public static class S3Helper extends HTTPHelper {
+    public class S3Helper extends HTTPHelper {
 
         public S3Helper(URL url) {
             super(url);
@@ -174,7 +174,7 @@ public class EnhancedUrlHelper implements URLHelper {
             }
 
 
-        private static AmazonS3URI getAmazonS3URIFromUrl(URL url) {
+        private AmazonS3URI getAmazonS3URIFromUrl(URL url) {
             return new AmazonS3URI(url.toString());
         }
     }

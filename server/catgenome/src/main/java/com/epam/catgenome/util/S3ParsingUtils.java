@@ -2,19 +2,19 @@ package com.epam.catgenome.util;
 
 
 
+import com.amazonaws.services.s3.AmazonS3URI;
+
+import com.epam.catgenome.util.feature.reader.S3Helper;
 import htsjdk.tribble.util.ParsingUtils;
 
 import htsjdk.tribble.util.URLHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.lang.reflect.InvocationTargetException;
 
 
 public class S3ParsingUtils {
@@ -22,15 +22,18 @@ public class S3ParsingUtils {
     public S3ParsingUtils() {
     }
 
+    public static Class s3HelperClass = null;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ParsingUtils.class);
-    public static InputStream openInputStream(String path) throws IOException {
+
+    public static InputStream openInputStream(String path) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 
         InputStream inputStream;
 
         if (!path.startsWith("s3:")) {
             inputStream = ParsingUtils.openInputStream(path);
         } else {
-            inputStream = ParsingUtils.getURLHelper(new URL(path)).openInputStream();
+            inputStream = S3ParsingUtils.getS3Helper(new AmazonS3URI(path)).openInputStream();
         }
 
         return inputStream;
@@ -43,13 +46,18 @@ public class S3ParsingUtils {
         if (!resource.startsWith("s3://")) {
             resExists = ParsingUtils.resourceExists(resource);
         } else {
-            URL url = new URL(resource);
-            LOGGER.debug("url:" + url);
-            URLHelper helper = ParsingUtils.getURLHelper(url);
-            resExists = helper.exists();
-            Class helperClass = helper.getClass();
-            LOGGER.debug("helperClass is :" + helperClass.getSimpleName());
+            resExists = true;
         }
         return resExists;
     }
+
+    public static S3Helper getS3Helper(AmazonS3URI s3URI) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+            Constructor constructor = s3HelperClass.getConstructor(AmazonS3URI.class);
+            return (S3Helper) constructor.newInstance(s3URI);
+    }
+
+    public static void registerS3HelperClass(Class helperClass) {
+        s3HelperClass = helperClass;
+    }
+
 }

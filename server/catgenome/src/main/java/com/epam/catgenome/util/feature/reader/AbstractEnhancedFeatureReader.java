@@ -35,6 +35,7 @@ import htsjdk.tribble.FeatureCodec;
 import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.util.ParsingUtils;
+import htsjdk.tribble.util.RemoteURLHelper;
 import htsjdk.tribble.util.TabixUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,9 +90,14 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
             final String featureResource, String indexResource,
             final FeatureCodec<FEATURE, SOURCE> codec, final boolean requireIndex,
             EhCacheBasedIndexCache indexCache) throws TribbleException {
-        ParsingUtils.registerHelperClass(EnhancedUrlHelper.class);
+        if (!featureResource.startsWith("s3:")) {
+            ParsingUtils.registerHelperClass(RemoteURLHelper.class);
+        } else {
+            S3ParsingUtils.registerS3HelperClass(S3Helper.class);
+        }
         try {
             // Test for tabix index
+            LOGGER.debug("featureResource: " + featureResource + "; indexResource: " + indexResource);
             if (methods.isTabix(featureResource, indexResource)) {
                 if (!(codec instanceof AsciiFeatureCodec)) {
                     throw new TribbleException("Tabix indexed files only work with ASCII codecs, "
