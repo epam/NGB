@@ -1,16 +1,17 @@
 package com.epam.catgenome.util.feature.reader;
 
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
+
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import net.sf.ehcache.pool.sizeof.annotations.IgnoreSizeOf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+
 import java.io.InputStream;
 
 
@@ -25,8 +26,11 @@ public class S3Helper {
     public S3Helper(AmazonS3URI s3URI) {
         this.s3URI = s3URI;
     }
-
+    
     AmazonS3URI s3URI;
+
+    @IgnoreSizeOf
+    InputStream objectData;
 
 
     public InputStream openInputStream() throws AmazonClientException {
@@ -34,7 +38,8 @@ public class S3Helper {
         AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
         LOGGER.debug("Downloading an object");
         S3Object s3Object = s3Client.getObject(new GetObjectRequest((s3URI.getBucket()), s3URI.getKey()));
-        InputStream objectData = s3Object.getObjectContent();
+
+        objectData = s3Object.getObjectContent();
         LOGGER.debug("Content-Type: " + s3Object.getObjectMetadata().getContentType());// Process the objectData stream
 
         return objectData;
@@ -50,7 +55,7 @@ public class S3Helper {
         rangeObjectRequest.setRange(start, end); // retrieving selected bytes.
         S3Object objectPortion = s3Client.getObject(rangeObjectRequest);
 
-        InputStream objectData = objectPortion.getObjectContent();
+        objectData = objectPortion.getObjectContent();
 
         return objectData;
     }

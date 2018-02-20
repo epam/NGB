@@ -8,6 +8,7 @@ import com.epam.catgenome.util.feature.reader.S3Helper;
 import htsjdk.tribble.util.ParsingUtils;
 
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +28,7 @@ public class S3ParsingUtils {
     public static Class s3HelperClass = null;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ParsingUtils.class);
+
 
     public static InputStream openInputStream(String path) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 
