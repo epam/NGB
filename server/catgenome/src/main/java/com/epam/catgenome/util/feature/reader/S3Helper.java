@@ -28,69 +28,31 @@ public class S3Helper {
 
     AmazonS3URI s3URI;
 
-    InputStream objectData = null;
 
-    public InputStream openInputStream() throws IOException {
+    public InputStream openInputStream() throws AmazonClientException {
 
-        try {
-            AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
-            LOGGER.debug("Downloading an object");
-            S3Object s3Object = s3Client.getObject(new GetObjectRequest((s3URI.getBucket()), s3URI.getKey()));
-            objectData = s3Object.getObjectContent();
-            LOGGER.debug("Content-Type: " + s3Object.getObjectMetadata().getContentType());// Process the objectData stream.
-
-        } catch (AmazonServiceException ase) {
-            LOGGER.debug("Caught an AmazonServiceException, which means your request made it " +
-                    "to Amazon S3, but was rejected with an error response for some reason.");
-            LOGGER.debug("Error Message:    " + ase.getMessage());
-            LOGGER.debug("HTTP Status Code: " + ase.getStatusCode());
-            LOGGER.debug("AWS Error Code:   " + ase.getErrorCode());
-            LOGGER.debug("Error Type:       " + ase.getErrorType());
-            LOGGER.debug("Request ID:       " + ase.getRequestId());
-
-        } catch (AmazonClientException ace) {
-            LOGGER.debug("Caught an AmazonClientException, which means the client encountered an internal error while trying to " +
-                    "communicate with S3, such as not being able to access the network.");
-            LOGGER.debug("Error Message: " + ace.getMessage());
-
-        } finally {
-            objectData.close();
-        }
+        AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
+        LOGGER.debug("Downloading an object");
+        S3Object s3Object = s3Client.getObject(new GetObjectRequest((s3URI.getBucket()), s3URI.getKey()));
+        InputStream objectData = s3Object.getObjectContent();
+        LOGGER.debug("Content-Type: " + s3Object.getObjectMetadata().getContentType());// Process the objectData stream
 
         return objectData;
     }
 
+
     @Deprecated
-    public InputStream openInputStreamForRange(long start, long end) throws IOException {
+    public InputStream openInputStreamForRange(long start, long end) throws AmazonClientException {
 
-        try {
-            AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
-            LOGGER.debug("Downloading an object");
-            GetObjectRequest rangeObjectRequest = new GetObjectRequest((s3URI.getBucket()), s3URI.getKey());
-            rangeObjectRequest.setRange(start, end); // retrieving selected bytes.
-            S3Object objectPortion = s3Client.getObject(rangeObjectRequest);
+        AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
+        LOGGER.debug("Downloading an object");
+        GetObjectRequest rangeObjectRequest = new GetObjectRequest((s3URI.getBucket()), s3URI.getKey());
+        rangeObjectRequest.setRange(start, end); // retrieving selected bytes.
+        S3Object objectPortion = s3Client.getObject(rangeObjectRequest);
 
-            objectData = objectPortion.getObjectContent();
-        } catch (AmazonServiceException ase) {
-            LOGGER.debug("Caught an AmazonServiceException, which means your request made it " +
-                    "to Amazon S3, but was rejected with an error response for some reason.");
-            LOGGER.debug("Error Message:    " + ase.getMessage());
-            LOGGER.debug("HTTP Status Code: " + ase.getStatusCode());
-            LOGGER.debug("AWS Error Code:   " + ase.getErrorCode());
-            LOGGER.debug("Error Type:       " + ase.getErrorType());
-            LOGGER.debug("Request ID:       " + ase.getRequestId());
-
-        } catch (AmazonClientException ace) {
-            LOGGER.debug("Caught an AmazonClientException, which means the client encountered an internal error while trying to " +
-                    "communicate with S3, such as not being able to access the network.");
-            LOGGER.debug("Error Message: " + ace.getMessage());
-
-        } finally {
-            objectData.close();
-        }
+        InputStream objectData = objectPortion.getObjectContent();
 
         return objectData;
-
     }
 
 }
