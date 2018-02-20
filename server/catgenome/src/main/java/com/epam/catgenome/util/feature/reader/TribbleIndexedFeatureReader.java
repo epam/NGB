@@ -128,7 +128,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
     private Index retrieveIndex(final String indexFile) {
         Index index;
         String indexFilePath = IndexUtils.getFirstPartForIndexPath(Tribble.indexFile(this.path));
-        if (indexCache.contains(indexFilePath)) {
+        if (indexCache != null && indexCache.contains(indexFilePath)) {
             tribbleIndexCache = (TribbleIndexCache) indexCache.getFromCache(indexFilePath);
             if (tribbleIndexCache.index != null) {
                 return tribbleIndexCache.index;
@@ -140,9 +140,11 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             }
         } else {
             index = IndexFactory.loadIndex(indexFile);
-            tribbleIndexCache = new TribbleIndexCache();
-            tribbleIndexCache.index = index;
-            indexCache.putInCache(tribbleIndexCache, indexFilePath);
+            if (indexCache != null) {
+                tribbleIndexCache = new TribbleIndexCache();
+                tribbleIndexCache.index = index;
+                indexCache.putInCache(tribbleIndexCache, indexFilePath);
+            }
             return index;
         }
     }
@@ -261,7 +263,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             final S source;
             String indexFilePath = IndexUtils.getFirstPartForIndexPath(Tribble.indexFile(this.path));
 
-            if (indexCache.contains(indexFilePath)) {
+            if (indexCache != null && indexCache.contains(indexFilePath)) {
                 tribbleIndexCache = (TribbleIndexCache) indexCache.getFromCache(indexFilePath);
                 header = tribbleIndexCache.header;
                 if (header == null) {
@@ -275,11 +277,12 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             }  else {
                 source = codec.makeSourceFromStream(pbs);
                 header = codec.readHeader(source);
-
-                tribbleIndexCache = new TribbleIndexCache();
-                tribbleIndexCache.header = header;
-                tribbleIndexCache.codec = codec;
-                indexCache.putInCache(tribbleIndexCache, indexFilePath);
+                if (indexCache != null) {
+                    tribbleIndexCache = new TribbleIndexCache();
+                    tribbleIndexCache.header = header;
+                    tribbleIndexCache.codec = codec;
+                    indexCache.putInCache(tribbleIndexCache, indexFilePath);
+                }
             }
         } catch (IOException e) {
             throw new TribbleException.MalformedFeatureFile(

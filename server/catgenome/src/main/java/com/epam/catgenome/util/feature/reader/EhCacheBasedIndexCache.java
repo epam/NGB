@@ -30,11 +30,13 @@ import net.sf.ehcache.CacheException;
 import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.ehcache.EhCacheCacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 @Service
+@ConditionalOnProperty(value = "server.cache.enabled", havingValue = "true")
 public class EhCacheBasedIndexCache {
     private static final String INDEX_CACHE = "indexCache";
 

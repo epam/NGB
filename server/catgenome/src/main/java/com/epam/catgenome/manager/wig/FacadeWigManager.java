@@ -96,7 +96,7 @@ public class FacadeWigManager {
     @Autowired
     protected DownloadFileManager downloadFileManager;
 
-    @Autowired
+    @Autowired(required = false)
     protected EhCacheBasedIndexCache indexCache;
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(FacadeWigManager.class);

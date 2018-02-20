@@ -12,6 +12,7 @@ import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.junit.Test;
 
@@ -25,6 +26,7 @@ import java.io.IOException;
  */
 
 @RunWith(SpringJUnit4ClassRunner.class)
+@TestPropertySource("classpath:application.properties")
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class IndexHeaderCacheTest<T extends Feature, S> extends AbstractManagerTest {
 
@@ -32,7 +34,7 @@ public class IndexHeaderCacheTest<T extends Feature, S> extends AbstractManagerT
     private ApplicationContext context;
 
     @Spy
-    @Autowired
+    @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
     private static final String FELIS_CATUS_VCF = "classpath:templates/Felis_catus.vcf";

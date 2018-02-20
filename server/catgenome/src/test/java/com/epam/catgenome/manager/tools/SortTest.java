@@ -64,7 +64,7 @@ public class SortTest extends AbstractJUnitTest {
     @Autowired
     private ToolsManager toolsManager;
 
-    @Autowired
+    @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
     @Test

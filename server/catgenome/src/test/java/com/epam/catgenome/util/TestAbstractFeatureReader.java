@@ -21,6 +21,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.File;
@@ -39,13 +40,14 @@ import static org.junit.Assert.*;
  */
 
 @RunWith(SpringJUnit4ClassRunner.class)
+@TestPropertySource("classpath:application.properties")
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class TestAbstractFeatureReader  {
 
     @Autowired
     private ApplicationContext context;
 
-    @Autowired
+    @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
     private static final String LOCAL_MIRROR_HTTP_INDEXED_VCF_PATH = "classpath:templates/ex2.vcf";
