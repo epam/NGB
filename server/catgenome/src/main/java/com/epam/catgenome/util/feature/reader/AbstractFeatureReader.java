@@ -18,6 +18,7 @@ package com.epam.catgenome.util.feature.reader;
  * FOREGOING.
  */
 
+import com.epam.catgenome.util.S3ParsingUtils;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureCodec;
 import htsjdk.tribble.AsciiFeatureCodec;
@@ -219,7 +220,7 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
         if(indexPath == null){
             indexPath = ParsingUtils.appendToPath(resourcePath, TabixUtils.STANDARD_INDEX_EXTENSION);
         }
-        return hasBlockCompressedExtension(resourcePath) && ParsingUtils.resourceExists(indexPath);
+        return hasBlockCompressedExtension(resourcePath) && S3ParsingUtils.resourceExists(indexPath);
     }
 
     public static class ComponentMethods{

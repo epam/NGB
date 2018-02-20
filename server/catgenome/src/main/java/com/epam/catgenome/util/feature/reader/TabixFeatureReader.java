@@ -24,6 +24,7 @@ package com.epam.catgenome.util.feature.reader;
  * THE SOFTWARE.
  */
 import com.epam.catgenome.util.IndexUtils;
+import com.epam.catgenome.util.S3ParsingUtils;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.tribble.AsciiFeatureCodec;
@@ -108,7 +109,7 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
 
                 if (header == null) {
                     source = codec.makeSourceFromStream(new PositionalBufferedStream(
-                            new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
+                            new BlockCompressedInputStream(S3ParsingUtils.openInputStream(path))));
                     header = codec.readHeader(source);
                     tabixIndexCache.setHeader(header);
                     tabixIndexCache.setCodec(codec);
@@ -117,7 +118,7 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                 codec = tabixIndexCache.getCodec();
             } else {
                 source = codec.makeSourceFromStream(new PositionalBufferedStream(
-                        new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
+                        new BlockCompressedInputStream(S3ParsingUtils.openInputStream(path))));
                 header = codec.readHeader(source);
             }
         } catch (IOException e) {

@@ -1,14 +1,19 @@
 package com.epam.catgenome.util;
 
 
-import htsjdk.tribble.util.RemoteURLHelper;
+
+import htsjdk.tribble.util.ParsingUtils;
+
 import htsjdk.tribble.util.URLHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 
@@ -17,46 +22,34 @@ public class S3ParsingUtils {
     public S3ParsingUtils() {
     }
 
-    private static final Class defaultUrlHelperClass = RemoteURLHelper.class;
-    public static Class urlHelperClass = defaultUrlHelperClass;
-
-    public static void registerHelperClass(Class helperClass) {
-        if (!URLHelper.class.isAssignableFrom(helperClass)) {
-            throw new IllegalArgumentException("helperClass must implement URLHelper");
-        }
-        urlHelperClass = helperClass;
-    }
-
-    public static InputStream openInputStream(String path)
-            throws IOException {
+    private static final Logger LOGGER = LoggerFactory.getLogger(S3ParsingUtils.class);
+    public static InputStream openInputStream(String path) throws IOException {
 
         InputStream inputStream;
 
-        if (path.startsWith("http:") || path.startsWith("https:") || path.startsWith("ftp:")) {
-            inputStream = getURLHelper(new URL(path)).openInputStream();
+        if (!path.startsWith("s3:")) {
+            inputStream = ParsingUtils.openInputStream(path);
         } else {
-            File file = new File(path);
-            inputStream = new FileInputStream(file);
+            inputStream = ParsingUtils.getURLHelper(new URL(path)).openInputStream();
         }
 
         return inputStream;
     }
 
-    public static URLHelper getURLHelper(URL url) {
-        try {
-            return getURLHelper(urlHelperClass, url);
-        } catch (Exception e) {
-            return getURLHelper(defaultUrlHelperClass, url);
-        }
-    }
+    public static boolean resourceExists(String resource) throws IOException {
 
-    private static URLHelper getURLHelper(Class helperClass, URL url) {
-        try {
-            Constructor constr = helperClass.getConstructor(URL.class);
-            return (URLHelper) constr.newInstance(url);
-        } catch (Exception e) {
-            String errMsg = "Error instantiating url helper for class: " + helperClass;
-            throw new IllegalStateException(errMsg, e);
+        boolean resExists;
+
+        if (!resource.startsWith("s3://")) {
+            resExists = ParsingUtils.resourceExists(resource);
+        } else {
+            URL url = new URL(resource);
+            LOGGER.debug("url:" + url);
+            URLHelper helper = ParsingUtils.getURLHelper(url);
+            resExists = helper.exists();
+            Class helperClass = helper.getClass();
+            LOGGER.debug("helperClass is :" + helperClass.getSimpleName());
         }
+        return resExists;
     }
 }
