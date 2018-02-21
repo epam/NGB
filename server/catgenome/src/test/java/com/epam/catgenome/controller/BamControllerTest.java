@@ -41,6 +41,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -107,6 +108,10 @@ public class BamControllerTest extends AbstractControllerTest {
         super.setup();
 
         taskExecutorService.setForceSequential(true);
+
+        System.out.println("Property from  file: " + context.getEnvironment().getProperty("database.username"));
+        ConfigurableEnvironment env = (ConfigurableEnvironment) context.getEnvironment();
+        System.out.println("Property sources: "+ env.getPropertySources());
 
         resource = context.getResource("classpath:templates");
         File fastaFile = new File(resource.getFile().getAbsolutePath() + "//dm606.X.fa");

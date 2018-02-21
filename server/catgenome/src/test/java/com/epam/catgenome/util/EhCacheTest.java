@@ -16,6 +16,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.junit.Test;
+
 import java.util.HashMap;
 import java.util.Map;
 import static org.junit.Assert.*;
@@ -38,9 +39,6 @@ public class EhCacheTest {
     @Autowired
     private EhCacheCacheManager cacheManager;
 
-    @Autowired
-    private ConfigurableEnvironment environment;
-
     private IndexCache index1;
     private IndexCache index2;
     private static final String INDEX_CACHE_NAME = "indexCache";
@@ -49,6 +47,10 @@ public class EhCacheTest {
     public void setup() {
         assertNotNull(context);
         assertNotNull(cacheManager);
+
+        System.out.println("Property from file: " + context.getEnvironment().getProperty("database.username"));
+        ConfigurableEnvironment env = context.getEnvironment();
+        System.out.println("Property sources: "+ env.getPropertySources());
 
         index1 = new TestIndexCache("indexName1");
         index2 = new TestIndexCache("indexName2");
