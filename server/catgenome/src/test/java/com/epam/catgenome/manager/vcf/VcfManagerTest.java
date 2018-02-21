@@ -115,7 +115,7 @@ import com.epam.catgenome.util.Utils;
  * @author Mikhail Miroliubov
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@TestPropertySource("classpath:application.properties")
+@TestPropertySource("classpath:test-catgenome.properties")
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class VcfManagerTest extends AbstractManagerTest {
 

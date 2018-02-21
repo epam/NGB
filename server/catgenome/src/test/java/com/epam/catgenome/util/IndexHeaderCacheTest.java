@@ -26,7 +26,7 @@ import java.io.IOException;
  */
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@TestPropertySource("classpath:application.properties")
+@TestPropertySource("classpath:test-catgenome.properties")
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class IndexHeaderCacheTest<T extends Feature, S> extends AbstractManagerTest {
 
