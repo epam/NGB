@@ -8,17 +8,11 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.ehcache.EhCacheCacheManager;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.MapPropertySource;
-import org.springframework.core.env.MutablePropertySources;
+import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Map;
 import static org.junit.Assert.*;
 
 /**
@@ -31,7 +25,7 @@ import static org.junit.Assert.*;
 public class EhCacheTest {
 
     @Autowired
-    private ConfigurableApplicationContext context;
+    private ApplicationContext context;
 
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
@@ -48,13 +42,8 @@ public class EhCacheTest {
         assertNotNull(context);
         assertNotNull(cacheManager);
 
-        System.out.println("Property from file: " + context.getEnvironment().getProperty("database.username"));
-        ConfigurableEnvironment env = context.getEnvironment();
-        System.out.println("Property sources: "+ env.getPropertySources());
-
         index1 = new TestIndexCache("indexName1");
         index2 = new TestIndexCache("indexName2");
-
         indexCache.putInCache(index1, "1");
         indexCache.putInCache(index2, "2");
     }
@@ -64,16 +53,6 @@ public class EhCacheTest {
         Boolean indexCacheStatus = Boolean.valueOf(context.getEnvironment().getProperty("server.cache.enabled"));
         assertTrue(indexCacheStatus);
         assertNotNull(indexCache);
-
-        ConfigurableEnvironment env = context.getEnvironment();
-        MutablePropertySources propertySources = env.getPropertySources();
-        Map<String, Object> map = new HashMap<>();
-        map.put("server.cache.enabled","false");
-        propertySources
-                .addFirst(new MapPropertySource("newmap", map));
-
-        indexCacheStatus = Boolean.valueOf(context.getEnvironment().getProperty("server.cache.enabled"));
-        assertFalse(indexCacheStatus);
     }
 
     @Test
