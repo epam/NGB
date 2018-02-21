@@ -29,7 +29,7 @@ public class S3SeekableStreamFactory implements ISeekableStreamFactory {
 
     @Override
     public SeekableStream getStreamFor(String path) throws IOException {
-        return new S3SeekableStream(path);
+        return new SeekableS3Stream(path);
     }
 
     @Override
