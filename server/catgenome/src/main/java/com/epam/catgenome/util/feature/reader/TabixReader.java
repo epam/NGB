@@ -167,10 +167,11 @@ public class TabixReader {
                 SeekableStreamFactory.getInstance().getStreamFor(fn)), indexCache);
     }
 
-    /**
-     * @param fn File name of the data file  (used for error messages only)
-     * @param stream Seekable stream from which the data is read
-     */
+    public TabixReader(final String fn, final String idxFn, EhCacheBasedIndexCache indexCache, String s3protocol) throws IOException {
+        this(fn, idxFn, S3SeekableStreamFactory.getInstance().getBufferedStream(
+                S3SeekableStreamFactory.getInstance().getStreamFor(fn)), indexCache);
+    }
+
     public TabixReader(final String fn, SeekableStream stream, EhCacheBasedIndexCache indexCache) throws IOException {
         this(fn, null, stream, indexCache);
     }

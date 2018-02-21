@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import com.amazonaws.services.s3.AmazonS3URI;
 import com.epam.catgenome.util.S3ParsingUtils;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.Feature;
@@ -153,13 +154,20 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
             return true;
         }
         try {
-            URL url = new URL(fileName);
-            return isBlockCompressed(url.getPath());
+            if (!fileName.startsWith("s3://")) {
+                URL url = new URL(fileName);
+                return isBlockCompressed(url.getPath());
+
+            } else {
+                AmazonS3URI s3URI = new AmazonS3URI(fileName);
+                return isBlockCompressed(s3URI.toString());
+            }
         } catch (MalformedURLException e) {
             LOGGER.trace(e.getMessage(), e);
         }
         return false;
     }
+
 
     private static boolean isBlockCompressed(String path) {
         for (final String extension : BLOCK_COMPRESSED_EXTENSIONS) {

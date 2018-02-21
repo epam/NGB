@@ -82,7 +82,12 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
 
         this.indexCache = indexCache;
         this.indexFile = indexFile;
-        tabixReader = new TabixReader(featureFile, indexFile, indexCache);
+        if (!featureFile.startsWith("s3:")) {
+            tabixReader = new TabixReader(featureFile, indexFile, indexCache);
+        } else {
+            String s3Protocol = "s3";
+            tabixReader = new TabixReader(featureFile, indexFile, indexCache, s3Protocol);
+        }
         sequenceNames = new ArrayList<>(tabixReader.getChromosomes());
 
         readHeader();
