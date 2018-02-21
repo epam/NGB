@@ -16,8 +16,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 
 public class S3ParsingUtils {
@@ -28,7 +26,6 @@ public class S3ParsingUtils {
     public static Class s3HelperClass = null;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(S3ParsingUtils.class);
-
 
     public static InputStream openInputStream(String path) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 

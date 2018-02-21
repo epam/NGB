@@ -16,8 +16,7 @@ import java.io.InputStream;
 
 
 /**
- * Inner helper class for handling S3 signed URLs. We sign URLs for GET requests so
- * HEAD request will return 403, this is considered to be OK in this case
+ * Helper class for handling S3 URLs.
  */
 public class S3Helper {
 
@@ -26,11 +25,11 @@ public class S3Helper {
     public S3Helper(AmazonS3URI s3URI) {
         this.s3URI = s3URI;
     }
-    
+
     AmazonS3URI s3URI;
 
     @IgnoreSizeOf
-    InputStream objectData;
+    private InputStream objectData;
 
 
     public InputStream openInputStream() throws AmazonClientException {

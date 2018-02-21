@@ -174,19 +174,22 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
 
         public boolean isTabix(String resourcePath, String indexPath) throws IOException {
 
-            if (indexPath == null) {
+            if (!resourcePath.startsWith("s3:")) {
 
-                if (!resourcePath.startsWith("s3:")) {
+                if (indexPath == null) {
                     indexPath = ParsingUtils.appendToPath(resourcePath, TabixUtils.STANDARD_INDEX_EXTENSION);
-                    return (hasBlockCompressedExtension(resourcePath) && ParsingUtils.resourceExists(indexPath));
-
-                } else {
-                    indexPath = S3ParsingUtils.appendToPath(resourcePath, TabixUtils.STANDARD_INDEX_EXTENSION);
-                    return (hasBlockCompressedExtension(resourcePath) && S3ParsingUtils.resourceExists(indexPath));
                 }
+                return hasBlockCompressedExtension(resourcePath) && ParsingUtils.resourceExists(indexPath);
 
-            } else { return false; }
+            } else {
+                if (indexPath == null) {
+                    indexPath = S3ParsingUtils.appendToPath(resourcePath, TabixUtils.STANDARD_INDEX_EXTENSION);
+                }
+                return hasBlockCompressedExtension(resourcePath) && S3ParsingUtils.resourceExists(indexPath);
+            }
         }
     }
 }
+
+
 
