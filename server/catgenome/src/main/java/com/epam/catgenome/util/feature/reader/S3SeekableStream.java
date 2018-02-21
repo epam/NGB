@@ -11,7 +11,7 @@ public class S3SeekableStream extends SeekableStream {
     public S3SeekableStream(String fileName) {
         this.fileName = fileName;
     }
-
+    
     String fileName = null;
 
     S3ObjectInputStream s3ObjectInputStream = null;
