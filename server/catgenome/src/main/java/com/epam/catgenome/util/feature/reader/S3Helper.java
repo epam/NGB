@@ -22,6 +22,7 @@ public class S3Helper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Helper.class);
 
+
     public S3Helper(AmazonS3URI s3URI) {
         this.s3URI = s3URI;
     }
@@ -31,12 +32,14 @@ public class S3Helper {
     @IgnoreSizeOf
     private InputStream objectData;
 
+    private static S3Object s3Object;
+
 
     public InputStream openInputStream() throws AmazonClientException {
 
         AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
         LOGGER.debug("Downloading an object");
-        S3Object s3Object = s3Client.getObject(new GetObjectRequest((s3URI.getBucket()), s3URI.getKey()));
+        s3Object = s3Client.getObject(new GetObjectRequest((s3URI.getBucket()), s3URI.getKey()));
 
         objectData = s3Object.getObjectContent();
         LOGGER.debug("Content-Type: " + s3Object.getObjectMetadata().getContentType());// Process the objectData stream
@@ -52,11 +55,15 @@ public class S3Helper {
         LOGGER.debug("Downloading an object");
         GetObjectRequest rangeObjectRequest = new GetObjectRequest((s3URI.getBucket()), s3URI.getKey());
         rangeObjectRequest.setRange(start, end); // retrieving selected bytes.
-        S3Object objectPortion = s3Client.getObject(rangeObjectRequest);
+        S3Object s3Object = s3Client.getObject(rangeObjectRequest);
 
-        objectData = objectPortion.getObjectContent();
+        objectData = s3Object.getObjectContent();
 
         return objectData;
+    }
+
+    public static long getContentLength() {
+        return s3Object.getObjectMetadata().getContentLength();
     }
 
 }

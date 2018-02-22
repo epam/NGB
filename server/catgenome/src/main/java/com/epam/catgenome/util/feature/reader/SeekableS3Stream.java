@@ -2,10 +2,8 @@ package com.epam.catgenome.util.feature.reader;
 
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import htsjdk.samtools.seekablestream.SeekableStream;
-import htsjdk.samtools.util.HttpUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 public class SeekableS3Stream extends SeekableStream {
 
@@ -25,7 +23,7 @@ public class SeekableS3Stream extends SeekableStream {
 
     @Override
     public long length() {
-        return contentLength;
+        return S3Helper.getContentLength();
     }
 
     @Override
