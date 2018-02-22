@@ -102,7 +102,8 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                 indexFilePath = IndexUtils.getFirstPartForIndexPath(indexFile);
             }
             if (indexCache != null && indexCache.contains(indexFilePath)) {
-                TabixReader.TabixIndexCache tabixIndexCache = (TabixReader.TabixIndexCache) indexCache.getFromCache(indexFilePath);
+                TabixReader.TabixIndexCache tabixIndexCache =
+                        (TabixReader.TabixIndexCache) indexCache.getFromCache(indexFilePath);
                 header = tabixIndexCache.getHeader();
 
                 if (header == null) {
@@ -194,10 +195,13 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
         protected void readNextRecord() throws IOException {
             currentRecord = null;
             String nextLine;
-            while (currentRecord == null && (nextLine = lineReader.readLine()) != null) {
-                final Feature f;
+            while (currentRecord == null) {
+                nextLine = lineReader.readLine();
+                if (nextLine == null) {
+                    return;
+                }
                 try {
-                    f = ((AsciiFeatureCodec)codec).decode(nextLine);
+                    final Feature f = ((AsciiFeatureCodec)codec).decode(nextLine);
                     if (f == null) {
                         continue;   // Skip
                     }
@@ -208,7 +212,6 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                         continue;   // Skip
                     }
                     currentRecord = (T) f;
-
                 } catch (TribbleException e) {
                     e.setSource(path);
                     throw e;

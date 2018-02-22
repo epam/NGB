@@ -347,17 +347,20 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
          *
          * @throws IOException
          */
-        public WFIterator() throws IOException {
+        WFIterator() throws IOException {
             final InputStream inputStream = ParsingUtils.openInputStream(path);
 
             final PositionalBufferedStream pbs;
+            final int bufferedStreamSize = 512000;
             if (path.endsWith(".gz")) {
                 // Gzipped -- we need to buffer the GZIPInputStream methods as this class makes read() calls,
                 // and seekableStream does not support single byte reads
-                final InputStream is = new GZIPInputStream(new BufferedInputStream(inputStream, 512000));
-                pbs = new PositionalBufferedStream(is, 1000);  // Small buffer as this is buffered already.
+                final InputStream is = new GZIPInputStream(new BufferedInputStream(inputStream, bufferedStreamSize));
+                final int positionalBufferedStreamSize = 1000;
+                pbs = new PositionalBufferedStream(is, positionalBufferedStreamSize);
+                // Small buffer as this is buffered already.
             } else {
-                pbs = new PositionalBufferedStream(inputStream, 512000);
+                pbs = new PositionalBufferedStream(inputStream, bufferedStreamSize);
             }
             /*
              * The header was already read from the original source in the constructor; don't read it again,
@@ -446,7 +449,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
         private SeekableStream mySeekableStream;
         private Iterator<Block> blockIterator;
 
-        public QueryIterator(final String chr, final int start, final int end, final List<Block> blocks)
+        QueryIterator(final String chr, final int start, final int end, final List<Block> blocks)
                 throws IOException {
             this.start = start;
             this.end = end;
@@ -479,8 +482,12 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             while (blockIterator != null && blockIterator.hasNext()) {
                 final Block block = blockIterator.next();
                 if (block.getSize() > 0) {
+                    final int maxBufferSize = 100000000;
+                    final int magicNumber = 2000000;
                     final int bufferSize =
-                            Math.min(2000000, block.getSize() > 100000000 ? 10000000 : (int) block.getSize());
+                            Math.min(magicNumber, block.getSize() > maxBufferSize
+                                    ? (maxBufferSize/10)
+                                    : (int) block.getSize());
                     source = codec.makeSourceFromStream(new PositionalBufferedStream(
                             new BlockStreamWrapper(mySeekableStream, block), bufferSize));
                     // note we don't have to skip the header here as the block should never start in the header

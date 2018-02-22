@@ -99,7 +99,8 @@ public class EhCacheTest {
 
         cacheConfiguration.setMaxBytesLocalHeap(1L);
         cacheConfiguration.setName("TestCache");
-        cacheConfiguration.setTimeToIdleSeconds(100);
+        final int testingTimeToIdleSeconds = 100;
+        cacheConfiguration.setTimeToIdleSeconds(testingTimeToIdleSeconds);
 
         assertEquals("Cache Name: TestCache, cacheManager: " + cache.getCacheManager() +
                 " cacheSize: 0 maxBytesLocalHeap: 1 timeToIdle: 100", indexCache.toString());
