@@ -36,7 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 @Service
-@ConditionalOnProperty(value = "server.cache.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "server.index.cache.enabled", havingValue = "true")
 public class EhCacheBasedIndexCache {
     private static final String INDEX_CACHE = "indexCache";
 

@@ -92,10 +92,10 @@ echo "files.vcf.max.entries.in.memory=1000000" >> $CATGENOME_CONF_DIR/catgenome.
 
 If you want to disable cache for headers and indexes of VCF, GTF, BED files, change the following property. By default it is true:
 
-* **server.cache.enabled=false** - disables caching for headers and indexes
+* **server.index.cache.enabled=false** - disables caching for headers and indexes
 
 ```
-echo "server.cache.enabled=false" >> $CATGENOME_CONF_DIR/catgenome.properties
+echo "server.index.cache.enabled=false" >> $CATGENOME_CONF_DIR/catgenome.properties
 ```
 
 Set Tomcat configuration in the file **$CATALINA_HOME/conf/server.xml** by adding the 

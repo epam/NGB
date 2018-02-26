@@ -85,7 +85,7 @@ If you want to specify max number of VcfIndexEntries keeping in memory during vc
 * **files.vcf.max.entries.in.memory=1000000** - 1000000 entries take about 3Gb in the heap
 
 If you want to disable cache for headers and indexes of VCF, GTF, BED files, change the following property. By default it is true:
-* **server.cache.enabled=false** - disables caching for headers and indexes
+* **server.index.cache.enabled=false** - disables caching for headers and indexes
 
 If you want to secure NGB we provide an optional authorization using JWT tokens. To enable authorization you should set the following properties:
  * **jwt.security.enable=true** enables the JWT Authorization

@@ -70,6 +70,21 @@ public class TabixReader {
     private static final int MAX_BIN = 37450;
     //private static int TAD_MIN_CHUNK_GAP = 32768; (not used)
     private static final int TAD_LIDX_SHIFT = 14;
+    public static final int BUFFER_SIZE = 128000;
+    public static final int MAX_INT_IN_HEX = 0x7fffffff;
+    public static final int TYPE_FLAG = 0xffff;
+    public static final int CHAR_BIT_FLAG = 0x10000;
+
+    public static final int SHIFT_0 = 29;
+    public static final int SHIFT_1 = 26;
+    public static final int SHIFT_2 = 23;
+    public static final int SHIFT_3 = 20;
+    public static final int SHIFT_4 = 17;
+    public static final int SHIFT_5 = 14;
+    public static final int START_SHIFT_2 = 9;
+    public static final int START_SHIFT_3 = 73;
+    public static final int START_SHIFT_4 = 585;
+    public static final int START_SHIFT_5 = 4681;
 
     protected static class TPair64 implements Comparable<TPair64> {
         long u, v;
@@ -188,34 +203,26 @@ public class TabixReader {
         if (beg >= end) {
             return 0;
         }
-        final int shift0 = 29;
-        if (end >= 1 << shift0) {
-            end = 1 << shift0;
+
+        if (end >= 1 << SHIFT_0) {
+            end = 1 << SHIFT_0;
         }
         --end;
         list[i++] = 0;
-        final int shift1 = 26;
-        for (k = 1 + (beg >> shift1); k <= 1 + (end >> shift1); ++k) {
+
+        for (k = 1 + (beg >> SHIFT_1); k <= 1 + (end >> SHIFT_1); ++k) {
             list[i++] = k;
         }
-        final int shift2 = 23;
-        final int startShift2 = 9;
-        for (k = startShift2 + (beg >> shift2); k <= startShift2 + (end >> shift2); ++k) {
+        for (k = START_SHIFT_2 + (beg >> SHIFT_2); k <= START_SHIFT_2 + (end >> SHIFT_2); ++k) {
             list[i++] = k;
         }
-        final int shift3 = 20;
-        final int startShift3 = 73;
-        for (k = startShift3 + (beg >> shift3); k <= startShift3 + (end >> shift3); ++k) {
+        for (k = START_SHIFT_3 + (beg >> SHIFT_3); k <= START_SHIFT_3 + (end >> SHIFT_3); ++k) {
             list[i++] = k;
         }
-        final int shift4 = 17;
-        final int startShift4 = 585;
-        for (k = startShift4 + (beg >> shift4); k <= startShift4 + (end >> shift4); ++k) {
+        for (k = START_SHIFT_4 + (beg >> SHIFT_4); k <= START_SHIFT_4 + (end >> SHIFT_4); ++k) {
             list[i++] = k;
         }
-        final int shift5 = 14;
-        final int startShift5 = 4681;
-        for (k = startShift5 + (beg >> shift5); k <= startShift5 + (end >> shift5); ++k) {
+        for (k = START_SHIFT_5 + (beg >> SHIFT_5); k <= START_SHIFT_5 + (end >> SHIFT_5); ++k) {
             list[i++] = k;
         }
         return i;
@@ -347,8 +354,7 @@ public class TabixReader {
      */
     private void readIndex() throws IOException {
         ISeekableStreamFactory ssf = SeekableStreamFactory.getInstance();
-        final int bufferSize = 128000;
-        SeekableStream bufferedStream = ssf.getBufferedStream(ssf.getStreamFor(mIdxFn), bufferSize);
+        SeekableStream bufferedStream = ssf.getBufferedStream(ssf.getStreamFor(mIdxFn), BUFFER_SIZE);
         readIndex(bufferedStream);
     }
 
@@ -385,8 +391,7 @@ public class TabixReader {
         hyphen = reg.indexOf('-');
         chr = colon >= 0 ? reg.substring(0, colon) : reg;
         ret[1] = colon >= 0 ? Integer.parseInt(reg.substring(colon + 1, hyphen >= 0 ? hyphen : reg.length())) - 1 : 0;
-        final int maxIntInHex = 0x7fffffff;
-        ret[2] = hyphen >= 0 ? Integer.parseInt(reg.substring(hyphen + 1)) : maxIntInHex;
+        ret[2] = hyphen >= 0 ? Integer.parseInt(reg.substring(hyphen + 1)) : MAX_INT_IN_HEX;
         ret[0] = this.chr2tid(chr);
         return ret;
     }
@@ -403,8 +408,7 @@ public class TabixReader {
             } else if (col == mBc) {
                 intv.end = Integer.parseInt(end != -1 ? s.substring(beg, end) : s.substring(beg));
                 intv.beg = intv.end;
-                final int magicNumber = 0x10000;
-                if ((mPreset & magicNumber) != 0) {
+                if ((mPreset & CHAR_BIT_FLAG) != 0) {
                     ++intv.end;
                 } else {
                     --intv.beg;
@@ -416,12 +420,11 @@ public class TabixReader {
                     intv.end = 1;
                 }
             } else { // FIXME: SAM supports are not tested yet
-                final int bitFlag = 0xffff;
-                if ((mPreset & bitFlag) == 0) { // generic
+                if ((mPreset & TYPE_FLAG) == 0) { // generic
                     if (col == mEc) {
                         intv.end = Integer.parseInt(end != -1 ? s.substring(beg, end) : s.substring(beg));
                     }
-                } else if ((mPreset & bitFlag) == 1) { // SAM
+                } else if ((mPreset & TYPE_FLAG) == 1) { // SAM
                     if (col == 6) { // CIGAR
                         int l = 0, i, j;
                         String cigar = s.substring(beg, end);
@@ -436,7 +439,7 @@ public class TabixReader {
                         }
                         intv.end = intv.beg + l;
                     }
-                } else if ((mPreset & bitFlag) == 2) { // VCF
+                } else if ((mPreset & TYPE_FLAG) == 2) { // VCF
                     String alt;
                     alt = end >= 0 ? s.substring(beg, end) : s.substring(beg);
                     if (col == 4) { // REF

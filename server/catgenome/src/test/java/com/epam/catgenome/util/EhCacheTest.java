@@ -50,7 +50,7 @@ public class EhCacheTest {
 
     @Test
     public void testCacheProperty() {
-        Boolean indexCacheStatus = Boolean.valueOf(context.getEnvironment().getProperty("server.cache.enabled"));
+        Boolean indexCacheStatus = Boolean.valueOf(context.getEnvironment().getProperty("server.index.cache.enabled"));
         assertTrue(indexCacheStatus);
         assertNotNull(indexCache);
     }
