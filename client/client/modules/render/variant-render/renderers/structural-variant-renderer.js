@@ -1170,6 +1170,9 @@ export default class StructuralVariantRenderer extends VariantBaseRenderer {
     }
 
     _renderTranscriptsBlock(config, gene) {
+        if (gene.selectedTranscript.empty) {
+            return;
+        }
         const localContainer = new PIXI.Container();
         const graphics = new PIXI.Graphics();
         localContainer.addChild(graphics);
