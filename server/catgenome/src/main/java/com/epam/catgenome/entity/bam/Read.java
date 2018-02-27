@@ -54,6 +54,7 @@ public class Read extends Block implements Serializable {
     private Integer tLen;
     private String rNext;
     private Integer pNext;
+    private String readGroup;
     /**
      * {@code List<CigarElement>} A list of CigarElements, which describes how a read aligns with the reference.
      * E.g. the Cigar string 10M1D25M means
@@ -216,6 +217,14 @@ public class Read extends Block implements Serializable {
 
     public void setSequence(String sequence) {
         this.sequence = sequence;
+    }
+
+    public String getReadGroup() {
+        return readGroup;
+    }
+
+    public void setReadGroup(String readGroup) {
+        this.readGroup = readGroup;
     }
 }
 

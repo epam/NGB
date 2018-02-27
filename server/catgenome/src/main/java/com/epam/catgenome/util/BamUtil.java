@@ -91,6 +91,7 @@ public final class BamUtil {
         read.setName(samRecord.getReadName());
         read.setCigarString(samRecord.getCigarString());
         read.setStand(!samRecord.getReadNegativeStrandFlag());
+        read.setReadGroup(samRecord.getReadGroup().getReadGroupId());
         read.setMappingQuality(samRecord.getMappingQuality());
         read.setFlagMask(samRecord.getFlags());
         read.setTLen(samRecord.getInferredInsertSize());
