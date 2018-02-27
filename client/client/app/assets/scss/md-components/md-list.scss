@@ -23,8 +23,10 @@ md-list.md-dense {
       &__sm {
         font-size: $caption-font-size-base;
         min-height: 18px;
-        height: 18px;
         padding: 0;
+      }
+      &__sm::before {
+        min-height: 18px;
       }
 
       &__nospace {
