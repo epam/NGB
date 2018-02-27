@@ -1,3 +1,5 @@
+@import '../../../assets/scss/md-mixins';
+
 .md-variant-properties-table{
   padding: 0px;
 }
@@ -15,6 +17,9 @@
 }
 
 .md-variant-property-title{
+  @include font-size-vw(15px, 12px, 1025, 800);
+  overflow: hidden;
+  text-overflow: ellipsis;
   color:#a0a0a0;
   padding: 5px;
 }
@@ -24,5 +29,8 @@
 }
 
 .md-variant-property-single-value{
+  @include font-size-vw(15px, 12px, 1025, 800);
+  overflow: hidden;
+  text-overflow: ellipsis;
   margin-bottom: 2px;
 }
