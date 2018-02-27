@@ -57,6 +57,11 @@ import java.util.zip.GZIPInputStream;
  */
 public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractFeatureReader<T, S> {
 
+    public static final int BUFFERED_STREAM_SIZE = 512000;
+    public static final int POSITIONAL_BUFFERED_STREAM_SIZE = 1000;
+    public static final int MAX_BUFFER_SIZE = 100000000;
+    public static final int MIN_BUFFER_SIZE = 2000000;
+
     private Index index;
     /**
      * is the path pointing to our source data a regular file?
@@ -128,7 +133,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
     private Index retrieveIndex(final String indexFile) {
         Index index;
         String indexFilePath = IndexUtils.getFirstPartForIndexPath(Tribble.indexFile(this.path));
-        if (indexCache.contains(indexFilePath)) {
+        if (indexCache != null && indexCache.contains(indexFilePath)) {
             tribbleIndexCache = (TribbleIndexCache) indexCache.getFromCache(indexFilePath);
             if (tribbleIndexCache.index != null) {
                 return tribbleIndexCache.index;
@@ -140,9 +145,11 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             }
         } else {
             index = IndexFactory.loadIndex(indexFile);
-            tribbleIndexCache = new TribbleIndexCache();
-            tribbleIndexCache.index = index;
-            indexCache.putInCache(tribbleIndexCache, indexFilePath);
+            if (indexCache != null) {
+                tribbleIndexCache = new TribbleIndexCache();
+                tribbleIndexCache.index = index;
+                indexCache.putInCache(tribbleIndexCache, indexFilePath);
+            }
             return index;
         }
     }
@@ -261,7 +268,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             final S source;
             String indexFilePath = IndexUtils.getFirstPartForIndexPath(Tribble.indexFile(this.path));
 
-            if (indexCache.contains(indexFilePath)) {
+            if (indexCache != null && indexCache.contains(indexFilePath)) {
                 tribbleIndexCache = (TribbleIndexCache) indexCache.getFromCache(indexFilePath);
                 header = tribbleIndexCache.header;
                 if (header == null) {
@@ -275,11 +282,12 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             }  else {
                 source = codec.makeSourceFromStream(pbs);
                 header = codec.readHeader(source);
-
-                tribbleIndexCache = new TribbleIndexCache();
-                tribbleIndexCache.header = header;
-                tribbleIndexCache.codec = codec;
-                indexCache.putInCache(tribbleIndexCache, indexFilePath);
+                if (indexCache != null) {
+                    tribbleIndexCache = new TribbleIndexCache();
+                    tribbleIndexCache.header = header;
+                    tribbleIndexCache.codec = codec;
+                    indexCache.putInCache(tribbleIndexCache, indexFilePath);
+                }
             }
         } catch (IOException e) {
             throw new TribbleException.MalformedFeatureFile(
@@ -344,17 +352,18 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
          *
          * @throws IOException
          */
-        public WFIterator() throws IOException {
+        WFIterator() throws IOException {
             final InputStream inputStream = ParsingUtils.openInputStream(path);
-
             final PositionalBufferedStream pbs;
+
             if (path.endsWith(".gz")) {
                 // Gzipped -- we need to buffer the GZIPInputStream methods as this class makes read() calls,
                 // and seekableStream does not support single byte reads
-                final InputStream is = new GZIPInputStream(new BufferedInputStream(inputStream, 512000));
-                pbs = new PositionalBufferedStream(is, 1000);  // Small buffer as this is buffered already.
+                final InputStream is = new GZIPInputStream(new BufferedInputStream(inputStream, BUFFERED_STREAM_SIZE));
+                pbs = new PositionalBufferedStream(is, POSITIONAL_BUFFERED_STREAM_SIZE);
+                // Small buffer as this is buffered already.
             } else {
-                pbs = new PositionalBufferedStream(inputStream, 512000);
+                pbs = new PositionalBufferedStream(inputStream, BUFFERED_STREAM_SIZE);
             }
             /*
              * The header was already read from the original source in the constructor; don't read it again,
@@ -443,7 +452,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
         private SeekableStream mySeekableStream;
         private Iterator<Block> blockIterator;
 
-        public QueryIterator(final String chr, final int start, final int end, final List<Block> blocks)
+        QueryIterator(final String chr, final int start, final int end, final List<Block> blocks)
                 throws IOException {
             this.start = start;
             this.end = end;
@@ -477,7 +486,9 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
                 final Block block = blockIterator.next();
                 if (block.getSize() > 0) {
                     final int bufferSize =
-                            Math.min(2000000, block.getSize() > 100000000 ? 10000000 : (int) block.getSize());
+                            Math.min(MIN_BUFFER_SIZE, block.getSize() > MAX_BUFFER_SIZE
+                                    ? (MAX_BUFFER_SIZE /10)
+                                    : (int) block.getSize());
                     source = codec.makeSourceFromStream(new PositionalBufferedStream(
                             new BlockStreamWrapper(mySeekableStream, block), bufferSize));
                     // note we don't have to skip the header here as the block should never start in the header
@@ -629,5 +640,4 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
     }
 
     protected TribbleIndexCache tribbleIndexCache;
-
 }

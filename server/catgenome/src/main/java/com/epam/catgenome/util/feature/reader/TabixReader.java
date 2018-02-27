@@ -67,16 +67,31 @@ public class TabixReader {
 
     private Map<String, Integer> mChr2tid;
 
-    private static int maxBin = 37450;
+    private static final int MAX_BIN = 37450;
     //private static int TAD_MIN_CHUNK_GAP = 32768; (not used)
-    private static int tadLidxShift = 14;
+    private static final int TAD_LIDX_SHIFT = 14;
+    public static final int BUFFER_SIZE = 128000;
+    public static final int MAX_INT_IN_HEX = 0x7fffffff;
+    public static final int TYPE_FLAG = 0xffff;
+    public static final int CHAR_BIT_FLAG = 0x10000;
+
+    public static final int SHIFT_0 = 29;
+    public static final int SHIFT_1 = 26;
+    public static final int SHIFT_2 = 23;
+    public static final int SHIFT_3 = 20;
+    public static final int SHIFT_4 = 17;
+    public static final int SHIFT_5 = 14;
+    public static final int START_SHIFT_2 = 9;
+    public static final int START_SHIFT_3 = 73;
+    public static final int START_SHIFT_4 = 585;
+    public static final int START_SHIFT_5 = 4681;
 
     protected static class TPair64 implements Comparable<TPair64> {
         long u, v;
 
-        public TPair64(final long _u, final long _v) {
-            u = _u;
-            v = _v;
+        public TPair64(final long longU, final long longV) {
+            u = longU;
+            v = longV;
         }
 
         public TPair64(final TPair64 p) {
@@ -179,34 +194,35 @@ public class TabixReader {
     }
 
     /** return the source (filename/URL) of that reader */
-    public String getSource()
-    {
+    public String getSource() {
         return this.mFn;
     }
 
-    private static int reg2bins(final int beg, final int _end, final int[] list) {
-        int i = 0, k, end = _end;
+    private static int reg2bins(final int beg, final int intEnd, final int[] list) {
+        int i = 0, k, end = intEnd;
         if (beg >= end) {
             return 0;
         }
-        if (end >= 1 << 29) {
-            end = 1 << 29;
+
+        if (end >= 1 << SHIFT_0) {
+            end = 1 << SHIFT_0;
         }
         --end;
         list[i++] = 0;
-        for (k = 1 + (beg >> 26); k <= 1 + (end >> 26); ++k) {
+
+        for (k = 1 + (beg >> SHIFT_1); k <= 1 + (end >> SHIFT_1); ++k) {
             list[i++] = k;
         }
-        for (k = 9 + (beg >> 23); k <= 9 + (end >> 23); ++k) {
+        for (k = START_SHIFT_2 + (beg >> SHIFT_2); k <= START_SHIFT_2 + (end >> SHIFT_2); ++k) {
             list[i++] = k;
         }
-        for (k = 73 + (beg >> 20); k <= 73 + (end >> 20); ++k) {
+        for (k = START_SHIFT_3 + (beg >> SHIFT_3); k <= START_SHIFT_3 + (end >> SHIFT_3); ++k) {
             list[i++] = k;
         }
-        for (k = 585 + (beg >> 17); k <= 585 + (end >> 17); ++k) {
+        for (k = START_SHIFT_4 + (beg >> SHIFT_4); k <= START_SHIFT_4 + (end >> SHIFT_4); ++k) {
             list[i++] = k;
         }
-        for (k = 4681 + (beg >> 14); k <= 4681 + (end >> 14); ++k) {
+        for (k = START_SHIFT_5 + (beg >> SHIFT_5); k <= START_SHIFT_5 + (end >> SHIFT_5); ++k) {
             list[i++] = k;
         }
         return i;
@@ -226,9 +242,10 @@ public class TabixReader {
 
     public static String readLine(final InputStream is) throws IOException {
         StringBuffer buf = new StringBuffer();
-        int c;
-        while ((c = is.read()) >= 0 && c != '\n') {
+        int c = is.read();
+        while (c >= 0 && c != '\n') {
             buf.append((char) c);
+            c = is.read();
         }
         if (c < 0) {
             return null;
@@ -271,13 +288,16 @@ public class TabixReader {
             mBc = readInt(is);
             mEc = readInt(is);
             mMeta = readInt(is);
-            readInt(is);//unused
+            readInt(is); //unused
             // read sequence dictionary
-            int i, j, k, l = readInt(is);
+            int l = readInt(is);
+            int i;
+            int j;
+            int k;
             buf = new byte[l];
             is.read(buf);
 
-            for (i = j = k = 0; i < buf.length; ++i) {
+            for (i = 0, j = 0, k = 0; i < buf.length; ++i) {
                 if (buf[i] == 0) {
                     byte[] b = new byte[i - j];
                     System.arraycopy(buf, j, b, 0, b.length);
@@ -292,10 +312,10 @@ public class TabixReader {
 
             for (i = 0; i < mSeq.length; ++i) {
                 // the binning index
-                int n_bin = readInt(is);
+                int nBin = readInt(is);
                 mIndex[i] = new TIndex();
-                mIndex[i].b = new HashMap<Integer, TPair64[]>(n_bin);
-                for (j = 0; j < n_bin; ++j) {
+                mIndex[i].b = new HashMap<Integer, TPair64[]>(nBin);
+                for (j = 0; j < nBin; ++j) {
                     int bin = readInt(is);
                     TPair64[] chunks = new TPair64[readInt(is)];
                     for (k = 0; k < chunks.length; ++k) {
@@ -334,7 +354,7 @@ public class TabixReader {
      */
     private void readIndex() throws IOException {
         ISeekableStreamFactory ssf = SeekableStreamFactory.getInstance();
-        SeekableStream bufferedStream = ssf.getBufferedStream(ssf.getStreamFor(mIdxFn), 128000);
+        SeekableStream bufferedStream = ssf.getBufferedStream(ssf.getStreamFor(mIdxFn), BUFFER_SIZE);
         readIndex(bufferedStream);
     }
 
@@ -352,8 +372,7 @@ public class TabixReader {
     }
 
     /** return the chromosomes in that tabix file */
-    public Set<String> getChromosomes()
-    {
+    public Set<String> getChromosomes() {
         return Collections.unmodifiableSet(this.mChr2tid.keySet());
     }
 
@@ -372,21 +391,24 @@ public class TabixReader {
         hyphen = reg.indexOf('-');
         chr = colon >= 0 ? reg.substring(0, colon) : reg;
         ret[1] = colon >= 0 ? Integer.parseInt(reg.substring(colon + 1, hyphen >= 0 ? hyphen : reg.length())) - 1 : 0;
-        ret[2] = hyphen >= 0 ? Integer.parseInt(reg.substring(hyphen + 1)) : 0x7fffffff;
+        ret[2] = hyphen >= 0 ? Integer.parseInt(reg.substring(hyphen + 1)) : MAX_INT_IN_HEX;
         ret[0] = this.chr2tid(chr);
         return ret;
     }
 
     private TIntv getIntv(final String s) {
         TIntv intv = new TIntv();
-        int col = 0, end = 0, beg = 0;
-        while ((end = s.indexOf('\t', beg)) >= 0 || end == -1) {
+        int col = 0;
+        int beg = 0;
+        int end = s.indexOf('\t', beg);
+        while (end >= 0 || end == -1) {
             ++col;
             if (col == mSc) {
                 intv.tid = chr2tid(end != -1 ? s.substring(beg, end) : s.substring(beg));
             } else if (col == mBc) {
-                intv.beg = intv.end = Integer.parseInt(end != -1 ? s.substring(beg, end) : s.substring(beg));
-                if ((mPreset & 0x10000) != 0) {
+                intv.end = Integer.parseInt(end != -1 ? s.substring(beg, end) : s.substring(beg));
+                intv.beg = intv.end;
+                if ((mPreset & CHAR_BIT_FLAG) != 0) {
                     ++intv.end;
                 } else {
                     --intv.beg;
@@ -398,15 +420,15 @@ public class TabixReader {
                     intv.end = 1;
                 }
             } else { // FIXME: SAM supports are not tested yet
-                if ((mPreset & 0xffff) == 0) { // generic
+                if ((mPreset & TYPE_FLAG) == 0) { // generic
                     if (col == mEc) {
                         intv.end = Integer.parseInt(end != -1 ? s.substring(beg, end) : s.substring(beg));
                     }
-                } else if ((mPreset & 0xffff) == 1) { // SAM
+                } else if ((mPreset & TYPE_FLAG) == 1) { // SAM
                     if (col == 6) { // CIGAR
                         int l = 0, i, j;
                         String cigar = s.substring(beg, end);
-                        for (i = j = 0; i < cigar.length(); ++i) {
+                        for (i = 0, j = 0; i < cigar.length(); ++i) {
                             if (cigar.charAt(i) > '9') {
                                 int op = cigar.charAt(i);
                                 if (op == 'M' || op == 'D' || op == 'N') {
@@ -417,7 +439,7 @@ public class TabixReader {
                         }
                         intv.end = intv.beg + l;
                     }
-                } else if ((mPreset & 0xffff) == 2) { // VCF
+                } else if ((mPreset & TYPE_FLAG) == 2) { // VCF
                     String alt;
                     alt = end >= 0 ? s.substring(beg, end) : s.substring(beg);
                     if (col == 4) { // REF
@@ -425,18 +447,18 @@ public class TabixReader {
                             intv.end = intv.beg + alt.length();
                         }
                     } else if (col == 8) { // INFO
-                        int e_off = -1, i = alt.indexOf("END=");
+                        int eOff = -1, i = alt.indexOf("END=");
                         if (i == 0) {
-                            e_off = 4;
+                            eOff = 4;
                         } else if (i > 0) {
                             i = alt.indexOf(";END=");
                             if (i >= 0) {
-                                e_off = i + 5;
+                                eOff = i + 5;
                             }
                         }
-                        if (e_off > 0) {
-                            i = alt.indexOf(';', e_off);
-                            intv.end = Integer.parseInt(i > e_off ? alt.substring(e_off, i) : alt.substring(e_off));
+                        if (eOff > 0) {
+                            i = alt.indexOf(';', eOff);
+                            intv.end = Integer.parseInt(i > eOff ? alt.substring(eOff, i) : alt.substring(eOff));
                         }
                     }
                 }
@@ -445,18 +467,18 @@ public class TabixReader {
                 break;
             }
             beg = end + 1;
+            end = s.indexOf('\t', beg);
         }
         return intv;
     }
 
-    public interface Iterator
-    {
+    public interface Iterator {
         /** return null when there is no more data to read */
         String next() throws IOException;
     }
 
     /** iterator returned instead of null when there is no more data */
-    private static final Iterator EOF_ITERATOR=new Iterator()  {
+    private static final Iterator EOF_ITERATOR = new Iterator()  {
         @Override
         public String next() throws IOException {
             return null;
@@ -464,23 +486,23 @@ public class TabixReader {
     };
 
     /** default implementation of Iterator */
-    private class IteratorImpl implements Iterator {
+    private final class IteratorImpl implements Iterator {
         private int i;
         //private int n_seeks;
         private int tid, beg, end;
         private TPair64[] off;
-        private long curr_off;
+        private long currOff;
         private boolean iseof;
 
-        private IteratorImpl(final int _tid, final int _beg, final int _end, final TPair64[] _off) {
+        private IteratorImpl(final int intTid, final int intBeg, final int intEnd, final TPair64[] tPairOff) {
             i = -1;
             //n_seeks = 0;
-            curr_off = 0;
+            currOff = 0;
             iseof = false;
-            off = _off;
-            tid = _tid;
-            beg = _beg;
-            end = _end;
+            off = tPairOff;
+            tid = intTid;
+            beg = intBeg;
+            end = intEnd;
         }
 
         @Override
@@ -488,26 +510,26 @@ public class TabixReader {
             if (iseof) {
                 return null;
             }
-            for (; ;) {
-                if (curr_off == 0 || !less64(curr_off, off[i].v)) { // then jump to the next chunk
+            for (;;) {
+                if (currOff == 0 || !less64(currOff, off[i].v)) { // then jump to the next chunk
                     if (i == off.length - 1) {
                         break; // no more chunks
                     }
                     if (i >= 0) {
-                        assert (curr_off == off[i].v); // otherwise bug
+                        assert (currOff == off[i].v); // otherwise bug
                     }
                     if (i < 0 || off[i].v != off[i + 1].u) { // not adjacent chunks; then seek
                         mFp.seek(off[i + 1].u);
-                        curr_off = mFp.getFilePointer();
+                        currOff = mFp.getFilePointer();
                         //++n_seeks;
                     }
                     ++i;
                 }
-                String s;
-                if ((s = readLine(mFp)) != null) {
+                String s = readLine(mFp);
+                if (s != null) {
                     TIntv intv;
                     char[] str = s.toCharArray();
-                    curr_off = mFp.getFilePointer();
+                    currOff = mFp.getFilePointer();
                     if (str.length == 0 || str[0] == mMeta) {
                         continue;
                     }
@@ -535,68 +557,69 @@ public class TabixReader {
      */
     public Iterator query(final int tid, final int beg, final int end) {
         TPair64[] off, chunks;
-        long min_off;
-        if(tid< 0 || tid>=this.mIndex.length) {
+        long minOff;
+        if (tid < 0 || tid >= this.mIndex.length) {
             return EOF_ITERATOR;
         }
         TIndex idx = mIndex[tid];
-        int[] bins = new int[maxBin];
-        int i, l, n_off, n_bins = reg2bins(beg, end, bins);
+        int[] bins = new int[MAX_BIN];
+        int i, l, nOff, nBins = reg2bins(beg, end, bins);
 
         if (idx.l.length > 0) {
-            min_off = (beg >> tadLidxShift >= idx.l.length) ? idx.l[idx.l.length - 1] : idx.l[beg >> tadLidxShift];
+            minOff = (beg >> TAD_LIDX_SHIFT >= idx.l.length) ? idx.l[idx.l.length - 1] : idx.l[beg >> TAD_LIDX_SHIFT];
         } else {
-            min_off = 0;
+            minOff = 0;
         }
-        for (i = n_off = 0; i < n_bins; ++i) {
-            if ((chunks = idx.b.get(bins[i])) != null) {
-                n_off += chunks.length;
+        for (i = 0, nOff = 0; i < nBins; ++i) {
+            chunks = idx.b.get(bins[i]);
+            if (chunks != null) {
+                nOff += chunks.length;
             }
         }
-        if (n_off == 0) {
+        if (nOff == 0) {
             return EOF_ITERATOR;
         }
-        off = new TPair64[n_off];
-        for (i = n_off = 0; i < n_bins; ++i) {
-            if ((chunks = idx.b.get(bins[i])) != null) {
+        off = new TPair64[nOff];
+        for (i = 0, nOff = 0; i < nBins; ++i) {
+            chunks = idx.b.get(bins[i]);
+            if (chunks != null) {
                 for (int j = 0; j < chunks.length; ++j) {
-                    if (less64(min_off, chunks[j].v)) {
-                        off[n_off++] = new TPair64(chunks[j]);
+                    if (less64(minOff, chunks[j].v)) {
+                        off[nOff++] = new TPair64(chunks[j]);
                     }
                 }
             }
         }
-        Arrays.sort(off, 0, n_off);
+        Arrays.sort(off, 0, nOff);
         // resolve completely contained adjacent blocks
-        for (i = 1, l = 0; i < n_off; ++i) {
+        for (i = 1, l = 0; i < nOff; ++i) {
             if (less64(off[l].v, off[i].v)) {
                 ++l;
                 off[l].u = off[i].u;
                 off[l].v = off[i].v;
             }
         }
-        n_off = l + 1;
+        nOff = l + 1;
         // resolve overlaps between adjacent blocks; this may happen due to the merge in indexing
-        for (i = 1; i < n_off; ++i) {
+        for (i = 1; i < nOff; ++i) {
             if (!less64(off[i - 1].v, off[i].u)) {
                 off[i - 1].v = off[i].u;
             }
         }
         // merge adjacent blocks
-        for (i = 1, l = 0; i < n_off; ++i) {
+        for (i = 1, l = 0; i < nOff; ++i) {
             if (off[l].v >> 16 == off[i].u >> 16) {
                 off[l].v = off[i].v;
-            }
-            else {
+            } else {
                 ++l;
                 off[l].u = off[i].u;
                 off[l].v = off[i].v;
             }
         }
-        n_off = l + 1;
+        nOff = l + 1;
         // return
-        TPair64[] ret = new TPair64[n_off];
-        for (i = 0; i < n_off; ++i) {
+        TPair64[] ret = new TPair64[nOff];
+        for (i = 0; i < nOff; ++i) {
             if (off[i] != null) {
                 ret[i] = new TPair64(off[i].u, off[i].v); // in C, this is inefficient
             }
@@ -659,7 +682,7 @@ public class TabixReader {
 
     // ADDED BY JTR
     public void close() throws IOException {
-        if(mFp != null) {
+        if (mFp != null) {
             try {
                 mFp.close();
             } catch (IOException e) {

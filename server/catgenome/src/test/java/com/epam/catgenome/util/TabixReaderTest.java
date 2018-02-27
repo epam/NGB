@@ -37,12 +37,15 @@ public class TabixReaderTest {
 
     @Test
     public void testSequenceNames() {
-        String[] expectedSeqNames = new String[24];
-        for (int i = 1; i < 24; i++) {
+        final int expectedSeqNamesLength = 24;
+        String[] expectedSeqNames = new String[expectedSeqNamesLength];
+        for (int i = 1; i < expectedSeqNamesLength; i++) {
             expectedSeqNames[i - 1] = String.valueOf(i);
         }
-        expectedSeqNames[22] = "X";
-        expectedSeqNames[23] = "Y";
+        final int numberChrX = 22;
+        final int numberChrY = 23;
+        expectedSeqNames[numberChrX] = "X";
+        expectedSeqNames[numberChrY] = "Y";
         assertEquals(expectedSeqNames.length, sequenceNames.size());
 
         for (String s : expectedSeqNames) {
@@ -60,12 +63,14 @@ public class TabixReaderTest {
 
     @Test
     public void testIterators() throws IOException {
-        TabixReader.Iterator iter = tabixReader.query("1", 1, 400);
+        final int sequenceIntervalEnd = 400;
+        TabixReader.Iterator iter = tabixReader.query("1", 1, sequenceIntervalEnd);
         assertNotNull(iter);
         assertNotNull(iter.next());
         assertNull(iter.next());
 
-        iter = tabixReader.query("UN", 1, 100);
+        final int sequenceShortIntervalEnd = 100;
+        iter = tabixReader.query("UN", 1, sequenceShortIntervalEnd);
         assertNotNull(iter);
         assertNull(iter.next());
 
@@ -77,7 +82,8 @@ public class TabixReaderTest {
         assertNotNull(iter);
         assertNull(iter.next());
 
-        iter = tabixReader.query(999999, 9, 9);
+        final int sequenceId = 999999;
+        iter = tabixReader.query(sequenceId, 9, 9);
         assertNotNull(iter);
         assertNull(iter.next());
 
@@ -85,18 +91,18 @@ public class TabixReaderTest {
         assertNotNull(iter);
         assertNull(iter.next());
 
-        final int pos_snp_in_vcf_chr1 = 327;
+        final int posSnpInVcfChr1 = 327;
 
-        iter = tabixReader.query("1", pos_snp_in_vcf_chr1, pos_snp_in_vcf_chr1);
+        iter = tabixReader.query("1", posSnpInVcfChr1, posSnpInVcfChr1);
         assertNotNull(iter);
         assertNotNull(iter);
         assertNull(iter.next());
 
-        iter = tabixReader.query("1", pos_snp_in_vcf_chr1 - 1, pos_snp_in_vcf_chr1 - 1);
+        iter = tabixReader.query("1", posSnpInVcfChr1 - 1, posSnpInVcfChr1 - 1);
         assertNotNull(iter);
         assertNull(iter.next());
 
-        iter = tabixReader.query("1", pos_snp_in_vcf_chr1 + 1, pos_snp_in_vcf_chr1 + 1);
+        iter = tabixReader.query("1", posSnpInVcfChr1 + 1, posSnpInVcfChr1 + 1);
         assertNotNull(iter);
         assertNull(iter.next());
     }
@@ -108,8 +114,11 @@ public class TabixReaderTest {
      */
     @Test
     public void testLocalQuery() throws IOException {
+        final int intervalBegin = 320;
+        final int intervalEnd = 330;
+
         TabixIteratorLineReader lineReader = new TabixIteratorLineReader(
-                tabixReader.query(tabixReader.chr2tid("4"), 320, 330));
+                tabixReader.query(tabixReader.chr2tid("4"), intervalBegin, intervalEnd));
 
         int nRecords = 0;
         String nextLine;
@@ -128,10 +137,12 @@ public class TabixReaderTest {
     @Test
     public void testRemoteQuery() throws IOException {
         String tabixFile = "https://personal.broadinstitute.org/picard/testdata/igvdata/tabix/trioDup.vcf.gz";
+        final int intervalBegin = 320;
+        final int intervalEnd = 330;
 
         TabixReader tabixReader = new TabixReader(tabixFile);
         TabixIteratorLineReader lineReader = new TabixIteratorLineReader(
-                tabixReader.query(tabixReader.chr2tid("4"), 320, 330));
+                tabixReader.query(tabixReader.chr2tid("4"), intervalBegin, intervalEnd));
 
         int nRecords = 0;
         String nextLine;

@@ -62,7 +62,7 @@ public class DiskBasedListTest {
     @Autowired
     private ApplicationContext context;
 
-    @Autowired
+    @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
     @Test

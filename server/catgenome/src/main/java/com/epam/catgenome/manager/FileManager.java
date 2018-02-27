@@ -166,7 +166,7 @@ public class FileManager {
     private static final String EMPTY = "";
     public static final String BED_GRAPH_FEATURE_TEMPLATE = "%s\t%d\t%d\t%f%n";
 
-    @Autowired
+    @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
     /**
      * Provides paths' patterns that have to be used to construct real relative paths

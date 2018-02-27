@@ -58,6 +58,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -114,6 +115,7 @@ import com.epam.catgenome.util.Utils;
  * @author Mikhail Miroliubov
  */
 @RunWith(SpringJUnit4ClassRunner.class)
+@TestPropertySource("classpath:test-catgenome.properties")
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class VcfManagerTest extends AbstractManagerTest {
 
@@ -172,7 +174,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     private ApplicationContext context;
 
     @Spy
-    @Autowired
+    @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
     private static final int TEST_END_INDEX = 187708306;

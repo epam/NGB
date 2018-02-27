@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.ehcache.EhCacheCacheManager;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -19,13 +20,14 @@ import static org.junit.Assert.*;
  */
 
 @RunWith(SpringJUnit4ClassRunner.class)
+@TestPropertySource("classpath:test-catgenome.properties")
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class EhCacheTest {
 
     @Autowired
     private ApplicationContext context;
 
-    @Autowired
+    @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
     @Autowired
@@ -33,12 +35,11 @@ public class EhCacheTest {
 
     private IndexCache index1;
     private IndexCache index2;
-    private String indexCacheName = "indexCache";
+    private static final String INDEX_CACHE_NAME = "indexCache";
 
     @Before
     public void setup() {
         assertNotNull(context);
-        assertNotNull(indexCache);
         assertNotNull(cacheManager);
 
         index1 = new TestIndexCache("indexName1");
@@ -48,9 +49,17 @@ public class EhCacheTest {
     }
 
     @Test
+    public void testCacheProperty() {
+        Boolean indexCacheStatus = Boolean.valueOf(context.getEnvironment().getProperty("server.index.cache.enabled"));
+        assertTrue(indexCacheStatus);
+        assertNotNull(indexCache);
+    }
+
+    @Test
     public void testGetAndEvictCache() {
         assertEquals(2, getSize());
         assertTrue(indexCache.contains("1"));
+        assertTrue(indexCache.contains("2"));
 
         IndexCache receivedIndex = indexCache.getFromCache("1");
         assertEquals(index1, receivedIndex);
@@ -68,7 +77,7 @@ public class EhCacheTest {
 
     @Test
     public void testMaxSizeInBytes() {
-        Cache cache = cacheManager.getCacheManager().getCache(indexCacheName);
+        Cache cache = cacheManager.getCacheManager().getCache(INDEX_CACHE_NAME);
         CacheConfiguration cacheConfiguration = cache.getCacheConfiguration();
         Long maxSizeInBytes = cacheConfiguration.getMaxBytesLocalHeap();
 
@@ -82,7 +91,7 @@ public class EhCacheTest {
 
     @Test
     public void testToString() {
-        Cache cache = cacheManager.getCacheManager().getCache(indexCacheName);
+        Cache cache = cacheManager.getCacheManager().getCache(INDEX_CACHE_NAME);
         CacheConfiguration cacheConfiguration = cache.getCacheConfiguration();
         Long maxSizeInBytes = cacheConfiguration.getMaxBytesLocalHeap();
         String cacheName = cacheConfiguration.getName();
@@ -90,7 +99,8 @@ public class EhCacheTest {
 
         cacheConfiguration.setMaxBytesLocalHeap(1L);
         cacheConfiguration.setName("TestCache");
-        cacheConfiguration.setTimeToIdleSeconds(100);
+        final int testingTimeToIdleSeconds = 100;
+        cacheConfiguration.setTimeToIdleSeconds(testingTimeToIdleSeconds);
 
         assertEquals("Cache Name: TestCache, cacheManager: " + cache.getCacheManager() +
                 " cacheSize: 0 maxBytesLocalHeap: 1 timeToIdle: 100", indexCache.toString());
@@ -126,6 +136,6 @@ public class EhCacheTest {
     }
 
     private int getSize() {
-        return cacheManager.getCacheManager().getCache(indexCacheName).getSize();
+        return cacheManager.getCacheManager().getCache(INDEX_CACHE_NAME).getSize();
     }
 }
