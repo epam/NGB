@@ -628,7 +628,11 @@ public class GffManagerTest extends AbstractManagerTest {
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
 
         Track<Gene> featureList = gffManager.loadGenes(track, false);
+
         Assert.assertTrue(featureList.getBlocks().stream().anyMatch(g -> g.getItems().size() > 1));
+        Assert.assertTrue(featureList.getBlocks()
+                .stream().filter(g -> g.getItems() != null).flatMap(g -> g.getItems()
+                        .stream()).filter(GeneUtils::isTranscript).allMatch(t -> t.getExonsCount() > 0));
 
         track = new Track<>();
         track.setId(geneFile.getId());
@@ -648,6 +652,8 @@ public class GffManagerTest extends AbstractManagerTest {
         Assert.assertFalse(featureListCollapsed.getBlocks().stream().filter(GeneUtils::isGene)
                 .allMatch(g -> g.getItems().get(0).getItems().isEmpty()));
 
+        Assert.assertTrue(featureListCollapsed.getBlocks()
+                .stream().filter(GeneUtils::isGene).allMatch(g -> g.getExonsCount() == null));
         return true;
     }
 
@@ -771,6 +777,5 @@ public class GffManagerTest extends AbstractManagerTest {
         String pathStr = resource.getFile().getPath();
         return new String(Files.readAllBytes(Paths.get(pathStr)), Charset.defaultCharset());
     }
-
 
 }
