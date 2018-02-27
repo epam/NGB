@@ -115,9 +115,8 @@ public class GffReader extends AbstractGeneReader {
             canonicalTranscript.setItems(new ArrayList<>(stuffIntervalMap.values()));
             gene.setItems(Collections.singletonList(canonicalTranscript));
 
-            if (gene.getExonsCount() == null) {
-                calculateExonsCountAndLength(gene, canonicalTranscript.getItems());
-            }
+            // exon count is null for collapsed mode
+            gene.setExonsCount(null);
         }
 
         if (passesScaleFactor(gene, scaleFactor)) {
