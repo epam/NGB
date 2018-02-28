@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 import com.epam.catgenome.controller.gene.GeneController;
+import com.epam.catgenome.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -170,20 +171,21 @@ public class VcfController extends AbstractRESTController {
                                               @RequestParam(required = false) final String indexUrl)
         throws VcfReadingException {
         return () -> {
-            LOGGER.debug("VcfController accepted: fileUrl:" + fileUrl + "; indexUrl: " + indexUrl);
+            double time1 = Utils.getSystemTimeMilliseconds();
             final Track<Variation> variationTrack = convertToTrack(trackQuery);
             final boolean collapsed = trackQuery.getCollapsed() == null || trackQuery.getCollapsed();
-
             Result result = null;
+
             if (fileUrl == null) {
-                result = Result.success(vcfManager
-                        .loadVariations(variationTrack, trackQuery.getSampleId(), false, collapsed));
+                result = Result.success(vcfManager.loadVariations(variationTrack, trackQuery.getSampleId(), false, collapsed));
             } else {
-                result =  Result.success(vcfManager.loadVariations(variationTrack, fileUrl, indexUrl,
-                        trackQuery.getSampleId() != null ?
-                                trackQuery.getSampleId().intValue() :
-                                null, false, collapsed));
+                result = Result.success(vcfManager.loadVariations(variationTrack, fileUrl, indexUrl, trackQuery.getSampleId() != null ?
+                        trackQuery.getSampleId().intValue() : null, false, collapsed));
             }
+            double time2 = Utils.getSystemTimeMilliseconds();
+
+            LOGGER.debug("Loading VCF file took {} ms", time2 - time1);
+
             return result;
         };
     }
