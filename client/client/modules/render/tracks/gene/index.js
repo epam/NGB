@@ -305,6 +305,9 @@ export class GENETrack extends CachedTrack {
                     if (feature.score) {
                         info.push(['Score', feature.score]);
                     }
+                    if (feature.exonsCount) {
+                        info.push(['Exon number', feature.exonsCount]);
+                    }
                 } else {
                     info.push([`${feature.name} #${feature.index}`]);
                 }
