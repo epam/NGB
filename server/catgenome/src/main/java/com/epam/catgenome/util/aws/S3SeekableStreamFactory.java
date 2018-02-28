@@ -1,21 +1,17 @@
-package com.epam.catgenome.util.feature.reader;
+package com.epam.catgenome.util.aws;
 
+import com.amazonaws.services.s3.AmazonS3URI;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import htsjdk.samtools.seekablestream.SeekableBufferedStream;
 import htsjdk.samtools.seekablestream.SeekableStream;
 
-import java.io.IOException;
 import java.net.URL;
 
 public class S3SeekableStreamFactory implements ISeekableStreamFactory {
 
-    private static ISeekableStreamFactory currentFactory = null;
+    private static ISeekableStreamFactory currentFactory = new S3SeekableStreamFactory();
 
     private S3SeekableStreamFactory() {
-    }
-
-    public static void setInstance() {
-        currentFactory = new S3SeekableStreamFactory();
     }
 
     public static ISeekableStreamFactory getInstance() {
@@ -23,13 +19,13 @@ public class S3SeekableStreamFactory implements ISeekableStreamFactory {
     }
 
     @Override
-    public SeekableStream getStreamFor(URL url) throws IOException {
+    public SeekableStream getStreamFor(URL url){
         return getStreamFor(url.toExternalForm());
     }
 
     @Override
-    public SeekableStream getStreamFor(String path) throws IOException {
-        return new SeekableS3Stream(path);
+    public SeekableStream getStreamFor(String path) {
+        return new SeekableS3Stream(new AmazonS3URI(path), new S3Client());
     }
 
     @Override

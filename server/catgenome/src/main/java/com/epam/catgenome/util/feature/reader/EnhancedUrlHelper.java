@@ -20,7 +20,8 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- */
+ *//*
+
 
 package com.epam.catgenome.util.feature.reader;
 
@@ -42,9 +43,11 @@ import htsjdk.tribble.util.URLHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+*/
 /**
  * URL Helper class that supports S3 singed url handling
- */
+ *//*
+
 public class EnhancedUrlHelper implements URLHelper {
 
     private static final Pattern S3_PATTERN = Pattern.compile(".*s3.*\\.amazonaws\\.com");
@@ -94,10 +97,12 @@ public class EnhancedUrlHelper implements URLHelper {
         return this.wrappedHelper.exists();
     }
 
-    /**
+    */
+/**
      * Inner helper class for handling S3 signed URLs. We sign URLs for GET requests so
      * HEAD request will return 403, this is considered to be OK in this case
-     */
+     *//*
+
     public class S3Helper extends HTTPHelper {
 
         public S3Helper(URL url) {
@@ -180,3 +185,4 @@ public class EnhancedUrlHelper implements URLHelper {
     }
 
 }
+*/

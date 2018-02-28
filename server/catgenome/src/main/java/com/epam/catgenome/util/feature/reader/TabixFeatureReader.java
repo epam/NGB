@@ -23,8 +23,9 @@ package com.epam.catgenome.util.feature.reader;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import com.amazonaws.services.s3.AmazonS3URI;
 import com.epam.catgenome.util.IndexUtils;
-import com.epam.catgenome.util.S3ParsingUtils;
+import com.epam.catgenome.util.aws.S3InputStreamFactory;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.tribble.AsciiFeatureCodec;
@@ -38,7 +39,6 @@ import htsjdk.tribble.util.ParsingUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -114,8 +114,13 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                 header = tabixIndexCache.getHeader();
 
                 if (header == null) {
-                    source = codec.makeSourceFromStream(new PositionalBufferedStream(
-                            new BlockCompressedInputStream(S3ParsingUtils.openInputStream(path))));
+                    if (!path.startsWith("s3:")) {
+                        source = codec.makeSourceFromStream(new PositionalBufferedStream(
+                                new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
+                    } else {
+                        source = codec.makeSourceFromStream(new PositionalBufferedStream(
+                                new BlockCompressedInputStream(S3InputStreamFactory.loadFully(new AmazonS3URI(path)))));
+                    }
                     header = codec.readHeader(source);
                     tabixIndexCache.setHeader(header);
                     tabixIndexCache.setCodec(codec);
@@ -123,21 +128,20 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                 }
                 codec = tabixIndexCache.getCodec();
             } else {
-                source = codec.makeSourceFromStream(new PositionalBufferedStream(
-                        new BlockCompressedInputStream(S3ParsingUtils.openInputStream(path))));
+                if (!path.startsWith("s3:")) {
+                    source = codec.makeSourceFromStream(new PositionalBufferedStream(
+                            new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
+                } else {
+                    source = codec.makeSourceFromStream(new PositionalBufferedStream(
+                            new BlockCompressedInputStream(S3InputStreamFactory.loadFully(new AmazonS3URI(path)))));
+                }
                 header = codec.readHeader(source);
             }
+
         } catch (IOException e) {
             throw new TribbleException.MalformedFeatureFile("Unable to parse header with error: "
                     + e.getMessage(), path, e);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
+
         } finally {
             if (source != null) {
                 codec.close(source);
@@ -178,7 +182,12 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
     }
 
     public CloseableTribbleIterator<T> iterator() throws IOException {
-        final InputStream is = new BlockCompressedInputStream(ParsingUtils.openInputStream(path));
+       InputStream is;
+        if (!path.startsWith("s3:")) {
+            is = new BlockCompressedInputStream(ParsingUtils.openInputStream(path));
+        } else {
+            is = new BlockCompressedInputStream(S3InputStreamFactory.loadFully(new AmazonS3URI(path)));
+        }
         final PositionalBufferedStream stream = new PositionalBufferedStream(is);
         final LineReader reader = LineReaderUtil.fromBufferedStream(stream,
                 LineReaderUtil.LineReaderOption.SYNCHRONOUS);

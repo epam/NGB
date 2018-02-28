@@ -18,7 +18,6 @@ package com.epam.catgenome.util.feature.reader;
  * FOREGOING.
  */
 
-import com.epam.catgenome.util.S3ParsingUtils;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureCodec;
 import htsjdk.tribble.AsciiFeatureCodec;

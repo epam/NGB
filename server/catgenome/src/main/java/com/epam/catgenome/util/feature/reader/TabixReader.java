@@ -25,6 +25,9 @@ package com.epam.catgenome.util.feature.reader;
  */
 
 import com.epam.catgenome.util.IndexUtils;
+import com.epam.catgenome.util.Utils;
+import com.epam.catgenome.util.aws.S3SeekableStreamFactory;
+
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
@@ -33,7 +36,6 @@ import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureCodec;
 import htsjdk.tribble.FeatureCodecHeader;
 import htsjdk.tribble.TribbleException;
-import htsjdk.tribble.util.ParsingUtils;
 import htsjdk.tribble.util.TabixUtils;
 
 import java.io.IOException;
@@ -167,11 +169,10 @@ public class TabixReader {
                 SeekableStreamFactory.getInstance().getStreamFor(fn)), indexCache);
     }
 
-    public TabixReader(final String fn, final String idxFn, EhCacheBasedIndexCache indexCache, String s3protocol) throws IOException {
+    public TabixReader(final String fn, final String idxFn, EhCacheBasedIndexCache indexCache, String s3) throws IOException {
         this(fn, idxFn, S3SeekableStreamFactory.getInstance().getBufferedStream(
                 S3SeekableStreamFactory.getInstance().getStreamFor(fn)), indexCache);
     }
-
     public TabixReader(final String fn, SeekableStream stream, EhCacheBasedIndexCache indexCache) throws IOException {
         this(fn, null, stream, indexCache);
     }
@@ -186,7 +187,7 @@ public class TabixReader {
         mFn = fn;
         mFp = new BlockCompressedInputStream(stream);
         if (idxFn == null) {
-            mIdxFn = ParsingUtils.appendToPath(fn, TabixUtils.STANDARD_INDEX_EXTENSION);
+            mIdxFn = Utils.appendToPath(fn, TabixUtils.STANDARD_INDEX_EXTENSION);
         } else {
             mIdxFn = idxFn;
         }
@@ -354,8 +355,13 @@ public class TabixReader {
      * Read the Tabix index from the default file.
      */
     private void readIndex() throws IOException {
-        ISeekableStreamFactory ssf = SeekableStreamFactory.getInstance();
-        SeekableStream bufferedStream = ssf.getBufferedStream(ssf.getStreamFor(mIdxFn), BUFFER_SIZE);
+        ISeekableStreamFactory ssf;
+        if (!mIdxFn.startsWith("s3:")) {
+            ssf = SeekableStreamFactory.getInstance();
+        } else {
+            ssf = S3SeekableStreamFactory.getInstance();
+        }
+        SeekableStream bufferedStream = ssf.getBufferedStream(ssf.getStreamFor(mIdxFn),  BUFFER_SIZE);
         readIndex(bufferedStream);
     }
 

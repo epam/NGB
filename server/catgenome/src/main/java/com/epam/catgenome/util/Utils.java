@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.amazonaws.services.s3.AmazonS3URI;
 import com.epam.catgenome.constant.Constants;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItem;
@@ -46,8 +47,10 @@ import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.readers.LineIterator;
+import htsjdk.tribble.util.ParsingUtils;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.jexl2.JexlException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -415,4 +418,25 @@ public final class Utils {
     public interface MeasuredTask {
         void doWork();
     }
+
+    public static String appendToPath(String filepath, String indexExtension) {
+        String tabxIndex;
+        if (!filepath.startsWith("s3:")) {
+            tabxIndex = ParsingUtils.appendToPath(filepath, indexExtension);
+            return tabxIndex;
+        } else {
+            AmazonS3URI s3URI = new AmazonS3URI(filepath);
+            if (s3URI != null) {
+                String path = s3URI.toString();
+                String indexPath = path + indexExtension;
+                tabxIndex = filepath.replace(path, indexPath);
+            } else {
+                tabxIndex = filepath + indexExtension;
+            }
+            return tabxIndex;
+        }
+    }
+
+
+
 }

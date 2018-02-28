@@ -29,7 +29,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import com.amazonaws.services.s3.AmazonS3URI;
-import com.epam.catgenome.util.S3ParsingUtils;
+import com.epam.catgenome.util.Utils;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureCodec;
@@ -95,9 +95,8 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
         LOGGER.debug("featureResource: " + featureResource + "; indexResource: " + indexResource);
         if (!featureResource.startsWith("s3:")) {
             ParsingUtils.registerHelperClass(RemoteURLHelper.class);
-        } else {
-            S3ParsingUtils.registerS3HelperClass(S3Helper.class);
         }
+
         try {
             // Test for tabix index
             if (methods.isTabix(featureResource, indexResource)) {
@@ -191,9 +190,9 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
 
             } else {
                 if (indexPath == null) {
-                    indexPath = S3ParsingUtils.appendToPath(resourcePath, TabixUtils.STANDARD_INDEX_EXTENSION);
+                    indexPath = Utils.appendToPath(resourcePath, TabixUtils.STANDARD_INDEX_EXTENSION);
                 }
-                return hasBlockCompressedExtension(resourcePath) && S3ParsingUtils.resourceExists(indexPath);
+                return hasBlockCompressedExtension(resourcePath);
             }
         }
     }
