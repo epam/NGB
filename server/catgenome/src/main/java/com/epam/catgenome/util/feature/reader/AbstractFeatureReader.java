@@ -219,7 +219,7 @@ public abstract class AbstractFeatureReader<T extends Feature, S> implements Fea
         if(indexPath == null){
             indexPath = ParsingUtils.appendToPath(resourcePath, TabixUtils.STANDARD_INDEX_EXTENSION);
         }
-        return hasBlockCompressedExtension(resourcePath) && S3ParsingUtils.resourceExists(indexPath);
+        return hasBlockCompressedExtension(resourcePath) && ParsingUtils.resourceExists(indexPath);
     }
 
     public static class ComponentMethods{
