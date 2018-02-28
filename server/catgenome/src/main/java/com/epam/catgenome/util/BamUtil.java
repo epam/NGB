@@ -91,7 +91,6 @@ public final class BamUtil {
         read.setName(samRecord.getReadName());
         read.setCigarString(samRecord.getCigarString());
         read.setStand(!samRecord.getReadNegativeStrandFlag());
-        read.setReadGroup(samRecord.getReadGroup().getReadGroupId());
         read.setMappingQuality(samRecord.getMappingQuality());
         read.setFlagMask(samRecord.getFlags());
         read.setTLen(samRecord.getInferredInsertSize());
@@ -102,6 +101,13 @@ public final class BamUtil {
         read.setDifferentBase(differentBase);
         read.setHeadSequence(head);
         read.setTailSequence(tail);
+
+        if (samRecord.getReadGroup() != null) {
+            read.setReadGroup(samRecord.getReadGroup().getReadGroupId());
+        } else {
+            read.setReadGroup("");
+        }
+
         return read;
     }
 
