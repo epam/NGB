@@ -81,7 +81,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
     }
 
     _renderNonEmptyBlock(opts) {
-        const {viewport, graphics, hoveredGraphics, block, centeredPositionY} = opts;
+        const {viewport, graphics, hoveredGraphics, block, centeredPositionY, feature} = opts;
         const shouldDrawAminoacid = this._aminoacidFeatureRenderer !== null ? this._aminoacidFeatureRenderer.shouldDrawAminoacids(viewport) : false;
         const pixelsInBp = viewport.factor;
         const blockPxStart = Math.max(viewport.project.brushBP2pixel(block.startIndex), -viewport.canvasSize) - pixelsInBp / 2;
@@ -158,7 +158,14 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                     ::this.updateTextureCoordinates
                 );
             }
-
+            this.registerFeaturePosition(
+                Object.assign({exonNumber: blockItem.attributes.exon_number}, feature),
+                {
+                    x1: blockItemPxStart,
+                    x2: blockItemPxEnd,
+                    y1: centeredPositionY - height / 2,
+                    y2: centeredPositionY + height / 2
+                });
         }
         graphics
             .lineStyle(this.config.transcript.features.border.thickness, this.config.transcript.features.border.color, 1)
@@ -312,6 +319,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                         graphics,
                         hoveredGraphics,
                         viewport,
+                        feature
                     });
                     this._renderAminoacid({
                         block,
