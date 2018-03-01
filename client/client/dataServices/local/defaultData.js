@@ -105,6 +105,9 @@ export default {
             'bam>group>readStrand' : {
                 hotkey: 'SHIFT + G'
             },
+            'bam>group>readGroup' : {
+                hotkey: 'SHIFT + H'
+            },
             'bam>readsView>automatic': {
                 hotkey: 'SHIFT + V'
             },
