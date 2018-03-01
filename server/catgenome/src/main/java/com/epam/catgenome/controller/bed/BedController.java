@@ -30,6 +30,10 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTra
 import java.io.IOException;
 import java.util.List;
 
+import com.epam.catgenome.controller.vcf.VcfController;
+import com.epam.catgenome.util.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -73,6 +77,8 @@ import com.wordnik.swagger.annotations.ApiResponses;
 @Controller
 @Api(value = "bed", description = "BED Track Management")
 public class BedController extends AbstractRESTController {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BedController.class);
+
     @Autowired
     private BedManager bedManager;
 
@@ -143,12 +149,17 @@ public class BedController extends AbstractRESTController {
                                               @RequestParam(required = false) final String fileUrl,
                                               @RequestParam(required = false) final String indexUrl)
         throws FeatureFileReadingException {
+        double time1 = Utils.getSystemTimeMilliseconds();
         final Track<BedRecord> track = convertToTrack(trackQuery);
+        Result result = null;
         if (fileUrl == null) {
-            return Result.success(bedManager.loadFeatures(track));
+            result = Result.success(bedManager.loadFeatures(track));
         } else {
-            return Result.success(bedManager.loadFeatures(track, fileUrl, indexUrl));
+            result = Result.success(bedManager.loadFeatures(track, fileUrl, indexUrl));
         }
+        double time2 = Utils.getSystemTimeMilliseconds();
+        LOGGER.debug("Loading BED took {} ms", time2 - time1);
+        return result;
     }
 
     @ResponseBody

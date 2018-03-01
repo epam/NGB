@@ -179,6 +179,8 @@ public class GeneController extends AbstractRESTController {
             @PathVariable(value = REFERENCE_ID_FIELD) final Long referenceId,
             @RequestParam(required = false) final String fileUrl,
             @RequestParam(required = false) final String indexUrl) throws GeneReadingException {
+
+        double time1 = Utils.getSystemTimeMilliseconds();
         final Track<Gene> geneTrack = Query2TrackConverter.convertToTrack(trackQuery);
         boolean collapsed = trackQuery.getCollapsed() != null && trackQuery.getCollapsed();
 
@@ -190,21 +192,23 @@ public class GeneController extends AbstractRESTController {
         }
 
         Map<Gene, List<ProteinSequenceEntry>> aminoAcids = null;
-        double time1 = Utils.getSystemTimeMilliseconds();
+        //double time1 = Utils.getSystemTimeMilliseconds();
         if (geneTrack.getScaleFactor() > Constants.AA_SHOW_FACTOR && !collapsed) {
             aminoAcids = proteinSequenceManager
                     .loadProteinSequenceWithoutGrouping(genes, referenceId, collapsed);
         }
-        double time2 = Utils.getSystemTimeMilliseconds();
-        LOGGER.debug("Loading aminoacids took {} ms", time2 - time1);
+        //double time2 = Utils.getSystemTimeMilliseconds();
+        //  LOGGER.debug("Loading aminoacids took {} ms", time2 - time1);
 
         final Track<GeneHighLevel> result = new Track<>(geneTrack);
-        time1 = Utils.getSystemTimeMilliseconds();
+        //time1 = Utils.getSystemTimeMilliseconds();
         result.setBlocks(gffManager.convertGeneTrackForClient(genes.getBlocks(), aminoAcids));
-        time2 = Utils.getSystemTimeMilliseconds();
-        LOGGER.debug("Simplifying genes took {} ms", time2 - time1);
+        Result lastResult = Result.success(result);
 
-        return Result.success(result);
+        double time2 = Utils.getSystemTimeMilliseconds();
+        LOGGER.debug("Loading GTF took {} ms", time2 - time1);
+
+        return lastResult;
     }
 
     @ResponseBody
