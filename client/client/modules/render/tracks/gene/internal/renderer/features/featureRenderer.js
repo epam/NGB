@@ -365,11 +365,12 @@ export default class FeatureRenderer {
         });
     }
 
-    registerFeaturePosition(feature, boundaries, graphicsBoundaries) {
+    registerFeaturePosition(feature, boundaries, graphicsBoundaries, order = 0) {
         this._featuresPositions.push({
             boundaries,
             feature,
-            graphicsBoundaries: graphicsBoundaries || boundaries
+            graphicsBoundaries: graphicsBoundaries || boundaries,
+            order
         });
     }
 
@@ -390,14 +391,15 @@ export default class FeatureRenderer {
                 }
             }
         }
-        return result;
+        return Sorting.quickSort(result, false, a => a.order);
     }
 
     hoverItem(hoveredItem, viewport, container) {
         container.visible = false;
         container.mask = null;
         if (hoveredItem && hoveredItem.length) {
-            const item = hoveredItem[hoveredItem.length - 1];
+            const [exon] = hoveredItem.filter(i => i.feature && i.feature.feature === 'exon');
+            const item = exon || hoveredItem[hoveredItem.length - 1];
             const x1 = Math.max(- viewport.canvasSize, item.graphicsBoundaries.x1) - 1;
             const x2 = Math.min(2 * viewport.canvasSize, item.graphicsBoundaries.x2) + 2;
             let y1 = item.graphicsBoundaries.y1 - 1;

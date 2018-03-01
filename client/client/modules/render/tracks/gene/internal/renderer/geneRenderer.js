@@ -19,6 +19,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
     _actualHeight = null;
     _gffColorByFeatureType = false;
     _gffShowNumbersAminoacid = false;
+    _collapsedMode = false;
     _showCenterLine;
 
     constructor(config, transformer: GeneTransformer, pixiRenderer) {
@@ -69,10 +70,17 @@ export default class GeneRenderer extends CachedTrackRenderer {
         return this._actualHeight;
     }
 
-    render(viewport, cache, isRedraw, _gffColorByFeatureType = false, _gffShowNumbersAminoacid, _showCenterLine) {
+    render(viewport,
+           cache,
+           isRedraw,
+           _gffColorByFeatureType = false,
+           _gffShowNumbersAminoacid,
+           _showCenterLine,
+           _collapsedMode = false) {
         this._gffColorByFeatureType = _gffColorByFeatureType;
         this._showCenterLine = _showCenterLine;
         this._gffShowNumbersAminoacid = _gffShowNumbersAminoacid;
+        this._collapsedMode = _collapsedMode;
 
         if (!isRedraw) {
             this.scroll(viewport, 0, cache);
@@ -105,7 +113,8 @@ export default class GeneRenderer extends CachedTrackRenderer {
             this.geneHistogram.clear();
             this.featureRenderer._opts = {
                 gffColorByFeatureType: this._gffColorByFeatureType,
-                gffShowNumbersAminoacid: this._gffShowNumbersAminoacid
+                gffShowNumbersAminoacid: this._gffShowNumbersAminoacid,
+                collapsedMode: this._collapsedMode
             };
             this.featureRenderer.prepare();
             const {graphics, hoveredGraphics} = this.featureRenderer.render(cache.data, viewport, this._labelsContainer, this._dockableElementsContainer, this._attachedElementsContainer);

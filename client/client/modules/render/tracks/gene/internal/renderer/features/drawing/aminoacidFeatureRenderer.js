@@ -4,6 +4,7 @@ import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
 import {drawingConfiguration} from '../../../../../../core';
 
 const AMINOACID_LENGTH_IN_BASE_PAIRS = 3;
+const FEATURE_INDEX_AMINOACID = 2;
 const Math = window.Math;
 
 const AMINOACID_DESCRIPTION = {
@@ -288,7 +289,7 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
                     x2: viewport.project.brushBP2pixel(acid.endIndex) + pixelsInBp / 2,
                     y1: position.y - height / 2,
                     y2: position.y + height / 2
-                });
+                }, null, FEATURE_INDEX_AMINOACID);
             }
         }
     }

@@ -5,11 +5,13 @@ import drawStrandDirection from './strandDrawing';
 import {drawingConfiguration} from '../../../../../../core';
 
 const Math = window.Math;
+const FEATURE_INDEX_EXON = 1;
 
 export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
 
     _aminoacidFeatureRenderer = null;
     gffShowNumbersAminoacid;
+    collapsedMode;
 
     constructor(config, registerLabel, registerDockableElement, registerFeaturePosition, aminoacidFeatureRenderer) {
         super(config, registerLabel, registerDockableElement, registerFeaturePosition);
@@ -81,7 +83,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
     }
 
     _renderNonEmptyBlock(opts) {
-        const {viewport, graphics, hoveredGraphics, block, centeredPositionY, feature} = opts;
+        const {viewport, graphics, hoveredGraphics, block, centeredPositionY} = opts;
         const shouldDrawAminoacid = this._aminoacidFeatureRenderer !== null ? this._aminoacidFeatureRenderer.shouldDrawAminoacids(viewport) : false;
         const pixelsInBp = viewport.factor;
         const blockPxStart = Math.max(viewport.project.brushBP2pixel(block.startIndex), -viewport.canvasSize) - pixelsInBp / 2;
@@ -158,14 +160,21 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                     ::this.updateTextureCoordinates
                 );
             }
-            this.registerFeaturePosition(
-                Object.assign({exonNumber: blockItem.attributes.exon_number}, feature),
-                {
-                    x1: blockItemPxStart,
-                    x2: blockItemPxEnd,
-                    y1: centeredPositionY - height / 2,
-                    y2: centeredPositionY + height / 2
-                });
+            if (!this.collapsedMode && blockItem.attributes && blockItem.attributes.exon_number) {
+                this.registerFeaturePosition(
+                    {
+                        exonNumber: blockItem.attributes.exon_number,
+                        feature: 'exon'
+                    },
+                    {
+                        x1: blockItemPxStart,
+                        x2: blockItemPxEnd,
+                        y1: centeredPositionY - height / 2,
+                        y2: centeredPositionY + height / 2
+                    },
+                    null,
+                    FEATURE_INDEX_EXON);
+            }
         }
         graphics
             .lineStyle(this.config.transcript.features.border.thickness, this.config.transcript.features.border.color, 1)
@@ -318,8 +327,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                         centeredPositionY,
                         graphics,
                         hoveredGraphics,
-                        viewport,
-                        feature
+                        viewport
                     });
                     this._renderAminoacid({
                         block,
