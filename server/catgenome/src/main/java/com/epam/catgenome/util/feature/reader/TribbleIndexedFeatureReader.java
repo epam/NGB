@@ -23,6 +23,8 @@ package com.epam.catgenome.util.feature.reader;
  * THE SOFTWARE.
  */
 import com.epam.catgenome.util.IndexUtils;
+import com.epam.catgenome.util.Utils;
+import com.epam.catgenome.util.aws.S3SeekableStreamFactory;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import htsjdk.samtools.util.RuntimeIOException;
@@ -83,7 +85,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
      * @param featurePath  - path to the feature file, can be a local file path, http url, or ftp url
      * @param codec        - codec to decode the features
      * @param requireIndex - true if the reader will be queries for specific ranges.  An index (idx) file must exist
-     * @param indexCache  - a cache for Index objects
+     * @param indexCache   - a cache for Index objects
      * @throws IOException
      */
     public TribbleIndexedFeatureReader(final String featurePath, final FeatureCodec<T, S> codec,
@@ -93,7 +95,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
         this.indexCache = indexCache;
         if (requireIndex) {
             this.loadIndex();
-            if(!this.hasIndex()){
+            if (!this.hasIndex()) {
                 throw new TribbleException("An index is required, but none found.");
             }
         }
@@ -109,7 +111,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
      * @param indexFile    - path to the index file
      * @param codec        - codec to decode the features
      * @param requireIndex - true if the reader will be queries for specific ranges.  An index (idx) file must exist
-     * @param indexCache  - a cache for Index objects
+     * @param indexCache   - a cache for Index objects
      * @throws IOException
      */
     public TribbleIndexedFeatureReader(final String featureFile, final String indexFile,
@@ -117,13 +119,13 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
                                        final boolean requireIndex, final EhCacheBasedIndexCache indexCache)
             throws IOException {
         this(featureFile, codec, false, indexCache); // required to read the header
-        if (indexFile != null && ParsingUtils.resourceExists(indexFile)) {
+        if (indexFile != null && Utils.resourceExists(indexFile)) {
             index = retrieveIndex(indexFile);
             this.needCheckForIndex = false;
         } else {
             if (requireIndex) {
                 this.loadIndex();
-                if(!this.hasIndex()){
+                if (!this.hasIndex()) {
                     throw new TribbleException("An index is required, but none found.");
                 }
             }
@@ -153,6 +155,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             return index;
         }
     }
+
     /**
      * @param featureFile - path to the feature file, can be a local file path, http url, or ftp url
      * @param codec       - codec to decode the features
@@ -171,16 +174,17 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
      * Attempt to load the index for the specified {@link #path}.
      * If the {@link #path} has no available index file,
      * does nothing
+     *
      * @throws IOException
      */
-    private void loadIndex() throws IOException{
+    private void loadIndex() throws IOException {
         String indexFile = Tribble.indexFile(this.path);
-        if (ParsingUtils.resourceExists(indexFile)) {
+        if (Utils.resourceExists(indexFile)) {
             index = retrieveIndex(indexFile);
         } else {
             // See if the index itself is gzipped
-            indexFile = ParsingUtils.appendToPath(indexFile, ".gz");
-            if (ParsingUtils.resourceExists(indexFile)) {
+            indexFile = Utils.appendToPath(indexFile, ".gz");
+            if (Utils.resourceExists(indexFile)) {
                 index = retrieveIndex(indexFile);
             }
         }
@@ -199,18 +203,28 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
      */
     private SeekableStream getSeekableStream() throws IOException {
         final SeekableStream result;
+
         if (reuseStreamInQuery()) {
             // if the stream points to an underlying file, only create the underlying seekable stream once
             if (seekableStream == null) {
-                seekableStream = SeekableStreamFactory.getInstance().getStreamFor(path);
+                if (!Utils.urlIsS3(path)) {
+                    seekableStream = SeekableStreamFactory.getInstance().getStreamFor(path);
+                }
+                seekableStream = S3SeekableStreamFactory.getInstance().getStreamFor(path);
             }
             result = seekableStream;
         } else {
-            // we are not reusing the stream, so make a fresh copy each time we request it
-            result = SeekableStreamFactory.getInstance().getStreamFor(path);
+            if (!Utils.urlIsS3(path)) {
+                result = SeekableStreamFactory.getInstance().getStreamFor(path);
+            } else {
+                // we are not reusing the stream, so make a fresh copy each time we request it
+                result = S3SeekableStreamFactory.getInstance().getStreamFor(path);
+            }
         }
         return result;
     }
+
+
 
     /**
      * Are we attempting to reuse the underlying stream in query() calls?

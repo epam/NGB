@@ -40,7 +40,7 @@ import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.track.Block;
 import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.util.aws.S3Manager;
+import com.epam.catgenome.util.aws.S3Client;
 import htsjdk.samtools.util.CloseableIterator;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.Feature;
@@ -50,7 +50,6 @@ import htsjdk.tribble.readers.LineIterator;
 import htsjdk.tribble.util.ParsingUtils;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.jexl2.JexlException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -402,12 +401,6 @@ public final class Utils {
         return notRegisteredFile;
     }
 
-    public static String processUrl(String inputUrl) {
-        if (!inputUrl.startsWith(S3_SCHEME)) {
-            return inputUrl;
-        }
-        return new S3Manager().generateSingedUrl(inputUrl);
-    }
 
     public static Map<String, Chromosome> makeChromosomeMap(Reference reference) {
         return reference.getChromosomes().stream().collect(
@@ -421,9 +414,8 @@ public final class Utils {
 
     public static String appendToPath(String filepath, String indexExtension) {
         String tabxIndex;
-        if (!filepath.startsWith("s3:")) {
+        if (!Utils.urlIsS3(filepath)) {
             tabxIndex = ParsingUtils.appendToPath(filepath, indexExtension);
-            return tabxIndex;
         } else {
             AmazonS3URI s3URI = new AmazonS3URI(filepath);
             if (s3URI != null) {
@@ -433,10 +425,33 @@ public final class Utils {
             } else {
                 tabxIndex = filepath + indexExtension;
             }
-            return tabxIndex;
         }
+        return tabxIndex;
     }
 
 
+    public static boolean resourceExists(String resource) throws IOException {
+        boolean exists;
+        if (!Utils.urlIsS3(resource)) {
+            exists = ParsingUtils.resourceExists(resource);
+        } else {
+            S3Client s3Client = new S3Client();
+            exists = s3Client.isFileExisting(new AmazonS3URI(resource));
+        }
+        return exists;
+    }
+
+    public static boolean urlIsS3 (String path) {
+        boolean isS3 = false;
+        if (path.startsWith("s3:")) {
+            isS3 = true;
+        }
+        return isS3;
+    }
+
 
 }
+
+
+
+

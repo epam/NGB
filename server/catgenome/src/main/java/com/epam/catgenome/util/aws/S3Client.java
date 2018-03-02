@@ -49,7 +49,7 @@ public class S3Client {
      * @param uri The provided URI for the file.
      * @return a boolean value that shows whether the correct URI was provided
      */
-    boolean isFileExisting(AmazonS3URI uri) {
+    public boolean isFileExisting(AmazonS3URI uri) {
 
         boolean exist = true;
 
