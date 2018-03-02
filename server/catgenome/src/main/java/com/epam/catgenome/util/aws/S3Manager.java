@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for work with AWS S3 buckets
+ * became unnecessary in new S3 implementation
  */
 public class S3Manager {
 
