@@ -1,0 +1,309 @@
+<html>
+<head>
+    <title>Embedding JS demonstration</title>
+</head>
+<body>
+<input type="text" id="dataSetId" value="4" placeholder="DataSet id">
+<input type="button" id="loadDataSet" value="loadDataSet">&nbsp;
+Force switch reference:&nbsp;
+<input type="checkbox" id="forceSwitchRefDataSet">
+<p>
+    <input type="text" id="coordinatesText" value="" placeholder="chromosome: coordinates">
+    <input type="button" id="navigateToCoordinate" value="navigateToCoordinate">&nbsp;
+<p>
+    <input type="button" id="toggleSelectTrackId" value="toggleSelectTrack (by id)">
+    <input type="button" id="toggleSelectTrackUrl" value="toggleSelectTrack (by Url)">
+    <input type="button" id="loadTrackUrl" value="loadTrack (Url)">
+    <input type="button" id="loadTrackNgb" value="loadTrack (path on ngbServer)">&nbsp;
+    Force switch reference:&nbsp;
+    <input type="checkbox" id="forceSwitchRefTrack">
+<p>
+<p>
+    <textarea rows="10" cols="35" id="globalSettings"></textarea>
+    <input type="button" id="setGlobalSettings" value="setGlobalSettings">
+    <textarea rows="10" cols="35" id="trackSettings"></textarea>
+    <select name="typeTrack" id="typeTrack">
+        <option value="vcf">vcf</option>
+        <option value="referense">referense</option>
+        <option value="wig">wig</option>
+        <option value="bam">bam</option>
+        <option value="gene">gene</option>
+    </select>
+    <input type="button" id="setTrackSettings" value="setTrackSettings">
+</p>
+<p>
+    <input type="text" id="token" value="" placeholder="token">
+    <input type="button" id="setToken" value="setToken">&nbsp;
+</p>
+<iframe height="90%" width="100%" id="ngbIframe" src="http://localhost:8080/#"></iframe>
+<script type="text/javascript">
+    var dataSetId = document.getElementById('dataSetId'),
+        forceSwitchRefDataSet = document.getElementById('forceSwitchRefDataSet'),
+        btnLoadDataSet = document.getElementById('loadDataSet'),
+
+        btnNavigateToCoordinate = document.getElementById('navigateToCoordinate'),
+        coordinatesInput = document.getElementById('coordinatesText'),
+
+        btnToggleSelectTrackId = document.getElementById('toggleSelectTrackId'),
+        btnLoadTrackUrl = document.getElementById('loadTrackUrl'),
+        btnLoadTrackNgb = document.getElementById('loadTrackNgb'),
+        btnToggleSelectTrackUrl = document.getElementById('toggleSelectTrackUrl'),
+        forceSwitchRefTrack = document.getElementById('forceSwitchRefTrack'),
+
+        globalSettings = document.getElementById('globalSettings'),
+        btnSetGlobalSettings = document.getElementById('setGlobalSettings'),
+        trackSettings = document.getElementById('trackSettings'),
+        typeTrackSelect = document.getElementById('typeTrack'),
+        btnSetTrackSettings = document.getElementById('setTrackSettings'),
+
+        token = document.getElementById('token'),
+        btnSetToken = document.getElementById('setToken'),
+
+        iframe = document.getElementById('ngbIframe');
+
+    init();
+
+    btnLoadDataSet.onclick = function () {
+        iframe.contentWindow.postMessage({
+            callerId: guid(),
+            method: "loadDataSet",
+            params: {
+                id: dataSetId.value,
+                forceSwitchRef: forceSwitchRefDataSet.checked,
+            }
+        }, "*");
+    };
+
+    btnNavigateToCoordinate.onclick = function () {
+        iframe.contentWindow.postMessage({
+            callerId: guid(),
+            method: "navigateToCoordinate",
+            params: {coordinates: coordinatesInput.value}
+        }, "*");
+    };
+
+    btnToggleSelectTrackId.onclick = function () {
+        iframe.contentWindow.postMessage({
+            callerId: guid(),
+            method: "toggleSelectTrack",
+            params: {
+                track: 21,
+                forceSwitchRef: forceSwitchRefTrack.checked,
+            }
+        }, "*");
+    };
+
+    btnToggleSelectTrackUrl.onclick = function () {
+        iframe.contentWindow.postMessage({
+            callerId: guid(),
+            method: "toggleSelectTrack",
+            params: {
+                track: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz",
+                forceSwitchRef: forceSwitchRefTrack.checked,
+            }
+        }, "*");
+    };
+
+    btnLoadTrackUrl.onclick = function () {
+        iframe.contentWindow.postMessage({
+            callerId: guid(),
+            method: "loadTracks",
+            params: {
+                tracks: [{
+                    path: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz",
+                    index: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz.tbi",
+                }, {
+                    path: "http://ngb.opensource.epam.com/distr/data/genome/dm6/dmel-all-r6.06.sorted.gtf.gz",
+                    index: "http://ngb.opensource.epam.com/distr/data/genome/dm6/dmel-all-r6.06.sorted.gtf.gz.tbi",
+                }, {
+                    path: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.gff3.gz",
+                    index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.gff3.gz.tbi",
+                }, {
+                    path: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/PIK3CA-E545K.bam",
+                    index: "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/PIK3CA-E545K.bam.bai",
+                }, {
+                    path: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz",
+                    index: "http://ngb.opensource.epam.com/distr/data/genome/grch38/Homo_sapiens.GRCh38.domains.bed.gz.tbi",
+                },
+                ],
+                forceSwitchRef: forceSwitchRefTrack.checked,
+                referenceId: 3,
+                mode: 'url',
+            }
+        }, "*");
+    };
+
+    btnLoadTrackNgb.onclick = function () {
+        iframe.contentWindow.postMessage({
+            callerId: guid(),
+            method: "loadTracks",
+            params: {
+                tracks: [{
+                    path: "/opt/catgenome/MCF7-PIK3CA.bam",
+                    index: "/opt/catgenome/MCF7-PIK3CA.bam.bai",
+                }, {
+                    path: "/opt/catgenome/beds-test/1.bed.gz",
+                    index: "/opt/catgenome/beds-test/1.bed.gz.tbi",
+                }, {
+                    path: "/opt/catgenome/beds-test/2.bed.gz",
+                    index: "/opt/catgenome/beds-test/2.bed.gz.tbi",
+                }, {
+                    path: "/opt/catgenome/beds-test/3.bed.gz",
+                    index: "/opt/catgenome/beds-test/3.bed.gz.tbi",
+                }, {
+                    path: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz",
+                    index: "/opt/catgenome/beds-test/BRD4_primers_names.bed.gz.tbi",
+                },
+                ],
+                forceSwitchRef: forceSwitchRefTrack.checked,
+                referenceId: 1,
+                mode: 'ngbServer',
+            }
+        }, "*");
+    };
+
+    btnSetGlobalSettings.onclick = function () {
+        iframe.contentWindow.postMessage({
+            callerId: guid(),
+            method: "setGlobalSettings",
+            params: globalSettings.value ? JSON.parse(globalSettings.value) : null
+        }, "*");
+    };
+
+    btnSetTrackSettings.onclick = function () {
+        iframe.contentWindow.postMessage({
+            callerId: guid(),
+            method: "setTrackSettings",
+            params: trackSettings.value ? JSON.parse(trackSettings.value) : null
+        }, "*");
+    };
+
+    btnSetToken.onclick = function () {
+        iframe.contentWindow.postMessage({
+            callerId: guid(),
+            method: "setToken",
+            params: {token: token.value}
+        }, "*");
+    }
+
+    typeTrackSelect.onchange = function () {
+        switch (typeTrackSelect.value) {
+            case 'vcf':
+                trackSettings.value = JSON.stringify({
+                    id: 23, // id or path "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz"
+                    settings: [
+                        {name: "vcf>variantsView>expanded"}
+                    ]
+                });
+                break;
+            case 'referense':
+                trackSettings.value = JSON.stringify({
+                    id: 5,
+                    settings: [
+                        {name: "reference>showTranslation", value: true},
+                        {name: "reference>showForwardStrand", value: true},
+                        {name: "reference>showReverseStrand", value: true}
+                    ]
+                });
+                break;
+            case 'wig':
+                trackSettings.value = JSON.stringify({
+                    id: 28,
+                    settings: [
+                        {
+                            name: "coverage>scale>manual", value: true, extraOptions: {
+                            from: 10,
+                            to: 150
+                        }
+                        },
+                        {name: "coverage>scale>log", value: true}
+                    ]
+                });
+                break;
+            case 'bam':
+                trackSettings.value = JSON.stringify({
+                    id: 43,
+                    settings: [
+                        {name: "bam>color>firstInPairStrand", value: true},
+                        {name: "bam>color>shadeByQuality", value: true},
+
+                        {name: "bam>group>firstInPairStrand", value: true},
+
+                        {name: "bam>readsView>expanded"},
+                        {name: "bam>readsView>pairs", value: true},
+
+                        {name: "bam>sort>mappingQuality"},
+
+                        {name: "bam>showAlignments", value: true},
+                        {name: "bam>showMismatchedBases", value: true},
+                        {name: "bam>showCoverage", value: true},
+                        {name: "bam>showSpliceJunctions", value: true},
+
+                        {name: "coverage>scale>default", value: false},
+                        {
+                            name: "coverage>scale>manual", value: true, extraOptions: {
+                            from: 10,
+                            to: 150
+                        }
+                        },
+                        {name: "coverage>scale>log", value: true}
+                    ]
+                });
+                break;
+            case 'gene':
+                trackSettings.value = JSON.stringify({
+                    id: 59,
+                    settings: [
+                        {name: "gene>transcript>expanded"},
+                        {name: "shortenIntrons", value: true}
+                    ]
+                });
+                break;
+        }
+    };
+
+    function guid() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+            s4() + '-' + s4() + s4() + s4();
+    }
+
+    function init() {
+        globalSettings.value = JSON.stringify({
+            showCenterLine: false,
+            hotkeys: {
+                "layout>variants": {
+                    "hotkey": "ALT + !"
+                },
+                'gene>transcript>expanded': {
+                    "hotkey": "ALT + $"
+                }
+            },
+            colors: {
+                strand: {forward: 14363949}
+            }
+        });
+
+        trackSettings.value = JSON.stringify({
+            id: 23, // id or path like "http://ngb.opensource.epam.com/distr/data/demo/ngb_demo_data/sample_1-lumpy.vcf.gz"
+            settings: [
+                {name: "vcf>variantsView>expanded"}
+            ]
+        });
+    }
+
+    if (window.addEventListener) {
+        window.addEventListener("message", () => {
+            if (event.data) {
+                console.log(event.data);
+            }
+        });
+    }
+</script>
+</body>
+</html>

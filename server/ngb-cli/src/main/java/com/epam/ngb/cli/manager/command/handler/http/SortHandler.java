@@ -118,7 +118,7 @@ public class SortHandler extends AbstractHTTPCommandHandler {
             responseResult = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class,
                             ResponseResult.class, String.class));
-            if (ERROR_STATUS.equals(responseResult.getStatus())) {
+            if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
                 LOGGER.error(responseResult.getMessage());
                 return 1;
             }
@@ -146,12 +146,7 @@ public class SortHandler extends AbstractHTTPCommandHandler {
 
     private HttpPost prepareHttpPost() throws URISyntaxException {
         URIBuilder builder = new URIBuilder(serverParameters.getServerUrl() + getRequestUrl());
-        HttpPost post = new HttpPost(builder.build());
-        setDefaultHeader(post);
-        if (isSecure()) {
-            addAuthorizationToRequest(post);
-        }
-        return post;
+        return (HttpPost) getRequestFromURLByType(HttpPost.METHOD_NAME, builder.build().toString());
     }
 
 }

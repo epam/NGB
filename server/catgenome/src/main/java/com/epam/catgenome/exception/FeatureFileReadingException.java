@@ -24,6 +24,8 @@
 
 package com.epam.catgenome.exception;
 
+import java.io.IOException;
+
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 
@@ -38,7 +40,7 @@ import com.epam.catgenome.constant.MessagesConstants;
  * and GeneReadingException
  * </p>
  */
-public class FeatureFileReadingException extends Exception {
+public class FeatureFileReadingException extends IOException {
 
     public FeatureFileReadingException(Long id, Throwable cause) {
         super(MessageHelper.getMessage(MessagesConstants.ERROR_FEATURE_FILE_READING, id), cause);

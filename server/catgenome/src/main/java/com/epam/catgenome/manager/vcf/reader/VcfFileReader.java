@@ -35,6 +35,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +62,6 @@ import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
@@ -110,10 +111,11 @@ public class VcfFileReader extends AbstractVcfReader {
      */
     @Override
     public Track<Variation> readVariations(VcfFile vcfFile, final Track<Variation> track, Chromosome chromosome,
-                                           final Integer sampleIndex, final boolean loadInfo, final boolean collapse)
+                                           final Integer sampleIndex, final boolean loadInfo,
+                                           final boolean collapse, EhCacheBasedIndexCache indexCache)
             throws VcfReadingException {
-        try (FeatureReader<VariantContext> reader = AbstractFeatureReader.getFeatureReader(vcfFile.getPath(),
-                vcfFile.getIndex().getPath(), new VCFCodec(), true)) {
+        try (FeatureReader<VariantContext> reader = AbstractEnhancedFeatureReader.getFeatureReader(vcfFile.getPath(),
+                vcfFile.getIndex().getPath(), new VCFCodec(), true, indexCache)) {
             if (checkBounds(vcfFile, track, chromosome, loadInfo)) {
                 return track;
             }
@@ -131,13 +133,14 @@ public class VcfFileReader extends AbstractVcfReader {
 
     @Override
     public Variation getNextOrPreviousVariation(int fromPosition, VcfFile vcfFile, Integer sampleIndex,
-                                                Chromosome chromosome, boolean forward) throws VcfReadingException {
+                                                Chromosome chromosome, boolean forward,
+                                                EhCacheBasedIndexCache indexCache) throws VcfReadingException {
         int end = forward ? chromosome.getSize() : 0;
         if (isOutOfBounds(fromPosition, forward, end)) { // no next features
             return null;
         }
-        try (FeatureReader<VariantContext> reader = AbstractFeatureReader.getFeatureReader(vcfFile.getPath(),
-                vcfFile.getIndex().getPath(), new VCFCodec(), true)) {
+        try (FeatureReader<VariantContext> reader = AbstractEnhancedFeatureReader.getFeatureReader(vcfFile.getPath(),
+                vcfFile.getIndex().getPath(), new VCFCodec(), true, indexCache)) {
             return readNextOrPreviousVariation(fromPosition, vcfFile, sampleIndex, chromosome,
                     forward, end, reader);
         } catch (IOException e) {
@@ -243,7 +246,7 @@ public class VcfFileReader extends AbstractVcfReader {
      * @param sampleIndex {@code Integer} a name of a sample.
      * @return a {@code Variation} object, representing desired variation.
      */
-    public Variation createVariation(VariantContext context, VCFHeader header, Integer sampleIndex) {
+    public static Variation createVariation(VariantContext context, VCFHeader header, Integer sampleIndex) {
         String ref = context.getReference().getDisplayString();
         List<String> alt = context.getAlternateAlleles().stream().map(Allele::getDisplayString)
                 .collect(Collectors.toList());
@@ -270,7 +273,7 @@ public class VcfFileReader extends AbstractVcfReader {
         return variation;
     }
 
-    @NotNull private GenotypeData getGenotypeData(VariantContext context, Genotype genotype) {
+    @NotNull private static GenotypeData getGenotypeData(VariantContext context, Genotype genotype) {
         GenotypeData genotypeData;
         if (genotype == null) {
             genotypeData = new GenotypeData();
@@ -322,7 +325,10 @@ public class VcfFileReader extends AbstractVcfReader {
         if (bounds == null) {
             bounds = metaMap.get(Utils.changeChromosomeName(chromosome.getName()));
         }
-        Assert.notNull(bounds, MessageHelper.getMessage(MessageCode.NO_SUCH_CHROMOSOME));
+        if (bounds == null) {
+            track.setBlocks(Collections.emptyList());
+            return true;
+        }
         if (track.getStartIndex() < bounds.getLeft()) {
             track.setStartIndex(bounds.getLeft());
         }

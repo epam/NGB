@@ -3,7 +3,7 @@
         <ng-md-icon icon="dashboard"></ng-md-icon>
     </md-button>
     <md-menu-content width="4" class="ngb-tool-menu" md-whiteframe="4">
-        <md-menu-item ng-repeat="panel in $ctrl.panels">
+        <md-menu-item ng-repeat="panel in $ctrl.panels" ng-if="!panel.isHidden">
             <md-button ng-click="$ctrl.toggle(panel)" aria-label="tool.title">
                 <ng-md-icon class="u-pull__right" ng-if="panel.displayed"
                             icon="check"

@@ -17,4 +17,8 @@ export class ExternaldbDataService extends DataService {
     getUniprotGeneInfo(id){
         return this.get(`/externaldb/uniprot/${id}/get`);
     }
+
+    getNcbiVariationInfo(id){
+        return this.get(`externaldb/ncbi/variation/${id}/get`);
+    }
 }

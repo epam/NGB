@@ -84,6 +84,17 @@ If you want to configure default options for tracks visualization on a client si
 If you want to specify max number of VcfIndexEntries keeping in memory during vcf loading, add the following property. For files, which produce more entries then the number, extra entries will be spilled to disk (temp directory).
 * **files.vcf.max.entries.in.memory=1000000** - 1000000 entries take about 3Gb in the heap
 
+If you want to disable cache for headers and indexes of VCF, GTF, BED files, change the following property. By default it is true:
+* **server.index.cache.enabled=false** - disables caching for headers and indexes
+
+If you want to secure NGB we provide an optional authorization using JWT tokens. To enable authorization you should set the following properties:
+ * **jwt.security.enable=true** enables the JWT Authorization
+ * **jwt.key.public=PUBLIC_KEY_VALUE** public key to perform JWT token validation
+ * **jwt.required.claims=groups=LAB,roles=USER** comma-separated list of required claims to perform authorization, if property is not set any valid token will be authorized. 
+ Supported claims are: **groups**, **roles**, **org_unit_id**. Several values of each type are supported: **groups=LAB,groups=TEST**.
+
+If authorization is enabled for NGB each call to server API should include a valid JWT token either in header (**"Authorization: Bearer {TOKEN_VALUE}"**) or in cookies.
+
 You should put **catgenome.properties** in **config** folder in the runtime folder or provide path to folder with properties file from command line:
  
 ```

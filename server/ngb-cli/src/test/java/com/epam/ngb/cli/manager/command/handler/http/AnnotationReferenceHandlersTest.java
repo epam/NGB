@@ -63,7 +63,6 @@ public class AnnotationReferenceHandlersTest extends AbstractCliTest {
     @BeforeClass
     public static void setUp() {
         server.start();
-        server.addAuthorization();
         server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
         server.addFile(BED_BIO_ID, BED_ID, BED_NAME, PATH_TO_BED, BiologicalDataItemFormat.BED);
         server.addFile(BED2_BIO_ID, BED2_ID, BED2_NAME, PATH_TO_BED2, BiologicalDataItemFormat.BED);

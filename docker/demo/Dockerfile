@@ -39,7 +39,7 @@ RUN mkdir -p /reference/grch38 && \
 
     # Download cached NGB index
     cd $NGB_HOME && \
-    wget --quiet http://ngb.opensource.epam.com/distr/data/demo/ngb-demo-index-cache.tar.gz && \
+    wget --quiet http://ngb.opensource.epam.com/distr/data/demo/ngb-demo-index-cache/2.6.0/ngb-demo-index-cache.tar.gz && \
     tar -zxvf ngb-demo-index-cache.tar.gz && \
     rm ngb-demo-index-cache.tar.gz
 

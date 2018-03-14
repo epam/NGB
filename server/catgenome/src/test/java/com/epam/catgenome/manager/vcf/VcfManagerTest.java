@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.tribble.TribbleException;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.codehaus.jettison.json.JSONObject;
@@ -57,6 +58,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -113,6 +115,7 @@ import com.epam.catgenome.util.Utils;
  * @author Mikhail Miroliubov
  */
 @RunWith(SpringJUnit4ClassRunner.class)
+@TestPropertySource("classpath:test-catgenome.properties")
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class VcfManagerTest extends AbstractManagerTest {
 
@@ -170,6 +173,10 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Autowired
     private ApplicationContext context;
 
+    @Spy
+    @Autowired(required = false)
+    private EhCacheBasedIndexCache indexCache;
+
     private static final int TEST_END_INDEX = 187708306;
 
     private static final double TEST_SMALL_SCALE_FACTOR = 0.000007682737;
@@ -179,7 +186,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     private static final String SAMPLE_NAME = "HG00702";
     private static final int NUMBER_OF_FILTERS = 2;
     private static final int NUMBER_OF_TRIVIAL_INFO = 18;
-
+    private static final int INDEX_BUFFER_SIZE = 32;
     @Value("${ga4gh.google.variantSetId}")
     private String varSet;
     @Value("${ga4gh.google.startPosition}")
@@ -191,9 +198,6 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Value("${vcf.extended.info.patterns}")
     private String infoTemplate;
-
-    @Value("${files.vcf.max.entries.in.memory}")
-    private int maxEntriesInMemory;
 
     private long referenceId;
     private long referenceIdGA4GH;
@@ -213,6 +217,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(biologicalDataItemManager);
         Assert.assertNotNull(fileManager);
         Assert.assertNotNull(trackHelper);
+        Assert.assertNotNull(indexCache);
 
         testChromosome = EntityHelper.createNewChromosome();
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
@@ -229,7 +234,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         referenceGenomeManager.register(testReferenceGA4GH);
         referenceIdGA4GH = testReferenceGA4GH.getId();
         vcfManager.setExtendedInfoTemplates(infoTemplate);
-        vcfManager.setMaxVcfIndexEntriesInMemory(maxEntriesInMemory);
+        vcfManager.setIndexBufferSize(INDEX_BUFFER_SIZE);
     }
 
     @Test
@@ -891,11 +896,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     private VcfFile testSave(String filePath) throws IOException, InterruptedException {
         Resource resource = context.getResource(filePath);
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
-        request.setReferenceId(referenceId);
-        request.setPath(resource.getFile().getAbsolutePath());
-        request.setPrettyName(PRETTY_NAME);
-        return vcfManager.registerVcfFile(request);
+        return registerVcf(resource, referenceId, vcfManager, PRETTY_NAME);
     }
 
     private Track<Variation> testLoad(VcfFile vcfFile, Double scaleFactor, boolean checkBlocks)
@@ -999,6 +1000,15 @@ public class VcfManagerTest extends AbstractManagerTest {
         }
         //check that we received an appropriate message
         Assert.assertTrue(errorMessage.contains(expectedMessage));
+    }
+
+    public static VcfFile registerVcf(Resource vcfFile, Long referenceId, VcfManager vcfManager,
+            String prettyName) throws IOException {
+        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        request.setPath(vcfFile.getFile().getAbsolutePath());
+        request.setPrettyName(prettyName);
+        return vcfManager.registerVcfFile(request);
     }
 
 }

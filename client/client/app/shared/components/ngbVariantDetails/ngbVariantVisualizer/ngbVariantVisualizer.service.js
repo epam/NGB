@@ -403,7 +403,10 @@ export default class ngbVariantVisualizerService {
     }
 
     getEmptyAffectedGenes(index) {
-        return [{empty: true, name: `empty_${  index}`}];
+        return [{empty: true, name: `empty_${  index}`,
+            selectedTranscript: {empty: true, name: 'empty_transcript', canonicalCds: []},
+            transcripts: [{empty: true, name: 'empty_transcript', canonicalCds: []}]
+        }];
     }
 
     getAffectedGeneInfo(breakpoint, gene) {

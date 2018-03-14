@@ -11,6 +11,7 @@ const MAX_PIXEL_PER_BRUSH_BP = 20;
 export class Viewport extends BaseViewport {
     element: HTMLElement;
     brushChangeSubject = new Subject();
+    blatRegionChangeSubject = new Subject();
     shortenedIntronsChangeSubject = new Subject();
 
     margin = 0;
@@ -25,12 +26,15 @@ export class Viewport extends BaseViewport {
 
     browserId = null;
 
+    _blatRegion = null;
+
     constructor(element: HTMLElement, {
         chromosomeSize,
         brush = {
             end: chromosomeSize,
             start: 1
-        }
+        },
+        blatRegion
     }, dispatcher, projectContext, margin = 0, browserInitialSetting, vcfDataService) {
         super({
             brush: brush,
@@ -48,6 +52,7 @@ export class Viewport extends BaseViewport {
         this.dispatcher = dispatcher;
         this.projectContext = projectContext;
         this.vcfDataService = vcfDataService;
+        this.blatRegion = blatRegion;
 
         if (browserInitialSetting && browserInitialSetting.browserId) {
             this.browserId = browserInitialSetting.browserId;
@@ -132,6 +137,15 @@ export class Viewport extends BaseViewport {
             return this._shortenedProject;
         }
         return super.project;
+    }
+
+    get blatRegion() {
+        return this._blatRegion;
+    }
+
+    set blatRegion(blatRegion) {
+        this._blatRegion = blatRegion;
+        this.blatRegionChangeSubject.onNext(this);
     }
 
     _shortenedConvert = {

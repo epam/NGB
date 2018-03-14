@@ -67,6 +67,12 @@ public class Application {
             + "ran\tremove_ann\t: remove a annotation file from the list of reference annotation files"
             + "\t{ran grch38 annotations.gtf}\n"
             + "rg\tremove_genes\t: removes a gene file from the reference\t{rg grch38}\n\n"
+            + "SPECIES commands:\n"
+            + "rs\treg_spec\t: registers a species\t{rs \\species\\name \\species\\version}\n"
+            + "ds\tdel_spec\t: unregisters a species \t{ds \"hg19\"}\n"
+            + "as\tadd_spec\t: adds a registered species to the registered reference\t{as grch38 \"hg19\"}\n"
+            + "remove_spec\t: removes a species from the reference\t{remove_spec grch38}\n"
+            + "list_spec\t: lists all species, registered on the server\t{list_spec}\n\n"
             + "FILE commands:\n"
             + "rf\treg_file\t: registers a feature file for a specified reference\t"
             + "{rf grch38 \\path\\to\\file.bam?\\path\\to\\file.bam.bai -n my_vcf}\n"
@@ -96,7 +102,8 @@ public class Application {
             + "CONFIGURATION commands:\n"
             + "srv\tset_srv\t\t: sets working server url for CLI\tsrv http://{SERVER_IP_OR_NAME}:"
             + "{SERVER_PORT}/catgenome\n"
-            + "v\tversion\t\t: prints CLI version to the console standard output\n\n"
+            + "v\tversion\t\t: prints CLI version to the console standard output\n"
+            + "st\tset_token\t\t: sets JWT token to authorize CLI calls to NGB server\n\n"
             + "Available options (options may go before, after or between the arguments):\n";
 
     @Option(name = "-n", usage = "explicitly specifies file name for registration", aliases = {
@@ -151,6 +158,13 @@ public class Application {
     @Option(name = "-pt", usage = "pretty name for datasets or biological data file",
             aliases = {"--pretty"})
     private String prettyName;
+
+    @Option(name = "-nt", usage = "defines if tabix index shouldn't be rewritten during file reindexing",
+            aliases = {"--no-tabix"})
+    private boolean doNotCreateTabixIndex = false;
+
+    @Option(name = "-s", usage = "specifies reference genome species version for registration", aliases = {"--species"})
+    private String speciesVersion;
 
 
     @Argument
@@ -237,6 +251,10 @@ public class Application {
         options.setNoGCContent(noGCContent);
         options.setForceDeletion(forceDeletion);
         options.setPrettyName(prettyName);
+        options.setSpeciesVersion(speciesVersion);
+        if (doNotCreateTabixIndex) {
+            options.setCreateTabixIndex(false);
+        }
         if (doNotIndex) {
             options.setDoIndex(false);
         }

@@ -30,20 +30,20 @@ export default class ngbVariantsFilterListController {
         switch (this.field.field) {
             case 'variationType': {
                 if (this.projectContext.vcfFilter.selectedVcfTypes) {
-                    this.selectedItems = this.projectContext.vcfFilter.selectedVcfTypes || [];
-                    this.displayText = [...this.selectedItems].join(", ");
+                    this.selectedItems = (this.projectContext.vcfFilter.selectedVcfTypes || []).map(t => t);
+                    this.displayText = [...this.selectedItems].join(', ');
                 }
             } break;
             case 'chrName': {
                 if (this.projectContext.vcfFilter.chromosomeIds) {
                     this.selectedItems = this.projectContext.chromosomes.filter(chr => this.projectContext.vcfFilter.chromosomeIds.indexOf(chr.id) >= 0).map(chr => chr.name);
-                    this.displayText = [...this.selectedItems].join(", ");
+                    this.displayText = [...this.selectedItems].join(', ');
                 }
             } break;
             case 'geneNames': {
                 if (this.projectContext.vcfFilter.selectedGenes) {
-                    this.selectedItems = this.projectContext.vcfFilter.selectedGenes || [];
-                    this.displayText = [...this.selectedItems].join(", ");
+                    this.selectedItems = (this.projectContext.vcfFilter.selectedGenes || []).map(t => t);
+                    this.displayText = [...this.selectedItems].join(', ');
                 }
             } break;
         }
@@ -56,7 +56,7 @@ export default class ngbVariantsFilterListController {
             last = parts[parts.length - 1];
             parts.splice(parts.length - 1, 1);
         }
-        if (this.listElements.fullList) {
+        if (this.listElements.fullList && this.listElements.fullList.length > 0) {
             this.selectedItems = this.listElements.fullList.filter(item => parts.indexOf(item.toLowerCase()) >= 0);
             const [fullMatch] = this.listElements.fullList.filter(item => item.toLowerCase() === last.toLowerCase());
             if (fullMatch) {
@@ -141,11 +141,16 @@ export default class ngbVariantsFilterListController {
 
     apply() {
         const parts = this.displayText.split(',').map(part => part.trim().toLowerCase());
-        if (this.listElements.fullList) {
+        if (this.listElements.fullList && this.listElements.length > 0) {
             this.selectedItems = this.listElements.fullList.filter(item => parts.indexOf(item.toLowerCase()) >= 0);
+        } else {
+            this.selectedItems = parts.filter(part => part !== '');
         }
         this.displayText = this.selectedItems.join(", ");
         this.listIsDisplayed = false;
+        if (!this.projectContext.canScheduleFilterVariants()) {
+            return;
+        }
         switch (this.field.field) {
             case 'variationType': {
                 const prevValue = (this.projectContext.vcfFilter.selectedVcfTypes || []);
@@ -155,8 +160,8 @@ export default class ngbVariantsFilterListController {
                 currValue.sort();
                 const currValueStr = JSON.stringify(currValue).toUpperCase();
                 if (currValueStr !== prevValueStr) {
-                    this.projectContext.vcfFilter.selectedVcfTypes = this.selectedItems;
-                    this.projectContext.filterVariants();
+                    this.projectContext.vcfFilter.selectedVcfTypes = this.selectedItems.map(i => i.toUpperCase());
+                    this.projectContext.scheduleFilterVariants();
                 }
             } break;
             case 'chrName': {
@@ -169,7 +174,7 @@ export default class ngbVariantsFilterListController {
                 const currValueStr = JSON.stringify(currValue).toUpperCase();
                 if (currValueStr !== prevValueStr) {
                     this.projectContext.vcfFilter.chromosomeIds = currValue;
-                    this.projectContext.filterVariants();
+                    this.projectContext.scheduleFilterVariants();
                 }
             } break;
             case 'geneNames': {
@@ -181,7 +186,7 @@ export default class ngbVariantsFilterListController {
                 const currValueStr = JSON.stringify(currValue).toUpperCase();
                 if (currValueStr !== prevValueStr) {
                     this.projectContext.vcfFilter.selectedGenes = this.selectedItems;
-                    this.projectContext.filterVariants();
+                    this.projectContext.scheduleFilterVariants();
                 }
             } break;
         }

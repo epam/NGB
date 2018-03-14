@@ -11,6 +11,7 @@ import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.request.RequestManager;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 
 /**
@@ -47,12 +48,8 @@ public class DatasetMovingHandler extends AbstractHTTPCommandHandler {
             if (parentId != null) {
                 builder.addParameter("parentId", String.valueOf(parentId));
             }
-            HttpPut put = new HttpPut(builder.build());
-            setDefaultHeader(put);
-            if (isSecure()) {
-                addAuthorizationToRequest(put);
-            }
-            RequestManager.executeRequest(put);
+            HttpRequestBase request = getRequestFromURLByType(HttpPut.METHOD_NAME, builder.build().toString());
+            RequestManager.executeRequest(request);
         } catch (URISyntaxException e) {
             throw new ApplicationException(e.getMessage(), e);
         }

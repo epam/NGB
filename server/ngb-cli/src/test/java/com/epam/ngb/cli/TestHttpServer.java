@@ -24,11 +24,7 @@
 
 package com.epam.ngb.cli;
 
-import com.epam.ngb.cli.entity.BiologicalDataItem;
-import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
-import com.epam.ngb.cli.entity.Project;
-import com.epam.ngb.cli.entity.ProjectItem;
-import com.epam.ngb.cli.manager.command.handler.http.AbstractHTTPCommandHandler;
+import com.epam.ngb.cli.entity.*;
 import org.apache.commons.io.FilenameUtils;
 
 import java.util.ArrayList;
@@ -40,10 +36,11 @@ import static net.jadler.Jadler.*;
 
 public class TestHttpServer extends AbstractCliTest{
 
-    private static final String AUTHORISATION = "authorization";
+    private static final String AUTHORISATION = "Authorization";
     private static final String BEARER = "Bearer ";
     private static final String NAME_PARAMETER = "name";
     private static final String FILE_PATH_PARAMETER = "filePath";
+    private static final String STATUS_OK = "OK";
 
     public void start() {
         initJadler();
@@ -67,21 +64,23 @@ public class TestHttpServer extends AbstractCliTest{
     public void addReference(Long refBioId, Long refId, String name, String path) {
         //load reference by bioitem ID
         onRequest()
-            .havingMethodEqualTo(HTTP_GET)
-            .havingPathEqualTo(FILE_FIND_URL)
-            .havingParameterEqualTo("id", String.valueOf(refBioId))
-            .respond()
-            .withBody(TestDataProvider.getFilePayloadJson(refId, refBioId,
-                    BiologicalDataItemFormat.REFERENCE, path, name))
-            .withStatus(HTTP_STATUS_OK);
+                .havingMethodEqualTo(HTTP_GET)
+                .havingPathEqualTo(FILE_FIND_URL)
+                .havingParameterEqualTo("id", String.valueOf(refBioId))
+                .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
+                .respond()
+                .withBody(TestDataProvider.getFilePayloadJson(refId, refBioId,
+                        BiologicalDataItemFormat.REFERENCE, path, name))
+                .withStatus(HTTP_STATUS_OK);
 
         //load reference by name
         //when loading files by name we receive only BioItemId
         onRequest()
-            .havingMethodEqualTo(HTTP_GET)
-            .havingPathEqualTo(SEARCH_URL)
-            .havingParameterEqualTo(NAME_PARAMETER, name)
-            .respond()
+                .havingMethodEqualTo(HTTP_GET)
+                .havingPathEqualTo(SEARCH_URL)
+                .havingParameterEqualTo(NAME_PARAMETER, name)
+                .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
+                .respond()
             .withBody(TestDataProvider.getFilePayloadJson(refId, refBioId,
                     BiologicalDataItemFormat.REFERENCE, path, name, true))
             .withStatus(HTTP_STATUS_OK);
@@ -98,6 +97,7 @@ public class TestHttpServer extends AbstractCliTest{
                         format.name().toLowerCase()))
                 .havingBodyEqualTo(TestDataProvider.getRegistrationJson(refId, path,
                         name, index, null))
+                .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
                 .respond()
                 .withBody(TestDataProvider.getFilePayloadJson(fileId, fileBioId, format,
                         path, name == null ? FilenameUtils.getName(path) : name))
@@ -195,6 +195,7 @@ public class TestHttpServer extends AbstractCliTest{
                 .havingMethodEqualTo(HTTP_GET)
                 .havingPathEqualTo(SEARCH_URL)
                 .havingParameterEqualTo(NAME_PARAMETER, name)
+                .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
                 .respond()
                 .withBody(TestDataProvider.getFilePayloadJson(id, fileBioID,
                         format, path, name, true))
@@ -204,6 +205,7 @@ public class TestHttpServer extends AbstractCliTest{
             .havingMethodEqualTo(HTTP_GET)
             .havingPathEqualTo(FILE_FIND_URL)
             .havingParameterEqualTo("id", String.valueOf(fileBioID))
+            .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
             .respond()
             .withBody(TestDataProvider.getFilePayloadJson(id, fileBioID,
                                                           format, path, name, false))
@@ -218,6 +220,7 @@ public class TestHttpServer extends AbstractCliTest{
                 .havingMethodEqualTo(HTTP_GET)
                 .havingPathEqualTo(DATASET_LOAD_BY_NAME_URL)
                 .havingParameterEqualTo("projectName", name)
+                .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
                 .respond()
                 .withBody(TestDataProvider.getProjectPayloadJson(id, name,
                         items))
@@ -225,6 +228,7 @@ public class TestHttpServer extends AbstractCliTest{
         onRequest()
                 .havingMethodEqualTo(HTTP_GET)
                 .havingPathEqualTo(String.format(DATASET_LOAD_BY_ID_URL, id))
+                .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
                 .respond()
                 .withBody(TestDataProvider.getProjectPayloadJson(id, name,
                         items))
@@ -240,7 +244,7 @@ public class TestHttpServer extends AbstractCliTest{
                 .havingPathEqualTo(String.format(DATASET_DELETE_URL, id))
                 .havingParameterEqualTo("force", "false")
                 .respond()
-                .withBody(TestDataProvider.getPayloadJson("OK " + id + " Project " + name + " deleted."))
+                .withBody(TestDataProvider.getPayloadJson(STATUS_OK  + " " + id + " Project " + name + " deleted."))
                 .withStatus(HTTP_STATUS_OK);
     }
 
@@ -266,6 +270,7 @@ public class TestHttpServer extends AbstractCliTest{
         onRequest()
                 .havingMethodEqualTo(HTTP_PUT)
                 .havingPathEqualTo(String.format(DATASET_ADDING_URL, datasetId, newItem.getBioDataItemId()))
+                .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
                 .respond()
                 .withBody(TestDataProvider.getProjectPayloadJson(datasetId, datasetName, newItems))
                 .withStatus(HTTP_STATUS_OK);
@@ -298,7 +303,7 @@ public class TestHttpServer extends AbstractCliTest{
                 .havingPathEqualTo(FILE_DELETE_URL)
                 .havingParameterEqualTo("id", String.valueOf(id))
                 .respond()
-                .withBody(TestDataProvider.getPayloadJson("OK " + id + " File " + name + " deleted."))
+                .withBody(TestDataProvider.getPayloadJson(STATUS_OK + " " + id + " File " + name + " deleted."))
                 .withStatus(HTTP_STATUS_OK);
     }
 
@@ -306,6 +311,7 @@ public class TestHttpServer extends AbstractCliTest{
         String url = String.format(INDEXATION_URL, format.toString().toLowerCase(), id);
         onRequest()
             .havingMethodEqualTo(HTTP_GET)
+            .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
             .havingPathEqualTo(url)
             .respond()
             .withBody(TestDataProvider.getPayloadJson("Created feature index for file " + id + " : '" +
@@ -327,17 +333,16 @@ public class TestHttpServer extends AbstractCliTest{
                 .withStatus(HTTP_STATUS_OK);
     }
 
-    public void addAuthorization() {
-        AbstractHTTPCommandHandler.Authentication authentication =
-                new AbstractHTTPCommandHandler.Authentication();
-        authentication.setAccessToken(TOKEN);
+    public void addSpeciesRegistration(String speciesName, String speciesVersion) {
         onRequest()
                 .havingMethodEqualTo(HTTP_POST)
-                .havingPathEqualTo(AUTHENTICATION_URL)
-                .havingBodyEqualTo(AUTHENTICATION_PAYLOAD)
+                .havingPathEqualTo(SPEC_REGISTRATION_URL)
+                .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
+                .havingBodyEqualTo(TestDataProvider.getSpecRegistrationJson(speciesName, speciesVersion))
                 .respond()
-                .withBody(TestDataProvider.getJson(authentication))
+                .withBody(TestDataProvider.getSpeciesPayloadJson(speciesName, speciesVersion))
                 .withStatus(HTTP_STATUS_OK);
+
     }
 
     public void addReferenceDeletion(Long refId, String name) {
@@ -347,7 +352,19 @@ public class TestHttpServer extends AbstractCliTest{
                 .havingParameterEqualTo("referenceId", String.valueOf(refId))
                 .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
                 .respond()
-                .withBody(TestDataProvider.getPayloadJson("OK " + refId + " Reference " + name + " deleted."))
+                .withBody(TestDataProvider.getPayloadJson(STATUS_OK + " " + refId + " Reference " + name + " deleted."))
+                .withStatus(HTTP_STATUS_OK);
+    }
+
+    public void addSpeciesDeletion(String speciesName, String speciesVersion) {
+        onRequest()
+                .havingMethodEqualTo(HTTP_DELETE)
+                .havingPathEqualTo(SPEC_DELETION_URL)
+                .havingParameterEqualTo("speciesVersion", speciesVersion)
+                .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
+                .respond()
+                .withBody(TestDataProvider.getPayloadJson(STATUS_OK + " " + "Species " + speciesName +
+                        " with version " + speciesVersion + " has been successfully unregistered."))
                 .withStatus(HTTP_STATUS_OK);
     }
 
@@ -359,6 +376,16 @@ public class TestHttpServer extends AbstractCliTest{
                 .withBody(TestDataProvider.getPayloadJson(references))
                 .withStatus(HTTP_STATUS_OK);
     }
+
+    public void addSpeciesListing(List<SpeciesEntity> species) {
+        onRequest()
+                .havingMethodEqualTo(HTTP_GET)
+                .havingPathEqualTo(SPEC_LIST_URL)
+                .respond()
+                .withBody(TestDataProvider.getPayloadJson(species))
+                .withStatus(HTTP_STATUS_OK);
+    }
+
 
     public void addDatasetTreeListing(Project root, List<Project> hierarchy) {
         onRequest()
@@ -393,10 +420,35 @@ public class TestHttpServer extends AbstractCliTest{
                 .withStatus(HTTP_STATUS_OK);
     }
 
+    public void addSpeciesAdding(BiologicalDataItem reference, String speciesName, String speciesVersion) {
+        SpeciesEntity speciesEntity = new SpeciesEntity();
+        speciesEntity.setName(speciesName);
+        speciesEntity.setVersion(speciesVersion);
+        reference.setSpecies(speciesEntity);
+        onRequest()
+                .havingMethodEqualTo(HTTP_PUT)
+                .havingPathEqualTo(String.format(SPEC_ADDING_URL, reference.getId()))
+                .havingParameterEqualTo("speciesVersion", speciesVersion)
+                .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
+                .respond()
+                .withBody(TestDataProvider.getPayloadJson(reference))
+                .withStatus(HTTP_STATUS_OK);
+    }
+
     public void addGeneRemoving(BiologicalDataItem reference) {
         onRequest()
                 .havingMethodEqualTo(HTTP_PUT)
                 .havingPathEqualTo(String.format(GENE_ADDING_URL, reference.getId()))
+                .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
+                .respond()
+                .withBody(TestDataProvider.getPayloadJson(reference))
+                .withStatus(HTTP_STATUS_OK);
+    }
+
+    public void addSpeciesRemoving(BiologicalDataItem reference) {
+        onRequest()
+                .havingMethodEqualTo(HTTP_PUT)
+                .havingPathEqualTo(String.format(SPEC_REMOVING_URL, reference.getId()))
                 .havingHeaderEqualTo(AUTHORISATION, BEARER + TOKEN)
                 .respond()
                 .withBody(TestDataProvider.getPayloadJson(reference))

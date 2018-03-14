@@ -53,7 +53,6 @@ public class GeneRemovingHandlerTest extends AbstractCliTest {
     @BeforeClass
     public static void setUp() {
         server.start();
-        server.addAuthorization();
         server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
         server.addGeneRemoving(
                 TestDataProvider.getBioItem(REF_ID, REF_BIO_ID, BiologicalDataItemFormat.REFERENCE,

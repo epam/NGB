@@ -48,6 +48,8 @@ import com.epam.catgenome.exception.HistogramReadingException;
 import com.epam.catgenome.exception.HistogramWritingException;
 import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.FeatureReader;
 import org.apache.commons.collections4.CollectionUtils;
@@ -67,7 +69,6 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.externaldb.ensemblevo.EnsemblEntryVO;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
-import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
@@ -115,7 +116,7 @@ import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.samtools.util.Interval;
 import htsjdk.samtools.util.IntervalTree;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.readers.LineIterator;
 
 /**
@@ -164,6 +165,9 @@ public class GffManager {
 
     @Autowired
     private TaskExecutorService taskExecutorService;
+
+    @Autowired(required = false)
+    private EhCacheBasedIndexCache indexCache;
 
     private static final String EXON_FEATURE_NAME = "exon";
 
@@ -215,19 +219,22 @@ public class GffManager {
      * from scratch
      * @param geneFileId an ID of gene file to reindex.
      * @param full
+     * @param createTabixIndex
      * @return a {@link GeneFile}, for which index was created
      * @throws IOException if an error occurred while writing index
      */
-    public GeneFile reindexGeneFile(long geneFileId, boolean full) throws IOException {
+    public GeneFile reindexGeneFile(long geneFileId, boolean full, boolean createTabixIndex) throws IOException {
         GeneFile geneFile = geneFileManager.loadGeneFile(geneFileId);
-        Reference reference = referenceGenomeManager.loadReferenceGenome(geneFile.getReferenceId());
-        Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
-            Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
-
         fileManager.deleteFileFeatureIndex(geneFile);
-
-        featureIndexManager.processGeneFile(geneFile, chromosomeMap, full);
-
+        if (createTabixIndex) {
+            File index = new File(geneFile.getIndex().getPath());
+            if (index.exists()) {
+                index.delete();
+            }
+        }
+        GeneRegisterer geneRegisterer = new GeneRegisterer(referenceGenomeManager, fileManager, featureIndexManager,
+                geneFile);
+        geneRegisterer.reIndexFile(createTabixIndex);
         return geneFile;
     }
 
@@ -307,8 +314,8 @@ public class GffManager {
         GffCodec.GffType gffType = GffCodec.GffType.forExt(extension);
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(gffType);
 
-        try (FeatureReader<GeneFeature> reader = AbstractFeatureReader.getFeatureReader(request.getPath(),
-                request.getIndexPath(), codec, true)) {
+        try (FeatureReader<GeneFeature> reader = AbstractEnhancedFeatureReader.getFeatureReader(request.getPath(),
+                request.getIndexPath(), codec, true, indexCache)) {
             geneFile = createGeneFile(request);
             boolean hasGenes = false;
             for (Map.Entry<String, Chromosome> chrEntry : chromosomeMap.entrySet()) {
@@ -1083,10 +1090,14 @@ public class GffManager {
         final List<Transcript> transcriptList = ExtenalDBUtils.ensemblEntryVO2Transcript(vo);
         for (Transcript transcript : transcriptList) {
             if (transcript.getBioType().equals(PROTEIN_CODING)) {
-                final Uniprot un = uniprotDataManager.fetchUniprotEntry(transcript.getId());
-                ExtenalDBUtils.fillDomain(un, transcript);
-                ExtenalDBUtils.fillPBP(un, transcript);
-                ExtenalDBUtils.fillSecondaryStructure(un, transcript);
+                try {
+                    final Uniprot un = uniprotDataManager.fetchUniprotEntry(transcript.getId());
+                    ExtenalDBUtils.fillDomain(un, transcript);
+                    ExtenalDBUtils.fillPBP(un, transcript);
+                    ExtenalDBUtils.fillSecondaryStructure(un, transcript);
+                } catch (ExternalDbUnavailableException e) {
+                    LOGGER.debug(e.getMessage(), e);
+                }
             }
         }
         return transcriptList;

@@ -65,10 +65,6 @@ public class ReferenceListHandler extends AbstractHTTPCommandHandler {
 
     @Override public int runCommand() {
         HttpRequestBase request = getRequest(getRequestUrl());
-        setDefaultHeader(request);
-        if (isSecure()) {
-            addAuthorizationToRequest(request);
-        }
         String result = RequestManager.executeRequest(request);
         ResponseResult<List<BiologicalDataItem>> responseResult;
         try {
@@ -80,7 +76,7 @@ public class ReferenceListHandler extends AbstractHTTPCommandHandler {
         } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
         }
-        if (ERROR_STATUS.equals(responseResult.getStatus())) {
+        if (!SUCCESS_STATUS.equals(responseResult.getStatus())) {
             throw new ApplicationException(responseResult.getMessage());
         }
         if (responseResult.getPayload() == null ||

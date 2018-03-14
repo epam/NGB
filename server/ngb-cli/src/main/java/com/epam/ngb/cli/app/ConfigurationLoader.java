@@ -84,7 +84,6 @@ public class ConfigurationLoader {
     private static final String COMMAND_NAME_PROPERTY = ".name";
     private static final String COMMAND_URL_PROPERTY = ".url";
     private static final String COMMAND_TYPE_PROPERTY = ".type";
-    private static final String COMMAND_SECURE_PROPERTY = ".secure";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationLoader.class);
 
@@ -149,11 +148,7 @@ public class ConfigurationLoader {
         String name = configuration.getString(fullCommand + COMMAND_NAME_PROPERTY);
         String url = configuration.getString(fullCommand + COMMAND_URL_PROPERTY);
         String type = configuration.getString(fullCommand + COMMAND_TYPE_PROPERTY);
-        boolean secure = false;
-        if (configuration.getString(fullCommand + COMMAND_SECURE_PROPERTY) != null) {
-            secure = configuration.getBoolean(fullCommand + COMMAND_SECURE_PROPERTY);
-        }
-        return new CommandConfiguration(name, url, type, secure);
+        return new CommandConfiguration(name, url, type);
     }
 
     /**

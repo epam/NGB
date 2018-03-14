@@ -319,6 +319,7 @@ public class BamControllerTest extends AbstractControllerTest {
         Assert.assertNotNull(read.getStartIndex());
         Assert.assertNotNull(read.getEndIndex());
         Assert.assertNotNull(read.getCigarString());
+        Assert.assertNotNull(read.getReadGroup());
         Assert.assertFalse(read.getCigarString().isEmpty());
     }
 

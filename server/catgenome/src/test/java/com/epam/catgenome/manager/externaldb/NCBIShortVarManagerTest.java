@@ -159,7 +159,10 @@ public class NCBIShortVarManagerTest {
         Assert.assertEquals("APOE (348)", ncbiVariationVO.getGene());
         Assert.assertEquals("1000GENOMES", ncbiVariationVO.getMafSource());
         Assert.assertEquals("human (Homo sapiens)", ncbiVariationVO.getOrganism());
-        Assert.assertEquals("NG_007084.2", ncbiVariationVO.getRefSeqGene());
+        Assert.assertEquals("NG_007084.2", ncbiVariationVO.getRefSeqGeneMapping().getRefSeqGene());
+        Assert.assertEquals("8041", ncbiVariationVO.getRefSeqGeneMapping().getPosition());
+        Assert.assertEquals("APOE:348", ncbiVariationVO.getRefSeqGeneMapping().getGene());
+        Assert.assertEquals("C", ncbiVariationVO.getRefSeqGeneMapping().getAllele());
 
         Assert.assertNotNull(ncbiVariationVO.getNcbiTaxonomy());
     }

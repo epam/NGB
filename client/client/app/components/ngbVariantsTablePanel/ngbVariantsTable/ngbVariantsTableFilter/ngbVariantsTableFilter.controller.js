@@ -27,13 +27,13 @@ export default class ngbVariantsTableFilterController {
             } break;
             case 'geneNames': {
                 this.isList = true;
-                const vcfIds = this.projectContext.vcfTracks.map(t => t.id);
                 this.list = async (searchText) => {
-                    return await projectDataService.autocompleteGeneId(
-                        searchText || '',
-                        (this.projectContext.vcfFilter.vcfFileIds && this.projectContext.vcfFilter.vcfFileIds.length !== 0) ?
-                            this.projectContext.vcfFilter.vcfFileIds :
-                            vcfIds);
+                    if (!searchText || searchText.length < 2) {
+                        return new Promise((resolve) => {
+                            resolve([]);
+                        });
+                    }
+                    return await projectDataService.searchGeneNames(this.projectContext.referenceId, searchText);
                 };
             } break;
             case 'chrName': {

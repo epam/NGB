@@ -15,7 +15,11 @@
             ng-class="{'collapsed': !ctrl.showTracksHeaders }">
 
         <div class="ngb-track-header-type">{{ctrl.track.format}}</div>
-        <div class="ngb-track-header-file-name">{{ctrl.trackNameTruncated}}</div>
+        <div class="ngb-track-header-file-name">{{ctrl.trackNameTruncated}}
+            <md-tooltip md-direction="top">
+                {{ctrl.track.prettyName || ctrl.track.name}}
+            </md-tooltip>
+        </div>
 
         <ngb-track-settings
                 dnd-nodrag

@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import com.epam.catgenome.util.NgbFileUtils;
 import htsjdk.tribble.readers.AsciiLineReader;
 import org.apache.log4j.Logger;
 
@@ -33,7 +34,7 @@ public final class FastaUtils {
 
     public static BufferedReader openBufferedReader(String pathOrUrl) throws IOException {
         InputStream inputStream;
-        if (isRemote(pathOrUrl)) {
+        if (NgbFileUtils.isRemotePath(pathOrUrl)) {
             URL url = new URL(pathOrUrl);
             inputStream = openConnection(url).getInputStream();
         } else {
@@ -62,7 +63,7 @@ public final class FastaUtils {
     public static long getContentLength(String path) {
         try {
             long contentLength;
-            if (isRemote(path)) {
+            if (NgbFileUtils.isRemotePath(path)) {
                 URL url = new URL(path);
                 contentLength = getContentLength(url);
             } else {
@@ -83,11 +84,6 @@ public final class FastaUtils {
             return Long.parseLong(contentLengthString);
         }
     }
-
-    public static boolean isRemote(final String path) {
-        return path.startsWith("http:") || path.startsWith("https:");
-    }
-
 
     /**
      * Creates fasta index near original reference

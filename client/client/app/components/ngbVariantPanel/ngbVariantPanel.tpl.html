@@ -1,4 +1,4 @@
-<div layout="column" flex>
+<div layout="column" class="u-scroll__auto" flex>
     <div flex layout="row" layout-align="space-between stretch">
         <div layout="row" layout-align="start stretch">
             <div layout-padding class="ngb-variant-identifier">{{$ctrl.variant.id}}</div>
@@ -10,16 +10,22 @@
     </div>
     <md-divider></md-divider>
     <md-tabs md-dynamic-height>
+        <md-tab id="info">
+            <md-tab-label>Info</md-tab-label>
+            <md-tab-body>
+                <ngb-variant-info flex variant="$ctrl.variant" variant-request="$ctrl.variantRequest"></ngb-variant-info>
+            </md-tab-body>
+        </md-tab>
         <md-tab id="visualizer">
             <md-tab-label>Visualizer</md-tab-label>
             <md-tab-body>
                 <ngb-variant-visualizer flex variant="$ctrl.variant" variant-request="$ctrl.variantRequest"></ngb-variant-visualizer>
             </md-tab-body>
         </md-tab>
-        <md-tab id="info">
-            <md-tab-label>Info</md-tab-label>
+        <md-tab ng-if="$ctrl.rsId" id="dbsnp">
+            <md-tab-label>dbSNP</md-tab-label>
             <md-tab-body>
-                <ngb-variant-info flex variant="$ctrl.variant" variant-request="$ctrl.variantRequest"></ngb-variant-info>
+                <ngb-variant-db-snp flex rs-Id="$ctrl.rsId" variant="$ctrl.variant" variant-request="$ctrl.variantRequest"></ngb-variant-db-snp>
             </md-tab-body>
         </md-tab>
     </md-tabs>

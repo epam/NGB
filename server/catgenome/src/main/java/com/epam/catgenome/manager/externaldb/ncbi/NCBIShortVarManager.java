@@ -107,6 +107,9 @@ public class NCBIShortVarManager {
 
         if (StringUtils.isNotBlank(snp.getClinicalSignificance())) {
             NCBIClinVarVO ncbiClinVarVO = ncbiClinVarManager.fetchVariationById(id);
+            if (result.isPathogenic()) {
+                ncbiClinVarManager.generateClinVarLink(id, ncbiClinVarVO);
+            }
             result.setNcbiClinVar(ncbiClinVarVO);
         }
 

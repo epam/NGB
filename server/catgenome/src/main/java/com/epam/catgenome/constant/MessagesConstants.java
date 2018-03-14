@@ -74,6 +74,8 @@ public final class MessagesConstants {
 
     public static final String ERROR_VARIATIONID_NOT_SPECIFIED = "error.no.variationid";
     public static final String ERROR_SPECIES_NOT_SPECIFIED = "error.no.species";
+    public static final String ERROR_INDEX_NOT_SPECIFIED = "error.no.index.cache";
+    public static final String ERROR_INDEX_URL_NOT_SPECIFIED = "error.no.index.url.cache";
     public static final String ERROR_CHROMOSOME_NOT_SPECIFIED = "error.no.chromosome";
     public static final String ERROR_STARTPOSITION_NOT_SPECIFIED = "error.no.startposition";
     public static final String ERROR_FINISHPOSITION_NOT_SPECIFIED = "error.no.finishposition";
@@ -159,6 +161,12 @@ public final class MessagesConstants {
     public static final String WRONG_BAM_INDEX_FILE = "error.bam.index.file";
     public static final String WRONG_HEADER_BAM_FILE = "error.header.bam.file";
     public static final String WRONG_HEADER_BAM_FILE_EMPTY_FILE = "error.header.bam.file.empty";
+
+    //BLAT SEARCH
+    public static final String NULL_SPECIES_FOR_GENOME = "error.reference.species.empty";
+    public static final String ERROR_NO_SUCH_SPECIES = "error.no.such.species";
+    public static final String ERROR_SPECIES_EXISTS = "error.species.already.exists";
+    public static final String INFO_UNREGISTERED_SPECIES = "info.unregistered.species";
 
     //WIG
     public static final String WRONG_WIG_FILE = "error.wig.file";

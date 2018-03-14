@@ -6,7 +6,8 @@ const DEV = global.buildOptions.dev;
 const globals = {
     __ENV__: `"${global.buildOptions.env}"`,
     __DEV__: String(DEV),
-    __DESKTOP__: !!global.buildOptions.desktop
+    __DESKTOP__: !!global.buildOptions.desktop,
+    __API_URL__: JSON.stringify(global.buildOptions.publicPath || '/')
 };
 
 const devPlugins = [

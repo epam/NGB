@@ -28,31 +28,31 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.epam.catgenome.entity.BaseEntity;
-import com.epam.catgenome.entity.reference.Reference;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.epam.catgenome.constant.Constants;
+import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.track.Block;
 import com.epam.catgenome.entity.track.Track;
+import com.epam.catgenome.util.aws.S3Manager;
 import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.readers.LineIterator;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.time.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Source:      Utils.java
@@ -70,6 +70,9 @@ public final class Utils {
     private static final int RESULT_HASH_SIZE = 6;
     private static final String DELIMITER = "/";
     private static final String GZ_EXTENSION = ".gz";
+    private static final String S3_SCHEME = "s3://";
+    //in minutes
+    private static final int S3_LINK_EXPIRATION = 60;
 
     private Utils() {
         // no operations by default
@@ -106,7 +109,7 @@ public final class Utils {
      * @return a {@link Date} object, representing time for S3 URL access
      */
     public static Date getTimeForS3URL() {
-        return new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1));
+        return DateUtils.addMinutes(new Date(), S3_LINK_EXPIRATION);
     }
 
     /**
@@ -384,16 +387,23 @@ public final class Utils {
             InvocationTargetException e) {
             throw new InvocationTargetException(e, "Cannot instantiate object of class " + c);
         }
-        notRegisteredFile.setPath(fileUrl);
+        notRegisteredFile.setPath(processUrl(fileUrl));
         notRegisteredFile.setCompressed(false);
         notRegisteredFile.setType(BiologicalDataItemResourceType.URL);
         notRegisteredFile.setReferenceId(chromosome.getReferenceId());
 
         BiologicalDataItem index = new BiologicalDataItem();
-        index.setPath(indexUrl);
+        index.setType(BiologicalDataItemResourceType.URL);
+        index.setPath(processUrl(indexUrl));
         notRegisteredFile.setIndex(index);
-
         return notRegisteredFile;
+    }
+
+    public static String processUrl(String inputUrl) {
+        if (!inputUrl.startsWith(S3_SCHEME)) {
+            return inputUrl;
+        }
+        return new S3Manager().generateSingedUrl(inputUrl);
     }
 
     public static Map<String, Chromosome> makeChromosomeMap(Reference reference) {

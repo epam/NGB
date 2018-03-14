@@ -26,6 +26,7 @@ package com.epam.ngb.cli.manager.command.handler.http;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
+import com.epam.ngb.cli.entity.SpeciesEntity;
 import java.util.List;
 
 import com.epam.ngb.cli.app.Utils;
@@ -85,6 +86,9 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
      */
     private boolean printTable;
 
+
+    private String speciesVersion;
+
     /**
      * If true, the GC content files won't be created for a reference during registration.
      */
@@ -124,6 +128,7 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
         printTable = options.isPrintTable();
         noGCContent = options.isNoGCContent();
         prettyName = options.getPrettyName();
+        speciesVersion = options.getSpeciesVersion();
     }
 
     /**
@@ -133,10 +138,6 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
      */
     @Override public int runCommand() {
         HttpRequestBase request = getRequest(getRequestUrl());
-        setDefaultHeader(request);
-        if (isSecure()) {
-            addAuthorizationToRequest(request);
-        }
         RegistrationRequest registration = new RegistrationRequest();
         registration.setName(referenceName);
         registration.setPrettyName(prettyName);
@@ -150,6 +151,11 @@ public class ReferenceRegistrationHandler extends AbstractHTTPCommandHandler {
             geneRegistration.setPath(geneFilePath);
             geneRegistration.setIndexPath(geneIndexPath);
             registration.setGeneFileRequest(geneRegistration);
+        }
+        if (speciesVersion != null) {
+            SpeciesEntity speciesEntity = new SpeciesEntity();
+            speciesEntity.setVersion(speciesVersion);
+            registration.setSpecies(speciesEntity);
         }
         String result = getPostResult(registration, (HttpPost)request);
         checkAndPrintRegistrationResult(result, printJson, printTable);

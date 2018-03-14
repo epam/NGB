@@ -572,6 +572,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         this.loadBiologicalDataItemsByNamesStrictQuery = loadBiologicalDataItemsByNamesStrictQuery;
     }
 
+    @Required
     public void setLoadBiologicalDataItemsByNameCaseInsensitiveQuery(
             String loadBiologicalDataItemsByNameCaseInsensitiveQuery) {
         this.loadBiologicalDataItemsByNameCaseInsensitiveQuery = loadBiologicalDataItemsByNameCaseInsensitiveQuery;

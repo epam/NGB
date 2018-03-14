@@ -28,9 +28,12 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
 
 import com.epam.catgenome.manager.bam.BamTrackEmitter;
 import htsjdk.samtools.util.RuntimeIOException;
@@ -69,6 +72,13 @@ public final class TaskExecutorService {
     private volatile boolean forceSequential = false;
 
     private volatile ExecutorService executorService;
+    private volatile ExecutorService searchExecutor;
+
+    @PostConstruct
+    public void init() {
+        searchExecutor = Executors
+                .newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    }
 
     /**
      * Provides executor service to run runnable/callable tasks.
@@ -87,6 +97,15 @@ public final class TaskExecutorService {
             }
         }
         return instance;
+    }
+
+    /**
+     * Separate limited executor for search, since Lucene won't work nicely with our
+     * default executors service
+     * @return
+     */
+    public ExecutorService getSearchExecutor() {
+        return searchExecutor;
     }
 
     public synchronized void executeTrackTask(BamTrackEmitter bamTrackEmitter, ExecutionMode mode, BamTrackTask task)

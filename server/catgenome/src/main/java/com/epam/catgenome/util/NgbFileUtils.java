@@ -147,4 +147,8 @@ public final class NgbFileUtils {
     public static boolean isGzCompressed(String fileName) {
         return fileName.endsWith(GZ_EXTENSION);
     }
+
+    public static boolean isRemotePath(String path) {
+        return path.startsWith("http:") || path.startsWith("https:") || path.startsWith("ftsp:");
+    }
 }

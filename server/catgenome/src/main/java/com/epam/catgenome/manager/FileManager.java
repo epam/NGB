@@ -39,6 +39,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.file.AccessDeniedException;
@@ -62,10 +64,7 @@ import javax.annotation.PostConstruct;
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.JsonMapper;
-import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.BiologicalDataItemFormat;
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.*;
 import com.epam.catgenome.entity.bed.BedFile;
 import com.epam.catgenome.entity.file.FsDirectory;
 import com.epam.catgenome.entity.file.FsFile;
@@ -101,11 +100,13 @@ import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.PositionalOutputStream;
 import com.epam.catgenome.util.Utils;
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
-import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureReader;
@@ -132,6 +133,7 @@ import org.jetbrains.bio.big.BigWigFile;
 import org.jetbrains.bio.big.WigSection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
@@ -164,6 +166,8 @@ public class FileManager {
     private static final String EMPTY = "";
     public static final String BED_GRAPH_FEATURE_TEMPLATE = "%s\t%d\t%d\t%f%n";
 
+    @Autowired(required = false)
+    private EhCacheBasedIndexCache indexCache;
     /**
      * Provides paths' patterns that have to be used to construct real relative paths
      * for file resources of any types.
@@ -692,12 +696,14 @@ public class FileManager {
             Assert.isTrue(indexFile.exists(), getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND,
                                                          vcfFile.getIndex().getPath()));
             time1 = Utils.getSystemTimeMilliseconds();
-            reader = AbstractFeatureReader.getFeatureReader(vcfFile.getPath(), vcfFile.getIndex().getPath(),
-                                                            new VCFCodec(), true);
+            reader = AbstractEnhancedFeatureReader
+                    .getFeatureReader(vcfFile.getPath(), vcfFile.getIndex().getPath(),
+                                                            new VCFCodec(), true, indexCache);
             time2 = Utils.getSystemTimeMilliseconds();
         } else {
             time1 = Utils.getSystemTimeMilliseconds();
-            reader = AbstractFeatureReader.getFeatureReader(vcfFile.getPath(), new VCFCodec(), false);
+            reader = AbstractEnhancedFeatureReader
+                    .getFeatureReader(vcfFile.getPath(), new VCFCodec(), false,  indexCache);
             time2 = Utils.getSystemTimeMilliseconds();
         }
         LOGGER.debug(getMessage(MessagesConstants.DEBUG_FILE_OPENING, vcfFile.getPath(), time2 - time1));
@@ -886,7 +892,7 @@ public class FileManager {
         }
 
         Assert.isTrue(!indexes.isEmpty(), getMessage(MessagesConstants.ERROR_FEATURE_INDEX_NOT_FOUND,
-                         featureFiles.stream().map(f -> f.getId().toString()).collect(Collectors.joining(", "))));
+                         featureFiles.stream().map(BaseEntity::getName).collect(Collectors.joining(", "))));
 
         return indexes.toArray(new SimpleFSDirectory[indexes.size()]);
     }
@@ -1049,6 +1055,9 @@ public class FileManager {
 
         params.put(CHROMOSOME_NAME.name(), chromosomeName);
         File histogramFile = new File(toRealPath(substitute(filePathFormat, params)));
+        if (histogramFile.exists()) {
+            histogramFile.delete();
+        }
         Assert.isTrue(histogramFile.createNewFile(), "Can't create histogram file " + histogramFile.getAbsolutePath());
 
         return new DataOutputStream(new FileOutputStream(histogramFile));
@@ -1172,7 +1181,7 @@ public class FileManager {
         Assert.notNull(extension, getMessage(MessagesConstants.ERROR_UNSUPPORTED_GENE_FILE_EXTESION));
 
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(GffCodec.GffType.forExt(extension));
-        return AbstractFeatureReader.getFeatureReader(path, index, codec, useIndex);
+        return AbstractEnhancedFeatureReader.getFeatureReader(path, index, codec, useIndex, indexCache);
     }
 
     /**
@@ -1185,7 +1194,7 @@ public class FileManager {
     public AbstractFeatureReader<GeneFeature, LineIterator> makeGeneReader(final GeneFile geneFile,
                                                                            final GeneFileType type) {
         String realFileName = geneFile.getPath() != null ? geneFile.getPath() : geneFile.getName();
-        String extension = Utils.getFileExtension(realFileName);
+        String extension = getGeneFileExtension(realFileName);
         extension = GffCodec.GffType.forExt(extension).getExtensions()[0];
 
         final Map<String, Object> params = new HashMap<>();
@@ -1556,8 +1565,8 @@ public class FileManager {
      */
     public AbstractFeatureReader<NggbBedFeature, LineIterator> makeBedReader(final BedFile bedFile) {
         NggbBedCodec nggbBedCodec = new NggbBedCodec();
-        return AbstractFeatureReader.getFeatureReader(bedFile.getPath(), bedFile.getIndex().getPath(),
-                nggbBedCodec, true);
+        return AbstractEnhancedFeatureReader.getFeatureReader(bedFile.getPath(), bedFile.getIndex().getPath(),
+                nggbBedCodec, true, indexCache);
     }
 
     /**
@@ -1595,10 +1604,11 @@ public class FileManager {
     public AbstractFeatureReader<SegFeature, LineIterator> makeSegReader(final SegFile segFile) {
         SegCodec segCodec = new SegCodec();
         if (segFile.getIndex() != null) {
-            return AbstractFeatureReader.getFeatureReader(segFile.getPath(), segFile.getIndex().getPath(), segCodec,
-                    true);
+            return AbstractEnhancedFeatureReader
+                    .getFeatureReader(segFile.getPath(), segFile.getIndex().getPath(), segCodec,
+                    true, indexCache);
         } else {
-            return AbstractFeatureReader.getFeatureReader(segFile.getPath(), segCodec, false);
+            return AbstractEnhancedFeatureReader.getFeatureReader(segFile.getPath(), segCodec, false, indexCache);
         }
     }
 
@@ -1697,10 +1707,11 @@ public class FileManager {
     public AbstractFeatureReader<MafFeature, LineIterator> makeMafReader(final MafFile mafFile) {
         MafCodec mafCodec = new MafCodec(mafFile.getPath());
         if (mafFile.getIndex() != null) {
-            return AbstractFeatureReader.getFeatureReader(mafFile.getPath(), mafFile.getIndex().getPath(), mafCodec,
-                    true);
+            return AbstractEnhancedFeatureReader
+                    .getFeatureReader(mafFile.getPath(), mafFile.getIndex().getPath(), mafCodec,
+                    true, indexCache);
         } else {
-            return AbstractFeatureReader.getFeatureReader(mafFile.getPath(), mafCodec, false);
+            return AbstractEnhancedFeatureReader.getFeatureReader(mafFile.getPath(), mafCodec, false, indexCache);
         }
     }
 
@@ -2097,8 +2108,16 @@ public class FileManager {
      * @return gene extension
      */
     public static String getGeneFileExtension(final String fileName) {
+        String name = fileName;
+        if (NgbFileUtils.isRemotePath(fileName)) {
+            try {
+                name = new URL(fileName).getPath();
+            } catch (MalformedURLException e) {
+                throw new IllegalArgumentException("Unsupported remote path: " + fileName);
+            }
+        }
         for (String e : GENE_FILE_EXTENSIONS) {
-            if (fileName.endsWith(e)) {
+            if (name.endsWith(e)) {
                 return e;
             }
         }

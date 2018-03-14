@@ -91,11 +91,6 @@ public class DatasetDeletionHandler extends AbstractHTTPCommandHandler {
             requestBuilder.setParameter("force", String.valueOf(force));
             HttpRequestBase request = getRequest(requestBuilder.build().toString());
 
-            setDefaultHeader(request);
-            if (isSecure()) {
-                addAuthorizationToRequest(request);
-            }
-
             String result = RequestManager.executeRequest(request);
             ResponseResult response = getMapper().readValue(result,
                     getMapper().getTypeFactory().constructType(ResponseResult.class));

@@ -29,6 +29,7 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTra
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import com.epam.catgenome.manager.wig.FacadeWigManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,9 +124,9 @@ public class WigController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public final Result<Track<Wig>> loadTrack(@RequestBody final TrackQuery query) throws IOException {
+    public final Callable<Result<Track<Wig>>> loadTrack(@RequestBody final TrackQuery query) throws IOException {
         final Track<Wig> track = facadeWigManager.getWigTrack(convertToTrack(query));
-        return Result.success(track);
+        return () ->  Result.success(track);
     }
 
 

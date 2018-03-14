@@ -21,6 +21,9 @@
      -->
     <import resource="classpath:conf/catgenome/applicationContext-database.xml"/>
 
+    <!-- Registers and configures caching -->
+    <import resource="classpath:conf/catgenome/applicationContext-cache.xml"/>
+
     <import resource="classpath:test-applicationContext-flyway.xml"/>
 
     <!-- Registers required post-processors and enables auto-detection of annotated components,

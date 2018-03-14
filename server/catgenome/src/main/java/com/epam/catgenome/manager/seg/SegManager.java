@@ -66,7 +66,7 @@ import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.comparator.FeatureComparator;
 import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.readers.LineIterator;
 
 /**

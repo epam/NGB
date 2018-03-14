@@ -50,6 +50,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NCBIVariationVO {
 
+    public static final String PATHOGENIC = "Pathogenic";
+
     @JsonProperty(value = "variation")
     private NCBIShortVarVO ncbiShortVar;
 
@@ -83,6 +85,10 @@ public class NCBIVariationVO {
         this.ncbiTaxonomy = ncbiTaxonomy;
     }
 
+    public boolean isPathogenic() {
+        return StringUtils.equals(ncbiShortVar.getClinicalSignificance(), PATHOGENIC);
+    }
+
     @JsonProperty(value = "organism_summary")
     public String getOrganism() {
         return ncbiTaxonomy.getCommonname() + " (" + ncbiTaxonomy.getScientificname() + ")";
@@ -101,10 +107,20 @@ public class NCBIVariationVO {
         return StringUtils.isNotBlank(fasta) ? regexExtract(Pattern.compile(".*alleles=\"([\\w/]+)\".*"), fasta) : null;
     }
 
-    @JsonProperty(value = "ref_seq_gene")
-    public String getRefSeqGene(){
+    @JsonProperty(value = "ref_seq_gene_mapping")
+    public RefSeqGeneMapping getRefSeqGeneMapping() {
+        RefSeqGeneMapping refSeqGeneMapping = new RefSeqGeneMapping();
         String docsum = ncbiShortVar.getHgvsNames();
-        return StringUtils.isNotBlank(docsum) ? regexExtract(Pattern.compile(".*(NG_\\d+\\.\\d+).*"), docsum) : null;
+        String info = StringUtils.isNotBlank(docsum)
+                ? regexExtract(Pattern.compile(".*(NG_\\d+\\.\\d+:g\\.\\d+\\w+).*"), docsum)
+                : null;
+        if (info != null) {
+            refSeqGeneMapping.setRefSeqGene(regexExtract(Pattern.compile(".*(NG_\\d+\\.\\d+).*"), info));
+            refSeqGeneMapping.setPosition(regexExtract(Pattern.compile(".*:g\\.(\\d+).*"), info));
+            refSeqGeneMapping.setAllele(regexExtract(Pattern.compile(".*:g\\.\\d+(\\w+).*"), info));
+            refSeqGeneMapping.setGene(regexExtract(Pattern.compile(".*GENE=(\\w+:\\d+).*"), docsum));
+        }
+        return refSeqGeneMapping;
     }
 
     @JsonProperty(value = "maf_source")
@@ -132,6 +148,53 @@ public class NCBIVariationVO {
         }
 
         return result;
+    }
+
+    public class RefSeqGeneMapping {
+
+        @JsonProperty
+        private String refSeqGene;
+
+        @JsonProperty
+        private String gene;
+
+        @JsonProperty
+        private String position;
+
+        @JsonProperty
+        private String allele;
+
+        public String getRefSeqGene() {
+            return refSeqGene;
+        }
+
+        public void setRefSeqGene(String refSeqGene) {
+            this.refSeqGene = refSeqGene;
+        }
+
+        public String getGene() {
+            return gene;
+        }
+
+        public void setGene(String gene) {
+            this.gene = gene;
+        }
+
+        public String getPosition() {
+            return position;
+        }
+
+        public void setPosition(String position) {
+            this.position = position;
+        }
+
+        public String getAllele() {
+            return allele;
+        }
+
+        public void setAllele(String allele) {
+            this.allele = allele;
+        }
     }
 }
 
