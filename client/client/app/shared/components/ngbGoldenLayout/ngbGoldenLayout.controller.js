@@ -347,6 +347,7 @@ export default class ngbGoldenLayoutController extends baseController {
 
         const payload = {
             id: event.id,
+            referenceId: event.referenceId,
             chromosomeId: event.chromosomeId,
             startIndex: event.startIndex,
             endIndex: event.endIndex,

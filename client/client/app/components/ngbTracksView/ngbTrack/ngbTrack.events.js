@@ -298,6 +298,7 @@ export default class ngbTrackEvents {
             events: [{
                 data: {
                     id: track.id,
+                    referenceId: track.referenceId,
                     chromosomeId: data.chromosome.id,
                     startIndex: data.read.startIndex,
                     endIndex: data.read.endIndex,
