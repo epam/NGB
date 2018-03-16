@@ -35,7 +35,7 @@ export default class ngbProjectSummaryController {
         const items = this.projectContext.tracks;
         for (const item of items) {
             let added = false;
-            const name = item.prettyName || item.name;
+            const name = this.getTrackFileName(item);
             for (const file of files) {
                 if (file.type === item.format) {
                     if (file.names.indexOf(name) === -1) {
@@ -50,5 +50,19 @@ export default class ngbProjectSummaryController {
             }
         }
         this.files = files;
+    }
+
+    getTrackFileName(track) {
+        if (!track.isLocal) {
+            return track.prettyName || track.name;
+        } else {
+            const fileName = track.name;
+            if (!fileName || !fileName.length) {
+                return null;
+            }
+            let list = fileName.split('/');
+            list = list[list.length - 1].split('\\');
+            return list[list.length - 1];
+        }
     }
 }

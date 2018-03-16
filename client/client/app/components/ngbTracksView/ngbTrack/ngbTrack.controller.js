@@ -67,7 +67,7 @@ export default class ngbTrackController {
                 ? this.instanceConstructor.config.height
                 : DEFAULT_HEIGHT;
 
-        this.trackNameTruncated = this.track.prettyName || this.track.name;
+        this.trackNameTruncated = this.getTrackFileName(this.track);
         if (this.trackNameTruncated.length > MAX_TRACK_NAME_LENGTH) {
             this.trackNameTruncated = `...${this.trackNameTruncated.substring(this.trackNameTruncated.length - MAX_TRACK_NAME_LENGTH)}`;
         }
@@ -157,6 +157,20 @@ export default class ngbTrackController {
                 this.trackInstance.domElement.parentNode.removeChild(this.trackInstance.domElement);
             }
         });
+    }
+
+    getTrackFileName(track) {
+        if (!track.isLocal) {
+            return track.prettyName || track.name;
+        } else {
+            const fileName = track.name;
+            if (!fileName || !fileName.length) {
+                return null;
+            }
+            let list = fileName.split('/');
+            list = list[list.length - 1].split('\\');
+            return list[list.length - 1];
+        }
     }
 
     onTrackItemClick(sender, data, event) {
