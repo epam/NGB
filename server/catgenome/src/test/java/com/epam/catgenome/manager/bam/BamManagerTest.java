@@ -28,9 +28,8 @@ package com.epam.catgenome.manager.bam;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-
+import java.util.function.Consumer;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,17 +44,19 @@ import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationReques
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.bam.*;
+import com.epam.catgenome.entity.bam.BamFile;
+import com.epam.catgenome.entity.bam.BamQueryOption;
+import com.epam.catgenome.entity.bam.BamTrack;
+import com.epam.catgenome.entity.bam.BamTrackMode;
+import com.epam.catgenome.entity.bam.Read;
+import com.epam.catgenome.entity.bam.TrackDirectionType;
 import com.epam.catgenome.entity.bucket.Bucket;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.Sequence;
-import com.epam.catgenome.entity.reference.Species;
 import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.bucket.BucketManager;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
-import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Request;
@@ -68,8 +69,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,8 +79,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.function.Consumer;
 
 /**
  * Source:      BamManagerTest.java
@@ -111,13 +108,7 @@ public class BamManagerTest extends AbstractManagerTest {
     private ReferenceManager referenceManager;
 
     @Autowired
-    private ReferenceGenomeManager referenceGenomeManager;
-
-    @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
-
-    @Mock
-    private BlatSearchManager blatSearchManager;
 
     @Autowired
     @InjectMocks
@@ -719,55 +710,6 @@ public class BamManagerTest extends AbstractManagerTest {
         registerFileWithoutSOTag("classpath:templates/" + bamWithHeaderWithoutSO);
         List<BiologicalDataItem> biologicalDataItems = biologicalDataItemDao.loadFilesByNameStrict(TEST_NSAME);
         Assert.assertFalse(biologicalDataItems.isEmpty());
-    }
-
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testFindBlatReadSequence() throws IOException, ExternalDbUnavailableException {
-        final String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
-        IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
-        request.setPath(path);
-        request.setIndexPath(path + BAI_EXTENSION);
-        request.setName(TEST_NSAME);
-        request.setReferenceId(testReference.getId());
-        request.setPrettyName(PRETTY_NAME);
-        request.setType(BiologicalDataItemResourceType.FILE);
-        BamFile bamFile = bamManager.registerBam(request);
-
-        Species testSpecies = new Species();
-        testSpecies.setName("human");
-        testSpecies.setVersion("hg19");
-
-        referenceGenomeManager.registerSpecies(testSpecies);
-        referenceGenomeManager.updateSpecies(bamFile.getReferenceId(), testSpecies.getVersion());
-
-        Mockito.when(
-                blatSearchManager.find(Mockito.anyString(), Mockito.any(Species.class))
-        ).thenReturn(Collections.singletonList(new PSLRecord()));
-
-        String readSequence = "CAGTATCGTCCTTACTATTACATAGTGTGGTAGCGATGCAGTCCCAGTGAAAAAAAAAAAAAAAAAAAC";
-        List<PSLRecord> records = bamManager.findBlatReadSequence(bamFile.getId(), readSequence);
-        Assert.assertNotNull(records);
-        Assert.assertEquals(1, records.size());
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testFindBlatReadSequenceEmptySpecies() throws IOException, ExternalDbUnavailableException {
-        final String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
-        IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
-        request.setPath(path);
-        request.setIndexPath(path + BAI_EXTENSION);
-        request.setName(TEST_NSAME);
-        request.setReferenceId(testReference.getId());
-        request.setPrettyName(PRETTY_NAME);
-        request.setType(BiologicalDataItemResourceType.FILE);
-        BamFile bamFile = bamManager.registerBam(request);
-
-        referenceGenomeManager.updateSpecies(bamFile.getReferenceId(), "hg19");
-        String readSequence = "CAGTATCGTCCTTACTATTACATAGTGTGGTAGCGATGCAGTCCCAGTGAAAAAAAAAAAAAAAAAAAC";
-        bamManager.findBlatReadSequence(bamFile.getId(), readSequence);
     }
 
     private void registerFileWithoutSOTag(String path) throws IOException {

@@ -89,7 +89,7 @@ export default class ngbBlatSearchService {
 
         read = await this.getDetailedRead(payload);
 
-        searchResults = await this.bamDataService.getBlatSearchResults(payload.id, read.sequence);
+        searchResults = await this.bamDataService.getBlatSearchResults(payload.referenceId, read.sequence);
 
         return searchResults;
     }

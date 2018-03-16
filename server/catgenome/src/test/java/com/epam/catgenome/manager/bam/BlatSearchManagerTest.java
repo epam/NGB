@@ -24,13 +24,27 @@
 
 package com.epam.catgenome.manager.bam;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
+
+import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
+import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.entity.bam.PSLRecord;
+import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.Species;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.externaldb.ParameterNameValue;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
+import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
+import com.epam.catgenome.manager.reference.ReferenceManager;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -41,13 +55,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
@@ -67,6 +76,7 @@ public class BlatSearchManagerTest {
     private static final int TEST_Q_SIZE = 69;
     private static final int TEST_SCORE = 27000 / 69;
     private static final List<PSLRecord> EXPECTED = mockPSLRecord();
+    private static final String TEST_REF_NAME = "//dm606.X.fa";
 
     @Autowired
     private ApplicationContext context;
@@ -78,15 +88,63 @@ public class BlatSearchManagerTest {
     @InjectMocks
     private BlatSearchManager blatSearchManager;
 
-    @Test
-    public void testFind() throws IOException, ExternalDbUnavailableException {
-        Mockito.when(
-                httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class))
-        ).thenReturn(readMockedResponse());
+    @Autowired
+    private ReferenceGenomeManager referenceGenomeManager;
 
+    @Autowired
+    private BiologicalDataItemDao biologicalDataItemDao;
+
+    @Autowired
+    private ReferenceManager referenceManager;
+
+    private Reference testReference;
+
+    @Before
+    public void setUp() throws Exception {
+        Resource resource = context.getResource("classpath:templates");
+        File fastaFile = new File(resource.getFile().getAbsolutePath() + TEST_REF_NAME);
+
+        ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
+        request.setName(TEST_REF_NAME + biologicalDataItemDao.createBioItemId());
+        request.setPath(fastaFile.getPath());
+
+        testReference = referenceManager.registerGenome(request);
+
+        Mockito.when(
+            httpDataManager.fetchData(Mockito.any(), Mockito.any(ParameterNameValue[].class))
+        ).thenReturn(readMockedResponse());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testFind() throws IOException, ExternalDbUnavailableException {
         List<PSLRecord> actual = blatSearchManager.find(TEST_SEQUENSE, TEST_SPECIES);
         Assert.assertEquals(1, actual.size());
         Assert.assertEquals(EXPECTED.get(0), actual.get(0));
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testFindBlatReadSequence() throws IOException, ExternalDbUnavailableException {
+        Species testSpecies = new Species();
+        testSpecies.setName("human");
+        testSpecies.setVersion("hg19");
+
+        referenceGenomeManager.registerSpecies(testSpecies);
+        referenceGenomeManager.updateSpecies(testReference.getId(), testSpecies.getVersion());
+
+        String readSequence = "CAGTATCGTCCTTACTATTACATAGTGTGGTAGCGATGCAGTCCCAGTGAAAAAAAAAAAAAAAAAAAC";
+        List<PSLRecord> records = blatSearchManager.findBlatReadSequence(testReference.getId(), readSequence);
+        Assert.assertNotNull(records);
+        Assert.assertEquals(1, records.size());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testFindBlatReadSequenceEmptySpecies() throws IOException, ExternalDbUnavailableException {
+        referenceGenomeManager.updateSpecies(testReference.getId(), "hg19");
+        String readSequence = "CAGTATCGTCCTTACTATTACATAGTGTGGTAGCGATGCAGTCCCAGTGAAAAAAAAAAAAAAAAAAAC";
+        blatSearchManager.findBlatReadSequence(testReference.getId(), readSequence);
     }
 
     private static List<PSLRecord> mockPSLRecord() {
