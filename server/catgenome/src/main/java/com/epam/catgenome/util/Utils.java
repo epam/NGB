@@ -389,11 +389,11 @@ public final class Utils {
         }
         notRegisteredFile.setPath(processUrl(fileUrl));
         notRegisteredFile.setCompressed(false);
-        notRegisteredFile.setType(BiologicalDataItemResourceType.URL);
+        notRegisteredFile.setType(BiologicalDataItemResourceType.getTypeFromPath(fileUrl));
         notRegisteredFile.setReferenceId(chromosome.getReferenceId());
 
         BiologicalDataItem index = new BiologicalDataItem();
-        index.setType(BiologicalDataItemResourceType.URL);
+        index.setType(BiologicalDataItemResourceType.getTypeFromPath(indexUrl));
         index.setPath(processUrl(indexUrl));
         notRegisteredFile.setIndex(index);
         return notRegisteredFile;
