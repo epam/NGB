@@ -45,7 +45,6 @@ import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.ListMapCollector;
 import org.apache.commons.collections4.CollectionUtils;
@@ -88,9 +87,6 @@ public class ReferenceGenomeManager {
 
     @Autowired
     private SpeciesDao speciesDao;
-
-    @Autowired
-    private FeatureIndexManager featureIndexManager;
 
     private static final Set<BiologicalDataItemFormat> ANNOTATION_FORMATS = new HashSet<>();
     static {
@@ -401,7 +397,6 @@ public class ReferenceGenomeManager {
                             loadReferenceGenome(referenceId).getName()
                     )
             );
-            featureIndexManager.buildIndexForFile(annotationFile);
             referenceGenomeDao.addAnnotationFile(referenceId, annotationFileBiologicalItemId);
         }
         return loadReferenceGenome(referenceId);

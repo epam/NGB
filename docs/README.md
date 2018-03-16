@@ -25,7 +25,7 @@ The following sections are currently covered in a documentation
     * [VCF track](md/user-guide/tracks-vcf.md)
     * [WIG track](md/user-guide/tracks-wig.md)
     * [BED track](md/user-guide/tracks-bed.md)
-    * [Aignments track](md/user-guide/tracks-bam.md)
+    * [Alignments track](md/user-guide/tracks-bam.md)
     * [Working with Annotations](md/user-guide/annotations.md)
 
 ## Building documentation
