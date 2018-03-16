@@ -61,6 +61,15 @@ export default class ngbOpenFileController {
         });
     }
 
+    fileName(path) {
+        if (!path || !path.length) {
+            return null;
+        }
+        let list = path.split('/');
+        list = list[list.length - 1].split('\\');
+        return list[list.length - 1];
+    }
+
     loadTracks(selectedFiles) {
         const mapFn = (selectedFile) => {
             return {
@@ -71,7 +80,7 @@ export default class ngbOpenFileController {
                 bioDataItemId: selectedFile.path,
                 referenceId: selectedFile.reference.id,
                 reference: selectedFile.reference,
-                name: selectedFile.path,
+                name: this.fileName(selectedFile.path),
                 indexPath: selectedFile.index,
                 projectId: selectedFile.reference.name
             };
