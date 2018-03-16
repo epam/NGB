@@ -16,6 +16,7 @@ import htsjdk.tribble.util.TabixUtils;
 import htsjdk.variant.bcf2.BCF2Codec;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFCodec;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,6 +74,7 @@ public class TestAbstractFeatureReader  {
      * Asserts readability and correctness of VCF over HTTP.  The VCF is indexed and requires and index.
      */
     @Test
+    @Ignore
     public void testVcfOverHTTP() throws IOException {
         final VCFCodec codec = new VCFCodec();
         final AbstractFeatureReader<VariantContext, LineIterator> featureReaderHttp =
@@ -95,6 +97,7 @@ public class TestAbstractFeatureReader  {
     }
 
     @Test
+    @Ignore
     public void testVcfOverHTTPWithQuestionMarks() throws IOException {
         final VCFCodec codec = new VCFCodec();
         final AbstractFeatureReader<VariantContext, LineIterator> featureReaderHttp =
@@ -104,6 +107,7 @@ public class TestAbstractFeatureReader  {
     }
 
     @Test
+    @Ignore
     public void testLoadBEDFTP() throws Exception {
         final String path = "ftp://ftp.broadinstitute.org/distribution/igv/TEST/cpgIslands with spaces.hg18.bed";
         final BEDCodec codec = new BEDCodec();
@@ -136,6 +140,7 @@ public class TestAbstractFeatureReader  {
     }
 
     @Test
+    @Ignore
     public void testBlockCompressionExtension() throws URISyntaxException {
         String testURIString = "https://www.googleapis.com/download/storage/v1/b/deflaux-public-test/o/NA12877.vcf.gz";
         URI testURI = URI.create(testURIString);
