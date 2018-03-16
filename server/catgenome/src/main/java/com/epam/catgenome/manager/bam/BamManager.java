@@ -33,7 +33,6 @@ import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.bam.handlers.SAMRecordHandler;
@@ -96,9 +95,6 @@ public class BamManager {
 
     @Autowired
     private TaskExecutorService taskExecutorService;
-
-    @Autowired
-    private BlatSearchManager blatSearchManager;
 
     @Value("#{catgenome['bam.max.coverage.range'] ?: 1000000}")
     private int maxCoverageRange;
@@ -224,18 +220,6 @@ public class BamManager {
             bamFile = bamHelper.makeUrlBamFile(fileUrl, indexUrl, chromosome);
         }
         return getReadFromBamFile(query, chromosome, bamFile);
-    }
-
-    public List<PSLRecord> findBlatReadSequence(Long bamTrackId, String readSequence)
-            throws ExternalDbUnavailableException, IOException {
-        Assert.isTrue(bamTrackId != null && StringUtils.isNotBlank(readSequence),
-                MessagesConstants.ERROR_NULL_PARAM);
-        BamFile bamFile = bamFileManager.loadBamFile(bamTrackId);
-        Reference reference = referenceGenomeManager.loadReferenceGenome(bamFile.getReferenceId());
-        Assert.notNull(reference.getSpecies(),
-                getMessage(MessagesConstants.NULL_SPECIES_FOR_GENOME, reference.getName()));
-
-        return blatSearchManager.find(readSequence, reference.getSpecies());
     }
 
     @Nullable
