@@ -17,7 +17,7 @@
         <div class="ngb-track-header-type">{{ctrl.track.format}}</div>
         <div class="ngb-track-header-file-name">{{ctrl.trackNameTruncated}}
             <md-tooltip md-direction="top">
-                {{ctrl.track.prettyName || ctrl.track.name}}
+                {{ctrl.getTrackFileName(ctrl.track)}}
             </md-tooltip>
         </div>
 
@@ -76,7 +76,7 @@
         <div ng-show="ctrl.trackDataIsLoading" class="track-loader-minified">
             <md-progress-circular md-mode="indeterminate" md-diameter="12"></md-progress-circular>
         </div>
-        <div class="track-title">{{ctrl.track.prettyName || ctrl.track.name}}</div>
+        <div class="track-title">{{ctrl.getTrackFileName(ctrl.track)}}</div>
         <div class="buttons-menu-track" dnd-nodrag>
             <md-button md-no-ink
                        ng-show="ctrl.showHideTrackButton"
