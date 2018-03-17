@@ -404,6 +404,30 @@ public class BamManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testLoadLocalNonRegisteredBam() throws Exception {
+        final String bamPath = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
+        final String indexPath = bamPath + BAI_EXTENSION;
+        Track<Read> fullTrackQ = new Track<>();
+        fullTrackQ.setStartIndex(TEST_START_INDEX_SMALL_RANGE);
+        fullTrackQ.setEndIndex(TEST_END_INDEX_SMALL_RANGE);
+        fullTrackQ.setScaleFactor(SCALE_FACTOR_SMALL);
+        fullTrackQ.setChromosome(new Chromosome(testChromosome.getId()));
+
+        BamQueryOption option = new BamQueryOption();
+        option.setTrackDirection(TrackDirectionType.MIDDLE);
+        option.setShowSpliceJunction(true);
+        option.setShowClipping(true);
+        option.setFrame(TEST_FRAME_SIZE);
+        option.setCount(TEST_COUNT);
+
+        ResponseEmitterMock emitterMock = new ResponseEmitterMock();
+        bamManager.sendBamTrackToEmitterFromUrl(fullTrackQ, option, bamPath, indexPath, emitterMock);
+        BamTrack<Read> fullTrack = emitterMock.getBamTrack();
+        testBamTrack(fullTrack);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadUrl() throws Exception {
         final String path = "/agnX1.09-28.trim.dm606.realign.bam";
         String bamUrl = UrlTestingUtils.TEST_FILE_SERVER_URL + path;
