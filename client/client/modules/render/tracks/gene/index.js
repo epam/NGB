@@ -55,7 +55,7 @@ export class GENETrack extends CachedTrack {
 
         this._gffColorByFeatureType = opts.gffColorByFeatureType;
         this._gffShowNumbersAminoacid = opts.gffShowNumbersAminoacid;
-        this._collapsed = opts.state.geneTranscript === GeneTypes.transcriptViewTypes.collapsed;
+        this._collapsed = this.state.geneTranscript === GeneTypes.transcriptViewTypes.collapsed;
 
         if (opts.dispatcher) {
             this.dispatcher = opts.dispatcher;
