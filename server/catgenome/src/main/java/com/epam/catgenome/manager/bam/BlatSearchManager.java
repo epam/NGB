@@ -24,14 +24,21 @@
 
 package com.epam.catgenome.manager.bam;
 
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+
+import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.bam.PSLRecord;
+import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.Species;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.externaldb.ParameterNameValue;
+import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.util.List;
@@ -54,11 +61,25 @@ public class BlatSearchManager {
     @Autowired
     private HttpDataManager httpDataManager;
 
+    @Autowired
+    private ReferenceGenomeManager referenceGenomeManager;
+
     public List<PSLRecord> find(String readSequence, Species species)
             throws ExternalDbUnavailableException, IOException {
         String response = httpDataManager.fetchData(blatURL + "?",
                 createURLParameters(readSequence, species));
         return pslRecordParser.parse(response);
+    }
+
+    public List<PSLRecord> findBlatReadSequence(Long referenceId, String readSequence)
+        throws ExternalDbUnavailableException, IOException {
+        Assert.isTrue(referenceId != null && StringUtils.isNotBlank(readSequence),
+                      MessagesConstants.ERROR_NULL_PARAM);
+        Reference reference = referenceGenomeManager.loadReferenceGenome(referenceId);
+        Assert.notNull(reference.getSpecies(),
+                       getMessage(MessagesConstants.NULL_SPECIES_FOR_GENOME, reference.getName()));
+
+        return find(readSequence, reference.getSpecies());
     }
 
     private ParameterNameValue[] createURLParameters(String sequense, Species species) {

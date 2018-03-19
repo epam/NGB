@@ -21,7 +21,7 @@
                     </div>
                     <span class="ivh-treeview-node-label dataset-track-title dataset-selectable"
                           ng-class="{selected: node.__selected}"
-                          ng-click="$ctrl.toggleSelected(node)">{{node.prettyName || node.name}}</span>
+                          ng-click="$ctrl.toggleSelected(node)">{{$ctrl.getTrackFileName(node)}}</span>
                 </div>
                 <div class="dataset-genome">{{node.reference.name}}</div>
             </div>

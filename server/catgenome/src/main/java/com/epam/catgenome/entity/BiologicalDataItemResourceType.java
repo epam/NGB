@@ -117,7 +117,9 @@ public enum BiologicalDataItemResourceType {
      */
     public static BiologicalDataItemResourceType getTypeFromPath(final String path) {
         if (path.startsWith("s3")) {
-            return S3;
+            // since we replace s3 paths with signed urls, for all processing
+            // s3 paths should act as URLs
+            return URL;
         } else if (NgbFileUtils.isRemotePath(path)) {
             return URL;
         } else {
