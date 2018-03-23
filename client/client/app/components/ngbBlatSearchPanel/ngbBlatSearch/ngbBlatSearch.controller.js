@@ -58,6 +58,9 @@ export default class ngbBlatSearchController extends baseController {
         });
 
         this.initEvents();
+        $scope.$on('$destroy', () => {
+            localStorage.setItem('blatSearchRequest', null);
+        });
     }
 
     events = {
@@ -97,8 +100,26 @@ export default class ngbBlatSearchController extends baseController {
             this.blatSearchEmptyResult = null;
             this.isProgressShown = false;
             this.gridOptions.columnDefs = [];
+            if (!this.projectContext.reference) {
+                this.onError(this.blatSearchMessages.ErrorMessage.ReferencNotFound);
+            }
+        }
+    }
 
+    async onClickReadSequenceSearch() {
+        if(this.readSequence) {
+            this.isProgressShown = true;
+            localStorage.setItem('blatSearchRequest',
+                JSON.stringify(
+                    {
+                        referenceId: this.projectContext.reference ? this.projectContext.reference.id : null,
+                        sequence: this.readSequence
+                    }));
+            await this.loadData();
             this.$timeout(this.$scope.$apply());
+        } else {
+            this.gridOptions.data = [];
+            this.blatSearchEmptyResult = this.blatSearchMessages.ErrorMessage.EmptySearchResults;
         }
     }
 
@@ -108,6 +129,7 @@ export default class ngbBlatSearchController extends baseController {
                 this.isProgressShown = false;
                 this.blatSearchEmptyResult = null;
                 this.gridOptions.columnDefs = [];
+                this.onError(this.blatSearchMessages.ErrorMessage.ReferencNotFound);
                 return;
             }
             await this.blatSearchLoadingFinished();

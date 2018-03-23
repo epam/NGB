@@ -46,9 +46,8 @@ export default  {
             name: 'layout>variants'
         },
         blat: {
-            isHidden: true,
+            icon: 'search',
             displayed: false,
-            icon: '',
             panel: 'ngbBlatSearchPanel',
             position: 'right',
             title: 'Blat',
