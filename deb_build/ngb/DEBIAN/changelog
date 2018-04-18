@@ -1,7 +1,7 @@
-ngb (1.0-1) experimental; urgency=low
+ngb (2.5.1) experimental; urgency=low
 
-* This is my first Debian package.
+* NGB is first time packaged into the .deb package.
 
--- Kolyasich <joy-mg@debian.org>  Mon, 22 Mar 2010 00:37:31 +0100
+-- Nick_Panyushev <Nikolai_Paniushev@epam.com>  Wed, 18 Apr 2018 20.00 +0300
 
 

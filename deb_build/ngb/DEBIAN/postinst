@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 #IP=$(ip route get 1.1.1.1 | awk '{print $NF; exit}')
 #PORT=${PORT: -4}
