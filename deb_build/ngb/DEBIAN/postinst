@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+#IP=$(ip route get 1.1.1.1 | awk '{print $NF; exit}')
+#PORT=${PORT: -4}
+
+#Launching catgenome.jar
+nohup java -Xmx6G -jar /opt/ngb/catgenome.jar --conf=/opt/ngb/config </dev/null &>/dev/null & #$PORT &
+
+#Checking if the ngb-gui started
+IP=localhost
+PORT=8080
+TIMER=60
+while [ $TIMER -gt 0 ]
+do
+   curl --silent -X GET http://$IP:$PORT/catgenome/version| grep -q "OK" && break
+   TIMER=$(($TIMER - 5))
+   sleep 5
+   [ $TIMER -eq 5 ] && echo "jar start failed"; exit 1
+done
+echo
+echo "Jar started successfully"
+
+

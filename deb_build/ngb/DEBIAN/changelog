@@ -1,0 +1,7 @@
+ngb (1.0-1) experimental; urgency=low
+
+* This is my first Debian package.
+
+-- Kolyasich <joy-mg@debian.org>  Mon, 22 Mar 2010 00:37:31 +0100
+
+
