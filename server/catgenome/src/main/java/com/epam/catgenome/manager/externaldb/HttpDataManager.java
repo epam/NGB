@@ -26,7 +26,6 @@ package com.epam.catgenome.manager.externaldb;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Authenticator;
@@ -36,14 +35,16 @@ import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.Map;
 import java.util.logging.Logger;
 
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import com.epam.catgenome.exception.ExternalDbUnavailableException;
 
 /**
  * <p>
@@ -59,6 +60,8 @@ public class HttpDataManager {
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String APPLICATION_JSON = "application/json";
     private static final String WAITING_FORMAT = "Waiting (%d)...";
+    private static final int MAX_HTTP_OK_STATUS = 299;
+    private static final int MIN_HTTP_OK_STATUS = 200;
 
 
     @Value("#{catgenome['externaldb.proxy.host'] ?: null}")
@@ -157,7 +160,6 @@ public class HttpDataManager {
                 conn.setDoInput(true);
                 conn.connect();
                 status = conn.getResponseCode();
-
             }
             return getHttpResult(status, location, conn);
         } catch (InterruptedException | IOException e) {
@@ -201,13 +203,30 @@ public class HttpDataManager {
     }
 
     private String getHttpResult(final int status, final String location, final HttpURLConnection conn)
-            throws IOException, ExternalDbUnavailableException {
-        String result;
-        if (status == HttpURLConnection.HTTP_OK) {
-            LOGGER.info("HTTP_OK reply from destination server");
+        throws IOException, ExternalDbUnavailableException {
+        switch (status) {
+            case HttpURLConnection.HTTP_OK:
+                LOGGER.info("HTTP_OK reply from destination server");
+                return fetchContent(conn, status);
+            case HttpURLConnection.HTTP_BAD_REQUEST:
+                Map<String, Object> errorPayload = new ObjectMapper().readValue(fetchContent(conn, status),
+                                                                            new TypeReference<Map<String, Object>>(){});
+                throw new ExternalDbUnavailableException(
+                    errorPayload.getOrDefault("error",
+                                              "External DB thrown an error with code: " + status).toString());
 
-            InputStream inputStream = conn.getInputStream();
-            BufferedReader streamReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+            default:
+                LOGGER.severe("Unexpected HTTP status:" + conn.getResponseMessage() + " for " + location);
+                throw new ExternalDbUnavailableException(
+                    String.format("Unexpected HTTP status: %d %s for URL %s", status,
+                                  conn.getResponseMessage(), location));
+        }
+    }
+
+    private String fetchContent(final HttpURLConnection conn, int status) throws ExternalDbUnavailableException {
+        boolean successful = status <= MAX_HTTP_OK_STATUS && status >= MIN_HTTP_OK_STATUS;
+        try (BufferedReader streamReader = new BufferedReader(new InputStreamReader(
+            successful ? conn.getInputStream() : conn.getErrorStream(), "UTF-8"))) {
             StringBuilder responseStrBuilder = new StringBuilder();
 
             String inputStr;
@@ -215,17 +234,11 @@ public class HttpDataManager {
                 responseStrBuilder.append(inputStr).append('\n');
             }
 
-            result = responseStrBuilder.toString();
-
-        } else {
-
-            LOGGER.severe("Unexpected HTTP status:" + conn.getResponseMessage() + " for " + location);
+            return responseStrBuilder.toString();
+        } catch (IOException e) {
             throw new ExternalDbUnavailableException(
-                    String.format("Unexpected HTTP status: %d %s for URL %s", status,
-                            conn.getResponseMessage(), location));
-
+                "Could not get any response from destination server.Response status: " + status, e);
         }
-        return result;
     }
 
     private String getResultFromHttp(final String location, final JSONObject object)
