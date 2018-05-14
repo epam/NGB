@@ -167,6 +167,7 @@ dependencies {
     testCompile group: "com.jayway.jsonpath", name: "json-path-assert", version: project.ext.versionJayWayJsonPath
     testCompile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.3.13.v20161014'
     testRuntime group: "javax.transaction", name: "jta", version: "1.1"
+    testCompile "com.github.tomakehurst:wiremock:2.17.0"
 }
 
 // >>>>> To configure Run/Debug with Local Tomcat on dev environment an exploded WAR archive should be

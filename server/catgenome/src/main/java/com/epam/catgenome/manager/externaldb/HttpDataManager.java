@@ -40,6 +40,7 @@ import java.util.logging.Logger;
 
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONObject;
@@ -209,11 +210,16 @@ public class HttpDataManager {
                 LOGGER.info("HTTP_OK reply from destination server");
                 return fetchContent(conn, status);
             case HttpURLConnection.HTTP_BAD_REQUEST:
-                Map<String, Object> errorPayload = new ObjectMapper().readValue(fetchContent(conn, status),
-                                                                            new TypeReference<Map<String, Object>>(){});
-                throw new ExternalDbUnavailableException(
-                    errorPayload.getOrDefault("error",
-                                              "External DB thrown an error with code: " + status).toString());
+                try {
+                    Map<String, Object> errorPayload = new ObjectMapper().readValue(fetchContent(conn, status),
+                                                                                    new TypeReference<Map<String, Object>>(){});
+                    throw new ExternalDbUnavailableException(
+                        errorPayload.getOrDefault("error",
+                                                  "External DB thrown an error with code: " + status)
+                            .toString());
+                } catch (JsonMappingException e) {
+                    throw new ExternalDbUnavailableException("External DB thrown an error with code: " + status);
+                }
 
             default:
                 LOGGER.severe("Unexpected HTTP status:" + conn.getResponseMessage() + " for " + location);
