@@ -5,7 +5,7 @@ Description: Packaged version for the installation via apt package manager.
 Maintainer: EPAM Systems, Inc. <Nikolai_Paniushev@epam.com>
 Version: 2.5.1
 Section: misc
-Depends: curl, bash(>=3.0), oracle-java8-installer
+Depends: curl, bash(>=3.0), openjdk-8-jdk|oracle-java8-installer 
 Architecture: all
 
 
