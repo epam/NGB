@@ -62,8 +62,6 @@ public class HttpDataManager {
     private static final String APPLICATION_JSON = "application/json";
     private static final String WAITING_FORMAT = "Waiting (%d)...";
     private static final int MAX_HTTP_OK_STATUS = 299;
-    private static final int MIN_HTTP_OK_STATUS = 200;
-
 
     @Value("#{catgenome['externaldb.proxy.host'] ?: null}")
     private String proxyHost;
@@ -205,34 +203,39 @@ public class HttpDataManager {
 
     private String getHttpResult(final int status, final String location, final HttpURLConnection conn)
         throws IOException, ExternalDbUnavailableException {
-        switch (status) {
-            case HttpURLConnection.HTTP_OK:
-                LOGGER.info("HTTP_OK reply from destination server");
-                return fetchContent(conn, status);
-            case HttpURLConnection.HTTP_BAD_REQUEST:
-                try {
-                    Map<String, Object> errorPayload = new ObjectMapper().readValue(fetchContent(conn, status),
-                                                                                    new TypeReference<Map<String, Object>>(){});
-                    throw new ExternalDbUnavailableException(
-                        errorPayload.getOrDefault("error",
-                                                  "External DB thrown an error with code: " + status)
-                            .toString());
-                } catch (JsonMappingException e) {
-                    throw new ExternalDbUnavailableException("External DB thrown an error with code: " + status);
-                }
+        if (isStatusOk(status)) {
+            LOGGER.info("HTTP_OK reply from destination server");
+            return fetchContent(conn, status);
+        } else {
+            switch (status) {
+                case HttpURLConnection.HTTP_BAD_REQUEST:
+                    try {
+                        Map<String, Object> errorPayload = new ObjectMapper().readValue(fetchContent(conn, status),
+                                                                                        new TypeReference<Map<String, Object>>(){});
+                        throw new ExternalDbUnavailableException(
+                            errorPayload.getOrDefault("error",
+                                                      "External DB thrown an error with code: " + status)
+                                .toString());
+                    } catch (JsonMappingException e) {
+                        throw new ExternalDbUnavailableException("External DB thrown an error with code: " + status);
+                    }
 
-            default:
-                LOGGER.severe("Unexpected HTTP status:" + conn.getResponseMessage() + " for " + location);
-                throw new ExternalDbUnavailableException(
-                    String.format("Unexpected HTTP status: %d %s for URL %s", status,
-                                  conn.getResponseMessage(), location));
+                default:
+                    LOGGER.severe("Unexpected HTTP status:" + conn.getResponseMessage() + " for " + location);
+                    throw new ExternalDbUnavailableException(
+                        String.format("Unexpected HTTP status: %d %s for URL %s", status,
+                                      conn.getResponseMessage(), location));
+            }
         }
     }
 
+    private boolean isStatusOk(int status) {
+        return status <= MAX_HTTP_OK_STATUS && status >= HttpURLConnection.HTTP_OK;
+    }
+
     private String fetchContent(final HttpURLConnection conn, int status) throws ExternalDbUnavailableException {
-        boolean successful = status <= MAX_HTTP_OK_STATUS && status >= MIN_HTTP_OK_STATUS;
         try (BufferedReader streamReader = new BufferedReader(new InputStreamReader(
-            successful ? conn.getInputStream() : conn.getErrorStream(), "UTF-8"))) {
+            isStatusOk(status) ? conn.getInputStream() : conn.getErrorStream(), "UTF-8"))) {
             StringBuilder responseStrBuilder = new StringBuilder();
 
             String inputStr;
