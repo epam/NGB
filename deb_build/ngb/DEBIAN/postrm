@@ -1,0 +1,6 @@
+#!/bin/bash
+source /usr/share/debconf/confmodule
+db_purge
+
+
+ 

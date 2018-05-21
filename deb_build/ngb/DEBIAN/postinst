@@ -1,21 +1,25 @@
-#!/bin/bash
+#!/bin/bash -e
 
-#IP=$(ip route get 1.1.1.1 | awk '{print $NF; exit}')
-#PORT=${PORT: -4}
+. /usr/share/debconf/confmodule
+db_get port_request
+PORT=$RET
+
+echo $PORT
+exit 0
 
 #Launching catgenome.jar
-nohup java -Xmx6G -jar /opt/ngb/catgenome.jar --conf=/opt/ngb/config </dev/null &>/dev/null & #$PORT &
+nohup java -Dname=NGB -Xmx6G -jar /opt/ngb/bin/catgenome*.jar --conf=/opt/ngb/config </dev/null &>/dev/null & 
 
 #Checking if the ngb-gui started
 IP=localhost
-PORT=8080
 TIMER=60
 while [ $TIMER -gt 0 ]
 do
-   curl --silent -X GET http://$IP:$PORT/catgenome/version| grep -q "OK" && break
-   TIMER=$(($TIMER - 5))
-   sleep 5
-   [ $TIMER -eq 5 ] && echo "jar start failed"; exit 1
+  curl --silent -X GET http://$IP:$PORT/catgenome/version| grep -q "OK" && break
+  TIMER=$(($TIMER - 5))
+  sleep 5
+  [ $TIMER -eq 5 ] && echo "jar start failed" && exit 1
+  
 done
 echo
 echo "Jar started successfully"
