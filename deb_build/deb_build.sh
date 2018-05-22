@@ -11,14 +11,14 @@ tar -xvf pack_files.tar.gz
 #on Travis-CI
 
 #Adding catgenome.jar and cli
-cp ngb-cli-2.5.1.374.1.tar.gz ngb/opt/ngb
-cp catgenome-2.5.1.374.1.jar ngb/opt/ngb
+cp ngb-cli-*.tar.gz ngb/opt/ngb
+cp catgenome-*.jar ngb/opt/ngb
 cd ngb/opt/ngb
-tar -xvf ngb-cli-2.5.1.374.1.tar.gz
+tar -xvf ngb-*.tar.gz
 mv -n ngb-cli/* ./
 rm -rf ngb-cli/
-rm bin/ngb.bat ngb-cli-2.5.1.374.1.tar.gz
-mv catgenome-2.5.1.374.1.jar bin/
+rm ngb-cli-*.tar.gz
+mv catgenome-*.jar bin/
 cd ~/NGB/deb_build
 
 #Building the package 
