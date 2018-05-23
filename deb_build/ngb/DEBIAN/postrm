@@ -1,6 +1,9 @@
 #!/bin/bash
-source /usr/share/debconf/confmodule
-db_purge
-
+if [[ ("$1" = "purge") && (-e /usr/share/debconf/confmodule) ]]; then
+    # Source debconf library.
+    . /usr/share/debconf/confmodule
+    # Remove my changes to the db.
+    db_purge
+fi
 
  

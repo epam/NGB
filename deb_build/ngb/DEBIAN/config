@@ -4,18 +4,21 @@
 . /usr/share/debconf/confmodule
 
 # PORT number prompt
-db_input high port_request || true
-db_go
+while true; do
+  db_input high port_request || true
+  db_go
 
-# Check the answer.
-db_get port_request
-echo  
-if [[ "$RET" =~ ^[0-9]+$ ]] ; then
-  if [[ ($RET -ge 1023) && ($RET -le 65535) ]]; then
-      #echo "NGB will be launched at localhost:$RET"
-      db_input high valid_port || true
-  else
+  # Check the answer.
+  db_get port_request
+  if ! [[ "$RET" =~ ^[0-9]+$ ]] || (( "$RET" < 1023 )) || (( "$RET" > 65535)); then
     db_input high invalid_port || true
-    db_input high port_request || true
+    db_go
+    continue
+  else
+    break
   fi
-fi
+  db_stop
+done
+
+
+

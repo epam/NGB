@@ -2,26 +2,24 @@
 
 . /usr/share/debconf/confmodule
 db_get port_request
+db_stop
 PORT=$RET
 
-echo $PORT
-exit 0
-
 #Launching catgenome.jar
-nohup java -Dname=NGB -Xmx6G -jar /opt/ngb/bin/catgenome*.jar --conf=/opt/ngb/config </dev/null &>/dev/null & 
+nohup java -Dname=NGB -Xmx6G -jar /opt/ngb/bin/catgenome*.jar --server.port=$PORT --conf=/opt/ngb/config </dev/null &>/dev/null & 
 
 #Checking if the ngb-gui started
-IP=localhost
 TIMER=60
 while [ $TIMER -gt 0 ]
 do
-  curl --silent -X GET http://$IP:$PORT/catgenome/version| grep -q "OK" && break
+  curl --silent -X GET http://localhost:$PORT/catgenome/version| grep -q "OK" && break
   TIMER=$(($TIMER - 5))
   sleep 5
   [ $TIMER -eq 5 ] && echo "jar start failed" && exit 1
   
 done
 echo
-echo "Jar started successfully"
+echo "NGB has been started successfully and exposed to localhost:$PORT" && exit 0
+
 
 

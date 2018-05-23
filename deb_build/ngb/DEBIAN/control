@@ -3,6 +3,7 @@ Name: NGB genome browser
 Description: Packaged version for the installation via apt package manager.
  New Genome Browser (NGB) - The web-based NGS data viewer with unique Structural Variations (SVs) visualization capabilities, high performance, scalability, and cloud data support
 Maintainer: EPAM Systems, Inc. <Nikolai_Paniushev@epam.com>
+Installed-Size: 100500
 Version: 2.5.1
 Section: misc
 Depends: curl, bash(>=3.0), debconf (>=0.2.26), openjdk-8-jre
