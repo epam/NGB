@@ -47,9 +47,9 @@ public class S3Manager {
 
     public String generateSingedUrl(String inputUrl) {
         try  {
-            AmazonS3 client = getClient();
+            AmazonS3 s3Client = AmazonS3ClientBuilder.standard().withPathStyleAccessEnabled(true).build();
             URI parsedUrl = new URI(inputUrl);
-            URL url = client.generatePresignedUrl(parsedUrl.getHost(),
+            URL url = s3Client.generatePresignedUrl(parsedUrl.getHost(),
                     normalizePath(parsedUrl.getPath()), Utils.getTimeForS3URL());
             return url.toExternalForm();
         } catch (AmazonClientException | URISyntaxException e) {
