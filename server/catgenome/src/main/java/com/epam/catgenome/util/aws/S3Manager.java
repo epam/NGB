@@ -37,25 +37,17 @@ import com.epam.catgenome.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Value;
-
-
-
 /**
  * Utility class for work with AWS S3 buckets
  */
 public class S3Manager {
-
-    @Value(value = "${path.style.access.enabled}")
-    private boolean pathStyleAccessEnabled;
-
 
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Manager.class);
     private static final String DELIMITER = "/";
 
     public String generateSingedUrl(String inputUrl) {
         try  {
-            AmazonS3 s3Client = AmazonS3ClientBuilder.standard().withPathStyleAccessEnabled(pathStyleAccessEnabled).build();
+            AmazonS3 s3Client = AmazonS3ClientBuilder.standard().withPathStyleAccessEnabled(true).build();
             URI parsedUrl = new URI(inputUrl);
             URL url = s3Client.generatePresignedUrl(parsedUrl.getHost(),
                     normalizePath(parsedUrl.getPath()), Utils.getTimeForS3URL());
