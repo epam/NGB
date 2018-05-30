@@ -50,8 +50,8 @@ public class S3Manager {
     private boolean pathStyleAccessEnabled;
 
     public String generateSingedUrl(String inputUrl) {
-        try  {
-            AmazonS3 s3Client = AmazonS3ClientBuilder.standard().withPathStyleAccessEnabled(pathStyleAccessEnabled).build();
+        try {
+            AmazonS3 s3Client = getClient();
             URI parsedUrl = new URI(inputUrl);
             URL url = s3Client.generatePresignedUrl(parsedUrl.getHost(),
                     normalizePath(parsedUrl.getPath()), Utils.getTimeForS3URL());
@@ -71,6 +71,6 @@ public class S3Manager {
     }
 
     AmazonS3 getClient() {
-        return AmazonS3ClientBuilder.defaultClient();
+        return AmazonS3ClientBuilder.standard().withPathStyleAccessEnabled(pathStyleAccessEnabled).build();
     }
 }
