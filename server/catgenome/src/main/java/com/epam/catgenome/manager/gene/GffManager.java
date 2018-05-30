@@ -48,6 +48,7 @@ import com.epam.catgenome.exception.HistogramReadingException;
 import com.epam.catgenome.exception.HistogramWritingException;
 import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
+import com.epam.catgenome.manager.aws.S3Manager;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.tribble.AsciiFeatureCodec;
@@ -168,6 +169,9 @@ public class GffManager {
 
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
+
+    @Autowired
+    private S3Manager s3Manager;
 
     private static final String EXON_FEATURE_NAME = "exon";
 
@@ -423,7 +427,7 @@ public class GffManager {
         final Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
         GeneFile geneFile;
         try {
-            geneFile = Utils.createNonRegisteredFile(GeneFile.class, fileUrl, indexUrl, chromosome);
+            geneFile = Utils.createNonRegisteredFile(GeneFile.class, s3Manager.processUrl(fileUrl), s3Manager.processUrl(indexUrl), chromosome);
         } catch (InvocationTargetException e) {
             throw new GeneReadingException(track, e);
         }

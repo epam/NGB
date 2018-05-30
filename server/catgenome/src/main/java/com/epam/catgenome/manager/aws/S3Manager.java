@@ -23,38 +23,52 @@
  */
 
 
-package com.epam.catgenome.util.aws;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+package com.epam.catgenome.manager.aws;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.epam.catgenome.exception.S3ReadingException;
-import com.epam.catgenome.util.Utils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Date;
+
 /**
- * Utility class for work with AWS S3 buckets
+ * Class for working with AWS S3 buckets
  */
+@Service
 public class S3Manager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Manager.class);
+    private static final String S3_SCHEME = "s3://";
     private static final String DELIMITER = "/";
+    //in minutes
+    private static final int S3_LINK_EXPIRATION = 60;
 
-    @Value(value = "${path.style.access.enabled}")
+    @Value("#{catgenome['path.style.access.enabled'] ?: false}")
     private boolean pathStyleAccessEnabled;
+
+
+    public String processUrl(String inputUrl) {
+        if (!inputUrl.startsWith(S3_SCHEME)) {
+            return inputUrl;
+        }
+        return generateSingedUrl(inputUrl);
+    }
 
     public String generateSingedUrl(String inputUrl) {
         try {
             AmazonS3 s3Client = getClient();
             URI parsedUrl = new URI(inputUrl);
             URL url = s3Client.generatePresignedUrl(parsedUrl.getHost(),
-                    normalizePath(parsedUrl.getPath()), Utils.getTimeForS3URL());
+                    normalizePath(parsedUrl.getPath()), getTimeForS3URL());
             return url.toExternalForm();
         } catch (AmazonClientException | URISyntaxException e) {
             LOGGER.error(e.getMessage(), e);
@@ -73,4 +87,13 @@ public class S3Manager {
     AmazonS3 getClient() {
         return AmazonS3ClientBuilder.standard().withPathStyleAccessEnabled(pathStyleAccessEnabled).build();
     }
+
+    /**
+     * Makes time for S3 URL access
+     * @return a {@link Date} object, representing time for S3 URL access
+     */
+    public Date getTimeForS3URL() {
+        return DateUtils.addMinutes(new Date(), S3_LINK_EXPIRATION);
+    }
+
 }
