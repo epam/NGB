@@ -35,8 +35,6 @@ import com.epam.catgenome.common.AbstractManagerTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -45,19 +43,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class S3ManagerTest extends AbstractManagerTest {
 
-    @Autowired
-    private S3Manager s3Manager;
-
     private static final String TEST_URL = "s3://bucket/file.bam";
     private static final String TEST_SIGNED_URL =
             "https://bucket.s3.eu-central-1.amazonaws.com/file.bam?X-Amz-Algorithm";
 
-    @Value("#{catgenome['path.style.access.enabled'] ?: false}")
-    private boolean pathStyleAccessEnabled;
-
     @Test
     public void testGenerateUrl() throws MalformedURLException {
-        s3Manager = Mockito.spy(S3Manager.class);
+        S3Manager s3Manager = Mockito.spy(S3Manager.class);
         AmazonS3 mockClient = Mockito.mock(AmazonS3.class);
         Mockito.doReturn(new URL(TEST_SIGNED_URL))
                 .when(mockClient)
@@ -68,15 +60,6 @@ public class S3ManagerTest extends AbstractManagerTest {
         Mockito.doReturn(mockClient).when(s3Manager).getClient();
         String result = s3Manager.generateSingedUrl(TEST_URL);
         assertEquals(TEST_SIGNED_URL, result);
-    }
-
-    @Test
-    public void testEnablePathStyle() {
-        String result = s3Manager.generateSingedUrl(TEST_URL);
-        if (pathStyleAccessEnabled) {
-            assertTrue(result.startsWith("https://s3."));
-        }
-        assertTrue(result.startsWith("https://bucket"));
     }
 
 

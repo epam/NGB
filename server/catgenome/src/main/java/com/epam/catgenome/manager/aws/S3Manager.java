@@ -49,7 +49,6 @@ public class S3Manager {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Manager.class);
     private static final String S3_SCHEME = "s3://";
     private static final String DELIMITER = "/";
-    //in minutes
     private static final int S3_LINK_EXPIRATION = 60;
 
     @Value("#{catgenome['path.style.access.enabled'] ?: false}")
