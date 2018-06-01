@@ -286,6 +286,7 @@ public class VcfManager {
         throws VcfReadingException {
         Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
 
+        LOGGER.debug("File url is" + fileUrl);
         VcfFile notRegisteredFile = makeTemporaryVcfFileFromUrl(fileUrl, indexUrl, chromosome);
 
         if (track.getType() == null) {
@@ -489,7 +490,8 @@ public class VcfManager {
     private VcfFile makeTemporaryVcfFileFromUrl(String fileUrl, String indexUrl, Chromosome chromosome)
             throws VcfReadingException {
         try {
-            return Utils.createNonRegisteredFile(VcfFile.class, s3Manager.processUrl(fileUrl), s3Manager.processUrl(indexUrl), chromosome);
+            return Utils.createNonRegisteredFile(VcfFile.class,
+                    s3Manager.processUrl(fileUrl), s3Manager.processUrl(indexUrl), chromosome);
         } catch (InvocationTargetException e) {
             throw new VcfReadingException(fileUrl, e);
         }

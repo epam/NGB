@@ -31,17 +31,10 @@ import java.net.URL;
 import java.util.Date;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.epam.catgenome.common.AbstractManagerTest;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class S3ManagerTest extends AbstractManagerTest {
+public class S3ManagerTest {
 
     private static final String TEST_URL = "s3://bucket/file.bam";
     private static final String TEST_SIGNED_URL =

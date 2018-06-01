@@ -427,7 +427,8 @@ public class GffManager {
         final Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
         GeneFile geneFile;
         try {
-            geneFile = Utils.createNonRegisteredFile(GeneFile.class, s3Manager.processUrl(fileUrl), s3Manager.processUrl(indexUrl), chromosome);
+            geneFile = Utils.createNonRegisteredFile(GeneFile.class,
+                    s3Manager.processUrl(fileUrl), s3Manager.processUrl(indexUrl), chromosome);
         } catch (InvocationTargetException e) {
             throw new GeneReadingException(track, e);
         }

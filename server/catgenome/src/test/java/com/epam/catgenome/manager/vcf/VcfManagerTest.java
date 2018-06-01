@@ -177,6 +177,11 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
+    @Spy
+    @Autowired
+    private S3Manager s3Manager;
+
+
     private static final int TEST_END_INDEX = 187708306;
 
     private static final double TEST_SMALL_SCALE_FACTOR = 0.000007682737;

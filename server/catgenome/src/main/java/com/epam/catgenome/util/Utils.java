@@ -26,7 +26,6 @@ package com.epam.catgenome.util;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Date;
 import java.util.Map;
 import java.util.stream.Collectors;
 

@@ -253,7 +253,8 @@ public class BamHelper {
     public BamFile makeUrlBamFile(String bamUrl, String bamIndexUrl, Chromosome chromosome)
             throws FeatureFileReadingException {
         try {
-            return Utils.createNonRegisteredFile(BamFile.class, s3Manager.processUrl(bamUrl), s3Manager.processUrl(bamIndexUrl), chromosome);
+            return Utils.createNonRegisteredFile(BamFile.class, s3Manager.processUrl(bamUrl),
+                    s3Manager.processUrl(bamIndexUrl), chromosome);
         } catch (InvocationTargetException e) {
             throw new FeatureFileReadingException(bamUrl, e);
         }
@@ -509,7 +510,8 @@ public class BamHelper {
         Assert.notNull(bucket, getMessage(MessagesConstants.ERROR_S3_BUCKET));
         final AmazonS3 s3Client = new AmazonS3Client(new BasicAWSCredentials(bucket.getAccessKeyId(),
                 bucket.getSecretAccessKey()));
-        return samInputResource.index(s3Client.generatePresignedUrl(bucket.getBucketName(), indexFile.getPath(), s3Manager.getTimeForS3URL()));
+        return samInputResource.index(s3Client.generatePresignedUrl(bucket.getBucketName(), indexFile.getPath(),
+                s3Manager.getTimeForS3URL()));
     }
 
     private SamInputResource loadFile(final BamFile bamFile)

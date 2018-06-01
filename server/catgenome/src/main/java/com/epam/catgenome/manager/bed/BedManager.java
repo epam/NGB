@@ -166,7 +166,8 @@ public class BedManager {
 
         BedFile nonRegisteredFile;
         try {
-            nonRegisteredFile = Utils.createNonRegisteredFile(BedFile.class, s3Manager.processUrl(fileUrl), s3Manager.processUrl(indexUrl), chromosome);
+            nonRegisteredFile = Utils.createNonRegisteredFile(BedFile.class,
+                    s3Manager.processUrl(fileUrl), s3Manager.processUrl(indexUrl), chromosome);
         } catch (InvocationTargetException  e) {
             throw new FeatureFileReadingException(fileUrl, e);
         }
