@@ -52,7 +52,6 @@ import com.epam.catgenome.entity.bam.BamTrackMode;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.FeatureFileReadingException;
-import com.epam.catgenome.manager.aws.S3Manager;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFlag;
 import htsjdk.samtools.SAMRecord;
@@ -138,9 +137,6 @@ public class BamHelper {
 
     @Autowired
     private ReferenceManager referenceManager;
-
-    @Autowired
-    private S3Manager s3Manager;
 
     /*@Value("#{catgenome['bam.max.reads.count'] ?: 500000}")
     private int maxReadsCount;*/
@@ -253,8 +249,7 @@ public class BamHelper {
     public BamFile makeUrlBamFile(String bamUrl, String bamIndexUrl, Chromosome chromosome)
             throws FeatureFileReadingException {
         try {
-            return Utils.createNonRegisteredFile(BamFile.class, s3Manager.processUrl(bamUrl),
-                    s3Manager.processUrl(bamIndexUrl), chromosome);
+            return Utils.createNonRegisteredFile(BamFile.class, bamUrl, bamIndexUrl, chromosome);
         } catch (InvocationTargetException e) {
             throw new FeatureFileReadingException(bamUrl, e);
         }
@@ -511,7 +506,7 @@ public class BamHelper {
         final AmazonS3 s3Client = new AmazonS3Client(new BasicAWSCredentials(bucket.getAccessKeyId(),
                 bucket.getSecretAccessKey()));
         return samInputResource.index(s3Client.generatePresignedUrl(bucket.getBucketName(), indexFile.getPath(),
-                s3Manager.getTimeForS3URL()));
+                Utils.getTimeForS3URL()));
     }
 
     private SamInputResource loadFile(final BamFile bamFile)
@@ -548,7 +543,7 @@ public class BamHelper {
         final AmazonS3 s3Client = new AmazonS3Client(new BasicAWSCredentials(bucket.getAccessKeyId(),
                 bucket.getSecretAccessKey()));
         return SamInputResource.of(s3Client.generatePresignedUrl(bucket.getBucketName(), bamFile.getPath(),
-                s3Manager.getTimeForS3URL()));
+                Utils.getTimeForS3URL()));
     }
 
     private SamReader openSamReaderResource(final SamInputResource inputResource,

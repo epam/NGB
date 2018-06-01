@@ -26,6 +26,7 @@ package com.epam.catgenome.util;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Date;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -48,8 +49,11 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.epam.catgenome.manager.aws.S3Manager.generateSignedUrl;
 
 /**
  * Source:      Utils.java
@@ -68,6 +72,8 @@ public final class Utils {
     private static final String DELIMITER = "/";
     private static final String GZ_EXTENSION = ".gz";
 
+    private static final int S3_LINK_EXPIRATION = 60;
+    private static final String S3_SCHEME = "s3://";
 
     private Utils() {
         // no operations by default
@@ -99,6 +105,13 @@ public final class Utils {
                 ? fn : fn.substring(0, fn.length() - ext.length()).trim();
     }
 
+    /**
+     * Makes time for S3 URL access
+     * @return a {@link Date} object, representing time for S3 URL access
+     */
+    public static Date getTimeForS3URL() {
+        return DateUtils.addMinutes(new Date(), S3_LINK_EXPIRATION);
+    }
 
     /**
      * @return current system time in milliseconds
@@ -375,18 +388,24 @@ public final class Utils {
             InvocationTargetException e) {
             throw new InvocationTargetException(e, "Cannot instantiate object of class " + c);
         }
-        notRegisteredFile.setPath(fileUrl);
+        notRegisteredFile.setPath(processUrl(fileUrl));
         notRegisteredFile.setCompressed(false);
         notRegisteredFile.setType(BiologicalDataItemResourceType.getTypeFromPath(fileUrl));
         notRegisteredFile.setReferenceId(chromosome.getReferenceId());
 
         BiologicalDataItem index = new BiologicalDataItem();
         index.setType(BiologicalDataItemResourceType.getTypeFromPath(indexUrl));
-        index.setPath(indexUrl);
+        index.setPath(processUrl(indexUrl));
         notRegisteredFile.setIndex(index);
         return notRegisteredFile;
     }
 
+    public static String processUrl(String inputUrl) {
+        if (!inputUrl.startsWith(S3_SCHEME)) {
+            return inputUrl;
+        }
+        return generateSignedUrl(inputUrl);
+    }
 
     public static Map<String, Chromosome> makeChromosomeMap(Reference reference) {
         return reference.getChromosomes().stream().collect(

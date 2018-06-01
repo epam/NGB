@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.manager.bed.parser.NggbBedCodec;
-import com.epam.catgenome.manager.aws.S3Manager;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import org.apache.commons.io.FilenameUtils;
@@ -115,8 +114,6 @@ public class BedManager {
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
-    @Autowired
-    private S3Manager s3Manager;
 
     private static final Logger LOG = LoggerFactory.getLogger(BedManager.class);
 
@@ -166,8 +163,7 @@ public class BedManager {
 
         BedFile nonRegisteredFile;
         try {
-            nonRegisteredFile = Utils.createNonRegisteredFile(BedFile.class,
-                    s3Manager.processUrl(fileUrl), s3Manager.processUrl(indexUrl), chromosome);
+            nonRegisteredFile = Utils.createNonRegisteredFile(BedFile.class, fileUrl, indexUrl, chromosome);
         } catch (InvocationTargetException  e) {
             throw new FeatureFileReadingException(fileUrl, e);
         }
