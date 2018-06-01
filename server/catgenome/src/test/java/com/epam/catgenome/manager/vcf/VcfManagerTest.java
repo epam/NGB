@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.manager.aws.S3Manager;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.tribble.TribbleException;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -181,7 +182,6 @@ public class VcfManagerTest extends AbstractManagerTest {
     @Autowired
     private S3Manager s3Manager;
 
-
     private static final int TEST_END_INDEX = 187708306;
 
     private static final double TEST_SMALL_SCALE_FACTOR = 0.000007682737;
@@ -223,6 +223,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(fileManager);
         Assert.assertNotNull(trackHelper);
         Assert.assertNotNull(indexCache);
+        Assert.assertNotNull(s3Manager);
 
         testChromosome = EntityHelper.createNewChromosome();
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
