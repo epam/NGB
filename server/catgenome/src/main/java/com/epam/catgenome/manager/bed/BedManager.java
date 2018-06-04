@@ -114,6 +114,7 @@ public class BedManager {
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
+
     private static final Logger LOG = LoggerFactory.getLogger(BedManager.class);
 
     /**

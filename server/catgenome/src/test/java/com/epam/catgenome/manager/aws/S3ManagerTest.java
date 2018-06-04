@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.util.aws;
+package com.epam.catgenome.manager.aws;
 
 import static org.junit.Assert.*;
 
@@ -32,11 +32,8 @@ import java.util.Date;
 
 import com.amazonaws.services.s3.AmazonS3;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 public class S3ManagerTest {
 
     private static final String TEST_URL = "s3://bucket/file.bam";
@@ -45,8 +42,8 @@ public class S3ManagerTest {
 
     @Test
     public void testGenerateUrl() throws MalformedURLException {
-        AmazonS3 mockClient = Mockito.mock(AmazonS3.class);
         S3Manager s3Manager = Mockito.spy(S3Manager.class);
+        AmazonS3 mockClient = Mockito.mock(AmazonS3.class);
         Mockito.doReturn(new URL(TEST_SIGNED_URL))
                 .when(mockClient)
                 .generatePresignedUrl(
@@ -57,5 +54,6 @@ public class S3ManagerTest {
         String result = s3Manager.generateSingedUrl(TEST_URL);
         assertEquals(TEST_SIGNED_URL, result);
     }
+
 
 }

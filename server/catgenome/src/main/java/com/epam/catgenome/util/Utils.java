@@ -39,7 +39,6 @@ import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.track.Block;
 import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.util.aws.S3Manager;
 import htsjdk.samtools.util.CloseableIterator;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.Feature;
@@ -53,6 +52,8 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.epam.catgenome.manager.aws.S3Manager.generateSignedUrl;
 
 /**
  * Source:      Utils.java
@@ -70,9 +71,9 @@ public final class Utils {
     private static final int RESULT_HASH_SIZE = 6;
     private static final String DELIMITER = "/";
     private static final String GZ_EXTENSION = ".gz";
-    private static final String S3_SCHEME = "s3://";
-    //in minutes
+
     private static final int S3_LINK_EXPIRATION = 60;
+    private static final String S3_SCHEME = "s3://";
 
     private Utils() {
         // no operations by default
@@ -403,7 +404,7 @@ public final class Utils {
         if (!inputUrl.startsWith(S3_SCHEME)) {
             return inputUrl;
         }
-        return new S3Manager().generateSingedUrl(inputUrl);
+        return generateSignedUrl(inputUrl);
     }
 
     public static Map<String, Chromosome> makeChromosomeMap(Reference reference) {
