@@ -265,7 +265,8 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
 
     private void refreshHeadReferenceBuffer(final int start) throws IOException {
         if (mode == BamTrackMode.FULL) {
-            final int helpMin = min - ((min - start) / Constants.REFERENCE_STEP + 1) * Constants.REFERENCE_STEP;
+            final int helpMin = (start <= 0) ? 1
+                    : min - ((min - start) / Constants.REFERENCE_STEP + 1) * Constants.REFERENCE_STEP;
             referenceBuffer.addHead(referenceManager.getSequenceString(helpMin, min - 1, refID, chromosomeName)
                     .toUpperCase());
             min = helpMin;
