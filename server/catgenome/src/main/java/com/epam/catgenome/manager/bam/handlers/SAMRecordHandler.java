@@ -37,6 +37,7 @@ import com.epam.catgenome.entity.bam.BamTrackMode;
 import com.epam.catgenome.entity.bam.BaseCoverage;
 import com.epam.catgenome.entity.bam.BasePosition;
 import com.epam.catgenome.entity.bam.SpliceJunctionsEntity;
+import com.epam.catgenome.exception.SamAlignmentException;
 import com.epam.catgenome.manager.bam.filters.Filter;
 import com.epam.catgenome.manager.bam.sifters.DownsamplingSifter;
 import com.epam.catgenome.manager.reference.ReferenceManager;
@@ -434,12 +435,17 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
 
         private void processMatch(List<BasePosition> basePositions, int cigarLength) {
             for (int j = 0; j < cigarLength; j++) {
-                if (bufferBase != null && bufferBase.charAt(bias) != upperReadString.charAt(position)) {
-                    basePositions.add(
-                            new BasePosition(position + corrector, upperReadString.charAt(position)));
-                    addBaseCoverage(upperReadString.charAt(position),
-                            startReadPosition + position + corrector);
-                    //add to the coverage array (c/a/t/g/n)
+                try {
+                    if (bufferBase != null && bufferBase.charAt(bias) != upperReadString.charAt(position)) {
+                        basePositions.add(
+                                new BasePosition(position + corrector, upperReadString.charAt(position)));
+                        addBaseCoverage(upperReadString.charAt(position),
+                                startReadPosition + position + corrector);
+                        //add to the coverage array (c/a/t/g/n)
+                    }
+                } catch (StringIndexOutOfBoundsException e) {
+                    //add +1 for better readability
+                    throw new SamAlignmentException("Read contains match that falls out of reference at position " + (bias + 1), e.getCause());
                 }
                 bias++;
                 position++;
