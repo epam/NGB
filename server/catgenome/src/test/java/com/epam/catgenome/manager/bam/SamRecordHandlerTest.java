@@ -34,7 +34,6 @@ import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.entity.bam.BamQueryOption;
 import com.epam.catgenome.entity.bam.BamTrackMode;
 import com.epam.catgenome.entity.bam.TrackDirectionType;
-import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.manager.bam.filters.Filter;
 import com.epam.catgenome.manager.bam.filters.MiddleSAMRecordFilter;
@@ -45,6 +44,7 @@ import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordSetBuilder;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,6 +60,10 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class SamRecordHandlerTest extends AbstractManagerTest {
+
+    private final long timeout = 100_000L;
+    private final int endTrack = 120;
+    private final int readLength = 75;
 
     @Autowired
     ApplicationContext context;
@@ -77,16 +81,14 @@ public class SamRecordHandlerTest extends AbstractManagerTest {
 
     private Resource resource;
     private String chromosomeName = "X";
-    private Reference testReference;
-    private Chromosome testChromosome;
     private BamQueryOption options;
     private Filter<SAMRecord> filter;
+    private SAMRecordHandler recordHandler;
 
     @Before
     public void setup() throws IOException {
         resource = context.getResource("classpath:templates");
         File fastaFile = new File(resource.getFile().getAbsolutePath() + TEST_REF_NAME);
-        System.out.println(fastaFile.getAbsolutePath());
 
         ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
         request.setName(TEST_REF_NAME + biologicalDataItemDao.createBioItemId());
@@ -94,25 +96,15 @@ public class SamRecordHandlerTest extends AbstractManagerTest {
 
         taskExecutorService.setForceSequential(true);
 
-        testReference = referenceManager.registerGenome(request);
+        Reference testReference = referenceManager.registerGenome(request);
 
         options = new BamQueryOption();
-        options.setShowClipping(true);
-        options.setShowSpliceJunction(true);
         options.setTrackDirection(TrackDirectionType.MIDDLE);
         options.setMode(BamTrackMode.FULL);
-        options.setFrame(50);
-        options.setCount(10000);
-        options.setFilterNotPrimary(false);
-        options.setFilterVendorQualityFail(true);
-        options.setFilterDuplicate(true);
-        options.setFilterSupplementaryAlignment(false);
-        options.setRefID(1L);
-        options.setChromosomeName("X");
-        options.setDownSampling(false);
+        options.setRefID(testReference.getId());
+        options.setChromosomeName(chromosomeName);
 
-        Long timeout = 100_000L;
-        ResponseBodyEmitter emitter = new ResponseBodyEmitter(timeout);
+        ResponseBodyEmitter emitter = new ResponseBodyEmitter(this.timeout);
         BamTrackEmitter trackEmitter = new BamTrackEmitter(emitter);
         DownsamplingSifter<SAMRecord> sifter = new FullResultSifter(false, trackEmitter);
         filter = new MiddleSAMRecordFilter(sifter);
@@ -120,19 +112,18 @@ public class SamRecordHandlerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void addTest() throws IOException {
+    public void addSoftClipsBeyondLowerBorderTest() throws IOException {
 
-        int startTrack = 1;
-        int endTrack = 120;
-
-        SAMRecordHandler recordHandler = new SAMRecordHandler(startTrack, endTrack, referenceManager, filter, options);
+        recordHandler = new SAMRecordHandler(1, endTrack, referenceManager, filter, options);
 
         final SAMRecordSetBuilder set = new SAMRecordSetBuilder();
-        set.setReadLength(75);
+        set.setReadLength(readLength);
         final SAMRecord rec1 = set.addFrag("read1", 0, 2, false, false, "6S69M", "*", 151);
         final SAMRecord rec2 = set.addFrag("read2", 0, 30, false, false, "75M", "*", 151);
 
         recordHandler.add(rec1);
         recordHandler.add(rec2);
+
+        Assert.assertEquals(2, recordHandler.getSifter().getFilteredReadsCount());
     }
 }
