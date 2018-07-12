@@ -445,7 +445,9 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
                     }
                 } catch (StringIndexOutOfBoundsException e) {
                     //add +1 for better readability
-                    throw new SamAlignmentException("Read contains match that falls out of reference at position " + (bias + 1), e.getCause());
+                    throw new SamAlignmentException(
+                            "Read contains match that falls out of reference at position " + (bias + 1), e.getCause()
+                    );
                 }
                 bias++;
                 position++;
