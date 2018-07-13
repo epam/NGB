@@ -65,6 +65,7 @@ public class SamRecordHandlerTest extends AbstractManagerTest {
     private final long timeout = 100_000L;
     private final int endTrack = 120;
     private final int readLength = 75;
+    private final String chromosomeName = "X";
 
     @Autowired
     ApplicationContext context;
@@ -81,10 +82,10 @@ public class SamRecordHandlerTest extends AbstractManagerTest {
     private static final String TEST_REF_NAME = "//Test2.fa";
 
     private Resource resource;
-    private String chromosomeName = "X";
     private BamQueryOption options;
     private Filter<SAMRecord> filter;
     private SAMRecordHandler recordHandler;
+    private SAMRecordSetBuilder set;
 
     @Before
     public void setup() throws IOException {
@@ -109,16 +110,17 @@ public class SamRecordHandlerTest extends AbstractManagerTest {
         BamTrackEmitter trackEmitter = new BamTrackEmitter(emitter);
         DownsamplingSifter<SAMRecord> sifter = new FullResultSifter(false, trackEmitter);
         filter = new MiddleSAMRecordFilter(sifter);
+
+        recordHandler = new SAMRecordHandler(1, endTrack, referenceManager, filter, options);
+
+        set = new SAMRecordSetBuilder();
+        set.setReadLength(readLength);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void addSoftClipsBeyondLowerBorderTest() throws IOException {
 
-        recordHandler = new SAMRecordHandler(1, endTrack, referenceManager, filter, options);
-
-        final SAMRecordSetBuilder set = new SAMRecordSetBuilder();
-        set.setReadLength(readLength);
         final SAMRecord rec1 = set.addFrag("read1", 0, 2, false, false, "6S69M", "*", 151);
         final SAMRecord rec2 = set.addFrag("read2", 0, 30, false, false, "75M", "*", 151);
 
@@ -132,10 +134,6 @@ public class SamRecordHandlerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void matchBeyondReferenceTest() throws IOException {
 
-        recordHandler = new SAMRecordHandler(1, endTrack, referenceManager, filter, options);
-
-        final SAMRecordSetBuilder set = new SAMRecordSetBuilder();
-        set.setReadLength(readLength);
         final SAMRecord rec = set.addFrag("read3", 0, 100, false, false, "75M", "*", 151);
 
         recordHandler.add(rec);
