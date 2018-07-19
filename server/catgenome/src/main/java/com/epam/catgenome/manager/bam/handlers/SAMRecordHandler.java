@@ -435,22 +435,24 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
 
         private void processMatch(List<BasePosition> basePositions, int cigarLength) {
             for (int j = 0; j < cigarLength; j++) {
-                try {
-                    if (bufferBase != null && bufferBase.charAt(bias) != upperReadString.charAt(position)) {
-                        basePositions.add(
-                                new BasePosition(position + corrector, upperReadString.charAt(position)));
-                        addBaseCoverage(upperReadString.charAt(position),
-                                startReadPosition + position + corrector);
-                        //add to the coverage array (c/a/t/g/n)
-                    }
-                } catch (StringIndexOutOfBoundsException e) {
-                    //add +1 for better readability
-                    throw new SamAlignmentException(
-                            "Read contains match that falls out of reference at position " + (bias + 1), e.getCause()
+                checkIfBiasOutOfBound();
+                if (bufferBase != null && bufferBase.charAt(bias) != upperReadString.charAt(position)) {
+                    basePositions.add(
+                            new BasePosition(position + corrector, upperReadString.charAt(position))
                     );
+                    addBaseCoverage(upperReadString.charAt(position), startReadPosition + position + corrector);
+                    //add to the coverage array (c/a/t/g/n)
                 }
                 bias++;
                 position++;
+            }
+        }
+
+        private void checkIfBiasOutOfBound() {
+            if (0 > bias || bias >= endTrack) {
+                //add +1 for better readability
+                throw new SamAlignmentException(
+                        "Read contains match that falls out of reference at position " + (bias + 1));
             }
         }
 
