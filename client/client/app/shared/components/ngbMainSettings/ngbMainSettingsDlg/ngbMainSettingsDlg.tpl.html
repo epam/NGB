@@ -182,12 +182,13 @@
                                     <input name="alleleFrequencyThresholdBam"
                                            type="number"
                                            required
-                                           placeholder="allele frequency threshold(%)"
+                                           placeholder="allele frequency threshold"
                                            ng-model="ctrl.settings.alleleFrequencyThresholdBam"
+                                           step="0.01"
                                            ng-min="0"
-                                           ng-max="100"/>
+                                           ng-max="1"/>
                                     <div ng-messages="settingsForm.alleleFrequencyThresholdBam.$error" role="alert">
-                                        <div ng-message="required,min,max">Enter allele frequency threshold (%).</div>
+                                        <div ng-message="required,min,max">Enter allele frequency threshold.</div>
                                     </div>
                                 </md-input-container>
                             </div>

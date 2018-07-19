@@ -51,7 +51,7 @@ export default class BamReadsCoverageTransformer extends WIGTransformer {
         super.transformItem(item);
         if (item.isTransformed)
             return;
-        const highlightThreshold = this.alleleFrequencyThresholdBam / 100;
+        const highlightThreshold = this.alleleFrequencyThresholdBam;
         item.aCov = item.aCov || 0;
         item.cCov = item.cCov || 0;
         item.gCov = item.gCov || 0;
