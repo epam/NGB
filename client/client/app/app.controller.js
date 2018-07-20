@@ -53,6 +53,7 @@ export default class ngbAppController extends baseController {
                 }
             });
         }
+        this.emitReady();
     }
 
     events = {
@@ -147,7 +148,14 @@ export default class ngbAppController extends baseController {
         }
     }
 
-    _apiResponse(params, callerId) {
+    emitReady() {
+        this._apiResponse({
+            isSuccessful: true,
+            message: 'ready',
+        });
+    }
+
+    _apiResponse(params, callerId = null) {
         params.callerId = callerId;
         if (window.location !== window.parent.location) {
             window.parent.postMessage(params, '*');

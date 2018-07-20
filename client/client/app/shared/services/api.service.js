@@ -42,30 +42,25 @@ export default class ngbApiService {
     }
 
     /** returns a Promise */
-    loadDataSet(id, forceSwitchRef = false) {
+    async loadDataSet(id, forceSwitchRef = false) {
         let datasets = this.projectContext.datasets;
         if (!datasets || datasets.length === 0) {
-            this.projectContext.refreshDatasets().then(async () => {
-                datasets = await this.ngbDataSetsService.getDatasets();
-                const [item] = datasets.filter(m => m.id === id);
-                if (!item) {
-                    return new Promise((resolve) => {
-                        resolve({
-                            message: `No dataset with id = ${id}`,
-                            isSuccessful: false
-                        });
-                    });
-                }
-                return this._select(item, true, datasets, forceSwitchRef);
-            })
+            await this.projectContext.refreshDatasets();
+            datasets = await this.ngbDataSetsService.getDatasets();
+            const [item] = datasets.filter(m => m.id === id);
+            if (!item) {
+                return Promise.resolve({
+                    isSuccessful: false,
+                    message: `No dataset with id = ${id}`
+                });
+            }
+            return this._select(item, true, datasets, forceSwitchRef);
         } else {
             const [item] = datasets.filter(m => m.id === id);
             if (!item) {
-                return new Promise((resolve) => {
-                    resolve({
-                        message: `No dataset with id = ${id}`,
-                        isSuccessful: false
-                    });
+                return Promise.resolve({
+                    isSuccessful: false,
+                    message: `No dataset with id = ${id}`
                 });
             }
             return this._select(item, true, datasets, forceSwitchRef);
