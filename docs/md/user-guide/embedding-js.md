@@ -4,7 +4,14 @@ NGB could be embedded into 3rd paty web application using an iFrame approach. De
 
 Communication with NGB window implemented with [postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage "MDN web docks"), that is safely enables cross-origin communication.
 
-You can start using postMessage when NGB window loaded
+When loaded NGB will send postMessage to `window.parent`/`window.opener` with following response:
+```javascript
+{
+    isSuccessful: true,
+    message: 'ready'
+}
+```
+Once you receive that response, it is safe to start using postMessage with NGB
 
 Common request structure:
 ```javascript
