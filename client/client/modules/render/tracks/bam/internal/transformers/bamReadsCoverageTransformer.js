@@ -59,7 +59,7 @@ export default class BamReadsCoverageTransformer extends WIGTransformer {
         item.tCov = item.tCov || 0;
 
         item.totalMismatches = item.aCov + item.cCov + item.gCov + item.tCov + item.nCov;
-        item.isHighlightedLocus = (item.value - item.totalMismatches) / item.value >= highlightThreshold;
+        item.isHighlightedLocus = 1 - ((item.value - item.totalMismatches) / item.value) >= highlightThreshold;
         item.isTransformed = true;
         const locusLetter = this._bamCache.getReferenceValueAtLocus(item.startIndex);
         let locusInfo = {
