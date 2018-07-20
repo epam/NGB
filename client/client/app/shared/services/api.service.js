@@ -1,5 +1,5 @@
-import {stringParseInt} from '../utils/Int';
 import {Node} from '../../components/ngbDataSets/internal';
+import {stringParseInt} from '../utils/Int';
 
 export default class ngbApiService {
 
@@ -28,12 +28,12 @@ export default class ngbApiService {
 
     constructor($state, projectContext, ngbDataSetsService, $mdDialog, localDataService, dispatcher) {
         Object.assign(this, {
-            $state,
-            projectContext,
-            ngbDataSetsService,
             $mdDialog,
+            $state,
+            dispatcher,
             localDataService,
-            dispatcher
+            ngbDataSetsService,
+            projectContext,
         });
         (async () => {
             await this.projectContext.refreshReferences(true);
@@ -70,8 +70,8 @@ export default class ngbApiService {
     navigateToCoordinate(coordinates) {
         if (!this.projectContext.tracks.length) {
             return {
-                message: 'No tracks selected.',
-                isSuccessful: false
+                isSuccessful: false,
+                message: 'No tracks selected.'
             };
         }
 
@@ -87,13 +87,13 @@ export default class ngbApiService {
                 [start, end] = [1, this.projectContext.currentChromosome.size];
                 this.projectContext.changeState({viewport: {end, start}});
                 return {
-                    message: 'Ok',
-                    isSuccessful: true
+                    isSuccessful: true,
+                    message: 'Ok'
                 };
             }
             return {
-                message: 'No coordinates provided',
-                isSuccessful: false
+                isSuccessful: false,
+                message: 'No coordinates provided'
             };
         }
 
@@ -136,8 +136,8 @@ export default class ngbApiService {
 
         if (!chr) {
             return {
-                message: 'No chromosome found',
-                isSuccessful: false
+                isSuccessful: false,
+                message: 'No chromosome found'
             };
         }
 
@@ -164,8 +164,8 @@ export default class ngbApiService {
         this.projectContext.changeState({chromosome: {name: chr.name}, position, viewport});
 
         return {
-            message: 'Success.',
-            isSuccessful: true
+            isSuccessful: true,
+            message: 'Success.'
         };
 
     }
@@ -176,8 +176,8 @@ export default class ngbApiService {
         this.localDataService.updateSettings(settings);
         this.dispatcher.emitGlobalEvent('settings:change', settings);
         return {
-            message: 'Ok',
-            isSuccessful: true
+            isSuccessful: true,
+            message: 'Ok'
         };
     }
 
@@ -196,33 +196,33 @@ export default class ngbApiService {
             if (isSelectedTrack) {
                 this.dispatcher.emitGlobalEvent('trackSettings:change', params);
                 return {
-                    message: 'Ok',
-                    isSuccessful: true
+                    isSuccessful: true,
+                    message: 'Ok'
                 };
             } else {
                 return {
-                    message: 'No selected tracks found with id specified.',
-                    isSuccessful: false
+                    isSuccessful: false,
+                    message: 'No selected tracks found with id specified.'
                 };
             }
         } else {
             return {
-                message: 'No track id',
-                isSuccessful: false
+                isSuccessful: false,
+                message: 'No track id'
             };
         }
     }
 
     /** returns a Promise */
     toggleSelectTrack(params) {
-        let forceSwitchRef = params.forceSwitchRef ? params.forceSwitchRef : false;
+        const forceSwitchRef = params.forceSwitchRef ? params.forceSwitchRef : false;
         if (params.track) {
             return this._selectTrackById(params.track, forceSwitchRef);
         } else {
             return new Promise((resolve) => {
                 resolve({
-                    message: 'No tracks ids specified.',
-                    isSuccessful: false
+                    isSuccessful: false,
+                    message: 'No tracks ids specified.'
                 });
             });
         }
@@ -230,29 +230,29 @@ export default class ngbApiService {
 
     /** returns a Promise */
     loadTracks(params) {
-        let forceSwitchRef = params.forceSwitchRef ? params.forceSwitchRef : false;
+        const forceSwitchRef = params.forceSwitchRef ? params.forceSwitchRef : false;
 
         if (!params.tracks || !params.referenceId) {
             return new Promise((resolve) => {
                 resolve({
-                    message: 'Not enough params specified',
                     isSuccessful: false,
+                    message: 'Not enough params specified',
                 });
             });
         }
 
-        let [chosenReference] = this.references.filter(r => r.id === params.referenceId);
+        const [chosenReference] = this.references.filter(r => r.id === params.referenceId);
 
         if (!chosenReference) {
             return new Promise((resolve) => {
                 resolve({
-                    message: 'Reference not found',
                     isSuccessful: false,
+                    message: 'Reference not found',
                 });
             });
         }
 
-        let switchingReference = this.projectContext.reference && this.projectContext.reference.id !== +chosenReference.id;
+        const switchingReference = this.projectContext.reference && this.projectContext.reference.id !== +chosenReference.id;
 
         if (!forceSwitchRef && switchingReference) {
             const confirm = this.$mdDialog.confirm()
@@ -262,14 +262,12 @@ export default class ngbApiService {
                 .ok('OK')
                 .cancel('Cancel');
 
-            return this.$mdDialog.show(confirm).then(() => {
-                return this._processTracks(params.tracks, chosenReference);
-            }).catch(() => {
-                return {
-                    message: 'Aborted by user',
-                    isSuccessful: false
-                };
-            });
+            return this.$mdDialog.show(confirm)
+                .then(() => this._processTracks(params.tracks, chosenReference))
+                .catch(() => ({
+                    isSuccessful: false,
+                    message: 'Aborted by user'
+                }));
         } else {
             return new Promise((resolve) => {
                 resolve(this._processTracks(params.tracks, chosenReference));
@@ -280,34 +278,35 @@ export default class ngbApiService {
     setToken(token){
         localStorage.setItem('token', token);
         return {
-            message: 'Ok',
-            isSuccessful: true
+            isSuccessful: true,
+            message: 'Ok'
         };
     }
 
     _processTracks(tracks, chosenReference) {
-        let errors = [], selectedItems;
+        const errors = [];
 
-        selectedItems = (tracks || []).map(t => {
-            let shouldReturn = t.index ? true : !this._trackNeedsIndexFile(t);
+        const selectedItems = (tracks || []).map(t => {
+            const shouldReturn = t.index ? true : !this._trackNeedsIndexFile(t);
 
             if (shouldReturn) {
                 return {
+                    format: this._trackFormat(t),
                     index: t.index ? t.index : null,
+                    name: this._fileName(t),
                     path: t.path,
                     reference: chosenReference,
-                    format: this._trackFormat(t),
-                    name: this._fileName(t),
                 };
             } else {
                 errors.push(`Index file required for ${t.path}.`);
             }
-        });
+            return false;
+        }).filter(i => !!i);
 
         if (errors.length) {
             return {
-                message: errors.length ? errors.join(' | ') : 'Ok',
-                isSuccessful: !errors.length
+                isSuccessful: !errors.length,
+                message: errors.length ? errors.join(' | ') : 'Ok'
             };
         }
 
@@ -367,37 +366,33 @@ export default class ngbApiService {
     }
 
     _loadTracks(selectedFiles) {
-        const mapFn = (selectedFile) => {
-            return {
-                openByUrl: true,
-                isLocal: true,
-                format: selectedFile.format,
-                id: selectedFile.path,
-                bioDataItemId: selectedFile.path,
-                referenceId: selectedFile.reference.id,
-                reference: selectedFile.reference,
-                name: selectedFile.path,
-                indexPath: selectedFile.index,
-                projectId: selectedFile.reference.name
-            };
-        };
-        const mapTrackStateFn = (t) => {
-            return {
-                bioDataItemId: t.name,
-                name: t.name,
-                index: t.indexPath,
-                isLocal: true,
-                format: t.format,
-                projectId: t.projectId
-            };
-        };
-        let tracks = selectedFiles.map(mapFn).filter(
+        const mapFn = (selectedFile) => ({
+            bioDataItemId: selectedFile.path,
+            format: selectedFile.format,
+            id: selectedFile.path,
+            indexPath: selectedFile.index,
+            isLocal: true,
+            name: selectedFile.path,
+            openByUrl: true,
+            projectId: selectedFile.reference.name,
+            reference: selectedFile.reference,
+            referenceId: selectedFile.reference.id,
+        });
+        const mapTrackStateFn = (t) => ({
+            bioDataItemId: t.name,
+            format: t.format,
+            index: t.indexPath,
+            isLocal: true,
+            name: t.name,
+            projectId: t.projectId
+        });
+        const tracks = selectedFiles.map(mapFn).filter(
             track => this.projectContext.tracks.filter(t => t.isLocal && t.name.toLowerCase() === track.name.toLowerCase()).length === 0);
 
         if (tracks.length === 0) {
             return {
-                message: 'Ok',
                 isSuccessful: true,
+                message: 'Ok',
             };
         }
 
@@ -420,8 +415,8 @@ export default class ngbApiService {
         }
 
         return {
-            message: 'Ok',
             isSuccessful: true,
+            message: 'Ok',
         };
     }
 
@@ -444,7 +439,7 @@ export default class ngbApiService {
     }
 
     _selectTrackById(id, forceSwitchRef = false) {
-        let datasets = this._getAllDataSets();
+        const datasets = this._getAllDataSets();
 
         const tracks = [];
         const findTrackFn = function (item: Node) {
@@ -479,7 +474,7 @@ export default class ngbApiService {
             };
             getTrackParents(selectedTrack);
 
-            trackParents.reverse().map(parent => {
+            trackParents.reverse().forEach(parent => {
                 if (parent) {
                     parent.__expanded = !parent.__expanded;
                     this.ngbDataSetsService.toggle(parent);
@@ -490,8 +485,8 @@ export default class ngbApiService {
         } else {
             return new Promise((resolve) => {
                 resolve({
-                    message: 'No tracks found with id specified.',
-                    isSuccessful: false
+                    isSuccessful: false,
+                    message: 'No tracks found with id specified.'
                 });
             });
         }
@@ -529,23 +524,21 @@ export default class ngbApiService {
                 this.ngbDataSetsService.selectItem(item, isSelected, tree);
 
                 return {
-                    message: 'Ok',
-                    isSuccessful: true
+                    isSuccessful: true,
+                    message: 'Ok'
                 };
-            }).catch(() => {
-                return {
-                    message: 'Aborted by user',
-                    isSuccessful: false
-                }
-            });
+            }).catch(() => ({
+                isSuccessful: false,
+                message: 'Aborted by user'
+            }));
 
         } else {
             return new Promise((resolve) => {
                 this.ngbDataSetsService.selectItem(item, isSelected, tree);
 
                 resolve({
-                    message: 'Ok',
-                    isSuccessful: true
+                    isSuccessful: true,
+                    message: 'Ok'
                 });
             });
         }

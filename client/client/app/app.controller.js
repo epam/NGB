@@ -47,7 +47,7 @@ export default class ngbAppController extends baseController {
         });
 
         if (window.addEventListener) {
-            window.addEventListener("message", (event) => {
+            window.addEventListener('message', (event) => {
                 if (!!event.data && typeof event.data === 'object' && !Array.isArray(event.data)) {
                     this._listener(event);
                 }
@@ -63,7 +63,7 @@ export default class ngbAppController extends baseController {
     _listener(event) {
         const callerId = event.data.callerId ? event.data.callerId : null;
         switch (event.data.method) {
-            case "loadDataSet":
+            case 'loadDataSet':
                 const id = parseInt(event.data.params && event.data.params.id ? event.data.params.id : null);
                 const forceSwitchRef = event.data.params && event.data.params.forceSwitchRef ? event.data.params.forceSwitchRef : false;
                 if (id) {
@@ -77,11 +77,11 @@ export default class ngbAppController extends baseController {
                     }, callerId);
                 }
                 break;
-            case "navigateToCoordinate":
+            case 'navigateToCoordinate':
                 const coordinates = event.data.params && event.data.params.coordinates ? event.data.params.coordinates : null;
                 this._apiResponse(this.apiService.navigateToCoordinate(coordinates), callerId);
                 break;
-            case "toggleSelectTrack":
+            case 'toggleSelectTrack':
                 if (event.data.params && event.data.params.track) {
                     this.apiService.toggleSelectTrack(event.data.params).then((response) => {
                         this._apiResponse(response, callerId);
@@ -93,7 +93,7 @@ export default class ngbAppController extends baseController {
                     }, callerId);
                 }
                 break;
-            case "loadTracks":
+            case 'loadTracks':
                 const tracks = event.data.params && event.data.params.tracks ? event.data.params.tracks : null,
                     mode = event.data.params && event.data.params.mode ? event.data.params.mode : null;
                 if (tracks && mode) {
@@ -107,7 +107,7 @@ export default class ngbAppController extends baseController {
                     }, callerId);
                 }
                 break;
-            case "setGlobalSettings":
+            case 'setGlobalSettings':
                 const globalSettingsParams = event.data.params;
                 if (globalSettingsParams) {
                     this._apiResponse(this.apiService.setGlobalSettings(globalSettingsParams), callerId);
@@ -118,7 +118,7 @@ export default class ngbAppController extends baseController {
                     }, callerId);
                 }
                 break;
-            case "setTrackSettings":
+            case 'setTrackSettings':
                 const trackSettingParams = event.data.params;
                 if (trackSettingParams) {
                     this._apiResponse(this.apiService.setTrackSettings(trackSettingParams), callerId);
@@ -129,7 +129,7 @@ export default class ngbAppController extends baseController {
                     }, callerId);
                 }
                 break;
-            case "setToken":
+            case 'setToken':
                 const token = event.data.params && event.data.params.token ? event.data.params.token : null;
                 if (token) {
                     this._apiResponse(this.apiService.setToken(token), callerId);
