@@ -51,7 +51,7 @@ export default class BamReadsCoverageTransformer extends WIGTransformer {
         super.transformItem(item);
         if (item.isTransformed)
             return;
-        const highlightThreshold = this.alleleFrequencyThresholdBam / 100;
+        const highlightThreshold = this.alleleFrequencyThresholdBam;
         item.aCov = item.aCov || 0;
         item.cCov = item.cCov || 0;
         item.gCov = item.gCov || 0;
@@ -59,7 +59,7 @@ export default class BamReadsCoverageTransformer extends WIGTransformer {
         item.tCov = item.tCov || 0;
 
         item.totalMismatches = item.aCov + item.cCov + item.gCov + item.tCov + item.nCov;
-        item.isHighlightedLocus = (item.value - item.totalMismatches) / item.value <= highlightThreshold;
+        item.isHighlightedLocus = 1 - ((item.value - item.totalMismatches) / item.value) >= highlightThreshold;
         item.isTransformed = true;
         const locusLetter = this._bamCache.getReferenceValueAtLocus(item.startIndex);
         let locusInfo = {
