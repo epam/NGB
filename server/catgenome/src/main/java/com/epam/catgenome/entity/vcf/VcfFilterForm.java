@@ -68,7 +68,7 @@ public class VcfFilterForm {
      * Additional fields to show in Variations table
      */
     private List<String> infoFields;
-
+    private List<String> vcfFilesName;
     private List<Long> vcfFileIds;
     private List<Long> chromosomeIds;
 
@@ -432,6 +432,14 @@ public class VcfFilterForm {
 
     public void setPointer(Pointer pointer) {
         this.pointer = pointer;
+    }
+
+    public List<String> getVcfFilesName() {
+        return vcfFilesName;
+    }
+
+    public void setVcfFilesName(List<String> vcfFileName) {
+        this.vcfFilesName = vcfFileName;
     }
 
     public static class FilterSection<T> {

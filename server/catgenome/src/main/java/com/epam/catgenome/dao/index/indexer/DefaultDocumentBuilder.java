@@ -42,6 +42,7 @@ public class DefaultDocumentBuilder extends AbstractDocumentBuilder {
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.CHROMOSOME_NAME.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.CHROMOSOME_ID.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.FILE_ID.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.SOURCE_FILE.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.FEATURE_ID.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.FEATURE_TYPE.getFieldName());

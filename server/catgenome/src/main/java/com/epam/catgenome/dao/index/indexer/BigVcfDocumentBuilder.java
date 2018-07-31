@@ -90,6 +90,8 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                 FeatureIndexFields.QUALITY.getFacetName());
         config.setIndexFieldName(FeatureIndexFields.IS_EXON.getFieldName(),
                 FeatureIndexFields.IS_EXON.getFacetName());
+        config.setIndexFieldName(FeatureIndexFields.SOURCE_FILE.getFieldName(),
+                FeatureIndexFields.SOURCE_FILE.getFacetName());
 
         info.getInfoItems().forEach(i -> config.setIndexFieldName(i.getName().toLowerCase(),
                 FeatureIndexFields.getFacetName(i.getName().toLowerCase())));
@@ -189,6 +191,7 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
         requiredFields.add(FeatureIndexFields.VARIATION_TYPE.getFieldName());
         requiredFields.add(FeatureIndexFields.IS_EXON.getFieldName());
         requiredFields.add(FeatureIndexFields.FAILED_FILTER.getFieldName());
+        requiredFields.add(FeatureIndexFields.SOURCE_FILE.getFieldName());
         if (!CollectionUtils.isEmpty(vcfInfoFields)) {
             for (String infoField : vcfInfoFields) {
                 requiredFields.add(infoField.toLowerCase());
@@ -217,6 +220,9 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
         boolean isExon = isExonStr != null && Boolean.parseBoolean(isExonStr);
         vcfIndexEntry.setExon(isExon);
         vcfIndexEntry.getInfo().put(FeatureIndexFields.IS_EXON.getFieldName(), isExon);
+        vcfIndexEntry.setVcfFileName(doc.get(FeatureIndexFields.FEATURE_NAME.getFieldName()));
+        vcfIndexEntry.getInfo().put(FeatureIndexFields.SOURCE_FILE.getFieldName(), vcfIndexEntry.getVcfFileName());
+
 
         String[] variationTypes = doc.getValues(FeatureIndexFields.VARIATION_TYPE.getFieldName());
         if (variationTypes.length > 0) {
@@ -325,6 +331,13 @@ public class BigVcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry
                 new BytesRef(entry.getExon().toString())));
         document.add(new StringField(FeatureIndexFields.IS_EXON.getFieldName(),
                 entry.getExon().toString().toLowerCase(), Field.Store.YES));
+
+        document.add(new SortedSetDocValuesFacetField(FeatureIndexFields.SOURCE_FILE.getFieldName(),
+                entry.getVcfFileName()));
+        document.add(new SortedSetDocValuesField(FeatureIndexFields.SOURCE_FILE.getFieldName(),
+                new BytesRef(entry.getVcfFileName())));
+        document.add(new StringField(FeatureIndexFields.SOURCE_FILE.getFieldName(),
+                entry.getVcfFileName().toLowerCase(), Field.Store.YES));
 
         if (entry.getInfo() != null) {
             addVcfDocumentInfoFields(document, entry);

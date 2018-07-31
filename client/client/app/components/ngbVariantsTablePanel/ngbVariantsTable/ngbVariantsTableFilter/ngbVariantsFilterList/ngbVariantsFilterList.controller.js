@@ -46,6 +46,12 @@ export default class ngbVariantsFilterListController {
                     this.displayText = [...this.selectedItems].join(', ');
                 }
             } break;
+            case 'source_file': {
+                if (this.projectContext.vcfFilter.additionalFilters) {
+                    this.selectedItems = this.projectContext.vcfFilter.additionalFilters.source_file || [];
+                    this.displayText = [...this.selectedItems].join(', ');
+                }
+            } break;
         }
     }
 
@@ -186,6 +192,23 @@ export default class ngbVariantsFilterListController {
                 const currValueStr = JSON.stringify(currValue).toUpperCase();
                 if (currValueStr !== prevValueStr) {
                     this.projectContext.vcfFilter.selectedGenes = this.selectedItems;
+                    this.projectContext.scheduleFilterVariants();
+                }
+            } break;
+            case 'source_file': {
+                const prevValue =
+                    this.projectContext.vcfFilter.additionalFilters
+                        ? (this.projectContext.vcfFilter.additionalFilters.source_file || []) : [];
+                prevValue.sort();
+                const prevValueStr = JSON.stringify(prevValue).toUpperCase();
+                const currValue = (this.selectedItems || []);
+                currValue.sort();
+                const currValueStr = JSON.stringify(currValue).toUpperCase();
+                if (currValueStr !== prevValueStr) {
+                    if (!this.projectContext.vcfFilter.additionalFilters) {
+                        this.projectContext.vcfFilter.additionalFilters = {};
+                    }
+                    this.projectContext.vcfFilter.additionalFilters.source_file = currValue;
                     this.projectContext.scheduleFilterVariants();
                 }
             } break;

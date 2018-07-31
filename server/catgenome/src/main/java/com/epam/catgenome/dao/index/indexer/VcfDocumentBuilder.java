@@ -95,6 +95,8 @@ public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry> {
                 new SortedStringField(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName(),
                         entry.getExon().toString()));
 
+        document.add(new SortedStringField(FeatureIndexDao.FeatureIndexFields.SOURCE_FILE.getFieldName(),
+                entry.getVcfFileName()));
         if (entry.getInfo() != null) {
             addVcfDocumentInfoFields(document, entry);
         }
@@ -115,6 +117,7 @@ public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry> {
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.QUALITY.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.VARIATION_TYPE.getFieldName());
         requiredFields.add(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName());
+        requiredFields.add(FeatureIndexDao.FeatureIndexFields.SOURCE_FILE.getFieldName());
         return requiredFields;
     }
 
@@ -150,6 +153,10 @@ public class VcfDocumentBuilder extends AbstractDocumentBuilder<VcfIndexEntry> {
         vcfIndexEntry.setExon(isExon);
         vcfIndexEntry.getInfo()
                 .put(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName(), isExon);
+
+        vcfIndexEntry.setVcfFileName(doc.get(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName()));
+        vcfIndexEntry.getInfo()
+                .put(FeatureIndexDao.FeatureIndexFields.SOURCE_FILE.getFieldName(), vcfIndexEntry.getVcfFileName());
 
         BytesRef featureIdBytes = doc.getBinaryValue(
                 FeatureIndexDao.FeatureIndexFields.VARIATION_TYPE.getFieldName());

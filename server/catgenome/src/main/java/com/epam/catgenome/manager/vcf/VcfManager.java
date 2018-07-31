@@ -445,6 +445,8 @@ public class VcfManager {
         infoItems.put(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName(), new InfoItem(FeatureIndexDao
                 .FeatureIndexFields.IS_EXON.getFieldName(), VCFHeaderLineType.Flag, "Defines if a variation is " +
                 "located in exon region"));
+        infoItems.put(FeatureIndexDao.FeatureIndexFields.SOURCE_FILE.getFieldName(), new InfoItem(FeatureIndexDao
+                .FeatureIndexFields.SOURCE_FILE.getFieldName(), VCFHeaderLineType.String, "VCF file name"));
         filterInfo.setInfoItemMap(infoItems);
         filterInfo.setAvailableFilters(availableFilters);
 

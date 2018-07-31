@@ -249,7 +249,8 @@ public class FeatureIndexManager {
         throws IOException {
         Project project = projectManager.loadProjectAndUpdateLastOpenedDate(projectId);
         List<VcfFile> files = project.getItems().stream()
-            .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
+            .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF
+                        && filterVcfFile((VcfFile) i.getBioDataItem(), filterForm))
             .map(i -> (VcfFile) i.getBioDataItem())
             .collect(Collectors.toList());
         return getVcfSearchResult(filterForm, files);
@@ -320,8 +321,25 @@ public class FeatureIndexManager {
      * @throws IOException
      */
     public IndexSearchResult<VcfIndexEntry> filterVariations(VcfFilterForm filterForm) throws IOException {
-        List<VcfFile> files = vcfFileManager.loadVcfFiles(filterForm.getVcfFileIds());
+        List<VcfFile> files = vcfFileManager.loadVcfFiles(filterForm.getVcfFileIds())
+                .stream().filter(file -> filterVcfFile(file, filterForm)).collect(Collectors.toList());
         return getVcfSearchResult(filterForm, files);
+    }
+
+    /**
+     * Filter vcf files according to the additional filter, specified by VCF file names
+     * @param file VCF file instance in a database
+     * @param filterForm {@code VcfFilterForm}, setting filter options
+     * @return a {@link List} of {@link VcfFile}s, representing VCF files that satisfy the additional filter
+     */
+    private boolean filterVcfFile(VcfFile file, VcfFilterForm filterForm) {
+        String additionalFilterName = FeatureIndexDao.FeatureIndexFields.SOURCE_FILE.getFieldName();
+        if(filterForm.getAdditionalFilters() != null
+                && filterForm.getAdditionalFilters().containsKey(additionalFilterName)) {
+            List<String> fileNames = (List<String>) filterForm.getAdditionalFilters().get(additionalFilterName);
+            return fileNames.contains(file.getName());
+        }
+        return true;
     }
 
     @NotNull private IndexSearchResult<VcfIndexEntry> getVcfSearchResult(VcfFilterForm filterForm,

@@ -119,7 +119,7 @@ public class BigVcfFeatureIndexBuilder extends VcfFeatureIndexBuilder {
             masterEntry.setFeatureType(FeatureType.VARIATION);
             masterEntry.setInfo(filterInfoByWhiteList(context, getFilterInfo(), getVcfHeader()));
             masterEntry.setVariantContext(context);
-
+            masterEntry.setVcfFileName(vcfFile.getName());
             double qual = context.getPhredScaledQual();
             masterEntry.setQuality(
                     MathUtils.equals(qual, VcfManager.HTSJDK_WRONG_QUALITY) ? 0D : qual);

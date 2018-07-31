@@ -126,6 +126,7 @@ public class FeatureIndexDao {
         GENE_NAMES("geneNames"), // gene names, concatenated by coma
         QUALITY("quality"),
         IS_EXON("is_exon"),
+        SOURCE_FILE("source_file"),
 
         // Facet fields
         CHR_ID("chrId"),
