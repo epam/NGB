@@ -34,6 +34,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.*;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -52,6 +53,7 @@ import java.util.stream.Collectors;
  */
 @Configuration
 @ConditionalOnProperty(prefix = "jwt.security.", name = "enable", havingValue = "true")
+@Order(1)
 @ComponentScan(basePackages = {"com.epam.catgenome.security.jwt"})
 public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
 

@@ -412,6 +412,11 @@ public final class Utils {
                 Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
     }
 
+    public static String getUrlWithoutTrailingSlash(String url) {
+        return url.endsWith("/") ?
+               url.substring(0, url.length() - 1) : url;
+    }
+
     @FunctionalInterface
     public interface MeasuredTask {
         void doWork();

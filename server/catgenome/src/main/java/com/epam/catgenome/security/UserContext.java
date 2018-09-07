@@ -31,8 +31,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class represents information about user
@@ -41,6 +44,8 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class UserContext implements UserDetails {
+    private List<String> groups = new ArrayList<>();
+    private Map<String, String> attributes;
 
     private JwtRawToken jwtRawToken;
     private String userId;
@@ -54,9 +59,13 @@ public class UserContext implements UserDetails {
         this.orgUnitId = claims.getOrgUnitId();
     }
 
+    public UserContext(String userName) {
+        this.userName = userName;
+    }
+
     @Override
     public List<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList();
+        return Collections.emptyList(); // No roles are supported so far
     }
 
     @Override

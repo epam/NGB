@@ -27,20 +27,16 @@ package com.epam.catgenome.controller.person;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.person.Person;
 import com.epam.catgenome.manager.person.PersonManager;
-import com.epam.catgenome.security.BrowserUser;
+import com.epam.catgenome.security.AuthManager;
+import com.epam.catgenome.security.UserContext;
 import com.wordnik.swagger.annotations.ApiOperation;
 
 /** *
@@ -50,15 +46,17 @@ import com.wordnik.swagger.annotations.ApiOperation;
  * It's designed to communicate with corresponding managers that provide all required
  * calls and manage all operations concerned with users.
  */
-@Controller
+@RestController
 public class PersonController {
     @Autowired
     private PersonManager personManager;
 
+    @Autowired
+    private AuthManager authManager;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(PersonController.class);
 
-    @RequestMapping(value = "/register", method = RequestMethod.POST)
-    @ResponseBody
+    @PostMapping(value = "/user/register")
     @ApiOperation(
             value = "Registers a user in the system",
             notes = "Registers a user in the system")
@@ -67,36 +65,8 @@ public class PersonController {
         return Result.success(person);
     }
 
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
-    @ResponseBody
-    @ApiOperation(
-            value = "Checks the correctness of provided user and password",
-            notes = "Checks the correctness of provided user and password")
-    public Result<Person> login(@RequestParam String name, @RequestParam String password) {
-        return Result.success(personManager.loadPersonByNameAndPassword(name, password));
-    }
-
-    @PreAuthorize("hasAnyRole('ROLE_APP','ROLE_ADMIN')")
-    @RequestMapping(value = "/secure/user/current", method = RequestMethod.GET)
-    @ResponseBody
-    @ApiOperation(
-            value = "Returns information on a user by a specified ID",
-            notes = "Returns information on a user by a specified ID")
-    public Result<Person> getUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        BrowserUser user = (BrowserUser) auth.getPrincipal();
-        LOGGER.info(String.format("User %d : %s", user.getPerson().getId(), user.getPerson().getName()));
-        return Result.success(personManager.loadPersonById(user.getPerson().getId()));
-    }
-
-    @PreAuthorize("hasAnyRole('ROLE_APP','ROLE_ADMIN')")
-    @RequestMapping(value = "/secure/user/update", method = RequestMethod.POST)
-    @ResponseBody
-    @ApiOperation(
-            value = "Updates information on an already registered user",
-            notes = "Updates information on an already registered user")
-    public Result<Person> updateUser(@RequestBody final Person person) {
-        personManager.savePerson(person);
-        return Result.success(person);
+    @GetMapping("/user/current")
+    public Result<UserContext> currentUser() {
+        return Result.success(authManager.getUserContext());
     }
 }
