@@ -89,7 +89,7 @@ import com.epam.catgenome.util.Utils;
 
 @Configuration
 @Order(2)
-@ConditionalOnProperty(value = "server.ssl.endpoint.id")
+@ConditionalOnProperty(value = "saml.security.enable", havingValue = "true")
 public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
     private static final int MAX_AUTHENTICATION_AGE = 93600;
     private static final int RESPONSE_SKEW = 1200;
@@ -144,7 +144,7 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     public String[] getUnsecuredResources() {
         return new String[] {
-            "/saml/web/**"
+            "/saml/web/**", "/swagger-ui/**", "/api-docs/**"
         };
     }
 

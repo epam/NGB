@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.person.Person;
+import com.epam.catgenome.entity.security.JwtRawToken;
 import com.epam.catgenome.manager.person.PersonManager;
 import com.epam.catgenome.security.AuthManager;
 import com.epam.catgenome.security.UserContext;
@@ -68,5 +69,9 @@ public class PersonController {
     @GetMapping("/user/current")
     public Result<UserContext> currentUser() {
         return Result.success(authManager.getUserContext());
+    }
+
+    public Result<JwtRawToken> getToken() {
+        return Result.success(authManager.getUserContext().getJwtRawToken());
     }
 }

@@ -16,6 +16,7 @@ export class DataService {
         if (this._serverUrl[this._serverUrl.length - 1] !== '/') {
             this._serverUrl += '/';
         }
+        this._serverUrl += 'restapi/'
     }
 
     /**

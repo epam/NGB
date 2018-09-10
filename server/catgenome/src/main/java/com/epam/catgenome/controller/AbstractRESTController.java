@@ -35,7 +35,9 @@ import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.epam.catgenome.manager.FileManager;
@@ -53,6 +55,8 @@ import com.epam.catgenome.manager.FileManager;
  * activities shared between different controller oriented to deal with certain
  * business entity.
  */
+@Controller
+@RequestMapping("/restapi")
 public abstract class AbstractRESTController {
     private static final int BUF_SIZE = 2 * 1024;
 

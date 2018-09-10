@@ -31,6 +31,7 @@ import com.epam.catgenome.security.jwt.RestAuthenticationEntryPoint;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.*;
@@ -40,6 +41,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.saml.SAMLAuthenticationProvider;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -63,6 +65,9 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Value("#{'${jwt.required.claims}'.split(',')}")
     private List<String> requiredClaims;
 
+    @Autowired(required = false)
+    private SAMLAuthenticationProvider samlAuthenticationProvider;
+
     private static final String CLAIM_DELIMITER = "=";
 
     protected String getPublicKey() {
@@ -71,6 +76,10 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        if (samlAuthenticationProvider != null) {
+            auth.authenticationProvider(samlAuthenticationProvider);
+        }
+
         auth.authenticationProvider(jwtAuthenticationProvider());
     }
 
@@ -81,11 +90,11 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .requestMatcher(getFullRequestMatcher())
                 .authorizeRequests()
-                .antMatchers(HttpMethod.OPTIONS).permitAll()
-                .antMatchers(getSecuredResources()).authenticated()
-                .antMatchers(getUnsecuredResources()).permitAll()
+                    .antMatchers(HttpMethod.OPTIONS).permitAll()
+                    .antMatchers(getUnsecuredResources()).permitAll()
+                    .antMatchers(getSecuredResources()).authenticated()
                 .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .and()
                 .addFilterBefore(getJwtAuthenticationFilter(),
                         UsernamePasswordAuthenticationFilter.class);
@@ -110,12 +119,12 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     protected String getSecuredResources() {
-        return "/**";
+        return "/restapi/**";
     }
 
     protected String[] getUnsecuredResources() {
         return new String[] {
-            "/restapi/swagger-ui/**", "/", "/index.html", "/app.css", "/app.bundle.js", "/ngb-logo.png"
+            "/swagger-ui/**", "/api-docs/**", "/", "/index.html", "/app.css", "/app.bundle.js", "/ngb-logo.png"
         };
     }
 
