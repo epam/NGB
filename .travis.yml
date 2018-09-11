@@ -4,6 +4,8 @@ os:
   - linux
 dist: trusty
 install: 
+    - wget https://bootstrap.pypa.io/get-pip.py
+    - sudo python get-pip.py
     - sudo pip install mkdocs
     - sudo pip install mkdocs-material
 script:
