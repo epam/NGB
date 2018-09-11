@@ -4,6 +4,7 @@ os:
   - linux
 dist: trusty
 install: 
+    - sudo add-apt-repository ppa:fkrull/deadsnakes-python2.7
     - sudo apt-get update
     - sudo apt-get install --only-upgrade python
     - wget https://bootstrap.pypa.io/get-pip.py
