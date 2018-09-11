@@ -60,9 +60,9 @@ import com.epam.catgenome.entity.bucket.Bucket;
 @WebAppConfiguration()
 @ContextConfiguration({"classpath:applicationContext-test.xml", "classpath:catgenome-servlet-test.xml"})
 public class BucketControllerTest extends AbstractControllerTest {
-    private static final String SAVE_BUCKET = "/bucket/save";
-    private static final String BUCKET_GET = "/bucket/%s/load";
-    private static final String LOAD_ALL_BUCKET = "/bucket/loadAll";
+    private static final String SAVE_BUCKET = "/restapi/bucket/save";
+    private static final String BUCKET_GET = "/restapi/bucket/%s/load";
+    private static final String LOAD_ALL_BUCKET = "/restapi/bucket/loadAll";
 
     private static final String BUCKET_NAME = "Bucket1";
     private static final String ACCESS_KEY = "assess";

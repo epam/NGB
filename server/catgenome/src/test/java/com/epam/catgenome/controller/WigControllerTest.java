@@ -70,10 +70,10 @@ import com.epam.catgenome.manager.wig.WigFileManager;
 @WebAppConfiguration()
 @ContextConfiguration({"classpath:applicationContext-test.xml", "classpath:catgenome-servlet-test.xml"})
 public class WigControllerTest extends AbstractControllerTest {
-    private static final String LOAD_WIG_FILES = "/wig/%d/loadAll";
-    private static final String WIG_FILE_REGISTER = "/wig/register";
-    private static final String WIG_FILE_DELETE = "/secure/wig/register";
-    private static final String WIG_GET_TRACK = "/wig/track/get";
+    private static final String LOAD_WIG_FILES = "/restapi/wig/%d/loadAll";
+    private static final String WIG_FILE_REGISTER = "/restapi/wig/register";
+    private static final String WIG_FILE_DELETE = "/restapi/secure/wig/register";
+    private static final String WIG_GET_TRACK = "/restapi/wig/track/get";
 
 
     private static final String TEST_WIG_NSAME = "Hi Harry";

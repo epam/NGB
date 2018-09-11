@@ -64,7 +64,7 @@ public class ToolsControllerTest extends AbstractControllerTest {
     ApplicationContext context;
 
     @Autowired
-    private static final String URL_SORT = "/tools/sort";
+    private static final String URL_SORT = "/restapi/tools/sort";
 
     public static final String UNSORTED_BED_NAME = "example.bed";
     public static final String EXPECTED_SORTED_SUFFIX_BED_NAME = "example.sorted.bed";

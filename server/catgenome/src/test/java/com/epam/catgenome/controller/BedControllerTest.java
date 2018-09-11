@@ -78,10 +78,10 @@ public class BedControllerTest extends AbstractControllerTest {
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
 
-    private static final String URL_BED_FILE_REGISTER = "/bed/register";
-    private static final String URL_BED_FILE_UNREGISTER = "/secure/bed/register";
-    private static final String URL_LOAD_BED_FILES = "/bed/%d/loadAll";
-    private static final String URL_LOAD_BLOCKS = "/bed/track/get";
+    private static final String URL_BED_FILE_REGISTER = "/restapi/bed/register";
+    private static final String URL_BED_FILE_UNREGISTER = "/restapi/secure/bed/register";
+    private static final String URL_LOAD_BED_FILES = "/restapi/bed/%d/loadAll";
+    private static final String URL_LOAD_BLOCKS = "/restapi/bed/track/get";
 
     private static final int TEST_END_INDEX = 239107476;
     private static final int TEST_CHROMOSOME_SIZE = 239107476;

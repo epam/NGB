@@ -24,54 +24,75 @@
 
 package com.epam.catgenome.controller.person;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.person.Person;
 import com.epam.catgenome.entity.security.JwtRawToken;
 import com.epam.catgenome.manager.person.PersonManager;
-import com.epam.catgenome.security.AuthManager;
+import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.security.UserContext;
+import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiResponse;
+import com.wordnik.swagger.annotations.ApiResponses;
 
 /** *
- * {@code PersonController} represents an implementation of MVC controller which handles
+ * {@code UserController} represents an implementation of MVC controller which handles
  * requests to manage browser users.
  * <p>
  * It's designed to communicate with corresponding managers that provide all required
  * calls and manage all operations concerned with users.
  */
 @RestController
-public class PersonController {
+@Api(value = "user", description = "User Management")
+public class UserController extends AbstractRESTController {
     @Autowired
     private PersonManager personManager;
 
     @Autowired
     private AuthManager authManager;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PersonController.class);
-
     @PostMapping(value = "/user/register")
     @ApiOperation(
             value = "Registers a user in the system",
             notes = "Registers a user in the system")
+    @ApiResponses(
+        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+        })
     public Result<Person> register(@RequestBody final Person person) {
         personManager.savePerson(person);
         return Result.success(person);
     }
 
     @GetMapping("/user/current")
+    @ApiOperation(
+        value = "Returns currently logged in user",
+        notes = "Returns currently logged in user",
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+        })
     public Result<UserContext> currentUser() {
         return Result.success(authManager.getUserContext());
     }
 
-    public Result<JwtRawToken> getToken() {
-        return Result.success(authManager.getUserContext().getJwtRawToken());
+    @GetMapping("/user/token")
+    @ApiOperation(
+        value = "Creates a JWT token for current user",
+        notes = "Creates a JWT token for current user",
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+        })
+    public Result<JwtRawToken> getToken(@RequestParam(required = false) Long expiration) {
+        return Result.success(authManager.issueTokenForCurrentUser(expiration));
     }
 }

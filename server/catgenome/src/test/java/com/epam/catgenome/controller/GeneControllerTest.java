@@ -87,13 +87,13 @@ public class GeneControllerTest extends AbstractControllerTest {
     @Autowired
     private ReferenceManager referenceManager;
 
-    private static final String URL_GENE_FILE_REGISTER = "/gene/register";
-    private static final String URL_GENE_FILE_DELETE = "/secure/gene/register";
-    private static final String URL_LOAD_GENES = "/gene/%d/track/get";
-    private static final String URL_LOAD_GENES_HISTOGRAM = "/gene/track/histogram";
-    private static final String URL_LOAD_GENE_FILES = "/gene/%d/loadAll";
-    private static final String URL_GENE_NEXT = "/gene/%d/%d/next";
-    private static final String URL_GENE_PREV = "/gene/%d/%d/prev";
+    private static final String URL_GENE_FILE_REGISTER = "/restapi/gene/register";
+    private static final String URL_GENE_FILE_DELETE = "/restapi/secure/gene/register";
+    private static final String URL_LOAD_GENES = "/restapi/gene/%d/track/get";
+    private static final String URL_LOAD_GENES_HISTOGRAM = "/restapi/gene/track/histogram";
+    private static final String URL_LOAD_GENE_FILES = "/restapi/gene/%d/loadAll";
+    private static final String URL_GENE_NEXT = "/restapi/gene/%d/%d/next";
+    private static final String URL_GENE_PREV = "/restapi/gene/%d/%d/prev";
 
     private long referenceId;
 

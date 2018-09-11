@@ -88,14 +88,14 @@ import com.epam.catgenome.util.TestUtils;
 @ContextConfiguration({"classpath:applicationContext-test.xml", "classpath:catgenome-servlet-test.xml"})
 public class VcfControllerTest extends AbstractControllerTest {
 
-    private static final String URL_LOAD_VARIATIONS = "/vcf/track/get";
-    private static final String URL_LOAD_VARIATION_INFO = "/vcf/variation/load";
-    private static final String URL_LOAD_VCF_FILES = "/vcf/%d/loadAll";
-    private static final String URL_LOAD_VCF_FILTERS = "/vcf/%d/fieldInfo";
-    private static final String URL_VCF_NEXT_VARIATION = "/vcf/%d/next";
-    private static final String URL_VCF_PREV_VARIATION = "/vcf/%d/prev";
+    private static final String URL_LOAD_VARIATIONS = "/restapi/vcf/track/get";
+    private static final String URL_LOAD_VARIATION_INFO = "/restapi/vcf/variation/load";
+    private static final String URL_LOAD_VCF_FILES = "/restapi/vcf/%d/loadAll";
+    private static final String URL_LOAD_VCF_FILTERS = "/restapi/vcf/%d/fieldInfo";
+    private static final String URL_VCF_NEXT_VARIATION = "/restapi/vcf/%d/next";
+    private static final String URL_VCF_PREV_VARIATION = "/restapi/vcf/%d/prev";
 
-    private static final String VCF_FILE_REGISTER = "/vcf/register";
+    private static final String VCF_FILE_REGISTER = "/restapi/vcf/register";
 
     @Autowired
     ApplicationContext context;

@@ -234,6 +234,9 @@ public final class MessagesConstants {
     public static final String ERROR_URL_WAS_EXPIRED = "error.url.was.expired";
     public static final String INFO_ALIAS_ALREADY_EXIST_MASSAGE = "info.alias.already.exist";
 
+    //JWT
+    public static final String ERROR_NO_JWT_PRIVATE_KEY_CONFIGURED = "error.no.jwt.private.key.configured";
+
     private MessagesConstants() {
         // No-op
     }

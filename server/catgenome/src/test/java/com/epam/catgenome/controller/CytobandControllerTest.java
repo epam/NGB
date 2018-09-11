@@ -70,8 +70,8 @@ import com.epam.catgenome.helper.FileTemplates;
 public class CytobandControllerTest extends AbstractControllerTest {
 
     // describes REST API that should be covered by this test
-    private static final String LOAD_CYTOBANDS = "/cytobands/%s/get";
-    private static final String SAVE_CYTOBANDS = "/cytobands/upload";
+    private static final String LOAD_CYTOBANDS = "/restapi/cytobands/%s/get";
+    private static final String SAVE_CYTOBANDS = "/restapi/cytobands/upload";
 
     // describes expected test parameters
     private static final int CHR_NUMBER_OF_BANDS = 3;

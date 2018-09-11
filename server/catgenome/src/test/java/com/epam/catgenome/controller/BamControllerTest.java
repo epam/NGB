@@ -77,11 +77,11 @@ import com.epam.catgenome.manager.reference.ReferenceManager;
 @WebAppConfiguration()
 @ContextConfiguration({"classpath:applicationContext-test.xml", "classpath:catgenome-servlet-test.xml"})
 public class BamControllerTest extends AbstractControllerTest {
-    private static final String BAM_FILE_REGISTER = "/bam/register";
-    private static final String BAM_FILE_UNREGISTER = "/secure/bam/register";
-    private static final String LOAD_BAM_FILES = "/bam/%d/loadAll";
-    private static final String BAM_TRACK_GET = "/bam/track/get";
-    private static final String BAM_READ_LOAD = "/bam/read/load";
+    private static final String BAM_FILE_REGISTER = "/restapi/bam/register";
+    private static final String BAM_FILE_UNREGISTER = "/restapi/secure/bam/register";
+    private static final String LOAD_BAM_FILES = "/restapi/bam/%d/loadAll";
+    private static final String BAM_TRACK_GET = "/restapi/bam/track/get";
+    private static final String BAM_READ_LOAD = "/restapi/bam/read/load";
     private static final String TEST_NSAME = "BIG " + BamControllerTest.class.getSimpleName();
     private static final String TEST_BAM = "classpath:templates/agnX1.09-28.trim.dm606.realign.bam";
     private static final int TEST_START_INDEX = 12584188;

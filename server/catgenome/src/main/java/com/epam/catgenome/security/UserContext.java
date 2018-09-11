@@ -24,18 +24,19 @@
 
 package com.epam.catgenome.security;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import com.epam.catgenome.entity.security.JwtRawToken;
 import com.epam.catgenome.entity.security.JwtTokenClaims;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Class represents information about user
@@ -61,6 +62,15 @@ public class UserContext implements UserDetails {
 
     public UserContext(String userName) {
         this.userName = userName;
+    }
+
+    public JwtTokenClaims toClaims() {
+        return JwtTokenClaims.builder()
+            .userId(userId)
+            .userName(userName)
+            .orgUnitId(orgUnitId)
+            .groups(groups)
+            .build();
     }
 
     @Override

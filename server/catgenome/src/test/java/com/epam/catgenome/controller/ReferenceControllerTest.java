@@ -101,14 +101,14 @@ public class ReferenceControllerTest extends AbstractControllerTest {
     private static final String TEST_SEQUENCE_STRING = "ACCCTAACCCTAACCCCTAAC";
 
     // describes REST API that should be covered by this test
-    private static final String LOAD_REFERENCE = "/reference/%s/load";
-    private static final String LOAD_ALL_REFERENCES = "/reference/loadAll";
-    private static final String GET_REFERENCE_TRACK = "/reference/track/get";
-    private static final String LOAD_CHROMOSOME = "/reference/chromosomes/%s/load";
-    private static final String LOAD_ALL_CHROMOSOMES = "/reference/%s/loadChromosomes";
-    private static final String REGISTER_GENOME_IN_FASTA_FORMAT = "/secure/reference/register/fasta";
-    private static final String UPDATE_REFERENCE_GENE_FILE = "/secure/reference/%d/genes";
-    private static final String ADD_REFERENCE_GENOME_ANNOTATION_FILE = "/secure/reference/%d/updateAnnotation";
+    private static final String LOAD_REFERENCE = "/restapi/reference/%s/load";
+    private static final String LOAD_ALL_REFERENCES = "/restapi/reference/loadAll";
+    private static final String GET_REFERENCE_TRACK = "/restapi/reference/track/get";
+    private static final String LOAD_CHROMOSOME = "/restapi/reference/chromosomes/%s/load";
+    private static final String LOAD_ALL_CHROMOSOMES = "/restapi/reference/%s/loadChromosomes";
+    private static final String REGISTER_GENOME_IN_FASTA_FORMAT = "/restapi/secure/reference/register/fasta";
+    private static final String UPDATE_REFERENCE_GENE_FILE = "/restapi/secure/reference/%d/genes";
+    private static final String ADD_REFERENCE_GENOME_ANNOTATION_FILE = "/restapi/secure/reference/%d/updateAnnotation";
 
     //describes GA4GH API Google genomic
     private static final String REFERENCE_SET_ID = "EJjur6DxjIa6KQ";

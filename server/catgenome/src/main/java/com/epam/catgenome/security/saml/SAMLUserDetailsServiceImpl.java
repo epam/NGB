@@ -30,7 +30,8 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
     @Value("${saml.authorities.attribute.names: null}")
     private List<String> authorities;
 
-    @Value("#{catgenome['saml.user.attributes'] != null ? catgenome['saml.user.attributes'].split(',') : new String[0]}")
+    @Value(
+        "#{catgenome['saml.user.attributes'] != null ? catgenome['saml.user.attributes'].split(',') : new String[0]}")
     private Set<String> samlAttributes;
 
     @Override
@@ -42,6 +43,7 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
         UserContext userContext = new UserContext(userName);
         userContext.setGroups(groups);
         userContext.setAttributes(attributes);
+        userContext.setUserId(userName);
 
         return userContext;
     }

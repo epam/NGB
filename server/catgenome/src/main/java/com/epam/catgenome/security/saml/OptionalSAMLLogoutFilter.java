@@ -107,7 +107,7 @@ public class OptionalSAMLLogoutFilter extends LogoutFilter {
                 if (auth != null && isGlobalLogout(request, auth)) {
 
                     Assert.isInstanceOf(SAMLCredential.class, auth.getCredentials(),
-                                        "Authentication object doesn't contain SAML credential, cannot perform global logout");
+                        "Authentication object doesn't contain SAML credential, cannot perform global logout");
 
                     // Terminate the session first
                     for (LogoutHandler handler : globalHandlers) {
