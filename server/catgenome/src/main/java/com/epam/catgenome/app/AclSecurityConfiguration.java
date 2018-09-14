@@ -83,10 +83,15 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
     }
 
     @Bean
+    public SidRetrievalStrategy sidRetrievalStrategy() {
+        return new SidRetrievalStrategyImpl(roleHierarchy());
+    }
+
+    @Bean
     public RoleHierarchy roleHierarchy() {
         RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
         roleHierarchy.setHierarchy(ROLE_ADMIN.getName() + " > " +
-                                   ROLE_USER.getName());
+                ROLE_USER.getName());
 
         List<DefaultRoles> managerRoles = Arrays.asList(ROLE_REFERENCE_MANAGER, ROLE_BAM_MANAGER, ROLE_VCF_MANAGER,
                 ROLE_GENE_MANAGER, ROLE_BED_MANAGER, ROLE_CYTOBANDS_MANAGER,
@@ -99,12 +104,6 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
 
         return roleHierarchy;
     }
-
-    @Bean
-    public SidRetrievalStrategy sidRetrievalStrategy() {
-        return new SidRetrievalStrategyImpl(roleHierarchy());
-    }
-
 
     @Bean
     public PermissionEvaluator permissionEvaluator() {
@@ -131,7 +130,7 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
 
     @Bean
     public AclAuthorizationStrategy aclAuthorizationStrategy() {
-        return new AclAuthorizationStrategyImpl(new SimpleGrantedAuthority(DefaultRoles.ROLE_ADMIN.getName()));
+        return new AclAuthorizationStrategyImpl(new SimpleGrantedAuthority(ROLE_ADMIN.getName()));
     }
 
     @Bean

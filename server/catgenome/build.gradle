@@ -64,9 +64,9 @@ test {
 ext {
     versionSlf4j = "1.7.5"
     versionJackson = "2.7.5"
-    versionSpring = "4.3.1.RELEASE"
+    versionSpring = "4.3.7.RELEASE"
     versionJayWayJsonPath = "1.1.0"
-    versionSpringSecurity = "4.1.1.RELEASE"
+    versionSpringSecurity = "4.2.2.RELEASE"
     versionJUnit = "4.12"
     versionUnitils = "3.4.2"
     versionJavaXServlet = "3.1.0"
