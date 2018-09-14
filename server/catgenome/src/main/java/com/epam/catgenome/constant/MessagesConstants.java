@@ -237,6 +237,11 @@ public final class MessagesConstants {
     //JWT
     public static final String ERROR_NO_JWT_PRIVATE_KEY_CONFIGURED = "error.no.jwt.private.key.configured";
 
+    //ACL SERVICES MESSAGES
+    public static final String ERROR_MUTABLE_ACL_RETURN = "error.mutable.acl.return";
+    // AUTHORIZATION
+    public static final String ERROR_USER_NAME_NOT_FOUND = "user.name.not.found";
+
     private MessagesConstants() {
         // No-op
     }

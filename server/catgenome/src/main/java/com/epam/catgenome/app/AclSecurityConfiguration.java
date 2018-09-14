@@ -24,23 +24,17 @@
 
 package com.epam.catgenome.app;
 
-import static com.epam.catgenome.security.DefaultRoles.ROLE_ADMIN;
-import static com.epam.catgenome.security.DefaultRoles.ROLE_BAM_MANAGER;
-import static com.epam.catgenome.security.DefaultRoles.ROLE_BED_MANAGER;
-import static com.epam.catgenome.security.DefaultRoles.ROLE_CYTOBANDS_MANAGER;
-import static com.epam.catgenome.security.DefaultRoles.ROLE_GENE_MANAGER;
-import static com.epam.catgenome.security.DefaultRoles.ROLE_MAF_MANAGER;
-import static com.epam.catgenome.security.DefaultRoles.ROLE_REFERENCE_MANAGER;
-import static com.epam.catgenome.security.DefaultRoles.ROLE_SEG_MANAGER;
-import static com.epam.catgenome.security.DefaultRoles.ROLE_USER;
-import static com.epam.catgenome.security.DefaultRoles.ROLE_VCF_MANAGER;
+import static com.epam.catgenome.security.DefaultRoles.*;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.ehcache.EhCacheFactoryBean;
+import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -51,19 +45,22 @@ import org.springframework.security.access.expression.method.MethodSecurityExpre
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.acls.AclPermissionEvaluator;
-import org.springframework.security.acls.domain.DefaultPermissionFactory;
-import org.springframework.security.acls.domain.PermissionFactory;
-import org.springframework.security.acls.domain.SidRetrievalStrategyImpl;
+import org.springframework.security.acls.domain.*;
 import org.springframework.security.acls.jdbc.JdbcMutableAclService;
 import org.springframework.security.acls.jdbc.LookupStrategy;
+import org.springframework.security.acls.model.AclCache;
+import org.springframework.security.acls.model.PermissionGrantingStrategy;
 import org.springframework.security.acls.model.SidRetrievalStrategy;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.epam.catgenome.security.DefaultRoles;
-import com.epam.catgenome.security.acl.AclPermission;
+import com.epam.catgenome.security.acl.*;
 
 @Configuration
 @ConditionalOnProperty(value = "acl.security.enable", havingValue = "true")
+@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 @ComponentScan(basePackages = "com.epam.catgenome.security.acl")
 public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration {
     @Autowired
@@ -73,12 +70,7 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
     private DataSource dataSource;
 
     @Autowired
-    private JdbcMutableAclService jdbcMutableAclService;
-
-    @Bean
-    public PermissionFactory permissionFactory() {
-        return new DefaultPermissionFactory(AclPermission.class);
-    }
+    private PermissionFactory permissionFactory;
 
     @Override
     protected MethodSecurityExpressionHandler createExpressionHandler() {
@@ -96,11 +88,13 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
         roleHierarchy.setHierarchy(ROLE_ADMIN.getName() + " > " +
                                    ROLE_USER.getName());
 
-        Stream<DefaultRoles> managerRoles = Stream.of(ROLE_REFERENCE_MANAGER, ROLE_BAM_MANAGER, ROLE_VCF_MANAGER,
-                                                      ROLE_GENE_MANAGER, ROLE_BED_MANAGER, ROLE_CYTOBANDS_MANAGER,
-                                                      ROLE_MAF_MANAGER, ROLE_SEG_MANAGER);
+        List<DefaultRoles> managerRoles = Arrays.asList(ROLE_REFERENCE_MANAGER, ROLE_BAM_MANAGER, ROLE_VCF_MANAGER,
+                ROLE_GENE_MANAGER, ROLE_BED_MANAGER, ROLE_CYTOBANDS_MANAGER,
+                ROLE_MAF_MANAGER, ROLE_SEG_MANAGER);
+
         managerRoles.forEach(role -> roleHierarchy.setHierarchy(ROLE_ADMIN.getName() + " > " + role.getName()));
-        roleHierarchy.setHierarchy(managerRoles.map(DefaultRoles::getName).collect(Collectors.joining(" == ")));
+        roleHierarchy.setHierarchy(managerRoles.stream().map(DefaultRoles::getName)
+                .collect(Collectors.joining(" == ")));
         managerRoles.forEach(role -> roleHierarchy.setHierarchy(role.getName() + " > " + ROLE_USER.getName()));
 
         return roleHierarchy;
@@ -114,14 +108,60 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
 
     @Bean
     public PermissionEvaluator permissionEvaluator() {
-        AclPermissionEvaluator evaluator = new AclPermissionEvaluator(jdbcMutableAclService);
-        evaluator.setPermissionFactory(permissionFactory());
+        AclPermissionEvaluator evaluator = new AclPermissionEvaluator(jdbcMutableAclService());
+        evaluator.setPermissionFactory(permissionFactory);
         return evaluator;
+    }
+
+    @Bean
+    public JdbcMutableAclService jdbcMutableAclService() {
+        return new JdbcMutableAclServiceImpl(dataSource, lookupStrategy(), aclCache());
     }
 
     @Bean
     public LookupStrategy lookupStrategy() {
         return new LookupStrategyImpl(dataSource, aclCache(), aclAuthorizationStrategy(),
                                       auditLogger(), permissionFactory, permissionGrantingStrategy());
+    }
+
+    @Bean
+    public AuditLogger auditLogger() {
+        return new ConsoleAuditLogger();
+    }
+
+    @Bean
+    public AclAuthorizationStrategy aclAuthorizationStrategy() {
+        return new AclAuthorizationStrategyImpl(new SimpleGrantedAuthority(DefaultRoles.ROLE_ADMIN.getName()));
+    }
+
+    @Bean
+    public PermissionGrantingStrategy permissionGrantingStrategy() {
+        return new PermissionGrantingStrategyImpl(permissionsService(), auditLogger());
+    }
+
+    @Bean
+    public PermissionsService permissionsService() {
+        return new PermissionsService();
+    }
+
+    @Bean
+    public AclCache aclCache() {
+        return new EhCacheBasedAclCache(ehCacheFactoryBean().getObject(),
+                permissionGrantingStrategy(), aclAuthorizationStrategy());
+    }
+
+    @Bean
+    public EhCacheFactoryBean ehCacheFactoryBean() {
+        EhCacheFactoryBean factoryBean = new EhCacheFactoryBean();
+        factoryBean.setCacheManager(ehCacheManagerFactoryBean().getObject());
+        factoryBean.setCacheName("aclCache");
+        return factoryBean;
+    }
+
+    @Bean
+    public EhCacheManagerFactoryBean ehCacheManagerFactoryBean() {
+        EhCacheManagerFactoryBean factoryBean = new EhCacheManagerFactoryBean();
+        factoryBean.setCacheManagerName("aclCacheManager");
+        return factoryBean;
     }
 }

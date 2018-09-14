@@ -12,14 +12,14 @@
     <!-- Configures database connection pool used to establish and manage connections to a content
          database. It is required to support interaction between database server and application
     -->
-    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+    <!--<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
         <property name="user" value="${database.username}"/>
         <property name="password" value="${database.password}"/>
         <property name="jdbcUrl" value="${database.jdbc.url}"/>
         <property name="driverClass" value="${database.driver.class}"/>
         <property name="maxPoolSize" value="${database.max.pool.size}"/>
         <property name="initialPoolSize" value="${database.initial.pool.size}"/>
-    </bean>
+    </bean>-->
 
     <!-- Enables the annotations-based configuration for transactional behavior  -->
     <aop:config proxy-target-class="true"/>

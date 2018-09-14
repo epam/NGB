@@ -25,7 +25,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @EnableWebSecurity
 @SpringBootApplication(exclude = {
         SecurityAutoConfiguration.class,
-        AuthenticationManagerConfiguration.class,
         SecurityFilterAutoConfiguration.class,
         FallbackWebSecurityAutoConfiguration.class,
         OAuth2AutoConfiguration.class})

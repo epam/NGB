@@ -14,7 +14,7 @@
     <!-- Registers and configures beans used to support access to a database and required for
          transaction management through AOP
      -->
-    <import resource="classpath:conf/catgenome/applicationContext-database.xml"/>
+    <!--<import resource="classpath:conf/catgenome/applicationContext-database.xml"/>-->
     <!-- Registers and configures caching -->
     <import resource="classpath:conf/catgenome/applicationContext-cache.xml"/>
 

@@ -30,27 +30,20 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.jdbc.JdbcMutableAclService;
 import org.springframework.security.acls.jdbc.LookupStrategy;
-import org.springframework.security.acls.model.Acl;
-import org.springframework.security.acls.model.AclCache;
-import org.springframework.security.acls.model.AlreadyExistsException;
-import org.springframework.security.acls.model.MutableAcl;
-import org.springframework.security.acls.model.ObjectIdentity;
-import org.springframework.security.acls.model.Sid;
-import org.springframework.stereotype.Service;
+import org.springframework.security.acls.model.*;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 
-@Service
 public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
 
     private static final String CLASS_IDENTITY_QUERY = "SELECT currval('acl_class_id_seq');";
@@ -59,7 +52,6 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
     private String deleteSidByIdQuery = "delete from acl_sid where id=?";
     private String deleteEntriesBySidQuery = "delete from acl_entry where sid=?";
 
-    @Autowired
     public JdbcMutableAclServiceImpl(DataSource dataSource, LookupStrategy lookupStrategy,
                                      AclCache aclCache) {
         super(dataSource, lookupStrategy, aclCache);
@@ -86,7 +78,8 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
         // Retrieve the ACL via superclass (ensures cache registration, proper retrieval
         // etc)
         Acl acl = readAclById(objectIdentity);
-        Assert.isInstanceOf(MutableAcl.class, acl, MessageHelper.getMessage(MessagesConstants.ERROR_MUTABLE_ACL_RETURN));
+        Assert.isInstanceOf(MutableAcl.class, acl, MessageHelper.getMessage(
+                MessagesConstants.ERROR_MUTABLE_ACL_RETURN));
 
         return (MutableAcl) acl;
     }
@@ -96,8 +89,8 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
         ObjectIdentity identity = new ObjectIdentityImpl(securedEntity);
         if (retrieveObjectIdentityPrimaryKey(identity) != null) {
             Acl acl = readAclById(identity);
-            Assert.isInstanceOf(MutableAcl.class, acl, messageHelper
-                .getMessage(MessageConstants.ERROR_MUTABLE_ACL_RETURN));
+            Assert.isInstanceOf(MutableAcl.class, acl, MessageHelper.getMessage(
+                    MessagesConstants.ERROR_MUTABLE_ACL_RETURN));
             return (MutableAcl) acl;
         } else {
             MutableAcl acl = createAcl(identity);
@@ -131,7 +124,7 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
 
     public Sid getSid(String user, boolean isPrincipal) {
         Assert.notNull(createOrRetrieveSidPrimaryKey(user, isPrincipal, false),
-                       messageHelper.getMessage(MessageConstants.ERROR_USER_NAME_NOT_FOUND, user));
+                       MessageHelper.getMessage(MessagesConstants.ERROR_USER_NAME_NOT_FOUND, user));
         return isPrincipal ? new PrincipalSid(user) : new GrantedAuthoritySid(user);
     }
 
@@ -144,8 +137,8 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
         ObjectIdentity identity = new ObjectIdentityImpl(securedEntity);
         if (retrieveObjectIdentityPrimaryKey(identity) != null) {
             Acl acl = readAclById(identity);
-            Assert.isInstanceOf(MutableAcl.class, acl, messageHelper
-                .getMessage(MessageConstants.ERROR_MUTABLE_ACL_RETURN));
+            Assert.isInstanceOf(MutableAcl.class, acl, MessageHelper.getMessage(
+                    MessagesConstants.ERROR_MUTABLE_ACL_RETURN));
             return (MutableAcl) acl;
         } else {
             return null;
