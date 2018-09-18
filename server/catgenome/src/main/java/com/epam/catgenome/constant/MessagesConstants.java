@@ -240,7 +240,14 @@ public final class MessagesConstants {
     //ACL SERVICES MESSAGES
     public static final String ERROR_MUTABLE_ACL_RETURN = "error.mutable.acl.return";
     // AUTHORIZATION
-    public static final String ERROR_USER_NAME_NOT_FOUND = "user.name.not.found";
+    public static final String ERROR_USER_NAME_NOT_FOUND = "error.user.name.not.found";
+    public static final String ERROR_ACL_CLASS_NOT_SUPPORTED = "error.acl.class.not.supported";
+    public static final String ERROR_PERMISSION_PARAM_REQUIRED = "error.permission.param.required";
+
+    // USER
+    public static final String ERROR_USER_NAME_REQUIRED = "error.user.name.required";
+    public static final String ERROR_USER_NAME_EXISTS = "error.user.name.exists";
+    public static final String ERROR_ROLE_ID_NOT_FOUND = "error.role.id.not.found";
 
     private MessagesConstants() {
         // No-op

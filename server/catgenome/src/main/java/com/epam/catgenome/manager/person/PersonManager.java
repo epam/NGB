@@ -43,7 +43,8 @@ import com.epam.catgenome.security.BrowserUser;
  * Provides service for handling {@code Person}: supports creating, updating and loading users data
  */
 @Service
-public class PersonManager {
+@Deprecated
+public class PersonManager { // TODO: remove
     @Autowired
     private PersonDao personDao;
 

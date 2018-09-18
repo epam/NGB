@@ -41,7 +41,8 @@ import com.epam.catgenome.entity.person.Person;
  * A class, representing current logged user
  * </p>
  */
-public class BrowserUser extends User {
+@Deprecated
+public class BrowserUser extends User { // TODO: remove
     private Person person;
 
     public BrowserUser(Person person) {

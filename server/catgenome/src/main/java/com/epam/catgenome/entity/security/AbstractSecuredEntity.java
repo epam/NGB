@@ -39,11 +39,6 @@ public abstract class AbstractSecuredEntity extends BaseEntity {
     private String owner;
     private Date createdDate;
 
-    /**
-     * Flag indicating, whether item is locked from changes or not
-     */
-    private boolean locked = false;
-
     public AbstractSecuredEntity(Long id) {
         super();
         setId(id);
