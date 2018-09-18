@@ -1,46 +1,54 @@
-CREATE TABLE catgenome.user(
+CREATE TABLE catgenome.user (
     id BIGINT NOT NULL primary key,
-    name text NOT NULL,
+    name VARCHAR(1024) NOT NULL,
+    attributes VARCHAR(1000000),
     CONSTRAINT unique_key_user_name UNIQUE (name)
 );
 
-CREATE TABLE catgenome.role(
+CREATE TABLE catgenome.security_group (
+  id BIGINT NOT NULL PRIMARY KEY,
+  name VARCHAR(1024) NOT NULL UNIQUE
+);
+
+CREATE TABLE catgenome.role (
     id BIGINT NOT NULL primary key,
-    name text NOT NULL,
+    name VARCHAR(1024) NOT NULL,
+    predefined BOOLEAN DEFAULT FALSE NOT NULL,
+    user_default BOOLEAN DEFAULT FALSE NOT NULL,
     CONSTRAINT unique_key_role_name UNIQUE (name)
 );
 
-CREATE TABLE catgenome.user_roles
-(
-    user_id BIGINT NOT NULL,
-    role_id BIGINT NOT NULL,
-    CONSTRAINT unique_key_user_roles UNIQUE (user_id,role_id),
-    CONSTRAINT user_roles_user_id_fk FOREIGN KEY (user_id) REFERENCES pipeline.user (id),
-    CONSTRAINT user_roles_role_id_fk FOREIGN KEY (role_id) REFERENCES pipeline.role (id)
+CREATE TABLE catgenome.user_security_group (
+    user_id BIGINT NOT NULL REFERENCES catgenome.user (id),
+    group_id BIGINT NOT NULL REFERENCES catgenome.security_group (id),
+    CONSTRAINT unique_key_user_groups UNIQUE (user_id,group_id)
 );
 
-INSERT INTO catgenome.user (id, name) VALUES (1, '${default.admin}');
+CREATE TABLE catgenome.user_role (
+    user_id BIGINT NOT NULL REFERENCES catgenome.user (id),
+    role_id BIGINT NOT NULL REFERENCES catgenome.role (id),
+    CONSTRAINT unique_key_user_roles UNIQUE (user_id,role_id)
+);
 
-INSERT INTO catgenome.role (id, name) VALUES (1, 'ROLE_ADMIN');
-INSERT INTO catgenome.role (id, name) VALUES (2, 'ROLE_USER');
-INSERT INTO catgenome.role (id, name) VALUES (3, 'ROLE_REFERENCE_MANAGER');
-INSERT INTO catgenome.role (id, name) VALUES (4, 'ROLE_BAM_MANAGER');
-INSERT INTO catgenome.role (id, name) VALUES (5, 'ROLE_VCF_MANAGER');
-INSERT INTO catgenome.role (id, name) VALUES (6, 'ROLE_GENE_MANAGER');
-INSERT INTO catgenome.role (id, name) VALUES (7, 'ROLE_BED_MANAGER');
-INSERT INTO catgenome.role (id, name) VALUES (8, 'ROLE_CYTOBANDS_MANAGER');
-INSERT INTO catgenome.role (id, name) VALUES (9, 'ROLE_MAF_MANAGER');
-INSERT INTO catgenome.role (id, name) VALUES (10, 'ROLE_SEG_MANAGER');
+INSERT INTO catgenome.role (id, name, predefined, user_default) VALUES (1, 'ROLE_ADMIN', true, false);
+INSERT INTO catgenome.role (id, name, predefined, user_default) VALUES (2, 'ROLE_USER', true, true);
+INSERT INTO catgenome.role (id, name, predefined) VALUES (3, 'ROLE_REFERENCE_MANAGER', true);
+INSERT INTO catgenome.role (id, name, predefined) VALUES (4, 'ROLE_BAM_MANAGER', true);
+INSERT INTO catgenome.role (id, name, predefined) VALUES (5, 'ROLE_VCF_MANAGER', true);
+INSERT INTO catgenome.role (id, name, predefined) VALUES (6, 'ROLE_GENE_MANAGER', true);
+INSERT INTO catgenome.role (id, name, predefined) VALUES (7, 'ROLE_BED_MANAGER', true);
+INSERT INTO catgenome.role (id, name, predefined) VALUES (8, 'ROLE_CYTOBANDS_MANAGER', true);
+INSERT INTO catgenome.role (id, name, predefined) VALUES (9, 'ROLE_MAF_MANAGER', true);
+INSERT INTO catgenome.role (id, name, predefined) VALUES (10, 'ROLE_SEG_MANAGER', true);
 
-INSERT INTO catgenome.user_roles (user_id, role_id) VALUES (1, 1);
-
-CREATE SEQUENCE catgenome.S_USER START WITH 2 INCREMENT BY 1;
+CREATE SEQUENCE catgenome.S_USER START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE catgenome.S_SECURITY_GROUP START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE catgenome.S_ROLE START WITH 100 INCREMENT BY 1;
 
-CREATE TABLE catgenome.acl_sid(
+CREATE TABLE catgenome.acl_sid (
     id bigserial not null primary key,
     principal boolean not null,
-    sid text not null,
+    sid VARCHAR(1024) not null,
     constraint unique_uk_1 unique(sid,principal)
 );
 

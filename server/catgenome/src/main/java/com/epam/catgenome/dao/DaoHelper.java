@@ -29,6 +29,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -55,6 +57,9 @@ import com.epam.catgenome.entity.BaseEntity;
  * DAOs oriented to deal with certain business entity.
  */
 public class DaoHelper extends NamedParameterJdbcDaoSupport {
+    public static final String UNDERSCORE = "_";
+    public static final String UNDERSCORE_ESCAPED = "\\\\_";
+    public static final String IN_CLAUSE_PLACEHOLDER = "@in@";
 
     private String createIdQuery;
 
@@ -280,6 +285,27 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
         Assert.notNull(listId);
         return getNamedParameterJdbcTemplate().update(clearTemporaryStringListQuery,
                                                   new MapSqlParameterSource(HelperParameters.LIST_ID.name(), listId));
+    }
+
+    /**
+     * Escapes underscore '_' symbol with backslash
+     * @param query from LIKE clause
+     * @return query where underscore is escaped with backslash
+     */
+    public String escapeUnderscore(String query) {
+        return query.replaceAll(UNDERSCORE, UNDERSCORE_ESCAPED);
+    }
+
+    /**
+     * Replaces a IN clause placeholder (@in@) with a valid list of SQL query placeholders (?, ?, ...)
+     * @param query a query to replace IN clause placeholder
+     * @param paramsCount size of IN clause
+     * @return an SQL query with replaced IN clause placeholder
+     */
+    public static String replaceInClause(String query, int paramsCount) {
+        return query.replace(IN_CLAUSE_PLACEHOLDER, IntStream.range(0, paramsCount)
+            .mapToObj(s -> "?")
+            .collect(Collectors.joining(", ")));
     }
 
     enum HelperParameters {

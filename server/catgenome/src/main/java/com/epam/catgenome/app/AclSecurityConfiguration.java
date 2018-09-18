@@ -59,7 +59,7 @@ import com.epam.catgenome.security.DefaultRoles;
 import com.epam.catgenome.security.acl.*;
 
 @Configuration
-@ConditionalOnProperty(value = "acl.security.enable", havingValue = "true")
+@ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 @ComponentScan(basePackages = "com.epam.catgenome.security.acl")
 public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration {

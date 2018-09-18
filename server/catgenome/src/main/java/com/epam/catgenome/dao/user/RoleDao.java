@@ -24,13 +24,73 @@
 
 package com.epam.catgenome.dao.user;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
+
+import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.security.Role;
 
-public class RoleDao {
+public class RoleDao extends NamedParameterJdbcDaoSupport {
+    private String loadRolesByUserIdsQuery;
 
     public List<Role> loadRolesList(List<Long> userRoleIds) {
         return null;
+    }
+
+    public Collection<Role> loadAllRoles(boolean b) {
+        return null;
+    }
+
+    public Map<Long, List<Role>> loadRoles(List<Long> userIds) {
+        String query = DaoHelper.replaceInClause(loadRolesByUserIdsQuery, userIds.size());
+        Map<Long, List<Role>> result = new HashMap<>();
+
+        RowMapper<Role> rowMapper = RoleParameters.getRowMapper();
+        getJdbcTemplate().query(query, rs -> {
+            Role role = rowMapper.mapRow(rs, 0);
+            result.merge(rs.getLong(UserDao.UserParameters.USER_ID.name()),
+                         new ArrayList<>(Collections.singletonList(role)),
+                         (l1, l2) -> { l1.addAll(l2); return l1; });
+        }, userIds.toArray(new Long[userIds.size()]));
+
+        return result;
+    }
+
+    enum RoleParameters {
+        ROLE_ID,
+        ROLE_NAME,
+        ROLE_PREDEFINED,
+        ROLE_USER_DEFAULT;
+
+        private static RowMapper<Role> getRowMapper() {
+            return (rs, rowNum) -> {
+                Role role = new Role();
+                return parseRole(rs, role);
+            };
+        }
+
+        static Role parseRole(ResultSet rs, Role role) throws SQLException {
+            role.setId(rs.getLong(ROLE_ID.name()));
+            role.setName(rs.getString(ROLE_NAME.name()));
+            role.setPredefined(rs.getBoolean(ROLE_PREDEFINED.name()));
+            role.setUserDefault(rs.getBoolean(ROLE_USER_DEFAULT.name()));
+
+            return role;
+        }
+    }
+
+    @Required
+    public void setLoadRolesByUserIdsQuery(String loadRolesByUserIdsQuery) {
+        this.loadRolesByUserIdsQuery = loadRolesByUserIdsQuery;
     }
 }

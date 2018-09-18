@@ -49,6 +49,7 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.security.NgbUser;
 import com.epam.catgenome.manager.user.RoleManager;
 import com.epam.catgenome.manager.user.UserManager;
+import com.epam.catgenome.security.DefaultRoles;
 import com.epam.catgenome.security.Role;
 import com.epam.catgenome.security.UserContext;
 
@@ -67,6 +68,9 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
 
     @Value("${saml.user.auto.create: false}")
     private boolean autoCreateUsers;
+
+    @Value("${security.default.admin:}")
+    private String defaultAdmin;
 
     @Autowired
     private UserManager userManager;
@@ -88,20 +92,31 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
             }
             LOGGER.debug(MessageHelper.getMessage(MessagesConstants.ERROR_USER_NAME_NOT_FOUND, userName));
 
-            UserContext userContext = new UserContext(userName);
+
             List<Long> roles = roleManager.getDefaultRolesIds();
+            if (defaultAdmin.equalsIgnoreCase(userName)) {
+                roles.add(DefaultRoles.ROLE_ADMIN.getId());
+            }
+
             NgbUser createdUser = userManager.createUser(userName, roles, groups, attributes);
+            LOGGER.debug("Created user {} with groups {}", userName, groups);
+
+            UserContext userContext = new UserContext(userName);
             userContext.setUserId(createdUser.getId());
             userContext.setGroups(createdUser.getGroups());
-            LOGGER.debug("Created user {} with groups {}", userName, groups);
             userContext.setRoles(createdUser.getRoles());
-
             return userContext;
         } else {
             LOGGER.debug("Found user by name {}", userName);
             loadedUser.setUserName(userName);
             List<Long> roles = loadedUser.getRoles().stream().map(Role::getId).collect(Collectors.toList());
-            if (userManager.userUpdateRequired(groups, attributes, loadedUser)) {
+            boolean shouldAddAdmin = !roles.contains(DefaultRoles.ROLE_ADMIN.getId()) &&
+                                     defaultAdmin.equalsIgnoreCase(userName);
+            if (shouldAddAdmin) {
+                roles.add(DefaultRoles.ROLE_ADMIN.getId());
+            }
+
+            if (userManager.userUpdateRequired(groups, attributes, loadedUser) || shouldAddAdmin) {
                 loadedUser = userManager.updateUserSAMLInfo(loadedUser.getId(), userName, roles, groups, attributes);
                 LOGGER.debug("Updated user groups {} ", groups);
             }

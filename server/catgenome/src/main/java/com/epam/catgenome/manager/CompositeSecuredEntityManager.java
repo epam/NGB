@@ -44,7 +44,7 @@ import com.epam.catgenome.entity.security.AclClass;
 public class CompositeSecuredEntityManager {
     private Map<AclClass, SecuredEntityManager> managers;
 
-    @Autowired
+    @Autowired(required = false) // TODO: fix
     public void setManagers(List<SecuredEntityManager> managers) {
         if (CollectionUtils.isEmpty(managers)) {
             this.managers = new EnumMap<>(AclClass.class);

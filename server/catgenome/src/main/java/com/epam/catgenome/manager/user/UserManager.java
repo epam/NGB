@@ -43,21 +43,18 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.user.RoleDao;
 import com.epam.catgenome.dao.user.UserDao;
 import com.epam.catgenome.entity.security.NgbUser;
-import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.security.DefaultRoles;
 import com.epam.catgenome.security.Role;
 import com.epam.catgenome.security.UserContext;
 
 @Service
 public class UserManager {
-    private AuthManager authManager;
     private RoleManager roleManager;
     private UserDao userDao;
     private RoleDao roleDao;
 
     @Autowired
-    public UserManager(AuthManager authManager, RoleManager roleManager) {
-        this.authManager = authManager;
+    public UserManager(RoleManager roleManager) {
         this.roleManager = roleManager;
     }
 
@@ -176,7 +173,17 @@ public class UserManager {
      */
     public List<NgbUser> findUsers(String prefix) {
         Assert.isTrue(StringUtils.isNotBlank(prefix), MessageHelper.getMessage(MessagesConstants.ERROR_NULL_PARAM));
-        return userDao.findUsers(prefix);
+        List<NgbUser> users = userDao.findUsers(prefix);
+        List<Long> userIds = users.stream().map(NgbUser::getId).collect(Collectors.toList());
+        Map<Long, List<String>> groups = userDao.loadGroups(userIds);
+        Map<Long, List<Role>> roles = roleDao.loadRoles(userIds);
+
+        users.forEach(u -> {
+            u.setGroups(groups.get(u.getId()));
+            u.setRoles(roles.get(u.getId()));
+        });
+
+        return users;
     }
 
     /**

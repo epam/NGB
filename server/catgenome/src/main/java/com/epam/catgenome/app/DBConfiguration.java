@@ -10,8 +10,7 @@ import org.springframework.context.annotation.ImportResource;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
-@Configuration
-@ImportResource("classpath*:conf/catgenome/applicationContext-database.xml")
+
 public class DBConfiguration {
     @Value("${database.jdbc.url}")
     private String jdbcUrl;
