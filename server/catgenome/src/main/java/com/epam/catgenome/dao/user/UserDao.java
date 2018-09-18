@@ -25,6 +25,7 @@
 package com.epam.catgenome.dao.user;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.epam.catgenome.entity.security.NgbUser;
@@ -41,5 +42,53 @@ public class UserDao {
 
     public Collection<NgbUser> loadAllUsers() {
         return null;
+    }
+
+    public List<NgbUser> loadUsersByNames(Collection<String> names) {
+        if (names.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return null;
+    }
+
+    public NgbUser loadUserById(Long id) {
+        return null;
+    }
+
+    public void deleteUserRoles(Long id) {
+
+    }
+
+    public void deleteUser(Long id) {
+
+    }
+
+    public void insertUserRoles(Long id, List<Long> roles) {
+
+    }
+
+    public void updateUser(NgbUser user) {
+
+    }
+
+    public List<NgbUser> findUsers(String prefix) {
+        return null;
+    }
+
+    public List<String> loadAllGroups() {
+        return null;
+    }
+
+    public List<String> findGroups(String prefix) {
+        return null;
+    }
+
+    public Collection<NgbUser> loadUsersByGroup(String group) {
+        return null;
+    }
+
+    public boolean isUserInGroup(String userName, String group) {
+        return false;
     }
 }

@@ -112,4 +112,106 @@ public class UserManager {
     public Collection<NgbUser> loadAllUsers() {
         return userDao.loadAllUsers();
     }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public List<NgbUser> loadUsersByNames(Collection<String> names) {
+        return userDao.loadUsersByNames(names);
+    }
+
+    public NgbUser loadUserById(Long id) {
+        NgbUser user =  userDao.loadUserById(id);
+        Assert.notNull(user, MessageHelper.getMessage(MessagesConstants.ERROR_USER_ID_NOT_FOUND, id));
+        return user;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public NgbUser deleteUser(Long id) {
+        NgbUser userContext = loadUserById(id);
+        userDao.deleteUserRoles(id);
+        userDao.deleteUser(id);
+        return userContext;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public NgbUser updateUser(Long id, List<Long> roles) {
+        loadUserById(id);
+        updateUserRoles(id, roles);
+        return loadUserById(id);
+    }
+
+    private void updateUserRoles(Long id, List<Long> roles) {
+        checkAllRolesPresent(roles);
+        userDao.deleteUserRoles(id);
+        if (!CollectionUtils.isEmpty(roles)) {
+            userDao.insertUserRoles(id, roles);
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public NgbUser updateUserSAMLInfo(Long id, String name, List<Long> roles, List<String> groups,
+                                           Map<String, String> attributes) {
+        NgbUser user = loadUserById(id);
+        if (userUpdateRequired(groups, attributes, user)) {
+            user.setUserName(name);
+            user.setGroups(groups);
+            user.setAttributes(attributes);
+            userDao.updateUser(user);
+        }
+
+        updateUserRoles(id, roles);
+        return loadUserById(id);
+    }
+
+    public boolean userUpdateRequired(List<String> groups, Map<String, String> attributes,
+                                      NgbUser user) {
+
+        return !CollectionUtils.isEqualCollection(user.getGroups(), groups)
+               || !CollectionUtils.isEqualCollection(user.getAttributes().entrySet(), attributes.entrySet());
+    }
+
+    /**
+     * Searches for user by prefix. Search is performed in user names and all attributes values.
+     * @param prefix to search for
+     * @return users matching prefix
+     */
+    public List<NgbUser> findUsers(String prefix) {
+        Assert.isTrue(StringUtils.isNotBlank(prefix), MessageHelper.getMessage(MessagesConstants.ERROR_NULL_PARAM));
+        return userDao.findUsers(prefix);
+    }
+
+    /**
+     * Searches for a user group name by a prefix
+     * @param prefix a prefix of a group name to search
+     * @return a loaded {@code List} of group name that satisfy the prefix
+     */
+    public List<String> findGroups(String prefix) {
+        if (StringUtils.isBlank(prefix)) {
+            return userDao.loadAllGroups();
+        }
+        return userDao.findGroups(prefix);
+    }
+
+    /**
+     * Loads a {@code UserContext} instances from the database specified by group
+     * @param group a user group name
+     * @return a loaded {@code Collection} of {@code UserContext} instances from the database
+     */
+    public Collection<NgbUser> loadUsersByGroup(String group) {
+        Assert.isTrue(StringUtils.isNotBlank(group),
+                      MessageHelper.getMessage(MessageHelper.getMessage(MessagesConstants.ERROR_NULL_PARAM)));
+        return userDao.loadUsersByGroup(group);
+    }
+
+    /**
+     * Checks whether a specific user is a member of a specific group
+     * @param userName a name of {@code UserContext}
+     * @param group a user group name
+     * @return true if a specific user is a member of a specific group
+     */
+    public boolean checkUserByGroup(String userName, String group) {
+        Assert.isTrue(StringUtils.isNotBlank(group), MessageHelper.getMessage(MessagesConstants.ERROR_NULL_PARAM));
+        return userDao.isUserInGroup(userName, group);
+    }
+
+
 }

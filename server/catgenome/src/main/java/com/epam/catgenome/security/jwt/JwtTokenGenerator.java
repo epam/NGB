@@ -26,6 +26,7 @@ package com.epam.catgenome.security.jwt;
 
 import static com.epam.catgenome.entity.security.JwtTokenClaims.CLAIM_GROUPS;
 import static com.epam.catgenome.entity.security.JwtTokenClaims.CLAIM_ORG_UNIT_ID;
+import static com.epam.catgenome.entity.security.JwtTokenClaims.CLAIM_ROLES;
 import static com.epam.catgenome.entity.security.JwtTokenClaims.CLAIM_USER_ID;
 
 import java.security.KeyFactory;
@@ -107,9 +108,16 @@ public class JwtTokenGenerator {
             .withJWTId(Strings.isNullOrEmpty(claims.getJwtTokenId()) ?
                        UUID.randomUUID().toString() : claims.getJwtTokenId())
             .withSubject(claims.getUserName())
-            .withClaim(CLAIM_USER_ID, claims.getUserId())
-            .withClaim(CLAIM_ORG_UNIT_ID, claims.getOrgUnitId())
-            .withArrayClaim(CLAIM_GROUPS, claims.getGroups().toArray(new String[claims.getGroups().size()]));
+            .withClaim(CLAIM_USER_ID, claims.getUserId().intValue())
+            .withClaim(CLAIM_ORG_UNIT_ID, claims.getOrgUnitId());
+
+        if (claims.getRoles() != null) {
+            tokenBuilder.withArrayClaim(CLAIM_ROLES, claims.getRoles().toArray(new String[claims.getRoles().size()]));
+        }
+        if (claims.getGroups() != null) {
+            tokenBuilder.withArrayClaim(CLAIM_GROUPS,
+                                        claims.getGroups().toArray(new String[claims.getGroups().size()]));
+        }
 
         return tokenBuilder;
     }

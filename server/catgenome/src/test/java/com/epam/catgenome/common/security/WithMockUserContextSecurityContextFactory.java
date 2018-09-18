@@ -44,7 +44,7 @@ public class WithMockUserContextSecurityContextFactory implements WithSecurityCo
 
         UserContext userContext = new UserContext(annotation.userName());
 
-        if (StringUtils.isNotBlank(annotation.userId())) {
+        if (annotation.userId() > 0) {
             userContext.setUserId(annotation.userId());
         }
 

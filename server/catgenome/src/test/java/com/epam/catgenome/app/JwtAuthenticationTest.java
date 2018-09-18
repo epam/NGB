@@ -87,7 +87,7 @@ public class JwtAuthenticationTest {
 
     private String createToken() {
         UserContext context = new UserContext("test_user");
-        context.setUserId("1");
+        context.setUserId(1L);
         context.setOrgUnitId("EPAM");
         context.setGroups(Collections.singletonList("TEST"));
 

@@ -33,7 +33,7 @@ import org.springframework.security.test.context.support.WithSecurityContext;
 @WithSecurityContext(factory = WithMockUserContextSecurityContextFactory.class)
 public @interface WithMockUserContext {
     String userName();
-    String userId() default "";
+    long userId() default 0;
     String[] groups() default {};
     String orgUnitId() default "";
 }

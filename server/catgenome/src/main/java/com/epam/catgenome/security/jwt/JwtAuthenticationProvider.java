@@ -53,7 +53,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         } catch (TokenVerificationException e) {
             throw new AuthenticationServiceException("Authentication error", e);
         }
-        UserContext context = new UserContext(jwtRawToken, claims);
+        UserContext context = new UserContext(jwtRawToken, claims); //TODO: load a user from database? create a user?
         return new JwtAuthenticationToken(context, context.getAuthorities());
     }
 
