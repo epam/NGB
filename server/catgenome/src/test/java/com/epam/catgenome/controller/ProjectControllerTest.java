@@ -107,20 +107,20 @@ public class ProjectControllerTest extends AbstractControllerTest {
     @Autowired
     private GffManager gffManager;
 
-    private static final String URL_SAVE_PROJECT = "/project/save";
-    private static final String URL_LOAD_TREE = "/project/tree";
-    private static final String URL_LOAD_PROJECT = "/project/%d/load";
-    private static final String URL_MOVE_PROJECT = "/project/%d/move";
-    private static final String URL_LOAD_PROJECT_BY_NAME = "/project/load";
-    private static final String URL_LOAD_MY_PROJECTS = "/project/loadMy";
-    private static final String URL_ADD_PROJECT_ITEM = "/project/%d/add/%d";
-    private static final String URL_REMOVE_PROJECT_ITEM = "/project/%d/remove/%d";
-    private static final String URL_HIDE_PROJECT_ITEM = "/project/%d/hide/%d";
-    private static final String URL_SEARCH_FEATURE = "/project/%d/search";
-    private static final String URL_DELETE_PROJECT = "/project/%d";
-    private static final String URL_FILTER_VCF = "/project/%d/filter/vcf";
-    private static final String URL_FILTER_VCF_SEARCH_GENES = "/project/%d/filter/vcf/searchGenes";
-    private static final String URL_FILTER_VCF_INFO = "/project/%d/filter/vcf/info";
+    private static final String URL_SAVE_PROJECT = "/restapi/project/save";
+    private static final String URL_LOAD_TREE = "/restapi/project/tree";
+    private static final String URL_LOAD_PROJECT = "/restapi/project/%d/load";
+    private static final String URL_MOVE_PROJECT = "/restapi/project/%d/move";
+    private static final String URL_LOAD_PROJECT_BY_NAME = "/restapi/project/load";
+    private static final String URL_LOAD_MY_PROJECTS = "/restapi/project/loadMy";
+    private static final String URL_ADD_PROJECT_ITEM = "/restapi/project/%d/add/%d";
+    private static final String URL_REMOVE_PROJECT_ITEM = "/restapi/project/%d/remove/%d";
+    private static final String URL_HIDE_PROJECT_ITEM = "/restapi/project/%d/hide/%d";
+    private static final String URL_SEARCH_FEATURE = "/restapi/project/%d/search";
+    private static final String URL_DELETE_PROJECT = "/restapi/project/%d";
+    private static final String URL_FILTER_VCF = "/restapi/project/%d/filter/vcf";
+    private static final String URL_FILTER_VCF_SEARCH_GENES = "/restapi/project/%d/filter/vcf/searchGenes";
+    private static final String URL_FILTER_VCF_INFO = "/restapi/project/%d/filter/vcf/info";
 
     private static final String TEST_VCF_FILE_PATH = "classpath:templates/Felis_catus.vcf.gz";
     private static final String TEST_VCF_UNK_FILE_PATH = "classpath:templates/samples.vcf";

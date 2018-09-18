@@ -77,9 +77,9 @@ public class MafControllerTest extends AbstractControllerTest {
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
 
-    private static final String URL_MAF_FILE_REGISTER = "/maf/register";
-    private static final String URL_LOAD_MAF_FILES = "/maf/%d/loadAll";
-    private static final String URL_LOAD_BLOCKS = "/maf/track/get";
+    private static final String URL_MAF_FILE_REGISTER = "/restapi/maf/register";
+    private static final String URL_LOAD_MAF_FILES = "/restapi/maf/%d/loadAll";
+    private static final String URL_LOAD_BLOCKS = "/restapi/maf/track/get";
 
     private static final int TEST_END_INDEX = 247812431;
     private static final int TEST_CHROMOSOME_SIZE = 247812435;

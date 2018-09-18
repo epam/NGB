@@ -21,6 +21,11 @@ import org.springframework.web.context.WebApplicationContext;
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
+import java.util.Collections;
+
+import com.epam.catgenome.security.UserContext;
+import com.epam.catgenome.security.jwt.JwtTokenGenerator;
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @Import({JWTSecurityConfiguration.class})
 @TestPropertySource(locations = "classpath:test-catgenome-auth.properties")
@@ -28,10 +33,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @WebAppConfiguration
 @EnableWebSecurity
 public class JwtAuthenticationTest {
-
-    @Value("${jwt.token.test.valid}")
-    private String validToken;
-
     @Value("${jwt.token.test.invalid.claims}")
     private String invalidClaimsToken;
 
@@ -42,6 +43,9 @@ public class JwtAuthenticationTest {
 
     @Autowired
     private FilterChainProxy filterChainProxy;
+
+    @Autowired
+    private JwtTokenGenerator jwtTokenGenerator;
 
     private static final String INVALID_TOKEN = "1234556";
     private static final String BEARER = "Bearer ";
@@ -64,7 +68,7 @@ public class JwtAuthenticationTest {
 
     @Test
     public void canAccessWithValidToken() throws Exception {
-        mockMvc.perform(get(TEST_URL).header(AUTH, BEARER + validToken))
+        mockMvc.perform(get(TEST_URL).header(AUTH, BEARER + createToken()))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
         SecurityContextHolder.getContext().setAuthentication(null);
     }
@@ -81,4 +85,12 @@ public class JwtAuthenticationTest {
                 .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
 
+    private String createToken() {
+        UserContext context = new UserContext("test_user");
+        context.setUserId("1");
+        context.setOrgUnitId("EPAM");
+        context.setGroups(Collections.singletonList("TEST"));
+
+        return jwtTokenGenerator.encodeToken(context.toClaims(), null);
+    }
 }

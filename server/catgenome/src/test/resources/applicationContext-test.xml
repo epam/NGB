@@ -38,6 +38,7 @@
     <context:component-scan base-package="com.epam.catgenome.manager"/>
     <context:component-scan base-package="com.epam.catgenome.util"/>
     <context:component-scan base-package="com.epam.catgenome.dao"/>
+    <context:component-scan base-package="com.epam.catgenome.security.jwt"/>
         <!-- Excludes all controllers from application context component scanning. All controllers
              should be scanned by in a proper MVC configuration
         -->

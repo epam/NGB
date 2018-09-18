@@ -27,16 +27,12 @@ package com.epam.catgenome.app;
 import java.util.List;
 import java.util.concurrent.Executors;
 
-import com.epam.catgenome.config.SwaggerConfig;
-import com.epam.catgenome.controller.JsonMapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -45,11 +41,14 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+
+import com.epam.catgenome.config.SwaggerConfig;
+import com.epam.catgenome.controller.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Class provides MVC Configuration for Spring Boot application
@@ -135,7 +134,7 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
         return new SwaggerConfig();
     }
 
-    @Bean
+    /*@Bean //TODO: may be useful if we'll need to move swagger back to restapi
     public ServletRegistrationBean dispatcherRegistration(DispatcherServlet dispatcherServlet) {
         ServletRegistrationBean bean =
                 new ServletRegistrationBean(dispatcherServlet, "/restapi/*");
@@ -143,7 +142,7 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
         bean.setName("catgenome");
         bean.setLoadOnStartup(1);
         return bean;
-    }
+    }*/
 
     private boolean useEmbeddedContainer() {
         return useEmbedded != null && "true".equals(useEmbedded);

@@ -67,7 +67,7 @@ public class SwaggerConfig {
             .pathProvider(new SwaggerPathProvider() {
                 @Override
                 protected String applicationPath() {
-                    return servletContext.getContextPath() + "/restapi";
+                    return servletContext.getContextPath();
                 }
 
                 @Override

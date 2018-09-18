@@ -78,8 +78,8 @@ import com.epam.catgenome.manager.externaldb.UniprotDataManager;
 @WebAppConfiguration()
 @ContextConfiguration({"classpath:applicationContext-test.xml", "classpath:catgenome-servlet-test.xml"})
 public class ExternalDBControllerTest extends AbstractControllerTest {
-    private static final String URL_FETCH_ENSEMBL_DATA = "/externaldb/ensembl/%s/get";
-    private static final String URL_FETCH_UNIPROT_DATA = "/externaldb/uniprot/%s/get";
+    private static final String URL_FETCH_ENSEMBL_DATA = "/restapi/externaldb/ensembl/%s/get";
+    private static final String URL_FETCH_UNIPROT_DATA = "/restapi/externaldb/uniprot/%s/get";
 
     private static final long GENE_START = 74082933L;
     private static final long END = 74122525L;

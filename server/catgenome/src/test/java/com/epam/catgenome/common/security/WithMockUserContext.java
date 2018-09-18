@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2018 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,25 +22,18 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.app;
+package com.epam.catgenome.common.security;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-/**
- * Class represents Configuration to disables security according to property file
- */
-@Configuration
-@ConditionalOnProperty(prefix = "jwt.security.", name = "enable", havingValue = "false")
-@Order(3)
-public class NoSecurityConfiguration extends WebSecurityConfigurerAdapter {
+import org.springframework.security.test.context.support.WithSecurityContext;
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests().antMatchers("/*").permitAll().and().csrf().disable();
-    }
-
+@Retention(RetentionPolicy.RUNTIME)
+@WithSecurityContext(factory = WithMockUserContextSecurityContextFactory.class)
+public @interface WithMockUserContext {
+    String userName();
+    String userId() default "";
+    String[] groups() default {};
+    String orgUnitId() default "";
 }

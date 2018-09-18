@@ -65,10 +65,10 @@ public class FilterControllerTest extends AbstractControllerTest {
     private GeneFile geneFile;
     private VcfFile vcfFile;
 
-    private static final String URL_FILTER_SEARCH_GENES = "/filter/searchGenes";
-    private static final String URL_FILTER = "/filter";
-    private static final String URL_FILTER_INFO = "/filter/info";
-    private static final String URL_FILTER_GROUP = "/filter/group";
+    private static final String URL_FILTER_SEARCH_GENES = "/restapi/filter/searchGenes";
+    private static final String URL_FILTER = "/restapi/filter";
+    private static final String URL_FILTER_INFO = "/restapi/filter/info";
+    private static final String URL_FILTER_GROUP = "/restapi/filter/group";
 
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;

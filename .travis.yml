@@ -4,6 +4,11 @@ os:
   - linux
 dist: trusty
 install: 
+    - sudo add-apt-repository -y ppa:jonathonf/python-2.7
+    - sudo apt-get update
+    - sudo apt-get install --only-upgrade python
+    - wget https://bootstrap.pypa.io/get-pip.py
+    - sudo python get-pip.py
     - sudo pip install mkdocs
     - sudo pip install mkdocs-material
 script:
