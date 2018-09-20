@@ -59,6 +59,7 @@ public class RoleDao extends NamedParameterJdbcDaoSupport {
     private String loadRoleQuery;
     private String loadRoleByNameQuery;
     private String deleteRolesReferencesQuery;
+    private String loadDefaultRolesQuery;
 
     @Autowired
     private DaoHelper daoHelper;
@@ -128,6 +129,10 @@ public class RoleDao extends NamedParameterJdbcDaoSupport {
 
     public Optional<Role> loadRoleByName(String name) {
         return loadRoleByParameter(name, loadRoleByNameQuery);
+    }
+
+    public List<Role> loadDefaultRoles() {
+        return getJdbcTemplate().query(loadDefaultRolesQuery, RoleParameters.getRowMapper());
     }
 
     private Optional<Role> loadRoleByParameter(Object parameter, String loadRoleQuery) {
@@ -218,5 +223,10 @@ public class RoleDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setDeleteRolesReferencesQuery(String deleteRolesReferencesQuery) {
         this.deleteRolesReferencesQuery = deleteRolesReferencesQuery;
+    }
+
+    @Required
+    public void setLoadDefaultRolesQuery(String loadDefaultRolesQuery) {
+        this.loadDefaultRolesQuery = loadDefaultRolesQuery;
     }
 }

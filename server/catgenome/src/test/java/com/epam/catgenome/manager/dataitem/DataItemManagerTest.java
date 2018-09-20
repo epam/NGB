@@ -103,7 +103,7 @@ public class DataItemManagerTest extends AbstractManagerTest {
         request.setPath(resource.getFile().getAbsolutePath());
         VcfFile vcfFile = vcfManager.registerVcfFile(request);
         dataItemManager.deleteFileByBioItemId(vcfFile.getBioDataItemId());
-        VcfFile loadedVcfFile = vcfFileManager.loadVcfFile(vcfFile.getId());
+        VcfFile loadedVcfFile = vcfFileManager.load(vcfFile.getId());
         Assert.assertNull(loadedVcfFile);
     }
 }

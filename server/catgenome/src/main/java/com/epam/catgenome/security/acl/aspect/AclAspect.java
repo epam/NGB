@@ -32,6 +32,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.stereotype.Component;
@@ -47,6 +48,7 @@ import com.epam.catgenome.security.acl.JdbcMutableAclServiceImpl;
 
 @Aspect
 @Component
+@ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 public class AclAspect {
 
     private static final String RETURN_OBJECT = "entity";

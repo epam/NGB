@@ -242,7 +242,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     public void testSaveLoadVcfFile() throws IOException, InterruptedException, VcfReadingException {
         VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
-        VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
+        VcfFile file = vcfFileManager.load(vcfFile.getId());
         Assert.assertNotNull(file);
         Assert.assertEquals(PRETTY_NAME, file.getPrettyName());
 
@@ -255,7 +255,7 @@ public class VcfManagerTest extends AbstractManagerTest {
                                                        ParseException, VcfReadingException {
         VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF_COMPRESSED);
 
-        VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
+        VcfFile file = vcfFileManager.load(vcfFile.getId());
         Assert.assertNotNull(file);
 
         testLoad(vcfFile, 1D, true);
@@ -267,7 +267,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     /**
-     * Tests vcfFileManager.loadVcfFile() behaviour on small scale factors.
+     * Tests vcfFileManager.load() behaviour on small scale factors.
      * Should return a number of variations having type STATISTIC and variationsCount > 1
      */
     @Test
@@ -275,7 +275,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     public void testLoadSmallScaleVcfFile() throws IOException, InterruptedException, VcfReadingException {
         VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
-        VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
+        VcfFile file = vcfFileManager.load(vcfFile.getId());
         Assert.assertNotNull(file);
 
         Track<Variation> trackResult = testLoad(vcfFile, TEST_SMALL_SCALE_FACTOR, true);
@@ -335,7 +335,7 @@ public class VcfManagerTest extends AbstractManagerTest {
                    NoSuchAlgorithmException, FeatureFileReadingException {
         VcfFile vcfFile = testSave("classpath:templates/samples.vcf");
 
-        VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
+        VcfFile file = vcfFileManager.load(vcfFile.getId());
         Assert.assertNotNull(file);
 
         Track<Variation> trackResult = testLoad(file, 1D, true);
@@ -798,7 +798,7 @@ public class VcfManagerTest extends AbstractManagerTest {
             NoSuchAlgorithmException, FeatureFileReadingException {
         VcfFile vcfFile = testSave("classpath:templates/extended_info.vcf");
 
-        VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
+        VcfFile file = vcfFileManager.load(vcfFile.getId());
         Assert.assertNotNull(file);
 
         VcfFilterInfo filterInfo = vcfManager.getFiltersInfo(Collections.singleton(vcfFile.getId()));

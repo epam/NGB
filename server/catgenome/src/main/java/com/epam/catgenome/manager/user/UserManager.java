@@ -51,11 +51,11 @@ import com.epam.catgenome.security.UserContext;
 public class UserManager {
     private RoleManager roleManager;
     private UserDao userDao;
-    private RoleDao roleDao;
 
     @Autowired
-    public UserManager(RoleManager roleManager) {
+    public UserManager(RoleManager roleManager, UserDao userDao) {
         this.roleManager = roleManager;
+        this.userDao = userDao;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -70,7 +70,7 @@ public class UserManager {
 
         NgbUser user = new NgbUser(userName);
         List<Long> userRoles = getNewUserRoles(roles);
-        user.setRoles(roleDao.loadRoles(userRoles));
+        user.setRoles(roleManager.loadRoles(userRoles));
         user.setGroups(groups);
         user.setAttributes(attributes);
 
@@ -91,7 +91,7 @@ public class UserManager {
         if (CollectionUtils.isEmpty(roles)) {
             return;
         }
-        Set<Long> presentIds = roleDao.loadRoles(roles).stream().map(Role::getId).collect(Collectors.toSet());
+        Set<Long> presentIds = roleManager.loadRoles(roles).stream().map(Role::getId).collect(Collectors.toSet());
         roles.forEach(roleId -> Assert.isTrue(presentIds.contains(roleId), MessageHelper.getMessage(
             MessagesConstants.ERROR_ROLE_ID_NOT_FOUND, roleId)));
     }
@@ -175,7 +175,7 @@ public class UserManager {
         Collection<NgbUser> users = userDao.findUsers(prefix);
         List<Long> userIds = users.stream().map(NgbUser::getId).collect(Collectors.toList());
         Map<Long, List<String>> groups = userDao.loadGroups(userIds);
-        Map<Long, List<Role>> roles = roleDao.loadRolesByUserIds(userIds);
+        Map<Long, List<Role>> roles = roleManager.loadRolesByUserIds(userIds);
 
         users.forEach(u -> {
             u.setGroups(groups.get(u.getId()));

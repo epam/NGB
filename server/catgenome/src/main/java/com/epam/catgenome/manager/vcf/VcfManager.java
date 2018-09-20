@@ -227,7 +227,7 @@ public class VcfManager {
     public VcfFile unregisterVcfFile(final Long vcfFileId) throws IOException {
         Assert.notNull(vcfFileId, MessagesConstants.ERROR_INVALID_PARAM);
         Assert.isTrue(vcfFileId > 0, MessagesConstants.ERROR_INVALID_PARAM);
-        VcfFile vcfFile = vcfFileManager.loadVcfFile(vcfFileId);
+        VcfFile vcfFile = vcfFileManager.load(vcfFileId);
         Assert.notNull(vcfFile, MessagesConstants.ERROR_NO_SUCH_FILE);
         vcfFileManager.deleteVcfFile(vcfFile);
         if (vcfFile.getType() == BiologicalDataItemResourceType.GA4GH) {
@@ -251,7 +251,7 @@ public class VcfManager {
             throws VcfReadingException {
         Chromosome chromosome = trackHelper.validateTrack(track);
 
-        final VcfFile vcfFile = vcfFileManager.loadVcfFile(track.getId());
+        final VcfFile vcfFile = vcfFileManager.load(track.getId());
         Assert.notNull(vcfFile, getMessage(ERROR_VCF_ID_INVALID, track.getId()));
         final Integer sampleIndex = getSampleIndex(sampleId, vcfFile);
         Assert.notNull(vcfFile.getIndex(), getMessage(ERROR_VCF_INDEX, track.getId()));
@@ -317,7 +317,7 @@ public class VcfManager {
         Assert.notEmpty(track.getBlocks(), getMessage(MessagesConstants.ERROR_NO_SUCH_VARIATION, query.getPosition()));
         Variation variation = track.getBlocks().get(0);
         extendInfoFields(variation);
-        VcfFile vcfFile = vcfFileManager.loadVcfFile(query.getId());
+        VcfFile vcfFile = vcfFileManager.load(query.getId());
         Reference reference = referenceGenomeManager.loadReferenceGenome(vcfFile.getReferenceId());
         if (reference.getGeneFile() != null) {
             Set<String> geneIds = featureIndexManager.fetchGeneIds(variation.getStartIndex(),
@@ -394,7 +394,7 @@ public class VcfManager {
 
         VcfFile vcfFile;
         if (vcfFileId != null) {
-            vcfFile = vcfFileManager.loadVcfFile(vcfFileId);
+            vcfFile = vcfFileManager.load(vcfFileId);
             Assert.notNull(vcfFile, getMessage(ERROR_VCF_ID_INVALID, vcfFileId));
             Assert.notNull(vcfFile.getIndex(), getMessage(ERROR_VCF_INDEX, vcfFileId));
         } else {
@@ -419,7 +419,7 @@ public class VcfManager {
         Set<String> availableFilters = new HashSet<>();
 
         for (Long fileId : vcfFileIds) {
-            VcfFile vcfFile = vcfFileManager.loadVcfFile(fileId);
+            VcfFile vcfFile = vcfFileManager.load(fileId);
             Assert.notNull(vcfFile, getMessage(ERROR_VCF_ID_INVALID, fileId));
 
             try (FeatureReader<VariantContext> reader =
@@ -459,7 +459,7 @@ public class VcfManager {
      * @throws FeatureIndexException if an error occurred while writing index
      */
     public VcfFile reindexVcfFile(long vcfFileId, Boolean rewriteTabixIndex) throws FeatureIndexException {
-        VcfFile vcfFile = vcfFileManager.loadVcfFile(vcfFileId);
+        VcfFile vcfFile = vcfFileManager.load(vcfFileId);
         Reference reference = referenceGenomeManager.loadReferenceGenome(vcfFile.getReferenceId());
         Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
             Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
@@ -551,7 +551,7 @@ public class VcfManager {
             throw new RegistrationException(getMessage(ERROR_REGISTER_FILE, request.getName()), e);
         } finally {
             if (vcfFile != null && vcfFile.getId() != null &&
-                    vcfFileManager.loadVcfFile(vcfFile.getId()) == null) {
+                vcfFileManager.load(vcfFile.getId()) == null) {
                 biologicalDataItemManager.deleteBiologicalDataItem(vcfFile.getBioDataItemId());
                 try {
                     fileManager.deleteFeatureFileDirectory(vcfFile);

@@ -28,12 +28,15 @@ import java.util.List;
 
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.security.AclClass;
 
 /**
  * Represents VCF file instance in a database. Contents various metadata to operate VCF files.
  */
 public class VcfFile extends FeatureFile {
     private List<VcfSample> samples;
+
+    private AclClass aclClass = AclClass.VCF;
 
     /**
      * Creates an empty {@code VcfFile} instance with a specified {@code BiologicalDataItemFormat.VCF}

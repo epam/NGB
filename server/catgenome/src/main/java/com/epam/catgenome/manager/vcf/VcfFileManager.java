@@ -25,12 +25,14 @@
 package com.epam.catgenome.manager.vcf;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -44,8 +46,11 @@ import com.epam.catgenome.dao.project.ProjectDao;
 import com.epam.catgenome.dao.vcf.VcfFileDao;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.project.Project;
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfSample;
+import com.epam.catgenome.manager.SecuredEntityManager;
 
 
 /**
@@ -59,7 +64,7 @@ import com.epam.catgenome.entity.vcf.VcfSample;
  * </p>
  */
 @Service
-public class VcfFileManager {
+public class VcfFileManager implements SecuredEntityManager {
 
     @Autowired
     private VcfFileDao vcfFileDao;
@@ -90,13 +95,29 @@ public class VcfFileManager {
      * @return {@code VcfFile} instance
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public VcfFile loadVcfFile(Long vcfFileId) {
+    @Override
+    public VcfFile load(Long vcfFileId) {
         VcfFile vcfFile = vcfFileDao.loadVcfFile(vcfFileId);
         if (vcfFile != null) {
             vcfFile.setSamples(vcfFileDao.loadSamplesForFile(vcfFileId));
         }
 
         return vcfFile;
+    }
+
+    @Override
+    public AbstractSecuredEntity changeOwner(Long id, String owner) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public AclClass getSupportedClass() {
+        return AclClass.VCF;
+    }
+
+    @Override
+    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize) {
+        throw new UnsupportedOperationException();
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

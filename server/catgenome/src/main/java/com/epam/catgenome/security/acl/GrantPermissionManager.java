@@ -50,6 +50,7 @@ import org.apache.commons.math3.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.acls.domain.AccessControlEntryImpl;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -91,6 +92,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Service
+@ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 public class GrantPermissionManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GrantPermissionManager.class);
@@ -313,43 +315,6 @@ public class GrantPermissionManager {
         } else {
             return permissionsHelper.isAllowed(permissionName, securedEntity);
         }
-    }
-
-    public EntityWithPermissionVO loadAllEntitiesPermissions(AclClass aclClass, Integer page, Integer pageSize,
-                                                             boolean expandGroups, Integer filterMask) {
-        EntityWithPermissionVO result = new EntityWithPermissionVO();
-        Collection<? extends AbstractSecuredEntity> entities =
-                entityManager.loadAllWithParents(aclClass, page, pageSize);
-        Map<AbstractSecuredEntity, List<AclPermissionEntry>> allPermissions = getEntitiesPermissions(entities);
-        result.setTotalCount(entityManager.loadTotalCount(aclClass));
-        List<EntityPermission> permissions
-                = entities.stream().distinct()
-                .sorted(Comparator.comparingLong(BaseEntity::getId))
-                .map(entity -> {
-                    Map<AclSid, Integer> mergedPermissions = getEntityPermissions(entity, allPermissions);
-                    mergeWithParentPermissions(mergedPermissions, entity.getParent(), allPermissions);
-                    Set<AclPermissionEntry> merged = buildAclPermissionEntries(mergedPermissions);
-                    // clear parent, not to return full hierarchy
-                    entity.clearParent();
-                    EntityPermission entityPermission = new EntityPermission();
-                    entityPermission.setEntity(entity);
-                    entityPermission.setPermissions(merged);
-                    return entityPermission;
-                })
-                .collect(toList());
-        if (expandGroups) {
-            expandGroups(permissions);
-            if (filterMask != null) {
-                permissions.forEach(entry -> {
-                    Set<AclPermissionEntry> filtered = SetUtils.emptyIfNull(entry.getPermissions()).stream()
-                            .filter(permission -> permissionsService.isMaskBitSet(permission.getMask(), filterMask))
-                            .collect(toSet());
-                    entry.setPermissions(filtered);
-                });
-            }
-        }
-        result.setEntityPermissions(permissions);
-        return result;
     }
 
     private List<Sid> convertUserToSids(String user) {

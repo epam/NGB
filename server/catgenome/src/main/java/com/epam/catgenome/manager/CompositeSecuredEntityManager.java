@@ -44,7 +44,7 @@ import com.epam.catgenome.entity.security.AclClass;
 public class CompositeSecuredEntityManager {
     private Map<AclClass, SecuredEntityManager> managers;
 
-    @Autowired(required = false) // TODO: fix
+    @Autowired
     public void setManagers(List<SecuredEntityManager> managers) {
         if (CollectionUtils.isEmpty(managers)) {
             this.managers = new EnumMap<>(AclClass.class);
@@ -71,16 +71,8 @@ public class CompositeSecuredEntityManager {
         return getEntityManager(aclClass).load(id);
     }
 
-    public AbstractSecuredEntity loadByNameOrId(AclClass aclClass, String identifier) {
-        return getEntityManager(aclClass).loadByNameOrId(identifier);
-    }
-
     public AbstractSecuredEntity changeOwner(AclClass aclClass, Long id, String owner) {
         return getEntityManager(aclClass).changeOwner(id, owner);
-    }
-
-    public Integer loadTotalCount(AclClass aclClass) {
-        return getEntityManager(aclClass).loadTotalCount();
     }
 
     public Collection<? extends AbstractSecuredEntity> loadAllWithParents(

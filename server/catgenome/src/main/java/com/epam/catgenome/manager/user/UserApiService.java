@@ -22,19 +22,27 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.manager;
+package com.epam.catgenome.manager.user;
 
 import java.util.Collection;
 
-import com.epam.catgenome.entity.security.AbstractSecuredEntity;
-import com.epam.catgenome.entity.security.AclClass;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
 
-public interface SecuredEntityManager {
-    AbstractSecuredEntity load(Long id);
+import com.epam.catgenome.entity.security.NgbUser;
 
-    AbstractSecuredEntity changeOwner(Long id, String owner);
+@Service
+public class UserApiService {
+    private UserManager userManager;
 
-    AclClass getSupportedClass();
+    @Autowired
+    public UserApiService(UserManager userManager) {
+        this.userManager = userManager;
+    }
 
-    Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize);
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public Collection<NgbUser> loadAllUsers() {
+        return userManager.loadAllUsers();
+    }
 }

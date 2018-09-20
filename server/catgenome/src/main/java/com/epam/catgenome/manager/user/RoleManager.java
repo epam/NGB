@@ -25,13 +25,40 @@
 package com.epam.catgenome.manager.user;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.epam.catgenome.dao.user.RoleDao;
+import com.epam.catgenome.security.Role;
 
 @Service
 public class RoleManager {
+    private RoleDao roleDao;
+
+    @Autowired
+    public RoleManager(RoleDao roleDao) {
+        this.roleDao = roleDao;
+    }
 
     public List<Long> getDefaultRolesIds() {
-        return null;
+        return loadDefaultRoles()
+            .stream()
+            .map(Role::getId)
+            .collect(Collectors.toList());
+    }
+
+    public List<Role> loadDefaultRoles() {
+        return roleDao.loadDefaultRoles();
+    }
+
+    public List<Role> loadRoles(List<Long> roleIds) {
+        return roleDao.loadRoles(roleIds);
+    }
+
+    public Map<Long, List<Role>> loadRolesByUserIds(List<Long> userIds) {
+        return roleDao.loadRolesByUserIds(userIds);
     }
 }

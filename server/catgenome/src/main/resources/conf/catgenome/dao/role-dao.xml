@@ -154,5 +154,22 @@
                 ]]>
             </value>
         </property>
+        <property name="loadDefaultRolesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        r.id as role_id,
+                        r.name as role_name,
+                        r.predefined as role_predefined,
+                        r.user_default as role_user_default
+                    FROM
+                        catgenome.role r
+                    WHERE
+                        r.user_default
+                ]]>
+            </value>
+        </property>
+
+
     </bean>
 </beans>

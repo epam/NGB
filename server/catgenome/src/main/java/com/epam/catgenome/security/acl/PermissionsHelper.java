@@ -25,6 +25,7 @@
 package com.epam.catgenome.security.acl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 public class PermissionsHelper {
     private final PermissionEvaluator permissionEvaluator;
     private final AuthManager authManager;
