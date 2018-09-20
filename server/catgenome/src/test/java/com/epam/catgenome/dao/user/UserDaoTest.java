@@ -59,13 +59,9 @@ public class UserDaoTest extends AbstractDaoTest {
     private static final String ATTRIBUTES_KEY = "email";
     private static final String ATTRIBUTES_VALUE = "test_email";
     private static final String ATTRIBUTES_VALUE2 = "Mail@epam.com";
-    private static final int EXPECTED_DEFAULT_ROLES_NUMBER = 8;
 
     @Autowired
     private UserDao userDao;
-
-    @Autowired
-    private RoleDao roleDao;
 
     @Value("${security.default.admin}")
     private String defaultAdmin;

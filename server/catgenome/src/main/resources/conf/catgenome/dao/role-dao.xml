@@ -27,6 +27,132 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <bean class="com.epam.catgenome.dao.user.RoleDao" id="roleDao" autowire="byName">
-        <property name="loadRolesByUserIdsQuery" value=""/>
+        <property name="roleSequence" value="catgenome.s_role"/>
+
+        <property name="loadRolesByUserIdsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        r.id as role_id,
+                        r.name as role_name,
+                        r.predefined as role_predefined,
+                        r.user_default as role_user_default,
+                        ur.user_id as user_id
+                    FROM
+                        catgenome.role r
+                        JOIN catgenome.user_role ur ON ur.role_id = r.id
+                    WHERE
+                        ur.user_id IN (:LIST)
+                ]]>
+            </value>
+        </property>
+
+        <property name="updateRoleQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.role SET
+                        name = :ROLE_NAME,
+                        user_default = :ROLE_USER_DEFAULT
+                    WHERE id = :ROLE_ID
+                ]]>
+            </value>
+        </property>
+
+        <property name="loadRoleByNameQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        r.id as role_id,
+                        r.name as role_name,
+                        r.predefined as role_predefined,
+                        r.user_default as role_user_default
+                    FROM
+                        catgenome.role r
+                    WHERE
+                        r.name = ?
+                ]]>
+            </value>
+        </property>
+
+        <property name="deleteRoleQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.role WHERE id = ?
+                ]]>
+            </value>
+        </property>
+
+        <property name="loadRoleQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        r.id as role_id,
+                        r.name as role_name,
+                        r.predefined as role_predefined,
+                        r.user_default as role_user_default
+                    FROM
+                        catgenome.role r
+                    WHERE
+                        r.id = ?
+
+                ]]>
+            </value>
+        </property>
+
+        <property name="loadAllRolesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        r.id as role_id,
+                        r.name as role_name,
+                        r.predefined as role_predefined,
+                        r.user_default as role_user_default
+                    FROM
+                        catgenome.role r
+                ]]>
+            </value>
+        </property>
+
+        <property name="loadRolesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        r.id as role_id,
+                        r.name as role_name,
+                        r.predefined as role_predefined,
+                        r.user_default as role_user_default
+                    FROM
+                        catgenome.role r
+                    WHERE
+                        r.id in (:LIST)
+
+                ]]>
+            </value>
+        </property>
+
+        <property name="createRoleQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.role (
+                        id,
+                        name,
+                        predefined,
+                        user_default)
+                    VALUES (
+                        :ROLE_ID,
+                        :ROLE_NAME,
+                        :ROLE_PREDEFINED,
+                        :ROLE_USER_DEFAULT)
+                ]]>
+            </value>
+        </property>
+
+        <property name="deleteRolesReferencesQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.user_role WHERE role_id = ?
+                ]]>
+            </value>
+        </property>
     </bean>
 </beans>

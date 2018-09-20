@@ -70,7 +70,7 @@ public class UserManager {
 
         NgbUser user = new NgbUser(userName);
         List<Long> userRoles = getNewUserRoles(roles);
-        user.setRoles(roleDao.loadRolesList(userRoles));
+        user.setRoles(roleDao.loadRoles(userRoles));
         user.setGroups(groups);
         user.setAttributes(attributes);
 
@@ -91,7 +91,7 @@ public class UserManager {
         if (CollectionUtils.isEmpty(roles)) {
             return;
         }
-        Set<Long> presentIds = roleDao.loadRolesList(roles).stream().map(Role::getId).collect(Collectors.toSet());
+        Set<Long> presentIds = roleDao.loadRoles(roles).stream().map(Role::getId).collect(Collectors.toSet());
         roles.forEach(roleId -> Assert.isTrue(presentIds.contains(roleId), MessageHelper.getMessage(
             MessagesConstants.ERROR_ROLE_ID_NOT_FOUND, roleId)));
     }
@@ -175,7 +175,7 @@ public class UserManager {
         Collection<NgbUser> users = userDao.findUsers(prefix);
         List<Long> userIds = users.stream().map(NgbUser::getId).collect(Collectors.toList());
         Map<Long, List<String>> groups = userDao.loadGroups(userIds);
-        Map<Long, List<Role>> roles = roleDao.loadRoles(userIds);
+        Map<Long, List<Role>> roles = roleDao.loadRolesByUserIds(userIds);
 
         users.forEach(u -> {
             u.setGroups(groups.get(u.getId()));
