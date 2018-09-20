@@ -110,8 +110,7 @@ public class UserManager {
         return userDao.loadAllUsers();
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
-    public List<NgbUser> loadUsersByNames(Collection<String> names) {
+    public Collection<NgbUser> loadUsersByNames(Collection<String> names) {
         return userDao.loadUsersByNames(names);
     }
 
@@ -171,9 +170,9 @@ public class UserManager {
      * @param prefix to search for
      * @return users matching prefix
      */
-    public List<NgbUser> findUsers(String prefix) {
+    public Collection<NgbUser> findUsers(String prefix) {
         Assert.isTrue(StringUtils.isNotBlank(prefix), MessageHelper.getMessage(MessagesConstants.ERROR_NULL_PARAM));
-        List<NgbUser> users = userDao.findUsers(prefix);
+        Collection<NgbUser> users = userDao.findUsers(prefix);
         List<Long> userIds = users.stream().map(NgbUser::getId).collect(Collectors.toList());
         Map<Long, List<String>> groups = userDao.loadGroups(userIds);
         Map<Long, List<Role>> roles = roleDao.loadRoles(userIds);

@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,17 +38,23 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.epam.catgenome.controller.JsonMapper;
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.security.NgbUser;
 import com.epam.catgenome.security.DefaultRoles;
+import com.epam.catgenome.security.Role;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -61,6 +66,18 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     private String insertGroupQuery;
     private String insertUserGroupQuery;
     private String loadExistingGroupsFromListQuery;
+    private String loadUserByNameQuery;
+    private String loadUserByIdQuery;
+    private String loadAllUsersQuery;
+    private String updateUserQuery;
+    private String deleteUserRolesQuery;
+    private String deleteUserQuery;
+    private String loadAllGroupsQuery;
+    private String findGroupsQuery;
+    private String loadUsersByGroupQuery;
+    private String loadUsesByNamesQuery;
+    private String loadUserByNameAndGroupQuery;
+    private String deleteUserGroupsQuery;
 
     private String userSequence;
     private String groupSequence;
@@ -68,10 +85,23 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     @Autowired
     private DaoHelper daoHelper;
 
+    /**
+     * Loads user by name with roles. Groups should be explicitly loaded with loadGroups method call
+     *
+     * @param userName
+     * @return user with roles
+     */
     public NgbUser loadUserByName(String userName) {
-        return null;
+        Collection<NgbUser> items = getJdbcTemplate().query(loadUserByNameQuery,
+                                    UserParameters.getUserWithRolesExtractor(), userName.toLowerCase());
+        if (CollectionUtils.isEmpty(items)) {
+            return null;
+        } else {
+            return items.stream().findFirst().orElse(null);
+        }
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
     public NgbUser createUser(NgbUser user, List<Long> roles) {
         user.setId(daoHelper.createId(userSequence));
         getNamedParameterJdbcTemplate().update(createUserQuery, UserParameters.getParameters(user));
@@ -89,47 +119,70 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     }
 
     private void insertUserGroups(Long id, List<String> groups) {
-        Set<String> existingGroups = loadExistingGroupsFromList(groups);
-        List<String> newGroups = groups.stream().filter(g -> !existingGroups.contains(g)).collect(Collectors.toList());
+        List<Pair<Long, String>> existingGroups = loadExistingGroupsFromList(groups);
+        Set<String> existingGroupNames = existingGroups.stream().map(Pair::getRight).collect(Collectors.toSet());
+
+        List<String> newGroups = groups.stream().filter(g -> !existingGroupNames.contains(g))
+            .collect(Collectors.toList());
         List<Long> ids = daoHelper.createIds(groupSequence, newGroups.size());
 
-        MapSqlParameterSource[] params = new MapSqlParameterSource[newGroups.size()];
+        MapSqlParameterSource[] groupParams = new MapSqlParameterSource[newGroups.size()];
         for (int i = 0; i < newGroups.size(); i++) {
             MapSqlParameterSource param = new MapSqlParameterSource();
-            param.addValue(GroupParameters.USER_ID.name(), id);
             param.addValue(GroupParameters.GROUP_ID.name(), ids.get(i));
             param.addValue(GroupParameters.GROUP_NAME.name(), newGroups.get(i));
-            params[i] = param;
+            groupParams[i] = param;
+            existingGroups.add(new ImmutablePair<>(ids.get(i), newGroups.get(i)));
         }
 
-        getNamedParameterJdbcTemplate().batchUpdate(insertGroupQuery, params);
-        getNamedParameterJdbcTemplate().batchUpdate(insertUserGroupQuery, params);
+        getNamedParameterJdbcTemplate().batchUpdate(insertGroupQuery, groupParams);
+
+        MapSqlParameterSource[] userGroupParams = existingGroups.stream().map(g -> {
+            MapSqlParameterSource param = new MapSqlParameterSource();
+            param.addValue(GroupParameters.USER_ID.name(), id);
+            param.addValue(GroupParameters.GROUP_ID.name(), g.getLeft());
+            return param;
+        }).toArray(MapSqlParameterSource[]::new);
+
+        getNamedParameterJdbcTemplate().batchUpdate(insertUserGroupQuery, userGroupParams);
     }
 
     public Collection<NgbUser> loadAllUsers() {
-        return null;
+        return getJdbcTemplate().query(loadAllUsersQuery, UserParameters.getUserWithRolesExtractor());
     }
 
-    public List<NgbUser> loadUsersByNames(Collection<String> names) {
+    public Collection<NgbUser> loadUsersByNames(Collection<String> names) {
         if (names.isEmpty()) {
             return Collections.emptyList();
         }
 
-        return null;
+        String query = DaoHelper.replaceInClause(loadUsesByNamesQuery, names.size());
+        return getJdbcTemplate().query(query, UserParameters.getUserWithRolesExtractor(),
+                                       names.stream().map(String::toLowerCase).toArray());
     }
 
     public NgbUser loadUserById(Long id) {
-        return null;
+        Collection<NgbUser> items =
+            getJdbcTemplate().query(loadUserByIdQuery, UserParameters.getUserWithRolesExtractor(), id);
+        return items.stream().findFirst().orElse(null);
     }
 
-    public void deleteUserRoles(Long id) {
-
-    }
-
+    @Transactional(propagation = Propagation.MANDATORY)
     public void deleteUser(Long id) {
-
+        getJdbcTemplate().update(deleteUserQuery, id);
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void deleteUserGroups(Long id) {
+        getJdbcTemplate().update(deleteUserGroupsQuery, id);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void deleteUserRoles(Long id) {
+        getJdbcTemplate().update(deleteUserRolesQuery, id);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
     public void insertUserRoles(Long userId, List<Long> roleIds) {
         MapSqlParameterSource[] batchParameters = roleIds.stream()
             .map(id -> UserParameters.getUserRoleParameters(userId, id))
@@ -138,15 +191,26 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
         getNamedParameterJdbcTemplate().batchUpdate(addRoleToUserQuery, batchParameters);
     }
 
-    public void updateUser(NgbUser user) {
-
+    @Transactional(propagation = Propagation.MANDATORY)
+    public NgbUser updateUser(NgbUser user) {
+        getNamedParameterJdbcTemplate().update(updateUserQuery, UserParameters.getParameters(user));
+        return user;
     }
 
-    public List<NgbUser> findUsers(String prefix) {
+    @Transactional(propagation = Propagation.MANDATORY)
+    public NgbUser updateUserRoles(NgbUser user, List<Long> roleIds) {
+        deleteUserRoles(user.getId());
+        if (!CollectionUtils.isEmpty(roleIds)) {
+            insertUserRoles(user.getId(), roleIds);
+        }
+        return user;
+    }
+
+    public Collection<NgbUser> findUsers(String prefix) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(UserParameters.USER_NAME.name(), daoHelper.escapeUnderscore(prefix.toLowerCase() + "%"));
         return getNamedParameterJdbcTemplate().query(findUsersByPrefixQuery, params,
-                                                     UserParameters.getUserRowMapper());
+                                                     UserParameters.getUserWithRolesExtractor());
     }
 
     public Map<Long, List<String>> loadGroups(List<Long> userIds) {
@@ -157,48 +221,41 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
             result.merge(rs.getLong(UserParameters.USER_ID.name()),
                          new ArrayList<>(Collections.singletonList(groupName)),
                          (l1, l2) -> { l1.addAll(l2); return l1; });
-        }, userIds.toArray(new Long[userIds.size()]));
+        }, userIds.toArray(new Object[0]));
 
         return result;
     }
 
     public List<String> loadAllGroups() {
-        return null;
+        return getJdbcTemplate().query(loadAllGroupsQuery, new SingleColumnRowMapper<>());
     }
 
     public List<String> findGroups(String prefix) {
-        return null;
+        return getJdbcTemplate().query(findGroupsQuery, new SingleColumnRowMapper<>(), prefix.toLowerCase() + "%");
     }
 
     public Collection<NgbUser> loadUsersByGroup(String group) {
-        return null;
+        return getJdbcTemplate().query(loadUsersByGroupQuery, UserParameters.getUserWithRolesExtractor(),
+                                       group.toLowerCase());
     }
 
-    public Set<String> loadExistingGroupsFromList(List<String> groups) {
+    public List<Pair<Long, String>> loadExistingGroupsFromList(List<String> groups) {
         String query = DaoHelper.replaceInClause(loadExistingGroupsFromListQuery, groups.size());
-        Set<String> result = new HashSet<>(groups.size());
-        getJdbcTemplate().query(query,
-                                (RowCallbackHandler) rs -> result.add(rs.getString(0)),
-                                groups.toArray(new String[groups.size()]));
-        return result;
+        return getJdbcTemplate().query(query,
+                                       (rs, i) -> new ImmutablePair<>(rs.getLong(1), rs.getString(2)),
+                                       groups.toArray(new Object[0]));
     }
 
     public boolean isUserInGroup(String userName, String group) {
-        return false;
-    }
-
-    public void updateUserRoles(NgbUser savedUser, List<Long> longs) {
-
+        List<NgbUser> user = getJdbcTemplate().query(loadUserByNameAndGroupQuery,
+                                                     UserParameters.getUserRowMapper(), userName, group);
+        return !CollectionUtils.isEmpty(user);
     }
 
     enum GroupParameters {
         USER_ID,
         GROUP_ID,
         GROUP_NAME
-    }
-
-    enum RoleParameters {
-        ROLE_ID
     }
 
     enum UserParameters {
@@ -209,7 +266,7 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
         private static MapSqlParameterSource getUserRoleParameters(Long userId, Long roleId) {
             MapSqlParameterSource params = new MapSqlParameterSource();
             params.addValue(UserParameters.USER_ID.name(), userId);
-            params.addValue(RoleParameters.ROLE_ID.name(), roleId);
+            params.addValue(RoleDao.RoleParameters.ROLE_ID.name(), roleId);
             return params;
         }
 
@@ -223,6 +280,34 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
 
         private static RowMapper<NgbUser> getUserRowMapper() {
             return (rs, rowNum) -> parseUser(rs, rs.getLong(USER_ID.name()));
+        }
+
+        private static ResultSetExtractor<Collection<NgbUser>> getUserWithRolesExtractor() {
+            return (rs) -> {
+                Map<Long, NgbUser> users = new HashMap<>();
+                while (rs.next()) {
+                    Long userId = rs.getLong(USER_ID.name());
+                    NgbUser user = users.compute(userId, (id, u) -> {
+                        if (u == null) {
+                            try {
+                                return parseUser(rs, userId);
+                            } catch (SQLException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+
+                        return u;
+                    });
+
+                    rs.getLong(RoleDao.RoleParameters.ROLE_ID.name());
+                    if (!rs.wasNull()) {
+                        Role role = new Role();
+                        RoleDao.RoleParameters.parseRole(rs, role);
+                        user.getRoles().add(role);
+                    }
+                }
+                return users.values();
+            };
         }
 
         static NgbUser parseUser(ResultSet rs, Long userId) throws SQLException {
@@ -306,5 +391,65 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setInsertUserGroupQuery(String insertUserGroupQuery) {
         this.insertUserGroupQuery = insertUserGroupQuery;
+    }
+
+    @Required
+    public void setLoadUserByNameQuery(String loadUserByNameQuery) {
+        this.loadUserByNameQuery = loadUserByNameQuery;
+    }
+
+    @Required
+    public void setLoadAllUsersQuery(String loadAllUsersQuery) {
+        this.loadAllUsersQuery = loadAllUsersQuery;
+    }
+
+    @Required
+    public void setLoadUserByIdQuery(String loadUserByIdQuery) {
+        this.loadUserByIdQuery = loadUserByIdQuery;
+    }
+
+    @Required
+    public void setUpdateUserQuery(String updateUserQuery) {
+        this.updateUserQuery = updateUserQuery;
+    }
+
+    @Required
+    public void setDeleteUserRolesQuery(String deleteUserRolesQuery) {
+        this.deleteUserRolesQuery = deleteUserRolesQuery;
+    }
+
+    @Required
+    public void setDeleteUserQuery(String deleteUserQuery) {
+        this.deleteUserQuery = deleteUserQuery;
+    }
+
+    @Required
+    public void setLoadAllGroupsQuery(String loadAllGroupsQuery) {
+        this.loadAllGroupsQuery = loadAllGroupsQuery;
+    }
+
+    @Required
+    public void setFindGroupsQuery(String findGroupsQuery) {
+        this.findGroupsQuery = findGroupsQuery;
+    }
+
+    @Required
+    public void setLoadUsersByGroupQuery(String loadUsersByGroupQuery) {
+        this.loadUsersByGroupQuery = loadUsersByGroupQuery;
+    }
+
+    @Required
+    public void setLoadUsesByNamesQuery(String loadUsesByNamesQuery) {
+        this.loadUsesByNamesQuery = loadUsesByNamesQuery;
+    }
+
+    @Required
+    public void setLoadUserByNameAndGroupQuery(String loadUserByNameAndGroupQuery) {
+        this.loadUserByNameAndGroupQuery = loadUserByNameAndGroupQuery;
+    }
+
+    @Required
+    public void setDeleteUserGroupsQuery(String deleteUserGroupsQuery) {
+        this.deleteUserGroupsQuery = deleteUserGroupsQuery;
     }
 }

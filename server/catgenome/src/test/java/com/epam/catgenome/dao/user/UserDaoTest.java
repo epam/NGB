@@ -24,8 +24,6 @@
 
 package com.epam.catgenome.dao.user;
 
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -88,8 +86,8 @@ public class UserDaoTest extends AbstractDaoTest {
     public void testUserCRUD() {
         NgbUser user = new NgbUser();
         user.setUserName(TEST_USER1);
-        NgbUser savedUser = userDao.createUser(user,
-                                                    Arrays.asList(DefaultRoles.ROLE_ADMIN.getId(), DefaultRoles.ROLE_USER.getId()));
+        NgbUser savedUser = userDao.createUser(user, Arrays.asList(DefaultRoles.ROLE_ADMIN.getId(),
+                                                                   DefaultRoles.ROLE_USER.getId()));
         Assert.assertNotNull(savedUser);
         Assert.assertNotNull(savedUser.getId());
 
@@ -108,7 +106,7 @@ public class UserDaoTest extends AbstractDaoTest {
         NgbUser userByChangedName = userDao.loadUserByName(TEST_USER2);
         Assert.assertEquals(savedUser.getId(), userByChangedName.getId());
 
-        List<NgbUser> loadedUsers = userDao.loadUsersByNames(Collections.singletonList(TEST_USER2));
+        Collection<NgbUser> loadedUsers = userDao.loadUsersByNames(Collections.singletonList(TEST_USER2));
         Assert.assertFalse(loadedUsers.isEmpty());
 
         userDao.updateUserRoles(savedUser, Collections.singletonList(DefaultRoles.ROLE_USER.getId()));
@@ -130,35 +128,40 @@ public class UserDaoTest extends AbstractDaoTest {
         user1.setUserName(TEST_USER1);
         TEST_GROUPS_1.add(TEST_GROUP_1);
         user1.setGroups(TEST_GROUPS_1);
-        NgbUser savedUser = userDao.createUser(user1,
-                                                    Collections.singletonList(DefaultRoles.ROLE_USER.getId()));
+        NgbUser savedUser = userDao.createUser(user1, Collections.singletonList(DefaultRoles.ROLE_USER.getId()));
         Assert.assertNotNull(savedUser);
 
         NgbUser user2 = new NgbUser();
         user2.setUserName(TEST_USER2);
         TEST_GROUPS_1.add(TEST_GROUP_2);
         user2.setGroups(TEST_GROUPS_1);
-        NgbUser savedUser2 = userDao.createUser(user2,
-                                                     Collections.singletonList(DefaultRoles.ROLE_USER.getId()));
+        NgbUser savedUser2 = userDao.createUser(user2, Collections.singletonList(DefaultRoles.ROLE_USER.getId()));
         Assert.assertNotNull(savedUser2);
 
         NgbUser user3 = new NgbUser();
         user3.setUserName(TEST_USER3);
         TEST_GROUPS_2.add(TEST_GROUP_2);
         user3.setGroups(TEST_GROUPS_2);
-        NgbUser savedUser3 = userDao.createUser(user3,
-                                                     Arrays.asList(DefaultRoles.ROLE_ADMIN.getId(), DefaultRoles.ROLE_USER.getId()));
+        NgbUser savedUser3 = userDao.createUser(user3, Arrays.asList(DefaultRoles.ROLE_ADMIN.getId(),
+                                                                     DefaultRoles.ROLE_USER.getId()));
         Assert.assertNotNull(savedUser3);
 
         Collection<NgbUser> userByGroup = userDao.loadUsersByGroup(TEST_GROUP_1);
-        Assert.assertTrue(userByGroup.size() == 2);
+        Assert.assertEquals(2, userByGroup.size());
         Assert.assertTrue(userByGroup.stream().anyMatch(u ->
                                                             u.getUserName().equals(TEST_USER1)));
         Assert.assertTrue(userByGroup.stream().noneMatch(u ->
                                                              u.getUserName().equals(TEST_USER3)));
 
+        Map<Long, List<String>> groupMap = userDao.loadGroups(Arrays.asList(user1.getId(), user2.getId(),
+                                                                            user3.getId()));
+
+        Assert.assertEquals(1, groupMap.get(user1.getId()).size());
+        Assert.assertEquals(2, groupMap.get(user2.getId()).size());
+        Assert.assertEquals(1, groupMap.get(user3.getId()).size());
+
         List<String> foundGroups = userDao.findGroups("TEST_");
-        Assert.assertTrue(TEST_GROUPS_1.size() == foundGroups.size());
+        Assert.assertEquals(TEST_GROUPS_1.size(), foundGroups.size());
         Assert.assertTrue(TEST_GROUPS_1.containsAll(foundGroups));
 
         Assert.assertFalse(userDao.isUserInGroup(user1.getUserName(), "TEST_GROUP_5"));
@@ -167,21 +170,11 @@ public class UserDaoTest extends AbstractDaoTest {
         List<String> allLoadedGroups = userDao.loadAllGroups();
         Collections.sort(allLoadedGroups);
         Assert.assertEquals(TEST_GROUPS_1, allLoadedGroups);
-    }
 
-    @Test
-    public void testDefaultAdmin() {
-        NgbUser admin = userDao.loadUserByName(defaultAdmin);
-        Assert.assertNotNull(admin);
-        Assert.assertEquals(defaultAdmin, admin.getUserName());
-        Assert.assertTrue(admin.getId().equals(1L));
-        Assert.assertEquals(1, admin.getRoles().size());
-        Assert.assertTrue(isRolePresent(DefaultRoles.ROLE_ADMIN.getRole(), admin.getRoles()));
-
-        Collection<Role> allRoles = roleDao.loadAllRoles(false);
-        Assert.assertEquals(EXPECTED_DEFAULT_ROLES_NUMBER, allRoles.size());
-        Assert.assertTrue(isRolePresent(DefaultRoles.ROLE_ADMIN.getRole(), allRoles));
-        Assert.assertTrue(isRolePresent(DefaultRoles.ROLE_USER.getRole(), allRoles));
+        userDao.deleteUserGroups(user1.getId());
+        userDao.deleteUserRoles(user1.getId());
+        userDao.deleteUser(user1.getId());
+        Assert.assertNull(userDao.loadUserById(user1.getId()));
     }
 
     @Test
