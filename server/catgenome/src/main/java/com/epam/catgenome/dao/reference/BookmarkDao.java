@@ -212,7 +212,8 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
         REFERRED_CHROMOSOME_ID,
         CHROMOSOME_NAME,
         CREATED_BY,
-        CREATED_DATE;
+        CREATED_DATE,
+        OWNER;
 
         private static MapSqlParameterSource getParameters(Bookmark bookmark) {
             MapSqlParameterSource params = new MapSqlParameterSource();
@@ -224,6 +225,7 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
             params.addValue(REFERRED_CHROMOSOME_ID.name(), bookmark.getChromosome().getId());
             params.addValue(CREATED_BY.name(), bookmark.getCreatedBy());
             params.addValue(CREATED_DATE.name(), bookmark.getCreatedDate());
+            params.addValue(OWNER.name(), bookmark.getOwner());
 
             return params;
         }
@@ -240,6 +242,7 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
                 bookmark.getChromosome().setName(rs.getString(CHROMOSOME_NAME.name()));
                 bookmark.setCreatedBy(rs.getLong(CREATED_BY.name()));
                 bookmark.setCreatedDate(new Date(rs.getTimestamp(CREATED_DATE.name()).getTime()));
+                bookmark.setOwner(rs.getString(OWNER.name()));
 
                 return bookmark;
             };

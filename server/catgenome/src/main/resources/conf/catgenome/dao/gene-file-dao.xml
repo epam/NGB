@@ -17,6 +17,8 @@
                         b.created_date,
                         b.pretty_name,
                         b.bucket_id,
+                        b.owner,
+
                         g.gene_item_id,
                         g.reference_genome_id as gene_reference_genome_id,
                         g.compressed as gene_compressed,
@@ -52,6 +54,8 @@
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         g.gene_item_id,
                         g.reference_genome_id as gene_reference_genome_id,
                         g.compressed as gene_compressed,
@@ -87,6 +91,8 @@
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         g.gene_item_id,
                         g.reference_genome_id as gene_reference_genome_id,
                         g.compressed as gene_compressed,

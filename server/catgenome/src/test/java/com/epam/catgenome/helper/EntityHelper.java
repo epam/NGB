@@ -92,7 +92,7 @@ public final class EntityHelper {
     };
 
     private static final int HUMAN_CHROMOSOME_LENGTH = 239107476;
-    private static final String TEST_OWNER = "TEST_USER";
+    public static final String TEST_OWNER = "TEST_USER";
 
     public static Reference createReference() {
         final Reference reference = new Reference();
@@ -104,6 +104,7 @@ public final class EntityHelper {
         reference.setType(BiologicalDataItemResourceType.FILE);
         reference.setIndex(createIndex(BiologicalDataItemFormat.REFERENCE_INDEX,
                 BiologicalDataItemResourceType.FILE, ""));
+        reference.setOwner(TEST_OWNER);
         final String[] dictionary = new String[]{"A1", "A2", "X"};
         for (String name : dictionary) {
             final Chromosome chromosome = new Chromosome(name, CHROMOSOME_LENGTH);

@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.dao;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.Arrays;
@@ -83,6 +84,7 @@ public class GeneDaoTest extends AbstractDaoTest {
         geneFile.setType(BiologicalDataItemResourceType.FILE);
         geneFile.setFormat(BiologicalDataItemFormat.GENE);
         geneFile.setPath("///");
+        geneFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.GENE_INDEX,
                 BiologicalDataItemResourceType.FILE, "////");
@@ -96,6 +98,7 @@ public class GeneDaoTest extends AbstractDaoTest {
         GeneFile loadedFile = geneFileDao.loadGeneFile(geneFile.getId());
 
         assertNotNull(loadedFile);
+        assertEquals(geneFile.getOwner(), loadedFile.getOwner());
 
         List<GeneFile> files = geneFileDao.loadGeneFilesByReferenceId(reference.getId());
         assertNotNull(files);
@@ -115,6 +118,7 @@ public class GeneDaoTest extends AbstractDaoTest {
         geneFile.setType(BiologicalDataItemResourceType.FILE);
         geneFile.setFormat(BiologicalDataItemFormat.GENE);
         geneFile.setPath("///");
+        geneFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.GENE_INDEX,
                 BiologicalDataItemResourceType.FILE, "////");

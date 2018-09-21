@@ -30,6 +30,9 @@ import java.util.Map;
 
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
+import lombok.NoArgsConstructor;
 
 /**
  * Source:      Project
@@ -41,15 +44,25 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
  * Represents a project entity, that describes user's workspace with tracks, that he worked with.
  * </p>
  */
-public class Project extends BaseEntity {
+@NoArgsConstructor
+public class Project extends AbstractSecuredEntity {
     private Long createdBy;
-    private Date createdDate;
     private List<ProjectItem> items;
     private Integer itemsCount;
     private Map<BiologicalDataItemFormat, Integer> itemsCountPerFormat;
     private Date lastOpenedDate;
     private List<Project> nestedProjects;
     private Long parentId;
+    private AclClass aclClass = AclClass.PROJECT;
+
+    public Project(Long id) {
+        super(id);
+    }
+
+    @Override
+    public AbstractSecuredEntity getParent() {
+        return new Project(parentId);
+    }
 
     public Long getCreatedBy() {
         return createdBy;
@@ -57,14 +70,6 @@ public class Project extends BaseEntity {
 
     public void setCreatedBy(Long createdBy) {
         this.createdBy = createdBy;
-    }
-
-    public Date getCreatedDate() {
-        return createdDate;
-    }
-
-    public void setCreatedDate(Date createdDate) {
-        this.createdDate = createdDate;
     }
 
     public List<ProjectItem> getItems() {
@@ -113,5 +118,10 @@ public class Project extends BaseEntity {
 
     public void setParentId(Long parentId) {
         this.parentId = parentId;
+    }
+
+    @Override
+    public AclClass getAclClass() {
+        return aclClass;
     }
 }

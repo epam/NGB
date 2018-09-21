@@ -63,6 +63,7 @@ import com.epam.catgenome.entity.seg.SegSample;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfSample;
 import com.epam.catgenome.exception.FeatureIndexException;
+import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.util.AuthUtils;
 
@@ -94,6 +95,9 @@ public class ProjectManager {
 
     @Autowired
     private FileManager fileManager;
+
+    @Autowired
+    private AuthManager authManager;
 
     /**
      * Loads all top-level projects for current user from the database.
@@ -285,6 +289,8 @@ public class ProjectManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public Project saveProject(final Project project, Long parentId) {
+        project.setOwner(authManager.getAuthorizedUser());
+
         Project helpProject = project;
         boolean newProject = checkNewProject(helpProject);
 

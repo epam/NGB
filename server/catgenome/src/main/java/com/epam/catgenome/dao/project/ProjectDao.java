@@ -555,7 +555,8 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         PROJECT_PRETTY_NAME,
         CREATED_BY,
         CREATED_DATE,
-        LAST_OPENED_DATE;
+        LAST_OPENED_DATE,
+        OWNER;
 
         static MapSqlParameterSource getParameters(Project project, Long parentId) {
             MapSqlParameterSource params = new MapSqlParameterSource();
@@ -566,6 +567,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
             params.addValue(CREATED_DATE.name(), project.getCreatedDate());
             params.addValue(PARENT_ID.name(), parentId);
             params.addValue(PROJECT_PRETTY_NAME.name(), project.getPrettyName());
+            params.addValue(OWNER.name(), project.getOwner());
 
             return params;
         }
@@ -580,6 +582,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
                 project.setCreatedDate(new Date(rs.getTimestamp(CREATED_DATE.name()).getTime()));
                 project.setPrettyName(rs.getString(PROJECT_PRETTY_NAME.name()));
                 project.setLastOpenedDate(new Date(rs.getTimestamp(LAST_OPENED_DATE.name()).getTime()));
+                project.setOwner(rs.getString(OWNER.name()));
 
                 long longVal = rs.getLong(PARENT_ID.name());
                 if (!rs.wasNull()) {

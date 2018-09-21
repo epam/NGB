@@ -89,6 +89,8 @@ public abstract class AbstractDaoTest extends AbstractTransactionalJUnit4SpringC
         index.setPath("");
         index.setCreatedDate(new Date());
         index.setCreatedBy(DEFAULT_USER);
+        index.setOwner(EntityHelper.TEST_OWNER);
+
         biologicalDataItemDao.createBiologicalDataItem(index);
         return index;
     }

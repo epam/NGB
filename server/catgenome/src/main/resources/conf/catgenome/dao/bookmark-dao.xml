@@ -15,7 +15,8 @@
                         end_index,
                         referred_chromosome_id,
                         created_by,
-                        created_date)
+                        created_date,
+                        owner)
                     VALUES (
                         :BOOKMARK_ID,
                         :BOOKMARK_NAME,
@@ -23,7 +24,8 @@
                         :END_INDEX,
                         :REFERRED_CHROMOSOME_ID,
                         :CREATED_BY,
-                        :CREATED_DATE)
+                        :CREATED_DATE,
+                        :OWNER)
                 ]]>
             </value>
         </property>
@@ -50,7 +52,8 @@
                         b.referred_chromosome_id,
                         c.chromosome_name,
                         b.created_by,
-                        b.created_date
+                        b.created_date,
+                        b.owner
                     FROM
                         catgenome.bookmark b
                         JOIN catgenome.chromosome c
@@ -71,7 +74,8 @@
                         b.referred_chromosome_id,
                         null as chromosome_name,
                         b.created_by,
-                        b.created_date
+                        b.created_date,
+                        b.owner
                     FROM
                         catgenome.bookmark b
                     WHERE
@@ -103,7 +107,8 @@
                         b.referred_chromosome_id,
                         c.chromosome_name,
                         b.created_by,
-                        b.created_date
+                        b.created_date,
+                        b.owner
                     FROM
                         catgenome.bookmark b
                         JOIN catgenome.chromosome c
@@ -124,7 +129,8 @@
                         b.referred_chromosome_id,
                         c.chromosome_name,
                         b.created_by,
-                        b.created_date
+                        b.created_date,
+                        b.owner
                     FROM
                         catgenome.bookmark b
                         JOIN catgenome.chromosome c
@@ -170,6 +176,7 @@
                         b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,

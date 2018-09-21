@@ -98,6 +98,7 @@ public class BamFileDaoTest extends AbstractDaoTest  {
         bamFile.setPath(BAM_PATH);
         bamFile.setCreatedDate(new Date());
         bamFile.setReferenceId(reference.getId());
+        bamFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.BAM_INDEX,
                 BiologicalDataItemResourceType.FILE, INDEX_PATH);
@@ -119,6 +120,7 @@ public class BamFileDaoTest extends AbstractDaoTest  {
         assertEquals(bamFile.getCreatedDate(), loadedFile.getCreatedDate());
         assertEquals(bamFile.getReferenceId(), loadedFile.getReferenceId());
         assertEquals(bamFile.getBioDataItemId(), loadedFile.getBioDataItemId());
+        assertEquals(bamFile.getOwner(), loadedFile.getOwner());
 
         List<BamFile> bamFiles = bamFileDao.loadBamFilesByReferenceId(reference.getId());
 

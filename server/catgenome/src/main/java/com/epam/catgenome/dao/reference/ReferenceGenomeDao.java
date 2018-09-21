@@ -480,6 +480,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         REFERENCE_GENOME_ID,
         REFERENCE_GENOME_SIZE,
         BIO_DATA_ITEM_ID,
+        OWNER,
         GENE_ITEM_ID,
 
         INDEX_ID,
@@ -490,6 +491,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         INDEX_CREATED_BY,
         INDEX_BUCKET_ID,
         INDEX_CREATED_DATE,
+        INDEX_OWNER,
 
         HEADER,
         CHROMOSOME_ID,
@@ -548,6 +550,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
             reference.setCreatedDate(rs.getDate(CREATED_DATE.name()));
             reference.setCreatedBy(rs.getLong(CREATED_BY.name()));
             reference.setBioDataItemId(rs.getLong(BIO_DATA_ITEM_ID.name()));
+            reference.setOwner(rs.getString(OWNER.name()));
             Long longVal = rs.getLong(TYPE.name());
             reference.setType(rs.wasNull() ? null : BiologicalDataItemResourceType.getById(longVal));
 
@@ -568,6 +571,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
                 index.setFormat(BiologicalDataItemFormat.getById(rs.getLong(INDEX_FORMAT.name())));
                 index.setCreatedBy(rs.getLong(CREATED_BY.name()));
                 index.setCreatedDate(new Date(rs.getTimestamp(INDEX_CREATED_DATE.name()).getTime()));
+                index.setOwner(rs.getString(INDEX_OWNER.name()));
                 reference.setIndex(index);
             }
 

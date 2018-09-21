@@ -44,6 +44,8 @@
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         r.reference_genome_id,
                         r.bio_data_item_id,
                         r.reference_genome_size,
@@ -58,6 +60,7 @@
                         i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date,
+                        i.owner as index_owner,
 
                         s.species_name,
                         s.species_version
@@ -84,6 +87,8 @@
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         r.reference_genome_id,
                         r.bio_data_item_id,
                         r.reference_genome_size,
@@ -98,6 +103,7 @@
                         i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date,
+                        i.owner as index_owner,
 
                         s.species_name,
                         s.species_version
@@ -124,6 +130,8 @@
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         r.reference_genome_id,
                         r.bio_data_item_id,
                         r.reference_genome_size,
@@ -138,6 +146,7 @@
                         i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date,
+                        i.owner as index_owner,
 
                         s.species_name,
                         s.species_version
@@ -161,6 +170,8 @@
                         b.bucket_id,
                         b.type,
                         b.pretty_name,
+                        b.owner,
+
                         r.reference_genome_id,
                         r.bio_data_item_id,
                         r.reference_genome_size,
@@ -175,6 +186,7 @@
                         i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date,
+                        i.owner as index_owner,
 
                         s.species_name,
                         s.species_version

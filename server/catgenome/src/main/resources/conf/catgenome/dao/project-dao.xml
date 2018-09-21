@@ -15,7 +15,8 @@
                         created_date,
                         parent_id,
                         project_pretty_name,
-                        last_opened_date)
+                        last_opened_date,
+                        owner)
                     VALUES (
                         :PROJECT_ID,
                         :PROJECT_NAME,
@@ -23,7 +24,8 @@
                         :CREATED_DATE,
                         :PARENT_ID,
                         :PROJECT_PRETTY_NAME,
-                        now())
+                        now(),
+                        :OWNER)
                 ]]>
             </value>
         </property>
@@ -59,7 +61,8 @@
                         created_date,
                         project_pretty_name,
                         last_opened_date,
-                        parent_id
+                        parent_id,
+                        owner
                     FROM
                         catgenome.project
                     WHERE
@@ -80,7 +83,8 @@
                         created_date,
                         project_pretty_name,
                         last_opened_date,
-                        parent_id
+                        parent_id,
+                        owner
                     FROM
                         catgenome.project
                     WHERE
@@ -98,7 +102,8 @@
                         created_date,
                         project_pretty_name,
                         last_opened_date,
-                        parent_id
+                        parent_id,
+                        owner
                     FROM
                         catgenome.project
                     WHERE
@@ -117,7 +122,8 @@
                         created_date,
                         project_pretty_name,
                         last_opened_date,
-                        parent_id
+                        parent_id,
+                        owner
                     FROM
                         catgenome.project
                     WHERE
@@ -135,7 +141,8 @@
                         created_date,
                         project_pretty_name,
                         last_opened_date,
-                        parent_id
+                        parent_id,
+                        owner
                     FROM
                         catgenome.project
                     WHERE
@@ -153,7 +160,8 @@
                         created_date,
                         project_pretty_name,
                         last_opened_date,
-                        parent_id
+                        parent_id,
+                        owner
                     FROM
                         catgenome.project p
                         JOIN t_list tmp ON p.parent_id = tmp.list_value
@@ -289,7 +297,8 @@
                         created_date,
                         project_pretty_name,
                         last_opened_date,
-                        parent_id
+                        parent_id,
+                        owner
                     FROM
                         catgenome.project
                     WHERE
@@ -312,6 +321,7 @@
                         b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
@@ -411,6 +421,7 @@
                         b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
@@ -495,6 +506,7 @@
                         b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
@@ -571,7 +583,8 @@
                         created_date,
                         project_pretty_name,
                         last_opened_date,
-                        parent_id
+                        parent_id,
+                        owner
                     FROM
                         catgenome.project p
                         JOIN catgenome.project_item pi ON pi.referred_project_id = p.project_id

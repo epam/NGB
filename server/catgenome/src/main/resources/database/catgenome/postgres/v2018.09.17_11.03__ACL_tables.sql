@@ -60,7 +60,13 @@ CREATE TABLE catgenome.acl_class(
 
 INSERT INTO catgenome.acl_class (class) VALUES ('com.epam.catgenome.entity.reference.Reference');
 INSERT INTO catgenome.acl_class (class) VALUES ('com.epam.catgenome.entity.project.Project');
-INSERT INTO catgenome.acl_class (class) VALUES ('com.epam.catgenome.entity.FeatureFile');
+INSERT INTO catgenome.acl_class (class) VALUES ('com.epam.catgenome.entity.vcf.VcfFile');
+INSERT INTO catgenome.acl_class (class) VALUES ('com.epam.catgenome.entity.bam.BamFile');
+INSERT INTO catgenome.acl_class (class) VALUES ('com.epam.catgenome.entity.gene.GeneFile');
+INSERT INTO catgenome.acl_class (class) VALUES ('com.epam.catgenome.entity.maf.MafFile');
+INSERT INTO catgenome.acl_class (class) VALUES ('com.epam.catgenome.entity.bed.BedFile');
+INSERT INTO catgenome.acl_class (class) VALUES ('com.epam.catgenome.entity.seg.SegFile');
+INSERT INTO catgenome.acl_class (class) VALUES ('com.epam.catgenome.entity.wig.WigFile');
 INSERT INTO catgenome.acl_class (class) VALUES ('com.epam.catgenome.entity.reference.Bookmark');
 INSERT INTO catgenome.acl_class (class) VALUES ('com.epam.catgenome.entity.bucket.Bucket');
 
@@ -90,3 +96,19 @@ CREATE TABLE catgenome.acl_entry(
     constraint foreign_fk_4 foreign key(acl_object_identity) references acl_object_identity(id),
     constraint foreign_fk_5 foreign key(sid) references acl_sid(id)
 );
+
+ALTER TABLE catgenome.biological_data_item ADD owner TEXT NULL;
+UPDATE catgenome.biological_data_item SET owner = 'Unauthorized';
+ALTER TABLE catgenome.biological_data_item ALTER COLUMN owner SET NOT NULL;
+
+ALTER TABLE catgenome.project ADD owner TEXT NULL;
+UPDATE catgenome.project SET owner = 'Unauthorized';
+ALTER TABLE catgenome.project ALTER COLUMN owner SET NOT NULL;
+
+ALTER TABLE catgenome.bookmark ADD owner TEXT NULL;
+UPDATE catgenome.bookmark SET owner = 'Unauthorized';
+ALTER TABLE catgenome.bookmark ALTER COLUMN owner SET NOT NULL;
+
+ALTER TABLE catgenome.bucket ADD owner TEXT NULL;
+UPDATE catgenome.bucket SET owner = 'Unauthorized';
+ALTER TABLE catgenome.bucket ALTER COLUMN owner SET NOT NULL;

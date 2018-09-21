@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.dao;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -43,6 +44,7 @@ import com.epam.catgenome.dao.wig.WigFileDao;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.wig.WigFile;
+import com.epam.catgenome.helper.EntityHelper;
 import com.epam.catgenome.util.AuthUtils;
 
 /**
@@ -70,7 +72,7 @@ public class WigFileDaoTest extends AbstractDaoTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testSaveLoadGeneFile() {
+    public void testSaveLoadWigFile() {
         WigFile wigFile = new WigFile();
 
         wigFile.setName("testFile");
@@ -80,6 +82,8 @@ public class WigFileDaoTest extends AbstractDaoTest {
         wigFile.setType(BiologicalDataItemResourceType.FILE);
         wigFile.setFormat(BiologicalDataItemFormat.WIG);
         wigFile.setPath("///");
+        wigFile.setOwner(EntityHelper.TEST_OWNER);
+
         long id = wigFileDao.createWigFileId();
         biologicalDataItemDao.createBiologicalDataItem(wigFile);
         wigFile.setBioDataItemId(wigFile.getId());
@@ -89,6 +93,7 @@ public class WigFileDaoTest extends AbstractDaoTest {
         WigFile loadedFile = wigFileDao.loadWigFile(wigFile.getId());
 
         assertNotNull(loadedFile);
+        assertEquals(wigFile.getOwner(), loadedFile.getOwner());
 
         List<WigFile> files = wigFileDao.loadWigFilesByReferenceId(reference.getId());
         assertNotNull(files);
