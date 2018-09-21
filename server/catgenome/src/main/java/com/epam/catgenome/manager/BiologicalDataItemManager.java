@@ -76,6 +76,9 @@ public class BiologicalDataItemManager {
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
 
+    @Autowired
+    private AuthManager authManager;
+
     private static final String URL_PATTERN = "/#/${REFERENCE_NAME}${CHROMOSOME_NAME}${INDEXES}?tracks=${TRACKS}";
     private static final String INDEXES_PATTERN = "/${START_INDEX}/${END_INDEX}";
 
@@ -85,6 +88,7 @@ public class BiologicalDataItemManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public void createBiologicalDataItem(BiologicalDataItem item) {
+        item.setOwner(authManager.getAuthorizedUser());
         biologicalDataItemDao.createBiologicalDataItem(item);
     }
 

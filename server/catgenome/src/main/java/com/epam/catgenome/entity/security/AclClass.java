@@ -10,6 +10,7 @@ public enum AclClass {
     GENE,
     MAF,
     SEG,
+    WIG,
     BOOKMARK,
     BUCKET
 }

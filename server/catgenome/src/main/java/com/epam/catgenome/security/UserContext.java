@@ -25,14 +25,11 @@
 package com.epam.catgenome.security;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

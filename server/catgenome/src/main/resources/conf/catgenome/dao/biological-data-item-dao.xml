@@ -16,7 +16,8 @@
                         created_by,
                         created_date,
                         bucket_id,
-                        pretty_name)
+                        pretty_name,
+                        owner)
                     VALUES (
                         :BIO_DATA_ITEM_ID,
                         :NAME,
@@ -26,7 +27,8 @@
                         :CREATED_BY,
                         :CREATED_DATE,
                         :BUCKET_ID,
-                        :PRETTY_NAME)
+                        :PRETTY_NAME,
+                        :OWNER)
                 ]]>
             </value>
         </property>
@@ -42,6 +44,7 @@
                         b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
@@ -144,6 +147,7 @@
                         b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
@@ -238,6 +242,7 @@
                         b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
@@ -333,6 +338,7 @@
                         b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
@@ -427,6 +433,7 @@
                         b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,

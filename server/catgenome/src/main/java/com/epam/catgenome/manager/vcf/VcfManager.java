@@ -546,7 +546,7 @@ public class VcfManager {
                     readMetaMap(vcfFile, chromosomeMap, reader, reference, doIndex);
             fileManager.makeIndexMetadata(vcfFile, metaMap);
             biologicalDataItemManager.createBiologicalDataItem(vcfFile.getIndex());
-            vcfFileManager.createVcfFile(vcfFile);
+            vcfFileManager.create(vcfFile);
         }  catch (IOException e) {
             throw new RegistrationException(getMessage(ERROR_REGISTER_FILE, request.getName()), e);
         } finally {
@@ -585,7 +585,7 @@ public class VcfManager {
             throw new RegistrationException(getMessage(ERROR_REGISTER_FILE, request.getName()), e);
         }
         biologicalDataItemManager.createBiologicalDataItem(vcfFile.getIndex());
-        vcfFileManager.createVcfFile(vcfFile);
+        vcfFileManager.create(vcfFile);
         return vcfFile;
     }
 
@@ -756,6 +756,7 @@ public class VcfManager {
 
             vcfFile.setIndex(indexItem);
         }
+
         long vcfId = vcfFile.getId();
         biologicalDataItemManager.createBiologicalDataItem(vcfFile);
         vcfFile.setBioDataItemId(vcfFile.getId());
@@ -777,7 +778,7 @@ public class VcfManager {
         indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
         vcfFile.setIndex(indexItem);
         biologicalDataItemManager.createBiologicalDataItem(vcfFile.getIndex());
-        vcfFileManager.createVcfFile(vcfFile);
+        vcfFileManager.create(vcfFile);
         return vcfFile;
     }
 

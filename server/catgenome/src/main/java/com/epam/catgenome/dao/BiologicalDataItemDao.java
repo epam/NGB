@@ -115,6 +115,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         params.addValue(BiologicalDataItemParameters.CREATED_BY.name(), item.getCreatedBy());
         params.addValue(BiologicalDataItemParameters.BUCKET_ID.name(), item.getBucketId());
         params.addValue(BiologicalDataItemParameters.PRETTY_NAME.name(), item.getPrettyName());
+        params.addValue(BiologicalDataItemParameters.OWNER.name(), item.getOwner());
 
         getNamedParameterJdbcTemplate().update(insertBiologicalDataItemQuery, params);
     }
@@ -220,6 +221,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         CREATED_DATE,
         BUCKET_ID,
         PRETTY_NAME,
+        OWNER,
 
         VCF_ID,
         VCF_REFERENCE_GENOME_ID,
@@ -325,6 +327,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
             dataItem.setCreatedBy(rs.getLong(CREATED_BY.name()));
             dataItem.setCreatedDate(new Date(rs.getTimestamp(CREATED_DATE.name()).getTime()));
             dataItem.setPrettyName(rs.getString(PRETTY_NAME.name()));
+            dataItem.setOwner(rs.getString(OWNER.name()));
 
             return dataItem;
         }

@@ -40,7 +40,6 @@ import org.springframework.util.Assert;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.dao.user.RoleDao;
 import com.epam.catgenome.dao.user.UserDao;
 import com.epam.catgenome.entity.security.NgbUser;
 import com.epam.catgenome.security.DefaultRoles;

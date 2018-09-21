@@ -39,6 +39,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
@@ -62,6 +63,7 @@ import com.epam.catgenome.security.acl.*;
 @ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 @ComponentScan(basePackages = "com.epam.catgenome.security.acl")
+@ImportResource("classpath*:conf/catgenome/acl-dao.xml")
 public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration {
     @Autowired
     private ApplicationContext context;
@@ -71,6 +73,9 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
 
     @Autowired
     private PermissionFactory permissionFactory;
+
+    @Autowired
+    private JdbcMutableAclService jdbcMutableAclService;
 
     @Override
     protected MethodSecurityExpressionHandler createExpressionHandler() {
@@ -107,15 +112,15 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
 
     @Bean
     public PermissionEvaluator permissionEvaluator() {
-        AclPermissionEvaluator evaluator = new AclPermissionEvaluator(jdbcMutableAclService());
+        AclPermissionEvaluator evaluator = new AclPermissionEvaluator(jdbcMutableAclService);
         evaluator.setPermissionFactory(permissionFactory);
         return evaluator;
     }
 
-    @Bean
+    /*@Bean
     public JdbcMutableAclService jdbcMutableAclService() {
         return new JdbcMutableAclServiceImpl(dataSource, lookupStrategy(), aclCache());
-    }
+    }*/
 
     @Bean
     public LookupStrategy lookupStrategy() {

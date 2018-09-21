@@ -68,6 +68,7 @@ public class AuthManager {
         if (principal.equals(UNAUTHORIZED_USER)) {
             return UNAUTHORIZED_USER;
         }
+
         String user;
         if (principal instanceof UserContext) {
             user = ((UserContext) principal).getUsername();
@@ -78,6 +79,7 @@ public class AuthManager {
         } else {
             user = UNAUTHORIZED_USER;
         }
+
         return user;
     }
 

@@ -36,11 +36,11 @@ public class LookupStrategyImpl implements LookupStrategy {
             + "acli_sid.principal as acl_principal, "
             + "acli_sid.sid as acl_sid, "
             + "acl_class.class "
-            + "from acl_object_identity "
-            + "left join acl_sid acli_sid on acli_sid.id = acl_object_identity.owner_sid "
-            + "left join acl_class on acl_class.id = acl_object_identity.object_id_class   "
-            + "left join acl_entry on acl_object_identity.id = acl_entry.acl_object_identity "
-            + "left join acl_sid on acl_entry.sid = acl_sid.id  " + "where ( ";
+            + "from catgenome.acl_object_identity "
+            + "left join catgenome.acl_sid acli_sid on acli_sid.id = acl_object_identity.owner_sid "
+            + "left join catgenome.acl_class on acl_class.id = acl_object_identity.object_id_class   "
+            + "left join catgenome.acl_entry on acl_object_identity.id = acl_entry.acl_object_identity "
+            + "left join catgenome.acl_sid on acl_entry.sid = acl_sid.id  " + "where ( ";
 
     private static final String DEFAULT_LOOKUP_KEYS_WHERE_CLAUSE = "(acl_object_identity.id = ?)";
 

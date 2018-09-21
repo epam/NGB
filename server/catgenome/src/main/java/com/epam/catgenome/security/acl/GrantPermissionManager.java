@@ -33,7 +33,6 @@ import static java.util.stream.Collectors.toSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -74,8 +73,6 @@ import org.springframework.util.CollectionUtils;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.controller.vo.security.EntityWithPermissionVO;
-import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.security.AbstractHierarchicalEntity;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;

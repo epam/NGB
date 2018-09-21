@@ -53,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.epam.catgenome.controller.JsonMapper;
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.security.NgbUser;
+import com.epam.catgenome.exception.NgbException;
 import com.epam.catgenome.security.DefaultRoles;
 import com.epam.catgenome.security.Role;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -292,7 +293,7 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
                             try {
                                 return parseUser(rs, userId);
                             } catch (SQLException e) {
-                                throw new RuntimeException(e);
+                                throw new NgbException(e);
                             }
                         }
 

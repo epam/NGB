@@ -36,6 +36,8 @@
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
                         v.compressed as vcf_compressed,
@@ -68,6 +70,8 @@
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
                         v.compressed as vcf_compressed,
@@ -101,6 +105,8 @@
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
                         v.compressed as vcf_compressed,

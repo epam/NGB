@@ -22,23 +22,14 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.security.acl.aspect;
+package com.epam.catgenome.app;
 
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+@Configuration
+@ImportResource({
+    "classpath*:applicationContext-test.xml"})
+public class XmlConfigAdapter {
 
-/**
- * Annotation to mark Bean (Service, Manager) classes performing CRUD operations.
- * For such classes CRUD operations will be synchronized to ACL DB tables.
- */
-
-@Inherited
-@Retention(RUNTIME)
-@Target(ElementType.TYPE)
-public @interface AclSync {
 }
-

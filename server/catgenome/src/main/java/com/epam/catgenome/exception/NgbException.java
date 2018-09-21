@@ -22,23 +22,14 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.security.acl.aspect;
-
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+package com.epam.catgenome.exception;
 
 /**
- * Annotation to mark Bean (Service, Manager) classes performing CRUD operations.
- * For such classes CRUD operations will be synchronized to ACL DB tables.
+ * A generic business RuntimeException
  */
+public class NgbException extends RuntimeException {
 
-@Inherited
-@Retention(RUNTIME)
-@Target(ElementType.TYPE)
-public @interface AclSync {
+    public NgbException(Throwable cause) {
+        super(cause);
+    }
 }
-

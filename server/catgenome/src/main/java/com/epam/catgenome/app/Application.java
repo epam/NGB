@@ -5,8 +5,6 @@ import java.io.PrintStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.security.AuthenticationManagerConfiguration;
 import org.springframework.boot.autoconfigure.security.FallbackWebSecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.SecurityFilterAutoConfiguration;
@@ -17,7 +15,6 @@ import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 /**

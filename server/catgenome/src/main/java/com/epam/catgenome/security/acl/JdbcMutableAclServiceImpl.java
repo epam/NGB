@@ -45,18 +45,12 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 
 public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
-
-    private static final String CLASS_IDENTITY_QUERY = "SELECT currval('acl_class_id_seq');";
-    private static final String SID_IDENTITY_QUERY = "SELECT currval('acl_sid_id_seq');";
-
     private String deleteSidByIdQuery = "delete from acl_sid where id=?";
     private String deleteEntriesBySidQuery = "delete from acl_entry where sid=?";
 
     public JdbcMutableAclServiceImpl(DataSource dataSource, LookupStrategy lookupStrategy,
                                      AclCache aclCache) {
         super(dataSource, lookupStrategy, aclCache);
-        setClassIdentityQuery(CLASS_IDENTITY_QUERY);
-        setSidIdentityQuery(SID_IDENTITY_QUERY);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -168,5 +162,13 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
         final MutableAcl aclFolder = getOrCreateObjectIdentity(entity);
         aclFolder.setOwner(createOrGetSid(owner, true));
         updateAcl(aclFolder);
+    }
+
+    public void setDeleteSidByIdQuery(String deleteSidByIdQuery) {
+        this.deleteSidByIdQuery = deleteSidByIdQuery;
+    }
+
+    public void setDeleteEntriesBySidQuery(String deleteEntriesBySidQuery) {
+        this.deleteEntriesBySidQuery = deleteEntriesBySidQuery;
     }
 }

@@ -61,6 +61,8 @@ import com.epam.catgenome.util.AuthUtils;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4SpringContextTests {
+    private static final String TEST_OWNER = "TEST_USER";
+
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
 
@@ -96,6 +98,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         item.setFormat(BiologicalDataItemFormat.REFERENCE);
         item.setType(BiologicalDataItemResourceType.FILE);
         item.setCreatedDate(new Date());
+        item.setOwner(TEST_OWNER);
 
         biologicalDataItemDao.createBiologicalDataItem(item);
 
@@ -116,6 +119,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         Assert.assertEquals(item.getCreatedDate(), loadedItem.getCreatedDate());
         Assert.assertEquals(item.getType(), loadedItem.getType());
         Assert.assertEquals(item.getFormat(), loadedItem.getFormat());
+        Assert.assertEquals(item.getOwner(), loadedItem.getOwner());
     }
 
     @Test
@@ -128,6 +132,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         item.setFormat(BiologicalDataItemFormat.REFERENCE);
         item.setType(BiologicalDataItemResourceType.FILE);
         item.setCreatedDate(new Date());
+        item.setOwner(TEST_OWNER);
 
         biologicalDataItemDao.createBiologicalDataItem(item);
 
@@ -162,6 +167,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         item.setFormat(BiologicalDataItemFormat.REFERENCE);
         item.setType(BiologicalDataItemResourceType.FILE);
         item.setCreatedDate(new Date());
+        item.setOwner(TEST_OWNER);
 
         biologicalDataItemDao.createBiologicalDataItem(item);
 
@@ -194,6 +200,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         reference.setBioDataItemId(item.getId());
         reference.setIndex(EntityHelper.createIndex(BiologicalDataItemFormat.REFERENCE_INDEX,
                 BiologicalDataItemResourceType.FILE, ""));
+
         biologicalDataItemDao.createBiologicalDataItem(reference.getIndex());
         return referenceGenomeDao.createReferenceGenome(reference, referenceGenomeDao.createReferenceGenomeId());
     }
@@ -206,6 +213,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
         indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
+        indexItem.setOwner(TEST_OWNER);
 
         biologicalDataItemDao.createBiologicalDataItem(indexItem);
 
@@ -219,6 +227,8 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         geneFile.setCreatedBy(AuthUtils.getCurrentUserId());
         geneFile.setReferenceId(reference.getId());
         geneFile.setIndex(indexItem);
+        geneFile.setOwner(TEST_OWNER);
+
         long id = geneFile.getId();
         biologicalDataItemDao.createBiologicalDataItem(geneFile);
         geneFileDao.createGeneFile(geneFile, id);

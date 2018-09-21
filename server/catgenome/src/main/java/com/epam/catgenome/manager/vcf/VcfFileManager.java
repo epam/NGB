@@ -51,6 +51,7 @@ import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfSample;
 import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.security.acl.aspect.AclSync;
 
 
 /**
@@ -63,6 +64,7 @@ import com.epam.catgenome.manager.SecuredEntityManager;
  * concerning {@code VcfFile}.
  * </p>
  */
+@AclSync
 @Service
 public class VcfFileManager implements SecuredEntityManager {
 
@@ -81,11 +83,13 @@ public class VcfFileManager implements SecuredEntityManager {
      * @param vcfFile a {@code VcfFile} instance to be persisted
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void createVcfFile(VcfFile vcfFile) {
+    public VcfFile create(VcfFile vcfFile) {
         vcfFileDao.createVcfFile(vcfFile);
         if (vcfFile.getSamples() != null) {
             vcfFileDao.createSamples(vcfFile.getSamples(), vcfFile.getId());
         }
+
+        return vcfFile;
     }
 
     /**

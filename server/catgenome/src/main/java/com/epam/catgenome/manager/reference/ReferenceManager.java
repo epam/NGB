@@ -39,6 +39,7 @@ import java.util.List;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.track.ReferenceTrackMode;
+import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.reference.io.FastaSequenceFile;
 import com.epam.catgenome.manager.reference.io.FastaUtils;
@@ -110,6 +111,9 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
     @Autowired private GeneFileManager geneFileManager;
 
     @Autowired private BiologicalDataItemManager biologicalDataItemManager;
+
+    @Autowired
+    private AuthManager authManager;
 
     private static final Logger LOG = LoggerFactory.getLogger(ReferenceManager.class);
 
@@ -581,6 +585,7 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
         indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
+        indexItem.setOwner(authManager.getAuthorizedUser());
         reference.setIndex(indexItem);
     }
 

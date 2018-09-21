@@ -92,6 +92,7 @@ public final class EntityHelper {
     };
 
     private static final int HUMAN_CHROMOSOME_LENGTH = 239107476;
+    private static final String TEST_OWNER = "TEST_USER";
 
     public static Reference createReference() {
         final Reference reference = new Reference();
@@ -181,6 +182,7 @@ public final class EntityHelper {
         index.setPath(path);
         index.setCreatedDate(new Date());
         index.setCreatedBy(AuthUtils.getCurrentUserId());
+        index.setOwner(TEST_OWNER);
 
         return index;
     }
