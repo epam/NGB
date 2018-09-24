@@ -35,7 +35,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,10 +52,8 @@ import com.epam.catgenome.security.Role;
 public class RoleDaoTest extends AbstractDaoTest
 {
     private static final int EXPECTED_DEFAULT_ROLES_NUMBER = 10;
-    private static final String TEST_USER1 = "test_user1";
     private static final String TEST_ROLE = "ROLE_TEST";
     private static final String TEST_ROLE_UPDATED = "NEW_ROLE";
-    private static final String TEST_STORAGE_PATH = "test";
 
     @Autowired
     private RoleDao roleDao;
@@ -123,7 +120,7 @@ public class RoleDaoTest extends AbstractDaoTest
     @Test
     public void testLoadRolesByUserIds() {
         Map<Long, List<Role>> roles = roleDao.loadRolesByUserIds(Collections.singletonList(user.getId()));
-        Assert.assertEquals(3, roles.get(user.getId()).size());
+        assertEquals(3, roles.get(user.getId()).size());
     }
 
     private boolean isRolePresent(Role roleToFind, Collection<Role> roles) {

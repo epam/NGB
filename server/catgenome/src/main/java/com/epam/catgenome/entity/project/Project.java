@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;

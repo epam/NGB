@@ -37,14 +37,12 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.epam.catgenome.dao.AbstractDaoTest;
 import com.epam.catgenome.entity.security.NgbUser;
 import com.epam.catgenome.security.DefaultRoles;
-import com.epam.catgenome.security.Role;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
@@ -62,9 +60,6 @@ public class UserDaoTest extends AbstractDaoTest {
 
     @Autowired
     private UserDao userDao;
-
-    @Value("${security.default.admin}")
-    private String defaultAdmin;
 
     @Test
     public void testSearchUserByPrefix() {
@@ -214,9 +209,6 @@ public class UserDaoTest extends AbstractDaoTest {
         Assert.assertTrue(usersAfterDeletion.stream().noneMatch(u -> u.getId().equals(savedUser.getId())));
     }
 
-    private boolean isRolePresent(Role roleToFind, Collection<Role> roles) {
-        return roles.stream().anyMatch(r -> r.equals(roleToFind));
-    }
     private boolean assertUserAttributes(Map<String, String> expectedAttributes, Map<String, String> actualAttributes) {
         return CollectionUtils.isEqualCollection(expectedAttributes.entrySet(), actualAttributes.entrySet());
     }

@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.collections4.ListUtils;
@@ -197,7 +196,7 @@ public class GrantPermissionManager {
                     .collect(toList());
                 return new ImmutablePair<>(securedEntity, permissions);
             })
-            .collect(Collectors.toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
+            .collect(toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
 
         return result;
     }
@@ -297,7 +296,7 @@ public class GrantPermissionManager {
         return user.equalsIgnoreCase(owner) || isAdmin(getSids());
     }
 
-    private boolean hasUserOrRoleAccess(AclClass entityClass, String permissionName) {
+    public boolean hasUserOrRoleAccess(String permissionName) {
         return permissionName.equals(READ_PERMISSION);
     }
 
@@ -480,7 +479,7 @@ public class GrantPermissionManager {
         });
     }
 
-    private void clearWriteExecutePermissions(AbstractSecuredEntity entity) {
+    public void clearWritePermissions(AbstractSecuredEntity entity) {
         int readBits = AclPermission.READ.getMask() | AclPermission.NO_READ.getMask();
         MutableAcl acl = aclService.getOrCreateObjectIdentity(entity);
         List<AccessControlEntry> newAces = new ArrayList<>();
@@ -506,10 +505,10 @@ public class GrantPermissionManager {
         if (entity instanceof AbstractHierarchicalEntity) {
             AbstractHierarchicalEntity tree = (AbstractHierarchicalEntity) entity;
             if (!CollectionUtils.isEmpty(tree.getChildren())) {
-                tree.getChildren().forEach(this::clearWriteExecutePermissions);
+                tree.getChildren().forEach(this::clearWritePermissions);
             }
             if (!CollectionUtils.isEmpty(tree.getLeaves())) {
-                tree.getLeaves().forEach(this::clearWriteExecutePermissions);
+                tree.getLeaves().forEach(this::clearWritePermissions);
             }
         }
     }
@@ -537,20 +536,19 @@ public class GrantPermissionManager {
         });
     }
 
-    private Set<AclPermissionEntry> buildAclPermissionEntries(Map<AclSid, Integer> permissions) {
+    public Set<AclPermissionEntry> buildAclPermissionEntries(Map<AclSid, Integer> permissions) {
         Set<AclPermissionEntry> result = new HashSet<>();
         permissions.forEach((acl, mask) -> result.add(new AclPermissionEntry(acl, mask)));
         return result;
     }
 
-    private Map<AclSid, Integer> getEntityPermissions(
-            AbstractSecuredEntity entity,
+    public Map<AclSid, Integer> getEntityPermissions(AbstractSecuredEntity entity,
             Map<AbstractSecuredEntity, List<AclPermissionEntry>> allPermissions) {
         return allPermissions.get(entity).stream()
                 .collect(toMap(AclPermissionEntry::getSid, AclPermissionEntry::getMask));
     }
 
-    private void mergeWithParentPermissions(Map<AclSid, Integer> mergedPermissions, AbstractSecuredEntity parent,
+    public void mergeWithParentPermissions(Map<AclSid, Integer> mergedPermissions, AbstractSecuredEntity parent,
                                             Map<AbstractSecuredEntity, List<AclPermissionEntry>> allPermissions) {
         AbstractSecuredEntity currentParent = parent;
         while (currentParent != null) {
@@ -559,7 +557,7 @@ public class GrantPermissionManager {
         }
     }
 
-    private Map<AbstractSecuredEntity, List<AclPermissionEntry>> getEntitiesPermissions(
+    public Map<AbstractSecuredEntity, List<AclPermissionEntry>> getEntitiesPermissions(
             Collection<? extends AbstractSecuredEntity> entities) {
         Set<AbstractSecuredEntity> result = new HashSet<>(entities);
         entities.forEach(entity -> {
@@ -572,7 +570,7 @@ public class GrantPermissionManager {
         return getPermissions(result);
     }
 
-    private void expandGroups(List<EntityPermission> permissions) {
+    public void expandGroups(List<EntityPermission> permissions) {
         if (CollectionUtils.isEmpty(permissions)) {
             return;
         }
