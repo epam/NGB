@@ -81,6 +81,9 @@ repositories {
         dirs 'lib'
     }
 }
+
+ext['jetty.version'] = '9.4.8.v20171121'
+
 // >>>>> external dependencies used to compile and/or run application
 dependencies {
     // >>>>> dependencies used to compile application and include into artifact
@@ -171,7 +174,7 @@ dependencies {
     testCompile group: "javax.servlet", name: "javax.servlet-api", version: project.ext.versionJavaXServlet
     testCompile group: "com.jayway.jsonpath", name: "json-path", version: project.ext.versionJayWayJsonPath
     testCompile group: "com.jayway.jsonpath", name: "json-path-assert", version: project.ext.versionJayWayJsonPath
-    testCompile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.3.13.v20161014'
+    testCompile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.8.v20171121'
     testCompile group: "org.springframework.security", name: "spring-security-test", version: versionSpringSecurity
 
     testRuntime group: "javax.transaction", name: "jta", version: "1.1"
