@@ -44,6 +44,7 @@ import com.epam.catgenome.entity.index.BookmarkIndexEntry;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.reference.Bookmark;
+import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.util.AuthUtils;
 
 /**
@@ -55,6 +56,9 @@ public class BookmarkManager {
     @Autowired
     private BookmarkDao bookmarkDao;
 
+    @Autowired
+    private AuthManager authManager;
+
     /**
      * Saves a given {@code Project} entity to a databases with it's bookmarked {@code ProjectItem}s
      * @param bookmark {@code Bookmark} entity to save
@@ -62,6 +66,8 @@ public class BookmarkManager {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public Bookmark saveBookmark(Bookmark bookmark) throws IOException {
+        bookmark.setOwner(authManager.getAuthorizedUser());
+
         if (bookmark.getId() != null) {
             bookmarkDao.deleteBookmarkItems(bookmark.getId());
         } else {

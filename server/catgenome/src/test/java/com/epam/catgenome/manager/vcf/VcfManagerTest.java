@@ -793,9 +793,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testLoadExtendedInfo()
-            throws IOException, InterruptedException, FeatureIndexException,
-            NoSuchAlgorithmException, FeatureFileReadingException {
+    public void testLoadExtendedInfo() throws IOException, InterruptedException {
         VcfFile vcfFile = testSave("classpath:templates/extended_info.vcf");
 
         VcfFile file = vcfFileManager.load(vcfFile.getId());
@@ -899,13 +897,12 @@ public class VcfManagerTest extends AbstractManagerTest {
         return registerVcf(resource, referenceId, vcfManager, PRETTY_NAME);
     }
 
-    private Track<Variation> testLoad(VcfFile vcfFile, Double scaleFactor, boolean checkBlocks)
-        throws IOException, VcfReadingException {
+    private Track<Variation> testLoad(VcfFile vcfFile, Double scaleFactor, boolean checkBlocks) throws IOException {
         return testLoad(vcfFile, scaleFactor, checkBlocks, true);
     }
 
     private Track<Variation> testLoad(VcfFile vcfFile, Double scaleFactor, boolean checkBlocks, boolean collapse)
-        throws IOException, VcfReadingException {
+        throws IOException {
         TrackQuery vcfTrackQuery = new TrackQuery();
         vcfTrackQuery.setChromosomeId(testChromosome.getId());
         vcfTrackQuery.setStartIndex(1);
@@ -967,8 +964,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testSaveUnsorted() throws IOException, ClassNotFoundException, InterruptedException,
-            ParseException, VcfReadingException {
+    public void testSaveUnsorted() throws IOException {
         String invalidVcf = "unsorted.vcf";
         testRegisterInvalidFile("classpath:templates/invalid/" + invalidVcf,  MessageHelper
                 .getMessage(MessagesConstants.ERROR_UNSORTED_FILE));
@@ -979,9 +975,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testRegisterFileExtraChr()
-            throws IOException, ClassNotFoundException, InterruptedException, ParseException, NoSuchAlgorithmException,
-            VcfReadingException {
+    public void testRegisterFileExtraChr() throws IOException, InterruptedException {
         VcfFile vcfFile = testSave("classpath:templates/invalid/extra_chr.vcf");
         Assert.assertTrue(vcfFile != null);
     }

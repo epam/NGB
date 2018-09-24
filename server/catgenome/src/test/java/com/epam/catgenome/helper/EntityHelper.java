@@ -143,6 +143,7 @@ public final class EntityHelper {
         reference.setChromosomes(Collections.singletonList(chromosome));
         reference.setIndex(createIndex(BiologicalDataItemFormat.REFERENCE_INDEX,
                 BiologicalDataItemResourceType.FILE, ""));
+        reference.setOwner(TEST_OWNER);
         return reference;
     }
 
@@ -156,6 +157,7 @@ public final class EntityHelper {
         reference.setChromosomes(chromosomes);
         reference.setIndex(createIndex(BiologicalDataItemFormat.REFERENCE_INDEX,
                 BiologicalDataItemResourceType.FILE, ""));
+        reference.setOwner(TEST_OWNER);
         return reference;
     }
 

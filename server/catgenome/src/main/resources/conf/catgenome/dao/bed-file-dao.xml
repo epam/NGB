@@ -35,6 +35,8 @@
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         bd.bed_id,
                         bd.reference_genome_id as bed_reference_genome_id,
                         bd.compressed as bed_compressed,
@@ -67,6 +69,8 @@
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         bd.bed_id,
                         bd.reference_genome_id as bed_reference_genome_id,
                         bd.compressed as bed_compressed,

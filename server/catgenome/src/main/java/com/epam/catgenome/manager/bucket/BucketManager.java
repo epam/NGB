@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.bucket.BucketDao;
 import com.epam.catgenome.entity.bucket.Bucket;
+import com.epam.catgenome.manager.AuthManager;
 
 /**
  * {@code BucketManager} This component provides logic, connected for handling S3 buckets
@@ -43,6 +44,9 @@ import com.epam.catgenome.entity.bucket.Bucket;
 public class BucketManager {
     @Autowired
     private BucketDao bucketDao;
+
+    @Autowired
+    private AuthManager authManager;
 
     /**
      * Registers the bucket in system
@@ -54,6 +58,7 @@ public class BucketManager {
         Assert.notNull(bucket.getAccessKeyId(), MessagesConstants.ERROR_NULL_PARAM);
         Assert.notNull(bucket.getBucketName(), MessagesConstants.ERROR_NULL_PARAM);
         Assert.notNull(bucket.getSecretAccessKey(), MessagesConstants.ERROR_NULL_PARAM);
+        bucket.setOwner(authManager.getAuthorizedUser());
 
         bucketDao.createBucket(bucket);
         return bucket;
