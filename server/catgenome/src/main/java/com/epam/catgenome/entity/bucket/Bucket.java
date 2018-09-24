@@ -23,22 +23,18 @@
  */
 
 package com.epam.catgenome.entity.bucket;
+
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
+
 /**
  * {@code Bucket} It is the entity that stores parameters for S3 connection
  */
-public class Bucket {
+public class Bucket extends AbstractSecuredEntity {
     private String bucketName;
     private String accessKeyId;
     private String secretAccessKey;
-    private Long id;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
+    private final AclClass aclClass = AclClass.BUCKET;
 
     public String getBucketName() {
         return bucketName;
@@ -62,5 +58,15 @@ public class Bucket {
 
     public void setSecretAccessKey(String secretAccessKey) {
         this.secretAccessKey = secretAccessKey;
+    }
+
+    @Override
+    public AbstractSecuredEntity getParent() {
+        return null;
+    }
+
+    @Override
+    public AclClass getAclClass() {
+        return aclClass;
     }
 }

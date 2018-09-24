@@ -28,6 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 import java.util.List;
@@ -83,6 +84,7 @@ public class MafFileDaoTest extends AbstractDaoTest {
         mafFile.setPath("///");
         mafFile.setCreatedDate(new Date());
         mafFile.setReferenceId(reference.getId());
+        mafFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.MAF_INDEX,
                 BiologicalDataItemResourceType.FILE, "////");
@@ -105,6 +107,7 @@ public class MafFileDaoTest extends AbstractDaoTest {
         assertEquals(mafFile.getCreatedDate(), loadedFile.getCreatedDate());
         assertEquals(mafFile.getReferenceId(), loadedFile.getReferenceId());
         assertEquals(mafFile.getBioDataItemId(), loadedFile.getBioDataItemId());
+        assertEquals(mafFile.getOwner(), loadedFile.getOwner());
 
         List<MafFile> segFiles = mafFileDao.loadMafFilesByReferenceId(reference.getId());
 

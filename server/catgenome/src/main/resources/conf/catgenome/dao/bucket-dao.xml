@@ -11,12 +11,14 @@
                         bucket_id,
                         bucket_name,
                         access_key_id,
-                        secret_access_key)
+                        secret_access_key,
+                        owner)
                     VALUES (
                         :BUCKET_ID,
                         :BUCKET_NAME,
                         :ACCESS_KEY_ID,
-                        :SECRET_ACCESS_KEY)
+                        :SECRET_ACCESS_KEY,
+                        :OWNER)
                 ]]>
             </value>
         </property>
@@ -27,7 +29,8 @@
                         bucket_id,
                         bucket_name,
                         access_key_id,
-                        secret_access_key
+                        secret_access_key,
+                        owner
                     FROM
                         catgenome.bucket
                     WHERE
@@ -40,7 +43,8 @@
                 <![CDATA[
                     SELECT
                         bucket_id,
-                        bucket_name
+                        bucket_name,
+                        owner
                     FROM
                         catgenome.bucket
                 ]]>

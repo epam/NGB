@@ -38,6 +38,8 @@
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         m.maf_id,
                         m.reference_genome_id as maf_reference_genome_id,
                         m.compressed as maf_compressed,
@@ -71,6 +73,8 @@
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         m.maf_id,
                         m.reference_genome_id as maf_reference_genome_id,
                         m.compressed as maf_compressed,

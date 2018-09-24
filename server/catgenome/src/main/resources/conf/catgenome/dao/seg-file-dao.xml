@@ -36,6 +36,8 @@
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         s.seg_id,
                         s.reference_genome_id as seg_reference_genome_id,
                         s.compressed as seg_compressed,
@@ -68,6 +70,8 @@
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         s.seg_id,
                         s.reference_genome_id as seg_reference_genome_id,
                         s.compressed as seg_compressed,

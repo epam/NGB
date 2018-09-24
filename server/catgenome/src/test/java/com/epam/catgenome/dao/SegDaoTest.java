@@ -87,6 +87,7 @@ public class SegDaoTest extends AbstractDaoTest {
         segFile.setPath("///");
         segFile.setCreatedDate(new Date());
         segFile.setReferenceId(reference.getId());
+        segFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.SEG_INDEX,
                 BiologicalDataItemResourceType.FILE, "////");
@@ -130,6 +131,7 @@ public class SegDaoTest extends AbstractDaoTest {
         segFile.setPath("///");
         segFile.setCreatedDate(new Date());
         segFile.setReferenceId(reference.getId());
+        segFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.VCF_INDEX,
                 BiologicalDataItemResourceType.FILE, "////");
