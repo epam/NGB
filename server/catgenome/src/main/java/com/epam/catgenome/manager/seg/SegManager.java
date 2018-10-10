@@ -129,7 +129,7 @@ public class SegManager {
     public SampledTrack<SegRecord> loadFeatures(SampledTrack<SegRecord> track) throws IOException {
         Chromosome chromosome = trackHelper.validateTrack(track);
 
-        SegFile segFile = segFileManager.loadSegFile(track.getId());
+        SegFile segFile = segFileManager.load(track.getId());
 
         double time1 = Utils.getSystemTimeMilliseconds();
         try (AbstractFeatureReader<SegFeature, LineIterator> reader = fileManager.makeSegReader(segFile)) {
@@ -167,10 +167,10 @@ public class SegManager {
     public SegFile unregisterSegFile(final long segFileId) throws IOException {
         Assert.notNull(segFileId, MessagesConstants.ERROR_INVALID_PARAM);
         Assert.isTrue(segFileId > 0, MessagesConstants.ERROR_INVALID_PARAM);
-        SegFile fileToDelete = segFileManager.loadSegFile(segFileId);
+        SegFile fileToDelete = segFileManager.load(segFileId);
         Assert.notNull(fileToDelete, MessagesConstants.ERROR_NO_SUCH_FILE);
 
-        segFileManager.deleteSegFile(fileToDelete);
+        segFileManager.delete(fileToDelete);
         fileManager.deleteFeatureFileDirectory(fileToDelete);
 
         return fileToDelete;
@@ -236,13 +236,13 @@ public class SegManager {
             fileManager.makeSegIndex(segFile);
             segFile.setSamples(samples);
             biologicalDataItemManager.createBiologicalDataItem(segFile.getIndex());
-            segFileManager.createSegFile(segFile);
+            segFileManager.create(segFile);
         } catch (IOException e) {
             LOGGER.error(getMessage(ERROR_REGISTER_FILE, request.getName()), e);
             throw new RegistrationException(getMessage(ERROR_REGISTER_FILE, request.getName()));
         } finally {
             if (segFile.getId() != null &&
-                    segFileManager.loadSegFile(segFile.getId()) == null) {
+                    segFileManager.load(segFile.getId()) == null) {
                 biologicalDataItemManager.deleteBiologicalDataItem(segFile.getBioDataItemId());
                 try {
                     fileManager.deleteFeatureFileDirectory(segFile);

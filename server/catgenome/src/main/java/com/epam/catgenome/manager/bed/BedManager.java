@@ -152,7 +152,7 @@ public class BedManager {
     public Track<BedRecord> loadFeatures(final Track<BedRecord> track) throws FeatureFileReadingException {
         final Chromosome chromosome = trackHelper.validateTrack(track);
 
-        final BedFile bedFile = bedFileManager.loadBedFile(track.getId());
+        final BedFile bedFile = bedFileManager.load(track.getId());
 
         return loadTrackFromFile(track, bedFile, chromosome);
     }
@@ -208,7 +208,7 @@ public class BedManager {
     public Track<Wig> loadHistogram(final Track<Wig> track) throws HistogramReadingException {
         TrackHelper.validateHistogramTrack(track);
 
-        final BedFile bedFile = bedFileManager.loadBedFile(track.getId());
+        final BedFile bedFile = bedFileManager.load(track.getId());
         final Chromosome chromosome = referenceGenomeManager.loadChromosome(track.getChromosome().getId());
         Assert.notNull(chromosome, getMessage(MessagesConstants.ERROR_CHROMOSOME_ID_NOT_FOUND));
 
@@ -234,10 +234,10 @@ public class BedManager {
      */
     public BedFile unregisterBedFile(long bedFileId) throws IOException {
         Assert.isTrue(bedFileId > 0, MessagesConstants.ERROR_INVALID_PARAM);
-        final BedFile fileToDelete = bedFileManager.loadBedFile(bedFileId);
+        final BedFile fileToDelete = bedFileManager.load(bedFileId);
         Assert.notNull(fileToDelete, MessagesConstants.ERROR_NO_SUCH_FILE);
 
-        bedFileManager.deleteBedFile(fileToDelete);
+        bedFileManager.delete(fileToDelete);
         fileManager.deleteFeatureFileDirectory(fileToDelete);
 
         return fileToDelete;
@@ -276,7 +276,7 @@ public class BedManager {
     private BedFile registerBedFileFromFile(final IndexedFileRegistrationRequest request)
         throws HistogramReadingException, IOException {
 
-        Reference reference = referenceGenomeManager.loadReferenceGenome(request.getReferenceId());
+        Reference reference = referenceGenomeManager.load(request.getReferenceId());
 
         BiologicalDataItemResourceType resourceType = BiologicalDataItemResourceType.translateRequestType(
             request.getType());
@@ -327,11 +327,11 @@ public class BedManager {
             LOG.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, bedFile.getId(),
                     bedFile.getPath()));
             biologicalDataItemManager.createBiologicalDataItem(bedFile.getIndex());
-            bedFileManager.createBedFile(bedFile);
+            bedFileManager.create(bedFile);
             return bedFile;
         } finally {
             if (bedFile.getId() != null && bedFile.getBioDataItemId() != null
-                    && bedFileManager.loadBedFile(bedFile.getId()) == null) {
+                    && bedFileManager.load(bedFile.getId()) == null) {
                 biologicalDataItemManager.deleteBiologicalDataItem(bedFile.getBioDataItemId());
                 try {
                     fileManager.deleteFeatureFileDirectory(bedFile);
@@ -554,8 +554,8 @@ public class BedManager {
     }
 
     public BedFile reindexBedFile(long bedFileId) throws FeatureIndexException {
-        BedFile bedFile = bedFileManager.loadBedFile(bedFileId);
-        Reference reference = referenceGenomeManager.loadReferenceGenome(bedFile.getReferenceId());
+        BedFile bedFile = bedFileManager.load(bedFileId);
+        Reference reference = referenceGenomeManager.load(bedFile.getReferenceId());
         Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
                 Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
 

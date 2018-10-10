@@ -190,7 +190,7 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
             if (request.getGeneFileId() != null) {
                 Assert.isTrue(request.getGeneFileRequest() == null,
                         getMessage(MessagesConstants.ERROR_REFERENCE_REGISTRATION_PARAMS));
-                GeneFile geneFile = geneFileManager.loadGeneFile(request.getGeneFileId());
+                GeneFile geneFile = geneFileManager.load(request.getGeneFileId());
                 reference.setGeneFile(geneFile);
             }
             if (request.getSpecies() != null) {
@@ -200,7 +200,7 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
                 reference.setSpecies(species);
             }
 
-            referenceGenomeManager.register(reference);
+            referenceGenomeManager.create(reference);
             processGeneRegistrationRequest(request, reference);
             // sets this flag to 'true' that means all activities are performed successfully and no
             // rollback for applied changes are required
@@ -325,10 +325,10 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
     public Reference unregisterGenome(final long referenceId) throws IOException {
         Assert.notNull(referenceId, MessagesConstants.ERROR_INVALID_PARAM);
         Assert.isTrue(referenceId > 0, MessagesConstants.ERROR_INVALID_PARAM);
-        Reference reference = referenceGenomeManager.loadReferenceGenome(referenceId);
+        Reference reference = referenceGenomeManager.load(referenceId);
         Assert.notNull(reference, MessagesConstants.ERROR_NO_SUCH_FILE);
 
-        referenceGenomeManager.unregister(reference);
+        referenceGenomeManager.delete(reference);
         fileManager.deleteReferenceDir(reference);
         return reference;
     }

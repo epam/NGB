@@ -181,7 +181,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
         testReference = EntityHelper.createNewReference(testChromosome, referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
 
         Resource resource = context.getResource(CLASSPATH_TEMPLATES_GENES_SORTED);
@@ -217,7 +217,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
                 Arrays.asList(new ProjectItem(new BiologicalDataItem(testVcf.getBioDataItemId())),
                         new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
 
-        projectManager.saveProject(testProject); // Index is created when vcf file is added
+        projectManager.create(testProject); // Index is created when vcf file is added
     }
 
     @Test
@@ -338,7 +338,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         Reference testHumanReference = EntityHelper.createNewReference(chr14,
                 referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testHumanReference);
+        referenceGenomeManager.create(testHumanReference);
         Long humanReferenceId = testHumanReference.getId();
         referenceGenomeManager.updateReferenceGeneFileId(testHumanReference.getId(), testGeneFile.getId());
 
@@ -355,7 +355,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
                 new BiologicalDataItem(testHumanReference.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(vcfFile.getBioDataItemId()))));
 
-        projectManager.saveProject(project); // Index is created when vcf file is added
+        projectManager.create(project); // Index is created when vcf file is added
         VcfFilterInfo info = featureIndexManager.loadVcfFilterInfoForProject(project.getId());
 
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
@@ -446,7 +446,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
                 new ProjectItem(new BiologicalDataItem(geneFile.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
 
-        projectManager.saveProject(project); // Index is created when vcf file is added
+        projectManager.create(project); // Index is created when vcf file is added
 
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
         vcfFilterForm.setVcfFileIds(Collections.singletonList(vcfFile.getId()));
@@ -504,7 +504,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
                         vcfFile2.getId()))
                 .collect(Collectors.toList()));
 
-        project = projectManager.saveProject(project);
+        project = projectManager.create(project);
 
         vcfFilterForm2.setVcfFileIds(Collections.singletonList(vcfFile2.getId()));
         entryList2 = featureIndexManager.filterVariations(vcfFilterForm2, project.getId());
@@ -514,7 +514,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         project.setItems(project.getItems().stream()
                 .filter(i -> !(i.getBioDataItem() instanceof GeneFile))
                 .collect(Collectors.toList()));
-        project = projectManager.saveProject(project);
+        project = projectManager.create(project);
 
         vcfFilterForm.setGenes(null);
         entryList = featureIndexManager.filterVariations(vcfFilterForm, project.getId());
@@ -522,8 +522,8 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         // add multiple files
         project.getItems().clear();
-        projectManager.saveProject(project);
-        Project loadedProject = projectManager.loadProjectAndUpdateLastOpenedDate(project.getId());
+        projectManager.create(project);
+        Project loadedProject = projectManager.load(project.getId());
         Assert.assertTrue(loadedProject.getItems().isEmpty());
         entryList2 = featureIndexManager.filterVariations(new VcfFilterForm(), project.getId());
         Assert.assertTrue(entryList2.getEntries().isEmpty());
@@ -531,7 +531,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(vcfFile.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(vcfFile2.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
-        projectManager.saveProject(project);
+        projectManager.create(project);
         entryList2 = featureIndexManager.filterVariations(new VcfFilterForm(), project.getId());
         Assert.assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getFeatureFileId().equals(vcfFile.getId())));
         Assert.assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getFeatureFileId().equals(
@@ -588,7 +588,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(geneFile.getBioDataItemId()))));
-        projectManager.saveProject(project);
+        projectManager.create(project);
 
         IndexSearchResult result1 = featureIndexDao
                 .searchFeaturesInInterval(Collections.singletonList(geneFile), INTERVAL1_START, INTERVAL1_END,
@@ -616,7 +616,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         Reference testHumanReference = EntityHelper.createNewReference(chr1,
                 referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testHumanReference);
+        referenceGenomeManager.create(testHumanReference);
         Long humanReferenceId = testHumanReference.getId();
 
         Resource resource = context.getResource("classpath:templates/mrna.sorted.chunk.gtf");
@@ -635,7 +635,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         project.setItems(Arrays.asList(
                 new ProjectItem(new BiologicalDataItem(geneFile.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(testHumanReference.getBioDataItemId()))));
-        projectManager.saveProject(project);
+        projectManager.create(project);
 
         List<FeatureIndexEntry> entryList = (List<FeatureIndexEntry>)
                 featureIndexManager.searchFeaturesInProject("", project.getId()).getEntries();
@@ -655,8 +655,8 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         bookmark.setEndIndex(testChromosome.getSize());
         bookmark.setName("testBookmark");
 
-        bookmarkManager.saveBookmark(bookmark);
-        Bookmark loadedBookmark = bookmarkManager.loadBookmark(bookmark.getId());
+        bookmarkManager.create(bookmark);
+        Bookmark loadedBookmark = bookmarkManager.load(bookmark.getId());
         Assert.assertNotNull(loadedBookmark);
 
         IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchFeaturesInProject(bookmark.getName(),
@@ -677,7 +677,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         chr2.setSize(TEST_WICKED_VCF_LENGTH);
         Reference testHumanReference = EntityHelper.createNewReference(Arrays.asList(chr1, chr2),
                 referenceGenomeManager.createReferenceId());
-        referenceGenomeManager.register(testHumanReference);
+        referenceGenomeManager.create(testHumanReference);
         Long humanReferenceId = testHumanReference.getId();
 
         Project project = new Project();
@@ -685,7 +685,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         project.setItems(Collections.singletonList(new ProjectItem(
                 new BiologicalDataItem(testHumanReference.getBioDataItemId()))));
 
-        projectManager.saveProject(project);
+        projectManager.create(project);
 
         Resource resource = context.getResource("classpath:templates/Homo_sapiens.GRCh38.83.sorted.chr21-22.gtf");
         FeatureIndexedFileRegistrationRequest geneRequest = new FeatureIndexedFileRegistrationRequest();
@@ -707,7 +707,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         project.setItems(Arrays.asList(new ProjectItem(geneFile), new ProjectItem(vcfFile)));
 
-        projectManager.saveProject(project);
+        projectManager.create(project);
 
         IndexSearchResult<VcfIndexEntry> entries = featureIndexManager.filterVariations(new VcfFilterForm(),
                                                                                         project.getId());
@@ -948,7 +948,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(vcfFile.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
 
-        projectManager.saveProject(project); // Index is created when vcf file is added
+        projectManager.create(project); // Index is created when vcf file is added
 
         TestUtils.assertFail(() -> featureIndexManager.filterVariations(new VcfFilterForm(), project.getId()),
                              Collections.singletonList(IllegalArgumentException.class));
@@ -1316,7 +1316,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void performanceTest() throws Exception {
         Reference hg38 = EntityHelper.createG38Reference(referenceGenomeManager.createReferenceId());
-        referenceGenomeManager.register(hg38);
+        referenceGenomeManager.create(hg38);
 
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(hg38.getId());
@@ -1332,7 +1332,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(vcfFile1.getBioDataItemId())),
                                        new ProjectItem(new BiologicalDataItem(vcfFile2.getBioDataItemId()))));
 
-        projectManager.saveProject(project);
+        projectManager.create(project);
 
         IndexSearchResult<VcfIndexEntry> entriesRes = featureIndexManager.filterVariations(new VcfFilterForm(),
                                                                                            project.getId());

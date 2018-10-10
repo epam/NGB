@@ -106,7 +106,7 @@ public class WigControllerTest extends AbstractControllerTest {
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
         testReference = EntityHelper.createNewReference(testChromosome, referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
 
         referenceId = testReference.getId();
     }
@@ -207,7 +207,7 @@ public class WigControllerTest extends AbstractControllerTest {
                 .andExpect(jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
         actions.andDo(MockMvcResultHandlers.print());
 
-        wigFile = wigFileManager.loadWigFile(wigFilesRes.getPayload().get(0).getId());
+        wigFile = wigFileManager.load(wigFilesRes.getPayload().get(0).getId());
         Assert.assertNull(wigFile);
 
     }

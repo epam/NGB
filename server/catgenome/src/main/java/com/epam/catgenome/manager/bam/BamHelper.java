@@ -157,7 +157,7 @@ public class BamHelper {
         Assert.notNull(chromosome, getMessage(MessagesConstants.ERROR_CHROMOSOME_ID_NOT_FOUND));
         final long start = System.currentTimeMillis();
 
-        final BamFile bamFile = bamFileManager.loadBamFile(track.getId());
+        final BamFile bamFile = bamFileManager.load(track.getId());
         Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
         ConsensusSequenceUtils.calculateConsensusSequence(track,
                 getReadsFromFile(chromosome, track, bamFile, track.getBlocks()));
@@ -177,7 +177,7 @@ public class BamHelper {
     public void getReadsFromFile(final Track<Read> track, final BamQueryOption options,
                                  BamTrackEmitter emitter) throws IOException {
         final BamTrack<Read> bamTrack = new BamTrack<>(track);
-        final BamFile bamFile = bamFileManager.loadBamFile(bamTrack.getId());
+        final BamFile bamFile = bamFileManager.load(bamTrack.getId());
         Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
 
         fillEmitterByReads(bamFile, bamTrack, options, emitter);
@@ -210,7 +210,7 @@ public class BamHelper {
      */
     public BamTrack<Read> getRegionsFromFile(final Track<Read> track) throws IOException {
         final BamTrack<Read> bamTrack = new BamTrack<>(track);
-        final BamFile bamFile = bamFileManager.loadBamFile(bamTrack.getId());
+        final BamFile bamFile = bamFileManager.load(bamTrack.getId());
         Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
 
         Chromosome chromosome = bamTrack.getChromosome();
@@ -501,7 +501,7 @@ public class BamHelper {
     private SamInputResource getS3Index(SamInputResource samInputResource,
             BiologicalDataItem indexFile) {
         Assert.notNull(indexFile.getBucketId(), getMessage(MessagesConstants.ERROR_S3_BUCKET));
-        final Bucket bucket = bucketManager.loadBucket(indexFile.getBucketId());
+        final Bucket bucket = bucketManager.load(indexFile.getBucketId());
         Assert.notNull(bucket, getMessage(MessagesConstants.ERROR_S3_BUCKET));
         final AmazonS3 s3Client = new AmazonS3Client(new BasicAWSCredentials(bucket.getAccessKeyId(),
                 bucket.getSecretAccessKey()));
@@ -538,7 +538,7 @@ public class BamHelper {
     }
 
     @NotNull private SamInputResource getS3SamInputResource(BamFile bamFile) {
-        final Bucket bucket = bucketManager.loadBucket(bamFile.getBucketId());
+        final Bucket bucket = bucketManager.load(bamFile.getBucketId());
         Assert.notNull(bucket, getMessage(MessagesConstants.ERROR_S3_BUCKET));
         final AmazonS3 s3Client = new AmazonS3Client(new BasicAWSCredentials(bucket.getAccessKeyId(),
                 bucket.getSecretAccessKey()));

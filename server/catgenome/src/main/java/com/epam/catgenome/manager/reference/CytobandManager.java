@@ -126,7 +126,7 @@ public class CytobandManager {
             // prepares data about corresponded reference genome and parses cytobands, if
             // the given resource is available
             Assert.isTrue(file != null && file.exists(), getMessage(RESOURCE_NOT_FOUND));
-            final Reference reference = referenceGenomeManager.loadReferenceGenome(referenceId);
+            final Reference reference = referenceGenomeManager.load(referenceId);
             // collects names of all chromosomes to force cytobands validation
             final HashSet<String> dictionary = reference.getChromosomes().stream().map(Chromosome::getName)
                 .collect(Collectors.toCollection(HashSet::new));

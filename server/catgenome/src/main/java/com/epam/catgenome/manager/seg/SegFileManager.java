@@ -24,9 +24,14 @@
 
 package com.epam.catgenome.manager.seg;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
+import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.security.acl.aspect.AclSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -47,8 +52,9 @@ import com.epam.catgenome.entity.seg.SegFile;
  * {@code SegFileManager} provides a service for handling seg file and it's metadata
  * in the system
  */
+@AclSync
 @Service
-public class SegFileManager {
+public class SegFileManager implements SecuredEntityManager {
     @Autowired
     private SegFileDao segFileDao;
 
@@ -63,7 +69,7 @@ public class SegFileManager {
      * @param segFile to save
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void createSegFile(SegFile segFile) {
+    public void create(SegFile segFile) {
         if (segFile.getBioDataItemId() == null) {
             long realId = segFile.getId();
             biologicalDataItemDao.createBiologicalDataItem(segFile);
@@ -80,8 +86,9 @@ public class SegFileManager {
      * @param segFileId {@code long} a BedFile ID
      * @return {@code SegFile} instance
      */
+    @Override
     @Transactional(propagation = Propagation.SUPPORTS)
-    public SegFile loadSegFile(long segFileId) {
+    public SegFile load(Long segFileId) {
         SegFile segFile = segFileDao.loadSegFile(segFileId);
 
         if (segFile != null) {
@@ -117,7 +124,7 @@ public class SegFileManager {
      * @param segFile to delete
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deleteSegFile(SegFile segFile) {
+    public void delete(SegFile segFile) {
         List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(segFile.getBioDataItemId());
         Assert.isTrue(projectsWhereFileInUse.isEmpty(), MessageHelper.getMessage(MessagesConstants.ERROR_FILE_IN_USE,
                 segFile.getName(), segFile.getId(), projectsWhereFileInUse.stream().map(BaseEntity::getName)
@@ -127,5 +134,20 @@ public class SegFileManager {
         segFileDao.deleteSegFile(segFile.getId());
         biologicalDataItemDao.deleteBiologicalDataItem(segFile.getIndex().getId());
         biologicalDataItemDao.deleteBiologicalDataItem(segFile.getBioDataItemId());
+    }
+
+    @Override
+    public AbstractSecuredEntity changeOwner(Long id, String owner) {
+       throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public AclClass getSupportedClass() {
+        return AclClass.SEG;
+    }
+
+    @Override
+    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize) {
+        throw new UnsupportedOperationException();
     }
 }

@@ -32,6 +32,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
+import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.security.acl.aspect.AclSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -51,8 +55,10 @@ import com.epam.catgenome.util.AuthUtils;
  * {@code BookmarkManager} represents a service class designed to encapsulate all business
  * logic operations required to manage {@code} Bookmark objects
  */
+@AclSync
 @Service
-public class BookmarkManager {
+public class BookmarkManager implements SecuredEntityManager {
+
     @Autowired
     private BookmarkDao bookmarkDao;
 
@@ -65,7 +71,7 @@ public class BookmarkManager {
      * @return a saved {@code Bookmark}
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public Bookmark saveBookmark(Bookmark bookmark) throws IOException {
+    public Bookmark create(Bookmark bookmark) throws IOException {
         bookmark.setOwner(authManager.getAuthorizedUser());
 
         if (bookmark.getId() != null) {
@@ -96,7 +102,7 @@ public class BookmarkManager {
      * @return a {@code Bookmark} entity
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public Bookmark loadBookmark(long bookmarkId) {
+    public Bookmark load(Long bookmarkId) {
         Bookmark bookmark = bookmarkDao.loadBookmarkById(bookmarkId);
         if (bookmark != null) {
             Map<Long, List<BiologicalDataItem>> itemMap = bookmarkDao.loadBookmarkItemsByBookmarkIds(
@@ -133,7 +139,7 @@ public class BookmarkManager {
      * @param bookmarkId {@code Long} an ID of a bookmark to delete
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deleteBookmark(long bookmarkId) {
+    public void delete(Long bookmarkId) {
         Bookmark bookmark = bookmarkDao.loadBookmarkById(bookmarkId);
         Assert.notNull(bookmark);
         bookmarkDao.deleteBookmarkItems(bookmarkId);
@@ -153,5 +159,20 @@ public class BookmarkManager {
             Collectors.toList());
 
         return new IndexSearchResult<>(bookmarkEntries, bookmarksCount > limit, bookmarksCount);
+    }
+
+    @Override
+    public AbstractSecuredEntity changeOwner(Long id, String owner) {
+       throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public AclClass getSupportedClass() {
+        return AclClass.BOOKMARK;
+    }
+
+    @Override
+    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize) {
+        throw new UnsupportedOperationException();
     }
 }

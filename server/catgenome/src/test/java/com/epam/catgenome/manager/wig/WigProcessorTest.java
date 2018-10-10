@@ -126,7 +126,7 @@ public class WigProcessorTest extends AbstractManagerTest {
 
         WigFile wigFile = wigManager.registerWigFile(request);
         Assert.assertNotNull(wigFile);
-        WigFile loadWigFile = wigFileManager.loadWigFile(wigFile.getId());
+        WigFile loadWigFile = wigFileManager.load(wigFile.getId());
         Assert.assertNotNull(loadWigFile);
         Assert.assertTrue(wigFile.getId().equals(loadWigFile.getId()));
         Assert.assertTrue(wigFile.getName().equals(loadWigFile.getName()));
@@ -158,7 +158,7 @@ public class WigProcessorTest extends AbstractManagerTest {
         logger.debug("Second Reading chromosome {} took {}", chromosomeName, time2 - time1);
 
         wigManager.unregisterWigFile(loadWigFile.getId());
-        loadWigFile = wigFileManager.loadWigFile(wigFile.getId());
+        loadWigFile = wigFileManager.load(wigFile.getId());
         Assert.assertNull(loadWigFile);
     }
 

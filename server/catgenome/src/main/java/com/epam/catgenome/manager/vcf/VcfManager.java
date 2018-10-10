@@ -189,7 +189,7 @@ public class VcfManager {
         Assert.notNull(request.getReferenceId(), getMessage(MessagesConstants.ERROR_NULL_PARAM, "referenceId"));
 
         VcfFile vcfFile;
-        Reference reference = referenceGenomeManager.loadReferenceGenome(request.getReferenceId());
+        Reference reference = referenceGenomeManager.load(request.getReferenceId());
         Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
                 Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
         if (request.getType() == null) {
@@ -318,7 +318,7 @@ public class VcfManager {
         Variation variation = track.getBlocks().get(0);
         extendInfoFields(variation);
         VcfFile vcfFile = vcfFileManager.load(query.getId());
-        Reference reference = referenceGenomeManager.loadReferenceGenome(vcfFile.getReferenceId());
+        Reference reference = referenceGenomeManager.load(vcfFile.getReferenceId());
         if (reference.getGeneFile() != null) {
             Set<String> geneIds = featureIndexManager.fetchGeneIds(variation.getStartIndex(),
                                                                    variation.getEndIndex(),
@@ -355,7 +355,7 @@ public class VcfManager {
         Assert.notEmpty(track.getBlocks(), getMessage(MessagesConstants.ERROR_NO_SUCH_VARIATION, query.getPosition()));
         Variation variation = track.getBlocks().get(0);
         extendInfoFields(variation);
-        Reference reference = referenceGenomeManager.loadReferenceGenome(track.getChromosome().getReferenceId());
+        Reference reference = referenceGenomeManager.load(track.getChromosome().getReferenceId());
         if (reference.getGeneFile() != null) {
             Set<String> geneIds = featureIndexManager.fetchGeneIds(variation.getStartIndex(),
                                                                    variation.getEndIndex(),
@@ -460,7 +460,7 @@ public class VcfManager {
      */
     public VcfFile reindexVcfFile(long vcfFileId, Boolean rewriteTabixIndex) throws FeatureIndexException {
         VcfFile vcfFile = vcfFileManager.load(vcfFileId);
-        Reference reference = referenceGenomeManager.loadReferenceGenome(vcfFile.getReferenceId());
+        Reference reference = referenceGenomeManager.load(vcfFile.getReferenceId());
         Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
             Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
         try {

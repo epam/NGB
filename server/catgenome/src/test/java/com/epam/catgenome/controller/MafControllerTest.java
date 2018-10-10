@@ -97,7 +97,7 @@ public class MafControllerTest extends AbstractControllerTest {
         testChromosome.setName("1");
         testReference = EntityHelper.createNewReference(testChromosome, referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
     }
 

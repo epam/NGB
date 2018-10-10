@@ -160,7 +160,7 @@ public class MafManager {
             double time2 = Utils.getSystemTimeMilliseconds();
             LOGGER.debug("MAF registration completed in {} ms", time2 - time1);
             biologicalDataItemManager.createBiologicalDataItem(mafFile.getIndex());
-            mafFileManager.createMafFile(mafFile);
+            mafFileManager.create(mafFile);
         } finally {
             if (mafFile.getId() != null && mafFile.getBioDataItemId() != null &&
                     mafFileManager.loadMafFileNullable(mafFile.getId()) == null) {
@@ -178,7 +178,7 @@ public class MafManager {
     public MafFile unregisterMafFile(final long mafFileId) throws IOException {
         Assert.notNull(mafFileId, MessagesConstants.ERROR_INVALID_PARAM);
         Assert.isTrue(mafFileId > 0, MessagesConstants.ERROR_INVALID_PARAM);
-        MafFile fileToDelete = mafFileManager.loadMafFile(mafFileId);
+        MafFile fileToDelete = mafFileManager.load(mafFileId);
         Assert.notNull(fileToDelete, MessagesConstants.ERROR_NO_SUCH_FILE);
 
         mafFileManager.deleteMafFile(fileToDelete);
@@ -189,7 +189,7 @@ public class MafManager {
 
     public MafFile updateMafFile(long mafFileId) throws IOException {
         LOGGER.debug("Updating MAF file " + mafFileId);
-        MafFile mafFile = mafFileManager.loadMafFile(mafFileId);
+        MafFile mafFile = mafFileManager.load(mafFileId);
         fileManager.deleteFeatureFileDirectory(mafFile);
 
         File file = new File(mafFile.getRealPath());
@@ -204,7 +204,7 @@ public class MafManager {
     public Track<MafRecord> loadFeatures(Track<MafRecord> track) throws IOException {
         Chromosome chromosome = trackHelper.validateTrack(track);
 
-        MafFile mafFile = mafFileManager.loadMafFile(track.getId());
+        MafFile mafFile = mafFileManager.load(track.getId());
 
         double time1 = Utils.getSystemTimeMilliseconds();
         try (AbstractFeatureReader<MafFeature, LineIterator> reader = fileManager.makeMafReader(mafFile)) {
@@ -247,7 +247,7 @@ public class MafManager {
     private void mergeMaf(File directory, MafFile mafFile) throws IOException {
         Assert.notNull(directory.listFiles(), getMessage(ERROR_EMPTY_FOLDER));
         Assert.isTrue(directory.listFiles().length > 0, getMessage(ERROR_EMPTY_FOLDER));
-        Reference reference = referenceGenomeManager.loadReferenceGenome(mafFile.getReferenceId());
+        Reference reference = referenceGenomeManager.load(mafFile.getReferenceId());
         try (BufferedWriter writer = fileManager.makeMafFileWriter(mafFile)) {
             createMafBioItem(mafFile);
             for (File f : directory.listFiles()) {

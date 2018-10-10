@@ -111,7 +111,7 @@ public class ReferenceController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public final Result<Reference> loadReference(@PathVariable final Long referenceId) throws IOException {
-        return Result.success(referenceGenomeManager.loadReferenceGenome(referenceId));
+        return Result.success(referenceGenomeManager.load(referenceId));
     }
 
     @ResponseBody

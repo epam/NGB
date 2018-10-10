@@ -24,11 +24,11 @@
 
 package com.epam.catgenome.entity.project;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.security.AbstractHierarchicalEntity;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
 import lombok.NoArgsConstructor;
@@ -44,7 +44,7 @@ import lombok.NoArgsConstructor;
  * </p>
  */
 @NoArgsConstructor
-public class Project extends AbstractSecuredEntity {
+public class Project extends AbstractHierarchicalEntity {
     private Long createdBy;
     private List<ProjectItem> items;
     private Integer itemsCount;
@@ -56,6 +56,36 @@ public class Project extends AbstractSecuredEntity {
 
     public Project(Long id) {
         super(id);
+    }
+
+    @Override
+    public List<? extends AbstractSecuredEntity> getLeaves() {
+        return items.stream().map(ProjectItem::getBioDataItem).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<? extends AbstractHierarchicalEntity> getChildren() {
+        return nestedProjects;
+    }
+
+    @Override
+    public void filterLeaves(Map<AclClass, Set<Long>> idToRemove) {
+       filterCollection(idToRemove, getLeaves());
+    }
+
+    @Override
+    public void filterChildren(Map<AclClass, Set<Long>> idToRemove) {
+        filterCollection(idToRemove, getChildren());
+    }
+
+    private void filterCollection(Map<AclClass, Set<Long>> idToRemove,
+                                  List<? extends AbstractSecuredEntity> collection) {
+        Iterator<? extends AbstractSecuredEntity> iterator = collection.iterator();
+        iterator.forEachRemaining(o -> {
+            if (idToRemove.get(o.getAclClass()).contains(o.getId())) {
+                iterator.remove();
+            }
+        });
     }
 
     @Override

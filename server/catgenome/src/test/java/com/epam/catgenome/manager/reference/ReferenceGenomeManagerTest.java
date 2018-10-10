@@ -63,7 +63,7 @@ public class ReferenceGenomeManagerTest extends AbstractManagerTest {
         registerTestReference();
 
         Reference g38 = EntityHelper.createG38Reference(referenceGenomeManager.createReferenceId());
-        referenceGenomeManager.register(g38);
+        referenceGenomeManager.create(g38);
 
         List<Reference> loaded = referenceGenomeManager.loadAllReferenceGenomes();
         Assert.assertFalse(loaded.isEmpty());
@@ -127,7 +127,7 @@ public class ReferenceGenomeManagerTest extends AbstractManagerTest {
         Reference testReference = EntityHelper.createNewReference(testChromosome,
                 referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         Long referenceId = testReference.getId();
 
         Resource resource = context.getResource(CLASSPATH_TEMPLATES_GENES_SORTED);
@@ -195,7 +195,7 @@ public class ReferenceGenomeManagerTest extends AbstractManagerTest {
         Reference testReference = EntityHelper.createNewReference(testChromosome,
                 referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
 
         Species testSpecies = new Species();
         testSpecies.setName(SPECIES_NAME);
@@ -205,7 +205,7 @@ public class ReferenceGenomeManagerTest extends AbstractManagerTest {
 
         referenceGenomeManager.updateSpecies(testReference.getId(), testSpecies.getVersion());
 
-        Reference reference = referenceGenomeManager.loadReferenceGenome(testReference.getId());
+        Reference reference = referenceGenomeManager.load(testReference.getId());
         Assert.assertNotNull(reference);
         Assert.assertNotNull(reference.getSpecies());
         Assert.assertEquals(testSpecies.getName(), reference.getSpecies().getName());
@@ -226,7 +226,7 @@ public class ReferenceGenomeManagerTest extends AbstractManagerTest {
         Reference testReference = EntityHelper.createNewReference(testChromosome,
                 referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceGenomeManager.updateSpecies(testReference.getId(), "testSpecies");
     }
 
@@ -238,7 +238,7 @@ public class ReferenceGenomeManagerTest extends AbstractManagerTest {
         Reference testReference = EntityHelper.createNewReference(testChromosome,
                 referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
 
         Species testSpecies = new Species();
         testSpecies.setName(SPECIES_NAME);
@@ -249,7 +249,7 @@ public class ReferenceGenomeManagerTest extends AbstractManagerTest {
         referenceGenomeManager.updateSpecies(testReference.getId(), testSpecies.getVersion());
         referenceGenomeManager.updateSpecies(testReference.getId(), null);
 
-        Reference reference = referenceGenomeManager.loadReferenceGenome(testReference.getId());
+        Reference reference = referenceGenomeManager.load(testReference.getId());
         Assert.assertNotNull(reference);
         Assert.assertNull(reference.getSpecies());
     }

@@ -224,7 +224,7 @@ public class GffManager {
      * @throws IOException if an error occurred while writing index
      */
     public GeneFile reindexGeneFile(long geneFileId, boolean full, boolean createTabixIndex) throws IOException {
-        GeneFile geneFile = geneFileManager.loadGeneFile(geneFileId);
+        GeneFile geneFile = geneFileManager.load(geneFileId);
         fileManager.deleteFileFeatureIndex(geneFile);
         if (createTabixIndex) {
             File index = new File(geneFile.getIndex().getPath());
@@ -288,7 +288,7 @@ public class GffManager {
         try {
             geneRegisterer.processRegistration(request);
             biologicalDataItemManager.createBiologicalDataItem(geneFile.getIndex());
-            geneFileManager.createGeneFile(geneFile);
+            geneFileManager.create(geneFile);
         } catch (IOException e) {
             throw new RegistrationException("Error while Gene file registration: " + geneFile.getPath(), e);
         }  finally {
@@ -305,7 +305,7 @@ public class GffManager {
     }
 
     private GeneFile registerGeneFileFromUrl(final FeatureIndexedFileRegistrationRequest request) {
-        Reference reference = referenceGenomeManager.loadReferenceGenome(request.getReferenceId());
+        Reference reference = referenceGenomeManager.load(request.getReferenceId());
         Map<String, Chromosome> chromosomeMap = Utils.makeChromosomeMap(reference);
 
         GeneFile geneFile = null;
@@ -331,7 +331,7 @@ public class GffManager {
                     reference.getName()));
 
             biologicalDataItemManager.createBiologicalDataItem(geneFile.getIndex());
-            geneFileManager.createGeneFile(geneFile);
+            geneFileManager.create(geneFile);
         }  catch (IOException e) {
             throw new RegistrationException(getMessage(ERROR_REGISTER_FILE, request.getName()), e);
         } finally {
@@ -387,9 +387,9 @@ public class GffManager {
     public GeneFile unregisterGeneFile(final long geneFileId) throws IOException {
         Assert.notNull(geneFileId, MessagesConstants.ERROR_INVALID_PARAM);
         Assert.isTrue(geneFileId > 0, MessagesConstants.ERROR_INVALID_PARAM);
-        final GeneFile fileToDelete = geneFileManager.loadGeneFile(geneFileId);
+        final GeneFile fileToDelete = geneFileManager.load(geneFileId);
 
-        geneFileManager.deleteGeneFile(fileToDelete);
+        geneFileManager.delete(fileToDelete);
         fileManager.deleteFeatureFileDirectory(fileToDelete);
 
         return fileToDelete;
@@ -405,7 +405,7 @@ public class GffManager {
      */
     public Track<Gene> loadGenes(final Track<Gene> track, boolean collapse) throws GeneReadingException {
         final Chromosome chromosome = trackHelper.validateTrack(track);
-        final GeneFile geneFile = geneFileManager.loadGeneFile(track.getId());
+        final GeneFile geneFile = geneFileManager.load(track.getId());
 
         return loadGenes(track, geneFile, chromosome, collapse);
     }
@@ -684,7 +684,7 @@ public class GffManager {
     public Track<Wig> loadHistogram(final Track<Wig> track) throws HistogramReadingException {
         TrackHelper.validateHistogramTrack(track);
 
-        final GeneFile geneFile = geneFileManager.loadGeneFile(track.getId());
+        final GeneFile geneFile = geneFileManager.load(track.getId());
         if (BiologicalDataItemResourceType.FILE != geneFile.getType()) {
             track.setBlocks(Collections.emptyList());
             return track;
@@ -779,7 +779,7 @@ public class GffManager {
      */
     public Gene getNextOrPreviousFeature(final int fromPosition, final long geneFileId, final long chromosomeId,
                                          final boolean forward) throws IOException {
-        final GeneFile geneFile = geneFileManager.loadGeneFile(geneFileId);
+        final GeneFile geneFile = geneFileManager.load(geneFileId);
         final Chromosome chromosome = referenceGenomeManager.loadChromosome(chromosomeId);
         Assert.notNull(chromosome, getMessage(MessagesConstants.ERROR_CHROMOSOME_ID_NOT_FOUND));
 
@@ -892,7 +892,7 @@ public class GffManager {
                                           int intronLength)
             throws IOException {
         double time1 = Utils.getSystemTimeMilliseconds();
-        final GeneFile geneFile = geneFileManager.loadGeneFile(geneFileId);
+        final GeneFile geneFile = geneFileManager.load(geneFileId);
         final Chromosome chromosome = referenceGenomeManager.loadChromosome(chromosomeId);
         Assert.notNull(chromosome, getMessage(MessagesConstants.ERROR_CHROMOSOME_ID_NOT_FOUND));
 
@@ -939,7 +939,7 @@ public class GffManager {
                                         int intronLength)
             throws IOException {
         double time1 = Utils.getSystemTimeMilliseconds();
-        final GeneFile geneFile = geneFileManager.loadGeneFile(geneFileId);
+        final GeneFile geneFile = geneFileManager.load(geneFileId);
         final Chromosome chromosome = referenceGenomeManager.loadChromosome(chromosomeId);
         Assert.notNull(chromosome, getMessage(MessagesConstants.ERROR_CHROMOSOME_ID_NOT_FOUND));
 

@@ -64,7 +64,7 @@ public class BucketController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public final Result<Bucket> loadBucketById(@PathVariable(value = "bucketId") final Long bucketId) {
-        return Result.success(bucketManager.loadBucket(bucketId));
+        return Result.success(bucketManager.load(bucketId));
     }
 
     @ResponseBody
@@ -81,7 +81,7 @@ public class BucketController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Bucket> saveBucket(@RequestBody Bucket bucket) {
-        return Result.success(bucketManager.saveBucket(bucket));
+        return Result.success(bucketManager.save(bucket));
     }
 
     @ResponseBody

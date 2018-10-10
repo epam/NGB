@@ -149,7 +149,7 @@ public class FacadeWigManager {
                 default:
                     throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
             }
-            long id = wigFileManager.createWigFileId();
+            long id = wigFileManager.create();
             biologicalDataItemManager.createBiologicalDataItem(wigFile);
             wigFile.setBioDataItemId(wigFile.getId());
             wigFile.setId(id);
@@ -162,7 +162,7 @@ public class FacadeWigManager {
             throw new RegistrationException(getMessage(MessagesConstants.ERROR_REGISTER_FILE, request.getName()), e);
         } finally {
             if (wigFile != null && wigFile.getId() != null &&
-                    wigFileManager.loadWigFile(wigFile.getId()) == null) {
+                    wigFileManager.load(wigFile.getId()) == null) {
                 biologicalDataItemManager.deleteBiologicalDataItem(wigFile.getBioDataItemId());
                 try {
                     fileManager.deleteFeatureFileDirectory(wigFile);
@@ -182,9 +182,9 @@ public class FacadeWigManager {
      * @throws IOException
      */
     public WigFile unregisterWigFile(final long wigFileId) throws IOException {
-        WigFile fileToDelete = wigFileManager.loadWigFile(wigFileId);
+        WigFile fileToDelete = wigFileManager.load(wigFileId);
         Assert.notNull(fileToDelete, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
-        wigFileManager.deleteWigFile(fileToDelete);
+        wigFileManager.delete(fileToDelete);
         return fileToDelete;
     }
 
@@ -197,13 +197,13 @@ public class FacadeWigManager {
     public Track<Wig> getWigTrack(Track<Wig> track) throws IOException {
         track.setType(TrackType.WIG);
         final Chromosome chromosome = trackHelper.validateTrackWithBlockCount(track);
-        final WigFile wigFile = wigFileManager.loadWigFile(track.getId());
+        final WigFile wigFile = wigFileManager.load(track.getId());
         return fetchWigManager(wigFile.getPath()).getWigFromFile(wigFile, track, chromosome, indexCache);
     }
 
     protected void prepareWigFileToWork(final WigFile wigFile) throws IOException {
         AbstractWigProcessor wigProcessor = fetchWigManager(wigFile.getPath());
-        final Reference reference = referenceGenomeManager.loadReferenceGenome(wigFile.getReferenceId());
+        final Reference reference = referenceGenomeManager.load(wigFile.getReferenceId());
         final Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(Collectors.toMap(
                 BaseEntity::getName, chromosome -> chromosome));
         wigProcessor.prepareWigFileToWork(wigFile);

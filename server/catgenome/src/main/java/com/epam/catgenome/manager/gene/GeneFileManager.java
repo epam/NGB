@@ -24,10 +24,15 @@
 
 package com.epam.catgenome.manager.gene;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
+import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.security.acl.aspect.AclSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -55,8 +60,9 @@ import com.epam.catgenome.entity.project.Project;
  *
  *
  */
+@AclSync
 @Service
-public class GeneFileManager {
+public class GeneFileManager implements SecuredEntityManager {
     @Autowired
     private GeneFileDao geneFileDao;
 
@@ -75,7 +81,7 @@ public class GeneFileManager {
      * @param geneFile a {@code GeneFile} instance to be persisted
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void createGeneFile(GeneFile geneFile) {
+    public void create(GeneFile geneFile) {
         geneFileDao.createGeneFile(geneFile);
     }
 
@@ -85,7 +91,7 @@ public class GeneFileManager {
      * @param geneFile a {@code GeneFile} record to remove
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deleteGeneFile(GeneFile geneFile) {
+    public void delete(GeneFile geneFile) {
         List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(geneFile.getBioDataItemId());
         List<Long> genomeIdsByAnnotation = referenceGenomeDao.
                 loadGenomeIdsByAnnotationDataItemId(geneFile.getBioDataItemId());
@@ -118,10 +124,25 @@ public class GeneFileManager {
      * @return {@code GeneFile} instance
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public GeneFile loadGeneFile(long geneFileId) {
+    public GeneFile load(Long geneFileId) {
         GeneFile geneFile = geneFileDao.loadGeneFile(geneFileId);
         Assert.notNull(geneFile, MessageHelper.getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND, geneFileId));
         return geneFile;
+    }
+
+    @Override
+    public AbstractSecuredEntity changeOwner(Long id, String owner) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public AclClass getSupportedClass() {
+        return AclClass.GENE;
+    }
+
+    @Override
+    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize) {
+        throw new UnsupportedOperationException();
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)

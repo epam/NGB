@@ -82,7 +82,7 @@ public class DataItemManagerTest extends AbstractManagerTest {
                 referenceGenomeManager.createReferenceId());
         File tmp = File.createTempFile(TMP_FILE_NAME, TMP_FILE_NAME);
         testReference.setPath(tmp.getAbsolutePath());
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         dataItemManager.deleteFileByBioItemId(testReference.getBioDataItemId());
     }
 
@@ -95,7 +95,7 @@ public class DataItemManagerTest extends AbstractManagerTest {
                 referenceGenomeManager.createReferenceId());
         File tmp = File.createTempFile(TMP_FILE_NAME, TMP_FILE_NAME);
         testReference.setPath(tmp.getAbsolutePath());
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
 
         Resource resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();

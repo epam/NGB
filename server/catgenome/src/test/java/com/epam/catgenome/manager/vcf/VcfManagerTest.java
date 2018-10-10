@@ -223,7 +223,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
         testReference = EntityHelper.createNewReference(testChromosome, referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
 
         // create new chromosome and reference for ga4gh
@@ -231,7 +231,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         testChrGA4GH.setSize(TEST_CHROMOSOME_SIZE);
         testReferenceGA4GH = EntityHelper.createNewReference(testChrGA4GH, referenceGenomeManager.createReferenceId());
         testReferenceGA4GH.setType(BiologicalDataItemResourceType.GA4GH);
-        referenceGenomeManager.register(testReferenceGA4GH);
+        referenceGenomeManager.create(testReferenceGA4GH);
         referenceIdGA4GH = testReferenceGA4GH.getId();
         vcfManager.setExtendedInfoTemplates(infoTemplate);
         vcfManager.setIndexBufferSize(INDEX_BUFFER_SIZE);

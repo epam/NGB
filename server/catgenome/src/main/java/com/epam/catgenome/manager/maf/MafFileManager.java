@@ -27,6 +27,7 @@ package com.epam.catgenome.manager.maf;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.security.acl.aspect.AclSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -45,6 +46,7 @@ import com.epam.catgenome.entity.project.Project;
 /**
  Provides service for managing {@code MafFile} in the system
  */
+@AclSync
 @Service
 public class MafFileManager {
     @Autowired
@@ -58,10 +60,10 @@ public class MafFileManager {
 
     /**
      * Saves a {@code MafFile} in the system
-     * @param mafFile instance to save
+     * @param mafFile instance to create
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void createMafFile(MafFile mafFile) {
+    public void create(MafFile mafFile) {
         mafFileDao.createMafFile(mafFile);
     }
 
@@ -71,7 +73,7 @@ public class MafFileManager {
      * @return {@code MafFile} instance
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public MafFile loadMafFile(long mafFileId) {
+    public MafFile load(Long mafFileId) {
         MafFile mafFile = mafFileDao.loadMafFile(mafFileId);
         Assert.notNull(mafFile, "MAF file with requested ID not found: " + mafFileId);
         return mafFile;

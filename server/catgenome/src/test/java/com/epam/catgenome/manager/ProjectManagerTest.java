@@ -133,7 +133,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
         testChromosome = EntityHelper.createNewChromosome();
         testReference = EntityHelper.createNewReference(testChromosome, referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
     }
 
@@ -150,9 +150,9 @@ public class ProjectManagerTest extends AbstractManagerTest {
         project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId())),
                 new ProjectItem(item)));
 
-        projectManager.saveProject(project);
+        projectManager.create(project);
 
-        Project loadedProject = projectManager.loadProjectAndUpdateLastOpenedDate(project.getId());
+        Project loadedProject = projectManager.load(project.getId());
         Assert.assertNotNull(loadedProject);
         Assert.assertFalse(loadedProject.getItems().isEmpty());
 
@@ -165,22 +165,22 @@ public class ProjectManagerTest extends AbstractManagerTest {
         item2.setId(file2.getBioDataItemId());
         loadedProject.getItems().add(new ProjectItem(item2));
 
-        projectManager.saveProject(loadedProject);
+        projectManager.create(loadedProject);
 
-        loadedProject = projectManager.loadProjectAndUpdateLastOpenedDate(project.getId());
+        loadedProject = projectManager.load(project.getId());
         Assert.assertEquals(loadedProject.getItems().size(), 3);
 
         loadedProject.getItems().remove(2);
-        projectManager.saveProject(loadedProject);
+        projectManager.create(loadedProject);
 
-        loadedProject = projectManager.loadProjectAndUpdateLastOpenedDate(project.getId());
+        loadedProject = projectManager.load(project.getId());
         Assert.assertEquals(loadedProject.getItems().size(), 2);
         Assert.assertEquals(TEST_VCF_FILE_NAME1, loadedProject.getItems().get(1).getBioDataItem().getName());
 
         loadedProject.getItems().get(0).setHidden(true);
-        projectManager.saveProject(loadedProject);
+        projectManager.create(loadedProject);
 
-        loadedProject = projectManager.loadProjectAndUpdateLastOpenedDate(project.getId());
+        loadedProject = projectManager.load(project.getId());
         Assert.assertEquals(loadedProject.getItems().size(), 2);
         Assert.assertTrue(loadedProject.getItems().get(0).getHidden());
 
@@ -192,7 +192,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
         bookmark.setChromosome(testChromosome);
         bookmark.setName("testBookmark");
 
-        bookmarkManager.saveBookmark(bookmark);
+        bookmarkManager.create(bookmark);
 
         List<Bookmark> loadedBookmarks = bookmarkManager.loadBookmarksByProject();
 
@@ -201,7 +201,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
 
         Bookmark loadedBookmark = loadedBookmarks.get(0);
 
-        loadedBookmark = bookmarkManager.loadBookmark(loadedBookmark.getId());
+        loadedBookmark = bookmarkManager.load(loadedBookmark.getId());
         Assert.assertFalse(loadedBookmark.getOpenedItems().isEmpty());
         Assert.assertEquals(BiologicalDataItem.getBioDataItemId(loadedBookmark.getOpenedItems()
                 .get(0)), item.getId());
@@ -209,7 +209,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
         // Now delete project
         projectManager.deleteProject(project.getId(), false);
         try {
-            projectManager.loadProjectAndUpdateLastOpenedDate(project.getId());
+            projectManager.load(project.getId());
             Assert.fail("No exception happened, but should happen");
         } catch (IllegalArgumentException e) {
             // success, nothing to do here
@@ -234,9 +234,9 @@ public class ProjectManagerTest extends AbstractManagerTest {
         project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId())),
                 new ProjectItem(item)));
 
-        projectManager.saveProject(project);
+        projectManager.create(project);
 
-        Project loadedProject = projectManager.loadProjectAndUpdateLastOpenedDate(project.getId());
+        Project loadedProject = projectManager.load(project.getId());
         Assert.assertNotNull(loadedProject);
         Assert.assertEquals("pretty", loadedProject.getPrettyName());
         Assert.assertFalse(loadedProject.getItems().isEmpty());
@@ -251,25 +251,25 @@ public class ProjectManagerTest extends AbstractManagerTest {
         parent.setName("testParent");
         parent.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
-        parent = projectManager.saveProject(parent);
+        parent = projectManager.create(parent);
 
         Project child1 = new Project();
         child1.setName("testChild1");
         child1.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
-        child1 = projectManager.saveProject(child1, parent.getId());
+        child1 = projectManager.create(child1, parent.getId());
 
         Project child2 = new Project();
         child2.setName("testChild2");
         child2.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
-        child2 = projectManager.saveProject(child2, parent.getId());
+        child2 = projectManager.create(child2, parent.getId());
 
         Project child11 = new Project();
         child11.setName("tesChild11");
         child11.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
-        projectManager.saveProject(child11, child1.getId());
+        projectManager.create(child11, child1.getId());
 
         List<Project> topProjects = projectManager.loadProjectTree(null, null);
         Assert.assertEquals(1, topProjects.size());
@@ -296,7 +296,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
     private void assertNullLoadProjectWithNested(Project root) {
         try {
             // check that we handle exception as expected
-            Assert.assertNull(projectManager.loadProjectAndUpdateLastOpenedDate(root.getId()));
+            Assert.assertNull(projectManager.load(root.getId()));
         } catch (IllegalArgumentException e) {
             // continue checking with child projects
             Optional.ofNullable(root.getNestedProjects())
@@ -313,27 +313,27 @@ public class ProjectManagerTest extends AbstractManagerTest {
         project.setName(TEST_PROJECT_NAME);
         project.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
-        projectManager.saveProject(project);
+        projectManager.create(project);
 
-        Project loadedProject = projectManager.loadProjectAndUpdateLastOpenedDate(project.getId());
+        Project loadedProject = projectManager.load(project.getId());
         Assert.assertNotNull(loadedProject);
         Assert.assertEquals(1, loadedProject.getItems().size());
 
         addVcfFileToProject(project.getId(), TEST_VCF_FILE_NAME1, TEST_VCF_FILE_PATH);
         addVcfFileToProject(project.getId(), TEST_VCF_FILE_NAME2, TEST_VCF_FILE_PATH);
 
-        loadedProject = projectManager.loadProjectAndUpdateLastOpenedDate(project.getId());
+        loadedProject = projectManager.load(project.getId());
         Assert.assertEquals(3, loadedProject.getItems().size());
 
         projectManager.removeProjectItem(project.getId(),
                 ((VcfFile) loadedProject.getItems().get(1).getBioDataItem()).getBioDataItemId());
-        loadedProject = projectManager.loadProjectAndUpdateLastOpenedDate(project.getId());
+        loadedProject = projectManager.load(project.getId());
         Assert.assertEquals(2, loadedProject.getItems().size());
         Assert.assertEquals(TEST_VCF_FILE_NAME2, loadedProject.getItems().get(1).getBioDataItem().getName());
 
         projectManager.hideProjectItem(project.getId(),
                 ((VcfFile) loadedProject.getItems().get(1).getBioDataItem()).getBioDataItemId());
-        loadedProject = projectManager.loadProjectAndUpdateLastOpenedDate(project.getId());
+        loadedProject = projectManager.load(project.getId());
         Assert.assertFalse(loadedProject.getItems().isEmpty());
         Assert.assertTrue(loadedProject.getItems().get(1).getHidden());
     }
@@ -347,15 +347,15 @@ public class ProjectManagerTest extends AbstractManagerTest {
         parent.setName("testParent");
         parent.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
-        parent = projectManager.saveProject(parent);
+        parent = projectManager.create(parent);
 
         Project child1 = new Project();
         child1.setName("testChild1");
         child1.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
-        child1 = projectManager.saveProject(child1, parent.getId());
+        child1 = projectManager.create(child1, parent.getId());
 
-        parent = projectManager.loadProjectAndUpdateLastOpenedDate(parent.getId());
+        parent = projectManager.load(parent.getId());
         Assert.assertFalse(parent.getNestedProjects().isEmpty());
         Assert.assertEquals(child1.getId(), parent.getNestedProjects().get(0).getId());
 
@@ -363,15 +363,15 @@ public class ProjectManagerTest extends AbstractManagerTest {
         child2.setName("testChild2");
         child2.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
-        child2 = projectManager.saveProject(child2);
+        child2 = projectManager.create(child2);
         projectManager.moveProjectToParent(child2.getId(), parent.getId());
-        parent = projectManager.loadProjectAndUpdateLastOpenedDate(parent.getId());
+        parent = projectManager.load(parent.getId());
 
         Assert.assertEquals(parent.getNestedProjects().size(), 2);
         Assert.assertEquals(child1.getId(), parent.getNestedProjects().get(0).getId());
         Assert.assertEquals(child2.getId(), parent.getNestedProjects().get(1).getId());
 
-        parent = projectManager.loadProjectAndUpdateLastOpenedDate(parent.getId());
+        parent = projectManager.load(parent.getId());
         Assert.assertEquals(parent.getNestedProjects().size(), 2);
         Assert.assertEquals(child1.getId(), parent.getNestedProjects().get(0).getId());
         Assert.assertEquals(child2.getId(), parent.getNestedProjects().get(1).getId());
@@ -384,7 +384,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
         child11.setName("tesChild11");
         child11.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
-        projectManager.saveProject(child11, child1.getId());
+        projectManager.create(child11, child1.getId());
 
         addVcfFileToProject(parent.getId(), "testVcf", TEST_VCF_FILE_PATH);
 
@@ -424,25 +424,25 @@ public class ProjectManagerTest extends AbstractManagerTest {
         parent.setName("testParent");
         parent.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
-        parent = projectManager.saveProject(parent);
+        parent = projectManager.create(parent);
 
         Project child1 = new Project();
         child1.setName("testChild1");
         child1.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
-        child1 = projectManager.saveProject(child1, parent.getId());
+        child1 = projectManager.create(child1, parent.getId());
 
         Project child2 = new Project();
         child2.setName("testChild2");
         child2.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
-        child2 = projectManager.saveProject(child2, parent.getId());
+        child2 = projectManager.create(child2, parent.getId());
 
         Project child11 = new Project();
         child11.setName("tesChild11");
         child11.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
-        projectManager.saveProject(child11, child1.getId());
+        projectManager.create(child11, child1.getId());
 
         List<Project> topProjects = projectManager.loadProjectTree(null, null);
         Assert.assertEquals(1, topProjects.size());
@@ -461,9 +461,9 @@ public class ProjectManagerTest extends AbstractManagerTest {
         project.setName(TEST_PROJECT_NAME);
         project.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
-        projectManager.saveProject(project);
+        projectManager.create(project);
 
-        Project loadedProject = projectManager.loadProjectAndUpdateLastOpenedDate(project.getId());
+        Project loadedProject = projectManager.load(project.getId());
         Assert.assertNotNull(loadedProject);
         Assert.assertEquals(1, loadedProject.getItems().size());
 
@@ -516,7 +516,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(mafFile);
         projectManager.addProjectItem(project.getId(), mafFile.getBioDataItemId());
 
-        loadedProject = projectManager.loadProjectAndUpdateLastOpenedDate(project.getId());
+        loadedProject = projectManager.load(project.getId());
 
         // Test VCF item
         ProjectItem vcfItem = loadedProject.getItems().stream().filter(i -> i.getBioDataItem().getFormat() ==
@@ -590,9 +590,9 @@ public class ProjectManagerTest extends AbstractManagerTest {
         project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId())),
                 new ProjectItem(geneFile1)));
 
-        projectManager.saveProject(project);
+        projectManager.create(project);
 
-        Project loadedProject = projectManager.loadProjectAndUpdateLastOpenedDate(project.getId());
+        Project loadedProject = projectManager.load(project.getId());
         Reference projectReference =
             (Reference) loadedProject.getItems().stream()
                 .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE)

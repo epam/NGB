@@ -87,7 +87,7 @@ public class FilterControllerTest extends AbstractControllerTest {
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
         testReference = EntityHelper.createNewReference(testChromosome,
                 referenceGenomeManager.createReferenceId());
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
 
         Resource resource = wac.getResource(CLASSPATH_TEMPLATES_GENES_SORTED);

@@ -115,7 +115,7 @@ public class BookmarksControllerTest extends AbstractControllerTest {
         testChromosome = EntityHelper.createNewChromosome();
         testReference = EntityHelper.createNewReference(testChromosome,
                 referenceGenomeManager.createReferenceId());
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
         VcfFile file = addVcfFile(TEST_VCF_FILE_NAME1, TEST_VCF_FILE_PATH);
         BiologicalDataItem item = new BiologicalDataItem();
@@ -129,7 +129,7 @@ public class BookmarksControllerTest extends AbstractControllerTest {
         items.add(new ProjectItem(item));
         testProject.setItems(items);
 
-        projectManager.saveProject(testProject);
+        projectManager.create(testProject);
     }
 
     @Test

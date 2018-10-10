@@ -75,7 +75,7 @@ public class BlatSearchManager {
         throws ExternalDbUnavailableException, IOException {
         Assert.isTrue(referenceId != null && StringUtils.isNotBlank(readSequence),
                       MessagesConstants.ERROR_NULL_PARAM);
-        Reference reference = referenceGenomeManager.loadReferenceGenome(referenceId);
+        Reference reference = referenceGenomeManager.load(referenceId);
         Assert.notNull(reference.getSpecies(),
                        getMessage(MessagesConstants.NULL_SPECIES_FOR_GENOME, reference.getName()));
 

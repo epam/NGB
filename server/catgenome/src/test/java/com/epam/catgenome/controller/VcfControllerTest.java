@@ -124,7 +124,7 @@ public class VcfControllerTest extends AbstractControllerTest {
         testChromosome.setSize(TES_CHROMOSOME_SIZE);
         testReference = EntityHelper.createNewReference(testChromosome, referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
     }
 
@@ -291,7 +291,7 @@ public class VcfControllerTest extends AbstractControllerTest {
         project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(vcfFile.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
 
-        projectManager.saveProject(project); // Index is created when vcf file is added
+        projectManager.create(project); // Index is created when vcf file is added
 
         TestUtils.assertFail(() -> featureIndexManager.filterVariations(new VcfFilterForm(), project.getId()),
                              Collections.singletonList(IllegalArgumentException.class));

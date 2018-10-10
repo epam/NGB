@@ -100,7 +100,7 @@ public class GffManagerUnitTest {
         CachedFeatureReader<GeneFeature, LineIterator> reader = new CachedFeatureReader<>(featureList, new GffCodec(
             GffCodec.GffType.GTF));
 
-        Mockito.when(geneFileManager.loadGeneFile(TEST_GENE_FILE_ID)).thenReturn(testGeneFile);
+        Mockito.when(geneFileManager.load(TEST_GENE_FILE_ID)).thenReturn(testGeneFile);
         Mockito.when(fileManager.makeGeneReader(testGeneFile, GeneFileType.ORIGINAL)).thenReturn(reader);
         Mockito.when(referenceGenomeManager.loadChromosome(TEST_CHROMOSOME_ID)).thenReturn(testChromosome);
 

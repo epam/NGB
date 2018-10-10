@@ -112,7 +112,7 @@ public class BedManagerTest extends AbstractManagerTest {
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
         testReference = EntityHelper.createNewReference(testChromosome, referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
     }
 
@@ -164,7 +164,7 @@ public class BedManagerTest extends AbstractManagerTest {
             BedFile bedFile = bedManager.registerBed(request);
             Assert.assertNotNull(bedFile);
 
-            bedFile = bedFileManager.loadBedFile(bedFile.getId());
+            bedFile = bedFileManager.load(bedFile.getId());
             Assert.assertNotNull(bedFile.getId());
             Assert.assertNotNull(bedFile.getBioDataItemId());
             Assert.assertNotNull(bedFile.getIndex());
@@ -219,7 +219,7 @@ public class BedManagerTest extends AbstractManagerTest {
         BedFile bedFile = bedManager.registerBed(request);
         Assert.assertNotNull(bedFile);
 
-        BedFile loadedBedFile = bedFileManager.loadBedFile(bedFile.getId());
+        BedFile loadedBedFile = bedFileManager.load(bedFile.getId());
         Assert.assertNotNull(loadedBedFile.getId());
         Assert.assertNotNull(loadedBedFile.getBioDataItemId());
         Assert.assertEquals(PRETTY_NAME, loadedBedFile.getPrettyName());
@@ -262,7 +262,7 @@ public class BedManagerTest extends AbstractManagerTest {
         BedFile bedFile = testRegisterBed(GENES_SORTED_BED_PATH);
 
         bedManager.unregisterBedFile(bedFile.getId());
-        Assert.assertNull(bedFileManager.loadBedFile(bedFile.getId()));
+        Assert.assertNull(bedFileManager.load(bedFile.getId()));
         List<BiologicalDataItem> dataItems = biologicalDataItemDao.loadBiologicalDataItemsByIds(
             Arrays.asList(bedFile.getBioDataItemId(), bedFile.getIndex().getId()));
         Assert.assertTrue(dataItems.isEmpty());
@@ -300,12 +300,12 @@ public class BedManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(bedFile.getId());
         try {
             referenceGenomeManager.updateReferenceAnnotationFile(referenceId, bedFile.getBioDataItemId(), false);
-            bedFileManager.deleteBedFile(bedFile);
+            bedFileManager.delete(bedFile);
             //expected exception
         } catch (IllegalArgumentException e) {
             //remove file correctly as expected
             referenceGenomeManager.updateReferenceAnnotationFile(referenceId, bedFile.getBioDataItemId(), true);
-            bedFileManager.deleteBedFile(bedFile);
+            bedFileManager.delete(bedFile);
         }
     }
 

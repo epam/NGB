@@ -136,7 +136,7 @@ public class BookmarkDaoTest extends AbstractDaoTest {
         project.setCreatedBy(AuthUtils.getCurrentUserId());
         project.setCreatedDate(new Date());
 
-        projectManager.saveProject(project);
+        projectManager.create(project);
 
         Bookmark bookmark = new Bookmark();
         bookmark.setName(TEST_NAME);
@@ -253,7 +253,7 @@ public class BookmarkDaoTest extends AbstractDaoTest {
         project.setCreatedBy(AuthUtils.getCurrentUserId());
         project.setCreatedDate(new Date());
 
-        projectManager.saveProject(project);
+        projectManager.create(project);
 
         // create a bookmark
         Bookmark bookmark = new Bookmark();

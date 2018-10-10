@@ -67,6 +67,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  */
 @Service
 public class BiologicalDataItemManager {
+
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
 
@@ -120,9 +121,9 @@ public class BiologicalDataItemManager {
         throws JsonProcessingException {
         Project project;
         if (NumberUtils.isDigits(dataset)) {
-            project = projectManager.loadProjectAndUpdateLastOpenedDate(Long.parseLong(dataset));
+            project = projectManager.load(Long.parseLong(dataset));
         } else {
-            project = projectManager.loadProjectAndUpdateLastOpenedDate(dataset);
+            project = projectManager.load(dataset);
         }
 
         Assert.notNull(project, getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, dataset));
@@ -181,7 +182,7 @@ public class BiologicalDataItemManager {
             }
             itemIds.add(BiologicalDataItem.getBioDataItemId(item));
         }
-        Reference reference = referenceGenomeManager.loadReferenceGenome(referenceId);
+        Reference reference = referenceGenomeManager.load(referenceId);
         return makeUrl(items, project, reference, chromosomeName, startIndex, endIndex);
     }
 

@@ -319,7 +319,7 @@ public class GeneControllerTest extends AbstractControllerTest {
 
         boolean failed = false;
         try {
-            geneFileManager.loadGeneFile(geneFilesRes.getPayload().get(0).getId());
+            geneFileManager.load(geneFilesRes.getPayload().get(0).getId());
         } catch (IllegalArgumentException e) {
             failed = true;
         }
