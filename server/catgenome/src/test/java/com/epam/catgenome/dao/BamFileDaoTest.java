@@ -60,17 +60,15 @@ import com.epam.catgenome.helper.EntityHelper;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class BamFileDaoTest extends AbstractDaoTest  {
+
     @Autowired
     private BamFileDao bamFileDao;
 
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
 
-    private static final long TEST_USER_ID = 42;
-
     private static final String BAM_PATH = "132456";
     private static final String INDEX_PATH = "qwerty";
-
 
     @Override
     public void setup() throws Exception {
@@ -92,7 +90,6 @@ public class BamFileDaoTest extends AbstractDaoTest  {
         BamFile bamFile = new BamFile();
 
         bamFile.setName("testFile");
-        bamFile.setCreatedBy(TEST_USER_ID);
         bamFile.setType(BiologicalDataItemResourceType.FILE);
         bamFile.setFormat(BiologicalDataItemFormat.BAM);
         bamFile.setPath(BAM_PATH);
@@ -112,7 +109,6 @@ public class BamFileDaoTest extends AbstractDaoTest  {
 
         assertNotNull(loadedFile);
         assertEquals(bamFile.getName(), loadedFile.getName());
-        assertEquals(bamFile.getCreatedBy(), loadedFile.getCreatedBy());
         assertEquals(bamFile.getType(), loadedFile.getType());
         assertEquals(bamFile.getFormat(), loadedFile.getFormat());
         assertEquals(bamFile.getPath(), loadedFile.getPath());

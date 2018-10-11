@@ -181,7 +181,6 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
         GENE_ITEM_ID,
         REFERENCE_GENOME_ID,
         ORIGINAL_NAME,
-        CREATED_BY,
         CREATED_DATE,
         FILE_PATH,
         INDEX_PATH,

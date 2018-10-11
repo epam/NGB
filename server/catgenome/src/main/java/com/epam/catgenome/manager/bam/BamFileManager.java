@@ -78,7 +78,6 @@ public class BamFileManager implements SecuredEntityManager {
         Assert.notNull(bamFile);
         Assert.notNull(bamFile.getName());
         Assert.notNull(bamFile.getReferenceId());
-        Assert.notNull(bamFile.getCreatedBy());
         Assert.notNull(bamFile.getPath());
 
         bamFileDao.createBamFile(bamFile);

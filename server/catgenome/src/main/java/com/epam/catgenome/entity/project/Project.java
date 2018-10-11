@@ -45,7 +45,7 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 public class Project extends AbstractHierarchicalEntity {
-    private Long createdBy;
+
     private List<ProjectItem> items;
     private Integer itemsCount;
     private Map<BiologicalDataItemFormat, Integer> itemsCountPerFormat;
@@ -70,7 +70,7 @@ public class Project extends AbstractHierarchicalEntity {
 
     @Override
     public void filterLeaves(Map<AclClass, Set<Long>> idToRemove) {
-       filterCollection(idToRemove, getLeaves());
+        filterCollection(idToRemove, getLeaves());
     }
 
     @Override
@@ -91,14 +91,6 @@ public class Project extends AbstractHierarchicalEntity {
     @Override
     public AbstractSecuredEntity getParent() {
         return new Project(parentId);
-    }
-
-    public Long getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(Long createdBy) {
-        this.createdBy = createdBy;
     }
 
     public List<ProjectItem> getItems() {

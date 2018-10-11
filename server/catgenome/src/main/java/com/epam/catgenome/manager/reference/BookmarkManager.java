@@ -49,7 +49,6 @@ import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.reference.Bookmark;
 import com.epam.catgenome.manager.AuthManager;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * {@code BookmarkManager} represents a service class designed to encapsulate all business
@@ -77,7 +76,6 @@ public class BookmarkManager implements SecuredEntityManager {
         if (bookmark.getId() != null) {
             bookmarkDao.deleteBookmarkItems(bookmark.getId());
         } else {
-            bookmark.setCreatedBy(AuthUtils.getCurrentUserId());
             bookmark.setCreatedDate(new Date());
         }
 
@@ -93,7 +91,7 @@ public class BookmarkManager implements SecuredEntityManager {
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<Bookmark> loadBookmarksByProject() {
-        return bookmarkDao.loadAllBookmarks(AuthUtils.getCurrentUserId());
+        return bookmarkDao.loadAllBookmarks();
     }
 
     /**
@@ -153,8 +151,8 @@ public class BookmarkManager implements SecuredEntityManager {
      * @return an {@link IndexSearchResult} object, that contains search results
      */
     public IndexSearchResult<FeatureIndexEntry> searchBookmarks(String searchStr, int limit) {
-        int bookmarksCount = bookmarkDao.searchBookmarkCount(searchStr, AuthUtils.getCurrentUserId());
-        List<Bookmark> bookmarks = bookmarkDao.searchBookmarks(searchStr, AuthUtils.getCurrentUserId(), limit);
+        int bookmarksCount = bookmarkDao.searchBookmarkCount(searchStr);
+        List<Bookmark> bookmarks = bookmarkDao.searchBookmarks(searchStr, limit);
         List<FeatureIndexEntry> bookmarkEntries = bookmarks.stream().map(BookmarkIndexEntry::new).collect(
             Collectors.toList());
 
@@ -163,7 +161,7 @@ public class BookmarkManager implements SecuredEntityManager {
 
     @Override
     public AbstractSecuredEntity changeOwner(Long id, String owner) {
-       throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException();
     }
 
     @Override

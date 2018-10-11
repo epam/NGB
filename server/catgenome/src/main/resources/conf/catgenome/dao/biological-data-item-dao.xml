@@ -13,7 +13,6 @@
                         type,
                         path,
                         format,
-                        created_by,
                         created_date,
                         bucket_id,
                         pretty_name,
@@ -24,7 +23,6 @@
                         :TYPE,
                         :PATH,
                         :FORMAT,
-                        :CREATED_BY,
                         :CREATED_DATE,
                         :BUCKET_ID,
                         :PRETTY_NAME,
@@ -41,7 +39,6 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
                         b.owner,
@@ -65,7 +62,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -98,7 +94,6 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM
@@ -144,7 +139,6 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
                         b.owner,
@@ -168,7 +162,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -201,7 +194,6 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM
@@ -239,7 +231,6 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
                         b.owner,
@@ -263,7 +254,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -296,7 +286,6 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM
@@ -335,7 +324,6 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
                         b.owner,
@@ -359,7 +347,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -392,7 +379,6 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM
@@ -430,7 +416,6 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
                         b.owner,
@@ -454,7 +439,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -487,7 +471,6 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM

@@ -219,9 +219,14 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
         Map<Long, List<String>> result = new HashMap<>();
         getJdbcTemplate().query(query, rs -> {
             String groupName = rs.getString(GroupParameters.GROUP_NAME.name());
-            result.merge(rs.getLong(UserParameters.USER_ID.name()),
-                         new ArrayList<>(Collections.singletonList(groupName)),
-                         (l1, l2) -> { l1.addAll(l2); return l1; });
+            result.merge(
+                rs.getLong(UserParameters.USER_ID.name()),
+                new ArrayList<>(Collections.singletonList(groupName)),
+                (l1, l2) -> {
+                    l1.addAll(l2);
+                    return l1;
+                }
+            );
         }, userIds.toArray(new Object[0]));
 
         return result;
@@ -243,8 +248,8 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     public List<Pair<Long, String>> loadExistingGroupsFromList(List<String> groups) {
         String query = DaoHelper.replaceInClause(loadExistingGroupsFromListQuery, groups.size());
         return getJdbcTemplate().query(query,
-                                       (rs, i) -> new ImmutablePair<>(rs.getLong(1), rs.getString(2)),
-                                       groups.toArray(new Object[0]));
+            (rs, i) -> new ImmutablePair<>(rs.getLong(1), rs.getString(2)),
+                groups.toArray(new Object[0]));
     }
 
     public boolean isUserInGroup(String userName, String group) {

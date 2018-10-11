@@ -113,12 +113,17 @@ public class RoleDao extends NamedParameterJdbcDaoSupport {
 
         RowMapper<Role> rowMapper = RoleParameters.getRowMapper();
         getNamedParameterJdbcTemplate().query(query, new MapSqlParameterSource(LIST_PARAM, userIds),
-                                              rs -> {
-                                                        Role role = rowMapper.mapRow(rs, 0);
-                                                        result.merge(rs.getLong(UserDao.UserParameters.USER_ID.name()),
-                                                                     new ArrayList<>(Collections.singletonList(role)),
-                                                                     (l1, l2) -> { l1.addAll(l2); return l1; });
-                                                    });
+            rs -> {
+                Role role = rowMapper.mapRow(rs, 0);
+                result.merge(
+                    rs.getLong(UserDao.UserParameters.USER_ID.name()),
+                    new ArrayList<>(Collections.singletonList(role)),
+                    (l1, l2) -> {
+                        l1.addAll(l2);
+                        return l1;
+                    }
+                );
+            });
 
         return result;
     }

@@ -56,7 +56,6 @@ import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.helper.EntityHelper;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * Source:      ReferenceGenomeDaoTest.java
@@ -206,7 +205,6 @@ public class ReferenceGenomeDaoTest extends AbstractDaoTest {
 
         geneFile.setId(geneFileDao.createGeneFileId());
         geneFile.setName("testFile");
-        geneFile.setCreatedBy(AuthUtils.getCurrentUserId());
         geneFile.setCreatedDate(new Date());
         geneFile.setReferenceId(testReference.getId());
         geneFile.setType(BiologicalDataItemResourceType.FILE);
@@ -279,7 +277,6 @@ public class ReferenceGenomeDaoTest extends AbstractDaoTest {
         newReference.setId(referenceGenomeDao.createReferenceGenomeId());
 
         newReference.setCreatedDate(reference.getCreatedDate());
-        newReference.setCreatedBy(AuthUtils.getCurrentUserId());
         newReference.setIndex(createReferenceIndex());
         newReference.setOwner(EntityHelper.TEST_OWNER);
         return newReference;

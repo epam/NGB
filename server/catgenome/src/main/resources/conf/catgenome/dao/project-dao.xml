@@ -11,7 +11,6 @@
                     INSERT INTO catgenome.project (
                         project_id,
                         project_name,
-                        created_by,
                         created_date,
                         parent_id,
                         project_pretty_name,
@@ -20,7 +19,6 @@
                     VALUES (
                         :PROJECT_ID,
                         :PROJECT_NAME,
-                        :CREATED_BY,
                         :CREATED_DATE,
                         :PARENT_ID,
                         :PROJECT_PRETTY_NAME,
@@ -57,7 +55,6 @@
                     SELECT
                         project_id,
                         project_name,
-                        created_by,
                         created_date,
                         project_pretty_name,
                         last_opened_date,
@@ -66,8 +63,7 @@
                     FROM
                         catgenome.project
                     WHERE
-                        created_by = ?
-                        AND parent_id IS NULL
+                        parent_id IS NULL
                     ORDER BY
                         last_opened_date desc
                 ]]>
@@ -79,7 +75,6 @@
                     SELECT
                         project_id,
                         project_name,
-                        created_by,
                         created_date,
                         project_pretty_name,
                         last_opened_date,
@@ -87,8 +82,6 @@
                         owner
                     FROM
                         catgenome.project
-                    WHERE
-                        created_by = ?
                 ]]>
             </value>
         </property>
@@ -98,7 +91,6 @@
                     SELECT
                         project_id,
                         project_name,
-                        created_by,
                         created_date,
                         project_pretty_name,
                         last_opened_date,
@@ -107,8 +99,7 @@
                     FROM
                         catgenome.project
                     WHERE
-                        created_by = ?
-                        AND parent_id IS NULL
+                        parent_id IS NULL
                 ]]>
             </value>
         </property>
@@ -118,7 +109,6 @@
                     SELECT
                         project_id,
                         project_name,
-                        created_by,
                         created_date,
                         project_pretty_name,
                         last_opened_date,
@@ -137,7 +127,6 @@
                     SELECT
                         project_id,
                         project_name,
-                        created_by,
                         created_date,
                         project_pretty_name,
                         last_opened_date,
@@ -156,7 +145,6 @@
                     SELECT
                         project_id,
                         project_name,
-                        created_by,
                         created_date,
                         project_pretty_name,
                         last_opened_date,
@@ -293,7 +281,6 @@
                     SELECT
                         project_id,
                         project_name,
-                        created_by,
                         created_date,
                         project_pretty_name,
                         last_opened_date,
@@ -318,7 +305,6 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
                         b.owner,
@@ -342,7 +328,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -375,7 +360,6 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM
@@ -418,7 +402,6 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
                         b.owner,
@@ -442,7 +425,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -503,7 +485,6 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
                         b.owner,
@@ -527,7 +508,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -579,7 +559,6 @@
                     SELECT
                         project_id,
                         project_name,
-                        created_by,
                         created_date,
                         project_pretty_name,
                         last_opened_date,

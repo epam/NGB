@@ -46,7 +46,6 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.maf.MafFile;
 import com.epam.catgenome.helper.EntityHelper;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * Source:      MafFileDaoTest
@@ -78,7 +77,6 @@ public class MafFileDaoTest extends AbstractDaoTest {
 
         mafFile.setId(mafFileDao.createMafFileId());
         mafFile.setName("testFile");
-        mafFile.setCreatedBy(AuthUtils.getCurrentUserId());
         mafFile.setType(BiologicalDataItemResourceType.FILE);
         mafFile.setPath("///");
         mafFile.setCreatedDate(new Date());
@@ -98,7 +96,6 @@ public class MafFileDaoTest extends AbstractDaoTest {
 
         assertNotNull(loadedFile);
         assertEquals(mafFile.getName(), loadedFile.getName());
-        assertEquals(mafFile.getCreatedBy(), loadedFile.getCreatedBy());
         assertEquals(mafFile.getType(), loadedFile.getType());
         assertEquals(mafFile.getFormat(), loadedFile.getFormat());
         assertEquals(mafFile.getPath(), loadedFile.getPath());

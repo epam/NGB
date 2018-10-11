@@ -50,7 +50,6 @@ import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.seg.SegFile;
 import com.epam.catgenome.entity.seg.SegSample;
 import com.epam.catgenome.helper.EntityHelper;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * Source:      SegDaoTest
@@ -82,7 +81,6 @@ public class SegDaoTest extends AbstractDaoTest {
 
         segFile.setId(segFileDao.createSegFileId());
         segFile.setName("testFile");
-        segFile.setCreatedBy(AuthUtils.getCurrentUserId());
         segFile.setType(BiologicalDataItemResourceType.FILE);
         segFile.setPath("///");
         segFile.setCreatedDate(new Date());
@@ -102,7 +100,6 @@ public class SegDaoTest extends AbstractDaoTest {
 
         assertNotNull(loadedFile);
         assertEquals(segFile.getName(), loadedFile.getName());
-        assertEquals(segFile.getCreatedBy(), loadedFile.getCreatedBy());
         assertEquals(segFile.getType(), loadedFile.getType());
         assertEquals(segFile.getFormat(), loadedFile.getFormat());
         assertEquals(segFile.getPath(), loadedFile.getPath());
@@ -126,7 +123,6 @@ public class SegDaoTest extends AbstractDaoTest {
 
         segFile.setId(segFileDao.createSegFileId());
         segFile.setName("testFile");
-        segFile.setCreatedBy(AuthUtils.getCurrentUserId());
         segFile.setType(BiologicalDataItemResourceType.FILE);
         segFile.setPath("///");
         segFile.setCreatedDate(new Date());

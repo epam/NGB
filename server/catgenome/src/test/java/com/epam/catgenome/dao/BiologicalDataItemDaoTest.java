@@ -48,7 +48,6 @@ import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.manager.gene.GeneFileManager;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * Source:      BiologicalDataItemDaoTest
@@ -94,7 +93,6 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         BiologicalDataItem item = new BiologicalDataItem();
         item.setName(TEST_NAME);
         item.setPath(TEST_PATH);
-        item.setCreatedBy(AuthUtils.getCurrentUserId());
         item.setFormat(BiologicalDataItemFormat.REFERENCE);
         item.setType(BiologicalDataItemResourceType.FILE);
         item.setCreatedDate(new Date());
@@ -115,7 +113,6 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         Assert.assertEquals(item.getId(), BiologicalDataItem.getBioDataItemId(loadedItem));
         Assert.assertEquals(item.getName(), loadedItem.getName());
         Assert.assertEquals(item.getPath(), loadedItem.getPath());
-        Assert.assertEquals(item.getCreatedBy(), loadedItem.getCreatedBy());
         Assert.assertEquals(item.getCreatedDate(), loadedItem.getCreatedDate());
         Assert.assertEquals(item.getType(), loadedItem.getType());
         Assert.assertEquals(item.getFormat(), loadedItem.getFormat());
@@ -128,7 +125,6 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         BiologicalDataItem item = new BiologicalDataItem();
         item.setName(TEST_NAME);
         item.setPath(TEST_PATH);
-        item.setCreatedBy(AuthUtils.getCurrentUserId());
         item.setFormat(BiologicalDataItemFormat.REFERENCE);
         item.setType(BiologicalDataItemResourceType.FILE);
         item.setCreatedDate(new Date());
@@ -148,7 +144,6 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         Assert.assertEquals(item.getId(), BiologicalDataItem.getBioDataItemId(loadedItem));
         Assert.assertEquals(item.getName(), loadedItem.getName());
         Assert.assertEquals(item.getPath(), loadedItem.getPath());
-        Assert.assertEquals(item.getCreatedBy(), loadedItem.getCreatedBy());
         Assert.assertEquals(item.getCreatedDate(), loadedItem.getCreatedDate());
         Assert.assertEquals(item.getType(), loadedItem.getType());
         Assert.assertEquals(item.getFormat(), loadedItem.getFormat());
@@ -163,7 +158,6 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         BiologicalDataItem item = new BiologicalDataItem();
         item.setName(TEST_NAME);
         item.setPath(TEST_PATH);
-        item.setCreatedBy(AuthUtils.getCurrentUserId());
         item.setFormat(BiologicalDataItemFormat.REFERENCE);
         item.setType(BiologicalDataItemResourceType.FILE);
         item.setCreatedDate(new Date());
@@ -196,7 +190,6 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         reference.setId(item.getId());
 
         reference.setCreatedDate(new Date());
-        reference.setCreatedBy(AuthUtils.getCurrentUserId());
         reference.setBioDataItemId(item.getId());
         reference.setIndex(EntityHelper.createIndex(BiologicalDataItemFormat.REFERENCE_INDEX,
                 BiologicalDataItemResourceType.FILE, ""));
@@ -212,7 +205,6 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         indexItem.setFormat(BiologicalDataItemFormat.GENE_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
-        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
         indexItem.setOwner(TEST_OWNER);
 
         biologicalDataItemDao.createBiologicalDataItem(indexItem);
@@ -224,7 +216,6 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         geneFile.setPath(TEST_PATH);
         geneFile.setType(BiologicalDataItemResourceType.FILE); // For now we're working only with files
         geneFile.setCreatedDate(new Date());
-        geneFile.setCreatedBy(AuthUtils.getCurrentUserId());
         geneFile.setReferenceId(reference.getId());
         geneFile.setIndex(indexItem);
         geneFile.setOwner(TEST_OWNER);

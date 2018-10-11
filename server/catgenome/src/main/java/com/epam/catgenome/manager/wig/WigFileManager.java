@@ -80,7 +80,6 @@ public class WigFileManager implements SecuredEntityManager {
 
         Assert.notNull(wigFile.getName());
         Assert.notNull(wigFile.getReferenceId());
-        Assert.notNull(wigFile.getCreatedBy());
         Assert.notNull(wigFile.getPath());
         Assert.notNull(wigFile.getType());
         Assert.notNull(wigFile.getFormat());

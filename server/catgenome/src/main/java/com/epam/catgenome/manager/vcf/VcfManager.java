@@ -48,7 +48,6 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.indexer.BigVcfFeatureIndexBuilder;
 import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexBuilder;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.InfoFieldParser;
@@ -536,9 +535,9 @@ public class VcfManager {
                 .getFeatureReader(request.getPath(), request.getIndexPath(), new VCFCodec(),
                         request.getIndexPath() != null, indexCache)) {
             vcfFile = createVcfFile(request, reader);
-            fileManager.makeVcfDir(vcfFile.getId(), AuthUtils.getCurrentUserId());
+            fileManager.makeVcfDir(vcfFile.getId());
             if (StringUtils.isBlank(request.getIndexPath())) {
-                fileManager.makeVcfIndex(vcfFile, AuthUtils.getCurrentUserId());
+                fileManager.makeVcfIndex(vcfFile);
             }
 
             // In order to fix bugs with zipped VCF
@@ -669,7 +668,6 @@ public class VcfManager {
         vcfFile.setPrettyName(request.getPrettyName());
         vcfFile.setType(BiologicalDataItemResourceType.GA4GH); // For now we're working only with files
         vcfFile.setCreatedDate(new Date());
-        vcfFile.setCreatedBy(AuthUtils.getCurrentUserId());
         vcfFile.setReferenceId(request.getReferenceId());
         VcfGa4ghReader reader = new VcfGa4ghReader(httpDataManager, referenceGenomeManager);
         CallSetSearch callSetSearch;
@@ -691,7 +689,6 @@ public class VcfManager {
             indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
             indexItem.setType(BiologicalDataItemResourceType.GA4GH);
             indexItem.setName("");
-            indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
             vcfFile.setIndex(indexItem);
         }
@@ -742,7 +739,6 @@ public class VcfManager {
         vcfFile.setPath(request.getPath());
         vcfFile.setType(resourceType);
         vcfFile.setCreatedDate(new Date());
-        vcfFile.setCreatedBy(AuthUtils.getCurrentUserId());
         vcfFile.setReferenceId(request.getReferenceId());
 
         if (StringUtils.isNotBlank(request.getIndexPath())) {
@@ -752,7 +748,6 @@ public class VcfManager {
             indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
             indexItem.setType(BiologicalDataItemResourceType.translateRequestType(request.getIndexType()));
             indexItem.setName(vcfFile.getName() + "_index");
-            indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
             vcfFile.setIndex(indexItem);
         }
@@ -775,7 +770,6 @@ public class VcfManager {
         indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.GA4GH);
         indexItem.setName("");
-        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
         vcfFile.setIndex(indexItem);
         biologicalDataItemManager.createBiologicalDataItem(vcfFile.getIndex());
         vcfFileManager.create(vcfFile);

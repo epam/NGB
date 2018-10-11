@@ -41,7 +41,6 @@ public class Bookmark extends AbstractSecuredEntity {
     private Integer startIndex;
     private Integer endIndex;
     private Chromosome chromosome;
-    private Long createdBy;
     private AclClass aclClass = AclClass.BOOKMARK;
 
     /**
@@ -79,14 +78,6 @@ public class Bookmark extends AbstractSecuredEntity {
 
     public void setEndIndex(Integer endIndex) {
         this.endIndex = endIndex;
-    }
-
-    public Long getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(Long createdBy) {
-        this.createdBy = createdBy;
     }
 
     @Override

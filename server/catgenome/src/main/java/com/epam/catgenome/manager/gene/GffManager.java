@@ -108,7 +108,6 @@ import com.epam.catgenome.manager.gene.reader.AbstractGeneReader;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.parallel.ParallelTaskExecutionUtils;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.NggbIntervalTreeMap;
@@ -261,7 +260,6 @@ public class GffManager {
         geneFile.setName(request.getName() != null ? request.getName() : file.getName());
         geneFile.setType(BiologicalDataItemResourceType.FILE); // For now we're working only with files
         geneFile.setCreatedDate(new Date());
-        geneFile.setCreatedBy(AuthUtils.getCurrentUserId());
         geneFile.setReferenceId(request.getReferenceId());
         geneFile.setPrettyName(request.getPrettyName());
 
@@ -272,7 +270,6 @@ public class GffManager {
             indexItem.setFormat(BiologicalDataItemFormat.GENE_INDEX);
             indexItem.setType(BiologicalDataItemResourceType.FILE);
             indexItem.setName("");
-            indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
             geneFile.setIndex(indexItem);
         }
@@ -354,7 +351,6 @@ public class GffManager {
         geneFile.setName(request.getName() != null ? request.getName() : file.getName());
         geneFile.setType(request.getType());
         geneFile.setCreatedDate(new Date());
-        geneFile.setCreatedBy(AuthUtils.getCurrentUserId());
         geneFile.setReferenceId(request.getReferenceId());
 
         if (StringUtils.isNotBlank(request.getIndexPath())) {
@@ -364,7 +360,6 @@ public class GffManager {
             indexItem.setFormat(BiologicalDataItemFormat.GENE_INDEX);
             indexItem.setType(BiologicalDataItemResourceType.FILE);
             indexItem.setName("");
-            indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
             geneFile.setIndex(indexItem);
         }

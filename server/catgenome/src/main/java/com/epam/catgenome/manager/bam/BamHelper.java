@@ -90,7 +90,6 @@ import com.epam.catgenome.manager.bam.handlers.Handler;
 import com.epam.catgenome.manager.bucket.BucketManager;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.epam.catgenome.manager.reference.io.ChromosomeReferenceSequence;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.BamUtil;
 import com.epam.catgenome.util.ConsensusSequenceUtils;
 import com.epam.catgenome.util.HdfsSeekableInputStream;
@@ -270,7 +269,6 @@ public class BamHelper {
         newBamFile.setName(parseName(new File(request.getPath()).getName(), alternativeName, request.getType()));
         newBamFile.setType(request.getType());
         newBamFile.setFormat(BiologicalDataItemFormat.BAM);
-        newBamFile.setCreatedBy(AuthUtils.getCurrentUserId());
         newBamFile.setReferenceId(request.getReferenceId());
         newBamFile.setCreatedDate(new Date());
         newBamFile.setPath(request.getPath());
@@ -280,7 +278,6 @@ public class BamHelper {
         indexItem.setName("");
         indexItem.setType(request.getIndexType() == null ? request.getType() : request.getIndexType());
         indexItem.setFormat(BiologicalDataItemFormat.BAM_INDEX);
-        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
         indexItem.setCreatedDate(new Date());
         indexItem.setBucketId(request.getIndexS3BucketId() == null ? request.getS3BucketId() : request.
                 getIndexS3BucketId());

@@ -49,8 +49,8 @@ import com.epam.catgenome.security.Role;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
-public class RoleDaoTest extends AbstractDaoTest
-{
+public class RoleDaoTest extends AbstractDaoTest {
+
     private static final int EXPECTED_DEFAULT_ROLES_NUMBER = 10;
     private static final String TEST_ROLE = "ROLE_TEST";
     private static final String TEST_ROLE_UPDATED = "NEW_ROLE";

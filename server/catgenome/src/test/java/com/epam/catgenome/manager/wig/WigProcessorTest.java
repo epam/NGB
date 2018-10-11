@@ -130,7 +130,6 @@ public class WigProcessorTest extends AbstractManagerTest {
         Assert.assertNotNull(loadWigFile);
         Assert.assertTrue(wigFile.getId().equals(loadWigFile.getId()));
         Assert.assertTrue(wigFile.getName().equals(loadWigFile.getName()));
-        Assert.assertTrue(wigFile.getCreatedBy().equals(loadWigFile.getCreatedBy()));
         Assert.assertTrue(wigFile.getCreatedDate().equals(loadWigFile.getCreatedDate()));
         Assert.assertTrue(wigFile.getReferenceId().equals(loadWigFile.getReferenceId()));
         Assert.assertTrue(wigFile.getPath().equals(loadWigFile.getPath()));

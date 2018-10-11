@@ -214,7 +214,6 @@ public class BamManagerTest extends AbstractManagerTest {
         Assert.assertTrue(bamFile.getId().equals(loadBamFile.getId()));
         Assert.assertTrue(bamFile.getName().equals(loadBamFile.getName()));
         Assert.assertEquals(PRETTY_NAME, bamFile.getPrettyName());
-        Assert.assertTrue(bamFile.getCreatedBy().equals(loadBamFile.getCreatedBy()));
         Assert.assertTrue(bamFile.getCreatedDate().equals(loadBamFile.getCreatedDate()));
         Assert.assertTrue(bamFile.getReferenceId().equals(loadBamFile.getReferenceId()));
         Assert.assertTrue(bamFile.getPath().equals(loadBamFile.getPath()));

@@ -46,7 +46,6 @@ public class BiologicalDataItem extends AbstractSecuredEntity {
     private BiologicalDataItemResourceType type;
     private String path;
     private BiologicalDataItemFormat format;
-    private Long createdBy; // TODO: remove?
     private Date createdDate;
     private Long bucketId;
 
@@ -90,14 +89,6 @@ public class BiologicalDataItem extends AbstractSecuredEntity {
 
     public final void setFormat(BiologicalDataItemFormat format) {
         this.format = format;
-    }
-
-    public Long getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(Long createdBy) {
-        this.createdBy = createdBy;
     }
 
     public Date getCreatedDate() {

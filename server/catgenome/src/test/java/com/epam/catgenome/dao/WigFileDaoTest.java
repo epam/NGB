@@ -45,7 +45,6 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.wig.WigFile;
 import com.epam.catgenome.helper.EntityHelper;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * Source:      WigFileDaoTest
@@ -76,7 +75,6 @@ public class WigFileDaoTest extends AbstractDaoTest {
         WigFile wigFile = new WigFile();
 
         wigFile.setName("testFile");
-        wigFile.setCreatedBy(AuthUtils.getCurrentUserId());
         wigFile.setCreatedDate(new Date());
         wigFile.setReferenceId(reference.getId());
         wigFile.setType(BiologicalDataItemResourceType.FILE);

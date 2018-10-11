@@ -36,7 +36,6 @@ import java.util.List;
 
 public final class TestDataProvider {
 
-    private static final Long DEFAULT_USER = 42L;
     private static final Date DEFAULT_DATE = getDefaultDate();
     private static final JsonMapper MAPPER = JsonMapper.getMapper();
     private static final String FILE_TYPE = "FILE";
@@ -83,7 +82,6 @@ public final class TestDataProvider {
         BiologicalDataItem item = new BiologicalDataItem();
         item.setId(id);
         item.setBioDataItemId(bioItemId);
-        item.setCreatedBy(DEFAULT_USER);
         item.setCreatedDate(DEFAULT_DATE);
         item.setType(FILE_TYPE);
         item.setFormat(format);
@@ -225,7 +223,6 @@ public final class TestDataProvider {
         Project project = new Project();
         project.setId(id);
         project.setName(name);
-        project.setCreatedBy(DEFAULT_USER);
         project.setCreatedDate(DEFAULT_DATE);
         project.setLastOpenedDate(DEFAULT_DATE);
         project.setItems(items);

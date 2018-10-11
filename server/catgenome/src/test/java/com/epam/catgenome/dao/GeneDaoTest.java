@@ -46,7 +46,6 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.helper.EntityHelper;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * Source:      GeneDaoTest
@@ -78,7 +77,6 @@ public class GeneDaoTest extends AbstractDaoTest {
 
         geneFile.setId(geneFileDao.createGeneFileId());
         geneFile.setName("testFile");
-        geneFile.setCreatedBy(AuthUtils.getCurrentUserId());
         geneFile.setCreatedDate(new Date());
         geneFile.setReferenceId(reference.getId());
         geneFile.setType(BiologicalDataItemResourceType.FILE);
@@ -112,7 +110,6 @@ public class GeneDaoTest extends AbstractDaoTest {
 
         geneFile.setId(geneFileDao.createGeneFileId());
         geneFile.setName("testFile");
-        geneFile.setCreatedBy(AuthUtils.getCurrentUserId());
         geneFile.setCreatedDate(new Date());
         geneFile.setReferenceId(reference.getId());
         geneFile.setType(BiologicalDataItemResourceType.FILE);

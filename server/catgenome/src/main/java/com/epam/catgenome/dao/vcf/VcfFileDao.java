@@ -261,7 +261,6 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
         VCF_ID,
         REFERENCE_GENOME_ID,
         ORIGINAL_NAME,
-        CREATED_BY,
         CREATED_DATE,
         FILE_PATH,
         INDEX_PATH,

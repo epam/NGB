@@ -169,7 +169,6 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
             if (reference.getCreatedDate() == null) {
                 reference.setCreatedDate(new Date());
             }
-            reference.setCreatedBy(AuthUtils.getCurrentUserId());
             if (reference.getType() == null) {
                 reference.setType(BiologicalDataItemResourceType.FILE);
             }
@@ -584,7 +583,6 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
         indexItem.setFormat(BiologicalDataItemFormat.REFERENCE_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
-        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
         indexItem.setOwner(authManager.getAuthorizedUser());
         reference.setIndex(indexItem);
     }
@@ -611,7 +609,6 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
         indexItem.setFormat(BiologicalDataItemFormat.REFERENCE_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.GA4GH);
         indexItem.setName("");
-        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
         reference.setIndex(indexItem);
         return lengthOfGenome;
     }

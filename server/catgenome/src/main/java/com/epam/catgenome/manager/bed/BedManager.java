@@ -73,7 +73,6 @@ import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.bed.parser.NggbBedFeature;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.Utils;
@@ -289,7 +288,6 @@ public class BedManager {
         bedFile.setName(request.getName() != null ? request.getName() : fileName);
         bedFile.setType(resourceType); // For now we're working only with files
         bedFile.setCreatedDate(new Date());
-        bedFile.setCreatedBy(AuthUtils.getCurrentUserId());
         bedFile.setReferenceId(reference.getId());
         bedFile.setPrettyName(request.getPrettyName());
 
@@ -308,13 +306,12 @@ public class BedManager {
                 indexItem.setType(BiologicalDataItemResourceType
                         .translateRequestType(request.getIndexType()));
                 indexItem.setName(bedFile.getName() + "_index");
-                indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
                 bedFile.setIndex(indexItem);
             } else {
                 Assert.isTrue(resourceType == BiologicalDataItemResourceType.FILE,
                         "Auto indexing is supported only for FILE type requests");
-                fileManager.makeBedDir(bedFile.getId(), AuthUtils.getCurrentUserId());
+                fileManager.makeBedDir(bedFile.getId());
                 fileManager.makeBedIndex(bedFile);
             }
 

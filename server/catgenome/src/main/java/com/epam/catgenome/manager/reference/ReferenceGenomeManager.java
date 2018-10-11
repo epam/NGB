@@ -43,7 +43,6 @@ import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.SecuredEntityManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.ListMapCollector;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,7 +125,6 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         if (reference.getCreatedDate() == null) {
             reference.setCreatedDate(new Date());
         }
-        reference.setCreatedBy(AuthUtils.getCurrentUserId());
         if (reference.getType() == null) {
             reference.setType(BiologicalDataItemResourceType.FILE);
         }
@@ -449,7 +447,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
 
     @Override
     public AbstractSecuredEntity changeOwner(Long id, String owner) {
-       throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException();
     }
 
     @Override

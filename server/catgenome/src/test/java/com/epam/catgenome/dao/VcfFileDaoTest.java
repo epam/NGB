@@ -67,8 +67,6 @@ public class VcfFileDaoTest extends AbstractDaoTest {
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
 
-    private static final long TEST_USER_ID = 42;
-
     @Override
     public void setup() throws Exception {
         assertNotNull("VcfFileDao isn't provided.", vcfFileDao);
@@ -82,7 +80,6 @@ public class VcfFileDaoTest extends AbstractDaoTest {
 
         vcfFile.setId(vcfFileDao.createVcfFileId());
         vcfFile.setName("testFile");
-        vcfFile.setCreatedBy(TEST_USER_ID);
         vcfFile.setType(BiologicalDataItemResourceType.FILE);
         vcfFile.setPath("///");
         vcfFile.setCreatedDate(new Date());
@@ -102,7 +99,6 @@ public class VcfFileDaoTest extends AbstractDaoTest {
 
         assertNotNull(loadedFile);
         assertEquals(vcfFile.getName(), loadedFile.getName());
-        assertEquals(vcfFile.getCreatedBy(), loadedFile.getCreatedBy());
         assertEquals(vcfFile.getType(), loadedFile.getType());
         assertEquals(vcfFile.getFormat(), loadedFile.getFormat());
         assertEquals(vcfFile.getPath(), loadedFile.getPath());
@@ -124,7 +120,6 @@ public class VcfFileDaoTest extends AbstractDaoTest {
 
         vcfFile.setId(vcfFileDao.createVcfFileId());
         vcfFile.setName("testFile");
-        vcfFile.setCreatedBy(TEST_USER_ID);
         vcfFile.setCreatedDate(new Date());
         vcfFile.setReferenceId(reference.getId());
         vcfFile.setType(BiologicalDataItemResourceType.FILE);

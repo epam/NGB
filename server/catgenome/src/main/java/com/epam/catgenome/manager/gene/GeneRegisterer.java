@@ -61,7 +61,6 @@ import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.PositionalOutputStream;
 import com.epam.catgenome.util.Utils;
@@ -168,7 +167,7 @@ public class GeneRegisterer {
     private void createFileIndices(String filePath, String indexPath,
             boolean createTabixIndex, boolean createFeatureIndex)
             throws IOException {
-        fileManager.makeGeneDir(geneFile.getId(), AuthUtils.getCurrentUserId());
+        fileManager.makeGeneDir(geneFile.getId());
 
         File indexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.ORIGINAL);
         File largeScaleIndexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.LARGE_SCALE);
@@ -394,7 +393,6 @@ public class GeneRegisterer {
         indexItem.setFormat(BiologicalDataItemFormat.GENE_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
-        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
         return indexItem;
     }

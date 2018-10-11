@@ -40,7 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.epam.catgenome.dao.project.ProjectDao;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.helper.EntityHelper;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * Source:      ProjectDaoTest
@@ -62,7 +61,6 @@ public class ProjectDaoTest extends AbstractTransactionalJUnit4SpringContextTest
     public void testSaveLoadProject() {
         Project project = new Project();
         project.setName("test");
-        project.setCreatedBy(AuthUtils.getCurrentUserId());
         project.setCreatedDate(new Date());
         project.setOwner(EntityHelper.TEST_OWNER);
 
@@ -72,17 +70,15 @@ public class ProjectDaoTest extends AbstractTransactionalJUnit4SpringContextTest
         Assert.assertNotNull(loadedProject);
         Assert.assertEquals(project.getId(), loadedProject.getId());
         Assert.assertEquals(project.getName(), loadedProject.getName());
-        Assert.assertEquals(project.getCreatedBy(), loadedProject.getCreatedBy());
         Assert.assertEquals(project.getCreatedDate(), loadedProject.getCreatedDate());
         Assert.assertNotNull(loadedProject.getLastOpenedDate());
         Assert.assertEquals(project.getOwner(), loadedProject.getOwner());
 
-        List<Project> loadedProjects = projectDao.loadTopLevelProjectsOrderByLastOpened(project.getCreatedBy());
+        List<Project> loadedProjects = projectDao.loadTopLevelProjectsOrderByLastOpened();
         Assert.assertFalse(loadedProjects.isEmpty());
         loadedProjects.forEach(p -> {
             Assert.assertNotNull(p.getId());
             Assert.assertNotNull(p.getName());
-            Assert.assertNotNull(p.getCreatedBy());
             Assert.assertNotNull(p.getCreatedDate());
             Assert.assertNotNull(p.getLastOpenedDate());
             Assert.assertEquals(project.getOwner(), p.getOwner());
@@ -94,7 +90,6 @@ public class ProjectDaoTest extends AbstractTransactionalJUnit4SpringContextTest
     public void testUpdateProject() {
         Project project = new Project();
         project.setName("test");
-        project.setCreatedBy(AuthUtils.getCurrentUserId());
         project.setCreatedDate(new Date());
         project.setOwner(EntityHelper.TEST_OWNER);
 
@@ -114,7 +109,6 @@ public class ProjectDaoTest extends AbstractTransactionalJUnit4SpringContextTest
     public void testLoadProjectsByParentId() throws Exception {
         Project parent = new Project();
         parent.setName("testParent");
-        parent.setCreatedBy(AuthUtils.getCurrentUserId());
         parent.setCreatedDate(new Date());
         parent.setOwner(EntityHelper.TEST_OWNER);
 
@@ -122,7 +116,6 @@ public class ProjectDaoTest extends AbstractTransactionalJUnit4SpringContextTest
 
         Project child = new Project();
         child.setName("testChild");
-        child.setCreatedBy(AuthUtils.getCurrentUserId());
         child.setCreatedDate(new Date());
         child.setOwner(EntityHelper.TEST_OWNER);
 
@@ -136,7 +129,6 @@ public class ProjectDaoTest extends AbstractTransactionalJUnit4SpringContextTest
 
         Project child2 = new Project();
         child2.setName("testChild2");
-        child2.setCreatedBy(AuthUtils.getCurrentUserId());
         child2.setCreatedDate(new Date());
         child2.setOwner(EntityHelper.TEST_OWNER);
 
@@ -146,7 +138,7 @@ public class ProjectDaoTest extends AbstractTransactionalJUnit4SpringContextTest
         childProjects = projectDao.loadNestedProjects(parent.getId());
         Assert.assertEquals(childProjects.size(), 2);
 
-        List<Project> topLevel = projectDao.loadTopLevelProjectsOrderByLastOpened(AuthUtils.getCurrentUserId());
+        List<Project> topLevel = projectDao.loadTopLevelProjectsOrderByLastOpened();
         Assert.assertEquals(1, topLevel.size());
     }
 }

@@ -14,7 +14,6 @@
                         start_index,
                         end_index,
                         referred_chromosome_id,
-                        created_by,
                         created_date,
                         owner)
                     VALUES (
@@ -23,7 +22,6 @@
                         :START_INDEX,
                         :END_INDEX,
                         :REFERRED_CHROMOSOME_ID,
-                        :CREATED_BY,
                         :CREATED_DATE,
                         :OWNER)
                 ]]>
@@ -51,15 +49,12 @@
                         b.end_index,
                         b.referred_chromosome_id,
                         c.chromosome_name,
-                        b.created_by,
                         b.created_date,
                         b.owner
                     FROM
                         catgenome.bookmark b
                         JOIN catgenome.chromosome c
                             ON b.referred_chromosome_id = c.chromosome_id
-                    WHERE
-                        b.created_by = ?
                 ]]>
             </value>
         </property>
@@ -73,14 +68,12 @@
                         b.end_index,
                         b.referred_chromosome_id,
                         null as chromosome_name,
-                        b.created_by,
                         b.created_date,
                         b.owner
                     FROM
                         catgenome.bookmark b
                     WHERE
-                        b.created_by = :CREATED_BY
-                        AND bookmark_name LIKE :BOOKMARK_NAME
+                        bookmark_name LIKE :BOOKMARK_NAME
                     LIMIT :SEARCH_LIMIT
                 ]]>
             </value>
@@ -91,8 +84,7 @@
                     SELECT count(*) as count
                     FROM catgenome.bookmark
                     WHERE
-                        created_by = :CREATED_BY
-                        AND bookmark_name LIKE :BOOKMARK_NAME
+                        bookmark_name LIKE :BOOKMARK_NAME
                 ]]>
             </value>
         </property>
@@ -106,7 +98,6 @@
                         b.end_index,
                         b.referred_chromosome_id,
                         c.chromosome_name,
-                        b.created_by,
                         b.created_date,
                         b.owner
                     FROM
@@ -128,7 +119,6 @@
                         b.end_index,
                         b.referred_chromosome_id,
                         c.chromosome_name,
-                        b.created_by,
                         b.created_date,
                         b.owner
                     FROM
@@ -173,7 +163,6 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
                         b.owner,
@@ -197,7 +186,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -230,7 +218,6 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM

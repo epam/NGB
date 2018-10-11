@@ -39,7 +39,6 @@ import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.protein.ProteinSequenceEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * Source:      EntityHelper.java
@@ -100,7 +99,6 @@ public final class EntityHelper {
         reference.setName("Test.Reference.0.0.1");
         reference.setPath("/contents/tests/references/" + reference.getId());
         reference.setCreatedDate(DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH));
-        reference.setCreatedBy(AuthUtils.getCurrentUserId());
         reference.setType(BiologicalDataItemResourceType.FILE);
         reference.setIndex(createIndex(BiologicalDataItemFormat.REFERENCE_INDEX,
                 BiologicalDataItemResourceType.FILE, ""));
@@ -184,7 +182,6 @@ public final class EntityHelper {
         index.setFormat(format);
         index.setPath(path);
         index.setCreatedDate(new Date());
-        index.setCreatedBy(AuthUtils.getCurrentUserId());
         index.setOwner(TEST_OWNER);
 
         return index;

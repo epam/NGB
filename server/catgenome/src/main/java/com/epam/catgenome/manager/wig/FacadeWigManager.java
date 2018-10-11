@@ -42,7 +42,6 @@ import com.epam.catgenome.manager.DownloadFileManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import org.apache.commons.io.FilenameUtils;
@@ -153,7 +152,7 @@ public class FacadeWigManager {
             biologicalDataItemManager.createBiologicalDataItem(wigFile);
             wigFile.setBioDataItemId(wigFile.getId());
             wigFile.setId(id);
-            fileManager.makeWigDir(wigFile.getId(), AuthUtils.getCurrentUserId());
+            fileManager.makeWigDir(wigFile.getId());
 
             prepareWigFileToWork(wigFile);
 
@@ -218,7 +217,6 @@ public class FacadeWigManager {
         wigFile.setPrettyName(prettyName);
         wigFile.setType(BiologicalDataItemResourceType.FILE);
         wigFile.setFormat(BiologicalDataItemFormat.WIG);
-        wigFile.setCreatedBy(AuthUtils.getCurrentUserId());
         wigFile.setReferenceId(referenceId);
         wigFile.setCreatedDate(new Date());
         wigFile.setPath(wigFilePath);

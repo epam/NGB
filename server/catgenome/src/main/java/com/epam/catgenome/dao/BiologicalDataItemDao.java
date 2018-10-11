@@ -112,7 +112,6 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         params.addValue(BiologicalDataItemParameters.PATH.name(), item.getPath());
         params.addValue(BiologicalDataItemParameters.FORMAT.name(), item.getFormat().getId());
         params.addValue(BiologicalDataItemParameters.CREATED_DATE.name(), item.getCreatedDate());
-        params.addValue(BiologicalDataItemParameters.CREATED_BY.name(), item.getCreatedBy());
         params.addValue(BiologicalDataItemParameters.BUCKET_ID.name(), item.getBucketId());
         params.addValue(BiologicalDataItemParameters.PRETTY_NAME.name(), item.getPrettyName());
         params.addValue(BiologicalDataItemParameters.OWNER.name(), item.getOwner());
@@ -217,7 +216,6 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         TYPE,
         PATH,
         FORMAT,
-        CREATED_BY,
         CREATED_DATE,
         BUCKET_ID,
         PRETTY_NAME,
@@ -242,7 +240,6 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         REFERENCE_GENE_TYPE,
         REFERENCE_GENE_PATH,
         REFERENCE_GENE_FORMAT,
-        REFERENCE_GENE_CREATED_BY,
         REFERENCE_GENE_CREATED_DATE,
         REFERENCE_GENE_REFERENCE_GENOME_ID,
         REFERENCE_GENE_COMPRESSED,
@@ -275,7 +272,6 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         INDEX_TYPE,
         INDEX_PATH,
         INDEX_FORMAT,
-        INDEX_CREATED_BY,
         INDEX_BUCKET_ID,
         INDEX_CREATED_DATE;
 
@@ -305,7 +301,6 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
                     index.setType(BiologicalDataItemResourceType.getById(rs.getLong(INDEX_TYPE.name())));
                     index.setPath(rs.getString(INDEX_PATH.name()));
                     index.setFormat(BiologicalDataItemFormat.getById(rs.getLong(INDEX_FORMAT.name())));
-                    index.setCreatedBy(rs.getLong(CREATED_BY.name()));
                     index.setCreatedDate(new Date(rs.getTimestamp(INDEX_CREATED_DATE.name()).getTime()));
                 }
             }
@@ -324,7 +319,6 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
 
             dataItem.setPath(rs.getString(PATH.name()));
             dataItem.setFormat(format);
-            dataItem.setCreatedBy(rs.getLong(CREATED_BY.name()));
             dataItem.setCreatedDate(new Date(rs.getTimestamp(CREATED_DATE.name()).getTime()));
             dataItem.setPrettyName(rs.getString(PRETTY_NAME.name()));
             dataItem.setOwner(rs.getString(OWNER.name()));
@@ -489,7 +483,6 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
                 longVal = rs.getLong(REFERENCE_GENE_FORMAT.name());
                 geneFile.setFormat(rs.wasNull() ? null : BiologicalDataItemFormat.getById(longVal));
 
-                geneFile.setCreatedBy(rs.getLong(REFERENCE_GENE_CREATED_BY.name()));
                 geneFile.setCreatedDate(new Date(rs.getTimestamp(REFERENCE_GENE_CREATED_DATE.name()).getTime()));
                 geneFile.setReferenceId(rs.getLong(REFERENCE_GENE_REFERENCE_GENOME_ID.name()));
                 geneFile.setCompressed(rs.getBoolean(REFERENCE_GENE_COMPRESSED.name()));

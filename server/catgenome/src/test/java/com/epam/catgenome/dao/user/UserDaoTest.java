@@ -176,7 +176,7 @@ public class UserDaoTest extends AbstractDaoTest {
         user.setUserName(TEST_USER1);
         user.setAttributes(attributes);
         NgbUser savedUser = userDao.createUser(user,
-                                                    Arrays.asList(DefaultRoles.ROLE_ADMIN.getId(), DefaultRoles.ROLE_USER.getId()));
+                Arrays.asList(DefaultRoles.ROLE_ADMIN.getId(), DefaultRoles.ROLE_USER.getId()));
         Assert.assertNotNull(savedUser);
         Assert.assertNotNull(savedUser.getId());
         Assert.assertNotNull(savedUser.getAttributes());

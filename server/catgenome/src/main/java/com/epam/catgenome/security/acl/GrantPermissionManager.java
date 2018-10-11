@@ -442,8 +442,8 @@ public class GrantPermissionManager {
     }
 
     private void processHierarchicalEntity(int parentMask, AbstractHierarchicalEntity entity,
-                                           Map<AclClass, Set<Long>> entitiesToRemove, Permission permission, boolean root,
-                                           List<Sid> sids) {
+                                           Map<AclClass, Set<Long>> entitiesToRemove, Permission permission,
+                                           boolean root, List<Sid> sids) {
         int defaultMask = 0;
         int currentMask = entity.getId() != null ?
                 permissionsService.mergeParentMask(retrieveMaskForSid(entity, false, root, sids),

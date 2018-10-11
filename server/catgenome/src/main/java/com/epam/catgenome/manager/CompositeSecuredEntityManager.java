@@ -58,7 +58,8 @@ public class CompositeSecuredEntityManager {
 
     public SecuredEntityManager getEntityManager(AclClass aclClass) {
         if (!managers.containsKey(aclClass)) {
-            throw new IllegalArgumentException(MessageHelper.getMessage(MessagesConstants.ERROR_ACL_CLASS_NOT_SUPPORTED, aclClass));
+            throw new IllegalArgumentException(
+                    MessageHelper.getMessage(MessagesConstants.ERROR_ACL_CLASS_NOT_SUPPORTED, aclClass));
         }
         return managers.get(aclClass);
     }

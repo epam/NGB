@@ -92,7 +92,7 @@ public class ProjectController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<ProjectVO>> loadProjectsForCurrentUser() {
-        return Result.success(ProjectConverter.convertTo(projectManager.loadTopLevelProjectsForCurrentUser()));
+        return Result.success(ProjectConverter.convertTo(projectManager.loadTopLevelProjects()));
     }
 
     @RequestMapping(value = "/project/tree", method = RequestMethod.GET)

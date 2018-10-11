@@ -138,7 +138,7 @@ public class SegFileManager implements SecuredEntityManager {
 
     @Override
     public AbstractSecuredEntity changeOwner(Long id, String owner) {
-       throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException();
     }
 
     @Override

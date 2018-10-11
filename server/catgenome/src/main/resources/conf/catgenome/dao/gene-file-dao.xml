@@ -13,7 +13,6 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
                         b.bucket_id,
@@ -31,7 +30,6 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM catgenome.gene_item g
@@ -50,7 +48,6 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
@@ -68,7 +65,6 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM catgenome.gene_item g
@@ -87,7 +83,6 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
@@ -105,7 +100,6 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM catgenome.gene_item g

@@ -61,7 +61,6 @@ import com.epam.catgenome.entity.vcf.VcfSample;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.FileManager;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * Source:      ProjectManager
@@ -103,8 +102,8 @@ public class ProjectManager implements SecuredEntityManager {
      * @return a {@code List&lt;Project&gt;} of projects, created by current user
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public List<Project> loadTopLevelProjectsForCurrentUser() {
-        List<Project> projects = projectDao.loadTopLevelProjectsOrderByLastOpened(AuthUtils.getCurrentUserId());
+    public List<Project> loadTopLevelProjects() {
+        List<Project> projects = projectDao.loadTopLevelProjectsOrderByLastOpened();
         final Map<Long, Set<ProjectItem>> itemsMap = projectDao.loadProjectItemsByProjectIds(
                 projects.parallelStream().map(BaseEntity::getId).collect(Collectors.toList()));
 
@@ -135,7 +134,7 @@ public class ProjectManager implements SecuredEntityManager {
     public List<Project> loadProjectTree(final Long parentId, String referenceName) {
         List<Project> allProjects;
         if (StringUtils.isEmpty(referenceName)) {
-            allProjects = projectDao.loadAllProjects(AuthUtils.getCurrentUserId());
+            allProjects = projectDao.loadAllProjects();
         } else {
             Reference reference =
                     referenceGenomeDao.loadReferenceGenomeByName(referenceName.toLowerCase());
@@ -573,7 +572,6 @@ public class ProjectManager implements SecuredEntityManager {
 
         boolean newProject = false;
         if (helpProject.getId() == null) {
-            helpProject.setCreatedBy(AuthUtils.getCurrentUserId());
             helpProject.setCreatedDate(new Date());
 
             // for new project ensure that there is no project with this name

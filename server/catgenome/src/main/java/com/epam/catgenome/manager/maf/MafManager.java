@@ -62,7 +62,6 @@ import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.maf.parser.MafCodec;
 import com.epam.catgenome.manager.maf.parser.MafFeature;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.comparator.FeatureComparator;
@@ -151,7 +150,6 @@ public class MafManager {
         mafFile.setName(request.getName() != null ? request.getName() : file.getName());
         mafFile.setType(BiologicalDataItemResourceType.FILE); // For now we're working only with files
         mafFile.setCreatedDate(new Date());
-        mafFile.setCreatedBy(AuthUtils.getCurrentUserId());
         mafFile.setReferenceId(request.getReferenceId());
         mafFile.setRealPath(request.getPath());
         mafFile.setPrettyName(request.getPrettyName());
@@ -225,7 +223,7 @@ public class MafManager {
     private void processRegistration(MafFile mafFile, File file, IndexedFileRegistrationRequest request)
             throws IOException {
         LOGGER.debug("Registering MAF file " + mafFile.getRealPath());
-        fileManager.makeMafDir(mafFile.getId(), AuthUtils.getCurrentUserId());
+        fileManager.makeMafDir(mafFile.getId());
         if (file.isDirectory()) {
             mergeMaf(file, mafFile);
         } else {
@@ -273,7 +271,7 @@ public class MafManager {
             }
             writer.flush();
         } finally {
-            fileManager.deleteMafTempDir(mafFile.getId(), mafFile.getCreatedBy());
+            fileManager.deleteMafTempDir(mafFile.getId());
         }
         fileManager.makeBigMafIndex(mafFile);
     }

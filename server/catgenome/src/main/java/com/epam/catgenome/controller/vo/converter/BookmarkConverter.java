@@ -110,7 +110,6 @@ public final class BookmarkConverter {
         vo.setType(item.getType());
         vo.setFormat(item.getFormat());
         vo.setPath(item.getPath());
-        vo.setCreatedBy(item.getCreatedBy());
         vo.setCreatedDate(item.getCreatedDate());
 
         vo.setId(item.getId());
@@ -131,7 +130,6 @@ public final class BookmarkConverter {
         bioDataItem.setPath(vo.getPath());
         bioDataItem.setFormat(vo.getFormat());
         bioDataItem.setType(vo.getType());
-        bioDataItem.setCreatedBy(vo.getCreatedBy());
         bioDataItem.setCreatedDate(vo.getCreatedDate());
 
         return bioDataItem;

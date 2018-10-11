@@ -61,7 +61,6 @@ import com.epam.catgenome.manager.DownloadFileManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.seg.parser.SegFeature;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.comparator.FeatureComparator;
@@ -214,7 +213,6 @@ public class SegManager {
         segFile.setName(request.getName() != null ? request.getName() : file.getName());
         segFile.setType(BiologicalDataItemResourceType.FILE); // For now we're working only with files
         segFile.setCreatedDate(new Date());
-        segFile.setCreatedBy(AuthUtils.getCurrentUserId());
         segFile.setReferenceId(request.getReferenceId());
         segFile.setPrettyName(request.getPrettyName());
 
@@ -223,7 +221,7 @@ public class SegManager {
         segFile.setBioDataItemId(segFile.getId());
         segFile.setId(id);
 
-        fileManager.makeSegDir(segFile.getId(), AuthUtils.getCurrentUserId());
+        fileManager.makeSegDir(segFile.getId());
 
         Set<String> sampleNames = new HashSet<>();
         List<SegSample> samples = new ArrayList<>();

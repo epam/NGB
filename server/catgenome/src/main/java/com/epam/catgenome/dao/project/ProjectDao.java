@@ -119,29 +119,27 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
 
     /**
      * Loads {@code Project}s for a user, specified bu user's ID, ordered by last opened date
-     * @param userId {@code Long} an ID of a user to load projects for.
      * @return a {@code List&lt;Project&gt;} of projects, created by specified user.
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Project> loadTopLevelProjectsOrderByLastOpened(long userId) {
+    public List<Project> loadTopLevelProjectsOrderByLastOpened() {
         return getJdbcTemplate().query(loadTopLevelProjectsForUserOrderByLastOpenedQuery,
-                                       ProjectParameters.getRowMapper(), userId);
+                                       ProjectParameters.getRowMapper());
     }
 
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Project> loadAllProjects(long userId) {
-        return getJdbcTemplate().query(loadAllProjectsQuery, ProjectParameters.getRowMapper(), userId);
+    public List<Project> loadAllProjects() {
+        return getJdbcTemplate().query(loadAllProjectsQuery, ProjectParameters.getRowMapper());
     }
 
     /**
      * Loads {@code Project}s for a user, specified bu user's ID.
-     * @param userId {@code Long} an ID of a user to load projects for.
      * @return a {@code List&lt;Project&gt;} of projects, created by specified user.
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Project> loadTopLevelProjects(long userId) {
-        return getJdbcTemplate().query(loadTopLevelProjectsForUserQuery, ProjectParameters.getRowMapper(), userId);
+    public List<Project> loadTopLevelProjects() {
+        return getJdbcTemplate().query(loadTopLevelProjectsForUserQuery, ProjectParameters.getRowMapper());
     }
 
     /**
@@ -553,7 +551,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         PROJECT_NAME,
         PARENT_ID,
         PROJECT_PRETTY_NAME,
-        CREATED_BY,
         CREATED_DATE,
         LAST_OPENED_DATE,
         OWNER;
@@ -563,7 +560,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
 
             params.addValue(PROJECT_ID.name(), project.getId());
             params.addValue(PROJECT_NAME.name(), project.getName());
-            params.addValue(CREATED_BY.name(), project.getCreatedBy());
             params.addValue(CREATED_DATE.name(), project.getCreatedDate());
             params.addValue(PARENT_ID.name(), parentId);
             params.addValue(PROJECT_PRETTY_NAME.name(), project.getPrettyName());
@@ -578,7 +574,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
 
                 project.setId(rs.getLong(PROJECT_ID.name()));
                 project.setName(rs.getString(PROJECT_NAME.name()));
-                project.setCreatedBy(rs.getLong(CREATED_BY.name()));
                 project.setCreatedDate(new Date(rs.getTimestamp(CREATED_DATE.name()).getTime()));
                 project.setPrettyName(rs.getString(PROJECT_PRETTY_NAME.name()));
                 project.setLastOpenedDate(new Date(rs.getTimestamp(LAST_OPENED_DATE.name()).getTime()));
@@ -606,7 +601,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         TYPE,
         PATH,
         FORMAT,
-        CREATED_BY,
         CREATED_DATE,
 
         VCF_ID,
@@ -645,7 +639,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         INDEX_TYPE,
         INDEX_PATH,
         INDEX_FORMAT,
-        INDEX_CREATED_BY,
         INDEX_CREATED_DATE;
 
         /**
