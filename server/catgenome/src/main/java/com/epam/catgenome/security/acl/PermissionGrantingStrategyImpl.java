@@ -8,15 +8,13 @@ import org.springframework.util.Assert;
 
 public class PermissionGrantingStrategyImpl implements PermissionGrantingStrategy {
 
-    private final PermissionsService permissionsService;
     private final transient AuditLogger auditLogger;
 
     /**
      * Creates an instance with the logger which will be used to record granting and
      * denial of requested permissions.
      */
-    public PermissionGrantingStrategyImpl(PermissionsService permissionsService, AuditLogger auditLogger) {
-        this.permissionsService = permissionsService;
+    public PermissionGrantingStrategyImpl(AuditLogger auditLogger) {
         Assert.notNull(auditLogger, "auditLogger cannot be null");
         this.auditLogger = auditLogger;
     }
@@ -71,10 +69,10 @@ public class PermissionGrantingStrategyImpl implements PermissionGrantingStrateg
 
                 for (AccessControlEntry ace : aces) {
 
-                    if (ace.getSid().equals(sid) && permissionsService.containsPermission(ace.getPermission(), p)) {
+                    if (ace.getSid().equals(sid) && PermissionUtils.containsPermission(ace.getPermission(), p)) {
                         // Found a matching ACE, so its authorization decision will
                         // prevail
-                        if (permissionsService.permissionIsNotDenied(ace, ace.getPermission(), p)) {
+                        if (PermissionUtils.permissionIsNotDenied(ace, ace.getPermission(), p)) {
                             // Success
                             if (!administrativeMode) {
                                 auditLogger.logIfNeeded(true, ace);

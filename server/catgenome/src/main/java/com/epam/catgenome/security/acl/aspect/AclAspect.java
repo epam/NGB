@@ -26,6 +26,7 @@ package com.epam.catgenome.security.acl.aspect;
 
 import java.util.List;
 
+import com.epam.catgenome.security.acl.PermissionHelper;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -59,6 +60,9 @@ public class AclAspect {
 
     @Autowired
     private GrantPermissionManager permissionManager;
+
+    @Autowired
+    private PermissionHelper permissionHelper;
 
 
     @AfterReturning(pointcut = "@within(com.epam.catgenome.security.acl.aspect.AclSync) && "
@@ -113,7 +117,7 @@ public class AclAspect {
             returning = RETURN_OBJECT)
     @Transactional(propagation = Propagation.REQUIRED)
     public void setMask(JoinPoint joinPoint, AbstractSecuredEntity entity) {
-        entity.setMask(permissionManager.getPermissionsMask(entity, true, true));
+        entity.setMask(permissionHelper.getPermissionsMask(entity, true, true));
     }
 
     @AfterReturning(pointcut = "@annotation(com.epam.catgenome.security.acl.aspect.AclMaskList)",
@@ -121,7 +125,7 @@ public class AclAspect {
     @Transactional(propagation = Propagation.REQUIRED)
     public void setMaskForList(JoinPoint joinPoint, List<? extends AbstractSecuredEntity> list) {
         list.forEach(entity ->
-                entity.setMask(permissionManager.getPermissionsMask(entity, true, true)));
+                entity.setMask(permissionHelper.getPermissionsMask(entity, true, true)));
     }
 
     @AfterReturning(pointcut = "@annotation(com.epam.catgenome.security.acl.aspect.AclTree)",

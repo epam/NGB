@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
+import com.epam.catgenome.security.acl.customexpression.NGBMethodSecurityExpressionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.ehcache.EhCacheFactoryBean;
@@ -41,7 +42,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
@@ -79,8 +79,8 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
 
     @Override
     protected MethodSecurityExpressionHandler createExpressionHandler() {
-        DefaultMethodSecurityExpressionHandler expressionHandler =
-            new DefaultMethodSecurityExpressionHandler();
+        NGBMethodSecurityExpressionHandler expressionHandler =
+            new NGBMethodSecurityExpressionHandler();
         expressionHandler.setPermissionEvaluator(permissionEvaluator());
         expressionHandler.setRoleHierarchy(roleHierarchy());
         expressionHandler.setApplicationContext(context);
@@ -140,12 +140,7 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
 
     @Bean
     public PermissionGrantingStrategy permissionGrantingStrategy() {
-        return new PermissionGrantingStrategyImpl(permissionsService(), auditLogger());
-    }
-
-    @Bean
-    public PermissionsService permissionsService() {
-        return new PermissionsService();
+        return new PermissionGrantingStrategyImpl(auditLogger());
     }
 
     @Bean

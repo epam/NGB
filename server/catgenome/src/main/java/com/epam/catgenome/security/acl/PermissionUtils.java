@@ -8,22 +8,25 @@ import org.springframework.util.Assert;
 
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 
-public class PermissionsService {
+public final class PermissionUtils {
+
+    private PermissionUtils() {
+    }
 
     private static final List<AclPermission> BASIC_PERMISSIONS = AclPermission.getBasicPermissions();
 
-    public List<AclPermission> getBasicPermissions() {
+    public static List<AclPermission> getBasicPermissions() {
         return BASIC_PERMISSIONS;
     }
 
-    public void validateMask(Integer mask) {
+    public static void validateMask(Integer mask) {
         for (AclPermission permission : AclPermission.getBasicPermissions()) {
             Assert.isTrue(!bothBitsSet(mask, permission),
                     "Granting and denying permissions cannot be set together.");
         }
     }
 
-    public int unsetBits(int mask, int... bits) {
+    public static int unsetBits(int mask, int... bits) {
         int unsetMask = mask;
         for (int bit : bits) {
             unsetMask = unsetMask & ~bit;
@@ -31,7 +34,7 @@ public class PermissionsService {
         return unsetMask;
     }
 
-    public boolean isPermissionSet(int mask, AclPermission permission) {
+    public static boolean isPermissionSet(int mask, AclPermission permission) {
         int grantingMask = permission.getMask();
         int denyingMask = permission.getDenyPermission().getMask();
         if (isMaskBitSet(mask, grantingMask) || isMaskBitSet(mask, denyingMask)) {
@@ -40,7 +43,7 @@ public class PermissionsService {
         return false;
     }
 
-    public boolean allPermissionsSet(int mask, List<AclPermission> permissionToCollect) {
+    public static boolean allPermissionsSet(int mask, List<AclPermission> permissionToCollect) {
         for (AclPermission permission : permissionToCollect) {
             if (!isPermissionSet(mask, permission)) {
                 return false;
@@ -49,11 +52,11 @@ public class PermissionsService {
         return true;
     }
 
-    public Integer mergeMask(int extendedMask) {
+    public static Integer mergeMask(int extendedMask) {
         return mergeMask(extendedMask, getBasicPermissions());
     }
 
-    public Integer mergeMask(int extendedMask, List<AclPermission> basicPermissions) {
+    public static Integer mergeMask(int extendedMask, List<AclPermission> basicPermissions) {
         int result = 0;
         for (AclPermission p : basicPermissions) {
             int grantingMask = p.getMask();
@@ -70,32 +73,32 @@ public class PermissionsService {
         return result;
     }
 
-    public boolean permissionIsNotDenied(AccessControlEntry ace, Permission cumulativePermission,
+    public static boolean permissionIsNotDenied(AccessControlEntry ace, Permission cumulativePermission,
                                          Permission p) {
         return !containsOppositeMask(cumulativePermission, p) && ace.isGranting();
     }
 
-    public boolean permissionIsNotDenied(int cumulativeMask,
+    public static boolean permissionIsNotDenied(int cumulativeMask,
                                          Permission p) {
         return !containsOppositeMask(cumulativeMask, p);
     }
 
-    public boolean containsPermission(Permission cumulativePermission, Permission singlePermission) {
+    public static boolean containsPermission(Permission cumulativePermission, Permission singlePermission) {
         return maskIncludes(cumulativePermission, singlePermission) ||
                 containsOppositeMask(cumulativePermission, singlePermission);
     }
 
-    public boolean containsPermission(int mask, Permission singlePermission) {
+    public static boolean containsPermission(int mask, Permission singlePermission) {
         return maskIncludes(mask, singlePermission) ||
                 containsOppositeMask(mask, singlePermission);
     }
 
-    private boolean containsOppositeMask(Permission cumulativePermission,
+    private static boolean containsOppositeMask(Permission cumulativePermission,
                                          Permission singlePermission) {
         return containsOppositeMask(cumulativePermission.getMask(), singlePermission);
     }
 
-    private boolean containsOppositeMask(int mask,
+    private static boolean containsOppositeMask(int mask,
                                          Permission singlePermission) {
         if (singlePermission instanceof AclPermission) {
             AclPermission aclPermission = (AclPermission) singlePermission;
@@ -107,27 +110,27 @@ public class PermissionsService {
         return false;
     }
 
-    private boolean maskIncludes(int mask, Permission singlePermission) {
+    private static boolean maskIncludes(int mask, Permission singlePermission) {
         return isMaskBitSet(mask, singlePermission.getMask());
     }
 
-    private boolean maskIncludes(Permission cumulativePermission, Permission singlePermission) {
+    private static boolean maskIncludes(Permission cumulativePermission, Permission singlePermission) {
         return maskIncludes(cumulativePermission.getMask(), singlePermission);
     }
 
-    public boolean isMaskBitSet(int extendedMask, int permissionMask) {
+    public static boolean isMaskBitSet(int extendedMask, int permissionMask) {
         return (extendedMask & permissionMask) == permissionMask;
     }
 
-    private boolean isMaskBitSet(int extendedMask, AclPermission permission) {
+    private static boolean isMaskBitSet(int extendedMask, AclPermission permission) {
         return isMaskBitSet(extendedMask, permission.getMask());
     }
 
-    private boolean bothBitsSet(Integer mask, AclPermission permission) {
+    private static boolean bothBitsSet(Integer mask, AclPermission permission) {
         return isMaskBitSet(mask, permission) && isMaskBitSet(mask, permission.getDenyPermission());
     }
 
-    public int mergeParentMask(int childMask, int parentMask) {
+    public static int mergeParentMask(int childMask, int parentMask) {
         if (childMask == AbstractSecuredEntity.ALL_PERMISSIONS_MASK ||
                 childMask == AbstractSecuredEntity.ALL_PERMISSIONS_MASK_FULL) {
             return childMask;
@@ -148,7 +151,7 @@ public class PermissionsService {
         return resultMask;
     }
 
-    public boolean isPermissionGranted(int mask, Permission permission) {
+    public static boolean isPermissionGranted(int mask, Permission permission) {
         return isMaskBitSet(mask, permission.getMask());
     }
 }
