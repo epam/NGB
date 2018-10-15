@@ -32,6 +32,7 @@ import java.util.List;
 
 import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.Read;
+import com.epam.catgenome.manager.bam.BamSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -98,10 +99,7 @@ public class BamController extends AbstractRESTController {
     public static final long EMITTER_TIMEOUT = 100000L;
 
     @Autowired
-    private BamFileManager bamFileManager;
-
-    @Autowired
-    private BamManager bamManager;
+    private BamSecurityService bamSecurityService;
 
     @ResponseBody
     @RequestMapping(value = "/bam/{referenceId}/loadAll", method = RequestMethod.GET)
@@ -113,7 +111,7 @@ public class BamController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<BamFile>> loadBamFiles(@PathVariable(value = "referenceId") final Long referenceId) {
-        return Result.success(bamFileManager.loadBamFilesByReferenceId(referenceId));
+        return Result.success(bamSecurityService.loadBamFilesByReferenceId(referenceId));
     }
 
     @ResponseBody
@@ -133,7 +131,7 @@ public class BamController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<BamFile> registerBamFile(@RequestBody IndexedFileRegistrationRequest request) throws IOException {
-        return Result.success(bamManager.registerBam(request));
+        return Result.success(bamSecurityService.registerBam(request));
     }
 
     @RequestMapping(value = "/bam/track/get", method = RequestMethod.POST)
@@ -167,12 +165,8 @@ public class BamController extends AbstractRESTController {
             throws IOException {
 
         final ResponseBodyEmitter emitter = new ResponseBodyEmitter(EMITTER_TIMEOUT);
-        if (fileUrl == null) {
-            bamManager.sendBamTrackToEmitter(convertToTrack(query), query.getOption(), emitter);
-        } else {
-            bamManager.sendBamTrackToEmitterFromUrl(convertToTrack(query), query.getOption(), fileUrl,
-                    indexUrl, emitter);
-        }
+        bamSecurityService.sendBamTrackToEmitter(convertToTrack(query), query.getOption(), fileUrl,
+                indexUrl, emitter);
 
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(MediaType.APPLICATION_JSON_UTF8);
@@ -182,7 +176,7 @@ public class BamController extends AbstractRESTController {
     @ResponseBody
     @RequestMapping(value = "/secure/bam/register", method = RequestMethod.DELETE)
     public Result<Boolean> unregisterBamFile(@RequestParam final long bamFileId) throws IOException {
-        BamFile deletedFile = bamManager.unregisterBamFile(bamFileId);
+        BamFile deletedFile = bamSecurityService.unregisterBamFile(bamFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
     }
 
@@ -207,7 +201,7 @@ public class BamController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Track<Sequence> loadConsensusSequence(@RequestBody final TrackQuery query) throws IOException {
-        return bamManager.calculateConsensusSequence(convertToTrack(query));
+        return bamSecurityService.calculateConsensusSequence(convertToTrack(query));
     }
 
     @ResponseBody
@@ -222,6 +216,6 @@ public class BamController extends AbstractRESTController {
     public Result<Read> loadRead(@RequestBody final ReadQuery query,
                                  @RequestParam(required = false) final String fileUrl,
                                  @RequestParam(required = false) final String indexUrl) throws IOException {
-        return Result.success(bamManager.loadRead(query, fileUrl, indexUrl));
+        return Result.success(bamSecurityService.loadRead(query, fileUrl, indexUrl));
     }
 }
