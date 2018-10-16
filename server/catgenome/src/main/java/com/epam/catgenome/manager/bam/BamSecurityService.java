@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2018 EPAM Systems
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.epam.catgenome.manager.bam;
 
 import com.epam.catgenome.controller.vo.ReadQuery;
@@ -40,10 +64,10 @@ public class BamSecurityService {
         return bamManager.unregisterBamFile(bamFileId);
     }
 
-    public Track<Sequence> calculateConsensusSequence(Track<Sequence> convertToTrack) throws IOException {
-        return bamManager.calculateConsensusSequence(convertToTrack);
+    @PreAuthorize("hasPermission(#track.id, com.epam.catgenome.entity.bam.BamFile, 'READ')")
+    public Track<Sequence> calculateConsensusSequence(Track<Sequence> track) throws IOException {
+        return bamManager.calculateConsensusSequence(track);
     }
-
 
     @PreAuthorize("hasPermission(#track.id, com.epam.catgenome.entity.bam.BamFile, 'READ')")
     public void sendBamTrackToEmitter(Track<Read> track, BamQueryOption option, String fileUrl,

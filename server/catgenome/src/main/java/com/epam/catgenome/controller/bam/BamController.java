@@ -54,8 +54,6 @@ import com.epam.catgenome.controller.vo.TrackQuery;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.manager.bam.BamFileManager;
-import com.epam.catgenome.manager.bam.BamManager;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
