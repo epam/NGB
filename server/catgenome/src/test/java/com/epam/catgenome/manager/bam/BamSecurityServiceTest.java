@@ -34,6 +34,8 @@ import com.epam.catgenome.entity.bam.*;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.manager.reference.ReferenceManager;
+import com.epam.catgenome.security.acl.AclPermission;
+import com.epam.catgenome.util.AclTestDao;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -76,32 +78,39 @@ public class BamSecurityServiceTest extends AbstractSecurityTest {
     @Autowired
     private BamFileManager bamFileManager;
 
+    @Autowired
+    private AclTestDao aclTestDao;
+
 
     private Resource resource;
     private Reference testReference;
 
     @Before
     public void setup() throws IOException {
+        testReference = registerReference(TEST_REF_NAME + biologicalDataItemDao.createBioItemId());
+    }
+
+    private Reference registerReference(String name) throws IOException {
         resource = context.getResource("classpath:templates");
         File fastaFile = new File(resource.getFile().getAbsolutePath() + TEST_REF_NAME);
 
         ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
-        request.setName(TEST_REF_NAME + biologicalDataItemDao.createBioItemId());
+        request.setName(name);
         request.setPath(fastaFile.getPath());
 
-        testReference = referenceManager.registerGenome(request);
-        List<Chromosome> chromosomeList = testReference.getChromosomes();
+        Reference reference = referenceManager.registerGenome(request);
+        List<Chromosome> chromosomeList = reference.getChromosomes();
         for (Chromosome chromosome : chromosomeList) {
             String chromosomeName = "X";
             if (chromosome.getName().equals(chromosomeName)) {
                 break;
             }
         }
-
+        return reference;
     }
 
     @Test
-    @WithMockUser(username = TEST_USER, roles = "ADMIN")
+    @WithMockUser(username = TEST_USER, roles = "BAM_MANAGER")
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void saveBamTest() throws IOException {
         final String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
@@ -139,6 +148,45 @@ public class BamSecurityServiceTest extends AbstractSecurityTest {
         request.setType(BiologicalDataItemResourceType.FILE);
 
         bamSecurityService.registerBam(request);
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    @WithMockUser(username = TEST_USER, roles = "U")
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void loadByReferenceTest() throws IOException {
+        Reference reference = registerReference(TEST_REF_NAME + biologicalDataItemDao.createBioItemId());
+
+        final String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
+        IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
+        request.setPath(path);
+        request.setIndexPath(path + BAI_EXTENSION);
+        request.setName(TEST_NSAME);
+        request.setReferenceId(testReference.getId());
+        request.setType(BiologicalDataItemResourceType.FILE);
+
+        bamSecurityService.registerBam(request);
+
+        // Create SID for "test" user
+        AclTestDao.AclSid testUserSid = new AclTestDao.AclSid(true, TEST_USER);
+        testUserSid.setId(1L);
+        aclTestDao.createAclSid(testUserSid);
+
+        AclTestDao.AclClass registryAclClass = new AclTestDao.AclClass(Reference.class.getCanonicalName());
+        registryAclClass.setId(1L);
+        aclTestDao.createAclClassIfNotPresent(registryAclClass);
+
+        AclTestDao.AclObjectIdentity refIdentity = new AclTestDao.AclObjectIdentity(testUserSid, reference.getId(),
+                registryAclClass.getId(), null, true);
+        refIdentity.setId(1L);
+        aclTestDao.createObjectIdentity(refIdentity);
+
+        AclTestDao.AclEntry refAclEntry = new AclTestDao.AclEntry(refIdentity, 1, testUserSid,
+                AclPermission.NO_READ.getMask(), true);
+        refAclEntry.setId(1L);
+        aclTestDao.createAclEntry(refAclEntry);
+
+        bamSecurityService.loadBamFilesByReferenceId(testReference.getId());
+
     }
 
 }
