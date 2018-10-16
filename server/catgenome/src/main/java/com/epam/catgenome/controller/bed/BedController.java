@@ -30,6 +30,7 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTra
 import java.io.IOException;
 import java.util.List;
 
+import com.epam.catgenome.manager.bed.BedSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -51,8 +52,6 @@ import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.HistogramReadingException;
-import com.epam.catgenome.manager.bed.BedFileManager;
-import com.epam.catgenome.manager.bed.BedManager;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -74,10 +73,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
 @Api(value = "bed", description = "BED Track Management")
 public class BedController extends AbstractRESTController {
     @Autowired
-    private BedManager bedManager;
-
-    @Autowired
-    private BedFileManager bedFileManager;
+    private BedSecurityService bedSecurityService;
 
     @ResponseBody
     @RequestMapping(value = "/bed/register", method = RequestMethod.POST)
@@ -94,7 +90,7 @@ public class BedController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<BedFile> registerBedFile(@RequestBody IndexedFileRegistrationRequest request) {
-        return Result.success(bedManager.registerBed(request));
+        return Result.success(bedSecurityService.registerBed(request));
     }
 
     @ResponseBody
@@ -102,7 +98,7 @@ public class BedController extends AbstractRESTController {
     @ApiOperation(value = "Removes a bed file from the system.", notes = "",
         produces = MediaType.APPLICATION_JSON_VALUE)
     public Result<Boolean> unregisterBedFile(@RequestParam final long bedFileId) throws IOException {
-        BedFile deletedFile = bedManager.unregisterBedFile(bedFileId);
+        BedFile deletedFile = bedSecurityService.unregisterBedFile(bedFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
     }
 
@@ -117,7 +113,7 @@ public class BedController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<BedFile>> loadGeneFiles(@PathVariable(value = "referenceId") final Long referenceId) {
-        List<BedFile> res = bedFileManager.loadBedFilesByReferenceId(referenceId);
+        List<BedFile> res = bedSecurityService.loadBedFilesByReferenceId(referenceId);
         return Result.success(res);
     }
 
@@ -144,11 +140,7 @@ public class BedController extends AbstractRESTController {
                                               @RequestParam(required = false) final String indexUrl)
         throws FeatureFileReadingException {
         final Track<BedRecord> track = convertToTrack(trackQuery);
-        if (fileUrl == null) {
-            return Result.success(bedManager.loadFeatures(track));
-        } else {
-            return Result.success(bedManager.loadFeatures(track, fileUrl, indexUrl));
-        }
+        return Result.success(bedSecurityService.loadFeatures(track, fileUrl, indexUrl));
     }
 
     @ResponseBody
@@ -173,7 +165,7 @@ public class BedController extends AbstractRESTController {
     public Result<Track<Wig>> loadHistogram(@RequestBody final TrackQuery trackQuery)
             throws HistogramReadingException {
         final Track<Wig> histogramTrack = convertToTrack(trackQuery);
-        return Result.success(bedManager.loadHistogram(histogramTrack));
+        return Result.success(bedSecurityService.loadHistogram(histogramTrack));
     }
 
     @ResponseBody
@@ -181,7 +173,7 @@ public class BedController extends AbstractRESTController {
     @ApiOperation(value = "Rebuilds a BED feature index",
             notes = "Rebuilds a BED feature index", produces = MediaType.APPLICATION_JSON_VALUE)
     public Result<Boolean> reindexBed(@PathVariable long bedFileId) throws FeatureIndexException {
-        BedFile file = bedManager.reindexBedFile(bedFileId);
+        BedFile file = bedSecurityService.reindexBedFile(bedFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_FEATURE_INDEX_DONE, file.getId(),
                 file.getName()));
     }

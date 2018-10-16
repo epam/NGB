@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.util.AclTestDao" name="aclTestDao" autowire="byName">
+        <property name="classSequenceName" value="acl_class_id_seq" />
+        <property name="createAclSidQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.acl_sid (id, principal, sid) VALUES (:ID, :PRINCIPAL, :SID)
+                ]]>
+            </value>
+        </property>
+        <property name="createAclObjectIdentityQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.acl_object_identity (
+                        id,
+                        object_id_class,
+                        object_id_identity,
+                        parent_object,
+                        owner_sid,
+                        entries_inheriting
+                    ) VALUES (
+                        :ID,
+                        :OBJECT_ID_CLASS,
+                        :OBJECT_ID_IDENTITY,
+                        :PARENT_OBJECT,
+                        :OWNER_SID,
+                        :ENTRIES_INHERITING
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="loadAclClassQuery">
+            <value>
+                <![CDATA[
+                    SELECT id from catgenome.acl_class WHERE class = ?
+                ]]>
+            </value>
+        </property>
+        <property name="createAclClassQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.acl_class (
+                        id,
+                        class
+                    ) VALUES (
+                        :ID,
+                        :CLASS
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="createAclEntryQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.acl_entry (
+                        id,
+                        acl_object_identity,
+                        ace_order,
+                        sid,
+                        mask,
+                        granting,
+                        audit_success,
+                        audit_failure
+                    ) VALUES (
+                        :ID,
+                        :ACL_OBJECT_IDENTITY,
+                        :ACE_ORDER,
+                        :SID,
+                        :MASK,
+                        :GRANTING,
+                        :AUDIT_SUCCESS,
+                        :AUDIT_FAILURE
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="loadAclSidQuery">
+            <value>
+                <![CDATA[
+                    SELECT id, principal, sid
+                    FROM catgenome.acl_sid
+                    WHERE sid = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadAclObjectIdentityQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        id,
+                        object_id_class,
+                        object_id_identity,
+                        parent_object,
+                        owner_sid,
+                        entries_inheriting
+                    FROM
+                        catgenome.acl_object_identity
+                    WHERE
+                        object_id_identity = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadAclEntriesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        id,
+                        acl_object_identity,
+                        ace_order,
+                        sid,
+                        mask,
+                        granting,
+                        audit_success,
+                        audit_failure
+                    FROM
+                        catgenome.acl_entry
+                    WHERE
+                        acl_object_identity = ?
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

@@ -25,36 +25,30 @@
 package com.epam.catgenome.manager.bam;
 
 
-import com.epam.catgenome.common.AbstractSecurityTest;
+import com.epam.catgenome.common.AbstractACLSecurityTest;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
-import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.bam.*;
-import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.epam.catgenome.security.acl.AclPermission;
 import com.epam.catgenome.util.AclTestDao;
+import com.epam.catgenome.util.NGBRegistrationUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.Resource;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-public class BamSecurityServiceTest extends AbstractSecurityTest {
+public class BamSecurityServiceTest extends AbstractACLSecurityTest {
 
     private static final String TEST_USER = "TEST_ADMIN";
     private static final String TEST_USER_2 = "TEST_USER";
@@ -63,11 +57,6 @@ public class BamSecurityServiceTest extends AbstractSecurityTest {
     private static final String TEST_BAM_NAME = "//agnX1.09-28.trim.dm606.realign.bam";
     private static final String BAI_EXTENSION = ".bai";
 
-    @Autowired
-    private ApplicationContext context;
-
-    @Autowired
-    private ReferenceManager referenceManager;
 
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
@@ -81,39 +70,22 @@ public class BamSecurityServiceTest extends AbstractSecurityTest {
     @Autowired
     private AclTestDao aclTestDao;
 
+    @Autowired
+    private NGBRegistrationUtils registrationUtils;
 
-    private Resource resource;
     private Reference testReference;
 
     @Before
     public void setup() throws IOException {
-        testReference = registerReference(TEST_REF_NAME + biologicalDataItemDao.createBioItemId());
-    }
-
-    private Reference registerReference(String name) throws IOException {
-        resource = context.getResource("classpath:templates");
-        File fastaFile = new File(resource.getFile().getAbsolutePath() + TEST_REF_NAME);
-
-        ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
-        request.setName(name);
-        request.setPath(fastaFile.getPath());
-
-        Reference reference = referenceManager.registerGenome(request);
-        List<Chromosome> chromosomeList = reference.getChromosomes();
-        for (Chromosome chromosome : chromosomeList) {
-            String chromosomeName = "X";
-            if (chromosome.getName().equals(chromosomeName)) {
-                break;
-            }
-        }
-        return reference;
+        testReference = registrationUtils.registerReference(TEST_REF_NAME,
+                TEST_REF_NAME + biologicalDataItemDao.createBioItemId());
     }
 
     @Test
     @WithMockUser(username = TEST_USER, roles = "BAM_MANAGER")
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void saveBamTest() throws IOException {
-        final String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
+        final String path = registrationUtils.resolveFilePath(TEST_BAM_NAME);
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(path);
         request.setIndexPath(path + BAI_EXTENSION);
@@ -139,7 +111,7 @@ public class BamSecurityServiceTest extends AbstractSecurityTest {
     @WithMockUser(username = TEST_USER_2, roles = "USER")
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void saveBamDoesntPermittedTest() throws IOException {
-        final String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
+        final String path = registrationUtils.resolveFilePath(TEST_BAM_NAME);
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(path);
         request.setIndexPath(path + BAI_EXTENSION);
@@ -154,9 +126,10 @@ public class BamSecurityServiceTest extends AbstractSecurityTest {
     @WithMockUser(username = TEST_USER, roles = "U")
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void loadByReferenceTest() throws IOException {
-        Reference reference = registerReference(TEST_REF_NAME + biologicalDataItemDao.createBioItemId());
+        Reference reference = registrationUtils.registerReference(TEST_REF_NAME,
+                TEST_REF_NAME + biologicalDataItemDao.createBioItemId());
 
-        final String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
+        final String path = registrationUtils.resolveFilePath(TEST_BAM_NAME);
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(path);
         request.setIndexPath(path + BAI_EXTENSION);

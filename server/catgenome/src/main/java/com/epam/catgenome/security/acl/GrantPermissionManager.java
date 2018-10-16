@@ -436,6 +436,15 @@ public class GrantPermissionManager {
                 .collect(toSet());
     }
 
+    public List<? extends AbstractSecuredEntity> filterList(List<? extends AbstractSecuredEntity> entities,
+                                                            Permission permission) {
+        return entities.stream()
+                .filter(e -> PermissionUtils.isPermissionGranted(
+                        permissionHelper.retrieveMaskForSid(e, false, false, permissionHelper.getSids()),
+                        permission)
+                ).collect(toList());
+    }
+
     @Data
     @AllArgsConstructor
     private static class SidAclEntry {

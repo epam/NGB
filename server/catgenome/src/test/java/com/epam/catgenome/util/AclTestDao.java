@@ -33,6 +33,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -48,13 +49,11 @@ import java.util.Optional;
  * A helpful test DAO to store mock ACL data in database for security testing
  */
 @Service
+@ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 public class AclTestDao extends NamedParameterJdbcDaoSupport {
     private static final String SID_PARAM = "SID";
 
-    private String sidSequenceName;
-    private String objectIdentitySequenceName;
     private String classSequenceName;
-    private String entrySequenceName;
 
     private String createAclSidQuery;
     private String createAclObjectIdentityQuery;
@@ -439,16 +438,6 @@ public class AclTestDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Required
-    public void setSidSequenceName(String sidSequenceName) {
-        this.sidSequenceName = sidSequenceName;
-    }
-
-    @Required
-    public void setObjectIdentitySequenceName(String objectIdentitySequenceName) {
-        this.objectIdentitySequenceName = objectIdentitySequenceName;
-    }
-
-    @Required
     public void setLoadAclClassQuery(String loadAclClassQuery) {
         this.loadAclClassQuery = loadAclClassQuery;
     }
@@ -461,11 +450,6 @@ public class AclTestDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setClassSequenceName(String classSequenceName) {
         this.classSequenceName = classSequenceName;
-    }
-
-    @Required
-    public void setEntrySequenceName(String entrySequenceName) {
-        this.entrySequenceName = entrySequenceName;
     }
 
     @Required

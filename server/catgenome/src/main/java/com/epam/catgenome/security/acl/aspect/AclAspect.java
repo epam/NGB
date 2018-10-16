@@ -135,10 +135,11 @@ public class AclAspect {
         permissionManager.filterTree(entity, AclPermission.READ);
     }
 
-    /*@Before("@annotation(com.epam.catgenome.security.acl.aspect.AclFilter) && args(filter,..)") //TODO: maybe needed
-    public void extendFilter(JoinPoint joinPoint, AclSecuredFilter filter) {
-        permissionManager.extendFilter(filter);
-    }*/
+    @AfterReturning(pointcut = "@annotation(com.epam.catgenome.security.acl.aspect.AclFilter)",
+            returning = "entities")
+    public void filterList(JoinPoint joinPoint, List<? extends AbstractSecuredEntity> entities) {
+        permissionManager.filterList(entities,  AclPermission.READ);
+    }
 
 
     private void updateParent(AbstractSecuredEntity entity, MutableAcl acl) {

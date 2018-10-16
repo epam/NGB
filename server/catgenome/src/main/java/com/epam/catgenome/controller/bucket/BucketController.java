@@ -26,6 +26,7 @@ package com.epam.catgenome.controller.bucket;
 
 import java.util.List;
 
+import com.epam.catgenome.manager.bucket.BucketSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -38,7 +39,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.bucket.Bucket;
-import com.epam.catgenome.manager.bucket.BucketManager;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -52,7 +52,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
 public class BucketController extends AbstractRESTController {
 
     @Autowired
-    private BucketManager bucketManager;
+    private BucketSecurityService bucketSecurityService;
 
     @ResponseBody
     @RequestMapping(value = "/bucket/{bucketId}/load", method = RequestMethod.GET)
@@ -64,7 +64,7 @@ public class BucketController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public final Result<Bucket> loadBucketById(@PathVariable(value = "bucketId") final Long bucketId) {
-        return Result.success(bucketManager.load(bucketId));
+        return Result.success(bucketSecurityService.load(bucketId));
     }
 
     @ResponseBody
@@ -81,7 +81,7 @@ public class BucketController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Bucket> saveBucket(@RequestBody Bucket bucket) {
-        return Result.success(bucketManager.save(bucket));
+        return Result.success(bucketSecurityService.save(bucket));
     }
 
     @ResponseBody
@@ -94,6 +94,6 @@ public class BucketController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public final Result<List<Bucket>> loadAllBucket() {
-        return Result.success(bucketManager.loadAllBucket());
+        return Result.success(bucketSecurityService.loadAllBucket());
     }
 }

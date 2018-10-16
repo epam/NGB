@@ -29,7 +29,6 @@ import com.epam.catgenome.security.acl.JdbcMutableAclServiceImpl;
 import com.epam.catgenome.security.acl.PermissionHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.acls.model.*;
@@ -48,10 +47,7 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
     private Object returnObject;
     private Object target;
 
-    @Autowired
     private PermissionHelper permissionHelper;
-
-    @Autowired
     private JdbcMutableAclServiceImpl aclService;
 
     public NGBMethodSecurityExpressionRoot(Authentication authentication) {
@@ -104,6 +100,15 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
         return permissionName.equals(READ_PERMISSION);
     }
 
+    public boolean isAllowed(Object target, String permission) {
+
+        AbstractSecuredEntity item = (AbstractSecuredEntity) target;
+        List<Sid> sids = permissionHelper.getSids();
+        if (permissionHelper.isAdmin(sids) || permissionHelper.isOwner(item)) {
+            return true;
+        }
+        return permissionHelper.isAllowed(permission, item);
+    }
 
     @Override
     public void setFilterObject(Object filterObject) {
@@ -132,5 +137,13 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
 
     public void setThis(Object target) {
         this.target = target;
+    }
+
+    public void setPermissionHelper(PermissionHelper permissionHelper) {
+        this.permissionHelper = permissionHelper;
+    }
+
+    public void setAclService(JdbcMutableAclServiceImpl aclService) {
+        this.aclService = aclService;
     }
 }
