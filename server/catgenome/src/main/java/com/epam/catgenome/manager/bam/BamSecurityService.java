@@ -70,13 +70,15 @@ public class BamSecurityService {
     }
 
     @PreAuthorize("hasPermission(#track.id, com.epam.catgenome.entity.bam.BamFile, 'READ')")
-    public void sendBamTrackToEmitter(Track<Read> track, BamQueryOption option, String fileUrl,
-                                      String indexUrl, ResponseBodyEmitter emitter) throws IOException {
-        if (fileUrl == null) {
-            bamManager.sendBamTrackToEmitter(track, option, emitter);
-        } else {
-            bamManager.sendBamTrackToEmitterFromUrl(track, option, fileUrl, indexUrl, emitter);
-        }
+    public void sendBamTrackToEmitter(Track<Read> track, BamQueryOption option,
+                                      ResponseBodyEmitter emitter) throws IOException {
+        bamManager.sendBamTrackToEmitter(track, option, emitter);
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    public void sendBamTrackToEmitterFromUrl(Track<Read> track, BamQueryOption option, String fileUrl, String indexUrl,
+                                             ResponseBodyEmitter emitter) throws IOException {
+        bamManager.sendBamTrackToEmitterFromUrl(track, option, fileUrl, indexUrl, emitter);
     }
 
     @AclFilter

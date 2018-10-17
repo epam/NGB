@@ -90,7 +90,7 @@ public class BookmarkManager implements SecuredEntityManager {
      * @return a {@code List} of {@code Bookmark} entities
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Bookmark> loadBookmarksByProject() {
+    public List<Bookmark> loadAllBookmarks() {
         return bookmarkDao.loadAllBookmarks();
     }
 

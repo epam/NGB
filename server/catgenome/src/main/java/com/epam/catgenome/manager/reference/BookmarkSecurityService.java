@@ -24,43 +24,41 @@
  *
  */
 
-package com.epam.catgenome.manager.dataitem;
+package com.epam.catgenome.manager.reference;
 
-
-import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.reference.Bookmark;
 import com.epam.catgenome.security.acl.aspect.AclFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
 
 @Service
-public class DataItemSecurityService {
+public class BookmarkSecurityService {
 
     @Autowired
-    private DataItemManager dataItemManager;
-
+    private BookmarkManager bookmarkManager;
 
     @AclFilter
     @PreAuthorize("hasRole('USER')")
-    public List<BiologicalDataItem> findFilesByName(String name, boolean strict) {
-        return dataItemManager.findFilesByName(name, strict);
+    public List<Bookmark> loadBookmarksByProject() {
+        return bookmarkManager.loadAllBookmarks();
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
-    @PostAuthorize("isAllowed(returnObject, 'WRITE')")
-    public BiologicalDataItem deleteFileByBioItemId(Long id) throws IOException {
-        return dataItemManager.deleteFileByBioItemId(id);
+    @PreAuthorize("hasPermission(#bookmarkId, com.epam.catgenom.entity.reference.Bookmark, 'READ')")
+    public Bookmark load(Long bookmarkId) {
+        return bookmarkManager.load(bookmarkId);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
-    @PostAuthorize("isAllowed(returnObject, 'WRITE')")
-    public BiologicalDataItem findFileByBioItemId(Long id) {
-        return dataItemManager.findFileByBioItemId(id);
+    @PreAuthorize("hasRole('ADMIN') OR hasRole('BOOKMARK_MANAGER')")
+    public Bookmark create(Bookmark bookmark) throws IOException {
+        return bookmarkManager.create(bookmark);
+    }
+
+    @PreAuthorize("hasPermission(#bookmarkId, com.epam.catgenom.entity.reference.Bookmark, 'WRITE')")
+    public void delete(Long bookmarkId) {
+        bookmarkManager.delete(bookmarkId);
     }
 }

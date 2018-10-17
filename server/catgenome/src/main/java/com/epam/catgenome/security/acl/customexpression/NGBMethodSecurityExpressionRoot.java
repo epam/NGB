@@ -25,10 +25,7 @@
 package com.epam.catgenome.security.acl.customexpression;
 
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
-import com.epam.catgenome.security.acl.JdbcMutableAclServiceImpl;
 import com.epam.catgenome.security.acl.PermissionHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.acls.model.*;
@@ -39,65 +36,14 @@ import java.util.*;
 public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
                                                 implements MethodSecurityExpressionOperations {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(NGBMethodSecurityExpressionRoot.class);
-
-    private static final String READ_PERMISSION = "READ";
-
     private Object filterObject;
     private Object returnObject;
     private Object target;
 
     private PermissionHelper permissionHelper;
-    private JdbcMutableAclServiceImpl aclService;
 
     public NGBMethodSecurityExpressionRoot(Authentication authentication) {
         super(authentication);
-    }
-
-    /**
-     * Checks whether action is allowed for a user
-     * @param entity
-     * @param user
-     * @param permission
-     * @return
-     */
-    public boolean isActionAllowedForUser(AbstractSecuredEntity entity, String user, Permission permission) {
-        return isActionAllowedForUser(entity, user, Collections.singletonList(permission));
-    }
-
-    /**
-     * Checks whether actions is allowed for a user
-     * Each {@link Permission} is processed individually since default permission resolving will
-     * allow actions if any of {@link Permission} is allowed, and we need all {@link Permission}
-     * to be granted
-     * @param entity
-     * @param user
-     * @param permissions
-     * @return
-     */
-    public boolean isActionAllowedForUser(AbstractSecuredEntity entity, String user, List<Permission> permissions) {
-        List<Sid> sids = permissionHelper.convertUserToSids(user);
-        if (permissionHelper.isAdmin(sids) || entity.getOwner().equalsIgnoreCase(user)) {
-            return true;
-        }
-        MutableAcl acl = aclService.getOrCreateObjectIdentity(entity);
-
-        try {
-            for (Permission permission : permissions) {
-                boolean isGranted = acl.isGranted(Collections.singletonList(permission), sids, true);
-                if (!isGranted) {
-                    return false;
-                }
-            }
-        } catch (AclDataAccessException e) {
-            LOGGER.warn(e.getMessage());
-            return false;
-        }
-        return true;
-    }
-
-    public boolean hasUserOrRoleAccess(String permissionName) {
-        return permissionName.equals(READ_PERMISSION);
     }
 
     public boolean isAllowed(Object target, String permission) {
@@ -143,7 +89,4 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
         this.permissionHelper = permissionHelper;
     }
 
-    public void setAclService(JdbcMutableAclServiceImpl aclService) {
-        this.aclService = aclService;
-    }
 }

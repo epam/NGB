@@ -163,9 +163,12 @@ public class BamController extends AbstractRESTController {
             throws IOException {
 
         final ResponseBodyEmitter emitter = new ResponseBodyEmitter(EMITTER_TIMEOUT);
-        bamSecurityService.sendBamTrackToEmitter(convertToTrack(query), query.getOption(), fileUrl,
-                indexUrl, emitter);
-
+        if (fileUrl == null) {
+            bamSecurityService.sendBamTrackToEmitter(convertToTrack(query), query.getOption(), emitter);
+        } else {
+            bamSecurityService.sendBamTrackToEmitterFromUrl(convertToTrack(query), query.getOption(), fileUrl,
+                    indexUrl, emitter);
+        }
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(MediaType.APPLICATION_JSON_UTF8);
         return new ResponseEntity<>(emitter, responseHeaders, HttpStatus.OK);

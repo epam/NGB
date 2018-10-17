@@ -193,7 +193,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
 
         bookmarkManager.create(bookmark);
 
-        List<Bookmark> loadedBookmarks = bookmarkManager.loadBookmarksByProject();
+        List<Bookmark> loadedBookmarks = bookmarkManager.loadAllBookmarks();
 
         Assert.assertNotNull(loadedBookmarks);
         Assert.assertFalse(loadedBookmarks.isEmpty());

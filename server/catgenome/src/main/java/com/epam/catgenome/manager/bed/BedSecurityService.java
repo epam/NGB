@@ -50,7 +50,7 @@ public class BedSecurityService {
     @Autowired
     private BedFileManager bedFileManager;
 
-    @PreAuthorize("hasPermission(#request.id, com.epam.catgenome.entity.bed.BedFile, 'WRITE')")
+    @PreAuthorize("hasRole('ADMIN') OR hasRole('BED_MANAGER')")
     public BedFile registerBed(IndexedFileRegistrationRequest request) {
         return bedManager.registerBed(request);
     }
@@ -60,14 +60,15 @@ public class BedSecurityService {
         return bedManager.unregisterBedFile(bedFileId);
     }
 
-    @PreAuthorize("hasPermission(#track.id, com.epam.catgenome.entity.bed.BedFile, 'READ')")
+    @PreAuthorize("hasRole('USER')")
     public Track<BedRecord> loadFeatures(Track<BedRecord> track, String fileUrl, String indexUrl)
             throws FeatureFileReadingException {
-        if (fileUrl == null) {
-            return bedManager.loadFeatures(track);
-        } else {
-            return bedManager.loadFeatures(track, fileUrl, indexUrl);
-        }
+        return bedManager.loadFeatures(track, fileUrl, indexUrl);
+    }
+
+    @PreAuthorize("hasPermission(#track.id, com.epam.catgenome.entity.bed.BedFile, 'READ')")
+    public Track<BedRecord> loadFeatures(Track<BedRecord> track) throws FeatureFileReadingException {
+        return bedManager.loadFeatures(track);
     }
 
     @PreAuthorize("hasPermission(#referenceId, com.epam.catgenome.entity.reference.Reference, 'READ')")
@@ -80,7 +81,7 @@ public class BedSecurityService {
         return bedManager.reindexBedFile(bedFileId);
     }
 
-    @PreAuthorize("hasPermission(#histogramTrack.id, com.epam.catgenome.entity.bed.BedFile, 'WRITE')")
+    @PreAuthorize("hasPermission(#histogramTrack.id, com.epam.catgenome.entity.bed.BedFile, 'READ')")
     public Track<Wig> loadHistogram(Track<Wig> histogramTrack) throws HistogramReadingException {
         return bedManager.loadHistogram(histogramTrack);
     }

@@ -140,7 +140,11 @@ public class BedController extends AbstractRESTController {
                                               @RequestParam(required = false) final String indexUrl)
         throws FeatureFileReadingException {
         final Track<BedRecord> track = convertToTrack(trackQuery);
-        return Result.success(bedSecurityService.loadFeatures(track, fileUrl, indexUrl));
+        if (fileUrl == null) {
+            return Result.success(bedSecurityService.loadFeatures(track));
+        } else {
+            return Result.success(bedSecurityService.loadFeatures(track, fileUrl, indexUrl));
+        }
     }
 
     @ResponseBody

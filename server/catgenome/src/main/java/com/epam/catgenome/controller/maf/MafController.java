@@ -30,6 +30,7 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTra
 import java.io.IOException;
 import java.util.List;
 
+import com.epam.catgenome.manager.maf.MafSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -48,8 +49,6 @@ import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequ
 import com.epam.catgenome.entity.maf.MafFile;
 import com.epam.catgenome.entity.maf.MafRecord;
 import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.manager.maf.MafFileManager;
-import com.epam.catgenome.manager.maf.MafManager;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
@@ -63,11 +62,9 @@ import com.wordnik.swagger.annotations.ApiResponses;
  */
 @Controller
 public class MafController extends AbstractRESTController {
-    @Autowired
-    private MafManager mafManager;
 
     @Autowired
-    private MafFileManager mafFileManager;
+    private MafSecurityService mafSecurityService;
 
     @ResponseBody
     @RequestMapping(value = "/maf/register", method = RequestMethod.POST)
@@ -85,14 +82,14 @@ public class MafController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<MafFile> registerMafFile(@RequestBody IndexedFileRegistrationRequest request) {
-        return Result.success(mafManager.registerMafFile(request));
+        return Result.success(mafSecurityService.registerMafFile(request));
     }
 
     @ResponseBody
     @RequestMapping(value = "/secure/maf/register", method = RequestMethod.DELETE)
     @ApiOperation(value = "Unregisters a MAF file from the system.", produces = MediaType.APPLICATION_JSON_VALUE)
     public Result<Boolean> unregisterSegFile(@RequestParam final long mafFileId) throws IOException {
-        MafFile deletedFile = mafManager.unregisterMafFile(mafFileId);
+        MafFile deletedFile = mafSecurityService.unregisterMafFile(mafFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
     }
 
@@ -107,7 +104,7 @@ public class MafController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<MafFile>> loadMafFiles(@PathVariable(value = "referenceId") final Long referenceId) {
-        List<MafFile> res = mafFileManager.loadMafFilesByReferenceId(referenceId);
+        List<MafFile> res = mafSecurityService.loadMafFilesByReferenceId(referenceId);
         return Result.success(res);
     }
 
@@ -132,6 +129,6 @@ public class MafController extends AbstractRESTController {
     public Result<Track<MafRecord>> loadTrack(@RequestBody final TrackQuery trackQuery)
             throws IOException {
         final Track<MafRecord> track = convertToTrack(trackQuery);
-        return Result.success(mafManager.loadFeatures(track));
+        return Result.success(mafSecurityService.loadFeatures(track));
     }
 }

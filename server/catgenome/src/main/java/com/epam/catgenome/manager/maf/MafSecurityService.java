@@ -24,43 +24,47 @@
  *
  */
 
-package com.epam.catgenome.manager.dataitem;
+package com.epam.catgenome.manager.maf;
 
-
-import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
+import com.epam.catgenome.entity.maf.MafFile;
+import com.epam.catgenome.entity.maf.MafRecord;
+import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.security.acl.aspect.AclFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
 
 @Service
-public class DataItemSecurityService {
+public class MafSecurityService {
 
     @Autowired
-    private DataItemManager dataItemManager;
+    private MafManager mafManager;
 
+    @Autowired
+    private MafFileManager mafFileManager;
+
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MAF_MANAGER')")
+    public MafFile registerMafFile(IndexedFileRegistrationRequest request) {
+        return mafManager.registerMafFile(request);
+    }
+
+    @PreAuthorize("hasPermission(#mafFileId, com.epam.catgenome.entity.maf.MafFile, 'WRITE')")
+    public MafFile unregisterMafFile(long mafFileId) throws IOException {
+        return mafManager.unregisterMafFile(mafFileId);
+    }
 
     @AclFilter
-    @PreAuthorize("hasRole('USER')")
-    public List<BiologicalDataItem> findFilesByName(String name, boolean strict) {
-        return dataItemManager.findFilesByName(name, strict);
+    @PreAuthorize("hasPermission(#referenceId, com.epam.catgenome.entity.reference.Reference, 'READ')")
+    public List<MafFile> loadMafFilesByReferenceId(Long referenceId) {
+        return mafFileManager.loadMafFilesByReferenceId(referenceId);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
-    @PostAuthorize("isAllowed(returnObject, 'WRITE')")
-    public BiologicalDataItem deleteFileByBioItemId(Long id) throws IOException {
-        return dataItemManager.deleteFileByBioItemId(id);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    @PostAuthorize("isAllowed(returnObject, 'WRITE')")
-    public BiologicalDataItem findFileByBioItemId(Long id) {
-        return dataItemManager.findFileByBioItemId(id);
+    @PreAuthorize("hasPermission(#track.id, com.epam.catgenome.entity.maf.MafFile, 'READ')")
+    public Track<MafRecord> loadFeatures(Track<MafRecord> track) throws IOException {
+        return mafManager.loadFeatures(track);
     }
 }

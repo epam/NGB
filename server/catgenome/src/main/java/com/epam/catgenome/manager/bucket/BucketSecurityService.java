@@ -28,7 +28,7 @@ package com.epam.catgenome.manager.bucket;
 
 
 import com.epam.catgenome.entity.bucket.Bucket;
-import com.epam.catgenome.security.acl.aspect.AclTree;
+import com.epam.catgenome.security.acl.aspect.AclFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -47,12 +47,13 @@ public class BucketSecurityService {
         return bucketManager.load(bucketId);
     }
 
-    @PreAuthorize("hasPermission(#referenceId, com.epam.catgenome.entity.reference.Reference, 'WRITE')")
+    @PreAuthorize("hasRole('ADMIN') OR hasRole('BUCKET_MANAGER')")
     public Bucket save(Bucket bucket) {
         return bucketManager.save(bucket);
     }
 
-    @AclTree
+    @AclFilter
+    @PreAuthorize("hasRole('USER')")
     public List<Bucket> loadAllBucket() {
         return bucketManager.loadAllBucket();
     }

@@ -1,6 +1,5 @@
 package com.epam.catgenome.security.acl.customexpression;
 
-import com.epam.catgenome.security.acl.JdbcMutableAclServiceImpl;
 import com.epam.catgenome.security.acl.PermissionHelper;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
@@ -15,7 +14,6 @@ public class NGBMethodSecurityExpressionHandler extends DefaultMethodSecurityExp
             new AuthenticationTrustResolverImpl();
 
     private PermissionHelper permissionHelper;
-    private JdbcMutableAclServiceImpl aclService;
 
     @Override
     protected MethodSecurityExpressionOperations createSecurityExpressionRoot(
@@ -25,7 +23,6 @@ public class NGBMethodSecurityExpressionHandler extends DefaultMethodSecurityExp
         root.setPermissionEvaluator(getPermissionEvaluator());
         root.setTrustResolver(this.trustResolver);
         root.setRoleHierarchy(getRoleHierarchy());
-        root.setAclService(aclService);
         root.setPermissionHelper(permissionHelper);
         return root;
     }
@@ -34,7 +31,4 @@ public class NGBMethodSecurityExpressionHandler extends DefaultMethodSecurityExp
         this.permissionHelper = permissionHelper;
     }
 
-    public void setAclService(JdbcMutableAclServiceImpl aclService) {
-        this.aclService = aclService;
-    }
 }

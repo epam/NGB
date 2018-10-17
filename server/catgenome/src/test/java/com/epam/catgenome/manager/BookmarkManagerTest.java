@@ -147,7 +147,7 @@ public class BookmarkManagerTest extends AbstractManagerTest {
 
         bookmarkManager.create(bookmark);
 
-        List<Bookmark> loadedBookmarks = bookmarkManager.loadBookmarksByProject();
+        List<Bookmark> loadedBookmarks = bookmarkManager.loadAllBookmarks();
 
         Assert.assertNotNull(loadedBookmarks);
         Assert.assertFalse(loadedBookmarks.isEmpty());
@@ -172,7 +172,7 @@ public class BookmarkManagerTest extends AbstractManagerTest {
         Assert.assertEquals(loadedBookmark.getOpenedItems().size(), 2);
 
         bookmarkManager.delete(loadedBookmark.getId());
-        loadedBookmarks = bookmarkManager.loadBookmarksByProject();
+        loadedBookmarks = bookmarkManager.loadAllBookmarks();
 
         Assert.assertTrue(loadedBookmarks.isEmpty());
     }

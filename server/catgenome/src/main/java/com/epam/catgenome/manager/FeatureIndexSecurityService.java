@@ -24,43 +24,23 @@
  *
  */
 
-package com.epam.catgenome.manager.dataitem;
+package com.epam.catgenome.manager;
 
-
-import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.security.acl.aspect.AclFilter;
+import com.epam.catgenome.entity.index.IndexSearchResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.List;
 
 @Service
-public class DataItemSecurityService {
+public class FeatureIndexSecurityService {
 
     @Autowired
-    private DataItemManager dataItemManager;
+    private FeatureIndexManager featureIndexManager;
 
-
-    @AclFilter
     @PreAuthorize("hasRole('USER')")
-    public List<BiologicalDataItem> findFilesByName(String name, boolean strict) {
-        return dataItemManager.findFilesByName(name, strict);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    @PostAuthorize("isAllowed(returnObject, 'WRITE')")
-    public BiologicalDataItem deleteFileByBioItemId(Long id) throws IOException {
-        return dataItemManager.deleteFileByBioItemId(id);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    @PostAuthorize("isAllowed(returnObject, 'WRITE')")
-    public BiologicalDataItem findFileByBioItemId(Long id) {
-        return dataItemManager.findFileByBioItemId(id);
+    public IndexSearchResult searchFeaturesByReference(String featureId, Long referenceId) throws IOException {
+        return featureIndexManager.searchFeaturesByReference(featureId, referenceId);
     }
 }

@@ -84,7 +84,6 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
         expressionHandler.setPermissionEvaluator(permissionEvaluator());
         expressionHandler.setRoleHierarchy(roleHierarchy());
         expressionHandler.setApplicationContext(context);
-        expressionHandler.setAclService(context.getBean(JdbcMutableAclServiceImpl.class));
         expressionHandler.setPermissionHelper(context.getBean(PermissionHelper.class));
         return expressionHandler;
     }
