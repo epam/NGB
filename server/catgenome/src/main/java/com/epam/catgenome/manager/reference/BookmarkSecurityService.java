@@ -57,7 +57,7 @@ public class BookmarkSecurityService {
         return bookmarkManager.create(bookmark);
     }
 
-    @PreAuthorize("hasPermission(#bookmarkId, com.epam.catgenom.entity.reference.Bookmark, 'WRITE')")
+    @PreAuthorize("hasRole('ADMIN') OR hasRole('BOOKMARK_MANAGER')")
     public void delete(Long bookmarkId) {
         bookmarkManager.delete(bookmarkId);
     }

@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import com.epam.catgenome.manager.FeatureIndexSecurityService;
+import com.epam.catgenome.manager.vcf.VcfSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,8 +47,6 @@ import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
-import com.epam.catgenome.manager.FeatureIndexManager;
-import com.epam.catgenome.manager.vcf.VcfManager;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -59,10 +59,10 @@ import com.wordnik.swagger.annotations.ApiResponses;
 @Api(value = "Filter", description = "Filtering operations")
 public class FilterController extends AbstractRESTController {
     @Autowired
-    private FeatureIndexManager featureIndexManager;
+    private FeatureIndexSecurityService featureIndexSecurityService;
 
     @Autowired
-    private VcfManager vcfManager;
+    private VcfSecurityService vcfSecurityService;
 
     @RequestMapping(value = "/filter/searchGenes", method = RequestMethod.POST)
     @ApiOperation(
@@ -73,7 +73,8 @@ public class FilterController extends AbstractRESTController {
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
     public Result<Set<String>> searchGenesInProject(@RequestBody GeneSearchQuery geneQuery) throws IOException {
-        return Result.success(featureIndexManager.searchGenesInVcfFiles(geneQuery.getSearch(), geneQuery.getVcfIds()));
+        return Result.success(featureIndexSecurityService.searchGenesInVcfFiles(geneQuery.getSearch(),
+                geneQuery.getVcfIds()));
     }
 
     @RequestMapping(value = "/filter/info", method = RequestMethod.POST)
@@ -85,7 +86,7 @@ public class FilterController extends AbstractRESTController {
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
     public Result<VcfFilterInfo> getFieldInfo(@RequestBody List<Long> vcfFileIds) throws IOException {
-        return Result.success(vcfManager.getFiltersInfo(vcfFileIds));
+        return Result.success(vcfSecurityService.getFiltersInfo(vcfFileIds));
     }
 
     @RequestMapping(value = "/filter", method = RequestMethod.POST)
@@ -149,7 +150,7 @@ public class FilterController extends AbstractRESTController {
         })
     public Callable<Result<IndexSearchResult<VcfIndexEntry>>> filterVcf(@RequestBody final VcfFilterForm filterForm)
         throws IOException {
-        return () -> Result.success(featureIndexManager.filterVariations(filterForm));
+        return () -> Result.success(featureIndexSecurityService.filterVariations(filterForm));
     }
 
     @RequestMapping(value = "/filter/group", method = RequestMethod.POST)
@@ -208,6 +209,6 @@ public class FilterController extends AbstractRESTController {
     public Callable<Result<List<Group>>> groupVariations(
                                                 @RequestBody final VcfFilterForm filterForm,
                                                 @RequestParam String groupBy) {
-        return () -> Result.success(featureIndexManager.groupVariations(filterForm, groupBy));
+        return () -> Result.success(featureIndexSecurityService.groupVariations(filterForm, groupBy));
     }
 }

@@ -24,42 +24,48 @@
  *
  */
 
-package com.epam.catgenome.manager.dataitem;
+package com.epam.catgenome.manager.wig;
 
-
-import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.controller.vo.registration.FileRegistrationRequest;
+import com.epam.catgenome.entity.track.Track;
+import com.epam.catgenome.entity.wig.Wig;
+import com.epam.catgenome.entity.wig.WigFile;
 import com.epam.catgenome.security.acl.aspect.AclFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
 
 @Service
-public class DataItemSecurityService {
+public class WigSecurityService {
 
     @Autowired
-    private DataItemManager dataItemManager;
+    private WigFileManager wigFileManager;
+
+    @Autowired
+    private FacadeWigManager facadeWigManager;
 
 
     @AclFilter
     @PreAuthorize("hasRole('USER')")
-    public List<BiologicalDataItem> findFilesByName(String name, boolean strict) {
-        return dataItemManager.findFilesByName(name, strict);
+    public List<WigFile> loadWigFilesByReferenceId(Long referenceId) {
+        return wigFileManager.loadWigFilesByReferenceId(referenceId);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
-    @PostAuthorize("isAllowed(returnObject, 'WRITE')")
-    public BiologicalDataItem deleteFileByBioItemId(Long id) throws IOException {
-        return dataItemManager.deleteFileByBioItemId(id);
+    @PreAuthorize("hasRole('ADMIN') OR hasRole('WIG_MANAGER')")
+    public WigFile registerWigFile(FileRegistrationRequest request) {
+        return facadeWigManager.registerWigFile(request);
     }
 
-    @PostAuthorize("isAllowed(returnObject, 'READ')")
-    public BiologicalDataItem findFileByBioItemId(Long id) {
-        return dataItemManager.findFileByBioItemId(id);
+    @PreAuthorize("hasPermission(#track.id, com.epam.catgenome.entity.wig.WigFile, 'READ')")
+    public Track<Wig> getWigTrack(Track<Wig> track) throws IOException {
+        return facadeWigManager.getWigTrack(track);
+    }
+
+    @PreAuthorize("hasRole('ADMIN') OR hasRole('WIG_MANAGER')")
+    public WigFile unregisterWigFile(long wigFileId) throws IOException {
+        return facadeWigManager.unregisterWigFile(wigFileId);
     }
 }

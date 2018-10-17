@@ -59,7 +59,7 @@ public class BamSecurityService {
         return bamManager.loadRead(query, fileUrl, indexUrl);
     }
 
-    @PreAuthorize("hasPermission(#bamFileId, com.epam.catgenome.entity.bam.BamFile, 'WRITE')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('BAM_MANAGER')")
     public BamFile unregisterBamFile(long bamFileId) throws IOException {
         return bamManager.unregisterBamFile(bamFileId);
     }

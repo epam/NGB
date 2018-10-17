@@ -63,7 +63,7 @@ public class GeneSecurityService {
         return gffManager.registerGeneFile(request);
     }
 
-    @PreAuthorize("hasPermission(#geneFileId, com.epam.catgenome.entity.gene.GeneFile, 'WRITE')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GENE_MANAGER')")
     public GeneFile unregisterGeneFile(long geneFileId) throws IOException {
         return gffManager.unregisterGeneFile(geneFileId);
     }

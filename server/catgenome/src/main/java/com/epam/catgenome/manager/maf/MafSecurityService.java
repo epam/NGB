@@ -52,7 +52,7 @@ public class MafSecurityService {
         return mafManager.registerMafFile(request);
     }
 
-    @PreAuthorize("hasPermission(#mafFileId, com.epam.catgenome.entity.maf.MafFile, 'WRITE')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MAF_MANAGER')")
     public MafFile unregisterMafFile(long mafFileId) throws IOException {
         return mafManager.unregisterMafFile(mafFileId);
     }

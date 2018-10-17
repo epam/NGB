@@ -30,6 +30,7 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToSam
 import java.io.IOException;
 import java.util.List;
 
+import com.epam.catgenome.manager.seg.SegSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -48,8 +49,6 @@ import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequ
 import com.epam.catgenome.entity.seg.SegFile;
 import com.epam.catgenome.entity.seg.SegRecord;
 import com.epam.catgenome.entity.track.SampledTrack;
-import com.epam.catgenome.manager.seg.SegFileManager;
-import com.epam.catgenome.manager.seg.SegManager;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -66,11 +65,9 @@ import com.wordnik.swagger.annotations.ApiResponses;
 @Controller
 @Api(value = "seg", description = "SEG Track Management")
 public class SegController extends AbstractRESTController {
-    @Autowired
-    private SegFileManager segFileManager;
 
     @Autowired
-    private SegManager segManager;
+    private SegSecurityService segSecurityService;
 
     @ResponseBody
     @RequestMapping(value = "/seg/register", method = RequestMethod.POST)
@@ -87,7 +84,7 @@ public class SegController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<SegFile> registerSegFile(@RequestBody IndexedFileRegistrationRequest request) {
-        return Result.success(segManager.registerSegFile(request));
+        return Result.success(segSecurityService.registerSegFile(request));
     }
 
     @ResponseBody
@@ -95,7 +92,7 @@ public class SegController extends AbstractRESTController {
     @ApiOperation(value = "Unregisters a SEG file from the system.",
             notes = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public Result<Boolean> unregisterSegFile(@RequestParam final long segFileId) throws IOException {
-        SegFile deletedFile = segManager.unregisterSegFile(segFileId);
+        SegFile deletedFile = segSecurityService.unregisterSegFile(segFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
     }
 
@@ -110,7 +107,7 @@ public class SegController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<SegFile>> loadSegFiles(@PathVariable(value = "referenceId") final Long referenceId) {
-        List<SegFile> res = segFileManager.loadSedFilesByReferenceId(referenceId);
+        List<SegFile> res = segSecurityService.loadSedFilesByReferenceId(referenceId);
         return Result.success(res);
     }
 
@@ -135,6 +132,6 @@ public class SegController extends AbstractRESTController {
     public Result<SampledTrack<SegRecord>> loadTrack(@RequestBody final TrackQuery trackQuery)
             throws IOException {
         final SampledTrack<SegRecord> track = convertToSampledTrack(trackQuery);
-        return Result.success(segManager.loadFeatures(track));
+        return Result.success(segSecurityService.loadFeatures(track));
     }
 }

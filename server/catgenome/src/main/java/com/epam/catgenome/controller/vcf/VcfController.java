@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import com.epam.catgenome.manager.vcf.VcfSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -55,8 +56,6 @@ import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.VcfReadingException;
-import com.epam.catgenome.manager.vcf.VcfFileManager;
-import com.epam.catgenome.manager.vcf.VcfManager;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -80,10 +79,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
 public class VcfController extends AbstractRESTController {
 
     @Autowired
-    private VcfManager vcfManager;
-
-    @Autowired
-    private VcfFileManager vcfFileManager;
+    private VcfSecurityService vcfSecurityService;
 
     @ResponseBody
     @RequestMapping(value = "/vcf/register", method = RequestMethod.POST)
@@ -101,7 +97,7 @@ public class VcfController extends AbstractRESTController {
             })
     public Result<VcfFile> registerVcfFile(@RequestBody
                                                FeatureIndexedFileRegistrationRequest request) {
-        return Result.success(vcfManager.registerVcfFile(request));
+        return Result.success(vcfSecurityService.registerVcfFile(request));
     }
 
     @ResponseBody
@@ -111,7 +107,7 @@ public class VcfController extends AbstractRESTController {
     public Result<Boolean> reindexVcf(@PathVariable long vcfFileId,
             @RequestParam(defaultValue = "false") boolean createTabixIndex)
             throws FeatureIndexException {
-        VcfFile file = vcfManager.reindexVcfFile(vcfFileId, createTabixIndex);
+        VcfFile file = vcfSecurityService.reindexVcfFile(vcfFileId, createTabixIndex);
         return Result.success(true, getMessage(MessagesConstants.INFO_FEATURE_INDEX_DONE, file.getId(),
                                                file.getName()));
     }
@@ -121,7 +117,7 @@ public class VcfController extends AbstractRESTController {
     @ApiOperation(value = "Unregisters a vcf file in the system.",
             notes = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public Result<Boolean> unregisterVcfFile(@RequestParam final long vcfFileId) throws IOException {
-        VcfFile deletedFile = vcfManager.unregisterVcfFile(vcfFileId);
+        VcfFile deletedFile = vcfSecurityService.unregisterVcfFile(vcfFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
     }
 
@@ -135,7 +131,7 @@ public class VcfController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<VcfFile>> loadVcfFiles(@PathVariable(value = "referenceId") final Long referenceId) {
-        return Result.success(vcfFileManager.loadVcfFilesByReferenceId(referenceId));
+        return Result.success(vcfSecurityService.loadVcfFilesByReferenceId(referenceId));
     }
 
     @ResponseBody
@@ -168,10 +164,10 @@ public class VcfController extends AbstractRESTController {
             final boolean collapsed = trackQuery.getCollapsed() == null || trackQuery.getCollapsed();
 
             if (fileUrl == null) {
-                return Result.success(vcfManager
+                return Result.success(vcfSecurityService
                         .loadVariations(variationTrack, trackQuery.getSampleId(), false, collapsed));
             } else {
-                return Result.success(vcfManager.loadVariations(variationTrack, fileUrl, indexUrl,
+                return Result.success(vcfSecurityService.loadVariations(variationTrack, fileUrl, indexUrl,
                         trackQuery.getSampleId() != null ?
                                 trackQuery.getSampleId().intValue() :
                                 null, false, collapsed));
@@ -195,9 +191,9 @@ public class VcfController extends AbstractRESTController {
                                            @RequestParam(required = false) final String indexUrl)
         throws FeatureFileReadingException {
         if (fileUrl == null) {
-            return Result.success(vcfManager.loadVariation(query));
+            return Result.success(vcfSecurityService.loadVariation(query));
         } else {
-            return Result.success(vcfManager.loadVariation(query, fileUrl, indexUrl));
+            return Result.success(vcfSecurityService.loadVariation(query, fileUrl, indexUrl));
         }
     }
 
@@ -219,8 +215,8 @@ public class VcfController extends AbstractRESTController {
                                         @RequestParam(required = false) final String fileUrl,
                                         @RequestParam(required = false) final String indexUrl)
             throws VcfReadingException {
-        return Result.success(vcfManager.getNextOrPreviousVariation(fromPosition, trackId, sampleId, chromosomeId,
-                                                                    true, fileUrl, indexUrl));
+        return Result.success(vcfSecurityService.getNextOrPreviousVariation(fromPosition, trackId, sampleId,
+                                                                            chromosomeId, true, fileUrl, indexUrl));
     }
 
     @RequestMapping (value = "/vcf/{chromosomeId}/prev", method = RequestMethod.GET)
@@ -241,8 +237,8 @@ public class VcfController extends AbstractRESTController {
                                         @RequestParam(required = false) final String fileUrl,
                                         @RequestParam(required = false) final String indexUrl)
             throws VcfReadingException {
-        return Result.success(vcfManager.getNextOrPreviousVariation(fromPosition, trackId, sampleId, chromosomeId,
-                                                                    false, fileUrl, indexUrl));
+        return Result.success(vcfSecurityService.getNextOrPreviousVariation(fromPosition, trackId, sampleId,
+                chromosomeId, false, fileUrl, indexUrl));
     }
 
     @ResponseBody
@@ -255,6 +251,6 @@ public class VcfController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<VcfFilterInfo> erg(@PathVariable(value = "vcfFileId") final Long vcfFileId) throws IOException {
-        return Result.success(vcfManager.getFiltersInfo(Collections.singletonList(vcfFileId)));
+        return Result.success(vcfSecurityService.getFiltersInfo(Collections.singletonList(vcfFileId)));
     }
 }

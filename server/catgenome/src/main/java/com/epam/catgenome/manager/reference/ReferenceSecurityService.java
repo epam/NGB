@@ -119,7 +119,6 @@ public class ReferenceSecurityService {
         return referenceGenomeManager.unregisterSpecies(speciesVersion);
     }
 
-    //TODO
     @PreAuthorize(HAS_ROLE_USER)
     public List<Species> loadAllSpecies() {
         return referenceGenomeManager.loadAllSpecies();

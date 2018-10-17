@@ -26,21 +26,72 @@
 
 package com.epam.catgenome.manager;
 
+import com.epam.catgenome.entity.index.Group;
 import com.epam.catgenome.entity.index.IndexSearchResult;
+import com.epam.catgenome.entity.index.VcfIndexEntry;
+import com.epam.catgenome.entity.vcf.VcfFilterForm;
+import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 
 @Service
+//TODO all checks for this class
 public class FeatureIndexSecurityService {
+
+    private static final String HAS_ROLE_USER = "hasRole('USER')";
+    public static final String READ_PROJECT = "hasPermission(#projectId, com.epam.catgenome.entity.project.Project, 'READ')";
 
     @Autowired
     private FeatureIndexManager featureIndexManager;
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize(HAS_ROLE_USER)
     public IndexSearchResult searchFeaturesByReference(String featureId, Long referenceId) throws IOException {
         return featureIndexManager.searchFeaturesByReference(featureId, referenceId);
+    }
+
+    @PreAuthorize(HAS_ROLE_USER)
+    public Set<String> searchGenesInVcfFiles(String search, List<Long> vcfIds) throws IOException {
+        return featureIndexManager.searchGenesInVcfFiles(search, vcfIds);
+    }
+
+    @PreAuthorize(HAS_ROLE_USER)
+    public IndexSearchResult<VcfIndexEntry> filterVariations(VcfFilterForm filterForm) throws IOException {
+        return featureIndexManager.filterVariations(filterForm);
+    }
+    @PreAuthorize(HAS_ROLE_USER)
+    public List<Group> groupVariations(VcfFilterForm filterForm, String groupBy) throws IOException {
+        return featureIndexManager.groupVariations(filterForm, groupBy);
+    }
+
+    @PreAuthorize(READ_PROJECT)
+    public IndexSearchResult searchFeaturesInProject(String featureId, Long projectId) throws IOException {
+        return featureIndexManager.searchFeaturesInProject(featureId, projectId);
+    }
+
+    @PreAuthorize(READ_PROJECT)
+    public IndexSearchResult<VcfIndexEntry> filterVariations(VcfFilterForm filterForm, long projectId)
+            throws IOException {
+        return featureIndexManager.filterVariations(filterForm, projectId);
+    }
+
+    @PreAuthorize(READ_PROJECT)
+    public List<Group> groupVariations(VcfFilterForm filterForm, long projectId, String groupBy) throws IOException {
+        return featureIndexManager.groupVariations(filterForm, projectId, groupBy);
+    }
+
+    @PreAuthorize(READ_PROJECT)
+    public Set<String> searchGenesInVcfFilesInProject(long projectId, String search, List<Long> vcfIds)
+            throws IOException {
+        return featureIndexManager.searchGenesInVcfFilesInProject(projectId, search, vcfIds);
+    }
+
+    @PreAuthorize(READ_PROJECT)
+    public VcfFilterInfo loadVcfFilterInfoForProject(Long projectId) throws IOException {
+        return featureIndexManager.loadVcfFilterInfoForProject(projectId);
     }
 }

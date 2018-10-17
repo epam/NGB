@@ -26,7 +26,7 @@ package com.epam.catgenome.controller.tools;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
-import com.epam.catgenome.manager.tools.ToolsManager;
+import com.epam.catgenome.manager.tools.ToolSecurityService;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -42,8 +42,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @Api(value = "tools", description = "Tools service")
 public class ToolsController extends AbstractRESTController {
+
     @Autowired
-    private ToolsManager toolsManager;
+    private ToolSecurityService toolSecurityService;
 
     @ResponseBody
     @RequestMapping(value = "/tools/sort", method = RequestMethod.POST)
@@ -59,6 +60,6 @@ public class ToolsController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<String> sortFeatureFile(@RequestBody FeatureFileSortRequest request) {
-        return Result.success(toolsManager.sortFeatureFile(request));
+        return Result.success(toolSecurityService.sortFeatureFile(request));
     }
 }

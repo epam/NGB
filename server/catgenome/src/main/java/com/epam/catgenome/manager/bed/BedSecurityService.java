@@ -55,7 +55,7 @@ public class BedSecurityService {
         return bedManager.registerBed(request);
     }
 
-    @PreAuthorize("hasPermission(#bedFileId, com.epam.catgenome.entity.bed.BedFile, 'WRITE')")
+    @PreAuthorize("hasRole('ADMIN') OR hasRole('BED_MANAGER')")
     public BedFile unregisterBedFile(long bedFileId) throws IOException {
         return bedManager.unregisterBedFile(bedFileId);
     }

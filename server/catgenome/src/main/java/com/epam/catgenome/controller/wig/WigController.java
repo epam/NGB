@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import com.epam.catgenome.manager.wig.FacadeWigManager;
+import com.epam.catgenome.manager.wig.WigSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -50,7 +50,6 @@ import com.epam.catgenome.controller.vo.registration.FileRegistrationRequest;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.entity.wig.WigFile;
-import com.epam.catgenome.manager.wig.WigFileManager;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -67,11 +66,9 @@ import com.wordnik.swagger.annotations.ApiResponses;
 @Controller
 @Api(value = "bed-graph", description = "Wig Track Management")
 public class WigController extends AbstractRESTController {
-    @Autowired
-    private WigFileManager wigFileManager;
 
     @Autowired
-    private FacadeWigManager facadeWigManager;
+    private WigSecurityService wigSecurityService;
 
     @RequestMapping(value = "/wig/{referenceId}/loadAll", method = RequestMethod.GET)
     @ResponseBody
@@ -84,7 +81,7 @@ public class WigController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<WigFile>> loadWigFiles(@PathVariable(value = "referenceId") final Long referenceId) {
-        return Result.success(wigFileManager.loadWigFilesByReferenceId(referenceId));
+        return Result.success(wigSecurityService.loadWigFilesByReferenceId(referenceId));
     }
 
     @ResponseBody
@@ -101,7 +98,7 @@ public class WigController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<WigFile> registerWigFile(@RequestBody FileRegistrationRequest request) {
-        return Result.success(facadeWigManager.registerWigFile(request));
+        return Result.success(wigSecurityService.registerWigFile(request));
     }
 
 
@@ -125,7 +122,7 @@ public class WigController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public final Callable<Result<Track<Wig>>> loadTrack(@RequestBody final TrackQuery query) throws IOException {
-        final Track<Wig> track = facadeWigManager.getWigTrack(convertToTrack(query));
+        final Track<Wig> track = wigSecurityService.getWigTrack(convertToTrack(query));
         return () ->  Result.success(track);
     }
 
@@ -133,7 +130,7 @@ public class WigController extends AbstractRESTController {
     @ResponseBody
     @RequestMapping(value = "/secure/wig/register", method = RequestMethod.DELETE)
     public Result<Boolean> unregisterWigFile(@RequestParam final long wigFileId) throws IOException {
-        WigFile deletedFile = facadeWigManager.unregisterWigFile(wigFileId);
+        WigFile deletedFile = wigSecurityService.unregisterWigFile(wigFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
     }
 }
