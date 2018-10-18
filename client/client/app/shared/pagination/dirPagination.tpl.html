@@ -1,0 +1,54 @@
+<div ng-if="1 < pages.length || !autoHide" flex style="justify-content: space-between; display: flex">
+    <md-button
+            class="md-icon-button md-primary"
+            aria-label="First page"
+            ng-if="boundaryLinks"
+            ng-disabled="pagination.current == 1"
+            style="min-width: 1%; flex: 1"
+            ng-click="setCurrent(1)"
+            flex>
+        <ng-md-icon icon="fast_rewind"></ng-md-icon>
+    </md-button>
+    <md-button
+            class="md-icon-button md-primary"
+            aria-label="Previous page"
+            ng-if="directionLinks"
+            ng-disabled="pagination.current == 1"
+            style="min-width: 1%; flex: 1"
+            ng-click="setCurrent(pagination.current - 1)"
+            flex>
+        <ng-md-icon icon="skip_previous"></ng-md-icon>
+    </md-button>
+    <md-button ng-repeat="pageNumber in pages track by tracker(pageNumber, $index)"
+               ng-disabled="pageNumber == '...'"
+               ng-class="{
+                 'md-primary': pagination.current == pageNumber,
+                 'md-raised': pageNumber != '...'
+               }"
+               style="min-width: 1%; flex: 1"
+               ng-click="setCurrent(pageNumber)"
+               flex>
+        {{ pageNumber }}
+    </md-button>
+
+    <md-button
+            class="md-icon-button md-primary"
+            aria-label="Next page"
+            ng-if="directionLinks"
+            ng-disabled="pagination.current == pagination.last"
+            style="min-width: 1%; flex: 1"
+            ng-click="setCurrent(pagination.current + 1)"
+            flex>
+        <ng-md-icon icon="skip_next"></ng-md-icon>
+    </md-button>
+    <md-button
+            class="md-icon-button md-primary"
+            aria-label="Previous page"
+            ng-if="boundaryLinks"
+            ng-disabled="pagination.current == pagination.last"
+            style="min-width: 1%; flex: 1"
+            ng-click="setCurrent(pagination.last)"
+            flex>
+        <ng-md-icon icon="fast_forward"></ng-md-icon>
+    </md-button>
+</div>

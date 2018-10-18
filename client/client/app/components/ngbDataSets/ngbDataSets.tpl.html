@@ -22,11 +22,14 @@
         <md-divider></md-divider>
         <md-content flex>
 
-            <md-virtual-repeat-container  ng-if="!$ctrl.nothingFound" class="vertical-container" flex >
-                <div md-virtual-repeat="node in $ctrl.datasets | filter:$ctrl.filter()" md-item-size="20" flex>
+            <div ng-if="!$ctrl.nothingFound" class="vertical-container" flex >
+                <div
+                    dir-paginate="node in $ctrl.datasets | filter:$ctrl.filter() | itemsPerPage: 30  track by $index"
+                    pagination-id="dataSetsPagination"
+                    flex>
                     <div ng-include="$ctrl.getTemplateNode(node)"></div>
                 </div>
-            </md-virtual-repeat-container>
+            </div>
 
             <div ng-if="!$ctrl.noDatasets && $ctrl.nothingFound" flex class="datasets-warning">
                 <span>No datasets found for <strong>{{$ctrl.searchPattern}}</strong></span>
@@ -36,6 +39,13 @@
             </div>
 
         </md-content>
+
+        <dir-pagination-controls
+            ng-if="!$ctrl.nothingFound"
+            style="text-align: center"
+            direction-links="false"
+            pagination-id="dataSetsPagination">
+        </dir-pagination-controls>
     </div>
 
     <div ng-show="$ctrl.isLoading" flex="100">

@@ -27,6 +27,7 @@
     "angular-nvd3": "1.0.9",
     "angular-ui-grid": "4.0.6",
     "angular-ui-router": "0.2.15",
+    "angular-utils-pagination": "^0.11.1",
     "angularjs-color-picker": "2.4.6",
     "bluebird": "latest",
     "clipboard": "1.5.12",

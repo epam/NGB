@@ -7,6 +7,7 @@ import './shared/hotkeys';
 import 'intl';
 import 'intl/locale-data/jsonp/en.js';
 
+
 // Import base modules
 import angular from 'angular';
 import angularAnimate from 'angular-animate';
@@ -16,6 +17,7 @@ import angularMaterialIcons from 'angular-material-icons';
 import angularNvd3 from 'angular-nvd3';
 import angularUiRouter from 'angular-ui-router';
 
+import dirPagination from 'angular-utils-pagination';
 // Import internal modules
 import projectContext from './shared/projectContext';
 import config from './app.config';
@@ -44,6 +46,7 @@ export default angular.module('NGB', [
     angularMaterialIcons,
     angularNvd3,
     angularUiRouter,
+    dirPagination,
 
     appConstants,
     appServices,
@@ -53,6 +56,9 @@ export default angular.module('NGB', [
 ])
     .config(['$mdThemingProvider', config])
     .config(routes)
+    .config((paginationTemplateProvider) => {
+        paginationTemplateProvider.setString(require('./shared/pagination/dirPagination.tpl.html'));
+    })
     .controller(controller.UID, controller)
     .service('interceptor', interceptor)
     .service('dispatcher', dispatcher.instance)
