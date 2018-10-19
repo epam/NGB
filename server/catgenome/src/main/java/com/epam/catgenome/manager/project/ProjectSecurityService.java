@@ -29,6 +29,7 @@ package com.epam.catgenome.manager.project;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.security.acl.aspect.AclFilter;
+import com.epam.catgenome.security.acl.aspect.AclTree;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -39,47 +40,64 @@ import java.util.List;
 @Service
 public class ProjectSecurityService {
 
+    private static final String HAS_ROLE_USER = "hasRole('USER')";
+
     @Autowired
     private ProjectManager projectManager;
 
     @AclFilter
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize(HAS_ROLE_USER)
     public List<Project> loadTopLevelProjects() {
         return projectManager.loadTopLevelProjects();
     }
 
+    @AclTree
+    @PreAuthorize(HAS_ROLE_USER)
     public List<Project> loadProjectTree(Long parentId, String referenceName) {
         return projectManager.loadProjectTree(parentId, referenceName);
     }
 
+    @AclTree
+    @PreAuthorize(HAS_ROLE_USER)
     public Project load(Long projectId) {
         return projectManager.load(projectId);
     }
 
+    @AclTree
+    @PreAuthorize(HAS_ROLE_USER)
     public Project load(String projectName) {
         return projectManager.load(projectName);
     }
 
+    @PreAuthorize("hasPermissionOnProject(#parentId, 'WRITE') && hasAnyRole('ADMIN', 'PROJECT_MANAGER')")
     public Project create(Project convertFrom, Long parentId) {
         return projectManager.create(convertFrom, parentId);
     }
 
+    @PreAuthorize("projectCanBeMoved(projectId, parentId)")
     public void moveProjectToParent(Long projectId, Long parentId) {
         projectManager.moveProjectToParent(projectId, parentId);
     }
 
+    @PreAuthorize("hasPermissionOnProject(#projectId, 'WRITE') " +
+            "AND hasPermissionByBioItemId(#biologicalItemId, 'READ')")
     public Project addProjectItem(Long projectId, Long biologicalItemId) {
         return projectManager.addProjectItem(projectId, biologicalItemId);
     }
 
+    @PreAuthorize("hasPermissionOnProject(#projectId, 'WRITE') " +
+            "AND hasPermissionByBioItemId(#biologicalItemId, 'READ')")
     public Project removeProjectItem(Long projectId, Long biologicalItemId) throws FeatureIndexException {
         return projectManager.removeProjectItem(projectId, biologicalItemId);
     }
 
+    @PreAuthorize("hasPermissionOnProject(#parentId, 'WRITE') " +
+            "AND hasPermissionByBioItemId(#biologicalItemId, 'READ')")
     public void hideProjectItem(Long projectId, Long biologicalItemId) {
         projectManager.hideProjectItem(projectId, biologicalItemId);
     }
 
+    @PreAuthorize("projectCanBeDeleted(#projectId, #force)")
     public Project deleteProject(long projectId, Boolean force) throws IOException {
         return projectManager.deleteProject(projectId, force);
     }

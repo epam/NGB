@@ -44,7 +44,8 @@ import java.util.Set;
 public class FeatureIndexSecurityService {
 
     private static final String HAS_ROLE_USER = "hasRole('USER')";
-    public static final String READ_PROJECT = "hasPermission(#projectId, com.epam.catgenome.entity.project.Project, 'READ')";
+    private static final String READ_PROJECT =
+            "hasPermission(#projectId, com.epam.catgenome.entity.project.Project, 'READ')";
 
     @Autowired
     private FeatureIndexManager featureIndexManager;

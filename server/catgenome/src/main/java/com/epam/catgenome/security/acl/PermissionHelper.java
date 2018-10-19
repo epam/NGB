@@ -26,6 +26,11 @@ package com.epam.catgenome.security.acl;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.project.Project;
+import com.epam.catgenome.entity.security.AbstractHierarchicalEntity;
+import com.epam.catgenome.manager.dataitem.DataItemManager;
+import com.epam.catgenome.manager.project.ProjectManager;
 import com.epam.catgenome.manager.user.UserManager;
 import com.epam.catgenome.security.DefaultRoles;
 import com.epam.catgenome.security.UserContext;
@@ -49,6 +54,7 @@ import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
@@ -58,6 +64,7 @@ import static java.util.stream.Collectors.toList;
 public class PermissionHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PermissionHelper.class);
+    private static final String WRITE_PERMISSION = "WRITE";
 
     @Autowired
     private final PermissionEvaluator permissionEvaluator;
@@ -74,6 +81,12 @@ public class PermissionHelper {
     @Autowired
     private UserManager userManager;
 
+    @Autowired
+    private DataItemManager dataItemManager;
+
+    @Autowired
+    private ProjectManager projectManager;
+
     public boolean isAllowed(String permissionName, AbstractSecuredEntity entity) {
         if (isOwner(entity)) {
             return true;
@@ -81,6 +94,40 @@ public class PermissionHelper {
         return permissionEvaluator
             .hasPermission(SecurityContextHolder.getContext().getAuthentication(), entity,
                            permissionName);
+    }
+
+    public boolean isAllowedByBioItemId(String permissionName, Long bioItemId) {
+        BiologicalDataItem bioItem = dataItemManager.findFileByBioItemId(bioItemId);
+        if (isOwner(bioItem)) {
+            return true;
+        }
+        return permissionEvaluator
+                .hasPermission(SecurityContextHolder.getContext().getAuthentication(),
+                        bioItem,
+                        permissionName);
+    }
+
+    public boolean projectCanBeMoved(Long projectId, Long newParentId) {
+        Project project = projectManager.load(projectId);
+        Project newParent = projectManager.load(newParentId);
+        boolean isAllowed = true;
+        if (project.getParentId() != null) {
+            isAllowed = isAllowed && permissionEvaluator.hasPermission(
+                    SecurityContextHolder.getContext().getAuthentication(),
+                    projectManager.load(project.getParentId()), WRITE_PERMISSION);
+        }
+        return isAllowed && permissionEvaluator.hasPermission(
+                SecurityContextHolder.getContext().getAuthentication(), project, WRITE_PERMISSION)
+                && permissionEvaluator.hasPermission(SecurityContextHolder.getContext().getAuthentication(),
+                newParent, WRITE_PERMISSION);
+    }
+
+    public boolean projectCanBeDeleted(Long projectId, Boolean force) {
+        Project project = projectManager.load(projectId);
+        if (force == null || !force) {
+            return isAllowed(WRITE_PERMISSION, project);
+        }
+        return hasPermissionOnWholeProject(project);
     }
 
     public boolean isOwner(AbstractSecuredEntity entity) {
@@ -149,6 +196,13 @@ public class PermissionHelper {
         List<AclPermission> basicPermissions = PermissionUtils.getBasicPermissions();
         int extendedMask = collectPermissions(0, acl, sids, basicPermissions, includeInherited);
         return merge ? PermissionUtils.mergeMask(extendedMask, basicPermissions) : extendedMask;
+    }
+
+    private boolean hasPermissionOnWholeProject(AbstractHierarchicalEntity project) {
+        Optional<Boolean> isAllowedForChildren = project.getChildren().stream()
+                .map(this::hasPermissionOnWholeProject).reduce((acc, b) -> acc && b);
+        return isAllowedForChildren.orElse(true) && project.getLeaves().stream()
+                .map(l -> isAllowed(WRITE_PERMISSION, l)).reduce((acc, b) -> acc && b).orElse(true);
     }
 
     private int collectPermissions(int mask, Acl acl, List<Sid> sids,
