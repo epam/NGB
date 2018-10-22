@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.controller.vo.NgbUserVO;
 import com.epam.catgenome.dao.user.RoleDao;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -113,11 +114,11 @@ public class UserManager {
         return userDao.loadUserByName(name);
     }
 
-    public Collection<NgbUser> loadAllUsers() {
+    public List<NgbUser> loadAllUsers() {
         return userDao.loadAllUsers();
     }
 
-    public Collection<NgbUser> loadUsersByNames(Collection<String> names) {
+    public List<NgbUser> loadUsersByNames(List<String> names) {
         return userDao.loadUsersByNames(names);
     }
 
@@ -172,14 +173,18 @@ public class UserManager {
                || !CollectionUtils.isEqualCollection(user.getAttributes().entrySet(), attributes.entrySet());
     }
 
+    public NgbUser createUser(NgbUserVO userVO) {
+        return createUser(userVO.getUserName(), userVO.getRoleIds(), null, null);
+    }
+
     /**
      * Searches for user by prefix. Search is performed in user names and all attributes values.
      * @param prefix to search for
      * @return users matching prefix
      */
-    public Collection<NgbUser> findUsers(String prefix) {
+    public List<NgbUser> findUsers(String prefix) {
         Assert.isTrue(StringUtils.isNotBlank(prefix), MessageHelper.getMessage(MessagesConstants.ERROR_NULL_PARAM));
-        Collection<NgbUser> users = userDao.findUsers(prefix);
+        List<NgbUser> users = userDao.findUsers(prefix);
         List<Long> userIds = users.stream().map(NgbUser::getId).collect(Collectors.toList());
         Map<Long, List<String>> groups = userDao.loadGroups(userIds);
         Map<Long, List<Role>> roles = roleDao.loadRolesByUserIds(userIds);
@@ -225,6 +230,5 @@ public class UserManager {
         Assert.isTrue(StringUtils.isNotBlank(group), MessageHelper.getMessage(MessagesConstants.ERROR_NULL_PARAM));
         return userDao.isUserInGroup(userName, group);
     }
-
 
 }

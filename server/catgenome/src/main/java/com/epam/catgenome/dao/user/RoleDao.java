@@ -168,7 +168,8 @@ public class RoleDao extends NamedParameterJdbcDaoSupport {
         ROLE_ID,
         ROLE_NAME,
         ROLE_PREDEFINED,
-        ROLE_USER_DEFAULT;
+        ROLE_USER_DEFAULT,
+        IDS;
 
         private static RowMapper<Role> getRowMapper() {
             return (rs, rowNum) -> {
@@ -216,6 +217,12 @@ public class RoleDao extends NamedParameterJdbcDaoSupport {
             params.addValue(ROLE_PREDEFINED.name(), role.isPredefined());
             params.addValue(ROLE_USER_DEFAULT.name(), role.isUserDefault());
 
+            return params;
+        }
+
+        public static MapSqlParameterSource getIdListParameters(List<Long> ids) {
+            MapSqlParameterSource params = new MapSqlParameterSource();
+            params.addValue(IDS.name(), ids);
             return params;
         }
 

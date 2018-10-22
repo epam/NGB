@@ -295,5 +295,32 @@
                 ]]>
             </value>
         </property>
+        <property name="loadUserListQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                      u.id as user_id,
+                      u.name as user_name,
+                      u.groups as user_groups,
+                      u.attributes as attributes,
+                      r.id as role_id,
+                      r.name as role_name,
+                      r.predefined as role_predefined,
+                      r.user_default as role_user_default,
+                    FROM catgenome.user u
+                      LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
+                      LEFT JOIN catgenome.role r ON ur.role_id = r.id
+                    WHERE
+                        u.id in (:IDS)
+                ]]>
+            </value>
+        </property>
+        <property name="deleteRoleFromUserQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.user_role WHERE user_id = :USER_ID AND role_id = :ROLE_ID
+                ]]>
+            </value>
+        </property>
     </bean>
 </beans>
