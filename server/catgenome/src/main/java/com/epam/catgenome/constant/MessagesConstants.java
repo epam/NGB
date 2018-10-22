@@ -249,6 +249,9 @@ public final class MessagesConstants {
     public static final String ERROR_USER_NAME_EXISTS = "error.user.name.exists";
     public static final String ERROR_ROLE_ID_NOT_FOUND = "error.role.id.not.found";
     public static final String ERROR_USER_ID_NOT_FOUND = "error.user.id.not.found";
+    public static final String ERROR_USER_LIST_EMPTY = "error.user.list.empty";
+    public static final String ERROR_ROLE_NAME_REQUIRED = "error.role.name.required";
+    public static final String ERROR_ROLE_ALREADY_EXIST = "error.role.already.exists";
 
     private MessagesConstants() {
         // No-op

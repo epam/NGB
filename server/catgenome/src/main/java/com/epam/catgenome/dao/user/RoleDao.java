@@ -34,8 +34,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.epam.catgenome.entity.security.NgbUser;
+import com.epam.catgenome.entity.user.ExtendedRole;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
@@ -43,7 +47,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.security.Role;
+import com.epam.catgenome.entity.user.Role;
 
 public class RoleDao extends NamedParameterJdbcDaoSupport {
     private static final String LIST_PARAM = "LIST";
@@ -60,6 +64,8 @@ public class RoleDao extends NamedParameterJdbcDaoSupport {
     private String loadRoleByNameQuery;
     private String deleteRolesReferencesQuery;
     private String loadDefaultRolesQuery;
+    private String loadRoleWithUsersQuery;
+    private String loadRolesWithUsersQuery;
 
     @Autowired
     private DaoHelper daoHelper;
@@ -103,10 +109,16 @@ public class RoleDao extends NamedParameterJdbcDaoSupport {
                                                      RoleParameters.getRowMapper());
     }
 
-    public Collection<Role> loadAllRoles() {
-        return getJdbcTemplate().query(loadAllRolesQuery, RoleParameters.getRowMapper());
+    public List<Role> loadAllRoles(boolean loadUsers) {
+        return loadUsers ?
+                new ArrayList<>(getJdbcTemplate().query(loadRolesWithUsersQuery,
+                        RoleParameters.getExtendedRowExtractor())) :
+                getJdbcTemplate().query(loadAllRolesQuery, RoleParameters.getRowMapper());
     }
 
+    public List<Role> loadAllRoles() {
+        return getJdbcTemplate().query(loadAllRolesQuery, RoleParameters.getRowMapper());
+    }
     public Map<Long, List<Role>> loadRolesByUserIds(List<Long> userIds) {
         String query = DaoHelper.replaceInClause(loadRolesByUserIdsQuery, userIds.size());
         Map<Long, List<Role>> result = new HashMap<>();
@@ -146,6 +158,12 @@ public class RoleDao extends NamedParameterJdbcDaoSupport {
         return result.stream().findFirst();
     }
 
+    public ExtendedRole loadExtendedRole(Long roleId) {
+        Collection<ExtendedRole> roles = getJdbcTemplate()
+                .query(loadRoleWithUsersQuery, RoleParameters.getExtendedRowExtractor(), roleId);
+        return CollectionUtils.isEmpty(roles) ? null : roles.stream().findFirst().orElse(null);
+    }
+
     enum RoleParameters {
         ROLE_ID,
         ROLE_NAME,
@@ -168,6 +186,28 @@ public class RoleDao extends NamedParameterJdbcDaoSupport {
             return role;
         }
 
+        static ResultSetExtractor<Collection<ExtendedRole>> getExtendedRowExtractor() {
+            return (rs) -> {
+                Map<Long, ExtendedRole> roles = new HashMap<>();
+                while (rs.next()) {
+                    Long roleId = rs.getLong(ROLE_ID.name());
+                    ExtendedRole role = roles.get(roleId);
+                    if (role == null) {
+                        role = new ExtendedRole();
+                        parseRole(rs, role);
+                        role.setUsers(new ArrayList<>());
+                        roles.put(roleId, role);
+                    }
+                    Long userId = rs.getLong(UserDao.UserParameters.USER_ID.name());
+                    if (!rs.wasNull()) {
+                        NgbUser user = UserDao.UserParameters.parseUser(rs, userId);
+                        role.getUsers().add(user);
+                    }
+                }
+                return roles.values();
+            };
+        }
+
         private static MapSqlParameterSource getParameters(Role role) {
             MapSqlParameterSource params = new MapSqlParameterSource();
 
@@ -178,13 +218,13 @@ public class RoleDao extends NamedParameterJdbcDaoSupport {
 
             return params;
         }
-    }
 
+
+    }
     @Required
     public void setLoadRolesByUserIdsQuery(String loadRolesByUserIdsQuery) {
         this.loadRolesByUserIdsQuery = loadRolesByUserIdsQuery;
     }
-
     @Required
     public void setRoleSequence(String roleSequence) {
         this.roleSequence = roleSequence;
@@ -233,5 +273,15 @@ public class RoleDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadDefaultRolesQuery(String loadDefaultRolesQuery) {
         this.loadDefaultRolesQuery = loadDefaultRolesQuery;
+    }
+
+    @Required
+    public void setLoadRoleWithUsersQuery(String loadRoleWithUsersQuery) {
+        this.loadRoleWithUsersQuery = loadRoleWithUsersQuery;
+    }
+
+    @Required
+    public void setLoadRolesWithUsersQuery(String loadRolesWithUsersQuery) {
+        this.loadRolesWithUsersQuery = loadRolesWithUsersQuery;
     }
 }

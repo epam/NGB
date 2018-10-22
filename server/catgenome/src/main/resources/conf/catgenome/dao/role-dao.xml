@@ -169,7 +169,40 @@
                 ]]>
             </value>
         </property>
-
-
+        <property name="loadRoleWithUsersQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                      r.id as role_id,
+                      r.name as role_name,
+                      r.predefined as role_predefined,
+                      r.user_default as role_user_default,
+                      u.id as user_id,
+                      u.name as user_name,
+                      u.attributes as attributes,
+                    FROM catgenome.role r
+                    LEFT JOIN catgenome.user_role m ON r.id = m.role_id
+                    LEFT JOIN catgenome.user u ON m.user_id = u.id
+                    WHERE r.id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadRolesWithUsersQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                      r.id as role_id,
+                      r.name as role_name,
+                      r.predefined as role_predefined,
+                      r.user_default as role_user_default,
+                      u.id as user_id,
+                      u.name as user_name,
+                      u.attributes as attributes,
+                    FROM catgenome.role r
+                    LEFT JOIN catgenome.user_role m ON r.id = m.role_id
+                    LEFT JOIN catgenome.user u ON m.user_id = u.id
+                ]]>
+            </value>
+        </property>
     </bean>
 </beans>

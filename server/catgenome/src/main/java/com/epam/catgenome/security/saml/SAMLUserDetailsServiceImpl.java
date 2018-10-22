@@ -49,8 +49,8 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.security.NgbUser;
 import com.epam.catgenome.manager.user.RoleManager;
 import com.epam.catgenome.manager.user.UserManager;
-import com.epam.catgenome.security.DefaultRoles;
-import com.epam.catgenome.security.Role;
+import com.epam.catgenome.entity.user.DefaultRoles;
+import com.epam.catgenome.entity.user.Role;
 import com.epam.catgenome.security.UserContext;
 
 @Service

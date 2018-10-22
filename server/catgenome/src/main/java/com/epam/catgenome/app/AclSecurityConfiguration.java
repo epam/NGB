@@ -24,7 +24,7 @@
 
 package com.epam.catgenome.app;
 
-import static com.epam.catgenome.security.DefaultRoles.*;
+import static com.epam.catgenome.entity.user.DefaultRoles.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -56,7 +56,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import com.epam.catgenome.security.DefaultRoles;
+import com.epam.catgenome.entity.user.DefaultRoles;
 import com.epam.catgenome.security.acl.*;
 
 @Configuration

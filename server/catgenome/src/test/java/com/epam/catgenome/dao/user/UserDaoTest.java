@@ -42,7 +42,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.epam.catgenome.dao.AbstractDaoTest;
 import com.epam.catgenome.entity.security.NgbUser;
-import com.epam.catgenome.security.DefaultRoles;
+import com.epam.catgenome.entity.user.DefaultRoles;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})

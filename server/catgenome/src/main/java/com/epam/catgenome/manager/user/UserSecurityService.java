@@ -22,36 +22,29 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.security;
+package com.epam.catgenome.manager.user;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.util.Collection;
 
-/**
- * Provides access to predefined roles, created during deploy
- */
-@Getter
-@AllArgsConstructor
-public enum DefaultRoles {
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
 
-    ROLE_ADMIN(new Role(1L, "ROLE_ADMIN", true, false)),
-    ROLE_USER(new Role(2L, "ROLE_USER", true, true)),
-    ROLE_REFERENCE_MANAGER(new Role(3L, "ROLE_REFERENCE_MANAGER", true, false)),
-    ROLE_BAM_MANAGER(new Role(4L, "ROLE_BAM_MANAGER", true, false)),
-    ROLE_VCF_MANAGER(new Role(5L, "ROLE_VCF_MANAGER", true, false)),
-    ROLE_GENE_MANAGER(new Role(6L, "ROLE_GENE_MANAGER", true, false)),
-    ROLE_BED_MANAGER(new Role(7L, "ROLE_BED_MANAGER", true, false)),
-    ROLE_CYTOBANDS_MANAGER(new Role(8L, "ROLE_CYTOBANDS_MANAGER", true, false)),
-    ROLE_MAF_MANAGER(new Role(9L, "ROLE_MAF_MANAGER", true, false)),
-    ROLE_SEG_MANAGER(new Role(10L, "ROLE_SEG_MANAGER", true, false));
+import com.epam.catgenome.entity.security.NgbUser;
 
-    private Role role;
+@Service
+@ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
+public class UserSecurityService {
+    private UserManager userManager;
 
-    public Long getId() {
-        return role.getId();
+    @Autowired
+    public UserSecurityService(UserManager userManager) {
+        this.userManager = userManager;
     }
 
-    public String getName() {
-        return role.getName();
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public Collection<NgbUser> loadAllUsers() {
+        return userManager.loadAllUsers();
     }
 }

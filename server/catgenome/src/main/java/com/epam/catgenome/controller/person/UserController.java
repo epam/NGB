@@ -27,6 +27,7 @@ package com.epam.catgenome.controller.person;
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,7 +41,7 @@ import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.security.JwtRawToken;
 import com.epam.catgenome.entity.security.NgbUser;
 import com.epam.catgenome.manager.AuthManager;
-import com.epam.catgenome.manager.user.UserApiService;
+import com.epam.catgenome.manager.user.UserSecurityService;
 import com.epam.catgenome.security.UserContext;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -55,10 +56,12 @@ import com.wordnik.swagger.annotations.ApiResponses;
  * calls and manage all operations concerned with users.
  */
 @RestController
+@ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 @Api(value = "user", description = "User Management")
 public class UserController extends AbstractRESTController {
+
     @Autowired
-    private UserApiService userApiService;
+    private UserSecurityService userSecurityService;
 
     @Autowired
     private AuthManager authManager;
@@ -97,6 +100,6 @@ public class UserController extends AbstractRESTController {
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
     public Result<Collection<NgbUser>> loadUsers() {
-        return Result.success(userApiService.loadAllUsers());
+        return Result.success(userSecurityService.loadAllUsers());
     }
 }

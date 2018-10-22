@@ -30,9 +30,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.dao.user.RoleDao;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,18 +44,20 @@ import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.user.UserDao;
 import com.epam.catgenome.entity.security.NgbUser;
-import com.epam.catgenome.security.DefaultRoles;
-import com.epam.catgenome.security.Role;
+import com.epam.catgenome.entity.user.DefaultRoles;
+import com.epam.catgenome.entity.user.Role;
 import com.epam.catgenome.security.UserContext;
 
 @Service
+@ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 public class UserManager {
-    private RoleManager roleManager;
+
+    private RoleDao roleDao;
     private UserDao userDao;
 
     @Autowired
-    public UserManager(RoleManager roleManager, UserDao userDao) {
-        this.roleManager = roleManager;
+    public UserManager(RoleDao roleDao, UserDao userDao) {
+        this.roleDao = roleDao;
         this.userDao = userDao;
     }
 
@@ -69,7 +73,7 @@ public class UserManager {
 
         NgbUser user = new NgbUser(userName);
         List<Long> userRoles = getNewUserRoles(roles);
-        user.setRoles(roleManager.loadRoles(userRoles));
+        user.setRoles(roleDao.loadRoles(userRoles));
         user.setGroups(groups);
         user.setAttributes(attributes);
 
@@ -78,7 +82,11 @@ public class UserManager {
 
     private List<Long> getNewUserRoles(List<Long> roles) {
         checkAllRolesPresent(roles);
-        List<Long> userRoles = CollectionUtils.isEmpty(roles) ? roleManager.getDefaultRolesIds() : roles;
+        List<Long> userRoles = CollectionUtils.isEmpty(roles)
+                ? roleDao.loadDefaultRoles().stream()
+                    .map(Role::getId)
+                    .collect(Collectors.toList())
+                : roles;
         Long roleUserId = DefaultRoles.ROLE_USER.getRole().getId();
         if (userRoles.stream().noneMatch(roleUserId::equals)) {
             userRoles.add(roleUserId);
@@ -90,7 +98,7 @@ public class UserManager {
         if (CollectionUtils.isEmpty(roles)) {
             return;
         }
-        Set<Long> presentIds = roleManager.loadRoles(roles).stream().map(Role::getId).collect(Collectors.toSet());
+        Set<Long> presentIds = roleDao.loadRoles(roles).stream().map(Role::getId).collect(Collectors.toSet());
         roles.forEach(roleId -> Assert.isTrue(presentIds.contains(roleId), MessageHelper.getMessage(
             MessagesConstants.ERROR_ROLE_ID_NOT_FOUND, roleId)));
     }
@@ -174,7 +182,7 @@ public class UserManager {
         Collection<NgbUser> users = userDao.findUsers(prefix);
         List<Long> userIds = users.stream().map(NgbUser::getId).collect(Collectors.toList());
         Map<Long, List<String>> groups = userDao.loadGroups(userIds);
-        Map<Long, List<Role>> roles = roleManager.loadRolesByUserIds(userIds);
+        Map<Long, List<Role>> roles = roleDao.loadRolesByUserIds(userIds);
 
         users.forEach(u -> {
             u.setGroups(groups.get(u.getId()));

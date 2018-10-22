@@ -54,8 +54,8 @@ import com.epam.catgenome.controller.JsonMapper;
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.security.NgbUser;
 import com.epam.catgenome.exception.NgbException;
-import com.epam.catgenome.security.DefaultRoles;
-import com.epam.catgenome.security.Role;
+import com.epam.catgenome.entity.user.DefaultRoles;
+import com.epam.catgenome.entity.user.Role;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -256,6 +256,18 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
         List<NgbUser> user = getJdbcTemplate().query(loadUserByNameAndGroupQuery,
                                                      UserParameters.getUserRowMapper(), userName, group);
         return !CollectionUtils.isEmpty(user);
+    }
+
+    public Collection<NgbUser> loadUsersList(List<Long> userIds) {
+        return null;
+    }
+
+    public void assignRoleToUsers(Long roleId, List<Long> idsToAdd) {
+
+    }
+
+    public void removeRoleFromUsers(Long roleId, List<Long> idsToRemove) {
+
     }
 
     enum GroupParameters {

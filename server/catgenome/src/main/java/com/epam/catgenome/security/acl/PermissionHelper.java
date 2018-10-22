@@ -32,7 +32,7 @@ import com.epam.catgenome.entity.security.AbstractHierarchicalEntity;
 import com.epam.catgenome.manager.dataitem.DataItemManager;
 import com.epam.catgenome.manager.project.ProjectManager;
 import com.epam.catgenome.manager.user.UserManager;
-import com.epam.catgenome.security.DefaultRoles;
+import com.epam.catgenome.entity.user.DefaultRoles;
 import com.epam.catgenome.security.UserContext;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
