@@ -34,7 +34,9 @@ import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.HistogramReadingException;
+import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -71,7 +73,8 @@ public class BedSecurityService {
         return bedManager.loadFeatures(track);
     }
 
-    @PreAuthorize("hasPermission(#referenceId, com.epam.catgenome.entity.reference.Reference, 'READ')")
+    @AclMaskList
+    @PostFilter("hasRole('ADMIN') OR hasPermission(filterObject, 'READ')")
     public List<BedFile> loadBedFilesByReferenceId(Long referenceId) {
         return bedFileManager.loadBedFilesByReferenceId(referenceId);
     }

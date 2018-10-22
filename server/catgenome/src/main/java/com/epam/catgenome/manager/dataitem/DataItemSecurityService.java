@@ -28,10 +28,10 @@ package com.epam.catgenome.manager.dataitem;
 
 
 import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.security.acl.aspect.AclFilter;
+import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,8 +46,8 @@ public class DataItemSecurityService {
     private DataItemManager dataItemManager;
 
 
-    @AclFilter
-    @PreAuthorize("hasRole('USER')")
+    @AclMaskList
+    @PostFilter("hasRole('ADMIN') OR hasPermission(filterObject, 'READ')")
     public List<BiologicalDataItem> findFilesByName(String name, boolean strict) {
         return dataItemManager.findFilesByName(name, strict);
     }

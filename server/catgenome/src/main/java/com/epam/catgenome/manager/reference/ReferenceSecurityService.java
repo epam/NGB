@@ -90,13 +90,15 @@ public class ReferenceSecurityService {
         return referenceManager.registerGenome(request);
     }
 
-    @PreAuthorize("hasPermission(#referenceId, com.epam.catgenome.entity.reference.Reference, 'WRITE') " +
+    @PreAuthorize("hasRole('ADMIN') OR " +
+            "hasPermission(#referenceId, com.epam.catgenome.entity.reference.Reference, 'WRITE') " +
             "AND hasPermission(#geneFileId, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
     public Reference updateReferenceGeneFileId(Long referenceId, Long geneFileId) {
         return referenceGenomeManager.updateReferenceGeneFileId(referenceId, geneFileId);
     }
 
-    @PreAuthorize("hasPermission(#referenceId, com.epam.catgenome.entity.reference.Reference, 'WRITE') " +
+    @PreAuthorize("hasRole('ADMIN') OR " +
+            "hasPermission(#referenceId, com.epam.catgenome.entity.reference.Reference, 'WRITE') " +
             "AND hasPermission(#geneFileId, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
     public Reference updateReferenceAnnotationFile(Long referenceId, Long annotationFileId, Boolean remove)
             throws IOException, FeatureIndexException {

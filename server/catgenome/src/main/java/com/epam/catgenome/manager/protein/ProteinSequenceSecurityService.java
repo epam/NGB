@@ -44,7 +44,7 @@ import java.util.Map;
 public class ProteinSequenceSecurityService {
 
     private static final String READ_PERMISSION_FOR_GENE_FILE_AND_REFERENCE =
-            "hasPermission(#genes.id, com.epam.catgenome.entity.gene.GeneFile, 'READ') AND " +
+            "hasRole('ADMIN') OR hasPermission(#genes.id, com.epam.catgenome.entity.gene.GeneFile, 'READ') AND " +
             "hasPermission(#referenceId, com.epam.catgenome.reference.Reference, 'READ')";
 
     @Autowired
@@ -62,7 +62,8 @@ public class ProteinSequenceSecurityService {
         return proteinSequenceManager.loadProteinSequence(genes, referenceId);
     }
 
-    @PreAuthorize("hasPermission(#psVariationQuery.trackQuery.id, com.epam.catgenome.entity.gene.GeneFile, 'READ') " +
+    @PreAuthorize("hasRole('ADMIN') OR " +
+            "hasPermission(#psVariationQuery.trackQuery.id, com.epam.catgenome.entity.gene.GeneFile, 'READ') " +
             " AND hasPermission(#referenceId, com.epam.catgenome.reference.Reference, 'READ')")
     public Track<MrnaProteinSequenceVariants> loadProteinSequenceWithVariations(
             ProteinSequenceVariationQuery psVariationQuery, Long referenceId) throws GeneReadingException {

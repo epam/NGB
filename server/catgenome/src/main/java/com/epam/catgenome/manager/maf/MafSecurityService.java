@@ -30,8 +30,9 @@ import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequ
 import com.epam.catgenome.entity.maf.MafFile;
 import com.epam.catgenome.entity.maf.MafRecord;
 import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.security.acl.aspect.AclFilter;
+import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -57,13 +58,13 @@ public class MafSecurityService {
         return mafManager.unregisterMafFile(mafFileId);
     }
 
-    @AclFilter
-    @PreAuthorize("hasPermission(#referenceId, com.epam.catgenome.entity.reference.Reference, 'READ')")
+    @AclMaskList
+    @PostFilter("hasRole('ADMIN') OR hasPermission(filterObject, 'READ')")
     public List<MafFile> loadMafFilesByReferenceId(Long referenceId) {
         return mafFileManager.loadMafFilesByReferenceId(referenceId);
     }
 
-    @PreAuthorize("hasPermission(#track.id, com.epam.catgenome.entity.maf.MafFile, 'READ')")
+    @PreAuthorize("hasRole('ADMIN') OR hasPermission(#track.id, com.epam.catgenome.entity.maf.MafFile, 'READ')")
     public Track<MafRecord> loadFeatures(Track<MafRecord> track) throws IOException {
         return mafManager.loadFeatures(track);
     }

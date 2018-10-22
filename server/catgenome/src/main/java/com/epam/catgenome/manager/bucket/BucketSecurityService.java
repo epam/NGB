@@ -28,8 +28,9 @@ package com.epam.catgenome.manager.bucket;
 
 
 import com.epam.catgenome.entity.bucket.Bucket;
-import com.epam.catgenome.security.acl.aspect.AclFilter;
+import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -52,8 +53,8 @@ public class BucketSecurityService {
         return bucketManager.save(bucket);
     }
 
-    @AclFilter
-    @PreAuthorize("hasRole('USER')")
+    @AclMaskList
+    @PostFilter("hasRole('ADMIN') OR hasPermission(filterObject, 'READ')")
     public List<Bucket> loadAllBucket() {
         return bucketManager.loadAllBucket();
     }

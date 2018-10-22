@@ -35,8 +35,9 @@ import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.VcfReadingException;
-import com.epam.catgenome.security.acl.aspect.AclFilter;
+import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -71,8 +72,8 @@ public class VcfSecurityService {
         return vcfManager.unregisterVcfFile(vcfFileId);
     }
 
-    @AclFilter
-    @PreAuthorize(HAS_ROLE_USER)
+    @AclMaskList
+    @PostFilter("hasRole('ADMIN') OR hasPermission(filterObject, 'READ')")
     public List<VcfFile> loadVcfFilesByReferenceId(Long referenceId) {
         return vcfFileManager.loadVcfFilesByReferenceId(referenceId);
     }

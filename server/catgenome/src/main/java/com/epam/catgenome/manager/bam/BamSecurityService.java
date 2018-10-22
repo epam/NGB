@@ -31,8 +31,9 @@ import com.epam.catgenome.entity.bam.BamQueryOption;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.security.acl.aspect.AclFilter;
+import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
@@ -49,27 +50,27 @@ public class BamSecurityService {
     @Autowired
     private BamManager bamManager;
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('BAM_MANAGER')")
+    @PreAuthorize("hasRole('ADMIN') OR hasRole('BAM_MANAGER')")
     public BamFile registerBam(IndexedFileRegistrationRequest request) throws IOException {
         return bamManager.registerBam(request);
     }
 
-    @PreAuthorize("hasPermission(#query.id, com.epam.catgenome.entity.bam.BamFile, 'READ')")
+    @PreAuthorize("hasRole('ADMIN') OR hasPermission(#query.id, com.epam.catgenome.entity.bam.BamFile, 'READ')")
     public Read loadRead(ReadQuery query, String fileUrl, String indexUrl) throws IOException {
         return bamManager.loadRead(query, fileUrl, indexUrl);
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('BAM_MANAGER')")
+    @PreAuthorize("hasRole('ADMIN') OR hasRole('BAM_MANAGER')")
     public BamFile unregisterBamFile(long bamFileId) throws IOException {
         return bamManager.unregisterBamFile(bamFileId);
     }
 
-    @PreAuthorize("hasPermission(#track.id, com.epam.catgenome.entity.bam.BamFile, 'READ')")
+    @PreAuthorize("hasRole('ADMIN') OR hasPermission(#track.id, com.epam.catgenome.entity.bam.BamFile, 'READ')")
     public Track<Sequence> calculateConsensusSequence(Track<Sequence> track) throws IOException {
         return bamManager.calculateConsensusSequence(track);
     }
 
-    @PreAuthorize("hasPermission(#track.id, com.epam.catgenome.entity.bam.BamFile, 'READ')")
+    @PreAuthorize("hasRole('ADMIN') OR hasPermission(#track.id, com.epam.catgenome.entity.bam.BamFile, 'READ')")
     public void sendBamTrackToEmitter(Track<Read> track, BamQueryOption option,
                                       ResponseBodyEmitter emitter) throws IOException {
         bamManager.sendBamTrackToEmitter(track, option, emitter);
@@ -81,8 +82,8 @@ public class BamSecurityService {
         bamManager.sendBamTrackToEmitterFromUrl(track, option, fileUrl, indexUrl, emitter);
     }
 
-    @AclFilter
-    @PreAuthorize("hasPermission(#referenceId, com.epam.catgenome.entity.reference.Reference, 'READ')")
+    @AclMaskList
+    @PostFilter("hasRole('ADMIN') OR hasPermission(filterObject, 'READ')")
     public List<BamFile> loadBamFilesByReferenceId(Long referenceId) {
         return bamFileManager.loadBamFilesByReferenceId(referenceId);
     }
