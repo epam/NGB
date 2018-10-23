@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.Objects;
 
 import com.epam.catgenome.entity.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,6 +21,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public abstract class AbstractSecuredEntity extends BaseEntity {
+
     public static final int ALL_PERMISSIONS_MASK = 15;
     public static final int ALL_PERMISSIONS_MASK_FULL = 85;
 
@@ -57,6 +59,7 @@ public abstract class AbstractSecuredEntity extends BaseEntity {
      * @return a parent {@link AbstractSecuredEntity} to inherit permissions,
      * that are not set for current entity.
      */
+    @JsonIgnore
     public abstract AbstractSecuredEntity getParent();
 
     public void clearParent() {
@@ -66,6 +69,7 @@ public abstract class AbstractSecuredEntity extends BaseEntity {
     /**
      * @return {@link AclClass} to which an entity belongs
      */
+    @JsonIgnore
     public abstract AclClass getAclClass();
 
     @Override

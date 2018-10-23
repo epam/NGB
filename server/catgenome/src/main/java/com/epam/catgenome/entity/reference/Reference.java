@@ -31,6 +31,7 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.IndexedDataItem;
 import com.epam.catgenome.entity.gene.GeneFile;
+import com.epam.catgenome.entity.security.AclClass;
 
 /**
  * {@code Reference} represents a business entity designed to handle information that
@@ -154,5 +155,10 @@ public class Reference extends IndexedDataItem {
         result = 31 * result + (size != null ? size.hashCode() : 0);
         result = 31 * result + (chromosomes != null ? chromosomes.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public AclClass getAclClass() {
+        return AclClass.REFERENCE;
     }
 }

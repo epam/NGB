@@ -38,9 +38,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class VcfFile extends FeatureFile {
-    private List<VcfSample> samples;
 
-    private AclClass aclClass = AclClass.VCF;
+    private List<VcfSample> samples;
 
     /**
      * Creates an empty {@code VcfFile} instance with a specified {@code BiologicalDataItemFormat.VCF}
@@ -79,5 +78,10 @@ public class VcfFile extends FeatureFile {
         int result = super.hashCode();
         result = 31 * result + (samples != null ? samples.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public AclClass getAclClass() {
+        return AclClass.VCF;
     }
 }

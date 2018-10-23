@@ -27,16 +27,21 @@
 package com.epam.catgenome.common;
 
 import com.epam.catgenome.app.AclSecurityConfiguration;
+import org.junit.runner.RunWith;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringRunner;
 
+@RunWith(SpringRunner.class)
 @Import({AclSecurityConfiguration.class})
 @TestPropertySource(locations = "classpath:test-catgenome-acl.properties")
 @ContextConfiguration({"classpath:applicationContext-test.xml", "classpath:catgenome-servlet-test.xml"})
 @EnableWebSecurity
 @ImportResource("classpath:conf/catgenome/acl-test-dao.xml")
+@EnableAspectJAutoProxy
 public abstract class AbstractACLSecurityTest {
 }

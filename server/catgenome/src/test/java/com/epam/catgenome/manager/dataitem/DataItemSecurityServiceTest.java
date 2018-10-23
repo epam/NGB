@@ -36,22 +36,22 @@ import com.epam.catgenome.util.NGBRegistrationUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 public class DataItemSecurityServiceTest extends AbstractACLSecurityTest {
 
     private static final String TEST_REF_NAME = "//dm606.X.fa";
     private static final String TEST_BAM_NAME = "//agnX1.09-28.trim.dm606.realign.bam";
     private static final String TEST_USER = "TEST_USER";
     private static final String TEST_USER2 = "TEST_USER2";
+    private static final String TEST_USER_NO_READ = "TEST_USER3";
+
 
     @Autowired
     private NGBRegistrationUtils registrationUtils;
@@ -65,13 +65,14 @@ public class DataItemSecurityServiceTest extends AbstractACLSecurityTest {
     private BamFile bam1;
     private BamFile bam2;
     private AclTestDao.AclSid testUserSid;
+    private AclTestDao.AclSid testUserDeniedSid;
     private AclTestDao.AclObjectIdentity bam1refIdentity;
     private AclTestDao.AclObjectIdentity bam2refIdentity;
 
 
     @Before
     public void setUp() throws Exception {
-        Reference reference = registrationUtils.registerReference(TEST_REF_NAME, TEST_REF_NAME);
+        Reference reference = registrationUtils.registerReference(TEST_REF_NAME, TEST_REF_NAME, TEST_USER);
         bam1 = registrationUtils.registerBam(reference, TEST_BAM_NAME, "bam1", TEST_USER);
         bam2 = registrationUtils.registerBam(reference, TEST_BAM_NAME, "bam2", TEST_USER);
 
@@ -82,6 +83,10 @@ public class DataItemSecurityServiceTest extends AbstractACLSecurityTest {
         testUserSid = new AclTestDao.AclSid(true, TEST_USER2);
         testUserSid.setId(2L);
         aclTestDao.createAclSid(testUserSid);
+
+        testUserDeniedSid = new AclTestDao.AclSid(true, TEST_USER_NO_READ);
+        testUserDeniedSid.setId(3L);
+        aclTestDao.createAclSid(testUserDeniedSid);
 
         AclTestDao.AclClass bamAclClass = new AclTestDao.AclClass(BamFile.class.getCanonicalName());
         bamAclClass.setId(1L);
@@ -112,12 +117,27 @@ public class DataItemSecurityServiceTest extends AbstractACLSecurityTest {
     }
 
     @Test
-    @WithMockUser(TEST_USER)
+    @WithMockUser(TEST_USER2)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void findFileByBioItemId() {
         AclTestDao.AclEntry refAclEntry = new AclTestDao.AclEntry(bam2refIdentity, 1, testUserSid,
                 AclPermission.READ.getMask(), true);
         refAclEntry.setId(2L);
+        aclTestDao.createAclEntry(refAclEntry);
+        BiologicalDataItem biologicalDataItem = itemSecurityService.findFileByBioItemId(bam2.getBioDataItemId());
+
+        Assert.assertNotNull(biologicalDataItem);
+
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    @WithMockUser(TEST_USER_NO_READ)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void findFileByBioItemIdDenied() {
+        AclTestDao.AclEntry refAclEntry = new AclTestDao.AclEntry(bam2refIdentity, 1, testUserDeniedSid,
+                AclPermission.NO_READ.getMask(), true);
+        refAclEntry.setId(3L);
+        aclTestDao.createAclEntry(refAclEntry);
         BiologicalDataItem biologicalDataItem = itemSecurityService.findFileByBioItemId(bam2.getBioDataItemId());
 
         Assert.assertNotNull(biologicalDataItem);

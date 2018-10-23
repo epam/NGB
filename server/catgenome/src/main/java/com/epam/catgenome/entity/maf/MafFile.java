@@ -26,11 +26,13 @@ package com.epam.catgenome.entity.maf;
 
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.security.AclClass;
 
- /**
+/**
  * Represents a MAF File metadata in the system
  */
 public class MafFile extends FeatureFile {
+
     private String realPath;
 
      /**
@@ -66,5 +68,10 @@ public class MafFile extends FeatureFile {
         int result = super.hashCode();
         result = 31 * result + (realPath != null ? realPath.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public AclClass getAclClass() {
+        return  AclClass.MAF;
     }
 }

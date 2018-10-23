@@ -43,6 +43,7 @@ import com.epam.catgenome.entity.security.AclClass;
  * </p>
  */
 public class BiologicalDataItem extends AbstractSecuredEntity {
+
     private BiologicalDataItemResourceType type;
     private String path;
     private BiologicalDataItemFormat format;

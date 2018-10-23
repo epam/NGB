@@ -38,10 +38,10 @@ import com.epam.catgenome.entity.security.AclClass;
  * </p>
  */
 public class Bookmark extends AbstractSecuredEntity {
+
     private Integer startIndex;
     private Integer endIndex;
     private Chromosome chromosome;
-    private AclClass aclClass = AclClass.BOOKMARK;
 
     /**
      * A {@code List} of {@code ProjectItem}s, that were opened when the bookmark was created.
@@ -87,6 +87,6 @@ public class Bookmark extends AbstractSecuredEntity {
 
     @Override
     public AclClass getAclClass() {
-        return aclClass;
+        return  AclClass.BOOKMARK;
     }
 }

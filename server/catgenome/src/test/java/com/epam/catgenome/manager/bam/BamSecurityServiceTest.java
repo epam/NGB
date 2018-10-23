@@ -37,17 +37,14 @@ import com.epam.catgenome.util.NGBRegistrationUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 public class BamSecurityServiceTest extends AbstractACLSecurityTest {
 
     private static final String TEST_USER = "TEST_ADMIN";
@@ -78,7 +75,7 @@ public class BamSecurityServiceTest extends AbstractACLSecurityTest {
     @Before
     public void setup() throws IOException {
         testReference = registrationUtils.registerReference(TEST_REF_NAME,
-                TEST_REF_NAME + biologicalDataItemDao.createBioItemId());
+                TEST_REF_NAME + biologicalDataItemDao.createBioItemId(), TEST_USER);
     }
 
     @Test
@@ -127,7 +124,7 @@ public class BamSecurityServiceTest extends AbstractACLSecurityTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void loadByReferenceTest() throws IOException {
         Reference reference = registrationUtils.registerReference(TEST_REF_NAME,
-                TEST_REF_NAME + biologicalDataItemDao.createBioItemId());
+                TEST_REF_NAME + biologicalDataItemDao.createBioItemId(), TEST_USER);
 
         final String path = registrationUtils.resolveFilePath(TEST_BAM_NAME);
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();

@@ -26,16 +26,17 @@
 
 package com.epam.catgenome.util;
 
-import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.dao.bam.BamFileDao;
+import com.epam.catgenome.dao.project.ProjectDao;
+import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
+import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.bam.BamFile;
-import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.manager.reference.ReferenceManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
@@ -56,13 +57,16 @@ public class NGBRegistrationUtils {
     private ApplicationContext context;
 
     @Autowired
-    private ReferenceManager referenceManager;
+    private ReferenceGenomeDao referenceManager;
 
     @Autowired
     private BamFileDao bamFileDao;
 
     @Autowired
     private BiologicalDataItemDao dataItemDao;
+
+    @Autowired
+    private ProjectDao projectDao;
 
     private Resource resource;
 
@@ -71,22 +75,29 @@ public class NGBRegistrationUtils {
         resource = context.getResource("classpath:templates");
     }
 
-    public Reference registerReference(String filename, String name) throws IOException {
+    public Reference registerReference(String filename, String name, String owner) throws IOException {
         File fastaFile = new File(resource.getFile().getAbsolutePath() + filename);
 
-        ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
-        request.setName(name);
-        request.setPath(fastaFile.getPath());
+        BiologicalDataItem index = new BiologicalDataItem();
+        index.setPath(filename + "fai");
+        index.setType(BiologicalDataItemResourceType.FILE);
+        index.setFormat(BiologicalDataItemFormat.REFERENCE_INDEX);
+        index.setCreatedDate(new Date());
+        index.setOwner(owner);
+        dataItemDao.createBiologicalDataItem(index);
 
-        Reference reference = referenceManager.registerGenome(request);
-        List<Chromosome> chromosomeList = reference.getChromosomes();
-        for (Chromosome chromosome : chromosomeList) {
-            String chromosomeName = "X";
-            if (chromosome.getName().equals(chromosomeName)) {
-                break;
-            }
-        }
-        return reference;
+        Reference reference = new Reference();
+        reference.setName(name);
+        reference.setPath(fastaFile.getPath());
+        reference.setOwner(owner);
+        reference.setIndex(index);
+        reference.setType(BiologicalDataItemResourceType.FILE);
+        reference.setSize(1L);
+
+        dataItemDao.createBiologicalDataItem(reference);
+        reference.setBioDataItemId(reference.getId());
+        reference.setId(referenceManager.createReferenceGenomeId());
+        return referenceManager.createReferenceGenome(reference);
     }
 
     public String resolveFilePath(String filename) throws IOException {
@@ -115,5 +126,18 @@ public class NGBRegistrationUtils {
         dataItemDao.createBiologicalDataItem(file);
         bamFileDao.createBamFile(file);
         return file;
+    }
+
+    public Project registerProject(String name, String owner, Long parentId, List<FeatureFile> items) {
+        Project project = new Project();
+        project.setName(name);
+        project.setOwner(owner);
+        project.setCreatedDate(new Date());
+        project.setParentId(parentId);
+        projectDao.saveProject(project, parentId);
+        for (FeatureFile item : items) {
+            projectDao.addProjectItem(project.getId(), item.getBioDataItemId());
+        }
+        return project;
     }
 }

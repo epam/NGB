@@ -27,11 +27,13 @@ package com.epam.catgenome.entity.project;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.security.AbstractHierarchicalEntity;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
 import lombok.NoArgsConstructor;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Source:      Project
@@ -52,40 +54,53 @@ public class Project extends AbstractHierarchicalEntity {
     private Date lastOpenedDate;
     private List<Project> nestedProjects;
     private Long parentId;
-    private AclClass aclClass = AclClass.PROJECT;
 
     public Project(Long id) {
         super(id);
     }
 
     @Override
-    public List<? extends AbstractSecuredEntity> getLeaves() {
-        return items.stream().map(ProjectItem::getBioDataItem).collect(Collectors.toList());
+    public List<? extends BiologicalDataItem> getLeaves() {
+        return items == null
+                ? Collections.emptyList()
+                : items.stream().map(ProjectItem::getBioDataItem).collect(Collectors.toList());
     }
 
     @Override
     public List<? extends AbstractHierarchicalEntity> getChildren() {
-        return nestedProjects;
+        return nestedProjects == null ? Collections.emptyList() : nestedProjects;
     }
 
     @Override
     public void filterLeaves(Map<AclClass, Set<Long>> idToRemove) {
-        filterCollection(idToRemove, getLeaves());
+        if (items == null) {
+            return;
+        }
+
+        Set<ProjectItem> toRemove = new HashSet<>();
+        for (ProjectItem item : items) {
+            BiologicalDataItem leaf = item.getBioDataItem();
+            Set<Long> ids = idToRemove.get(leaf.getAclClass());
+            if (!CollectionUtils.isEmpty(ids) && ids.contains(leaf.getId())){
+                toRemove.add(item);
+            }
+        }
+        items.removeAll(toRemove);
     }
 
     @Override
     public void filterChildren(Map<AclClass, Set<Long>> idToRemove) {
-        filterCollection(idToRemove, getChildren());
-    }
+        if (nestedProjects == null) {
+            return;
+        }
 
-    private void filterCollection(Map<AclClass, Set<Long>> idToRemove,
-                                  List<? extends AbstractSecuredEntity> collection) {
-        Iterator<? extends AbstractSecuredEntity> iterator = collection.iterator();
-        iterator.forEachRemaining(o -> {
-            if (idToRemove.get(o.getAclClass()).contains(o.getId())) {
-                iterator.remove();
-            }
-        });
+        Set<Long> ids = idToRemove.get(AclClass.PROJECT);
+        if (CollectionUtils.isEmpty(ids)) {
+            return;
+        }
+        nestedProjects = nestedProjects.stream()
+                .filter(item -> !ids.contains(item.getId()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -143,6 +158,6 @@ public class Project extends AbstractHierarchicalEntity {
 
     @Override
     public AclClass getAclClass() {
-        return aclClass;
+        return  AclClass.PROJECT;
     }
 }

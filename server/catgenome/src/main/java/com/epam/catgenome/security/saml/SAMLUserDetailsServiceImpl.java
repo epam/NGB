@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.saml.SAMLCredential;
 import org.springframework.security.saml.userdetails.SAMLUserDetailsService;
@@ -54,6 +55,7 @@ import com.epam.catgenome.entity.user.Role;
 import com.epam.catgenome.security.UserContext;
 
 @Service
+@ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SAMLUserDetailsServiceImpl.class);
