@@ -39,16 +39,23 @@ import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.prepost.PreFilter;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
 
+import static com.epam.catgenome.security.acl.SecurityExpressions.*;
+
 @Service
 public class VcfSecurityService {
 
-    private static final String HAS_ROLE_USER = "hasRole('USER')";
-    private static final String HAS_ROLE_ADMIN_OR_VCF_MANAGER = "hasRole('ADMIN') OR hasRole('VCF_MANAGER')";
+    private static final String READ_VCF_BY_ID =
+            "hasPermission(#vcfFileId, com.epam.catgenome.entity.vcf.VcfFile, 'WRITE')";
+    private static final String READ_VCF_BY_TRACK_ID =
+            "hasPermission(#variationTrack.id, com.epam.catgenome.entity.vcf.VcfFile, 'READ')";
+    private static final String READ_VCF_BY_QUERY_ID =
+            "hasPermission(#query.id, com.epam.catgenome.entity.vcf.VcfFile, 'READ')";
 
     @Autowired
     private VcfManager vcfManager;
@@ -57,52 +64,52 @@ public class VcfSecurityService {
     private VcfFileManager vcfFileManager;
 
 
-    @PreAuthorize(HAS_ROLE_ADMIN_OR_VCF_MANAGER)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_VCF_MANAGER)
     public VcfFile registerVcfFile(FeatureIndexedFileRegistrationRequest request) {
         return vcfManager.registerVcfFile(request);
     }
 
-    @PreAuthorize("hasPermission(#vcfFileId, com.epam.catgenome.entity.vcf.VcfFile, 'WRITE')")
+    @PreAuthorize(ROLE_ADMIN + OR + READ_VCF_BY_ID)
     public VcfFile reindexVcfFile(long vcfFileId, boolean createTabixIndex) throws FeatureIndexException {
         return vcfManager.reindexVcfFile(vcfFileId, createTabixIndex);
     }
 
-    @PreAuthorize(HAS_ROLE_ADMIN_OR_VCF_MANAGER)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_VCF_MANAGER)
     public VcfFile unregisterVcfFile(long vcfFileId) throws IOException {
         return vcfManager.unregisterVcfFile(vcfFileId);
     }
 
     @AclMaskList
-    @PostFilter("hasRole('ADMIN') OR hasPermission(filterObject, 'READ')")
+    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT)
     public List<VcfFile> loadVcfFilesByReferenceId(Long referenceId) {
         return vcfFileManager.loadVcfFilesByReferenceId(referenceId);
     }
 
-    @PreAuthorize("hasPermission(#variationTrack.id, com.epam.catgenome.entity.vcf.VcfFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + READ_VCF_BY_TRACK_ID)
     public Track<Variation> loadVariations(Track<Variation> variationTrack, Long sampleId, boolean loadInfo,
                                  boolean collapsed) throws VcfReadingException {
         return vcfManager.loadVariations(variationTrack, sampleId, loadInfo, collapsed);
     }
 
-    @PreAuthorize(HAS_ROLE_USER)
+    @PreAuthorize(ROLE_USER)
     public Track<Variation> loadVariations(final Track<Variation> track, String fileUrl, String indexUrl,
                                            final Integer sampleIndex, final boolean loadInfo,
                                            final boolean collapse) throws VcfReadingException {
         return vcfManager.loadVariations(track, fileUrl, indexUrl, sampleIndex, loadInfo, collapse);
     }
 
-    @PreAuthorize("hasPermission(#query.id, com.epam.catgenome.entity.vcf.VcfFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + READ_VCF_BY_QUERY_ID)
     public Variation loadVariation(VariationQuery query) throws FeatureFileReadingException {
         return vcfManager.loadVariation(query);
     }
 
-    @PreAuthorize(HAS_ROLE_USER)
+    @PreAuthorize(ROLE_USER)
     public Variation loadVariation(VariationQuery query, String fileUrl, String indexUrl)
             throws FeatureFileReadingException {
         return vcfManager.loadVariation(query, fileUrl, indexUrl);
     }
 
-    @PreAuthorize(HAS_ROLE_USER)
+    @PreAuthorize(ROLE_USER)
     public Variation getNextOrPreviousVariation(int fromPosition, Long trackId, Long sampleId, long chromosomeId,
                                                 boolean loadInfo, String fileUrl, String indexUrl)
                                                 throws VcfReadingException {
@@ -110,8 +117,8 @@ public class VcfSecurityService {
                                                      loadInfo, fileUrl, indexUrl);
     }
 
-    //TODO extended filter
-    @PreAuthorize(HAS_ROLE_USER)
+    @PreAuthorize(ROLE_USER)
+    @PreFilter(ROLE_ADMIN + OR + VCF_FILE_FILTER_BY_ID)
     public VcfFilterInfo getFiltersInfo(List<Long> fileIds) throws IOException {
         return vcfManager.getFiltersInfo(fileIds);
     }

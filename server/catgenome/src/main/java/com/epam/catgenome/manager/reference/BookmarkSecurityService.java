@@ -36,29 +36,34 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 
+import static com.epam.catgenome.security.acl.SecurityExpressions.*;
+
 @Service
 public class BookmarkSecurityService {
+
+    private static final String READ_BOOKMARK_BY_ID =
+            "hasPermission(#bookmarkId, com.epam.catgenom.entity.reference.Bookmark, 'READ')";
 
     @Autowired
     private BookmarkManager bookmarkManager;
 
     @AclMaskList
-    @PostFilter("hasRole('ADMIN') OR hasPermission(filterObject, 'READ')")
+    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT)
     public List<Bookmark> loadBookmarksByProject() {
         return bookmarkManager.loadAllBookmarks();
     }
 
-    @PreAuthorize("hasPermission(#bookmarkId, com.epam.catgenom.entity.reference.Bookmark, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT + OR + READ_BOOKMARK_BY_ID)
     public Bookmark load(Long bookmarkId) {
         return bookmarkManager.load(bookmarkId);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasRole('BOOKMARK_MANAGER')")
+    @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT + OR + ROLE_BOOKMARK_MANAGER)
     public Bookmark create(Bookmark bookmark) throws IOException {
         return bookmarkManager.create(bookmark);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasRole('BOOKMARK_MANAGER')")
+    @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT + OR + ROLE_BOOKMARK_MANAGER)
     public void delete(Long bookmarkId) {
         bookmarkManager.delete(bookmarkId);
     }

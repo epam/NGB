@@ -39,6 +39,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.util.List;
 
+import static com.epam.catgenome.security.acl.SecurityExpressions.OR;
+import static com.epam.catgenome.security.acl.SecurityExpressions.READ_ON_FILTER_OBJECT;
+import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
+
 @Service
 public class DataItemSecurityService {
 
@@ -47,7 +51,7 @@ public class DataItemSecurityService {
 
 
     @AclMaskList
-    @PostFilter("hasRole('ADMIN') OR hasPermission(filterObject, 'READ')")
+    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT)
     public List<BiologicalDataItem> findFilesByName(String name, boolean strict) {
         return dataItemManager.findFilesByName(name, strict);
     }

@@ -43,6 +43,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 
+import static com.epam.catgenome.security.acl.SecurityExpressions.*;
+
 @Service
 public class BedSecurityService {
 
@@ -52,39 +54,39 @@ public class BedSecurityService {
     @Autowired
     private BedFileManager bedFileManager;
 
-    @PreAuthorize("hasRole('ADMIN') OR hasRole('BED_MANAGER')")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_BED_MANAGER)
     public BedFile registerBed(IndexedFileRegistrationRequest request) {
         return bedManager.registerBed(request);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasRole('BED_MANAGER')")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_BED_MANAGER)
     public BedFile unregisterBedFile(long bedFileId) throws IOException {
         return bedManager.unregisterBedFile(bedFileId);
     }
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize(ROLE_USER)
     public Track<BedRecord> loadFeatures(Track<BedRecord> track, String fileUrl, String indexUrl)
             throws FeatureFileReadingException {
         return bedManager.loadFeatures(track, fileUrl, indexUrl);
     }
 
-    @PreAuthorize("hasPermission(#track.id, com.epam.catgenome.entity.bed.BedFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + "hasPermission(#track.id, com.epam.catgenome.entity.bed.BedFile, 'READ')")
     public Track<BedRecord> loadFeatures(Track<BedRecord> track) throws FeatureFileReadingException {
         return bedManager.loadFeatures(track);
     }
 
     @AclMaskList
-    @PostFilter("hasRole('ADMIN') OR hasPermission(filterObject, 'READ')")
+    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT)
     public List<BedFile> loadBedFilesByReferenceId(Long referenceId) {
         return bedFileManager.loadBedFilesByReferenceId(referenceId);
     }
 
-    @PreAuthorize("hasPermission(#bedFileId, com.epam.catgenome.entity.bed.BedFile, 'WRITE')")
+    @PreAuthorize(ROLE_ADMIN + OR + "hasPermission(#bedFileId, com.epam.catgenome.entity.bed.BedFile, 'WRITE')")
     public BedFile reindexBedFile(long bedFileId) throws FeatureIndexException {
         return bedManager.reindexBedFile(bedFileId);
     }
 
-    @PreAuthorize("hasPermission(#histogramTrack.id, com.epam.catgenome.entity.bed.BedFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + "hasPermission(#histogramTrack.id, com.epam.catgenome.entity.bed.BedFile, 'READ')")
     public Track<Wig> loadHistogram(Track<Wig> histogramTrack) throws HistogramReadingException {
         return bedManager.loadHistogram(histogramTrack);
     }

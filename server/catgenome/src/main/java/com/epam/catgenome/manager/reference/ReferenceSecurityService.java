@@ -41,12 +41,10 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 
+import static com.epam.catgenome.security.acl.SecurityExpressions.*;
+
 @Service
 public class ReferenceSecurityService {
-
-    private static final String HAS_ROLE_USER = "hasRole('USER')";
-    private static final String HAS_ROLE_ADMIN_OR_REFERENCE_MANAGER =
-            "hasRole('ADMIN') OR hasRole('REFERENCE_MANAGER')";
 
     @Autowired
     private ReferenceManager referenceManager;
@@ -54,50 +52,49 @@ public class ReferenceSecurityService {
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
 
-    @PreAuthorize(HAS_ROLE_USER)
+    @PreAuthorize(ROLE_USER)
     public List<Reference> loadAllReferenceGenomes(String referenceName) {
         return referenceGenomeManager.loadAllReferenceGenomes(referenceName);
     }
 
-    @PreAuthorize(HAS_ROLE_USER)
+    @PreAuthorize(ROLE_USER)
     public Reference load(Long referenceId) {
         return referenceGenomeManager.load(referenceId);
     }
 
-    @PreAuthorize(HAS_ROLE_USER)
+    @PreAuthorize(ROLE_USER)
     public Reference loadReferenceGenomeByBioItemId(Long bioItemID) {
         return referenceGenomeManager.loadReferenceGenomeByBioItemId(bioItemID);
     }
 
-    @PreAuthorize(HAS_ROLE_USER)
+    @PreAuthorize(ROLE_USER)
     public List<Chromosome> loadChromosomes(Long referenceId) {
         return referenceGenomeManager.loadChromosomes(referenceId);
     }
 
-    @PreAuthorize(HAS_ROLE_USER)
+    @PreAuthorize(ROLE_USER)
     public Chromosome loadChromosome(Long chromosomeId) {
         return referenceGenomeManager.loadChromosome(chromosomeId);
     }
 
-
-    @PreAuthorize(HAS_ROLE_USER)
+    @PreAuthorize(ROLE_USER)
     public Track<Sequence> getNucleotidesResultFromNib(Track<Sequence> track) throws ReferenceReadingException {
         return referenceManager.getNucleotidesResultFromNib(track);
     }
 
-    @PreAuthorize(HAS_ROLE_ADMIN_OR_REFERENCE_MANAGER)
+    @PreAuthorize(ROLE_ADMIN + OR +ROLE_REFERENCE_MANAGER)
     public Reference registerGenome(ReferenceRegistrationRequest request) throws IOException {
         return referenceManager.registerGenome(request);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR " +
+    @PreAuthorize(ROLE_ADMIN + OR +
             "hasPermission(#referenceId, com.epam.catgenome.entity.reference.Reference, 'WRITE') " +
             "AND hasPermission(#geneFileId, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
     public Reference updateReferenceGeneFileId(Long referenceId, Long geneFileId) {
         return referenceGenomeManager.updateReferenceGeneFileId(referenceId, geneFileId);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR " +
+    @PreAuthorize(ROLE_ADMIN + OR +
             "hasPermission(#referenceId, com.epam.catgenome.entity.reference.Reference, 'WRITE') " +
             "AND hasPermission(#geneFileId, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
     public Reference updateReferenceAnnotationFile(Long referenceId, Long annotationFileId, Boolean remove)
@@ -105,28 +102,28 @@ public class ReferenceSecurityService {
         return referenceGenomeManager.updateReferenceAnnotationFile(referenceId, annotationFileId, remove);
     }
 
-    @PreAuthorize(HAS_ROLE_ADMIN_OR_REFERENCE_MANAGER)
+    @PreAuthorize(ROLE_ADMIN + OR +ROLE_REFERENCE_MANAGER)
     public Reference unregisterGenome(long referenceId) throws IOException {
         return referenceManager.unregisterGenome(referenceId);
     }
 
-    @PreAuthorize(HAS_ROLE_ADMIN_OR_REFERENCE_MANAGER)
+    @PreAuthorize(ROLE_ADMIN + OR +ROLE_REFERENCE_MANAGER)
     public Species registerSpecies(Species species) {
         return referenceGenomeManager.registerSpecies(species);
 
     }
 
-    @PreAuthorize(HAS_ROLE_ADMIN_OR_REFERENCE_MANAGER)
+    @PreAuthorize(ROLE_ADMIN + OR +ROLE_REFERENCE_MANAGER)
     public Species unregisterSpecies(String speciesVersion) {
         return referenceGenomeManager.unregisterSpecies(speciesVersion);
     }
 
-    @PreAuthorize(HAS_ROLE_USER)
+    @PreAuthorize(ROLE_USER)
     public List<Species> loadAllSpecies() {
         return referenceGenomeManager.loadAllSpecies();
     }
 
-    @PreAuthorize(HAS_ROLE_ADMIN_OR_REFERENCE_MANAGER)
+    @PreAuthorize(ROLE_ADMIN + OR +ROLE_REFERENCE_MANAGER)
     public Reference updateSpecies(Long referenceId, String speciesVersion) {
         return referenceGenomeManager.updateSpecies(referenceId, speciesVersion);
     }

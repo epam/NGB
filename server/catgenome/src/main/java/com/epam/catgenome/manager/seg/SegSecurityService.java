@@ -39,8 +39,13 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 
+import static com.epam.catgenome.security.acl.SecurityExpressions.*;
+
 @Service
 public class SegSecurityService {
+
+    private static final String READ_SEG_FILE_BY_ID =
+            "hasPermission(#track.id, com.epam.catgenome.entity.seg.SegFile, 'READ')";
 
     @Autowired
     private SegFileManager segFileManager;
@@ -49,23 +54,23 @@ public class SegSecurityService {
     private SegManager segManager;
 
 
-    @PreAuthorize("hasRole('ADMIN') OR hasRole('SEG_MANAGER')")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_SEG_MANAGER)
     public SegFile registerSegFile(IndexedFileRegistrationRequest request) {
         return segManager.registerSegFile(request);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasRole('SEG_MANAGER')")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_SEG_MANAGER)
     public SegFile unregisterSegFile(long segFileId) throws IOException {
         return segManager.unregisterSegFile(segFileId);
     }
 
     @AclMaskList
-    @PostFilter("hasRole('ADMIN') OR hasPermission(filterObject, 'READ')")
+    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT)
     public List<SegFile> loadSedFilesByReferenceId(Long referenceId) {
         return segFileManager.loadSedFilesByReferenceId(referenceId);
     }
 
-    @PreAuthorize("hasPermission(#track.id, com.epam.catgenome.entity.seg.SegFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + READ_SEG_FILE_BY_ID)
     public SampledTrack<SegRecord> loadFeatures(SampledTrack<SegRecord> track) throws IOException {
         return segManager.loadFeatures(track);
     }

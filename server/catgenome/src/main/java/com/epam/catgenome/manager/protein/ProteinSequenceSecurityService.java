@@ -40,11 +40,14 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+import static com.epam.catgenome.security.acl.SecurityExpressions.OR;
+import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
+
 @Service
 public class ProteinSequenceSecurityService {
 
     private static final String READ_PERMISSION_FOR_GENE_FILE_AND_REFERENCE =
-            "hasRole('ADMIN') OR hasPermission(#genes.id, com.epam.catgenome.entity.gene.GeneFile, 'READ') AND " +
+            ROLE_ADMIN + OR + "hasPermission(#genes.id, com.epam.catgenome.entity.gene.GeneFile, 'READ') AND " +
             "hasPermission(#referenceId, com.epam.catgenome.reference.Reference, 'READ')";
 
     @Autowired
@@ -62,7 +65,7 @@ public class ProteinSequenceSecurityService {
         return proteinSequenceManager.loadProteinSequence(genes, referenceId);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR " +
+    @PreAuthorize(ROLE_ADMIN + OR +
             "hasPermission(#psVariationQuery.trackQuery.id, com.epam.catgenome.entity.gene.GeneFile, 'READ') " +
             " AND hasPermission(#referenceId, com.epam.catgenome.reference.Reference, 'READ')")
     public Track<MrnaProteinSequenceVariants> loadProteinSequenceWithVariations(

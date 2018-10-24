@@ -41,8 +41,16 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter
 import java.io.IOException;
 import java.util.List;
 
+import static com.epam.catgenome.security.acl.SecurityExpressions.*;
+
 @Service
 public class BamSecurityService {
+
+    private static final String READ_BAM_BY_TRACK_ID =
+            "hasPermission(#track.id, com.epam.catgenome.entity.bam.BamFile, 'READ')";
+
+    private static final String READ_BAM_BY_QUERY_ID =
+            "hasPermission(#query.id, com.epam.catgenome.entity.bam.BamFile, 'READ')";
 
     @Autowired
     private BamFileManager bamFileManager;
@@ -50,40 +58,40 @@ public class BamSecurityService {
     @Autowired
     private BamManager bamManager;
 
-    @PreAuthorize("hasRole('ADMIN') OR hasRole('BAM_MANAGER')")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_BAM_MANAGER)
     public BamFile registerBam(IndexedFileRegistrationRequest request) throws IOException {
         return bamManager.registerBam(request);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasPermission(#query.id, com.epam.catgenome.entity.bam.BamFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + READ_BAM_BY_QUERY_ID)
     public Read loadRead(ReadQuery query, String fileUrl, String indexUrl) throws IOException {
         return bamManager.loadRead(query, fileUrl, indexUrl);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasRole('BAM_MANAGER')")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_BAM_MANAGER)
     public BamFile unregisterBamFile(long bamFileId) throws IOException {
         return bamManager.unregisterBamFile(bamFileId);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasPermission(#track.id, com.epam.catgenome.entity.bam.BamFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + READ_BAM_BY_TRACK_ID)
     public Track<Sequence> calculateConsensusSequence(Track<Sequence> track) throws IOException {
         return bamManager.calculateConsensusSequence(track);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasPermission(#track.id, com.epam.catgenome.entity.bam.BamFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + READ_BAM_BY_TRACK_ID)
     public void sendBamTrackToEmitter(Track<Read> track, BamQueryOption option,
                                       ResponseBodyEmitter emitter) throws IOException {
         bamManager.sendBamTrackToEmitter(track, option, emitter);
     }
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize(ROLE_USER)
     public void sendBamTrackToEmitterFromUrl(Track<Read> track, BamQueryOption option, String fileUrl, String indexUrl,
                                              ResponseBodyEmitter emitter) throws IOException {
         bamManager.sendBamTrackToEmitterFromUrl(track, option, fileUrl, indexUrl, emitter);
     }
 
     @AclMaskList
-    @PostFilter("hasRole('ADMIN') OR hasPermission(filterObject, 'READ')")
+    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT)
     public List<BamFile> loadBamFilesByReferenceId(Long referenceId) {
         return bamFileManager.loadBamFilesByReferenceId(referenceId);
     }

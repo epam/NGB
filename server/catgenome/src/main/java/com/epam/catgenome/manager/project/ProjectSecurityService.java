@@ -38,70 +38,71 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 
+import static com.epam.catgenome.security.acl.SecurityExpressions.*;
+
 @Service
 public class ProjectSecurityService {
-
-    private static final String HAS_READ_ACCESS_TO_PROJECT = "hasRole('ADMIN') " +
-            "OR hasPermissionOnProject(#projectId, 'READ')";
 
     @Autowired
     private ProjectManager projectManager;
 
     @AclMaskList
     @AclFilterAndTree
+    @PreAuthorize(ROLE_USER)
     public List<Project> loadTopLevelProjects() {
         return projectManager.loadTopLevelProjects();
     }
 
     @AclFilterAndTree
+    @PreAuthorize(ROLE_USER)
     public List<Project> loadProjectTree(Long parentId, String referenceName) {
         return projectManager.loadProjectTree(parentId, referenceName);
     }
 
     @AclTree
-    @PreAuthorize(HAS_READ_ACCESS_TO_PROJECT)
+    @PreAuthorize(READ_PROJECT_BY_ID)
     public Project load(Long projectId) {
         return projectManager.load(projectId);
     }
 
     @AclTree
-    @PreAuthorize(HAS_READ_ACCESS_TO_PROJECT)
+    @PreAuthorize(READ_PROJECT_BY_ID)
     public Project load(String projectName) {
         return projectManager.load(projectName);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasPermissionOnProject(#parentId, 'WRITE') AND hasRole('PROJECT_MANAGER')")
+    @PreAuthorize(ROLE_ADMIN + OR + "hasPermissionOnProject(#parentId, 'WRITE')" + AND + ROLE_PROJECT_MANAGER)
     public Project create(Project convertFrom, Long parentId) {
         return projectManager.create(convertFrom, parentId);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR projectCanBeMoved(projectId, parentId)")
+    @PreAuthorize(ROLE_ADMIN + OR + "projectCanBeMoved(projectId, parentId)"+ AND + ROLE_PROJECT_MANAGER)
     public void moveProjectToParent(Long projectId, Long parentId) {
         projectManager.moveProjectToParent(projectId, parentId);
     }
 
     @AclTree
-    @PreAuthorize("hasRole('ADMIN') OR hasPermissionOnProject(#projectId, 'WRITE') " +
+    @PreAuthorize(ROLE_ADMIN + OR + "hasPermissionOnProject(#projectId, 'WRITE') " +
             "AND hasPermissionByBioItemId(#biologicalItemId, 'READ')")
     public Project addProjectItem(Long projectId, Long biologicalItemId) {
         return projectManager.addProjectItem(projectId, biologicalItemId);
     }
 
     @AclTree
-    @PreAuthorize("hasRole('ADMIN') OR hasPermissionOnProject(#projectId, 'WRITE') " +
+    @PreAuthorize(ROLE_ADMIN + OR + "hasPermissionOnProject(#projectId, 'WRITE') " +
             "AND hasPermissionByBioItemId(#biologicalItemId, 'READ')")
     public Project removeProjectItem(Long projectId, Long biologicalItemId) throws FeatureIndexException {
         return projectManager.removeProjectItem(projectId, biologicalItemId);
     }
 
     @AclTree
-    @PreAuthorize("hasRole('ADMIN') OR hasPermissionOnProject(#parentId, 'WRITE') " +
+    @PreAuthorize(ROLE_ADMIN + OR + "hasPermissionOnProject(#parentId, 'WRITE') " +
             "AND hasPermissionByBioItemId(#biologicalItemId, 'READ')")
     public void hideProjectItem(Long projectId, Long biologicalItemId) {
         projectManager.hideProjectItem(projectId, biologicalItemId);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR projectCanBeDeleted(#projectId, #force)")
+    @PreAuthorize(ROLE_ADMIN + OR + "projectCanBeDeleted(#projectId, #force)")
     public Project deleteProject(long projectId, Boolean force) throws IOException {
         return projectManager.deleteProject(projectId, force);
     }

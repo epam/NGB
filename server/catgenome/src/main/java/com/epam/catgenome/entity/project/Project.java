@@ -105,7 +105,7 @@ public class Project extends AbstractHierarchicalEntity {
 
     @Override
     public AbstractSecuredEntity getParent() {
-        return new Project(parentId);
+        return parentId != null ? new Project(parentId) : null;
     }
 
     public List<ProjectItem> getItems() {

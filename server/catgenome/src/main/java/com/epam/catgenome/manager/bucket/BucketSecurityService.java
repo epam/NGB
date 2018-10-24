@@ -36,6 +36,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.epam.catgenome.security.acl.SecurityExpressions.*;
+
 @Service
 public class BucketSecurityService {
 
@@ -43,18 +45,19 @@ public class BucketSecurityService {
     private BucketManager bucketManager;
 
 
-    @PreAuthorize("hasPermission(#bucketId, com.epam.catgenome.entity.bucket.Bucket, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_BUCKET_MANAGER
+            + OR + "hasPermission(#bucketId, com.epam.catgenome.entity.bucket.Bucket, 'READ')")
     public Bucket load(Long bucketId) {
         return bucketManager.load(bucketId);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasRole('BUCKET_MANAGER')")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_BUCKET_MANAGER)
     public Bucket save(Bucket bucket) {
         return bucketManager.save(bucket);
     }
 
     @AclMaskList
-    @PostFilter("hasRole('ADMIN') OR hasPermission(filterObject, 'READ')")
+    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT)
     public List<Bucket> loadAllBucket() {
         return bucketManager.loadAllBucket();
     }

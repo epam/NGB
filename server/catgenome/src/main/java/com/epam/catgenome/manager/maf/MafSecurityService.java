@@ -39,6 +39,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 
+import static com.epam.catgenome.security.acl.SecurityExpressions.*;
+
 @Service
 public class MafSecurityService {
 
@@ -48,23 +50,23 @@ public class MafSecurityService {
     @Autowired
     private MafFileManager mafFileManager;
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MAF_MANAGER')")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_MAF_MANAGER)
     public MafFile registerMafFile(IndexedFileRegistrationRequest request) {
         return mafManager.registerMafFile(request);
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MAF_MANAGER')")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_MAF_MANAGER)
     public MafFile unregisterMafFile(long mafFileId) throws IOException {
         return mafManager.unregisterMafFile(mafFileId);
     }
 
     @AclMaskList
-    @PostFilter("hasRole('ADMIN') OR hasPermission(filterObject, 'READ')")
+    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT)
     public List<MafFile> loadMafFilesByReferenceId(Long referenceId) {
         return mafFileManager.loadMafFilesByReferenceId(referenceId);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasPermission(#track.id, com.epam.catgenome.entity.maf.MafFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + "hasPermission(#track.id, com.epam.catgenome.entity.maf.MafFile, 'READ')")
     public Track<MafRecord> loadFeatures(Track<MafRecord> track) throws IOException {
         return mafManager.loadFeatures(track);
     }

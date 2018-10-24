@@ -27,6 +27,7 @@
 package com.epam.catgenome.manager.tools;
 
 import com.epam.catgenome.controller.tools.FeatureFileSortRequest;
+import com.epam.catgenome.security.acl.SecurityExpressions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,7 @@ public class ToolSecurityService {
     @Autowired
     private ToolsManager toolsManager;
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize(SecurityExpressions.ROLE_USER)
     public String sortFeatureFile(FeatureFileSortRequest request) {
         return toolsManager.sortFeatureFile(request);
     }

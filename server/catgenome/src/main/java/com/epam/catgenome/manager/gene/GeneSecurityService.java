@@ -49,6 +49,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static com.epam.catgenome.security.acl.SecurityExpressions.*;
+
 @Service
 public class GeneSecurityService {
 
@@ -59,74 +61,74 @@ public class GeneSecurityService {
     private GffManager gffManager;
 
 
-    @PreAuthorize("hasRole('ADMIN') OR hasRole('GENE_MANAGER')")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_GENE_MANAGER)
     public GeneFile registerGeneFile(FeatureIndexedFileRegistrationRequest request) {
         return gffManager.registerGeneFile(request);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasRole('GENE_MANAGER')")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_GENE_MANAGER)
     public GeneFile unregisterGeneFile(long geneFileId) throws IOException {
         return gffManager.unregisterGeneFile(geneFileId);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasPermission(#geneFileId, com.epam.catgenome.entity.gene.GeneFile, 'WRITE')")
+    @PreAuthorize(ROLE_ADMIN + OR + "hasPermission(#geneFileId, com.epam.catgenome.entity.gene.GeneFile, 'WRITE')")
     public GeneFile reindexGeneFile(long geneFileId, boolean full, boolean createTabixIndex) throws IOException {
         return gffManager.reindexGeneFile(geneFileId, full, createTabixIndex);
     }
 
     @AclMaskList
-    @PostFilter("hasRole('ADMIN') OR hasPermission(filterObject, 'READ')")
+    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT)
     public List<GeneFile> loadGeneFilesByReferenceId(Long referenceId) {
         return geneFileManager.loadGeneFilesByReferenceId(referenceId);
     }
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize(ROLE_USER)
     public Track<Gene> loadGenes(Track<Gene> geneTrack, boolean collapsed, String fileUrl, String indexUrl)
             throws GeneReadingException {
         return gffManager.loadGenes(geneTrack, collapsed, fileUrl, indexUrl);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasPermission(#geneTrack.id, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + "hasPermission(#geneTrack.id, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
     public Track<Gene> loadGenes(Track<Gene> geneTrack, boolean collapsed) throws GeneReadingException {
         return gffManager.loadGenes(geneTrack, collapsed);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR " +
+    @PreAuthorize(ROLE_ADMIN + OR +
             "hasPermission(#blocks.get(0).gffId, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
     public List<GeneHighLevel> convertGeneTrackForClient(List<Gene> blocks,
                                                          Map<Gene, List<ProteinSequenceEntry>> aminoAcids) {
         return gffManager.convertGeneTrackForClient(blocks, aminoAcids);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasPermission(#track.id, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + "hasPermission(#track.id, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
     public Track<GeneTranscript> loadGenesTranscript(Track<Gene> track, String fileUrl, String indexUrl)
             throws GeneReadingException {
         return gffManager.loadGenesTranscript(track, fileUrl, indexUrl);
     }
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize(ROLE_USER)
     public DimStructure getPBDItemsFromBD(String pbdID) throws ExternalDbUnavailableException {
         return gffManager.getPBDItemsFromBD(pbdID);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasPermission(#track.id, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + "hasPermission(#track.id, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
     public Track<Wig> loadHistogram(Track<Wig> geneTrack) throws HistogramReadingException {
         return gffManager.loadHistogram(geneTrack);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasPermission(#geneFileId, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + "hasPermission(#geneFileId, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
     public Gene getNextOrPreviousFeature(int fromPosition, long geneFileId, long chromosomeId, boolean b)
             throws IOException {
         return gffManager.getNextOrPreviousFeature(fromPosition, geneFileId, chromosomeId, b);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasPermission(#geneFileId, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + "hasPermission(#geneFileId, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
     public List<Block> loadExonsInViewPort(Long geneFileId, Long chromosomeId, Integer centerPosition,
                                            Integer viewPortSize, Integer intronLength) throws IOException {
         return gffManager.loadExonsInViewPort(geneFileId, chromosomeId, centerPosition, viewPortSize, intronLength);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasPermission(#geneFileId, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + "hasPermission(#geneFileId, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
     public List<Block> loadExonsInTrack(Long geneFileId, Long chromosomeId, Integer startIndex,
                                         Integer endIndex, Integer intronLength) throws IOException {
         return gffManager.loadExonsInTrack(geneFileId, chromosomeId, startIndex, endIndex, intronLength);
