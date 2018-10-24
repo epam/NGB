@@ -26,6 +26,7 @@ package com.epam.catgenome.security.acl.customexpression;
 
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.security.acl.PermissionHelper;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
@@ -57,11 +58,17 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
         return permissionHelper.isAllowed(permission, item);
     }
 
+    public boolean isOwner(AclClass aclClass, long id) {
+        return permissionHelper.isOwner(aclClass, id);
+    }
+
     public boolean hasPermissionOnProject(Long projectId, String permission) {
+        boolean isAllowedByRole = hasAnyRole("ADMIN", "PROJECT_MANAGER");
         if (projectId == null) {
-            return hasAnyRole("ADMIN", "PROJECT_MANAGER");
+            return isAllowedByRole;
+        } else {
+            return hasPermission(projectId, Project.class.getCanonicalName(), permission);
         }
-        return hasPermission(projectId, Project.class.getCanonicalName(), permission);
     }
 
     public boolean projectCanBeMoved(Long projectId, Long newParentId) {

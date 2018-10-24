@@ -28,13 +28,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.epam.catgenome.controller.vo.NgbUserVO;
-import com.epam.catgenome.security.acl.SecurityExpressions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.epam.catgenome.entity.security.NgbUser;
+
+import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
 @Service
 @ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
@@ -47,7 +48,7 @@ public class UserSecurityService {
         this.userManager = userManager;
     }
 
-    @PreAuthorize(SecurityExpressions.ROLE_ADMIN)
+    @PreAuthorize(ROLE_ADMIN)
     public List<NgbUser> loadAllUsers() {
         return userManager.loadAllUsers();
     }
@@ -57,7 +58,7 @@ public class UserSecurityService {
      * @param userVO specifies user to create
      * @return created user
      */
-    @PreAuthorize(SecurityExpressions.ROLE_ADMIN)
+    @PreAuthorize(ROLE_ADMIN)
     public NgbUser createUser(NgbUserVO userVO) {
         return userManager.createUser(userVO);
     }
@@ -68,27 +69,27 @@ public class UserSecurityService {
      * @param userVO
      * @return
      */
-    @PreAuthorize(SecurityExpressions.ROLE_ADMIN)
+    @PreAuthorize(ROLE_ADMIN)
     public NgbUser updateUser(final Long id, final NgbUserVO userVO) {
         return userManager.updateUserSAMLInfo(id, userVO.getUserName(), userVO.getRoleIds(), null, null);
     }
 
-    @PreAuthorize(SecurityExpressions.ROLE_ADMIN)
+    @PreAuthorize(ROLE_ADMIN)
     public NgbUser loadUser(Long id) {
         return userManager.loadUserById(id);
     }
 
-    @PreAuthorize(SecurityExpressions.ROLE_ADMIN)
+    @PreAuthorize(ROLE_ADMIN)
     public void deleteUser(Long id) {
         userManager.deleteUser(id);
     }
 
-    @PreAuthorize(SecurityExpressions.ROLE_ADMIN)
+    @PreAuthorize(ROLE_ADMIN)
     public NgbUser updateUserRoles(Long id, List<Long> roles) {
         return userManager.updateUser(id, roles);
     }
 
-    @PreAuthorize(SecurityExpressions.ROLE_ADMIN)
+    @PreAuthorize(ROLE_ADMIN)
     public List<NgbUser> loadUsers() {
         return new ArrayList<>(userManager.loadAllUsers());
     }

@@ -116,7 +116,9 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
         }
 
         insertUserRoles(user.getId(), appliedRoles);
-        insertUserGroups(user.getId(), user.getGroups());
+        if (!CollectionUtils.isEmpty(user.getGroups())) {
+            insertUserGroups(user.getId(), user.getGroups());
+        }
         return user;
     }
 

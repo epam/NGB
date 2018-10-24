@@ -29,6 +29,8 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.security.AbstractHierarchicalEntity;
+import com.epam.catgenome.entity.security.AclClass;
+import com.epam.catgenome.manager.CompositeSecuredEntityManager;
 import com.epam.catgenome.manager.dataitem.DataItemManager;
 import com.epam.catgenome.manager.project.ProjectManager;
 import com.epam.catgenome.manager.user.UserManager;
@@ -85,6 +87,9 @@ public class PermissionHelper {
     private DataItemManager dataItemManager;
 
     @Autowired
+    private CompositeSecuredEntityManager securedEntityManager;
+
+    @Autowired
     private ProjectManager projectManager;
 
     public boolean isAllowed(String permissionName, AbstractSecuredEntity entity) {
@@ -109,17 +114,23 @@ public class PermissionHelper {
 
     public boolean projectCanBeMoved(Long projectId, Long newParentId) {
         Project project = projectManager.load(projectId);
-        Project newParent = projectManager.load(newParentId);
         boolean isAllowed = true;
         if (project.getParentId() != null) {
-            isAllowed = isAllowed && permissionEvaluator.hasPermission(
+            isAllowed = permissionEvaluator.hasPermission(
                     SecurityContextHolder.getContext().getAuthentication(),
                     projectManager.load(project.getParentId()), WRITE_PERMISSION);
         }
+
+        boolean parentWritePermission = true;
+        if (newParentId != null) {
+            parentWritePermission = permissionEvaluator.hasPermission(
+                    SecurityContextHolder.getContext().getAuthentication(),
+                    projectManager.load(newParentId), WRITE_PERMISSION);
+        }
+
         return isAllowed && permissionEvaluator.hasPermission(
                 SecurityContextHolder.getContext().getAuthentication(), project, WRITE_PERMISSION)
-                && permissionEvaluator.hasPermission(SecurityContextHolder.getContext().getAuthentication(),
-                newParent, WRITE_PERMISSION);
+                && parentWritePermission;
     }
 
     public boolean projectCanBeDeleted(Long projectId, Boolean force) {
@@ -133,6 +144,11 @@ public class PermissionHelper {
     public boolean isOwner(AbstractSecuredEntity entity) {
         String owner = entity.getOwner();
         return StringUtils.isNotBlank(owner) && owner.equalsIgnoreCase(authManager.getAuthorizedUser());
+    }
+
+    public boolean isOwner(AclClass aclClass, Long id) {
+        AbstractSecuredEntity load = securedEntityManager.load(aclClass, id);
+        return isOwner(load);
     }
 
     public boolean isAdmin(List<Sid> sids) {

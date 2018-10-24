@@ -173,6 +173,7 @@ public class UserManager {
                || !CollectionUtils.isEqualCollection(user.getAttributes().entrySet(), attributes.entrySet());
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public NgbUser createUser(NgbUserVO userVO) {
         return createUser(userVO.getUserName(), userVO.getRoleIds(), null, null);
     }

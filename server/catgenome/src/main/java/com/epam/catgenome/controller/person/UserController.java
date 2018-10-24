@@ -26,15 +26,11 @@ package com.epam.catgenome.controller.person;
 
 import java.util.Collection;
 
+import com.epam.catgenome.controller.vo.NgbUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
@@ -88,6 +84,60 @@ public class UserController extends AbstractRESTController {
         })
     public Result<JwtRawToken> getToken(@RequestParam(required = false) Long expiration) {
         return Result.success(authManager.issueTokenForCurrentUser(expiration));
+    }
+
+    @RequestMapping(value = "/user", method = RequestMethod.POST)
+    @ResponseBody
+    @ApiOperation(
+            value = "Creates a new user.",
+            notes = "Creates a new user with specified username and roles.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<NgbUser> createUser(@RequestBody NgbUserVO userVO) {
+        return Result.success(userSecurityService.createUser(userVO));
+    }
+
+
+    @RequestMapping(value = "/user/{id}", method = RequestMethod.GET)
+    @ResponseBody
+    @ApiOperation(
+            value = "Loads a user by a ID.",
+            notes = "Loads a user by a ID.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<NgbUser> loadUser(@PathVariable Long id) {
+        return Result.success(userSecurityService.loadUser(id));
+    }
+
+    @RequestMapping(value = "/user/{id}", method = RequestMethod.PUT)
+    @ResponseBody
+    @ApiOperation(
+            value = "Updates a user by a ID.",
+            notes = "Updates a user by a ID. Currently only defaultStorage id is supported for update",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<NgbUser> updateUser(@PathVariable Long id, @RequestBody NgbUserVO userVO) {
+        return Result.success(userSecurityService.updateUser(id, userVO));
+    }
+
+    @RequestMapping(value = "/user/{id}", method = RequestMethod.DELETE)
+    @ResponseBody
+    @ApiOperation(
+            value = "Deletes a user by a ID.",
+            notes = "Deletes a user by a ID.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result deleteUser(@PathVariable Long id) {
+        userSecurityService.deleteUser(id);
+        return Result.success(null);
     }
 
     @RequestMapping(value = "/users", method = RequestMethod.GET)
