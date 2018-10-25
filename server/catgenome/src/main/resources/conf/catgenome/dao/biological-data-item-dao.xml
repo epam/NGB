@@ -30,6 +30,15 @@
                 ]]>
             </value>
         </property>
+        <property name="updateOwnerQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.biological_data_item
+                    SET owner = :OWNER
+                    WHERE bio_data_item_id = ?
+                ]]>
+            </value>
+        </property>
         <property name="loadBiologicalDataItemsByIdsQuery">
             <value>
                 <![CDATA[

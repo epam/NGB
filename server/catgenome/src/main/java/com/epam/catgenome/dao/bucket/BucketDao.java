@@ -50,6 +50,7 @@ public class BucketDao extends NamedParameterJdbcDaoSupport {
     private String createBucketQuery;
     private String loadBucketByIdQuery;
     private String loadAllBucketQuery;
+    private String updateBucketOwnerQuery;
 
     /**
      * Creates a new ID for a {@code Bucket} instance
@@ -91,6 +92,10 @@ public class BucketDao extends NamedParameterJdbcDaoSupport {
         List<Bucket> buckets = getJdbcTemplate().query(loadBucketByIdQuery, BucketParameters.getPasswordRowMapper(),
                 bucketId);
         return buckets.isEmpty() ? null : buckets.get(0);
+    }
+
+    public void updateOwner(Bucket bucket) {
+        getNamedParameterJdbcTemplate().update(updateBucketOwnerQuery, BucketParameters.getParameters(bucket));
     }
 
     enum BucketParameters {
@@ -136,8 +141,8 @@ public class BucketDao extends NamedParameterJdbcDaoSupport {
                 return bucket;
             };
         }
-    }
 
+    }
 
     @Required
     public void setBucketName(String bucketName) {
@@ -157,5 +162,10 @@ public class BucketDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadAllBucketQuery(String loadAllBucketQuery) {
         this.loadAllBucketQuery = loadAllBucketQuery;
+    }
+
+    @Required
+    public void setUpdateBucketOwnerQuery(String updateBucketOwnerQuery) {
+        this.updateBucketOwnerQuery = updateBucketOwnerQuery;
     }
 }

@@ -32,7 +32,6 @@ import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.manager.SecuredEntityManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
-import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -122,11 +121,13 @@ public class BamFileManager implements SecuredEntityManager {
         biologicalDataItemDao.deleteBiologicalDataItem(bamFile.getBioDataItemId());
     }
 
-
-
     @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     public AbstractSecuredEntity changeOwner(Long id, String owner) {
-        throw new NotImplementedException();
+        BamFile bamFile = load(id);
+        biologicalDataItemDao.updateOwner(id, owner);
+        bamFile.setOwner(owner);
+        return bamFile;
     }
 
     @Override

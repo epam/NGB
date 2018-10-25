@@ -89,26 +89,6 @@ public abstract class AbstractHierarchicalEntity extends AbstractSecuredEntity {
     public abstract void filterChildren(Map<AclClass, Set<Long>> idToRemove);
 
     /**
-     * Basic method filter child collection
-     * @param collection to filter
-     * @param aclClass only entities with this {@link AclClass} will be filtered
-     * @param idsToRemove map, specifying which entities should be removed
-     * @param <T> type of entities
-     * @return filtered {@param collection}
-     */
-    protected  <T extends AbstractSecuredEntity> List<T> filterCollection(List<T> collection,
-            AclClass aclClass, Map<AclClass, Set<Long>> idsToRemove) {
-        if (CollectionUtils.isEmpty(collection)) {
-            return collection;
-        }
-        Set<Long> ids = idsToRemove.get(aclClass);
-        if (CollectionUtils.isEmpty(ids)) {
-            return collection;
-        }
-        return collection.stream().filter(item -> !ids.contains(item.getId())).collect(Collectors.toList());
-    }
-
-    /**
      * Since {@link AbstractSecuredEntity} maybe available to user even without any permissions,
      * in case of some present permission in the lower layers of hierarchy, we may want to clear
      * some fields before returning such 'readOnly' entity to the client.

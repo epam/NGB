@@ -39,6 +39,16 @@
                 ]]>
             </value>
         </property>
+        <property name="updateProjectOwnerQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.project SET
+                        owner = :OWNER
+                    WHERE
+                        project_id = :PROJECT_ID
+                ]]>
+            </value>
+        </property>
         <property name="moveProjectToParentQuery">
             <value>
                 <![CDATA[

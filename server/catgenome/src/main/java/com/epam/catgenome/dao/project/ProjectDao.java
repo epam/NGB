@@ -76,6 +76,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
 
     private String insertProjectQuery;
     private String updateProjectQuery;
+    private String updateProjectOwnerQuery;
     private String loadTopLevelProjectsForUserOrderByLastOpenedQuery;
     private String loadTopLevelProjectsForUserQuery;
     private String loadAllProjectsQuery;
@@ -546,6 +547,15 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         }
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updateOwner(Long id, String owner) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue(ProjectParameters.PROJECT_ID.name(), id);
+        params.addValue(ProjectParameters.OWNER.name(), owner);
+
+        getNamedParameterJdbcTemplate().update(updateProjectOwnerQuery, params);
+    }
+
     enum ProjectParameters {
         PROJECT_ID,
         PROJECT_NAME,
@@ -587,8 +597,8 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
                 return project;
             };
         }
-    }
 
+    }
     enum ProjectItemParameters {
         PROJECT_ITEM_ID,
         PROJECT_ID,
@@ -654,9 +664,9 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         }
 
         static class ProjectItemMapper implements RowMapper<ProjectItem> {
+
             protected RowMapper<BiologicalDataItem> bioDataItemMapper = BiologicalDataItemDao
                     .BiologicalDataItemParameters.getRowMapper();
-
             @Override
             public ProjectItem mapRow(ResultSet rs, int rowNum) throws SQLException {
                 ProjectItem item = new ProjectItem();
@@ -669,15 +679,15 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
 
                 return item;
             }
-        }
 
+        }
         static class SimpleItemMapper extends ProjectItemMapper {
+
             SimpleItemMapper() {
                 bioDataItemMapper = BiologicalDataItemDao.BiologicalDataItemParameters.getRowMapper(false);
             }
         }
     }
-
     @Required
     public void setProjectSequenceName(String projectSequenceName) {
         this.projectSequenceName = projectSequenceName;
@@ -812,5 +822,10 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadAllProjectItemsQuery(String loadAllProjectItemsQuery) {
         this.loadAllProjectItemsQuery = loadAllProjectItemsQuery;
+    }
+
+    @Required
+    public void setUpdateProjectOwnerQuery(String updateProjectOwnerQuery) {
+        this.updateProjectOwnerQuery = updateProjectOwnerQuery;
     }
 }

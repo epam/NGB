@@ -33,7 +33,8 @@
                     UPDATE catgenome.bookmark SET
                         bookmark_name = :BOOKMARK_NAME,
                         start_index = :START_INDEX,
-                        end_index = :END_INDEX
+                        end_index = :END_INDEX,
+                        owner = :OWNER
                     WHERE
                         bookmark_id = :BOOKMARK_ID
                 ]]>

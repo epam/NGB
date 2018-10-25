@@ -160,8 +160,12 @@ public class BookmarkManager implements SecuredEntityManager {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     public AbstractSecuredEntity changeOwner(Long id, String owner) {
-        throw new UnsupportedOperationException();
+        Bookmark bookmark = load(id);
+        bookmark.setOwner(owner);
+        bookmarkDao.saveBookmark(bookmark);
+        return bookmark;
     }
 
     @Override

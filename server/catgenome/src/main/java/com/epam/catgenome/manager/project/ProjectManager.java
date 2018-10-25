@@ -191,8 +191,12 @@ public class ProjectManager implements SecuredEntityManager {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     public AbstractSecuredEntity changeOwner(Long id, String owner) {
-        throw new UnsupportedOperationException();
+        Project project = load(id);
+        project.setOwner(owner);
+        projectDao.updateOwner(id, owner);
+        return project;
     }
 
     @Override

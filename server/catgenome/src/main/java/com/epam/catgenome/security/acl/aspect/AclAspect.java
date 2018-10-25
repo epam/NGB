@@ -150,9 +150,12 @@ public class AclAspect {
 
 
     private void updateParent(AbstractSecuredEntity entity, MutableAcl acl) {
-        MutableAcl parentAcl = aclService.getOrCreateObjectIdentity(entity.getParent());
-        acl.setParent(parentAcl);
-        aclService.updateAcl(acl);
+        AbstractSecuredEntity parent = entity.getParent();
+        if (parent != null) {
+            MutableAcl parentAcl = aclService.getOrCreateObjectIdentity(parent);
+            acl.setParent(parentAcl);
+            aclService.updateAcl(acl);
+        }
     }
 
 }

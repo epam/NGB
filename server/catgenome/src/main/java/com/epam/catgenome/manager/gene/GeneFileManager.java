@@ -131,8 +131,12 @@ public class GeneFileManager implements SecuredEntityManager {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     public AbstractSecuredEntity changeOwner(Long id, String owner) {
-        throw new UnsupportedOperationException();
+        AbstractSecuredEntity file = load(id);
+        biologicalDataItemDao.updateOwner(id, owner);
+        file.setOwner(owner);
+        return file;
     }
 
     @Override

@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -110,8 +109,12 @@ public class VcfFileManager implements SecuredEntityManager {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     public AbstractSecuredEntity changeOwner(Long id, String owner) {
-        throw new NotImplementedException();
+        VcfFile vcfFile = load(id);
+        biologicalDataItemDao.updateOwner(id, owner);
+        vcfFile.setOwner(owner);
+        return vcfFile;
     }
 
     @Override

@@ -84,8 +84,12 @@ public class BucketManager implements SecuredEntityManager {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     public AbstractSecuredEntity changeOwner(Long id, String owner) {
-        throw new UnsupportedOperationException();
+        Bucket bucket = load(id);
+        bucket.setOwner(owner);
+        bucketDao.updateOwner(bucket);
+        return bucket;
     }
 
     @Override

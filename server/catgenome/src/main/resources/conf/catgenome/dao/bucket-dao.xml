@@ -22,6 +22,15 @@
                 ]]>
             </value>
         </property>
+        <property name="updateBucketOwnerQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.bucket
+                    SET owner = :OWNER
+                    WHERE bucket_id = ?
+                ]]>
+            </value>
+        </property>
         <property name="loadBucketByIdQuery">
             <value>
                 <![CDATA[
