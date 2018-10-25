@@ -85,10 +85,8 @@ public class Project extends AbstractHierarchicalEntity {
                 toRemove.add(item);
                 itemsCount -= 1;
                 if (itemsCountPerFormat != null) {
-                    itemsCountPerFormat.computeIfPresent(
-                            leaf.getFormat(),
-                            (k, i) -> i > 0 ? i - 1 : 0
-                    );
+                    itemsCountPerFormat.computeIfPresent(leaf.getFormat(),
+                        (k, i) -> i > 0 ? i - 1 : 0);
                 }
             }
         }

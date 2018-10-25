@@ -101,6 +101,12 @@ public class PermissionHelper {
                            permissionName);
     }
 
+    public boolean isAllowed(String permissionName, Long id, Class type) {
+        return permissionEvaluator
+                .hasPermission(SecurityContextHolder.getContext().getAuthentication(), id,
+                        type.getCanonicalName(), permissionName);
+    }
+
     public boolean isAllowedByBioItemId(String permissionName, Long bioItemId) {
         BiologicalDataItem bioItem = dataItemManager.findFileByBioItemId(bioItemId);
         if (isOwner(bioItem)) {

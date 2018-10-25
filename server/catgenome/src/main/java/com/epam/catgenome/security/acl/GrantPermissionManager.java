@@ -33,6 +33,8 @@ import static java.util.stream.Collectors.toSet;
 import java.util.*;
 import java.util.stream.Stream;
 
+import com.epam.catgenome.entity.vcf.VcfFile;
+import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -434,6 +436,11 @@ public class GrantPermissionManager {
                     return new AclPermissionEntry(entry.getSid(), mask);
                 })
                 .collect(toSet());
+    }
+
+    public void extendFilter(VcfFilterForm filter) {
+        filter.setVcfFileIds(filter.getVcfFileIds().stream().filter(fileId ->
+                permissionHelper.isAllowed("READ", fileId, VcfFile.class)).collect(toList()));
     }
 
     @Data

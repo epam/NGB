@@ -26,10 +26,12 @@ package com.epam.catgenome.security.acl.aspect;
 
 import java.util.List;
 
+import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.security.acl.PermissionHelper;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -143,10 +145,10 @@ public class AclAspect {
                 .forEach(e -> permissionManager.filterTree(e, AclPermission.READ));
     }
 
-    /*@Before("@annotation(com.epam.catgenome.security.acl.aspect.AclFilter) && args(filter,..)") //TODO: maybe needed
-    public void extendFilter(JoinPoint joinPoint, AclSecuredFilter filter) {
-        permissionManager.extendFilter(filter);
-    }*/
+    @Before("@annotation(com.epam.catgenome.security.acl.aspect.AclFilter) && args(filterForm,..)")
+    public void extendFilter(JoinPoint joinPoint, VcfFilterForm filterForm) {
+        permissionManager.extendFilter(filterForm);
+    }
 
 
     private void updateParent(AbstractSecuredEntity entity, MutableAcl acl) {

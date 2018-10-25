@@ -31,6 +31,7 @@ import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
+import com.epam.catgenome.security.acl.aspect.AclFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.access.prepost.PreFilter;
@@ -58,10 +59,13 @@ public class FeatureIndexSecurityService {
         return featureIndexManager.searchGenesInVcfFiles(search, vcfIds);
     }
 
+    @AclFilter
     @PreAuthorize(ROLE_USER)
     public IndexSearchResult<VcfIndexEntry> filterVariations(VcfFilterForm filterForm) throws IOException {
         return featureIndexManager.filterVariations(filterForm);
     }
+
+    @AclFilter
     @PreAuthorize(ROLE_USER)
     public List<Group> groupVariations(VcfFilterForm filterForm, String groupBy) throws IOException {
         return featureIndexManager.groupVariations(filterForm, groupBy);
@@ -72,12 +76,14 @@ public class FeatureIndexSecurityService {
         return featureIndexManager.searchFeaturesInProject(featureId, projectId);
     }
 
+    @AclFilter
     @PreAuthorize(ROLE_ADMIN + OR + READ_PROJECT_BY_ID)
     public IndexSearchResult<VcfIndexEntry> filterVariations(VcfFilterForm filterForm, long projectId)
             throws IOException {
         return featureIndexManager.filterVariations(filterForm, projectId);
     }
 
+    @AclFilter
     @PreAuthorize(ROLE_ADMIN + OR + READ_PROJECT_BY_ID)
     public List<Group> groupVariations(VcfFilterForm filterForm, long projectId, String groupBy) throws IOException {
         return featureIndexManager.groupVariations(filterForm, projectId, groupBy);
