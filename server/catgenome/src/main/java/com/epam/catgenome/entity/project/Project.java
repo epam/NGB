@@ -73,7 +73,7 @@ public class Project extends AbstractHierarchicalEntity {
 
     @Override
     public void filterLeaves(Map<AclClass, Set<Long>> idToRemove) {
-        if (items == null) {
+        if (CollectionUtils.isEmpty(items)) {
             return;
         }
 
@@ -81,8 +81,15 @@ public class Project extends AbstractHierarchicalEntity {
         for (ProjectItem item : items) {
             BiologicalDataItem leaf = item.getBioDataItem();
             Set<Long> ids = idToRemove.get(leaf.getAclClass());
-            if (!CollectionUtils.isEmpty(ids) && ids.contains(leaf.getId())){
+            if (!CollectionUtils.isEmpty(ids) && ids.contains(leaf.getId())) {
                 toRemove.add(item);
+                itemsCount -= 1;
+                if (itemsCountPerFormat != null) {
+                    itemsCountPerFormat.computeIfPresent(
+                            leaf.getFormat(),
+                            (k, i) -> i > 0 ? i - 1 : 0
+                    );
+                }
             }
         }
         items.removeAll(toRemove);
