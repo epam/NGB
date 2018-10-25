@@ -218,7 +218,7 @@ public class GrantPermissionManager {
                         parentMask) : defaultMask;
         entity.getChildren().forEach(
             leaf -> processHierarchicalEntity(currentMask, leaf, entitiesToRemove, permission, false, sids));
-        filterChildren(currentMask, entity.getLeaves(), entitiesToRemove, permission, sids);
+        filterLeafs(currentMask, entity.getLeaves(), entitiesToRemove, permission, sids);
         entity.filterLeaves(entitiesToRemove);
         entity.filterChildren(entitiesToRemove);
         boolean permissionGranted = PermissionUtils.isPermissionGranted(currentMask, permission);
@@ -233,8 +233,8 @@ public class GrantPermissionManager {
         entity.setMask(PermissionUtils.mergeMask(currentMask));
     }
 
-    private void filterChildren(int parentMask, List<? extends AbstractSecuredEntity> children,
-                                Map<AclClass, Set<Long>> entitiesToRemove, Permission permission, List<Sid> sids) {
+    private void filterLeafs(int parentMask, List<? extends AbstractSecuredEntity> children,
+                             Map<AclClass, Set<Long>> entitiesToRemove, Permission permission, List<Sid> sids) {
         children.forEach(child -> {
             int mask = PermissionUtils
                     .mergeParentMask(permissionHelper.getPermissionsMask(child, false, false, sids), parentMask);

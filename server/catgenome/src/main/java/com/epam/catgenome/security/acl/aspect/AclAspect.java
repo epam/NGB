@@ -138,10 +138,10 @@ public class AclAspect {
     }
 
     @AfterReturning(pointcut = "@annotation(com.epam.catgenome.security.acl.aspect.AclFilterAndTree)",
-            returning = RETURN_OBJECT)
+            returning = "list")
     @Transactional(propagation = Propagation.REQUIRED)
-    public void filterListOfTrees(JoinPoint joinPoint, List<AbstractHierarchicalEntity> entity) {
-        entity.stream().filter(e -> permissionHelper.isAllowed("READ", e))
+    public void filterListOfTrees(JoinPoint joinPoint, List<? extends AbstractHierarchicalEntity> list) {
+        list.stream().filter(e -> permissionHelper.isAllowed("READ", e))
                 .forEach(e -> permissionManager.filterTree(e, AclPermission.READ));
     }
 

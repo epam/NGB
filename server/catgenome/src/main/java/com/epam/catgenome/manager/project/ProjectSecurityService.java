@@ -54,6 +54,7 @@ public class ProjectSecurityService {
         return projectManager.loadTopLevelProjects();
     }
 
+    @AclMaskList
     @AclFilterAndTree
     @PreAuthorize(ROLE_USER)
     public List<Project> loadProjectTree(Long parentId, String referenceName) {
