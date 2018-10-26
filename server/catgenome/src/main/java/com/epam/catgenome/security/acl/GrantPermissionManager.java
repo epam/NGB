@@ -439,8 +439,15 @@ public class GrantPermissionManager {
     }
 
     public void extendFilter(VcfFilterForm filter) {
-        filter.setVcfFileIds(filter.getVcfFileIds().stream().filter(fileId ->
-                permissionHelper.isAllowed("READ", fileId, VcfFile.class)).collect(toList()));
+        filter.setVcfFileIdsByProject(
+                filter.getVcfFileIdsByProject().entrySet().stream().peek(
+                    entry -> {
+                        List<Long> filtered = entry.getValue().stream().filter(
+                            fileId -> permissionHelper.isAllowed("READ", fileId, VcfFile.class)
+                        ).collect(toList());
+                        entry.setValue(filtered);
+                    }
+                ).collect(toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
     @Data

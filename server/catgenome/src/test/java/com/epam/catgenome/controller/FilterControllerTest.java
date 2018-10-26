@@ -163,7 +163,7 @@ public class FilterControllerTest extends AbstractControllerTest {
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
     public void testFilterVcf() throws Exception {
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
-        vcfFilterForm.setVcfFileIds(Collections.singletonList(vcfFile.getId()));
+        vcfFilterForm.setVcfFileIdsByProject(Collections.singletonMap(1L, Collections.singletonList(vcfFile.getId())));
         vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(Collections.singletonList("ENS"), false));
         vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.MNP,
                                                                                 VariationType.INS), false));
@@ -227,7 +227,7 @@ public class FilterControllerTest extends AbstractControllerTest {
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
     public void testGroupVariations() throws Exception {
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
-        vcfFilterForm.setVcfFileIds(Collections.singletonList(vcfFile.getId()));
+        vcfFilterForm.setVcfFileIdsByProject(Collections.singletonMap(1L, Collections.singletonList(vcfFile.getId())));
 
         MvcResult mvcResult = mvc()
             .perform(post(URL_FILTER_GROUP).content(getObjectMapper().writeValueAsString(vcfFilterForm))

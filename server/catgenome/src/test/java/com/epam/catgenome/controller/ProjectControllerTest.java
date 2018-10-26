@@ -24,17 +24,13 @@
 
 package com.epam.catgenome.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static java.util.Collections.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -328,14 +324,14 @@ public class ProjectControllerTest extends AbstractControllerTest {
     public void testMoveLoadNested() throws Exception {
         Project parent = new Project();
         parent.setName("testParent");
-        parent.setItems(Collections.singletonList(new ProjectItem(new BiologicalDataItem(
+        parent.setItems(singletonList(new ProjectItem(new BiologicalDataItem(
             testReference.getBioDataItemId()))));
 
         ProjectVO createdParentProject = saveProject(parent, null);
 
         Project child1 = new Project();
         child1.setName("testChild1");
-        child1.setItems(Collections.singletonList(new ProjectItem(new BiologicalDataItem(
+        child1.setItems(singletonList(new ProjectItem(new BiologicalDataItem(
             testReference.getBioDataItemId()))));
 
         ProjectVO createdChild1 = saveProject(child1, createdParentProject.getId());
@@ -345,7 +341,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
         Project child2 = new Project();
         child2.setName("testChild2");
-        child2.setItems(Collections.singletonList(new ProjectItem(new BiologicalDataItem(
+        child2.setItems(singletonList(new ProjectItem(new BiologicalDataItem(
             testReference.getBioDataItemId()))));
 
         ProjectVO createdChild2 = saveProject(child2, null);
@@ -423,28 +419,28 @@ public class ProjectControllerTest extends AbstractControllerTest {
     public void testLoadTreeWithParent() throws Exception {
         Project parent = new Project();
         parent.setName("testParent");
-        parent.setItems(Collections.singletonList(new ProjectItem(new BiologicalDataItem(
+        parent.setItems(singletonList(new ProjectItem(new BiologicalDataItem(
                 testReference.getBioDataItemId()))));
 
         ProjectVO createdParentProject = saveProject(parent, null);
 
         Project child1 = new Project();
         child1.setName("testChild1");
-        child1.setItems(Collections.singletonList(new ProjectItem(new BiologicalDataItem(
+        child1.setItems(singletonList(new ProjectItem(new BiologicalDataItem(
                 testReference.getBioDataItemId()))));
 
         ProjectVO createdChild1 = saveProject(child1, createdParentProject.getId());
 
         Project child2 = new Project();
         child2.setName("testChild2");
-        child2.setItems(Collections.singletonList(new ProjectItem(new BiologicalDataItem(
+        child2.setItems(singletonList(new ProjectItem(new BiologicalDataItem(
                 testReference.getBioDataItemId()))));
 
         saveProject(child2, createdParentProject.getId());
 
         Project child11 = new Project();
         child11.setName("testChild11");
-        child11.setItems(Collections.singletonList(new ProjectItem(new BiologicalDataItem(
+        child11.setItems(singletonList(new ProjectItem(new BiologicalDataItem(
                 testReference.getBioDataItemId()))));
 
         saveProject(child11, createdChild1.getId());
@@ -763,8 +759,8 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
         // filter vcf
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
-        vcfFilterForm.setVcfFileIds(Collections.singletonList(vcfFile.getId()));
-        vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(Collections.singletonList("ENS"), false));
+        vcfFilterForm.setVcfFileIdsByProject(singletonMap(loadedProject.getId(), singletonList(vcfFile.getId())));
+        vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(singletonList("ENS"), false));
         vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.MNP,
                 VariationType.INS), false));
 
@@ -812,7 +808,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
         // search genes
         GeneSearchQuery geneSearchQuery = new GeneSearchQuery();
         geneSearchQuery.setSearch("ENS");
-        geneSearchQuery.setVcfIds(Collections.singletonList(vcfFile.getId()));
+        geneSearchQuery.setVcfIds(singletonList(vcfFile.getId()));
 
         actions = mvc()
                 .perform(post(String.format(URL_FILTER_VCF_SEARCH_GENES, loadedProject.getId())).content(
@@ -918,8 +914,8 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
         // filter vcf
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
-        vcfFilterForm.setVcfFileIds(Collections.singletonList(vcfFile.getId()));
-        vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(Collections.singletonList("ENS"), false));
+        vcfFilterForm.setVcfFileIdsByProject(singletonMap(loadedProject.getId(), singletonList(vcfFile.getId())));
+        vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(singletonList("ENS"), false));
         vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.MNP,
                 VariationType.INS), false));
 
