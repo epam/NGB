@@ -47,10 +47,12 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 public class BamSecurityService {
 
     private static final String READ_BAM_BY_TRACK_ID =
-            "hasPermission(#track.id, com.epam.catgenome.entity.bam.BamFile, 'READ')";
+            "hasPermissionOnFileOrParentProject(#track.id, 'com.epam.catgenome.entity.bam.BamFile', " +
+                    "#track.projectId, 'READ')";
 
     private static final String READ_BAM_BY_QUERY_ID =
-            "hasPermission(#query.id, com.epam.catgenome.entity.bam.BamFile, 'READ')";
+            "hasPermissionOnFileOrParentProject(#query.id, 'com.epam.catgenome.entity.bam.BamFile', " +
+                    "#query.projectId, 'READ')";
 
     @Autowired
     private BamFileManager bamFileManager;
@@ -91,7 +93,7 @@ public class BamSecurityService {
     }
 
     @AclMaskList
-    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT)
+    @PostFilter(ROLE_ADMIN + OR + ROLE_BAM_MANAGER + OR + READ_ON_FILTER_OBJECT)
     public List<BamFile> loadBamFilesByReferenceId(Long referenceId) {
         return bamFileManager.loadBamFilesByReferenceId(referenceId);
     }

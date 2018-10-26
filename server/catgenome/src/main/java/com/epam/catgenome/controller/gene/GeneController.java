@@ -333,9 +333,11 @@ public class GeneController extends AbstractRESTController {
             })
     public Result<Gene> jumpToNextGene(@RequestParam int fromPosition,
                                        @PathVariable(value = "trackId") long geneFileId,
-                                       @PathVariable(value = "chromosomeId") long chromosomeId) throws IOException {
+                                       @PathVariable(value = "chromosomeId") long chromosomeId,
+                                       @PathVariable(value = "projectId", required = false) Long projectId)
+            throws IOException {
         return Result.success(geneSecurityService.getNextOrPreviousFeature(
-                fromPosition, geneFileId, chromosomeId, true));
+                fromPosition, geneFileId, chromosomeId, true, projectId));
     }
 
     @RequestMapping(value = "/gene/{trackId}/{chromosomeId}/prev", method = RequestMethod.GET)
@@ -351,9 +353,11 @@ public class GeneController extends AbstractRESTController {
             })
     public Result<Gene> jumpToPrevGene(@RequestParam int fromPosition,
                                        @PathVariable(value = "trackId") long geneFileId,
-                                       @PathVariable(value = "chromosomeId") long chromosomeId) throws IOException {
+                                       @PathVariable(value = "chromosomeId") long chromosomeId,
+                                       @PathVariable(value = "projectId", required = false) Long projectId)
+            throws IOException {
         return Result.success(geneSecurityService.getNextOrPreviousFeature(
-                fromPosition, geneFileId, chromosomeId, false));
+                fromPosition, geneFileId, chromosomeId, false, projectId));
     }
 
     @RequestMapping(value = "/gene/exons/viewport", method = RequestMethod.POST)
@@ -371,7 +375,7 @@ public class GeneController extends AbstractRESTController {
             })
     public Result<List<Block>> fetchExons(@RequestBody ExonViewPortQuery query) throws IOException {
         return Result.success(geneSecurityService.loadExonsInViewPort(query.getId(), query.getChromosomeId(),
-                query.getCenterPosition(), query.getViewPortSize(), query.getIntronLength()));
+                query.getCenterPosition(), query.getViewPortSize(), query.getIntronLength(), query.getProjectId()));
     }
 
     @RequestMapping(value = "/gene/exons/range", method = RequestMethod.POST)
@@ -389,6 +393,6 @@ public class GeneController extends AbstractRESTController {
             })
     public Result<List<Block>> fetchExons(@RequestBody ExonRangeQuery query) throws IOException {
         return Result.success(geneSecurityService.loadExonsInTrack(query.getId(), query.getChromosomeId(),
-                query.getStartIndex(), query.getEndIndex(), query.getIntronLength()));
+                query.getStartIndex(), query.getEndIndex(), query.getIntronLength(), query.getProjectId()));
     }
 }

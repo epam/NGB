@@ -60,7 +60,7 @@ public class WigSecurityService {
         return facadeWigManager.registerWigFile(request);
     }
 
-    @PreAuthorize("hasPermission(#track.id, com.epam.catgenome.entity.wig.WigFile, 'READ')")
+    @PreAuthorize("hasPermission(#track.id, 'com.epam.catgenome.entity.wig.WigFile', 'READ')")
     public Track<Wig> getWigTrack(Track<Wig> track) throws IOException {
         return facadeWigManager.getWigTrack(track);
     }

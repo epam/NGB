@@ -50,6 +50,11 @@ public abstract class AbstractExonQuery {
      */
     private Integer intronLength;
 
+    /**
+     * {@code Long} specifies the project id that the track belong. Can be null.
+     */
+    protected Long projectId;
+
     public Long getId() {
         return id;
     }
@@ -72,5 +77,13 @@ public abstract class AbstractExonQuery {
 
     public void setIntronLength(Integer intronLength) {
         this.intronLength = intronLength;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 }

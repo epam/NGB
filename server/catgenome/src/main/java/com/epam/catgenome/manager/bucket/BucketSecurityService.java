@@ -46,8 +46,9 @@ public class BucketSecurityService {
 
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_BUCKET_MANAGER
-            + OR + "hasPermission(#bucketId, com.epam.catgenome.entity.bucket.Bucket, 'READ')")
-    public Bucket load(Long bucketId) {
+            + OR + "hasPermission(#bucketId, 'com.epam.catgenome.entity.bucket.Bucket', 'READ')" + OR +
+            READ_PROJECT_BY_ID)
+    public Bucket load(Long bucketId, Long projectId) {
         return bucketManager.load(bucketId);
     }
 

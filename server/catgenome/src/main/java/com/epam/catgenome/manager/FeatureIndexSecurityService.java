@@ -76,6 +76,7 @@ public class FeatureIndexSecurityService {
         return featureIndexManager.searchFeaturesInProject(featureId, projectId);
     }
 
+    //TODO include projectId to filtering
     @AclFilter
     @PreAuthorize(ROLE_ADMIN + OR + READ_PROJECT_BY_ID)
     public IndexSearchResult<VcfIndexEntry> filterVariations(VcfFilterForm filterForm, long projectId)

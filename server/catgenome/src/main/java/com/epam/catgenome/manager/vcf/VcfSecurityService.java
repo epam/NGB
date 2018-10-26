@@ -50,12 +50,12 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 @Service
 public class VcfSecurityService {
 
-    private static final String READ_VCF_BY_ID =
-            "hasPermission(#vcfFileId, com.epam.catgenome.entity.vcf.VcfFile, 'WRITE')";
     private static final String READ_VCF_BY_TRACK_ID =
-            "hasPermission(#variationTrack.id, com.epam.catgenome.entity.vcf.VcfFile, 'READ')";
+            "hasPermissionOnFileOrParentProject(#variationTrack.id, 'com.epam.catgenome.entity.vcf.VcfFile', " +
+                    "#variationTrack.projectId, 'READ')";
     private static final String READ_VCF_BY_QUERY_ID =
-            "hasPermission(#query.id, com.epam.catgenome.entity.vcf.VcfFile, 'READ')";
+            "hasPermissionOnFileOrParentProject(#query.id, 'com.epam.catgenome.entity.vcf.VcfFile', " +
+                    "#query.projectId, 'READ')";
 
     @Autowired
     private VcfManager vcfManager;
@@ -69,7 +69,7 @@ public class VcfSecurityService {
         return vcfManager.registerVcfFile(request);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + READ_VCF_BY_ID)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_VCF_MANAGER)
     public VcfFile reindexVcfFile(long vcfFileId, boolean createTabixIndex) throws FeatureIndexException {
         return vcfManager.reindexVcfFile(vcfFileId, createTabixIndex);
     }
@@ -86,9 +86,9 @@ public class VcfSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_VCF_BY_TRACK_ID)
-    public Track<Variation> loadVariations(Track<Variation> variationTrack, Long sampleId, boolean loadInfo,
+    public Track<Variation> loadVariations(Track<Variation> track, Long sampleId, boolean loadInfo,
                                  boolean collapsed) throws VcfReadingException {
-        return vcfManager.loadVariations(variationTrack, sampleId, loadInfo, collapsed);
+        return vcfManager.loadVariations(track, sampleId, loadInfo, collapsed);
     }
 
     @PreAuthorize(ROLE_USER)

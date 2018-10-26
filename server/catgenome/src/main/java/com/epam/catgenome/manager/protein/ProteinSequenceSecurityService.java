@@ -46,28 +46,30 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
 @Service
 public class ProteinSequenceSecurityService {
 
-    private static final String READ_PERMISSION_FOR_GENE_FILE_AND_REFERENCE =
-            ROLE_ADMIN + OR + "hasPermission(#genes.id, com.epam.catgenome.entity.gene.GeneFile, 'READ') AND " +
-            "hasPermission(#referenceId, com.epam.catgenome.reference.Reference, 'READ')";
+    private static final String READ_PERMISSION_FOR_GENE_FILE_BY_TRACK = ROLE_ADMIN + OR +
+            "hasPermissionOnFileOrParentProject(#genes.id, 'com.epam.catgenome.entity.gene.GeneFile', " +
+            "#genes.projectId, 'READ')";
+
+    private static final String READ_PERMISSION_FOR_GENE_FILE_BY_QUERY = ROLE_ADMIN + OR +
+            "hasPermissionOnFileOrParentProject(#psVariationQuery.trackQuery.id, " +
+            "'com.epam.catgenome.entity.gene.GeneFile', #psVariationQuery.trackQuery.projectId, 'READ')";
 
     @Autowired
     private ProteinSequenceManager proteinSequenceManager;
 
-    @PreAuthorize(READ_PERMISSION_FOR_GENE_FILE_AND_REFERENCE)
+    @PreAuthorize(READ_PERMISSION_FOR_GENE_FILE_BY_TRACK)
     public Map<Gene, List<ProteinSequenceEntry>> loadProteinSequenceWithoutGrouping(
             Track<Gene> genes, Long referenceId, boolean collapsed) throws GeneReadingException {
         return proteinSequenceManager.loadProteinSequenceWithoutGrouping(genes, referenceId, collapsed);
     }
 
-    @PreAuthorize(READ_PERMISSION_FOR_GENE_FILE_AND_REFERENCE)
+    @PreAuthorize(READ_PERMISSION_FOR_GENE_FILE_BY_TRACK)
     public Track<ProteinSequenceInfo> loadProteinSequence(Track<Gene> genes, Long referenceId)
             throws GeneReadingException {
         return proteinSequenceManager.loadProteinSequence(genes, referenceId);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR +
-            "hasPermission(#psVariationQuery.trackQuery.id, com.epam.catgenome.entity.gene.GeneFile, 'READ') " +
-            " AND hasPermission(#referenceId, com.epam.catgenome.reference.Reference, 'READ')")
+    @PreAuthorize(READ_PERMISSION_FOR_GENE_FILE_BY_QUERY)
     public Track<MrnaProteinSequenceVariants> loadProteinSequenceWithVariations(
             ProteinSequenceVariationQuery psVariationQuery, Long referenceId) throws GeneReadingException {
         return proteinSequenceManager.loadProteinSequenceWithVariations(psVariationQuery, referenceId);

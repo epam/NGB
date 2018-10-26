@@ -45,7 +45,7 @@ public final class SecurityExpressions {
     public static final String READ_PROJECT_BY_ID = "hasPermissionOnProject(#projectId, 'READ')";
     public static final String READ_ON_FILTER_OBJECT = "hasPermission(filterObject, 'READ')";
     public static final String VCF_FILE_FILTER_BY_ID =
-            "hasPermission(filterObject, com.epam.catgenome.entity.vcf.VcfFile, 'READ')";
+            "hasPermission(filterObject, 'com.epam.catgenome.entity.vcf.VcfFile', 'READ')";
 
     private SecurityExpressions() {
 

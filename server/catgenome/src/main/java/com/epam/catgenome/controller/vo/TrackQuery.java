@@ -69,6 +69,11 @@ public class TrackQuery {
 
     private Boolean collapsed;
 
+    /**
+     * {@code Long} specifies the project id that the track belong. Can be null.
+     */
+    protected Long projectId;
+
     public BamQueryOption getOption() {
         return option;
     }
@@ -123,5 +128,13 @@ public class TrackQuery {
 
     public void setCollapsed(Boolean collapsed) {
         this.collapsed = collapsed;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 }

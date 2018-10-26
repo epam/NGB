@@ -82,21 +82,21 @@ public class ReferenceSecurityService {
         return referenceManager.getNucleotidesResultFromNib(track);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR +ROLE_REFERENCE_MANAGER)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_REFERENCE_MANAGER)
     public Reference registerGenome(ReferenceRegistrationRequest request) throws IOException {
         return referenceManager.registerGenome(request);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR +
-            "hasPermission(#referenceId, com.epam.catgenome.entity.reference.Reference, 'WRITE') " +
-            "AND hasPermission(#geneFileId, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
+            "hasPermission(#referenceId, 'com.epam.catgenome.entity.reference.Reference', 'WRITE') " +
+            "AND hasPermission(#geneFileId, 'com.epam.catgenome.entity.gene.GeneFile', 'READ')")
     public Reference updateReferenceGeneFileId(Long referenceId, Long geneFileId) {
         return referenceGenomeManager.updateReferenceGeneFileId(referenceId, geneFileId);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR +
-            "hasPermission(#referenceId, com.epam.catgenome.entity.reference.Reference, 'WRITE') " +
-            "AND hasPermission(#geneFileId, com.epam.catgenome.entity.gene.GeneFile, 'READ')")
+            "hasPermission(#referenceId, 'com.epam.catgenome.entity.reference.Reference', 'WRITE') " +
+            "AND hasPermission(#geneFileId, 'com.epam.catgenome.entity.gene.GeneFile', 'READ')")
     public Reference updateReferenceAnnotationFile(Long referenceId, Long annotationFileId, Boolean remove)
             throws IOException, FeatureIndexException {
         return referenceGenomeManager.updateReferenceAnnotationFile(referenceId, annotationFileId, remove);

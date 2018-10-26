@@ -38,6 +38,7 @@ import java.util.List;
 public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
                                                 implements MethodSecurityExpressionOperations {
 
+    public static final String ADMIN = "ADMIN";
     private Object filterObject;
     private Object returnObject;
     private Object target;
@@ -48,6 +49,7 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
         super(authentication);
     }
 
+    //TODO ADD MANAGER ROLE AS ALLOWED
     public boolean isAllowed(Object target, String permission) {
 
         AbstractSecuredEntity item = (AbstractSecuredEntity) target;
@@ -63,12 +65,21 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
     }
 
     public boolean hasPermissionOnProject(Long projectId, String permission) {
-        boolean isAllowedByRole = hasAnyRole("ADMIN", "PROJECT_MANAGER");
+        boolean isAllowedByRole = hasAnyRole(ADMIN, "PROJECT_MANAGER");
         if (projectId == null) {
             return isAllowedByRole;
         } else {
             return hasPermission(projectId, Project.class.getCanonicalName(), permission);
         }
+    }
+
+    public boolean hasPermissionOnFileOrParentProject(Long fileId, String type, Long projectId, String permission) {
+        //if fileId == null we assume that track is unregistered and will be fetched from url,
+        // so no need to have permission
+        if (hasRole(ADMIN) || fileId == null) {
+            return true;
+        }
+        return hasPermission(fileId, type, permission) || hasPermissionOnProject(projectId, permission);
     }
 
     public boolean projectCanBeMoved(Long projectId, Long newParentId) {

@@ -44,6 +44,8 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 @Service
 public class MafSecurityService {
 
+    public static final String READ_ON_FILE_OR_PROJECT_BY_TRACK = "hasPermissionOnFileOrParentProject(#track.id, " +
+            "'com.epam.catgenome.entity.maf.MafFile', #track.projectId, 'READ')";
     @Autowired
     private MafManager mafManager;
 
@@ -66,7 +68,7 @@ public class MafSecurityService {
         return mafFileManager.loadMafFilesByReferenceId(referenceId);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + "hasPermission(#track.id, com.epam.catgenome.entity.maf.MafFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_OR_PROJECT_BY_TRACK)
     public Track<MafRecord> loadFeatures(Track<MafRecord> track) throws IOException {
         return mafManager.loadFeatures(track);
     }

@@ -42,7 +42,7 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 public class BookmarkSecurityService {
 
     private static final String READ_BOOKMARK_BY_ID =
-            "hasPermission(#bookmarkId, com.epam.catgenom.entity.reference.Bookmark, 'READ')";
+            "hasPermission(#bookmarkId, 'com.epam.catgenom.entity.reference.Bookmark', 'READ')";
 
     @Autowired
     private BookmarkManager bookmarkManager;

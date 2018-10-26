@@ -48,6 +48,9 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 @Service
 public class BedSecurityService {
 
+    private static final String READ_ON_FILE_OR_PROJECT_BY_TRACK = "hasPermissionOnFileOrParentProject(#track.id, " +
+            "'com.epam.catgenome.entity.bed.BedFile', #track.projectId, 'READ')";
+
     @Autowired
     private BedManager bedManager;
 
@@ -70,7 +73,7 @@ public class BedSecurityService {
         return bedManager.loadFeatures(track, fileUrl, indexUrl);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + "hasPermission(#track.id, com.epam.catgenome.entity.bed.BedFile, 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_OR_PROJECT_BY_TRACK)
     public Track<BedRecord> loadFeatures(Track<BedRecord> track) throws FeatureFileReadingException {
         return bedManager.loadFeatures(track);
     }
@@ -81,13 +84,13 @@ public class BedSecurityService {
         return bedFileManager.loadBedFilesByReferenceId(referenceId);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + "hasPermission(#bedFileId, com.epam.catgenome.entity.bed.BedFile, 'WRITE')")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_BED_MANAGER)
     public BedFile reindexBedFile(long bedFileId) throws FeatureIndexException {
         return bedManager.reindexBedFile(bedFileId);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + "hasPermission(#histogramTrack.id, com.epam.catgenome.entity.bed.BedFile, 'READ')")
-    public Track<Wig> loadHistogram(Track<Wig> histogramTrack) throws HistogramReadingException {
-        return bedManager.loadHistogram(histogramTrack);
+    @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_OR_PROJECT_BY_TRACK)
+    public Track<Wig> loadHistogram(Track<Wig> track) throws HistogramReadingException {
+        return bedManager.loadHistogram(track);
     }
 }

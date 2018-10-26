@@ -30,11 +30,7 @@ import com.epam.catgenome.manager.bucket.BucketSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
@@ -63,8 +59,9 @@ public class BucketController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public final Result<Bucket> loadBucketById(@PathVariable(value = "bucketId") final Long bucketId) {
-        return Result.success(bucketSecurityService.load(bucketId));
+    public final Result<Bucket> loadBucketById(@PathVariable(value = "bucketId") final Long bucketId,
+                                               @RequestParam(required = false) final  Long projectId) {
+        return Result.success(bucketSecurityService.load(bucketId, projectId));
     }
 
     @ResponseBody

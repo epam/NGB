@@ -44,8 +44,9 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 @Service
 public class SegSecurityService {
 
-    private static final String READ_SEG_FILE_BY_ID =
-            "hasPermission(#track.id, com.epam.catgenome.entity.seg.SegFile, 'READ')";
+    private static final String READ_SEG_FILE_OR_PROJECT_BY_TRACK =
+            "hasPermissionOnFileOrParentProject(#track.id, 'com.epam.catgenome.entity.seg.SegFile', " +
+                    "#track.projectId, 'READ')";
 
     @Autowired
     private SegFileManager segFileManager;
@@ -70,7 +71,7 @@ public class SegSecurityService {
         return segFileManager.loadSedFilesByReferenceId(referenceId);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + READ_SEG_FILE_BY_ID)
+    @PreAuthorize(ROLE_ADMIN + OR + READ_SEG_FILE_OR_PROJECT_BY_TRACK)
     public SampledTrack<SegRecord> loadFeatures(SampledTrack<SegRecord> track) throws IOException {
         return segManager.loadFeatures(track);
     }
