@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import com.epam.catgenome.manager.FeatureIndexSecurityService;
 import com.epam.catgenome.manager.project.ProjectSecurityService;
@@ -79,7 +80,7 @@ public class ProjectController extends AbstractRESTController {
     private ProjectSecurityService projectSecurityService;
 
     @Autowired
-    private FeatureIndexSecurityService featureIndexManager;
+    private FeatureIndexSecurityService featureIndexSecurityService;
 
     @RequestMapping(value = "/project/loadMy", method = RequestMethod.GET)
     @ResponseBody
@@ -233,7 +234,7 @@ public class ProjectController extends AbstractRESTController {
     public Result<IndexSearchResult> searchFeatureInProject(
             @PathVariable(value = PROJECT_ID_PARAM) final Long projectId, @RequestParam String featureId)
             throws IOException {
-        return Result.success(featureIndexManager.searchFeaturesInProject(featureId, projectId));
+        return Result.success(featureIndexSecurityService.searchFeaturesInProject(featureId, projectId));
     }
 
     @RequestMapping(value = "/project/{projectId}/filter/vcf", method = RequestMethod.POST)
@@ -299,7 +300,7 @@ public class ProjectController extends AbstractRESTController {
     public Result<List<VcfIndexEntry>> filterVcf(@RequestBody final VcfFilterForm filterForm,
                                                  @PathVariable(value = PROJECT_ID_PARAM) long projectId)
             throws IOException {
-        return Result.success(featureIndexManager.filterVariations(filterForm, projectId).getEntries());
+        return Result.success(featureIndexSecurityService.filterVariations(filterForm, projectId).getEntries());
     }
 
     @RequestMapping(value = "/project/{projectId}/filter/vcf/new", method = RequestMethod.POST)
@@ -365,7 +366,7 @@ public class ProjectController extends AbstractRESTController {
     public Result<IndexSearchResult<VcfIndexEntry>> filterVcfNew(@RequestBody final VcfFilterForm filterForm,
                                                  @PathVariable(value = PROJECT_ID_PARAM) long projectId)
         throws IOException {
-        return Result.success(featureIndexManager.filterVariations(filterForm, projectId));
+        return Result.success(featureIndexSecurityService.filterVariations(filterForm, projectId));
     }
 
     @RequestMapping(value = "/project/{projectId}/group/vcf", method = RequestMethod.POST)
@@ -425,7 +426,7 @@ public class ProjectController extends AbstractRESTController {
     public Result<List<Group>> groupVariations(@RequestBody final VcfFilterForm filterForm,
                                                @PathVariable(value = PROJECT_ID_PARAM) long projectId,
                                                @RequestParam String groupBy) throws IOException {
-        return Result.success(featureIndexManager.groupVariations(filterForm, projectId, groupBy));
+        return Result.success(featureIndexSecurityService.groupVariations(filterForm, projectId, groupBy));
     }
 
 
@@ -441,8 +442,8 @@ public class ProjectController extends AbstractRESTController {
             })
     public Result<Set<String>> searchGenesInProject(@PathVariable(value = PROJECT_ID_PARAM) long projectId,
                                                     @RequestBody GeneSearchQuery geneQuery) throws IOException {
-        return Result.success(featureIndexManager.searchGenesInVcfFilesInProject(projectId, geneQuery.getSearch(),
-                geneQuery.getVcfIds()));
+        return Result.success(featureIndexSecurityService.searchGenesInVcfFilesInProject(projectId, geneQuery.getSearch(),
+                geneQuery.getVcfIdsByProject().values().stream().flatMap(List::stream).collect(Collectors.toList())));
     }
 
     @ResponseBody
@@ -456,7 +457,7 @@ public class ProjectController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<VcfFilterInfo> erg(@PathVariable(value = PROJECT_ID_PARAM) final Long projectId) throws IOException {
-        return Result.success(featureIndexManager.loadVcfFilterInfoForProject(projectId));
+        return Result.success(featureIndexSecurityService.loadVcfFilterInfoForProject(projectId));
     }
 
     @RequestMapping(value = "/project/{projectId}", method = RequestMethod.DELETE)

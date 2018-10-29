@@ -26,6 +26,7 @@ package com.epam.catgenome.controller.filter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -74,7 +75,7 @@ public class FilterController extends AbstractRESTController {
         })
     public Result<Set<String>> searchGenesInProject(@RequestBody GeneSearchQuery geneQuery) throws IOException {
         return Result.success(featureIndexSecurityService.searchGenesInVcfFiles(geneQuery.getSearch(),
-                geneQuery.getVcfIds()));
+                geneQuery.getVcfIdsByProject()));
     }
 
     @RequestMapping(value = "/filter/info", method = RequestMethod.POST)
@@ -85,8 +86,9 @@ public class FilterController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<VcfFilterInfo> getFieldInfo(@RequestBody List<Long> vcfFileIds) throws IOException {
-        return Result.success(vcfSecurityService.getFiltersInfo(vcfFileIds));
+    public Result<VcfFilterInfo> getFieldInfo(
+            @RequestBody Map<Long, List<Long>> vcfFileIdsByProjectId) throws IOException {
+        return Result.success(vcfSecurityService.getFiltersInfo(vcfFileIdsByProjectId));
     }
 
     @RequestMapping(value = "/filter", method = RequestMethod.POST)

@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.toSet;
 import java.util.*;
 import java.util.stream.Stream;
 
+import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import org.apache.commons.collections4.ListUtils;
@@ -79,6 +80,7 @@ import lombok.Data;
 public class GrantPermissionManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GrantPermissionManager.class);
+    private static final String READ = "READ";
 
     @Autowired
     private PermissionFactory permissionFactory;
@@ -443,11 +445,26 @@ public class GrantPermissionManager {
                 filter.getVcfFileIdsByProject().entrySet().stream().peek(
                     entry -> {
                         List<Long> filtered = entry.getValue().stream().filter(
-                            fileId -> permissionHelper.isAllowed("READ", fileId, VcfFile.class)
+                            fileId -> permissionHelper.isAllowed(READ, fileId, VcfFile.class) ||
+                                    permissionHelper.isAllowed(READ, entry.getKey(), Project.class)
                         ).collect(toList());
                         entry.setValue(filtered);
                     }
                 ).collect(toMap(Map.Entry::getKey, Map.Entry::getValue)));
+    }
+
+    public void extendMapFilter(Map<Long, List<Long>> fileIdsByProject) {
+        for (Long projectId : fileIdsByProject.keySet()) {
+            fileIdsByProject.compute(projectId, (key, fileIds) -> {
+                List<Long> filtered = fileIds;
+                if (fileIds != null) {
+                    filtered = fileIds.stream().filter(fileId ->
+                            permissionHelper.isAllowed(READ, fileId, VcfFile.class) ||
+                            permissionHelper.isAllowed(READ, key, Project.class)).collect(toList());
+               }
+               return filtered;
+            });
+        }
     }
 
     @Data

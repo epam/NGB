@@ -30,11 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -808,7 +804,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
         // search genes
         GeneSearchQuery geneSearchQuery = new GeneSearchQuery();
         geneSearchQuery.setSearch("ENS");
-        geneSearchQuery.setVcfIds(singletonList(vcfFile.getId()));
+        geneSearchQuery.setVcfIdsByProject(singletonMap(loadedProject.getId(), singletonList(vcfFile.getId())));
 
         actions = mvc()
                 .perform(post(String.format(URL_FILTER_VCF_SEARCH_GENES, loadedProject.getId())).content(

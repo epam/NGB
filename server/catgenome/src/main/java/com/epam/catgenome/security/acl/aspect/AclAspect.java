@@ -25,6 +25,7 @@
 package com.epam.catgenome.security.acl.aspect;
 
 import java.util.List;
+import java.util.Map;
 
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.security.acl.PermissionHelper;
@@ -148,6 +149,12 @@ public class AclAspect {
     @Before("@annotation(com.epam.catgenome.security.acl.aspect.AclFilter) && args(filterForm,..)")
     public void extendFilter(JoinPoint joinPoint, VcfFilterForm filterForm) {
         permissionManager.extendFilter(filterForm);
+    }
+
+    @Before("@annotation(com.epam.catgenome.security.acl.aspect.AclMapFilter) && args(.., fileIdsByProject)")
+    public void extendMapFilter(JoinPoint joinPoint, Map<Long, List<Long>> fileIdsByProject) {
+
+        permissionManager.extendMapFilter(fileIdsByProject);
     }
 
 

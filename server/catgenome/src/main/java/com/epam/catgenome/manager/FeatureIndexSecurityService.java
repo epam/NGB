@@ -32,14 +32,16 @@ import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.security.acl.aspect.AclFilter;
+import com.epam.catgenome.security.acl.aspect.AclMapFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.access.prepost.PreFilter;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
@@ -54,9 +56,11 @@ public class FeatureIndexSecurityService {
         return featureIndexManager.searchFeaturesByReference(featureId, referenceId);
     }
 
-    @PreFilter(ROLE_ADMIN + OR + VCF_FILE_FILTER_BY_ID)
-    public Set<String> searchGenesInVcfFiles(String search, List<Long> vcfIds) throws IOException {
-        return featureIndexManager.searchGenesInVcfFiles(search, vcfIds);
+    @AclMapFilter
+    @PreAuthorize(ROLE_USER)
+    public Set<String> searchGenesInVcfFiles(String search, Map<Long, List<Long>> fileIdsByProject) throws IOException {
+        return featureIndexManager.searchGenesInVcfFiles(search,
+                fileIdsByProject.values().stream().flatMap(List::stream).collect(Collectors.toList()));
     }
 
     @AclFilter
@@ -76,7 +80,6 @@ public class FeatureIndexSecurityService {
         return featureIndexManager.searchFeaturesInProject(featureId, projectId);
     }
 
-    //TODO include projectId to filtering
     @AclFilter
     @PreAuthorize(ROLE_ADMIN + OR + READ_PROJECT_BY_ID)
     public IndexSearchResult<VcfIndexEntry> filterVariations(VcfFilterForm filterForm, long projectId)

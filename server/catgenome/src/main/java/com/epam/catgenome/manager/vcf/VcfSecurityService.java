@@ -35,15 +35,17 @@ import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.VcfReadingException;
+import com.epam.catgenome.security.acl.aspect.AclMapFilter;
 import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.access.prepost.PreFilter;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
@@ -117,9 +119,10 @@ public class VcfSecurityService {
                                                      loadInfo, fileUrl, indexUrl);
     }
 
+    @AclMapFilter
     @PreAuthorize(ROLE_USER)
-    @PreFilter(ROLE_ADMIN + OR + VCF_FILE_FILTER_BY_ID)
-    public VcfFilterInfo getFiltersInfo(List<Long> fileIds) throws IOException {
-        return vcfManager.getFiltersInfo(fileIds);
+    public VcfFilterInfo getFiltersInfo(Map<Long, List<Long>> fileIdsByProject) throws IOException {
+        return vcfManager.getFiltersInfo(
+                fileIdsByProject.values().stream().flatMap(List::stream).collect(Collectors.toList()));
     }
 }

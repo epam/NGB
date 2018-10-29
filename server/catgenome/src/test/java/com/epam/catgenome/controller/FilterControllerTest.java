@@ -116,7 +116,7 @@ public class FilterControllerTest extends AbstractControllerTest {
     public void testSearchGenesInProject() throws Exception {
         GeneSearchQuery geneSearchQuery = new GeneSearchQuery();
         geneSearchQuery.setSearch("ENS");
-        geneSearchQuery.setVcfIds(Collections.singletonList(vcfFile.getId()));
+        geneSearchQuery.setVcfIdsByProject(Collections.singletonMap(0L, Collections.singletonList(vcfFile.getId())));
 
         ResultActions actions = mvc()
             .perform(post(URL_FILTER_SEARCH_GENES).content(
@@ -141,7 +141,8 @@ public class FilterControllerTest extends AbstractControllerTest {
     public void testGetFieldInfo() throws Exception {
         ResultActions actions = mvc()
             .perform(post(URL_FILTER_INFO).content(getObjectMapper().writeValueAsBytes(
-                Collections.singletonList(vcfFile.getId()))).contentType(EXPECTED_CONTENT_TYPE))
+                Collections.singletonMap(0L, Collections.singletonList(vcfFile.getId()))))
+                    .contentType(EXPECTED_CONTENT_TYPE))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
             .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
