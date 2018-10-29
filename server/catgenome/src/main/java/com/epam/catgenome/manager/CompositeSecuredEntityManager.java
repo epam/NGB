@@ -24,7 +24,6 @@
 
 package com.epam.catgenome.manager;
 
-import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -76,8 +75,4 @@ public class CompositeSecuredEntityManager {
         return getEntityManager(aclClass).changeOwner(id, owner);
     }
 
-    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(
-        AclClass aclClass, Integer page, Integer pageSize) {
-        return getEntityManager(aclClass).loadAllWithParents(page, pageSize);
-    }
 }

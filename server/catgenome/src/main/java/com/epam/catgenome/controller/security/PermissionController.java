@@ -31,7 +31,7 @@ import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.security.PermissionGrantVO;
 import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.entity.security.AclSecuredEntry;
-import com.epam.catgenome.security.acl.AclPermissionApiService;
+import com.epam.catgenome.security.acl.AclPermissionSecurityService;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -48,7 +48,7 @@ import org.springframework.web.bind.annotation.*;
 public class PermissionController extends AbstractRESTController {
 
     @Autowired
-    private AclPermissionApiService permissionApiService;
+    private AclPermissionSecurityService permissionApiService;
 
     @RequestMapping(value = "/grant", method = RequestMethod.POST)
     @ResponseBody

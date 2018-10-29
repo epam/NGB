@@ -24,7 +24,6 @@
 
 package com.epam.catgenome.manager.seg;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -150,8 +149,4 @@ public class SegFileManager implements SecuredEntityManager {
         return AclClass.SEG;
     }
 
-    @Override
-    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize) {
-        throw new UnsupportedOperationException();
-    }
 }

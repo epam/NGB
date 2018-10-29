@@ -25,7 +25,6 @@
 package com.epam.catgenome.manager.vcf;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -120,11 +119,6 @@ public class VcfFileManager implements SecuredEntityManager {
     @Override
     public AclClass getSupportedClass() {
         return AclClass.VCF;
-    }
-
-    @Override
-    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize) {
-        throw new UnsupportedOperationException();
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

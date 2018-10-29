@@ -24,8 +24,6 @@
 
 package com.epam.catgenome.manager;
 
-import java.util.Collection;
-
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
 
@@ -35,6 +33,4 @@ public interface SecuredEntityManager {
     AbstractSecuredEntity changeOwner(Long id, String owner);
 
     AclClass getSupportedClass();
-
-    Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize);
 }

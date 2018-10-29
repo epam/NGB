@@ -173,8 +173,4 @@ public class BookmarkManager implements SecuredEntityManager {
         return AclClass.BOOKMARK;
     }
 
-    @Override
-    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize) {
-        throw new UnsupportedOperationException();
-    }
 }

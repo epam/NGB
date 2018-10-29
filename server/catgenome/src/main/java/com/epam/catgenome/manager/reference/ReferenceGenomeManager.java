@@ -459,9 +459,4 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         return AclClass.REFERENCE;
     }
 
-    @Override
-    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize) {
-        throw new UnsupportedOperationException();
-
-    }
 }

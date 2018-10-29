@@ -24,7 +24,6 @@
 
 package com.epam.catgenome.manager.bed;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -157,8 +156,4 @@ public class BedFileManager implements SecuredEntityManager {
         return AclClass.BED;
     }
 
-    @Override
-    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize) {
-        throw new UnsupportedOperationException();
-    }
 }

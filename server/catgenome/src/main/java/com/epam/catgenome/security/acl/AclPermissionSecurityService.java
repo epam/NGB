@@ -38,7 +38,7 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
 @Service
 @ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
-public class AclPermissionApiService {
+public class AclPermissionSecurityService {
 
     public static final String OWNER = "isOwner(#grantVO.aclClass, #grantVO.id)";
 

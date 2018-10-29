@@ -24,7 +24,6 @@
 
 package com.epam.catgenome.manager.gene;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -142,11 +141,6 @@ public class GeneFileManager implements SecuredEntityManager {
     @Override
     public AclClass getSupportedClass() {
         return AclClass.GENE;
-    }
-
-    @Override
-    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize) {
-        throw new UnsupportedOperationException();
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)

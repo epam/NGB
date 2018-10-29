@@ -24,34 +24,22 @@
 
 package com.epam.catgenome.security.acl;
 
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.math3.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.security.acls.domain.AccessControlEntryImpl;
-import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PermissionFactory;
 import org.springframework.security.acls.model.AccessControlEntry;
-import org.springframework.security.acls.model.Acl;
 import org.springframework.security.acls.model.MutableAcl;
-import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.acls.model.Sid;
 import org.springframework.stereotype.Service;
@@ -68,12 +56,9 @@ import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.entity.security.AclPermissionEntry;
 import com.epam.catgenome.entity.security.AclSecuredEntry;
 import com.epam.catgenome.entity.security.AclSid;
-import com.epam.catgenome.entity.security.EntityPermission;
 import com.epam.catgenome.manager.CompositeSecuredEntityManager;
 import com.epam.catgenome.manager.user.UserManager;
 import com.epam.catgenome.security.UserContext;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
 @Service
 @ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
@@ -123,25 +108,6 @@ public class GrantPermissionManager {
         AbstractSecuredEntity entity = entityManager.load(aclClass, id);
         MutableAcl acl = aclService.getOrCreateObjectIdentity(entity);
         return convertAclToEntry(entity, acl);
-    }
-
-    public Map<AbstractSecuredEntity, List<AclPermissionEntry>> getPermissions(
-        Set<AbstractSecuredEntity> securedEntities) {
-        Map<ObjectIdentity, Acl> acls = aclService.getObjectIdentities(securedEntities);
-
-        Map<AbstractSecuredEntity, List<AclPermissionEntry>> result = securedEntities.stream()
-            .map(securedEntity -> {
-                Acl acl = acls.get(new ObjectIdentityImpl(securedEntity));
-                Assert.isInstanceOf(MutableAcl.class, acl, MessageHelper.getMessage(
-                    MessagesConstants.ERROR_MUTABLE_ACL_RETURN));
-                List<AclPermissionEntry> permissions = acl.getEntries().stream()
-                    .map(aclEntry -> new AclPermissionEntry(aclEntry.getSid(), aclEntry.getPermission().getMask()))
-                    .collect(toList());
-                return new ImmutablePair<>(securedEntity, permissions);
-            })
-            .collect(toMap(ImmutablePair::getLeft, ImmutablePair::getRight));
-
-        return result;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -287,40 +253,6 @@ public class GrantPermissionManager {
         return entry;
     }
 
-    public void clearWritePermissions(AbstractSecuredEntity entity) {
-        int readBits = AclPermission.READ.getMask() | AclPermission.NO_READ.getMask();
-        MutableAcl acl = aclService.getOrCreateObjectIdentity(entity);
-        List<AccessControlEntry> newAces = new ArrayList<>();
-        List<AccessControlEntry> aces = acl.getEntries();
-        for (int i = 0; i < aces.size(); i++) {
-            AccessControlEntry ace = aces.get(i);
-            if (PermissionUtils.isPermissionSet(ace.getPermission().getMask(),
-                    (AclPermission) AclPermission.READ)) {
-                Permission updated =
-                        permissionFactory.buildFromMask(ace.getPermission().getMask() & readBits);
-                AccessControlEntry newAce =
-                        new AccessControlEntryImpl(ace.getId(), ace.getAcl(), ace.getSid(), updated,
-                                                   true, false, false);
-                newAces.add(newAce);
-            }
-        }
-        clearAces(acl);
-        for (int i = 0; i < newAces.size(); i++) {
-            AccessControlEntry newAce = newAces.get(i);
-            acl.insertAce(i, newAce.getPermission(), newAce.getSid(), true);
-        }
-        aclService.updateAcl(acl);
-        if (entity instanceof AbstractHierarchicalEntity) {
-            AbstractHierarchicalEntity tree = (AbstractHierarchicalEntity) entity;
-            if (!CollectionUtils.isEmpty(tree.getChildren())) {
-                tree.getChildren().forEach(this::clearWritePermissions);
-            }
-            if (!CollectionUtils.isEmpty(tree.getLeaves())) {
-                tree.getLeaves().forEach(this::clearWritePermissions);
-            }
-        }
-    }
-
     private void clearAces(MutableAcl acl) {
         while (!acl.getEntries().isEmpty()) {
             acl.deleteAce(0);
@@ -334,110 +266,6 @@ public class GrantPermissionManager {
             acl = aclService.updateAcl(acl);
         }
         return acl;
-    }
-
-    private void mergePermissions(Map<AclSid, Integer> childPermissions, List<AclPermissionEntry> parentPermissions) {
-        parentPermissions.forEach(aclPermissionEntry -> {
-            childPermissions.computeIfPresent(aclPermissionEntry.getSid(), (acl, mask) -> PermissionUtils
-                    .mergeParentMask(mask, aclPermissionEntry.getMask()));
-            childPermissions.putIfAbsent(aclPermissionEntry.getSid(), aclPermissionEntry.getMask());
-        });
-    }
-
-    public Set<AclPermissionEntry> buildAclPermissionEntries(Map<AclSid, Integer> permissions) {
-        Set<AclPermissionEntry> result = new HashSet<>();
-        permissions.forEach((acl, mask) -> result.add(new AclPermissionEntry(acl, mask)));
-        return result;
-    }
-
-    public Map<AclSid, Integer> getEntityPermissions(AbstractSecuredEntity entity,
-            Map<AbstractSecuredEntity, List<AclPermissionEntry>> allPermissions) {
-        return allPermissions.get(entity).stream()
-                .collect(toMap(AclPermissionEntry::getSid, AclPermissionEntry::getMask));
-    }
-
-    public void mergeWithParentPermissions(Map<AclSid, Integer> mergedPermissions, AbstractSecuredEntity parent,
-                                            Map<AbstractSecuredEntity, List<AclPermissionEntry>> allPermissions) {
-        AbstractSecuredEntity currentParent = parent;
-        while (currentParent != null) {
-            mergePermissions(mergedPermissions, allPermissions.get(currentParent));
-            currentParent = currentParent.getParent();
-        }
-    }
-
-    public Map<AbstractSecuredEntity, List<AclPermissionEntry>> getEntitiesPermissions(
-            Collection<? extends AbstractSecuredEntity> entities) {
-        Set<AbstractSecuredEntity> result = new HashSet<>(entities);
-        entities.forEach(entity -> {
-            AbstractSecuredEntity parent = entity.getParent();
-            while (parent != null) {
-                result.add(parent);
-                parent = parent.getParent();
-            }
-        });
-        return getPermissions(result);
-    }
-
-    public void expandGroups(List<EntityPermission> permissions) {
-        if (CollectionUtils.isEmpty(permissions)) {
-            return;
-        }
-        Map<String, Set<String>> groupToUsers = userManager.loadAllUsers().stream().map(user ->
-                Stream.concat(
-                        //groups
-                        ListUtils.emptyIfNull(user.getGroups()).stream()
-                                .map(authority -> new Pair<>(user.getUserName(), authority)),
-                        //roles
-                        ListUtils.emptyIfNull(user.getRoles()).stream()
-                                .map(role -> new Pair<>(user.getUserName(), role.getName())))
-                        .collect(toList()))
-                .flatMap(Collection::stream)
-                .collect(groupingBy(Pair::getSecond, mapping(Pair::getFirst, toSet())));
-        permissions.forEach(permission -> {
-            permission.setPermissions(expandGroupsAndMergePermissions(groupToUsers, permission));
-        });
-
-    }
-
-    private Set<AclPermissionEntry> expandGroupsAndMergePermissions(Map<String, Set<String>> groupToUsers,
-                                                                    EntityPermission permission) {
-        Map<AclSid, List<SidAclEntry>> sidToEntries = SetUtils.emptyIfNull(permission.getPermissions())
-                .stream()
-                .map(aclEntry -> {
-                    AclSid sid = aclEntry.getSid();
-                    if (sid.isPrincipal()) {
-                        return Collections.singletonList(new SidAclEntry(aclEntry, false));
-                    }
-                    return groupToUsers.getOrDefault(sid.getName(), Collections.emptySet())
-                            .stream()
-                            .map(username -> {
-                                AclPermissionEntry aclPermissionEntry =
-                                        new AclPermissionEntry(new AclSid(username, true), aclEntry.getMask());
-                                return new SidAclEntry(aclPermissionEntry, true);
-                            })
-                            .collect(toList());
-                })
-                .flatMap(Collection::stream)
-                .collect(groupingBy(sidEntry -> sidEntry.getEntry().getSid()));
-
-        return sidToEntries.values().stream()
-                .map(aces -> {
-                    SidAclEntry userEntry = aces.stream()
-                            .filter(e -> !e.isResolved()).findFirst()
-                            .orElse(aces.get(0));
-                    List<SidAclEntry> inheritedEntries = aces.stream().filter(ace -> !ace.equals(userEntry))
-                            .collect(toList());
-                    AclPermissionEntry entry = userEntry.getEntry();
-                    if (CollectionUtils.isEmpty(inheritedEntries)) {
-                        return entry;
-                    }
-                    int mask = entry.getMask();
-                    for (SidAclEntry inheritedEntry : inheritedEntries) {
-                        mask = PermissionUtils.mergeParentMask(mask, inheritedEntry.getEntry().getMask());
-                    }
-                    return new AclPermissionEntry(entry.getSid(), mask);
-                })
-                .collect(toSet());
     }
 
     public void vcfFilterFormFilter(VcfFilterForm filter) {
@@ -458,20 +286,17 @@ public class GrantPermissionManager {
             fileIdsByProject.compute(projectId, (key, fileIds) -> {
                 List<Long> filtered = fileIds;
                 if (fileIds != null) {
-                    filtered = fileIds.stream().filter(fileId ->
-                            permissionHelper.isAllowed(READ, fileId, VcfFile.class) ||
-                            permissionHelper.isAllowed(READ, key, Project.class)).collect(toList());
+                    filtered = fileIds.stream().filter(fileId -> {
+                        AbstractSecuredEntity entity = entityManager.load(AclClass.VCF, fileId);
+                        return permissionHelper.isAllowed(READ, fileId, VcfFile.class)
+                                || PermissionUtils.permissionIsNotDenied(
+                                        permissionHelper.getPermissionsMask(entity, true, false),
+                                        AclPermission.READ) && permissionHelper.isAllowed(READ, key, Project.class);
+                    }).collect(toList());
                 }
                 return filtered;
             });
         }
-    }
-
-    @Data
-    @AllArgsConstructor
-    private static class SidAclEntry {
-        final AclPermissionEntry entry;
-        final boolean resolved;
     }
 
 }

@@ -24,7 +24,6 @@
 
 package com.epam.catgenome.manager.wig;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -143,8 +142,4 @@ public class WigFileManager implements SecuredEntityManager {
         return AclClass.WIG;
     }
 
-    @Override
-    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize) {
-        throw new UnsupportedOperationException();
-    }
 }

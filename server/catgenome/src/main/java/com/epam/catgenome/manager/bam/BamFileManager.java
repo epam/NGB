@@ -24,7 +24,6 @@
 
 package com.epam.catgenome.manager.bam;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -135,8 +134,4 @@ public class BamFileManager implements SecuredEntityManager {
         return AclClass.BAM;
     }
 
-    @Override
-    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize) {
-        throw new UnsupportedOperationException();
-    }
 }

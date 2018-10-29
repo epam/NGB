@@ -24,7 +24,6 @@
 
 package com.epam.catgenome.manager.bucket;
 
-import java.util.Collection;
 import java.util.List;
 
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
@@ -95,11 +94,6 @@ public class BucketManager implements SecuredEntityManager {
     @Override
     public AclClass getSupportedClass() {
         return AclClass.BUCKET;
-    }
-
-    @Override
-    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize) {
-        throw new UnsupportedOperationException();
     }
 
     /**

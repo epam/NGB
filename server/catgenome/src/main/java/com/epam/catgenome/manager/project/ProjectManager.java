@@ -204,11 +204,6 @@ public class ProjectManager implements SecuredEntityManager {
         return AclClass.PROJECT;
     }
 
-    @Override
-    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize) {
-        throw new UnsupportedOperationException();
-    }
-
     /**
      * Loads a project from the database by its name, with all its items
      *

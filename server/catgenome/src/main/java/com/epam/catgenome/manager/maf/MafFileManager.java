@@ -24,7 +24,6 @@
 
 package com.epam.catgenome.manager.maf;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -94,11 +93,6 @@ public class MafFileManager implements SecuredEntityManager {
     @Override
     public AclClass getSupportedClass() {
         return AclClass.MAF;
-    }
-
-    @Override
-    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize) {
-        throw new UnsupportedOperationException();
     }
 
     /**
