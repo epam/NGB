@@ -26,9 +26,10 @@ package com.epam.catgenome.controller.vcf;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
+import static java.util.Collections.*;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -253,6 +254,7 @@ public class VcfController extends AbstractRESTController {
     public Result<VcfFilterInfo> erg(@PathVariable(value = "vcfFileId") final Long vcfFileId,
                                      @RequestParam(required = false) final  Long projectId) throws IOException {
         return Result.success(vcfSecurityService.getFiltersInfo(
-                Collections.singletonMap(projectId, Collections.singletonList(vcfFileId))));
+                //here we need to create new HashMap to be able to filter this map in SecurityServices classes
+                new HashMap<>(singletonMap(projectId, singletonList(vcfFileId)))));
     }
 }

@@ -49,7 +49,6 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
         super(authentication);
     }
 
-    //TODO ADD MANAGER ROLE AS ALLOWED
     public boolean isAllowed(Object target, String permission) {
 
         AbstractSecuredEntity item = (AbstractSecuredEntity) target;
@@ -58,6 +57,36 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
             return true;
         }
         return permissionHelper.isAllowed(permission, item);
+    }
+
+    public boolean hasSpecificRole(AclClass aclClass) {
+        switch (aclClass) {
+            case BAM:
+                return hasRole("BAM_MANAGER");
+            case BED:
+                return hasRole("BEM_MANAGER");
+            case MAF:
+                return hasRole("MAF_MANAGER");
+            case SEG:
+                return hasRole("SEG_MANAGER");
+            case VCF:
+                return hasRole("VCF_MANAGER");
+            case WIG:
+                return hasRole("WIG_MANAGER");
+            case GENE:
+                return hasRole("GENE_MANAGER");
+            case BUCKET:
+                return hasRole("BUCKET_MANAGER");
+            case PROJECT:
+                return hasRole("PROJECT_MANAGER");
+            case SPECIES:
+            case REFERENCE:
+                return hasRole("REFERENCE_MANAGER");
+            case BOOKMARK:
+                return hasRole("BOOKMARK_MANAGER");
+            default:
+                return false;
+        }
     }
 
     public boolean isOwner(AclClass aclClass, long id) {
