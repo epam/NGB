@@ -112,7 +112,7 @@ public class VcfFileManager implements SecuredEntityManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public AbstractSecuredEntity changeOwner(Long id, String owner) {
         VcfFile vcfFile = load(id);
-        biologicalDataItemDao.updateOwner(id, owner);
+        biologicalDataItemDao.updateOwner(vcfFile.getBioDataItemId(), owner);
         vcfFile.setOwner(owner);
         return vcfFile;
     }

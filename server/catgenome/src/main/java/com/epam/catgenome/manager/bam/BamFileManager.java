@@ -125,7 +125,7 @@ public class BamFileManager implements SecuredEntityManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public AbstractSecuredEntity changeOwner(Long id, String owner) {
         BamFile bamFile = load(id);
-        biologicalDataItemDao.updateOwner(id, owner);
+        biologicalDataItemDao.updateOwner(bamFile.getBioDataItemId(), owner);
         bamFile.setOwner(owner);
         return bamFile;
     }

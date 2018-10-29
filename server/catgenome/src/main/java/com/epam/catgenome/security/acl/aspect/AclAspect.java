@@ -153,7 +153,6 @@ public class AclAspect {
 
     @Before("@annotation(com.epam.catgenome.security.acl.aspect.AclMapFilter) && args(.., fileIdsByProject)")
     public void extendMapFilter(JoinPoint joinPoint, Map<Long, List<Long>> fileIdsByProject) {
-
         permissionManager.extendMapFilter(fileIdsByProject);
     }
 

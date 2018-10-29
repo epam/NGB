@@ -24,9 +24,13 @@
 
 package com.epam.catgenome.manager.maf;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
+import com.epam.catgenome.manager.SecuredEntityManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,7 +52,7 @@ import com.epam.catgenome.entity.project.Project;
  */
 @AclSync
 @Service
-public class MafFileManager {
+public class MafFileManager implements SecuredEntityManager {
     @Autowired
     private MafFileDao mafFileDao;
 
@@ -79,6 +83,24 @@ public class MafFileManager {
         return mafFile;
     }
 
+    @Override
+    public AbstractSecuredEntity changeOwner(Long id, String owner) {
+        MafFile file = load(id);
+        biologicalDataItemDao.updateOwner(file.getBioDataItemId(), owner);
+        file.setOwner(owner);
+        return file;
+    }
+
+    @Override
+    public AclClass getSupportedClass() {
+        return AclClass.MAF;
+    }
+
+    @Override
+    public Collection<? extends AbstractSecuredEntity> loadAllWithParents(Integer page, Integer pageSize) {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * Loads a persisted {@code MafFile} record by it's ID
      * @param mafFileId {@code long} a MafFile ID
@@ -86,8 +108,7 @@ public class MafFileManager {
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     public MafFile loadMafFileNullable(long mafFileId) {
-        MafFile mafFile = mafFileDao.loadMafFile(mafFileId);
-        return mafFile;
+        return mafFileDao.loadMafFile(mafFileId);
     }
 
     /**

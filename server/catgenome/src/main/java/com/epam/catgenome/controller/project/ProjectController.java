@@ -442,7 +442,8 @@ public class ProjectController extends AbstractRESTController {
             })
     public Result<Set<String>> searchGenesInProject(@PathVariable(value = PROJECT_ID_PARAM) long projectId,
                                                     @RequestBody GeneSearchQuery geneQuery) throws IOException {
-        return Result.success(featureIndexSecurityService.searchGenesInVcfFilesInProject(projectId, geneQuery.getSearch(),
+        return Result.success(
+                featureIndexSecurityService.searchGenesInVcfFilesInProject(projectId, geneQuery.getSearch(),
                 geneQuery.getVcfIdsByProject().values().stream().flatMap(List::stream).collect(Collectors.toList())));
     }
 

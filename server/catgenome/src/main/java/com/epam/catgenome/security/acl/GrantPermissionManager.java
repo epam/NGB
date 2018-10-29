@@ -461,8 +461,8 @@ public class GrantPermissionManager {
                     filtered = fileIds.stream().filter(fileId ->
                             permissionHelper.isAllowed(READ, fileId, VcfFile.class) ||
                             permissionHelper.isAllowed(READ, key, Project.class)).collect(toList());
-               }
-               return filtered;
+                }
+                return filtered;
             });
         }
     }
