@@ -440,7 +440,7 @@ public class GrantPermissionManager {
                 .collect(toSet());
     }
 
-    public void extendFilter(VcfFilterForm filter) {
+    public void vcfFilterFormFilter(VcfFilterForm filter) {
         filter.setVcfFileIdsByProject(
                 filter.getVcfFileIdsByProject().entrySet().stream().peek(
                     entry -> {

@@ -36,6 +36,7 @@ import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.security.acl.aspect.AclMapFilter;
+import com.epam.catgenome.security.acl.aspect.AclMask;
 import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostFilter;
@@ -71,6 +72,7 @@ public class VcfSecurityService {
         return vcfManager.registerVcfFile(request);
     }
 
+    @AclMask
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_VCF_MANAGER)
     public VcfFile reindexVcfFile(long vcfFileId, boolean createTabixIndex) throws FeatureIndexException {
         return vcfManager.reindexVcfFile(vcfFileId, createTabixIndex);

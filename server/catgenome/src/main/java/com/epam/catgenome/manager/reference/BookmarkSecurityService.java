@@ -27,6 +27,7 @@
 package com.epam.catgenome.manager.reference;
 
 import com.epam.catgenome.entity.reference.Bookmark;
+import com.epam.catgenome.security.acl.aspect.AclMask;
 import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostFilter;
@@ -53,6 +54,7 @@ public class BookmarkSecurityService {
         return bookmarkManager.loadAllBookmarks();
     }
 
+    @AclMask
     @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT + OR + READ_BOOKMARK_BY_ID)
     public Bookmark load(Long bookmarkId) {
         return bookmarkManager.load(bookmarkId);

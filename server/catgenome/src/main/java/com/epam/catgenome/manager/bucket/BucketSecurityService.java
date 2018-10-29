@@ -28,6 +28,7 @@ package com.epam.catgenome.manager.bucket;
 
 
 import com.epam.catgenome.entity.bucket.Bucket;
+import com.epam.catgenome.security.acl.aspect.AclMask;
 import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostFilter;
@@ -45,6 +46,7 @@ public class BucketSecurityService {
     private BucketManager bucketManager;
 
 
+    @AclMask
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_BUCKET_MANAGER
             + OR + "hasPermission(#bucketId, 'com.epam.catgenome.entity.bucket.Bucket', 'READ')" + OR +
             READ_PROJECT_BY_ID)

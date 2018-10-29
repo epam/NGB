@@ -39,6 +39,7 @@ import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.exception.GeneReadingException;
 import com.epam.catgenome.exception.HistogramReadingException;
+import com.epam.catgenome.security.acl.aspect.AclMask;
 import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostFilter;
@@ -77,6 +78,7 @@ public class GeneSecurityService {
         return gffManager.unregisterGeneFile(geneFileId);
     }
 
+    @AclMask
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_GENE_MANAGER)
     public GeneFile reindexGeneFile(long geneFileId, boolean full, boolean createTabixIndex) throws IOException {
         return gffManager.reindexGeneFile(geneFileId, full, createTabixIndex);

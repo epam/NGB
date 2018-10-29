@@ -34,6 +34,7 @@ import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.HistogramReadingException;
+import com.epam.catgenome.security.acl.aspect.AclMask;
 import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostFilter;
@@ -84,6 +85,7 @@ public class BedSecurityService {
         return bedFileManager.loadBedFilesByReferenceId(referenceId);
     }
 
+    @AclMask
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_BED_MANAGER)
     public BedFile reindexBedFile(long bedFileId) throws FeatureIndexException {
         return bedManager.reindexBedFile(bedFileId);

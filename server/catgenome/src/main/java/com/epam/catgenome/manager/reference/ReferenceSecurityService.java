@@ -34,6 +34,7 @@ import com.epam.catgenome.entity.reference.Species;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.ReferenceReadingException;
+import com.epam.catgenome.security.acl.aspect.AclMask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -57,6 +58,7 @@ public class ReferenceSecurityService {
         return referenceGenomeManager.loadAllReferenceGenomes(referenceName);
     }
 
+    @AclMask
     @PreAuthorize(ROLE_USER)
     public Reference load(Long referenceId) {
         return referenceGenomeManager.load(referenceId);
@@ -87,6 +89,7 @@ public class ReferenceSecurityService {
         return referenceManager.registerGenome(request);
     }
 
+    @AclMask
     @PreAuthorize(ROLE_ADMIN + OR +
             "hasPermission(#referenceId, 'com.epam.catgenome.entity.reference.Reference', 'WRITE') " +
             "AND hasPermission(#geneFileId, 'com.epam.catgenome.entity.gene.GeneFile', 'READ')")
@@ -94,6 +97,7 @@ public class ReferenceSecurityService {
         return referenceGenomeManager.updateReferenceGeneFileId(referenceId, geneFileId);
     }
 
+    @AclMask
     @PreAuthorize(ROLE_ADMIN + OR +
             "hasPermission(#referenceId, 'com.epam.catgenome.entity.reference.Reference', 'WRITE') " +
             "AND hasPermission(#geneFileId, 'com.epam.catgenome.entity.gene.GeneFile', 'READ')")
@@ -102,6 +106,7 @@ public class ReferenceSecurityService {
         return referenceGenomeManager.updateReferenceAnnotationFile(referenceId, annotationFileId, remove);
     }
 
+    @AclMask
     @PreAuthorize(ROLE_ADMIN + OR +ROLE_REFERENCE_MANAGER)
     public Reference unregisterGenome(long referenceId) throws IOException {
         return referenceManager.unregisterGenome(referenceId);
@@ -123,6 +128,7 @@ public class ReferenceSecurityService {
         return referenceGenomeManager.loadAllSpecies();
     }
 
+    @AclMask
     @PreAuthorize(ROLE_ADMIN + OR +ROLE_REFERENCE_MANAGER)
     public Reference updateSpecies(Long referenceId, String speciesVersion) {
         return referenceGenomeManager.updateSpecies(referenceId, speciesVersion);

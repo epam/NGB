@@ -148,7 +148,7 @@ public class AclAspect {
 
     @Before("@annotation(com.epam.catgenome.security.acl.aspect.AclFilter) && args(filterForm,..)")
     public void extendFilter(JoinPoint joinPoint, VcfFilterForm filterForm) {
-        permissionManager.extendFilter(filterForm);
+        permissionManager.vcfFilterFormFilter(filterForm);
     }
 
     @Before("@annotation(com.epam.catgenome.security.acl.aspect.AclMapFilter) && args(.., fileIdsByProject)")
