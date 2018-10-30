@@ -115,16 +115,6 @@ public class MafFileManager implements SecuredEntityManager {
     }
 
     /**
-     * Loads {@code MafFile} records, saved for a specific reference ID
-     * @param referenceId {@code long} a reference ID in the system
-     * @return {@code List&lt;MafFile&gt;} instance
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<MafFile> loadMafFilesByReferenceId(long referenceId) {
-        return mafFileDao.loadMafFilesByReferenceId(referenceId);
-    }
-
-    /**
      * Deletes {@code MafFile} from the database and the file system
      * @param mafFile {@code MafFile} ID to delete
      */

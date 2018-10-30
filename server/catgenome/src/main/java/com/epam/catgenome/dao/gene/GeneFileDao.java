@@ -63,7 +63,6 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
     private String createGeneFileQuery;
     private String loadGeneFileQuery;
     private String loadGeneFilesQuery;
-    private String loadGeneFilesByReferenceIdQuery;
     private String deleteGeneFileQuery;
 
     /**
@@ -117,18 +116,6 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
     }
 
     /**
-     * Loads {@code GeneFile} records, saved for a specific reference ID
-     * @param referenceId {@code long} a reference ID in the system
-     * @return {@code List&lt;GeneFile&gt;} instance
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<GeneFile> loadGeneFilesByReferenceId(long referenceId) {
-        return getJdbcTemplate().query(loadGeneFilesByReferenceIdQuery, BiologicalDataItemDao
-                .BiologicalDataItemParameters.getRowMapper(), referenceId)
-                .stream().map(f -> (GeneFile) f).collect(Collectors.toList());
-    }
-
-    /**
      * Deletes {@code GeneFile} record from the database
      *
      * @param geneFileId ID of a {@code GeneFile} record to delete
@@ -160,11 +147,6 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
     @Required
     public void setLoadGeneFileQuery(String loadGeneFileQuery) {
         this.loadGeneFileQuery = loadGeneFileQuery;
-    }
-
-    @Required
-    public void setLoadGeneFilesByReferenceIdQuery(String loadGeneFilesByReferenceIdQuery) {
-        this.loadGeneFilesByReferenceIdQuery = loadGeneFilesByReferenceIdQuery;
     }
 
     @Required

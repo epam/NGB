@@ -40,9 +40,7 @@ import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.exception.GeneReadingException;
 import com.epam.catgenome.exception.HistogramReadingException;
 import com.epam.catgenome.security.acl.aspect.AclMask;
-import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -62,9 +60,6 @@ public class GeneSecurityService {
             "'com.epam.catgenome.entity.gene.GeneFile', 'READ')";
 
     @Autowired
-    private GeneFileManager geneFileManager;
-
-    @Autowired
     private GffManager gffManager;
 
 
@@ -82,12 +77,6 @@ public class GeneSecurityService {
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_GENE_MANAGER)
     public GeneFile reindexGeneFile(long geneFileId, boolean full, boolean createTabixIndex) throws IOException {
         return gffManager.reindexGeneFile(geneFileId, full, createTabixIndex);
-    }
-
-    @AclMaskList
-    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT)
-    public List<GeneFile> loadGeneFilesByReferenceId(Long referenceId) {
-        return geneFileManager.loadGeneFilesByReferenceId(referenceId);
     }
 
     @PreAuthorize(ROLE_USER)

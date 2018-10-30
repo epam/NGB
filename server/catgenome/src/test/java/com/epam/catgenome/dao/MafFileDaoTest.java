@@ -25,12 +25,10 @@
 package com.epam.catgenome.dao;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.Date;
-import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -104,10 +102,6 @@ public class MafFileDaoTest extends AbstractDaoTest {
         assertEquals(mafFile.getReferenceId(), loadedFile.getReferenceId());
         assertEquals(mafFile.getBioDataItemId(), loadedFile.getBioDataItemId());
         assertEquals(mafFile.getOwner(), loadedFile.getOwner());
-
-        List<MafFile> segFiles = mafFileDao.loadMafFilesByReferenceId(reference.getId());
-
-        assertFalse(segFiles.isEmpty());
 
         mafFileDao.deleteMafFile(mafFile.getId());
         assertNull(mafFileDao.loadMafFile(mafFile.getId()));

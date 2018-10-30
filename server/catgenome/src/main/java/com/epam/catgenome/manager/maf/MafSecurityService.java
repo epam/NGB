@@ -30,14 +30,11 @@ import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequ
 import com.epam.catgenome.entity.maf.MafFile;
 import com.epam.catgenome.entity.maf.MafRecord;
 import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.List;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
@@ -49,9 +46,6 @@ public class MafSecurityService {
     @Autowired
     private MafManager mafManager;
 
-    @Autowired
-    private MafFileManager mafFileManager;
-
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_MAF_MANAGER)
     public MafFile registerMafFile(IndexedFileRegistrationRequest request) {
         return mafManager.registerMafFile(request);
@@ -60,12 +54,6 @@ public class MafSecurityService {
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_MAF_MANAGER)
     public MafFile unregisterMafFile(long mafFileId) throws IOException {
         return mafManager.unregisterMafFile(mafFileId);
-    }
-
-    @AclMaskList
-    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT)
-    public List<MafFile> loadMafFilesByReferenceId(Long referenceId) {
-        return mafFileManager.loadMafFilesByReferenceId(referenceId);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_OR_PROJECT_BY_TRACK)

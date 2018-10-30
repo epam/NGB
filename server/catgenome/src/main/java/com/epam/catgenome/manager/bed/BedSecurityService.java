@@ -35,14 +35,11 @@ import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.HistogramReadingException;
 import com.epam.catgenome.security.acl.aspect.AclMask;
-import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.List;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
@@ -54,9 +51,6 @@ public class BedSecurityService {
 
     @Autowired
     private BedManager bedManager;
-
-    @Autowired
-    private BedFileManager bedFileManager;
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_BED_MANAGER)
     public BedFile registerBed(IndexedFileRegistrationRequest request) {
@@ -77,12 +71,6 @@ public class BedSecurityService {
     @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_OR_PROJECT_BY_TRACK)
     public Track<BedRecord> loadFeatures(Track<BedRecord> track) throws FeatureFileReadingException {
         return bedManager.loadFeatures(track);
-    }
-
-    @AclMaskList
-    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT)
-    public List<BedFile> loadBedFilesByReferenceId(Long referenceId) {
-        return bedFileManager.loadBedFilesByReferenceId(referenceId);
     }
 
     @AclMask

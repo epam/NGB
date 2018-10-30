@@ -29,9 +29,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.Date;
-import java.util.List;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,10 +90,6 @@ public class WigFileDaoTest extends AbstractDaoTest {
 
         assertNotNull(loadedFile);
         assertEquals(wigFile.getOwner(), loadedFile.getOwner());
-
-        List<WigFile> files = wigFileDao.loadWigFilesByReferenceId(reference.getId());
-        assertNotNull(files);
-        Assert.assertFalse(files.isEmpty());
 
         wigFileDao.deleteWigFile(loadedFile.getId());
 

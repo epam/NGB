@@ -441,9 +441,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testRegisterFile()
-        throws IOException, ClassNotFoundException, InterruptedException, ParseException, NoSuchAlgorithmException,
-               VcfReadingException {
+    public void testRegisterFile() throws IOException{
         Resource resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
@@ -457,9 +455,8 @@ public class VcfManagerTest extends AbstractManagerTest {
         Track<Variation> trackResult = testLoad(vcfFile, 1D, true);
         Assert.assertFalse(trackResult.getBlocks().isEmpty());
 
-        List<VcfFile> filesByReference = vcfFileManager.loadVcfFilesByReferenceId(referenceId);
+        VcfFile filesByReference = vcfFileManager.load(vcfFile.getId());
         Assert.assertNotNull(filesByReference);
-        Assert.assertFalse(filesByReference.isEmpty());
     }
 
     @Test

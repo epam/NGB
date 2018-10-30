@@ -28,7 +28,6 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
 
 import java.io.IOException;
-import java.util.List;
 
 import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.Read;
@@ -39,7 +38,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -98,19 +96,6 @@ public class BamController extends AbstractRESTController {
 
     @Autowired
     private BamSecurityService bamSecurityService;
-
-    @ResponseBody
-    @RequestMapping(value = "/bam/{referenceId}/loadAll", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Returns metadata for all BAM files filtered by a reference genome.",
-            notes = "Each summary in the list provides metadata per a single BAM file that is available in the system.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<List<BamFile>> loadBamFiles(@PathVariable(value = "referenceId") final Long referenceId) {
-        return Result.success(bamSecurityService.loadBamFilesByReferenceId(referenceId));
-    }
 
     @ResponseBody
     @RequestMapping(value = "/bam/register", method = RequestMethod.POST)

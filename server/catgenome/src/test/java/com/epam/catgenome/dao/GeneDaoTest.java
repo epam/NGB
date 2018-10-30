@@ -98,9 +98,6 @@ public class GeneDaoTest extends AbstractDaoTest {
         assertNotNull(loadedFile);
         assertEquals(geneFile.getOwner(), loadedFile.getOwner());
 
-        List<GeneFile> files = geneFileDao.loadGeneFilesByReferenceId(reference.getId());
-        assertNotNull(files);
-        Assert.assertFalse(files.isEmpty());
     }
 
     @Test

@@ -103,17 +103,6 @@ public class WigFileManager implements SecuredEntityManager {
     }
 
     /**
-     * Loads {@code WigFile} records, saved for a specific reference ID
-     *
-     * @param referenceId {@code long} a reference ID in the system
-     * @return {@code List&lt;WigFile&gt;} instance
-     */
-    @Transactional(propagation = Propagation.REQUIRED)
-    public List<WigFile> loadWigFilesByReferenceId(long referenceId) {
-        return wigFileDao.loadWigFilesByReferenceId(referenceId);
-    }
-
-    /**
      * Deletes {@code WigFile} from the system and all the related information
      * @param wigFile to delete
      */

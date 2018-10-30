@@ -174,11 +174,6 @@ public class SegManagerTest extends AbstractManagerTest {
         Assert.assertFalse(loadedSegFile.getPath().isEmpty());
         Assert.assertEquals(PRETTY_NAME, loadedSegFile.getPrettyName());
 
-        List<SegFile> segFiles = segFileManager.loadSedFilesByReferenceId(referenceId);
-        Assert.assertEquals(1, segFiles.size());
-        Assert.assertTrue(segFiles.stream().allMatch(s -> s.getId().equals(segFile.getId()) &&
-            s.getPrettyName().equals(PRETTY_NAME)));
-
         SampledTrack<SegRecord> sampledTrack = new SampledTrack<>();
         sampledTrack.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
         sampledTrack.setStartIndex(1);

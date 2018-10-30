@@ -24,13 +24,10 @@
 
 package com.epam.catgenome.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -78,7 +75,6 @@ public class MafControllerTest extends AbstractControllerTest {
     private ReferenceGenomeManager referenceGenomeManager;
 
     private static final String URL_MAF_FILE_REGISTER = "/restapi/maf/register";
-    private static final String URL_LOAD_MAF_FILES = "/restapi/maf/%d/loadAll";
     private static final String URL_LOAD_BLOCKS = "/restapi/maf/track/get";
 
     private static final int TEST_END_INDEX = 247812431;
@@ -129,25 +125,6 @@ public class MafControllerTest extends AbstractControllerTest {
         Assert.assertEquals(res.getPayload().getName(),
                 "TCGA.ACC.mutect.abbe72a5-cb39-48e4-8df5-5fd2349f2bb2.somatic.sorted.maf.gz");
         Long fileId = res.getPayload().getId();
-
-        // Load all BedFiles for testReference
-        actions = mvc()
-                .perform(get(String.format(URL_LOAD_MAF_FILES, testReference.getId()))
-                        .contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(jsonPath(JPATH_PAYLOAD).exists())
-                .andExpect(jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
-        actions.andDo(MockMvcResultHandlers.print());
-
-        ResponseResult<List<MafFile>> geneFilesRes = getObjectMapper()
-                .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
-                        getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
-                                getTypeFactory().constructParametrizedType(List.class, List.class, MafFile.class)));
-
-        Assert.assertNotNull(geneFilesRes.getPayload());
-        Assert.assertFalse(geneFilesRes.getPayload().isEmpty());
-        Assert.assertEquals(geneFilesRes.getPayload().get(0).getId(), fileId);
 
         // Load a track by fileId
         TrackQuery trackQuery = new TrackQuery();

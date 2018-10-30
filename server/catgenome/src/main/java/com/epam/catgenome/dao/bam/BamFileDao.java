@@ -29,7 +29,6 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.dao.bam.BamFileDao.BamParameters.BAM_ID;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
@@ -56,7 +55,6 @@ public class BamFileDao extends NamedParameterJdbcDaoSupport {
 
     private String bamFileSequenceName;
 
-    private String loadBamFilesByReferenceIdQuery;
     private String loadBamFileQuery;
     private String createBamFileQuery;
     private String searchByNameBamFileQuery;
@@ -99,18 +97,6 @@ public class BamFileDao extends NamedParameterJdbcDaoSupport {
     }
 
     /**
-     * Loads {@code BamFile} records, saved for a specific reference ID. <br>
-     * @param referenceId {@code long} a reference ID in the system
-     * @return {@code List&lt;BamFile&gt;} instance
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<BamFile> loadBamFilesByReferenceId(long referenceId) {
-        return getJdbcTemplate().query(loadBamFilesByReferenceIdQuery, BiologicalDataItemDao
-                .BiologicalDataItemParameters.getRowMapper(), referenceId)
-                .stream().map(f -> (BamFile) f).collect(Collectors.toList());
-    }
-
-    /**
      * Checks whether BAM file with a given name is already registered in the system.
      * @param name BAM file name
      * @return true, is file is already registered otherwise false
@@ -134,11 +120,6 @@ public class BamFileDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setBamFileSequenceName(String bamFileSequenceName) {
         this.bamFileSequenceName = bamFileSequenceName;
-    }
-
-    @Required
-    public void setLoadBamFilesByReferenceIdQuery(String loadBamFilesByReferenceIdQuery) {
-        this.loadBamFilesByReferenceIdQuery = loadBamFilesByReferenceIdQuery;
     }
 
     @Required

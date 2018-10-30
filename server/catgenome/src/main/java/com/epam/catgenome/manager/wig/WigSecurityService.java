@@ -30,30 +30,18 @@ import com.epam.catgenome.controller.vo.registration.FileRegistrationRequest;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.entity.wig.WigFile;
-import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.List;
 
 @Service
 public class WigSecurityService {
 
     @Autowired
-    private WigFileManager wigFileManager;
-
-    @Autowired
     private FacadeWigManager facadeWigManager;
 
-
-    @AclMaskList
-    @PostFilter("hasRole('ADMIN') OR hasPermission(filterObject, 'READ')")
-    public List<WigFile> loadWigFilesByReferenceId(Long referenceId) {
-        return wigFileManager.loadWigFilesByReferenceId(referenceId);
-    }
 
     @PreAuthorize("hasRole('ADMIN') OR hasRole('WIG_MANAGER')")
     public WigFile registerWigFile(FileRegistrationRequest request) {

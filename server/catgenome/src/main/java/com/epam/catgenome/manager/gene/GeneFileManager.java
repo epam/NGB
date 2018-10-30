@@ -159,14 +159,4 @@ public class GeneFileManager implements SecuredEntityManager {
         return geneFileDao.createGeneFileId();
     }
 
-    /**
-     * Loads {@code GeneFile} records, saved for a specific reference ID
-     *
-     * @param referenceId {@code long} a reference ID in the system
-     * @return {@code List&lt;GeneFile&gt;} instance
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<GeneFile> loadGeneFilesByReferenceId(long referenceId) {
-        return geneFileDao.loadGeneFilesByReferenceId(referenceId);
-    }
 }

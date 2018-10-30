@@ -31,8 +31,6 @@ import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.bam.*;
 import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.security.acl.AclPermission;
-import com.epam.catgenome.util.AclTestDao;
 import com.epam.catgenome.util.NGBRegistrationUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -63,9 +61,6 @@ public class BamSecurityServiceTest extends AbstractACLSecurityTest {
 
     @Autowired
     private BamFileManager bamFileManager;
-
-    @Autowired
-    private AclTestDao aclTestDao;
 
     @Autowired
     private NGBRegistrationUtils registrationUtils;
@@ -117,46 +112,6 @@ public class BamSecurityServiceTest extends AbstractACLSecurityTest {
         request.setType(BiologicalDataItemResourceType.FILE);
 
         bamSecurityService.registerBam(request);
-    }
-
-    @Test(expected = AccessDeniedException.class)
-    @WithMockUser(username = TEST_USER, roles = "U")
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void loadByReferenceTest() throws IOException {
-        Reference reference = registrationUtils.registerReference(TEST_REF_NAME,
-                TEST_REF_NAME + biologicalDataItemDao.createBioItemId(), TEST_USER);
-
-        final String path = registrationUtils.resolveFilePath(TEST_BAM_NAME);
-        IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
-        request.setPath(path);
-        request.setIndexPath(path + BAI_EXTENSION);
-        request.setName(TEST_NSAME);
-        request.setReferenceId(testReference.getId());
-        request.setType(BiologicalDataItemResourceType.FILE);
-
-        bamSecurityService.registerBam(request);
-
-        // Create SID for "test" user
-        AclTestDao.AclSid testUserSid = new AclTestDao.AclSid(true, TEST_USER);
-        testUserSid.setId(1L);
-        aclTestDao.createAclSid(testUserSid);
-
-        AclTestDao.AclClass registryAclClass = new AclTestDao.AclClass(Reference.class.getCanonicalName());
-        registryAclClass.setId(1L);
-        aclTestDao.createAclClassIfNotPresent(registryAclClass);
-
-        AclTestDao.AclObjectIdentity refIdentity = new AclTestDao.AclObjectIdentity(testUserSid, reference.getId(),
-                registryAclClass.getId(), null, true);
-        refIdentity.setId(1L);
-        aclTestDao.createObjectIdentity(refIdentity);
-
-        AclTestDao.AclEntry refAclEntry = new AclTestDao.AclEntry(refIdentity, 1, testUserSid,
-                AclPermission.NO_READ.getMask(), true);
-        refAclEntry.setId(1L);
-        aclTestDao.createAclEntry(refAclEntry);
-
-        bamSecurityService.loadBamFilesByReferenceId(testReference.getId());
-
     }
 
 }

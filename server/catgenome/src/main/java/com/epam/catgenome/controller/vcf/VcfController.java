@@ -30,7 +30,6 @@ import static java.util.Collections.*;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 import com.epam.catgenome.manager.vcf.VcfSecurityService;
@@ -120,19 +119,6 @@ public class VcfController extends AbstractRESTController {
     public Result<Boolean> unregisterVcfFile(@RequestParam final long vcfFileId) throws IOException {
         VcfFile deletedFile = vcfSecurityService.unregisterVcfFile(vcfFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
-    }
-
-    @ResponseBody
-    @RequestMapping(value = "/vcf/{referenceId}/loadAll", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Returns metadata for all VCF files filtered by a reference genome.",
-            notes = "Each summary in the list provides metadata per a single VCF file that is available in the system.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<List<VcfFile>> loadVcfFiles(@PathVariable(value = "referenceId") final Long referenceId) {
-        return Result.success(vcfSecurityService.loadVcfFilesByReferenceId(referenceId));
     }
 
     @ResponseBody

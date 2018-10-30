@@ -37,9 +37,7 @@ import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.security.acl.aspect.AclMapFilter;
 import com.epam.catgenome.security.acl.aspect.AclMask;
-import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -63,10 +61,6 @@ public class VcfSecurityService {
     @Autowired
     private VcfManager vcfManager;
 
-    @Autowired
-    private VcfFileManager vcfFileManager;
-
-
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_VCF_MANAGER)
     public VcfFile registerVcfFile(FeatureIndexedFileRegistrationRequest request) {
         return vcfManager.registerVcfFile(request);
@@ -81,12 +75,6 @@ public class VcfSecurityService {
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_VCF_MANAGER)
     public VcfFile unregisterVcfFile(long vcfFileId) throws IOException {
         return vcfManager.unregisterVcfFile(vcfFileId);
-    }
-
-    @AclMaskList
-    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT)
-    public List<VcfFile> loadVcfFilesByReferenceId(Long referenceId) {
-        return vcfFileManager.loadVcfFilesByReferenceId(referenceId);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_VCF_BY_TRACK_ID)

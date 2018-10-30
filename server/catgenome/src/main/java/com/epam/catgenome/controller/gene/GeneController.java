@@ -140,20 +140,6 @@ public class GeneController extends AbstractRESTController {
     }
 
     @ResponseBody
-    @RequestMapping(value = GENE_URL + REFERENCE_ID_FIELD + "}/loadAll", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Returns metadata for all gene files filtered by a reference genome.",
-            notes = "Each summary in the list provides metadata per a single gene file that is available in the " +
-                    "system.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<List<GeneFile>> loadGeneFiles(@PathVariable(value = REFERENCE_ID_FIELD) final Long referenceId) {
-        return Result.success(geneSecurityService.loadGeneFilesByReferenceId(referenceId));
-    }
-
-    @ResponseBody
     @RequestMapping(value = GENE_URL + REFERENCE_ID_FIELD + "}/track/get", method = RequestMethod.POST)
     @ApiOperation(
             value = "Returns data matched the given query to fill in a gene track.",

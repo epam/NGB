@@ -227,10 +227,6 @@ public class BedManagerTest extends AbstractManagerTest {
         Assert.assertFalse(loadedBedFile.getPath().isEmpty());
         Assert.assertFalse(loadedBedFile.getIndex().getPath().isEmpty());
 
-        List<BedFile> bedFiles = bedFileManager.loadBedFilesByReferenceId(referenceId);
-        Assert.assertEquals(1, bedFiles.size());
-        Assert.assertTrue(bedFiles.stream().allMatch(f -> f.getId().equals(bedFile.getId()) &&
-            f.getPrettyName().equals(PRETTY_NAME)));
         return loadedBedFile;
     }
 

@@ -25,7 +25,6 @@
 package com.epam.catgenome.dao.wig;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
@@ -49,7 +48,6 @@ public class WigFileDao extends NamedParameterJdbcDaoSupport {
     private String wigFileSequenceName;
     private String createWigFileQuery;
     private String loadWigFileQuery;
-    private String loadWigFilesByReferenceIdQuery;
     private String deleteWigFileQuery;
 
     @Autowired
@@ -63,18 +61,6 @@ public class WigFileDao extends NamedParameterJdbcDaoSupport {
     public void createWigFile(WigFile file) {
         getNamedParameterJdbcTemplate().update(createWigFileQuery, BiologicalDataItemDao.FeatureFileParameters
                 .getLinkedTableParameters(BedGraphParameters.BED_GRAPH_ID.name(), file));
-    }
-
-    /**
-     * Loads {@code WigFile} records, saved for a specific reference ID
-     * @param referenceId {@code long} a reference ID in the system
-     * @return a {@code List} of {@code WigFile} instances
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<WigFile> loadWigFilesByReferenceId(long referenceId) {
-        return getJdbcTemplate().query(loadWigFilesByReferenceIdQuery, BiologicalDataItemDao
-                .BiologicalDataItemParameters.getRowMapper(), referenceId)
-                .stream().map(f -> (WigFile) f).collect(Collectors.toList());
     }
 
     /**
@@ -134,8 +120,4 @@ public class WigFileDao extends NamedParameterJdbcDaoSupport {
         this.loadWigFileQuery = loadWigFileQuery;
     }
 
-    @Required
-    public void setLoadWigFilesByReferenceIdQuery(String loadWigFilesByReferenceIdQuery) {
-        this.loadWigFilesByReferenceIdQuery = loadWigFilesByReferenceIdQuery;
-    }
 }

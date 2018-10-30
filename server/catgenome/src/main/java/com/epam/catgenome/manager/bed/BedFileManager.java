@@ -98,17 +98,6 @@ public class BedFileManager implements SecuredEntityManager {
     }
 
     /**
-     * Loads {@code BedFile} records, saved for a specific reference ID
-     *
-     * @param referenceId {@code long} a reference ID in the system
-     * @return {@code List&lt;BedFile&gt;} instance
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<BedFile> loadBedFilesByReferenceId(long referenceId) {
-        return bedFileDao.loadBedFilesByReferenceId(referenceId);
-    }
-
-    /**
      * Deletes {@code BedFile} record, specified by ID
      *
      * @param bedFile BedFile to delete

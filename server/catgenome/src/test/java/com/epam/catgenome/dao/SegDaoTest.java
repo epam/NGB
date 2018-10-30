@@ -108,10 +108,6 @@ public class SegDaoTest extends AbstractDaoTest {
         assertEquals(segFile.getReferenceId(), loadedFile.getReferenceId());
         assertEquals(segFile.getBioDataItemId(), loadedFile.getBioDataItemId());
 
-        List<SegFile> segFiles = segFileDao.loadSegFilesByReferenceId(reference.getId());
-
-        assertFalse(segFiles.isEmpty());
-
         segFileDao.deleteSegFile(segFile.getId());
         assertNull(segFileDao.loadSegFile(segFile.getId()));
     }

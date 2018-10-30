@@ -31,15 +31,12 @@ import com.epam.catgenome.entity.bam.BamQueryOption;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 import java.io.IOException;
-import java.util.List;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
@@ -53,9 +50,6 @@ public class BamSecurityService {
     private static final String READ_BAM_BY_QUERY_ID =
             "hasPermissionOnFileOrParentProject(#query.id, 'com.epam.catgenome.entity.bam.BamFile', " +
                     "#query.projectId, 'READ')";
-
-    @Autowired
-    private BamFileManager bamFileManager;
 
     @Autowired
     private BamManager bamManager;
@@ -92,9 +86,4 @@ public class BamSecurityService {
         bamManager.sendBamTrackToEmitterFromUrl(track, option, fileUrl, indexUrl, emitter);
     }
 
-    @AclMaskList
-    @PostFilter(ROLE_ADMIN + OR + ROLE_BAM_MANAGER + OR + READ_ON_FILTER_OBJECT)
-    public List<BamFile> loadBamFilesByReferenceId(Long referenceId) {
-        return bamFileManager.loadBamFilesByReferenceId(referenceId);
-    }
 }

@@ -28,14 +28,12 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 import com.epam.catgenome.manager.wig.WigSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -69,20 +67,6 @@ public class WigController extends AbstractRESTController {
 
     @Autowired
     private WigSecurityService wigSecurityService;
-
-    @RequestMapping(value = "/wig/{referenceId}/loadAll", method = RequestMethod.GET)
-    @ResponseBody
-    @ApiOperation(
-            value = "Returns metadata for all gene files filtered by a reference genome.",
-            notes = "Each summary in the list provides metadata per a single gene file that is available in the " +
-                    "system.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<List<WigFile>> loadWigFiles(@PathVariable(value = "referenceId") final Long referenceId) {
-        return Result.success(wigSecurityService.loadWigFilesByReferenceId(referenceId));
-    }
 
     @ResponseBody
     @RequestMapping(value = "/wig/register", method = RequestMethod.POST)

@@ -4,41 +4,6 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <bean class="com.epam.catgenome.dao.gene.GeneFileDao" id="geneFileDao" autowire="byName">
         <property name="geneFileSequenceName" value="catgenome.s_gene_file"/>
-        <property name="loadGeneFilesByReferenceIdQuery">
-            <value>
-                <![CDATA[
-                    SELECT
-                        b.bio_data_item_id,
-                        b.name,
-                        b.type,
-                        b.path,
-                        b.format,
-                        b.created_date,
-                        b.pretty_name,
-                        b.bucket_id,
-                        b.owner,
-
-                        g.gene_item_id,
-                        g.reference_genome_id as gene_reference_genome_id,
-                        g.compressed as gene_compressed,
-                        g.external_db_type_id as gene_external_db_type_id,
-                        g.external_db_id as gene_external_db_id,
-                        g.external_db_organism as gene_external_db_organism,
-
-                        i.bio_data_item_id as index_id,
-                        i.name as index_name,
-                        i.type as index_type,
-                        i.path as index_path,
-                        i.format as index_format,
-                        i.bucket_id as index_bucket_id,
-                        i.created_date as index_created_date
-                    FROM catgenome.gene_item g
-                        JOIN catgenome.biological_data_item b ON g.bio_data_item_id = b.bio_data_item_id
-                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = g.index_id
-                    WHERE g.reference_genome_id = ?
-                ]]>
-            </value>
-        </property>
         <property name="loadGeneFileQuery">
             <value>
                 <![CDATA[

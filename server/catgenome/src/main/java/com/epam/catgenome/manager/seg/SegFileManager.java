@@ -108,17 +108,6 @@ public class SegFileManager implements SecuredEntityManager {
     }
 
     /**
-     * Loads {@code SegFile} records, saved for a specific reference ID
-     *
-     * @param referenceId {@code long} a reference ID in the system
-     * @return {@code List&lt;SegFile&gt;} instance
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<SegFile> loadSedFilesByReferenceId(long referenceId) {
-        return segFileDao.loadSegFilesByReferenceId(referenceId);
-    }
-
-    /**
      * Deletes {@code SegFile} from the system and all the related information
      * @param segFile to delete
      */

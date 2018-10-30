@@ -55,39 +55,6 @@
                 ]]>
             </value>
         </property>
-        <property name="loadWigFilesByReferenceIdQuery">
-            <value>
-                <![CDATA[
-                    SELECT
-                        b.bio_data_item_id,
-                        b.name,
-                        b.type,
-                        b.path,
-                        b.format,
-                        b.created_date,
-                        b.bucket_id,
-                        b.pretty_name,
-                        b.owner,
-
-                        bg.bed_graph_id,
-                        bg.reference_genome_id as bed_graph_reference_genome_id,
-                        bg.compressed as bed_graph_compressed,
-
-
-                        i.bio_data_item_id as index_id,
-                        i.name as index_name,
-                        i.type as index_type,
-                        i.path as index_path,
-                        i.format as index_format,
-                        i.bucket_id as index_bucket_id,
-                        i.created_date as index_created_date
-                    FROM catgenome.bed_graph bg
-                        JOIN catgenome.biological_data_item b ON bg.bio_data_item_id = b.bio_data_item_id
-                        LEFT JOIN catgenome.biological_data_item i ON i.bio_data_item_id = bg.index_id
-                    WHERE bg.reference_genome_id = ?
-                ]]>
-            </value>
-        </property>
         <property name="deleteWigFileQuery">
             <value>
                 <![CDATA[

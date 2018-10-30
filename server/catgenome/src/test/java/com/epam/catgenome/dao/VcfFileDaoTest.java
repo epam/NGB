@@ -108,9 +108,6 @@ public class VcfFileDaoTest extends AbstractDaoTest {
         assertEquals(vcfFile.getBioDataItemId(), loadedFile.getBioDataItemId());
         assertEquals(vcfFile.getOwner(), loadedFile.getOwner());
 
-        List<VcfFile> vcfFiles = vcfFileDao.loadVcfFilesByReferenceId(reference.getId());
-
-        assertFalse(vcfFiles.isEmpty());
     }
 
     @Test

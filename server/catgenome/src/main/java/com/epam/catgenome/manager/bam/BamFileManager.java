@@ -94,17 +94,6 @@ public class BamFileManager implements SecuredEntityManager {
     }
 
     /**
-     * Loads {@code BamFile} records, saved for a specific reference ID
-     *
-     * @param referenceId {@code long} a reference ID in the system
-     * @return {@code List&lt;BamFile&gt;} instance
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<BamFile> loadBamFilesByReferenceId(long referenceId) {
-        return bamFileDao.loadBamFilesByReferenceId(referenceId);
-    }
-
-    /**
      * Deletes {@code BamFile} from the database and file system
      * @param bamFile a {@code BamFile} to delete
      */

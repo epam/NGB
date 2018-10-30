@@ -28,13 +28,11 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
 
 import java.io.IOException;
-import java.util.List;
 
 import com.epam.catgenome.manager.maf.MafSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -91,21 +89,6 @@ public class MafController extends AbstractRESTController {
     public Result<Boolean> unregisterSegFile(@RequestParam final long mafFileId) throws IOException {
         MafFile deletedFile = mafSecurityService.unregisterMafFile(mafFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
-    }
-
-    @ResponseBody
-    @RequestMapping(value = "/maf/{referenceId}/loadAll", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Returns metadata for all MAF files filtered by a reference genome.",
-            notes = "Each summary in the list provides metadata per a single MAF file that is available in the " +
-                    "system.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<List<MafFile>> loadMafFiles(@PathVariable(value = "referenceId") final Long referenceId) {
-        List<MafFile> res = mafSecurityService.loadMafFilesByReferenceId(referenceId);
-        return Result.success(res);
     }
 
     @ResponseBody

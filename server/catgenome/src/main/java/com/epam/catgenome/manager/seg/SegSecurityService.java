@@ -30,14 +30,11 @@ import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequ
 import com.epam.catgenome.entity.seg.SegFile;
 import com.epam.catgenome.entity.seg.SegRecord;
 import com.epam.catgenome.entity.track.SampledTrack;
-import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.List;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
@@ -47,9 +44,6 @@ public class SegSecurityService {
     private static final String READ_SEG_FILE_OR_PROJECT_BY_TRACK =
             "hasPermissionOnFileOrParentProject(#track.id, 'com.epam.catgenome.entity.seg.SegFile', " +
                     "#track.projectId, 'READ')";
-
-    @Autowired
-    private SegFileManager segFileManager;
 
     @Autowired
     private SegManager segManager;
@@ -63,12 +57,6 @@ public class SegSecurityService {
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_SEG_MANAGER)
     public SegFile unregisterSegFile(long segFileId) throws IOException {
         return segManager.unregisterSegFile(segFileId);
-    }
-
-    @AclMaskList
-    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT)
-    public List<SegFile> loadSedFilesByReferenceId(Long referenceId) {
-        return segFileManager.loadSedFilesByReferenceId(referenceId);
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_SEG_FILE_OR_PROJECT_BY_TRACK)

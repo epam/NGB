@@ -27,7 +27,6 @@ package com.epam.catgenome.manager.vcf;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -47,7 +46,6 @@ import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.entity.vcf.VcfFile;
-import com.epam.catgenome.entity.vcf.VcfSample;
 import com.epam.catgenome.manager.SecuredEntityManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
 
@@ -170,22 +168,4 @@ public class VcfFileManager implements SecuredEntityManager {
         return vcfFileDao.createVcfFileId();
     }
 
-    /**
-     * Loads {@code VcfFile} records, saved for a specific reference ID
-     *
-     * @param referenceId {@code long} a reference ID in the system
-     * @return {@code List&lt;VcfFile&gt;} instance
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<VcfFile> loadVcfFilesByReferenceId(long referenceId) {
-        List<VcfFile> files = vcfFileDao.loadVcfFilesByReferenceId(referenceId);
-
-        Map<Long, List<VcfSample>> sampleMap = vcfFileDao.loadSamplesForFilesByReference(referenceId);
-
-        for (VcfFile vcfFile : files) {
-            vcfFile.setSamples(sampleMap.get(vcfFile.getId()));
-        }
-
-        return files;
-    }
 }

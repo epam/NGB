@@ -25,13 +25,10 @@
 package com.epam.catgenome.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -72,6 +69,7 @@ import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 @WebAppConfiguration()
 @ContextConfiguration({"classpath:applicationContext-test.xml", "classpath:catgenome-servlet-test.xml"})
 public class BedControllerTest extends AbstractControllerTest {
+
     @Autowired
     ApplicationContext context;
 
@@ -80,7 +78,6 @@ public class BedControllerTest extends AbstractControllerTest {
 
     private static final String URL_BED_FILE_REGISTER = "/restapi/bed/register";
     private static final String URL_BED_FILE_UNREGISTER = "/restapi/secure/bed/register";
-    private static final String URL_LOAD_BED_FILES = "/restapi/bed/%d/loadAll";
     private static final String URL_LOAD_BLOCKS = "/restapi/bed/track/get";
 
     private static final int TEST_END_INDEX = 239107476;
@@ -129,25 +126,6 @@ public class BedControllerTest extends AbstractControllerTest {
         Assert.assertEquals(res.getPayload().getName(), "example.bed");
         Long fileId = res.getPayload().getId();
 
-        // Load all BedFiles for testReference
-        actions = mvc()
-                .perform(get(String.format(URL_LOAD_BED_FILES, testReference.getId()))
-                        .contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(jsonPath(JPATH_PAYLOAD).exists())
-                .andExpect(jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
-        actions.andDo(MockMvcResultHandlers.print());
-
-        ResponseResult<List<BedFile>> bedFilesRes = getObjectMapper()
-                .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
-                        getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
-                                getTypeFactory().constructParametrizedType(List.class, List.class, BedFile.class)));
-
-        Assert.assertNotNull(bedFilesRes.getPayload());
-        Assert.assertFalse(bedFilesRes.getPayload().isEmpty());
-        Assert.assertEquals(bedFilesRes.getPayload().get(0).getId(), fileId);
-
         // Load a track by fileId
         TrackQuery trackQuery = new TrackQuery();
         trackQuery.setChromosomeId(testChromosome.getId());
@@ -181,20 +159,5 @@ public class BedControllerTest extends AbstractControllerTest {
             .andExpect(jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
         actions.andDo(MockMvcResultHandlers.print());
 
-        actions = mvc()
-            .perform(get(String.format(URL_LOAD_BED_FILES, testReference.getId()))
-                         .contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(jsonPath(JPATH_PAYLOAD).doesNotExist())
-            .andExpect(jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
-        actions.andDo(MockMvcResultHandlers.print());
-
-        bedFilesRes = getObjectMapper()
-            .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
-                       getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
-                                  getTypeFactory().constructParametrizedType(List.class, List.class, BedFile.class)));
-
-        Assert.assertNull(bedFilesRes.getPayload());
     }
 }

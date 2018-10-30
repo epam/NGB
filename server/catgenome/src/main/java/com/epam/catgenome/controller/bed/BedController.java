@@ -28,7 +28,6 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
 
 import java.io.IOException;
-import java.util.List;
 
 import com.epam.catgenome.manager.bed.BedSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,21 +99,6 @@ public class BedController extends AbstractRESTController {
     public Result<Boolean> unregisterBedFile(@RequestParam final long bedFileId) throws IOException {
         BedFile deletedFile = bedSecurityService.unregisterBedFile(bedFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
-    }
-
-    @ResponseBody
-    @RequestMapping(value = "/bed/{referenceId}/loadAll", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Returns metadata for all BED files filtered by a reference genome.",
-            notes = "Each summary in the list provides metadata per a single BED file that is available in the " +
-                    "system.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<List<BedFile>> loadGeneFiles(@PathVariable(value = "referenceId") final Long referenceId) {
-        List<BedFile> res = bedSecurityService.loadBedFilesByReferenceId(referenceId);
-        return Result.success(res);
     }
 
     @ResponseBody

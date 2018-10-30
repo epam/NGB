@@ -25,13 +25,11 @@
 package com.epam.catgenome.dao;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
-import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -118,9 +116,6 @@ public class BamFileDaoTest extends AbstractDaoTest  {
         assertEquals(bamFile.getBioDataItemId(), loadedFile.getBioDataItemId());
         assertEquals(bamFile.getOwner(), loadedFile.getOwner());
 
-        List<BamFile> bamFiles = bamFileDao.loadBamFilesByReferenceId(reference.getId());
-
-        assertFalse(bamFiles.isEmpty());
         bamFileDao.deleteBamFile(loadedFile.getId());
 
         loadedFile = bamFileDao.loadBamFile(loadedFile.getId());
