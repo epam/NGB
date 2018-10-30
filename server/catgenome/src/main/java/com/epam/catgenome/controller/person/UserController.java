@@ -36,7 +36,6 @@ import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.security.JwtRawToken;
 import com.epam.catgenome.entity.security.NgbUser;
-import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.user.UserSecurityService;
 import com.epam.catgenome.security.UserContext;
 import com.wordnik.swagger.annotations.Api;
@@ -59,9 +58,6 @@ public class UserController extends AbstractRESTController {
     @Autowired
     private UserSecurityService userSecurityService;
 
-    @Autowired
-    private AuthManager authManager;
-
     @GetMapping("/user/current")
     @ApiOperation(
         value = "Returns currently logged in user",
@@ -71,7 +67,7 @@ public class UserController extends AbstractRESTController {
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
     public Result<UserContext> currentUser() {
-        return Result.success(authManager.getUserContext());
+        return Result.success(userSecurityService.getUserContext());
     }
 
     @GetMapping("/user/token")
@@ -83,7 +79,7 @@ public class UserController extends AbstractRESTController {
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
     public Result<JwtRawToken> getToken(@RequestParam(required = false) Long expiration) {
-        return Result.success(authManager.issueTokenForCurrentUser(expiration));
+        return Result.success(userSecurityService.issueTokenForCurrentUser(expiration));
     }
 
     @RequestMapping(value = "/user", method = RequestMethod.POST)

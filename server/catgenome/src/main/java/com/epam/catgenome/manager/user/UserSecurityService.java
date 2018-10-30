@@ -28,6 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.epam.catgenome.controller.vo.NgbUserVO;
+import com.epam.catgenome.entity.security.JwtRawToken;
+import com.epam.catgenome.manager.AuthManager;
+import com.epam.catgenome.security.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,9 +46,13 @@ public class UserSecurityService {
 
     private UserManager userManager;
 
+    private AuthManager authManager;
+
+
     @Autowired
-    public UserSecurityService(UserManager userManager) {
+    public UserSecurityService(UserManager userManager, AuthManager authManager) {
         this.userManager = userManager;
+        this.authManager = authManager;
     }
 
     @PreAuthorize(ROLE_ADMIN)
@@ -94,4 +101,13 @@ public class UserSecurityService {
         return new ArrayList<>(userManager.loadAllUsers());
     }
 
+    @PreAuthorize(ROLE_USER)
+    public JwtRawToken issueTokenForCurrentUser(Long expiration) {
+        return authManager.issueTokenForCurrentUser(expiration);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public UserContext getUserContext() {
+        return authManager.getUserContext();
+    }
 }
