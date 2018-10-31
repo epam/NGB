@@ -263,7 +263,7 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
 
     public List<NgbUser> loadUsersList(List<Long> userIds) {
         return getNamedParameterJdbcTemplate().query(loadUserListQuery,
-                RoleDao.RoleParameters.getIdListParameters(userIds), UserParameters.getUserRowMapper());
+                RoleDao.RoleParameters.getIdListParameters(userIds), UserParameters.getUserWithRolesExtractor());
     }
 
     @Transactional(propagation = Propagation.MANDATORY)

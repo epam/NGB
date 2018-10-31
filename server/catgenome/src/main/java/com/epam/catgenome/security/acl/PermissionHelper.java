@@ -144,7 +144,7 @@ public class PermissionHelper {
         if (force == null || !force) {
             return isAllowed(WRITE_PERMISSION, project);
         }
-        return hasPermissionOnWholeProject(project);
+        return hasPermissionOnWholeProject(project, WRITE_PERMISSION);
     }
 
     public boolean isOwner(AbstractSecuredEntity entity) {
@@ -220,11 +220,11 @@ public class PermissionHelper {
         return merge ? PermissionUtils.mergeMask(extendedMask, basicPermissions) : extendedMask;
     }
 
-    private boolean hasPermissionOnWholeProject(AbstractHierarchicalEntity project) {
+    private boolean hasPermissionOnWholeProject(AbstractHierarchicalEntity project, String permission) {
         Optional<Boolean> isAllowedForChildren = project.getChildren().stream()
-                .map(this::hasPermissionOnWholeProject).reduce((acc, b) -> acc && b);
+                .map(p -> hasPermissionOnWholeProject(p, permission)).reduce((acc, b) -> acc && b);
         return isAllowedForChildren.orElse(true) && project.getLeaves().stream()
-                .map(l -> isAllowed(WRITE_PERMISSION, l)).reduce((acc, b) -> acc && b).orElse(true);
+                .map(l -> isAllowed(permission, l)).reduce((acc, b) -> acc && b).orElse(true);
     }
 
     private int collectPermissions(int mask, Acl acl, List<Sid> sids,

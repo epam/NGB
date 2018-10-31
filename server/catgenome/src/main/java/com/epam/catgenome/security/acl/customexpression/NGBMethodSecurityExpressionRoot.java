@@ -38,7 +38,7 @@ import java.util.List;
 public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
                                                 implements MethodSecurityExpressionOperations {
 
-    public static final String ADMIN = "ADMIN";
+    private static final String ADMIN = "ADMIN";
     private Object filterObject;
     private Object returnObject;
     private Object target;
@@ -64,7 +64,7 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
             case BAM:
                 return hasRole("BAM_MANAGER");
             case BED:
-                return hasRole("BEM_MANAGER");
+                return hasRole("BED_MANAGER");
             case MAF:
                 return hasRole("MAF_MANAGER");
             case SEG:
@@ -94,8 +94,20 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
     }
 
     public boolean hasPermissionOnProject(Long projectId, String permission) {
+        // if projectId does not specified just return true
+        // case: when we ask permission for creating project in the root
         if (projectId == null) {
-            return hasRole(ADMIN);
+            return true;
+        } else {
+            return hasPermission(projectId, Project.class.getCanonicalName(), permission);
+        }
+    }
+
+    public boolean hasPermissionOnGeneFile(Long projectId, String permission) {
+        // if projectId does not specified just return true
+        // case: when we ask permission for creating project in the root
+        if (projectId == null) {
+            return true;
         } else {
             return hasPermission(projectId, Project.class.getCanonicalName(), permission);
         }

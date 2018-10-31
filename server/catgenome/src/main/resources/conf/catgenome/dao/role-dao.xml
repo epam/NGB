@@ -179,7 +179,7 @@
                       r.user_default as role_user_default,
                       u.id as user_id,
                       u.name as user_name,
-                      u.attributes as attributes,
+                      u.attributes as attributes
                     FROM catgenome.role r
                     LEFT JOIN catgenome.user_role m ON r.id = m.role_id
                     LEFT JOIN catgenome.user u ON m.user_id = u.id
@@ -197,7 +197,7 @@
                       r.user_default as role_user_default,
                       u.id as user_id,
                       u.name as user_name,
-                      u.attributes as attributes,
+                      u.attributes as attributes
                     FROM catgenome.role r
                     LEFT JOIN catgenome.user_role m ON r.id = m.role_id
                     LEFT JOIN catgenome.user u ON m.user_id = u.id

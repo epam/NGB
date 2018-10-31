@@ -159,9 +159,9 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void changeOwner(final AbstractSecuredEntity entity, final String owner) {
-        final MutableAcl aclFolder = getOrCreateObjectIdentity(entity);
-        aclFolder.setOwner(createOrGetSid(owner, true));
-        updateAcl(aclFolder);
+        final MutableAcl acl = getOrCreateObjectIdentity(entity);
+        acl.setOwner(createOrGetSid(owner, true));
+        updateAcl(acl);
     }
 
     public void setDeleteSidByIdQuery(String deleteSidByIdQuery) {

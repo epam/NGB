@@ -90,8 +90,7 @@ public class GeneSecurityService {
         return gffManager.loadGenes(track, collapsed);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR +
-            "hasPermission(#blocks.get(0).gffId, 'com.epam.catgenome.entity.gene.GeneFile', 'READ')")
+    @PreAuthorize(ROLE_USER)
     public List<GeneHighLevel> convertGeneTrackForClient(List<Gene> blocks,
                                                          Map<Gene, List<ProteinSequenceEntry>> aminoAcids) {
         return gffManager.convertGeneTrackForClient(blocks, aminoAcids);

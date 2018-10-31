@@ -70,12 +70,12 @@ public class ProjectSecurityService {
         return projectManager.load(projectName);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + "(hasPermissionOnProject(#parentId, 'WRITE')" + AND + ROLE_PROJECT_MANAGER + ")")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER + OR + "hasPermissionOnProject(#parentId, 'WRITE')")
     public Project create(Project convertFrom, Long parentId) {
         return projectManager.create(convertFrom, parentId);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + "(projectCanBeMoved(#projectId, #parentId)"+ AND + ROLE_PROJECT_MANAGER + ")")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER + OR + "projectCanBeMoved(#projectId, #parentId)")
     public void moveProjectToParent(Long projectId, Long parentId) {
         projectManager.moveProjectToParent(projectId, parentId);
     }
@@ -95,7 +95,7 @@ public class ProjectSecurityService {
     }
 
     @AclTree
-    @PreAuthorize(ROLE_ADMIN + OR + "(hasPermissionOnProject(#parentId, 'WRITE') " +
+    @PreAuthorize(ROLE_ADMIN + OR + "(hasPermissionOnProject(#projectId, 'WRITE') " +
             "AND hasPermissionByBioItemId(#biologicalItemId, 'READ'))")
     public void hideProjectItem(Long projectId, Long biologicalItemId) {
         projectManager.hideProjectItem(projectId, biologicalItemId);

@@ -36,24 +36,29 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
+import static com.epam.catgenome.security.acl.SecurityExpressions.*;
+
 @Service
 public class WigSecurityService {
+
+    private static final String READ_FILE_OR_PROJECT = "hasPermissionOnFileOrParentProject(" +
+            "#track.id, 'com.epam.catgenome.entity.wig.WigFile', #track.projectId, 'READ')";
 
     @Autowired
     private FacadeWigManager facadeWigManager;
 
 
-    @PreAuthorize("hasRole('ADMIN') OR hasRole('WIG_MANAGER')")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_WIG_MANAGER)
     public WigFile registerWigFile(FileRegistrationRequest request) {
         return facadeWigManager.registerWigFile(request);
     }
 
-    @PreAuthorize("hasPermission(#track.id, 'com.epam.catgenome.entity.wig.WigFile', 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + READ_FILE_OR_PROJECT)
     public Track<Wig> getWigTrack(Track<Wig> track) throws IOException {
         return facadeWigManager.getWigTrack(track);
     }
 
-    @PreAuthorize("hasRole('ADMIN') OR hasRole('WIG_MANAGER')")
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_WIG_MANAGER)
     public WigFile unregisterWigFile(long wigFileId) throws IOException {
         return facadeWigManager.unregisterWigFile(wigFileId);
     }

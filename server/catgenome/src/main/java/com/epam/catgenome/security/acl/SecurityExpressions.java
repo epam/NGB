@@ -39,6 +39,7 @@ public final class SecurityExpressions {
     public static final String ROLE_BAM_MANAGER = "hasRole('BAM_MANAGER')";
     public static final String ROLE_BED_MANAGER = "hasRole('BED_MANAGER')";
     public static final String ROLE_GENE_MANAGER = "hasRole('GENE_MANAGER')";
+    public static final String ROLE_WIG_MANAGER = "hasRole('WIG_MANAGER')";
     public static final String ROLE_BOOKMARK_MANAGER = "hasRole('BOOKMARK_MANAGER')";
     public static final String ROLE_REFERENCE_MANAGER = "hasRole('REFERENCE_MANAGER')";
     public static final String ROLE_BUCKET_MANAGER = "hasRole('BUCKET_MANAGER')";
