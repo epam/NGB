@@ -80,14 +80,14 @@ public class Project extends AbstractHierarchicalEntity {
         Set<ProjectItem> toRemove = new HashSet<>();
         for (ProjectItem item : items) {
             BiologicalDataItem leaf = item.getBioDataItem();
+            if (leaf.getFormat() == BiologicalDataItemFormat.REFERENCE
+                    || leaf.getFormat() == BiologicalDataItemFormat.REFERENCE_INDEX) {
+                continue;
+            }
+
             Set<Long> ids = idToRemove.get(leaf.getAclClass());
             if (!CollectionUtils.isEmpty(ids) && ids.contains(leaf.getId())) {
                 toRemove.add(item);
-                itemsCount -= 1;
-                if (itemsCountPerFormat != null) {
-                    itemsCountPerFormat.computeIfPresent(leaf.getFormat(),
-                        (k, i) -> i > 0 ? i - 1 : 0);
-                }
             }
         }
         items.removeAll(toRemove);
@@ -106,6 +106,23 @@ public class Project extends AbstractHierarchicalEntity {
         nestedProjects = nestedProjects.stream()
                 .filter(item -> !ids.contains(item.getId()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void clearForReadOnlyView() {
+        itemsCount = 0;
+        itemsCountPerFormat = new HashMap<>();
+
+        if (items == null) {
+            return;
+        }
+
+        for (ProjectItem item : items) {
+            itemsCount++;
+            BiologicalDataItemFormat itemFormat = item.getBioDataItem().getFormat();
+            itemsCountPerFormat.putIfAbsent(itemFormat, 0);
+            itemsCountPerFormat.computeIfPresent(itemFormat, (k, i) -> i + 1);
+        }
     }
 
     @Override

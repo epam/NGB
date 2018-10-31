@@ -70,7 +70,7 @@ public class ProjectSecurityService {
         return projectManager.load(projectName);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + "(hasPermissionOnProject(#parentId, 'WRITE')" + AND + ROLE_PROJECT_MANAGER+ ")")
+    @PreAuthorize(ROLE_ADMIN + OR + "(hasPermissionOnProject(#parentId, 'WRITE')" + AND + ROLE_PROJECT_MANAGER + ")")
     public Project create(Project convertFrom, Long parentId) {
         return projectManager.create(convertFrom, parentId);
     }

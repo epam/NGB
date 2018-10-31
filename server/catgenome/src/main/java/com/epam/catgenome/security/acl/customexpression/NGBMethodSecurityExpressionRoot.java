@@ -94,21 +94,24 @@ public class NGBMethodSecurityExpressionRoot extends SecurityExpressionRoot
     }
 
     public boolean hasPermissionOnProject(Long projectId, String permission) {
-        boolean isAllowedByRole = hasAnyRole(ADMIN, "PROJECT_MANAGER");
         if (projectId == null) {
-            return isAllowedByRole;
+            return hasRole(ADMIN);
         } else {
             return hasPermission(projectId, Project.class.getCanonicalName(), permission);
         }
     }
 
     public boolean hasPermissionOnFileOrParentProject(Long fileId, String type, Long projectId, String permission) {
-        //if fileId == null we assume that track is unregistered and will be fetched from url,
+        // if fileId == null we assume that track is unregistered and will be fetched from url,
         // so no need to have permission
         if (hasRole(ADMIN) || fileId == null) {
             return true;
         }
-        return hasPermission(fileId, type, permission) || hasPermissionOnProject(projectId, permission);
+        boolean hasPermission = hasPermission(fileId, type, permission);
+        if (!hasPermission && projectId != null) {
+            hasPermission = hasPermissionOnProject(projectId, permission);
+        }
+        return hasPermission;
     }
 
     public boolean projectCanBeMoved(Long projectId, Long newParentId) {

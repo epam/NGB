@@ -42,14 +42,15 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 @Service
 public class BucketSecurityService {
 
+    private static final String READ_BUCKET =
+            "hasPermission(#bucketId, 'com.epam.catgenome.entity.bucket.Bucket', 'READ')";
+
     @Autowired
     private BucketManager bucketManager;
 
 
     @AclMask
-    @PreAuthorize(ROLE_ADMIN + OR + ROLE_BUCKET_MANAGER
-            + OR + "hasPermission(#bucketId, 'com.epam.catgenome.entity.bucket.Bucket', 'READ')" + OR +
-            READ_PROJECT_BY_ID)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_BUCKET_MANAGER + OR + READ_BUCKET + OR + READ_PROJECT_BY_ID)
     public Bucket load(Long bucketId, Long projectId) {
         return bucketManager.load(bucketId);
     }
