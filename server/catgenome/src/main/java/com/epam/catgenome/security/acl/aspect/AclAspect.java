@@ -142,7 +142,8 @@ public class AclAspect {
             returning = "list")
     @Transactional(propagation = Propagation.REQUIRED)
     public void filterListOfTrees(JoinPoint joinPoint, List<? extends AbstractHierarchicalEntity> list) {
-        list.forEach(e -> permissionManager.filterTree(e, AclPermission.READ));
+        // filter projects and remove it from list if it empty and we haven't permission on it
+        list.removeIf(e -> !permissionManager.filterTree(e, AclPermission.READ));
     }
 
     @Before("@annotation(com.epam.catgenome.security.acl.aspect.AclFilter) && args(filterForm,..)")

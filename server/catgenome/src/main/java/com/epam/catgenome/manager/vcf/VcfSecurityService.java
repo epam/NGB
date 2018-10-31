@@ -52,8 +52,8 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 public class VcfSecurityService {
 
     private static final String READ_VCF_BY_TRACK_ID =
-            "hasPermissionOnFileOrParentProject(#variationTrack.id, 'com.epam.catgenome.entity.vcf.VcfFile', " +
-                    "#variationTrack.projectId, 'READ')";
+            "hasPermissionOnFileOrParentProject(#track.id, 'com.epam.catgenome.entity.vcf.VcfFile', " +
+                    "#track.projectId, 'READ')";
     private static final String READ_VCF_BY_QUERY_ID =
             "hasPermissionOnFileOrParentProject(#query.id, 'com.epam.catgenome.entity.vcf.VcfFile', " +
                     "#query.projectId, 'READ')";

@@ -24,23 +24,30 @@
  *
  */
 
-package com.epam.catgenome.manager.tools;
+package com.epam.catgenome.controller.vo;
 
-import com.epam.catgenome.controller.tools.FeatureFileSortRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static com.epam.catgenome.security.acl.SecurityExpressions.*;
+public class ItemsByProject {
 
-@Service
-public class ToolSecurityService {
-
-    @Autowired
-    private ToolsManager toolsManager;
-
-    @PreAuthorize(ROLE_USER)
-    public String sortFeatureFile(FeatureFileSortRequest request) {
-        return toolsManager.sortFeatureFile(request);
+    public ItemsByProject() {
+        this.value = new HashMap<>();
     }
+
+    public ItemsByProject(Map<Long, List<Long>> value) {
+        this.value = value;
+    }
+
+    public Map<Long, List<Long>> getValue() {
+        return value;
+    }
+
+    public void setValue(Map<Long, List<Long>> value) {
+        this.value = value;
+    }
+
+    private Map<Long, List<Long>> value;
+
 }

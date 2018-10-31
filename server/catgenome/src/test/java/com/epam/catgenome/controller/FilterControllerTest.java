@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.epam.catgenome.controller.vo.ItemsByProject;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import org.junit.Assert;
 import org.junit.Before;
@@ -141,7 +142,7 @@ public class FilterControllerTest extends AbstractControllerTest {
     public void testGetFieldInfo() throws Exception {
         ResultActions actions = mvc()
             .perform(post(URL_FILTER_INFO).content(getObjectMapper().writeValueAsBytes(
-                Collections.singletonMap(0L, Collections.singletonList(vcfFile.getId()))))
+                new ItemsByProject(Collections.singletonMap(0L, Collections.singletonList(vcfFile.getId())))))
                     .contentType(EXPECTED_CONTENT_TYPE))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))

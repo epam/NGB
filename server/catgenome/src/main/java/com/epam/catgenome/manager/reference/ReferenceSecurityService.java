@@ -35,6 +35,7 @@ import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.ReferenceReadingException;
 import com.epam.catgenome.security.acl.aspect.AclMask;
+import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -47,12 +48,17 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 @Service
 public class ReferenceSecurityService {
 
+    private static final String WRITE_ON_REF_READ_ON_GENE =
+            "hasPermission(#referenceId, 'com.epam.catgenome.entity.reference.Reference', 'WRITE') " +
+                    "AND hasPermission(#geneFileId, 'com.epam.catgenome.entity.gene.GeneFile', 'READ')";
+
     @Autowired
     private ReferenceManager referenceManager;
 
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
 
+    @AclMaskList
     @PreAuthorize(ROLE_USER)
     public List<Reference> loadAllReferenceGenomes(String referenceName) {
         return referenceGenomeManager.loadAllReferenceGenomes(referenceName);
@@ -64,6 +70,7 @@ public class ReferenceSecurityService {
         return referenceGenomeManager.load(referenceId);
     }
 
+    @AclMask
     @PreAuthorize(ROLE_USER)
     public Reference loadReferenceGenomeByBioItemId(Long bioItemID) {
         return referenceGenomeManager.loadReferenceGenomeByBioItemId(bioItemID);
@@ -90,35 +97,31 @@ public class ReferenceSecurityService {
     }
 
     @AclMask
-    @PreAuthorize(ROLE_ADMIN + OR +
-            "hasPermission(#referenceId, 'com.epam.catgenome.entity.reference.Reference', 'WRITE') " +
-            "AND hasPermission(#geneFileId, 'com.epam.catgenome.entity.gene.GeneFile', 'READ')")
+    @PreAuthorize(ROLE_ADMIN + OR + WRITE_ON_REF_READ_ON_GENE)
     public Reference updateReferenceGeneFileId(Long referenceId, Long geneFileId) {
         return referenceGenomeManager.updateReferenceGeneFileId(referenceId, geneFileId);
     }
 
     @AclMask
-    @PreAuthorize(ROLE_ADMIN + OR +
-            "hasPermission(#referenceId, 'com.epam.catgenome.entity.reference.Reference', 'WRITE') " +
-            "AND hasPermission(#geneFileId, 'com.epam.catgenome.entity.gene.GeneFile', 'READ')")
-    public Reference updateReferenceAnnotationFile(Long referenceId, Long annotationFileId, Boolean remove)
+    @PreAuthorize(ROLE_ADMIN + OR + WRITE_ON_REF_READ_ON_GENE)
+    public Reference updateReferenceAnnotationFile(Long referenceId, Long geneFileId, Boolean remove)
             throws IOException, FeatureIndexException {
-        return referenceGenomeManager.updateReferenceAnnotationFile(referenceId, annotationFileId, remove);
+        return referenceGenomeManager.updateReferenceAnnotationFile(referenceId, geneFileId, remove);
     }
 
     @AclMask
-    @PreAuthorize(ROLE_ADMIN + OR +ROLE_REFERENCE_MANAGER)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_REFERENCE_MANAGER)
     public Reference unregisterGenome(long referenceId) throws IOException {
         return referenceManager.unregisterGenome(referenceId);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR +ROLE_REFERENCE_MANAGER)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_REFERENCE_MANAGER)
     public Species registerSpecies(Species species) {
         return referenceGenomeManager.registerSpecies(species);
 
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR +ROLE_REFERENCE_MANAGER)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_REFERENCE_MANAGER)
     public Species unregisterSpecies(String speciesVersion) {
         return referenceGenomeManager.unregisterSpecies(speciesVersion);
     }
@@ -129,7 +132,7 @@ public class ReferenceSecurityService {
     }
 
     @AclMask
-    @PreAuthorize(ROLE_ADMIN + OR +ROLE_REFERENCE_MANAGER)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_REFERENCE_MANAGER)
     public Reference updateSpecies(Long referenceId, String speciesVersion) {
         return referenceGenomeManager.updateSpecies(referenceId, speciesVersion);
     }

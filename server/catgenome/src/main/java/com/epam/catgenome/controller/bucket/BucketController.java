@@ -59,9 +59,8 @@ public class BucketController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public final Result<Bucket> loadBucketById(@PathVariable(value = "bucketId") final Long bucketId,
-                                               @RequestParam(required = false) final  Long projectId) {
-        return Result.success(bucketSecurityService.load(bucketId, projectId));
+    public final Result<Bucket> loadBucketById(@PathVariable(value = "bucketId") final Long bucketId) {
+        return Result.success(bucketSecurityService.load(bucketId));
     }
 
     @ResponseBody

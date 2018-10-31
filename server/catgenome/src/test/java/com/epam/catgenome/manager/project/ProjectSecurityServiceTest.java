@@ -37,7 +37,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -159,11 +158,16 @@ public class ProjectSecurityServiceTest extends AbstractACLSecurityTest {
 
     }
 
-    @Test(expected = AccessDeniedException.class)
+    @Test
     @WithMockUser(TEST_USER_NO_READ)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void loadProjectDeniedTest() {
-        projectSecurityService.load(project.getId());
+    public void loadProjectEmptyIfNoPermissionTest() {
+        Project loaded = projectSecurityService.load(project.getId());
+        Assert.assertNotNull(loaded);
+        Assert.assertNotNull(loaded.getLeaves());
+        Assert.assertEquals(0, loaded.getLeaves().size());
+        Assert.assertNotNull(loaded.getChildren());
+        Assert.assertEquals(0, loaded.getChildren().size());
     }
 
 }

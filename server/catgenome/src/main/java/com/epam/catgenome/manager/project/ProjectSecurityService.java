@@ -31,7 +31,6 @@ import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.security.acl.aspect.AclTree;
 import com.epam.catgenome.security.acl.aspect.AclFilterAndTree;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +41,9 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
 @Service
 public class ProjectSecurityService {
+
+    private static final String PROJECT_WRITE_AND_ITEM_READ = "(hasPermissionOnProject(#projectId, 'WRITE')" +
+            " AND hasPermissionByBioItemId(#biologicalItemId, 'READ'))";
 
     @Autowired
     private ProjectManager projectManager;
@@ -59,13 +61,13 @@ public class ProjectSecurityService {
     }
 
     @AclTree
-    @PreAuthorize(READ_PROJECT_BY_ID)
+    @PreAuthorize(ROLE_USER)
     public Project load(Long projectId) {
         return projectManager.load(projectId);
     }
 
     @AclTree
-    @PostAuthorize("isAllowed(returnObject, 'READ')")
+    @PreAuthorize(ROLE_USER)
     public Project load(String projectName) {
         return projectManager.load(projectName);
     }
@@ -81,22 +83,18 @@ public class ProjectSecurityService {
     }
 
     @AclTree
-    @PreAuthorize(ROLE_ADMIN + OR + "(hasPermissionOnProject(#projectId, 'WRITE') " +
-            "AND hasPermissionByBioItemId(#biologicalItemId, 'READ'))")
+    @PreAuthorize(ROLE_ADMIN + OR + PROJECT_WRITE_AND_ITEM_READ)
     public Project addProjectItem(Long projectId, Long biologicalItemId) {
         return projectManager.addProjectItem(projectId, biologicalItemId);
     }
 
     @AclTree
-    @PreAuthorize(ROLE_ADMIN + OR + "(hasPermissionOnProject(#projectId, 'WRITE') " +
-            "AND hasPermissionByBioItemId(#biologicalItemId, 'READ'))")
+    @PreAuthorize(ROLE_ADMIN + OR + PROJECT_WRITE_AND_ITEM_READ)
     public Project removeProjectItem(Long projectId, Long biologicalItemId) throws FeatureIndexException {
         return projectManager.removeProjectItem(projectId, biologicalItemId);
     }
 
-    @AclTree
-    @PreAuthorize(ROLE_ADMIN + OR + "(hasPermissionOnProject(#projectId, 'WRITE') " +
-            "AND hasPermissionByBioItemId(#biologicalItemId, 'READ'))")
+    @PreAuthorize(ROLE_ADMIN + OR + PROJECT_WRITE_AND_ITEM_READ)
     public void hideProjectItem(Long projectId, Long biologicalItemId) {
         projectManager.hideProjectItem(projectId, biologicalItemId);
     }

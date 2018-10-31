@@ -56,7 +56,6 @@ import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
@@ -221,10 +220,12 @@ public class PermissionHelper {
     }
 
     private boolean hasPermissionOnWholeProject(AbstractHierarchicalEntity project, String permission) {
-        Optional<Boolean> isAllowedForChildren = project.getChildren().stream()
-                .map(p -> hasPermissionOnWholeProject(p, permission)).reduce((acc, b) -> acc && b);
-        return isAllowedForChildren.orElse(true) && project.getLeaves().stream()
-                .map(l -> isAllowed(permission, l)).reduce((acc, b) -> acc && b).orElse(true);
+        if (!isAllowed(permission, project)) {
+            return false;
+        }
+        return project.getChildren() == null || project.getChildren().stream()
+                .map(p -> hasPermissionOnWholeProject(p, permission))
+                .reduce((acc, b) -> acc && b).orElse(true);
     }
 
     private int collectPermissions(int mask, Acl acl, List<Sid> sids,

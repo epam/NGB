@@ -29,6 +29,8 @@ import static java.util.stream.Collectors.toMap;
 
 import java.util.*;
 
+import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
@@ -159,31 +161,33 @@ public class GrantPermissionManager {
         return new AclSecuredEntry(entityManager.changeOwner(aclClass, id, userName));
     }
 
-    public void filterTree(AbstractHierarchicalEntity entity, Permission permission) {
-        filterTree(permissionHelper.getSids(), entity, permission);
+    public boolean filterTree(AbstractHierarchicalEntity entity, Permission permission) {
+        return filterTree(permissionHelper.getSids(), entity, permission);
     }
 
-    public void filterTree(String userName, AbstractHierarchicalEntity entity, Permission permission) {
-        filterTree(permissionHelper.convertUserToSids(userName), entity, permission);
+    public boolean filterTree(String userName, AbstractHierarchicalEntity entity, Permission permission) {
+        return filterTree(permissionHelper.convertUserToSids(userName), entity, permission);
     }
 
-    private void filterTree(List<Sid> sids, AbstractHierarchicalEntity entity, Permission permission) {
+    private boolean filterTree(List<Sid> sids, AbstractHierarchicalEntity entity, Permission permission) {
         if (entity == null) {
-            return;
+            return true;
         }
         if (permissionHelper.isAdmin(sids)) {
-            return;
+            return true;
         }
-        processHierarchicalEntity(0, entity, new HashMap<>(), permission, true, sids);
+        return processHierarchicalEntity(0, entity, new HashMap<>(), permission, true, sids);
     }
 
-    private void processHierarchicalEntity(int parentMask, AbstractHierarchicalEntity entity,
-                                           Map<AclClass, Set<Long>> entitiesToRemove, Permission permission,
-                                           boolean root, List<Sid> sids) {
+    // return true if permission granted or we have any feature file inside the project with granted permission
+    private boolean processHierarchicalEntity(int parentMask, AbstractHierarchicalEntity entity,
+                                              Map<AclClass, Set<Long>> entitiesToRemove, Permission permission,
+                                              boolean root, List<Sid> sids) {
         int defaultMask = 0;
         int currentMask = entity.getId() != null ?
                 PermissionUtils.mergeParentMask(permissionHelper.retrieveMaskForSid(entity, false, root, sids),
                         parentMask) : defaultMask;
+
         entity.getChildren().forEach(
             leaf -> processHierarchicalEntity(currentMask, leaf, entitiesToRemove, permission, false, sids));
         filterLeafs(currentMask, entity.getLeaves(), entitiesToRemove, permission, sids);
@@ -193,12 +197,17 @@ public class GrantPermissionManager {
         if (!permissionGranted) {
             entity.clearForReadOnlyView();
         }
-        if (CollectionUtils.isEmpty(entity.getLeaves()) && CollectionUtils
-                .isEmpty(entity.getChildren()) && !permissionGranted) {
+
+        boolean hasFeatureFilesOrNesterProject = !CollectionUtils.isEmpty(entity.getChildren())
+                || (!CollectionUtils.isEmpty(entity.getLeaves()) && entity.getLeaves().stream()
+                .anyMatch(e -> ((BiologicalDataItem) e).getFormat() != BiologicalDataItemFormat.REFERENCE));
+
+        if (!hasFeatureFilesOrNesterProject && !permissionGranted) {
             entitiesToRemove.putIfAbsent(entity.getAclClass(), new HashSet<>());
             entitiesToRemove.get(entity.getAclClass()).add(entity.getId());
         }
         entity.setMask(PermissionUtils.mergeMask(currentMask));
+        return hasFeatureFilesOrNesterProject || permissionGranted;
     }
 
     private void filterLeafs(int parentMask, List<? extends AbstractSecuredEntity> children,

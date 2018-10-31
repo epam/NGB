@@ -55,17 +55,17 @@ public class BookmarkSecurityService {
     }
 
     @AclMask
-    @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT + OR + READ_BOOKMARK_BY_ID)
+    @PreAuthorize(ROLE_ADMIN + OR + READ_BOOKMARK_BY_ID)
     public Bookmark load(Long bookmarkId) {
         return bookmarkManager.load(bookmarkId);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT + OR + ROLE_BOOKMARK_MANAGER)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_BOOKMARK_MANAGER)
     public Bookmark create(Bookmark bookmark) throws IOException {
         return bookmarkManager.create(bookmark);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT + OR + ROLE_BOOKMARK_MANAGER)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_BOOKMARK_MANAGER)
     public void delete(Long bookmarkId) {
         bookmarkManager.delete(bookmarkId);
     }

@@ -50,8 +50,8 @@ public class BucketSecurityService {
 
 
     @AclMask
-    @PreAuthorize(ROLE_ADMIN + OR + ROLE_BUCKET_MANAGER + OR + READ_BUCKET + OR + READ_PROJECT_BY_ID)
-    public Bucket load(Long bucketId, Long projectId) {
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_BUCKET_MANAGER + OR + READ_BUCKET)
+    public Bucket load(Long bucketId) {
         return bucketManager.load(bucketId);
     }
 

@@ -26,10 +26,10 @@ package com.epam.catgenome.controller.filter;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import com.epam.catgenome.controller.vo.ItemsByProject;
 import com.epam.catgenome.manager.FeatureIndexSecurityService;
 import com.epam.catgenome.manager.vcf.VcfSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,8 +87,8 @@ public class FilterController extends AbstractRESTController {
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
     public Result<VcfFilterInfo> getFieldInfo(
-            @RequestBody Map<Long, List<Long>> vcfFileIdsByProjectId) throws IOException {
-        return Result.success(vcfSecurityService.getFiltersInfo(vcfFileIdsByProjectId));
+            @RequestBody ItemsByProject vcfFileIdsByProjectId) throws IOException {
+        return Result.success(vcfSecurityService.getFiltersInfo(vcfFileIdsByProjectId.getValue()));
     }
 
     @RequestMapping(value = "/filter", method = RequestMethod.POST)
