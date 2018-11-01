@@ -30,6 +30,7 @@ import com.epam.catgenome.common.AbstractACLSecurityTest;
 import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.security.acl.AclPermission;
 import com.epam.catgenome.util.AclTestDao;
 import com.epam.catgenome.util.NGBRegistrationUtils;
@@ -37,12 +38,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 
 public class ProjectSecurityServiceTest extends AbstractACLSecurityTest {
@@ -54,6 +55,8 @@ public class ProjectSecurityServiceTest extends AbstractACLSecurityTest {
     private static final String TEST_USER_NO_READ = "TEST_USER3";
 
     private Project project;
+    private Project nested;
+    private BamFile bam2;
 
     @Autowired
     private NGBRegistrationUtils registrationUtils;
@@ -67,15 +70,15 @@ public class ProjectSecurityServiceTest extends AbstractACLSecurityTest {
     @Before
     public void setup() throws IOException {
 
-        Reference reference = registrationUtils.registerReference(TEST_REF_NAME, TEST_REF_NAME, TEST_USER);
-        BamFile bam1 = registrationUtils.registerBam(reference, TEST_BAM_NAME, "bam1", TEST_USER);
-        BamFile bam2 = registrationUtils.registerBam(reference, TEST_BAM_NAME, "bam2", TEST_USER);
-        BamFile bam3 = registrationUtils.registerBam(reference, TEST_BAM_NAME, "bam3", TEST_USER);
+        Reference ref = registrationUtils.registerReference(TEST_REF_NAME, TEST_REF_NAME, TEST_USER);
+        BamFile bam1 = registrationUtils.registerBam(ref, TEST_BAM_NAME, "bam1", TEST_USER);
+        bam2 = registrationUtils.registerBam(ref, TEST_BAM_NAME, "bam2", TEST_USER);
+        BamFile bam3 = registrationUtils.registerBam(ref, TEST_BAM_NAME, "bam3", TEST_USER);
 
         project = registrationUtils
-                .registerProject("data_set1", TEST_USER, null, Arrays.asList(bam1, bam2));
-        Project nested = registrationUtils
-                .registerProject("data_set2", TEST_USER, project.getId(), Collections.singletonList(bam3));
+                .registerProject("data_set1", TEST_USER, null, ref, Collections.singletonList(bam1));
+        nested = registrationUtils
+                .registerProject("data_set2", TEST_USER, project.getId(), ref, Collections.singletonList(bam3));
 
 
         AclTestDao.AclSid ownerSid = new AclTestDao.AclSid(true, TEST_USER);
@@ -119,7 +122,7 @@ public class ProjectSecurityServiceTest extends AbstractACLSecurityTest {
         aclTestDao.createAclEntry(bam1AclEntry);
 
         AclTestDao.AclEntry bam2AclEntry = new AclTestDao.AclEntry(bam2refIdentity, 1, testUserSid,
-                AclPermission.WRITE.getMask(), true);
+                AclPermission.WRITE.getMask() | AclPermission.READ.getMask(), true);
         bam2AclEntry.setId(2L);
         aclTestDao.createAclEntry(bam2AclEntry);
 
@@ -129,7 +132,7 @@ public class ProjectSecurityServiceTest extends AbstractACLSecurityTest {
         aclTestDao.createObjectIdentity(projectrefIdentity);
 
         AclTestDao.AclEntry projectAclEntry = new AclTestDao.AclEntry(projectrefIdentity, 1, testUserSid,
-                AclPermission.READ.getMask(), true);
+                AclPermission.WRITE.getMask() | AclPermission.READ.getMask(), true);
         projectAclEntry.setId(4L);
         aclTestDao.createAclEntry(projectAclEntry);
 
@@ -159,13 +162,58 @@ public class ProjectSecurityServiceTest extends AbstractACLSecurityTest {
     }
 
     @Test
+    @WithMockUser(TEST_USER)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void moveProjectTest() {
+        projectSecurityService.moveProjectToParent(nested.getId(), null);
+        Project loaded = projectSecurityService.load(nested.getId());
+        Assert.assertNotNull(loaded);
+        Assert.assertNull(loaded.getParent());
+
+        projectSecurityService.moveProjectToParent(nested.getId(), project.getId());
+        loaded = projectSecurityService.load(nested.getId());
+        Assert.assertNotNull(loaded);
+        Assert.assertNotNull(loaded.getParent());
+    }
+
+    @Test(expected = AccessDeniedException.class)
     @WithMockUser(TEST_USER_NO_READ)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void loadProjectEmptyIfNoPermissionTest() {
+    public void moveProjectDeniedTest() {
+        projectSecurityService.moveProjectToParent(nested.getId(), null);
+    }
+
+    @Test
+    @WithMockUser(TEST_USER2)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void addItemProjectTest() throws FeatureIndexException {
+        projectSecurityService.removeProjectItem(project.getId(), bam2.getBioDataItemId());
+        Project loaded = projectSecurityService.load(project.getId());
+        Assert.assertNotNull(loaded);
+        //without bam2
+        Assert.assertEquals(1, loaded.getLeaves().size());
+
+        projectSecurityService.addProjectItem(project.getId(), bam2.getBioDataItemId());
+        loaded = projectSecurityService.load(project.getId());
+        Assert.assertNotNull(loaded);
+        Assert.assertEquals(2, loaded.getLeaves().size());
+    }
+
+    @Test(expected = AccessDeniedException.class)
+    @WithMockUser(TEST_USER_NO_READ)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void addItemProjectDeniedTest() {
+        projectSecurityService.addProjectItem(project.getId(), bam2.getBioDataItemId());
+    }
+
+    @Test
+    @WithMockUser(TEST_USER_NO_READ)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void loadProjectContainsOnlyRefIfNoPermissionTest() {
         Project loaded = projectSecurityService.load(project.getId());
         Assert.assertNotNull(loaded);
         Assert.assertNotNull(loaded.getLeaves());
-        Assert.assertEquals(0, loaded.getLeaves().size());
+        Assert.assertEquals(1, loaded.getLeaves().size());
         Assert.assertNotNull(loaded.getChildren());
         Assert.assertEquals(0, loaded.getChildren().size());
     }

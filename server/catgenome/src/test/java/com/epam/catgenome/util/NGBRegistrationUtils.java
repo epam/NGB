@@ -89,6 +89,7 @@ public class NGBRegistrationUtils {
         Reference reference = new Reference();
         reference.setName(name);
         reference.setPath(fastaFile.getPath());
+        reference.setCreatedDate(new Date());
         reference.setOwner(owner);
         reference.setIndex(index);
         reference.setType(BiologicalDataItemResourceType.FILE);
@@ -128,7 +129,7 @@ public class NGBRegistrationUtils {
         return file;
     }
 
-    public Project registerProject(String name, String owner, Long parentId, List<FeatureFile> items) {
+    public Project registerProject(String name, String owner, Long parentId, Reference ref, List<FeatureFile> items) {
         Project project = new Project();
         project.setName(name);
         project.setOwner(owner);
@@ -138,6 +139,7 @@ public class NGBRegistrationUtils {
         for (FeatureFile item : items) {
             projectDao.addProjectItem(project.getId(), item.getBioDataItemId());
         }
+        projectDao.addProjectItem(project.getId(), ref.getBioDataItemId());
         return project;
     }
 }
