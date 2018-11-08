@@ -112,10 +112,6 @@ export class GeneDataService extends DataService {
         });
     }
 
-    getAllFileList(refId) {
-        return this.get(`gene/${refId}/loadAll`);
-    }
-
     getExonsByViewport(request) {
         const errorHandler = (()=> {
             const code = 'Gene Data Service', message = 'Gene Data Service: error loading exons map';

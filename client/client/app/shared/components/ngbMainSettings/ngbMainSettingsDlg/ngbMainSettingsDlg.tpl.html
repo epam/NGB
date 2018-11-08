@@ -12,7 +12,7 @@
 
     <form name="settingsForm">
         <md-dialog-content style="min-width:600px;max-width:800px;max-height:610px; ">
-            <md-tabs md-dynamic-height md-border-bottom>
+            <md-tabs md-dynamic-height md-border-bottom md-stretch-tabs="always">
                 <md-tab label="GENERAL">
                     <md-content class="md-padding">
                         <div class="column">
@@ -54,6 +54,66 @@
                                 </md-checkbox>
                             </div>
                         </div>
+                    </md-content>
+                </md-tab>
+                <md-tab label="USER MANAGEMENT">
+                    <md-content style="width: 800px">
+                        <md-tabs md-dynamic-height md-border-bottom md-stretch-tabs="always">
+                            <md-tab label="Users">
+                                <md-content>
+                                    <md-button class="md-raised" ng-click="ctrl.openCreateUserDlg($event)">
+                                        Create user
+                                    </md-button>
+                                    <div ng-if="ctrl.usersGridOptions.data.length" class="ui-grid-container">
+                                        <!-- todo: error ? -->
+                                        <div ui-grid="ctrl.usersGridOptions"
+                                             ui-grid-save-state
+                                             ui-grid-selection
+                                             ui-grid-resize-columns
+                                             ui-grid-auto-resize
+                                             ui-grid-move-columns
+                                             ui-grid-pinning
+                                             ui-grid-infinite-scroll
+                                        ></div>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label="Groups">
+                                <md-content>
+                                    <md-button class="md-raised md-primary" ng-click="ctrl.openCreateGroupDlg($event)">
+                                        Create group
+                                    </md-button>
+                                    <div ng-if="ctrl.groupsGridOptions.data.length" class="ui-grid-container">
+                                        <!-- todo: error ? -->
+                                        <div ui-grid="ctrl.groupsGridOptions"
+                                             ui-grid-save-state
+                                             ui-grid-selection
+                                             ui-grid-resize-columns
+                                             ui-grid-auto-resize
+                                             ui-grid-move-columns
+                                             ui-grid-pinning
+                                             ui-grid-infinite-scroll
+                                        ></div>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label="Roles">
+                                <md-content>
+                                    <div ng-if="ctrl.rolesGridOptions.data.length" class="ui-grid-container">
+                                        <!-- todo: error ? -->
+                                        <div ui-grid="ctrl.rolesGridOptions"
+                                             ui-grid-save-state
+                                             ui-grid-selection
+                                             ui-grid-resize-columns
+                                             ui-grid-auto-resize
+                                             ui-grid-move-columns
+                                             ui-grid-pinning
+                                             ui-grid-infinite-scroll
+                                        ></div>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                        </md-tabs>
                     </md-content>
                 </md-tab>
                 <md-tab label="ALIGNMENTS">

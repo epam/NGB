@@ -18,11 +18,6 @@ class BamDataInit {
  * @extends DataService
  */
 export class BamDataService extends DataService {
-    /**
-     * Returns metadata for all BAM files filtered by a reference genome
-     * @returns {promise}
-     */
-    getAllFileList(referenceId) { return this.get(`bam/${referenceId}/loadAll`); }
 
     /**
      * Register BAM file on server
