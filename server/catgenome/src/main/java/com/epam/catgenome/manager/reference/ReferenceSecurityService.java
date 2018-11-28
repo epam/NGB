@@ -27,6 +27,7 @@
 package com.epam.catgenome.manager.reference;
 
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
+import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.Sequence;
@@ -37,6 +38,7 @@ import com.epam.catgenome.exception.ReferenceReadingException;
 import com.epam.catgenome.security.acl.aspect.AclMask;
 import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -48,9 +50,8 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 @Service
 public class ReferenceSecurityService {
 
-    private static final String WRITE_ON_REF_READ_ON_GENE =
-            "hasPermission(#referenceId, 'com.epam.catgenome.entity.reference.Reference', 'WRITE') " +
-                    "AND hasPermission(#geneFileId, 'com.epam.catgenome.entity.gene.GeneFile', 'READ')";
+    private static final String REF_MANAGER_AND_READ_ON_GENE = "(" + ROLE_REFERENCE_MANAGER + AND +
+            "hasPermission(#geneFileId, 'com.epam.catgenome.entity.gene.GeneFile', 'READ')" + ")";
 
     @Autowired
     private ReferenceManager referenceManager;
@@ -97,13 +98,13 @@ public class ReferenceSecurityService {
     }
 
     @AclMask
-    @PreAuthorize(ROLE_ADMIN + OR + WRITE_ON_REF_READ_ON_GENE)
+    @PreAuthorize(ROLE_ADMIN + OR + REF_MANAGER_AND_READ_ON_GENE)
     public Reference updateReferenceGeneFileId(Long referenceId, Long geneFileId) {
         return referenceGenomeManager.updateReferenceGeneFileId(referenceId, geneFileId);
     }
 
     @AclMask
-    @PreAuthorize(ROLE_ADMIN + OR + WRITE_ON_REF_READ_ON_GENE)
+    @PreAuthorize(ROLE_ADMIN + OR + REF_MANAGER_AND_READ_ON_GENE)
     public Reference updateReferenceAnnotationFile(Long referenceId, Long geneFileId, Boolean remove)
             throws IOException, FeatureIndexException {
         return referenceGenomeManager.updateReferenceAnnotationFile(referenceId, geneFileId, remove);
@@ -135,5 +136,11 @@ public class ReferenceSecurityService {
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_REFERENCE_MANAGER)
     public Reference updateSpecies(Long referenceId, String speciesVersion) {
         return referenceGenomeManager.updateSpecies(referenceId, speciesVersion);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    @PostFilter(READ_ON_FILTER_OBJECT)
+    public List<BiologicalDataItem> getReferenceAnnotationFiles(Long referenceId) {
+        return referenceGenomeManager.getReferenceAnnotationFiles(referenceId);
     }
 }

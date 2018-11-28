@@ -27,7 +27,6 @@ package com.epam.catgenome.controller.reference;
 import java.io.IOException;
 import java.util.List;
 
-import com.epam.catgenome.manager.reference.BookmarkSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -41,6 +40,7 @@ import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.BookmarkVO;
 import com.epam.catgenome.controller.vo.converter.BookmarkConverter;
+import com.epam.catgenome.manager.reference.BookmarkManager;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
@@ -56,7 +56,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
 public class BookmarkController extends AbstractRESTController {
 
     @Autowired
-    private BookmarkSecurityService bookmarkSecurityService;
+    private BookmarkManager bookmarkManager;
 
     @RequestMapping(value = "/bookmarks", method = RequestMethod.GET)
     @ResponseBody
@@ -65,7 +65,7 @@ public class BookmarkController extends AbstractRESTController {
             notes = "Bookmarks provide without data on tracks, that vas opened when a bookmark was saved",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Result<List<BookmarkVO>> loadBookmarks() {
-        return Result.success(BookmarkConverter.convertTo(bookmarkSecurityService.loadBookmarksByProject()));
+        return Result.success(BookmarkConverter.convertTo(bookmarkManager.loadAllBookmarks()));
     }
 
     @RequestMapping(value = "/bookmark/{bookmarkId}", method = RequestMethod.GET)
@@ -75,7 +75,7 @@ public class BookmarkController extends AbstractRESTController {
             notes = "Bookmarks provide data on tracks, that vas opened when a bookmark was saved",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Result<BookmarkVO> loadBookmark(@PathVariable(value = "bookmarkId") final Long bookmarkId) {
-        return Result.success(BookmarkConverter.convertTo(bookmarkSecurityService.load(bookmarkId)));
+        return Result.success(BookmarkConverter.convertTo(bookmarkManager.load(bookmarkId)));
     }
 
 
@@ -86,14 +86,14 @@ public class BookmarkController extends AbstractRESTController {
             notes = "Bookmarks provide data on tracks, that vas opened when a bookmark was saved",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Result<BookmarkVO> saveBookmark(@RequestBody final BookmarkVO bookmarkVO) throws IOException {
-        return Result.success(BookmarkConverter.convertTo(bookmarkSecurityService.create(BookmarkConverter.convertFrom(
+        return Result.success(BookmarkConverter.convertTo(bookmarkManager.create(BookmarkConverter.convertFrom(
                 bookmarkVO))));
     }
 
     @RequestMapping(value = "/bookmark/{bookmarkId}", method = RequestMethod.DELETE)
     @ResponseBody
     public Result<Boolean> deleteBookmark(@PathVariable(value = "bookmarkId") final Long bookmarkId) {
-        bookmarkSecurityService.delete(bookmarkId);
+        bookmarkManager.delete(bookmarkId);
         return Result.success(true);
     }
 }
