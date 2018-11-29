@@ -61,10 +61,6 @@ export class VcfDataService extends DataService {
         });
     }
 
-    getAllFileList(refId) {
-        return this.get(`vcf/${refId}/loadAll`);
-    }
-
     getNextVariations(tracksVCF, chromosomeId, fromPosition) {
         if (tracksVCF instanceof Array) {
             const promises = [];

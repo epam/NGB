@@ -45,10 +45,6 @@ export class BedDataService extends DataService {
         });
     }
 
-    getAllFileList(refId) {
-        return this.get(`bed/${refId}/loadAll`);
-    }
-
     register(referenceId, path ,indexPath, name) {
         return this.post('bed/register', {referenceId, path, indexPath, name});
     }
