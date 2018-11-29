@@ -37,6 +37,7 @@ import com.epam.catgenome.entity.bam.BamTrackMode;
 import com.epam.catgenome.entity.bam.BaseCoverage;
 import com.epam.catgenome.entity.bam.BasePosition;
 import com.epam.catgenome.entity.bam.SpliceJunctionsEntity;
+import com.epam.catgenome.exception.SamAlignmentException;
 import com.epam.catgenome.manager.bam.filters.Filter;
 import com.epam.catgenome.manager.bam.sifters.DownsamplingSifter;
 import com.epam.catgenome.manager.reference.ReferenceManager;
@@ -265,7 +266,8 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
 
     private void refreshHeadReferenceBuffer(final int start) throws IOException {
         if (mode == BamTrackMode.FULL) {
-            final int helpMin = min - ((min - start) / Constants.REFERENCE_STEP + 1) * Constants.REFERENCE_STEP;
+            final int helpMin = start <= 0 ? 1
+                    : min - ((min - start) / Constants.REFERENCE_STEP + 1) * Constants.REFERENCE_STEP;
             referenceBuffer.addHead(referenceManager.getSequenceString(helpMin, min - 1, refID, chromosomeName)
                     .toUpperCase());
             min = helpMin;
@@ -433,15 +435,24 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
 
         private void processMatch(List<BasePosition> basePositions, int cigarLength) {
             for (int j = 0; j < cigarLength; j++) {
+                checkIfBiasOutOfBound();
                 if (bufferBase != null && bufferBase.charAt(bias) != upperReadString.charAt(position)) {
                     basePositions.add(
-                            new BasePosition(position + corrector, upperReadString.charAt(position)));
-                    addBaseCoverage(upperReadString.charAt(position),
-                            startReadPosition + position + corrector);
+                            new BasePosition(position + corrector, upperReadString.charAt(position))
+                    );
+                    addBaseCoverage(upperReadString.charAt(position), startReadPosition + position + corrector);
                     //add to the coverage array (c/a/t/g/n)
                 }
                 bias++;
                 position++;
+            }
+        }
+
+        private void checkIfBiasOutOfBound() {
+            if (0 > bias || bias >= endTrack) {
+                //add +1 for better readability
+                throw new SamAlignmentException(
+                        "Read contains match that falls out of reference at position " + (bias + 1));
             }
         }
 
