@@ -49,6 +49,7 @@ import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.security.acl.AclPermission;
 import com.epam.catgenome.security.acl.GrantPermissionManager;
 import com.epam.catgenome.security.acl.JdbcMutableAclServiceImpl;
+import org.springframework.util.CollectionUtils;
 
 @Aspect
 @Component
@@ -143,7 +144,9 @@ public class AclAspect {
     @Transactional(propagation = Propagation.REQUIRED)
     public void filterListOfTrees(JoinPoint joinPoint, List<? extends AbstractHierarchicalEntity> list) {
         // filter projects and remove it from list if it empty and we haven't permission on it
-        list.removeIf(e -> !permissionManager.filterTree(e, AclPermission.READ));
+        if (!CollectionUtils.isEmpty(list)) {
+            list.removeIf(e -> !permissionManager.filterTree(e, AclPermission.READ));
+        }
     }
 
     @Before("@annotation(com.epam.catgenome.security.acl.aspect.AclFilter) && args(filterForm,..)")
