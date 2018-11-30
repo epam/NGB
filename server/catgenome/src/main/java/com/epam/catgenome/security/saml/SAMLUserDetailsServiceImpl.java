@@ -88,7 +88,7 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
         NgbUser loadedUser = userManager.loadUserByName(userName);
 
         if (loadedUser == null) {
-            if (!autoCreateUsers) {
+            if (!autoCreateUsers && !defaultAdmin.equalsIgnoreCase(userName)) {
                 throw new UsernameNotFoundException(
                     MessageHelper.getMessage(MessagesConstants.ERROR_USER_NAME_NOT_FOUND, userName));
             }
