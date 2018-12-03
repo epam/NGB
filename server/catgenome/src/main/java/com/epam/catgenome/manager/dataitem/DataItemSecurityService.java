@@ -46,12 +46,15 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
 @Service
 public class DataItemSecurityService {
 
+    private static final String FILTER_OBJECT_IS_REFERENCE = "filterObject.format.id == 1";
+    private static final String RETURN_OBJECT_IS_REFERENCE = "returnObject.format.id == 1";
+
+
     @Autowired
     private DataItemManager dataItemManager;
 
-
     @AclMaskList
-    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT)
+    @PostFilter(ROLE_ADMIN + OR + READ_ON_FILTER_OBJECT + OR + FILTER_OBJECT_IS_REFERENCE)
     public List<BiologicalDataItem> findFilesByName(String name, boolean strict) {
         return dataItemManager.findFilesByName(name, strict);
     }
@@ -62,7 +65,7 @@ public class DataItemSecurityService {
         return dataItemManager.deleteFileByBioItemId(id);
     }
 
-    @PostAuthorize("isAllowed(returnObject, 'READ')")
+    @PostAuthorize("isAllowed(returnObject, 'READ')" + OR + RETURN_OBJECT_IS_REFERENCE)
     public BiologicalDataItem findFileByBioItemId(Long id) {
         return dataItemManager.findFileByBioItemId(id);
     }
