@@ -214,7 +214,9 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         final Reference reference = referenceGenomeDao.loadReferenceGenomeByBioItemId(dataItemId);
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
 
-        reference.setGeneFile(geneFileDao.loadGeneFile(reference.getGeneFile().getId()));
+        if (reference.getGeneFile() != null) {
+            reference.setGeneFile(geneFileDao.loadGeneFile(reference.getGeneFile().getId()));
+        }
         reference.setAnnotationFiles(getAnnotationFilesByReferenceId(reference.getId()));
         return reference;
     }
