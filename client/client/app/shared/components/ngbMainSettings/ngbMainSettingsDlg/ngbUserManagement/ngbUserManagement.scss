@@ -1,0 +1,8 @@
+
+// uiGrid height fix
+.ui-grid {
+  height: auto;
+  .ui-grid-viewport {
+    height: 100% !important;
+  }
+}
