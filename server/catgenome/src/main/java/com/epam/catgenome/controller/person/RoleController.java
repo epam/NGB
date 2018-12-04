@@ -60,7 +60,7 @@ public class RoleController extends AbstractRESTController {
     @Autowired
     private RoleSecurityService roleSecurityService;
 
-    @RequestMapping(value = "/loadAll", method = RequestMethod.GET)
+    @RequestMapping(value = "/role/loadAll", method = RequestMethod.GET)
     @ResponseBody
     @ApiOperation(
             value = "Loads all available roles.",
@@ -75,7 +75,7 @@ public class RoleController extends AbstractRESTController {
         return Result.success(loadUsers ? roleSecurityService.loadRolesWithUsers() : roleSecurityService.loadRoles());
     }
 
-    @RequestMapping(value = "/{id}/assign", method = RequestMethod.POST)
+    @RequestMapping(value = "/role/{id}/assign", method = RequestMethod.POST)
     @ResponseBody
     @ApiOperation(
             value = "Assigns a list of users to role.",
@@ -89,7 +89,7 @@ public class RoleController extends AbstractRESTController {
         return Result.success(roleSecurityService.assignRole(id, userIds));
     }
 
-    @RequestMapping(value = "/{id}/remove", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/role/{id}/remove", method = RequestMethod.DELETE)
     @ResponseBody
     @ApiOperation(
             value = "Removes a role from a list of users",
@@ -103,7 +103,7 @@ public class RoleController extends AbstractRESTController {
         return Result.success(roleSecurityService.removeRole(id, userIds));
     }
 
-    @RequestMapping(value = "/create", method = RequestMethod.POST)
+    @RequestMapping(value = "/role/create", method = RequestMethod.POST)
     @ResponseBody
     @ApiOperation(
             value = "Creates a new role.",
@@ -119,7 +119,7 @@ public class RoleController extends AbstractRESTController {
         return Result.success(roleSecurityService.createRole(roleName, userDefault));
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/role/{id}", method = RequestMethod.PUT)
     @ResponseBody
     @ApiOperation(
             value = "Updates a role specified by ID.",
@@ -132,7 +132,7 @@ public class RoleController extends AbstractRESTController {
         return Result.success(roleSecurityService.updateRole(id, roleVO));
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    @RequestMapping(value = "/role/{id}", method = RequestMethod.GET)
     @ResponseBody
     @ApiOperation(
             value = "Gets a role specified by ID.",
@@ -145,7 +145,7 @@ public class RoleController extends AbstractRESTController {
         return Result.success(roleSecurityService.loadRole(id));
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/role/{id}", method = RequestMethod.DELETE)
     @ResponseBody
     @ApiOperation(
             value = "Deletes a role specified by ID.",
