@@ -1,36 +1,10 @@
+import angular from 'angular';
 import BaseController from '../../../../baseController';
+
+import ngbUserFormController from './ngbUserForm/ngbUserForm.controller';
 
 export default class ngbUserManagementController extends BaseController {
 
-    gridOptions = {
-        infiniteScrollRowsFromEnd: 10,
-        infiniteScrollUp: true,
-        infiniteScrollDown: true,
-        enableFiltering: false,
-        enableGridMenu: false,
-        enableHorizontalScrollbar: 0,
-        enablePinning: false,
-        enableRowHeaderSelection: false,
-        enableRowSelection: true,
-        headerRowHeight: 20,
-        height: '100%',
-        multiSelect: false,
-        rowHeight: 60,
-        showHeader: true,
-        treeRowHeaderAlwaysVisible: false,
-        saveWidths: true,
-        saveOrder: true,
-        saveScroll: false,
-        saveFocus: false,
-        saveVisible: true,
-        saveSort: true,
-        saveFilter: false,
-        savePinning: true,
-        saveGrouping: false,
-        saveGroupingExpandedStates: false,
-        saveTreeView: false,
-        saveSelection: false,
-    };
     usersGridOptions = {};
     groupsGridOptions = {};
     rolesGridOptions = {};
@@ -41,7 +15,7 @@ export default class ngbUserManagementController extends BaseController {
     }
 
     /* @ngInject */
-    constructor($mdDialog, $scope, ngbUserManagementService, projectContext) {
+    constructor($mdDialog, $scope, ngbUserManagementService, ngbUserManagementGridOptionsConstant) {
         super();
         Object.assign(this, {
             $mdDialog,
@@ -51,7 +25,7 @@ export default class ngbUserManagementController extends BaseController {
         // this.log = (log) => console.log(log);
 
         Object.assign(this.usersGridOptions, {
-            ...this.gridOptions,
+            ...ngbUserManagementGridOptionsConstant,
             appScopeProvider: this.scope,
             columnDefs: this.service.getUserManagementColumns(['User', 'Groups', 'Roles', 'Actions']),
             onRegisterApi: (gridApi) => {
@@ -60,7 +34,7 @@ export default class ngbUserManagementController extends BaseController {
             }
         });
         Object.assign(this.groupsGridOptions, {
-            ...this.gridOptions,
+            ...ngbUserManagementGridOptionsConstant,
             appScopeProvider: this.scope,
             data: [],
             columnDefs: this.service.getUserManagementColumns(['Group', 'Actions']),
@@ -70,7 +44,7 @@ export default class ngbUserManagementController extends BaseController {
             }
         });
         Object.assign(this.rolesGridOptions, {
-            ...this.gridOptions,
+            ...ngbUserManagementGridOptionsConstant,
             appScopeProvider: this.scope,
             data: [],
             columnDefs: this.service.getUserManagementColumns(['Role', 'Actions']),
@@ -80,6 +54,12 @@ export default class ngbUserManagementController extends BaseController {
             }
         });
 
+        this.fetchUsers();
+        this.fetchRolesAndGroups();
+    }
+
+    fetchUsers() {
+        this.isUsersLoading = true;
         this.service.getUsers((users) => {
             this.usersGridOptions.data = users;
 
@@ -90,6 +70,10 @@ export default class ngbUserManagementController extends BaseController {
                 }
             }
         });
+    }
+
+    fetchRolesAndGroups() {
+        this.isUsersLoading = true;
         this.service.getRolesAndGroups((groups, roles) => {
             this.groupsGridOptions.data = groups;
             this.rolesGridOptions.data = roles;
@@ -103,19 +87,83 @@ export default class ngbUserManagementController extends BaseController {
         });
     }
 
-    openEditUserDlg() {
+    openEditDialog(entity) {
+        switch (entity.type.toLowerCase()) {
+            case 'user':
+                this.openEditUserDlg(entity);
+                break;
+            case 'group': {
+                const group = {
+                    ...entity,
+                    name: `ROLE_${entity.groupName}`,
+                };
+                this.openEditRoleDlg(group);
+                break;
+            }
+            case 'role': {
+                const role = {
+                    ...entity,
+                    name: entity.roleName,
+                };
+                this.openEditRoleDlg(role);
+                break;
+            }
+        }
+    }
+
+    openEditUserDlg(user) {
+        console.log(user);
+        this.$mdDialog.show({
+            clickOutsideToClose: true,
+            bindToController: true,
+            controller: ngbUserFormController,
+            controllerAs: 'ctrl',
+            locals: {
+                title: 'Edit user',
+                userId: user.id,
+            },
+            parent: angular.element(document.body),
+            skipHide: true,
+            template: require('./ngbUserForm/ngbUserForm.tpl.html'),
+        }).then(() => {
+            this.fetchUsers();
+        });
+    }
+
+    openEditRoleDlg(role) {
+        console.log(role);
         // todo
         // this.$mdDialog.show({
         //     clickOutsideToClose: true,
-        //     controller: '',
+        //     controller: ngbUserFormController,
         //     controllerAs: 'ctrl',
+        //     locals: {
+        //         title: 'Edit user',
+        //         user,
+        //     },
         //     parent: angular.element(document.body),
-        //     template: require('./_.tpl.html'),
+        //     skipHide: true,
+        //     template: require('./ngbUserForm/ngbUserForm.tpl.html'),
+        // }).then(() => {
+        //     this.fetchRolesAndGroups();
         // });
     }
 
-    openEditRoleDlg() {
-        //
+    openCreateUserDlg() {
+        this.$mdDialog.show({
+            clickOutsideToClose: true,
+            controller: ngbUserFormController,
+            controllerAs: 'ctrl',
+            locals: {
+                title: 'Create user',
+                userId: null,
+            },
+            parent: angular.element(document.body),
+            skipHide: true,
+            template: require('./ngbUserForm/ngbUserForm.tpl.html'),
+        }).then(() => {
+            this.fetchUsers();
+        });
     }
 
 }

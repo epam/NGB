@@ -64,6 +64,7 @@ export default class ngbUserManagementService {
                     }
                     return false;
                 }).filter(i => !!i),
+                type: 'user',
             }));
         }
         return [];
@@ -77,7 +78,8 @@ export default class ngbUserManagementService {
                 editable: true,
                 deleatable: false,
                 id: role.id,
-                role: role.name,
+                roleName: role.name,
+                type: 'role',
                 userDefault: role.userDefault,
             }));
         }
@@ -91,7 +93,8 @@ export default class ngbUserManagementService {
                 editable: true,
                 deleatable: true,
                 id: role.id,
-                group: role.name,
+                groupName: role.name.includes(ROLE_NAME_FIRST_PART) ? role.name.slice(ROLE_NAME_FIRST_PART.length) : role.name,
+                type: 'group',
                 userDefault: role.userDefault,
             }));
         }
@@ -112,14 +115,14 @@ export default class ngbUserManagementService {
                                     aria-label="Edit"
                                     class="md-fab md-mini md-hue-1"
                                     ng-if="row.entity.editable"
-                                    ng-click="grid.appScope.$ctrl.openEditDialog(row.entity, $event)">
+                                    ng-click="grid.appScope.ctrl.openEditUserDlg(row.entity, $event)">
                                     <ng-md-icon icon="edit"></ng-md-icon>
                                 </md-button>
                                 <md-button
                                     aria-label="Delete"
                                     class="md-fab md-mini md-hue-1"
                                     ng-if="row.entity.deletable"
-                                    ng-click="grid.appScope.$ctrl.openDeleteDialog(row.entity, $event)">
+                                    ng-click="grid.appScope.ctrl.openDeleteDialog(row.entity, $event)">
                                     <ng-md-icon icon="delete"></ng-md-icon>
                                 </md-button>
                             </div>`,
@@ -259,6 +262,26 @@ export default class ngbUserManagementService {
                         field: 'userName',
                         minWidth: 50,
                         name: 'User',
+                        width: '*',
+                    });
+                    break;
+                case 'group':
+                    columnDefs.push({
+                        enableColumnMenu: false,
+                        enableSorting: true,
+                        field: 'groupName',
+                        minWidth: 50,
+                        name: 'Group',
+                        width: '*',
+                    });
+                    break;
+                case 'role':
+                    columnDefs.push({
+                        enableColumnMenu: false,
+                        enableSorting: true,
+                        field: 'roleName',
+                        minWidth: 50,
+                        name: 'Role',
                         width: '*',
                     });
                     break;
