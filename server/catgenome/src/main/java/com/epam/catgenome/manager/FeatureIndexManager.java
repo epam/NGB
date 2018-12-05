@@ -63,7 +63,6 @@ import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.project.ProjectManager;
 import com.epam.catgenome.manager.reference.BookmarkManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.manager.reference.ReferenceSecurityService;
 import com.epam.catgenome.manager.vcf.VcfFileManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import com.epam.catgenome.util.Utils;
@@ -105,9 +104,6 @@ public class FeatureIndexManager {
 
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
-
-    @Autowired
-    private ReferenceSecurityService referenceGenomeSecurityService;
 
     @Autowired
     private GffManager gffManager;
@@ -388,7 +384,7 @@ public class FeatureIndexManager {
 
         Reference reference = referenceGenomeManager.load(referenceId);
 
-        List<FeatureFile> annotationFiles = referenceGenomeSecurityService.getReferenceAnnotationFiles(referenceId)
+        List<FeatureFile> annotationFiles = referenceGenomeManager.getReferenceAnnotationFiles(referenceId)
                 .stream()
                 .map(biologicalDataItem -> (FeatureFile) biologicalDataItem)
                 .collect(Collectors.toList());

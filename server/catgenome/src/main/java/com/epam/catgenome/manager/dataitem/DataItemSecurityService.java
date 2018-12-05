@@ -33,8 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
@@ -59,7 +57,6 @@ public class DataItemSecurityService {
         return dataItemManager.findFilesByName(name, strict);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
     @PostAuthorize("isAllowed(returnObject, 'WRITE')")
     public BiologicalDataItem deleteFileByBioItemId(Long id) throws IOException {
         return dataItemManager.deleteFileByBioItemId(id);
