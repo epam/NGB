@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.amazonaws.services.s3.AmazonS3URI;
 import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.BamQueryOption;
 import com.epam.catgenome.entity.bam.BamTrack;
@@ -52,6 +53,8 @@ import com.epam.catgenome.entity.bam.BamTrackMode;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.FeatureFileReadingException;
+import com.epam.catgenome.util.aws.S3Client;
+import com.epam.catgenome.util.aws.S3SeekableStreamFactory;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFlag;
 import htsjdk.samtools.SAMRecord;
@@ -267,7 +270,7 @@ public class BamHelper {
         final BamFile newBamFile = new BamFile();
         final String alternativeName = request.getName();
 
-        newBamFile.setName(parseName(new File(request.getPath()).getName(), alternativeName, request.getType()));
+        newBamFile.setName(parseName(request.getPath(), alternativeName, request.getType()));
         newBamFile.setType(request.getType());
         newBamFile.setFormat(BiologicalDataItemFormat.BAM);
         newBamFile.setCreatedBy(AuthUtils.getCurrentUserId());
@@ -499,14 +502,8 @@ public class BamHelper {
     }
 
     private SamInputResource getS3Index(SamInputResource samInputResource,
-            BiologicalDataItem indexFile) {
-        Assert.notNull(indexFile.getBucketId(), getMessage(MessagesConstants.ERROR_S3_BUCKET));
-        final Bucket bucket = bucketManager.loadBucket(indexFile.getBucketId());
-        Assert.notNull(bucket, getMessage(MessagesConstants.ERROR_S3_BUCKET));
-        final AmazonS3 s3Client = new AmazonS3Client(new BasicAWSCredentials(bucket.getAccessKeyId(),
-                bucket.getSecretAccessKey()));
-        return samInputResource.index(s3Client.generatePresignedUrl(bucket.getBucketName(), indexFile.getPath(),
-                Utils.getTimeForS3URL()));
+                                        BiologicalDataItem indexFile) throws IOException {
+        return samInputResource.index(S3SeekableStreamFactory.getInstance().getInMemorySeekableStream(indexFile.getPath()));
     }
 
     private SamInputResource loadFile(final BamFile bamFile)
@@ -537,13 +534,8 @@ public class BamHelper {
         return SamInputResource.of(new HdfsSeekableInputStream(inBam));
     }
 
-    @NotNull private SamInputResource getS3SamInputResource(BamFile bamFile) {
-        final Bucket bucket = bucketManager.loadBucket(bamFile.getBucketId());
-        Assert.notNull(bucket, getMessage(MessagesConstants.ERROR_S3_BUCKET));
-        final AmazonS3 s3Client = new AmazonS3Client(new BasicAWSCredentials(bucket.getAccessKeyId(),
-                bucket.getSecretAccessKey()));
-        return SamInputResource.of(s3Client.generatePresignedUrl(bucket.getBucketName(), bamFile.getPath(),
-                Utils.getTimeForS3URL()));
+    @NotNull private SamInputResource getS3SamInputResource(BamFile bamFile) throws IOException {
+        return SamInputResource.of(S3SeekableStreamFactory.getInstance().getStreamFor(bamFile.getPath()));
     }
 
     private SamReader openSamReaderResource(final SamInputResource inputResource,

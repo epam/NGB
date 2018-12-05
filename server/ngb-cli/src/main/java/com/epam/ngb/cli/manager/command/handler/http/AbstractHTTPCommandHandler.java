@@ -614,7 +614,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
      */
     protected Pair<String, String> parseAndVerifyFilePath(String path) {
         Pair<String, String> fileWithIndex = splitFilePath(path);
-        String fileAbsolutePath = Utils.getNormalizeAndAbsolutePath(fileWithIndex.getLeft());
+        String fileAbsolutePath = fileWithIndex.getLeft();
 
         if (fileWithIndex.getRight() == null) {
             fileWithIndex = setIndexPathFromServer(fileAbsolutePath, fileWithIndex);
@@ -631,7 +631,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             //if server doesn't support a given index, but index is also not required
             //we don't pass it to server
             if (indexSupported) {
-                index = Utils.getNormalizeAndAbsolutePath(fileWithIndex.getRight());
+                index = fileWithIndex.getRight();
             }
         }
         return Pair.of(fileAbsolutePath, index);
