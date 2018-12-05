@@ -56,7 +56,7 @@
                         </div>
                     </md-content>
                 </md-tab>
-                <md-tab label="USER MANAGEMENT">
+                <md-tab label="USER MANAGEMENT" ng-if="ctrl.userIsAdmin">
                     <ngb-user-management></ngb-user-management>
                 </md-tab>
                 <md-tab label="ALIGNMENTS">

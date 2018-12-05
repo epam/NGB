@@ -9,7 +9,6 @@ export class UserDataService extends DataService {
         return new Promise(resolve => {
             this.get('users')
                 .catch(() => {
-                    debugger;
                     resolve(null);
                 })
                 .then((data) => {
@@ -38,6 +37,19 @@ export class UserDataService extends DataService {
                 })
                 .then((data) => {
                     resolve(data || null);
+                });
+        });
+    }
+
+    currentUserIsAdmin() {
+        return new Promise(resolve => {
+            this.getCurrentUser()
+                .then((user) => {
+                    if (user) {
+                        resolve(user.enabled && user.roles && user.roles.filter(r => r.name === 'ROLE_ADMIN').length > 0);
+                    } else {
+                        resolve(false);
+                    }
                 });
         });
     }

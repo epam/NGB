@@ -9,15 +9,21 @@ export default class ngbMainSettingsDlgController {
     showTrackHeadersIsDisabled = false;
 
     /* @ngInject */
-    constructor(dispatcher, projectContext, localDataService, $mdDialog, ngbMainSettingsDlgService, $scope, settings) {
+    constructor(dispatcher, projectContext, localDataService, $mdDialog, ngbMainSettingsDlgService, $scope, settings, userDataService) {
         this._dispatcher = dispatcher;
         this._localDataService = localDataService;
+        this.userIsAdmin = false;
         this._mdDialog = $mdDialog;
         this.settings = settings;
         this.settings && (this.settings.maxBAMBP = this.settings.maxBAMBP || DEFAULT_CONFIG);
         this.showTrackHeadersIsDisabled = projectContext.collapsedTrackHeaders !== undefined && projectContext.collapsedTrackHeaders;
         this.settingsService = ngbMainSettingsDlgService;
         this.customizeSettings = this.settingsService.getSettings();
+
+        userDataService.currentUserIsAdmin().then(isAdmin => {
+            this.userIsAdmin = isAdmin;
+            $scope.$apply();
+        });
 
         this.scope = $scope;
     }
