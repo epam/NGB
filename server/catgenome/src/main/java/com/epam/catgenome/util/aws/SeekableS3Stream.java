@@ -9,7 +9,7 @@ import htsjdk.samtools.util.Log;
 import htsjdk.samtools.util.RuntimeIOException;
 
 /**
- * Wrapper class for S3ParallelStream that supports @<code>seek()</code> method.
+ * Wrapper class for S3ObjectChunkInputStream that supports @<code>seek()</code> method.
  * If position skip requested by seek() is small, just skips bytes. Otherwise, recreates stream.
  */
 public class SeekableS3Stream extends SeekableStream {
@@ -23,7 +23,7 @@ public class SeekableS3Stream extends SeekableStream {
 
     SeekableS3Stream(AmazonS3URI source) {
         this.s3Source = source;
-        length = S3InputStreamFactory.getFileSize(s3Source);
+        length = S3Client.getFileSize(s3Source);
         recreateInnerStream();
     }
 
@@ -36,8 +36,8 @@ public class SeekableS3Stream extends SeekableStream {
             }
         }
 
-        final InputStream fileOnOffsetDataStream = new S3ParallelStream(s3Source, offset, length());
-        this.currentDataStream = new CountingWithSkipInputStream(fileOnOffsetDataStream);
+        this.currentDataStream = new CountingWithSkipInputStream(
+                new S3ObjectChunkInputStream(s3Source, offset, length()));
         log.debug("A new data stream was launched on offset = ", offset);
     }
 
@@ -60,7 +60,6 @@ public class SeekableS3Stream extends SeekableStream {
     public void seek(long targetPosition) throws IOException {
         log.debug("Seeking from ", position(), " to ", targetPosition);
         this.offset = targetPosition;
-        log.debug("Seek on position = ", targetPosition);
         recreateInnerStream();
     }
 

@@ -46,13 +46,11 @@ public class S3Manager {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Manager.class);
     private static final String DELIMITER = "/";
 
-
     public String generateSingedUrl(String inputUrl) {
         try  {
             LOGGER.debug("Input url is:" + inputUrl);
-            AmazonS3 client = getClient();
             URI parsedUrl = new URI(inputUrl);
-            URL url = client.generatePresignedUrl(parsedUrl.getHost(),
+            URL url = S3Client.getAws().generatePresignedUrl(parsedUrl.getHost(),
                     normalizePath(parsedUrl.getPath()), Utils.getTimeForS3URL());
             String urlInExternalForm = url.toExternalForm();
             LOGGER.debug("Creating signed url here:" + urlInExternalForm);
@@ -69,9 +67,5 @@ public class S3Manager {
         } else {
             return path;
         }
-    }
-
-    AmazonS3 getClient() {
-        return AmazonS3ClientBuilder.defaultClient();
     }
 }

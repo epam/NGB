@@ -1,46 +1,42 @@
 package com.epam.catgenome.util.aws;
 
-import com.amazonaws.AmazonClientException;
+
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentialsProviderChain;
-import com.amazonaws.auth.AnonymousAWSCredentials;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
-import htsjdk.samtools.util.Log;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import org.apache.http.HttpStatus;
+
+import java.io.BufferedInputStream;
+import java.io.InputStream;
 
 /**
  * Class provides configuration of AWS client and utility methods for S3
  */
-public class S3Client {
+public final class S3Client {
 
-    private static final Log LOG = Log.getInstance(S3Client.class);
-
+    private static final int CONNECTIONS_NUMBER = 50;
     private static final int TIMEOUT = 10_000;
     private static final int MAX_RETRY = 10;
-    private final AWSCredentialsProviderChain providerChain;
-    private final AmazonS3 aws;
+    private static final AmazonS3 aws;
 
-    public S3Client() {
-        providerChain = new DefaultAWSCredentialsProviderChain();
-        aws = configureAWS();
+    static {
+        ClientConfiguration configuration = new ClientConfiguration()
+                .withMaxConnections(CONNECTIONS_NUMBER)
+                .withMaxErrorRetry(MAX_RETRY)
+                .withConnectionTimeout(TIMEOUT)
+                .withSocketTimeout(TIMEOUT)
+                .withTcpKeepAlive(true);
+
+        aws = AmazonS3ClientBuilder.standard().build();
     }
 
-    /**
-     * A method that returns true if there are valid credentials set and false otherwise.
-     * @return a boolean value that shows whether there are valid credentials set.
-     */
-    boolean credentialsExist() {
-        try {
-            providerChain.getCredentials();
-        } catch (AmazonClientException e) {
-            LOG.warn(e, "Credentials not found, anonymous credentials will be used!");
-            return false;
-        }
-        return true;
+    static AmazonS3 getAws() {
+        return aws;
     }
 
     /**
@@ -49,7 +45,7 @@ public class S3Client {
      * @param uri The provided URI for the file.
      * @return a boolean value that shows whether the correct URI was provided
      */
-    public boolean isFileExisting(AmazonS3URI uri) {
+    public static boolean isFileExisting(AmazonS3URI uri) {
 
         boolean exist = true;
 
@@ -72,28 +68,53 @@ public class S3Client {
      * @param amazonURI An s3 URI
      * @return long value of the file size in bytes
      */
-    public long getFileSize(AmazonS3URI amazonURI){
+    public static long getFileSize(AmazonS3URI amazonURI){
         return aws
                 .getObjectMetadata(amazonURI.getBucket(), amazonURI.getKey())
                 .getContentLength();
     }
 
-    private AmazonS3 configureAWS() {
-        ClientConfiguration configuration = new ClientConfiguration()
-                .withMaxConnections(Configuration.getNumberOfConnections())
-                .withMaxErrorRetry(MAX_RETRY)
-                .withConnectionTimeout(TIMEOUT)
-                .withSocketTimeout(TIMEOUT)
-                .withTcpKeepAlive(true);
-
-        if (credentialsExist()) {
-            return new AmazonS3Client(providerChain, configuration);
-        } else {
-            return new AmazonS3Client(new AnonymousAWSCredentials(), configuration);
-        }
+    /**
+     * A method that creates an InputStream on a specific range of the file.
+     * InputStream classes wrapping order can be reversed.
+     *
+     * @param obj    target file URI
+     * @param offset range start position
+     * @param end    range end position
+     * @return an InputStream object on the specific range of the file.
+     */
+    public static InputStream loadFromTo(AmazonS3URI obj, long offset, long end) {
+        GetObjectRequest rangeObjectRequest = new GetObjectRequest(obj.getBucket(), obj.getKey());
+        rangeObjectRequest.setRange(offset, end);
+        S3Object s3Object = S3Client.getAws().getObject(rangeObjectRequest);
+        S3ObjectInputStream objectStream = s3Object.getObjectContent();
+        return new BufferedInputStream(objectStream);
     }
 
-    AmazonS3 getAws() {
-        return aws;
+    /**
+     * A method that creates an InputStream on a range
+     * from a specific position to the end of the file.
+     *
+     * @param obj    target file URI
+     * @param offset range start position
+     * @return an InputStream object on the specific range of the file.
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static InputStream loadFrom(AmazonS3URI obj,
+                                       @SuppressWarnings("SameParameterValue") long offset) {
+        long contentLength = S3Client.getFileSize(obj);
+        return loadFromTo(obj, offset, contentLength);
     }
+
+    /**
+     * A method that creates an InputStream on a specific file URI.
+     *
+     * @param obj target file URI
+     * @return an InputStream object on the file URI.
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static InputStream loadFully(AmazonS3URI obj) {
+        return loadFrom(obj, 0);
+    }
+
 }

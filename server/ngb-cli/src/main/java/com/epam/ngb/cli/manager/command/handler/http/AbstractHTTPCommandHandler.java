@@ -25,6 +25,7 @@
 package com.epam.ngb.cli.manager.command.handler.http;
 
 import static com.epam.ngb.cli.constants.MessageConstants.*;
+import static com.epam.ngb.cli.entity.BiologicalDataItemResourceType.*;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -34,12 +35,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.epam.ngb.cli.app.Utils;
-import com.epam.ngb.cli.entity.BiologicalDataItem;
-import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
-import com.epam.ngb.cli.entity.Project;
-import com.epam.ngb.cli.entity.RequestPayload;
-import com.epam.ngb.cli.entity.ResponseResult;
-import com.epam.ngb.cli.entity.SpeciesEntity;
+import com.epam.ngb.cli.entity.*;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -615,7 +611,9 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
     protected Pair<String, String> parseAndVerifyFilePath(String path) {
         Pair<String, String> fileWithIndex = splitFilePath(path);
         String fileAbsolutePath = fileWithIndex.getLeft();
-
+        if (getTypeFromPath(fileAbsolutePath) == FILE) {
+            fileAbsolutePath = Utils.getNormalizeAndAbsolutePath(fileWithIndex.getLeft());
+        }
         if (fileWithIndex.getRight() == null) {
             fileWithIndex = setIndexPathFromServer(fileAbsolutePath, fileWithIndex);
         }
@@ -632,6 +630,9 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             //we don't pass it to server
             if (indexSupported) {
                 index = fileWithIndex.getRight();
+                if (getTypeFromPath(index) == FILE) {
+                    index = Utils.getNormalizeAndAbsolutePath(index);
+                }
             }
         }
         return Pair.of(fileAbsolutePath, index);

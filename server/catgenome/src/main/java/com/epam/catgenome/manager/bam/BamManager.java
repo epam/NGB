@@ -110,7 +110,9 @@ public class BamManager {
         Assert.notNull(request.getPath(), getMessage(MessagesConstants.ERROR_NULL_PARAM));
         Assert.notNull(request.getReferenceId(), getMessage(NO_SUCH_REFERENCE));
         Assert.notNull(request.getIndexPath(), getMessage(MessagesConstants.WRONG_BAM_INDEX_FILE));
-        request.setType(BiologicalDataItemResourceType.S3);
+        if (request.getType() == null) {
+            request.setType(BiologicalDataItemResourceType.FILE);
+        }
         final BamFile newBamFile = bamHelper.fillBamFile(request);
         try {
             biologicalDataItemManager.createBiologicalDataItem(newBamFile);
