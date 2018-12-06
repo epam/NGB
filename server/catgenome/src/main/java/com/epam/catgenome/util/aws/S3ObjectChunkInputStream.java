@@ -1,6 +1,7 @@
 package com.epam.catgenome.util.aws;
 
 import com.amazonaws.services.s3.AmazonS3URI;
+import com.amazonaws.util.IOUtils;
 import htsjdk.samtools.util.RuntimeIOException;
 
 import java.io.IOException;
@@ -57,25 +58,9 @@ public class S3ObjectChunkInputStream extends InputStream {
 
         byte[] loadedDataBuffer;
         try (InputStream s3DataStream = S3Client.loadFromTo(uri, from, to)) {
-            loadedDataBuffer = loadDataFromStream(s3DataStream, Math.toIntExact(to - from) + 1);
+            loadedDataBuffer = IOUtils.toByteArray(s3DataStream);
         } catch (IOException e) {
             throw new RuntimeIOException(e);
-        }
-
-        return loadedDataBuffer;
-    }
-
-    private byte[] loadDataFromStream(InputStream s3DataStream, int size) throws IOException {
-        byte[] loadedDataBuffer = new byte[size];
-
-        for (int dataLoaded = 0; dataLoaded < size; dataLoaded++) {
-            int byteRead = s3DataStream.read();
-
-            if (byteRead == EOF_BYTE) {
-                throw new RuntimeIOException("Data stream ends ahead.");
-            }
-
-            loadedDataBuffer[dataLoaded] = (byte) byteRead;
         }
 
         return loadedDataBuffer;
