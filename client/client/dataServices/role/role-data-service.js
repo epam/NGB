@@ -29,7 +29,7 @@ export class RoleDataService extends DataService {
         });
     }
 
-    createRole(name, userDefault = false) {
+    createGroup(name, userDefault = false) {
         return new Promise(resolve => {
             this.post(`role/create?roleName=${name}&userDefault=${userDefault}`)
                 .catch(() => {
@@ -43,7 +43,7 @@ export class RoleDataService extends DataService {
 
     assignUsersToRole(roleId, usersIds = []) {
         return new Promise(resolve => {
-            this.post(`role/${roleId}/assign?usersIds=${usersIds}`)
+            this.post(`role/${roleId}/assign?userIds=${usersIds}`)
                 .catch(() => {
                     resolve(null);
                 })
@@ -55,7 +55,7 @@ export class RoleDataService extends DataService {
 
     updateRole(id, roleBody) {
         return new Promise(resolve => {
-            this.post(`role/${id}`, roleBody)
+            this.put(`role/${id}`, roleBody)
                 .catch(() => {
                     resolve(null);
                 })
@@ -79,7 +79,7 @@ export class RoleDataService extends DataService {
 
     removeRoleFromUsers(roleId, usersIds = []) {
         return new Promise(resolve => {
-            this.post(`role/${roleId}/remove?usersIds=${usersIds}`)
+            this.delete(`role/${roleId}/remove?userIds=${usersIds}`)
                 .catch(() => {
                     resolve(null);
                 })

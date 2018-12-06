@@ -46,7 +46,7 @@ export default class ngbUserFormController extends BaseController {
         Object.assign(this.formGridOptions, {
             ...ngbUserManagementGridOptionsConstant,
             appScopeProvider: this.scope,
-            columnDefs: this.service.getColumns(),
+            columnDefs: this.service.getRolesColumns(),
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();

@@ -73,12 +73,9 @@ export default class ngbUserManagementService {
     // todo
     _mapRolesData(rolesData) {
         if (rolesData && rolesData.length) {
-            return rolesData.filter(role => role.predefined === true).map(role => ({
-                //todo
-                editable: true,
-                deleatable: false,
-                id: role.id,
-                roleName: role.name,
+            return rolesData.filter(role => `${role.predefined}`.toLowerCase() === 'true').map(role => ({
+                id: +role.id,
+                name: role.name,
                 type: 'role',
                 userDefault: role.userDefault,
             }));
@@ -89,11 +86,8 @@ export default class ngbUserManagementService {
     _mapGroupsData(groupsData) {
         if (groupsData && groupsData.length) {
             return groupsData.filter(role => `${role.predefined}`.toLowerCase() === 'false').map(role => ({
-                //todo
-                editable: true,
-                deleatable: true,
-                id: role.id,
-                groupName: role.name.includes(ROLE_NAME_FIRST_PART) ? role.name.slice(ROLE_NAME_FIRST_PART.length) : role.name,
+                id: +role.id,
+                name: role.name.includes(ROLE_NAME_FIRST_PART) ? role.name.slice(ROLE_NAME_FIRST_PART.length) : role.name,
                 type: 'group',
                 userDefault: role.userDefault,
             }));
@@ -113,14 +107,14 @@ export default class ngbUserManagementService {
                             <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
                                 <md-button
                                     aria-label="Edit"
-                                    class="md-fab md-mini md-hue-1"
+                                    class="md-mini md-hue-1"
                                     ng-if="row.entity.editable"
                                     ng-click="grid.appScope.ctrl.openEditUserDlg(row.entity, $event)">
                                     <ng-md-icon icon="edit"></ng-md-icon>
                                 </md-button>
                                 <md-button
                                     aria-label="Delete"
-                                    class="md-fab md-mini md-hue-1"
+                                    class="md-mini md-hue-1"
                                     ng-if="row.entity.deletable"
                                     ng-click="grid.appScope.ctrl.openDeleteDialog(row.entity, $event)">
                                     <ng-md-icon icon="delete"></ng-md-icon>
@@ -150,7 +144,7 @@ export default class ngbUserManagementService {
                                         font-size: x-small;
                                         font-weight: bold;
                                         text-transform: uppercase;">
-                                    {{group}}
+                                    {{group.name}}
                                 </span>
                             </div>
                             <div layout="row" ng-if="row.entity.groups.length > 4" style="flex-flow: row wrap; align-items: center;">
@@ -165,7 +159,7 @@ export default class ngbUserManagementService {
                                         font-size: x-small;
                                         font-weight: bold;
                                         text-transform: uppercase;">
-                                    {{group}}
+                                    {{group.name}}
                                 </span>
                                 <ng-md-icon icon="more_horiz">
                                     <md-tooltip>
@@ -181,7 +175,7 @@ export default class ngbUserManagementService {
                                                 font-weight: bold;
                                                 text-transform: uppercase;
                                                 color: black;">
-                                            {{group}}
+                                            {{group.name}}
                                         </span>
                                     </md-tooltip>
                                 </ng-md-icon>
@@ -297,6 +291,69 @@ export default class ngbUserManagementService {
         }
 
         return columnDefs;
+    }
+
+    getGroupsManagementColumns() {
+        return [
+            {
+                enableColumnMenu: false,
+                enableSorting: true,
+                field: 'name',
+                minWidth: 50,
+                name: 'Group',
+                width: '*',
+            },
+            {
+                cellTemplate: `
+                            <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
+                                <md-button
+                                    aria-label="Edit"
+                                    class="md-mini md-hue-1"
+                                    ng-click="grid.appScope.ctrl.openEditGroupDlg(row.entity, $event)">
+                                    <ng-md-icon icon="edit"></ng-md-icon>
+                                </md-button>
+                            </div>`,
+                enableColumnMenu: false,
+                enableSorting: false,
+                enableMove: false,
+                field: 'actions',
+                maxWidth: 120,
+                minWidth: 120,
+                name: ''
+            }
+        ];
+    }
+
+    getRolesManagementColumns() {
+        return [
+            {
+                enableColumnMenu: false,
+                enableSorting: true,
+                field: 'name',
+                minWidth: 50,
+                name: 'Role',
+                width: '*',
+            },
+            {
+                cellTemplate: `
+                            <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
+                                <md-button
+                                    aria-label="Edit"
+                                    class="md-mini md-hue-1"
+                                    ng-click="grid.appScope.ctrl.openEditRoleDlg(row.entity, $event)">
+                                    <ng-md-icon icon="edit"></ng-md-icon>
+                                </md-button>
+                               
+                            </div>`,
+                enableColumnMenu: false,
+                enableSorting: false,
+                enableMove: false,
+                field: 'actions',
+                maxWidth: 120,
+                minWidth: 120,
+                name: ''
+            }
+        ];
     }
 
 }

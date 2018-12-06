@@ -2,6 +2,7 @@ import angular from 'angular';
 import BaseController from '../../../../baseController';
 
 import ngbUserFormController from './ngbUserForm/ngbUserForm.controller';
+import ngbRoleFormController from './ngbRoleForm/ngbRoleForm.controller';
 
 export default class ngbUserManagementController extends BaseController {
 
@@ -37,7 +38,7 @@ export default class ngbUserManagementController extends BaseController {
             ...ngbUserManagementGridOptionsConstant,
             appScopeProvider: this.scope,
             data: [],
-            columnDefs: this.service.getUserManagementColumns(['Group', 'Actions']),
+            columnDefs: this.service.getGroupsManagementColumns(),
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
@@ -47,7 +48,7 @@ export default class ngbUserManagementController extends BaseController {
             ...ngbUserManagementGridOptionsConstant,
             appScopeProvider: this.scope,
             data: [],
-            columnDefs: this.service.getUserManagementColumns(['Role', 'Actions']),
+            columnDefs: this.service.getRolesManagementColumns(),
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
@@ -130,25 +131,6 @@ export default class ngbUserManagementController extends BaseController {
         });
     }
 
-    openEditRoleDlg(role) {
-        console.log(role);
-        // todo
-        // this.$mdDialog.show({
-        //     clickOutsideToClose: true,
-        //     controller: ngbUserFormController,
-        //     controllerAs: 'ctrl',
-        //     locals: {
-        //         title: 'Edit user',
-        //         user,
-        //     },
-        //     parent: angular.element(document.body),
-        //     skipHide: true,
-        //     template: require('./ngbUserForm/ngbUserForm.tpl.html'),
-        // }).then(() => {
-        //     this.fetchRolesAndGroups();
-        // });
-    }
-
     openCreateUserDlg() {
         this.$mdDialog.show({
             clickOutsideToClose: true,
@@ -163,6 +145,63 @@ export default class ngbUserManagementController extends BaseController {
             template: require('./ngbUserForm/ngbUserForm.tpl.html'),
         }).then(() => {
             this.fetchUsers();
+        });
+    }
+
+    openCreateGroupDlg() {
+        this.$mdDialog.show({
+            clickOutsideToClose: true,
+            controller: ngbRoleFormController,
+            controllerAs: 'ctrl',
+            locals: {
+                isGroup: true,
+                roleId: null,
+                title: 'Create group'
+            },
+            parent: angular.element(document.body),
+            skipHide: true,
+            template: require('./ngbRoleForm/ngbRoleForm.tpl.html'),
+        }).then(() => {
+            this.fetchUsers();
+            this.fetchRolesAndGroups();
+        });
+    }
+
+    openEditGroupDlg(group) {
+        this.$mdDialog.show({
+            clickOutsideToClose: true,
+            controller: ngbRoleFormController,
+            controllerAs: 'ctrl',
+            locals: {
+                isGroup: true,
+                roleId: group.id,
+                title: 'Edit group'
+            },
+            parent: angular.element(document.body),
+            skipHide: true,
+            template: require('./ngbRoleForm/ngbRoleForm.tpl.html'),
+        }).then(() => {
+            this.fetchUsers();
+            this.fetchRolesAndGroups();
+        });
+    }
+
+    openEditRoleDlg(role) {
+        this.$mdDialog.show({
+            clickOutsideToClose: true,
+            controller: ngbRoleFormController,
+            controllerAs: 'ctrl',
+            locals: {
+                isGroup: false,
+                roleId: role.id,
+                title: 'Edit role'
+            },
+            parent: angular.element(document.body),
+            skipHide: true,
+            template: require('./ngbRoleForm/ngbRoleForm.tpl.html'),
+        }).then(() => {
+            this.fetchUsers();
+            this.fetchRolesAndGroups();
         });
     }
 
