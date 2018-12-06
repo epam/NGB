@@ -119,7 +119,7 @@ export default class ngbUserFormController extends BaseController {
     }
 
     clearSearchTerm() {
-        this.searchTerm.name = '';
+        this.searchTerm = '';
     }
 
     close() {
