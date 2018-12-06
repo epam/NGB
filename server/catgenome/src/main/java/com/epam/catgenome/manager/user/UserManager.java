@@ -155,7 +155,7 @@ public class UserManager {
     public NgbUser updateUserSAMLInfo(Long id, String name, List<Long> roles, List<String> groups,
                                            Map<String, String> attributes) {
         NgbUser user = loadUserById(id);
-        if (userUpdateRequired(groups, attributes, user)) {
+        if (attributes != null && groups != null && userUpdateRequired(groups, attributes, user)) {
             user.setUserName(name);
             user.setGroups(groups);
             user.setAttributes(attributes);
