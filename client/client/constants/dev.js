@@ -1,4 +1,4 @@
 module.exports = {
     env: 'development',
-    urlPrefix: 'http://localhost:8080/catgenome/'
+    urlPrefix: 'https://3.122.7.88:8080/catgenome/'
 };

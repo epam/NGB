@@ -1,10 +1,9 @@
-
 const ROLE_NAME_FIRST_PART = 'ROLE_';
 
-export default class ngbUserFormService {
+export default class ngbUserRoleFormService {
 
     static instance(userDataService, roleDataService) {
-        return new ngbUserFormService(userDataService, roleDataService);
+        return new ngbUserRoleFormService(userDataService, roleDataService);
     }
 
     constructor(userDataService, roleDataService) {
@@ -87,15 +86,15 @@ export default class ngbUserFormService {
             width: '*',
         }, {
             cellTemplate: `
-                <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
-                    <md-button
-                        aria-label="Delete"
-                        class="md-fab md-mini md-hue-1"
-                        ng-if="row.entity.deletable"
-                        ng-click="grid.appScope.ctrl.removeRole(row.entity, $event)">
-                        <ng-md-icon icon="delete"></ng-md-icon>
-                    </md-button>
-                </div>`,
+                      <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
+                          <md-button
+                              aria-label="Delete"
+                              class="md-fab md-mini md-hue-1"
+                              ng-if="row.entity.deletable"
+                              ng-click="grid.appScope.ctrl.removeRole(row.entity, $event)">
+                              <ng-md-icon icon="delete"></ng-md-icon>
+                          </md-button>
+                      </div>`,
             enableColumnMenu: false,
             enableSorting: false,
             enableMove: false,

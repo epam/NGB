@@ -33,14 +33,14 @@ export default class ngbUserFormController extends BaseController {
     }
 
     /* @ngInject */
-    constructor($mdDialog, $scope, ngbUserFormService, ngbUserManagementGridOptionsConstant, title, userId) {
+    constructor($mdDialog, $scope, ngbUserRoleFormService, ngbUserManagementGridOptionsConstant, title, userId) {
         super();
         Object.assign(this, {
             $mdDialog,
             $scope,
             title,
             userId,
-            service: ngbUserFormService,
+            service: ngbUserRoleFormService,
         });
 
         Object.assign(this.formGridOptions, {

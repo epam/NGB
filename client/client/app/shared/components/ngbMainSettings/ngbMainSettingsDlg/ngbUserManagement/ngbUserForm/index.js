@@ -6,11 +6,11 @@ import controller from './ngbUserForm.controller';
 
 import './ngbUserForm.scss';
 
-import ngbUserFormService from './ngbUserForm.service';
+import ngbUserRoleFormService from '../ngbUserRoleForm.service';
 import ngbUserManagementGridOptionsConstant from '../ngbUserManagementGridOptions.constant';
 
 export default angular.module('ngbUserFormComponent', [dataServices, uiGrid])
-    .service('ngbUserFormService', ngbUserFormService)
+    .service('ngbUserRoleFormService', ngbUserRoleFormService)
     .controller(controller.UID, controller)
     .constant('ngbUserManagementGridOptionsConstant', ngbUserManagementGridOptionsConstant)
     .name;
