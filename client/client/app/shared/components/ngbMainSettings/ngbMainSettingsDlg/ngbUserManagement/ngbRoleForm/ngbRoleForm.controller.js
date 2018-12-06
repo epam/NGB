@@ -14,6 +14,7 @@ export default class ngbUserFormController extends BaseController {
     userDefault = false;
     // searchTerm = '';
     formGridOptions = {};
+    searchTerm = '';
 
     get dialogTitle() {
         return this.title || null;
@@ -42,6 +43,12 @@ export default class ngbUserFormController extends BaseController {
             isGroup,
             service: ngbUserRoleFormService,
         });
+
+        const self = this;
+
+        $scope.searchFilter = function (item) {
+            return !self.searchTerm || (item.name || '').toLowerCase().indexOf(self.searchTerm.toLowerCase()) >= 0;
+        };
 
         Object.assign(this.formGridOptions, {
             ...ngbUserManagementGridOptionsConstant,
@@ -112,7 +119,7 @@ export default class ngbUserFormController extends BaseController {
     }
 
     clearSearchTerm() {
-        this.searchTerm = '';
+        this.searchTerm.name = '';
     }
 
     close() {
@@ -126,7 +133,7 @@ export default class ngbUserFormController extends BaseController {
     save() {
         const usersToAdd = [];
         const usersToRemove = [];
-        const list = this.formGridOptions.data.map(u => +u.id);
+        const list = (this.formGridOptions.data || []).map(u => +u.id);
         const roleList = this.roleInitialUserIds;
         for (let i = 0; i < roleList.length; i++) {
             if (list.indexOf(roleList[i]) === -1) {

@@ -19,11 +19,6 @@
                                    required
                                    placeholder="Name"
                                    ng-model="ctrl.groupName" />
-                            <!--
-                                                        <div ng-messages="" role="alert">
-                                                            <div ng-message="">Enter user name.</div>
-                                                        </div>
-                            -->
                         </md-input-container>
                     </div>
                     <div layout="row">
@@ -40,18 +35,20 @@
                                        name="add_user"
                                        md-on-close="ctrl.clearSearchTerm()"
                                        style="max-width: 500px"
-                                       md-container-class="user-role-selector"
+                                       md-container-class="role-user-selector"
                                        multiple>
-                                <!--
-                                                                <md-select-header class="role-select-header">
-                                                                    <input ng-model="searchTerm"
-                                                                           type="search"
-                                                                           placeholder="Search for a role or a group..."
-                                                                           class="md-text role-header-searchbox">
-                                                                </md-select-header>
-                                -->
+                                <md-select-header class="user-select-header">
+                                    <input ng-model="searchTerm"
+                                           type="search"
+                                           placeholder="Search for a user..."
+                                           class="md-text user-header-searchbox" />
+                                </md-select-header>
                                 <md-optgroup label="Users">
-                                    <md-option ng-value="user" ng-repeat="user in ctrl.availableUsers | filter:ctrl.searchTerm">{{user.name}}</md-option>
+                                    <md-option
+                                            ng-repeat="user in ctrl.availableUsers | filter:searchTerm"
+                                            ng-value="user">
+                                        {{user.name}}
+                                    </md-option>
                                 </md-optgroup>
                             </md-select>
                         </md-input-container>
