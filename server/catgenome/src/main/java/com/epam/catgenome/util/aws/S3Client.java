@@ -1,7 +1,6 @@
 package com.epam.catgenome.util.aws;
 
 
-import com.amazonaws.ClientConfiguration;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3URI;
@@ -19,19 +18,9 @@ import java.io.InputStream;
  */
 public final class S3Client {
 
-    private static final int CONNECTIONS_NUMBER = 50;
-    private static final int TIMEOUT = 10_000;
-    private static final int MAX_RETRY = 10;
     private static final AmazonS3 aws;
 
     static {
-        ClientConfiguration configuration = new ClientConfiguration()
-                .withMaxConnections(CONNECTIONS_NUMBER)
-                .withMaxErrorRetry(MAX_RETRY)
-                .withConnectionTimeout(TIMEOUT)
-                .withSocketTimeout(TIMEOUT)
-                .withTcpKeepAlive(true);
-
         aws = AmazonS3ClientBuilder.standard().build();
     }
 

@@ -166,7 +166,7 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
             if(indexPath == null){
                 indexPath = ParsingUtils.appendToPath(resourcePath, TabixUtils.STANDARD_INDEX_EXTENSION);
             }
-            return hasBlockCompressedExtension(resourcePath) && ParsingUtils.resourceExists(indexPath);
+            return hasBlockCompressedExtension(resourcePath);
         }
     }
 }

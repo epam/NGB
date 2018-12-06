@@ -23,7 +23,9 @@ package com.epam.catgenome.util.feature.reader;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import com.amazonaws.services.s3.AmazonS3URI;
 import com.epam.catgenome.util.IndexUtils;
+import com.epam.catgenome.util.aws.S3Client;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.tribble.AsciiFeatureCodec;
@@ -107,8 +109,14 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                 header = tabixIndexCache.getHeader();
 
                 if (header == null) {
+                    InputStream is;
+                    if (path.startsWith("s3")) {
+                        is = S3Client.loadFully(new AmazonS3URI(path));
+                    } else {
+                        is = ParsingUtils.openInputStream(path);
+                    }
                     source = codec.makeSourceFromStream(new PositionalBufferedStream(
-                            new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
+                            new BlockCompressedInputStream(is)));
                     header = codec.readHeader(source);
                     tabixIndexCache.setHeader(header);
                     tabixIndexCache.setCodec(codec);
