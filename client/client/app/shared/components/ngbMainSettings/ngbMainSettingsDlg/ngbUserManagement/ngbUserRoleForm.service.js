@@ -31,7 +31,7 @@ export default class ngbUserRoleFormService {
 
     getUsersGroupsAndRoles(userId, callback) {
         this.getUser(userId).then((user) => {
-            callback(this._mapUserRoles(user));
+            callback(this._mapUserRoles(user), user.userName);
         });
     }
 
@@ -67,6 +67,7 @@ export default class ngbUserRoleFormService {
             deletable: true,
             id: role.id,
             name: !role.predefined && role.name.includes(ROLE_NAME_FIRST_PART) ? role.name.slice(ROLE_NAME_FIRST_PART.length) : role.name,
+            predefined: role.predefined,
             userDefault: role.userDefault,
         }));
     }
@@ -89,8 +90,8 @@ export default class ngbUserRoleFormService {
 
     createUser(name, roles, callback) {
         this._userDataService.createUser({
-            name,
-            roles,
+            userName: name,
+            roleIds: roles,
         }).then(res => {
             callback(res);
         });
@@ -136,8 +137,8 @@ export default class ngbUserRoleFormService {
           });
     }
 
-    saveUser(id, roles, callback) {
-        this._userDataService.updateUser(id, {roles}).then(res => {
+    saveUser(id, userName, roles, callback) {
+        this._userDataService.updateUser(id, {userName, roleIds: roles}).then(res => {
             callback(res);
         });
     }
@@ -169,7 +170,7 @@ export default class ngbUserRoleFormService {
                               aria-label="Delete"
                               class="md-mini md-hue-1"
                               ng-if="row.entity.deletable"
-                              ng-click="grid.appScope.ctrl.removeRole(row.entity, $event)">
+                              ng-click="grid.appScope.ctrl.removeRoleFromGrid(row.entity.id, $event)">
                               <ng-md-icon icon="delete"></ng-md-icon>
                           </md-button>
                       </div>`,

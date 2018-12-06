@@ -19,13 +19,12 @@ export default class ngbUserFormController extends BaseController {
         return this.userId === null;
     }
 
-    get currentRoles() {
-        // todo
-        // if (this.formGridOptions.data.length) {
-        //     return this.formGridOptions.data.map(role => role.id);
-        // } else {
-        //     return [];
-        // }
+    get currentRolesIds() {
+        if (this.formGridOptions.data.length) {
+            return this.formGridOptions.data.map(role => role.id);
+        } else {
+            return [];
+        }
     }
 
     static get UID() {
@@ -54,52 +53,64 @@ export default class ngbUserFormController extends BaseController {
             // showHeader: false,
         });
 
-        this.service.getRoles((roles) => {
-            this.availableRoles = roles;
-            if (this.$scope !== null && this.$scope !== undefined) {
-                this.$scope.$apply();
-            }
-        });
-
         if (!this.isNewUser) {
-            this.fetchCurrentUserRolesData();
+            this.fetchCurrentUserRolesData(::this.fetchAvailableRoles);
         } else {
-            this.fetchDefaultRolesData();
+            this.fetchDefaultRolesData(::this.fetchAvailableRoles);
         }
 
     }
 
+    removeRoleFromGrid(id) {
+        this.formGridOptions.data = this.formGridOptions.data.filter(r => r.id !== id);
+        this.fetchAvailableRoles();
+    }
+
     addRolesToGrid() {
-        // todo
-        // this.formGridOptions.data = [
-        //     ...this.selectedRoles,
-        //     ...this.formGridOptions.data,
-        // ];
-        // if (this.$scope !== null && this.$scope !== undefined) {
-        //     this.$scope.$apply();
-        // }
+        this.formGridOptions.data = [
+            ...this.formGridOptions.data,
+            ...this.selectedRoles.map(r => ({
+                ...r,
+                deletable: true,
+            })),
+        ];
+        this.fetchAvailableRoles();
     }
 
     clearSearchTerm() {
         this.searchTerm = '';
     }
 
-    fetchDefaultRolesData() {
-        this.service.getDefaultRoles((gridData) => {
-            this.formGridOptions.data = gridData;
+    fetchAvailableRoles() {
+        this.service.getRoles((roles) => {
+            this.availableRoles = roles.filter(role => !this.currentRolesIds.length || !this.currentRolesIds.includes(role.id));
             if (this.$scope !== null && this.$scope !== undefined) {
                 this.$scope.$apply();
             }
         });
     }
 
-    fetchCurrentUserRolesData() {
+    fetchDefaultRolesData(callback) {
+        this.service.getDefaultRoles((gridData) => {
+            this.formGridOptions.data = gridData;
+            if (callback) {
+                callback();
+            } else if (this.$scope !== null && this.$scope !== undefined) {
+                this.$scope.$apply();
+            }
+        });
+    }
+
+    fetchCurrentUserRolesData(callback) {
         if (!this.userId) {
             return;
         }
-        this.service.getUsersGroupsAndRoles(this.userId, (gridData) => {
+        this.service.getUsersGroupsAndRoles(this.userId, (gridData, userName) => {
             this.formGridOptions.data = gridData;
-            if (this.$scope !== null && this.$scope !== undefined) {
+            this.userName = userName;
+            if (callback) {
+                callback();
+            } else if (this.$scope !== null && this.$scope !== undefined) {
                 this.$scope.$apply();
             }
         });
@@ -116,12 +127,12 @@ export default class ngbUserFormController extends BaseController {
     save() {
         if (this.isNewUser) {
             // create
-            this.service.createUser(this.newUserName, this.currentRoles, () => {
+            this.service.createUser(this.newUserName, this.currentRolesIds, () => {
                 this.close();
             });
         } else {
             // update
-            this.service.saveUser(this.userId, this.currentRoles, () => {
+            this.service.saveUser(this.userId, this.userName, this.currentRolesIds, () => {
                 this.close();
             });
         }
