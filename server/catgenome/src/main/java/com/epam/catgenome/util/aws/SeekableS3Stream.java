@@ -37,7 +37,7 @@ public class SeekableS3Stream extends SeekableStream {
         }
 
         this.currentDataStream = new CountingWithSkipInputStream(
-                new S3ObjectChunkInputStream(s3Source, offset, length()));
+                new S3ObjectChunkInputStream(s3Source, offset, length() - 1));
         log.debug("A new data stream was launched on offset = ", offset);
     }
 

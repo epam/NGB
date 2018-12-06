@@ -1,7 +1,6 @@
 package com.epam.catgenome.util.aws;
 
 import com.amazonaws.services.s3.AmazonS3URI;
-import htsjdk.samtools.util.Log;
 import htsjdk.samtools.util.RuntimeIOException;
 
 import java.io.IOException;
@@ -12,10 +11,9 @@ import java.io.InputStream;
  */
 public class S3ObjectChunkInputStream extends InputStream {
 
-    private static final int CHUNK_SIZE = 32 * 1024;
+    private static final int CHUNK_SIZE = 64 * 1024;
 
     private static final int EOF_BYTE = -1;
-    private final Log log = Log.getInstance(S3ObjectChunkInputStream.class);
     private final AmazonS3URI uri;
     private long position;
     private final long to;
@@ -45,24 +43,23 @@ public class S3ObjectChunkInputStream extends InputStream {
 
     private byte[] getNewBuffer() {
         long destination = Math.min(to, position + CHUNK_SIZE);
-        byte[] bytes = getBytes(position, destination, 3);
-        position = destination;
+        byte[] bytes;
+        if (position < destination) {
+            bytes = getBytes(position, destination);
+        } else {
+            bytes = new byte[]{EOF_BYTE};
+        }
+        position = destination + 1;
         return bytes;
     }
 
-    private byte[] getBytes(long from, long to, int remainingAttempts) {
-
-        if (remainingAttempts == 0) {
-            log.error("Ran out of connection retries to ", uri.toString());
-            return new byte[0];
-        }
+    private byte[] getBytes(long from, long to) {
 
         byte[] loadedDataBuffer;
         try (InputStream s3DataStream = S3Client.loadFromTo(uri, from, to)) {
-            loadedDataBuffer = loadDataFromStream(s3DataStream, Math.toIntExact(to - from));
+            loadedDataBuffer = loadDataFromStream(s3DataStream, Math.toIntExact(to - from) + 1);
         } catch (IOException e) {
-            log.warn("Reconnected on position: ", from, e);
-            return getBytes(from, to,remainingAttempts - 1);
+            throw new RuntimeIOException(e);
         }
 
         return loadedDataBuffer;
