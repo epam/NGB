@@ -1507,9 +1507,21 @@ export default class projectContext {
         return {referenceDidChange, vcfFilesChanged, recoveredTracksState: tracksState};
     }
 
+    getVcfFileIdsByProject() {
+        const vcfFileIdsByProject = {};
+        this.vcfTracks.forEach(t => {
+            if (!vcfFileIdsByProject[t.project.id]) {
+                vcfFileIdsByProject[t.project.id] = [];
+            }
+            vcfFileIdsByProject[t.project.id].push(t.id);
+        });
+        return vcfFileIdsByProject;
+    }
+
     async _initializeVariants(onInit) {
         if (!this._isVariantsInitialized) {
-            const {infoItems} = await this.projectDataService.getProjectsFilterVcfInfo(this.vcfTracks.map(t => t.id));
+            const vcfFileIdsByProject = this.getVcfFileIdsByProject();
+            const {infoItems} = await this.projectDataService.getProjectsFilterVcfInfo({value: vcfFileIdsByProject});
             this._vcfInfo = infoItems || [];
             this._vcfFilter = {
                 additionalFilters: {},
@@ -1518,7 +1530,7 @@ export default class projectContext {
                 quality: {},
                 selectedGenes: [],
                 selectedVcfTypes: [],
-                vcfFileIds: this.vcfTracks.map(t => t.id)
+                vcfFileIdsByProject
             };
             this._infoFields = this.vcfColumns;
             for (let i = 0; i < DEFAULT_VCF_COLUMNS.length; i++) {
@@ -1708,6 +1720,7 @@ export default class projectContext {
                 this.lastPageVariations = FIRST_PAGE;
             }
             if (asDefault) {
+                const vcfFileIdsByProject = this.getVcfFileIdsByProject();
                 this._hasMoreVariations = true;
                 this._vcfFilter = {
                     additionalFilters: {},
@@ -1716,7 +1729,7 @@ export default class projectContext {
                     quality: {},
                     selectedGenes: [],
                     selectedVcfTypes: [],
-                    vcfFileIds: this.vcfTracks.map(t => t.id)
+                    vcfFileIdsByProject
                 };
             }
             if (infoFields) {
@@ -1778,7 +1791,7 @@ export default class projectContext {
         this._isVariantsGroupByChromosomesLoading = true;
         this._isVariantsGroupByTypeLoading = true;
         this._isVariantsGroupByQualityLoading = true;
-        const vcfFileIds = this._vcfFilter && this._vcfFilter.vcfFileIds && this._vcfFilter.vcfFileIds.length ? this._vcfFilter.vcfFileIds : this.vcfTracks.map(t => t.id);
+        const vcfFileIdsByProject = this._vcfFilter && this._vcfFilter.vcfFileIdsByProject && this._vcfFilter.vcfFileIdsByProject.length ? this._vcfFilter.vcfFileIdsByProject : this.getVcfFileIdsByProject();
         const quality = this._vcfFilter ? this._vcfFilter.quality.value : [];
         const exon = (this._vcfFilter && (this._vcfFilter.exons !== undefined)) ? this._vcfFilter.exons : false;
         const genes = {
@@ -1803,7 +1816,7 @@ export default class projectContext {
             infoFields,
             quality,
             variationTypes,
-            vcfFileIds,
+            vcfFileIdsByProject,
             orderBy,
             startIndex,
             endIndex
@@ -1868,7 +1881,7 @@ export default class projectContext {
     }
 
     async loadVariations(page) {
-        const vcfFileIds = this._vcfFilter && this._vcfFilter.vcfFileIds && this._vcfFilter.vcfFileIds.length ? this._vcfFilter.vcfFileIds : this.vcfTracks.map(t => t.id);
+        const vcfFileIdsByProject = this._vcfFilter && this._vcfFilter.vcfFileIdsByProject && this._vcfFilter.vcfFileIdsByProject.length ? this._vcfFilter.vcfFileIdsByProject : this.getVcfFileIdsByProject();
         const quality = this._vcfFilter ? this._vcfFilter.quality.value : [];
         const exon = (this._vcfFilter && (this._vcfFilter.exons !== undefined)) ? this._vcfFilter.exons : false;
         const genes = {
@@ -1897,7 +1910,7 @@ export default class projectContext {
             infoFields,
             quality,
             variationTypes,
-            vcfFileIds,
+            vcfFileIdsByProject,
             page,
             pageSize,
             orderBy,
