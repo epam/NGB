@@ -9,7 +9,15 @@
     <md-tabs ng-hide="ctrl.isUsersLoading" md-dynamic-height md-border-bottom md-stretch-tabs="always">
         <md-tab label="Users">
             <md-content>
-                <div class="md-toolbar-panel">
+                <div class="md-toolbar-panel user-management-tab-toolbar" layout="row">
+                    <md-input-container flex class="grid-search-box">
+                        <input ng-model="ctrl.usersSearchTerm"
+                               type="search"
+                               autocomplete="off"
+                               ng-change="ctrl.usersSearchChanged()"
+                               placeholder="Search for a user..."
+                               class="md-text">
+                    </md-input-container>
                     <md-button class="" ng-click="ctrl.openCreateUserDlg($event)">
                         Create user
                     </md-button>
@@ -30,7 +38,15 @@
         </md-tab>
         <md-tab label="Groups">
             <md-content>
-                <div class="md-toolbar-panel">
+                <div class="md-toolbar-panel user-management-tab-toolbar" layout="row">
+                    <md-input-container flex class="grid-search-box">
+                        <input ng-model="ctrl.groupsSearchTerm"
+                               type="search"
+                               autocomplete="off"
+                               ng-change="ctrl.groupsSearchChanged()"
+                               placeholder="Search for a group..."
+                               class="md-text">
+                    </md-input-container>
                     <md-button class="md-primary" ng-click="ctrl.openCreateGroupDlg($event)">
                         Create group
                     </md-button>
@@ -51,6 +67,16 @@
         </md-tab>
         <md-tab label="Roles">
             <md-content>
+                <div class="md-toolbar-panel user-management-tab-toolbar" layout="row">
+                    <md-input-container class="grid-search-box" style="width: 90%">
+                        <input ng-model="ctrl.rolesSearchTerm"
+                               type="search"
+                               autocomplete="off"
+                               ng-change="ctrl.rolesSearchChanged()"
+                               placeholder="Search for a role..."
+                               class="md-text">
+                    </md-input-container>
+                </div>
                 <div ng-if="ctrl.rolesGridOptions.data.length" class="ui-grid-container">
                     <!-- todo: error ? -->
                     <div ui-grid="ctrl.rolesGridOptions"

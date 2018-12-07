@@ -11,6 +11,10 @@ export default class ngbUserManagementController extends BaseController {
     rolesGridOptions = {};
     isUsersLoading = true;
 
+    usersSearchTerm = '';
+    groupsSearchTerm = '';
+    rolesSearchTerm = '';
+
     static get UID() {
         return 'ngbUserManagementController';
     }
@@ -23,15 +27,14 @@ export default class ngbUserManagementController extends BaseController {
             $scope,
             service: ngbUserManagementService,
         });
-        // this.log = (log) => console.log(log);
 
         Object.assign(this.usersGridOptions, {
             ...ngbUserManagementGridOptionsConstant,
             appScopeProvider: this.scope,
             columnDefs: this.service.getUserManagementColumns(['User', 'Groups', 'Roles', 'Actions']),
             onRegisterApi: (gridApi) => {
-                this.gridApi = gridApi;
-                this.gridApi.core.handleWindowResize();
+                this.usersGridApi = gridApi;
+                this.usersGridApi.core.handleWindowResize();
             }
         });
         Object.assign(this.groupsGridOptions, {
@@ -40,8 +43,8 @@ export default class ngbUserManagementController extends BaseController {
             data: [],
             columnDefs: this.service.getGroupsManagementColumns(),
             onRegisterApi: (gridApi) => {
-                this.gridApi = gridApi;
-                this.gridApi.core.handleWindowResize();
+                this.groupsGridApi = gridApi;
+                this.groupsGridApi.core.handleWindowResize();
             }
         });
         Object.assign(this.rolesGridOptions, {
@@ -50,8 +53,8 @@ export default class ngbUserManagementController extends BaseController {
             data: [],
             columnDefs: this.service.getRolesManagementColumns(),
             onRegisterApi: (gridApi) => {
-                this.gridApi = gridApi;
-                this.gridApi.core.handleWindowResize();
+                this.rolesGridApi = gridApi;
+                this.rolesGridApi.core.handleWindowResize();
             }
         });
 
@@ -86,6 +89,51 @@ export default class ngbUserManagementController extends BaseController {
                 }
             }
         });
+    }
+
+    usersSearchChanged() {
+        if (!this.usersGridApi || !this.usersGridApi.grid) {
+            return;
+        }
+
+        (this.usersGridApi.grid.columns || []).forEach(col => {
+            if (col.field === 'userName') {
+                col.filters[0].term = this.usersSearchTerm;
+            }
+        });
+        if (this.scope !== null && this.scope !== undefined) {
+            this.scope.$apply();
+        }
+    }
+
+    groupsSearchChanged() {
+        if (!this.groupsGridApi || !this.groupsGridApi.grid) {
+            return;
+        }
+
+        (this.groupsGridApi.grid.columns || []).forEach(col => {
+            if (col.field === 'name') {
+                col.filters[0].term = this.groupsSearchTerm;
+            }
+        });
+        if (this.scope !== null && this.scope !== undefined) {
+            this.scope.$apply();
+        }
+    }
+
+    rolesSearchChanged() {
+        if (!this.rolesGridApi || !this.rolesGridApi.grid) {
+            return;
+        }
+
+        (this.rolesGridApi.grid.columns || []).forEach(col => {
+            if (col.field === 'name') {
+                col.filters[0].term = this.rolesSearchTerm;
+            }
+        });
+        if (this.scope !== null && this.scope !== undefined) {
+            this.scope.$apply();
+        }
     }
 
     openEditUserDlg(user) {

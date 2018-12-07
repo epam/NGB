@@ -17,3 +17,12 @@
     border-radius: 0;
   }
 }
+
+.user-management-tab-toolbar {
+  padding: 5px;
+  .grid-search-box {
+    .md-errors-spacer {
+      display: none;
+    }
+  }
+}
