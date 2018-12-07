@@ -70,8 +70,7 @@
                     FROM catgenome.gene_item g
                         JOIN catgenome.biological_data_item b ON g.bio_data_item_id = b.bio_data_item_id
                         JOIN catgenome.biological_data_item i ON i.bio_data_item_id = g.index_id
-                        JOIN t_list tmp ON g.gene_item_id = tmp.list_value
-                    WHERE tmp.list_id = ?
+                    WHERE g.gene_item_id IN @in@
                 ]]>
             </value>
         </property>

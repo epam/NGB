@@ -24,12 +24,8 @@
 
 package com.epam.catgenome.dao.vcf;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -127,10 +123,11 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
             return Collections.emptyList();
         }
 
-        long listId = daoHelper.createTempLongList(ids);
-        List<BiologicalDataItem> files = getJdbcTemplate().query(loadVcfFilesQuery, BiologicalDataItemDao
-            .BiologicalDataItemParameters.getRowMapper(), listId);
-        daoHelper.clearTempList(listId);
+        String query = this.loadVcfFilesQuery.replace("@in@",
+                "(" + ids.stream().filter(Objects::nonNull)
+                        .map(Object::toString).collect(Collectors.joining(",")) + ")");
+        List<BiologicalDataItem> files = getJdbcTemplate().query(query, BiologicalDataItemDao
+            .BiologicalDataItemParameters.getRowMapper());
 
         return files.stream().map(i -> (VcfFile) i).collect(Collectors.toList());
     }

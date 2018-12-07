@@ -27,6 +27,7 @@ package com.epam.catgenome.dao.gene;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -107,11 +108,12 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
             return Collections.emptyList();
         }
 
-        long listId = daoHelper.createTempLongList(ids);
-        List<BiologicalDataItem> files = getJdbcTemplate().query(loadGeneFilesQuery, BiologicalDataItemDao
-                .BiologicalDataItemParameters.getRowMapper(), listId);
+        String query = this.loadGeneFilesQuery.replace("@in@",
+                "(" + ids.stream().filter(Objects::nonNull)
+                        .map(Object::toString).collect(Collectors.joining(",")) + ")");
+        List<BiologicalDataItem> files = getJdbcTemplate().query(query, BiologicalDataItemDao
+                .BiologicalDataItemParameters.getRowMapper());
 
-        daoHelper.clearTempList(listId);
         return files.stream().map(f -> (GeneFile) f).collect(Collectors.toList());
     }
 

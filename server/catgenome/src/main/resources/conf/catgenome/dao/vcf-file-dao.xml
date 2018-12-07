@@ -83,8 +83,7 @@
                     FROM catgenome.vcf v
                         JOIN catgenome.biological_data_item b ON v.bio_data_item_id = b.bio_data_item_id
                         JOIN catgenome.biological_data_item i ON i.bio_data_item_id = v.index_id
-                        JOIN t_list tmp ON v.vcf_id = tmp.list_value
-                    WHERE tmp.list_id = ?
+                    WHERE v.vcf_id IN @in@
                 ]]>
             </value>
         </property>
