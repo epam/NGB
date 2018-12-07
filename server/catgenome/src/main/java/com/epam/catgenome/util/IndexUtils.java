@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -17,6 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.epam.catgenome.manager.bam.BamHelper;
+import htsjdk.samtools.Defaults;
 import org.apache.commons.io.IOUtils;
 
 import com.epam.catgenome.exception.IndexException;
@@ -472,6 +474,27 @@ public final class IndexUtils {
             return matcher.group(1);
         } else {
             return indexPath;
+        }
+    }
+
+    /**
+     * Load in index from the specified file.   The type of index (LinearIndex or IntervalTreeIndex) is determined
+     * at run time by reading the type flag in the file.
+     *
+     * @param indexResource from which to load the index
+     */
+    @SuppressWarnings("all")
+    public static Index loadIndex(final String indexResource) {
+        // Must be buffered, because getIndexType uses mark and reset
+        try (BufferedInputStream bufferedInputStream = new BufferedInputStream(
+                IOHelper.openStream(indexResource), Defaults.NON_ZERO_BUFFER_SIZE)){
+            final Class<Index> indexClass = IndexFactory.IndexType.getIndexType(bufferedInputStream).getIndexType();
+            final Constructor<Index> ctor = indexClass.getConstructor(InputStream.class);
+            return ctor.newInstance(bufferedInputStream);
+        } catch (final IOException ex) {
+            throw new TribbleException.UnableToReadIndexFile("Unable to read index file", indexResource, ex);
+        } catch (final Exception ex) {
+            throw new RuntimeException(ex);
         }
     }
 }

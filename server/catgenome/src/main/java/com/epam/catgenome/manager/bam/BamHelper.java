@@ -45,7 +45,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import com.amazonaws.services.s3.AmazonS3URI;
 import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.BamQueryOption;
 import com.epam.catgenome.entity.bam.BamTrack;
@@ -53,7 +52,6 @@ import com.epam.catgenome.entity.bam.BamTrackMode;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.FeatureFileReadingException;
-import com.epam.catgenome.util.aws.S3Client;
 import com.epam.catgenome.util.aws.S3SeekableStreamFactory;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFlag;
@@ -76,21 +74,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.epam.catgenome.constant.Constants;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.bucket.Bucket;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.manager.bam.handlers.Handler;
-import com.epam.catgenome.manager.bucket.BucketManager;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.epam.catgenome.manager.reference.io.ChromosomeReferenceSequence;
 import com.epam.catgenome.util.AuthUtils;
@@ -134,9 +127,6 @@ public class BamHelper {
 
     @Autowired
     private BamFileManager bamFileManager;
-
-    @Autowired
-    private BucketManager bucketManager;
 
     @Autowired
     private ReferenceManager referenceManager;
@@ -503,7 +493,8 @@ public class BamHelper {
 
     private SamInputResource getS3Index(SamInputResource samInputResource,
                                         BiologicalDataItem indexFile) throws IOException {
-        return samInputResource.index(S3SeekableStreamFactory.getInstance().getInMemorySeekableStream(indexFile.getPath()));
+        return samInputResource.index(S3SeekableStreamFactory.getInstance()
+                .getInMemorySeekableStream(indexFile.getPath()));
     }
 
     private SamInputResource loadFile(final BamFile bamFile)

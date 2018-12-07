@@ -13,8 +13,9 @@ import java.io.InputStream;
 public class S3ObjectChunkInputStream extends InputStream {
 
     private static final int CHUNK_SIZE = 64 * 1024;
-
+    private static final int INVERSE_MASK = 0xff;
     private static final int EOF_BYTE = -1;
+
     private final AmazonS3URI uri;
     private long position;
     private final long to;
@@ -39,7 +40,7 @@ public class S3ObjectChunkInputStream extends InputStream {
     }
 
     private int getNextByte() {
-        return currentDataChunck[chunckIndex++] & (0xff);
+        return currentDataChunck[chunckIndex++] & INVERSE_MASK;
     }
 
     private byte[] getNewBuffer() {

@@ -18,14 +18,18 @@ import java.io.InputStream;
  */
 public final class S3Client {
 
-    private static final AmazonS3 aws;
+    private static final AmazonS3 AWS_S3;
 
     static {
-        aws = AmazonS3ClientBuilder.standard().build();
+        AWS_S3 = AmazonS3ClientBuilder.standard().build();
+    }
+
+    private S3Client() {
+
     }
 
     static AmazonS3 getAws() {
-        return aws;
+        return AWS_S3;
     }
 
     /**
@@ -39,7 +43,7 @@ public final class S3Client {
         boolean exist = true;
 
         try {
-            aws.getObjectMetadata(uri.getBucket(), uri.getKey());
+            AWS_S3.getObjectMetadata(uri.getBucket(), uri.getKey());
         } catch (AmazonS3Exception e) {
             if (e.getStatusCode() == HttpStatus.SC_FORBIDDEN
                     || e.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
@@ -52,13 +56,23 @@ public final class S3Client {
     }
 
     /**
+     * A method that returns true if a correct s3 URI was provided and false otherwise.
+     *
+     * @param uri The provided URI for the file.
+     * @return a boolean value that shows whether the correct URI was provided
+     */
+    public static boolean isFileExisting(String uri) {
+        return isFileExisting(new AmazonS3URI(uri));
+    }
+
+    /**
      * A method that returns the file size.
      *
      * @param amazonURI An s3 URI
      * @return long value of the file size in bytes
      */
     public static long getFileSize(AmazonS3URI amazonURI){
-        return aws
+        return AWS_S3
                 .getObjectMetadata(amazonURI.getBucket(), amazonURI.getKey())
                 .getContentLength();
     }

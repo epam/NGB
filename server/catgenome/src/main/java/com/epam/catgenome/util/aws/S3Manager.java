@@ -30,8 +30,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.epam.catgenome.exception.S3ReadingException;
 import com.epam.catgenome.util.Utils;
 import org.slf4j.Logger;

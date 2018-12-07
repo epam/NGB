@@ -23,9 +23,8 @@ package com.epam.catgenome.util.feature.reader;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import com.amazonaws.services.s3.AmazonS3URI;
+import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.IndexUtils;
-import com.epam.catgenome.util.aws.S3Client;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.tribble.AsciiFeatureCodec;
@@ -35,7 +34,6 @@ import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.readers.LineReader;
 import htsjdk.tribble.readers.LineReaderUtil;
 import htsjdk.tribble.readers.PositionalBufferedStream;
-import htsjdk.tribble.util.ParsingUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -109,12 +107,7 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                 header = tabixIndexCache.getHeader();
 
                 if (header == null) {
-                    InputStream is;
-                    if (path.startsWith("s3")) {
-                        is = S3Client.loadFully(new AmazonS3URI(path));
-                    } else {
-                        is = ParsingUtils.openInputStream(path);
-                    }
+                    InputStream is = IOHelper.openStream(path);
                     source = codec.makeSourceFromStream(new PositionalBufferedStream(
                             new BlockCompressedInputStream(is)));
                     header = codec.readHeader(source);
@@ -125,7 +118,7 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                 codec = tabixIndexCache.getCodec();
             } else {
                 source = codec.makeSourceFromStream(new PositionalBufferedStream(
-                        new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
+                        new BlockCompressedInputStream(IOHelper.openStream(path))));
                 header = codec.readHeader(source);
             }
         } catch (IOException e) {
@@ -171,7 +164,7 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
     }
 
     public CloseableTribbleIterator<T> iterator() throws IOException {
-        final InputStream is = new BlockCompressedInputStream(ParsingUtils.openInputStream(path));
+        final InputStream is = new BlockCompressedInputStream(IOHelper.openStream(path));
         final PositionalBufferedStream stream = new PositionalBufferedStream(is);
         final LineReader reader = LineReaderUtil.fromBufferedStream(stream,
                 LineReaderUtil.LineReaderOption.SYNCHRONOUS);

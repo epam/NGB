@@ -401,10 +401,14 @@ public final class Utils {
     }
 
     public static String processUrl(String inputUrl) {
-        if (!inputUrl.startsWith(S3_SCHEME)) {
+        if (!isS3Source(inputUrl)) {
             return inputUrl;
         }
         return generateSignedUrl(inputUrl);
+    }
+
+    public static boolean isS3Source(String inputUrl) {
+        return inputUrl.startsWith(S3_SCHEME);
     }
 
     public static Map<String, Chromosome> makeChromosomeMap(Reference reference) {

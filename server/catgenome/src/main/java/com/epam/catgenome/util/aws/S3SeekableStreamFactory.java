@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-public class S3SeekableStreamFactory implements ISeekableStreamFactory {
+public final class S3SeekableStreamFactory implements ISeekableStreamFactory {
 
     private static S3SeekableStreamFactory currentFactory = new S3SeekableStreamFactory();
 
@@ -65,8 +65,11 @@ public class S3SeekableStreamFactory implements ISeekableStreamFactory {
 
     @Override
     public SeekableStream getBufferedStream(SeekableStream stream, int bufferSize) {
-        if (bufferSize == 0) return stream;
-        else return new SeekableBufferedStream(stream, bufferSize);
+        if (bufferSize == 0) {
+            return stream;
+        } else {
+            return new SeekableBufferedStream(stream, bufferSize);
+        }
     }
 
     public SeekableStream getInMemorySeekableStream(String url) throws IOException {

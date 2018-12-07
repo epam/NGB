@@ -18,12 +18,12 @@ public class SeekableS3Stream extends SeekableStream {
 
     private final AmazonS3URI s3Source;
     private CountingInputStream currentDataStream;
-    private final long length;
+    private final long contentLength;
     private long offset;
 
     SeekableS3Stream(AmazonS3URI source) {
         this.s3Source = source;
-        length = S3Client.getFileSize(s3Source);
+        contentLength = S3Client.getFileSize(s3Source);
         recreateInnerStream();
     }
 
@@ -43,7 +43,7 @@ public class SeekableS3Stream extends SeekableStream {
 
     @Override
     public long length() {
-        return length;
+        return contentLength;
     }
 
     @Override

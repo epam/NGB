@@ -38,14 +38,14 @@ import java.net.URL;
 public final class NgbSeekableStreamFactory implements ISeekableStreamFactory {
 
     public static ISeekableStreamFactory getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
-    private static final ISeekableStreamFactory instance;
+    private static final ISeekableStreamFactory INSTANCE;
 
     static {
-        instance = new NgbSeekableStreamFactory();
-        SeekableStreamFactory.setInstance(instance);
+        INSTANCE = new NgbSeekableStreamFactory();
+        SeekableStreamFactory.setInstance(INSTANCE);
     }
 
     private final ISeekableStreamFactory localSeekableStreamFactory;
@@ -57,7 +57,7 @@ public final class NgbSeekableStreamFactory implements ISeekableStreamFactory {
     @Override
     public SeekableStream getStreamFor(URL url) throws IOException {
         if(url.toString().startsWith("s3://")) {
-           return S3SeekableStreamFactory.getInstance().getStreamFor(url);
+            return S3SeekableStreamFactory.getInstance().getStreamFor(url);
         } else {
             return localSeekableStreamFactory.getStreamFor(url);
         }
@@ -79,8 +79,11 @@ public final class NgbSeekableStreamFactory implements ISeekableStreamFactory {
 
     @Override
     public SeekableStream getBufferedStream(SeekableStream stream, int bufferSize) {
-        if (bufferSize == 0) return stream;
-        else return new SeekableBufferedStream(stream, bufferSize);
+        if (bufferSize == 0){
+            return stream;
+        } else {
+            return new SeekableBufferedStream(stream, bufferSize);
+        }
     }
 
 }

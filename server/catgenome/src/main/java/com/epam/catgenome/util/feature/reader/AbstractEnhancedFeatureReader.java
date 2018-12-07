@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import com.epam.catgenome.util.IOHelper;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureCodec;
@@ -166,7 +167,7 @@ public abstract class AbstractEnhancedFeatureReader<T extends Feature, S> extend
             if(indexPath == null){
                 indexPath = ParsingUtils.appendToPath(resourcePath, TabixUtils.STANDARD_INDEX_EXTENSION);
             }
-            return hasBlockCompressedExtension(resourcePath);
+            return hasBlockCompressedExtension(resourcePath) && IOHelper.resourceExists(indexPath);
         }
     }
 }
