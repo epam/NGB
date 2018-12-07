@@ -43,7 +43,7 @@ public final class SecurityExpressions {
     public static final String ROLE_REFERENCE_MANAGER = "hasRole('REFERENCE_MANAGER')";
     public static final String ROLE_BUCKET_MANAGER = "hasRole('BUCKET_MANAGER')";
     public static final String READ_PROJECT_BY_ID = "hasPermissionOnProject(#projectId, 'READ')";
-    public static final String READ_ON_FILTER_OBJECT = "hasPermission(filterObject, 'READ')";
+    public static final String READ_ON_FILTER_OBJECT = "isAllowed(filterObject, 'READ')";
 
     private SecurityExpressions() {
 
