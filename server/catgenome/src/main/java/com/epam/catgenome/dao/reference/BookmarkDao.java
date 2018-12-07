@@ -133,13 +133,8 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
         if (bookmarkIds == null || bookmarkIds.isEmpty()) {
             return Collections.emptyList();
         }
-
-        Long listId = daoHelper.createTempLongList(bookmarkIds);
-        List<Bookmark> bookmarks = getJdbcTemplate().query(loadBookmarksByIdsQuery, BookmarkParameters.getRowMapper(),
-                listId);
-        daoHelper.clearTempList(listId);
-
-        return bookmarks;
+        String query = DaoHelper.getQueryFilledWithIdArray(loadBookmarksByIdsQuery, bookmarkIds);
+        return getJdbcTemplate().query(query, BookmarkParameters.getRowMapper());
     }
 
     /**
@@ -185,10 +180,10 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
             return Collections.emptyMap();
         }
 
-        Long listId = daoHelper.createTempLongList(bookmarkIds);
+        String query = DaoHelper.getQueryFilledWithIdArray(loadBookmarksItemsQuery, bookmarkIds);
         Map<Long, List<BiologicalDataItem>> itemsMap = new HashMap<>();
 
-        getJdbcTemplate().query(loadBookmarksItemsQuery, rs -> {
+        getJdbcTemplate().query(query, rs -> {
             BiologicalDataItem dataItem = BiologicalDataItemDao.BiologicalDataItemParameters.getRowMapper()
                 .mapRow(rs, 0);
             long bookmarkId = rs.getLong(BookmarkItemParameters.BOOKMARK_ID.name());
@@ -196,9 +191,8 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
                 itemsMap.put(bookmarkId, new ArrayList<>());
             }
             itemsMap.get(bookmarkId).add(dataItem);
-        }, listId);
+        });
 
-        daoHelper.clearTempList(listId);
         return itemsMap;
     }
 

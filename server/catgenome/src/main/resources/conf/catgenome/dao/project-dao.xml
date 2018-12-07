@@ -95,24 +95,6 @@
                 ]]>
             </value>
         </property>
-        <property name="loadTopLevelProjectsForUserQuery">
-            <value>
-                <![CDATA[
-                    SELECT
-                        project_id,
-                        project_name,
-                        created_date,
-                        project_pretty_name,
-                        last_opened_date,
-                        parent_id,
-                        owner
-                    FROM
-                        catgenome.project
-                    WHERE
-                        parent_id IS NULL
-                ]]>
-            </value>
-        </property>
         <property name="loadProjectByIdQuery">
             <value>
                 <![CDATA[
@@ -146,25 +128,6 @@
                         catgenome.project
                     WHERE
                         parent_id = ?
-                ]]>
-            </value>
-        </property>
-        <property name="loadProjectsByParentIdsQuery">
-            <value>
-                <![CDATA[
-                    SELECT
-                        project_id,
-                        project_name,
-                        created_date,
-                        project_pretty_name,
-                        last_opened_date,
-                        parent_id,
-                        owner
-                    FROM
-                        catgenome.project p
-                        JOIN t_list tmp ON p.parent_id = tmp.list_value
-                    WHERE
-                        tmp.list_id = ?
                 ]]>
             </value>
         </property>
@@ -464,7 +427,6 @@
                     FROM
                         catgenome.biological_data_item b
                         JOIN catgenome.project_item pi ON pi.referred_bio_data_item_id = b.bio_data_item_id
-                        JOIN t_list tmp ON pi.referred_project_id = tmp.list_value
                         LEFT JOIN catgenome.vcf v ON v.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.gene_item g ON g.bio_data_item_id = b.bio_data_item_id
 
@@ -478,7 +440,7 @@
                         LEFT JOIN catgenome.seg s ON s.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
-                    WHERE tmp.list_id = ?
+                    WHERE pi.referred_project_id IN @in@
                 ]]>
             </value>
         </property>
@@ -580,20 +542,6 @@
                     WHERE
                         pi.referred_bio_data_item_id = ?
                 ]]>
-            </value>
-        </property>
-        <property name="loadProjectIdsByBioDataItemIdsQuery">
-            <value>
-                SELECT
-                    p.project_name,
-                    b.name
-                FROM
-                    catgenome.project_item pi
-                    JOIN t_list tmp ON tmp.list_value = pi.referred_bio_data_item_id
-                    JOIN catgenome.biological_data_item b ON b.bio_data_item_id = pi.referred_bio_data_item_id
-                    JOIN catgenome.project p ON p.project_id = pi.referred_project_id
-                WHERE
-                    tmp.list_id = ?
             </value>
         </property>
     </bean>

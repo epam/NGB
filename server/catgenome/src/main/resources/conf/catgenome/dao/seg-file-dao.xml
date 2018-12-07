@@ -95,8 +95,7 @@
                         s.sample_name,
                         s.seg_id
                     FROM catgenome.seg_sample s
-                        JOIN t_list tmp ON s.seg_id = tmp.list_value
-                    WHERE tmp.list_id = ?
+                    WHERE s.seg_id IN @in@
                 ]]>
             </value>
         </property>

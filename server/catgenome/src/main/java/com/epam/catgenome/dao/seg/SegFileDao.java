@@ -51,6 +51,7 @@ import com.epam.catgenome.entity.seg.SegSample;
  * </p>
  */
 public class SegFileDao extends NamedParameterJdbcDaoSupport {
+
     @Autowired
     private DaoHelper daoHelper;
 
@@ -175,19 +176,18 @@ public class SegFileDao extends NamedParameterJdbcDaoSupport {
 
         Map<Long, List<SegSample>> map = new HashMap<>();
 
-        long listId = daoHelper.createTempLongList(fileIds);
         RowMapper<SegSample> sampleMapper = SegSampleParameters.getSegSampleMapper();
 
-        getJdbcTemplate().query(loadSamplesByFileIdsQuery, rs -> {
+        String query = DaoHelper.getQueryFilledWithIdArray(loadSamplesByFileIdsQuery, fileIds);
+        getJdbcTemplate().query(query, rs -> {
             SegSample sample = sampleMapper.mapRow(rs, 0);
             long vcfId = rs.getLong(SegSampleParameters.SEG_ID.name());
             if (!map.containsKey(vcfId)) {
                 map.put(vcfId, new ArrayList<>());
             }
             map.get(vcfId).add(sample);
-        }, listId);
+        });
 
-        daoHelper.clearTempList(listId);
         return map;
     }
 

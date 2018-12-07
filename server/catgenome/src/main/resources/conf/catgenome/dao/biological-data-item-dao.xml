@@ -107,7 +107,6 @@
                         i.created_date as index_created_date
                     FROM
                         catgenome.biological_data_item b
-                        JOIN t_list tmp ON b.bio_data_item_id = tmp.list_value
                         LEFT JOIN catgenome.vcf v ON v.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.gene_item g ON g.bio_data_item_id = b.bio_data_item_id
 
@@ -128,7 +127,7 @@
                                 OR i.bio_data_item_id = bd.index_id
                                 OR i.bio_data_item_id = s.index_id
                                 OR i.bio_data_item_id = r.index_id
-                    WHERE tmp.list_id = :BIO_DATA_ITEM_ID
+                    WHERE b.bio_data_item_id IN @in@
                 ]]>
             </value>
         </property>
@@ -299,7 +298,6 @@
                         i.created_date as index_created_date
                     FROM
                         catgenome.biological_data_item b
-                        JOIN t_str_list tmp ON b.name = tmp.list_value
                         LEFT JOIN catgenome.vcf v ON v.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.gene_item g ON g.bio_data_item_id = b.bio_data_item_id
 
@@ -320,7 +318,7 @@
                                 OR i.bio_data_item_id = bd.index_id
                                 OR i.bio_data_item_id = s.index_id
                                 OR i.bio_data_item_id = r.index_id
-                    WHERE tmp.list_id = ?
+                    WHERE b.name IN @in@
                 ]]>
             </value>
         </property>
