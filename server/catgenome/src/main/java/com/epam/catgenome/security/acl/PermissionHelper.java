@@ -92,18 +92,20 @@ public class PermissionHelper {
     private ProjectManager projectManager;
 
     public boolean isAllowed(String permissionName, AbstractSecuredEntity entity) {
-        if (isOwner(entity)) {
-            return true;
-        }
-        return permissionEvaluator
-            .hasPermission(SecurityContextHolder.getContext().getAuthentication(), entity,
-                           permissionName);
+        return isAllowed(permissionName, entity.getId(), entity.getClass().getCanonicalName());
     }
 
     public boolean isAllowed(String permissionName, Long id, Class type) {
+        return isAllowed(permissionName, id, type.getCanonicalName());
+    }
+
+    public boolean isAllowed(String permissionName, Long id, String type) {
+        if (isAdmin(getSids())){
+            return true;
+        }
         return permissionEvaluator
                 .hasPermission(SecurityContextHolder.getContext().getAuthentication(), id,
-                        type.getCanonicalName(), permissionName);
+                        type, permissionName);
     }
 
     public boolean isAllowedByBioItemId(String permissionName, Long bioItemId) {

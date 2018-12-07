@@ -50,9 +50,6 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 @Service
 public class ReferenceSecurityService {
 
-    private static final String REF_MANAGER_AND_READ_ON_GENE = "(" + ROLE_REFERENCE_MANAGER + AND +
-            "hasPermission(#geneFileId, 'com.epam.catgenome.entity.gene.GeneFile', 'READ')" + ")";
-
     @Autowired
     private ReferenceManager referenceManager;
 
@@ -98,13 +95,13 @@ public class ReferenceSecurityService {
     }
 
     @AclMask
-    @PreAuthorize(ROLE_ADMIN + OR + REF_MANAGER_AND_READ_ON_GENE)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_REFERENCE_MANAGER)
     public Reference updateReferenceGeneFileId(Long referenceId, Long geneFileId) {
         return referenceGenomeManager.updateReferenceGeneFileId(referenceId, geneFileId);
     }
 
     @AclMask
-    @PreAuthorize(ROLE_ADMIN + OR + REF_MANAGER_AND_READ_ON_GENE)
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_REFERENCE_MANAGER)
     public Reference updateReferenceAnnotationFile(Long referenceId, Long geneFileId, Boolean remove)
             throws IOException, FeatureIndexException {
         return referenceGenomeManager.updateReferenceAnnotationFile(referenceId, geneFileId, remove);
