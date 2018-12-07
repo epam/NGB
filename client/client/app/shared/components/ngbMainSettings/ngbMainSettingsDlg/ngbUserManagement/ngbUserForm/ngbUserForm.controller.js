@@ -6,7 +6,7 @@ export default class ngbUserFormController extends BaseController {
     userId = null;
     availableRoles = [];
 
-    newUserName = '';
+    userName = '';
     selectedRoles = [];
     // searchTerm = '';
     formGridOptions = {};
@@ -25,6 +25,10 @@ export default class ngbUserFormController extends BaseController {
         } else {
             return [];
         }
+    }
+
+    get isValid() {
+        return this.userName && this.userName.length > 0;
     }
 
     static get UID() {
@@ -127,7 +131,7 @@ export default class ngbUserFormController extends BaseController {
     save() {
         if (this.isNewUser) {
             // create
-            this.service.createUser(this.newUserName, this.currentRolesIds, () => {
+            this.service.createUser(this.userName, this.currentRolesIds, () => {
                 this.close();
             });
         } else {

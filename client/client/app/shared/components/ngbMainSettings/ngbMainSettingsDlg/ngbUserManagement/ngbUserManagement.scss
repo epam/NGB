@@ -2,6 +2,9 @@
 // uiGrid height fix
 .ui-grid {
   height: auto;
+  .ui-grid-filter-container {
+    display: none!important;
+  }
   .ui-grid-viewport {
     height: 100% !important;
   }

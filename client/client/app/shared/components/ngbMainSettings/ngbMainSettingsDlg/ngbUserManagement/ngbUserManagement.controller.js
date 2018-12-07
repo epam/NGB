@@ -88,35 +88,9 @@ export default class ngbUserManagementController extends BaseController {
         });
     }
 
-    openEditDialog(entity) {
-        switch (entity.type.toLowerCase()) {
-            case 'user':
-                this.openEditUserDlg(entity);
-                break;
-            case 'group': {
-                const group = {
-                    ...entity,
-                    name: `ROLE_${entity.groupName}`,
-                };
-                this.openEditRoleDlg(group);
-                break;
-            }
-            case 'role': {
-                const role = {
-                    ...entity,
-                    name: entity.roleName,
-                };
-                this.openEditRoleDlg(role);
-                break;
-            }
-        }
-    }
-
     openEditUserDlg(user) {
-        console.log(user);
         this.$mdDialog.show({
             clickOutsideToClose: true,
-            bindToController: true,
             controller: ngbUserFormController,
             controllerAs: 'ctrl',
             locals: {

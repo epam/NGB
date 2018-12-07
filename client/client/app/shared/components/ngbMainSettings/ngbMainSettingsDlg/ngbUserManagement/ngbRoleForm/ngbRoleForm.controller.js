@@ -28,6 +28,10 @@ export default class ngbUserFormController extends BaseController {
         return !this.isNewGroup && this.isGroup; // todo
     }
 
+    get isValid() {
+        return this.groupName && this.groupName.length > 0;
+    }
+
     static get UID() {
         return 'ngbRoleFormController';
     }

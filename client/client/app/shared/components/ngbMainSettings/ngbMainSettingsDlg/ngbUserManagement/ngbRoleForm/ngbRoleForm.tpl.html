@@ -4,7 +4,7 @@
             <div class="md-toolbar-tools">
                 <h2 ng-if="ctrl.dialogTitle">{{ctrl.dialogTitle}}</h2>
                 <span flex></span>
-                <md-button class="md-icon-button" ng-click="ctrl.close()" aria-label="Close">
+                <md-button class="md-icon-button" ng-click="ctrl.cancel()" aria-label="Close">
                     <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
                 </md-button>
             </div>
@@ -17,6 +17,7 @@
                             <input name="groupName"
                                    type="text"
                                    required
+                                   ng-disabled="!ctrl.isNewGroup"
                                    placeholder="Name"
                                    ng-model="ctrl.groupName" />
                         </md-input-container>
@@ -76,7 +77,7 @@
                 Delete
             </md-button>
             <span flex></span>
-            <md-button class="md-primary" ng-disabled="settingsForm.$invalid" ng-click="ctrl.save()">
+            <md-button class="md-primary" ng-disabled="!ctrl.isValid" ng-click="ctrl.save()">
                 {{ctrl.isNewGroup ? 'Create' : 'Save'}}
             </md-button>
             <md-button ng-click="ctrl.cancel()" style="margin-right:20px;">

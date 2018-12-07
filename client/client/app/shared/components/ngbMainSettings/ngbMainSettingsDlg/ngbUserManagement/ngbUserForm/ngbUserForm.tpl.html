@@ -6,7 +6,7 @@
             <div class="md-toolbar-tools">
                 <h2 ng-if="ctrl.dialogTitle">{{ctrl.dialogTitle}}</h2>
                 <span flex></span>
-                <md-button class="md-icon-button" ng-click="ctrl.close()" aria-label="Close">
+                <md-button class="md-icon-button" ng-click="ctrl.cancel()" aria-label="Close">
                     <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
                 </md-button>
             </div>
@@ -14,18 +14,14 @@
         <md-dialog-content>
             <md-content class="md-padding">
                 <div class="column">
-                    <div class="row" ng-if="ctrl.isNewUser">
+                    <div class="row">
                         <md-input-container>
                             <input name="alleleFrequencyThresholdBam"
                                    type="text"
                                    required
+                                   ng-disabled="!ctrl.isNewUser"
                                    placeholder="User name"
-                                   ng-model="ctrl.newUserName" />
-<!--
-                            <div ng-messages="" role="alert">
-                                <div ng-message="">Enter user name.</div>
-                            </div>
--->
+                                   ng-model="ctrl.userName" />
                         </md-input-container>
                     </div>
                     <div layout="row">
@@ -74,7 +70,7 @@
                 Delete
             </md-button>
             <span flex></span>
-            <md-button class="md-primary" ng-disabled="settingsForm.$invalid" ng-click="ctrl.save()">
+            <md-button class="md-primary" ng-disabled="!ctrl.isValid" ng-click="ctrl.save()">
                 {{ctrl.isNewUser ? 'Create' : 'Save'}}
             </md-button>
             <md-button ng-click="ctrl.cancel()" style="margin-right:20px;">
