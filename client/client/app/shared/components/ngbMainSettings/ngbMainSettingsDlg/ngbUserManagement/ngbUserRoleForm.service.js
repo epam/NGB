@@ -168,7 +168,7 @@ export default class ngbUserRoleFormService {
                       <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
                           <md-button
                               aria-label="Delete"
-                              class="md-mini md-hue-1"
+                              class="md-mini md-hue-1 grid-action-button"
                               ng-if="row.entity.deletable"
                               ng-click="grid.appScope.ctrl.removeRoleFromGrid(row.entity.id, $event)">
                               <ng-md-icon icon="delete"></ng-md-icon>
@@ -197,7 +197,7 @@ export default class ngbUserRoleFormService {
                             <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
                                 <md-button
                                     aria-label="Delete"
-                                    class="md-mini md-hue-1"
+                                    class="md-mini md-hue-1 grid-action-button"
                                     ng-click="grid.appScope.ctrl.removeUser(row.entity, $event)">
                                     <ng-md-icon icon="delete"></ng-md-icon>
                                 </md-button>

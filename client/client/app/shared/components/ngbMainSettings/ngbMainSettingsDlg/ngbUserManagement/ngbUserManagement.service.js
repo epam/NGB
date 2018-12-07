@@ -101,23 +101,15 @@ export default class ngbUserManagementService {
             const column = columnsList[i];
             switch (column.toLowerCase()) {
                 case 'actions':
-                    // todo check if edit/delete action is available for current user
                     columnDefs.push({
                         cellTemplate: `
                             <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
                                 <md-button
                                     aria-label="Edit"
-                                    class="md-mini md-hue-1"
+                                    class="md-mini md-hue-1 grid-action-button"
                                     ng-if="row.entity.editable"
                                     ng-click="grid.appScope.ctrl.openEditUserDlg(row.entity, $event)">
                                     <ng-md-icon icon="edit"></ng-md-icon>
-                                </md-button>
-                                <md-button
-                                    aria-label="Delete"
-                                    class="md-mini md-hue-1"
-                                    ng-if="row.entity.deletable"
-                                    ng-click="grid.appScope.ctrl.openDeleteDialog(row.entity, $event)">
-                                    <ng-md-icon icon="delete"></ng-md-icon>
                                 </md-button>
                             </div>`,
                         enableColumnMenu: false,
@@ -308,7 +300,7 @@ export default class ngbUserManagementService {
                             <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
                                 <md-button
                                     aria-label="Edit"
-                                    class="md-mini md-hue-1"
+                                    class="md-mini md-hue-1 grid-action-button"
                                     ng-click="grid.appScope.ctrl.openEditGroupDlg(row.entity, $event)">
                                     <ng-md-icon icon="edit"></ng-md-icon>
                                 </md-button>
@@ -339,7 +331,7 @@ export default class ngbUserManagementService {
                             <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
                                 <md-button
                                     aria-label="Edit"
-                                    class="md-mini md-hue-1"
+                                    class="md-mini md-hue-1 grid-action-button"
                                     ng-click="grid.appScope.ctrl.openEditRoleDlg(row.entity, $event)">
                                     <ng-md-icon icon="edit"></ng-md-icon>
                                 </md-button>
