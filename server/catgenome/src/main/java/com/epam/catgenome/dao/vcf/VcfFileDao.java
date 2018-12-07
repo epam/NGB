@@ -25,7 +25,6 @@
 package com.epam.catgenome.dao.vcf;
 
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -123,9 +122,7 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
             return Collections.emptyList();
         }
 
-        String query = this.loadVcfFilesQuery.replace("@in@",
-                "(" + ids.stream().filter(Objects::nonNull)
-                        .map(Object::toString).collect(Collectors.joining(",")) + ")");
+        String query = DaoHelper.getQueryFilledWithIdArray(loadVcfFilesQuery, ids);
         List<BiologicalDataItem> files = getJdbcTemplate().query(query, BiologicalDataItemDao
             .BiologicalDataItemParameters.getRowMapper());
 
@@ -195,18 +192,16 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
 
         Map<Long, List<VcfSample>> map = new HashMap<>();
 
-        long listId = daoHelper.createTempLongList(fileIds);
-
-        getJdbcTemplate().query(loadSamplesByFileIdsQuery, rs -> {
+        String query = DaoHelper.getQueryFilledWithIdArray(loadSamplesByFileIdsQuery, fileIds);
+        getJdbcTemplate().query(query, rs -> {
             VcfSample sample = SampleParameters.getVcfSampleMapper().mapRow(rs, 0);
             long vcfId = rs.getLong(VcfParameters.VCF_ID.name());
             if (!map.containsKey(vcfId)) {
                 map.put(vcfId, new ArrayList<>());
             }
             map.get(vcfId).add(sample);
-        }, listId);
+        });
 
-        daoHelper.clearTempList(listId);
         return map;
     }
 

@@ -125,8 +125,7 @@
                         s.order_index,
                         s.vcf_id
                     FROM catgenome.vcf_sample s
-                        JOIN t_list tmp ON s.vcf_id = tmp.list_value
-                    WHERE tmp.list_id = ?
+                    WHERE s.vcf_id IN @in@
                     ORDER BY order_index
                 ]]>
             </value>

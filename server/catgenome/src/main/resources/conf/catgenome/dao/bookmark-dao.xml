@@ -223,7 +223,6 @@
                         i.created_date as index_created_date
                     FROM
                         catgenome.bookmark_item book
-                        JOIN t_list tmp ON book.bookmark_id = tmp.list_value
                         JOIN catgenome.biological_data_item b ON b.bio_data_item_id = book.bio_data_item_id
                         LEFT JOIN catgenome.vcf v ON v.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.gene_item g ON g.bio_data_item_id = b.bio_data_item_id
@@ -245,7 +244,7 @@
                                 OR i.bio_data_item_id = bd.index_id
                                 OR i.bio_data_item_id = s.index_id
                     WHERE
-                        tmp.list_id = ?
+                        book.bookmark_id IN @in@
                 ]]>
             </value>
         </property>

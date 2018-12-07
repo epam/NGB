@@ -31,6 +31,7 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
@@ -131,17 +132,8 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
             return Collections.emptyList();
         }
 
-        Long listId = daoHelper.createTempLongList(ids);
-
-        final MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue(BiologicalDataItemParameters.BIO_DATA_ITEM_ID.name(), listId);
-
-        List<BiologicalDataItem> items = getNamedParameterJdbcTemplate().query(loadBiologicalDataItemsByIdsQuery,
-                params, getRowMapper());
-
-        daoHelper.clearTempList(listId);
-
-        return items;
+        String query = DaoHelper.getQueryFilledWithIdArray(loadBiologicalDataItemsByIdsQuery, ids);
+        return getNamedParameterJdbcTemplate().query(query, getRowMapper());
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -202,13 +194,10 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
             return Collections.emptyList();
         }
 
-        long listId = daoHelper.createTempStringList(names);
+        List<String> quotedNames = names.stream().map(n -> "'" + n + "'").collect(Collectors.toList());
+        String query = DaoHelper.getQueryFilledWithIdArray(loadBiologicalDataItemsByNamesStrictQuery, quotedNames);
 
-        List<BiologicalDataItem> items = getJdbcTemplate().query(loadBiologicalDataItemsByNamesStrictQuery,
-                                                     getRowMapper(), listId);
-
-        daoHelper.clearTempStringList(listId);
-        return items;
+        return getJdbcTemplate().query(query, getRowMapper());
     }
 
     /**

@@ -28,9 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.LongStream;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -75,21 +73,6 @@ public class DaoHelperTest extends AbstractTransactionalJUnit4SpringContextTests
         final Long createdId = daoHelper.createId(JUNIT_SEQUENCE_NAME);
         assertNotNull("The next sequence value isn't generated.", createdId);
         assertTrue("Unexpected next sequence value.", createdId >= 1);
-    }
-
-    @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testManageTempList() {
-        final List<Long> values = LongStream.range(0L, TEMP_LIST_CAPACITY)
-            .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-        final Long listId = daoHelper.createTempLongList(0L, values);
-        assertNotNull("The temporary list ID cannot be null.", listId);
-        assertEquals("Unexpected capacity of a temporary list.", TEMP_LIST_CAPACITY,
-            new Long(daoHelper.clearTempList(listId)));
-        // make sure that previously created values has been cleared
-        daoHelper.createTempLongList(0L, values);
-        assertEquals("Unexpected capacity of a temporary list.", TEMP_LIST_CAPACITY,
-            new Long(daoHelper.clearTempList(listId)));
     }
 
     @Test
