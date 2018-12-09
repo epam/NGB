@@ -197,6 +197,7 @@ public class GffManager {
 
         switch (request.getType()) {
             case FILE:
+            case S3:
                 geneFile = registerGeneFileFromFile(request);
                 break;
             case URL:

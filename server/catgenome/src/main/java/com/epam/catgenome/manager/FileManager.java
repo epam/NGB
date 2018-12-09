@@ -1206,7 +1206,8 @@ public class FileManager {
         Assert.notNull(geneFile.getIndex(), "Gene file should have an index");
 
 
-        if (geneFile.getType() == BiologicalDataItemResourceType.URL) {
+        if (geneFile.getType() == BiologicalDataItemResourceType.URL
+                || geneFile.getType() == BiologicalDataItemResourceType.S3) {
             return makeGeneReader(geneFile.getPath(), geneFile.getIndex().getPath(), true);
         }
 
