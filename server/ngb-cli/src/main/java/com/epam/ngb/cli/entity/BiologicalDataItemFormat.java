@@ -113,9 +113,9 @@ public enum BiologicalDataItemFormat {
             new EnumMap<>(BiologicalDataItemFormat.class);
     static {
         INDEX_EXTENSION_MAP.put(BAM, new HashSet<>(Arrays.asList("bai", "crai")));
-        INDEX_EXTENSION_MAP.put(VCF, new HashSet<>(Collections.singleton(TABIX_INDEX_EXTENSION)));
-        INDEX_EXTENSION_MAP.put(BED, new HashSet<>(Collections.singleton(TABIX_INDEX_EXTENSION)));
-        INDEX_EXTENSION_MAP.put(GENE, new HashSet<>(Collections.singleton(TABIX_INDEX_EXTENSION)));
+        INDEX_EXTENSION_MAP.put(VCF, new HashSet<>(Arrays.asList(TABIX_INDEX_EXTENSION, "idx")));
+        INDEX_EXTENSION_MAP.put(BED, new HashSet<>(Arrays.asList(TABIX_INDEX_EXTENSION, "idx")));
+        INDEX_EXTENSION_MAP.put(GENE, new HashSet<>(Arrays.asList(TABIX_INDEX_EXTENSION, "idx")));
     }
 
     /**
