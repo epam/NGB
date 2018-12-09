@@ -30,7 +30,6 @@ import static com.epam.ngb.cli.constants.MessageConstants.ERROR_UNSUPPORTED_ZIP;
 import static com.epam.ngb.cli.constants.MessageConstants.getMessage;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
