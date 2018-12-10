@@ -33,7 +33,6 @@ public final class SecurityExpressions {
     public static final String ROLE_USER = "hasRole('USER')";
     public static final String ROLE_ADMIN = "hasRole('ADMIN')";
     public static final String ROLE_PROJECT_MANAGER = "hasRole('PROJECT_MANAGER')";
-    public static final String ROLE_MAF_MANAGER = "hasRole('MAF_MANAGER')";
     public static final String ROLE_SEG_MANAGER = "hasRole('SEG_MANAGER')";
     public static final String ROLE_VCF_MANAGER = "hasRole('VCF_MANAGER')";
     public static final String ROLE_BAM_MANAGER = "hasRole('BAM_MANAGER')";
@@ -41,7 +40,6 @@ public final class SecurityExpressions {
     public static final String ROLE_GENE_MANAGER = "hasRole('GENE_MANAGER')";
     public static final String ROLE_WIG_MANAGER = "hasRole('WIG_MANAGER')";
     public static final String ROLE_REFERENCE_MANAGER = "hasRole('REFERENCE_MANAGER')";
-    public static final String ROLE_BUCKET_MANAGER = "hasRole('BUCKET_MANAGER')";
     public static final String READ_PROJECT_BY_ID = "hasPermissionOnProject(#projectId, 'READ')";
     public static final String READ_ON_FILTER_OBJECT = "isAllowed(filterObject, 'READ')";
 
