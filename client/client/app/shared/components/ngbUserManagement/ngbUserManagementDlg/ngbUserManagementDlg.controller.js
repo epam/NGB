@@ -1,10 +1,10 @@
 import angular from 'angular';
-import BaseController from '../../../../baseController';
+import BaseController from '../../../baseController';
 
-import ngbUserFormController from './ngbUserForm/ngbUserForm.controller';
 import ngbRoleFormController from './ngbRoleForm/ngbRoleForm.controller';
+import ngbUserFormController from './ngbUserForm/ngbUserForm.controller';
 
-export default class ngbUserManagementController extends BaseController {
+export default class ngbUserManagementDlgController extends BaseController {
 
     usersGridOptions = {};
     groupsGridOptions = {};
@@ -16,7 +16,7 @@ export default class ngbUserManagementController extends BaseController {
     rolesSearchTerm = '';
 
     static get UID() {
-        return 'ngbUserManagementController';
+        return 'ngbUserManagementDlgController';
     }
 
     /* @ngInject */
@@ -60,6 +60,10 @@ export default class ngbUserManagementController extends BaseController {
 
         this.fetchUsers();
         this.fetchRolesAndGroups();
+    }
+
+    close() {
+        this.$mdDialog.hide();
     }
 
     fetchUsers() {

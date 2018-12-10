@@ -1,6 +1,6 @@
 import angular from 'angular';
-import dataServices from '../../../../../../../dataServices/angular-module';
-import uiGrid from '../../../../../../compat/uiGrid';
+import dataServices from '../../../../../../dataServices/angular-module';
+import uiGrid from '../../../../../compat/uiGrid';
 
 import controller from './ngbUserForm.controller';
 

@@ -1,15 +1,17 @@
 export default  {
     controller: class ngbHeaderProjectController {
-        constructor(projectContext, dispatcher, $scope) {
+        constructor(projectContext, dispatcher, $scope, userDataService) {
             this.toolbarVisibility = projectContext.toolbarVisibility;
             this.showBookmark = projectContext.currentChromosome !== null;
-            this.browsingAllowed = () => {
-                return projectContext.browsingAllowed;
-            };
+            this.browsingAllowed = () => projectContext.browsingAllowed;
 
             const onStateChange = async () => {
                 this.showBookmark = projectContext.currentChromosome !== null;
             };
+            userDataService.currentUserIsAdmin().then(isAdmin => {
+                this.userIsAdmin = isAdmin;
+                $scope.$apply();
+            });
 
             dispatcher.on('chromosome:change', onStateChange);
             dispatcher.on('reference:change', onStateChange);

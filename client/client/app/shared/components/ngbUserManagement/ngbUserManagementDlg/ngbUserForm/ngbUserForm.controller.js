@@ -1,4 +1,4 @@
-import BaseController from '../../../../../baseController';
+import BaseController from '../../../../baseController';
 
 export default class ngbUserFormController extends BaseController {
 

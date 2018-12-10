@@ -1,7 +1,7 @@
 import controller from './ngbUserManagement.controller';
 
-export default  {
+export default {
     controller: controller.UID,
     controllerAs: 'ctrl',
-    template: require('./ngbUserManagement.tpl.html')
+    template: require('./ngbUserManagement.tpl.html'),
 };

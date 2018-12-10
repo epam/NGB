@@ -1,14 +1,14 @@
 
 const ROLE_NAME_FIRST_PART = 'ROLE_';
 
-export default class ngbUserManagementService {
+export default class ngbUserManagementDlgService {
 
     _userDataService;
     _roleDataService;
     settings;
 
     static instance(userDataService, roleDataService) {
-        return new ngbUserManagementService(userDataService, roleDataService);
+        return new ngbUserManagementDlgService(userDataService, roleDataService);
     }
 
     constructor(userDataService, roleDataService) {
@@ -124,7 +124,7 @@ export default class ngbUserManagementService {
                 case 'groups':
                     columnDefs.push({
                         cellTemplate: `
-                            <div layout="row" ng-if="row.entity.groups.length <= 2" style="flex-flow: row wrap; align-items: center;">
+                            <div layout="row" ng-if="row.entity.groups.length <= 3" style="flex-flow: row wrap; align-items: center;">
                                 <span
                                     ng-repeat="group in row.entity.groups track by $index"
                                     style="
@@ -139,9 +139,9 @@ export default class ngbUserManagementService {
                                     {{group.name}}
                                 </span>
                             </div>
-                            <div layout="row" ng-if="row.entity.groups.length > 2" style="flex-flow: row wrap; align-items: center;">
+                            <div layout="row" ng-if="row.entity.groups.length > 3" style="flex-flow: row wrap; align-items: center;">
                                 <span
-                                    ng-repeat="group in row.entity.groups.slice(0, 2) track by $index"
+                                    ng-repeat="group in row.entity.groups.slice(0, 3) track by $index"
                                     style="
                                         margin: 2px;
                                         padding: 2px 4px;
@@ -184,7 +184,7 @@ export default class ngbUserManagementService {
                 case 'roles':
                     columnDefs.push({
                         cellTemplate: `
-                            <div layout="row" ng-if="row.entity.roles.length <= 2" style="flex-flow: row wrap; align-items: center;">
+                            <div layout="row" ng-if="row.entity.roles.length <= 3" style="flex-flow: row wrap; align-items: center;">
                                 <span
                                     ng-repeat="role in row.entity.roles track by $index"
                                     style="
@@ -199,9 +199,9 @@ export default class ngbUserManagementService {
                                     {{role.name}}
                                 </span>
                             </div>
-                            <div layout="row" ng-if="row.entity.roles.length > 2" style="flex-flow: row wrap; align-items: center;">
+                            <div layout="row" ng-if="row.entity.roles.length > 3" style="flex-flow: row wrap; align-items: center;">
                                 <span
-                                    ng-repeat="role in row.entity.roles.slice(0, 2) track by $index"
+                                    ng-repeat="role in row.entity.roles.slice(0, 3) track by $index"
                                     style="
                                         margin: 2px;
                                         padding: 2px 4px;
