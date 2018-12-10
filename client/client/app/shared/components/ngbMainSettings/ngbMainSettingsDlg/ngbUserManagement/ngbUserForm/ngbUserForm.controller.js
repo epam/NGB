@@ -8,7 +8,7 @@ export default class ngbUserFormController extends BaseController {
 
     userName = '';
     selectedRoles = [];
-    // searchTerm = '';
+    searchTerm = '';
     formGridOptions = {};
 
     get dialogTitle() {

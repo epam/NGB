@@ -16,7 +16,7 @@
                 <div class="column">
                     <div class="row">
                         <md-input-container>
-                            <input name="alleleFrequencyThresholdBam"
+                            <input name="userName"
                                    type="text"
                                    required
                                    ng-disabled="!ctrl.isNewUser"
@@ -25,24 +25,26 @@
                         </md-input-container>
                     </div>
                     <div layout="row">
-                        <md-input-container class="flex">
+                        <md-input-container flex>
                             <label>Select role or group to add</label>
                             <md-select ng-model="ctrl.selectedRoles"
                                        name="add_roles"
                                        md-on-close="ctrl.clearSearchTerm()"
-                                       style="max-width: 500px"
-                                       md-container-class="user-role-selector"
+                                       data-md-container-class="user-role-selector"
                                        multiple>
-<!--
                                 <md-select-header class="role-select-header">
                                     <input ng-model="ctrl.searchTerm"
+                                           ng-keydown="$event.stopPropagation()"
                                            type="search"
                                            placeholder="Search for a role or a group..."
-                                           class="md-text role-header-searchbox">
+                                           class="md-text role-header-searchbox" />
                                 </md-select-header>
--->
                                 <md-optgroup label="roles and groups">
-                                    <md-option ng-value="role" ng-repeat="role in ctrl.availableRoles | filter:ctrl.searchTerm">{{role.name}}</md-option>
+                                    <md-option
+                                            ng-value="role"
+                                            ng-repeat="role in ctrl.availableRoles | filter:ctrl.searchTerm">
+                                        {{role.name}}
+                                    </md-option>
                                 </md-optgroup>
                             </md-select>
                         </md-input-container>

@@ -12,7 +12,6 @@ export default class ngbUserFormController extends BaseController {
 
     groupName = '';
     userDefault = false;
-    // searchTerm = '';
     formGridOptions = {};
     searchTerm = '';
 

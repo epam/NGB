@@ -30,23 +30,23 @@
                         </md-checkbox>
                     </div>
                     <div layout="row">
-                        <md-input-container class="flex">
+                        <md-input-container flex>
                             <label>Select user to add</label>
                             <md-select ng-model="ctrl.selectedUsers"
                                        name="add_user"
                                        md-on-close="ctrl.clearSearchTerm()"
-                                       style="max-width: 500px"
                                        md-container-class="role-user-selector"
                                        multiple>
                                 <md-select-header class="user-select-header">
-                                    <input ng-model="searchTerm"
+                                    <input ng-model="ctrl.searchTerm"
+                                           ng-keydown="$event.stopPropagation()"
                                            type="search"
                                            placeholder="Search for a user..."
                                            class="md-text user-header-searchbox" />
                                 </md-select-header>
                                 <md-optgroup label="Users">
                                     <md-option
-                                            ng-repeat="user in ctrl.availableUsers | filter:searchTerm"
+                                            ng-repeat="user in ctrl.availableUsers | filter:ctrl.searchTerm"
                                             ng-value="user">
                                         {{user.name}}
                                     </md-option>
