@@ -62,6 +62,7 @@ import htsjdk.samtools.SamInputResource;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.ValidationStringency;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -283,8 +284,9 @@ public class BamHelper {
         return newBamFile;
     }
 
-    protected String parseName(final String fileName, final String alternativeName,
+    protected String parseName(final String filePath, final String alternativeName,
             BiologicalDataItemResourceType type) {
+        String fileName = FilenameUtils.getName(filePath);
         if (type == BiologicalDataItemResourceType.URL) {
             return defaultString(trimToNull(alternativeName), fileName);
         }
