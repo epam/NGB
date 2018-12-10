@@ -260,7 +260,7 @@ public class GffManager {
         geneFile.setCompressed(IOHelper.isGZIPFile(file.getName()));
         geneFile.setPath(request.getPath());
         geneFile.setName(request.getName() != null ? request.getName() : file.getName());
-        geneFile.setType(BiologicalDataItemResourceType.FILE); // For now we're working only with files
+        geneFile.setType(request.getType());
         geneFile.setCreatedDate(new Date());
         geneFile.setCreatedBy(AuthUtils.getCurrentUserId());
         geneFile.setReferenceId(request.getReferenceId());
@@ -271,7 +271,7 @@ public class GffManager {
             indexItem.setCreatedDate(new Date());
             indexItem.setPath(request.getIndexPath());
             indexItem.setFormat(BiologicalDataItemFormat.GENE_INDEX);
-            indexItem.setType(BiologicalDataItemResourceType.FILE);
+            indexItem.setType(request.getIndexType());
             indexItem.setName("");
             indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
