@@ -214,7 +214,7 @@ public class FacadeWigManager {
                                 final long referenceId) {
         final WigFile wigFile = new WigFile();
 
-        wigFile.setName(parseName(new File(wigFilePath).getName(), alternativeName));
+        wigFile.setName(parseName(FilenameUtils.getName(wigFilePath), alternativeName));
         wigFile.setPrettyName(prettyName);
         wigFile.setType(BiologicalDataItemResourceType.FILE);
         wigFile.setFormat(BiologicalDataItemFormat.WIG);

@@ -180,6 +180,7 @@ public class SegManager {
         SegFile segFile;
         switch (request.getType()) {
             case FILE:
+            case S3:
                 segFile = registerSegFileFromFile(request);
                 break;
             case DOWNLOAD:
