@@ -1,3 +1,5 @@
-INSERT INTO catgenome.user (id, name) VALUES (catgenome.s_user.nextval, '${default.admin}');
-INSERT INTO catgenome.user_role (user_id, role_id) VALUES (1, 1);
-INSERT INTO catgenome.user_role (user_id, role_id) VALUES (1, 2);
+SET @DEFAULT_ADMIN = '${default.admin}';
+
+INSERT INTO catgenome.user (id, name) SELECT catgenome.s_user.nextval, @DEFAULT_ADMIN  WHERE @DEFAULT_ADMIN != '';
+INSERT INTO catgenome.user_role (user_id, role_id) SELECT 1, 1 WHERE @DEFAULT_ADMIN != '';
+INSERT INTO catgenome.user_role (user_id, role_id) SELECT 1, 2 WHERE @DEFAULT_ADMIN != '';

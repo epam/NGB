@@ -97,8 +97,7 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
                 ROLE_USER.getName());
 
         List<DefaultRoles> managerRoles = Arrays.asList(ROLE_REFERENCE_MANAGER, ROLE_BAM_MANAGER, ROLE_VCF_MANAGER,
-                ROLE_GENE_MANAGER, ROLE_BED_MANAGER, ROLE_CYTOBANDS_MANAGER,
-                ROLE_MAF_MANAGER, ROLE_SEG_MANAGER);
+                ROLE_GENE_MANAGER, ROLE_BED_MANAGER, ROLE_WIG_MANAGER, ROLE_SEG_MANAGER);
 
         managerRoles.forEach(role -> roleHierarchy.setHierarchy(ROLE_ADMIN.getName() + " > " + role.getName()));
         roleHierarchy.setHierarchy(managerRoles.stream().map(DefaultRoles::getName)

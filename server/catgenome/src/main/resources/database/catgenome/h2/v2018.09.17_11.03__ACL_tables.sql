@@ -37,9 +37,8 @@ INSERT INTO catgenome.role (id, name, predefined) VALUES (4, 'ROLE_BAM_MANAGER',
 INSERT INTO catgenome.role (id, name, predefined) VALUES (5, 'ROLE_VCF_MANAGER', true);
 INSERT INTO catgenome.role (id, name, predefined) VALUES (6, 'ROLE_GENE_MANAGER', true);
 INSERT INTO catgenome.role (id, name, predefined) VALUES (7, 'ROLE_BED_MANAGER', true);
-INSERT INTO catgenome.role (id, name, predefined) VALUES (8, 'ROLE_CYTOBANDS_MANAGER', true);
-INSERT INTO catgenome.role (id, name, predefined) VALUES (9, 'ROLE_MAF_MANAGER', true);
-INSERT INTO catgenome.role (id, name, predefined) VALUES (10, 'ROLE_SEG_MANAGER', true);
+INSERT INTO catgenome.role (id, name, predefined) VALUES (8, 'ROLE_WIG_MANAGER', true);
+INSERT INTO catgenome.role (id, name, predefined) VALUES (9, 'ROLE_SEG_MANAGER', true);
 
 CREATE SEQUENCE catgenome.S_USER START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE catgenome.S_SECURITY_GROUP START WITH 1 INCREMENT BY 1;

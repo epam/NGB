@@ -43,10 +43,8 @@ public enum DefaultRoles {
     ROLE_VCF_MANAGER(new Role(5L, "ROLE_VCF_MANAGER", true, false)),
     ROLE_GENE_MANAGER(new Role(6L, "ROLE_GENE_MANAGER", true, false)),
     ROLE_BED_MANAGER(new Role(7L, "ROLE_BED_MANAGER", true, false)),
-    ROLE_CYTOBANDS_MANAGER(new Role(8L, "ROLE_CYTOBANDS_MANAGER", true, false)),
-    ROLE_MAF_MANAGER(new Role(9L, "ROLE_MAF_MANAGER", true, false)),
-    ROLE_SEG_MANAGER(new Role(10L, "ROLE_SEG_MANAGER", true, false));
-
+    ROLE_WIG_MANAGER(new Role(8L, "ROLE_WIG_MANAGER", true, false)),
+    ROLE_SEG_MANAGER(new Role(9L, "ROLE_SEG_MANAGER", true, false));
     private Role role;
 
     public Long getId() {
