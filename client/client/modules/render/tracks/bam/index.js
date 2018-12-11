@@ -247,7 +247,8 @@ export class BAMTrack extends ScrollableTrack {
             chromosomeId: this.config.chromosomeId,
             id: this.config.openByUrl ? undefined : this.config.id,
             file: this.config.openByUrl ? this.config.bioDataItemId : undefined,
-            index: this.config.openByUrl ? this.config.indexPath : undefined
+            index: this.config.openByUrl ? this.config.indexPath : undefined,
+            projectId: this.config.project ? this.config.project.id : undefined,
         };
         const bamRenderSettings = Object.assign({
             filterFailedVendorChecks: true,
@@ -336,7 +337,8 @@ export class BAMTrack extends ScrollableTrack {
             chromosomeId: this.config.chromosomeId,
             id: this.config.openByUrl ? undefined : this.config.id,
             file: this.config.openByUrl ? this.config.bioDataItemId : undefined,
-            index: this.config.openByUrl ? this.config.indexPath : undefined
+            index: this.config.openByUrl ? this.config.indexPath : undefined,
+            projectId: this.config.project ? this.config.project.id : undefined
         };
         const maxBpCount = 10000;
         const minBpCount = 50;

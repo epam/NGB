@@ -2,6 +2,7 @@ import {DataService} from '../data-service';
 
 class BamDataInit {
     id: number;
+    projectId: number;
     chromosomeId: number;
     startIndex: number;
     endIndex: number;
@@ -171,6 +172,7 @@ export class BamDataService extends DataService {
             chromosomeId: props.chromosomeId,
             endIndex: props.endIndex,
             id: props.id,
+            projectId: props.projectId ? props.projectId : undefined,
             option: {
                 count: props.count,
                 filterDuplicate: filter.pcrOpticalDuplicates,
@@ -202,6 +204,7 @@ export class BamDataService extends DataService {
             chromosomeId: props.chromosomeId,
             endIndex: props.endIndex,
             id: props.id,
+            projectId: props.projectId ? props.projectId : undefined,
             option: {
                 count: props.count,
                 filterDuplicate: filter.pcrOpticalDuplicates,
@@ -234,6 +237,7 @@ export class BamDataService extends DataService {
             chromosomeId: props.chromosomeId,
             endIndex: props.endIndex,
             id: props.id,
+            projectId: props.projectId ? props.projectId : undefined,
             option: {
                 count: props.count,
                 filterDuplicate: filter.pcrOpticalDuplicates,

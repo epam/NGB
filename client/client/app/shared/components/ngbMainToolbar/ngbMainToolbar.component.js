@@ -16,7 +16,7 @@ export default  {
             });
 
             userDataService.getCurrentUser().then(user => {
-                this.isLoggedIn = user.enabled;
+                this.isLoggedIn = user && user.enabled;
                 $scope.$apply();
             }, () => {
                 this.isLoggedIn = false;
