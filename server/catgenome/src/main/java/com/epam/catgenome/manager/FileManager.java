@@ -1202,29 +1202,29 @@ public class FileManager {
             return makeGeneReader(geneFile.getPath(), geneFile.getIndex().getPath(), true);
         }
 
-        File file;
-        File indexFile;
+        String file;
+        String indexFile;
         switch (type) {
             case ORIGINAL:
-                file = new File(geneFile.getPath());
-                indexFile = new File(geneFile.getIndex().getPath());
+                file = geneFile.getPath();
+                indexFile = geneFile.getIndex().getPath();
                 break;
             case LARGE_SCALE:
-                file = tryGetHelperGeneFile(GENE_LARGE_SCALE_FILE, geneFile, type, params);
+                file = tryGetHelperGeneFile(GENE_LARGE_SCALE_FILE, geneFile, type, params).getAbsolutePath();
                 indexFile = tryGetHelperGeneIndex(GENE_LARGE_SCALE_INDEX, GENE_LARGE_SCALE_FILE, geneFile, type,
-                                                  params);
+                                                  params).getAbsolutePath();
                 break;
             case TRANSCRIPT:
-                file = tryGetHelperGeneFile(GENE_TRANSCRIPT_FILE, geneFile, type, params);
+                file = tryGetHelperGeneFile(GENE_TRANSCRIPT_FILE, geneFile, type, params).getAbsolutePath();
                 indexFile = tryGetHelperGeneIndex(GENE_TRANSCRIPT_INDEX, GENE_TRANSCRIPT_FILE, geneFile, type,
-                                                  params);
+                                                  params).getAbsolutePath();
                 break;
             default:
                 throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_UNSUPPORTED_GENE_FILE_TYPE,
                                                               type));
         }
 
-        return makeGeneReader(file.getAbsolutePath(), indexFile.getAbsolutePath(), true);
+        return makeGeneReader(file, indexFile, true);
     }
 
     private File tryGetHelperGeneFile(FilePathFormat helperFormat, GeneFile geneFile, GeneFileType type,

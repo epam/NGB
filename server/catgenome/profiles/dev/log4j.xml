@@ -30,6 +30,15 @@
     <category name="org.springframework.aop.framework.CglibAopProxy">
         <priority value="ERROR"/>
     </category>
+    <category name="org.apache.http.wire">
+        <priority value="ERROR"/>
+    </category>
+    <category name="org.apache.http">
+        <priority value="ERROR"/>
+    </category>
+    <category name="com.amazonaws">
+        <priority value="ERROR"/>
+    </category>
     <category name="com.epam.gene.catgenome">
         <priority value="DEBUG"/>
     </category>
@@ -42,6 +51,7 @@
     <category name="org.springframework.jndi">
         <priority value="ERROR"/>
     </category>
+
 
     <root>
         <level value="DEBUG"/>

@@ -199,6 +199,7 @@ public class VcfManager {
                 vcfFile = getVcfFileFromGA4GH(request, requestPath);
                 break;
             case FILE:
+            case S3:
                 vcfFile = createVcfFromFile(request, chromosomeMap, reference, request.isDoIndex());
                 break;
             case DOWNLOAD:
