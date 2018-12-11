@@ -1,6 +1,8 @@
+import ngbConstants from '../../../../constants';
+
 export default  {
     controller: class ngbHeaderProjectController {
-        constructor(projectContext, dispatcher, $scope, userDataService) {
+        constructor(projectContext, dispatcher, $scope, $location, $window, userDataService) {
             this.toolbarVisibility = projectContext.toolbarVisibility;
             this.showBookmark = projectContext.currentChromosome !== null;
             this.browsingAllowed = () => projectContext.browsingAllowed;
@@ -12,6 +14,19 @@ export default  {
                 this.userIsAdmin = isAdmin;
                 $scope.$apply();
             });
+
+            userDataService.getCurrentUser().then(user => {
+                this.isLoggedIn = user.enabled;
+                $scope.$apply();
+            }, () => {
+                this.isLoggedIn = false;
+                $scope.$apply();
+            });
+
+            this.logout = () => {
+                $window.location.href = `${ngbConstants.urlPrefix}/saml/logout`;
+            };
+
 
             dispatcher.on('chromosome:change', onStateChange);
             dispatcher.on('reference:change', onStateChange);
