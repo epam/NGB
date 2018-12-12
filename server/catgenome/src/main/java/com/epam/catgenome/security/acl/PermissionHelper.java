@@ -27,12 +27,16 @@ package com.epam.catgenome.security.acl;
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.project.Project;
+import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.security.AbstractHierarchicalEntity;
 import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.manager.CompositeSecuredEntityManager;
 import com.epam.catgenome.manager.dataitem.DataItemManager;
+import com.epam.catgenome.manager.gene.GeneFileManager;
 import com.epam.catgenome.manager.project.ProjectManager;
+import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.user.UserManager;
 import com.epam.catgenome.entity.user.DefaultRoles;
 import com.epam.catgenome.security.UserContext;
@@ -81,6 +85,12 @@ public class PermissionHelper {
 
     @Autowired
     private UserManager userManager;
+
+    @Autowired
+    private GeneFileManager geneFileManager;
+
+    @Autowired
+    private ReferenceGenomeManager referenceGenomeManager;
 
     @Autowired
     private DataItemManager dataItemManager;
@@ -268,5 +278,12 @@ public class PermissionHelper {
         } else {
             return currentMask;
         }
+    }
+
+    public boolean isGeneRegisteredForReference(Long id) {
+        GeneFile geneFile = geneFileManager.load(id);
+        Reference reference = referenceGenomeManager.load(geneFile.getReferenceId());
+        GeneFile referenceGeneFile = reference.getGeneFile();
+        return referenceGeneFile != null && referenceGeneFile.getId().equals(id);
     }
 }

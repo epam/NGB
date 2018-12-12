@@ -53,11 +53,8 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 @Service
 public class GeneSecurityService {
 
-    private static final String READ_ON_FILE_OR_PROJECT_BY_TRACK =
-            "hasPermissionOnFileOrParentProject(#track.id, 'com.epam.catgenome.entity.gene.GeneFile', " +
-                    "#track.projectId, 'READ')";
-    private static final String READ_ON_FILE_BY_ID = "hasPermission(#geneFileId, " +
-            "'com.epam.catgenome.entity.gene.GeneFile', 'READ')";
+    private static final String READ_ON_FILE_OR_PROJECT_BY_TRACK = "readOnGeneFileIsAllowed(#track.id, #track.projectId)";
+    private static final String READ_ON_FILE_BY_ID = "readOnGeneFileIsAllowed(#geneFileId, #projectId)";
 
     @Autowired
     private GffManager gffManager;
@@ -112,20 +109,20 @@ public class GeneSecurityService {
         return gffManager.loadHistogram(track);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_BY_ID + OR + READ_PROJECT_BY_ID)
+    @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_BY_ID)
     public Gene getNextOrPreviousFeature(int fromPosition, long geneFileId, long chromosomeId, boolean forward,
                                          Long projectId) throws IOException {
         return gffManager.getNextOrPreviousFeature(fromPosition, geneFileId, chromosomeId, forward);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_BY_ID + OR + READ_PROJECT_BY_ID)
+    @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_BY_ID)
     public List<Block> loadExonsInViewPort(Long geneFileId, Long chromosomeId, Integer centerPosition,
                                            Integer viewPortSize, Integer intronLength,
                                            Long projectId) throws IOException {
         return gffManager.loadExonsInViewPort(geneFileId, chromosomeId, centerPosition, viewPortSize, intronLength);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_BY_ID + OR + READ_PROJECT_BY_ID)
+    @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_BY_ID)
     public List<Block> loadExonsInTrack(Long geneFileId, Long chromosomeId, Integer startIndex,
                                         Integer endIndex, Integer intronLength,
                                         Long projectId) throws IOException {
