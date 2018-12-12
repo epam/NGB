@@ -121,6 +121,8 @@ public class BamHelper {
 
     public static final Set<String> BAM_EXTENSIONS = new HashSet<>();
     public static final Map<String, String> BAI_EXTENSIONS = new HashMap<>();
+    private static final Logger LOGGER = LoggerFactory.getLogger(BamHelper.class);
+
 
     static {
         BAM_EXTENSIONS.add(".bam");
@@ -509,12 +511,16 @@ public class BamHelper {
         byte[] indexBuffer;
         if (indexCache != null) {
             if (indexCache.contains(indexFile.getPath())) {
+                LOGGER.info("get from cache index: " + indexFile.getPath());
                 indexBuffer = ((BamIndex) indexCache.getFromCache(indexFile.getPath())).content;
-            }else {
+
+            } else {
                 indexBuffer = IOUtils.toByteArray(S3Client.loadFully(new AmazonS3URI(indexFile.getPath())));
+                LOGGER.info("put in cache index: " + indexFile.getPath());
                 indexCache.putInCache(new BamIndex(indexBuffer), indexFile.getPath());
             }
         } else {
+            LOGGER.info("index cache isn't initialized");
             indexBuffer = IOUtils.toByteArray(S3Client.loadFully(new AmazonS3URI(indexFile.getPath())));
         }
         return indexBuffer;
