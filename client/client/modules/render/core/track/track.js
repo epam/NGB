@@ -176,6 +176,7 @@ export class Track extends BaseTrack {
             bioDataItemId: this.config.name,
             index: this.config.indexPath,
             projectId: this.config.projectId,
+            projectIdNumber: this.config.project ? this.config.project.id : undefined,
             height: this.height,
             state: this.state,
             format: this.config.format,

@@ -467,6 +467,7 @@ export default class projectContext {
         const state = {
             bioDataItemId: name,
             projectId: track.projectId,
+            projectIdNumber: track.projectIdNumber,
             state: track.state,
             height: track.height,
             isLocal: track.isLocal
@@ -942,13 +943,13 @@ export default class projectContext {
     }
 
     applyTrackState(track, silent = false) {
-        const {bioDataItemId, index, isLocal, format, height, projectId, state} = track;
+        const {bioDataItemId, index, isLocal, format, height, projectId, projectIdNumber, state} = track;
         const __tracksState = this.tracksState || [];
         let [existedState] = __tracksState.filter(t => t.bioDataItemId.toString().toLowerCase() === bioDataItemId.toString().toLowerCase() &&
         t.projectId.toLowerCase() === projectId.toLowerCase());
         let elementIndex = -1;
         if (!existedState) {
-            existedState = {bioDataItemId, index, isLocal, height, format, projectId, state};
+            existedState = {bioDataItemId, index, isLocal, height, format, projectId, projectIdNumber, state};
         } else {
             elementIndex = __tracksState.indexOf(existedState);
             Object.assign(existedState, {height, state});
@@ -1218,6 +1219,7 @@ export default class projectContext {
                     tracksState.forEach(ts => {
                         if (ts.projectId === projectsIds[i]) {
                             ts.projectId = _project.name;
+                            ts.projectIdNumber = _project.id;
                         }
                     });
                 }
@@ -1314,6 +1316,7 @@ export default class projectContext {
                         indexPath: decodeURIComponent(trackState.index),
                         bioDataItemId: decodeURIComponent(trackState.bioDataItemId),
                         projectId: trackState.projectId,
+                        projectIdNumber: trackState.projectIdNumber,
                         name: decodeURIComponent(trackState.bioDataItemId),
                         isLocal: trackState.isLocal,
                         format: trackState.format,
@@ -1359,7 +1362,8 @@ export default class projectContext {
                                 const fn = (item) => {
                                     return {
                                         bioDataItemId: item.name,
-                                        projectId: _project.name
+                                        projectId: _project.name,
+                                        projectIdNumber: _project.id
                                     };
                                 };
                                 tracksState.splice(index, 1, ...items.filter(item => item.format !== 'REFERENCE').map(fn));
@@ -1372,7 +1376,8 @@ export default class projectContext {
                                 const fn = (item) => {
                                     return {
                                         bioDataItemId: item.name,
-                                        projectId: _project.name
+                                        projectId: _project.name,
+                                        projectIdNumber: _project.id
                                     };
                                 };
                                 let predefinedTracks = [];
@@ -1417,6 +1422,7 @@ export default class projectContext {
                                 t.bioDataItemId.toString().toLowerCase() === track.bioDataItemId.toString().toLowerCase())
                                 && t.projectId.toString().toLowerCase() === projectsIds[i].toString().toLowerCase()).length === 1) {
                                 track.projectId = _project.name;
+                                track.projectIdNumber = _project.id;
                                 __tracks.push(track);
                             }
                         }
@@ -1435,7 +1441,8 @@ export default class projectContext {
                         __tracks.push(trackWithReference.reference);
                         tracksState.splice(0, 0, {
                             bioDataItemId: trackWithReference.reference.name,
-                            projectId: trackWithReference.projectId
+                            projectId: trackWithReference.projectId,
+                            projectIdNumber: trackWithReference.projectIdNumber,
                         });
                     }
                 }
@@ -1984,7 +1991,10 @@ export default class projectContext {
         const vcfTrackToProjectId = {};
         for (let i = 0; i < this.vcfTracks.length; i++) {
             const vcfTrack = this.vcfTracks[i];
-            vcfTrackToProjectId[`${vcfTrack.id}`] = vcfTrack.projectId;
+            vcfTrackToProjectId[`${vcfTrack.id}`] = {
+                name: vcfTrack.projectId,
+                projectIdNumber: vcfTrack.project.id,
+            };
         }
 
         this.totalPagesCountVariations = data.totalPagesCount;
@@ -2010,7 +2020,8 @@ export default class projectContext {
                     variantId: item.featureId,
                     variationType: item.variationType,
                     vcfFileId: item.featureFileId,
-                    projectId: vcfTrackToProjectId[`${item.featureFileId}`]
+                    projectId: vcfTrackToProjectId[`${item.featureFileId}`].name,
+                    projectIdNumber: vcfTrackToProjectId[`${item.featureFileId}`].projectIdNumber
                 },
                 {...infoFieldsObj, ...item.info}
             )

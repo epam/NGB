@@ -109,7 +109,8 @@ export default class ngbVariantVisualizerService {
                 fileUrl: variant.openByUrl ? variant.fileUrl : undefined,
                 indexUrl: variant.openByUrl ? variant.indexUrl : undefined,
                 chromosomeId: variant.chromosomeId,
-                position: variant.position
+                position: variant.position,
+                projectId: variant.projectIdNumber,
             });
             if (!variantData) {
                 return {
