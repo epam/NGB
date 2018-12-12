@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.amazonaws.services.s3.AmazonS3URI;
 import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.BamQueryOption;
 import com.epam.catgenome.entity.bam.BamTrack;
@@ -52,7 +53,10 @@ import com.epam.catgenome.entity.bam.BamTrackMode;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.FeatureFileReadingException;
+import com.epam.catgenome.util.aws.S3Client;
 import com.epam.catgenome.util.aws.S3SeekableStreamFactory;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import com.epam.catgenome.util.feature.reader.IndexCache;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFlag;
 import htsjdk.samtools.SAMRecord;
@@ -62,7 +66,9 @@ import htsjdk.samtools.SamInputResource;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.ValidationStringency;
+import htsjdk.samtools.seekablestream.SeekableMemoryStream;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -136,6 +142,9 @@ public class BamHelper {
 
     @Value("#{catgenome['bam.regions.count'] ?: 20}")
     private int regionsCount;
+
+    @Autowired(required = false)
+    private EhCacheBasedIndexCache indexCache;
 
     /**
      * Calculates the consensus sequence from the reads from a {@code BamFile}
@@ -492,8 +501,23 @@ public class BamHelper {
 
     private SamInputResource getS3Index(SamInputResource samInputResource,
                                         BiologicalDataItem indexFile) throws IOException {
-        return samInputResource.index(S3SeekableStreamFactory.getInstance()
-                .getInMemorySeekableStream(indexFile.getPath()));
+        byte[] indexBuffer = fetchS3BamIndex(indexFile);
+        return samInputResource.index(new SeekableMemoryStream(indexBuffer, indexFile.getPath()));
+    }
+
+    private byte[] fetchS3BamIndex(BiologicalDataItem indexFile) throws IOException {
+        byte[] indexBuffer;
+        if (indexCache != null) {
+            if (indexCache.contains(indexFile.getPath())) {
+                indexBuffer = ((BamIndex) indexCache.getFromCache(indexFile.getPath())).content;
+            }else {
+                indexBuffer = IOUtils.toByteArray(S3Client.loadFully(new AmazonS3URI(indexFile.getPath())));
+                indexCache.putInCache(new BamIndex(indexBuffer), indexFile.getPath());
+            }
+        } else {
+            indexBuffer = IOUtils.toByteArray(S3Client.loadFully(new AmazonS3URI(indexFile.getPath())));
+        }
+        return indexBuffer;
     }
 
     private SamInputResource loadFile(final BamFile bamFile)
@@ -555,4 +579,16 @@ public class BamHelper {
         Assert.notNull(iterator);
     }
 
+    static class BamIndex implements IndexCache {
+
+        private final byte[] content;
+
+        public BamIndex(byte[] content) {
+            this.content = content;
+        }
+
+        public byte[] getContent() {
+            return content;
+        }
+    }
 }
