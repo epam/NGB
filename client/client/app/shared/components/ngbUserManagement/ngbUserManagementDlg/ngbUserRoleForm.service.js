@@ -63,7 +63,7 @@ export default class ngbUserRoleFormService {
     }
 
     _mapUserRoles(userData) {
-        return userData.roles.map(role => ({
+        return (userData.roles || []).map(role => ({
             deletable: true,
             id: role.id,
             name: !role.predefined && role.name.includes(ROLE_NAME_FIRST_PART) ? role.name.slice(ROLE_NAME_FIRST_PART.length) : role.name,
