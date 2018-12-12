@@ -47,12 +47,10 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
 public class ProteinSequenceSecurityService {
 
     private static final String READ_PERMISSION_FOR_GENE_FILE_BY_TRACK = ROLE_ADMIN + OR +
-            "hasPermissionOnFileOrParentProject(#genes.id, 'com.epam.catgenome.entity.gene.GeneFile', " +
-            "#genes.projectId, 'READ')";
+            "readOnGeneFileIsAllowed(#genes.id, #genes.projectId)";
 
     private static final String READ_PERMISSION_FOR_GENE_FILE_BY_QUERY = ROLE_ADMIN + OR +
-            "hasPermissionOnFileOrParentProject(#psVariationQuery.trackQuery.id, " +
-            "'com.epam.catgenome.entity.gene.GeneFile', #psVariationQuery.trackQuery.projectId, 'READ')";
+            "readOnGeneFileIsAllowed(#psVariationQuery.trackQuery.id, #psVariationQuery.trackQuery.projectId)";
 
     @Autowired
     private ProteinSequenceManager proteinSequenceManager;
