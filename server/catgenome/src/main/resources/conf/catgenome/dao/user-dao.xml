@@ -139,8 +139,8 @@
                         r.predefined as role_predefined,
                         r.user_default as role_user_default
                     FROM catgenome.user u
-                        JOIN catgenome.user_role ur ON u.id = ur.user_id
-                        JOIN catgenome.role r ON ur.role_id = r.id
+                        LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
+                        LEFT JOIN catgenome.role r ON ur.role_id = r.id
                     WHERE LOWER(u.name) = LOWER(?)
                 ]]>
             </value>
@@ -158,8 +158,8 @@
                        r.predefined as role_predefined,
                        r.user_default as role_user_default
                     FROM catgenome.user u
-                       JOIN catgenome.user_role ur ON u.id = ur.user_id
-                       JOIN catgenome.role r ON ur.role_id = r.id
+                       LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
+                       LEFT JOIN catgenome.role r ON ur.role_id = r.id
                 ]]>
             </value>
         </property>
@@ -176,8 +176,8 @@
                         r.predefined as role_predefined,
                         r.user_default as role_user_default
                     FROM catgenome.user u
-                        JOIN catgenome.user_role ur ON u.id = ur.user_id
-                        JOIN catgenome.role r ON ur.role_id = r.id
+                        LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
+                        LEFT JOIN catgenome.role r ON ur.role_id = r.id
                     WHERE
                         u.id = ?
                 ]]>
@@ -196,10 +196,10 @@
                         r.predefined as role_predefined,
                         r.user_default as role_user_default
                     FROM catgenome.user u
-                        JOIN catgenome.user_role ur ON u.id = ur.user_id
-                        JOIN catgenome.role r ON ur.role_id = r.id
-                        JOIN catgenome.user_security_group ug ON ug.user_id = u.id
-                        JOIN catgenome.security_group g ON ug.group_id = g.id
+                        LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
+                        LEFT JOIN catgenome.role r ON ur.role_id = r.id
+                        LEFT JOIN catgenome.user_security_group ug ON ug.user_id = u.id
+                        LEFT JOIN catgenome.security_group g ON ug.group_id = g.id
                     WHERE
                         LOWER(g.name) = ?
                 ]]>
@@ -267,8 +267,8 @@
                         r.predefined as role_predefined,
                         r.user_default as role_user_default
                     FROM catgenome.user u
-                        JOIN catgenome.user_role ur ON u.id = ur.user_id
-                        JOIN catgenome.role r ON ur.role_id = r.id
+                        LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
+                        LEFT JOIN catgenome.role r ON ur.role_id = r.id
                     WHERE
                         LOWER(u.name) IN (@in@)
                 ]]>
@@ -286,10 +286,10 @@
                         r.predefined as role_predefined,
                         r.user_default as role_user_default
                     FROM catgenome.user u
-                        JOIN catgenome.user_role ur ON u.id = ur.user_id
-                        JOIN catgenome.role r ON ur.role_id = r.id
-                        JOIN catgenome.user_security_group ug ON ug.user_id = u.id
-                        JOIN catgenome.security_group g ON ug.group_id = g.id
+                        LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
+                        LEFT JOIN catgenome.role r ON ur.role_id = r.id
+                        LEFT JOIN catgenome.user_security_group ug ON ug.user_id = u.id
+                        LEFT JOIN catgenome.security_group g ON ug.group_id = g.id
                     WHERE
                         u.name = ? AND g.name = ?
                 ]]>
@@ -307,8 +307,8 @@
                       r.predefined as role_predefined,
                       r.user_default as role_user_default
                     FROM catgenome.user u
-                      JOIN catgenome.user_role ur ON u.id = ur.user_id
-                      JOIN catgenome.role r ON ur.role_id = r.id
+                      LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
+                      LEFT JOIN catgenome.role r ON ur.role_id = r.id
                     WHERE
                         u.id in (:IDS)
                 ]]>
