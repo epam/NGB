@@ -1,5 +1,7 @@
 import BaseController from '../../../../baseController';
 
+const ROLE_NAME_FIRST_PART = 'ROLE_';
+
 export default class ngbUserFormController extends BaseController {
 
     title = 'Group';
@@ -67,7 +69,9 @@ export default class ngbUserFormController extends BaseController {
         if (roleId) {
             this.service.getRole(roleId).then(role => {
                 if (role) {
-                    this.groupName = role.name;
+                    this.groupName = isGroup && role.name.startsWith(ROLE_NAME_FIRST_PART)
+                        ? role.name.slice(ROLE_NAME_FIRST_PART.length)
+                        : role.name;
                     this.userDefault = role.userDefault;
                 }
             });
@@ -148,13 +152,14 @@ export default class ngbUserFormController extends BaseController {
                 usersToAdd.push(list[i]);
             }
         }
+        const groupName = this.isGroup ? `${ROLE_NAME_FIRST_PART}${this.groupName}` : this.groupName;
         if (this.isNewGroup) {
             // create
-            this.service.createGroup(this.groupName, this.userDefault, usersToAdd, () => {
+            this.service.createGroup(groupName, this.userDefault, usersToAdd, () => {
                 this.close();
             });
         } else {
-            this.service.updateGroup(this.roleId, this.groupName, this.userDefault, usersToAdd, usersToRemove, () => {
+            this.service.updateGroup(this.roleId, groupName, this.userDefault, usersToAdd, usersToRemove, () => {
                 this.close();
             });
         }
