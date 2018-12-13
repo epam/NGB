@@ -2,11 +2,13 @@ package com.epam.catgenome.util.aws;
 
 import java.io.IOException;
 import java.io.InputStream;
+
 import org.apache.commons.compress.utils.CountingInputStream;
 import com.amazonaws.services.s3.AmazonS3URI;
 import htsjdk.samtools.seekablestream.SeekableStream;
-import htsjdk.samtools.util.Log;
 import htsjdk.samtools.util.RuntimeIOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Wrapper class for S3ObjectChunkInputStream that supports @<code>seek()</code> method.
@@ -14,7 +16,7 @@ import htsjdk.samtools.util.RuntimeIOException;
  */
 public class SeekableS3Stream extends SeekableStream {
 
-    private static final Log log = Log.getInstance(SeekableS3Stream.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SeekableS3Stream.class);
 
     private final AmazonS3URI s3Source;
     private CountingInputStream currentDataStream;
@@ -38,7 +40,7 @@ public class SeekableS3Stream extends SeekableStream {
 
         this.currentDataStream = new CountingWithSkipInputStream(
                 new S3ObjectChunkInputStream(s3Source, offset, length() - 1));
-        log.debug("A new data stream was launched on offset = ", offset);
+        LOGGER.debug("A new data stream was launched on offset = ", offset);
     }
 
     @Override
@@ -58,7 +60,7 @@ public class SeekableS3Stream extends SeekableStream {
      */
     @Override
     public void seek(long targetPosition) throws IOException {
-        log.debug("Seeking from ", position(), " to ", targetPosition);
+        LOGGER.debug("Seeking from ", position(), " to ", targetPosition);
         this.offset = targetPosition;
         recreateInnerStream();
     }

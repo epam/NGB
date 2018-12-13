@@ -511,17 +511,15 @@ public class BamHelper {
         byte[] indexBuffer;
         if (indexCache != null) {
             if (indexCache.contains(indexPath)) {
-                long start = System.currentTimeMillis();
-                LOG.info("get from cache index: " + indexPath);
+                LOG.debug("get from cache index: " + indexPath);
                 indexBuffer = ((BamIndex) indexCache.getFromCache(indexPath)).content;
-                LOG.info("get from cache BAM index time: " + (System.currentTimeMillis() - start));
 
             } else {
                 long start = System.currentTimeMillis();
                 indexBuffer = IOUtils.toByteArray(S3Client.loadFully(new AmazonS3URI(indexPath)));
-                LOG.info("put in cache index: " + indexPath);
+                LOG.debug("put in cache index: " + indexPath);
                 indexCache.putInCache(new BamIndex(indexPath, indexBuffer), indexPath);
-                LOG.info("download BAM index time: " + (System.currentTimeMillis() - start));
+                LOG.debug("download BAM index time: " + (System.currentTimeMillis() - start));
             }
         } else {
             LOG.info("index cache isn't initialized");
