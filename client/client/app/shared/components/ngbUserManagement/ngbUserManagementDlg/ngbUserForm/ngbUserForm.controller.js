@@ -78,6 +78,7 @@ export default class ngbUserFormController extends BaseController {
                 deletable: true,
             })),
         ];
+        this.selectedRoles = [];
         this.fetchAvailableRoles();
     }
 
