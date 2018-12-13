@@ -124,7 +124,8 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     protected String[] getUnsecuredResources() {
         return new String[] {
-            "/swagger-ui/**", "/api-docs/**", "/", "/index.html", "/app.css", "/app.bundle.js", "/ngb-logo.png"
+            "/swagger-ui/**", "/api-docs/**", "/", "/index.html", "/app.css", "/app.bundle.js", "/ngb-logo.png",
+            "/error-401.html"
         };
     }
 
