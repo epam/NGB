@@ -8,10 +8,14 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.apache.http.HttpStatus;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Class provides configuration of AWS client and utility methods for S3
@@ -19,6 +23,18 @@ import java.io.InputStream;
 public final class S3Client {
 
     private static final AmazonS3 AWS_S3;
+
+    private static final LoadingCache<AmazonS3URI, Long> FILE_SIZES = CacheBuilder.newBuilder()
+            .maximumSize(1000)
+            .expireAfterWrite(1, TimeUnit.HOURS)
+            .build(
+                    new CacheLoader<AmazonS3URI, Long>() {
+                        public Long load(AmazonS3URI key) {
+                            return AWS_S3
+                                    .getObjectMetadata(key.getBucket(), key.getKey())
+                                    .getContentLength();
+                        }
+                    });
 
     static {
         AWS_S3 = AmazonS3ClientBuilder.standard().build();
@@ -72,9 +88,7 @@ public final class S3Client {
      * @return long value of the file size in bytes
      */
     public static long getFileSize(AmazonS3URI amazonURI){
-        return AWS_S3
-                .getObjectMetadata(amazonURI.getBucket(), amazonURI.getKey())
-                .getContentLength();
+        return FILE_SIZES.getUnchecked(amazonURI);
     }
 
     /**

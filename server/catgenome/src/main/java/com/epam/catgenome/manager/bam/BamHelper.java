@@ -508,20 +508,21 @@ public class BamHelper {
     }
 
     private byte[] fetchS3BamIndex(BiologicalDataItem indexFile) throws IOException {
+        String indexPath = indexFile.getPath();
         byte[] indexBuffer;
         if (indexCache != null) {
-            if (indexCache.contains(indexFile.getPath())) {
-                LOGGER.info("get from cache index: " + indexFile.getPath());
-                indexBuffer = ((BamIndex) indexCache.getFromCache(indexFile.getPath())).content;
+            if (indexCache.contains(indexPath)) {
+                LOGGER.info("get from cache index: " + indexPath);
+                indexBuffer = ((BamIndex) indexCache.getFromCache(indexPath)).content;
 
             } else {
-                indexBuffer = IOUtils.toByteArray(S3Client.loadFully(new AmazonS3URI(indexFile.getPath())));
-                LOGGER.info("put in cache index: " + indexFile.getPath());
-                indexCache.putInCache(new BamIndex(indexBuffer), indexFile.getPath());
+                indexBuffer = IOUtils.toByteArray(S3Client.loadFully(new AmazonS3URI(indexPath)));
+                LOGGER.info("put in cache index: " + indexPath);
+                indexCache.putInCache(new BamIndex(indexPath, indexBuffer), indexPath);
             }
         } else {
             LOGGER.info("index cache isn't initialized");
-            indexBuffer = IOUtils.toByteArray(S3Client.loadFully(new AmazonS3URI(indexFile.getPath())));
+            indexBuffer = IOUtils.toByteArray(S3Client.loadFully(new AmazonS3URI(indexPath)));
         }
         return indexBuffer;
     }
@@ -587,10 +588,16 @@ public class BamHelper {
 
     static class BamIndex implements IndexCache {
 
+        private final String path;
         private final byte[] content;
 
-        public BamIndex(byte[] content) {
+        public BamIndex(String path, byte[] content) {
+            this.path = path;
             this.content = content;
+        }
+
+        public String getPath() {
+            return path;
         }
 
         public byte[] getContent() {
