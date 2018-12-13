@@ -23,16 +23,11 @@ public class SeekableS3Stream extends SeekableStream {
 
     SeekableS3Stream(AmazonS3URI source) {
         this.s3Source = source;
-        long start = System.currentTimeMillis();
         contentLength = S3Client.getFileSize(s3Source);
-        long stop = System.currentTimeMillis();
-        log.debug("S3Client.getFileSize time: " + (stop - start));
         recreateInnerStream();
     }
 
     private void recreateInnerStream() {
-        long start = System.currentTimeMillis();
-
         if (null != currentDataStream) {
             try {
                 currentDataStream.close();
@@ -44,8 +39,6 @@ public class SeekableS3Stream extends SeekableStream {
         this.currentDataStream = new CountingWithSkipInputStream(
                 new S3ObjectChunkInputStream(s3Source, offset, length() - 1));
         log.debug("A new data stream was launched on offset = ", offset);
-        long stop = System.currentTimeMillis();
-        log.debug("recreateInnerStream time: " + (stop - start));
     }
 
     @Override
