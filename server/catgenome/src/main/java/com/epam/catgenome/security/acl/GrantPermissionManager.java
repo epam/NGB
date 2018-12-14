@@ -34,6 +34,7 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
+import com.epam.catgenome.manager.user.RoleManager;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,10 +85,13 @@ public class GrantPermissionManager {
     @Autowired
     private UserManager userManager;
 
+    @Autowired
+    private RoleManager roleManager;
+
     @Transactional(propagation = Propagation.REQUIRED)
     public AclSecuredEntry setPermissions(AclClass aclClass, Long entityId, String userName, Boolean principal,
                                           Integer mask) {
-        validateParameters(aclClass, entityId, userName, mask);
+        validateParameters(aclClass, entityId, userName, mask, principal);
         AbstractSecuredEntity entity = entityManager.load(aclClass, entityId);
 
         MutableAcl acl = aclService.getOrCreateObjectIdentity(entity);
@@ -223,10 +227,18 @@ public class GrantPermissionManager {
         });
     }
 
-    private void validateParameters(AclClass aclClass, Long entityId, String userName, Integer mask) {
+    private void validateParameters(AclClass aclClass, Long entityId, String userName,
+                                    Integer mask, Boolean principal) {
         Assert.notNull(entityId, MessageHelper.getMessage(MessagesConstants.ERROR_PERMISSION_PARAM_REQUIRED, "ID"));
         Assert.notNull(userName, MessageHelper.getMessage(
             MessagesConstants.ERROR_PERMISSION_PARAM_REQUIRED, "UserName"));
+        if (principal) {
+            Assert.notNull(userManager.loadUserByName(userName),
+                    MessageHelper.getMessage(MessagesConstants.ERROR_ROLE_OR_USER_NOT_FOUND, userName));
+        } else {
+            Assert.isTrue(roleManager.loadAllRoles(false).stream().anyMatch(r -> r.getName().equals(userName)),
+                    MessageHelper.getMessage(MessagesConstants.ERROR_ROLE_OR_USER_NOT_FOUND, userName));
+        }
         Assert.notNull(aclClass, MessageHelper.getMessage(
             MessagesConstants.ERROR_PERMISSION_PARAM_REQUIRED, "ObjectClass"));
         Assert.notNull(mask, MessageHelper.getMessage(MessagesConstants.ERROR_PERMISSION_PARAM_REQUIRED, "Mask"));

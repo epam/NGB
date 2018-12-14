@@ -243,6 +243,7 @@ public final class MessagesConstants {
     public static final String ERROR_USER_NAME_NOT_FOUND = "error.user.name.not.found";
     public static final String ERROR_ACL_CLASS_NOT_SUPPORTED = "error.acl.class.not.supported";
     public static final String ERROR_PERMISSION_PARAM_REQUIRED = "error.permission.param.required";
+    public static final String ERROR_ROLE_OR_USER_NOT_FOUND = "error.role.or.user.not.found";
 
     // USER
     public static final String ERROR_USER_NAME_REQUIRED = "error.user.name.required";
