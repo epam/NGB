@@ -1,0 +1,8 @@
+Bootstrap: docker
+Registry: localhost:5000
+From: ngb:latest
+Includecmd: no
+
+%startscript
+	cd /opt/ngb
+	nohup java -Xmx2G -jar catgenome.jar > /dev/null 2>&1 < /dev/null &

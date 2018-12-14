@@ -1,8 +1,10 @@
 language: java
+jdk:
+  - openjdk8
 sudo: required
 os:
   - linux
-dist: trusty
+dist: xenial
 install: 
     - sudo add-apt-repository -y ppa:jonathonf/python-2.7
     - sudo apt-get update
@@ -12,8 +14,10 @@ install:
     - sudo pip install mkdocs
     - sudo pip install mkdocs-material
 script:
-    - ./gradlew buildJar buildWar buildCli buildDoc buildDocker -PbuildNumber=${TRAVIS_JOB_NUMBER} ${CLIENT_PATH} && ./e2e/integration_tests.sh
+    - ./gradlew buildJar buildWar buildCli buildDoc buildDocker -PbuildNumber=${TRAVIS_JOB_NUMBER} ${CLIENT_PATH}
     - ./gradlew jacocoTestReport
+    - ./singularity/setup_environment.sh
+    - sudo ./singularity/build_image.sh $(pwd)/singularity/ngb.singularity $(pwd)/dist/ngb.singularity.img
 after_success:
     - bash <(curl -s https://codecov.io/bash)
 deploy:
