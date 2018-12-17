@@ -26,6 +26,7 @@ package com.epam.catgenome.controller.person;
 
 import java.util.Collection;
 
+import com.epam.catgenome.controller.vo.IDList;
 import com.epam.catgenome.controller.vo.NgbUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -93,6 +94,19 @@ public class UserController extends AbstractRESTController {
             })
     public Result<NgbUser> createUser(@RequestBody NgbUserVO userVO) {
         return Result.success(userSecurityService.createUser(userVO));
+    }
+
+    @RequestMapping(value = "/user/loadList", method = RequestMethod.POST)
+    @ResponseBody
+    @ApiOperation(
+            value = "Loads users by names.",
+            notes = "Loads users by names.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Collection<NgbUser>> loadUsersByNames(@RequestBody IDList userList) {
+        return Result.success(userSecurityService.loadUsersByNames(userList));
     }
 
 

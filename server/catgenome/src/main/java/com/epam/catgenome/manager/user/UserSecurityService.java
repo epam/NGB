@@ -25,8 +25,10 @@
 package com.epam.catgenome.manager.user;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+import com.epam.catgenome.controller.vo.IDList;
 import com.epam.catgenome.controller.vo.NgbUserVO;
 import com.epam.catgenome.entity.security.JwtRawToken;
 import com.epam.catgenome.manager.AuthManager;
@@ -114,5 +116,10 @@ public class UserSecurityService {
     @PreAuthorize(ROLE_USER)
     public UserContext getUserContext() {
         return authManager.getUserContext();
+    }
+
+    @PreAuthorize(ROLE_ADMIN)
+    public Collection<NgbUser> loadUsersByNames(IDList userList) {
+        return userManager.loadUsersByNames(userList.getIds());
     }
 }
