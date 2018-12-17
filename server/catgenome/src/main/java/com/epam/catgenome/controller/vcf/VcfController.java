@@ -200,10 +200,11 @@ public class VcfController extends AbstractRESTController {
                                         @RequestParam(required = false) Long trackId,
                                         @RequestParam(required = false) Long sampleId,
                                         @RequestParam(required = false) final String fileUrl,
-                                        @RequestParam(required = false) final String indexUrl)
+                                        @RequestParam(required = false) final String indexUrl,
+                                        @RequestParam(required = false) final  Long projectId)
             throws VcfReadingException {
         return Result.success(vcfSecurityService.getNextOrPreviousVariation(fromPosition, trackId, sampleId,
-                                                                            chromosomeId, true, fileUrl, indexUrl));
+                                                                            chromosomeId, true, fileUrl, indexUrl, projectId));
     }
 
     @RequestMapping (value = "/vcf/{chromosomeId}/prev", method = RequestMethod.GET)
@@ -222,10 +223,11 @@ public class VcfController extends AbstractRESTController {
                                         @RequestParam(required = false) Long trackId,
                                         @RequestParam(required = false) Long sampleId,
                                         @RequestParam(required = false) final String fileUrl,
-                                        @RequestParam(required = false) final String indexUrl)
+                                        @RequestParam(required = false) final String indexUrl,
+                                        @RequestParam(required = false) final  Long projectId)
             throws VcfReadingException {
         return Result.success(vcfSecurityService.getNextOrPreviousVariation(fromPosition, trackId, sampleId,
-                chromosomeId, false, fileUrl, indexUrl));
+                chromosomeId, false, fileUrl, indexUrl, projectId));
     }
 
     @ResponseBody

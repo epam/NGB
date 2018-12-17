@@ -152,7 +152,7 @@ public class RoleManager {
     }
 
     public Role loadRoleByName(String name) {
-        return roleDao.loadRoleByName(name).orElseThrow(
+        return roleDao.loadRoleByName(getValidName(name)).orElseThrow(
                 () -> new IllegalArgumentException("Role with name " + name + " not found!"));
     }
 

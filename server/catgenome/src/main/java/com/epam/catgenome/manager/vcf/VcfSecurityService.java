@@ -103,7 +103,7 @@ public class VcfSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public Variation getNextOrPreviousVariation(int fromPosition, Long trackId, Long sampleId, long chromosomeId,
-                                                boolean loadInfo, String fileUrl, String indexUrl)
+                                                boolean loadInfo, String fileUrl, String indexUrl, Long projectId)
                                                 throws VcfReadingException {
         return vcfManager.getNextOrPreviousVariation(fromPosition, trackId, sampleId, chromosomeId,
                                                      loadInfo, fileUrl, indexUrl);
