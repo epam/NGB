@@ -15,6 +15,7 @@ export class BedDataService extends DataService {
             bed.openByUrl = undefined;
             bed.fileUrl = undefined;
             bed.indexUrl = undefined;
+            bed.projectId = undefined;
         }
         return new Promise((resolve, reject) => {
             this.post(url, bed).then((data)=> {
@@ -43,10 +44,6 @@ export class BedDataService extends DataService {
                 }
             });
         });
-    }
-
-    getAllFileList(refId) {
-        return this.get(`bed/${refId}/loadAll`);
     }
 
     register(referenceId, path ,indexPath, name) {

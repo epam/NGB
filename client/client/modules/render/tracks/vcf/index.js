@@ -296,7 +296,8 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                         position: variant.serverStartIndex,
                         type: variant.type,
                         vcfFileId: this.dataConfig.id,
-                        projectId: this.config.projectId
+                        projectId: this.config.projectId,
+                        projectIdNumber: this.config.project.id
                     }
                 );
                 if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
@@ -334,7 +335,8 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                         position: variantContainer._variant.serverStartIndex,
                         type: variantContainer._variant.type,
                         vcfFileId: this.dataConfig.id,
-                        projectId: this.config.projectId
+                        projectId: this.config.projectId,
+                        projectIdNumber: this.config.project.id
                     }
                 );
                 if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {

@@ -24,13 +24,12 @@
 
 package com.epam.catgenome.dao;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.Date;
-import java.util.List;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +42,7 @@ import com.epam.catgenome.dao.wig.WigFileDao;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.wig.WigFile;
-import com.epam.catgenome.util.AuthUtils;
+import com.epam.catgenome.helper.EntityHelper;
 
 /**
  * Source:      WigFileDaoTest
@@ -70,16 +69,17 @@ public class WigFileDaoTest extends AbstractDaoTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testSaveLoadGeneFile() {
+    public void testSaveLoadWigFile() {
         WigFile wigFile = new WigFile();
 
         wigFile.setName("testFile");
-        wigFile.setCreatedBy(AuthUtils.getCurrentUserId());
         wigFile.setCreatedDate(new Date());
         wigFile.setReferenceId(reference.getId());
         wigFile.setType(BiologicalDataItemResourceType.FILE);
         wigFile.setFormat(BiologicalDataItemFormat.WIG);
         wigFile.setPath("///");
+        wigFile.setOwner(EntityHelper.TEST_OWNER);
+
         long id = wigFileDao.createWigFileId();
         biologicalDataItemDao.createBiologicalDataItem(wigFile);
         wigFile.setBioDataItemId(wigFile.getId());
@@ -89,10 +89,7 @@ public class WigFileDaoTest extends AbstractDaoTest {
         WigFile loadedFile = wigFileDao.loadWigFile(wigFile.getId());
 
         assertNotNull(loadedFile);
-
-        List<WigFile> files = wigFileDao.loadWigFilesByReferenceId(reference.getId());
-        assertNotNull(files);
-        Assert.assertFalse(files.isEmpty());
+        assertEquals(wigFile.getOwner(), loadedFile.getOwner());
 
         wigFileDao.deleteWigFile(loadedFile.getId());
 

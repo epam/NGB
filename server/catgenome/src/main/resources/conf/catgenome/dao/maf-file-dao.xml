@@ -34,10 +34,11 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         m.maf_id,
                         m.reference_genome_id as maf_reference_genome_id,
                         m.compressed as maf_compressed,
@@ -48,46 +49,12 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM catgenome.maf m
                         JOIN catgenome.biological_data_item b ON m.bio_data_item_id = b.bio_data_item_id
                         JOIN catgenome.biological_data_item i ON i.bio_data_item_id = m.index_id
                     WHERE m.maf_id = ?
-                ]]>
-            </value>
-        </property>
-        <property name="loadMafFilesByReferenceIdQuery">
-            <value>
-                <![CDATA[
-                    SELECT
-                        b.bio_data_item_id,
-                        b.name,
-                        b.type,
-                        b.path,
-                        b.format,
-                        b.created_by,
-                        b.created_date,
-                        b.bucket_id,
-                        b.pretty_name,
-                        m.maf_id,
-                        m.reference_genome_id as maf_reference_genome_id,
-                        m.compressed as maf_compressed,
-                        m.real_path as maf_real_path,
-
-                        i.bio_data_item_id as index_id,
-                        i.name as index_name,
-                        i.type as index_type,
-                        i.path as index_path,
-                        i.format as index_format,
-                        i.created_by as index_created_by,
-                        i.bucket_id as index_bucket_id,
-                        i.created_date as index_created_date
-                    FROM catgenome.maf m
-                        JOIN catgenome.biological_data_item b ON m.bio_data_item_id = b.bio_data_item_id
-                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = m.index_id
-                    WHERE m.reference_genome_id = ?
                 ]]>
             </value>
         </property>

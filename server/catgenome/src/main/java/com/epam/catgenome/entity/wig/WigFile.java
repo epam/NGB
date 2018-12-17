@@ -26,6 +26,7 @@ package com.epam.catgenome.entity.wig;
 
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.security.AclClass;
 
 /**
  * Source:
@@ -36,7 +37,13 @@ import com.epam.catgenome.entity.FeatureFile;
  * @author Semen_Dmitriev
  */
 public class WigFile extends FeatureFile {
+
     public WigFile() {
         setFormat(BiologicalDataItemFormat.WIG);
+    }
+
+    @Override
+    public AclClass getAclClass() {
+        return  AclClass.WIG;
     }
 }

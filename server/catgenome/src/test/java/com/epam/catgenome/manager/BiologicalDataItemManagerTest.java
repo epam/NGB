@@ -73,7 +73,7 @@ public class BiologicalDataItemManagerTest extends AbstractManagerTest {
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
         testReference = EntityHelper.createNewReference(testChromosome, referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
     }
 
@@ -95,7 +95,7 @@ public class BiologicalDataItemManagerTest extends AbstractManagerTest {
         testProject.setItems(Arrays.asList(new ProjectItem(testVcf1),
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
 
-        projectManager.saveProject(testProject);
+        projectManager.create(testProject);
         request.setName("testVcf2");
         VcfFile testVcf2 = vcfManager.registerVcfFile(request);
         Project testProject2 = new Project();
@@ -103,7 +103,7 @@ public class BiologicalDataItemManagerTest extends AbstractManagerTest {
         testProject2.setItems(Arrays.asList(new ProjectItem(testVcf2),
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
 
-        projectManager.saveProject(testProject2);
+        projectManager.create(testProject2);
         //first dataset with full location
         String url = biologicalDataItemManager.generateUrl(testProject.getName(),
                 Collections.singletonList(testVcf1.getBioDataItemId().toString()),

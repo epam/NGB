@@ -87,7 +87,7 @@ export default class ngbTracksViewController extends baseController {
     };
 
     hotKeyListener(event) {
-        if (event === 'bam>showAlignments') {   
+        if (event === 'bam>showAlignments') {
             const bamTracksWithAlignmentTrue = this.projectContext.tracksState.filter(t => t.format === 'BAM' && t.state.alignments === true);
             const bamTracksWithAlignmentFalse = this.projectContext.tracksState.filter(t => t.format === 'BAM' && t.state.alignments === false);
 

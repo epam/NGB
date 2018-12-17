@@ -38,5 +38,12 @@
                 <value>classpath:database/test/h2</value>
             </list>
         </property>
+        <property name="placeholders">
+            <map>
+                <entry key="default.admin">
+                    <value>${security.default.admin}</value>
+                </entry>
+            </map>
+        </property>
     </bean>
 </beans>

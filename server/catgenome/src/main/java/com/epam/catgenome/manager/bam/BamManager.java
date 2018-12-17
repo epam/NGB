@@ -116,7 +116,7 @@ public class BamManager {
         final BamFile newBamFile = bamHelper.fillBamFile(request);
         try {
             biologicalDataItemManager.createBiologicalDataItem(newBamFile);
-            Reference reference = referenceGenomeManager.loadReferenceGenome(request.getReferenceId());
+            Reference reference = referenceGenomeManager.load(request.getReferenceId());
             List<Chromosome> chromosomes = reference.getChromosomes();
             //we can read this file with this index file
             LOGGER.debug(getMessage(MessagesConstants.DEBUG_FILE_READING, request.getPath()));
@@ -124,10 +124,10 @@ public class BamManager {
 
 
             biologicalDataItemManager.createBiologicalDataItem(newBamFile.getIndex());
-            bamFileManager.save(newBamFile);
+            bamFileManager.create(newBamFile);
         } finally {
             if (newBamFile != null && newBamFile.getId() != null
-                    && bamFileManager.loadBamFile(newBamFile.getId()) == null) {
+                    && bamFileManager.load(newBamFile.getId()) == null) {
                 biologicalDataItemManager.deleteBiologicalDataItem(newBamFile.getId());
             }
         }
@@ -141,9 +141,9 @@ public class BamManager {
      * @return deleted {@code BamFile} entity
      */
     public BamFile unregisterBamFile(final long bamFileId) throws IOException {
-        BamFile fileToDelete = bamFileManager.loadBamFile(bamFileId);
+        BamFile fileToDelete = bamFileManager.load(bamFileId);
         Assert.notNull(fileToDelete, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
-        bamFileManager.deleteBamFile(fileToDelete);
+        bamFileManager.delete(fileToDelete);
         return fileToDelete;
     }
 
@@ -215,7 +215,7 @@ public class BamManager {
         final Chromosome chromosome = referenceGenomeManager.loadChromosome(query.getChromosomeId());
         BamFile bamFile;
         if (query.getId() != null) {
-            bamFile= bamFileManager.loadBamFile(query.getId());
+            bamFile= bamFileManager.load(query.getId());
         } else {
             bamFile = bamHelper.makeUrlBamFile(fileUrl, indexUrl, chromosome);
         }

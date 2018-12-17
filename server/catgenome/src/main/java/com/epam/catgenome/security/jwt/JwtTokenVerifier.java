@@ -78,7 +78,7 @@ public class JwtTokenVerifier {
         JwtTokenClaims tokenClaims = JwtTokenClaims.builder()
                 .jwtTokenId(decodedToken.getId())
                 .userName(decodedToken.getSubject())
-                .userId(decodedToken.getClaim(CLAIM_USER_ID).asString())
+                .userId(new Long(decodedToken.getClaim(CLAIM_USER_ID).asInt()))
                 .orgUnitId(decodedToken.getClaim(CLAIM_ORG_UNIT_ID).asString())
                 .issuedAt(decodedToken.getIssuedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
                 .expiresAt(decodedToken.getExpiresAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
@@ -96,7 +96,7 @@ public class JwtTokenVerifier {
         if (StringUtils.isEmpty(tokenClaims.getJwtTokenId())) {
             throw new TokenVerificationException("Invalid token: token ID is empty");
         }
-        if (StringUtils.isEmpty(tokenClaims.getUserId())) {
+        if (tokenClaims.getUserId() == null) {
             throw new TokenVerificationException("Invalid token: user ID is empty");
         }
         if (StringUtils.isEmpty(tokenClaims.getUserName())) {

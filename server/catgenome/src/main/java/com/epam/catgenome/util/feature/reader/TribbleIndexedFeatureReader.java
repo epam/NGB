@@ -22,13 +22,13 @@ package com.epam.catgenome.util.feature.reader;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.IndexUtils;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.tribble.*;
 import htsjdk.tribble.index.Index;
-import htsjdk.tribble.index.IndexFactory;
 import htsjdk.tribble.index.Block;
 import htsjdk.tribble.readers.PositionalBufferedStream;
 import htsjdk.tribble.util.ParsingUtils;
@@ -117,7 +117,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
                                        final boolean requireIndex, final EhCacheBasedIndexCache indexCache)
             throws IOException {
         this(featureFile, codec, false, indexCache); // required to read the header
-        if (indexFile != null && ParsingUtils.resourceExists(indexFile)) {
+        if (indexFile != null && IOHelper.resourceExists(indexFile)) {
             index = retrieveIndex(indexFile);
             this.needCheckForIndex = false;
         } else {
@@ -138,13 +138,13 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
             if (tribbleIndexCache.index != null) {
                 return tribbleIndexCache.index;
             } else {
-                index = IndexFactory.loadIndex(indexFile);
+                index = IndexUtils.loadIndex(indexFile);
                 tribbleIndexCache.index = index;
                 indexCache.putInCache(tribbleIndexCache, indexFilePath);
                 return index;
             }
         } else {
-            index = IndexFactory.loadIndex(indexFile);
+            index = IndexUtils.loadIndex(indexFile);
             if (indexCache != null) {
                 tribbleIndexCache = new TribbleIndexCache();
                 tribbleIndexCache.index = index;
@@ -175,12 +175,12 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
      */
     private void loadIndex() throws IOException{
         String indexFile = Tribble.indexFile(this.path);
-        if (ParsingUtils.resourceExists(indexFile)) {
+        if (IOHelper.resourceExists(indexFile)) {
             index = retrieveIndex(indexFile);
         } else {
             // See if the index itself is gzipped
             indexFile = ParsingUtils.appendToPath(indexFile, ".gz");
-            if (ParsingUtils.resourceExists(indexFile)) {
+            if (IOHelper.resourceExists(indexFile)) {
                 index = retrieveIndex(indexFile);
             }
         }
@@ -259,7 +259,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
         PositionalBufferedStream pbs = null;
 
         try {
-            is = ParsingUtils.openInputStream(path);
+            is = IOHelper.openStream(path);
             if (path.endsWith("gz")) {
                 // TODO -- warning I don't think this can work, the buffered input stream screws up position
                 is = new GZIPInputStream(new BufferedInputStream(is));
@@ -353,7 +353,7 @@ public class TribbleIndexedFeatureReader<T extends Feature, S> extends AbstractF
          * @throws IOException
          */
         WFIterator() throws IOException {
-            final InputStream inputStream = ParsingUtils.openInputStream(path);
+            final InputStream inputStream = IOHelper.openStream(path);
             final PositionalBufferedStream pbs;
 
             if (path.endsWith(".gz")) {

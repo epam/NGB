@@ -28,6 +28,7 @@ import java.util.List;
 
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.security.AclClass;
 
 /**
  * {@code SegFile} represents a SEG file metadata and {@code List} of assosiated woth it samples.
@@ -35,6 +36,7 @@ import com.epam.catgenome.entity.FeatureFile;
  * numeric values.
  */
 public class SegFile extends FeatureFile {
+
     private List<SegSample> samples;
 
     /**
@@ -74,5 +76,10 @@ public class SegFile extends FeatureFile {
         int result = super.hashCode();
         result = 31 * result + (samples != null ? samples.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public AclClass getAclClass() {
+        return  AclClass.SEG;
     }
 }

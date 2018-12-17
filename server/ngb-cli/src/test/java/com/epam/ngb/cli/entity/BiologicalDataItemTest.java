@@ -38,7 +38,7 @@ public class BiologicalDataItemTest {
 
     private static final long ITEM_ID_1 = 100L;
     private static final long ITEM_ID_2 = 1000L;
-    private static final long USER_ID = 46L;
+
     @Test
     public void testFormatting() {
         BiologicalDataItem item1 = new BiologicalDataItem();
@@ -47,7 +47,6 @@ public class BiologicalDataItemTest {
         item1.setType("FILE");
         item1.setPath("/path/to/first/item");
         item1.setFormat(BiologicalDataItemFormat.BAM_INDEX);
-        item1.setCreatedBy(USER_ID);
         item1.setCreatedDate(new Date());
 
         BiologicalDataItem item2 = new BiologicalDataItem();
@@ -56,7 +55,6 @@ public class BiologicalDataItemTest {
         item2.setType("FILE");
         item2.setPath("/path/file");
         item2.setFormat(BiologicalDataItemFormat.BAM);
-        item2.setCreatedBy(USER_ID);
         item2.setCreatedDate(new Date());
 
         List<BiologicalDataItem> items = Arrays.asList(item1, item2);

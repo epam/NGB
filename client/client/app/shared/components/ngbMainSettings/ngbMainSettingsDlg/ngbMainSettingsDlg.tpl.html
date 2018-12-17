@@ -1,18 +1,50 @@
 <md-dialog aria-label="Settings">
 
-    <md-toolbar>
-        <div class="md-toolbar-tools">
-            <h2>Settings</h2>
-            <span flex></span>
-            <md-button class="md-icon-button" ng-click="ctrl.close()" aria-label="Close">
-                <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
-            </md-button>
-        </div>
-    </md-toolbar>
-
     <form name="settingsForm">
-        <md-dialog-content style="min-width:600px;max-width:800px;max-height:610px; ">
-            <md-tabs md-dynamic-height md-border-bottom>
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2>Settings</h2>
+                <span flex></span>
+                <md-button class="md-icon-button" ng-click="ctrl.close()" aria-label="Close">
+                    <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+
+        <md-dialog-content style="min-width:600px;max-width: 800px;max-height:80vh;">
+            <md-tabs md-center-tabs md-dynamic-height md-border-bottom md-stretch-tabs="always">
+                <md-tab label="CLI">
+                    <md-content class="md-padding">
+                        <div class="column">
+                            <div class="row"><h4>Access key</h4></div>
+                            <div class="row">
+                                <label>Valid till</label>
+                                <md-datepicker
+                                        ng-model="ctrl.tokenValidDate"
+                                        md-placeholder="Enter date"
+                                        md-min-date=""
+                                        md-open-on-focus>
+                                </md-datepicker>
+                                <md-button
+                                        class="md-primary"
+                                        ng-disabled="!ctrl.tokenValidDate || ctrl.isTokenLoading"
+                                        ng-click="ctrl.generateAccessKey()">
+                                    Generate access key
+                                </md-button>
+                            </div>
+                            <div layout="row" layout-sm="column" layout-align="center" ng-show="ctrl.isTokenLoading">
+                                <md-progress-circular
+                                        md-mode="indeterminate"
+                                        md-diameter="15"
+                                        ng-show="ctrl.isTokenLoading">
+                                </md-progress-circular>
+                            </div>
+                            <div class="row token-preview" ng-if="ctrl.accessToken">
+                                <pre><code>{{ctrl.accessToken}}</code></pre>
+                            </div>
+                        </div>
+                    </md-content>
+                </md-tab>
                 <md-tab label="GENERAL">
                     <md-content class="md-padding">
                         <div class="column">

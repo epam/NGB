@@ -31,6 +31,7 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
@@ -74,6 +75,7 @@ import org.springframework.util.Assert;
 public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     private String biologicalDataItemSequenceName;
     private String insertBiologicalDataItemQuery;
+    private String updateOwnerQuery;
     private String loadBiologicalDataItemsByIdsQuery;
     private String deleteBiologicalDataItemQuery;
     private String loadBiologicalDataItemsByNameStrictQuery;
@@ -112,9 +114,9 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         params.addValue(BiologicalDataItemParameters.PATH.name(), item.getPath());
         params.addValue(BiologicalDataItemParameters.FORMAT.name(), item.getFormat().getId());
         params.addValue(BiologicalDataItemParameters.CREATED_DATE.name(), item.getCreatedDate());
-        params.addValue(BiologicalDataItemParameters.CREATED_BY.name(), item.getCreatedBy());
         params.addValue(BiologicalDataItemParameters.BUCKET_ID.name(), item.getBucketId());
         params.addValue(BiologicalDataItemParameters.PRETTY_NAME.name(), item.getPrettyName());
+        params.addValue(BiologicalDataItemParameters.OWNER.name(), item.getOwner());
 
         getNamedParameterJdbcTemplate().update(insertBiologicalDataItemQuery, params);
     }
@@ -130,17 +132,8 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
             return Collections.emptyList();
         }
 
-        Long listId = daoHelper.createTempLongList(ids);
-
-        final MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue(BiologicalDataItemParameters.BIO_DATA_ITEM_ID.name(), listId);
-
-        List<BiologicalDataItem> items = getNamedParameterJdbcTemplate().query(loadBiologicalDataItemsByIdsQuery,
-                params, getRowMapper());
-
-        daoHelper.clearTempList(listId);
-
-        return items;
+        String query = DaoHelper.getQueryFilledWithIdArray(loadBiologicalDataItemsByIdsQuery, ids);
+        return getNamedParameterJdbcTemplate().query(query, getRowMapper());
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -155,6 +148,20 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public void deleteBiologicalDataItem(final long bioDataItemId) {
         getJdbcTemplate().update(deleteBiologicalDataItemQuery, bioDataItemId);
+    }
+
+    /**
+     * Update owner for given bioItemId
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updateOwner(long bioItemId, String newOwner) {
+        Assert.isTrue(StringUtils.isNotBlank(newOwner), "Owner cannot be empty");
+        final MapSqlParameterSource params = new MapSqlParameterSource();
+
+        params.addValue(BiologicalDataItemParameters.BIO_DATA_ITEM_ID.name(), bioItemId);
+        params.addValue(BiologicalDataItemParameters.OWNER.name(), newOwner);
+
+        getNamedParameterJdbcTemplate().update(updateOwnerQuery, params);
     }
 
     /**
@@ -187,13 +194,10 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
             return Collections.emptyList();
         }
 
-        long listId = daoHelper.createTempStringList(names);
+        List<String> quotedNames = names.stream().map(n -> "'" + n + "'").collect(Collectors.toList());
+        String query = DaoHelper.getQueryFilledWithIdArray(loadBiologicalDataItemsByNamesStrictQuery, quotedNames);
 
-        List<BiologicalDataItem> items = getJdbcTemplate().query(loadBiologicalDataItemsByNamesStrictQuery,
-                                                     getRowMapper(), listId);
-
-        daoHelper.clearTempStringList(listId);
-        return items;
+        return getJdbcTemplate().query(query, getRowMapper());
     }
 
     /**
@@ -216,10 +220,10 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         TYPE,
         PATH,
         FORMAT,
-        CREATED_BY,
         CREATED_DATE,
         BUCKET_ID,
         PRETTY_NAME,
+        OWNER,
 
         VCF_ID,
         VCF_REFERENCE_GENOME_ID,
@@ -240,7 +244,6 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         REFERENCE_GENE_TYPE,
         REFERENCE_GENE_PATH,
         REFERENCE_GENE_FORMAT,
-        REFERENCE_GENE_CREATED_BY,
         REFERENCE_GENE_CREATED_DATE,
         REFERENCE_GENE_REFERENCE_GENOME_ID,
         REFERENCE_GENE_COMPRESSED,
@@ -273,7 +276,6 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         INDEX_TYPE,
         INDEX_PATH,
         INDEX_FORMAT,
-        INDEX_CREATED_BY,
         INDEX_BUCKET_ID,
         INDEX_CREATED_DATE;
 
@@ -303,7 +305,6 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
                     index.setType(BiologicalDataItemResourceType.getById(rs.getLong(INDEX_TYPE.name())));
                     index.setPath(rs.getString(INDEX_PATH.name()));
                     index.setFormat(BiologicalDataItemFormat.getById(rs.getLong(INDEX_FORMAT.name())));
-                    index.setCreatedBy(rs.getLong(CREATED_BY.name()));
                     index.setCreatedDate(new Date(rs.getTimestamp(INDEX_CREATED_DATE.name()).getTime()));
                 }
             }
@@ -322,9 +323,9 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
 
             dataItem.setPath(rs.getString(PATH.name()));
             dataItem.setFormat(format);
-            dataItem.setCreatedBy(rs.getLong(CREATED_BY.name()));
             dataItem.setCreatedDate(new Date(rs.getTimestamp(CREATED_DATE.name()).getTime()));
             dataItem.setPrettyName(rs.getString(PRETTY_NAME.name()));
+            dataItem.setOwner(rs.getString(OWNER.name()));
 
             return dataItem;
         }
@@ -486,7 +487,6 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
                 longVal = rs.getLong(REFERENCE_GENE_FORMAT.name());
                 geneFile.setFormat(rs.wasNull() ? null : BiologicalDataItemFormat.getById(longVal));
 
-                geneFile.setCreatedBy(rs.getLong(REFERENCE_GENE_CREATED_BY.name()));
                 geneFile.setCreatedDate(new Date(rs.getTimestamp(REFERENCE_GENE_CREATED_DATE.name()).getTime()));
                 geneFile.setReferenceId(rs.getLong(REFERENCE_GENE_REFERENCE_GENOME_ID.name()));
                 geneFile.setCompressed(rs.getBoolean(REFERENCE_GENE_COMPRESSED.name()));
@@ -495,8 +495,8 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
 
             return reference;
         }
-    }
 
+    }
     /**
      * Enum, containing common FeatureFile's ancestor's fields
      */
@@ -534,8 +534,8 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
 
             return params;
         }
-    }
 
+    }
     @Required
     public void setInsertBiologicalDataItemQuery(String insertBiologicalDataItemQuery) {
         this.insertBiologicalDataItemQuery = insertBiologicalDataItemQuery;
@@ -576,5 +576,10 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
     public void setLoadBiologicalDataItemsByNameCaseInsensitiveQuery(
             String loadBiologicalDataItemsByNameCaseInsensitiveQuery) {
         this.loadBiologicalDataItemsByNameCaseInsensitiveQuery = loadBiologicalDataItemsByNameCaseInsensitiveQuery;
+    }
+
+    @Required
+    public void setUpdateOwnerQuery(String updateOwnerQuery) {
+        this.updateOwnerQuery = updateOwnerQuery;
     }
 }

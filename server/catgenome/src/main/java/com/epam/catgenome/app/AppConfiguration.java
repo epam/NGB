@@ -16,8 +16,7 @@ import org.springframework.context.annotation.PropertySource;
 @ComponentScan(basePackages = "com.epam.catgenome",
         excludeFilters = {@ComponentScan.Filter(type = FilterType.ANNOTATION,
                 value = org.springframework.stereotype.Controller.class)})
-@Import({AppMVCConfiguration.class, JWTSecurityConfiguration.class, SAMLSecurityConfiguration.class,
-         NoSecurityConfiguration.class})
+@Import({AppMVCConfiguration.class, SecurityConfiguration.class})
 @PropertySource(value = {
         "classpath:catgenome.properties",
         "file:///${CATGENOME_CONF_DIR}/catgenome.properties",

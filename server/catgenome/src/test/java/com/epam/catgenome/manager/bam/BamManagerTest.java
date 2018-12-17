@@ -209,12 +209,11 @@ public class BamManagerTest extends AbstractManagerTest {
 
         BamFile bamFile = bamManager.registerBam(request);
         Assert.assertNotNull(bamFile);
-        final BamFile loadBamFile = bamFileManager.loadBamFile(bamFile.getId());
+        final BamFile loadBamFile = bamFileManager.load(bamFile.getId());
         Assert.assertNotNull(loadBamFile);
         Assert.assertTrue(bamFile.getId().equals(loadBamFile.getId()));
         Assert.assertTrue(bamFile.getName().equals(loadBamFile.getName()));
         Assert.assertEquals(PRETTY_NAME, bamFile.getPrettyName());
-        Assert.assertTrue(bamFile.getCreatedBy().equals(loadBamFile.getCreatedBy()));
         Assert.assertTrue(bamFile.getCreatedDate().equals(loadBamFile.getCreatedDate()));
         Assert.assertTrue(bamFile.getReferenceId().equals(loadBamFile.getReferenceId()));
         Assert.assertTrue(bamFile.getPath().equals(loadBamFile.getPath()));
@@ -500,7 +499,7 @@ public class BamManagerTest extends AbstractManagerTest {
         bucket.setBucketName(s3BucketName);
         bucket.setAccessKeyId(s3AccessKey);
         bucket.setSecretAccessKey(s3SecretKey);
-        bucketManager.saveBucket(bucket);
+        bucketManager.save(bucket);
 
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(s3FilePath);
@@ -513,11 +512,11 @@ public class BamManagerTest extends AbstractManagerTest {
         request.setIndexType(BiologicalDataItemResourceType.S3);
         BamFile bamFile = bamManager.registerBam(request);
         Assert.assertNotNull(bamFile);
-        BamFile loadBamFile = bamFileManager.loadBamFile(bamFile.getId());
+        BamFile loadBamFile = bamFileManager.load(bamFile.getId());
         Assert.assertNotNull(loadBamFile);
 
         bamManager.unregisterBamFile(loadBamFile.getId());
-        loadBamFile = bamFileManager.loadBamFile(bamFile.getId());
+        loadBamFile = bamFileManager.load(bamFile.getId());
         Assert.assertNull(loadBamFile);
 
         List<BiologicalDataItem> items = biologicalDataItemDao.loadBiologicalDataItemsByIds(Arrays.asList(
@@ -539,10 +538,10 @@ public class BamManagerTest extends AbstractManagerTest {
 
         BamFile bamFile = bamManager.registerBam(request);
         Assert.assertNotNull(bamFile);
-        BamFile loadBamFile = bamFileManager.loadBamFile(bamFile.getId());
+        BamFile loadBamFile = bamFileManager.load(bamFile.getId());
         Assert.assertNotNull(loadBamFile);
         bamManager.unregisterBamFile(loadBamFile.getId());
-        loadBamFile = bamFileManager.loadBamFile(bamFile.getId());
+        loadBamFile = bamFileManager.load(bamFile.getId());
         Assert.assertNotNull(loadBamFile);
 
         List<BiologicalDataItem> items = biologicalDataItemDao.loadBiologicalDataItemsByIds(Arrays.asList(

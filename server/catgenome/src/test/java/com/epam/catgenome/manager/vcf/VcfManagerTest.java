@@ -223,7 +223,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
         testReference = EntityHelper.createNewReference(testChromosome, referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
 
         // create new chromosome and reference for ga4gh
@@ -231,7 +231,7 @@ public class VcfManagerTest extends AbstractManagerTest {
         testChrGA4GH.setSize(TEST_CHROMOSOME_SIZE);
         testReferenceGA4GH = EntityHelper.createNewReference(testChrGA4GH, referenceGenomeManager.createReferenceId());
         testReferenceGA4GH.setType(BiologicalDataItemResourceType.GA4GH);
-        referenceGenomeManager.register(testReferenceGA4GH);
+        referenceGenomeManager.create(testReferenceGA4GH);
         referenceIdGA4GH = testReferenceGA4GH.getId();
         vcfManager.setExtendedInfoTemplates(infoTemplate);
         vcfManager.setIndexBufferSize(INDEX_BUFFER_SIZE);
@@ -242,7 +242,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     public void testSaveLoadVcfFile() throws IOException, InterruptedException, VcfReadingException {
         VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
-        VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
+        VcfFile file = vcfFileManager.load(vcfFile.getId());
         Assert.assertNotNull(file);
         Assert.assertEquals(PRETTY_NAME, file.getPrettyName());
 
@@ -255,7 +255,7 @@ public class VcfManagerTest extends AbstractManagerTest {
                                                        ParseException, VcfReadingException {
         VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF_COMPRESSED);
 
-        VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
+        VcfFile file = vcfFileManager.load(vcfFile.getId());
         Assert.assertNotNull(file);
 
         testLoad(vcfFile, 1D, true);
@@ -267,7 +267,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     }
 
     /**
-     * Tests vcfFileManager.loadVcfFile() behaviour on small scale factors.
+     * Tests vcfFileManager.load() behaviour on small scale factors.
      * Should return a number of variations having type STATISTIC and variationsCount > 1
      */
     @Test
@@ -275,7 +275,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     public void testLoadSmallScaleVcfFile() throws IOException, InterruptedException, VcfReadingException {
         VcfFile vcfFile = testSave(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
-        VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
+        VcfFile file = vcfFileManager.load(vcfFile.getId());
         Assert.assertNotNull(file);
 
         Track<Variation> trackResult = testLoad(vcfFile, TEST_SMALL_SCALE_FACTOR, true);
@@ -335,7 +335,7 @@ public class VcfManagerTest extends AbstractManagerTest {
                    NoSuchAlgorithmException, FeatureFileReadingException {
         VcfFile vcfFile = testSave("classpath:templates/samples.vcf");
 
-        VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
+        VcfFile file = vcfFileManager.load(vcfFile.getId());
         Assert.assertNotNull(file);
 
         Track<Variation> trackResult = testLoad(file, 1D, true);
@@ -441,9 +441,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testRegisterFile()
-        throws IOException, ClassNotFoundException, InterruptedException, ParseException, NoSuchAlgorithmException,
-               VcfReadingException {
+    public void testRegisterFile() throws IOException{
         Resource resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
         FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
@@ -457,9 +455,8 @@ public class VcfManagerTest extends AbstractManagerTest {
         Track<Variation> trackResult = testLoad(vcfFile, 1D, true);
         Assert.assertFalse(trackResult.getBlocks().isEmpty());
 
-        List<VcfFile> filesByReference = vcfFileManager.loadVcfFilesByReferenceId(referenceId);
+        VcfFile filesByReference = vcfFileManager.load(vcfFile.getId());
         Assert.assertNotNull(filesByReference);
-        Assert.assertFalse(filesByReference.isEmpty());
     }
 
     @Test
@@ -793,12 +790,10 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testLoadExtendedInfo()
-            throws IOException, InterruptedException, FeatureIndexException,
-            NoSuchAlgorithmException, FeatureFileReadingException {
+    public void testLoadExtendedInfo() throws IOException, InterruptedException {
         VcfFile vcfFile = testSave("classpath:templates/extended_info.vcf");
 
-        VcfFile file = vcfFileManager.loadVcfFile(vcfFile.getId());
+        VcfFile file = vcfFileManager.load(vcfFile.getId());
         Assert.assertNotNull(file);
 
         VcfFilterInfo filterInfo = vcfManager.getFiltersInfo(Collections.singleton(vcfFile.getId()));
@@ -899,13 +894,12 @@ public class VcfManagerTest extends AbstractManagerTest {
         return registerVcf(resource, referenceId, vcfManager, PRETTY_NAME);
     }
 
-    private Track<Variation> testLoad(VcfFile vcfFile, Double scaleFactor, boolean checkBlocks)
-        throws IOException, VcfReadingException {
+    private Track<Variation> testLoad(VcfFile vcfFile, Double scaleFactor, boolean checkBlocks) throws IOException {
         return testLoad(vcfFile, scaleFactor, checkBlocks, true);
     }
 
     private Track<Variation> testLoad(VcfFile vcfFile, Double scaleFactor, boolean checkBlocks, boolean collapse)
-        throws IOException, VcfReadingException {
+        throws IOException {
         TrackQuery vcfTrackQuery = new TrackQuery();
         vcfTrackQuery.setChromosomeId(testChromosome.getId());
         vcfTrackQuery.setStartIndex(1);
@@ -967,8 +961,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testSaveUnsorted() throws IOException, ClassNotFoundException, InterruptedException,
-            ParseException, VcfReadingException {
+    public void testSaveUnsorted() throws IOException {
         String invalidVcf = "unsorted.vcf";
         testRegisterInvalidFile("classpath:templates/invalid/" + invalidVcf,  MessageHelper
                 .getMessage(MessagesConstants.ERROR_UNSORTED_FILE));
@@ -979,9 +972,7 @@ public class VcfManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void testRegisterFileExtraChr()
-            throws IOException, ClassNotFoundException, InterruptedException, ParseException, NoSuchAlgorithmException,
-            VcfReadingException {
+    public void testRegisterFileExtraChr() throws IOException, InterruptedException {
         VcfFile vcfFile = testSave("classpath:templates/invalid/extra_chr.vcf");
         Assert.assertTrue(vcfFile != null);
     }

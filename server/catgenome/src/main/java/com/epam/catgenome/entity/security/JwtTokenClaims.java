@@ -50,7 +50,7 @@ public class JwtTokenClaims {
     private String jwtTokenId;
 
     @JsonProperty("user_id")
-    private String userId;
+    private Long userId;
 
     @JsonProperty("username")
     private String userName;

@@ -158,7 +158,7 @@ public class FeatureIndexManager {
      */
     public Set<String> searchGenesInVcfFilesInProject(long projectId, String gene, List<Long> vcfFileIds)
             throws IOException {
-        Project project = projectManager.loadProjectAndUpdateLastOpenedDate(projectId);
+        Project project = projectManager.load(projectId);
         List<VcfFile> vcfFiles = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
@@ -199,7 +199,7 @@ public class FeatureIndexManager {
     public List<Chromosome> filterChromosomes(VcfFilterForm filterForm, long projectId) throws IOException {
         Assert.isTrue(filterForm.getVcfFileIds() != null && !filterForm.getVcfFileIds().isEmpty(), MessageHelper
                 .getMessage(MessagesConstants.ERROR_NULL_PARAM, VCF_FILE_IDS_FIELD));
-        Project project = projectManager.loadProjectAndUpdateLastOpenedDate(projectId);
+        Project project = projectManager.load(projectId);
         List<VcfFile> vcfFiles = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
@@ -247,7 +247,7 @@ public class FeatureIndexManager {
      */
     public IndexSearchResult<VcfIndexEntry> filterVariations(VcfFilterForm filterForm, long projectId)
         throws IOException {
-        Project project = projectManager.loadProjectAndUpdateLastOpenedDate(projectId);
+        Project project = projectManager.load(projectId);
         List<VcfFile> files = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
@@ -271,7 +271,7 @@ public class FeatureIndexManager {
             throw new IllegalArgumentException("No page size is specified");
         }
 
-        Project project = projectManager.loadProjectAndUpdateLastOpenedDate(projectId);
+        Project project = projectManager.load(projectId);
         List<VcfFile> files = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
@@ -291,7 +291,7 @@ public class FeatureIndexManager {
      */
     public List<Group> groupVariations(VcfFilterForm filterForm, long projectId, String groupByField)
         throws IOException {
-        Project project = projectManager.loadProjectAndUpdateLastOpenedDate(projectId);
+        Project project = projectManager.load(projectId);
         List<VcfFile> files = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
@@ -359,13 +359,13 @@ public class FeatureIndexManager {
         IndexSearchResult<FeatureIndexEntry> bookmarkSearchRes = bookmarkManager.searchBookmarks(featureId,
                                                                                          maxFeatureSearchResultsCount);
 
-        Project project = projectManager.loadProjectAndUpdateLastOpenedDate(projectId);
+        Project project = projectManager.load(projectId);
         Optional<Reference> opt = project.getItems().stream()
                 .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE)
                 .map(i -> (Reference) i.getBioDataItem()).findFirst();
         if (opt.isPresent() && opt.get().getGeneFile() != null) {
             IndexSearchResult<FeatureIndexEntry> res = featureIndexDao.searchFeatures(featureId,
-                    geneFileManager.loadGeneFile(opt.get().getGeneFile().getId()),
+                    geneFileManager.load(opt.get().getGeneFile().getId()),
                     maxFeatureSearchResultsCount);
             bookmarkSearchRes.mergeFrom(res);
             return bookmarkSearchRes;
@@ -382,7 +382,7 @@ public class FeatureIndexManager {
         IndexSearchResult<FeatureIndexEntry> bookmarkSearchRes = bookmarkManager.searchBookmarks(featureId,
                 maxFeatureSearchResultsCount);
 
-        Reference reference = referenceGenomeManager.loadReferenceGenome(referenceId);
+        Reference reference = referenceGenomeManager.load(referenceId);
 
         List<FeatureFile> annotationFiles = referenceGenomeManager.getReferenceAnnotationFiles(referenceId)
                 .stream()
@@ -391,7 +391,7 @@ public class FeatureIndexManager {
         GeneFile geneFile = reference.getGeneFile();
         if (geneFile != null) {
             Long geneFileId = geneFile.getId();
-            annotationFiles.add(geneFileManager.loadGeneFile(geneFileId));
+            annotationFiles.add(geneFileManager.load(geneFileId));
         }
 
         IndexSearchResult<FeatureIndexEntry> res = featureIndexDao.searchFeatures(
@@ -410,7 +410,7 @@ public class FeatureIndexManager {
      * @throws IOException
      */
     public VcfFilterInfo loadVcfFilterInfoForProject(long projectId) throws IOException {
-        Project project = projectManager.loadProjectAndUpdateLastOpenedDate(projectId);
+        Project project = projectManager.load(projectId);
         List<Long> vcfIds = project.getItems().stream()
                 .filter(item -> item.getBioDataItem() != null
                         && item.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)

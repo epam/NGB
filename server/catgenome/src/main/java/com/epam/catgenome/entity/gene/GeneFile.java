@@ -28,6 +28,7 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.externaldb.ExternalDB;
 import com.epam.catgenome.entity.externaldb.ExternalDBType;
+import com.epam.catgenome.entity.security.AclClass;
 
 /**
  * Source:      GeneFile
@@ -40,6 +41,7 @@ import com.epam.catgenome.entity.externaldb.ExternalDBType;
  * </p>
  */
 public class GeneFile extends FeatureFile {
+
     private ExternalDBType externalDBType;
     private ExternalDB externalDB;
     private String externalDBOrganism;
@@ -102,5 +104,10 @@ public class GeneFile extends FeatureFile {
         result = 31 * result + (externalDB != null ? externalDB.hashCode() : 0);
         result = 31 * result + (externalDBOrganism != null ? externalDBOrganism.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public AclClass getAclClass() {
+        return  AclClass.GENE;
     }
 }

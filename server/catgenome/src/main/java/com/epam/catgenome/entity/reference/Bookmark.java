@@ -24,11 +24,11 @@
 
 package com.epam.catgenome.entity.reference;
 
-import java.util.Date;
 import java.util.List;
 
-import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
 
 /**
  * <p>
@@ -37,12 +37,11 @@ import com.epam.catgenome.entity.BiologicalDataItem;
  * persistence.
  * </p>
  */
-public class Bookmark extends BaseEntity {
+public class Bookmark extends AbstractSecuredEntity {
+
     private Integer startIndex;
     private Integer endIndex;
     private Chromosome chromosome;
-    private Long createdBy;
-    private Date createdDate;
 
     /**
      * A {@code List} of {@code ProjectItem}s, that were opened when the bookmark was created.
@@ -81,19 +80,13 @@ public class Bookmark extends BaseEntity {
         this.endIndex = endIndex;
     }
 
-    public Long getCreatedBy() {
-        return createdBy;
+    @Override
+    public AbstractSecuredEntity getParent() {
+        return null;
     }
 
-    public void setCreatedBy(Long createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public Date getCreatedDate() {
-        return createdDate;
-    }
-
-    public void setCreatedDate(Date createdDate) {
-        this.createdDate = createdDate;
+    @Override
+    public AclClass getAclClass() {
+        return  AclClass.BOOKMARK;
     }
 }

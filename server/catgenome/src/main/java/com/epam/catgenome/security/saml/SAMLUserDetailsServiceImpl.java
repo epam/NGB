@@ -37,15 +37,24 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.saml.SAMLCredential;
 import org.springframework.security.saml.userdetails.SAMLUserDetailsService;
 import org.springframework.stereotype.Service;
 
+import com.epam.catgenome.component.MessageHelper;
+import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.entity.security.NgbUser;
+import com.epam.catgenome.manager.user.RoleManager;
+import com.epam.catgenome.manager.user.UserManager;
+import com.epam.catgenome.entity.user.Role;
 import com.epam.catgenome.security.UserContext;
 
 @Service
+@ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SAMLUserDetailsServiceImpl.class);
@@ -58,18 +67,51 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
         "#{catgenome['saml.user.attributes'] != null ? catgenome['saml.user.attributes'].split(',') : new String[0]}")
     private Set<String> samlAttributes;
 
+    @Value("${saml.user.auto.create: false}")
+    private boolean autoCreateUsers;
+
+    @Autowired
+    private UserManager userManager;
+
+    @Autowired
+    private RoleManager roleManager;
+
     @Override
     public Object loadUserBySAML(SAMLCredential credential) throws UsernameNotFoundException {
         String userName = credential.getNameID().getValue().toUpperCase();
         List<String> groups = readAuthorities(credential);
         Map<String, String> attributes = readAttributes(credential);
+        NgbUser loadedUser = userManager.loadUserByName(userName);
 
-        UserContext userContext = new UserContext(userName);
-        userContext.setGroups(groups);
-        userContext.setAttributes(attributes);
-        userContext.setUserId(userName);
+        if (loadedUser == null) {
+            if (!autoCreateUsers) {
+                throw new UsernameNotFoundException(
+                    MessageHelper.getMessage(MessagesConstants.ERROR_USER_NAME_NOT_FOUND, userName));
+            }
+            LOGGER.debug(MessageHelper.getMessage(MessagesConstants.ERROR_USER_NAME_NOT_FOUND, userName));
 
-        return userContext;
+
+            List<Long> roles = roleManager.getDefaultRolesIds();
+            NgbUser createdUser = userManager.createUser(userName, roles, groups, attributes);
+            LOGGER.debug("Created user {} with groups {}", userName, groups);
+
+            UserContext userContext = new UserContext(userName);
+            userContext.setUserId(createdUser.getId());
+            userContext.setGroups(createdUser.getGroups());
+            userContext.setRoles(createdUser.getRoles());
+            return userContext;
+        } else {
+            LOGGER.debug("Found user by name {}", userName);
+            loadedUser.setUserName(userName);
+            List<Long> roles = loadedUser.getRoles().stream().map(Role::getId).collect(Collectors.toList());
+
+            if (userManager.userUpdateRequired(groups, attributes, loadedUser)) {
+                loadedUser = userManager.updateUserSAMLInfo(loadedUser.getId(), userName, roles, groups, attributes);
+                LOGGER.debug("Updated user groups {} ", groups);
+            }
+
+            return new UserContext(loadedUser);
+        }
     }
 
     private List<String> readAuthorities(SAMLCredential credential) {

@@ -15,7 +15,8 @@ export default class DataTrack extends ScrollableTrack {
                     id: opts.openByUrl ? undefined : opts.id,
                     fileUrl: opts.openByUrl ? opts.id : undefined,
                     indexUrl: opts.openByUrl ? opts.indexPath : undefined,
-                    openByUrl: opts.openByUrl
+                    openByUrl: opts.openByUrl,
+                    projectId: opts.project ? opts.project.id : undefined,
                 }
             }
         });

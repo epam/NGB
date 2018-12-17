@@ -33,5 +33,12 @@
         <property name="dataSource" ref="dataSource"/>
         <property name="sqlMigrationPrefix" value="v"/>
         <property name="locations" value="classpath:database/catgenome/postgres"/>
+        <property name="placeholders">
+            <map>
+                <entry key="default.admin">
+                    <value>${security.default.admin}</value>
+                </entry>
+            </map>
+        </property>
     </bean>
 </beans>

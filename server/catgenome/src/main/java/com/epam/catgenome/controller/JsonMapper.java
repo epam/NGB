@@ -51,6 +51,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 public class JsonMapper extends ObjectMapper {
 
     private static final long serialVersionUID = -1414537788709027470L;
+    private static final JsonMapper INSTANCE = new JsonMapper();
 
     /**
      * {@code String} specifies date format without offset used to serialize
@@ -80,4 +81,7 @@ public class JsonMapper extends ObjectMapper {
         super.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     }
 
+    public static JsonMapper getInstance() {
+        return INSTANCE;
+    }
 }

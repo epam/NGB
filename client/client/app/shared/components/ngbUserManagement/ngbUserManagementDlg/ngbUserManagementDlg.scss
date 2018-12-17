@@ -1,0 +1,28 @@
+
+// uiGrid height fix
+.ui-grid {
+  height: auto;
+  .ui-grid-filter-container {
+    display: none!important;
+  }
+  .ui-grid-viewport {
+    height: 100% !important;
+  }
+  .grid-action-button {
+    margin: 0 !important;
+    height: 100% !important;
+    width: 100% !important;
+    min-height: unset !important;
+    line-height: 100% !important;
+    border-radius: 0;
+  }
+}
+
+.user-management-tab-toolbar {
+  padding: 2px 5px 0 5px;
+  .grid-search-box {
+    .md-errors-spacer {
+      display: none;
+    }
+  }
+}

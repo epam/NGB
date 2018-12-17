@@ -32,6 +32,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
+import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.security.acl.aspect.AclSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -44,16 +48,21 @@ import com.epam.catgenome.entity.index.BookmarkIndexEntry;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.reference.Bookmark;
-import com.epam.catgenome.util.AuthUtils;
+import com.epam.catgenome.manager.AuthManager;
 
 /**
  * {@code BookmarkManager} represents a service class designed to encapsulate all business
  * logic operations required to manage {@code} Bookmark objects
  */
+@AclSync
 @Service
-public class BookmarkManager {
+public class BookmarkManager implements SecuredEntityManager {
+
     @Autowired
     private BookmarkDao bookmarkDao;
+
+    @Autowired
+    private AuthManager authManager;
 
     /**
      * Saves a given {@code Project} entity to a databases with it's bookmarked {@code ProjectItem}s
@@ -61,11 +70,12 @@ public class BookmarkManager {
      * @return a saved {@code Bookmark}
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public Bookmark saveBookmark(Bookmark bookmark) throws IOException {
+    public Bookmark create(Bookmark bookmark) throws IOException {
+        bookmark.setOwner(authManager.getAuthorizedUser());
+
         if (bookmark.getId() != null) {
             bookmarkDao.deleteBookmarkItems(bookmark.getId());
         } else {
-            bookmark.setCreatedBy(AuthUtils.getCurrentUserId());
             bookmark.setCreatedDate(new Date());
         }
 
@@ -80,8 +90,8 @@ public class BookmarkManager {
      * @return a {@code List} of {@code Bookmark} entities
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Bookmark> loadBookmarksByProject() {
-        return bookmarkDao.loadAllBookmarks(AuthUtils.getCurrentUserId());
+    public List<Bookmark> loadAllBookmarks() {
+        return bookmarkDao.loadAllBookmarks();
     }
 
     /**
@@ -90,7 +100,7 @@ public class BookmarkManager {
      * @return a {@code Bookmark} entity
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public Bookmark loadBookmark(long bookmarkId) {
+    public Bookmark load(Long bookmarkId) {
         Bookmark bookmark = bookmarkDao.loadBookmarkById(bookmarkId);
         if (bookmark != null) {
             Map<Long, List<BiologicalDataItem>> itemMap = bookmarkDao.loadBookmarkItemsByBookmarkIds(
@@ -127,7 +137,7 @@ public class BookmarkManager {
      * @param bookmarkId {@code Long} an ID of a bookmark to delete
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deleteBookmark(long bookmarkId) {
+    public void delete(Long bookmarkId) {
         Bookmark bookmark = bookmarkDao.loadBookmarkById(bookmarkId);
         Assert.notNull(bookmark);
         bookmarkDao.deleteBookmarkItems(bookmarkId);
@@ -141,11 +151,26 @@ public class BookmarkManager {
      * @return an {@link IndexSearchResult} object, that contains search results
      */
     public IndexSearchResult<FeatureIndexEntry> searchBookmarks(String searchStr, int limit) {
-        int bookmarksCount = bookmarkDao.searchBookmarkCount(searchStr, AuthUtils.getCurrentUserId());
-        List<Bookmark> bookmarks = bookmarkDao.searchBookmarks(searchStr, AuthUtils.getCurrentUserId(), limit);
+        int bookmarksCount = bookmarkDao.searchBookmarkCount(searchStr);
+        List<Bookmark> bookmarks = bookmarkDao.searchBookmarks(searchStr, limit);
         List<FeatureIndexEntry> bookmarkEntries = bookmarks.stream().map(BookmarkIndexEntry::new).collect(
             Collectors.toList());
 
         return new IndexSearchResult<>(bookmarkEntries, bookmarksCount > limit, bookmarksCount);
     }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public AbstractSecuredEntity changeOwner(Long id, String owner) {
+        Bookmark bookmark = load(id);
+        bookmark.setOwner(owner);
+        bookmarkDao.saveBookmark(bookmark);
+        return bookmark;
+    }
+
+    @Override
+    public AclClass getSupportedClass() {
+        return AclClass.BOOKMARK;
+    }
+
 }

@@ -56,7 +56,6 @@ import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.helper.EntityHelper;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * Source:      ReferenceGenomeDaoTest.java
@@ -154,19 +153,20 @@ public class ReferenceGenomeDaoTest extends AbstractDaoTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testNewFileRegister() {
-        Reference newreference = getTestReference();
+        Reference newReference = getTestReference();
 
-        final Long referenceId = newreference.getId();
-        newreference.setName(newreference.getName() + referenceId);
-        biologicalDataItemDao.createBiologicalDataItem(newreference);
-        referenceGenomeDao.createReferenceGenome(newreference, referenceId);
+        final Long referenceId = newReference.getId();
+        newReference.setName(newReference.getName() + referenceId);
+        biologicalDataItemDao.createBiologicalDataItem(newReference);
+        referenceGenomeDao.createReferenceGenome(newReference, referenceId);
 
         final Reference newReferenceGenomeFile = referenceGenomeDao
-                .loadReferenceGenome(newreference.getId());
+                .loadReferenceGenome(newReference.getId());
         assertNotNull("Reference isn't found by the given ID.", newReferenceGenomeFile);
-        assertEquals("not equals param", newreference.getName(), newReferenceGenomeFile.getName());
-        assertEquals("not equals param", newreference.getPath(), newReferenceGenomeFile.getPath());
-        assertEquals("not equals param", newreference.getCreatedDate(), newReferenceGenomeFile.getCreatedDate());
+        assertEquals("not equals param", newReference.getName(), newReferenceGenomeFile.getName());
+        assertEquals("not equals param", newReference.getPath(), newReferenceGenomeFile.getPath());
+        assertEquals("not equals param", newReference.getCreatedDate(), newReferenceGenomeFile.getCreatedDate());
+        assertEquals(newReference.getOwner(), newReferenceGenomeFile.getOwner());
 
         final List<Reference> newList = referenceGenomeDao.loadAllReferenceGenomes();
         assertNotNull(newList);
@@ -205,12 +205,12 @@ public class ReferenceGenomeDaoTest extends AbstractDaoTest {
 
         geneFile.setId(geneFileDao.createGeneFileId());
         geneFile.setName("testFile");
-        geneFile.setCreatedBy(AuthUtils.getCurrentUserId());
         geneFile.setCreatedDate(new Date());
         geneFile.setReferenceId(testReference.getId());
         geneFile.setType(BiologicalDataItemResourceType.FILE);
         geneFile.setFormat(BiologicalDataItemFormat.GENE);
         geneFile.setPath("///");
+        geneFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.GENE_INDEX,
                                                             BiologicalDataItemResourceType.FILE, "////");
@@ -268,17 +268,17 @@ public class ReferenceGenomeDaoTest extends AbstractDaoTest {
     }
 
     @NotNull private Reference getTestReference() {
-        Reference newreference = new Reference();
+        Reference newReference = new Reference();
 
-        newreference.setSize(reference.getSize());
-        newreference.setName(reference.getName());
-        newreference.setPath(reference.getPath());
-        newreference.setType(BiologicalDataItemResourceType.FILE);
-        newreference.setId(referenceGenomeDao.createReferenceGenomeId());
+        newReference.setSize(reference.getSize());
+        newReference.setName(reference.getName());
+        newReference.setPath(reference.getPath());
+        newReference.setType(BiologicalDataItemResourceType.FILE);
+        newReference.setId(referenceGenomeDao.createReferenceGenomeId());
 
-        newreference.setCreatedDate(reference.getCreatedDate());
-        newreference.setCreatedBy(AuthUtils.getCurrentUserId());
-        newreference.setIndex(createReferenceIndex());
-        return newreference;
+        newReference.setCreatedDate(reference.getCreatedDate());
+        newReference.setIndex(createReferenceIndex());
+        newReference.setOwner(EntityHelper.TEST_OWNER);
+        return newReference;
     }
 }

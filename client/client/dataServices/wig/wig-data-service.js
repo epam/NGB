@@ -54,8 +54,4 @@ export class WigDataService extends DataService {
         return this.post('wig/register', {referenceId, path, indexPath, name});
     }
 
-    getAllFileList(refId) {
-        return this.get(`wig/${refId}/loadAll`);
-    }
-
 }

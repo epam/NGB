@@ -135,7 +135,7 @@ public class ReferenceControllerTest extends AbstractControllerTest {
         // creates a new reference and saves its metadata
         final Reference source = EntityHelper.createReference();
         source.setId(referenceGenomeManager.createReferenceId());
-        referenceGenomeManager.register(source);
+        referenceGenomeManager.create(source);
         source.setIndex(null);
 
 
@@ -203,7 +203,7 @@ public class ReferenceControllerTest extends AbstractControllerTest {
         // creates a new referenceResult and saves its metadata
         final Reference source = EntityHelper.createReference();
         source.setId(referenceGenomeManager.createReferenceId());
-        referenceGenomeManager.register(source);
+        referenceGenomeManager.create(source);
 
 
         // 0. cleans up 'path' parameters, because they never should be sent to the client
@@ -226,7 +226,7 @@ public class ReferenceControllerTest extends AbstractControllerTest {
         Assert.assertNotNull(referenceResult);
         Assert.assertTrue(referenceResult.getPayload().size() > 0);
 
-        referenceGenomeManager.unregister(referenceResult.getPayload().get(0));
+        referenceGenomeManager.delete(referenceResult.getPayload().get(0));
         result = mvc()
                 .perform(get(LOAD_ALL_REFERENCES))
                 .andExpect(MockMvcResultMatchers.status().isOk())

@@ -24,12 +24,7 @@
 
 package com.epam.catgenome.dao.vcf;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -63,12 +58,10 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
     private String createSamplesForFileQuery;
     private String loadSamplesForFileQuery;
     private String loadSamplesByFileIdsQuery;
-    private String loadSamplesForFilesByReferenceIdQuery;
 
     private String createVcfFileQuery;
     private String loadVcfFileQuery;
     private String loadVcfFilesQuery;
-    private String loadVcfFilesByReferenceIdQuery;
 
     private String deleteVcfFileQuery;
     private String deleteVcfSampleQuery;
@@ -129,25 +122,11 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
             return Collections.emptyList();
         }
 
-        long listId = daoHelper.createTempLongList(ids);
-        List<BiologicalDataItem> files = getJdbcTemplate().query(loadVcfFilesQuery, BiologicalDataItemDao
-            .BiologicalDataItemParameters.getRowMapper(), listId);
-        daoHelper.clearTempList(listId);
+        String query = DaoHelper.getQueryFilledWithIdArray(loadVcfFilesQuery, ids);
+        List<BiologicalDataItem> files = getJdbcTemplate().query(query, BiologicalDataItemDao
+            .BiologicalDataItemParameters.getRowMapper());
 
         return files.stream().map(i -> (VcfFile) i).collect(Collectors.toList());
-    }
-
-    /**
-     * Loads {@code VcfFile} records, saved for a specific reference ID. <br>
-     *
-     * @param referenceId {@code long} a reference ID in the system
-     * @return {@code List&lt;VcfFile&gt;} instance
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<VcfFile> loadVcfFilesByReferenceId(long referenceId) {
-        return getJdbcTemplate().query(loadVcfFilesByReferenceIdQuery, BiologicalDataItemDao
-                .BiologicalDataItemParameters.getRowMapper(), referenceId)
-                .stream().map(f -> (VcfFile) f).collect(Collectors.toList());
     }
 
     /**
@@ -213,55 +192,23 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
 
         Map<Long, List<VcfSample>> map = new HashMap<>();
 
-        long listId = daoHelper.createTempLongList(fileIds);
-
-        getJdbcTemplate().query(loadSamplesByFileIdsQuery, rs -> {
+        String query = DaoHelper.getQueryFilledWithIdArray(loadSamplesByFileIdsQuery, fileIds);
+        getJdbcTemplate().query(query, rs -> {
             VcfSample sample = SampleParameters.getVcfSampleMapper().mapRow(rs, 0);
             long vcfId = rs.getLong(VcfParameters.VCF_ID.name());
             if (!map.containsKey(vcfId)) {
                 map.put(vcfId, new ArrayList<>());
             }
             map.get(vcfId).add(sample);
-        }, listId);
+        });
 
-        daoHelper.clearTempList(listId);
         return map;
-    }
-
-    /**
-     * Load sample metadata from the database for all files, corresponding the given reference ID.
-     *
-     * @param vcfFileId {@code long} reference ID for which files samples were saved.
-     * @return {@code Map&lt;Long, List&lt;Sample&gt;&gt;} with file IDs for giver reference ID as keys, and with
-     * lists of samples, corresponding this file IDs as values.
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<Long, List<VcfSample>> loadSamplesForFilesByReference(long vcfFileId) {
-        Map<Long, List<VcfSample>> sampleFileMap = new HashMap<>();
-
-        getJdbcTemplate().query(loadSamplesForFilesByReferenceIdQuery, rs -> {
-            Long fileId = rs.getLong(SampleParameters.VCF_ID.name());
-            if (!sampleFileMap.containsKey(fileId)) {
-                sampleFileMap.put(fileId, new ArrayList<>());
-            }
-
-            VcfSample sample = new VcfSample();
-
-            sample.setId(rs.getLong(SampleParameters.VCF_SAMPLE_ID.name()));
-            sample.setName(rs.getString(SampleParameters.SAMPLE_NAME.name()));
-            sample.setIndex(rs.getInt(SampleParameters.ORDER_INDEX.name()));
-
-            sampleFileMap.get(fileId).add(sample);
-        }, vcfFileId);
-
-        return sampleFileMap;
     }
 
     enum VcfParameters {
         VCF_ID,
         REFERENCE_GENOME_ID,
         ORIGINAL_NAME,
-        CREATED_BY,
         CREATED_DATE,
         FILE_PATH,
         INDEX_PATH,
@@ -309,11 +256,6 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Required
-    public void setLoadSamplesForFilesByReferenceIdQuery(String loadSamplesForFilesByReferenceIdQuery) {
-        this.loadSamplesForFilesByReferenceIdQuery = loadSamplesForFilesByReferenceIdQuery;
-    }
-
-    @Required
     public void setCreateVcfFileQuery(String createVcfFileQuery) {
         this.createVcfFileQuery = createVcfFileQuery;
     }
@@ -321,11 +263,6 @@ public class VcfFileDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadVcfFileQuery(String loadVcfFileQuery) {
         this.loadVcfFileQuery = loadVcfFileQuery;
-    }
-
-    @Required
-    public void setLoadVcfFilesByReferenceIdQuery(String loadVcfFilesByReferenceIdQuery) {
-        this.loadVcfFilesByReferenceIdQuery = loadVcfFilesByReferenceIdQuery;
     }
 
     @Required

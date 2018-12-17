@@ -67,7 +67,7 @@ export class GenomeDataService extends DataService {
         });
     }
 
-    loadChromosome(chromosomeId) {        
+    loadChromosome(chromosomeId) {
         return this.get(`reference/chromosomes/${chromosomeId}/load`);
     }
 

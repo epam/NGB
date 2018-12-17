@@ -69,6 +69,11 @@ public abstract class AbstractTrack extends BaseEntity {
 
     protected ReferenceTrackMode mode;
 
+    /**
+     * {@code Long} specifies the project id that the track belong. Can be null.
+     */
+    protected Long projectId;
+
     public TrackType getType() {
         return type;
     }
@@ -115,5 +120,13 @@ public abstract class AbstractTrack extends BaseEntity {
 
     public void setMode(ReferenceTrackMode mode) {
         this.mode = mode;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 }

@@ -61,7 +61,6 @@ import com.epam.catgenome.manager.DownloadFileManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.seg.parser.SegFeature;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.comparator.FeatureComparator;
@@ -129,7 +128,7 @@ public class SegManager {
     public SampledTrack<SegRecord> loadFeatures(SampledTrack<SegRecord> track) throws IOException {
         Chromosome chromosome = trackHelper.validateTrack(track);
 
-        SegFile segFile = segFileManager.loadSegFile(track.getId());
+        SegFile segFile = segFileManager.load(track.getId());
 
         double time1 = Utils.getSystemTimeMilliseconds();
         try (AbstractFeatureReader<SegFeature, LineIterator> reader = fileManager.makeSegReader(segFile)) {
@@ -167,10 +166,10 @@ public class SegManager {
     public SegFile unregisterSegFile(final long segFileId) throws IOException {
         Assert.notNull(segFileId, MessagesConstants.ERROR_INVALID_PARAM);
         Assert.isTrue(segFileId > 0, MessagesConstants.ERROR_INVALID_PARAM);
-        SegFile fileToDelete = segFileManager.loadSegFile(segFileId);
+        SegFile fileToDelete = segFileManager.load(segFileId);
         Assert.notNull(fileToDelete, MessagesConstants.ERROR_NO_SUCH_FILE);
 
-        segFileManager.deleteSegFile(fileToDelete);
+        segFileManager.delete(fileToDelete);
         fileManager.deleteFeatureFileDirectory(fileToDelete);
 
         return fileToDelete;
@@ -180,6 +179,7 @@ public class SegManager {
         SegFile segFile;
         switch (request.getType()) {
             case FILE:
+            case S3:
                 segFile = registerSegFileFromFile(request);
                 break;
             case DOWNLOAD:
@@ -214,7 +214,6 @@ public class SegManager {
         segFile.setName(request.getName() != null ? request.getName() : file.getName());
         segFile.setType(BiologicalDataItemResourceType.FILE); // For now we're working only with files
         segFile.setCreatedDate(new Date());
-        segFile.setCreatedBy(AuthUtils.getCurrentUserId());
         segFile.setReferenceId(request.getReferenceId());
         segFile.setPrettyName(request.getPrettyName());
 
@@ -223,7 +222,7 @@ public class SegManager {
         segFile.setBioDataItemId(segFile.getId());
         segFile.setId(id);
 
-        fileManager.makeSegDir(segFile.getId(), AuthUtils.getCurrentUserId());
+        fileManager.makeSegDir(segFile.getId());
 
         Set<String> sampleNames = new HashSet<>();
         List<SegSample> samples = new ArrayList<>();
@@ -236,13 +235,13 @@ public class SegManager {
             fileManager.makeSegIndex(segFile);
             segFile.setSamples(samples);
             biologicalDataItemManager.createBiologicalDataItem(segFile.getIndex());
-            segFileManager.createSegFile(segFile);
+            segFileManager.create(segFile);
         } catch (IOException e) {
             LOGGER.error(getMessage(ERROR_REGISTER_FILE, request.getName()), e);
             throw new RegistrationException(getMessage(ERROR_REGISTER_FILE, request.getName()));
         } finally {
             if (segFile.getId() != null &&
-                    segFileManager.loadSegFile(segFile.getId()) == null) {
+                    segFileManager.load(segFile.getId()) == null) {
                 biologicalDataItemManager.deleteBiologicalDataItem(segFile.getBioDataItemId());
                 try {
                     fileManager.deleteFeatureFileDirectory(segFile);

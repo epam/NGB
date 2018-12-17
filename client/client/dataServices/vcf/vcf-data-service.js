@@ -61,16 +61,13 @@ export class VcfDataService extends DataService {
         });
     }
 
-    getAllFileList(refId) {
-        return this.get(`vcf/${refId}/loadAll`);
-    }
-
     getNextVariations(tracksVCF, chromosomeId, fromPosition) {
         if (tracksVCF instanceof Array) {
             const promises = [];
             tracksVCF.forEach(trackVCF => {
                 const promise = new Promise((resolve) => {
-                    let url = `vcf/${chromosomeId}/next?trackId=${trackVCF.id}&fromPosition=${fromPosition}`;
+                    const projectId = trackVCF.projectIdNumber || null;
+                    let url = `vcf/${chromosomeId}/next?trackId=${trackVCF.id}&fromPosition=${fromPosition}${projectId ? `&projectId=${projectId}` : ''}`;
                     if (trackVCF.openByUrl) {
                         url = `vcf/${chromosomeId}/next?fileUrl=${encodeURIComponent(trackVCF.id)}&indexUrl=${encodeURIComponent(trackVCF.indexPath)}&fromPosition=${fromPosition}`;
                     }
@@ -88,7 +85,8 @@ export class VcfDataService extends DataService {
                 });
             });
         }
-        let url = `vcf/${chromosomeId}/next?trackId=${tracksVCF.id}&fromPosition=${fromPosition}`;
+        const projectId = tracksVCF.projectIdNumber || null;
+        let url = `vcf/${chromosomeId}/next?trackId=${tracksVCF.id}&fromPosition=${fromPosition}${projectId ? `&projectId=${projectId}` : ''}`;
         if (tracksVCF.openByUrl) {
             url = `vcf/${chromosomeId}/next?fileUrl=${encodeURIComponent(tracksVCF.id)}&indexUrl=${encodeURIComponent(tracksVCF.indexPath)}&fromPosition=${fromPosition}`;
         }
@@ -108,7 +106,8 @@ export class VcfDataService extends DataService {
             const promises = [];
             tracksVCF.forEach(trackVCF => {
                 const promise = new Promise((resolve) => {
-                    let url = `vcf/${chromosomeId}/prev?trackId=${trackVCF.id}&fromPosition=${fromPosition}`;
+                    const projectId = trackVCF.projectIdNumber || null;
+                    let url = `vcf/${chromosomeId}/prev?trackId=${trackVCF.id}&fromPosition=${fromPosition}${projectId ? `&projectId=${projectId}` : ''}`;
                     if (trackVCF.openByUrl) {
                         url = `vcf/${chromosomeId}/prev?fileUrl=${encodeURIComponent(trackVCF.id)}&indexUrl=${encodeURIComponent(trackVCF.indexPath)}&fromPosition=${fromPosition}`;
                     }
@@ -126,7 +125,8 @@ export class VcfDataService extends DataService {
                 });
             });
         }
-        let url = `vcf/${chromosomeId}/prev?trackId=${tracksVCF.id}&fromPosition=${fromPosition}`;
+        const projectId = tracksVCF.projectIdNumber || null;
+        let url = `vcf/${chromosomeId}/prev?trackId=${tracksVCF.id}&fromPosition=${fromPosition}${projectId ? `&projectId=${projectId}` : ''}`;
         if (tracksVCF.openByUrl) {
             url = `vcf/${chromosomeId}/prev?fileUrl=${encodeURIComponent(tracksVCF.id)}&indexUrl=${encodeURIComponent(tracksVCF.indexPath)}&fromPosition=${fromPosition}`;
         }

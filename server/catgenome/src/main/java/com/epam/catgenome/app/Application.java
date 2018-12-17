@@ -2,10 +2,11 @@ package com.epam.catgenome.app;
 
 import java.io.PrintStream;
 
+import com.epam.catgenome.util.NgbSeekableStreamFactory;
+import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.security.AuthenticationManagerConfiguration;
 import org.springframework.boot.autoconfigure.security.FallbackWebSecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.SecurityFilterAutoConfiguration;
@@ -13,6 +14,7 @@ import org.springframework.boot.autoconfigure.security.oauth2.OAuth2AutoConfigur
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
@@ -25,7 +27,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @EnableWebSecurity
 @SpringBootApplication(exclude = {
         SecurityAutoConfiguration.class,
-        AuthenticationManagerConfiguration.class,
         SecurityFilterAutoConfiguration.class,
         FallbackWebSecurityAutoConfiguration.class,
         OAuth2AutoConfiguration.class})
@@ -50,5 +51,10 @@ public class Application extends SpringBootServletInitializer {
 
     private void print(String message, PrintStream stream) {
         stream.println(message);
+    }
+
+    @Bean
+    ISeekableStreamFactory ngbSeekableStreamFactory() {
+        return NgbSeekableStreamFactory.getInstance();
     }
 }

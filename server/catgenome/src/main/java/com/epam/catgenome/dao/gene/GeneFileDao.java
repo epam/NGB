@@ -63,7 +63,6 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
     private String createGeneFileQuery;
     private String loadGeneFileQuery;
     private String loadGeneFilesQuery;
-    private String loadGeneFilesByReferenceIdQuery;
     private String deleteGeneFileQuery;
 
     /**
@@ -108,24 +107,11 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
             return Collections.emptyList();
         }
 
-        long listId = daoHelper.createTempLongList(ids);
-        List<BiologicalDataItem> files = getJdbcTemplate().query(loadGeneFilesQuery, BiologicalDataItemDao
-                .BiologicalDataItemParameters.getRowMapper(), listId);
+        String query = DaoHelper.getQueryFilledWithIdArray(loadGeneFilesQuery, ids);
+        List<BiologicalDataItem> files = getJdbcTemplate().query(query, BiologicalDataItemDao
+                .BiologicalDataItemParameters.getRowMapper());
 
-        daoHelper.clearTempList(listId);
         return files.stream().map(f -> (GeneFile) f).collect(Collectors.toList());
-    }
-
-    /**
-     * Loads {@code GeneFile} records, saved for a specific reference ID
-     * @param referenceId {@code long} a reference ID in the system
-     * @return {@code List&lt;GeneFile&gt;} instance
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<GeneFile> loadGeneFilesByReferenceId(long referenceId) {
-        return getJdbcTemplate().query(loadGeneFilesByReferenceIdQuery, BiologicalDataItemDao
-                .BiologicalDataItemParameters.getRowMapper(), referenceId)
-                .stream().map(f -> (GeneFile) f).collect(Collectors.toList());
     }
 
     /**
@@ -163,11 +149,6 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
     }
 
     @Required
-    public void setLoadGeneFilesByReferenceIdQuery(String loadGeneFilesByReferenceIdQuery) {
-        this.loadGeneFilesByReferenceIdQuery = loadGeneFilesByReferenceIdQuery;
-    }
-
-    @Required
     public void setDeleteGeneFileQuery(String deleteGeneFileQuery) {
         this.deleteGeneFileQuery = deleteGeneFileQuery;
     }
@@ -181,7 +162,6 @@ public class GeneFileDao extends NamedParameterJdbcDaoSupport{
         GENE_ITEM_ID,
         REFERENCE_GENOME_ID,
         ORIGINAL_NAME,
-        CREATED_BY,
         CREATED_DATE,
         FILE_PATH,
         INDEX_PATH,

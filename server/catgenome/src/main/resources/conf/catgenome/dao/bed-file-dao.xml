@@ -31,10 +31,11 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         bd.bed_id,
                         bd.reference_genome_id as bed_reference_genome_id,
                         bd.compressed as bed_compressed,
@@ -44,45 +45,12 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM catgenome.bed bd
                         JOIN catgenome.biological_data_item b ON bd.bio_data_item_id = b.bio_data_item_id
                         JOIN catgenome.biological_data_item i ON i.bio_data_item_id = bd.index_id
                     WHERE bd.bed_id = ?
-                ]]>
-            </value>
-        </property>
-        <property name="loadBedFilesByReferenceIdQuery">
-            <value>
-                <![CDATA[
-                    SELECT
-                        b.bio_data_item_id,
-                        b.name,
-                        b.type,
-                        b.path,
-                        b.format,
-                        b.created_by,
-                        b.created_date,
-                        b.bucket_id,
-                        b.pretty_name,
-                        bd.bed_id,
-                        bd.reference_genome_id as bed_reference_genome_id,
-                        bd.compressed as bed_compressed,
-
-                        i.bio_data_item_id as index_id,
-                        i.name as index_name,
-                        i.type as index_type,
-                        i.path as index_path,
-                        i.format as index_format,
-                        i.created_by as index_created_by,
-                        i.bucket_id as index_bucket_id,
-                        i.created_date as index_created_date
-                    FROM catgenome.bed bd
-                        JOIN catgenome.biological_data_item b ON bd.bio_data_item_id = b.bio_data_item_id
-                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = bd.index_id
-                    WHERE bd.reference_genome_id = ?
                 ]]>
             </value>
         </property>

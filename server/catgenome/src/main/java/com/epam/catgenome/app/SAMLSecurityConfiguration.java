@@ -140,7 +140,7 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Value("${saml.authn.request.binding}")
     private String authnRequestBinding;
 
-    @Value("${saml.login.failure.redirect:/error}")
+    @Value("${saml.login.failure.redirect:/error-401.html}")
     private String loginFailureRedirect;
 
     @Autowired
@@ -168,7 +168,7 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     public String[] getUnsecuredResources() {
         return new String[] {
-            "/saml/web/**", "/swagger-ui/**", "/api-docs/**"
+            "/saml/web/**", "/swagger-ui/**", "/api-docs/**", "/error-401.html"
         };
     }
 

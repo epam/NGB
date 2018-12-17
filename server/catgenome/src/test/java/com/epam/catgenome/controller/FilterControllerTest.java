@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.epam.catgenome.controller.vo.ItemsByProject;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import org.junit.Assert;
 import org.junit.Before;
@@ -87,7 +88,7 @@ public class FilterControllerTest extends AbstractControllerTest {
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
         testReference = EntityHelper.createNewReference(testChromosome,
                 referenceGenomeManager.createReferenceId());
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
 
         Resource resource = wac.getResource(CLASSPATH_TEMPLATES_GENES_SORTED);
@@ -116,7 +117,7 @@ public class FilterControllerTest extends AbstractControllerTest {
     public void testSearchGenesInProject() throws Exception {
         GeneSearchQuery geneSearchQuery = new GeneSearchQuery();
         geneSearchQuery.setSearch("ENS");
-        geneSearchQuery.setVcfIds(Collections.singletonList(vcfFile.getId()));
+        geneSearchQuery.setVcfIdsByProject(Collections.singletonMap(0L, Collections.singletonList(vcfFile.getId())));
 
         ResultActions actions = mvc()
             .perform(post(URL_FILTER_SEARCH_GENES).content(
@@ -141,7 +142,8 @@ public class FilterControllerTest extends AbstractControllerTest {
     public void testGetFieldInfo() throws Exception {
         ResultActions actions = mvc()
             .perform(post(URL_FILTER_INFO).content(getObjectMapper().writeValueAsBytes(
-                Collections.singletonList(vcfFile.getId()))).contentType(EXPECTED_CONTENT_TYPE))
+                new ItemsByProject(Collections.singletonMap(0L, Collections.singletonList(vcfFile.getId())))))
+                    .contentType(EXPECTED_CONTENT_TYPE))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
             .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
@@ -163,7 +165,7 @@ public class FilterControllerTest extends AbstractControllerTest {
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
     public void testFilterVcf() throws Exception {
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
-        vcfFilterForm.setVcfFileIds(Collections.singletonList(vcfFile.getId()));
+        vcfFilterForm.setVcfFileIdsByProject(Collections.singletonMap(1L, Collections.singletonList(vcfFile.getId())));
         vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(Collections.singletonList("ENS"), false));
         vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.MNP,
                                                                                 VariationType.INS), false));
@@ -227,7 +229,7 @@ public class FilterControllerTest extends AbstractControllerTest {
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
     public void testGroupVariations() throws Exception {
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
-        vcfFilterForm.setVcfFileIds(Collections.singletonList(vcfFile.getId()));
+        vcfFilterForm.setVcfFileIdsByProject(Collections.singletonMap(1L, Collections.singletonList(vcfFile.getId())));
 
         MvcResult mvcResult = mvc()
             .perform(post(URL_FILTER_GROUP).content(getObjectMapper().writeValueAsString(vcfFilterForm))

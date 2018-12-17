@@ -50,6 +50,7 @@ public class BucketDao extends NamedParameterJdbcDaoSupport {
     private String createBucketQuery;
     private String loadBucketByIdQuery;
     private String loadAllBucketQuery;
+    private String updateBucketOwnerQuery;
 
     /**
      * Creates a new ID for a {@code Bucket} instance
@@ -93,11 +94,16 @@ public class BucketDao extends NamedParameterJdbcDaoSupport {
         return buckets.isEmpty() ? null : buckets.get(0);
     }
 
+    public void updateOwner(Bucket bucket) {
+        getNamedParameterJdbcTemplate().update(updateBucketOwnerQuery, BucketParameters.getParameters(bucket));
+    }
+
     enum BucketParameters {
         BUCKET_ID,
         BUCKET_NAME,
         ACCESS_KEY_ID,
-        SECRET_ACCESS_KEY;
+        SECRET_ACCESS_KEY,
+        OWNER;
 
         static MapSqlParameterSource getParameters(Bucket bucket) {
             MapSqlParameterSource params = new MapSqlParameterSource();
@@ -106,6 +112,7 @@ public class BucketDao extends NamedParameterJdbcDaoSupport {
             params.addValue(BUCKET_NAME.name(), bucket.getBucketName());
             params.addValue(ACCESS_KEY_ID.name(), bucket.getAccessKeyId());
             params.addValue(SECRET_ACCESS_KEY.name(), bucket.getSecretAccessKey());
+            params.addValue(OWNER.name(), bucket.getOwner());
 
             return params;
         }
@@ -116,6 +123,7 @@ public class BucketDao extends NamedParameterJdbcDaoSupport {
 
                 bucket.setId(rs.getLong(BUCKET_ID.name()));
                 bucket.setBucketName(rs.getString(BUCKET_NAME.name()));
+                bucket.setOwner(rs.getString(OWNER.name()));
                 return bucket;
             };
         }
@@ -128,12 +136,13 @@ public class BucketDao extends NamedParameterJdbcDaoSupport {
                 bucket.setBucketName(rs.getString(BUCKET_NAME.name()));
                 bucket.setAccessKeyId(rs.getString(ACCESS_KEY_ID.name()));
                 bucket.setSecretAccessKey(rs.getString(SECRET_ACCESS_KEY.name()));
+                bucket.setOwner(rs.getString(OWNER.name()));
 
                 return bucket;
             };
         }
-    }
 
+    }
 
     @Required
     public void setBucketName(String bucketName) {
@@ -153,5 +162,10 @@ public class BucketDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadAllBucketQuery(String loadAllBucketQuery) {
         this.loadAllBucketQuery = loadAllBucketQuery;
+    }
+
+    @Required
+    public void setUpdateBucketOwnerQuery(String updateBucketOwnerQuery) {
+        this.updateBucketOwnerQuery = updateBucketOwnerQuery;
     }
 }

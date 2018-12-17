@@ -105,7 +105,7 @@ public class BookmarkManagerTest extends AbstractManagerTest {
         testChromosome = EntityHelper.createNewChromosome();
         testReference = EntityHelper.createNewReference(testChromosome, referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
     }
 
@@ -125,7 +125,7 @@ public class BookmarkManagerTest extends AbstractManagerTest {
         items.add(new ProjectItem(item));
         project.setItems(items);
 
-        projectManager.saveProject(project);
+        projectManager.create(project);
 
         Resource resource = context.getResource("classpath:templates/genes_sorted.gtf");
 
@@ -145,9 +145,9 @@ public class BookmarkManagerTest extends AbstractManagerTest {
         bookmark.setChromosome(testChromosome);
         bookmark.setName("testBookmark");
 
-        bookmarkManager.saveBookmark(bookmark);
+        bookmarkManager.create(bookmark);
 
-        List<Bookmark> loadedBookmarks = bookmarkManager.loadBookmarksByProject();
+        List<Bookmark> loadedBookmarks = bookmarkManager.loadAllBookmarks();
 
         Assert.assertNotNull(loadedBookmarks);
         Assert.assertFalse(loadedBookmarks.isEmpty());
@@ -155,7 +155,7 @@ public class BookmarkManagerTest extends AbstractManagerTest {
 
         Bookmark loadedBookmark = loadedBookmarks.get(0);
 
-        loadedBookmark = bookmarkManager.loadBookmark(loadedBookmark.getId());
+        loadedBookmark = bookmarkManager.load(loadedBookmark.getId());
         Assert.assertFalse(loadedBookmark.getOpenedItems().isEmpty());
         Assert.assertEquals(BiologicalDataItem.getBioDataItemId(loadedBookmark.getOpenedItems()
                 .get(0)), item.getId());
@@ -166,13 +166,13 @@ public class BookmarkManagerTest extends AbstractManagerTest {
         loadedBookmark.setStartIndex(BOOKMARK_END_INDEX);
         loadedBookmark.setEndIndex(BOOKMARK_END_INDEX2);
 
-        bookmarkManager.saveBookmark(loadedBookmark);
+        bookmarkManager.create(loadedBookmark);
 
-        loadedBookmark = bookmarkManager.loadBookmark(loadedBookmark.getId());
+        loadedBookmark = bookmarkManager.load(loadedBookmark.getId());
         Assert.assertEquals(loadedBookmark.getOpenedItems().size(), 2);
 
-        bookmarkManager.deleteBookmark(loadedBookmark.getId());
-        loadedBookmarks = bookmarkManager.loadBookmarksByProject();
+        bookmarkManager.delete(loadedBookmark.getId());
+        loadedBookmarks = bookmarkManager.loadAllBookmarks();
 
         Assert.assertTrue(loadedBookmarks.isEmpty());
     }
