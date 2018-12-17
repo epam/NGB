@@ -42,6 +42,8 @@ public class ServerParameters {
     private String projectLoadByIdUrl;
     private String fileFindUrl;
     private String allRolesUrl;
+    private String roleUrl;
+    private String findUsersUrl;
     private String findUserUrl;
     private String serverVersion;
     private String existingIndexSearchUrl;

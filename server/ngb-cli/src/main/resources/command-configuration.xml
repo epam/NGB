@@ -165,4 +165,19 @@
         <type>DELETE</type>
         <url>/restapi/user/%d</url>
     </del_user>
+    <del_user>
+        <name>reg_user</name>
+        <type>DELETE</type>
+        <url>/restapi/user/%d</url>
+    </del_user>
+    <reg_group>
+        <name>reg_group</name>
+        <type>POST</type>
+        <url>/restapi/role/create?roleName=%s</url>
+    </reg_group>
+    <del_group>
+        <name>del_group</name>
+        <type>DELETE</type>
+        <url>/restapi/role/%d</url>
+    </del_group>
 </config>

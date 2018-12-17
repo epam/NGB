@@ -59,7 +59,9 @@ public class CommandManager {
     private static final String PROJECT_TREE_URL_PROPERTY = "project_load_tree";
     private static final String VERSION_URL_PROPERTY = "version_url";
     private static final String ALL_ROLES_URL_PROPERTY = "roles_url";
+    private static final String ROLE_URL_PROPERTY = "role_url";
     private static final String FIND_USER_URL_PROPERTY = "find_user_url";
+    private static final String FIND_USERS_URL_PROPERTY = "find_users_url";
     public static final String SERVER_VERSION_PROPERTY = "version";
     private static final String HANDLER_PACKAGE = "com.epam.ngb.cli.manager.command.handler";
     public static final String GET_EXISTING_INDEX_URL_PROPERTY = "get_existing_index_url";
@@ -146,7 +148,9 @@ public class CommandManager {
         parameters.setServerVersion(serverProperties.getProperty(SERVER_VERSION_PROPERTY));
         parameters.setProjectTreeUrl(serverProperties.getProperty(PROJECT_TREE_URL_PROPERTY));
         parameters.setAllRolesUrl(serverProperties.getProperty(ALL_ROLES_URL_PROPERTY));
+        parameters.setRoleUrl(serverProperties.getProperty(ROLE_URL_PROPERTY));
         parameters.setFindUserUrl(serverProperties.getProperty(FIND_USER_URL_PROPERTY));
+        parameters.setFindUsersUrl(serverProperties.getProperty(FIND_USERS_URL_PROPERTY));
         parameters.setExistingIndexSearchUrl(serverProperties.getProperty(GET_EXISTING_INDEX_URL_PROPERTY));
         return parameters;
     }
