@@ -33,6 +33,7 @@ export class GeneDataService extends DataService {
             gene.openByUrl = undefined;
             gene.fileUrl = undefined;
             gene.indexUrl = undefined;
+            gene.projectId = undefined;
             gene.id = 1;
         }
         return new Promise((resolve, reject) => {
