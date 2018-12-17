@@ -16,8 +16,8 @@ install:
 script:
     - ./gradlew buildJar buildWar buildCli buildDoc buildDocker -PbuildNumber=${TRAVIS_JOB_NUMBER} ${CLIENT_PATH}
     - ./gradlew jacocoTestReport
-    - ./singularity/setup_environment.sh
-    - sudo ./singularity/build_image.sh $(pwd)/singularity/ngb.singularity $(pwd)/dist/ngb.singularity.img
+    - ./singularity/setup_environment.sh ${SINGULARITY_ENV_VERSION}
+    - sudo ./singularity/build_image.sh $(pwd)/singularity/ngb.singularity $(pwd)/dist/ngb.singularity-${SINGULARITY_ENV_VERSION}.img
 after_success:
     - bash <(curl -s https://codecov.io/bash)
 deploy:
