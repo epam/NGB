@@ -158,4 +158,17 @@ public class RoleController extends AbstractRESTController {
         return Result.success(roleSecurityService.deleteRole(id));
     }
 
+    @RequestMapping(value = "/", method = RequestMethod.GET)
+    @ResponseBody
+    @ApiOperation(
+            value = "Finds a role specified by name.",
+            notes = "Finds a role specified by name.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Role> loadRoleByName(@RequestParam String name) {
+        return Result.success(roleSecurityService.loadRoleByName(name));
+    }
+
 }

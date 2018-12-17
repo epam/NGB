@@ -81,6 +81,11 @@ public class RoleSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN)
+    public Role loadRoleByName(String name) {
+        return roleManager.loadRoleByName(name);
+    }
+
+    @PreAuthorize(ROLE_ADMIN)
     public ExtendedRole removeRole(Long roleId, List<Long> userIds) {
         return roleManager.removeRole(roleId, userIds);
     }

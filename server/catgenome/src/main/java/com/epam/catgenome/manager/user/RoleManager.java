@@ -151,6 +151,11 @@ public class RoleManager {
         return roleDao.loadRoles(roleIds);
     }
 
+    public Role loadRoleByName(String name) {
+        return roleDao.loadRoleByName(name).orElseThrow(
+                () -> new IllegalArgumentException("Role with name " + name + " not found!"));
+    }
+
     public Map<Long, List<Role>> loadRolesByUserIds(List<Long> userIds) {
         return roleDao.loadRolesByUserIds(userIds);
     }
