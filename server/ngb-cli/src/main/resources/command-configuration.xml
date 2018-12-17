@@ -155,4 +155,14 @@
         <type>POST</type>
         <url>/restapi/grant</url>
     </chmod>
+    <reg_user>
+        <name>reg_user</name>
+        <type>POST</type>
+        <url>/restapi/user</url>
+    </reg_user>
+    <del_user>
+        <name>reg_user</name>
+        <type>DELETE</type>
+        <url>/restapi/user/%d</url>
+    </del_user>
 </config>
