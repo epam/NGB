@@ -59,6 +59,11 @@ public class UserSecurityService {
     public List<NgbUser> loadAllUsers() {
         return userManager.loadAllUsers();
     }
+    @PreAuthorize(ROLE_ADMIN)
+    public NgbUser loadUserByName(String name) {
+        return userManager.loadUserByName(name);
+    }
+
 
     /**
      * Registers a new user

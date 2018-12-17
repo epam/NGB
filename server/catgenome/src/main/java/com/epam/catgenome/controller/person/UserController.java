@@ -148,4 +148,17 @@ public class UserController extends AbstractRESTController {
     public Result<Collection<NgbUser>> loadUsers() {
         return Result.success(userSecurityService.loadAllUsers());
     }
+
+    @RequestMapping(value = "/user", method = RequestMethod.GET)
+    @ResponseBody
+    @ApiOperation(
+            value = "Loads a user by a name.",
+            notes = "Loads a user by a name.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result loadUserByName(@RequestParam String name) {
+        return Result.success(userSecurityService.loadUserByName(name));
+    }
 }
