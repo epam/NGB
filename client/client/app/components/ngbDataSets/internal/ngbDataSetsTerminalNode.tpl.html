@@ -1,6 +1,6 @@
 <script type="text/ng-template" id="ngbDataSetsTerminalNode.tpl.html">
     <div class="ivh-treeview-node-content" title="{{node.hint}}" ng-if="node.isTrack">
-        <div class="dataset-item-row">
+        <div class="dataset-item-row" has-context-menu data-target="ngbDataSetContextMenu" locals="node">
             <div class="folder-horizontal-line"></div>
             <div layout="row" layout-align="space-between center" class="dataset-item-row-track">
                 <div layout="row" layout-align="start center">
