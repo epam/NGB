@@ -1,0 +1,25 @@
+.ngb-data-set-context-menu {
+    background-color: white;
+    box-shadow: 0 0 1em #999;
+    border: 1px solid #ccc;
+    z-index: 100;
+    min-width: 200px;
+
+    .title {
+        font-size: small;
+        font-weight: bold;
+    }
+
+    .md-button {
+        width: 100%;
+        text-align: left;
+    }
+
+    md-list {
+        padding: 0;
+    }
+}
+
+.ngb-context-menu-opened {
+    background-color: #efefef!important;
+}
