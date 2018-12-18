@@ -14,16 +14,16 @@
                         start_index,
                         end_index,
                         referred_chromosome_id,
-                        created_by,
-                        created_date)
+                        created_date,
+                        owner)
                     VALUES (
                         :BOOKMARK_ID,
                         :BOOKMARK_NAME,
                         :START_INDEX,
                         :END_INDEX,
                         :REFERRED_CHROMOSOME_ID,
-                        :CREATED_BY,
-                        :CREATED_DATE)
+                        :CREATED_DATE,
+                        :OWNER)
                 ]]>
             </value>
         </property>
@@ -33,7 +33,8 @@
                     UPDATE catgenome.bookmark SET
                         bookmark_name = :BOOKMARK_NAME,
                         start_index = :START_INDEX,
-                        end_index = :END_INDEX
+                        end_index = :END_INDEX,
+                        owner = :OWNER
                     WHERE
                         bookmark_id = :BOOKMARK_ID
                 ]]>
@@ -49,14 +50,12 @@
                         b.end_index,
                         b.referred_chromosome_id,
                         c.chromosome_name,
-                        b.created_by,
-                        b.created_date
+                        b.created_date,
+                        b.owner
                     FROM
                         catgenome.bookmark b
                         JOIN catgenome.chromosome c
                             ON b.referred_chromosome_id = c.chromosome_id
-                    WHERE
-                        b.created_by = ?
                 ]]>
             </value>
         </property>
@@ -70,13 +69,12 @@
                         b.end_index,
                         b.referred_chromosome_id,
                         null as chromosome_name,
-                        b.created_by,
-                        b.created_date
+                        b.created_date,
+                        b.owner
                     FROM
                         catgenome.bookmark b
                     WHERE
-                        b.created_by = :CREATED_BY
-                        AND bookmark_name LIKE :BOOKMARK_NAME
+                        bookmark_name LIKE :BOOKMARK_NAME
                     LIMIT :SEARCH_LIMIT
                 ]]>
             </value>
@@ -87,8 +85,7 @@
                     SELECT count(*) as count
                     FROM catgenome.bookmark
                     WHERE
-                        created_by = :CREATED_BY
-                        AND bookmark_name LIKE :BOOKMARK_NAME
+                        bookmark_name LIKE :BOOKMARK_NAME
                 ]]>
             </value>
         </property>
@@ -102,8 +99,8 @@
                         b.end_index,
                         b.referred_chromosome_id,
                         c.chromosome_name,
-                        b.created_by,
-                        b.created_date
+                        b.created_date,
+                        b.owner
                     FROM
                         catgenome.bookmark b
                         JOIN catgenome.chromosome c
@@ -123,8 +120,8 @@
                         b.end_index,
                         b.referred_chromosome_id,
                         c.chromosome_name,
-                        b.created_by,
-                        b.created_date
+                        b.created_date,
+                        b.owner
                     FROM
                         catgenome.bookmark b
                         JOIN catgenome.chromosome c
@@ -167,9 +164,9 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
@@ -190,7 +187,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -223,12 +219,10 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM
                         catgenome.bookmark_item book
-                        JOIN t_list tmp ON book.bookmark_id = tmp.list_value
                         JOIN catgenome.biological_data_item b ON b.bio_data_item_id = book.bio_data_item_id
                         LEFT JOIN catgenome.vcf v ON v.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.gene_item g ON g.bio_data_item_id = b.bio_data_item_id
@@ -250,7 +244,7 @@
                                 OR i.bio_data_item_id = bd.index_id
                                 OR i.bio_data_item_id = s.index_id
                     WHERE
-                        tmp.list_id = ?
+                        book.bookmark_id IN @in@
                 ]]>
             </value>
         </property>

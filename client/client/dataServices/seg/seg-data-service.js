@@ -18,10 +18,6 @@ export class SegDataService extends DataService {
         });
     }
 
-    getAllFileList(refId) {
-        return this.get(`seg/${refId}/loadAll`);
-    }
-
     register(referenceId, path ,indexPath, name) {
         return this.post('seg/register', {referenceId, path, indexPath, name});
     }

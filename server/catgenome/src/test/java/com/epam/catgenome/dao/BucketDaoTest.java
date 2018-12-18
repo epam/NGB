@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
 
 import com.epam.catgenome.dao.bucket.BucketDao;
 import com.epam.catgenome.entity.bucket.Bucket;
+import com.epam.catgenome.helper.EntityHelper;
 
 /**
  * Source:      BucketDaoTest.java
@@ -84,6 +85,7 @@ public class BucketDaoTest extends AbstractDaoTest {
         bucket.setBucketName(BUCKET_NAME);
         bucket.setAccessKeyId(ACCESS_KEY);
         bucket.setSecretAccessKey(SECRET_KEY);
+        bucket.setOwner(EntityHelper.TEST_OWNER);
 
         bucketDao.createBucket(bucket);
 
@@ -93,6 +95,7 @@ public class BucketDaoTest extends AbstractDaoTest {
         assertEquals(loadedBucket.getBucketName(), bucket.getBucketName());
         assertEquals(loadedBucket.getAccessKeyId(), bucket.getAccessKeyId());
         assertEquals(loadedBucket.getSecretAccessKey(), bucket.getSecretAccessKey());
+        assertEquals(bucket.getOwner(), loadedBucket.getOwner());
 
         List<Bucket> bucketList = bucketDao.loadAllBucket();
 

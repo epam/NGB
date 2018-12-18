@@ -50,5 +50,7 @@
     <import resource="classpath:conf/catgenome/dao/maf-file-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/url-shorter-dao.xml" />
     <import resource="classpath:conf/catgenome/dao/species-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/user-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/role-dao.xml" />
 
 </beans>

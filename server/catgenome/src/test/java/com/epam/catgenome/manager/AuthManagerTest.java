@@ -40,7 +40,7 @@ import com.epam.catgenome.security.jwt.JwtTokenVerifier;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class AuthManagerTest extends AbstractSecurityTest {
     private static final String TEST_USER_NAME = "test";
-    private static final String TEST_USER_ID = "1";
+    private static final long TEST_USER_ID = 1L;
     private static final String TEST_GROUP = "TEST";
     private static final String TEST_ORG_UNIT_ID = "EPAM";
 
@@ -71,6 +71,6 @@ public class AuthManagerTest extends AbstractSecurityTest {
         JwtRawToken token = authManager.issueTokenForCurrentUser(null);
         JwtTokenClaims claims = jwtTokenVerifier.readClaims(token.getToken());
         Assert.assertEquals(TEST_USER_NAME, claims.getUserName());
-        Assert.assertEquals(TEST_USER_ID, claims.getUserId());
+        Assert.assertEquals(TEST_USER_ID, claims.getUserId().longValue());
     }
 }

@@ -92,11 +92,43 @@ public class ApplicationOptions {
 
     private String prettyName;
 
+    private String datasets;
+
+    private String files;
+
+    private String users;
+
+    private String groups;
+
     /**
      * Creates object with default option's values
      */
     public ApplicationOptions() {
         //no operations, all values are default
+    }
+
+    public String getFiles() {
+        return files;
+    }
+
+    public void setFiles(String files) {
+        this.files = files;
+    }
+
+    public String getUsers() {
+        return users;
+    }
+
+    public void setUsers(String users) {
+        this.users = users;
+    }
+
+    public String getGroups() {
+        return groups;
+    }
+
+    public void setGroups(String groups) {
+        this.groups = groups;
     }
 
     public String getName() {
@@ -209,5 +241,13 @@ public class ApplicationOptions {
 
     public void setSpeciesVersion(String speciesVersion) {
         this.speciesVersion = speciesVersion;
+    }
+
+    public String getDatasets() {
+        return datasets;
+    }
+
+    public void setDatasets(String datasets) {
+        this.datasets = datasets;
     }
 }

@@ -58,7 +58,6 @@ import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.helper.EntityHelper;
 import com.epam.catgenome.manager.project.ProjectManager;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * Source:      BookmarkDaoTest
@@ -113,11 +112,11 @@ public class BookmarkDaoTest extends AbstractDaoTest {
 
         vcfFile.setId(vcfFileDao.createVcfFileId());
         vcfFile.setName(TEST_PATH);
-        vcfFile.setCreatedBy(AuthUtils.getCurrentUserId());
         vcfFile.setType(BiologicalDataItemResourceType.FILE);
         vcfFile.setPath(TEST_FILE_NAME);
         vcfFile.setCreatedDate(new Date());
         vcfFile.setReferenceId(reference.getId());
+        vcfFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.VCF_INDEX,
                 BiologicalDataItemResourceType.FILE, TEST_INDEX_PATH);
@@ -132,10 +131,9 @@ public class BookmarkDaoTest extends AbstractDaoTest {
         project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(reference.getBioDataItemId())),
                 new ProjectItem(vcfFile)));
         project.setName(TEST_NAME);
-        project.setCreatedBy(AuthUtils.getCurrentUserId());
         project.setCreatedDate(new Date());
 
-        projectManager.saveProject(project);
+        projectManager.create(project);
 
         Bookmark bookmark = new Bookmark();
         bookmark.setName(TEST_NAME);
@@ -144,18 +142,19 @@ public class BookmarkDaoTest extends AbstractDaoTest {
         bookmark.setChromosome(chromosome);
         bookmark.setOpenedItems(Collections.singletonList(vcfFile));
         bookmark.setCreatedDate(new Date());
-        bookmark.setCreatedBy(AuthUtils.getCurrentUserId());
+        bookmark.setOwner(EntityHelper.TEST_OWNER);
 
         bookmarkDao.saveBookmark(bookmark);
         bookmarkDao.insertBookmarkItems(bookmark.getOpenedItems(), bookmark.getId());
 
-        List<Bookmark> loadedBookmarks = bookmarkDao.loadAllBookmarks(AuthUtils.getCurrentUserId());
+        List<Bookmark> loadedBookmarks = bookmarkDao.loadAllBookmarks();
         Assert.assertNotNull(loadedBookmarks);
         Assert.assertFalse(loadedBookmarks.isEmpty());
 
         Bookmark loadedBookmark = bookmarkDao.loadBookmarkById(loadedBookmarks.get(0).getId());
         Assert.assertNotNull(loadedBookmark);
         Assert.assertEquals(loadedBookmark.getId(), bookmark.getId());
+        Assert.assertEquals(bookmark.getOwner(), loadedBookmark.getOwner());
 
         Map<Long, List<BiologicalDataItem>> loadedItemsMap = bookmarkDao.loadBookmarkItemsByBookmarkIds(
                 Collections.singletonList(loadedBookmark.getId()));
@@ -176,17 +175,17 @@ public class BookmarkDaoTest extends AbstractDaoTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testAllItemTypes() throws IOException, InterruptedException, FeatureIndexException {
+    public void testAllItemTypes() {
         // Add vcfFile
         VcfFile vcfFile = new VcfFile();
 
         vcfFile.setId(vcfFileDao.createVcfFileId());
         vcfFile.setName(TEST_FILE_NAME + BiologicalDataItemFormat.VCF.name());
-        vcfFile.setCreatedBy(AuthUtils.getCurrentUserId());
         vcfFile.setType(BiologicalDataItemResourceType.FILE);
         vcfFile.setPath(TEST_PATH);
         vcfFile.setCreatedDate(new Date());
         vcfFile.setReferenceId(reference.getId());
+        vcfFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem vcfIndex = EntityHelper.createIndex(BiologicalDataItemFormat.VCF_INDEX,
                 BiologicalDataItemResourceType.FILE, TEST_INDEX_PATH);
@@ -203,11 +202,11 @@ public class BookmarkDaoTest extends AbstractDaoTest {
 
         bedFile.setId(bedFileDao.createBedFileId());
         bedFile.setName(TEST_FILE_NAME + BiologicalDataItemFormat.BED.name());
-        bedFile.setCreatedBy(AuthUtils.getCurrentUserId());
         bedFile.setType(BiologicalDataItemResourceType.FILE);
         bedFile.setPath(TEST_PATH);
         bedFile.setCreatedDate(new Date());
         bedFile.setReferenceId(reference.getId());
+        bedFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem bedIndex = EntityHelper.createIndex(BiologicalDataItemFormat.BED_INDEX,
                 BiologicalDataItemResourceType.FILE, TEST_INDEX_PATH);
@@ -224,11 +223,11 @@ public class BookmarkDaoTest extends AbstractDaoTest {
 
         segFile.setId(segFileDao.createSegFileId());
         segFile.setName(TEST_FILE_NAME + BiologicalDataItemFormat.SEG.name());
-        segFile.setCreatedBy(AuthUtils.getCurrentUserId());
         segFile.setType(BiologicalDataItemResourceType.FILE);
         segFile.setPath(TEST_PATH);
         segFile.setCreatedDate(new Date());
         segFile.setReferenceId(reference.getId());
+        segFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem segIndex = EntityHelper.createIndex(BiologicalDataItemFormat.SEG_INDEX,
                 BiologicalDataItemResourceType.FILE, TEST_INDEX_PATH);
@@ -244,10 +243,9 @@ public class BookmarkDaoTest extends AbstractDaoTest {
         project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(reference.getBioDataItemId())),
                 new ProjectItem(vcfFile), new ProjectItem(bedFile)));
         project.setName(TEST_NAME);
-        project.setCreatedBy(AuthUtils.getCurrentUserId());
         project.setCreatedDate(new Date());
 
-        projectManager.saveProject(project);
+        projectManager.create(project);
 
         // create a bookmark
         Bookmark bookmark = new Bookmark();
@@ -255,9 +253,9 @@ public class BookmarkDaoTest extends AbstractDaoTest {
         bookmark.setEndIndex(BOOKMARK_END_INDEX);
         bookmark.setStartIndex(0);
         bookmark.setCreatedDate(new Date());
-        bookmark.setCreatedBy(AuthUtils.getCurrentUserId());
         bookmark.setChromosome(chromosome);
         bookmark.setOpenedItems(Arrays.asList(vcfFile, bedFile, segFile));
+        bookmark.setOwner(EntityHelper.TEST_OWNER);
 
         bookmarkDao.saveBookmark(bookmark);
         bookmarkDao.insertBookmarkItems(bookmark.getOpenedItems(), bookmark.getId());
@@ -314,18 +312,17 @@ public class BookmarkDaoTest extends AbstractDaoTest {
         bookmark.setStartIndex(0);
         bookmark.setChromosome(chromosome);
         bookmark.setCreatedDate(new Date());
-        bookmark.setCreatedBy(AuthUtils.getCurrentUserId());
+        bookmark.setOwner(EntityHelper.TEST_OWNER);
 
         bookmarkDao.saveBookmark(bookmark);
 
-        List<Bookmark> bookmarks = bookmarkDao.searchBookmarks(TEST_NAME, AuthUtils.getCurrentUserId(),
-                                                               TEST_SEARCH_LIMIT);
+        List<Bookmark> bookmarks = bookmarkDao.searchBookmarks(TEST_NAME, TEST_SEARCH_LIMIT);
         Assert.assertFalse(bookmarks.isEmpty());
         Assert.assertEquals(bookmark.getId(), bookmarks.get(0).getId());
         Assert.assertEquals(bookmark.getName(), bookmarks.get(0).getName());
         Assert.assertEquals(bookmark.getStartIndex(), bookmarks.get(0).getStartIndex());
         Assert.assertEquals(bookmark.getChromosome().getId(), bookmarks.get(0).getChromosome().getId());
-        Assert.assertEquals(bookmark.getCreatedBy(), bookmarks.get(0).getCreatedBy());
         Assert.assertEquals(bookmark.getCreatedDate(), bookmarks.get(0).getCreatedDate());
+        Assert.assertEquals(bookmark.getOwner(), bookmarks.get(0).getOwner());
     }
 }

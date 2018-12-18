@@ -225,7 +225,8 @@ export default class ngbVariantsTableController extends baseController {
                 position: entity.startIndex,
                 type: entity.variationType,
                 vcfFileId: entity.vcfFileId,
-                projectId: entity.projectId
+                projectId: entity.projectId,
+                projectIdNumber: entity.projectIdNumber
             }
         );
         this.dispatcher.emitSimpleEvent('variant:details:select', {variant: state});

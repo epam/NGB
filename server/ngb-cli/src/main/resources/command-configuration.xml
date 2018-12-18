@@ -150,4 +150,9 @@
         <type>PUT</type>
         <url>/restapi/secure/reference/%d/species</url>
     </remove_species>
+    <chmod>
+        <name>chmod</name>
+        <type>POST</type>
+        <url>/restapi/grant</url>
+    </chmod>
 </config>

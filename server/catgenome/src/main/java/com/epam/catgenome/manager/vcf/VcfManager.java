@@ -48,7 +48,6 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.indexer.BigVcfFeatureIndexBuilder;
 import com.epam.catgenome.dao.index.indexer.VcfFeatureIndexBuilder;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.InfoFieldParser;
@@ -189,7 +188,7 @@ public class VcfManager {
         Assert.notNull(request.getReferenceId(), getMessage(MessagesConstants.ERROR_NULL_PARAM, "referenceId"));
 
         VcfFile vcfFile;
-        Reference reference = referenceGenomeManager.loadReferenceGenome(request.getReferenceId());
+        Reference reference = referenceGenomeManager.load(request.getReferenceId());
         Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
                 Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
         if (request.getType() == null) {
@@ -200,6 +199,7 @@ public class VcfManager {
                 vcfFile = getVcfFileFromGA4GH(request, requestPath);
                 break;
             case FILE:
+            case S3:
                 vcfFile = createVcfFromFile(request, chromosomeMap, reference, request.isDoIndex());
                 break;
             case DOWNLOAD:
@@ -227,7 +227,7 @@ public class VcfManager {
     public VcfFile unregisterVcfFile(final Long vcfFileId) throws IOException {
         Assert.notNull(vcfFileId, MessagesConstants.ERROR_INVALID_PARAM);
         Assert.isTrue(vcfFileId > 0, MessagesConstants.ERROR_INVALID_PARAM);
-        VcfFile vcfFile = vcfFileManager.loadVcfFile(vcfFileId);
+        VcfFile vcfFile = vcfFileManager.load(vcfFileId);
         Assert.notNull(vcfFile, MessagesConstants.ERROR_NO_SUCH_FILE);
         vcfFileManager.deleteVcfFile(vcfFile);
         if (vcfFile.getType() == BiologicalDataItemResourceType.GA4GH) {
@@ -251,7 +251,7 @@ public class VcfManager {
             throws VcfReadingException {
         Chromosome chromosome = trackHelper.validateTrack(track);
 
-        final VcfFile vcfFile = vcfFileManager.loadVcfFile(track.getId());
+        final VcfFile vcfFile = vcfFileManager.load(track.getId());
         Assert.notNull(vcfFile, getMessage(ERROR_VCF_ID_INVALID, track.getId()));
         final Integer sampleIndex = getSampleIndex(sampleId, vcfFile);
         Assert.notNull(vcfFile.getIndex(), getMessage(ERROR_VCF_INDEX, track.getId()));
@@ -317,8 +317,8 @@ public class VcfManager {
         Assert.notEmpty(track.getBlocks(), getMessage(MessagesConstants.ERROR_NO_SUCH_VARIATION, query.getPosition()));
         Variation variation = track.getBlocks().get(0);
         extendInfoFields(variation);
-        VcfFile vcfFile = vcfFileManager.loadVcfFile(query.getId());
-        Reference reference = referenceGenomeManager.loadReferenceGenome(vcfFile.getReferenceId());
+        VcfFile vcfFile = vcfFileManager.load(query.getId());
+        Reference reference = referenceGenomeManager.load(vcfFile.getReferenceId());
         if (reference.getGeneFile() != null) {
             Set<String> geneIds = featureIndexManager.fetchGeneIds(variation.getStartIndex(),
                                                                    variation.getEndIndex(),
@@ -355,7 +355,7 @@ public class VcfManager {
         Assert.notEmpty(track.getBlocks(), getMessage(MessagesConstants.ERROR_NO_SUCH_VARIATION, query.getPosition()));
         Variation variation = track.getBlocks().get(0);
         extendInfoFields(variation);
-        Reference reference = referenceGenomeManager.loadReferenceGenome(track.getChromosome().getReferenceId());
+        Reference reference = referenceGenomeManager.load(track.getChromosome().getReferenceId());
         if (reference.getGeneFile() != null) {
             Set<String> geneIds = featureIndexManager.fetchGeneIds(variation.getStartIndex(),
                                                                    variation.getEndIndex(),
@@ -394,7 +394,7 @@ public class VcfManager {
 
         VcfFile vcfFile;
         if (vcfFileId != null) {
-            vcfFile = vcfFileManager.loadVcfFile(vcfFileId);
+            vcfFile = vcfFileManager.load(vcfFileId);
             Assert.notNull(vcfFile, getMessage(ERROR_VCF_ID_INVALID, vcfFileId));
             Assert.notNull(vcfFile.getIndex(), getMessage(ERROR_VCF_INDEX, vcfFileId));
         } else {
@@ -419,7 +419,7 @@ public class VcfManager {
         Set<String> availableFilters = new HashSet<>();
 
         for (Long fileId : vcfFileIds) {
-            VcfFile vcfFile = vcfFileManager.loadVcfFile(fileId);
+            VcfFile vcfFile = vcfFileManager.load(fileId);
             Assert.notNull(vcfFile, getMessage(ERROR_VCF_ID_INVALID, fileId));
 
             try (FeatureReader<VariantContext> reader =
@@ -459,8 +459,8 @@ public class VcfManager {
      * @throws FeatureIndexException if an error occurred while writing index
      */
     public VcfFile reindexVcfFile(long vcfFileId, Boolean rewriteTabixIndex) throws FeatureIndexException {
-        VcfFile vcfFile = vcfFileManager.loadVcfFile(vcfFileId);
-        Reference reference = referenceGenomeManager.loadReferenceGenome(vcfFile.getReferenceId());
+        VcfFile vcfFile = vcfFileManager.load(vcfFileId);
+        Reference reference = referenceGenomeManager.load(vcfFile.getReferenceId());
         Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
             Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
         try {
@@ -536,9 +536,9 @@ public class VcfManager {
                 .getFeatureReader(request.getPath(), request.getIndexPath(), new VCFCodec(),
                         request.getIndexPath() != null, indexCache)) {
             vcfFile = createVcfFile(request, reader);
-            fileManager.makeVcfDir(vcfFile.getId(), AuthUtils.getCurrentUserId());
+            fileManager.makeVcfDir(vcfFile.getId());
             if (StringUtils.isBlank(request.getIndexPath())) {
-                fileManager.makeVcfIndex(vcfFile, AuthUtils.getCurrentUserId());
+                fileManager.makeVcfIndex(vcfFile);
             }
 
             // In order to fix bugs with zipped VCF
@@ -546,12 +546,12 @@ public class VcfManager {
                     readMetaMap(vcfFile, chromosomeMap, reader, reference, doIndex);
             fileManager.makeIndexMetadata(vcfFile, metaMap);
             biologicalDataItemManager.createBiologicalDataItem(vcfFile.getIndex());
-            vcfFileManager.createVcfFile(vcfFile);
+            vcfFileManager.create(vcfFile);
         }  catch (IOException e) {
             throw new RegistrationException(getMessage(ERROR_REGISTER_FILE, request.getName()), e);
         } finally {
             if (vcfFile != null && vcfFile.getId() != null &&
-                    vcfFileManager.loadVcfFile(vcfFile.getId()) == null) {
+                vcfFileManager.load(vcfFile.getId()) == null) {
                 biologicalDataItemManager.deleteBiologicalDataItem(vcfFile.getBioDataItemId());
                 try {
                     fileManager.deleteFeatureFileDirectory(vcfFile);
@@ -585,7 +585,7 @@ public class VcfManager {
             throw new RegistrationException(getMessage(ERROR_REGISTER_FILE, request.getName()), e);
         }
         biologicalDataItemManager.createBiologicalDataItem(vcfFile.getIndex());
-        vcfFileManager.createVcfFile(vcfFile);
+        vcfFileManager.create(vcfFile);
         return vcfFile;
     }
 
@@ -669,7 +669,6 @@ public class VcfManager {
         vcfFile.setPrettyName(request.getPrettyName());
         vcfFile.setType(BiologicalDataItemResourceType.GA4GH); // For now we're working only with files
         vcfFile.setCreatedDate(new Date());
-        vcfFile.setCreatedBy(AuthUtils.getCurrentUserId());
         vcfFile.setReferenceId(request.getReferenceId());
         VcfGa4ghReader reader = new VcfGa4ghReader(httpDataManager, referenceGenomeManager);
         CallSetSearch callSetSearch;
@@ -691,7 +690,6 @@ public class VcfManager {
             indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
             indexItem.setType(BiologicalDataItemResourceType.GA4GH);
             indexItem.setName("");
-            indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
             vcfFile.setIndex(indexItem);
         }
@@ -742,7 +740,6 @@ public class VcfManager {
         vcfFile.setPath(request.getPath());
         vcfFile.setType(resourceType);
         vcfFile.setCreatedDate(new Date());
-        vcfFile.setCreatedBy(AuthUtils.getCurrentUserId());
         vcfFile.setReferenceId(request.getReferenceId());
 
         if (StringUtils.isNotBlank(request.getIndexPath())) {
@@ -752,10 +749,10 @@ public class VcfManager {
             indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
             indexItem.setType(BiologicalDataItemResourceType.translateRequestType(request.getIndexType()));
             indexItem.setName(vcfFile.getName() + "_index");
-            indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
             vcfFile.setIndex(indexItem);
         }
+
         long vcfId = vcfFile.getId();
         biologicalDataItemManager.createBiologicalDataItem(vcfFile);
         vcfFile.setBioDataItemId(vcfFile.getId());
@@ -774,10 +771,9 @@ public class VcfManager {
         indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.GA4GH);
         indexItem.setName("");
-        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
         vcfFile.setIndex(indexItem);
         biologicalDataItemManager.createBiologicalDataItem(vcfFile.getIndex());
-        vcfFileManager.createVcfFile(vcfFile);
+        vcfFileManager.create(vcfFile);
         return vcfFile;
     }
 

@@ -69,7 +69,7 @@ public class VcfFilterForm {
      */
     private List<String> infoFields;
 
-    private List<Long> vcfFileIds;
+    private Map<Long, List<Long>> vcfFileIdsByProject;
     private List<Long> chromosomeIds;
 
     /**
@@ -227,8 +227,8 @@ public class VcfFilterForm {
     }
 
     private void addVcfFileFilter(BooleanQuery.Builder builder) {
-        if (vcfFileIds != null && !vcfFileIds.isEmpty()) {
-            List<Term> terms = vcfFileIds.stream()
+        if (vcfFileIdsByProject != null && !vcfFileIdsByProject.isEmpty()) {
+            List<Term> terms = vcfFileIdsByProject.values().stream().flatMap(List::stream)
                     .map(vcfFileId -> new Term(FeatureIndexFields.FILE_ID.getFieldName(), vcfFileId.toString()))
                     .collect(Collectors.toList());
             TermsQuery termsQuery = new TermsQuery(terms);
@@ -346,12 +346,12 @@ public class VcfFilterForm {
         return genes;
     }
 
-    public List<Long> getVcfFileIds() {
-        return vcfFileIds;
+    public Map<Long, List<Long>> getVcfFileIdsByProject() {
+        return vcfFileIdsByProject;
     }
 
-    public void setVcfFileIds(List<Long> vcfFileIds) {
-        this.vcfFileIds = vcfFileIds;
+    public void setVcfFileIdsByProject(Map<Long, List<Long>> vcfFileIdsByProject) {
+        this.vcfFileIdsByProject = vcfFileIdsByProject;
     }
 
     public Map<String, Object> getAdditionalFilters() {
@@ -435,9 +435,9 @@ public class VcfFilterForm {
     }
 
     public static class FilterSection<T> {
+
         private T field;
         private boolean conjunction = false;
-
         public FilterSection(T field, boolean conjunction) {
             this.field = field;
             this.conjunction = conjunction;
@@ -466,9 +466,15 @@ public class VcfFilterForm {
         public void setConjunction(boolean conjunction) {
             this.conjunction = conjunction;
         }
+
+    }
+
+    public List<Long> getVcfFileIds() {
+        return vcfFileIdsByProject.values().stream().flatMap(List::stream).collect(Collectors.toList());
     }
 
     public static class OrderBy {
+
         private String field;
         private boolean desc = false;
 
@@ -496,5 +502,6 @@ public class VcfFilterForm {
         public void setDesc(boolean desc) {
             this.desc = desc;
         }
+
     }
 }

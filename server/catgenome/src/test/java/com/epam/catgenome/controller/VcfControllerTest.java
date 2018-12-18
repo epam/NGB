@@ -29,7 +29,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import org.eclipse.jetty.server.Server;
 import org.junit.Assert;
@@ -90,7 +89,6 @@ public class VcfControllerTest extends AbstractControllerTest {
 
     private static final String URL_LOAD_VARIATIONS = "/restapi/vcf/track/get";
     private static final String URL_LOAD_VARIATION_INFO = "/restapi/vcf/variation/load";
-    private static final String URL_LOAD_VCF_FILES = "/restapi/vcf/%d/loadAll";
     private static final String URL_LOAD_VCF_FILTERS = "/restapi/vcf/%d/fieldInfo";
     private static final String URL_VCF_NEXT_VARIATION = "/restapi/vcf/%d/next";
     private static final String URL_VCF_PREV_VARIATION = "/restapi/vcf/%d/prev";
@@ -124,7 +122,7 @@ public class VcfControllerTest extends AbstractControllerTest {
         testChromosome.setSize(TES_CHROMOSOME_SIZE);
         testReference = EntityHelper.createNewReference(testChromosome, referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
     }
 
@@ -157,25 +155,6 @@ public class VcfControllerTest extends AbstractControllerTest {
 
         Assert.assertNotNull("Test chromosome is not saved", testChromosome.getId());
 
-        // Load all VcfFiles for testReference
-        actions = mvc()
-                .perform(get(String.format(URL_LOAD_VCF_FILES, testReference.getId()))
-                        .contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(jsonPath(JPATH_PAYLOAD).exists())
-                .andExpect(jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
-        actions.andDo(MockMvcResultHandlers.print());
-
-        ResponseResult<List<VcfFile>> vcfFilesRes = getObjectMapper()
-                .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
-                        getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
-                                getTypeFactory().constructParametrizedType(List.class, List.class, VcfFile.class)));
-
-        Assert.assertNotNull(vcfFilesRes.getPayload());
-        Assert.assertFalse(vcfFilesRes.getPayload().isEmpty());
-        Assert.assertEquals(vcfFilesRes.getPayload().get(0).getId(), fileId);
-
         // Load a track by fileId
 
         VcfTrackQuery vcfTrackQuery = new VcfTrackQuery();
@@ -184,7 +163,7 @@ public class VcfControllerTest extends AbstractControllerTest {
         vcfTrackQuery.setStartIndex(1);
         vcfTrackQuery.setEndIndex(TEST_END_INDEX);
         vcfTrackQuery.setScaleFactor(1d);
-        vcfTrackQuery.setSampleId(vcfFilesRes.getPayload().get(0).getSamples().get(0).getId());
+        vcfTrackQuery.setSampleId(res.getPayload().getSamples().get(0).getId());
         vcfTrackQuery.setId(fileId);
 
         MvcResult mvcResult = mvc()
@@ -216,7 +195,7 @@ public class VcfControllerTest extends AbstractControllerTest {
         query.setId(fileId);
         query.setChromosomeId(testChromosome.getId());
         query.setPosition(vcfRes.getPayload().getBlocks().get(0).getStartIndex());
-        query.setSampleId(vcfFilesRes.getPayload().get(0).getSamples().get(0).getId());
+        query.setSampleId(res.getPayload().getSamples().get(0).getId());
 
         actions = mvc()
                 .perform(post(URL_LOAD_VARIATION_INFO)
@@ -237,7 +216,7 @@ public class VcfControllerTest extends AbstractControllerTest {
         Assert.assertFalse(variationExtendedRes.getPayload().getGenotypeData().getInfo().isEmpty());
 
         // jump to next/prev
-        testJump(fileId, vcfFilesRes, vcfRes);
+        testJump(fileId, res.getPayload(), vcfRes);
 
         actions = mvc()
                 .perform(get(String.format(URL_LOAD_VCF_FILTERS, fileId))
@@ -291,7 +270,7 @@ public class VcfControllerTest extends AbstractControllerTest {
         project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(vcfFile.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
 
-        projectManager.saveProject(project); // Index is created when vcf file is added
+        projectManager.create(project); // Index is created when vcf file is added
 
         TestUtils.assertFail(() -> featureIndexManager.filterVariations(new VcfFilterForm(), project.getId()),
                              Collections.singletonList(IllegalArgumentException.class));
@@ -337,7 +316,7 @@ public class VcfControllerTest extends AbstractControllerTest {
         }
     }
 
-    private void testJump(Long fileId, ResponseResult<List<VcfFile>> vcfFilesRes,
+    private void testJump(Long fileId, VcfFile vcfFiles,
                           ResponseResult<Track<Variation>> vcfRes) throws Exception {
         int middle = vcfRes.getPayload().getBlocks().size() / 2;
         Variation var1 = vcfRes.getPayload().getBlocks().get(middle);
@@ -347,7 +326,7 @@ public class VcfControllerTest extends AbstractControllerTest {
                 .perform(get(String.format(URL_VCF_NEXT_VARIATION, testChromosome.getId()))
                              .param("trackId", fileId.toString())
                              .param("fromPosition", var1.getEndIndex().toString())
-                        .param("sampleId", vcfFilesRes.getPayload().get(0).getSamples().get(0).getId().toString())
+                        .param("sampleId", vcfFiles.getSamples().get(0).getId().toString())
                         .contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
@@ -368,7 +347,7 @@ public class VcfControllerTest extends AbstractControllerTest {
                 .perform(get(String.format(URL_VCF_PREV_VARIATION, testChromosome.getId()))
                              .param("trackId", fileId.toString())
                              .param("fromPosition", var2.getStartIndex().toString())
-                        .param("sampleId", vcfFilesRes.getPayload().get(0).getSamples().get(0).getId().toString())
+                        .param("sampleId", vcfFiles.getSamples().get(0).getId().toString())
                         .contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))

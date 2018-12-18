@@ -36,6 +36,7 @@ export default class ngbTrackEvents {
                         chromosomeId: track.instance.config.chromosomeId,
                         id: track.id,
                         name: track.name,
+                        projectId: track.projectIdNumber || undefined,
                         referenceId: track.referenceId
                     });
                 }
@@ -47,6 +48,7 @@ export default class ngbTrackEvents {
                             endIndex: data.feature.endIndex,
                             name: data.feature.name,
                             properties: data.info,
+                            projectId: track.projectIdNumber || undefined,
                             referenceId: track.instance.config.referenceId,
                             startIndex: data.feature.startIndex,
                             geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
@@ -57,7 +59,7 @@ export default class ngbTrackEvents {
                     title: 'Show Info'
                 });
                 if (geneTracks.length > 0) {
-                    if (data.feature.attributes && data.feature.attributes.gene_id) {               
+                    if (data.feature.attributes && data.feature.attributes.gene_id) {
                         let layoutChange = this.appLayout.Panels.molecularViewer;
                         layoutChange.displayed = true;
                         menuData.push({
@@ -206,16 +208,16 @@ export default class ngbTrackEvents {
         }
 
         const goToMateMenuItem = pairReadParameters ? {
-                state: goToMateMenuItemEvent,
-                title: goToMateMenuItemEvent ? 'Go to mate' : 'Chromosome not found'
-            } : null;
+            state: goToMateMenuItemEvent,
+            title: goToMateMenuItemEvent ? 'Go to mate' : 'Chromosome not found'
+        } : null;
         const openMateMenuItem = pairReadParameters ? {
-                events: [{
-                    data: new PairReadInfo(pairReadParameters),
-                    name: 'read:show:mate'
-                }],
-                title: 'Open mate region in split view'
-            } : null;
+            events: [{
+                data: new PairReadInfo(pairReadParameters),
+                name: 'read:show:mate'
+            }],
+            title: 'Open mate region in split view'
+        } : null;
         const showInfo = {
             events: [
                 {
@@ -230,6 +232,7 @@ export default class ngbTrackEvents {
                         title: 'ALIGNMENT',
                         infoForRead: {
                             id: track.id,
+                            projectId: track.projectIdNumber || undefined,
                             chromosomeId: data.chromosome.id,
                             startIndex: data.read.startIndex,
                             endIndex: data.read.endIndex,
@@ -247,12 +250,13 @@ export default class ngbTrackEvents {
 
         const self = this;
         const copyToClipboard = {
-            clipboard: "Loading...",
+            clipboard: 'Loading...',
             title: 'Copy info to clipboard',
             isLoading: true,
             fn: async function (menuItem) {
                 const payload = {
                     id: track.id,
+                    projectId: track.projectIdNumber || undefined,
                     chromosomeId: data.chromosome.id,
                     startIndex: data.read.startIndex,
                     endIndex: data.read.endIndex,
@@ -272,12 +276,13 @@ export default class ngbTrackEvents {
         };
 
         const copySequenceToClipboard = {
-            clipboard: "Loading...",
+            clipboard: 'Loading...',
             title: 'Copy sequence to clipboard',
             isLoading: true,
             fn: async function (menuItem) {
                 const payload = {
                     id: track.id,
+                    projectId: track.projectIdNumber || undefined,
                     chromosomeId: data.chromosome.id,
                     startIndex: data.read.startIndex,
                     endIndex: data.read.endIndex,
@@ -294,7 +299,7 @@ export default class ngbTrackEvents {
         };
 
         const openBlatSearchMenuItem = {
-            title: "BLAT Search",
+            title: 'BLAT Search',
             events: [{
                 data: {
                     id: track.id,

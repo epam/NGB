@@ -90,25 +90,23 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
      * @return {@code List&lt;Bookmark&gt;}
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Bookmark> loadAllBookmarks(long userId) {
-        return getJdbcTemplate().query(loadAllBookmarksQuery, BookmarkParameters.getRowMapper(), userId);
+    public List<Bookmark> loadAllBookmarks() {
+        return getJdbcTemplate().query(loadAllBookmarksQuery, BookmarkParameters.getRowMapper());
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Bookmark> searchBookmarks(String searchStr, long userId, int limit) {
+    public List<Bookmark> searchBookmarks(String searchStr, int limit) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(BookmarkParameters.BOOKMARK_NAME.name(), searchStr + '%');
-        params.addValue(BookmarkParameters.CREATED_BY.name(), userId);
         params.addValue("SEARCH_LIMIT", limit);
 
         return getNamedParameterJdbcTemplate().query(searchBookmarksQuery, params, BookmarkParameters.getRowMapper());
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public int searchBookmarkCount(String searchStr, long userId) {
+    public int searchBookmarkCount(String searchStr) {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(BookmarkParameters.BOOKMARK_NAME.name(), searchStr + '%');
-        params.addValue(BookmarkParameters.CREATED_BY.name(), userId);
 
         return getNamedParameterJdbcTemplate().queryForObject(searchBookmarkCountQuery, params, Integer.class);
     }
@@ -135,13 +133,8 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
         if (bookmarkIds == null || bookmarkIds.isEmpty()) {
             return Collections.emptyList();
         }
-
-        Long listId = daoHelper.createTempLongList(bookmarkIds);
-        List<Bookmark> bookmarks = getJdbcTemplate().query(loadBookmarksByIdsQuery, BookmarkParameters.getRowMapper(),
-                listId);
-        daoHelper.clearTempList(listId);
-
-        return bookmarks;
+        String query = DaoHelper.getQueryFilledWithIdArray(loadBookmarksByIdsQuery, bookmarkIds);
+        return getJdbcTemplate().query(query, BookmarkParameters.getRowMapper());
     }
 
     /**
@@ -187,10 +180,10 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
             return Collections.emptyMap();
         }
 
-        Long listId = daoHelper.createTempLongList(bookmarkIds);
+        String query = DaoHelper.getQueryFilledWithIdArray(loadBookmarksItemsQuery, bookmarkIds);
         Map<Long, List<BiologicalDataItem>> itemsMap = new HashMap<>();
 
-        getJdbcTemplate().query(loadBookmarksItemsQuery, rs -> {
+        getJdbcTemplate().query(query, rs -> {
             BiologicalDataItem dataItem = BiologicalDataItemDao.BiologicalDataItemParameters.getRowMapper()
                 .mapRow(rs, 0);
             long bookmarkId = rs.getLong(BookmarkItemParameters.BOOKMARK_ID.name());
@@ -198,9 +191,8 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
                 itemsMap.put(bookmarkId, new ArrayList<>());
             }
             itemsMap.get(bookmarkId).add(dataItem);
-        }, listId);
+        });
 
-        daoHelper.clearTempList(listId);
         return itemsMap;
     }
 
@@ -211,8 +203,8 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
         END_INDEX,
         REFERRED_CHROMOSOME_ID,
         CHROMOSOME_NAME,
-        CREATED_BY,
-        CREATED_DATE;
+        CREATED_DATE,
+        OWNER;
 
         private static MapSqlParameterSource getParameters(Bookmark bookmark) {
             MapSqlParameterSource params = new MapSqlParameterSource();
@@ -222,8 +214,8 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
             params.addValue(START_INDEX.name(), bookmark.getStartIndex());
             params.addValue(END_INDEX.name(), bookmark.getEndIndex());
             params.addValue(REFERRED_CHROMOSOME_ID.name(), bookmark.getChromosome().getId());
-            params.addValue(CREATED_BY.name(), bookmark.getCreatedBy());
             params.addValue(CREATED_DATE.name(), bookmark.getCreatedDate());
+            params.addValue(OWNER.name(), bookmark.getOwner());
 
             return params;
         }
@@ -238,8 +230,8 @@ public class BookmarkDao extends NamedParameterJdbcDaoSupport {
                 bookmark.setEndIndex(rs.getInt(END_INDEX.name()));
                 bookmark.setChromosome(new Chromosome(rs.getLong(REFERRED_CHROMOSOME_ID.name())));
                 bookmark.getChromosome().setName(rs.getString(CHROMOSOME_NAME.name()));
-                bookmark.setCreatedBy(rs.getLong(CREATED_BY.name()));
                 bookmark.setCreatedDate(new Date(rs.getTimestamp(CREATED_DATE.name()).getTime()));
+                bookmark.setOwner(rs.getString(OWNER.name()));
 
                 return bookmark;
             };

@@ -23,6 +23,7 @@ package com.epam.catgenome.util.feature.reader;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.IndexUtils;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.RuntimeIOException;
@@ -33,7 +34,6 @@ import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.readers.LineReader;
 import htsjdk.tribble.readers.LineReaderUtil;
 import htsjdk.tribble.readers.PositionalBufferedStream;
-import htsjdk.tribble.util.ParsingUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -107,8 +107,9 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                 header = tabixIndexCache.getHeader();
 
                 if (header == null) {
+                    InputStream is = IOHelper.openStream(path);
                     source = codec.makeSourceFromStream(new PositionalBufferedStream(
-                            new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
+                            new BlockCompressedInputStream(is)));
                     header = codec.readHeader(source);
                     tabixIndexCache.setHeader(header);
                     tabixIndexCache.setCodec(codec);
@@ -117,7 +118,7 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
                 codec = tabixIndexCache.getCodec();
             } else {
                 source = codec.makeSourceFromStream(new PositionalBufferedStream(
-                        new BlockCompressedInputStream(ParsingUtils.openInputStream(path))));
+                        new BlockCompressedInputStream(IOHelper.openStream(path))));
                 header = codec.readHeader(source);
             }
         } catch (IOException e) {
@@ -163,7 +164,7 @@ public class TabixFeatureReader<T extends Feature, S> extends AbstractFeatureRea
     }
 
     public CloseableTribbleIterator<T> iterator() throws IOException {
-        final InputStream is = new BlockCompressedInputStream(ParsingUtils.openInputStream(path));
+        final InputStream is = new BlockCompressedInputStream(IOHelper.openStream(path));
         final PositionalBufferedStream stream = new PositionalBufferedStream(is);
         final LineReader reader = LineReaderUtil.fromBufferedStream(stream,
                 LineReaderUtil.LineReaderOption.SYNCHRONOUS);

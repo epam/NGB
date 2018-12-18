@@ -26,7 +26,8 @@ export default class ngbVariantInfoService{
             openByUrl: variantRequest.openByUrl,
             fileUrl: variantRequest.openByUrl ? variantRequest.fileUrl : undefined,
             indexUrl: variantRequest.openByUrl ? variantRequest.indexUrl : undefined,
-            position: variantRequest.position
+            position: variantRequest.position,
+            projectId: variantRequest.projectIdNumber,
         };
 
         this._genomeDataService.loadChromosome(variantRequest.chromosomeId)

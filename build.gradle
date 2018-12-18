@@ -42,6 +42,13 @@ task ui(type: Copy) {
     }
     from "$rootDir/client/dist"
     into uiFilesDestination
+
+    doLast {
+        copy {
+            from "$rootDir/server/catgenome/src/main/resources/templates"
+            into uiFilesDestination
+        }
+    }
 }
 
 task buildWar(type: GradleBuild) {

@@ -62,8 +62,6 @@ public abstract class AbstractDaoTest extends AbstractTransactionalJUnit4SpringC
 
     protected Reference reference;
 
-    private static final Long DEFAULT_USER = 42L;
-
     @Before
     public void setup() throws Exception {
         assertNotNull("DaoHelper isn't provided.", daoHelper);
@@ -88,7 +86,8 @@ public abstract class AbstractDaoTest extends AbstractTransactionalJUnit4SpringC
         index.setName("");
         index.setPath("");
         index.setCreatedDate(new Date());
-        index.setCreatedBy(DEFAULT_USER);
+        index.setOwner(EntityHelper.TEST_OWNER);
+
         biologicalDataItemDao.createBiologicalDataItem(index);
         return index;
     }

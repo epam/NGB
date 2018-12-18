@@ -122,11 +122,10 @@ public class BedGraphProcessorTest extends AbstractManagerTest {
 
         WigFile wigFile = wigManager.registerWigFile(request);
         Assert.assertNotNull(wigFile);
-        WigFile loadWigFile = wigFileManager.loadWigFile(wigFile.getId());
+        WigFile loadWigFile = wigFileManager.load(wigFile.getId());
         Assert.assertNotNull(loadWigFile);
         Assert.assertTrue(wigFile.getId().equals(loadWigFile.getId()));
         Assert.assertTrue(wigFile.getName().equals(loadWigFile.getName()));
-        Assert.assertTrue(wigFile.getCreatedBy().equals(loadWigFile.getCreatedBy()));
         Assert.assertTrue(wigFile.getCreatedDate().equals(loadWigFile.getCreatedDate()));
         Assert.assertTrue(wigFile.getReferenceId().equals(loadWigFile.getReferenceId()));
         Assert.assertTrue(wigFile.getPath().equals(loadWigFile.getPath()));
@@ -143,7 +142,7 @@ public class BedGraphProcessorTest extends AbstractManagerTest {
         Assert.assertTrue(wigTrack.getBlocks().stream().allMatch(wig -> wig.getValue() != null));
 
         wigManager.unregisterWigFile(loadWigFile.getId());
-        loadWigFile = wigFileManager.loadWigFile(wigFile.getId());
+        loadWigFile = wigFileManager.load(wigFile.getId());
         Assert.assertNull(loadWigFile);
     }
 
@@ -159,11 +158,10 @@ public class BedGraphProcessorTest extends AbstractManagerTest {
 
         WigFile wigFile = wigManager.registerWigFile(request);
         Assert.assertNotNull(wigFile);
-        WigFile loadWigFile = wigFileManager.loadWigFile(wigFile.getId());
+        WigFile loadWigFile = wigFileManager.load(wigFile.getId());
         Assert.assertNotNull(loadWigFile);
         Assert.assertTrue(wigFile.getId().equals(loadWigFile.getId()));
         Assert.assertTrue(wigFile.getName().equals(loadWigFile.getName()));
-        Assert.assertTrue(wigFile.getCreatedBy().equals(loadWigFile.getCreatedBy()));
         Assert.assertTrue(wigFile.getCreatedDate().equals(loadWigFile.getCreatedDate()));
         Assert.assertTrue(wigFile.getReferenceId().equals(loadWigFile.getReferenceId()));
         Assert.assertTrue(wigFile.getPath().equals(loadWigFile.getPath()));
@@ -180,7 +178,7 @@ public class BedGraphProcessorTest extends AbstractManagerTest {
         Assert.assertTrue(wigTrack.getBlocks().stream().allMatch(wig -> wig.getValue() != null));
 
         wigManager.unregisterWigFile(loadWigFile.getId());
-        loadWigFile = wigFileManager.loadWigFile(wigFile.getId());
+        loadWigFile = wigFileManager.load(wigFile.getId());
         Assert.assertNull(loadWigFile);
     }
 

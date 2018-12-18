@@ -96,6 +96,8 @@ public class Application {
             + "ADDITIONAL commands:\n"
             + "url\t\t: generate url for displaying required files. "
                                        + "{url my_dataset}\n\n"
+            + "SECURITY commands:\n"
+            + "chmod\t\t: command to be used for granting permission {chmod rw+ --files <filename> --users <username>}"
             + "TOOLS commands:\n"
             + "sort\t\t: sorts given feature file. If target path is not specified, sorted file will be stored in the "
             + "same folder as the original one with the `.sorted.` suffix in the name.\n"
@@ -166,6 +168,17 @@ public class Application {
     @Option(name = "-s", usage = "specifies reference genome species version for registration", aliases = {"--species"})
     private String speciesVersion;
 
+    @Option(name = "-ds", usage = "Datasets for permission update",  aliases = {"--datasets"})
+    private String datasets;
+
+    @Option(name = "-fl", usage = "Files for permission update",  aliases = {"--files"})
+    private String files;
+
+    @Option(name = "-u", usage = "Users for permission update",  aliases = {"--users"})
+    private String users;
+
+    @Option(name = "-gr", usage = "Groups for permission update",  aliases = {"--groups"})
+    private String groups;
 
     @Argument
     private List<String> arguments;
@@ -252,6 +265,10 @@ public class Application {
         options.setForceDeletion(forceDeletion);
         options.setPrettyName(prettyName);
         options.setSpeciesVersion(speciesVersion);
+        options.setUsers(users);
+        options.setGroups(groups);
+        options.setFiles(files);
+        options.setDatasets(datasets);
         if (doNotCreateTabixIndex) {
             options.setCreateTabixIndex(false);
         }

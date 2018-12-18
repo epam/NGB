@@ -64,11 +64,6 @@ public class BiologicalDataItem extends BaseEntity implements Printable<Biologic
     private BiologicalDataItemFormat format;
 
     /**
-     * ID of the user, who created the item
-     */
-    private Long createdBy;
-
-    /**
      * Date of the item creation
      */
     private Date createdDate;
@@ -105,14 +100,6 @@ public class BiologicalDataItem extends BaseEntity implements Printable<Biologic
 
     public void setFormat(BiologicalDataItemFormat format) {
         this.format = format;
-    }
-
-    public Long getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(Long createdBy) {
-        this.createdBy = createdBy;
     }
 
     public Date getCreatedDate() {
@@ -157,7 +144,6 @@ public class BiologicalDataItem extends BaseEntity implements Printable<Biologic
             calculateFieldWidth(formatMap, FieldFormat.TYPE, item.getType());
             calculateFieldWidth(formatMap, FieldFormat.PATH, item.getPath());
             calculateFieldWidth(formatMap, FieldFormat.FORMAT, item.getFormat().name());
-            calculateFieldWidth(formatMap, FieldFormat.CREATED_BY, String.valueOf(item.getCreatedBy()));
             calculateFieldWidth(formatMap, FieldFormat.CREATED_DATE, DATE_FORMAT.format(item.getCreatedDate()));
             calculateFieldWidth(formatMap, FieldFormat.SPECIES_VERSION,
                 item.getSpecies() == null ? "" : item.getSpecies().getVersion());
@@ -174,7 +160,7 @@ public class BiologicalDataItem extends BaseEntity implements Printable<Biologic
         String idStr = String.valueOf(bioDataItemId == null ? getId() : bioDataItemId);
         return String.format(formatString, idStr, String.valueOf(getId()), getName(), type,
                 path, format.name(),
-                String.valueOf(createdBy), DATE_FORMAT.format(createdDate),
+                DATE_FORMAT.format(createdDate),
                 species == null ? "" : species.getVersion());
     }
 
@@ -208,7 +194,6 @@ public class BiologicalDataItem extends BaseEntity implements Printable<Biologic
         TYPE,
         PATH,
         FORMAT,
-        CREATED_BY,
         CREATED_DATE,
         SPECIES_VERSION
     }

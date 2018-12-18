@@ -29,13 +29,7 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import com.epam.catgenome.dao.reference.SpeciesDao;
 import com.epam.catgenome.entity.reference.Species;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.entity.BaseEntity;
@@ -44,8 +38,11 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.gene.GeneFile;
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.util.AuthUtils;
+import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.security.acl.aspect.AclSync;
 import com.epam.catgenome.util.ListMapCollector;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,8 +67,9 @@ import org.springframework.util.StringUtils;
  * logic operations required to manage metadata concerned with reference genomes and sets
  * of their chromosomes.
  */
+@AclSync
 @Service
-public class ReferenceGenomeManager {
+public class ReferenceGenomeManager implements SecuredEntityManager {
 
     @Autowired
     private ReferenceGenomeDao referenceGenomeDao;
@@ -119,7 +117,7 @@ public class ReferenceGenomeManager {
      *                                  doesn't provide information about related chromosomes
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public Reference register(final Reference reference) {
+    public Reference create(final Reference reference) {
         Assert.isTrue(CollectionUtils.isNotEmpty(reference.getChromosomes()),
                 getMessage("error.reference.aborted.saving.chromosomes"));
         Assert.notNull(reference.getId(), getMessage(MessageCode.UNKNOWN_REFERENCE_ID));
@@ -127,7 +125,6 @@ public class ReferenceGenomeManager {
         if (reference.getCreatedDate() == null) {
             reference.setCreatedDate(new Date());
         }
-        reference.setCreatedBy(AuthUtils.getCurrentUserId());
         if (reference.getType() == null) {
             reference.setType(BiologicalDataItemResourceType.FILE);
         }
@@ -147,7 +144,7 @@ public class ReferenceGenomeManager {
      * @param reference an instnce to delete
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void unregister(final Reference reference) {
+    public void delete(final Reference reference) {
         Assert.notNull(reference, MessagesConstants.ERROR_INVALID_PARAM);
         Assert.notNull(reference.getId(), MessagesConstants.ERROR_INVALID_PARAM);
 
@@ -177,7 +174,7 @@ public class ReferenceGenomeManager {
      *                                  found in the system
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public Reference loadReferenceGenome(final Long referenceId) {
+    public Reference load(final Long referenceId) {
         final Reference reference = referenceGenomeDao.loadReferenceGenome(referenceId);
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
 
@@ -217,7 +214,9 @@ public class ReferenceGenomeManager {
         final Reference reference = referenceGenomeDao.loadReferenceGenomeByBioItemId(dataItemId);
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
 
-        reference.setGeneFile(geneFileDao.loadGeneFile(reference.getGeneFile().getId()));
+        if (reference.getGeneFile() != null) {
+            reference.setGeneFile(geneFileDao.loadGeneFile(reference.getGeneFile().getId()));
+        }
         reference.setAnnotationFiles(getAnnotationFilesByReferenceId(reference.getId()));
         return reference;
     }
@@ -336,7 +335,7 @@ public class ReferenceGenomeManager {
         Assert.notNull(reference, getMessage(MessageCode.NO_SUCH_REFERENCE));
 
         referenceGenomeDao.updateReferenceGeneFileId(referenceId, geneFileId);
-        return loadReferenceGenome(referenceId);
+        return load(referenceId);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -349,7 +348,7 @@ public class ReferenceGenomeManager {
         }
 
         referenceGenomeDao.updateSpecies(referenceId, speciesVersion);
-        return loadReferenceGenome(referenceId);
+        return load(referenceId);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
@@ -375,7 +374,7 @@ public class ReferenceGenomeManager {
                     getMessage(
                             MessagesConstants.ERROR_ANNOTATION_FILE_NOT_EXIST,
                             annotationFile.getName(),
-                            loadReferenceGenome(referenceId).getName()
+                            load(referenceId).getName()
                     )
             );
             referenceGenomeDao.removeAnnotationFile(referenceId, annotationFileBiologicalItemId);
@@ -386,20 +385,20 @@ public class ReferenceGenomeManager {
                     getMessage(
                             MessagesConstants.ERROR_ANNOTATION_FILE_ALREADY_EXIST,
                             annotationFile.getName(),
-                            loadReferenceGenome(referenceId).getName()
+                            load(referenceId).getName()
                     )
             );
             Assert.isTrue(
                     annotationFile.getReferenceId().equals(referenceId),
                     getMessage(
                             MessagesConstants.ERROR_ILLEGAL_REFERENCE_FOR_ANNOTATION,
-                            loadReferenceGenome(annotationFile.getReferenceId()).getName(),
-                            loadReferenceGenome(referenceId).getName()
+                            load(annotationFile.getReferenceId()).getName(),
+                            load(referenceId).getName()
                     )
             );
             referenceGenomeDao.addAnnotationFile(referenceId, annotationFileBiologicalItemId);
         }
-        return loadReferenceGenome(referenceId);
+        return load(referenceId);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -447,4 +446,19 @@ public class ReferenceGenomeManager {
         );
         return (FeatureFile) annotationFile;
     }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public AbstractSecuredEntity changeOwner(Long id, String owner) {
+        Reference file = load(id);
+        biologicalDataItemDao.updateOwner(file.getBioDataItemId(), owner);
+        file.setOwner(owner);
+        return file;
+    }
+
+    @Override
+    public AclClass getSupportedClass() {
+        return AclClass.REFERENCE;
+    }
+
 }

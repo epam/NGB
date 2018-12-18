@@ -237,6 +237,23 @@ public final class MessagesConstants {
     //JWT
     public static final String ERROR_NO_JWT_PRIVATE_KEY_CONFIGURED = "error.no.jwt.private.key.configured";
 
+    //ACL SERVICES MESSAGES
+    public static final String ERROR_MUTABLE_ACL_RETURN = "error.mutable.acl.return";
+    // AUTHORIZATION
+    public static final String ERROR_USER_NAME_NOT_FOUND = "error.user.name.not.found";
+    public static final String ERROR_ACL_CLASS_NOT_SUPPORTED = "error.acl.class.not.supported";
+    public static final String ERROR_PERMISSION_PARAM_REQUIRED = "error.permission.param.required";
+    public static final String ERROR_ROLE_OR_USER_NOT_FOUND = "error.role.or.user.not.found";
+
+    // USER
+    public static final String ERROR_USER_NAME_REQUIRED = "error.user.name.required";
+    public static final String ERROR_USER_NAME_EXISTS = "error.user.name.exists";
+    public static final String ERROR_ROLE_ID_NOT_FOUND = "error.role.id.not.found";
+    public static final String ERROR_USER_ID_NOT_FOUND = "error.user.id.not.found";
+    public static final String ERROR_USER_LIST_EMPTY = "error.user.list.empty";
+    public static final String ERROR_ROLE_NAME_REQUIRED = "error.role.name.required";
+    public static final String ERROR_ROLE_ALREADY_EXIST = "error.role.already.exists";
+
     private MessagesConstants() {
         // No-op
     }

@@ -73,7 +73,6 @@ import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.bed.parser.NggbBedFeature;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.Utils;
@@ -152,7 +151,7 @@ public class BedManager {
     public Track<BedRecord> loadFeatures(final Track<BedRecord> track) throws FeatureFileReadingException {
         final Chromosome chromosome = trackHelper.validateTrack(track);
 
-        final BedFile bedFile = bedFileManager.loadBedFile(track.getId());
+        final BedFile bedFile = bedFileManager.load(track.getId());
 
         return loadTrackFromFile(track, bedFile, chromosome);
     }
@@ -208,7 +207,7 @@ public class BedManager {
     public Track<Wig> loadHistogram(final Track<Wig> track) throws HistogramReadingException {
         TrackHelper.validateHistogramTrack(track);
 
-        final BedFile bedFile = bedFileManager.loadBedFile(track.getId());
+        final BedFile bedFile = bedFileManager.load(track.getId());
         final Chromosome chromosome = referenceGenomeManager.loadChromosome(track.getChromosome().getId());
         Assert.notNull(chromosome, getMessage(MessagesConstants.ERROR_CHROMOSOME_ID_NOT_FOUND));
 
@@ -234,10 +233,10 @@ public class BedManager {
      */
     public BedFile unregisterBedFile(long bedFileId) throws IOException {
         Assert.isTrue(bedFileId > 0, MessagesConstants.ERROR_INVALID_PARAM);
-        final BedFile fileToDelete = bedFileManager.loadBedFile(bedFileId);
+        final BedFile fileToDelete = bedFileManager.load(bedFileId);
         Assert.notNull(fileToDelete, MessagesConstants.ERROR_NO_SUCH_FILE);
 
-        bedFileManager.deleteBedFile(fileToDelete);
+        bedFileManager.delete(fileToDelete);
         fileManager.deleteFeatureFileDirectory(fileToDelete);
 
         return fileToDelete;
@@ -250,6 +249,7 @@ public class BedManager {
         switch (type) {
             case URL:
             case FILE:
+            case S3:
                 bedFile = registerBedFileFromFile(request);
                 break;
             case DOWNLOAD:
@@ -276,7 +276,7 @@ public class BedManager {
     private BedFile registerBedFileFromFile(final IndexedFileRegistrationRequest request)
         throws HistogramReadingException, IOException {
 
-        Reference reference = referenceGenomeManager.loadReferenceGenome(request.getReferenceId());
+        Reference reference = referenceGenomeManager.load(request.getReferenceId());
 
         BiologicalDataItemResourceType resourceType = BiologicalDataItemResourceType.translateRequestType(
             request.getType());
@@ -289,7 +289,6 @@ public class BedManager {
         bedFile.setName(request.getName() != null ? request.getName() : fileName);
         bedFile.setType(resourceType); // For now we're working only with files
         bedFile.setCreatedDate(new Date());
-        bedFile.setCreatedBy(AuthUtils.getCurrentUserId());
         bedFile.setReferenceId(reference.getId());
         bedFile.setPrettyName(request.getPrettyName());
 
@@ -308,18 +307,18 @@ public class BedManager {
                 indexItem.setType(BiologicalDataItemResourceType
                         .translateRequestType(request.getIndexType()));
                 indexItem.setName(bedFile.getName() + "_index");
-                indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
                 bedFile.setIndex(indexItem);
             } else {
                 Assert.isTrue(resourceType == BiologicalDataItemResourceType.FILE,
                         "Auto indexing is supported only for FILE type requests");
-                fileManager.makeBedDir(bedFile.getId(), AuthUtils.getCurrentUserId());
+                fileManager.makeBedDir(bedFile.getId());
                 fileManager.makeBedIndex(bedFile);
             }
 
             double time1 = Utils.getSystemTimeMilliseconds();
-            if (resourceType == BiologicalDataItemResourceType.FILE) {
+            if (resourceType == BiologicalDataItemResourceType.FILE
+                    || resourceType == BiologicalDataItemResourceType.S3) {
                 createHistogram(bedFile);
             }
             double time2 = Utils.getSystemTimeMilliseconds();
@@ -327,11 +326,11 @@ public class BedManager {
             LOG.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, bedFile.getId(),
                     bedFile.getPath()));
             biologicalDataItemManager.createBiologicalDataItem(bedFile.getIndex());
-            bedFileManager.createBedFile(bedFile);
+            bedFileManager.create(bedFile);
             return bedFile;
         } finally {
             if (bedFile.getId() != null && bedFile.getBioDataItemId() != null
-                    && bedFileManager.loadBedFile(bedFile.getId()) == null) {
+                    && bedFileManager.load(bedFile.getId()) == null) {
                 biologicalDataItemManager.deleteBiologicalDataItem(bedFile.getBioDataItemId());
                 try {
                     fileManager.deleteFeatureFileDirectory(bedFile);
@@ -554,8 +553,8 @@ public class BedManager {
     }
 
     public BedFile reindexBedFile(long bedFileId) throws FeatureIndexException {
-        BedFile bedFile = bedFileManager.loadBedFile(bedFileId);
-        Reference reference = referenceGenomeManager.loadReferenceGenome(bedFile.getReferenceId());
+        BedFile bedFile = bedFileManager.load(bedFileId);
+        Reference reference = referenceGenomeManager.load(bedFile.getReferenceId());
         Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
                 Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
 

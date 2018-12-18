@@ -45,6 +45,7 @@ import com.epam.catgenome.entity.person.Person;
  * A custom implementation of UserDetailsService, that loads user from the database
  * </p>
  */
+@Deprecated
 @Component
 public class PersonService implements UserDetailsService {
 

@@ -28,6 +28,8 @@ import java.util.Date;
 import java.util.Objects;
 
 import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
 
 /**
  * Source:      BiologicalItem
@@ -40,11 +42,11 @@ import com.epam.catgenome.entity.reference.Reference;
  * biological data files, registered in the system.
  * </p>
  */
-public class BiologicalDataItem extends BaseEntity {
+public class BiologicalDataItem extends AbstractSecuredEntity {
+
     private BiologicalDataItemResourceType type;
     private String path;
     private BiologicalDataItemFormat format;
-    private Long createdBy;
     private Date createdDate;
     private Long bucketId;
 
@@ -54,6 +56,16 @@ public class BiologicalDataItem extends BaseEntity {
 
     public BiologicalDataItem(Long id) {
         setId(id);
+    }
+
+    @Override
+    public AbstractSecuredEntity getParent() {
+        return null;
+    }
+
+    @Override
+    public AclClass getAclClass() {
+        return null;
     }
 
     public BiologicalDataItemResourceType getType() {
@@ -78,14 +90,6 @@ public class BiologicalDataItem extends BaseEntity {
 
     public final void setFormat(BiologicalDataItemFormat format) {
         this.format = format;
-    }
-
-    public Long getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(Long createdBy) {
-        this.createdBy = createdBy;
     }
 
     public Date getCreatedDate() {

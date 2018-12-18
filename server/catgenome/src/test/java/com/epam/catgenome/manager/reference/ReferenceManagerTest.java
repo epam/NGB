@@ -299,7 +299,7 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
         assertNotNull(testRef);
         assertNotNull(testRef.getGeneFile());
 
-        Reference loadedReference = referenceGenomeManager.loadReferenceGenome(testRef.getId());
+        Reference loadedReference = referenceGenomeManager.load(testRef.getId());
         assertNotNull(loadedReference);
         assertNotNull(loadedReference.getGeneFile());
         assertNotNull(loadedReference.getGeneFile().getId());
@@ -321,7 +321,7 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
         request.setGeneFileId(testRef.getGeneFile().getId());
 
         Reference testRef2 = referenceManager.registerGenome(request);
-        loadedReference = referenceGenomeManager.loadReferenceGenome(testRef2.getId());
+        loadedReference = referenceGenomeManager.load(testRef2.getId());
         assertNotNull(loadedReference);
         assertNotNull(loadedReference.getGeneFile());
         assertNotNull(loadedReference.getGeneFile().getId());

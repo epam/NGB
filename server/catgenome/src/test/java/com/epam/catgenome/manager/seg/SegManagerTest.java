@@ -101,7 +101,7 @@ public class SegManagerTest extends AbstractManagerTest {
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
         testReference = EntityHelper.createNewReference(testChromosome, referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
     }
 
@@ -111,7 +111,7 @@ public class SegManagerTest extends AbstractManagerTest {
         SegFile segFile = testRegisterSeg("classpath:templates/test_seg.seg");
 
         segManager.unregisterSegFile(segFile.getId());
-        SegFile loadedSeg = segFileManager.loadSegFile(segFile.getId());
+        SegFile loadedSeg = segFileManager.load(segFile.getId());
         Assert.assertNull(loadedSeg);
         List<BiologicalDataItem> dataItems = biologicalDataItemDao.loadBiologicalDataItemsByIds(
                 Arrays.asList(segFile.getBioDataItemId(), segFile.getIndex().getId()));
@@ -167,17 +167,12 @@ public class SegManagerTest extends AbstractManagerTest {
         SegFile segFile = segManager.registerSegFile(request);
         Assert.assertNotNull(segFile);
 
-        SegFile loadedSegFile = segFileManager.loadSegFile(segFile.getId());
+        SegFile loadedSegFile = segFileManager.load(segFile.getId());
         Assert.assertNotNull(loadedSegFile.getId());
         Assert.assertNotNull(loadedSegFile.getBioDataItemId());
         Assert.assertNotNull(loadedSegFile.getIndex());
         Assert.assertFalse(loadedSegFile.getPath().isEmpty());
         Assert.assertEquals(PRETTY_NAME, loadedSegFile.getPrettyName());
-
-        List<SegFile> segFiles = segFileManager.loadSedFilesByReferenceId(referenceId);
-        Assert.assertEquals(1, segFiles.size());
-        Assert.assertTrue(segFiles.stream().allMatch(s -> s.getId().equals(segFile.getId()) &&
-            s.getPrettyName().equals(PRETTY_NAME)));
 
         SampledTrack<SegRecord> sampledTrack = new SampledTrack<>();
         sampledTrack.setScaleFactor(FULL_QUERY_SCALE_FACTOR);

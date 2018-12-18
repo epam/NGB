@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
@@ -52,6 +51,7 @@ import com.epam.catgenome.entity.seg.SegSample;
  * </p>
  */
 public class SegFileDao extends NamedParameterJdbcDaoSupport {
+
     @Autowired
     private DaoHelper daoHelper;
 
@@ -60,7 +60,6 @@ public class SegFileDao extends NamedParameterJdbcDaoSupport {
 
     private String createSegFileQuery;
     private String loadSegFileQuery;
-    private String loadSegFilesByReferenceIdQuery;
     private String deleteSegFileQuery;
 
     private String createSamplesForFileQuery;
@@ -113,18 +112,6 @@ public class SegFileDao extends NamedParameterJdbcDaoSupport {
                 .BiologicalDataItemParameters.getRowMapper(), id);
 
         return !files.isEmpty() ? (SegFile) files.get(0) : null;
-    }
-
-    /**
-     * Loads {@code SegFile} records, saved for a specific reference ID
-     * @param referenceId {@code long} a reference ID in the system
-     * @return a {@code List} of {@code SegFile} instances
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<SegFile> loadSegFilesByReferenceId(long referenceId) {
-        return getJdbcTemplate().query(loadSegFilesByReferenceIdQuery, BiologicalDataItemDao
-                .BiologicalDataItemParameters.getRowMapper(), referenceId)
-                .stream().map(f -> (SegFile) f).collect(Collectors.toList());
     }
 
     /**
@@ -189,19 +176,18 @@ public class SegFileDao extends NamedParameterJdbcDaoSupport {
 
         Map<Long, List<SegSample>> map = new HashMap<>();
 
-        long listId = daoHelper.createTempLongList(fileIds);
         RowMapper<SegSample> sampleMapper = SegSampleParameters.getSegSampleMapper();
 
-        getJdbcTemplate().query(loadSamplesByFileIdsQuery, rs -> {
+        String query = DaoHelper.getQueryFilledWithIdArray(loadSamplesByFileIdsQuery, fileIds);
+        getJdbcTemplate().query(query, rs -> {
             SegSample sample = sampleMapper.mapRow(rs, 0);
             long vcfId = rs.getLong(SegSampleParameters.SEG_ID.name());
             if (!map.containsKey(vcfId)) {
                 map.put(vcfId, new ArrayList<>());
             }
             map.get(vcfId).add(sample);
-        }, listId);
+        });
 
-        daoHelper.clearTempList(listId);
         return map;
     }
 
@@ -266,11 +252,6 @@ public class SegFileDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadSegFileQuery(String loadSegFileQuery) {
         this.loadSegFileQuery = loadSegFileQuery;
-    }
-
-    @Required
-    public void setLoadSegFilesByReferenceIdQuery(String loadSegFilesByReferenceIdQuery) {
-        this.loadSegFilesByReferenceIdQuery = loadSegFilesByReferenceIdQuery;
     }
 
     @Required

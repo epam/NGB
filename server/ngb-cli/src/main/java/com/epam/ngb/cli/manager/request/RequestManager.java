@@ -64,7 +64,7 @@ public final class RequestManager {
 
             try {
                 context = SSLContext.getInstance("SSL");
-                context.init(null , new TrustManager[]{new TrustAnyTrustManager()}, new SecureRandom());
+                context.init(null, new TrustManager[]{new TrustAnyTrustManager()}, new SecureRandom());
             } catch (NoSuchAlgorithmException | KeyManagementException e) {
                 throw new ApplicationException("Unable to create SSLContext", e);
             }

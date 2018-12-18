@@ -85,6 +85,7 @@ public final class Query2TrackConverter {
         track.setEndIndex(psVariationQuery.getVariations().getEndIndex());
         track.setStartIndex(psVariationQuery.getVariations().getStartIndex());
         track.setScaleFactor(psVariationQuery.getVariations().getScaleFactor());
+        track.setProjectId(psVariationQuery.getTrackQuery().getProjectId());
         track.setChromosome(new Chromosome(psVariationQuery.getVariations().getChromosome().getId()));
         return track;
     }
@@ -95,6 +96,7 @@ public final class Query2TrackConverter {
         track.setEndIndex(query.getEndIndex());
         track.setStartIndex(query.getStartIndex());
         track.setScaleFactor(query.getScaleFactor());
+        track.setProjectId(query.getProjectId());
         track.setChromosome(new Chromosome(query.getChromosomeId()));
     }
 }

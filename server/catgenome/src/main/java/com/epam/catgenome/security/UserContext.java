@@ -25,15 +25,19 @@
 package com.epam.catgenome.security;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.user.Role;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.epam.catgenome.entity.security.JwtRawToken;
 import com.epam.catgenome.entity.security.JwtTokenClaims;
+import com.epam.catgenome.entity.security.NgbUser;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -46,10 +50,10 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UserContext implements UserDetails {
     private List<String> groups = new ArrayList<>();
+    private List<Role> roles = new ArrayList<>();
     private Map<String, String> attributes;
-
     private JwtRawToken jwtRawToken;
-    private String userId;
+    private Long userId;
     private String userName;
     private String orgUnitId;
 
@@ -58,10 +62,18 @@ public class UserContext implements UserDetails {
         this.userId = claims.getUserId();
         this.userName = claims.getUserName();
         this.orgUnitId = claims.getOrgUnitId();
+        this.roles = claims.getRoles().stream().map(Role::new).collect(Collectors.toList());
     }
 
     public UserContext(String userName) {
         this.userName = userName;
+    }
+
+    public UserContext(NgbUser user) {
+        this.userName = user.getUserName();
+        this.userId = user.getId();
+        this.roles = user.getRoles();
+        this.groups = user.getGroups();
     }
 
     public JwtTokenClaims toClaims() {
@@ -69,13 +81,26 @@ public class UserContext implements UserDetails {
             .userId(userId)
             .userName(userName)
             .orgUnitId(orgUnitId)
+            .roles(roles.stream().map(Role::getName).collect(Collectors.toList()))
             .groups(groups)
             .build();
     }
 
     @Override
     public List<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList(); // No roles are supported so far
+        List<GrantedAuthority> result = new ArrayList<>();
+
+        if (!CollectionUtils.isEmpty(roles)) {
+            result = roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
+                .collect(Collectors.toList());
+        }
+
+        if (!CollectionUtils.isEmpty(groups)) {
+            result.addAll(groups.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
+        }
+
+        return result;
     }
 
     @Override

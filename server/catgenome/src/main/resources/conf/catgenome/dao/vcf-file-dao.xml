@@ -32,10 +32,11 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
                         v.compressed as vcf_compressed,
@@ -45,7 +46,6 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM catgenome.vcf v
@@ -64,10 +64,11 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
                         v.compressed as vcf_compressed,
@@ -77,46 +78,12 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM catgenome.vcf v
                         JOIN catgenome.biological_data_item b ON v.bio_data_item_id = b.bio_data_item_id
                         JOIN catgenome.biological_data_item i ON i.bio_data_item_id = v.index_id
-                        JOIN t_list tmp ON v.vcf_id = tmp.list_value
-                    WHERE tmp.list_id = ?
-                ]]>
-            </value>
-        </property>
-        <property name="loadVcfFilesByReferenceIdQuery">
-            <value>
-                <![CDATA[
-                    SELECT
-                        b.bio_data_item_id,
-                        b.name,
-                        b.type,
-                        b.path,
-                        b.format,
-                        b.created_by,
-                        b.created_date,
-                        b.bucket_id,
-                        b.pretty_name,
-                        v.vcf_id,
-                        v.reference_genome_id as vcf_reference_genome_id,
-                        v.compressed as vcf_compressed,
-
-                        i.bio_data_item_id as index_id,
-                        i.name as index_name,
-                        i.type as index_type,
-                        i.path as index_path,
-                        i.format as index_format,
-                        i.created_by as index_created_by,
-                        i.bucket_id as index_bucket_id,
-                        i.created_date as index_created_date
-                    FROM catgenome.vcf v
-                        JOIN catgenome.biological_data_item b ON v.bio_data_item_id = b.bio_data_item_id
-                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = v.index_id
-                    WHERE reference_genome_id = ?
+                    WHERE v.vcf_id IN @in@
                 ]]>
             </value>
         </property>
@@ -158,24 +125,8 @@
                         s.order_index,
                         s.vcf_id
                     FROM catgenome.vcf_sample s
-                        JOIN t_list tmp ON s.vcf_id = tmp.list_value
-                    WHERE tmp.list_id = ?
+                    WHERE s.vcf_id IN @in@
                     ORDER BY order_index
-                ]]>
-            </value>
-        </property>
-        <property name="loadSamplesForFilesByReferenceIdQuery">
-            <value>
-                <![CDATA[
-                    SELECT
-                        s.vcf_sample_id,
-                        s.sample_name,
-                        s.vcf_id,
-                        s.order_index
-                    FROM catgenome.vcf_sample s
-                        JOIN catgenome.vcf f ON s.vcf_id = f.vcf_id
-                    WHERE f.reference_genome_id = ?
-                    ORDER BY s.vcf_id, s.order_index
                 ]]>
             </value>
         </property>

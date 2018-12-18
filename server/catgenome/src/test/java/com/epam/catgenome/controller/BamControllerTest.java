@@ -25,7 +25,6 @@
 package com.epam.catgenome.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -79,7 +78,6 @@ import com.epam.catgenome.manager.reference.ReferenceManager;
 public class BamControllerTest extends AbstractControllerTest {
     private static final String BAM_FILE_REGISTER = "/restapi/bam/register";
     private static final String BAM_FILE_UNREGISTER = "/restapi/secure/bam/register";
-    private static final String LOAD_BAM_FILES = "/restapi/bam/%d/loadAll";
     private static final String BAM_TRACK_GET = "/restapi/bam/track/get";
     private static final String BAM_READ_LOAD = "/restapi/bam/read/load";
     private static final String TEST_NSAME = "BIG " + BamControllerTest.class.getSimpleName();
@@ -152,24 +150,6 @@ public class BamControllerTest extends AbstractControllerTest {
         Assert.assertNotNull(res.getPayload().getName());
 
         final Long fileId = res.getPayload().getId();
-
-        actions = mvc()
-                .perform(get(String.format(LOAD_BAM_FILES, testReference.getId()))
-                        .contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(jsonPath(JPATH_PAYLOAD).exists())
-                .andExpect(jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
-
-        actions.andDo(MockMvcResultHandlers.print());
-        ResponseResult<List<BamFile>> bamFilesRes = getObjectMapper()
-                .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
-                        getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
-                                getTypeFactory().constructParametrizedType(List.class, List.class, BamFile.class)));
-
-        Assert.assertNotNull(bamFilesRes.getPayload());
-        Assert.assertFalse(bamFilesRes.getPayload().isEmpty());
-        Assert.assertEquals(bamFilesRes.getPayload().get(0).getId(), fileId);
 
         mvc()
                 .perform(delete(BAM_FILE_UNREGISTER)

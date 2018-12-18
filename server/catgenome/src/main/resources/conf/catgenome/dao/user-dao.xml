@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ MIT License
+  ~
+  ~ Copyright (c) 2018 EPAM Systems
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
+  ~ of this software and associated documentation files (the "Software"), to deal
+  ~ in the Software without restriction, including without limitation the rights
+  ~ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the Software is
+  ~ furnished to do so, subject to the following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in all
+  ~ copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  ~ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  ~ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  ~ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  ~ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  ~ SOFTWARE.
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean id="userDao" class="com.epam.catgenome.dao.user.UserDao" autowire="byName">
+        <property name="userSequence" value="catgenome.s_user"/>
+        <property name="groupSequence" value="catgenome.s_security_group"/>
+
+        <property name="findUsersByPrefixQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        u.id as user_id,
+                        u.name as user_name,
+                        u.attributes as attributes,
+                        r.id as role_id,
+                        r.name as role_name,
+                        r.predefined as role_predefined,
+                        r.user_default as role_user_default
+                    FROM catgenome.user u
+                        JOIN catgenome.user_role ur ON u.id = ur.user_id
+                        JOIN catgenome.role r ON ur.role_id = r.id
+                    WHERE
+                        LOWER(u.name) LIKE :USER_NAME
+                ]]>
+            </value>
+        </property>
+
+        <property name="createUserQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.user (
+                        id,
+                        name,
+                        attributes)
+                    VALUES (
+                        :USER_ID,
+                        :USER_NAME,
+                        :ATTRIBUTES
+                    )
+                ]]>
+            </value>
+        </property>
+
+        <property name="addRoleToUserQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.user_role (
+                        user_id,
+                        role_id)
+                    VALUES (
+                        :USER_ID,
+                        :ROLE_ID)
+                ]]>
+            </value>
+        </property>
+
+        <property name="loadExistingGroupsFromListQuery">
+            <value>
+                <![CDATA[
+                    SELECT id, name FROM catgenome.security_group WHERE name IN (@in@)
+                ]]>
+            </value>
+        </property>
+        <property name="insertGroupQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.security_group (
+                        id,
+                        name
+                    ) VALUES (
+                        :GROUP_ID,
+                        :GROUP_NAME
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="insertUserGroupQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.user_security_group (
+                        user_id,
+                        group_id
+                    ) VALUES (
+                        :USER_ID,
+                        :GROUP_ID
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="loadGroupsByUserIdsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        g.id as group_id,
+                        g.name as group_name,
+                        ug.user_id as user_id
+                    FROM
+                        catgenome.security_group g
+                        JOIN catgenome.user_security_group ug ON ug.group_id = g.id
+                    WHERE
+                        ug.user_id IN (@in@)
+                ]]>
+            </value>
+        </property>
+        <property name="loadUserByNameQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        u.id as user_id,
+                        u.name as user_name,
+                        u.attributes as attributes,
+                        r.id as role_id,
+                        r.name as role_name,
+                        r.predefined as role_predefined,
+                        r.user_default as role_user_default
+                    FROM catgenome.user u
+                        LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
+                        LEFT JOIN catgenome.role r ON ur.role_id = r.id
+                    WHERE LOWER(u.name) = LOWER(?)
+                ]]>
+            </value>
+        </property>
+
+        <property name="loadAllUsersQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                       u.id as user_id,
+                       u.name as user_name,
+                       u.attributes as attributes,
+                       r.id as role_id,
+                       r.name as role_name,
+                       r.predefined as role_predefined,
+                       r.user_default as role_user_default
+                    FROM catgenome.user u
+                       LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
+                       LEFT JOIN catgenome.role r ON ur.role_id = r.id
+                ]]>
+            </value>
+        </property>
+
+        <property name="loadUserByIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        u.id as user_id,
+                        u.name as user_name,
+                        u.attributes as attributes,
+                        r.id as role_id,
+                        r.name as role_name,
+                        r.predefined as role_predefined,
+                        r.user_default as role_user_default
+                    FROM catgenome.user u
+                        LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
+                        LEFT JOIN catgenome.role r ON ur.role_id = r.id
+                    WHERE
+                        u.id = ?
+                ]]>
+            </value>
+        </property>
+
+        <property name="loadUsersByGroupQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        u.id as user_id,
+                        u.name as user_name,
+                        u.attributes as attributes,
+                        r.id as role_id,
+                        r.name as role_name,
+                        r.predefined as role_predefined,
+                        r.user_default as role_user_default
+                    FROM catgenome.user u
+                        LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
+                        LEFT JOIN catgenome.role r ON ur.role_id = r.id
+                        LEFT JOIN catgenome.user_security_group ug ON ug.user_id = u.id
+                        LEFT JOIN catgenome.security_group g ON ug.group_id = g.id
+                    WHERE
+                        LOWER(g.name) = ?
+                ]]>
+            </value>
+        </property>
+
+        <property name="deleteUserQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.user WHERE id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="updateUserQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.user SET
+                        name = :USER_NAME,
+                        attributes = :ATTRIBUTES
+                    WHERE
+                        id = :USER_ID
+                ]]>
+            </value>
+        </property>
+
+        <property name="deleteUserRolesQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.user_role WHERE user_id = ?
+                ]]>
+            </value>
+        </property>
+
+        <property name="deleteUserGroupsQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.user_security_group WHERE user_id = ?
+                ]]>
+            </value>
+        </property>
+
+        <property name="loadAllGroupsQuery">
+            <value>
+                <![CDATA[
+                    SELECT name FROM catgenome.security_group
+                ]]>
+            </value>
+        </property>
+        <property name="findGroupsQuery">
+            <value>
+                <![CDATA[
+                    SELECT name FROM catgenome.security_group WHERE LOWER(name) LIKE ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadUsesByNamesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        u.id as user_id,
+                        u.name as user_name,
+                        u.attributes as attributes,
+                        r.id as role_id,
+                        r.name as role_name,
+                        r.predefined as role_predefined,
+                        r.user_default as role_user_default
+                    FROM catgenome.user u
+                        LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
+                        LEFT JOIN catgenome.role r ON ur.role_id = r.id
+                    WHERE
+                        LOWER(u.name) IN (@in@)
+                ]]>
+            </value>
+        </property>
+        <property name="loadUserByNameAndGroupQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        u.id as user_id,
+                        u.name as user_name,
+                        u.attributes as attributes,
+                        r.id as role_id,
+                        r.name as role_name,
+                        r.predefined as role_predefined,
+                        r.user_default as role_user_default
+                    FROM catgenome.user u
+                        LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
+                        LEFT JOIN catgenome.role r ON ur.role_id = r.id
+                        LEFT JOIN catgenome.user_security_group ug ON ug.user_id = u.id
+                        LEFT JOIN catgenome.security_group g ON ug.group_id = g.id
+                    WHERE
+                        u.name = ? AND g.name = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadUserListQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                      u.id as user_id,
+                      u.name as user_name,
+                      u.attributes as attributes,
+                      r.id as role_id,
+                      r.name as role_name,
+                      r.predefined as role_predefined,
+                      r.user_default as role_user_default
+                    FROM catgenome.user u
+                      LEFT JOIN catgenome.user_role ur ON u.id = ur.user_id
+                      LEFT JOIN catgenome.role r ON ur.role_id = r.id
+                    WHERE
+                        u.id in (:IDS)
+                ]]>
+            </value>
+        </property>
+        <property name="deleteRoleFromUserQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.user_role WHERE user_id = :USER_ID AND role_id = :ROLE_ID
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

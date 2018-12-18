@@ -26,7 +26,6 @@ package com.epam.catgenome.manager.gene;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
@@ -37,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.util.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -61,10 +61,6 @@ import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.util.AuthUtils;
-import com.epam.catgenome.util.IndexUtils;
-import com.epam.catgenome.util.PositionalOutputStream;
-import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
 import htsjdk.tribble.AsciiFeatureCodec;
@@ -168,7 +164,7 @@ public class GeneRegisterer {
     private void createFileIndices(String filePath, String indexPath,
             boolean createTabixIndex, boolean createFeatureIndex)
             throws IOException {
-        fileManager.makeGeneDir(geneFile.getId(), AuthUtils.getCurrentUserId());
+        fileManager.makeGeneDir(geneFile.getId());
 
         File indexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.ORIGINAL);
         File largeScaleIndexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.LARGE_SCALE);
@@ -394,7 +390,6 @@ public class GeneRegisterer {
         indexItem.setFormat(BiologicalDataItemFormat.GENE_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
-        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
         return indexItem;
     }
@@ -451,14 +446,13 @@ public class GeneRegisterer {
     private void openStreams(GeneFile geneFile, String filePath)
         throws
         IOException {
-        File file = new File(filePath);
 
         final String extension = Utils.getFileExtension(filePath);
         GffCodec.GffType gffType = GffCodec.GffType.forExt(extension);
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(gffType);
 
-        compressedInputStream = new BlockCompressedInputStream(new FileInputStream(file));
-        inputStream = new PositionalBufferedStream(new FileInputStream(file));
+        compressedInputStream = new BlockCompressedInputStream(IOHelper.openStream(filePath));
+        inputStream = new PositionalBufferedStream(IOHelper.openStream(filePath));
 
         if (geneFile.getCompressed()) {
             largeScaleOS = null;
@@ -471,7 +465,8 @@ public class GeneRegisterer {
                                                                          Charset.forName(CHARSET_NAME)));
             writerLargeScale = new BufferedWriter(new OutputStreamWriter(largeScaleBCOS,
                                                                          Charset.forName(CHARSET_NAME)));
-            iterator = new IndexUtils.FeatureIterator<>(file, codec);
+            iterator = new IndexUtils.FeatureIterator<>(new PositionalBufferedStream(
+                    new BlockCompressedInputStream(IOHelper.openStream(filePath))), codec);
         } else {
             largeScaleOS = fileManager.makePositionalOutputStream(gffType, geneFile, GeneFileType.LARGE_SCALE);
             largeScaleBCOS = null;

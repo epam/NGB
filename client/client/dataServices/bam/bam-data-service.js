@@ -2,6 +2,7 @@ import {DataService} from '../data-service';
 
 class BamDataInit {
     id: number;
+    projectId: number;
     chromosomeId: number;
     startIndex: number;
     endIndex: number;
@@ -18,11 +19,6 @@ class BamDataInit {
  * @extends DataService
  */
 export class BamDataService extends DataService {
-    /**
-     * Returns metadata for all BAM files filtered by a reference genome
-     * @returns {promise}
-     */
-    getAllFileList(referenceId) { return this.get(`bam/${referenceId}/loadAll`); }
 
     /**
      * Register BAM file on server
@@ -176,6 +172,7 @@ export class BamDataService extends DataService {
             chromosomeId: props.chromosomeId,
             endIndex: props.endIndex,
             id: props.id,
+            projectId: props.projectId ? props.projectId : undefined,
             option: {
                 count: props.count,
                 filterDuplicate: filter.pcrOpticalDuplicates,
@@ -207,6 +204,7 @@ export class BamDataService extends DataService {
             chromosomeId: props.chromosomeId,
             endIndex: props.endIndex,
             id: props.id,
+            projectId: props.projectId ? props.projectId : undefined,
             option: {
                 count: props.count,
                 filterDuplicate: filter.pcrOpticalDuplicates,
@@ -239,6 +237,7 @@ export class BamDataService extends DataService {
             chromosomeId: props.chromosomeId,
             endIndex: props.endIndex,
             id: props.id,
+            projectId: props.projectId ? props.projectId : undefined,
             option: {
                 count: props.count,
                 filterDuplicate: filter.pcrOpticalDuplicates,
@@ -265,7 +264,7 @@ export class BamDataService extends DataService {
      * Provides extended data about the particular read
      */
     loadRead(props) {
-        let {id, chromosomeId, startIndex, endIndex, name, openByUrl, file, index} = props;
+        const {id, chromosomeId, startIndex, endIndex, name, openByUrl, projectId, file, index} = props;
         if (openByUrl) {
             const payload = {
                 chromosomeId: chromosomeId,
@@ -280,7 +279,8 @@ export class BamDataService extends DataService {
                 chromosomeId: chromosomeId,
                 startIndex: startIndex,
                 endIndex: endIndex,
-                name: name
+                name: name,
+                projectId
             };
             return this.post('bam/read/load', payload);
         }

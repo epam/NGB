@@ -20,9 +20,9 @@ export class ProjectDataService extends DataService {
         });
     }
 
-    getProjectsFilterVcfInfo(vcfFileIds) {
+    getProjectsFilterVcfInfo(vcfFileIdsByProject) {
         return new Promise((resolve, reject) => {
-            this.post('filter/info', vcfFileIds).then(data => {
+            this.post('filter/info', vcfFileIdsByProject).then(data => {
                 if (data !== null && data !== undefined) {
                     resolve(data);
                 }

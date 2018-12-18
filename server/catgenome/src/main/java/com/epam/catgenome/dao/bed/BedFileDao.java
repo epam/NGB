@@ -25,7 +25,6 @@
 package com.epam.catgenome.dao.bed;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
@@ -49,7 +48,6 @@ public class BedFileDao extends NamedParameterJdbcDaoSupport {
 
     private String createBedFileQuery;
     private String loadBedFileQuery;
-    private String loadBedFilesByReferenceIdQuery;
     private String deleteBedFileQuery;
 
     /**
@@ -99,18 +97,6 @@ public class BedFileDao extends NamedParameterJdbcDaoSupport {
     }
 
     /**
-     * Loads {@code BedFile} records, saved for a specific reference ID
-     * @param referenceId {@code long} a reference ID in the system
-     * @return a {@code List} of {@code BedFile} instances
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<BedFile> loadBedFilesByReferenceId(long referenceId) {
-        return getJdbcTemplate().query(loadBedFilesByReferenceIdQuery, BiologicalDataItemDao
-                .BiologicalDataItemParameters.getRowMapper(), referenceId)
-                .stream().map(f -> (BedFile) f).collect(Collectors.toList());
-    }
-
-    /**
      * Deletes {@code BedFile} record from the databases
      * @param bedFileId {@code long} a file ID in the system to delete
      */
@@ -136,11 +122,6 @@ public class BedFileDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadBedFileQuery(String loadBedFileQuery) {
         this.loadBedFileQuery = loadBedFileQuery;
-    }
-
-    @Required
-    public void setLoadBedFilesByReferenceIdQuery(String loadBedFilesByReferenceIdQuery) {
-        this.loadBedFilesByReferenceIdQuery = loadBedFilesByReferenceIdQuery;
     }
 
     @Required

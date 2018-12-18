@@ -123,7 +123,7 @@ public class MafManagerTest extends AbstractManagerTest {
 
         testReference = EntityHelper.createNewReference(chromosomes, referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
     }
 
@@ -143,7 +143,7 @@ public class MafManagerTest extends AbstractManagerTest {
         MafFile mafFile = mafManager.registerMafFile(request);
         Assert.assertNotNull(mafFile);
 
-        MafFile loadedMafFile = mafFileManager.loadMafFile(mafFile.getId());
+        MafFile loadedMafFile = mafFileManager.load(mafFile.getId());
         Assert.assertEquals(mafFile.getId(), loadedMafFile.getId());
         Assert.assertEquals(mafFile.getName(), loadedMafFile.getName());
         Assert.assertEquals(PRETTY_NAME, loadedMafFile.getPrettyName());

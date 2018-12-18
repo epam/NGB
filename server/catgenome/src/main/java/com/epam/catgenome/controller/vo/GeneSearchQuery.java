@@ -25,6 +25,7 @@
 package com.epam.catgenome.controller.vo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Source:      GeneSearchQuery
@@ -40,7 +41,7 @@ import java.util.List;
  */
 public class GeneSearchQuery {
     private String search;
-    private List<Long> vcfIds;
+    private Map<Long, List<Long>> vcfFileIdsByProject;
 
     public String getSearch() {
         return search;
@@ -50,11 +51,11 @@ public class GeneSearchQuery {
         this.search = search;
     }
 
-    public List<Long> getVcfIds() {
-        return vcfIds;
+    public Map<Long, List<Long>> getVcfIdsByProject() {
+        return vcfFileIdsByProject;
     }
 
-    public void setVcfIds(List<Long> vcfIds) {
-        this.vcfIds = vcfIds;
+    public void setVcfIdsByProject(Map<Long, List<Long>> vcfFileIdsByProject) {
+        this.vcfFileIdsByProject = vcfFileIdsByProject;
     }
 }

@@ -50,7 +50,6 @@ import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.seg.SegFile;
 import com.epam.catgenome.entity.seg.SegSample;
 import com.epam.catgenome.helper.EntityHelper;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * Source:      SegDaoTest
@@ -82,11 +81,11 @@ public class SegDaoTest extends AbstractDaoTest {
 
         segFile.setId(segFileDao.createSegFileId());
         segFile.setName("testFile");
-        segFile.setCreatedBy(AuthUtils.getCurrentUserId());
         segFile.setType(BiologicalDataItemResourceType.FILE);
         segFile.setPath("///");
         segFile.setCreatedDate(new Date());
         segFile.setReferenceId(reference.getId());
+        segFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.SEG_INDEX,
                 BiologicalDataItemResourceType.FILE, "////");
@@ -101,7 +100,6 @@ public class SegDaoTest extends AbstractDaoTest {
 
         assertNotNull(loadedFile);
         assertEquals(segFile.getName(), loadedFile.getName());
-        assertEquals(segFile.getCreatedBy(), loadedFile.getCreatedBy());
         assertEquals(segFile.getType(), loadedFile.getType());
         assertEquals(segFile.getFormat(), loadedFile.getFormat());
         assertEquals(segFile.getPath(), loadedFile.getPath());
@@ -109,10 +107,6 @@ public class SegDaoTest extends AbstractDaoTest {
         assertEquals(segFile.getCreatedDate(), loadedFile.getCreatedDate());
         assertEquals(segFile.getReferenceId(), loadedFile.getReferenceId());
         assertEquals(segFile.getBioDataItemId(), loadedFile.getBioDataItemId());
-
-        List<SegFile> segFiles = segFileDao.loadSegFilesByReferenceId(reference.getId());
-
-        assertFalse(segFiles.isEmpty());
 
         segFileDao.deleteSegFile(segFile.getId());
         assertNull(segFileDao.loadSegFile(segFile.getId()));
@@ -125,11 +119,11 @@ public class SegDaoTest extends AbstractDaoTest {
 
         segFile.setId(segFileDao.createSegFileId());
         segFile.setName("testFile");
-        segFile.setCreatedBy(AuthUtils.getCurrentUserId());
         segFile.setType(BiologicalDataItemResourceType.FILE);
         segFile.setPath("///");
         segFile.setCreatedDate(new Date());
         segFile.setReferenceId(reference.getId());
+        segFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.VCF_INDEX,
                 BiologicalDataItemResourceType.FILE, "////");

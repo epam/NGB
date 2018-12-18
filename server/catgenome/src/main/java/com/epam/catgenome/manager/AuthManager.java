@@ -27,6 +27,7 @@ package com.epam.catgenome.manager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import com.epam.catgenome.entity.security.JwtRawToken;
@@ -57,6 +58,29 @@ public class AuthManager {
         } else {
             return null;
         }
+    }
+
+    /**
+     * @return user name of currently logged in user
+     */
+    public String getAuthorizedUser() {
+        Object principal = getPrincipal();
+        if (principal.equals(UNAUTHORIZED_USER)) {
+            return UNAUTHORIZED_USER;
+        }
+
+        String user;
+        if (principal instanceof UserContext) {
+            user = ((UserContext) principal).getUsername();
+        } else if (principal instanceof String) {
+            user = (String) principal;
+        } else if (principal instanceof User){
+            user = ((User) principal).getUsername();
+        } else {
+            user = UNAUTHORIZED_USER;
+        }
+
+        return user;
     }
 
     private Object getPrincipal() {

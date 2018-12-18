@@ -25,7 +25,6 @@
 package com.epam.catgenome.dao.maf;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
@@ -50,7 +49,6 @@ public class MafFileDao extends NamedParameterJdbcDaoSupport {
 
     private String createMafFileQuery;
     private String loadMafFileQuery;
-    private String loadMafFilesByReferenceIdQuery;
 
     private String deleteMafFileQuery;
 
@@ -94,18 +92,6 @@ public class MafFileDao extends NamedParameterJdbcDaoSupport {
     }
 
     /**
-     * Loads {@code MafFile} records, saved for a specific reference ID
-     * @param referenceId {@code long} a reference ID in the system
-     * @return a {@code List} of {@code MafFile} instances
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<MafFile> loadMafFilesByReferenceId(long referenceId) {
-        return getJdbcTemplate().query(loadMafFilesByReferenceIdQuery, BiologicalDataItemDao
-                .BiologicalDataItemParameters.getRowMapper(), referenceId)
-                .stream().map(f -> (MafFile) f).collect(Collectors.toList());
-    }
-
-    /**
      * Loads a persisted {@code MafFile} record by it's ID
      * @param id {@code long} a MafFile ID
      * @return {@code MafFile} instance
@@ -140,11 +126,6 @@ public class MafFileDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadMafFileQuery(String loadMafFileQuery) {
         this.loadMafFileQuery = loadMafFileQuery;
-    }
-
-    @Required
-    public void setLoadMafFilesByReferenceIdQuery(String loadMafFilesByReferenceIdQuery) {
-        this.loadMafFilesByReferenceIdQuery = loadMafFilesByReferenceIdQuery;
     }
 
     @Required
