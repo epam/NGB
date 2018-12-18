@@ -28,7 +28,10 @@ package com.epam.ngb.cli.manager.command.handler.http;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
+import com.epam.ngb.cli.entity.Role;
 import com.epam.ngb.cli.manager.command.handler.Command;
+import com.epam.ngb.cli.manager.request.RequestManager;
+import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,11 +40,15 @@ import java.util.List;
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
 /**
+ * Deletes group with specific name of id
  */
 @Command(type = Command.Type.REQUEST, command = {"del_group"})
 public class DeleteUserGroupHandler extends AbstractHTTPCommandHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeleteUserGroupHandler.class);
+
+    private Long groupId;
+
     /**
      * Verifies input arguments
      * @param arguments command line arguments for 'grant_permission' command
@@ -53,9 +60,23 @@ public class DeleteUserGroupHandler extends AbstractHTTPCommandHandler {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 1, arguments.size()));
         }
+        String roleIdentifier = arguments.get(0);
+        if (NumberUtils.isDigits(roleIdentifier)) {
+            this.groupId = Long.parseLong(roleIdentifier);
+        } else {
+            Role role = loadRoleByName(roleIdentifier);
+            if (role == null) {
+                throw new IllegalArgumentException("Group with name: '" + roleIdentifier + "' not found!");
+            }
+            this.groupId = role.getId();
+        }
+
     }
 
     @Override public int runCommand() {
+        String result = RequestManager.executeRequest(getRequest(String.format(getRequestUrl(), groupId)));
+        Role deletedRole = getResult(result, Role.class);
+        LOGGER.info("Group with id: '" + deletedRole.getName() + "' deleted!");
         return 0;
     }
 

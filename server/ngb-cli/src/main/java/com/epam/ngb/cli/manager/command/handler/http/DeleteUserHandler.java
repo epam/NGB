@@ -35,8 +35,6 @@ import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.request.RequestManager;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -47,8 +45,6 @@ import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUME
  */
 @Command(type = Command.Type.REQUEST, command = {"del_user"})
 public class DeleteUserHandler extends AbstractHTTPCommandHandler {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DeleteUserHandler.class);
 
     private Long userToDeleteId;
 

@@ -117,8 +117,8 @@ public class CreateUserHandler extends AbstractHTTPCommandHandler {
 
     @Override public int runCommand() {
         HttpPost request = (HttpPost) getRequest(getRequestUrl());
-        String result = getPostResult(userVO, request);
-        checkAndPrintResult(result, printJson, printTable, NgbUser.class);
+        NgbUser result = getResult(getPostResult(userVO, request), NgbUser.class);
+        LOGGER.info("Group: '" + result.getUserName() + "' created!");
         return 0;
     }
 

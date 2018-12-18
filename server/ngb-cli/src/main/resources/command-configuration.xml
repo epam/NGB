@@ -180,4 +180,9 @@
         <type>DELETE</type>
         <url>/restapi/role/%d</url>
     </del_group>
+    <add_group>
+        <name>add_group</name>
+        <type>POST</type>
+        <url>/restapi/role/%d/assign?userIds=%s</url>
+    </add_group>
 </config>

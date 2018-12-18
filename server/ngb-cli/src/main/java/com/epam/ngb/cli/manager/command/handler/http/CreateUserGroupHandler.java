@@ -90,12 +90,15 @@ public class CreateUserGroupHandler extends AbstractHTTPCommandHandler {
 
     @Override public int runCommand() {
         RequestManager.executeRequest(getRequest(String.format(getRequestUrl(), roleName)));
-        HttpPost post = (HttpPost) getRequestFromURLByType("POST",
-                getServerParameters().getServerUrl()
-                        + String.format(ASSIGN_USERS_TO_ROLE, loadRoleByName(roleName).getId(),
-                users.stream().map(String::valueOf).collect(Collectors.joining(","))));
-        String result = getPostResult(null, post);
-        checkAndPrintResult(result, printJson, printTable, Role.class);
+        if (!users.isEmpty()) {
+            HttpPost post = (HttpPost) getRequestFromURLByType("POST",
+                    getServerParameters().getServerUrl()
+                            + String.format(ASSIGN_USERS_TO_ROLE, loadRoleByName(roleName).getId(),
+                    users.stream().map(String::valueOf).collect(Collectors.joining(","))));
+            String result = getPostResult(null, post);
+            Role createdRole = getResult(result, Role.class);
+            LOGGER.info("Group: '" + createdRole.getName() + "' created!");
+        }
         return 0;
     }
 

@@ -28,20 +28,37 @@ package com.epam.ngb.cli.manager.command.handler.http;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
+import com.epam.ngb.cli.entity.Role;
 import com.epam.ngb.cli.manager.command.handler.Command;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang.math.NumberUtils;
+import org.apache.http.client.methods.HttpPost;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
 /**
  */
 @Command(type = Command.Type.REQUEST, command = {"add_group"})
-public class AddToUserGroupHandler extends AbstractHTTPCommandHandler {
+public class UserGroupUserAddingHandler extends AbstractHTTPCommandHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AddToUserGroupHandler.class);
+    /**
+     * If true command will output list of datasets in a table format, otherwise
+     * json format will be used
+     */
+    private boolean printTable;
+
+    /**
+     * If true command will output result of reference registration in a json format
+     */
+    private boolean printJson;
+
+    private List<Long> users = Collections.emptyList();
+    private Long groupId;
+
     /**
      * Verifies input arguments
      * @param arguments command line arguments for 'grant_permission' command
@@ -49,13 +66,40 @@ public class AddToUserGroupHandler extends AbstractHTTPCommandHandler {
      */
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
+
+        printTable = options.isPrintTable();
+        printJson = options.isPrintJson();
+
         if (arguments.size() != 1) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 1, arguments.size()));
         }
+
+        if (options.getUsers() != null) {
+            users = loadListOfUsers(Arrays.stream(options.getUsers().split(","))
+                    .collect(Collectors.toList()));
+        } else {
+            throw new IllegalArgumentException("At least one user should be provided! Use -u (--users) option");
+        }
+
+        String roleIdentifier = arguments.get(0);
+        if (NumberUtils.isDigits(roleIdentifier)) {
+            this.groupId = Long.parseLong(roleIdentifier);
+        } else {
+            Role role = loadRoleByName(roleIdentifier);
+            if (role == null) {
+                throw new IllegalArgumentException("Group with name: '" + roleIdentifier + "' not found!");
+            }
+            this.groupId = role.getId();
+        }
     }
 
     @Override public int runCommand() {
+        HttpPost post = (HttpPost) getRequestFromURLByType("POST",
+                getServerParameters().getServerUrl()
+                        + String.format(getRequestUrl(), groupId,
+                users.stream().map(String::valueOf).collect(Collectors.joining(","))));
+        Role result = getResult(getPostResult(null, post), Role.class);
         return 0;
     }
 
