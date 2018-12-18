@@ -45,21 +45,21 @@ import java.util.stream.Collectors;
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
 /**
+ * Creates User Group with specified name and assign users to this group if users are provided
  */
 @Command(type = Command.Type.REQUEST, command = {"reg_group"})
 public class CreateUserGroupHandler extends AbstractHTTPCommandHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CreateUserGroupHandler.class);
     public static final String ASSIGN_USERS_TO_ROLE = "/restapi/role/%d/assign?userIds=%s";
 
     /**
-     * If true command will output list of datasets in a table format, otherwise
+     * If true command will output result in a table format, otherwise
      * json format will be used
      */
     private boolean printTable;
 
     /**
-     * If true command will output result of reference registration in a json format
+     * If true command will output result in a json format
      */
     private boolean printJson;
 
@@ -98,10 +98,12 @@ public class CreateUserGroupHandler extends AbstractHTTPCommandHandler {
                     users.stream().map(String::valueOf).collect(Collectors.joining(","))));
             String result = getPostResult(null, post);
             ExtendedRole createdRole = getResult(result, ExtendedRole.class);
-            AbstractResultPrinter printer = AbstractResultPrinter
-                    .getPrinter(printTable, createdRole.getFormatString(Collections.singletonList(createdRole)));
-            printer.printHeader(createdRole);
-           printer.printItem(createdRole);
+            if (printJson || printTable) {
+                AbstractResultPrinter printer = AbstractResultPrinter
+                        .getPrinter(printTable, createdRole.getFormatString(Collections.singletonList(createdRole)));
+                printer.printHeader(createdRole);
+                printer.printItem(createdRole);
+            }
         }
         return 0;
     }

@@ -598,7 +598,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         }
     }
 
-    public Project loadProjectByName(String strId) {
+    protected Project loadProjectByName(String strId) {
         try {
             URI uri = new URIBuilder(serverParameters.getServerUrl() + serverParameters.getProjectLoadUrl())
                     .addParameter("projectName", strId)

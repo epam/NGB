@@ -33,6 +33,7 @@ import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.request.RequestManager;
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.slf4j.Logger;
@@ -44,13 +45,14 @@ import java.util.List;
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
 /**
+ * Deletes user with specific name of id
  */
 @Command(type = Command.Type.REQUEST, command = {"del_user"})
 public class DeleteUserHandler extends AbstractHTTPCommandHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeleteUserHandler.class);
 
-    String userName;
+    private String userName;
     private Long userToDeleteId;
 
     /**
@@ -66,20 +68,25 @@ public class DeleteUserHandler extends AbstractHTTPCommandHandler {
         }
 
         userName = arguments.get(0);
-        HttpGet request = (HttpGet) getRequestFromURLByType("GET", getServerParameters().getServerUrl()
-                + String.format(getServerParameters().getFindUserUrl(), userName));
+        if (NumberUtils.isDigits(userName)) {
+            userToDeleteId = Long.parseLong(userName);
+        } else {
+            HttpGet request = (HttpGet) getRequestFromURLByType("GET",
+                    getServerParameters().getServerUrl()
+                    + String.format(getServerParameters().getFindUserUrl(), userName));
 
-        try {
-            ResponseResult<NgbUser> responseResult = getMapper().readValue(RequestManager.executeRequest(request),
-                    getMapper().getTypeFactory()
-                            .constructParametrizedType(ResponseResult.class, ResponseResult.class, NgbUser.class));
-            if (responseResult.getPayload() != null) {
-                userToDeleteId = responseResult.getPayload().getId();
-            } else {
-                throw new ApplicationException(String.format("User: %s not found!", userName));
+            try {
+                ResponseResult<NgbUser> responseResult = getMapper().readValue(RequestManager.executeRequest(request),
+                        getMapper().getTypeFactory()
+                                .constructParametrizedType(ResponseResult.class, ResponseResult.class, NgbUser.class));
+                if (responseResult.getPayload() != null) {
+                    userToDeleteId = responseResult.getPayload().getId();
+                } else {
+                    throw new ApplicationException(String.format("User: %s not found!", userName));
+                }
+            } catch (IOException e) {
+                throw new ApplicationException(e.getMessage(), e);
             }
-        } catch (IOException e) {
-            throw new ApplicationException(e.getMessage(), e);
         }
     }
 

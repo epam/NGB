@@ -56,13 +56,13 @@ public class CreateUserHandler extends AbstractHTTPCommandHandler {
     private static final String ROLE_PREFIX = "ROLE_";
 
     /**
-     * If true command will output list of datasets in a table format, otherwise
+     * If true command will output registered user in a table format, otherwise
      * json format will be used
      */
     private boolean printTable;
 
     /**
-     * If true command will output result of reference registration in a json format
+     * If true command will output result in a json format
      */
     private boolean printJson;
 
@@ -119,10 +119,12 @@ public class CreateUserHandler extends AbstractHTTPCommandHandler {
     @Override public int runCommand() {
         HttpPost request = (HttpPost) getRequest(getRequestUrl());
         NgbUser result = getResult(getPostResult(userVO, request), NgbUser.class);
-        AbstractResultPrinter printer = AbstractResultPrinter
-                .getPrinter(printTable, result.getFormatString(Collections.singletonList(result)));
-        printer.printHeader(result);
-        printer.printItem(result);
+        if (printJson || printTable) {
+            AbstractResultPrinter printer = AbstractResultPrinter
+                    .getPrinter(printTable, result.getFormatString(Collections.singletonList(result)));
+            printer.printHeader(result);
+            printer.printItem(result);
+        }
         return 0;
     }
 

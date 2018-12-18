@@ -78,8 +78,12 @@ public class UserGroupUserAddingHandler extends AbstractHTTPCommandHandler {
         }
 
         if (options.getUsers() != null) {
-            users = loadListOfUsers(Arrays.stream(options.getUsers().split(","))
-                    .collect(Collectors.toList()));
+            List<String> namesOrIds = Arrays.stream(options.getUsers().split(",")).collect(Collectors.toList());
+            if (namesOrIds.stream().allMatch(NumberUtils::isDigits)) {
+                users = namesOrIds.stream().map(Long::parseLong).collect(Collectors.toList());
+            } else {
+                users = loadListOfUsers(namesOrIds);
+            }
         } else {
             throw new IllegalArgumentException("At least one user should be provided! Use -u (--users) option");
         }
