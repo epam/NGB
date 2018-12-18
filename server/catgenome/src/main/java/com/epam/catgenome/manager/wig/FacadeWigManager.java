@@ -135,6 +135,7 @@ public class FacadeWigManager {
             }
             switch (request.getType()) {
                 case FILE:
+                case S3:
                     wigFile = fillWigFile(requestPath, request.getName(),
                             request.getPrettyName(), request.getReferenceId());
                     break;
@@ -146,7 +147,8 @@ public class FacadeWigManager {
                             request.getPrettyName(), request.getReferenceId());
                     break;
                 default:
-                    throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
+                    throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM,
+                            "type", request.getType()));
             }
             long id = wigFileManager.create();
             biologicalDataItemManager.createBiologicalDataItem(wigFile);

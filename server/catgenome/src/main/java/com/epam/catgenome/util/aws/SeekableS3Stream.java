@@ -40,7 +40,7 @@ public class SeekableS3Stream extends SeekableStream {
 
         this.currentDataStream = new CountingWithSkipInputStream(
                 new S3ObjectChunkInputStream(s3Source, offset, length() - 1));
-        LOGGER.debug("A new data stream was launched on offset = ", offset);
+        LOGGER.debug("A new data stream was launched on offset = {}", offset);
     }
 
     @Override
@@ -60,7 +60,7 @@ public class SeekableS3Stream extends SeekableStream {
      */
     @Override
     public void seek(long targetPosition) throws IOException {
-        LOGGER.debug("Seeking from ", position(), " to ", targetPosition);
+        LOGGER.debug("Seeking from {} to {}", position(), targetPosition);
         this.offset = targetPosition;
         recreateInnerStream();
     }

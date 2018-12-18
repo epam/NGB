@@ -1,6 +1,5 @@
 package com.epam.catgenome.manager.wig;
 
-import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.track.Track;
@@ -14,16 +13,16 @@ import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import gnu.trove.list.TFloatList;
 import gnu.trove.list.array.TFloatArrayList;
 import kotlin.Pair;
+import org.jetbrains.bio.BetterSeekableBufferedStream;
+import org.jetbrains.bio.EndianSynchronizedBufferFactory;
+import org.jetbrains.bio.big.BigFile;
 import org.jetbrains.bio.big.BigSummary;
 import org.jetbrains.bio.big.BigWigFile;
 import org.jetbrains.bio.big.FixedStepSection;
 import org.jetbrains.bio.big.WigSection;
 import org.springframework.util.Assert;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
@@ -66,7 +65,7 @@ public class WigProcessor extends AbstractWigProcessor {
     void splitByChromosome(final WigFile wigFile, final Map<String, Chromosome> chromosomeMap,
                            EhCacheBasedIndexCache indexCache)
             throws IOException {
-        try (BigWigFile bigWigFile = BigWigFile.read(new File(wigFile.getPath()).toPath())) {
+        try (BigWigFile bigWigFile = readWig(wigFile.getPath())) {
             for (Object o : bigWigFile.getChromosomes().values()) {
                 String chr = (String) o;
                 if (chromosomeMap.containsKey(chr) || chromosomeMap.containsKey(Utils.changeChromosomeName(chr))) {
@@ -89,7 +88,7 @@ public class WigProcessor extends AbstractWigProcessor {
                         int chunkStart = bp;
                         int chunkStop = Math.min(bp + WIG_DOWNSAMPLING_WINDOW - 1, stop);
 
-                        List<BigSummary> summaries = bigWigFile.summarize(chr, chunkStart, chunkStop, 1, true);
+                        List<BigSummary> summaries = bigWigFile.summarize(chr, chunkStart, chunkStop, 1, true, null);
                         TFloatList values = new TFloatArrayList();
                         BigSummary bigSummary = summaries.get(0);
                         values.add((float) bigSummary.getMaxValue());
@@ -106,23 +105,26 @@ public class WigProcessor extends AbstractWigProcessor {
     }
 
     private boolean parseWig(final String wigFilePath) throws IOException {
-        Assert.isTrue(new File(wigFilePath).exists(), getMessage(MessageCode.RESOURCE_NOT_FOUND));
-        Path path = Paths.get(wigFilePath);
-        BigWigFile wigFile = BigWigFile.read(path);
+        BigWigFile wigFile = readWig(wigFilePath);
         wigFile.close();
         return true;
     }
 
     private void fillBlocksFromFile(final String filePath, final Track<Wig> track, final String chromosomeName)
             throws IOException {
-        final Path wigPath = Paths.get(filePath);
         LOGGER.debug(getMessage(MessagesConstants.DEBUG_FILE_READING, filePath));
         double time1 = Utils.getSystemTimeMilliseconds();
-        try (BigWigFile bigWigFile = BigWigFile.read(wigPath)) {
+        try (BigWigFile bigWigFile = readWig(filePath)) {
             fillBlocksNew(track, chromosomeName, bigWigFile);
         }
         double time2 = Utils.getSystemTimeMilliseconds();
         LOGGER.debug("Reading from WIG file {}, took {} ms", filePath, time2 - time1);
+    }
+
+    private BigWigFile readWig(final String wigFilePath) throws IOException {
+        return BigWigFile.read(wigFilePath, BigFile.PREFETCH_LEVEL_DETAILED, null, (path, byteOrder) ->
+                EndianSynchronizedBufferFactory.Companion.create(path, byteOrder,
+                        BetterSeekableBufferedStream.DEFAULT_BUFFER_SIZE));
     }
 
     private void fillBlocksNew(final Track<Wig> track, final String chromosomeName, final BigWigFile bigWigFile) {
@@ -162,7 +164,7 @@ public class WigProcessor extends AbstractWigProcessor {
             throws IOException {
         List<BigSummary> summarize;
         try {
-            summarize = bigWigFile.summarize(chrName, start, end, 1, true);
+            summarize = bigWigFile.summarize(chrName, start, end, 1, true, null);
         } catch (NoSuchElementException e) {
             LOGGER.info(e.getMessage(), e);
             return 0;
