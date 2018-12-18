@@ -1,5 +1,5 @@
 # Working with tracks
-## Navigating to a spicific genome location
+## Navigating to a specific genome location
 ### Using the ruler
 You can use the ruler to navigate inside a chromosome.
 
