@@ -31,6 +31,7 @@ import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.entity.*;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
+import com.epam.ngb.cli.manager.printer.AbstractResultPrinter;
 import com.epam.ngb.cli.manager.request.RequestManager;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -96,8 +97,11 @@ public class CreateUserGroupHandler extends AbstractHTTPCommandHandler {
                             + String.format(ASSIGN_USERS_TO_ROLE, loadRoleByName(roleName).getId(),
                     users.stream().map(String::valueOf).collect(Collectors.joining(","))));
             String result = getPostResult(null, post);
-            Role createdRole = getResult(result, Role.class);
-            LOGGER.info("Group: '" + createdRole.getName() + "' created!");
+            ExtendedRole createdRole = getResult(result, ExtendedRole.class);
+            AbstractResultPrinter printer = AbstractResultPrinter
+                    .getPrinter(printTable, createdRole.getFormatString(Collections.singletonList(createdRole)));
+            printer.printHeader(createdRole);
+           printer.printItem(createdRole);
         }
         return 0;
     }

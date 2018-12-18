@@ -34,6 +34,7 @@ import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.entity.Role;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
+import com.epam.ngb.cli.manager.printer.AbstractResultPrinter;
 import com.epam.ngb.cli.manager.request.RequestManager;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -118,7 +119,10 @@ public class CreateUserHandler extends AbstractHTTPCommandHandler {
     @Override public int runCommand() {
         HttpPost request = (HttpPost) getRequest(getRequestUrl());
         NgbUser result = getResult(getPostResult(userVO, request), NgbUser.class);
-        LOGGER.info("Group: '" + result.getUserName() + "' created!");
+        AbstractResultPrinter printer = AbstractResultPrinter
+                .getPrinter(printTable, result.getFormatString(Collections.singletonList(result)));
+        printer.printHeader(result);
+        printer.printItem(result);
         return 0;
     }
 

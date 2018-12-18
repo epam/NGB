@@ -26,18 +26,20 @@
 
 package com.epam.ngb.cli.entity;
 
+import com.epam.ngb.cli.manager.printer.Printable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
-public class NgbUser {
+public class NgbUser implements Printable<NgbUser> {
 
     private Long id;
     private String userName;
@@ -60,12 +62,45 @@ public class NgbUser {
     }
 
     @Override
-    public String toString() {
-        return "NgbUser{" +
-                "id=" + id +
-                ", userName='" + userName + '\'' +
-                ", roles=" + roles +  '\'' +
-                ", groups=" + groups +
-                '}';
+    public String getFormatString(List<NgbUser> table) {
+        Map<FieldFormat, Integer> formatMap = new EnumMap<>(FieldFormat.class);
+        for (FieldFormat field : FieldFormat.values()) {
+            formatMap.put(field, field.name().length());
+        }
+        getItemFormat(table, formatMap);
+        return formatMap.values().stream().map(v -> "%" + (v + 1) + "s").collect(Collectors.joining());
     }
+
+    private void getItemFormat(List<NgbUser> table, Map<FieldFormat, Integer> formatMap) {
+        for (NgbUser item : table) {
+            calculateFieldWidth(formatMap, FieldFormat.ID, String.valueOf(item.getId()));
+            calculateFieldWidth(formatMap, FieldFormat.USER_NAME, item.getUserName());
+        }
+    }
+
+    private void calculateFieldWidth(Map<FieldFormat, Integer> formatMap, FieldFormat field, String value) {
+        if (value == null) {
+            return;
+        }
+        if (formatMap.get(field) < value.length()) {
+            formatMap.put(field, value.length());
+        }
+    }
+
+    @Override
+    public String formatItem(String format) {
+        return String.format(format, String.valueOf(getId()), getUserName());
+    }
+
+    @Override
+    public String formatHeader(String format) {
+        String[] names = Arrays.stream(FieldFormat.values()).map(Enum::name).toArray(String[]::new);
+        return String.format(format, (Object[]) names);
+    }
+
+    private enum FieldFormat {
+        ID,
+        USER_NAME,
+    }
+
 }

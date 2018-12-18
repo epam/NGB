@@ -28,8 +28,10 @@ package com.epam.ngb.cli.manager.command.handler.http;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
+import com.epam.ngb.cli.entity.ExtendedRole;
 import com.epam.ngb.cli.entity.Role;
 import com.epam.ngb.cli.manager.command.handler.Command;
+import com.epam.ngb.cli.manager.printer.AbstractResultPrinter;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.http.client.methods.HttpPost;
 
@@ -99,7 +101,14 @@ public class UserGroupUserAddingHandler extends AbstractHTTPCommandHandler {
                 getServerParameters().getServerUrl()
                         + String.format(getRequestUrl(), groupId,
                 users.stream().map(String::valueOf).collect(Collectors.joining(","))));
-        Role result = getResult(getPostResult(null, post), Role.class);
+        ExtendedRole result = getResult(getPostResult(null, post), ExtendedRole.class);
+
+        if (printJson || printTable) {
+            AbstractResultPrinter printer = AbstractResultPrinter
+                    .getPrinter(printTable, result.getUsers().get(0).getFormatString(result.getUsers()));
+            printer.printHeader(result.getUsers().get(0));
+            result.getUsers().forEach(printer::printItem);
+        }
         return 0;
     }
 

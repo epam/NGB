@@ -35,6 +35,8 @@ import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.request.RequestManager;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -46,6 +48,9 @@ import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUME
 @Command(type = Command.Type.REQUEST, command = {"del_user"})
 public class DeleteUserHandler extends AbstractHTTPCommandHandler {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeleteUserHandler.class);
+
+    String userName;
     private Long userToDeleteId;
 
     /**
@@ -60,7 +65,7 @@ public class DeleteUserHandler extends AbstractHTTPCommandHandler {
                     ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 1, arguments.size()));
         }
 
-        String userName = arguments.get(0);
+        userName = arguments.get(0);
         HttpGet request = (HttpGet) getRequestFromURLByType("GET", getServerParameters().getServerUrl()
                 + String.format(getServerParameters().getFindUserUrl(), userName));
 
@@ -80,7 +85,9 @@ public class DeleteUserHandler extends AbstractHTTPCommandHandler {
 
     @Override public int runCommand() {
         HttpRequestBase request = getRequest(String.format(getRequestUrl(), userToDeleteId));
-        RequestManager.executeRequest(request);
+        String result = RequestManager.executeRequest(request);
+        getResult(result, Object.class);
+        LOGGER.info("User : '" + userName +  "' deleted!");
         return 0;
     }
 
