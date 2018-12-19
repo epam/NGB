@@ -51,7 +51,7 @@
                             <ng-md-icon icon="clear">
                         </md-button>
                     </div>
-                    <div layout="row" layout-align="end">
+                    <div layout="row" layout-align="end" ng-if="ctrl.permissionsChangeAllowed">
                         <md-button
                                 aria-label="Add user"
                                 class="md-mini md-hue-1"
@@ -98,12 +98,14 @@
                             </td>
                             <td class="allow">
                                 <md-checkbox
+                                        ng-disabled="!ctrl.permissionsChangeAllowed"
                                         aria-label="Allow read"
                                         ng-checked="ctrl.subjectPermissions.readAllowed"
                                         ng-click="ctrl.changeMask(0)" />
                             </td>
                             <td class="deny">
                                 <md-checkbox
+                                        ng-disabled="!ctrl.permissionsChangeAllowed"
                                         aria-label="Deny read"
                                         ng-checked="ctrl.subjectPermissions.readDenied"
                                         ng-click="ctrl.changeMask(1)" />
@@ -118,12 +120,14 @@
                             </td>
                             <td class="allow">
                                 <md-checkbox
+                                        ng-disabled="!ctrl.permissionsChangeAllowed"
                                         aria-label="Allow write"
                                         ng-checked="ctrl.subjectPermissions.writeAllowed"
                                         ng-click="ctrl.changeMask(2)" />
                             </td>
                             <td class="deny">
                                 <md-checkbox
+                                        ng-disabled="!ctrl.permissionsChangeAllowed"
                                         aria-label="Deny write"
                                         ng-checked="ctrl.subjectPermissions.writeDenied"
                                         ng-click="ctrl.changeMask(3)" />

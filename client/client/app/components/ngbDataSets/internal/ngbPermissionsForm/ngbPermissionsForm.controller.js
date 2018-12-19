@@ -79,6 +79,10 @@ export default class ngbPermissionsFormController extends BaseController {
         return roleModel.isOwner({mask: this.mask});
     }
 
+    get permissionsChangeAllowed() {
+        return roleModel.writeAllowed({mask: this.mask});
+    }
+
     set selectedOwner(value) {
         this._selectedOwner = value;
     }

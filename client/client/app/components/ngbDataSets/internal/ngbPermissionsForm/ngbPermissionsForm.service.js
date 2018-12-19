@@ -95,6 +95,7 @@ export default class ngbPermissionsFormService {
             cellTemplate: `
                       <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
                           <md-button
+                              ng-disabled="!grid.appScope.ctrl.permissionsChangeAllowed"
                               aria-label="Delete"
                               class="md-mini md-hue-1 grid-action-button"
                               ng-click="grid.appScope.ctrl.deleteSubjectPermissions(row.entity, $event)">
