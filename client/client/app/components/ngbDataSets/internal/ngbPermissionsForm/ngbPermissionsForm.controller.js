@@ -229,7 +229,17 @@ export default class ngbPermissionsFormController extends BaseController {
                 this.node,
                 this._subject,
                 roleModel.buildExtendedMask(readAllowed, readDenied, writeAllowed, writeDenied)
-            ).then(data => console.log(data));
+            )
+            .then(data => {
+                if (data && data.permissions && data.permissions.length) {
+                    const item = data.permissions[0];
+                    const [dataItem] = (this.formGridOptions.data || [])
+                        .filter(dI => dI.principal === item.sid.principal && (dI.name || '').toLowerCase() === (item.sid.name || '').toLowerCase());
+                    if (dataItem) {
+                        dataItem.mask = item.mask;
+                    }
+                }
+            });
     }
 
     onAddRole() {
