@@ -15,27 +15,40 @@
                     <div layout="row">
                         <md-input-container flex>
                             <label>Owner</label>
-                            <md-select ng-model="ctrl.owner"
+                            <md-select ng-model="ctrl.selectedOwner"
                                        name="owner"
-                                       ng-change="ctrl.onOwnerChange($event)"
                                        md-on-close="ctrl.clearOwnerSearchTerm()"
-                                       md-container-class="user-role-selector">
-                                <md-select-header class="role-select-header">
+                                       md-container-class="owner-selector">
+                                <md-select-header class="owner-select-header">
                                     <input ng-model="ctrl.ownerSearchTerm"
                                            ng-keydown="$event.stopPropagation()"
                                            type="search"
-                                           placeholder="Search for a role or a group..."
-                                           class="md-text role-header-searchbox" />
+                                           placeholder="Select new owner..."
+                                           class="md-text owner-header-searchbox" />
                                 </md-select-header>
                                 <md-optgroup label="Select owner">
                                     <md-option
-                                            ng-value="user.userName"
+                                            ng-value="(user.userName || '').toUpperCase()"
                                             ng-repeat="user in ctrl.users | filter:ctrl.ownerSearchTerm">
                                         {{user.userName}}
                                     </md-option>
                                 </md-optgroup>
                             </md-select>
                         </md-input-container>
+                        <md-button
+                                aria-label="apply"
+                                ng-if="ctrl.ownerChanged"
+                                class="md-icon-button md-primary"
+                                ng-click="ctrl.changeOwner()">
+                            <ng-md-icon icon="done">
+                        </md-button>
+                        <md-button
+                                aria-label="deny"
+                                ng-if="ctrl.ownerChanged"
+                                class="md-icon-button"
+                                ng-click="ctrl.clearSelectedOwner()">
+                            <ng-md-icon icon="clear">
+                        </md-button>
                     </div>
                     <div layout="row" layout-align="end">
                         <md-button

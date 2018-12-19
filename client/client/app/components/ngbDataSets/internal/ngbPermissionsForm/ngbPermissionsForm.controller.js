@@ -8,6 +8,7 @@ export default class ngbPermissionsFormController extends BaseController {
     node;
     ngbPermissionsFormService;
     owner;
+    _selectedOwner;
     permissions = [];
     users;
     roles;
@@ -51,10 +52,31 @@ export default class ngbPermissionsFormController extends BaseController {
         this.fetchPermissions();
         this.ngbPermissionsFormService.getUsers().then(users => {
             this.users = users || [];
+            if (this.$scope) {
+                this.$scope.$apply();
+            }
         });
         this.ngbPermissionsFormService.getRoles().then(roles => {
             this.roles = roles || [];
+            if (this.$scope) {
+                this.$scope.$apply();
+            }
         });
+    }
+
+    get selectedOwner() {
+        if (this._selectedOwner) {
+            return this._selectedOwner;
+        }
+        return this.owner;
+    }
+
+    set selectedOwner(value) {
+        this._selectedOwner = value;
+    }
+
+    get ownerChanged() {
+        return this._selectedOwner && this._selectedOwner !== this.owner;
     }
 
     setPermissionsGridData(data) {
@@ -122,7 +144,7 @@ export default class ngbPermissionsFormController extends BaseController {
     fetchPermissions() {
         this.ngbPermissionsFormService.getNodePermissions(this.node).then(data => {
             if (data) {
-                this.owner = data.owner;
+                this.owner = (data.owner || '').toUpperCase();
                 this.permissions = data.permissions;
                 this.setPermissionsGridData(this.permissions);
                 if (this.$scope) {
@@ -188,7 +210,7 @@ export default class ngbPermissionsFormController extends BaseController {
                 this.node,
                 this._subject,
                 roleModel.buildExtendedMask(readAllowed, readDenied, writeAllowed, writeDenied)
-            );
+            ).then(data => console.log(data));
     }
 
     onAddRole() {
@@ -213,14 +235,15 @@ export default class ngbPermissionsFormController extends BaseController {
             .then(this.fetchPermissions);
     };
 
-    onOwnerChange($event) {
-        console.log(this.owner);
-    }
+    clearSelectedOwner = () => {
+        this._selectedOwner = null;
+    };
 
-    changeOwner = (newOwner) => {
+    changeOwner = () => {
         this.ngbPermissionsFormService
-            .grantOwner(this.node, newOwner)
-            .then(this.fetchPermissions);
+            .grantOwner(this.node, this.selectedOwner)
+            .then(() => this.fetchPermissions())
+            .then(() => this.clearSelectedOwner());
     };
 
     close() {

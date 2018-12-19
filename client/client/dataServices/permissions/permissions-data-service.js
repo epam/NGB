@@ -47,7 +47,7 @@ export class PermissionsDataService extends DataService {
 
     grantOwner(id, aclClass, owner) {
         return new Promise(resolve => {
-            this.post(`grant?id=${id}&aclClass=${aclClass}&userName=${owner}`)
+            this.post(`grant/owner?id=${id}&aclClass=${aclClass}&userName=${owner}`)
                 .catch(() => resolve(null))
                 .then(data => {
                     resolve(data || null);
