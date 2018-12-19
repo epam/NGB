@@ -1,11 +1,11 @@
 import './styles.scss';
 // Import internal modules
 import angular from 'angular';
-import ngbContextMenu from './ngbContextMenu';
-import ngbDataSetContextMenuComponent from './component';
-import ngbDataSetContextMenuController from './controller';
+import ngbContextMenuBuilder from './ngbContextMenu';
+import ngbDataSetContextMenuFactory from './ngbDataSetContextMenu.factory';
+import ngbDataSetContextMenuController from './ngbDataSetContextMenu.controller';
 
-export default angular.module('ngbDataSetContextMenu', [ngbContextMenu])
-    .factory('ngbDataSetContextMenu', ngbDataSetContextMenuComponent)
+export default angular.module('ngbDataSetContextMenu', [ngbContextMenuBuilder])
+    .factory('ngbDataSetContextMenu', ngbDataSetContextMenuFactory)
     .controller('ngbDataSetContextMenuController', ngbDataSetContextMenuController)
     .name;

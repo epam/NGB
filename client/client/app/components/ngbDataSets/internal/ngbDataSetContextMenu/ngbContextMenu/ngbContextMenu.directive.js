@@ -1,6 +1,6 @@
 import angular from 'angular';
 
-export default function($injector, $window, $timeout, userDataService) {
+export default function($injector, $window, $timeout) {
     return {
         restrict: 'A',
         link: function(scope, element, attrs) {
@@ -22,12 +22,15 @@ export default function($injector, $window, $timeout, userDataService) {
                 const pointerPosition = getPositionPropertiesOfEvent(event);
                 const cssProperties = getCssPropertiesOfEvent(event);
                 const currentTarget = event.currentTarget;
-                userDataService.getCurrentUser()
-                    .then(user => user.hasRoles(scope.node.roles || []))
-                    .then((roleCheckResult) => {
-                        if (roleCheckResult) {
+                contextMenu.bindController(locals);
+                const shouldOpenContextMenuPromise = contextMenu.controllerImpl && contextMenu.controllerImpl.shouldOpenMenuPromise
+                    ? contextMenu.controllerImpl.shouldOpenMenuPromise()
+                    : new Promise(resolve => resolve(true));
+                shouldOpenContextMenuPromise
+                    .then(shouldOpen => {
+                        if (shouldOpen) {
                             scope.$apply(function() {
-                                contextMenu.open(currentTarget, locals, cssProperties)
+                                contextMenu.open(currentTarget, cssProperties)
                                     .then(function (element) {
                                         element.hide();
                                         $timeout(function () {

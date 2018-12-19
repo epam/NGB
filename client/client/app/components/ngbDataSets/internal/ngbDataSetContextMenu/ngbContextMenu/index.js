@@ -1,22 +1,16 @@
 // Import internal modules
 import angular from 'angular';
-import ngbDataSetContextMenuDirective from './directive';
-import ngbDataSetContextMenuFactory from './factory';
+import ngbContextMenuBuilder from './ngbContextMenu.builder';
+import ngbContextMenuDirective from './ngbContextMenu.directive';
 
 export default angular.module('ngbContextMenu', [])
-    .factory('ngbContextMenu', [
+    .factory('ngbContextMenuBuilder', [
         '$q',
         '$compile',
         '$animate',
         '$rootScope',
         '$controller',
-        ngbDataSetContextMenuFactory
+        ngbContextMenuBuilder
     ])
-    .directive('hasContextMenu', [
-        '$injector',
-        '$window',
-        '$timeout',
-        'userDataService',
-        ngbDataSetContextMenuDirective
-    ])
+    .directive('ngbContextMenu', ngbContextMenuDirective)
     .name;
