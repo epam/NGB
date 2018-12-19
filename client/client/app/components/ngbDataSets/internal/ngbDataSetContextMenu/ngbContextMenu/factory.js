@@ -1,6 +1,6 @@
 import angular from 'angular';
 
-export default function ($q, $http, $timeout, $compile, $animate, $rootScope, $controller) {
+export default function ($q, $compile, $animate, $rootScope, $controller) {
     return function contextMenuFactory(config) {
         if (!config.template) {
             throw new Error('Expected context menu to have template');
@@ -17,6 +17,7 @@ export default function ($q, $http, $timeout, $compile, $animate, $rootScope, $c
         function open(target, locals, css) {
             return new Promise((resolve) => {
                 this.target = target;
+                this.target.classList.add('ngb-context-menu-opened');
                 if (scope && locals) {
                     setLocals(locals);
                 }
@@ -37,9 +38,9 @@ export default function ($q, $http, $timeout, $compile, $animate, $rootScope, $c
                 throw new Error('The template contains no elements; you need to wrap text nodes');
             }
 
-            // create a new scope and copy locals to it
             scope = $rootScope.$new();
             scope.closeContextMenu = close;
+            scope.contextMenuScope = scope;
             if (locals) {
                 setLocals(locals);
             }
@@ -59,13 +60,10 @@ export default function ($q, $http, $timeout, $compile, $animate, $rootScope, $c
             }
         }
 
-        function reposition(position) {
-            if (element) {
-                element.css(position);
-            }
-        }
-
         function close(disableFocus) {
+            if (this.target) {
+                this.target.classList.remove('ngb-context-menu-opened');
+            }
             const deferred = $q.defer();
             if (element) {
                 scope.$destroy();
@@ -82,15 +80,14 @@ export default function ($q, $http, $timeout, $compile, $animate, $rootScope, $c
             return deferred.promise;
         }
 
-        function active() {
+        function visible() {
             return !!element;
         }
 
         return {
-            active: active,
+            visible: visible,
             close: close,
-            open: open,
-            reposition: reposition
+            open: open
         };
 
     };

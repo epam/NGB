@@ -1,16 +1,14 @@
 import angular from 'angular';
 
-export default function($injector, $window, $parse, $timeout, userDataService) {
+export default function($injector, $window, $timeout, userDataService) {
     return {
         restrict: 'A',
         link: function(scope, element, attrs) {
             const contextMenu = $injector.get(attrs.target);
             const locals = {};
-            const win = angular.element($window);
+            const wnd = angular.element($window);
             const triggerOnEvent = attrs.triggerOnEvent || 'contextmenu';
-            let pointerOffset, target;
 
-            // prepare locals, these define properties to be passed on to the context menu scope
             if (attrs.locals) {
                 const localKeys = attrs.locals.split(',').map(function(local) {
                     return local.trim();
@@ -20,44 +18,21 @@ export default function($injector, $window, $parse, $timeout, userDataService) {
                 });
             }
 
-            function getPosition(target) {
-                const targetPosition = {};
-                const targetElement = angular.element(target);
-                const bounding = targetElement[0].getBoundingClientRect();
-
-                targetPosition.top = bounding.top;
-                targetPosition.left = bounding.left;
-
-                return targetPosition;
-            }
-
-            function getOffset(targetPosition, pointerPosition) {
-                const pointerOffset = {};
-
-                pointerOffset.offsetY = pointerPosition.top - targetPosition.top;
-                pointerOffset.offsetX = pointerPosition.left - targetPosition.left;
-
-                return pointerOffset;
-            }
-
             function open(event) {
-                const targetPosition = getPosition(event.target);
                 const pointerPosition = getPositionPropertiesOfEvent(event);
-                const eventTarget = event.target;
                 const cssProperties = getCssPropertiesOfEvent(event);
-                target = event.target;
-                pointerOffset = getOffset(targetPosition, pointerPosition);
+                const currentTarget = event.currentTarget;
                 userDataService.getCurrentUser()
                     .then(user => user.hasRoles(scope.node.roles || []))
                     .then((roleCheckResult) => {
                         if (roleCheckResult) {
                             scope.$apply(function() {
-                                contextMenu.open(eventTarget, locals, cssProperties)
+                                contextMenu.open(currentTarget, locals, cssProperties)
                                     .then(function (element) {
                                         element.hide();
                                         $timeout(function () {
                                             element.show(0, function () {
-                                                adjustPosition(element, pointerPosition);
+                                                adjustPosition(element, pointerPosition, currentTarget.clientHeight);
                                                 angular.element(element).focus();
                                             });
                                         }, 0, false);
@@ -67,14 +42,14 @@ export default function($injector, $window, $parse, $timeout, userDataService) {
                     });
             }
 
-            function adjustPosition($element, pointerPosition) {
+            function adjustPosition($element, pointerPosition, targetHeight = 0) {
                 const viewport = {
-                    left : win.scrollLeft(),
-                    top : win.scrollTop()
+                    left : wnd.scrollLeft(),
+                    top : wnd.scrollTop()
                 };
 
-                viewport.right = viewport.left + win.width();
-                viewport.bottom = viewport.top + win.height();
+                viewport.right = viewport.left + wnd.width();
+                viewport.bottom = viewport.top + wnd.height();
                 const bounds = $element.offset();
                 bounds.right = bounds.left + $element.outerWidth();
                 bounds.bottom = bounds.top + $element.outerHeight();
@@ -82,7 +57,7 @@ export default function($injector, $window, $parse, $timeout, userDataService) {
                     $element.css('left', pointerPosition.left - $element.outerWidth());
                 }
                 if (viewport.bottom < bounds.bottom) {
-                    $element.css('top', pointerPosition.top - $element.outerHeight());
+                    $element.css('top', pointerPosition.top - $element.outerHeight() - (targetHeight || 0));
                 }
             }
 
@@ -92,17 +67,14 @@ export default function($injector, $window, $parse, $timeout, userDataService) {
 
             function getPositionPropertiesOfEvent(event) {
                 const position = { };
-
-                if (event.pageX && event.pageY) {
-                    position.top = Math.max(event.pageY, 0);
+                if (event.pageX) {
                     position.left = Math.max(event.pageX, 0);
                 } else {
                     const bounding = angular.element(event.target)[0].getBoundingClientRect();
-
-                    position.top = Math.max(bounding.bottom, 0);
                     position.left = Math.max(bounding.left, 0);
                 }
-
+                const bounding = angular.element(event.currentTarget)[0].getBoundingClientRect();
+                position.top = Math.max(bounding.bottom, 0);
                 return position;
             }
 
@@ -132,49 +104,25 @@ export default function($injector, $window, $parse, $timeout, userDataService) {
             }
 
             element.bind(triggerOnEvent, function(event) {
-                if (contextMenu.active()) {
+                if (contextMenu.visible()) {
                     closeContextMenu();
                 }
                 openContextMenu(event);
             });
 
-            element.bind('keyup', function(event) {
-                // Alt + Shift + F10
-                const F10 = 121;
-                if (event.keyCode === F10 && event.shiftKey && event.altKey) {
-                    if (!contextMenu.active()) {
-                        openContextMenu(event);
-                    }
-                }
-            });
-
-            function handleWindowClickEvent() {
-                if (contextMenu.active()) {
+            function closeContextMenuIfVisible() {
+                if (contextMenu.visible()) {
                     closeContextMenu();
                 }
             }
-
-            // Firefox treats a right-click as a click and a contextmenu event while other browsers
-            // just treat it as a contextmenu event
-            win.bind('click', handleWindowClickEvent);
-            win.bind(triggerOnEvent, handleWindowClickEvent);
-
-            win.bind('keyup', function(event) {
-                if (contextMenu.active() && event.keyCode === 27) {
+            wnd.bind('click', closeContextMenuIfVisible);
+            wnd.bind(triggerOnEvent, closeContextMenuIfVisible);
+            wnd.bind('keyup', function(event) {
+                if (contextMenu.visible() && event.keyCode === 27) {
                     closeContextMenu();
                 }
             });
-
-            win.on('resize', function() {
-                if (target) {
-                    const currentTargetPosition = getPosition(target);
-                    const position = {
-                        left: currentTargetPosition.left + pointerOffset.offsetX,
-                        top: currentTargetPosition.top + pointerOffset.offsetY
-                    };
-                    contextMenu.reposition(position);
-                }
-            });
+            wnd.on('resize', closeContextMenuIfVisible);
         }
     };
 }

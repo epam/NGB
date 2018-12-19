@@ -6,8 +6,6 @@ import ngbDataSetContextMenuFactory from './factory';
 export default angular.module('ngbContextMenu', [])
     .factory('ngbContextMenu', [
         '$q',
-        '$http',
-        '$timeout',
         '$compile',
         '$animate',
         '$rootScope',
@@ -17,7 +15,6 @@ export default angular.module('ngbContextMenu', [])
     .directive('hasContextMenu', [
         '$injector',
         '$window',
-        '$parse',
         '$timeout',
         'userDataService',
         ngbDataSetContextMenuDirective

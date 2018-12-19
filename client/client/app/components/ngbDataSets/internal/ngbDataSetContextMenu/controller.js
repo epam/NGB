@@ -1,11 +1,13 @@
 import angular from 'angular';
 import ngbPermissionsFormController from '../ngbPermissionsForm/ngbPermissionsForm.controller';
 
-export default function($scope, $mdDialog) {
+export default function($scope, $mdDialog, ngbDataSetContextMenu) {
     $scope.openPermissions = function (event) {
         event.preventDefault();
         event.stopPropagation();
-        $scope.closeContextMenu();
+        if (ngbDataSetContextMenu.visible()) {
+            ngbDataSetContextMenu.close();
+        }
         $mdDialog.show({
             clickOutsideToClose: true,
             controller: ngbPermissionsFormController,

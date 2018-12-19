@@ -92,6 +92,13 @@ $folder-line: #cccccc;
   }
 }
 
+.ngb-context-menu-opened {
+  .dataset-track-title, .dataset-project-title {
+    text-decoration: underline;
+    color: #222;
+  }
+}
+
 .dataset-selectable {
   cursor: pointer;
   &:focus {
