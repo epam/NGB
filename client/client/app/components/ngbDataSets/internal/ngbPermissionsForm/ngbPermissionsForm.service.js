@@ -68,4 +68,49 @@ export default class ngbPermissionsFormService {
         return this._permissionsDataService
             .grantOwner(node.id, aclClass, user);
     }
+
+    getPermissionsColumns() {
+        return [{
+/*
+            cellTemplate: `
+                    <div layout="row">
+                        <ng-md-icon ng-if="row.entity.principal" icon="person"></ng-md-icon>
+                        <ng-md-icon ng-if="!row.entity.principal" icon="group"></ng-md-icon>
+                    </div>
+                `,
+            enableColumnMenu: false,
+            enableMove: false,
+            enableSorting: false,
+            field: 'principal',
+            maxWidth: 50,
+            minWidth: 50,
+            name: '',
+        }, {
+*/
+            enableColumnMenu: false,
+            enableSorting: true,
+            field: 'name',
+            minWidth: 50,
+            name: 'Name',
+            width: '*',
+        }, {
+            cellTemplate: `
+                      <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
+                          <md-button
+                              aria-label="Delete"
+                              class="md-mini md-hue-1 grid-action-button"
+                              ng-click="grid.appScope.ctrl.removeRoleFromGrid(row.entity.name, $event)">
+                              <ng-md-icon icon="delete"></ng-md-icon>
+                          </md-button>
+                      </div>`,
+            enableColumnMenu: false,
+            enableSorting: false,
+            enableMove: false,
+            field: 'actions',
+            maxWidth: 120,
+            minWidth: 120,
+            name: ''
+        }];
+    }
+
 }

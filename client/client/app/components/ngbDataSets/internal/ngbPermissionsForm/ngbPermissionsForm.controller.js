@@ -8,7 +8,7 @@ export default class ngbPermissionsFormController extends BaseController {
     node;
     ngbPermissionsFormService;
     owner;
-    permissions;
+    permissions = [];
     users;
     roles;
 
@@ -40,7 +40,7 @@ export default class ngbPermissionsFormController extends BaseController {
         Object.assign(this.formGridOptions, {
             ...ngbPermissionsGridOptionsConstant,
             appScopeProvider: this.scope,
-            // columnDefs: this.ngbPermissionsFormService.getPermissionsColumns(),
+            columnDefs: this.ngbPermissionsFormService.getPermissionsColumns(),
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
@@ -55,6 +55,13 @@ export default class ngbPermissionsFormController extends BaseController {
         this.ngbPermissionsFormService.getRoles().then(roles => {
             this.roles = roles || [];
         });
+    }
+
+    setPermissionsGridData(data) {
+        this.formGridOptions.data = data;
+        if (this.$scope) {
+            this.$scope.$apply();
+        }
     }
 
     get availableUsers() {
@@ -117,6 +124,7 @@ export default class ngbPermissionsFormController extends BaseController {
             if (data) {
                 this.owner = data.owner;
                 this.permissions = data.permissions;
+                this.setPermissionsGridData(this.permissions);
                 if (this.$scope) {
                     this.$scope.$apply();
                 }
@@ -204,6 +212,10 @@ export default class ngbPermissionsFormController extends BaseController {
             .deleteNodePermissions(this.node, subject)
             .then(this.fetchPermissions);
     };
+
+    onOwnerChange($event) {
+        console.log(this.owner);
+    }
 
     changeOwner = (newOwner) => {
         this.ngbPermissionsFormService
