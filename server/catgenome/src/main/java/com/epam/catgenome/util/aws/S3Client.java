@@ -1,6 +1,8 @@
 package com.epam.catgenome.util.aws;
 
 
+import com.amazonaws.auth.*;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3URI;
@@ -23,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 public final class S3Client {
 
     private static final AmazonS3 AWS_S3;
+    private static final AmazonS3 SWIFT_STACK;
 
     private static final int CACHE_SIZE = 1000;
     private static final LoadingCache<AmazonS3URI, Long> FILE_SIZES = CacheBuilder.newBuilder()
@@ -37,8 +40,17 @@ public final class S3Client {
                         }
                     });
 
+
     static {
-        AWS_S3 = AmazonS3ClientBuilder.standard().build();
+        AWS_S3 = AmazonS3ClientBuilder.standard().enableForceGlobalBucketAccess().build();
+        SWIFT_STACK = AmazonS3ClientBuilder.standard().enableForceGlobalBucketAccess()
+                .withCredentials(
+                        new AWSCredentialsProviderChain(
+                            new EnvironmentVariableCredentialsProvider(),
+                            new SystemPropertiesCredentialsProvider(),
+                            new EC2ContainerCredentialsProviderWrapper(),
+                            new ProfileCredentialsProvider("sws"))
+                ).build();
     }
 
     private S3Client() {
@@ -46,6 +58,13 @@ public final class S3Client {
     }
 
     static AmazonS3 getAws() {
+        return AWS_S3;
+    }
+
+    static AmazonS3 getAws(AmazonS3URI object) {
+        if (object.toString().startsWith("sws")) {
+            return SWIFT_STACK;
+        }
         return AWS_S3;
     }
 
@@ -104,7 +123,7 @@ public final class S3Client {
     public static InputStream loadFromTo(AmazonS3URI obj, long offset, long end) {
         GetObjectRequest rangeObjectRequest = new GetObjectRequest(obj.getBucket(), obj.getKey());
         rangeObjectRequest.setRange(offset, end);
-        S3Object s3Object = S3Client.getAws().getObject(rangeObjectRequest);
+        S3Object s3Object = S3Client.getAws(obj).getObject(rangeObjectRequest);
         S3ObjectInputStream objectStream = s3Object.getObjectContent();
         return new BufferedInputStream(objectStream);
     }
