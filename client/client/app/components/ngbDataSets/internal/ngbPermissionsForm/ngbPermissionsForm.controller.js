@@ -15,8 +15,8 @@ export default class ngbPermissionsFormController extends BaseController {
     ownerSearchTerm;
     formGridOptions = {};
 
-    selectedPermissionSubject;
-    selectedPermissionSubjectPermissions = {
+    _subject;
+    _subjectPermissions = {
         readAllowed: false,
         readDenied: false,
         writeAllowed: false,
@@ -54,7 +54,6 @@ export default class ngbPermissionsFormController extends BaseController {
         });
         this.ngbPermissionsFormService.getRoles().then(roles => {
             this.roles = roles || [];
-            console.log(this.availableRoles);
         });
     }
 
@@ -70,11 +69,47 @@ export default class ngbPermissionsFormController extends BaseController {
                 .filter(p => !p.principal && (p.name || '').toLowerCase() === (r.name || '').toLowerCase()).length === 0);
     }
 
+    get subject() {
+        return this._subject;
+    }
+
+    get subjectPermissions() {
+        return this._subjectPermissions;
+    }
+
     getRoleDisplayName(role) {
-        if (role.predefined && role.name.toUpperCase().startsWith(ROLE_NAME_FIRST_PART)) {
+        if (!role.predefined && role.name.toUpperCase().startsWith(ROLE_NAME_FIRST_PART)) {
             return role.name.substring(ROLE_NAME_FIRST_PART.length);
         }
         return role.name;
+    }
+
+    getSubjectDisplayType() {
+        if (this.subject) {
+            if (this.subject.principal) {
+                return 'user';
+            } else {
+                const [role] = this.roles.filter(r => (r.name || '').toLowerCase() === (this.subject.name || '').toLowerCase());
+                if (role && !role.predefined) {
+                    return 'group';
+                }
+                return 'role';
+            }
+        }
+        return '';
+    }
+
+    getSubjectDisplayName() {
+        if (this.subject) {
+            if (!this.subject.principal) {
+                const [role] = this.roles.filter(r => (r.name || '').toLowerCase() === (this.subject.name || '').toLowerCase());
+                if (role) {
+                    return this.getRoleDisplayName(role);
+                }
+            }
+            return this.subject.name;
+        }
+        return '';
     }
 
     fetchPermissions() {
@@ -85,7 +120,6 @@ export default class ngbPermissionsFormController extends BaseController {
                 if (this.$scope) {
                     this.$scope.$apply();
                 }
-                console.log('permissions', data.owner, data.permissions);
             }
         });
     }
@@ -95,59 +129,58 @@ export default class ngbPermissionsFormController extends BaseController {
     }
 
     selectPermissionSubject = (subject) => {
-        this.selectedPermissionSubject = subject; // {name, principal, mask};
-        this.selectedPermissionSubjectPermissions = {
+        this._subject = subject; // {name, principal, mask};
+        this._subjectPermissions = {
             readAllowed: roleModel.readAllowed(subject, true),
             readDenied: roleModel.readDenied(subject, true),
             writeAllowed: roleModel.writeAllowed(subject, true),
             writeDenied: roleModel.writeDenied(subject, true)
         };
+        this.$scope.$apply();
     };
 
-    // value: true/false (checkbox)
     // bit:
     // 0 - read allowed
     // 1 - read denied
     // 2 - write allowed
     // 3 - write denied
-    changeMask(value, bit) {
-        let {readAllowed, readDenied, writeAllowed, writeDenied} = this.selectedPermissionSubjectPermissions;
+    changeMask(bit) {
+        let {readAllowed, readDenied, writeAllowed, writeDenied} = this._subjectPermissions;
         switch (bit) {
             case 0:
-                readAllowed = value;
-                if (value) {
+                readAllowed = !readAllowed;
+                if (readAllowed) {
                     readDenied = false;
                 }
                 break;
             case 1:
-                readDenied = value;
-                if (value) {
+                readDenied = !readDenied;
+                if (readDenied) {
                     readAllowed = false;
                 }
                 break;
             case 2:
-                writeAllowed = value;
-                if (value) {
+                writeAllowed = !writeAllowed;
+                if (writeAllowed) {
                     writeDenied = false;
                 }
                 break;
             case 3:
-                writeDenied = value;
-                if (value) {
+                writeDenied = !writeDenied;
+                if (writeDenied) {
                     writeAllowed = false;
                 }
                 break;
         }
+        this._subjectPermissions = {
+            readAllowed, readDenied, writeAllowed, writeDenied
+        };
         this.ngbPermissionsFormService
             .grantPermission(
                 this.node,
-                this.selectedPermissionSubject,
+                this._subject,
                 roleModel.buildExtendedMask(readAllowed, readDenied, writeAllowed, writeDenied)
-            ).then(() => {
-            this.selectedPermissionSubjectPermissions = {
-                readAllowed, readDenied, writeAllowed, writeDenied
-            };
-        });
+            );
     }
 
     onAddRole() {

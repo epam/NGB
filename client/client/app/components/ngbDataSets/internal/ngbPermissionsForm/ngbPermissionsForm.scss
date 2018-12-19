@@ -20,3 +20,27 @@
     max-height: 240px;
   }
 }
+
+.permissions-subject-title {
+  font-size: small;
+}
+
+.permissions-table {
+  font-size: small;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-collapse: collapse;
+  margin-top: 10px;
+
+  th {
+    background-color: white;
+    color: #333;
+    border-bottom: 1px solid #ccc;
+    font-weight: normal;
+  }
+
+  td.allow, td.deny {
+    width: 100px;
+    text-align: center;
+  }
+}
