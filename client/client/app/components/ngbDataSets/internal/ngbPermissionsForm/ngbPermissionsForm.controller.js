@@ -10,6 +10,7 @@ export default class ngbPermissionsFormController extends BaseController {
     node;
     ngbPermissionsFormService;
     owner;
+    mask;
     _selectedOwner;
     permissions = [];
     users;
@@ -72,6 +73,10 @@ export default class ngbPermissionsFormController extends BaseController {
             return this._selectedOwner;
         }
         return this.owner;
+    }
+
+    get ownerChangeAllowed() {
+        return roleModel.isOwner({mask: this.mask});
     }
 
     set selectedOwner(value) {
@@ -148,6 +153,7 @@ export default class ngbPermissionsFormController extends BaseController {
         this.ngbPermissionsFormService.getNodePermissions(this.node).then(data => {
             if (data) {
                 this.owner = (data.owner || '').toUpperCase();
+                this.mask = data.mask;
                 this.permissions = data.permissions;
                 this.setPermissionsGridData(this.permissions);
                 if (this.$scope) {

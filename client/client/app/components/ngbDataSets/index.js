@@ -9,10 +9,9 @@ import service from './ngbDataSets.service';
 import ngbPermissionsFormService from './internal/ngbPermissionsForm/ngbPermissionsForm.service';
 import indeterminateCheckbox from './internal/ngbDataSets.indeterminateCheckbox';
 import ngbPermissionsGridOptionsConstant from './internal/ngbPermissionsForm/ngbItemPermissionsFormGridOptions.constant';
-import ngbContextMenu from './internal/ngbDataSetContextMenu/ngbContextMenu';
 import ngbDataSetContextMenu from './internal/ngbDataSetContextMenu';
 
-export default angular.module('ngbDataSets', [ngbContextMenu, ngbDataSetContextMenu])
+export default angular.module('ngbDataSets', [ngbDataSetContextMenu])
     .directive('indeterminateCheckbox', indeterminateCheckbox)
     .service('ngbPermissionsFormService', ngbPermissionsFormService)
     .service('ngbDataSetsService', service.instance)

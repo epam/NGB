@@ -1,6 +1,6 @@
 import angular from 'angular';
 
-export default function($injector, $window, $parse, $timeout) {
+export default function($injector, $window, $parse, $timeout, userDataService) {
     return {
         restrict: 'A',
         link: function(scope, element, attrs) {
@@ -43,18 +43,28 @@ export default function($injector, $window, $parse, $timeout) {
             function open(event) {
                 const targetPosition = getPosition(event.target);
                 const pointerPosition = getPositionPropertiesOfEvent(event);
-                const contextMenuPromise = contextMenu.open(event.target, locals, getCssPropertiesOfEvent(event));
+                const eventTarget = event.target;
+                const cssProperties = getCssPropertiesOfEvent(event);
                 target = event.target;
                 pointerOffset = getOffset(targetPosition, pointerPosition);
-                contextMenuPromise.then(function(element) {
-                    element.hide();
-                    $timeout(function() {
-                        element.show(0, function() {
-                            adjustPosition(element, pointerPosition);
-                            angular.element(element).focus();
-                        });
-                    }, 0, false);
-                });
+                userDataService.getCurrentUser()
+                    .then(user => user.hasRoles(scope.node.roles || []))
+                    .then((roleCheckResult) => {
+                        if (roleCheckResult) {
+                            scope.$apply(function() {
+                                contextMenu.open(eventTarget, locals, cssProperties)
+                                    .then(function (element) {
+                                        element.hide();
+                                        $timeout(function () {
+                                            element.show(0, function () {
+                                                adjustPosition(element, pointerPosition);
+                                                angular.element(element).focus();
+                                            });
+                                        }, 0, false);
+                                    });
+                            });
+                        }
+                    });
             }
 
             function adjustPosition($element, pointerPosition) {

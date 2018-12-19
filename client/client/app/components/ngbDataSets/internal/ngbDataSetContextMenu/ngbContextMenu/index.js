@@ -19,6 +19,7 @@ export default angular.module('ngbContextMenu', [])
         '$window',
         '$parse',
         '$timeout',
+        'userDataService',
         ngbDataSetContextMenuDirective
     ])
     .name;

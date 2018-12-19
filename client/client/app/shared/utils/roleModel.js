@@ -78,7 +78,5 @@ export default {
     writeAllowed,
     writeDenied,
     isOwner,
-    extendMask,
-    collapseMask,
     buildExtendedMask
 };

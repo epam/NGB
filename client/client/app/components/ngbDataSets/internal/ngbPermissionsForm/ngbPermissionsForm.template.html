@@ -17,6 +17,7 @@
                             <label>Owner</label>
                             <md-select ng-model="ctrl.selectedOwner"
                                        name="owner"
+                                       ng-disabled="!ctrl.ownerChangeAllowed"
                                        md-on-close="ctrl.clearOwnerSearchTerm()"
                                        md-container-class="owner-selector">
                                 <md-select-header class="owner-select-header">
