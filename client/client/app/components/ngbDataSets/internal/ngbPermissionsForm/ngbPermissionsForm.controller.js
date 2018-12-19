@@ -45,6 +45,7 @@ export default class ngbPermissionsFormController extends BaseController {
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
+                this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.selectPermissionSubject);
             },
             // showHeader: false,
         });
@@ -158,7 +159,8 @@ export default class ngbPermissionsFormController extends BaseController {
         this.ownerSearchTerm = '';
     }
 
-    selectPermissionSubject = (subject) => {
+    selectPermissionSubject(row) {
+        const subject = row.entity;
         this._subject = subject; // {name, principal, mask};
         this._subjectPermissions = {
             readAllowed: roleModel.readAllowed(subject, true),

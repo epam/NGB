@@ -97,7 +97,7 @@ export default class ngbPermissionsFormService {
                           <md-button
                               aria-label="Delete"
                               class="md-mini md-hue-1 grid-action-button"
-                              ng-click="grid.appScope.ctrl.removeRoleFromGrid(row.entity.name, $event)">
+                              ng-click="grid.appScope.ctrl.deleteSubjectPermissions(row.entity, $event)">
                               <ng-md-icon icon="delete"></ng-md-icon>
                           </md-button>
                       </div>`,
