@@ -22,8 +22,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public abstract class AbstractSecuredEntity extends BaseEntity {
 
-    public static final int ALL_PERMISSIONS_MASK = 15;
-    public static final int ALL_PERMISSIONS_MASK_FULL = 85;
+    public static final int ALL_PERMISSIONS_MASK = 7;
+    public static final int ALL_PERMISSIONS_MASK_FULL = 37;
 
     /**
      * Represents permissions mask for currently authenticated user. Note that
