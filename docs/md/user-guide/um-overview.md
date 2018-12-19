@@ -8,7 +8,7 @@ The **Users** entity defines the full list of the NGB users (accounts). Note tha
 The **Groups** entity defines the users grants for access to the specific datasets. Each **Group** should present a specific group of users (e.g. project team members), for which are granted or refused permissions for viewing specific datasets. The group can be created/deleted from NGB groups list or assigned to the user only by user with the *ROLE_ADMIN* role. Each NGB user can be in one or several groups or not in any of them.
 
 ## Roles
-The **Roles** entity defines the users grants for managing security access to the objects. Roles are predefined by the system, none of the users can create new roles or delete existing. The role can be assigned to the user only by user with the *ROLE_ADMIN* role. Each NGB user must be assigned an one or several roles.
+The **Roles** entity defines the users grants for managing security access to the objects. Roles are predefined by the system, none of the users can create new roles or delete existing. The role can be assigned to the user only by user with the *ROLE_ADMIN* role. Each NGB user must be assigned one or several roles.
 
 Actual system roles list:
 
@@ -33,6 +33,6 @@ The **Permissions** entity defines what actions with files and datasets are allo
 The user management panel helps to manage users, groups and system roles.
 > Note: this panel is available only for users with the *ROLE_ADMIN* role.
 
-To open user management panel click on ![NGB User Management](images/overview-1.png) icon on the main toolbar of the application.
+To open user management panel click on ![NGB User Management](images/um-overview-1.png) icon on the main toolbar of the application.
 
 Setting permissions on specific files and datasets can be done through CLI.
