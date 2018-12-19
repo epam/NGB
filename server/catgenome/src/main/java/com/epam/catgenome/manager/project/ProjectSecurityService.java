@@ -28,6 +28,8 @@ package com.epam.catgenome.manager.project;
 
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.exception.FeatureIndexException;
+import com.epam.catgenome.security.acl.aspect.AclMask;
+import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import com.epam.catgenome.security.acl.aspect.AclTree;
 import com.epam.catgenome.security.acl.aspect.AclFilterAndTree;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,24 +51,28 @@ public class ProjectSecurityService {
     private ProjectManager projectManager;
 
     @AclFilterAndTree
+    @AclMaskList
     @PreAuthorize(ROLE_USER)
     public List<Project> loadTopLevelProjects() {
         return projectManager.loadTopLevelProjects();
     }
 
     @AclFilterAndTree
+    @AclMaskList
     @PreAuthorize(ROLE_USER)
     public List<Project> loadProjectTree(Long parentId, String referenceName) {
         return projectManager.loadProjectTree(parentId, referenceName);
     }
 
     @AclTree
+    @AclMask
     @PreAuthorize(ROLE_USER)
     public Project load(Long projectId) {
         return projectManager.load(projectId);
     }
 
     @AclTree
+    @AclMask
     @PreAuthorize(ROLE_USER)
     public Project load(String projectName) {
         return projectManager.load(projectName);
