@@ -1,0 +1,18 @@
+<md-dialog aria-label="Permissions" style="max-height: 75vh;">
+    <form name="permissionsForm">
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2 ng-if="ctrl.node">{{ctrl.node.name}}</h2>
+                <span flex></span>
+                <md-button class="md-icon-button" ng-click="ctrl.close()" aria-label="Close">
+                    <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-dialog-content>
+            <md-content class="md-padding">
+
+            </md-content>
+        </md-dialog-content>
+    </form>
+</md-dialog>

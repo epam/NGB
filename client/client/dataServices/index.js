@@ -15,3 +15,4 @@ export * from './externaldb/externaldb-data-service';
 export * from './utils/utils-data-service';
 export * from './role/role-data-service';
 export * from './user/user-data-service';
+export * from './permissions/permissions-data-service';

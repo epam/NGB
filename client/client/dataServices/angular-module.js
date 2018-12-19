@@ -20,4 +20,5 @@ export default angular.module('ngbDataServices', [])
     .service('externaldbDataService', dataServices.ExternaldbDataService.serviceFactory)
     .service('roleDataService', dataServices.RoleDataService.serviceFactory)
     .service('userDataService', dataServices.UserDataService.serviceFactory)
+    .service('permissionsDataService', dataServices.PermissionsDataService.serviceFactory)
     .name;
