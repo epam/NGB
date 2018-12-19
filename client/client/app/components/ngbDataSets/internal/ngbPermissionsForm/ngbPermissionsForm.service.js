@@ -23,11 +23,11 @@ export default class ngbPermissionsFormService {
     }
 
     getUsers() {
-        this._userDataService.getUsers();
+        return this._userDataService.getUsers();
     }
 
     getRoles() {
-        this._roleDataService.getRoles();
+        return this._roleDataService.getRoles();
     }
 
     getNodePermissions(node) {
