@@ -71,9 +71,8 @@ export default class ngbPermissionsFormService {
 
     getPermissionsColumns() {
         return [{
-/*
             cellTemplate: `
-                    <div layout="row">
+                    <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
                         <ng-md-icon ng-if="row.entity.principal" icon="person"></ng-md-icon>
                         <ng-md-icon ng-if="!row.entity.principal" icon="group"></ng-md-icon>
                     </div>
@@ -84,9 +83,8 @@ export default class ngbPermissionsFormService {
             field: 'principal',
             maxWidth: 50,
             minWidth: 50,
-            name: '',
+            name: ' ',
         }, {
-*/
             enableColumnMenu: false,
             enableSorting: true,
             field: 'name',
