@@ -11,8 +11,70 @@
         </md-toolbar>
         <md-dialog-content>
             <md-content class="md-padding">
-
+                <div class="column">
+                    <div layout="row">
+                        <md-input-container flex>
+                            <label>Owner</label>
+                            <md-select ng-model="ctrl.owner"
+                                       name="owner"
+                                       ng-change="ctrl.onOwnerChange($event)"
+                                       md-on-close="ctrl.clearOwnerSearchTerm()"
+                                       md-container-class="user-role-selector">
+                                <md-select-header class="role-select-header">
+                                    <input ng-model="ctrl.ownerSearchTerm"
+                                           ng-keydown="$event.stopPropagation()"
+                                           type="search"
+                                           placeholder="Search for a role or a group..."
+                                           class="md-text role-header-searchbox" />
+                                </md-select-header>
+                                <md-optgroup label="Select owner">
+                                    <md-option
+                                            ng-value="user.userName"
+                                            ng-repeat="user in ctrl.users | filter:ctrl.ownerSearchTerm">
+                                        {{user.userName}}
+                                    </md-option>
+                                </md-optgroup>
+                            </md-select>
+                        </md-input-container>
+                    </div>
+                    <div layout="row" layout-align="end">
+                        <md-button
+                                aria-label="Add user"
+                                class="md-mini md-hue-1"
+                                ng-click="ctrl.onAddRole()">
+                            <ng-md-icon icon="person_add"></ng-md-icon>
+                        </md-button>
+                        <md-button
+                                aria-label="Add group or role"
+                                class="md-mini md-hue-1"
+                                ng-click="ctrl.onAddUser()">
+                            <ng-md-icon icon="group_add"></ng-md-icon>
+                        </md-button>
+                    </div>
+                    <div layout="row" style="max-height: 40vh">
+                        <div ng-if="ctrl.formGridOptions.data.length" class="ui-grid-container flex">
+                            <div ui-grid="ctrl.formGridOptions"
+                                 ui-grid-save-state
+                                 ui-grid-selection
+                                 ui-grid-resize-columns
+                                 ui-grid-auto-resize
+                                 ui-grid-move-columns
+                                 ui-grid-pinning
+                                 ui-grid-infinite-scroll
+                            ></div>
+                        </div>
+                    </div>
+                    <div layout="row" ng-if="ctrl.selectedPermissionSubject"></div>
+                </div>
             </md-content>
         </md-dialog-content>
+        <md-dialog-actions layout="row">
+            <md-button class="md-primary" ng-disabled="!ctrl.isValid" ng-click="ctrl.save()">
+                Save
+            </md-button>
+            <md-button ng-click="ctrl.close()" style="margin-right:20px;">
+                Cancel
+            </md-button>
+        </md-dialog-actions>
     </form>
 </md-dialog>

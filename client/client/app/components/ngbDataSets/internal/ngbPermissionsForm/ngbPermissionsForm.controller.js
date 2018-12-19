@@ -12,6 +12,9 @@ export default class ngbPermissionsFormController extends BaseController {
     users;
     roles;
 
+    ownerSearchTerm;
+    formGridOptions = {};
+
     selectedPermissionSubject;
     selectedPermissionSubjectPermissions = {
         readAllowed: false,
@@ -25,13 +28,24 @@ export default class ngbPermissionsFormController extends BaseController {
     }
 
     /* @ngInject */
-    constructor($mdDialog, $scope, node, ngbPermissionsFormService) {
+    constructor($mdDialog, $scope, node, ngbPermissionsFormService, ngbPermissionsGridOptionsConstant) {
         super();
         Object.assign(this, {
             $mdDialog,
             $scope,
             node,
             ngbPermissionsFormService
+        });
+
+        Object.assign(this.formGridOptions, {
+            ...ngbPermissionsGridOptionsConstant,
+            appScopeProvider: this.scope,
+            // columnDefs: this.ngbPermissionsFormService.getPermissionsColumns(),
+            onRegisterApi: (gridApi) => {
+                this.gridApi = gridApi;
+                this.gridApi.core.handleWindowResize();
+            },
+            // showHeader: false,
         });
 
         this.fetchPermissions();
@@ -68,8 +82,16 @@ export default class ngbPermissionsFormController extends BaseController {
             if (data) {
                 this.owner = data.owner;
                 this.permissions = data.permissions;
+                if (this.$scope) {
+                    this.$scope.$apply();
+                }
+                console.log('permissions', data.owner, data.permissions);
             }
         });
+    }
+
+    clearOwnerSearchTerm() {
+        this.ownerSearchTerm = '';
     }
 
     selectPermissionSubject = (subject) => {
@@ -126,6 +148,22 @@ export default class ngbPermissionsFormController extends BaseController {
                 readAllowed, readDenied, writeAllowed, writeDenied
             };
         });
+    }
+
+    onAddRole() {
+        console.log('open add role/group dialog');
+        // todo show add dialog
+        // this.$mdDialog.show().then(result => {
+            // todo add group-role/fetch
+        // });
+    }
+
+    onAddUser() {
+        console.log('open add user dialog');
+        // todo show add dialog
+        // this.$mdDialog.show().then(result => {
+            // todo add user/fetch
+        // });
     }
 
     deleteSubjectPermissions = (subject) => {
