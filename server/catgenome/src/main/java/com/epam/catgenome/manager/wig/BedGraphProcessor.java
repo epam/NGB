@@ -36,6 +36,7 @@ import com.epam.catgenome.manager.wig.reader.BedGraphCodec;
 import com.epam.catgenome.manager.wig.reader.BedGraphFeature;
 import com.epam.catgenome.manager.wig.reader.BedGraphReader;
 import com.epam.catgenome.util.IOHelper;
+import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
@@ -93,7 +94,9 @@ public class BedGraphProcessor extends AbstractWigProcessor {
     @Override
     protected void prepareWigFileToWork(WigFile wigFile) throws IOException {
         wigFile.setCompressed(IOHelper.isGZIPFile(wigFile.getPath()));
-        fileManager.makeBedGraphIndex(wigFile);
+        if (wigFile.getIndex() == null) {
+            fileManager.makeBedGraphIndex(wigFile);
+        }
         biologicalDataItemManager.createBiologicalDataItem(wigFile.getIndex());
     }
 
@@ -149,7 +152,7 @@ public class BedGraphProcessor extends AbstractWigProcessor {
     }
 
     private String fetchRealChrName(String bedGraphIndexPath, String chromosomeName) {
-        Index index = IndexFactory.loadIndex(bedGraphIndexPath);
+        Index index = IndexUtils.loadIndex(bedGraphIndexPath);
         String realName = chromosomeName;
         for (String chr : index.getSequenceNames()) {
             if (chromosomeName.equals(chr)) {

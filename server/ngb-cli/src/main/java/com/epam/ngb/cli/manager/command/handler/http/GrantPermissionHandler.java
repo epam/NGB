@@ -146,7 +146,8 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
         return 0;
     }
 
-    private void grantOrDeletePermission(int mask, AclClass aclClass, Long id, Class<?> classType, String identifier, boolean isPrincipal) {
+    private void grantOrDeletePermission(int mask, AclClass aclClass, Long id, Class<?> classType,
+                                         String identifier, boolean isPrincipal) {
         String result;
 
         if (action.equals(DELETE_PERMISSION_ACTION)) {
