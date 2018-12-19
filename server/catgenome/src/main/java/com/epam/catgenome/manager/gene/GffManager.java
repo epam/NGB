@@ -681,7 +681,8 @@ public class GffManager {
         TrackHelper.validateHistogramTrack(track);
 
         final GeneFile geneFile = geneFileManager.load(track.getId());
-        if (BiologicalDataItemResourceType.FILE != geneFile.getType()) {
+        if (BiologicalDataItemResourceType.FILE != geneFile.getType() &&
+                BiologicalDataItemResourceType.S3 != geneFile.getType()) {
             track.setBlocks(Collections.emptyList());
             return track;
         }
