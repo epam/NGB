@@ -1,5 +1,7 @@
+import angular from 'angular';
 import BaseController from '../../../../shared/baseController';
 import roleModel from '../../../../shared/utils/roleModel';
+import ngbAddUserRoleDlgController from './ngbAddUserRoleDlg.controller';
 
 const ROLE_NAME_FIRST_PART = 'ROLE_';
 
@@ -45,7 +47,7 @@ export default class ngbPermissionsFormController extends BaseController {
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
-                this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.selectPermissionSubject);
+                this.gridApi.selection.on.rowSelectionChanged(this.$scope, (row) => this.selectPermissionSubject(row));
             },
             // showHeader: false,
         });
@@ -159,16 +161,21 @@ export default class ngbPermissionsFormController extends BaseController {
         this.ownerSearchTerm = '';
     }
 
-    selectPermissionSubject(row) {
-        const subject = row.entity;
-        this._subject = subject; // {name, principal, mask};
+    selectPermissionSubject(row, scopeApply = true) {
+        let subject = null;
+        if (row) {
+            subject = row.entity;
+        }
+        this._subject = subject;
         this._subjectPermissions = {
             readAllowed: roleModel.readAllowed(subject, true),
             readDenied: roleModel.readDenied(subject, true),
             writeAllowed: roleModel.writeAllowed(subject, true),
             writeDenied: roleModel.writeDenied(subject, true)
         };
-        this.$scope.$apply();
+        if (scopeApply) {
+            this.$scope.$apply();
+        }
     };
 
     // bit:
@@ -216,25 +223,44 @@ export default class ngbPermissionsFormController extends BaseController {
     }
 
     onAddRole() {
-        console.log('open add role/group dialog');
-        // todo show add dialog
-        // this.$mdDialog.show().then(result => {
-            // todo add group-role/fetch
-        // });
+        this.$mdDialog.show({
+            clickOutsideToClose: true,
+            controller: ngbAddUserRoleDlgController,
+            controllerAs: 'ctrl',
+            locals: {
+                availableItems: this.availableRoles,
+                isUser: false,
+                node: this.node
+            },
+            parent: angular.element(document.body),
+            skipHide: true,
+            template: require('./ngbAddUserRoleDlg.tpl.html'),
+        }).then(() => this.fetchPermissions());
     }
 
     onAddUser() {
-        console.log('open add user dialog');
-        // todo show add dialog
-        // this.$mdDialog.show().then(result => {
-            // todo add user/fetch
-        // });
+        this.$mdDialog.show({
+            clickOutsideToClose: true,
+            controller: ngbAddUserRoleDlgController,
+            controllerAs: 'ctrl',
+            locals: {
+                availableItems: this.availableUsers,
+                isUser: true,
+                node: this.node
+            },
+            parent: angular.element(document.body),
+            skipHide: true,
+            template: require('./ngbAddUserRoleDlg.tpl.html'),
+        }).then(() => this.fetchPermissions());
     }
 
     deleteSubjectPermissions = (subject) => {
+        if (this.subject && this.subject.name === subject.name) {
+            this.selectPermissionSubject(null, false);
+        }
         this.ngbPermissionsFormService
             .deleteNodePermissions(this.node, subject)
-            .then(this.fetchPermissions);
+            .then(() => this.fetchPermissions());
     };
 
     clearSelectedOwner = () => {

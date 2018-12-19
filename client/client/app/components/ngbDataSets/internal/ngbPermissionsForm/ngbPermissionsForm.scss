@@ -1,12 +1,12 @@
-.owner-selector {
-  .owner-header-searchbox {
+.owner-selector, .user-role-selector {
+  .owner-header-searchbox, .role-header-searchbox {
     border: none;
     outline: none;
     height: 100%;
     width: 100%;
     padding: 0;
   }
-  .owner-select-header {
+  .owner-select-header, .role-select-header {
     box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.1), 0 0 0 0 rgba(0, 0, 0, 0.14), 0 0 0 0 rgba(0, 0, 0, 0.12);
     padding-left: 10.667px;
     height: 48px;

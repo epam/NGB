@@ -3,32 +3,28 @@
         <md-content class="md-padding">
             <div class="column">
                 <div layout="row">
-                    <h2 class="md-title">{{ctrl.itemType}}</h2>
-                </div>
-                <div layout="row">
                     <md-input-container flex>
                         <label>Select {{ctrl.itemType}} to add</label>
-                        <md-select ng-model="ctrl.selectedItems"
-                                   name="add_roles"
+                        <md-select ng-model="ctrl.selectedItem"
+                                   name="add_role_or_user"
                                    md-on-close="ctrl.clearSearchTerm()"
                                    md-container-class="user-role-selector">
                             <md-select-header class="role-select-header">
                                 <input ng-model="ctrl.searchTerm"
                                        ng-keydown="$event.stopPropagation()"
                                        type="search"
-                                       placeholder="Search for a role or a group..."
+                                       placeholder="Search for a {{ctrl.itemType}}..."
                                        class="md-text role-header-searchbox" />
                             </md-select-header>
-                            <md-optgroup label="{{itemType}}">
+                            <md-optgroup label="{{ctrl.itemType}}">
                                 <md-option
                                         ng-value="item"
                                         ng-repeat="item in ctrl.availableItems | filter:ctrl.searchTerm">
-                                    {{item.name}}
+                                    {{ctrl.getItemName(item)}}
                                 </md-option>
                             </md-optgroup>
                         </md-select>
                     </md-input-container>
-                    <md-button ng-click="ctrl.addRolesToGrid()">Add</md-button>
                 </div>
             </div>
         </md-content>
