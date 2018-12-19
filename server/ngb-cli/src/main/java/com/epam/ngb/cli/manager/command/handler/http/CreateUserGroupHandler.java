@@ -29,16 +29,10 @@ package com.epam.ngb.cli.manager.command.handler.http;
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.entity.*;
-import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.printer.AbstractResultPrinter;
 import com.epam.ngb.cli.manager.request.RequestManager;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 

@@ -85,7 +85,8 @@ public class CreateUserHandler extends AbstractHTTPCommandHandler {
                     ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 1, arguments.size()));
         }
 
-        HttpGet request = (HttpGet) getRequestFromURLByType("GET", getServerParameters().getServerUrl() + getServerParameters().getAllRolesUrl());
+        HttpGet request = (HttpGet) getRequestFromURLByType("GET",
+                getServerParameters().getServerUrl() + getServerParameters().getAllRolesUrl());
         String result = RequestManager.executeRequest(request);
         ResponseResult<List<Role>> responseResult;
         try {
@@ -98,7 +99,8 @@ public class CreateUserHandler extends AbstractHTTPCommandHandler {
             throw new ApplicationException(e.getMessage(), e);
         }
 
-        Map<String, Role> rolesByName = responseResult.getPayload().stream().collect(Collectors.toMap(Role::getName, r -> r));
+        Map<String, Role> rolesByName = responseResult.getPayload().stream()
+                .collect(Collectors.toMap(Role::getName, r -> r));
 
         if (options.getGroups() != null) {
             groups = Arrays.stream(options.getGroups().split(","))

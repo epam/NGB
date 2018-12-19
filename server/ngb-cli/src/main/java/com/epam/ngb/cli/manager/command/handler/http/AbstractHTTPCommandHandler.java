@@ -425,7 +425,8 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
 
     protected List<Long> loadListOfUsers(List<String> userNames) {
         IDList names = new IDList(userNames);
-        HttpPost request = (HttpPost) getRequestFromURLByType("POST", getServerParameters().getServerUrl() + getServerParameters().getFindUsersUrl());
+        HttpPost request = (HttpPost) getRequestFromURLByType("POST",
+                getServerParameters().getServerUrl() + getServerParameters().getFindUsersUrl());
         String result = getPostResult(names, request);
         try {
             ResponseResult<List<NgbUser>> responseResult = getMapper()
@@ -441,7 +442,8 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
     }
 
     protected Role loadRoleByName(String name) {
-        HttpRequestBase request = getRequestFromURLByType("GET", getServerParameters().getServerUrl() + String.format(getServerParameters().getRoleUrl(), name));
+        HttpRequestBase request = getRequestFromURLByType("GET", getServerParameters().getServerUrl()
+                + String.format(getServerParameters().getRoleUrl(), name));
         String result = RequestManager.executeRequest(request);
         try {
             ResponseResult<Role> responseResult = getMapper()
