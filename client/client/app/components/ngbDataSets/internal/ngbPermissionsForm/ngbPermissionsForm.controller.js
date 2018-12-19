@@ -19,7 +19,7 @@ export default class ngbPermissionsFormController extends BaseController {
     ownerSearchTerm;
     formGridOptions = {};
 
-    _subject;
+    _subject = null;
     _subjectPermissions = {
         readAllowed: false,
         readDenied: false,
@@ -56,15 +56,9 @@ export default class ngbPermissionsFormController extends BaseController {
         this.fetchPermissions();
         this.ngbPermissionsFormService.getUsers().then(users => {
             this.users = users || [];
-            if (this.$scope) {
-                this.$scope.$apply();
-            }
         });
         this.ngbPermissionsFormService.getRoles().then(roles => {
             this.roles = roles || [];
-            if (this.$scope) {
-                this.$scope.$apply();
-            }
         });
     }
 
@@ -92,6 +86,9 @@ export default class ngbPermissionsFormController extends BaseController {
     }
 
     setPermissionsGridData(data) {
+        if (this.subject && !data.map(i => i.name).includes(this.subject.name)) {
+            this._subject = null;
+        }
         this.formGridOptions.data = data;
         if (this.$scope) {
             this.$scope.$apply();
@@ -160,9 +157,6 @@ export default class ngbPermissionsFormController extends BaseController {
                 this.mask = data.mask;
                 this.permissions = data.permissions;
                 this.setPermissionsGridData(this.permissions);
-                if (this.$scope) {
-                    this.$scope.$apply();
-                }
             }
         });
     }
@@ -275,12 +269,10 @@ export default class ngbPermissionsFormController extends BaseController {
     }
 
     deleteSubjectPermissions = (subject) => {
-        if (this.subject && this.subject.name === subject.name) {
-            this.selectPermissionSubject(null, false);
-        }
         this.ngbPermissionsFormService
             .deleteNodePermissions(this.node, subject)
-            .then(() => this.fetchPermissions());
+            .then(() => this.fetchPermissions())
+            .catch(() => this.fetchPermissions());
     };
 
     clearSelectedOwner = () => {
