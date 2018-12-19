@@ -14,10 +14,10 @@ export default class ngbPermissionsFormController extends BaseController {
 
     selectedPermissionSubject;
     selectedPermissionSubjectPermissions = {
-      readAllowed: false,
-      readDenied: false,
-      writeAllowed: false,
-      writeDenied: false
+        readAllowed: false,
+        readDenied: false,
+        writeAllowed: false,
+        writeDenied: false
     };
 
     static get UID() {
@@ -40,7 +40,27 @@ export default class ngbPermissionsFormController extends BaseController {
         });
         this.ngbPermissionsFormService.getRoles().then(roles => {
             this.roles = roles || [];
+            console.log(this.availableRoles);
         });
+    }
+
+    get availableUsers() {
+        return (this.users || [])
+            .filter(u => (this.permissions || [])
+                .filter(p => p.principal && (p.name || '').toLowerCase() === (u.userName || '').toLowerCase()).length === 0);
+    }
+
+    get availableRoles() {
+        return (this.roles || [])
+            .filter(r => (this.permissions || [])
+                .filter(p => !p.principal && (p.name || '').toLowerCase() === (r.name || '').toLowerCase()).length === 0);
+    }
+
+    getRoleDisplayName(role) {
+        if (role.predefined && role.name.toUpperCase().startsWith(ROLE_NAME_FIRST_PART)) {
+            return role.name.substring(ROLE_NAME_FIRST_PART.length);
+        }
+        return role.name;
     }
 
     fetchPermissions() {
@@ -102,10 +122,10 @@ export default class ngbPermissionsFormController extends BaseController {
                 this.selectedPermissionSubject,
                 roleModel.buildExtendedMask(readAllowed, readDenied, writeAllowed, writeDenied)
             ).then(() => {
-                this.selectedPermissionSubjectPermissions = {
-                    readAllowed, readDenied, writeAllowed, writeDenied
-                };
-            });
+            this.selectedPermissionSubjectPermissions = {
+                readAllowed, readDenied, writeAllowed, writeDenied
+            };
+        });
     }
 
     deleteSubjectPermissions = (subject) => {
