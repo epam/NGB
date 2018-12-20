@@ -87,7 +87,7 @@ export default class ngbPermissionsFormService {
         }, {
             enableColumnMenu: false,
             enableSorting: true,
-            field: 'name',
+            field: 'displayName',
             minWidth: 50,
             name: 'Name',
             width: '*',

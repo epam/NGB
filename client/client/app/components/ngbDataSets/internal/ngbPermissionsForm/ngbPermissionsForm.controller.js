@@ -89,7 +89,11 @@ export default class ngbPermissionsFormController extends BaseController {
         if (this.subject && !data.map(i => i.name).includes(this.subject.name)) {
             this._subject = null;
         }
-        this.formGridOptions.data = data;
+        const mapGridData = (row) => ({
+            ...row,
+            displayName: row.principal ? row.name : ngbPermissionsFormController.getRoleDisplayName(row),
+        });
+        this.formGridOptions.data = data.map(mapGridData);
         if (this.$scope) {
             this.$scope.$apply();
         }
@@ -167,7 +171,7 @@ export default class ngbPermissionsFormController extends BaseController {
 
     selectPermissionSubject(row, scopeApply = true) {
         let subject = null;
-        if (row) {
+        if (row && row.isSelected) {
             subject = row.entity;
         }
         this._subject = subject;
@@ -180,7 +184,7 @@ export default class ngbPermissionsFormController extends BaseController {
         if (scopeApply) {
             this.$scope.$apply();
         }
-    };
+    }
 
     // bit:
     // 0 - read allowed
@@ -218,10 +222,14 @@ export default class ngbPermissionsFormController extends BaseController {
         this._subjectPermissions = {
             readAllowed, readDenied, writeAllowed, writeDenied
         };
+        const subject = this._subject.slice();
+        if (subject.hasOwnProperty('displayName')) {
+            delete subject.displayName;
+        }
         this.ngbPermissionsFormService
             .grantPermission(
                 this.node,
-                this._subject,
+                subject,
                 roleModel.buildExtendedMask(readAllowed, readDenied, writeAllowed, writeDenied)
             )
             .then(data => {
