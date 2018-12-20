@@ -36,7 +36,7 @@ function _preprocessNode(node: Node, parent: Node = null) {
         track.reference = reference;
         track.hint = `${getTrackFileName(track)}${reference ? `\r\nReference: ${reference.name}` : ''}`;
         track.searchFilterPassed = true;
-        track.roles = ['ROLE_ADMIN', `ROLE_${(track.format || '').toUpperCase()}_MANAGER`];
+        track.roles = ['ROLE_ADMIN'];
         return track;
     };
     node.hint = _getProjectHint(node, reference);
