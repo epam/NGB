@@ -20,7 +20,7 @@
                                 <md-option
                                         ng-value="item"
                                         ng-repeat="item in ctrl.availableItems | filter:ctrl.searchTerm">
-                                    {{ctrl.getItemName(item)}}
+                                    {{ctrl.getItemDisplayName(item)}}
                                 </md-option>
                             </md-optgroup>
                         </md-select>

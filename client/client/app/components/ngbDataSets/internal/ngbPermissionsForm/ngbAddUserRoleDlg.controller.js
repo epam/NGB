@@ -1,5 +1,7 @@
 import BaseController from '../../../../shared/baseController';
 
+const ROLE_NAME_FIRST_PART = 'ROLE_';
+
 export default class ngbAddUserRoleDlgController extends BaseController {
 
     isUser = true;
@@ -42,6 +44,17 @@ export default class ngbAddUserRoleDlgController extends BaseController {
             return item.userName;
         }
         return item.name;
+    }
+
+    getItemDisplayName(item) {
+        if (!item) {
+            return null;
+        }
+        const name = this.getItemName(item);
+        if (!this.isUser && !item.predefined && (name || '').toLowerCase().startsWith(ROLE_NAME_FIRST_PART.toLowerCase())) {
+            return name.substring(ROLE_NAME_FIRST_PART.length);
+        }
+        return name;
     }
 
     clearSearchTerm() {

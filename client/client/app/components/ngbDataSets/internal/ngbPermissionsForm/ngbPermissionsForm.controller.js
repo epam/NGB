@@ -94,7 +94,7 @@ export default class ngbPermissionsFormController extends BaseController {
             if(permission.principal) {
                 displayName = permission.name;
             } else {
-                const [role] = this.roles.filter(r => (r.name || '').toLowerCase() === (permission.name || '').toLowerCase());
+                const [role] = (this.roles || []).filter(r => (r.name || '').toLowerCase() === (permission.name || '').toLowerCase());
                 if (role && role.name) {
                     displayName = ngbPermissionsFormController.getRoleDisplayName(role);
                 } else {
@@ -141,7 +141,7 @@ export default class ngbPermissionsFormController extends BaseController {
             if (this.subject.principal) {
                 return 'user';
             } else {
-                const [role] = this.roles.filter(r => (r.name || '').toLowerCase() === (this.subject.name || '').toLowerCase());
+                const [role] = (this.roles || []).filter(r => (r.name || '').toLowerCase() === (this.subject.name || '').toLowerCase());
                 if (role && !role.predefined) {
                     return 'group';
                 }
@@ -154,7 +154,7 @@ export default class ngbPermissionsFormController extends BaseController {
     getSubjectDisplayName() {
         if (this.subject) {
             if (!this.subject.principal) {
-                const [role] = this.roles.filter(r => (r.name || '').toLowerCase() === (this.subject.name || '').toLowerCase());
+                const [role] = (this.roles || []).filter(r => (r.name || '').toLowerCase() === (this.subject.name || '').toLowerCase());
                 if (role) {
                     return ngbPermissionsFormController.getRoleDisplayName(role);
                 }
