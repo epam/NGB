@@ -14,6 +14,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.http.HttpStatus;
+import org.springframework.util.StringUtils;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
@@ -24,48 +25,63 @@ import java.util.concurrent.TimeUnit;
  */
 public final class S3Client {
 
-    private static final AmazonS3 AWS_S3;
-    private static final AmazonS3 SWIFT_STACK;
-
     private static final int CACHE_SIZE = 1000;
-    private static final LoadingCache<AmazonS3URI, Long> FILE_SIZES = CacheBuilder.newBuilder()
+
+    private final AmazonS3 s3;
+    private final AmazonS3 swiftStack;
+
+    private static S3Client instance;
+
+    private final LoadingCache<AmazonS3URI, Long> fileSizes = CacheBuilder.newBuilder()
             .maximumSize(CACHE_SIZE)
             .expireAfterWrite(1, TimeUnit.HOURS)
             .build(
                     new CacheLoader<AmazonS3URI, Long>() {
                         public Long load(AmazonS3URI key) {
-                            return AWS_S3
+                            return getAws(key)
                                     .getObjectMetadata(key.getBucket(), key.getKey())
                                     .getContentLength();
                         }
                     });
 
 
-    static {
-        AWS_S3 = AmazonS3ClientBuilder.standard().enableForceGlobalBucketAccess().build();
-        SWIFT_STACK = AmazonS3ClientBuilder.standard().enableForceGlobalBucketAccess()
-                .withCredentials(
-                        new AWSCredentialsProviderChain(
-                            new EnvironmentVariableCredentialsProvider(),
-                            new SystemPropertiesCredentialsProvider(),
-                            new EC2ContainerCredentialsProviderWrapper(),
-                            new ProfileCredentialsProvider("sws"))
-                ).build();
-    }
-
-    private S3Client() {
-
-    }
-
-    static AmazonS3 getAws() {
-        return AWS_S3;
-    }
-
-    static AmazonS3 getAws(AmazonS3URI object) {
-        if (object.toString().startsWith("sws")) {
-            return SWIFT_STACK;
+    private S3Client(final String swsEndpoint) {
+        s3 = AmazonS3ClientBuilder.standard().enableForceGlobalBucketAccess().build();
+        if (!StringUtils.isEmpty(swsEndpoint)) {
+            swiftStack = AmazonS3ClientBuilder.standard().enableForceGlobalBucketAccess()
+                    .withCredentials(
+                            new AWSCredentialsProviderChain(
+                                    new EnvironmentVariableCredentialsProvider(),
+                                    new SystemPropertiesCredentialsProvider(),
+                                    new EC2ContainerCredentialsProviderWrapper(),
+                                    new ProfileCredentialsProvider("sws"))
+                    ).build();
+            swiftStack.setEndpoint(swsEndpoint);
+        } else {
+            swiftStack = null;
         }
-        return AWS_S3;
+    }
+
+    public static synchronized S3Client configure(String swsEndpoint) {
+        instance = new S3Client(swsEndpoint);
+        return instance;
+    }
+
+    public static synchronized  S3Client getInstance() {
+        if (instance == null) {
+            throw new IllegalArgumentException("S3Client is not configured!");
+        }
+        return instance;
+    }
+
+    private AmazonS3 getAws(AmazonS3URI object) {
+        if (object.toString().startsWith("sws")) {
+            if (swiftStack == null) {
+                throw new IllegalArgumentException("Swift Stack client is not configured!");
+            }
+            return swiftStack;
+        }
+        return s3;
     }
 
     /**
@@ -74,12 +90,12 @@ public final class S3Client {
      * @param uri The provided URI for the file.
      * @return a boolean value that shows whether the correct URI was provided
      */
-    public static boolean isFileExisting(AmazonS3URI uri) {
+    private boolean isFileExisting(AmazonS3URI uri) {
 
         boolean exist = true;
 
         try {
-            AWS_S3.getObjectMetadata(uri.getBucket(), uri.getKey());
+            getAws(uri).getObjectMetadata(uri.getBucket(), uri.getKey());
         } catch (AmazonS3Exception e) {
             if (e.getStatusCode() == HttpStatus.SC_FORBIDDEN
                     || e.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
@@ -97,7 +113,7 @@ public final class S3Client {
      * @param uri The provided URI for the file.
      * @return a boolean value that shows whether the correct URI was provided
      */
-    public static boolean isFileExisting(String uri) {
+    public boolean isFileExisting(String uri) {
         return isFileExisting(new AmazonS3URI(uri));
     }
 
@@ -107,8 +123,8 @@ public final class S3Client {
      * @param amazonURI An s3 URI
      * @return long value of the file size in bytes
      */
-    public static long getFileSize(AmazonS3URI amazonURI){
-        return FILE_SIZES.getUnchecked(amazonURI);
+    public long getFileSize(AmazonS3URI amazonURI){
+        return fileSizes.getUnchecked(amazonURI);
     }
 
     /**
@@ -120,10 +136,10 @@ public final class S3Client {
      * @param end    range end position
      * @return an InputStream object on the specific range of the file.
      */
-    public static InputStream loadFromTo(AmazonS3URI obj, long offset, long end) {
+    public InputStream loadFromTo(AmazonS3URI obj, long offset, long end) {
         GetObjectRequest rangeObjectRequest = new GetObjectRequest(obj.getBucket(), obj.getKey());
         rangeObjectRequest.setRange(offset, end);
-        S3Object s3Object = S3Client.getAws(obj).getObject(rangeObjectRequest);
+        S3Object s3Object = getAws(obj).getObject(rangeObjectRequest);
         S3ObjectInputStream objectStream = s3Object.getObjectContent();
         return new BufferedInputStream(objectStream);
     }
@@ -137,9 +153,9 @@ public final class S3Client {
      * @return an InputStream object on the specific range of the file.
      */
     @SuppressWarnings("WeakerAccess")
-    public static InputStream loadFrom(AmazonS3URI obj,
+    public InputStream loadFrom(AmazonS3URI obj,
                                        @SuppressWarnings("SameParameterValue") long offset) {
-        long contentLength = S3Client.getFileSize(obj);
+        long contentLength = S3Client.getInstance().getFileSize(obj);
         return loadFromTo(obj, offset, contentLength);
     }
 
@@ -150,7 +166,7 @@ public final class S3Client {
      * @return an InputStream object on the file URI.
      */
     @SuppressWarnings("WeakerAccess")
-    public static InputStream loadFully(AmazonS3URI obj) {
+    public InputStream loadFully(AmazonS3URI obj) {
         return loadFrom(obj, 0);
     }
 

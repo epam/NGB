@@ -93,7 +93,7 @@ public final class IOHelper {
 
     public static boolean resourceExists(String resource) throws IOException {
         if(Utils.isS3Source(resource)) {
-            return S3Client.isFileExisting(resource);
+            return S3Client.getInstance().isFileExisting(resource);
         } else {
             return ParsingUtils.resourceExists(resource);
         }
@@ -101,7 +101,7 @@ public final class IOHelper {
 
     public static InputStream openStream(String path) throws IOException {
         if (Utils.isS3Source(path)) {
-            return S3Client.loadFully(new AmazonS3URI(path));
+            return S3Client.getInstance().loadFully(new AmazonS3URI(path));
         } else {
             return ParsingUtils.openInputStream(path);
         }

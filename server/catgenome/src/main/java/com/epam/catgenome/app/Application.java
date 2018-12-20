@@ -3,8 +3,10 @@ package com.epam.catgenome.app;
 import java.io.PrintStream;
 
 import com.epam.catgenome.util.NgbSeekableStreamFactory;
+import com.epam.catgenome.util.aws.S3Client;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.FallbackWebSecurityAutoConfiguration;
@@ -35,6 +37,9 @@ public class Application extends SpringBootServletInitializer {
     @Autowired
     private Environment environment;
 
+    @Value("${swift.stack.endpoint:null}")
+    private String swsEndpoint;
+
     @Override protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(Application.class);
     }
@@ -56,5 +61,10 @@ public class Application extends SpringBootServletInitializer {
     @Bean
     ISeekableStreamFactory ngbSeekableStreamFactory() {
         return NgbSeekableStreamFactory.getInstance();
+    }
+
+    @Bean
+    S3Client s3Client() {
+        return S3Client.configure(swsEndpoint);
     }
 }
