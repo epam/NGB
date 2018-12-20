@@ -24,10 +24,13 @@
 
 package com.epam.ngb.cli.manager.command;
 
+import lombok.Data;
+
 /**
  * {@code ServerParameters} represents an NGB server configuration, required for
  * HTTP commands execution
  */
+@Data
 public class ServerParameters {
 
     private String serverUrl;
@@ -38,95 +41,12 @@ public class ServerParameters {
     private String versionUrl;
     private String projectLoadByIdUrl;
     private String fileFindUrl;
+    private String allRolesUrl;
+    private String roleUrl;
+    private String findUsersUrl;
+    private String findUserUrl;
     private String serverVersion;
     private String existingIndexSearchUrl;
     private String jwtAuthenticationToken;
 
-    public String getServerUrl() {
-        return serverUrl;
-    }
-
-    public void setServerUrl(String serverUrl) {
-        this.serverUrl = serverUrl;
-    }
-
-    public String getSearchUrl() {
-        return searchUrl;
-    }
-
-    public void setSearchUrl(String searchUrl) {
-        this.searchUrl = searchUrl;
-    }
-
-    public String getRegistrationUrl() {
-        return registrationUrl;
-    }
-
-    public void setRegistrationUrl(String registrationUrl) {
-        this.registrationUrl = registrationUrl;
-    }
-
-    public String getProjectLoadUrl() {
-        return projectLoadUrl;
-    }
-
-    public void setProjectLoadUrl(String projectLoadUrl) {
-        this.projectLoadUrl = projectLoadUrl;
-    }
-
-    public String getVersionUrl() {
-        return versionUrl;
-    }
-
-    public void setVersionUrl(String versionUrl) {
-        this.versionUrl = versionUrl;
-    }
-
-    public String getServerVersion() {
-        return serverVersion;
-    }
-
-    public void setServerVersion(String serverVersion) {
-        this.serverVersion = serverVersion;
-    }
-
-    public String getProjectLoadByIdUrl() {
-        return projectLoadByIdUrl;
-    }
-
-    public void setProjectLoadByIdUrl(String projectLoadByIdUrl) {
-        this.projectLoadByIdUrl = projectLoadByIdUrl;
-    }
-
-    public String getFileFindUrl() {
-        return fileFindUrl;
-    }
-
-    public void setFileFindUrl(String fileFindUrl) {
-        this.fileFindUrl = fileFindUrl;
-    }
-
-    public String getProjectTreeUrl() {
-        return projectTreeUrl;
-    }
-
-    public void setProjectTreeUrl(String projectTreeUrl) {
-        this.projectTreeUrl = projectTreeUrl;
-    }
-
-    public String getExistingIndexSearchUrl() {
-        return existingIndexSearchUrl;
-    }
-
-    public void setExistingIndexSearchUrl(String existingIndexSearchUrl) {
-        this.existingIndexSearchUrl = existingIndexSearchUrl;
-    }
-
-    public String getJwtAuthenticationToken() {
-        return jwtAuthenticationToken;
-    }
-
-    public void setJwtAuthenticationToken(String jwtAuthenticationToken) {
-        this.jwtAuthenticationToken = jwtAuthenticationToken;
-    }
 }

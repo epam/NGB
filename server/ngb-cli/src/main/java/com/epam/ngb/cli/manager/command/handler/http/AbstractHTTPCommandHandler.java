@@ -33,6 +33,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.epam.ngb.cli.app.Utils;
 import com.epam.ngb.cli.entity.*;
@@ -422,6 +423,38 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         }
     }
 
+    protected List<Long> loadListOfUsers(List<String> userNames) {
+        IDList names = new IDList(userNames);
+        HttpPost request = (HttpPost) getRequestFromURLByType("POST",
+                getServerParameters().getServerUrl() + getServerParameters().getFindUsersUrl());
+        String result = getPostResult(names, request);
+        try {
+            ResponseResult<List<NgbUser>> responseResult = getMapper()
+                    .readValue(result, getMapper().getTypeFactory()
+                            .constructParametrizedType(ResponseResult.class, ResponseResult.class,
+                                    getMapper().getTypeFactory()
+                                            .constructParametrizedType(List.class, List.class,
+                                                    NgbUser.class)));
+            return responseResult.getPayload().stream().map(NgbUser::getId).collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
+    }
+
+    protected Role loadRoleByName(String name) {
+        HttpRequestBase request = getRequestFromURLByType("GET", getServerParameters().getServerUrl()
+                + String.format(getServerParameters().getRoleUrl(), name));
+        String result = RequestManager.executeRequest(request);
+        try {
+            ResponseResult<Role> responseResult = getMapper()
+                    .readValue(result, getMapper().getTypeFactory()
+                            .constructParametrizedType(ResponseResult.class, ResponseResult.class, Role.class));
+            return responseResult.getPayload();
+        } catch (IOException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
+    }
+
     /**
      * Checks if result contains no errors. If it does, throws {@link ApplicationException}
      * @param result request result
@@ -567,7 +600,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         }
     }
 
-    public Project loadProjectByName(String strId) {
+    protected Project loadProjectByName(String strId) {
         try {
             URI uri = new URIBuilder(serverParameters.getServerUrl() + serverParameters.getProjectLoadUrl())
                     .addParameter("projectName", strId)
