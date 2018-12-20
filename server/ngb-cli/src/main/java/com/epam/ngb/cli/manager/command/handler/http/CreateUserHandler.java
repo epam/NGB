@@ -38,8 +38,6 @@ import com.epam.ngb.cli.manager.printer.AbstractResultPrinter;
 import com.epam.ngb.cli.manager.request.RequestManager;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -52,7 +50,6 @@ import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUME
 @Command(type = Command.Type.REQUEST, command = {"reg_user"})
 public class CreateUserHandler extends AbstractHTTPCommandHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CreateUserHandler.class);
     private static final String ROLE_PREFIX = "ROLE_";
 
     /**
