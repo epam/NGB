@@ -25,7 +25,7 @@
 package com.epam.catgenome.manager.wig;
 
 import com.epam.catgenome.common.AbstractManagerTest;
-import com.epam.catgenome.controller.vo.registration.FileRegistrationRequest;
+import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.entity.reference.Chromosome;
@@ -118,7 +118,7 @@ public class WigProcessorTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void saveWigTest() throws IOException, NoSuchAlgorithmException {
         final String path = resource.getFile().getAbsolutePath() + TEST_WIG;
-        FileRegistrationRequest request = new FileRegistrationRequest();
+        IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(path);
         request.setReferenceId(testReference.getId());
         request.setName(TEST_WIG);
@@ -184,7 +184,7 @@ public class WigProcessorTest extends AbstractManagerTest {
     private boolean testRegisterInvalidFile(String path) throws IOException {
         try {
             Resource resource = context.getResource(path);
-            FileRegistrationRequest request = new FileRegistrationRequest();
+            IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
             request.setPath(resource.getFile().getAbsolutePath());
             request.setReferenceId(testReference.getId());
             wigManager.registerWigFile(request);

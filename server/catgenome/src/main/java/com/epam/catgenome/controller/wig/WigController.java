@@ -30,6 +30,7 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTra
 import java.io.IOException;
 import java.util.concurrent.Callable;
 
+import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.manager.wig.WigSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -44,7 +45,6 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.TrackQuery;
-import com.epam.catgenome.controller.vo.registration.FileRegistrationRequest;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.entity.wig.WigFile;
@@ -81,7 +81,7 @@ public class WigController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<WigFile> registerWigFile(@RequestBody FileRegistrationRequest request) {
+    public Result<WigFile> registerWigFile(@RequestBody IndexedFileRegistrationRequest request) {
         return Result.success(wigSecurityService.registerWigFile(request));
     }
 

@@ -26,7 +26,7 @@
 
 package com.epam.catgenome.manager.wig;
 
-import com.epam.catgenome.controller.vo.registration.FileRegistrationRequest;
+import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.entity.wig.WigFile;
@@ -49,7 +49,7 @@ public class WigSecurityService {
 
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_WIG_MANAGER)
-    public WigFile registerWigFile(FileRegistrationRequest request) {
+    public WigFile registerWigFile(IndexedFileRegistrationRequest request) {
         return facadeWigManager.registerWigFile(request);
     }
 
