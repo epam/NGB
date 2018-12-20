@@ -25,7 +25,7 @@ public class SeekableS3Stream extends SeekableStream {
 
     SeekableS3Stream(AmazonS3URI source) {
         this.s3Source = source;
-        contentLength = S3Client.getFileSize(s3Source);
+        contentLength = S3Client.getInstance().getFileSize(s3Source);
         recreateInnerStream();
     }
 

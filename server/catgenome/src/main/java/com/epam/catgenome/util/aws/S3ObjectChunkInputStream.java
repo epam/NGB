@@ -58,7 +58,7 @@ public class S3ObjectChunkInputStream extends InputStream {
     private byte[] getBytes(long from, long to) {
 
         byte[] loadedDataBuffer;
-        try (InputStream s3DataStream = S3Client.loadFromTo(uri, from, to)) {
+        try (InputStream s3DataStream = S3Client.getInstance().loadFromTo(uri, from, to)) {
             loadedDataBuffer = IOUtils.toByteArray(s3DataStream);
         } catch (IOException e) {
             throw new RuntimeIOException(e);

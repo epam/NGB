@@ -74,8 +74,8 @@ public final class S3SeekableStreamFactory implements ISeekableStreamFactory {
 
     public SeekableStream getInMemorySeekableStream(String url) throws IOException {
         AmazonS3URI indexURI = new AmazonS3URI(url);
-        InputStream stream = S3Client.loadFully(indexURI);
-        long fileSize = S3Client.getFileSize(indexURI);
+        InputStream stream = S3Client.getInstance().loadFully(indexURI);
+        long fileSize = S3Client.getInstance().getFileSize(indexURI);
         byte[] buffer = IOUtils.toByteArray(stream);
 
         if (fileSize != buffer.length) {
