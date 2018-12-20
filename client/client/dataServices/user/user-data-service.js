@@ -29,15 +29,35 @@ export class UserDataService extends DataService {
         });
     }
 
+    _currentUser;
+
     getCurrentUser() {
         return new Promise(resolve => {
-            this.get('user/current')
-                .catch(() => {
-                    resolve(null);
-                })
-                .then((data) => {
-                    resolve(data || null);
-                });
+            if (this._currentUser) {
+                resolve(this._currentUser);
+            } else {
+                this.get('user/current')
+                    .catch(() => {
+                        resolve(null);
+                    })
+                    .then((data) => {
+                        this._currentUser = data;
+                        this._currentUser.hasRole = function (roleName) {
+                            return (this.roles || [])
+                                .filter(r => (r.name || '').toUpperCase() === (roleName || '').toUpperCase())
+                                .length > 0;
+                        };
+                        this._currentUser.hasRoles = function (roleNames) {
+                            for (let i = 0; i < (roleNames || []).length; i++) {
+                                if (this.hasRole(roleNames[i])) {
+                                    return true;
+                                }
+                            }
+                            return (roleNames || []).length === 0;
+                        };
+                        resolve(this._currentUser);
+                    });
+            }
         });
     }
 

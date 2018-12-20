@@ -44,3 +44,8 @@ ui-view {
   display: block;
 }
 
+md-dialog md-toolbar.ngb-reduced-popup-toolbar {
+  height: 48px;
+  min-height: 48px;
+  max-height: 48px;
+}
