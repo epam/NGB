@@ -4,6 +4,7 @@ package com.epam.catgenome.util.aws;
 import com.amazonaws.auth.*;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -46,16 +47,14 @@ public final class S3Client {
 
 
     private S3Client(final String swsEndpoint) {
-        s3 = AmazonS3ClientBuilder.standard().enableForceGlobalBucketAccess().build();
+        s3 = AmazonS3ClientBuilder.standard().build();
         if (!StringUtils.isEmpty(swsEndpoint)) {
-            swiftStack = AmazonS3ClientBuilder.standard().enableForceGlobalBucketAccess()
-                    .withCredentials(
-                            new AWSCredentialsProviderChain(
-                                    new EnvironmentVariableCredentialsProvider(),
-                                    new SystemPropertiesCredentialsProvider(),
-                                    new EC2ContainerCredentialsProviderWrapper(),
-                                    new ProfileCredentialsProvider("sws"))
-                    ).build();
+            AWSCredentialsProviderChain swsCredsProviderChain = new AWSCredentialsProviderChain(
+                    new EnvironmentVariableCredentialsProvider(),
+                    new SystemPropertiesCredentialsProvider(),
+                    new EC2ContainerCredentialsProviderWrapper(),
+                    new ProfileCredentialsProvider("sws"));
+            swiftStack = new AmazonS3Client(swsCredsProviderChain);
             swiftStack.setEndpoint(swsEndpoint);
         } else {
             swiftStack = null;

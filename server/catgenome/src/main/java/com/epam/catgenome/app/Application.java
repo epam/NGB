@@ -37,7 +37,7 @@ public class Application extends SpringBootServletInitializer {
     @Autowired
     private Environment environment;
 
-    @Value("${swift.stack.endpoint:null}")
+    @Value("${swift.stack.endpoint:}")
     private String swsEndpoint;
 
     @Override protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
