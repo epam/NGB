@@ -115,6 +115,9 @@ public class WigFileManager implements SecuredEntityManager {
 
         wigFileDao.deleteWigFile(wigFile.getId());
         biologicalDataItemDao.deleteBiologicalDataItem(wigFile.getBioDataItemId());
+        if (wigFile.getIndex() != null) {
+            biologicalDataItemDao.deleteBiologicalDataItem(wigFile.getIndex().getId());
+        }
     }
 
     @Override
