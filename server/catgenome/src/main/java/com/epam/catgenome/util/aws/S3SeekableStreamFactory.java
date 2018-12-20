@@ -26,7 +26,6 @@
 
 package com.epam.catgenome.util.aws;
 
-import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.util.IOUtils;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import htsjdk.samtools.seekablestream.SeekableBufferedStream;
@@ -55,7 +54,7 @@ public final class S3SeekableStreamFactory implements ISeekableStreamFactory {
 
     @Override
     public SeekableStream getStreamFor(String path) {
-        return new SeekableS3Stream(new AmazonS3URI(path));
+        return new SeekableS3Stream(path);
     }
 
     @Override
@@ -73,15 +72,14 @@ public final class S3SeekableStreamFactory implements ISeekableStreamFactory {
     }
 
     public SeekableStream getInMemorySeekableStream(String url) throws IOException {
-        AmazonS3URI indexURI = new AmazonS3URI(url);
-        InputStream stream = S3Client.getInstance().loadFully(indexURI);
-        long fileSize = S3Client.getInstance().getFileSize(indexURI);
+        InputStream stream = S3Client.getInstance().loadFully(url);
+        long fileSize = S3Client.getInstance().getFileSize(url);
         byte[] buffer = IOUtils.toByteArray(stream);
 
         if (fileSize != buffer.length) {
-            throw new IOException("Failed to fully download index " + indexURI);
+            throw new IOException("Failed to fully download index " + url);
         }
 
-        return new SeekableMemoryStream(buffer, indexURI.toString());
+        return new SeekableMemoryStream(buffer, url);
     }
 }

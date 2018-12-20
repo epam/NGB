@@ -33,14 +33,16 @@ public final class S3Client {
 
     private static S3Client instance;
 
-    private final LoadingCache<AmazonS3URI, Long> fileSizes = CacheBuilder.newBuilder()
+    private final LoadingCache<String, Long> fileSizes = CacheBuilder.newBuilder()
             .maximumSize(CACHE_SIZE)
             .expireAfterWrite(1, TimeUnit.HOURS)
             .build(
-                    new CacheLoader<AmazonS3URI, Long>() {
-                        public Long load(AmazonS3URI key) {
-                            return getAws(key)
-                                    .getObjectMetadata(key.getBucket(), key.getKey())
+                    new CacheLoader<String, Long>() {
+                        public Long load(String key) {
+                            CloudType cloudType = getCloudType(key);
+                            AmazonS3URI obj = new AmazonS3URI(replaceSchema(key));
+                            return getAws(cloudType)
+                                    .getObjectMetadata(obj.getBucket(), obj.getKey())
                                     .getContentLength();
                         }
                     });
@@ -73,14 +75,22 @@ public final class S3Client {
         return instance;
     }
 
-    private AmazonS3 getAws(AmazonS3URI object) {
-        if (object.toString().startsWith("sws")) {
-            if (swiftStack == null) {
-                throw new IllegalArgumentException("Swift Stack client is not configured!");
-            }
-            return swiftStack;
+    public static boolean isS3Source(String inputUrl) {
+        return inputUrl.startsWith(CloudType.S3.shema) || inputUrl.startsWith(CloudType.SWS.shema);
+    }
+
+    private AmazonS3 getAws(CloudType cloudtype) {
+        switch (cloudtype) {
+            case S3:
+                return s3;
+            case SWS:
+                if (swiftStack == null) {
+                    throw new IllegalArgumentException("Swift Stack client is not configured!");
+                }
+                return swiftStack;
+            default:
+                return s3;
         }
-        return s3;
     }
 
     /**
@@ -89,12 +99,13 @@ public final class S3Client {
      * @param uri The provided URI for the file.
      * @return a boolean value that shows whether the correct URI was provided
      */
-    private boolean isFileExisting(AmazonS3URI uri) {
+    public boolean isFileExisting(String uri) {
 
         boolean exist = true;
 
         try {
-            getAws(uri).getObjectMetadata(uri.getBucket(), uri.getKey());
+            AmazonS3URI s3URI = new AmazonS3URI(replaceSchema(uri));
+            getAws(getCloudType(uri)).getObjectMetadata(s3URI.getBucket(), s3URI.getKey());
         } catch (AmazonS3Exception e) {
             if (e.getStatusCode() == HttpStatus.SC_FORBIDDEN
                     || e.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
@@ -107,22 +118,12 @@ public final class S3Client {
     }
 
     /**
-     * A method that returns true if a correct s3 URI was provided and false otherwise.
-     *
-     * @param uri The provided URI for the file.
-     * @return a boolean value that shows whether the correct URI was provided
-     */
-    public boolean isFileExisting(String uri) {
-        return isFileExisting(new AmazonS3URI(uri));
-    }
-
-    /**
      * A method that returns the file size.
      *
      * @param amazonURI An s3 URI
      * @return long value of the file size in bytes
      */
-    public long getFileSize(AmazonS3URI amazonURI){
+    public long getFileSize(String amazonURI){
         return fileSizes.getUnchecked(amazonURI);
     }
 
@@ -130,15 +131,16 @@ public final class S3Client {
      * A method that creates an InputStream on a specific range of the file.
      * InputStream classes wrapping order can be reversed.
      *
-     * @param obj    target file URI
+     * @param url    target file URI
      * @param offset range start position
      * @param end    range end position
      * @return an InputStream object on the specific range of the file.
      */
-    public InputStream loadFromTo(AmazonS3URI obj, long offset, long end) {
+    public InputStream loadFromTo(String url, long offset, long end) {
+        AmazonS3URI obj = new AmazonS3URI(replaceSchema(url));
         GetObjectRequest rangeObjectRequest = new GetObjectRequest(obj.getBucket(), obj.getKey());
         rangeObjectRequest.setRange(offset, end);
-        S3Object s3Object = getAws(obj).getObject(rangeObjectRequest);
+        S3Object s3Object = getAws(getCloudType(url)).getObject(rangeObjectRequest);
         S3ObjectInputStream objectStream = s3Object.getObjectContent();
         return new BufferedInputStream(objectStream);
     }
@@ -152,11 +154,12 @@ public final class S3Client {
      * @return an InputStream object on the specific range of the file.
      */
     @SuppressWarnings("WeakerAccess")
-    public InputStream loadFrom(AmazonS3URI obj,
+    public InputStream loadFrom(String obj,
                                        @SuppressWarnings("SameParameterValue") long offset) {
         long contentLength = S3Client.getInstance().getFileSize(obj);
         return loadFromTo(obj, offset, contentLength);
     }
+
 
     /**
      * A method that creates an InputStream on a specific file URI.
@@ -165,8 +168,28 @@ public final class S3Client {
      * @return an InputStream object on the file URI.
      */
     @SuppressWarnings("WeakerAccess")
-    public InputStream loadFully(AmazonS3URI obj) {
+    public InputStream loadFully(String obj) {
         return loadFrom(obj, 0);
     }
 
+    private String replaceSchema(String url) {
+        url = url.replace(CloudType.SWS.shema, CloudType.S3.shema);
+        return url;
+    }
+
+    private CloudType getCloudType(String url) {
+        return url.startsWith(CloudType.S3.shema) ? CloudType.S3 : CloudType.SWS;
+    }
+
+
+    public enum CloudType {
+        S3("s3://"),
+        SWS("sws://");
+
+        CloudType(String shema) {
+            this.shema = shema;
+        }
+
+        private String shema;
+    }
 }

@@ -25,7 +25,6 @@
 package com.epam.catgenome.util;
 
 
-import com.amazonaws.services.s3.AmazonS3URI;
 import com.epam.catgenome.util.aws.S3Client;
 import htsjdk.tribble.util.ParsingUtils;
 
@@ -92,7 +91,7 @@ public final class IOHelper {
     }
 
     public static boolean resourceExists(String resource) throws IOException {
-        if(Utils.isS3Source(resource)) {
+        if(S3Client.isS3Source(resource)) {
             return S3Client.getInstance().isFileExisting(resource);
         } else {
             return ParsingUtils.resourceExists(resource);
@@ -100,8 +99,8 @@ public final class IOHelper {
     }
 
     public static InputStream openStream(String path) throws IOException {
-        if (Utils.isS3Source(path)) {
-            return S3Client.getInstance().loadFully(new AmazonS3URI(path));
+        if (S3Client.isS3Source(path)) {
+            return S3Client.getInstance().loadFully(path);
         } else {
             return ParsingUtils.openInputStream(path);
         }

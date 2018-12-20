@@ -26,6 +26,7 @@
 
 package com.epam.catgenome.util;
 
+import com.epam.catgenome.util.aws.S3Client;
 import com.epam.catgenome.util.aws.S3SeekableStreamFactory;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import htsjdk.samtools.seekablestream.SeekableBufferedStream;
@@ -56,7 +57,7 @@ public final class NgbSeekableStreamFactory implements ISeekableStreamFactory {
 
     @Override
     public SeekableStream getStreamFor(URL url) throws IOException {
-        if(url.toString().startsWith("s3://")) {
+        if(S3Client.isS3Source(url.toString())) {
             return S3SeekableStreamFactory.getInstance().getStreamFor(url);
         } else {
             return localSeekableStreamFactory.getStreamFor(url);
@@ -65,7 +66,7 @@ public final class NgbSeekableStreamFactory implements ISeekableStreamFactory {
 
     @Override
     public SeekableStream getStreamFor(String path) throws IOException {
-        if(path.startsWith("s3://")) {
+        if(S3Client.isS3Source(path)) {
             return S3SeekableStreamFactory.getInstance().getStreamFor(path);
         } else {
             return localSeekableStreamFactory.getStreamFor(path);

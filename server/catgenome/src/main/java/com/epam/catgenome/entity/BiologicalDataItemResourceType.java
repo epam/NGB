@@ -74,12 +74,8 @@ public enum BiologicalDataItemResourceType {
     /**
      * Indicates that item was downloaded by NGB and is located in it's download directory
      */
-    DOWNLOAD(7),
+    DOWNLOAD(7);
 
-    /**
-     * Indicates that item is provided by Swift Stack service
-     */
-    SWS(8);
 
     private long id;
     private static Map<Long, BiologicalDataItemResourceType> idMap = new HashMap<>((int) DOWNLOAD.getId());
@@ -88,7 +84,6 @@ public enum BiologicalDataItemResourceType {
         idMap.put(FILE.id, FILE);
         idMap.put(URL.id, URL);
         idMap.put(S3.id, S3);
-        idMap.put(SWS.id, SWS);
         idMap.put(ONLINE.id, ONLINE);
         idMap.put(HDFS.id, HDFS);
         idMap.put(GA4GH.id, GA4GH);
@@ -122,10 +117,8 @@ public enum BiologicalDataItemResourceType {
      * @return {@code BiologicalDataItemResourceType}
      */
     public static BiologicalDataItemResourceType getTypeFromPath(final String path) {
-        if (path.startsWith("s3")) {
+        if (path.startsWith("s3") || path.startsWith("sws")) {
             return S3;
-        } else if (path.startsWith("sws")) {
-            return SWS;
         } else if (NgbFileUtils.isRemotePath(path)) {
             return URL;
         } else {

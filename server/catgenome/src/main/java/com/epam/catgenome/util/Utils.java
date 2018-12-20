@@ -39,6 +39,7 @@ import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.track.Block;
 import com.epam.catgenome.entity.track.Track;
+import com.epam.catgenome.util.aws.S3Client;
 import htsjdk.samtools.util.CloseableIterator;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.Feature;
@@ -73,7 +74,6 @@ public final class Utils {
     private static final String GZ_EXTENSION = ".gz";
 
     private static final int S3_LINK_EXPIRATION = 60;
-    private static final String S3_SCHEME = "s3://";
 
     private Utils() {
         // no operations by default
@@ -401,14 +401,10 @@ public final class Utils {
     }
 
     public static String processUrl(String inputUrl) {
-        if (!isS3Source(inputUrl)) {
+        if (!S3Client.isS3Source(inputUrl)) {
             return inputUrl;
         }
         return generateSignedUrl(inputUrl);
-    }
-
-    public static boolean isS3Source(String inputUrl) {
-        return inputUrl.startsWith(S3_SCHEME);
     }
 
     public static Map<String, Chromosome> makeChromosomeMap(Reference reference) {

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.compress.utils.CountingInputStream;
-import com.amazonaws.services.s3.AmazonS3URI;
 import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.util.RuntimeIOException;
 import org.slf4j.Logger;
@@ -18,12 +17,12 @@ public class SeekableS3Stream extends SeekableStream {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SeekableS3Stream.class);
 
-    private final AmazonS3URI s3Source;
+    private final String s3Source;
     private CountingInputStream currentDataStream;
     private final long contentLength;
     private long offset;
 
-    SeekableS3Stream(AmazonS3URI source) {
+    SeekableS3Stream(String source) {
         this.s3Source = source;
         contentLength = S3Client.getInstance().getFileSize(s3Source);
         recreateInnerStream();
@@ -87,7 +86,7 @@ public class SeekableS3Stream extends SeekableStream {
 
     @Override
     public String getSource() {
-        return s3Source.toString();
+        return s3Source;
     }
 
     /**

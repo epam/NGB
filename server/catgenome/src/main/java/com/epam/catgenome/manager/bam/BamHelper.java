@@ -45,7 +45,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import com.amazonaws.services.s3.AmazonS3URI;
 import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.BamQueryOption;
 import com.epam.catgenome.entity.bam.BamTrack;
@@ -516,14 +515,14 @@ public class BamHelper {
 
             } else {
                 long start = System.currentTimeMillis();
-                indexBuffer = IOUtils.toByteArray(S3Client.getInstance().loadFully(new AmazonS3URI(indexPath)));
+                indexBuffer = IOUtils.toByteArray(S3Client.getInstance().loadFully(indexPath));
                 LOG.debug("put in cache index: " + indexPath);
                 indexCache.putInCache(new BamIndex(indexPath, indexBuffer), indexPath);
                 LOG.debug("download BAM index time: " + (System.currentTimeMillis() - start));
             }
         } else {
             LOG.info("index cache isn't initialized");
-            indexBuffer = IOUtils.toByteArray(S3Client.getInstance().loadFully(new AmazonS3URI(indexPath)));
+            indexBuffer = IOUtils.toByteArray(S3Client.getInstance().loadFully(indexPath));
         }
         return indexBuffer;
     }
