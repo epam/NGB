@@ -89,10 +89,20 @@ export default class ngbPermissionsFormController extends BaseController {
         if (this.subject && !data.map(i => i.name).includes(this.subject.name)) {
             this._subject = null;
         }
-        const mapGridData = (row) => ({
-            ...row,
-            displayName: row.principal ? row.name : ngbPermissionsFormController.getRoleDisplayName(row),
-        });
+        const mapGridData = (permission) => {
+            let displayName;
+            if(permission.principal) {
+                displayName = permission.name;
+            } else {
+                const [role] = this.roles.filter(r => (r.name || '').toLowerCase() === (permission.name || '').toLowerCase());
+                if (role && role.name) {
+                    displayName = ngbPermissionsFormController.getRoleDisplayName(role);
+                } else {
+                    displayName = permission.name;
+                }
+            }
+            return { ...permission, displayName };
+        };
         this.formGridOptions.data = data.map(mapGridData);
         if (this.$scope) {
             this.$scope.$apply();
