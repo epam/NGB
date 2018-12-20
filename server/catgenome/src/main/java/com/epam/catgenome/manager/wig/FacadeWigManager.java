@@ -147,7 +147,8 @@ public class FacadeWigManager {
                     wigFile = fillWigFile(request);
                     break;
                 default:
-                    throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
+                    throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM,
+                            "type", request.getType()));
             }
             long id = wigFileManager.create();
             biologicalDataItemManager.createBiologicalDataItem(wigFile);

@@ -166,7 +166,9 @@ dependencies {
     //hadoop
     compile group: "org.apache.hadoop", name:"hadoop-client", version: "2.2.0"
 
-    compile group: "org.jetbrains.bio", name: "big", version: "0.3.4"
+    compile (group: "org.jetbrains.bio", name: "big", version: "0.8.3") {
+        exclude group: "com.github.samtools", module: "htsjdk"
+    }
 
     // >>>>> dependencies used to compile tests; in fact no need to include them into artifact
     testCompile("org.springframework.boot:spring-boot-starter-test")
