@@ -37,8 +37,11 @@ public class Application extends SpringBootServletInitializer {
     @Autowired
     private Environment environment;
 
-    @Value("${swift.stack.endpoint:}")
+    @Value("${swift.stack.endpoint.url:}")
     private String swsEndpoint;
+
+    @Value("${swift.stack.region:}")
+    private String swsRegion;
 
     @Override protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(Application.class);
@@ -65,6 +68,6 @@ public class Application extends SpringBootServletInitializer {
 
     @Bean
     S3Client s3Client() {
-        return S3Client.configure(swsEndpoint);
+        return S3Client.configure(swsEndpoint, swsRegion);
     }
 }

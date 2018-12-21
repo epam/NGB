@@ -3,8 +3,8 @@ package com.epam.catgenome.util.aws;
 
 import com.amazonaws.auth.*;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -48,23 +48,20 @@ public final class S3Client {
                     });
 
 
-    private S3Client(final String swsEndpoint) {
+    private S3Client(final String swsEndpoint, String swsRegion) {
         s3 = AmazonS3ClientBuilder.standard().build();
-        if (!StringUtils.isEmpty(swsEndpoint)) {
-            AWSCredentialsProviderChain swsCredsProviderChain = new AWSCredentialsProviderChain(
-                    new EnvironmentVariableCredentialsProvider(),
-                    new SystemPropertiesCredentialsProvider(),
-                    new EC2ContainerCredentialsProviderWrapper(),
-                    new ProfileCredentialsProvider("sws"));
-            swiftStack = new AmazonS3Client(swsCredsProviderChain);
-            swiftStack.setEndpoint(swsEndpoint);
+        if (!StringUtils.isEmpty(swsEndpoint) && !StringUtils.isEmpty(swsRegion)) {
+            swiftStack = AmazonS3ClientBuilder.standard()
+                    .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(swsEndpoint, swsRegion))
+                    .withCredentials(new AWSCredentialsProviderChain(new ProfileCredentialsProvider("sws")))
+                    .build();
         } else {
             swiftStack = null;
         }
     }
 
-    public static synchronized S3Client configure(String swsEndpoint) {
-        instance = new S3Client(swsEndpoint);
+    public static synchronized S3Client configure(String swsEndpoint, String swsRegion) {
+        instance = new S3Client(swsEndpoint, swsRegion);
         return instance;
     }
 
@@ -76,7 +73,7 @@ public final class S3Client {
     }
 
     public static boolean isS3Source(String inputUrl) {
-        return inputUrl.startsWith(CloudType.S3.shema) || inputUrl.startsWith(CloudType.SWS.shema);
+        return inputUrl.startsWith(CloudType.S3.protocol) || inputUrl.startsWith(CloudType.SWS.protocol);
     }
 
     private AmazonS3 getAws(CloudType cloudtype) {
@@ -173,12 +170,12 @@ public final class S3Client {
     }
 
     private String replaceSchema(String url) {
-        url = url.replace(CloudType.SWS.shema, CloudType.S3.shema);
+        url = url.replace(CloudType.SWS.protocol, CloudType.S3.protocol);
         return url;
     }
 
     private CloudType getCloudType(String url) {
-        return url.startsWith(CloudType.S3.shema) ? CloudType.S3 : CloudType.SWS;
+        return url.startsWith(CloudType.S3.protocol) ? CloudType.S3 : CloudType.SWS;
     }
 
 
@@ -186,10 +183,10 @@ public final class S3Client {
         S3("s3://"),
         SWS("sws://");
 
-        CloudType(String shema) {
-            this.shema = shema;
+        CloudType(String protocol) {
+            this.protocol = protocol;
         }
 
-        private String shema;
+        private String protocol;
     }
 }
