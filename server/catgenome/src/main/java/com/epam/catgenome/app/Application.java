@@ -43,6 +43,9 @@ public class Application extends SpringBootServletInitializer {
     @Value("${swift.stack.region:}")
     private String swsRegion;
 
+    @Value("${swift.stack.path.style.access:false}")
+    private boolean isPathStyleAccess;
+
     @Override protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return application.sources(Application.class);
     }
@@ -68,6 +71,6 @@ public class Application extends SpringBootServletInitializer {
 
     @Bean
     S3Client s3Client() {
-        return S3Client.configure(swsEndpoint, swsRegion);
+        return S3Client.configure(swsEndpoint, swsRegion, isPathStyleAccess);
     }
 }

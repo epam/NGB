@@ -48,20 +48,21 @@ public final class S3Client {
                     });
 
 
-    private S3Client(final String swsEndpoint, String swsRegion) {
+    private S3Client(final String swsEndpoint, String swsRegion, boolean pathStyleAccess) {
         s3 = AmazonS3ClientBuilder.standard().build();
         if (!StringUtils.isEmpty(swsEndpoint) && !StringUtils.isEmpty(swsRegion)) {
-            swiftStack = AmazonS3ClientBuilder.standard()
+            AmazonS3ClientBuilder swsClientBuilder = AmazonS3ClientBuilder.standard()
                     .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(swsEndpoint, swsRegion))
-                    .withCredentials(new AWSCredentialsProviderChain(new ProfileCredentialsProvider("sws")))
-                    .build();
+                    .withCredentials(new AWSCredentialsProviderChain(new ProfileCredentialsProvider("sws")));
+            swsClientBuilder.setPathStyleAccessEnabled(pathStyleAccess);
+            swiftStack = swsClientBuilder.build();
         } else {
             swiftStack = null;
         }
     }
 
-    public static synchronized S3Client configure(String swsEndpoint, String swsRegion) {
-        instance = new S3Client(swsEndpoint, swsRegion);
+    public static synchronized S3Client configure(String swsEndpoint, String swsRegion, boolean pathStyleAccess) {
+        instance = new S3Client(swsEndpoint, swsRegion, pathStyleAccess);
         return instance;
     }
 
