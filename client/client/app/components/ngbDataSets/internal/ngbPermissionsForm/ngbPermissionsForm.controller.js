@@ -232,14 +232,10 @@ export default class ngbPermissionsFormController extends BaseController {
         this._subjectPermissions = {
             readAllowed, readDenied, writeAllowed, writeDenied
         };
-        const subject = this._subject.slice();
-        if (subject.hasOwnProperty('displayName')) {
-            delete subject.displayName;
-        }
         this.ngbPermissionsFormService
             .grantPermission(
                 this.node,
-                subject,
+                {name: this._subject.name, principal: this._subject.principal},
                 roleModel.buildExtendedMask(readAllowed, readDenied, writeAllowed, writeDenied)
             )
             .then(data => {
