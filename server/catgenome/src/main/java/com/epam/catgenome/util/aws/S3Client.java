@@ -1,6 +1,7 @@
 package com.epam.catgenome.util.aws;
 
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.*;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder;
@@ -15,6 +16,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import java.io.BufferedInputStream;
@@ -27,8 +30,10 @@ import java.util.concurrent.TimeUnit;
 public final class S3Client {
 
     private static final int CACHE_SIZE = 1000;
+    private static final Logger LOGGER = LoggerFactory.getLogger(S3Client.class);
 
-    private final AmazonS3 s3;
+
+    private AmazonS3 s3;
     private final AmazonS3 swiftStack;
 
     private static S3Client instance;
@@ -49,7 +54,12 @@ public final class S3Client {
 
 
     private S3Client(final String swsEndpoint, String swsRegion, boolean pathStyleAccess) {
-        s3 = AmazonS3ClientBuilder.standard().build();
+        try {
+            s3 = AmazonS3ClientBuilder.standard().build();
+        } catch (SdkClientException e) {
+            LOGGER.warn("Unable to create S3 client, S3 services will be unavailable.", e);
+            s3 = null;
+        }
         if (!StringUtils.isEmpty(swsEndpoint) && !StringUtils.isEmpty(swsRegion)) {
             AmazonS3ClientBuilder swsClientBuilder = AmazonS3ClientBuilder.standard()
                     .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(swsEndpoint, swsRegion))
@@ -80,14 +90,16 @@ public final class S3Client {
     private AmazonS3 getAws(CloudType cloudtype) {
         switch (cloudtype) {
             case S3:
+            default:
+                if (s3 == null) {
+                    throw new IllegalArgumentException("S3 client is not configured!");
+                }
                 return s3;
             case SWS:
                 if (swiftStack == null) {
                     throw new IllegalArgumentException("Swift Stack client is not configured!");
                 }
                 return swiftStack;
-            default:
-                return s3;
         }
     }
 
