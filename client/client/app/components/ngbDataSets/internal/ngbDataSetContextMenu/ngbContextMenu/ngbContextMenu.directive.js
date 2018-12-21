@@ -113,8 +113,8 @@ export default function($injector, $window, $timeout) {
                 openContextMenu(event);
             });
 
-            function closeContextMenuIfVisible() {
-                if (contextMenu.visible()) {
+            function closeContextMenuIfVisible(event) {
+                if (contextMenu.visible() && event.which !== 3) {
                     closeContextMenu();
                 }
             }
