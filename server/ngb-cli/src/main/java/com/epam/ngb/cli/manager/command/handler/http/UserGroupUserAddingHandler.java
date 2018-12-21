@@ -77,15 +77,15 @@ public class UserGroupUserAddingHandler extends AbstractHTTPCommandHandler {
                     ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 1, arguments.size()));
         }
 
-        if (options.getUsers() != null) {
-            List<String> namesOrIds = Arrays.stream(options.getUsers().split(",")).collect(Collectors.toList());
-            if (namesOrIds.stream().allMatch(NumberUtils::isDigits)) {
-                users = namesOrIds.stream().map(Long::parseLong).collect(Collectors.toList());
-            } else {
-                users = loadListOfUsers(namesOrIds);
-            }
-        } else {
+        if (options.getUsers() == null) {
             throw new IllegalArgumentException("At least one user should be provided! Use -u (--users) option");
+        }
+
+        List<String> namesOrIds = Arrays.stream(options.getUsers().split(",")).collect(Collectors.toList());
+        if (namesOrIds.stream().allMatch(NumberUtils::isDigits)) {
+            users = namesOrIds.stream().map(Long::parseLong).collect(Collectors.toList());
+        } else {
+            users = loadListOfUsers(namesOrIds);
         }
 
         String roleIdentifier = arguments.get(0);

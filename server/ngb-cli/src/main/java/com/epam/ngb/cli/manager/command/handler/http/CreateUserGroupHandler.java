@@ -32,6 +32,7 @@ import com.epam.ngb.cli.entity.*;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.printer.AbstractResultPrinter;
 import com.epam.ngb.cli.manager.request.RequestManager;
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.http.client.methods.HttpPost;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -77,8 +78,13 @@ public class CreateUserGroupHandler extends AbstractHTTPCommandHandler {
         }
 
         if (options.getUsers() != null) {
-            users = loadListOfUsers(Arrays.stream(options.getUsers().split(","))
-                    .collect(Collectors.toList()));
+            List<String> userIdsOrNames = Arrays.stream(options.getUsers().split(","))
+                    .collect(Collectors.toList());
+            if (userIdsOrNames.stream().allMatch(NumberUtils::isDigits)) {
+                users = userIdsOrNames.stream().map(Long::parseLong).collect(Collectors.toList());
+            } else {
+                users = loadListOfUsers(userIdsOrNames);
+            }
         }
         roleName = arguments.get(0);
     }
