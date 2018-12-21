@@ -1,5 +1,5 @@
 # CLI installation
-There are two options two install NGB CLI, depending on NGB Server installation scenario:
+There are two options to install NGB CLI, depending on NGB Server installation scenario:
 * NGB Docker image installation
 * NGB Manual installation
 

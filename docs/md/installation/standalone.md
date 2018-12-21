@@ -52,7 +52,7 @@ $ pwd
 $ java -jar NGB/dist/catgenome.jar
 ```
 
-NGB will be avalable at http://localhost:8080/catgenome
+NGB will be available at http://localhost:8080/catgenome
 
 ## Configuring NGB instance
 

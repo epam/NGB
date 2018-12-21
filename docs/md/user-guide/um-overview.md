@@ -35,4 +35,4 @@ The user management panel helps to manage users, groups and system roles.
 
 To open user management panel click on ![NGB User Management](images/um-overview-1.png) icon on the main toolbar of the application.
 
-Setting permissions on specific files and datasets can be done through CLI.
+Setting permissions on specific files and datasets, users and groups management also can be done through CLI.
