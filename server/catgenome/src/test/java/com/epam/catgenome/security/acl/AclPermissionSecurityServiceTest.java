@@ -53,6 +53,7 @@ public class AclPermissionSecurityServiceTest extends AbstractACLSecurityTest {
     private static final String TEST_USER = "TEST_ADMIN";
     private static final String TEST_USER_2 = "TEST_USER";
     private static final String TEST_REF_NAME = "//dm606.X.fa";
+    public static final String ADMIN = "ADMIN";
 
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
@@ -104,7 +105,7 @@ public class AclPermissionSecurityServiceTest extends AbstractACLSecurityTest {
     }
 
     @Test
-    @WithMockUser(value = TEST_USER)
+    @WithMockUser(username = TEST_USER, roles = {ADMIN})
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void setPermissionsTest() {
         PermissionGrantVO grantVO = new PermissionGrantVO();
@@ -135,7 +136,7 @@ public class AclPermissionSecurityServiceTest extends AbstractACLSecurityTest {
     }
 
     @Test
-    @WithMockUser(value = TEST_USER)
+    @WithMockUser(username = TEST_USER, roles = {ADMIN})
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void deletePermissionsTest() {
         PermissionGrantVO grantVO = new PermissionGrantVO();

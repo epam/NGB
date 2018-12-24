@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
@@ -45,8 +46,9 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 
 public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
-    private String deleteSidByIdQuery = "delete from acl_sid where id=?";
-    private String deleteEntriesBySidQuery = "delete from acl_entry where sid=?";
+
+    private String deleteSidByIdQuery;
+    private String deleteEntriesBySidQuery;
 
     public JdbcMutableAclServiceImpl(DataSource dataSource, LookupStrategy lookupStrategy,
                                      AclCache aclCache) {
@@ -164,10 +166,12 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
         updateAcl(acl);
     }
 
+    @Required
     public void setDeleteSidByIdQuery(String deleteSidByIdQuery) {
         this.deleteSidByIdQuery = deleteSidByIdQuery;
     }
 
+    @Required
     public void setDeleteEntriesBySidQuery(String deleteEntriesBySidQuery) {
         this.deleteEntriesBySidQuery = deleteEntriesBySidQuery;
     }

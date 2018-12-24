@@ -152,7 +152,7 @@ public class ProjectManager implements SecuredEntityManager {
             itemMap = projectDao.loadProjectItemsByProjects(allProjects);
         }
 
-        allProjects.stream().forEach(p -> {
+        allProjects.forEach(p -> {
             if (itemMap.containsKey(p.getId())) {
                 p.setItems(new ArrayList<>(itemMap.get(p.getId())));
             }
@@ -168,7 +168,7 @@ public class ProjectManager implements SecuredEntityManager {
             Assert.notNull(topProject,
                     MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NOT_FOUND, parentId));
             topProject.setNestedProjects(hierarchyMap.get(parentId));
-            return Collections.singletonList(topProject);
+            return Arrays.asList(topProject);
         }
         allProjects.forEach(p -> p.setNestedProjects(hierarchyMap.get(p.getId())));
         return hierarchyMap.get(null);

@@ -31,6 +31,7 @@ import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.PermissionGrantRequest;
 import com.epam.ngb.cli.entity.Project;
+import com.epam.ngb.cli.entity.EntityPermissions;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.request.RequestManager;
@@ -42,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -58,18 +60,19 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
 
     private static final Map<String, Integer> PERMISSION_MAP = new HashMap<>();
     private static final String DELETE_PERMISSION_URL = "/restapi/grant?id=%d&aclClass=%s&user=%s&isPrincipal=%b";
+    private static final String GET_PERMISSION_URL = "/restapi/grant?id=%d&aclClass=%s";
     private static final String DELETE_TYPE = "DELETE";
     private static final String DELETE_PERMISSION_ACTION = "!";
-    public static final String ROLE_PREFIX = "ROLE_";
+    private static final String ROLE_PREFIX = "ROLE_";
 
     static {
-        PERMISSION_MAP.put("+r", 1);
-        PERMISSION_MAP.put("-r", 2);
-        PERMISSION_MAP.put("+w", 4);
-        PERMISSION_MAP.put("-w", 8);
+        PERMISSION_MAP.put("r+", 1);
+        PERMISSION_MAP.put("r-", 2);
+        PERMISSION_MAP.put("w+", 4);
+        PERMISSION_MAP.put("w-", 8);
     }
 
-    private static final Pattern PERMISSION_PATTERN = Pattern.compile("^(r|w){0,2}$");
+    private static final Pattern PERMISSION_PATTERN = Pattern.compile("^(r[+\\-]?)|(w[+\\-]?)$");
     private static final Pattern ACTION_PATTERN = Pattern.compile("\\+|\\-|!");
 
 
@@ -96,7 +99,7 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
         action = String.valueOf(permissionAndAction.charAt(permissionAndAction.length() - 1));
         permission = permissionAndAction.substring(0, permissionAndAction.length() - 1);
 
-        if(!PERMISSION_PATTERN.matcher(permission).find() || !ACTION_PATTERN.matcher(action).find()) {
+        if(!PERMISSION_PATTERN.matcher(permission).find() && !ACTION_PATTERN.matcher(action).find()) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ERROR_WRONG_PERMISSION));
         }
@@ -156,6 +159,17 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
                             String.format(DELETE_PERMISSION_URL, id, aclClass, identifier, isPrincipal));
             result = RequestManager.executeRequest(deletePermission);
         } else {
+            String existingPermissions = RequestManager.executeRequest(
+                    getRequestFromURLByType(
+                            "GET",
+                            serverParameters.getServerUrl() + String.format(GET_PERMISSION_URL, id, aclClass)));
+            EntityPermissions entityPermissions = getResult(existingPermissions, EntityPermissions.class);
+            for (EntityPermissions.AclPermissionEntry entry : entityPermissions.getPermissions()) {
+                if (entry.getSid().getName().equalsIgnoreCase(identifier)) {
+                    Integer previousMask = entry.getMask();
+                    mask = mergeMasks(previousMask, mask);
+                }
+            }
             PermissionGrantRequest registration = new PermissionGrantRequest(
                     isPrincipal, identifier, mask, aclClass, id);
             HttpRequestBase request = getRequest(getRequestUrl());
@@ -169,6 +183,22 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
         }
     }
 
+    private int mergeMasks(Integer previousMask, int mask) {
+        return mergeMaskForPermission(previousMask, mask, 0x3)
+                | mergeMaskForPermission(previousMask, mask, 0xc);
+    }
+
+    private int mergeMaskForPermission(Integer previousMask, int mask, int permissionTemplate) {
+        int result;
+        if ((mask & permissionTemplate) != 0) {
+            result = mask & permissionTemplate;
+        } else {
+            // select only permission bits
+            result = previousMask & permissionTemplate;
+        }
+        return result;
+    }
+
     private <T> T loadSilentlyOrWarn(Supplier<T> loadFunction) {
         try {
             return loadFunction.get();
@@ -179,22 +209,22 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
     }
 
     private int getPermissionMask() {
-        List<Integer> masks = permission.chars()
-                .mapToObj(c -> String.valueOf((char) c))
-                .map(p -> mapPermissionToMask(action, p))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-
         int finalMask = 0;
-        for (Integer mask : masks) {
-            finalMask = finalMask | mask;
+        Matcher matcher = PERMISSION_PATTERN.matcher(permission);
+        while (matcher.find()) {
+            Integer partialMask = mapPermissionToMask(matcher.group(), action);
+            if (partialMask != null) {
+                finalMask = finalMask | partialMask;
+            }
         }
         return finalMask;
     }
 
-    private Integer mapPermissionToMask(String action, String perm) {
-        return PERMISSION_MAP.get(action + perm);
+    private Integer mapPermissionToMask(String perm, String defaultAction) {
+        if (perm.length() == 1) {
+            perm = perm + defaultAction;
+        }
+        return PERMISSION_MAP.get(perm);
     }
 
 }
