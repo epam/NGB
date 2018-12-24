@@ -536,4 +536,15 @@ public class TestHttpServer extends AbstractCliTest{
                 .withBody(TestDataProvider.getPayloadJson(indexPath))
                 .withStatus(HTTP_STATUS_OK);
     }
+
+    public void addPermissions(AclSecuredEntry entry, String entityClass) {
+        onRequest()
+                .havingMethodEqualTo(HTTP_GET)
+                .havingPathEqualTo(GET_PERMISSIONS_URL)
+                .havingParameterEqualTo("id", String.valueOf(entry.getEntity().getId()))
+                .havingParameterEqualTo("aclClass", entityClass)
+                .respond()
+                .withBody(TestDataProvider.getPayloadJson(entry))
+                .withStatus(HTTP_STATUS_OK);
+    }
 }

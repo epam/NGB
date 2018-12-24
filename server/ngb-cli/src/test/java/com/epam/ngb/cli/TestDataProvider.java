@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -216,6 +217,29 @@ public final class TestDataProvider {
 
     public static Project getProject(Long id, String name, List<BiologicalDataItem> items) {
         return getProject(id, name, items, null);
+    }
+
+    public static AclSecuredEntry buildAclSecuredEntry(AclSecuredEntry.Entity entity, String user, String group) {
+        AclSecuredEntry.Sid userSid = new AclSecuredEntry.Sid();
+        userSid.setPrincipal(true);
+        userSid.setName(user);
+
+        AclSecuredEntry.Sid groupSid = new AclSecuredEntry.Sid();
+        groupSid.setPrincipal(false);
+        groupSid.setName(group);
+
+        AclSecuredEntry.AclPermissionEntry permission1 = new AclSecuredEntry.AclPermissionEntry();
+        permission1.setMask(1);
+        permission1.setSid(userSid);
+
+        AclSecuredEntry.AclPermissionEntry permission2 = new AclSecuredEntry.AclPermissionEntry();
+        permission2.setMask(2);
+        permission2.setSid(groupSid);
+
+        AclSecuredEntry entry = new AclSecuredEntry();
+        entry.setEntity(entity);
+        entry.setPermissions(Arrays.asList(permission1, permission2));
+        return entry;
     }
 
     public static Project getProject(Long id, String name, List<BiologicalDataItem> items,
