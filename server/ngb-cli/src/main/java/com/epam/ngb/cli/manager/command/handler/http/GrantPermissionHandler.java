@@ -28,10 +28,10 @@ package com.epam.ngb.cli.manager.command.handler.http;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
+import com.epam.ngb.cli.entity.AclSecuredEntry;
 import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.PermissionGrantRequest;
 import com.epam.ngb.cli.entity.Project;
-import com.epam.ngb.cli.entity.EntityPermissions;
 import com.epam.ngb.cli.exception.ApplicationException;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.request.RequestManager;
@@ -58,12 +58,14 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GrantPermissionHandler.class);
 
-    public static final Map<String, Integer> PERMISSION_MAP = new HashMap<>();
+    static final Map<String, Integer> PERMISSION_MAP = new HashMap<>();
     private static final String DELETE_PERMISSION_URL = "/restapi/grant?id=%d&aclClass=%s&user=%s&isPrincipal=%b";
     private static final String GET_PERMISSION_URL = "/restapi/grant?id=%d&aclClass=%s";
     private static final String DELETE_TYPE = "DELETE";
     private static final String DELETE_PERMISSION_ACTION = "!";
     private static final String ROLE_PREFIX = "ROLE_";
+    private static final int READ_NO_READ_BITS = 0x3;
+    private static final int WRITE_NO_WRITE_BITS = 0xc;
 
     static {
         PERMISSION_MAP.put("r+", 1);
@@ -163,8 +165,8 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
                     getRequestFromURLByType(
                             "GET",
                             serverParameters.getServerUrl() + String.format(GET_PERMISSION_URL, id, aclClass)));
-            EntityPermissions entityPermissions = getResult(existingPermissions, EntityPermissions.class);
-            for (EntityPermissions.AclPermissionEntry entry : entityPermissions.getPermissions()) {
+            AclSecuredEntry entityPermissions = getResult(existingPermissions, AclSecuredEntry.class);
+            for (AclSecuredEntry.AclPermissionEntry entry : entityPermissions.getPermissions()) {
                 if (entry.getSid().getName().equalsIgnoreCase(identifier)) {
                     Integer previousMask = entry.getMask();
                     mask = mergeMasks(previousMask, mask);
@@ -184,8 +186,8 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
     }
 
     private int mergeMasks(Integer previousMask, int mask) {
-        return mergeMaskForPermission(previousMask, mask, 0x3)
-                | mergeMaskForPermission(previousMask, mask, 0xc);
+        return mergeMaskForPermission(previousMask, mask, READ_NO_READ_BITS)
+                | mergeMaskForPermission(previousMask, mask, WRITE_NO_WRITE_BITS);
     }
 
     private int mergeMaskForPermission(Integer previousMask, int mask, int permissionTemplate) {

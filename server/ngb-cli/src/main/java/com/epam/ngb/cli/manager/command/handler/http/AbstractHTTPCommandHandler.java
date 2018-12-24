@@ -33,7 +33,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.epam.ngb.cli.app.Utils;
 import com.epam.ngb.cli.entity.AclSecuredEntry;
@@ -433,7 +432,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         }
     }
 
-    protected List<Long> loadListOfUsers(List<String> userNames) {
+    protected List<NgbUser> loadListOfUsers(List<String> userNames) {
         IDList names = new IDList(userNames);
         HttpPost request = (HttpPost) getRequestFromURLByType("POST",
                 getServerParameters().getServerUrl() + getServerParameters().getFindUsersUrl());
@@ -445,7 +444,10 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
                                     getMapper().getTypeFactory()
                                             .constructParametrizedType(List.class, List.class,
                                                     NgbUser.class)));
-            return responseResult.getPayload().stream().map(NgbUser::getId).collect(Collectors.toList());
+            if (responseResult.getPayload() == null) {
+                return Collections.emptyList();
+            }
+            return responseResult.getPayload();
         } catch (IOException e) {
             throw new ApplicationException(e.getMessage(), e);
         }

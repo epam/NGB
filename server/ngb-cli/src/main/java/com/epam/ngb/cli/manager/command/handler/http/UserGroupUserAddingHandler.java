@@ -29,15 +29,16 @@ package com.epam.ngb.cli.manager.command.handler.http;
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
 import com.epam.ngb.cli.entity.ExtendedRole;
+import com.epam.ngb.cli.entity.NgbUser;
 import com.epam.ngb.cli.entity.Role;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.printer.AbstractResultPrinter;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.http.client.methods.HttpPost;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
@@ -46,6 +47,9 @@ import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUME
  */
 @Command(type = Command.Type.REQUEST, command = {"add_group"})
 public class UserGroupUserAddingHandler extends AbstractHTTPCommandHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserGroupUserAddingHandler.class);
+
 
     /**
      * If true command will output list of datasets in a table format, otherwise
@@ -85,7 +89,16 @@ public class UserGroupUserAddingHandler extends AbstractHTTPCommandHandler {
         if (namesOrIds.stream().allMatch(NumberUtils::isDigits)) {
             users = namesOrIds.stream().map(Long::parseLong).collect(Collectors.toList());
         } else {
-            users = loadListOfUsers(namesOrIds);
+            List<NgbUser> loaded = loadListOfUsers(namesOrIds);
+            if (loaded.size() != namesOrIds.size()) {
+                Set<String> namesSet = loaded.stream().map(NgbUser::getUserName).collect(Collectors.toSet());
+                namesOrIds.forEach(name -> {
+                    if (!namesSet.contains(name)) {
+                        LOGGER.error("User with name: " + name + " not found! Permission won't be set!");
+                    }
+                });
+            }
+            users = loaded.stream().map(NgbUser::getId).collect(Collectors.toList());
         }
 
         String roleIdentifier = arguments.get(0);

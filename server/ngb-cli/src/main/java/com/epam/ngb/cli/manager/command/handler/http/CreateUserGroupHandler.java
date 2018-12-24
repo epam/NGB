@@ -34,6 +34,9 @@ import com.epam.ngb.cli.manager.printer.AbstractResultPrinter;
 import com.epam.ngb.cli.manager.request.RequestManager;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.http.client.methods.HttpPost;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,6 +47,9 @@ import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUME
  */
 @Command(type = Command.Type.REQUEST, command = {"reg_group"})
 public class CreateUserGroupHandler extends AbstractHTTPCommandHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CreateUserGroupHandler.class);
+
 
     public static final String ASSIGN_USERS_TO_ROLE = "/restapi/role/%d/assign?userIds=%s";
 
@@ -83,7 +89,16 @@ public class CreateUserGroupHandler extends AbstractHTTPCommandHandler {
             if (userIdsOrNames.stream().allMatch(NumberUtils::isDigits)) {
                 users = userIdsOrNames.stream().map(Long::parseLong).collect(Collectors.toList());
             } else {
-                users = loadListOfUsers(userIdsOrNames);
+                List<NgbUser> loaded = loadListOfUsers(userIdsOrNames);
+                if (loaded.size() != userIdsOrNames.size()) {
+                    Set<String> namesSet = loaded.stream().map(NgbUser::getUserName).collect(Collectors.toSet());
+                    userIdsOrNames.forEach(name -> {
+                        if (namesSet.contains(name)) {
+                            LOGGER.error("User with name: " + name + " not found!");
+                        }
+                    });
+                }
+                users = loaded.stream().map(NgbUser::getId).collect(Collectors.toList());
             }
         }
         roleName = arguments.get(0);
