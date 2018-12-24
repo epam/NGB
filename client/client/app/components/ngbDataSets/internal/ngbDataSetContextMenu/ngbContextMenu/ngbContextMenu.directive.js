@@ -5,23 +5,22 @@ export default function($injector, $window, $timeout) {
         restrict: 'A',
         link: function(scope, element, attrs) {
             const contextMenu = $injector.get(attrs.target);
-            const locals = {};
             const wnd = angular.element($window);
             const triggerOnEvent = attrs.triggerOnEvent || 'contextmenu';
-
-            if (attrs.locals) {
-                const localKeys = attrs.locals.split(',').map(function(local) {
-                    return local.trim();
-                });
-                angular.forEach(localKeys, function(key) {
-                    locals[key] = scope[key];
-                });
-            }
 
             function open(event) {
                 const pointerPosition = getPositionPropertiesOfEvent(event);
                 const cssProperties = getCssPropertiesOfEvent(event);
                 const currentTarget = event.currentTarget;
+                const locals = {};
+                if (attrs.locals) {
+                    const localKeys = attrs.locals.split(',').map(function(local) {
+                        return local.trim();
+                    });
+                    angular.forEach(localKeys, function(key) {
+                        locals[key] = scope[key];
+                    });
+                }
                 contextMenu.bindController(locals);
                 const shouldOpenContextMenuPromise = contextMenu.controllerImpl && contextMenu.controllerImpl.shouldOpenMenuPromise
                     ? contextMenu.controllerImpl.shouldOpenMenuPromise()
