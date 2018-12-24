@@ -59,6 +59,9 @@ export default class ngbPermissionsFormController extends BaseController {
         });
         this.ngbPermissionsFormService.getRoles().then(roles => {
             this.roles = roles || [];
+            if (this.permissions) {
+                this.setPermissionsGridData(this.permissions);
+            }
         });
     }
 
