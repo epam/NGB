@@ -73,7 +73,7 @@ public abstract class AbstractCliTest {
     public static final String SPEC_DELETION_URL = "/catgenome/restapi/secure/reference/register/species";
     public static final String SPEC_ADDING_URL = "/catgenome/restapi/secure/reference/%d/species";
     public static final String SPEC_REMOVING_URL = "/catgenome/restapi/secure/reference/%d/species";
-    public static final String TOKEN = "123456";
+    public static final String GET_PERMISSIONS_URL = "/catgenome/restapi/grant";
 
     //server properties
     public static final String TEST_SERVER_PROPERTIES = "external/server.properties";
@@ -90,6 +90,10 @@ public abstract class AbstractCliTest {
     public static final String GET_EXISTING_INDEX_URL_PROPERTY = "get_existing_index_url";
 
     public static final String SERVER_URL = "http://localhost:%d/catgenome";
+
+    public static final String TOKEN = "123456";
+    public static final String TEST_OWNER = "OWNER";
+    public static final String TEST_GROUP = "ROLE";
 
     private static ConfigurationLoader configLoader = new ConfigurationLoader();
 

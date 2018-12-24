@@ -28,6 +28,7 @@ import com.epam.ngb.cli.AbstractCliTest;
 import com.epam.ngb.cli.TestDataProvider;
 import com.epam.ngb.cli.TestHttpServer;
 import com.epam.ngb.cli.app.ApplicationOptions;
+import com.epam.ngb.cli.entity.AclSecuredEntry;
 import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
 import com.epam.ngb.cli.entity.Project;
@@ -36,6 +37,8 @@ import org.junit.*;
 
 import java.util.Arrays;
 import java.util.Collections;
+
+import static com.epam.ngb.cli.TestDataProvider.buildAclSecuredEntry;
 
 public class DatasetListHandlerTest extends AbstractCliTest {
     private static final String COMMAND = "list_datasets";
@@ -110,6 +113,31 @@ public class DatasetListHandlerTest extends AbstractCliTest {
     public void testWrongArguments() {
         DatasetListHandler handler = getDatasetListHandler();
         handler.parseAndVerifyArguments(Collections.singletonList(DATASET_NAME_1), new ApplicationOptions());
+    }
+
+    @Test
+    public void shouldPrintPermissions() {
+        Project project = TestDataProvider
+                .getProject(DATASET_ID_1, DATASET_NAME_1, Collections.emptyList());
+
+        AclSecuredEntry entry = buildAclSecuredEntry(
+                AclSecuredEntry.Entity
+                        .builder()
+                        .id(DATASET_ID_1)
+                        .mask(1)
+                        .name(DATASET_NAME_1)
+                        .owner(TEST_OWNER)
+                        .build(), TEST_OWNER, TEST_GROUP);
+
+        server.addDatasetListing(Collections.singletonList(project));
+        server.addPermissions(entry, "PROJECT");
+
+        DatasetListHandler handler = getDatasetListHandler();
+        ApplicationOptions options = new ApplicationOptions();
+        options.setPrintTable(true);
+        options.setShowPermissions(true);
+        handler.parseAndVerifyArguments(Collections.emptyList(), options);
+        Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
     private DatasetListHandler getDatasetListHandler() {

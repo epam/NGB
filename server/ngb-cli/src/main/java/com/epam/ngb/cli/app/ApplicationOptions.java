@@ -100,6 +100,8 @@ public class ApplicationOptions {
 
     private String groups;
 
+    private boolean showPermissions;
+
     /**
      * Creates object with default option's values
      */
@@ -249,5 +251,13 @@ public class ApplicationOptions {
 
     public void setDatasets(String datasets) {
         this.datasets = datasets;
+    }
+
+    public boolean isShowPermissions() {
+        return showPermissions;
+    }
+
+    public void setShowPermissions(boolean showPermissions) {
+        this.showPermissions = showPermissions;
     }
 }

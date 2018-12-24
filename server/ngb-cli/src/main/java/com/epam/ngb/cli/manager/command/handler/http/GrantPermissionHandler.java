@@ -58,7 +58,7 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GrantPermissionHandler.class);
 
-    private static final Map<String, Integer> PERMISSION_MAP = new HashMap<>();
+    public static final Map<String, Integer> PERMISSION_MAP = new HashMap<>();
     private static final String DELETE_PERMISSION_URL = "/restapi/grant?id=%d&aclClass=%s&user=%s&isPrincipal=%b";
     private static final String GET_PERMISSION_URL = "/restapi/grant?id=%d&aclClass=%s";
     private static final String DELETE_TYPE = "DELETE";
