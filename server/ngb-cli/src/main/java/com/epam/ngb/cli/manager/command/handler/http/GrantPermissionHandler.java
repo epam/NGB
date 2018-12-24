@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -63,13 +64,13 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
     public static final String ROLE_PREFIX = "ROLE_";
 
     static {
-        PERMISSION_MAP.put("+r", 1);
-        PERMISSION_MAP.put("-r", 2);
-        PERMISSION_MAP.put("+w", 4);
-        PERMISSION_MAP.put("-w", 8);
+        PERMISSION_MAP.put("r+", 1);
+        PERMISSION_MAP.put("r-", 2);
+        PERMISSION_MAP.put("w+", 4);
+        PERMISSION_MAP.put("w-", 8);
     }
 
-    private static final Pattern PERMISSION_PATTERN = Pattern.compile("^(r|w){0,2}$");
+    private static final Pattern PERMISSION_PATTERN = Pattern.compile("^(r\\+?)|(r-?)|(w\\+?)|(w-?)+$");
     private static final Pattern ACTION_PATTERN = Pattern.compile("\\+|\\-|!");
 
 
@@ -96,7 +97,7 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
         action = String.valueOf(permissionAndAction.charAt(permissionAndAction.length() - 1));
         permission = permissionAndAction.substring(0, permissionAndAction.length() - 1);
 
-        if(!PERMISSION_PATTERN.matcher(permission).find() || !ACTION_PATTERN.matcher(action).find()) {
+        if(!PERMISSION_PATTERN.matcher(permission).find() && !ACTION_PATTERN.matcher(action).find()) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ERROR_WRONG_PERMISSION));
         }
@@ -179,22 +180,22 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
     }
 
     private int getPermissionMask() {
-        List<Integer> masks = permission.chars()
-                .mapToObj(c -> String.valueOf((char) c))
-                .map(p -> mapPermissionToMask(action, p))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-
         int finalMask = 0;
-        for (Integer mask : masks) {
-            finalMask = finalMask | mask;
+        Matcher matcher = PERMISSION_PATTERN.matcher(permission);
+        while (matcher.find()) {
+            Integer partialMask = mapPermissionToMask(matcher.group(), action);
+            if (partialMask != null) {
+                finalMask = finalMask | partialMask;
+            }
         }
         return finalMask;
     }
 
-    private Integer mapPermissionToMask(String action, String perm) {
-        return PERMISSION_MAP.get(action + perm);
+    private Integer mapPermissionToMask(String perm, String defaultAction) {
+        if (perm.length() == 1) {
+            perm = perm + defaultAction;
+        }
+        return PERMISSION_MAP.get(perm);
     }
 
 }
