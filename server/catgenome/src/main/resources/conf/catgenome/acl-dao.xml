@@ -143,14 +143,14 @@
         <property name="deleteEntriesBySidQuery">
             <value>
                 <![CDATA[
-                    delete from catgenome.acl_sid where id=?
+                    delete from catgenome.acl_entry where sid=?
                 ]]>
             </value>
         </property>
         <property name="deleteSidByIdQuery">
             <value>
                 <![CDATA[
-                    delete from catgenome.acl_entry where sid=?
+                    delete from catgenome.acl_sid where id=?
                 ]]>
             </value>
         </property>
