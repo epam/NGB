@@ -40,16 +40,14 @@ import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 @ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 public class AclPermissionSecurityService {
 
-    private static final String OWNER_BY_GRANT_VO = "isOwner(#grantVO.aclClass, #grantVO.id)";
     private static final String OWNER_BY_ID = "isOwner(#aclClass, #id)";
-    private static final String HAS_SPECIFIC_ROLE_BY_GRATN_VO = "hasSpecificRole(#grantVO.aclClass)";
     private static final String HAS_SPECIFIC_ROLE_BY_ACL_CLASS = "hasSpecificRole(#aclClass)";
 
 
     @Autowired
     private GrantPermissionManager permissionManager;
 
-    @PreAuthorize(ROLE_ADMIN + OR + OWNER_BY_GRANT_VO + OR + HAS_SPECIFIC_ROLE_BY_GRATN_VO)
+    @PreAuthorize(ROLE_ADMIN)
     public AclSecuredEntry setPermissions(PermissionGrantVO grantVO) {
         return permissionManager.setPermissions(grantVO.getAclClass(), grantVO.getId(), grantVO.getUserName(),
                 grantVO.getPrincipal(), grantVO.getMask());
@@ -60,17 +58,17 @@ public class AclPermissionSecurityService {
         return permissionManager.getPermissions(id, aclClass);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + OWNER_BY_ID + OR + HAS_SPECIFIC_ROLE_BY_ACL_CLASS)
+    @PreAuthorize(ROLE_ADMIN)
     public AclSecuredEntry deletePermissions(Long id, AclClass aclClass, String user, boolean isPrincipal) {
         return permissionManager.deletePermissions(id, aclClass, user, isPrincipal);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + OWNER_BY_ID + OR + HAS_SPECIFIC_ROLE_BY_ACL_CLASS)
+    @PreAuthorize(ROLE_ADMIN)
     public AclSecuredEntry deleteAllPermissions(Long id, AclClass aclClass) {
         return permissionManager.deleteAllPermissions(id, aclClass);
     }
 
-    @PreAuthorize(ROLE_ADMIN + OR + OWNER_BY_ID + OR + HAS_SPECIFIC_ROLE_BY_ACL_CLASS)
+    @PreAuthorize(ROLE_ADMIN)
     public AclSecuredEntry changeOwner(Long id, AclClass aclClass, String userName) {
         return permissionManager.changeOwner(id, aclClass, userName);
     }
