@@ -123,6 +123,10 @@ public class ProjectManagerTest extends AbstractManagerTest {
     private static final String TEST_VCF_FILE_NAME1 = "file1";
     private static final String TEST_VCF_FILE_NAME2 = "file2";
     private static final int BOOKMARK_END_INDEX = 10000;
+    private static final String PARENT_NAME = "testParent";
+    private static final String CHILD_NAME_1 = "testChild1";
+    private static final String CHILD_NAME_2 = "testChild2";
+    private static final String CHILD_NAME_11 = "testChild11";
 
     @Value("#{catgenome['files.base.directory.path']}")
     private String baseDirPath;
@@ -246,19 +250,19 @@ public class ProjectManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testDeleteProjectWithNested() throws IOException {
         Project parent = new Project();
-        parent.setName("testParent");
+        parent.setName(PARENT_NAME);
         parent.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         parent = projectManager.create(parent);
 
         Project child1 = new Project();
-        child1.setName("testChild1");
+        child1.setName(CHILD_NAME_1);
         child1.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         child1 = projectManager.create(child1, parent.getId());
 
         Project child2 = new Project();
-        child2.setName("testChild2");
+        child2.setName(CHILD_NAME_2);
         child2.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         child2 = projectManager.create(child2, parent.getId());
@@ -342,13 +346,13 @@ public class ProjectManagerTest extends AbstractManagerTest {
         throws InterruptedException,
             NoSuchAlgorithmException, IOException {
         Project parent = new Project();
-        parent.setName("testParent");
+        parent.setName(PARENT_NAME);
         parent.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         parent = projectManager.create(parent);
 
         Project child1 = new Project();
-        child1.setName("testChild1");
+        child1.setName(CHILD_NAME_1);
         child1.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         child1 = projectManager.create(child1, parent.getId());
@@ -358,7 +362,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
         Assert.assertEquals(child1.getId(), parent.getNestedProjects().get(0).getId());
 
         Project child2 = new Project();
-        child2.setName("testChild2");
+        child2.setName(CHILD_NAME_2);
         child2.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         child2 = projectManager.create(child2);
@@ -379,7 +383,7 @@ public class ProjectManagerTest extends AbstractManagerTest {
 
         // test loading tree
         Project child11 = new Project();
-        child11.setName("tesChild11");
+        child11.setName(CHILD_NAME_11);
         child11.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         projectManager.create(child11, child1.getId());
@@ -417,25 +421,25 @@ public class ProjectManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadTreeWithParent() {
         Project parent = new Project();
-        parent.setName("testParent");
+        parent.setName(PARENT_NAME);
         parent.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         parent = projectManager.create(parent);
 
         Project child1 = new Project();
-        child1.setName("testChild1");
+        child1.setName(CHILD_NAME_1);
         child1.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         child1 = projectManager.create(child1, parent.getId());
 
         Project child2 = new Project();
-        child2.setName("testChild2");
+        child2.setName(CHILD_NAME_2);
         child2.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         child2 = projectManager.create(child2, parent.getId());
 
         Project child11 = new Project();
-        child11.setName("tesChild11");
+        child11.setName(CHILD_NAME_11);
         child11.setItems(Collections.singletonList(
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         projectManager.create(child11, child1.getId());
@@ -608,6 +612,130 @@ public class ProjectManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(projectReference.getGeneFile().getId());
         Assert.assertNotNull(projectReference.getGeneFile().getName());
         Assert.assertNotNull(projectReference.getGeneFile().getCreatedDate());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void shouldLoadProjectTreeForProject() {
+        Project parent = new Project();
+        parent.setName(PARENT_NAME);
+        parent = projectManager.create(parent);
+
+        Project child1 = new Project();
+        child1.setName(CHILD_NAME_1);
+        child1.setParent(parent);
+        child1 = projectManager.create(child1, parent.getId());
+
+        Project child2 = new Project();
+        child2.setName(CHILD_NAME_2);
+        child2.setParent(parent);
+        child2 = projectManager.create(child2, parent.getId());
+
+        Project child11 = new Project();
+        child11.setName(CHILD_NAME_11);
+        child11.setParent(child1);
+        projectManager.create(child11, child1.getId());
+
+        Project actual = projectManager.loadProjectHierarchyForProject(child1.getId(), child11.getId());
+        verifyProjectTree(child11, actual);
+
+        actual = projectManager.loadProjectHierarchyForProject(child1.getId(), child1.getId());
+        verifyProjectTree(child1, actual);
+
+        actual = projectManager.loadProjectHierarchyForProject(parent.getId(), parent.getId());
+        Assert.assertEquals(parent.getId(), actual.getId());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void shouldFailIfProjectNotInHierarchy() {
+        Project parent = new Project();
+        parent.setName(PARENT_NAME);
+        parent = projectManager.create(parent);
+
+        Project child1 = new Project();
+        child1.setName(CHILD_NAME_1);
+        child1.setParent(parent);
+        child1 = projectManager.create(child1, parent.getId());
+
+        Project child2 = new Project();
+        child2.setName(CHILD_NAME_2);
+        child2.setParent(parent);
+        child2 = projectManager.create(child2, parent.getId());
+
+        Project child11 = new Project();
+        child11.setName(CHILD_NAME_11);
+        child11.setParent(child1);
+        projectManager.create(child11, child1.getId());
+
+        projectManager.loadProjectHierarchyForProject(child2.getId(), child11.getId());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void shouldLoadProjectTreeForItem() {
+        Project parent = new Project();
+        parent.setName(PARENT_NAME);
+        parent.setItems(Collections
+                .singletonList(new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
+        parent = projectManager.create(parent);
+
+        Project child1 = new Project();
+        child1.setName(CHILD_NAME_1);
+        child1.setParent(parent);
+        child1 = projectManager.create(child1, parent.getId());
+
+        Project child2 = new Project();
+        child2.setName(CHILD_NAME_2);
+        child2.setParent(parent);
+        child2 = projectManager.create(child2, parent.getId());
+
+        Project child11 = new Project();
+        child11.setName(CHILD_NAME_11);
+        child11.setParent(child1);
+        child11.setItems(Collections
+                .singletonList(new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
+        projectManager.create(child11, child1.getId());
+
+        Project actual = projectManager.loadProjectHierarchyForItem(child11.getId(), testReference.getId());
+        verifyProjectTree(child11, actual);
+
+        actual = projectManager.loadProjectHierarchyForItem(parent.getId(), testReference.getId());
+        Assert.assertEquals(parent.getId(), actual.getId());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void shouldFailIfItemNotInHierarchy() {
+        Project parent = new Project();
+        parent.setName(PARENT_NAME);
+        parent = projectManager.create(parent);
+
+        Project child1 = new Project();
+        child1.setName(CHILD_NAME_1);
+        child1.setParent(parent);
+        child1 = projectManager.create(child1, parent.getId());
+
+        Project child2 = new Project();
+        child2.setName(CHILD_NAME_2);
+        child2.setParent(parent);
+        child2.setItems(Collections
+                .singletonList(new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
+        child2 = projectManager.create(child2, parent.getId());
+
+        Project child11 = new Project();
+        child11.setName(CHILD_NAME_11);
+        child11.setParent(child1);
+        projectManager.create(child11, child1.getId());
+
+        projectManager.loadProjectHierarchyForItem(child1.getId(), testReference.getId());
+    }
+
+    private static void verifyProjectTree(final Project expected, final Project actual) {
+        Assert.assertEquals(expected.getId(), actual.getId());
+        if (expected.getParentId() != null) {
+            verifyProjectTree(expected.getParent(), actual.getParent());
+        }
     }
 
     private void addVcfFileToProject(long projectId, String name, String path) throws IOException,

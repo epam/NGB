@@ -43,7 +43,6 @@ public class AclPermissionSecurityService {
     private static final String OWNER_BY_ID = "isOwner(#aclClass, #id)";
     private static final String HAS_SPECIFIC_ROLE_BY_ACL_CLASS = "hasSpecificRole(#aclClass)";
 
-
     @Autowired
     private GrantPermissionManager permissionManager;
 
@@ -71,5 +70,15 @@ public class AclPermissionSecurityService {
     @PreAuthorize(ROLE_ADMIN)
     public AclSecuredEntry changeOwner(Long id, AclClass aclClass, String userName) {
         return permissionManager.changeOwner(id, aclClass, userName);
+    }
+
+    @PreAuthorize(ROLE_ADMIN)
+    public AclSecuredEntry loadPermissionsTreeForProject(Long id, Long childProjectId) {
+        return permissionManager.loadProjectPermissionsForProject(id, childProjectId);
+    }
+
+    @PreAuthorize(ROLE_ADMIN)
+    public AclSecuredEntry loadPermissionsTreeForItem(Long id, Long childProjectId, AclClass aclClass) {
+        return permissionManager.loadProjectPermissionsForItem(id, childProjectId, aclClass);
     }
 }

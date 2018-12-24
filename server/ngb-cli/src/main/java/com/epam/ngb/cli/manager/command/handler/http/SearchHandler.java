@@ -52,6 +52,8 @@ public class SearchHandler extends AbstractHTTPCommandHandler {
     private String query;
     private boolean strict;
     private boolean printTable;
+    private boolean permissionsRequired;
+    private String permissionsScope;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SearchHandler.class);
 
@@ -64,9 +66,12 @@ public class SearchHandler extends AbstractHTTPCommandHandler {
         query = arguments.get(0);
         strict = options.isStrictSearch();
         printTable = options.isPrintTable();
+        permissionsRequired = options.isShowPermissions();
+        permissionsScope = options.getPermissionsScope();
     }
 
-    @Override public int runCommand() {
+    @Override
+    public int runCommand() {
         List<BiologicalDataItem> items = loadItemsByName(query, strict);
         if (items == null || items.isEmpty()) {
             LOGGER.info("No files found matching a request \"" + query + "\".");
@@ -74,8 +79,22 @@ public class SearchHandler extends AbstractHTTPCommandHandler {
         }
         AbstractResultPrinter printer = AbstractResultPrinter.getPrinter(printTable,
                 items.get(0).getFormatString(items));
+        if (permissionsRequired) {
+            printWithPermissions(items, printer);
+            return 0;
+        }
         printer.printHeader(items.get(0));
         items.forEach(printer::printItem);
         return 0;
+    }
+
+    private void printWithPermissions(final List<BiologicalDataItem> items, final AbstractResultPrinter printer) {
+        items.forEach(item -> {
+            printer.printHeader(item);
+            printer.printItem(item);
+
+            PrintPermissionsHelper permissionsHelper = new PrintPermissionsHelper(this, permissionsScope, printTable);
+            permissionsHelper.print(item.getId(), item.getFormat().name());
+        });
     }
 }

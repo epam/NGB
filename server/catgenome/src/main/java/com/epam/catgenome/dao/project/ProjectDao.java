@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +68,9 @@ import com.epam.catgenome.entity.reference.Reference;
  * </p>
  */
 public class ProjectDao extends NamedParameterJdbcDaoSupport {
+
+    private Pattern dataValuePatten = Pattern.compile("@VALUE@");
+
     @Autowired
     private DaoHelper daoHelper;
 
@@ -97,6 +101,8 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     private String loadProjectItemsByProjectIdsQuery;
     private String loadProjectsByBioDataItemIdQuery;
     private String loadAllProjectItemsQuery;
+    private String loadProjectParentsByIdQuery;
+    private String loadProjectChildrenByIdQuery;
 
     /**
      * Persists a new or updates existing project in the database.
@@ -492,6 +498,26 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         getNamedParameterJdbcTemplate().update(updateProjectOwnerQuery, params);
     }
 
+    /**
+     * Loads project and it's children
+     * @param id project ID
+     * @return loaded projects
+     */
+    public List<Project> loadProjectChildren(final Long id) {
+        String query = dataValuePatten.matcher(loadProjectChildrenByIdQuery).replaceFirst(id.toString());
+        return getJdbcTemplate().query(query, ProjectParameters.getRowMapper());
+    }
+
+    /**
+     * Loads project and it's parents
+     * @param id project ID
+     * @return loaded projects
+     */
+    public List<Project> loadProjectParents(final Long id) {
+        String query = dataValuePatten.matcher(loadProjectParentsByIdQuery).replaceFirst(id.toString());
+        return getJdbcTemplate().query(query, ProjectParameters.getRowMapper());
+    }
+
     enum ProjectParameters {
         PROJECT_ID,
         PROJECT_NAME,
@@ -535,6 +561,7 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         }
 
     }
+
     enum ProjectItemParameters {
         PROJECT_ITEM_ID,
         PROJECT_ID,
@@ -748,5 +775,15 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setUpdateProjectOwnerQuery(String updateProjectOwnerQuery) {
         this.updateProjectOwnerQuery = updateProjectOwnerQuery;
+    }
+
+    @Required
+    public void setLoadProjectParentsByIdQuery(String loadProjectParentsByIdQuery) {
+        this.loadProjectParentsByIdQuery = loadProjectParentsByIdQuery;
+    }
+
+    @Required
+    public void setLoadProjectChildrenByIdQuery(String loadProjectChildrenByIdQuery) {
+        this.loadProjectChildrenByIdQuery = loadProjectChildrenByIdQuery;
     }
 }

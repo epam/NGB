@@ -28,6 +28,7 @@ import com.epam.ngb.cli.AbstractCliTest;
 import com.epam.ngb.cli.TestDataProvider;
 import com.epam.ngb.cli.TestHttpServer;
 import com.epam.ngb.cli.app.ApplicationOptions;
+import com.epam.ngb.cli.entity.AclSecuredEntry;
 import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
 import com.epam.ngb.cli.manager.command.ServerParameters;
@@ -36,6 +37,8 @@ import org.junit.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.epam.ngb.cli.TestDataProvider.buildAclSecuredEntry;
 
 public class SearchHandlerTest extends AbstractCliTest {
 
@@ -54,6 +57,9 @@ public class SearchHandlerTest extends AbstractCliTest {
     private static final Long GENE_ID = 51L;
     private static final String GENE_NAME = "genes_38";
     private static final String PATH_TO_GENE = "path/genes.gtf";
+
+    private static final String DATASET_NAME_1 = "data1";
+    private static final Long DATASET_ID_1 = 1L;
 
     @BeforeClass
     public static void setUp() {
@@ -125,6 +131,52 @@ public class SearchHandlerTest extends AbstractCliTest {
         ApplicationOptions applicationOptions = new ApplicationOptions();
         applicationOptions.setPrintTable(true);
         handler.parseAndVerifyArguments(Collections.emptyList(), applicationOptions);
+    }
+
+    @Test
+    public void shouldPrintPermissions() {
+        AclSecuredEntry entry = buildAclSecuredEntry(
+                AclSecuredEntry.Entity
+                .builder()
+                .id(REF_ID)
+                .mask(1)
+                .name(REFERENCE_NAME)
+                .owner(TEST_OWNER)
+                .build(), TEST_OWNER, TEST_GROUP);
+
+        server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
+        server.addPermissions(entry, BiologicalDataItemFormat.REFERENCE.name());
+
+        SearchHandler handler = getSearchHandler();
+        ApplicationOptions applicationOptions = new ApplicationOptions();
+        applicationOptions.setPrintTable(true);
+        applicationOptions.setShowPermissions(true);
+        handler.parseAndVerifyArguments(Collections.singletonList(REFERENCE_NAME), applicationOptions);
+        Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
+    }
+
+    @Test
+    public void shouldPrintScopePermissions() {
+        AclSecuredEntry entry = buildAclSecuredEntry(
+                AclSecuredEntry.Entity
+                        .builder()
+                        .id(REF_ID)
+                        .mask(1)
+                        .name(REFERENCE_NAME)
+                        .owner(TEST_OWNER)
+                        .build(), TEST_OWNER, TEST_GROUP);
+
+        server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
+        server.addDataset(DATASET_ID_1, DATASET_NAME_1, Collections.emptyList());
+        server.addItemPermissions(entry, DATASET_ID_1, BiologicalDataItemFormat.REFERENCE.name());
+
+        SearchHandler handler = getSearchHandler();
+        ApplicationOptions options = new ApplicationOptions();
+        options.setPrintTable(true);
+        options.setShowPermissions(true);
+        options.setPermissionsScope(DATASET_NAME_1);
+        handler.parseAndVerifyArguments(Collections.singletonList(REFERENCE_NAME), options);
+        Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
     private SearchHandler getSearchHandler() {

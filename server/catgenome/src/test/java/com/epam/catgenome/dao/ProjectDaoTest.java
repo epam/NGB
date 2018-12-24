@@ -26,7 +26,11 @@ package com.epam.catgenome.dao;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.BaseEntity;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -140,5 +144,110 @@ public class ProjectDaoTest extends AbstractTransactionalJUnit4SpringContextTest
 
         List<Project> topLevel = projectDao.loadTopLevelProjectsOrderByLastOpened();
         Assert.assertEquals(1, topLevel.size());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void shouldLoadProjectChildren() {
+        Project parent = new Project();
+        parent.setName("testParent");
+        parent.setCreatedDate(new Date());
+        parent.setOwner(EntityHelper.TEST_OWNER);
+
+        projectDao.saveProject(parent, null);
+
+        Project child = new Project();
+        child.setName("testChild");
+        child.setCreatedDate(new Date());
+        child.setOwner(EntityHelper.TEST_OWNER);
+
+        projectDao.saveProject(child, parent.getId());
+
+        Project child2 = new Project();
+        child2.setName("testChild2");
+        child2.setCreatedDate(new Date());
+        child2.setOwner(EntityHelper.TEST_OWNER);
+
+        projectDao.saveProject(child2, parent.getId());
+
+        Project child12 = new Project();
+        child12.setName("testChild12");
+        child12.setCreatedDate(new Date());
+        child12.setOwner(EntityHelper.TEST_OWNER);
+
+        projectDao.saveProject(child12, child.getId());
+
+        List<Project> projects = projectDao.loadProjectChildren(child.getId());
+
+        Assert.assertEquals(projects.size(), 2);
+        Map<Long, Project> projectsById = projects
+                .stream()
+                .collect(Collectors.toMap(BaseEntity::getId, Function.identity()));
+        Assert.assertTrue(projectsById.containsKey(child.getId()));
+        Assert.assertTrue(projectsById.containsKey(child12.getId()));
+
+        projects = projectDao.loadProjectChildren(parent.getId());
+
+        Assert.assertEquals(projects.size(), 4);
+        projectsById = projects
+                .stream()
+                .collect(Collectors.toMap(BaseEntity::getId, Function.identity()));
+        Assert.assertTrue(projectsById.containsKey(parent.getId()));
+        Assert.assertTrue(projectsById.containsKey(child.getId()));
+        Assert.assertTrue(projectsById.containsKey(child2.getId()));
+        Assert.assertTrue(projectsById.containsKey(child12.getId()));
+
+        projects = projectDao.loadProjectChildren(child12.getId());
+
+        Assert.assertEquals(projects.size(), 1);
+        Assert.assertEquals(projects.get(0).getId(), child12.getId());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void shouldLoadProjectParents() {
+        Project parent = new Project();
+        parent.setName("testParent");
+        parent.setCreatedDate(new Date());
+        parent.setOwner(EntityHelper.TEST_OWNER);
+
+        projectDao.saveProject(parent, null);
+
+        Project child = new Project();
+        child.setName("testChild");
+        child.setCreatedDate(new Date());
+        child.setOwner(EntityHelper.TEST_OWNER);
+
+        projectDao.saveProject(child, parent.getId());
+
+        // should be skipped
+        Project child2 = new Project();
+        child2.setName("testChild2");
+        child2.setCreatedDate(new Date());
+        child2.setOwner(EntityHelper.TEST_OWNER);
+
+        projectDao.saveProject(child2, parent.getId());
+
+        Project child12 = new Project();
+        child12.setName("testChild12");
+        child12.setCreatedDate(new Date());
+        child12.setOwner(EntityHelper.TEST_OWNER);
+
+        projectDao.saveProject(child12, child.getId());
+
+        List<Project> projects = projectDao.loadProjectParents(child12.getId());
+
+        Assert.assertEquals(projects.size(), 3);
+        Map<Long, Project> projectsById = projects
+                .stream()
+                .collect(Collectors.toMap(BaseEntity::getId, Function.identity()));
+        Assert.assertTrue(projectsById.containsKey(child12.getId()));
+        Assert.assertTrue(projectsById.containsKey(child.getId()));
+        Assert.assertTrue(projectsById.containsKey(parent.getId()));
+
+        projects = projectDao.loadProjectParents(parent.getId());
+
+        Assert.assertEquals(projects.size(), 1);
+        Assert.assertEquals(projects.get(0).getId(), parent.getId());
     }
 }

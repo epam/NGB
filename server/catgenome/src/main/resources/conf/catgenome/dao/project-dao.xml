@@ -544,5 +544,91 @@
                 ]]>
             </value>
         </property>
+        <property name="loadProjectParentsByIdQuery">
+            <value>
+                <![CDATA[
+                    WITH RECURSIVE parents(
+                            parent_id,
+                            project_id,
+                            project_name,
+                            created_date,
+                            project_pretty_name,
+                            last_opened_date,
+                            owner) AS (
+                        SELECT
+                            p.parent_id,
+                            p.project_id,
+                            p.project_name,
+                            p.created_date,
+                            p.project_pretty_name,
+                            p.last_opened_date,
+                            p.owner
+                        FROM catgenome.project AS p WHERE p.PROJECT_ID = @VALUE@
+                        UNION ALL
+                        SELECT
+                            c.parent_id,
+                            c.project_id,
+                            c.project_name,
+                            c.created_date,
+                            c.project_pretty_name,
+                            c.last_opened_date,
+                            c.owner
+                        FROM catgenome.project AS c
+                        JOIN parents ON parents.parent_id = c.project_id
+                    ) SELECT
+                        parent_id,
+                        project_id,
+                        project_name,
+                        created_date,
+                        project_pretty_name,
+                        last_opened_date,
+                        owner
+                    FROM parents
+                ]]>
+            </value>
+        </property>
+        <property name="loadProjectChildrenByIdQuery">
+            <value>
+                <![CDATA[
+                     WITH RECURSIVE children(
+                            parent_id,
+                            project_id,
+                            project_name,
+                            created_date,
+                            project_pretty_name,
+                            last_opened_date,
+                            owner) AS (
+                        SELECT
+                            p.parent_id,
+                            p.project_id,
+                            p.project_name,
+                            p.created_date,
+                            p.project_pretty_name,
+                            p.last_opened_date,
+                            p.owner
+                        FROM catgenome.project AS p WHERE p.PROJECT_ID = @VALUE@
+                        UNION ALL
+                        SELECT
+                            c.parent_id,
+                            c.project_id,
+                            c.project_name,
+                            c.created_date,
+                            c.project_pretty_name,
+                            c.last_opened_date,
+                            c.owner
+                        FROM catgenome.project AS c
+                        INNER JOIN children ON children.project_id = c.parent_id
+                    ) SELECT
+                        parent_id,
+                        project_id,
+                        project_name,
+                        created_date,
+                        project_pretty_name,
+                        last_opened_date,
+                        owner
+                    FROM children
+                ]]>
+            </value>
+        </property>
     </bean>
 </beans>

@@ -36,7 +36,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.epam.ngb.cli.app.Utils;
-import com.epam.ngb.cli.entity.*;
+import com.epam.ngb.cli.entity.AclSecuredEntry;
+import com.epam.ngb.cli.entity.BiologicalDataItem;
+import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
+import com.epam.ngb.cli.entity.IDList;
+import com.epam.ngb.cli.entity.NgbUser;
+import com.epam.ngb.cli.entity.Project;
+import com.epam.ngb.cli.entity.RequestPayload;
+import com.epam.ngb.cli.entity.ResponseResult;
+import com.epam.ngb.cli.entity.Role;
+import com.epam.ngb.cli.entity.SpeciesEntity;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -92,6 +101,9 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
     private static final String CACHE_CONTROL_NO_CACHE = "no-cache";
     private static final String AUTHORIZATION = "Authorization";
     private static final String BEARER = "Bearer ";
+    private static final String PERMISSIONS_URL = "/restapi/grant?id=%s&aclClass=%s";
+    private static final String LOAD_PERMISSION_FOR_PROJECT_URL = "/restapi/grant/projects/%d?targetId=%d";
+    private static final String LOAD_PERMISSION_FOR_ITEM_URL = "/restapi/grant/items/%d?itemId=%d&itemClass=%s";
 
     /**
      * Delimiter between path to file and path to index in the input argument string
@@ -579,6 +591,67 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             throw new ApplicationException(getMessage(ERROR_PROJECT_NOT_FOUND, datasetId));
         }
 
+    }
+
+    /**
+     * Performs an HTTP request to load permissions for specified entity.
+     * @param entityId entity ID
+     * @param entityClass entity acl class
+     * @return entity and it's acl permissions
+     */
+    protected AclSecuredEntry loadPermissions(Long entityId, String entityClass) throws IOException {
+        HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, serverParameters.getServerUrl()
+                + String.format(PERMISSIONS_URL, entityId, entityClass));
+        String result = RequestManager.executeRequest(request);
+        ResponseResult<AclSecuredEntry> responseResult = getMapper().readValue(result,
+                getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class,
+                        ResponseResult.class, AclSecuredEntry.class));
+        if (responseResult == null || responseResult.getPayload() == null) {
+            throw new ApplicationException(getMessage(ERROR_PERMISSIONS_NOT_FOUND, entityClass, entityId));
+        }
+        return responseResult.getPayload();
+    }
+
+    /**
+     * Performs an HTTP request to load permissions for child project according to permissions for specified parent
+     * project ID.
+     * @param parentProjectId parent project ID
+     * @param childProjectId child project ID
+     * @return child project and it's permissions
+     */
+    protected AclSecuredEntry loadPermissionsForProject(Long parentProjectId, Long childProjectId) throws IOException {
+        HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, serverParameters.getServerUrl()
+                + String.format(LOAD_PERMISSION_FOR_PROJECT_URL, parentProjectId, childProjectId));
+        String result = RequestManager.executeRequest(request);
+        ResponseResult<AclSecuredEntry> responseResult = getMapper().readValue(result,
+                getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class,
+                        ResponseResult.class, AclSecuredEntry.class));
+        if (responseResult == null || responseResult.getPayload() == null) {
+            throw new ApplicationException(getMessage(ERROR_PERMISSIONS_TREE_NOT_FOUND));
+        }
+        return responseResult.getPayload();
+    }
+
+    /**
+     * Performs an HTTP request to load permissions for item according to permissions for specified parent
+     * project ID.
+     * @param parentProjectId parent project ID
+     * @param itemId child project ID
+     * @param itemClass item acl class
+     * @return item and it's permissions
+     */
+    protected AclSecuredEntry loadPermissionsForItem(Long parentProjectId, Long itemId,
+                                                     String itemClass) throws IOException {
+        HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, serverParameters.getServerUrl()
+                + String.format(LOAD_PERMISSION_FOR_ITEM_URL, parentProjectId, itemId, itemClass));
+        String result = RequestManager.executeRequest(request);
+        ResponseResult<AclSecuredEntry> responseResult = getMapper().readValue(result,
+                getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class,
+                        ResponseResult.class, AclSecuredEntry.class));
+        if (responseResult == null || responseResult.getPayload() == null) {
+            throw new ApplicationException(getMessage(ERROR_PERMISSIONS_TREE_NOT_FOUND));
+        }
+        return responseResult.getPayload();
     }
 
     private BiologicalDataItem loadFileByBioID(String id) {

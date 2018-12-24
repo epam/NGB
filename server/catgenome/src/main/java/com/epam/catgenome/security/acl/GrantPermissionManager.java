@@ -34,15 +34,19 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
+import com.epam.catgenome.manager.project.ProjectManager;
 import com.epam.catgenome.manager.user.RoleManager;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PermissionFactory;
 import org.springframework.security.acls.model.AccessControlEntry;
+import org.springframework.security.acls.model.Acl;
 import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.acls.model.Sid;
 import org.springframework.stereotype.Service;
@@ -87,6 +91,9 @@ public class GrantPermissionManager {
 
     @Autowired
     private RoleManager roleManager;
+
+    @Autowired
+    private ProjectManager projectManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public AclSecuredEntry setPermissions(AclClass aclClass, Long entityId, String userName, Boolean principal,
@@ -171,6 +178,103 @@ public class GrantPermissionManager {
 
     public boolean filterTree(String userName, AbstractHierarchicalEntity entity, Permission permission) {
         return filterTree(permissionHelper.convertUserToSids(userName), entity, permission);
+    }
+
+    /**
+     * Loads permissions for project hierarchy tree.
+     *
+     * @param parenProjectId project ID to start loading hierarchy
+     * @param childProjectId target project ID
+     * @return merged permissions for target project
+     */
+    public AclSecuredEntry loadProjectPermissionsForProject(final Long parenProjectId, final Long childProjectId) {
+        Project project = projectManager.loadProjectHierarchyForProject(parenProjectId, childProjectId);
+        Map<AbstractSecuredEntity, List<AclPermissionEntry>> allPermissions =
+                getEntityPermissions(Collections.singletonList(project));
+        return getEntityPermission(allPermissions, project);
+    }
+
+    /**
+     * Loads permissions for project hierarchy tree loaded for item.
+     *
+     * @param projectId parent project ID to start loading hierarchy
+     * @param itemId item ID
+     * @return merged permissions for project
+     */
+    public AclSecuredEntry loadProjectPermissionsForItem(final Long projectId, final Long itemId,
+                                                         final AclClass itemClass) {
+        AbstractSecuredEntity entity = entityManager.load(itemClass, itemId);
+
+        Project project = projectManager.loadProjectHierarchyForItem(projectId, itemId);
+
+        Map<AbstractSecuredEntity, List<AclPermissionEntry>> allPermissions =
+                getEntityPermissions(Arrays.asList(project, entity));
+        return getEntityPermission(allPermissions, entity);
+    }
+
+    private Map<AbstractSecuredEntity, List<AclPermissionEntry>> getEntityPermissions(
+            final Collection<? extends AbstractSecuredEntity> entities) {
+        Set<AbstractSecuredEntity> result = new HashSet<>(entities);
+        entities.forEach(entity -> {
+            AbstractSecuredEntity parent = entity.getParent();
+            while (parent != null) {
+                result.add(parent);
+                parent = parent.getParent();
+            }
+        });
+        return getPermissions(result);
+    }
+
+    private Map<AclSid, Integer> getEntityPermissions(final AbstractSecuredEntity entity,
+            final Map<AbstractSecuredEntity, List<AclPermissionEntry>> allPermissions) {
+        return allPermissions.get(entity).stream()
+                .collect(toMap(AclPermissionEntry::getSid, AclPermissionEntry::getMask));
+    }
+
+    private void mergeWithParentPermissions(final Map<AclSid, Integer> mergedPermissions, AbstractSecuredEntity parent,
+                                            final Map<AbstractSecuredEntity, List<AclPermissionEntry>> allPermissions) {
+        AbstractSecuredEntity currentParent = parent;
+        while (currentParent != null) {
+            mergePermissions(mergedPermissions, allPermissions.get(currentParent));
+            currentParent = currentParent.getParent();
+        }
+    }
+
+    private void mergePermissions(final Map<AclSid, Integer> childPermissions,
+                                  final List<AclPermissionEntry> parentPermissions) {
+        parentPermissions.forEach(aclPermissionEntry -> {
+            childPermissions.computeIfPresent(aclPermissionEntry.getSid(), (acl, mask) -> PermissionUtils
+                    .mergeParentMask(mask, aclPermissionEntry.getMask()));
+            childPermissions.putIfAbsent(aclPermissionEntry.getSid(), aclPermissionEntry.getMask());
+        });
+    }
+
+    private Map<AbstractSecuredEntity, List<AclPermissionEntry>> getPermissions(
+            final Set<AbstractSecuredEntity> securedEntities) {
+        Map<ObjectIdentity, Acl> acls = aclService.getObjectIdentities(securedEntities);
+        Map<AbstractSecuredEntity, List<AclPermissionEntry>> result = new HashMap<>();
+        securedEntities.forEach(project -> {
+            Acl acl = acls.get(new ObjectIdentityImpl(project));
+            Assert.isInstanceOf(MutableAcl.class, acl, "MutableAcl should be been returned");
+            List<AclPermissionEntry> permissions = new ArrayList<>();
+            acl.getEntries().forEach(aclEntry -> permissions.add(
+                    new AclPermissionEntry(aclEntry.getSid(), aclEntry.getPermission().getMask())));
+            result.put(project, permissions);
+        });
+        return result;
+    }
+
+    private AclSecuredEntry getEntityPermission(
+            final Map<AbstractSecuredEntity, List<AclPermissionEntry>> allPermissions,
+            final AbstractSecuredEntity entity) {
+        Map<AclSid, Integer> mergedPermissions = getEntityPermissions(entity, allPermissions);
+        mergeWithParentPermissions(mergedPermissions, entity.getParent(), allPermissions);
+        // clear parent, not to return full hierarchy
+        entity.clearParent();
+        AclSecuredEntry entityPermission = new AclSecuredEntry();
+        entityPermission.setEntity(entity);
+        mergedPermissions.forEach((acl, mask) -> entityPermission.addPermission(new AclPermissionEntry(acl, mask)));
+        return entityPermission;
     }
 
     private boolean filterTree(List<Sid> sids, AbstractHierarchicalEntity entity, Permission permission) {

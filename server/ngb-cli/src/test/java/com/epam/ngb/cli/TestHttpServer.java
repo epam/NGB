@@ -536,4 +536,36 @@ public class TestHttpServer extends AbstractCliTest{
                 .withBody(TestDataProvider.getPayloadJson(indexPath))
                 .withStatus(HTTP_STATUS_OK);
     }
+
+    public void addPermissions(AclSecuredEntry entry, String entityClass) {
+        onRequest()
+                .havingMethodEqualTo(HTTP_GET)
+                .havingPathEqualTo(GET_PERMISSIONS_URL)
+                .havingParameterEqualTo("id", String.valueOf(entry.getEntity().getId()))
+                .havingParameterEqualTo("aclClass", entityClass)
+                .respond()
+                .withBody(TestDataProvider.getPayloadJson(entry))
+                .withStatus(HTTP_STATUS_OK);
+    }
+
+    public void addProjectPermissions(AclSecuredEntry entry, Long parentId) {
+        onRequest()
+                .havingMethodEqualTo(HTTP_GET)
+                .havingPathEqualTo(String.format(GET_PROJECT_PERMISSIONS_URL, parentId))
+                .havingParameterEqualTo("targetId", String.valueOf(entry.getEntity().getId()))
+                .respond()
+                .withBody(TestDataProvider.getPayloadJson(entry))
+                .withStatus(HTTP_STATUS_OK);
+    }
+
+    public void addItemPermissions(AclSecuredEntry entry, Long parentId, String aclClass) {
+        onRequest()
+                .havingMethodEqualTo(HTTP_GET)
+                .havingPathEqualTo(String.format(GET_ITEM_PERMISSIONS_URL, parentId))
+                .havingParameterEqualTo("itemId", String.valueOf(entry.getEntity().getId()))
+                .havingParameterEqualTo("itemClass", aclClass)
+                .respond()
+                .withBody(TestDataProvider.getPayloadJson(entry))
+                .withStatus(HTTP_STATUS_OK);
+    }
 }

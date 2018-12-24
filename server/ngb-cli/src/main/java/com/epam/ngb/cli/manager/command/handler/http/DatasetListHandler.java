@@ -31,6 +31,7 @@ import java.net.URISyntaxException;
 import java.util.Comparator;
 import java.util.List;
 
+import com.epam.ngb.cli.entity.PermissionGrantRequest;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
@@ -67,6 +68,9 @@ public class DatasetListHandler extends AbstractHTTPCommandHandler {
      */
     private Long parentId;
 
+    private boolean permissionsRequired;
+    private String permissionsScope;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DatasetListHandler.class);
 
     /**
@@ -84,6 +88,8 @@ public class DatasetListHandler extends AbstractHTTPCommandHandler {
         if (options.getParent() != null) {
             this.parentId = parseProjectId(options.getParent());
         }
+        permissionsRequired = options.isShowPermissions();
+        permissionsScope = options.getPermissionsScope();
     }
 
     /**
@@ -114,6 +120,10 @@ public class DatasetListHandler extends AbstractHTTPCommandHandler {
             items.sort(Comparator.comparing(Project::getId));
             AbstractResultPrinter printer = AbstractResultPrinter
                     .getPrinter(printTable, items.get(0).getFormatString(items));
+            if (permissionsRequired) {
+                printWithPermissions(items, printer);
+                return 0;
+            }
             printer.printHeader(items.get(0));
             items.forEach(printer::printItem);
         }
@@ -133,5 +143,15 @@ public class DatasetListHandler extends AbstractHTTPCommandHandler {
 
     private HttpRequestBase createListingRequest() {
         return getRequest(getRequestUrl());
+    }
+
+    private void printWithPermissions(final List<Project> items, final AbstractResultPrinter printer) {
+        items.forEach(item -> {
+            printer.printHeader(item);
+            printer.printItem(item);
+
+            PrintPermissionsHelper permissionsHelper = new PrintPermissionsHelper(this, permissionsScope, printTable);
+            permissionsHelper.print(item.getId(), PermissionGrantRequest.AclClass.PROJECT.name());
+        });
     }
 }

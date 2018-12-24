@@ -120,4 +120,33 @@ public class PermissionController extends AbstractRESTController {
             @RequestParam AclClass aclClass, @RequestParam String userName) {
         return Result.success(permissionApiService.changeOwner(id, aclClass, userName));
     }
+
+    @GetMapping(value = "/grant/projects/{projectId}")
+    @ResponseBody
+    @ApiOperation(
+            value = "Loads datasets hierarchy permissions tree by target project ID",
+            notes = "Loads datasets hierarchy permissions tree by target project ID",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<AclSecuredEntry> loadPermissionsTreeForProject(@PathVariable final Long projectId,
+                                                                 @RequestParam final Long targetId) {
+        return Result.success(permissionApiService.loadPermissionsTreeForProject(projectId, targetId));
+    }
+
+    @GetMapping(value = "/grant/items/{projectId}")
+    @ResponseBody
+    @ApiOperation(
+            value = "Loads datasets hierarchy permissions tree by item ID",
+            notes = "Loads datasets hierarchy permissions tree by item ID",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<AclSecuredEntry> loadPermissionsTreeForItem(@PathVariable final Long projectId,
+                                                              @RequestParam final Long itemId,
+                                                              @RequestParam final AclClass itemClass) {
+        return Result.success(permissionApiService.loadPermissionsTreeForItem(projectId, itemId, itemClass));
+    }
 }

@@ -185,6 +185,13 @@ public class Application {
     @Option(name = "-gr", usage = "Groups for permission update",  aliases = {"--groups"})
     private String groups;
 
+    @Option(name = "-perm", usage = "shows permissions", aliases = {"--permissions"})
+    private boolean showPermissions = false;
+
+    @Option(name = "-sc", usage = "specifies a parent dataset name/id to load showPermissions with parent hierarchy",
+            aliases = {"--scope"})
+    private String permissionsScope;
+
     @Argument
     private List<String> arguments;
 
@@ -281,6 +288,8 @@ public class Application {
             options.setDoIndex(false);
         }
         options.setMaxMemory(maxMemory);
+        options.setShowPermissions(showPermissions);
+        options.setPermissionsScope(permissionsScope);
         return options;
     }
 

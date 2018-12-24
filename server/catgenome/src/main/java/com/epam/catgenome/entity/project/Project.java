@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.security.AbstractHierarchicalEntity;
-import com.epam.catgenome.entity.security.AbstractSecuredEntity;
 import com.epam.catgenome.entity.security.AclClass;
 import lombok.NoArgsConstructor;
 import org.springframework.util.CollectionUtils;
@@ -54,6 +53,7 @@ public class Project extends AbstractHierarchicalEntity {
     private Date lastOpenedDate;
     private List<Project> nestedProjects;
     private Long parentId;
+    private Project parent;
 
     public Project(Long id) {
         super(id);
@@ -126,7 +126,10 @@ public class Project extends AbstractHierarchicalEntity {
     }
 
     @Override
-    public AbstractSecuredEntity getParent() {
+    public Project getParent() {
+        if (parent != null) {
+            return parent;
+        }
         return parentId != null ? new Project(parentId) : null;
     }
 
@@ -176,6 +179,10 @@ public class Project extends AbstractHierarchicalEntity {
 
     public void setParentId(Long parentId) {
         this.parentId = parentId;
+    }
+
+    public void setParent(Project parent) {
+        this.parent = parent;
     }
 
     @Override

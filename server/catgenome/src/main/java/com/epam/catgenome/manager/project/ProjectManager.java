@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.project;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
@@ -503,6 +504,64 @@ public class ProjectManager implements SecuredEntityManager {
         projectDao.hideProjectItem(projectId, biologicalItemId, !isHidden);
     }
 
+    /**
+     * Loads projects hierarchy that starts with child project and includes specified parent project.
+     * If parent project is not in hierarchy an error will be occurred.
+     * @param projectId parent project ID
+     * @param childProjectId child project ID
+     * @return project with hierarchy
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Project loadProjectHierarchyForProject(final Long projectId, final Long childProjectId) {
+        Project currentProject = load(projectId);
+
+        List<Project> children = projectDao.loadProjectChildren(projectId);
+        Map<Long, Project> childrenById = children
+                .stream()
+                .collect(Collectors.toMap(Project::getId, Function.identity()));
+
+        if (!childrenById.containsKey(childProjectId)) {
+            throw new IllegalArgumentException(String
+                    .format("The project %d does not exist in hierarchy from project %d", childProjectId, projectId));
+        }
+
+        if (currentProject.getParentId() == null) {
+            return fillProject(childrenById, childrenById.get(childProjectId));
+        }
+
+        List<Project> parents = projectDao.loadProjectParents(projectId);
+        Set<Project> projects = new HashSet<>(parents);
+        projects.addAll(children);
+
+        return fillProject(projects
+                .stream()
+                .collect(Collectors.toMap(Project::getId, Function.identity())), childrenById.get(childProjectId));
+    }
+
+    /**
+     * Loads projects hierarchy that starts with parent project for specified item and includes specified parent
+     * project. If parent project does not contain item an error will be occurred.
+     * @param projectId parent project ID
+     * @param itemId item ID
+     * @return project with hierarchy
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Project loadProjectHierarchyForItem(final Long projectId, final Long itemId) {
+        Project currentProject = load(projectId);
+
+        checkItemExistsInProject(itemId, projectId);
+
+        if (currentProject.getParentId() == null) {
+            return currentProject;
+        }
+
+        List<Project> parents = projectDao.loadProjectParents(projectId);
+
+        return fillProject(parents
+                .stream()
+                .collect(Collectors.toMap(Project::getId, Function.identity())), currentProject);
+    }
+
     private void countProjectItem(ProjectItem projectItem, List<ProjectItem> referenceItems,
                                   Map<BiologicalDataItemFormat, Integer> itemsCountPerFormat) {
         BiologicalDataItemFormat format = projectItem.getBioDataItem().getFormat();
@@ -584,5 +643,29 @@ public class ProjectManager implements SecuredEntityManager {
                           MessageHelper.getMessage(MessagesConstants.ERROR_PROJECT_NAME_EXISTS, helpProject.getName()));
         }
         return newProject;
+    }
+
+    private void checkItemExistsInProject(final Long itemId, final Long projectId) {
+        List<ProjectItem> projectItemsByProjectId = projectDao.loadProjectItemsByProjectId(projectId);
+        if (projectItemsByProjectId.stream().noneMatch(item -> item.getBioDataItem().getId().equals(itemId))) {
+            throw new IllegalArgumentException(String
+                    .format("The item %d does not exist in project %d", itemId, projectId));
+        }
+    }
+
+    private static Project fillProject(final Map<Long, Project> projects, final Project currentProject) {
+        if (currentProject == null) {
+            return null;
+        }
+
+        Long parentId = currentProject.getParentId();
+        if (parentId == null) {
+            return currentProject;
+        }
+
+        Project project = projects.get(parentId);
+        Project newProject = fillProject(projects, project);
+        currentProject.setParent(newProject);
+        return currentProject;
     }
 }
