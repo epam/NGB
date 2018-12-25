@@ -136,40 +136,46 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
         int mask = getPermissionMask();
         files.forEach(item -> {
             AclClass aclClass = AclClass.valueOf(item.getFormat().name());
-            users.forEach(user -> grantOrDeletePermission(
-                    mask, aclClass, item.getId(), item.getClass(), user, true));
-            groups.forEach(group -> grantOrDeletePermission(
-                    mask, aclClass, item.getId(), item.getClass(), group, false));
+            AclSecuredEntry permissions = getObjectPermissions(aclClass, item.getId());
+            users.forEach(user -> grantOrDeletePermission(permissions, mask, aclClass, item.getId(),
+                    item.getClass(), user, true));
+            groups.forEach(group -> grantOrDeletePermission(permissions, mask, aclClass, item.getId(),
+                    item.getClass(), group, false));
         });
         datasets.forEach(dataset -> {
             AclClass aclClass = AclClass.PROJECT;
-            users.forEach(user -> grantOrDeletePermission(
-                    mask, aclClass, dataset.getId(), dataset.getClass(), user, true));
-            groups.forEach(group -> grantOrDeletePermission(
-                    mask, aclClass, dataset.getId(), dataset.getClass(), group, false));
+            AclSecuredEntry permissions = getObjectPermissions(aclClass, dataset.getId());
+            users.forEach(user -> grantOrDeletePermission(permissions, mask, aclClass,
+                    dataset.getId(), dataset.getClass(), user, true));
+            groups.forEach(group -> grantOrDeletePermission(permissions, mask, aclClass,
+                    dataset.getId(), dataset.getClass(), group, false));
         });
         return 0;
     }
 
-    private void grantOrDeletePermission(int mask, AclClass aclClass, Long id, Class<?> classType,
-                                         String identifier, boolean isPrincipal) {
-        String result;
+    private AclSecuredEntry getObjectPermissions(AclClass aclClass, Long id) {
+        String existingPermissions = RequestManager.executeRequest(
+                getRequestFromURLByType(
+                        "GET",
+                        serverParameters.getServerUrl() + String.format(GET_PERMISSION_URL, id, aclClass)));
+        return getResult(existingPermissions, AclSecuredEntry.class);
+    }
 
+    private void grantOrDeletePermission(AclSecuredEntry existingPermissions, int mask, AclClass aclClass,
+                                         Long id, Class<?> classType, String identifier, boolean isPrincipal) {
+        String result;
         if (action.equals(DELETE_PERMISSION_ACTION)) {
             HttpDelete deletePermission = (HttpDelete) getRequestFromURLByType(
                     DELETE_TYPE, serverParameters.getServerUrl() +
                             String.format(DELETE_PERMISSION_URL, id, aclClass, identifier, isPrincipal));
             result = RequestManager.executeRequest(deletePermission);
         } else {
-            String existingPermissions = RequestManager.executeRequest(
-                    getRequestFromURLByType(
-                            "GET",
-                            serverParameters.getServerUrl() + String.format(GET_PERMISSION_URL, id, aclClass)));
-            AclSecuredEntry entityPermissions = getResult(existingPermissions, AclSecuredEntry.class);
-            for (AclSecuredEntry.AclPermissionEntry entry : entityPermissions.getPermissions()) {
+
+            for (AclSecuredEntry.AclPermissionEntry entry : existingPermissions.getPermissions()) {
                 if (entry.getSid().getName().equalsIgnoreCase(identifier)) {
                     Integer previousMask = entry.getMask();
                     mask = mergeMasks(previousMask, mask);
+                    break;
                 }
             }
             PermissionGrantRequest registration = new PermissionGrantRequest(

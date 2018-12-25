@@ -185,4 +185,9 @@
         <type>POST</type>
         <url>/restapi/role/%d/assign?userIds=%s</url>
     </add_group>
+    <rem_group>
+        <name>rem_group</name>
+        <type>DELETE</type>
+        <url>/restapi/role/%d/remove?userIds=%s</url>
+    </rem_group>
 </config>

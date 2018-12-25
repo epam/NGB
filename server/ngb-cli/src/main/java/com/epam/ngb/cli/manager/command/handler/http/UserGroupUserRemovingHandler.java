@@ -33,24 +33,27 @@ import com.epam.ngb.cli.entity.NgbUser;
 import com.epam.ngb.cli.entity.Role;
 import com.epam.ngb.cli.manager.command.handler.Command;
 import com.epam.ngb.cli.manager.printer.AbstractResultPrinter;
+import com.epam.ngb.cli.manager.request.RequestManager;
 import org.apache.commons.lang.math.NumberUtils;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpDelete;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
 /**
- * Adds specific users to a existing user group
+ * Deletes specific users from a existing user group
  */
-@Command(type = Command.Type.REQUEST, command = {"add_group"})
-public class UserGroupUserAddingHandler extends AbstractHTTPCommandHandler {
+@Command(type = Command.Type.REQUEST, command = {"rem_group"})
+public class UserGroupUserRemovingHandler extends AbstractHTTPCommandHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserGroupUserAddingHandler.class);
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserGroupUserRemovingHandler.class);
 
     /**
      * If true command will output in a table format, otherwise
@@ -95,7 +98,7 @@ public class UserGroupUserAddingHandler extends AbstractHTTPCommandHandler {
                 Set<String> namesSet = loaded.stream().map(NgbUser::getUserName).collect(Collectors.toSet());
                 namesOrIds.forEach(name -> {
                     if (!namesSet.contains(name)) {
-                        LOGGER.error("User with name: " + name + " not found! Permission won't be set!");
+                        LOGGER.error("User with name: " + name + " not found!");
                     }
                 });
             }
@@ -115,11 +118,11 @@ public class UserGroupUserAddingHandler extends AbstractHTTPCommandHandler {
     }
 
     @Override public int runCommand() {
-        HttpPost post = (HttpPost) getRequestFromURLByType("POST",
+        HttpDelete delete = (HttpDelete) getRequestFromURLByType("DELETE",
                 getServerParameters().getServerUrl()
                         + String.format(getRequestUrl(), groupId,
                 users.stream().map(String::valueOf).collect(Collectors.joining(","))));
-        ExtendedRole result = getResult(getPostResult(null, post), ExtendedRole.class);
+        ExtendedRole result = getResult(RequestManager.executeRequest(delete), ExtendedRole.class);
 
         if (printJson || printTable) {
             AbstractResultPrinter printer = AbstractResultPrinter
