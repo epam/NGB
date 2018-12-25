@@ -36,21 +36,25 @@ Prints CLI version to the console standard output.
 ngb search|s [<QUERY>] [options]
 
 //Options:
-//-l (--like)           If specified - search will be done using a substring. Be default strong equality comparison will be used
-//-t (--table)          Print result as a human-readable table
-//-j (--json)           Print result as a JSON string
+//-l (--like)               If specified - search will be done using a substring. Be default strong equality comparison will be used
+//-t (--table)              Print result as a human-readable table
+//-j (--json)               Print result as a JSON string
+//-perm (--permissions)     Print permissions on each found object (if they are set)
 ```
 *Description*
 
-Searches for a specified string in reference and file names. By default, command will search for exactly equal name,  if -l option is specified - a search query will used as a substring.
+Searches for a specified string in reference and file names. By default, command will search for exactly equal name,  if `-l` option is specified - a search query will used as a substring. If `-perm` option is specified - permissions on each found file for user(s)/group(s)/role(s) will be printed (if they are set).
 
 *Example*
 ```
-//Search for all objects, that contain "vcf" substring in their names and ouput result as a human-readable table
-ngb search -l vcf -t
+# Search for all objects, that contain "vcf" substring in their names and output result as a human-readable table
+$ ngb search -l vcf -t
 
-//Search file, named exactly "sample_1.bam" and ouput result as a json string
-ngb search sample_1.bam
+# Search file, named exactly "sample_1.bam" and output result as a json string
+$ ngb search sample_1.bam
+
+# Search for all objects, that contain "gene" substring in their names and output permissions on them:
+$ ngb search -l gene -perm
 ```
 
 ## Reference commands
@@ -180,7 +184,7 @@ If annotation file is already registered on NGb server, it can be addressed by n
 
 *Example*
 ```
-//Add a regitered gene file to the reference with name "grch38"
+//Add a registered gene file to the reference with name "grch38"
 ngb add_ann grch38 annotation.gtf
 
 //Add a new annotation file to the reference with name ID "1"
@@ -222,8 +226,8 @@ ngb reg_file|rf [<REFERENCE_NAME>|<REFERENCE_ID>] [<PATH_TO_NGS_FILE>] [options]
 
 Registers a specified file. At least two arguments have to be specified:
 Previously registered reference sequence file from NGB server. Reference file can be addressed by name or an identifier
-Flesystem path to the file to be registered. BAM, VCF, GFF, GTF, BED, SEG, WIG, BED GRAPH files are accepted. GZipped files are also accepted in a format <FILE_NAME>.<FILE_EXT>.gz, e.g.: my_variants.vcf.gz.
-BAM file path has to be followed by a '?' symbol and a path to an index file (.BAI) 
+Filesystem path to the file to be registered. BAM, VCF, GFF, GTF, BED, SEG, WIG, BED GRAPH files are accepted. GZipped files are also accepted in a format <FILE_NAME>.<FILE_EXT>.gz, e.g.: my_variants.vcf.gz.
+BAM file path must be followed by a '?' symbol and a path to an index file (.BAI) 
 (If a folder with BAM file also contains index for this BAM with the same name, CLI will find this index automatically. 
 It also works well for vcf, bed and gene files). 
 If and only if cli located on the same filesystem with NGB server relative path can be used.
@@ -299,7 +303,7 @@ ngb if 18
 ngb reg_dataset|rd [<REFERENCE_NAME>|<REFERENCE_ID>] [<DATASET_NAME>] [<files_names>|<files_ids>|<files_paths>] [options]
 
 //Options:
-//-p (--parent) [value] Specifies dataset parent for registration. Parent could addressed using a name or an indentifier
+//-p (--parent) [value] Specifies dataset parent for registration. Parent could addressed using a name or an identifier
 //-t (--table)          Print result as a human-readable table
 //-j (--json)           Print result as a JSON string
 //-pt (--pretty)        Add pretty name to the dataset
@@ -311,7 +315,7 @@ Registers a dataset. At least two arguments have to be specified:
 * Dataset name
 
 Optionally a list of files to be added to a newly created dataset can be specified.
-Also a parent dataset could be specified to build a dtaset hierarchy
+Also a parent dataset could be specified to build a dataset hierarchy
 
 Files can be addressed:
 * For previously registered files (see **reg_file** command) - by name or an identifier
@@ -402,7 +406,7 @@ ngb move_dataset|md [<DATASET_NAME>|<DATASET_ID>] [options]
 *Description*
 
 Changes the dataset's hierarchy. Without options the command will move the specified dataset
-to the top level od datasets' hierarchy (dataset's parent will be removed). If option -p (--parent)
+to the top level of datasets' hierarchy (dataset's parent will be removed). If option -p (--parent)
 is specified the dataset's parent will be changed to this option value.
 
 *Example*
@@ -420,24 +424,22 @@ ngb md data_1 -p data_parent
 ngb list_dataset|ld [options]
 
 //Options:
-//-t (--table)          Print result as a human-readable table
-//-j (--json)           Print result as a JSON string
-//-p (--parent)         List dataset's hierarchy structure for a specified by this option root dataset
+//-t (--table)              Print result as a human-readable table
+//-j (--json)               Print result as a JSON string
+//-p (--parent)             List dataset's hierarchy structure for a specified by this option root dataset
+//-perm (--permissions)     Print permissions on each dataset (if they are set)
 ```
 *Description*
 
-Lists datasets registered on NGB server. By default the command will output only top-level
-datasets without nested datasets. Dataset's hierarchy may be loaded with an option 'parent': if 
-a parent dataset is set, the command will output the parent itself and all nested datasets. Parent
-dataset may be addressed by name or ID.
+Lists datasets registered on NGB server. By default the command will output only top-level datasets without nested datasets. Dataset's hierarchy may be loaded with an option `--parent`: if a parent dataset is set, the command will output the parent itself and all nested datasets. Parent dataset may be addressed by name or ID. If `-perm` option is specified - permissions on each dataset for user(s)/group(s)/role(s) will be printed (if that permissions are set).
 
 *Example*
 ```
-//List all top-level datasets from the server
-ngb list_dataset
+# List all top-level datasets from the server with permissions on them
+$ ngb list_dataset -perm
 
-//List hierarchy tree for a dataset with the name "data_1"
-ngb ld -p data_1
+# List hierarchy tree for a dataset with the name "data_1"
+$ ngb ld -p data_1
 ```
 
 
@@ -476,7 +478,7 @@ ngb url [<DATASET_NAME>|<DATASET_ID>] [<FILE_IDS>|<FILE_NAMES>] [options]
 ```
 *Description*
 
-Create an URL, that will open NGB browser with selected tracks, opened on a optionally specified position
+Create an URL, that will open NGB browser with selected tracks, opened on an optionally specified position
 
 *Example*
 ```
@@ -521,3 +523,154 @@ ngb sort /samples/sample.gff /samples/sample-sorted.gff
 
 //Will sort given BED file, compress result and place sorted file to the specified path '/samples/sorted_sample.bed.gz'
 ngb sort /samples/unsorted.bed /samples/sorted_sample.bed.gz
+```
+
+
+## Security commands
+### Create user
+```
+ngb reg_user|ru <USER_NAME> [options]
+
+//Options:
+//-gr (--groups) <GROUP_ID>|<GROUP_NAME>[,<GROUP_ID>|<GROUP_NAME>...]    Add newly created user to the groups and assign roles, specified in this option. A comma-separated list can be specified
+//-t (--table)                                                          Print result as a human-readable table
+//-j (--json)                                                           Print result as a JSON string
+```
+*Description*
+
+Registers a user with the specified <USER_NAME> in the NGB. Optionally, a comma-separated list of groups/roles can be specified using `-gr` option.
+> For correct command's behavior use list from only group/role ids or only names at once. Don't mix them.
+
+Disregarding whether `-gr` is specified - default *ROLE_USER* will be always set.
+
+*Example*
+```
+# Register user with a default `ROLE_USER` role assigned
+$ ngb reg_user test_user@example.com
+
+# Register user and assign to additional groups: "Developers" and "QA"
+$ ngb reg_user test_user@example.com -gr Developers,QA
+```
+
+### Delete user
+```
+ngb del_user|du <USER_ID>|<USER_NAME> [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+Deletes a user, specified by a <USER_ID> or <USER_NAME> parameter. This will result in 401 "Access denied" for all subsequent requests from the deleted user.
+
+*Example*
+```
+# Delete user 'test_user@example.com' from the NGB server
+$ ngb del_user test_user@example.com
+```
+
+### Create user group
+```
+ngb reg_group|rgrp <GROUP_NAME> [options]
+
+//Options:
+//-u (--users) <USER_ID>|<USER_NAME>[,<USER_ID>|<USER_NAME>...]     Once a group is created, specified user(s) will be added to that group as members. A comma-separated list of user ids/names can be specified
+//-t (--table)                                                      Print result as a human-readable table
+//-j (--json)                                                       Print result as a JSON string
+```
+
+*Description*
+
+Creates a new user group named, as specified by <GROUP_NAME> parameter. If `-u` option is specified - a list of user(s) will be added into the new group as members.
+> For correct command's behavior use list from only user ids or only names at once. Don't mix them.
+
+*Example*
+```
+# Create a new empty group (users shall be added to the group further)
+ngb reg_group Developers
+
+# Create a new group with two members 'test_user@example.com', 'test_user2@example.com'
+ngb reg_group Developers -u test_user@example.com,test_user2@example.com
+```
+
+### Delete user group
+```
+ngb del_group|dgrp <GROUP_ID>|<GROUP_NAME> [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+
+*Description*
+
+Deletes user group, specified by a <GROUP_ID>|<GROUP_NAME> parameter, from the NGB server. Members of the group won't be deleted, they will be just unassigned from the deleted group.
+
+*Example*
+```
+# Delete a user group named 'Developers'
+$ ngb del_group Developers
+```
+
+### Add user to an existing group
+```
+ngb add_group|agrp <GROUP_ID>|<GROUP_NAME> -u|--users <USER_ID>|<USER_NAME>[,<USER_ID>|<USER_NAME>...] [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+
+*Description*
+
+Adds a single user or a list of users to the group, specified by <GROUP_ID> or <GROUP_NAME> parameter. A comma-separated list of user ids or names can be specified.
+> For correct command's behavior use list from only user ids or only names at once. Don't mix them.
+
+*Example*
+
+```
+# Add 'test_user@example.com' and 'test_user2@example.com' users as members of the 'Developers' group
+$ ngb add_group Developers test_user@example.com,test_user2@example.com
+```
+
+### Set permissions on the object
+```
+ngb chmod {mod} [options]
+
+//Arguments:
+//{mod} - mandatory parameter, that contains two parts: [Permission][Action type]
+//Permission:
+//r - read permission
+//w - write permission
+//rw - both, read and write permissions
+//Action type:
+//`+` - to grant permission
+//`-` - to deny permission
+//`!` - to remove all already assigned permissions
+
+//Options:
+//-ds|--datasets <DATASET_NAME>[,<DATASET_NAME>...]
+//-fl|--files <FILE_NAME>[,<FILE_NAME>...]
+//-u|--users <USER_NAME>[,<USER_NAME>...]
+//-gr|--groups <GROUP_NAME>[,<GROUP_NAME>...]
+```
+*Description*
+
+Grants or denies permissions on the objects (files and datasets) for specific user(s), group(s), role(s). Comma-separated lists of file/dataset/user/group/role names can be specified.
+> Note:
+> - One of or both --datasets/--files shall be specified
+> - One of or both --users/--groups shall be specified
+> - Operation is NOT recursive, applied only to the specified --datasets/--files
+
+*Example*
+```
+# Grant 'read' permission on the file 'gene_file' for the user 'test_user@example.com' and 'Developers' group:
+$ ngb chmod r+ -fl gene_file -u test_user@example.com -gr Developers
+
+# Remove assigned permissions on the dataset 'fruitfly_local' for the user 'test_user@example.com':
+$ ngb chmod ! -ds fruitfly_local -u test_user@example.com
+
+# Deny 'read' and 'write' permissions on the file 'gene_file' and dataset 'fruitfly_local' for the 'Developers' group:
+$ ngb chmod rw- -fl gene_file -ds fruitfly_local -gr Developers
+```
