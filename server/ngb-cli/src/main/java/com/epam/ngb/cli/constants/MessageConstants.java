@@ -59,6 +59,7 @@ public final class MessageConstants {
     public static final String ERROR_NEGATIVE_MEMORY = "Max memory value must be positive";
     public static final String ERROR_WRONG_PERMISSION = "Wrong permission pattern, use only w,r";
     public static final String ERROR_PERMISSIONS_NOT_FOUND = "Failed to find permissions for %s with ID %d";
+    public static final String ERROR_FAILED_TO_LOAD_USER = "Failed to load current user";
     public static final String INFO_SORT_SUCCESS = "File is successfully sorted and placed to [%s].";
 
     private MessageConstants(){

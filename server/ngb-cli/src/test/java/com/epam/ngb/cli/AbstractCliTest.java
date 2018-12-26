@@ -74,6 +74,7 @@ public abstract class AbstractCliTest {
     public static final String SPEC_ADDING_URL = "/catgenome/restapi/secure/reference/%d/species";
     public static final String SPEC_REMOVING_URL = "/catgenome/restapi/secure/reference/%d/species";
     public static final String GET_PERMISSIONS_URL = "/catgenome/restapi/grant";
+    public static final String GET_CURRENT_USER = "/catgenome/restapi/user/current";
 
     //server properties
     public static final String TEST_SERVER_PROPERTIES = "external/server.properties";

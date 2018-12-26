@@ -547,4 +547,13 @@ public class TestHttpServer extends AbstractCliTest{
                 .withBody(TestDataProvider.getPayloadJson(entry))
                 .withStatus(HTTP_STATUS_OK);
     }
+
+    public void addCurrentUserRequest(UserContext userContext) {
+        onRequest()
+                .havingMethodEqualTo(HTTP_GET)
+                .havingPathEqualTo(GET_CURRENT_USER)
+                .respond()
+                .withBody(TestDataProvider.getPayloadJson(userContext))
+                .withStatus(HTTP_STATUS_OK);
+    }
 }

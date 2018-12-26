@@ -24,6 +24,7 @@
 
 package com.epam.ngb.cli.manager.command.handler.http;
 
+import com.epam.ngb.cli.entity.AclClass;
 import com.epam.ngb.cli.entity.AclSecuredEntry;
 import com.epam.ngb.cli.entity.PermissionsContainer;
 import com.epam.ngb.cli.exception.ApplicationException;
@@ -63,7 +64,12 @@ public class PrintPermissionsHelper {
      */
     public void print(final Long entityId, final String entityClass) {
         try {
-            AclSecuredEntry permissions = handler.loadPermissions(entityId, entityClass);
+            AclClass aclClass = getAclClass(entityClass);
+            if (aclClass == null) {
+                return;
+            }
+
+            AclSecuredEntry permissions = handler.loadPermissions(entityId, aclClass);
             List<AclSecuredEntry.AclPermissionEntry> rawPermissions = permissions.getPermissions();
 
             List<PermissionsContainer> permissionsContainer = preparePermissions(rawPermissions);
@@ -79,8 +85,17 @@ public class PrintPermissionsHelper {
                     .sorted(getSidComparator())
                     .forEach(printer::printItem);
         } catch (IOException | ApplicationException e) {
-            LOGGER.error("An error occurred during building permissions", e);
+            LOGGER.error(e.getMessage());
         }
+    }
+
+    private static AclClass getAclClass(final String entityClass) {
+        for (AclClass aclClass : AclClass.values()) {
+            if (aclClass.name().equals(entityClass)) {
+                return aclClass;
+            }
+        }
+        return null;
     }
 
     private static List<PermissionsContainer> preparePermissions(List<AclSecuredEntry.AclPermissionEntry> permissions) {

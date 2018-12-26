@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.epam.ngb.cli.app.Utils;
+import com.epam.ngb.cli.entity.AclClass;
 import com.epam.ngb.cli.entity.AclSecuredEntry;
 import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
@@ -45,6 +46,7 @@ import com.epam.ngb.cli.entity.RequestPayload;
 import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.entity.Role;
 import com.epam.ngb.cli.entity.SpeciesEntity;
+import com.epam.ngb.cli.entity.UserContext;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -76,6 +78,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHandler {
 
+    private static final String ROLE_ADMIN = "ROLE_ADMIN";
+
     /**
      * For serialization and deserialization objects to JSON format
      */
@@ -101,6 +105,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
     private static final String AUTHORIZATION = "Authorization";
     private static final String BEARER = "Bearer ";
     private static final String PERMISSIONS_URL = "/restapi/grant?id=%s&aclClass=%s";
+    private static final String CURRENT_USER_URL = "/restapi/user/current";
 
     /**
      * Delimiter between path to file and path to index in the input argument string
@@ -599,7 +604,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
      * @param entityClass entity acl class
      * @return entity and it's acl permissions
      */
-    protected AclSecuredEntry loadPermissions(Long entityId, String entityClass) throws IOException {
+    protected AclSecuredEntry loadPermissions(Long entityId, AclClass entityClass) throws IOException {
         HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, serverParameters.getServerUrl()
                 + String.format(PERMISSIONS_URL, entityId, entityClass));
         String result = RequestManager.executeRequest(request);
@@ -608,6 +613,23 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
                         ResponseResult.class, AclSecuredEntry.class));
         if (responseResult == null || responseResult.getPayload() == null) {
             throw new ApplicationException(getMessage(ERROR_PERMISSIONS_NOT_FOUND, entityClass, entityId));
+        }
+        return responseResult.getPayload();
+    }
+
+    /**
+     * Performs an HTTP request to load user info.
+     * @return user info
+     */
+    protected UserContext loadCurrentUser() throws IOException {
+        HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, serverParameters.getServerUrl()
+                + CURRENT_USER_URL);
+        String result = RequestManager.executeRequest(request);
+        ResponseResult<UserContext> responseResult = getMapper().readValue(result,
+                getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class,
+                        ResponseResult.class, UserContext.class));
+        if (responseResult == null || responseResult.getPayload() == null) {
+            throw new ApplicationException(ERROR_FAILED_TO_LOAD_USER);
         }
         return responseResult.getPayload();
     }
@@ -700,6 +722,19 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             }
         }
         return Pair.of(fileAbsolutePath, index);
+    }
+
+    /**
+     * Checks if user is admin
+     * @return true if current user has ROLE_ADMIN
+     */
+    public boolean isCurrentUserIsAdmin() {
+        try {
+            return loadCurrentUser().getRoles().stream()
+                    .anyMatch(role -> role.getName().equalsIgnoreCase(ROLE_ADMIN));
+        } catch (IOException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
     }
 
     private Pair<String, String> setIndexPathFromServer(String path, Pair<String, String> fileWithIndex) {

@@ -28,6 +28,7 @@ package com.epam.ngb.cli.manager.command.handler.http;
 
 import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.constants.MessageConstants;
+import com.epam.ngb.cli.entity.AclClass;
 import com.epam.ngb.cli.entity.AclSecuredEntry;
 import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.PermissionGrantRequest;

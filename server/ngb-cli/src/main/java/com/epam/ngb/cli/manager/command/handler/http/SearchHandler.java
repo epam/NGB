@@ -78,8 +78,12 @@ public class SearchHandler extends AbstractHTTPCommandHandler {
         AbstractResultPrinter printer = AbstractResultPrinter.getPrinter(printTable,
                 items.get(0).getFormatString(items));
         if (permissionsRequired) {
-            printWithPermissions(items, printer);
-            return 0;
+            if (isCurrentUserIsAdmin()) {
+                printWithPermissions(items, printer);
+                return 0;
+            } else {
+                LOGGER.info("You are not authorized as admin. --permissions option will be ignored.");
+            }
         }
         printer.printHeader(items.get(0));
         items.forEach(printer::printItem);
