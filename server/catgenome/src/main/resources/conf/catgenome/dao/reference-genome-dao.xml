@@ -18,13 +18,15 @@
                             bio_data_item_id,
                             reference_genome_size,
                             gene_item_id,
-                            index_id)
+                            index_id,
+                            species_version)
                         VALUES (
                             :REFERENCE_GENOME_ID,
                             :BIO_DATA_ITEM_ID,
                             :SIZE,
                             :GENE_ITEM_ID,
-                            :INDEX_ID)
+                            :INDEX_ID,
+                            :SPECIES_VERSION)
                 ]]>
             </value>
         </property>
@@ -38,10 +40,11 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         r.reference_genome_id,
                         r.bio_data_item_id,
                         r.reference_genome_size,
@@ -53,13 +56,17 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
-                        i.created_date as index_created_date
+                        i.created_date as index_created_date,
+                        i.owner as index_owner,
+
+                        s.species_name,
+                        s.species_version
 
                     FROM catgenome.reference_genome r
                         JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
                         JOIN catgenome.biological_data_item i ON i.bio_data_item_id = r.index_id
+                        LEFT JOIN catgenome.genome_species s ON r.species_version = s.species_version
                     WHERE r.reference_genome_id = :REFERENCE_GENOME_ID
                 ]]>
             </value>
@@ -74,10 +81,11 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         r.reference_genome_id,
                         r.bio_data_item_id,
                         r.reference_genome_size,
@@ -89,13 +97,17 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
-                        i.created_date as index_created_date
+                        i.created_date as index_created_date,
+                        i.owner as index_owner,
+
+                        s.species_name,
+                        s.species_version
 
                     FROM catgenome.reference_genome r
                         JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
                         JOIN catgenome.biological_data_item i ON i.bio_data_item_id = r.index_id
+                        LEFT JOIN catgenome.genome_species s ON r.species_version = s.species_version
                     WHERE LOWER(b.name) = :NAME
                 ]]>
             </value>
@@ -110,10 +122,11 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         r.reference_genome_id,
                         r.bio_data_item_id,
                         r.reference_genome_size,
@@ -125,12 +138,17 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
-                        i.created_date as index_created_date
+                        i.created_date as index_created_date,
+                        i.owner as index_owner,
+
+                        s.species_name,
+                        s.species_version
+
                     FROM catgenome.reference_genome r
                         JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
                         JOIN catgenome.biological_data_item i ON i.bio_data_item_id = r.index_id
+                        LEFT JOIN catgenome.genome_species s ON r.species_version = s.species_version
                     WHERE r.bio_data_item_id = :BIO_DATA_ITEM_ID
                 ]]>
             </value>
@@ -146,6 +164,8 @@
                         b.bucket_id,
                         b.type,
                         b.pretty_name,
+                        b.owner,
+
                         r.reference_genome_id,
                         r.bio_data_item_id,
                         r.reference_genome_size,
@@ -157,12 +177,17 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
-                        i.created_date as index_created_date
+                        i.created_date as index_created_date,
+                        i.owner as index_owner,
+
+                        s.species_name,
+                        s.species_version
+
                     FROM catgenome.reference_genome r
                         JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
                         JOIN catgenome.biological_data_item i ON i.bio_data_item_id = r.index_id
+                        LEFT JOIN catgenome.genome_species s ON r.species_version = s.species_version
                     ORDER BY name ASC
                 ]]>
             </value>
@@ -176,6 +201,17 @@
                 ]]>
             </value>
         </property>
+
+        <property name="updateSpeciesQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.reference_genome
+                    SET species_version = :SPECIES_VERSION
+                    WHERE reference_genome_id = :REFERENCE_GENOME_ID
+                ]]>
+            </value>
+        </property>
+
         <property name="createChromosomeQuery">
             <value>
                 <![CDATA[

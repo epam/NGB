@@ -26,6 +26,11 @@ public class ReadQuery {
      */
     private String name;
 
+    /**
+     * {@code Long} specifies the project id that the track belong. Can be null.
+     */
+    protected Long projectId;
+
 
     public String getName() {
         return name;
@@ -65,5 +70,13 @@ public class ReadQuery {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
 }

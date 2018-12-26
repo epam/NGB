@@ -253,7 +253,7 @@ public class NggbBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
         int start = Integer.parseInt(tokens[START_OFFSET]) + startOffsetValue;
         int end = start;
         if (tokenCount > 2) {
-            end = Integer.parseInt(tokens[END_OFFSET]) + startOffsetValue;
+            end = Integer.parseInt(tokens[END_OFFSET]);
         }
         return new NggbSimpleBedFeature(start, end, chr);
     }

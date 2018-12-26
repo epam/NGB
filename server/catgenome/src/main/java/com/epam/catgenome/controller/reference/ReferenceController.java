@@ -27,10 +27,15 @@ package com.epam.catgenome.controller.reference;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
 
+import com.epam.catgenome.controller.vo.SpeciesVO;
+import com.epam.catgenome.entity.reference.Species;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import com.epam.catgenome.exception.FeatureIndexException;
+import com.epam.catgenome.manager.FeatureIndexSecurityService;
+import com.epam.catgenome.manager.reference.ReferenceSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -52,9 +57,6 @@ import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.exception.ReferenceReadingException;
-import com.epam.catgenome.manager.FeatureIndexManager;
-import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -73,13 +75,10 @@ import com.wordnik.swagger.annotations.ApiResponses;
 public class ReferenceController extends AbstractRESTController {
 
     @Autowired
-    private ReferenceManager referenceManager;
+    private ReferenceSecurityService referenceSecurityService;
 
     @Autowired
-    private ReferenceGenomeManager referenceGenomeManager;
-
-    @Autowired
-    private FeatureIndexManager featureIndexManager;
+    private FeatureIndexSecurityService featureIndexSecurityService;
 
     @ResponseBody
     @RequestMapping(value = "/reference/loadAll", method = RequestMethod.GET)
@@ -92,9 +91,9 @@ public class ReferenceController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public final Result<List<Reference>> loadAllReferences(
+    public final Callable<Result<List<Reference>>> loadAllReferences(
             @RequestParam(required = false) String referenceName) throws IOException {
-        return Result.success(referenceGenomeManager.loadAllReferenceGenomes(referenceName));
+        return () -> Result.success(referenceSecurityService.loadAllReferenceGenomes(referenceName));
     }
 
     @ResponseBody
@@ -108,7 +107,7 @@ public class ReferenceController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public final Result<Reference> loadReference(@PathVariable final Long referenceId) throws IOException {
-        return Result.success(referenceGenomeManager.loadReferenceGenome(referenceId));
+        return Result.success(referenceSecurityService.load(referenceId));
     }
 
     @ResponseBody
@@ -123,7 +122,7 @@ public class ReferenceController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public final Result<Reference> loadReferenceBuBioId(@PathVariable final Long bioItemID) throws IOException {
-        return Result.success(referenceGenomeManager.loadReferenceGenomeByBioItemId(bioItemID));
+        return Result.success(referenceSecurityService.loadReferenceGenomeByBioItemId(bioItemID));
     }
 
     @ResponseBody
@@ -137,7 +136,7 @@ public class ReferenceController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public final Result<List<Chromosome>> loadChromosomes(@PathVariable final Long referenceId) throws IOException {
-        return Result.success(referenceGenomeManager.loadChromosomes(referenceId));
+        return Result.success(referenceSecurityService.loadChromosomes(referenceId));
     }
 
     @ResponseBody
@@ -150,7 +149,7 @@ public class ReferenceController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public final Result<Chromosome> loadChromosome(@PathVariable final Long chromosomeId) throws IOException {
-        return Result.success(referenceGenomeManager.loadChromosome(chromosomeId));
+        return Result.success(referenceSecurityService.loadChromosome(chromosomeId));
     }
 
     @ResponseBody
@@ -174,7 +173,7 @@ public class ReferenceController extends AbstractRESTController {
             })
     public final Result<Track<Sequence>> loadTrack(@RequestBody final TrackQuery query) throws
             ReferenceReadingException {
-        final Track<Sequence> track = referenceManager.getNucleotidesResultFromNib(convertToTrack(query));
+        final Track<Sequence> track = referenceSecurityService.getNucleotidesResultFromNib(convertToTrack(query));
         return Result.success(track);
     }
 
@@ -190,7 +189,7 @@ public class ReferenceController extends AbstractRESTController {
     public Result<IndexSearchResult> searchFeatureInProject(@PathVariable(value = "referenceId") final Long referenceId,
                                                             @RequestParam String featureId)
         throws IOException {
-        return Result.success(featureIndexManager.searchFeaturesByReference(featureId, referenceId));
+        return Result.success(featureIndexSecurityService.searchFeaturesByReference(featureId, referenceId));
     }
 
     @ResponseBody
@@ -209,14 +208,14 @@ public class ReferenceController extends AbstractRESTController {
             })
     public Result<Reference> registerFastaFile(@RequestBody
                                                    ReferenceRegistrationRequest request) throws IOException {
-        return Result.success(referenceManager.registerGenome(request));
+        return Result.success(referenceSecurityService.registerGenome(request));
     }
 
     @ResponseBody
     @RequestMapping(value = "/secure/reference/{referenceId}/genes", method = RequestMethod.PUT)
     public Result<Reference> updateReferenceGeneFile(@PathVariable Long referenceId,
                                                      @RequestParam(required = false) Long geneFileId) {
-        return Result.success(referenceGenomeManager.updateReferenceGeneFileId(referenceId, geneFileId));
+        return Result.success(referenceSecurityService.updateReferenceGeneFileId(referenceId, geneFileId));
     }
 
     @ResponseBody
@@ -233,7 +232,7 @@ public class ReferenceController extends AbstractRESTController {
                                                            @RequestParam(defaultValue = "false") Boolean remove)
             throws IOException, FeatureIndexException {
         return Result.success(
-                referenceGenomeManager.updateReferenceAnnotationFile(referenceId, annotationFileId, remove)
+                referenceSecurityService.updateReferenceAnnotationFile(referenceId, annotationFileId, remove)
         );
     }
 
@@ -242,7 +241,50 @@ public class ReferenceController extends AbstractRESTController {
     @ApiOperation(value = "Unregisters a reference file in the system.",
             notes = "Delete all information about this file by id", produces = MediaType.APPLICATION_JSON_VALUE)
     public Result<Boolean> unregisterFastaFile(@RequestParam final long referenceId) throws IOException {
-        Reference reference = referenceManager.unregisterGenome(referenceId);
+        Reference reference = referenceSecurityService.unregisterGenome(referenceId);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, reference.getName()));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/secure/reference/register/species", method = RequestMethod.POST)
+    @ApiOperation(
+        value = "Handles species register.",
+        notes = "Register new species in the system.",
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+        })
+    public Result<Species> registerSpecies(@RequestBody SpeciesVO request) throws IOException {
+        return Result.success(referenceSecurityService.registerSpecies(request.getSpecies()));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/secure/reference/register/species", method = RequestMethod.DELETE)
+    @ApiOperation(
+            value = "Unregister a species in the system.",
+            notes = "Delete all information about this species by it`s version.")
+    public Result<Boolean> unregisterSpecies(@RequestParam String speciesVersion) throws IOException {
+        Species species = referenceSecurityService.unregisterSpecies(speciesVersion);
+        return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTERED_SPECIES, species.getName(),
+                species.getVersion()));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/reference/loadAllSpecies", method = RequestMethod.GET)
+    @ApiOperation(
+        value = "Returns all species that are available in the system at the moment.",
+        notes = "Returns all species that are available in the system at the moment.",
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)})
+    public final Result<List<Species>> loadAllSpecies() throws IOException {
+        return Result.success(referenceSecurityService.loadAllSpecies());
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/secure/reference/{referenceId}/species", method = RequestMethod.PUT)
+    public Result<Reference> updateSpecies(@PathVariable Long referenceId,
+        @RequestParam(required = false) String speciesVersion) {
+        return Result.success(referenceSecurityService.updateSpecies(referenceId, speciesVersion));
     }
 }

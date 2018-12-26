@@ -18,10 +18,6 @@ export class MafDataService extends DataService {
         });
     }
 
-    getAllFileList(refId) {
-        return this.get(`maf/${refId}/loadAll`);
-    }
-
     register(referenceId, path, indexPath, name) {
         return this.post('maf/register', {referenceId, path, indexPath, name});
     }

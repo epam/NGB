@@ -4,6 +4,7 @@ import {CachedTrack} from '../../core';
 import GeneConfig from './geneConfig';
 import {GeneDataService} from '../../../../dataServices';
 import GeneMenuService from './exterior/geneMenuService';
+import {menu as menuUtilities} from '../../utilities';
 
 export class GENETrack extends CachedTrack {
 
@@ -71,6 +72,7 @@ export class GENETrack extends CachedTrack {
                 }
             }
         };
+
         const _hotKeyListener = ::this.hotKeyListener;
         this.dispatcher.on('hotkeyPressed', _hotKeyListener);
         this.hotKeyListenerDestructor = function() {
@@ -176,6 +178,22 @@ export class GENETrack extends CachedTrack {
             this._renderer = new GeneRenderer(this.trackConfig, this.transformer, this._pixiRenderer);
         }
         return this._renderer;
+    }
+
+    trackSettingsChanged(params) {
+        if(this.config.bioDataItemId === params.id && this.config.format.toLowerCase() === 'gene') {
+            const settings = params.settings;
+            settings.forEach(setting => {
+                if (setting.name === 'shortenIntrons') {
+                    setting.value ? this.viewport.shortenedIntronsViewport.enable(this) : this.viewport.shortenedIntronsViewport.disable();
+                }else {
+                    const menuItem = menuUtilities.findMenuItem(this._menu, setting.name);
+                    if (menuItem.type === 'checkbox') {
+                        menuItem.enable();
+                    }
+                }
+            })
+        }
     }
 
     globalSettingsChanged(state) {

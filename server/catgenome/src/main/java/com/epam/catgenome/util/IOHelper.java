@@ -25,6 +25,9 @@
 package com.epam.catgenome.util;
 
 
+import com.epam.catgenome.util.aws.S3Client;
+import htsjdk.tribble.util.ParsingUtils;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -85,5 +88,21 @@ public final class IOHelper {
             }
         }
         return false;
+    }
+
+    public static boolean resourceExists(String resource) throws IOException {
+        if(S3Client.isS3Source(resource)) {
+            return S3Client.getInstance().isFileExisting(resource);
+        } else {
+            return ParsingUtils.resourceExists(resource);
+        }
+    }
+
+    public static InputStream openStream(String path) throws IOException {
+        if (S3Client.isS3Source(path)) {
+            return S3Client.getInstance().loadFully(path);
+        } else {
+            return ParsingUtils.openInputStream(path);
+        }
     }
 }

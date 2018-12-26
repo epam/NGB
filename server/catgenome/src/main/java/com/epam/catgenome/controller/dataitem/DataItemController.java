@@ -29,6 +29,7 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import java.io.IOException;
 import java.util.List;
 
+import com.epam.catgenome.manager.dataitem.DataItemSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -41,7 +42,6 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.manager.dataitem.DataItemManager;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -61,7 +61,7 @@ import com.wordnik.swagger.annotations.ApiResponses;
 public class DataItemController extends AbstractRESTController {
 
     @Autowired
-    private DataItemManager dataItemManager;
+    private DataItemSecurityService dataItemSecurityService;
 
     @ResponseBody
     @RequestMapping(value = "/dataitem/search", method = RequestMethod.GET)
@@ -78,7 +78,7 @@ public class DataItemController extends AbstractRESTController {
             })
     public final Result<List<BiologicalDataItem>> findFilesByName(@RequestParam(value = "name") final String name,
             @RequestParam(value = "strict", required = false, defaultValue = "true") final boolean strict) {
-        return Result.success(dataItemManager.findFilesByName(name, strict));
+        return Result.success(dataItemSecurityService.findFilesByName(name, strict));
     }
 
     @ResponseBody
@@ -92,7 +92,7 @@ public class DataItemController extends AbstractRESTController {
             })
     public final Result<Boolean>  deleteFileBiBioItemId(@RequestParam(value = "id") final Long id)
             throws IOException {
-        BiologicalDataItem deletedFile = dataItemManager.deleteFileByBioItemId(id);
+        BiologicalDataItem deletedFile = dataItemSecurityService.deleteFileByBioItemId(id);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
     }
 
@@ -107,6 +107,6 @@ public class DataItemController extends AbstractRESTController {
             })
     public final Result<BiologicalDataItem> findFileBiBioItemId(@RequestParam(value = "id") final Long id)
             throws IOException {
-        return Result.success(dataItemManager.findFileByBioItemId(id));
+        return Result.success(dataItemSecurityService.findFileByBioItemId(id));
     }
 }

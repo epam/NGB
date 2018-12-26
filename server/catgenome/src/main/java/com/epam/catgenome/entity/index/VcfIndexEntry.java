@@ -25,7 +25,9 @@
 package com.epam.catgenome.entity.index;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.epam.catgenome.entity.vcf.VariationEffect;
 import com.epam.catgenome.entity.vcf.VariationImpact;
@@ -44,10 +46,10 @@ import htsjdk.variant.variantcontext.VariantContext;
  * </p>
  */
 public class VcfIndexEntry extends FeatureIndexEntry {
-    private VariationType variationType;
-    private String gene;
+    private VariationType variationType; //TODO: remove, use variationTypes
+    private String gene; //TODO: remove, use geneIdList
     private String geneIds;
-    private String geneName;
+    private String geneName; //TODO: remove, use geneNameList
     private String geneNames;
     private String failedFilter;
     private VariationImpact impact;
@@ -55,6 +57,13 @@ public class VcfIndexEntry extends FeatureIndexEntry {
     private Map<String, Object> info;
     private Double quality;
     private Boolean isExon = false;
+
+    // Big Vcf Fields
+    private List<String> geneIdList;
+    private List<String> geneNameList;
+    private Set<VariationType> variationTypes;
+    private Set<String> failedFilters;
+
 
     @JsonIgnore
     private VariantContext variantContext;
@@ -174,6 +183,39 @@ public class VcfIndexEntry extends FeatureIndexEntry {
     public void setVariantContext(VariantContext variantContext) {
         this.variantContext = variantContext;
     }
+
+    public List<String> getGeneIdList() {
+        return geneIdList;
+    }
+
+    public void setGeneIdList(List<String> geneIdList) {
+        this.geneIdList = geneIdList;
+    }
+
+    public List<String> getGeneNameList() {
+        return geneNameList;
+    }
+
+    public void setGeneNameList(List<String> geneNameList) {
+        this.geneNameList = geneNameList;
+    }
+
+    public Set<VariationType> getVariationTypes() {
+        return variationTypes;
+    }
+
+    public Set<String> getFailedFilters() {
+        return failedFilters;
+    }
+
+    public void setFailedFilters(Set<String> failedFilters) {
+        this.failedFilters = failedFilters;
+    }
+
+    public void setVariationTypes(Set<VariationType> variationTypes) {
+        this.variationTypes = variationTypes;
+    }
+
 
     @Override public boolean equals(Object o) {
         if (this == o) {

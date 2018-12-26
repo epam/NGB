@@ -39,6 +39,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.file.AccessDeniedException;
@@ -62,10 +64,7 @@ import javax.annotation.PostConstruct;
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.JsonMapper;
-import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.BiologicalDataItemFormat;
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.*;
 import com.epam.catgenome.entity.bed.BedFile;
 import com.epam.catgenome.entity.file.FsDirectory;
 import com.epam.catgenome.entity.file.FsFile;
@@ -94,18 +93,19 @@ import com.epam.catgenome.manager.seg.parser.SegCodec;
 import com.epam.catgenome.manager.seg.parser.SegFeature;
 import com.epam.catgenome.manager.wig.reader.BedGraphCodec;
 import com.epam.catgenome.manager.wig.reader.BedGraphFeature;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.BlockCompressedDataInputStream;
 import com.epam.catgenome.util.BlockCompressedDataOutputStream;
 import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.PositionalOutputStream;
 import com.epam.catgenome.util.Utils;
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
-import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureReader;
@@ -132,6 +132,7 @@ import org.jetbrains.bio.big.BigWigFile;
 import org.jetbrains.bio.big.WigSection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
@@ -164,6 +165,10 @@ public class FileManager {
     private static final String EMPTY = "";
     public static final String BED_GRAPH_FEATURE_TEMPLATE = "%s\t%d\t%d\t%f%n";
 
+    private static final String ROOT_DIR_NAME = "42";
+
+    @Autowired(required = false)
+    private EhCacheBasedIndexCache indexCache;
     /**
      * Provides paths' patterns that have to be used to construct real relative paths
      * for file resources of any types.
@@ -173,7 +178,7 @@ public class FileManager {
         // describes a temporary catalogue, used to handle file uploads etc.
         TMP_DIR("/tmp"),
 
-        USER_DIR("/${USER_ID}"),
+        USER_DIR("/${ROOT_DIR_NAME}"),
 
         // describes the structure of catalogues used to store any resources concerned
         // with managed reference genomes and chromosomes
@@ -191,59 +196,59 @@ public class FileManager {
 
         REF_CYTOBANDS_FILE("/references/${DIR_ID}/cytobands/bands.txt"),
 
-        VCF_DIR("/${USER_ID}/VCF/${DIR_ID}"),
-        VCF_FILE("/${USER_ID}/VCF/${DIR_ID}/${FILE_NAME}"),
-        VCF_INDEX("/${USER_ID}/VCF/${DIR_ID}/variants.idx"),
-        VCF_COMPRESSED_INDEX("/${USER_ID}/VCF/${DIR_ID}/variants.gz.tbi"),
-        VCF_METADATA_FILE("/${USER_ID}/VCF/${DIR_ID}/variants.bounds"),
-        VCF_FEATURE_INDEX_FILE("/${USER_ID}/VCF/${DIR_ID}/variants.feature"),
-        VCF_ROOT_DIR("/${USER_ID}/VCF"),
-        VCF_HISTOGRAM_DIR("/${USER_ID}/VCF/${DIR_ID}/histogram"),
-        VCF_HISTOGRAM_FILE("/${USER_ID}/VCF/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
+        VCF_DIR("/${ROOT_DIR_NAME}/VCF/${DIR_ID}"),
+        VCF_FILE("/${ROOT_DIR_NAME}/VCF/${DIR_ID}/${FILE_NAME}"),
+        VCF_INDEX("/${ROOT_DIR_NAME}/VCF/${DIR_ID}/variants.idx"),
+        VCF_COMPRESSED_INDEX("/${ROOT_DIR_NAME}/VCF/${DIR_ID}/variants.gz.tbi"),
+        VCF_METADATA_FILE("/${ROOT_DIR_NAME}/VCF/${DIR_ID}/variants.bounds"),
+        VCF_FEATURE_INDEX_FILE("/${ROOT_DIR_NAME}/VCF/${DIR_ID}/variants.feature"),
+        VCF_ROOT_DIR("/${ROOT_DIR_NAME}/VCF"),
+        VCF_HISTOGRAM_DIR("/${ROOT_DIR_NAME}/VCF/${DIR_ID}/histogram"),
+        VCF_HISTOGRAM_FILE("/${ROOT_DIR_NAME}/VCF/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
 
-        GENE_DIR("/${USER_ID}/genes/${DIR_ID}"),
-        GENE_FILE("/${USER_ID}/genes/${DIR_ID}/genes${GENE_EXTENSION}"),
-        GENE_LARGE_SCALE_FILE("/${USER_ID}/genes/${DIR_ID}/genes_large_scale${GENE_EXTENSION}"),
-        GENE_TRANSCRIPT_FILE("/${USER_ID}/genes/${DIR_ID}/transcript${GENE_EXTENSION}"),
-        GENE_INDEX("/${USER_ID}/genes/${DIR_ID}/genes.tbi"),
-        GENE_LARGE_SCALE_INDEX("/${USER_ID}/genes/${DIR_ID}/genes_large_scale.tbi"),
-        GENE_TRANSCRIPT_INDEX("/${USER_ID}/genes/${DIR_ID}/transcript.tbi"),
-        GENE_METADATA_FILE("/${USER_ID}/genes/${DIR_ID}/genes.bounds"),
-        GENE_FEATURE_INDEX_FILE("/${USER_ID}/genes/${DIR_ID}/genes.feature"),
-        GENE_HISTOGRAM_DIR("/${USER_ID}/genes/${DIR_ID}/histogram"),
-        GENE_HISTOGRAM_FILE("/${USER_ID}/genes/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
+        GENE_DIR("/${ROOT_DIR_NAME}/genes/${DIR_ID}"),
+        GENE_FILE("/${ROOT_DIR_NAME}/genes/${DIR_ID}/genes${GENE_EXTENSION}"),
+        GENE_LARGE_SCALE_FILE("/${ROOT_DIR_NAME}/genes/${DIR_ID}/genes_large_scale${GENE_EXTENSION}"),
+        GENE_TRANSCRIPT_FILE("/${ROOT_DIR_NAME}/genes/${DIR_ID}/transcript${GENE_EXTENSION}"),
+        GENE_INDEX("/${ROOT_DIR_NAME}/genes/${DIR_ID}/genes.tbi"),
+        GENE_LARGE_SCALE_INDEX("/${ROOT_DIR_NAME}/genes/${DIR_ID}/genes_large_scale.tbi"),
+        GENE_TRANSCRIPT_INDEX("/${ROOT_DIR_NAME}/genes/${DIR_ID}/transcript.tbi"),
+        GENE_METADATA_FILE("/${ROOT_DIR_NAME}/genes/${DIR_ID}/genes.bounds"),
+        GENE_FEATURE_INDEX_FILE("/${ROOT_DIR_NAME}/genes/${DIR_ID}/genes.feature"),
+        GENE_HISTOGRAM_DIR("/${ROOT_DIR_NAME}/genes/${DIR_ID}/histogram"),
+        GENE_HISTOGRAM_FILE("/${ROOT_DIR_NAME}/genes/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
 
-        BAM_DIR("/${USER_ID}/BAM/${DIR_ID}"),
-        BAM_FILE("/${USER_ID}/BAM/${DIR_ID}/${FILE_NAME}"),
+        BAM_DIR("/${ROOT_DIR_NAME}/BAM/${DIR_ID}"),
+        BAM_FILE("/${ROOT_DIR_NAME}/BAM/${DIR_ID}/${FILE_NAME}"),
 
-        BED_DIR("/${USER_ID}/bed/${DIR_ID}"),
-        BED_INDEX("/${USER_ID}/bed/${DIR_ID}/bed.tbi"),
-        BED_HISTOGRAM_DIR("/${USER_ID}/bed/${DIR_ID}/histogram"),
-        BED_HISTOGRAM_FILE("/${USER_ID}/bed/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
+        BED_DIR("/${ROOT_DIR_NAME}/bed/${DIR_ID}"),
+        BED_INDEX("/${ROOT_DIR_NAME}/bed/${DIR_ID}/bed.tbi"),
+        BED_HISTOGRAM_DIR("/${ROOT_DIR_NAME}/bed/${DIR_ID}/histogram"),
+        BED_HISTOGRAM_FILE("/${ROOT_DIR_NAME}/bed/${DIR_ID}/histogram/${CHROMOSOME_NAME}.hg"),
 
-        SEG_DIR("/${USER_ID}/seg/${DIR_ID}"),
-        SEG_INDEX("/${USER_ID}/seg/${DIR_ID}/seg.tbi"),
-        SEG_SAMPLE_FILE("/${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.seg"),
-        SEG_FILE("/${USER_ID}/seg/${DIR_ID}/segments.seg"),
-        SEG_SAMPLE_COMPRESSED_FILE("/${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.seg.gz"),
-        SEG_SAMPLE_INDEX("/${USER_ID}/seg/${DIR_ID}/${SAMPLE_NAME}.tbi"),
+        SEG_DIR("/${ROOT_DIR_NAME}/seg/${DIR_ID}"),
+        SEG_INDEX("/${ROOT_DIR_NAME}/seg/${DIR_ID}/seg.tbi"),
+        SEG_SAMPLE_FILE("/${ROOT_DIR_NAME}/seg/${DIR_ID}/${SAMPLE_NAME}.seg"),
+        SEG_FILE("/${ROOT_DIR_NAME}/seg/${DIR_ID}/segments.seg"),
+        SEG_SAMPLE_COMPRESSED_FILE("/${ROOT_DIR_NAME}/seg/${DIR_ID}/${SAMPLE_NAME}.seg.gz"),
+        SEG_SAMPLE_INDEX("/${ROOT_DIR_NAME}/seg/${DIR_ID}/${SAMPLE_NAME}.tbi"),
 
-        BED_GRAPH_DIR("/${USER_ID}/wig/${DIR_ID}"),
-        BED_GRAPH_COMPRESSED_INDEX("/${USER_ID}/wig/${DIR_ID}/bedGraph.tbi"),
-        BED_GRAPH_INDEX("/${USER_ID}/wig/${DIR_ID}/bedGraph.idx"),
+        BED_GRAPH_DIR("/${ROOT_DIR_NAME}/wig/${DIR_ID}"),
+        BED_GRAPH_COMPRESSED_INDEX("/${ROOT_DIR_NAME}/wig/${DIR_ID}/bedGraph.tbi"),
+        BED_GRAPH_INDEX("/${ROOT_DIR_NAME}/wig/${DIR_ID}/bedGraph.idx"),
 
 
-        MAF_DIR("/${USER_ID}/maf/${DIR_ID}"),
-        MAF_TEMP_DIR("/${USER_ID}/maf/${DIR_ID}/tmp"),
-        MAF_INDEX("/${USER_ID}/maf/${DIR_ID}/maf.tbi"),
-        MAF_TEMP_INDEX("/${USER_ID}/maf/${DIR_ID}/tmp/${FILE_NAME}.tbi"),
-        MAF_FILE("/${USER_ID}/maf/${DIR_ID}/maf.bmaf.gz"),
+        MAF_DIR("/${ROOT_DIR_NAME}/maf/${DIR_ID}"),
+        MAF_TEMP_DIR("/${ROOT_DIR_NAME}/maf/${DIR_ID}/tmp"),
+        MAF_INDEX("/${ROOT_DIR_NAME}/maf/${DIR_ID}/maf.tbi"),
+        MAF_TEMP_INDEX("/${ROOT_DIR_NAME}/maf/${DIR_ID}/tmp/${FILE_NAME}.tbi"),
+        MAF_FILE("/${ROOT_DIR_NAME}/maf/${DIR_ID}/maf.bmaf.gz"),
 
-        WIG_DIR("/${USER_ID}/wig/${DIR_ID}/downsampled"),
-        WIG_FILE("/${USER_ID}/wig/${DIR_ID}/downsampled/${CHROMOSOME_NAME}.wig"),
-        BED_GRAPH_FILE("/${USER_ID}/wig/${DIR_ID}/downsampled.bdg"),
+        WIG_DIR("/${ROOT_DIR_NAME}/wig/${DIR_ID}/downsampled"),
+        WIG_FILE("/${ROOT_DIR_NAME}/wig/${DIR_ID}/downsampled/${CHROMOSOME_NAME}.wig"),
+        BED_GRAPH_FILE("/${ROOT_DIR_NAME}/wig/${DIR_ID}/downsampled.bdg"),
 
-        VG_DIR("/${USER_ID}/vg/${DIR_ID}"),
+        VG_DIR("/${ROOT_DIR_NAME}/vg/${DIR_ID}"),
 
         FEATURE_INDEX_DIR("${FEATURE_FILE_DIR}/index.luc"),
 
@@ -377,12 +382,11 @@ public class FileManager {
      * with the provided VCF id and provided user ID.
      *
      * @param fileId {@code long} represents a VCF file id in the system
-     * @param userId {@code long} represents ID of the user, who uploaded the file
      */
-    public void makeVcfDir(long fileId, Long userId) {
+    public void makeVcfDir(long fileId) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), fileId);
-        params.put(USER_ID.name(), userId);
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         // create a directory for VCF files, associated with the given reference id
         makeDir(substitute(VCF_DIR, params));
     }
@@ -392,12 +396,11 @@ public class FileManager {
      * with the provided gene file id and provided user ID.
      *
      * @param fileId {@code long} represents a gene file id in the system
-     * @param userId {@code long} represents ID of the user, who uploaded the file
      */
-    public void makeGeneDir(long fileId, Long userId) {
+    public void makeGeneDir(long fileId) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), fileId);
-        params.put(USER_ID.name(), userId);
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         // create a directory for Gene files, associated with the given reference id
         makeDir(substitute(GENE_DIR, params));
     }
@@ -407,12 +410,11 @@ public class FileManager {
      * with the provided BED file id and provided user ID.
      *
      * @param fileId {@code long} represents a BED file id in the system
-     * @param userId {@code long} represents ID of the user, who uploaded the file
      */
-    public void makeBedDir(long fileId, Long userId) {
+    public void makeBedDir(long fileId) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), fileId);
-        params.put(USER_ID.name(), userId);
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         // create a directory for BED files, associated with the given reference id
         makeDir(substitute(BED_DIR, params));
     }
@@ -422,12 +424,11 @@ public class FileManager {
      * with the provided SEG file id and provided user ID.
      *
      * @param fileId {@code long} represents a SEG file id in the system
-     * @param userId {@code long} represents ID of the user, who uploaded the file
      */
-    public void makeSegDir(long fileId, Long userId) {
+    public void makeSegDir(long fileId) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), fileId);
-        params.put(USER_ID.name(), userId);
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         // create a directory for SEG files, associated with the given reference id
         makeDir(substitute(SEG_DIR, params));
     }
@@ -437,19 +438,18 @@ public class FileManager {
      * with the provided MAF file id and provided user ID.
      *
      * @param fileId {@code long} represents a MAF file id in the system
-     * @param userId {@code long} represents ID of the user, who uploaded the file
      */
-    public void makeMafDir(long fileId, Long userId) {
+    public void makeMafDir(long fileId) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), fileId);
-        params.put(USER_ID.name(), userId);
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         makeDir(substitute(MAF_DIR, params));
     }
 
-    private void makeMafTempDir(long fileId, Long userId) {
+    private void makeMafTempDir(long fileId) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), fileId);
-        params.put(USER_ID.name(), userId);
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         makeDir(substitute(MAF_TEMP_DIR, params));
     }
 
@@ -457,12 +457,11 @@ public class FileManager {
      * Deletes from the file system temporary catalogue used to manage MAF files, before merging
      *
      * @param fileId {@code long} represents a MAF file id in the system
-     * @param userId {@code long} represents ID of the user, who uploaded the file
      */
-    public void deleteMafTempDir(long fileId, Long userId) throws IOException {
+    public void deleteMafTempDir(long fileId) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), fileId);
-        params.put(USER_ID.name(), userId);
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         deleteDir(substitute(MAF_TEMP_DIR, params));
     }
 
@@ -471,12 +470,11 @@ public class FileManager {
      * with the provided WIG file id and provided user ID.
      *
      * @param fileId {@code long} represents a WIG file id in the system
-     * @param userId {@code long} represents ID of the user, who uploaded the file
      */
-    public void makeWigDir(long fileId, Long userId) {
+    public void makeWigDir(long fileId) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), fileId);
-        params.put(USER_ID.name(), userId);
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         makeDir(substitute(WIG_DIR, params));
     }
 
@@ -692,12 +690,14 @@ public class FileManager {
             Assert.isTrue(indexFile.exists(), getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND,
                                                          vcfFile.getIndex().getPath()));
             time1 = Utils.getSystemTimeMilliseconds();
-            reader = AbstractFeatureReader.getFeatureReader(vcfFile.getPath(), vcfFile.getIndex().getPath(),
-                                                            new VCFCodec(), true);
+            reader = AbstractEnhancedFeatureReader
+                    .getFeatureReader(vcfFile.getPath(), vcfFile.getIndex().getPath(),
+                                                            new VCFCodec(), true, indexCache);
             time2 = Utils.getSystemTimeMilliseconds();
         } else {
             time1 = Utils.getSystemTimeMilliseconds();
-            reader = AbstractFeatureReader.getFeatureReader(vcfFile.getPath(), new VCFCodec(), false);
+            reader = AbstractEnhancedFeatureReader
+                    .getFeatureReader(vcfFile.getPath(), new VCFCodec(), false,  indexCache);
             time2 = Utils.getSystemTimeMilliseconds();
         }
         LOGGER.debug(getMessage(MessagesConstants.DEBUG_FILE_OPENING, vcfFile.getPath(), time2 - time1));
@@ -710,15 +710,14 @@ public class FileManager {
      *
      * @param vcfFile {@code VcfFile} a VcfFile object, representing a file in the system with set id, name and
      *                compressed options
-     * @param userId  {@code Long} a user for whom file was saved.
      * @throws IOException
      */
-    public void makeVcfIndex(VcfFile vcfFile, Long userId) throws IOException {
+    public void makeVcfIndex(VcfFile vcfFile) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), vcfFile.getId());
         params.put(FILE_NAME.name(), vcfFile.getCompressed() ? VcfFileNames.VCF_COMPRESSED_FILE_NAME.getName() :
                 VcfFileNames.VCF_FILE_NAME.getName());
-        params.put(USER_ID.name(), userId);
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(vcfFile.getPath());
         VCFCodec codec = new VCFCodec();
@@ -742,7 +741,6 @@ public class FileManager {
         indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
-        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
         vcfFile.setIndex(indexItem);
     }
@@ -763,7 +761,7 @@ public class FileManager {
 
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), featureFile.getId());
-        params.put(USER_ID.name(), featureFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         FilePathFormat filePathFormat = null;
         if (featureFile instanceof VcfFile) {
@@ -806,7 +804,7 @@ public class FileManager {
 
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), featureFile.getId());
-        params.put(USER_ID.name(), featureFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         FilePathFormat filePathFormat = null;
         if (featureFile instanceof VcfFile) {
@@ -864,7 +862,7 @@ public class FileManager {
                 FeatureFile featureFile = featureFiles.get(i);
 
                 final Map<String, Object> params = new HashMap<>();
-                params.put(USER_ID.name(), featureFile.getCreatedBy());
+                params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
                 params.put(DIR_ID.name(), featureFile.getId());
 
                 FilePathFormat format = determineFilePathFormat(featureFile);
@@ -886,7 +884,7 @@ public class FileManager {
         }
 
         Assert.isTrue(!indexes.isEmpty(), getMessage(MessagesConstants.ERROR_FEATURE_INDEX_NOT_FOUND,
-                         featureFiles.stream().map(f -> f.getId().toString()).collect(Collectors.joining(", "))));
+                         featureFiles.stream().map(BaseEntity::getName).collect(Collectors.joining(", "))));
 
         return indexes.toArray(new SimpleFSDirectory[indexes.size()]);
     }
@@ -916,7 +914,7 @@ public class FileManager {
      */
     public SimpleFSDirectory createIndexForFile(FeatureFile featureFile) throws IOException {
         final Map<String, Object> params = new HashMap<>();
-        params.put(USER_ID.name(), featureFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         params.put(DIR_ID.name(), featureFile.getId());
 
         FilePathFormat format = determineFilePathFormat(featureFile);
@@ -934,7 +932,7 @@ public class FileManager {
      */
     public void deleteFileFeatureIndex(FeatureFile featureFile) throws IOException {
         final Map<String, Object> params = new HashMap<>();
-        params.put(USER_ID.name(), featureFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         params.put(DIR_ID.name(), featureFile.getId());
 
         FilePathFormat format = determineFilePathFormat(featureFile);
@@ -969,7 +967,7 @@ public class FileManager {
      */
     public boolean indexForFeatureFileExists(final FeatureFile featureFile) {
         final Map<String, Object> params = new HashMap<>();
-        params.put(USER_ID.name(), featureFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         params.put(DIR_ID.name(), featureFile.getId());
 
         FilePathFormat format = determineFilePathFormat(featureFile);
@@ -1024,7 +1022,7 @@ public class FileManager {
             throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), featureFile.getId());
-        params.put(USER_ID.name(), featureFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         FilePathFormat dirPathFormat = null;
         FilePathFormat filePathFormat = null;
@@ -1049,6 +1047,9 @@ public class FileManager {
 
         params.put(CHROMOSOME_NAME.name(), chromosomeName);
         File histogramFile = new File(toRealPath(substitute(filePathFormat, params)));
+        if (histogramFile.exists()) {
+            histogramFile.delete();
+        }
         Assert.isTrue(histogramFile.createNewFile(), "Can't create histogram file " + histogramFile.getAbsolutePath());
 
         return new DataOutputStream(new FileOutputStream(histogramFile));
@@ -1103,7 +1104,7 @@ public class FileManager {
     public List<Wig> loadHistogram(final FeatureFile featureFile, final String chromosomeName) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), featureFile.getId());
-        params.put(USER_ID.name(), featureFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         params.put(CHROMOSOME_NAME.name(), chromosomeName);
 
         FilePathFormat filePathFormat = getHistogramFilePathFormat(featureFile);
@@ -1134,7 +1135,7 @@ public class FileManager {
     public boolean checkHistogramExists(final FeatureFile featureFile, final String chromosomeName) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), featureFile.getId());
-        params.put(USER_ID.name(), featureFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         FilePathFormat dirPathFormat = getHistogramDirPathFormat(featureFile);
         File histogramDir = new File(toRealPath(substitute(dirPathFormat, params)));
@@ -1172,7 +1173,7 @@ public class FileManager {
         Assert.notNull(extension, getMessage(MessagesConstants.ERROR_UNSUPPORTED_GENE_FILE_EXTESION));
 
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(GffCodec.GffType.forExt(extension));
-        return AbstractFeatureReader.getFeatureReader(path, index, codec, useIndex);
+        return AbstractEnhancedFeatureReader.getFeatureReader(path, index, codec, useIndex, indexCache);
     }
 
     /**
@@ -1185,12 +1186,12 @@ public class FileManager {
     public AbstractFeatureReader<GeneFeature, LineIterator> makeGeneReader(final GeneFile geneFile,
                                                                            final GeneFileType type) {
         String realFileName = geneFile.getPath() != null ? geneFile.getPath() : geneFile.getName();
-        String extension = Utils.getFileExtension(realFileName);
+        String extension = getGeneFileExtension(realFileName);
         extension = GffCodec.GffType.forExt(extension).getExtensions()[0];
 
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), geneFile.getId());
-        params.put(USER_ID.name(), geneFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         params.put(GENE_EXTENSION.name(), extension);
 
         Assert.notNull(extension, getMessage(MessagesConstants.ERROR_UNSUPPORTED_GENE_FILE_EXTESION));
@@ -1201,29 +1202,29 @@ public class FileManager {
             return makeGeneReader(geneFile.getPath(), geneFile.getIndex().getPath(), true);
         }
 
-        File file;
-        File indexFile;
+        String file;
+        String indexFile;
         switch (type) {
             case ORIGINAL:
-                file = new File(geneFile.getPath());
-                indexFile = new File(geneFile.getIndex().getPath());
+                file = geneFile.getPath();
+                indexFile = geneFile.getIndex().getPath();
                 break;
             case LARGE_SCALE:
-                file = tryGetHelperGeneFile(GENE_LARGE_SCALE_FILE, geneFile, type, params);
+                file = tryGetHelperGeneFile(GENE_LARGE_SCALE_FILE, geneFile, type, params).getAbsolutePath();
                 indexFile = tryGetHelperGeneIndex(GENE_LARGE_SCALE_INDEX, GENE_LARGE_SCALE_FILE, geneFile, type,
-                                                  params);
+                                                  params).getAbsolutePath();
                 break;
             case TRANSCRIPT:
-                file = tryGetHelperGeneFile(GENE_TRANSCRIPT_FILE, geneFile, type, params);
+                file = tryGetHelperGeneFile(GENE_TRANSCRIPT_FILE, geneFile, type, params).getAbsolutePath();
                 indexFile = tryGetHelperGeneIndex(GENE_TRANSCRIPT_INDEX, GENE_TRANSCRIPT_FILE, geneFile, type,
-                                                  params);
+                                                  params).getAbsolutePath();
                 break;
             default:
                 throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_UNSUPPORTED_GENE_FILE_TYPE,
                                                               type));
         }
 
-        return makeGeneReader(file.getAbsolutePath(), indexFile.getAbsolutePath(), true);
+        return makeGeneReader(file, indexFile, true);
     }
 
     private File tryGetHelperGeneFile(FilePathFormat helperFormat, GeneFile geneFile, GeneFileType type,
@@ -1264,7 +1265,7 @@ public class FileManager {
 
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), geneFile.getId());
-        params.put(USER_ID.name(), geneFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         params.put(GENE_EXTENSION.name(), extension);
 
         File file;
@@ -1298,7 +1299,7 @@ public class FileManager {
                                               GeneFileType type) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), geneFile.getId());
-        params.put(USER_ID.name(), geneFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         String extension = getGeneFileExtension(geneFeatureClass, geneFile);
 
@@ -1328,7 +1329,7 @@ public class FileManager {
         throws FileNotFoundException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), geneFile.getId());
-        params.put(USER_ID.name(), geneFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         String extension = gffType.getExtensions()[0];
 
@@ -1354,7 +1355,7 @@ public class FileManager {
                                          GeneFile geneFile, GeneFileType type) throws FileNotFoundException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), geneFile.getId());
-        params.put(USER_ID.name(), geneFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         String extension = gffType.getExtensions()[0];
 
@@ -1379,7 +1380,7 @@ public class FileManager {
                                      final GeneFileType geneFileType) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), geneFile.getId());
-        params.put(USER_ID.name(), geneFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         String extension = getGeneFileExtension(geneFeatureClass, geneFile);
 
@@ -1443,7 +1444,7 @@ public class FileManager {
 
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), geneFile.getId());
-        params.put(USER_ID.name(), geneFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         params.put(GENE_EXTENSION.name(), gffType.getExtensions()[0]);
 
         File file;
@@ -1482,7 +1483,6 @@ public class FileManager {
             indexItem.setFormat(BiologicalDataItemFormat.GENE_INDEX);
             indexItem.setType(BiologicalDataItemResourceType.FILE);
             indexItem.setName("");
-            indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
             geneFile.setIndex(indexItem);
         }
@@ -1528,7 +1528,7 @@ public class FileManager {
             type) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), geneFile.getId());
-        params.put(USER_ID.name(), geneFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File indexFile;
         switch (type) {
@@ -1556,8 +1556,8 @@ public class FileManager {
      */
     public AbstractFeatureReader<NggbBedFeature, LineIterator> makeBedReader(final BedFile bedFile) {
         NggbBedCodec nggbBedCodec = new NggbBedCodec();
-        return AbstractFeatureReader.getFeatureReader(bedFile.getPath(), bedFile.getIndex().getPath(),
-                nggbBedCodec, true);
+        return AbstractEnhancedFeatureReader.getFeatureReader(bedFile.getPath(), bedFile.getIndex().getPath(),
+                nggbBedCodec, true, indexCache);
     }
 
     /**
@@ -1567,7 +1567,7 @@ public class FileManager {
     public void makeBedIndex(final BedFile bedFile) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), bedFile.getId());
-        params.put(USER_ID.name(), bedFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(bedFile.getPath());
         File indexFile = new File(toRealPath(substitute(BED_INDEX, params)));
@@ -1582,7 +1582,6 @@ public class FileManager {
         indexItem.setFormat(BiologicalDataItemFormat.BED_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
-        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
         bedFile.setIndex(indexItem);
     }
@@ -1595,10 +1594,11 @@ public class FileManager {
     public AbstractFeatureReader<SegFeature, LineIterator> makeSegReader(final SegFile segFile) {
         SegCodec segCodec = new SegCodec();
         if (segFile.getIndex() != null) {
-            return AbstractFeatureReader.getFeatureReader(segFile.getPath(), segFile.getIndex().getPath(), segCodec,
-                    true);
+            return AbstractEnhancedFeatureReader
+                    .getFeatureReader(segFile.getPath(), segFile.getIndex().getPath(), segCodec,
+                    true, indexCache);
         } else {
-            return AbstractFeatureReader.getFeatureReader(segFile.getPath(), segCodec, false);
+            return AbstractEnhancedFeatureReader.getFeatureReader(segFile.getPath(), segCodec, false, indexCache);
         }
     }
 
@@ -1609,7 +1609,7 @@ public class FileManager {
     public void makeSegIndex(final SegFile segFile) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), segFile.getId());
-        params.put(USER_ID.name(), segFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(segFile.getPath());
         File indexFile = new File(toRealPath(substitute(SEG_INDEX, params)));
@@ -1625,7 +1625,6 @@ public class FileManager {
         indexItem.setFormat(BiologicalDataItemFormat.SEG_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
-        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
         segFile.setIndex(indexItem);
     }
@@ -1637,7 +1636,7 @@ public class FileManager {
     public void makeBedGraphIndex(final WigFile bedGraphFile) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), bedGraphFile.getId());
-        params.put(USER_ID.name(), bedGraphFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(bedGraphFile.getPath());
         File indexFile;
@@ -1662,7 +1661,6 @@ public class FileManager {
         indexItem.setFormat(BiologicalDataItemFormat.BED_GRAPH_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
-        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
         bedGraphFile.setIndex(indexItem);
     }
@@ -1677,7 +1675,7 @@ public class FileManager {
     public BufferedWriter makeSegFileWriter(SegFile segFile) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), segFile.getId());
-        params.put(USER_ID.name(), segFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(toRealPath(substitute(SEG_FILE, params)));
         Assert.isTrue(file.createNewFile());
@@ -1697,10 +1695,11 @@ public class FileManager {
     public AbstractFeatureReader<MafFeature, LineIterator> makeMafReader(final MafFile mafFile) {
         MafCodec mafCodec = new MafCodec(mafFile.getPath());
         if (mafFile.getIndex() != null) {
-            return AbstractFeatureReader.getFeatureReader(mafFile.getPath(), mafFile.getIndex().getPath(), mafCodec,
-                    true);
+            return AbstractEnhancedFeatureReader
+                    .getFeatureReader(mafFile.getPath(), mafFile.getIndex().getPath(), mafCodec,
+                    true, indexCache);
         } else {
-            return AbstractFeatureReader.getFeatureReader(mafFile.getPath(), mafCodec, false);
+            return AbstractEnhancedFeatureReader.getFeatureReader(mafFile.getPath(), mafCodec, false, indexCache);
         }
     }
 
@@ -1722,11 +1721,11 @@ public class FileManager {
     public void makeMafTempIndex(File file, MafFile mafFile) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), mafFile.getId());
-        params.put(USER_ID.name(), mafFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File tempDir = new File(toRealPath(substitute(MAF_TEMP_DIR, params)));
         if (!tempDir.exists()) {
-            makeMafTempDir(mafFile.getId(), mafFile.getCreatedBy());
+            makeMafTempDir(mafFile.getId());
         }
 
         params.put(FILE_NAME.name(), file.getName());
@@ -1753,7 +1752,7 @@ public class FileManager {
     public File getMafTempIndex(File file, MafFile mafFile) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), mafFile.getId());
-        params.put(USER_ID.name(), mafFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         params.put(FILE_NAME.name(), file.getName());
 
         return new File(toRealPath(substitute(MAF_TEMP_INDEX, params)));
@@ -1770,7 +1769,7 @@ public class FileManager {
     private void makeMafIndex(final MafFile mafFile, final TabixFormat tabixFormat) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), mafFile.getId());
-        params.put(USER_ID.name(), mafFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(mafFile.getPath());
         File indexFile = new File(toRealPath(substitute(MAF_INDEX, params)));
@@ -1788,7 +1787,6 @@ public class FileManager {
         indexItem.setFormat(BiologicalDataItemFormat.MAF_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
-        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
         mafFile.setIndex(indexItem);
     }
@@ -1803,7 +1801,7 @@ public class FileManager {
     public BufferedWriter makeMafFileWriter(MafFile mafFile) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), mafFile.getId());
-        params.put(USER_ID.name(), mafFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(toRealPath(substitute(MAF_FILE, params)));
         Assert.isTrue(file.createNewFile());
@@ -1830,7 +1828,7 @@ public class FileManager {
             chromSizes, String chromosomeName) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), wigFile.getId());
-        params.put(USER_ID.name(), wigFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         params.put(CHROMOSOME_NAME.name(), chromosomeName);
 
         File file = new File(toRealPath(substitute(WIG_FILE, params)));
@@ -1849,7 +1847,7 @@ public class FileManager {
     public String getWigFilePath(WigFile wigFile, Chromosome chromosome) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), wigFile.getId());
-        params.put(USER_ID.name(), wigFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         params.put(CHROMOSOME_NAME.name(), chromosome.getName());
 
         File file = new File(toRealPath(substitute(WIG_FILE, params)));
@@ -1863,7 +1861,7 @@ public class FileManager {
     public File writeToBedGraphFile(WigFile wigFile, List<BedGraphFeature> sectionList) throws IOException {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), wigFile.getId());
-        params.put(USER_ID.name(), wigFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(toRealPath(substitute(BED_GRAPH_FILE, params)));
         Assert.isTrue(file.createNewFile());
@@ -1883,7 +1881,7 @@ public class FileManager {
     public String getDownsampledBedGraphFilePath(WigFile wigFile) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), wigFile.getId());
-        params.put(USER_ID.name(), wigFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File file = new File(toRealPath(substitute(BED_GRAPH_FILE, params)));
         if (file.exists()) {
@@ -1904,7 +1902,7 @@ public class FileManager {
 
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), featureFile.getId());
-        params.put(USER_ID.name(), featureFile.getCreatedBy());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File dir = new File(toRealPath(substitute(filePathFormat, params)));
         if (dir.exists()) {
@@ -2097,8 +2095,16 @@ public class FileManager {
      * @return gene extension
      */
     public static String getGeneFileExtension(final String fileName) {
+        String name = fileName;
+        if (NgbFileUtils.isRemotePath(fileName)) {
+            try {
+                name = new URL(fileName).getPath();
+            } catch (MalformedURLException e) {
+                throw new IllegalArgumentException("Unsupported remote path: " + fileName);
+            }
+        }
         for (String e : GENE_FILE_EXTENSIONS) {
-            if (fileName.endsWith(e)) {
+            if (name.endsWith(e)) {
                 return e;
             }
         }
@@ -2132,7 +2138,7 @@ public class FileManager {
         makeDir("");
         makeDir(TMP_DIR.getPath());
         final Map<String, Object> params = new HashMap<>();
-        params.put(USER_ID.name(), AuthUtils.getCurrentUserId());
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         makeDir(substitute(USER_DIR, params));
     }
@@ -2235,7 +2241,7 @@ public class FileManager {
         ID,
         DIR_ID,
         REF_NAME,
-        USER_ID,
+        ROOT_DIR_NAME,
         PROJECT_ID,
         CHROMOSOME_NAME,
         FILE_NAME,

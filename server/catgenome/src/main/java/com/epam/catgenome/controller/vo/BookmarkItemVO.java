@@ -47,10 +47,9 @@ public class BookmarkItemVO {
     private BiologicalDataItemResourceType type;
     private String path;
     private BiologicalDataItemFormat format;
-    private Long createdBy;
     private Date createdDate;
-
     // FeatureFile properties
+
     private Long referenceId;
     private Boolean compressed;
 
@@ -100,14 +99,6 @@ public class BookmarkItemVO {
 
     public void setFormat(BiologicalDataItemFormat format) {
         this.format = format;
-    }
-
-    public Long getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(Long createdBy) {
-        this.createdBy = createdBy;
     }
 
     public Date getCreatedDate() {

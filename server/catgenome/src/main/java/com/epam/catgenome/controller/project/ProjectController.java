@@ -27,7 +27,11 @@ package com.epam.catgenome.controller.project;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
+import com.epam.catgenome.manager.FeatureIndexSecurityService;
+import com.epam.catgenome.manager.project.ProjectSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -52,8 +56,6 @@ import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.manager.FeatureIndexManager;
-import com.epam.catgenome.manager.project.ProjectManager;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -75,10 +77,10 @@ public class ProjectController extends AbstractRESTController {
     private static final String BIOLOGICAL_ITEM_ID_PARAM = "biologicalItemId";
 
     @Autowired
-    private ProjectManager projectManager;
+    private ProjectSecurityService projectSecurityService;
 
     @Autowired
-    private FeatureIndexManager featureIndexManager;
+    private FeatureIndexSecurityService featureIndexSecurityService;
 
     @RequestMapping(value = "/project/loadMy", method = RequestMethod.GET)
     @ResponseBody
@@ -91,7 +93,7 @@ public class ProjectController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<ProjectVO>> loadProjectsForCurrentUser() {
-        return Result.success(ProjectConverter.convertTo(projectManager.loadTopLevelProjectsForCurrentUser()));
+        return Result.success(ProjectConverter.convertTo(projectSecurityService.loadTopLevelProjects()));
     }
 
     @RequestMapping(value = "/project/tree", method = RequestMethod.GET)
@@ -103,9 +105,11 @@ public class ProjectController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<List<ProjectVO>> loadProjectsTreeForCurrentUser(@RequestParam(required = false) Long parentId,
+    public Callable<Result<List<ProjectVO>>> loadProjectsTreeForCurrentUser(
+            @RequestParam(required = false) Long parentId,
             @RequestParam(required = false) String referenceName) {
-        return Result.success(ProjectConverter.convertTo(projectManager.loadProjectTree(parentId, referenceName)));
+        return () -> Result.success(ProjectConverter.convertTo(
+                projectSecurityService.loadProjectTree(parentId, referenceName)));
     }
 
     @RequestMapping(value = "/project/{projectId}/load", method = RequestMethod.GET)
@@ -118,7 +122,7 @@ public class ProjectController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<ProjectVO> loadProject(@PathVariable(value = PROJECT_ID_PARAM) final Long projectId) {
-        return Result.success(ProjectConverter.convertTo(projectManager.loadProjectAndUpdateLastOpenedDate(projectId)));
+        return Result.success(ProjectConverter.convertTo(projectSecurityService.load(projectId)));
     }
 
     @RequestMapping(value = "/project/load", method = RequestMethod.GET)
@@ -132,7 +136,7 @@ public class ProjectController extends AbstractRESTController {
         })
     public Result<ProjectVO> loadProject(@RequestParam final String projectName) {
         return Result.success(ProjectConverter.convertTo(
-                projectManager.loadProjectAndUpdateLastOpenedDate(projectName))
+                projectSecurityService.load(projectName))
         );
     }
 
@@ -149,9 +153,9 @@ public class ProjectController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<ProjectVO> saveProject(@RequestBody ProjectVO project, @RequestParam(required = false) Long parentId)
-        throws FeatureIndexException {
-        return Result.success(ProjectConverter.convertTo(projectManager.saveProject(ProjectConverter.convertFrom(
+    public Result<ProjectVO> saveProject(@RequestBody ProjectVO project,
+                                         @RequestParam(required = false) Long parentId) throws FeatureIndexException {
+        return Result.success(ProjectConverter.convertTo(projectSecurityService.create(ProjectConverter.convertFrom(
             project), parentId)));
     }
 
@@ -166,9 +170,8 @@ public class ProjectController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<Boolean> moveProject(@PathVariable Long projectId, @RequestParam(required = false) Long parentId)
-        throws FeatureIndexException {
-        projectManager.moveProjectToParent(projectId, parentId);
+    public Result<Boolean> moveProject(@PathVariable Long projectId, @RequestParam(required = false) Long parentId) {
+        projectSecurityService.moveProjectToParent(projectId, parentId);
         return Result.success(true);
     }
 
@@ -184,7 +187,8 @@ public class ProjectController extends AbstractRESTController {
     public Result<ProjectVO> addProjectItem(@PathVariable(value = PROJECT_ID_PARAM) final Long projectId,
                                         @PathVariable(value = BIOLOGICAL_ITEM_ID_PARAM) final Long biologicalItemId)
         throws FeatureIndexException {
-        return Result.success(ProjectConverter.convertTo(projectManager.addProjectItem(projectId, biologicalItemId)));
+        return Result.success(ProjectConverter.convertTo(
+                projectSecurityService.addProjectItem(projectId, biologicalItemId)));
     }
 
     @RequestMapping(value = "/project/{projectId}/remove/{biologicalItemId}", method = RequestMethod.DELETE)
@@ -199,7 +203,7 @@ public class ProjectController extends AbstractRESTController {
     public Result<ProjectVO> removeProjectItem(@PathVariable(value = PROJECT_ID_PARAM) final Long projectId,
                                         @PathVariable(value = BIOLOGICAL_ITEM_ID_PARAM) final Long biologicalItemId)
         throws FeatureIndexException {
-        return Result.success(ProjectConverter.convertTo(projectManager.removeProjectItem(projectId,
+        return Result.success(ProjectConverter.convertTo(projectSecurityService.removeProjectItem(projectId,
                 biologicalItemId)));
     }
 
@@ -214,8 +218,8 @@ public class ProjectController extends AbstractRESTController {
             })
     public Result<ProjectVO> hideProjectItem(@PathVariable(value = PROJECT_ID_PARAM) final Long projectId,
                                           @PathVariable(value = BIOLOGICAL_ITEM_ID_PARAM) final Long biologicalItemId) {
-        projectManager.hideProjectItem(projectId, biologicalItemId);
-        return Result.success(ProjectConverter.convertTo(projectManager.loadProjectAndUpdateLastOpenedDate(projectId)));
+        projectSecurityService.hideProjectItem(projectId, biologicalItemId);
+        return Result.success(ProjectConverter.convertTo(projectSecurityService.load(projectId)));
     }
 
     @RequestMapping(value = "/project/{projectId}/search", method = RequestMethod.GET)
@@ -230,7 +234,7 @@ public class ProjectController extends AbstractRESTController {
     public Result<IndexSearchResult> searchFeatureInProject(
             @PathVariable(value = PROJECT_ID_PARAM) final Long projectId, @RequestParam String featureId)
             throws IOException {
-        return Result.success(featureIndexManager.searchFeaturesInProject(featureId, projectId));
+        return Result.success(featureIndexSecurityService.searchFeaturesInProject(featureId, projectId));
     }
 
     @RequestMapping(value = "/project/{projectId}/filter/vcf", method = RequestMethod.POST)
@@ -296,7 +300,7 @@ public class ProjectController extends AbstractRESTController {
     public Result<List<VcfIndexEntry>> filterVcf(@RequestBody final VcfFilterForm filterForm,
                                                  @PathVariable(value = PROJECT_ID_PARAM) long projectId)
             throws IOException {
-        return Result.success(featureIndexManager.filterVariations(filterForm, projectId).getEntries());
+        return Result.success(featureIndexSecurityService.filterVariations(filterForm, projectId).getEntries());
     }
 
     @RequestMapping(value = "/project/{projectId}/filter/vcf/new", method = RequestMethod.POST)
@@ -362,7 +366,7 @@ public class ProjectController extends AbstractRESTController {
     public Result<IndexSearchResult<VcfIndexEntry>> filterVcfNew(@RequestBody final VcfFilterForm filterForm,
                                                  @PathVariable(value = PROJECT_ID_PARAM) long projectId)
         throws IOException {
-        return Result.success(featureIndexManager.filterVariations(filterForm, projectId));
+        return Result.success(featureIndexSecurityService.filterVariations(filterForm, projectId));
     }
 
     @RequestMapping(value = "/project/{projectId}/group/vcf", method = RequestMethod.POST)
@@ -422,7 +426,7 @@ public class ProjectController extends AbstractRESTController {
     public Result<List<Group>> groupVariations(@RequestBody final VcfFilterForm filterForm,
                                                @PathVariable(value = PROJECT_ID_PARAM) long projectId,
                                                @RequestParam String groupBy) throws IOException {
-        return Result.success(featureIndexManager.groupVariations(filterForm, projectId, groupBy));
+        return Result.success(featureIndexSecurityService.groupVariations(filterForm, projectId, groupBy));
     }
 
 
@@ -438,8 +442,9 @@ public class ProjectController extends AbstractRESTController {
             })
     public Result<Set<String>> searchGenesInProject(@PathVariable(value = PROJECT_ID_PARAM) long projectId,
                                                     @RequestBody GeneSearchQuery geneQuery) throws IOException {
-        return Result.success(featureIndexManager.searchGenesInVcfFilesInProject(projectId, geneQuery.getSearch(),
-                geneQuery.getVcfIds()));
+        return Result.success(
+                featureIndexSecurityService.searchGenesInVcfFilesInProject(projectId, geneQuery.getSearch(),
+                geneQuery.getVcfIdsByProject().values().stream().flatMap(List::stream).collect(Collectors.toList())));
     }
 
     @ResponseBody
@@ -453,7 +458,7 @@ public class ProjectController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<VcfFilterInfo> erg(@PathVariable(value = PROJECT_ID_PARAM) final Long projectId) throws IOException {
-        return Result.success(featureIndexManager.loadVcfFilterInfoForProject(projectId));
+        return Result.success(featureIndexSecurityService.loadVcfFilterInfoForProject(projectId));
     }
 
     @RequestMapping(value = "/project/{projectId}", method = RequestMethod.DELETE)
@@ -468,8 +473,8 @@ public class ProjectController extends AbstractRESTController {
     public Result<Boolean> deleteProject(@PathVariable final long projectId,
                                          @RequestParam(name = "force", required = false, defaultValue = "false")
                                                  Boolean force) throws IOException {
-        Project deletedProject = projectManager.deleteProject(projectId, force);
-        return Result.success(true, MessageHelper.getMessage(MessagesConstants.INFO_PROJECT_DELETED, deletedProject
-                .getId(), deletedProject.getName()));
+        Project deletedProject = projectSecurityService.deleteProject(projectId, force);
+        return Result.success(true, MessageHelper.getMessage(MessagesConstants.INFO_PROJECT_DELETED,
+                deletedProject.getId(), deletedProject.getName()));
     }
 }

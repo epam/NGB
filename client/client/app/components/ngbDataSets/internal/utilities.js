@@ -19,6 +19,7 @@ function _preprocessNode(node: Node, parent: Node = null) {
     node.project = parent;
     node.searchFilterPassed = true;
     node.childrenFilterPassed = true;
+    node.roles = ['ROLE_ADMIN'];
     let hasNestedProjects = false;
     if (node.nestedProjects) {
         hasNestedProjects = true;
@@ -33,8 +34,9 @@ function _preprocessNode(node: Node, parent: Node = null) {
         track.project = node;
         track.projectId = node.name;
         track.reference = reference;
-        track.hint = `${track.name}${reference ? `\r\nReference: ${reference.name}` : ''}`;
+        track.hint = `${getTrackFileName(track)}${reference ? `\r\nReference: ${reference.name}` : ''}`;
         track.searchFilterPassed = true;
+        track.roles = ['ROLE_ADMIN'];
         return track;
     };
     node.hint = _getProjectHint(node, reference);
@@ -47,6 +49,20 @@ function _preprocessNode(node: Node, parent: Node = null) {
     node.reference = reference;
     node.tracks = tracks;
     return node;
+}
+
+function getTrackFileName(track) {
+    if (!track.isLocal) {
+        return track.prettyName || track.name;
+    } else {
+        const fileName = track.name;
+        if (!fileName || !fileName.length) {
+            return null;
+        }
+        let list = fileName.split('/');
+        list = list[list.length - 1].split('\\');
+        return list[list.length - 1];
+    }
 }
 
 function _getProjectHint(project, reference) {

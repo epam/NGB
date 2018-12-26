@@ -6,8 +6,9 @@ import ngbMainSettingsDlgService from './ngbMainSettingsDlg.service';
 import ngbMainSettingsDlgConstant from './ngbMainSettingsDlg.constant';
 import customizationTableRowDirective from './ngbCustomizationTableRow/ngbCustomizationTableRow.directive';
 
+import moment from '../../../../compat/moment';
 
-export default angular.module('ngbMainSettingsDlgComponent', [])
+export default angular.module('ngbMainSettingsDlgComponent', [moment])
     .service('ngbMainSettingsDlgService', ngbMainSettingsDlgService)
     .controller(controller.UID, controller)
     .controller(controllerRow.UID, controllerRow)

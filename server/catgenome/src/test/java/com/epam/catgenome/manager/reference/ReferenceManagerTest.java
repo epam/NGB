@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.epam.catgenome.dao.BiologicalDataItemDao;
+import com.epam.catgenome.entity.reference.Species;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -298,7 +299,7 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
         assertNotNull(testRef);
         assertNotNull(testRef.getGeneFile());
 
-        Reference loadedReference = referenceGenomeManager.loadReferenceGenome(testRef.getId());
+        Reference loadedReference = referenceGenomeManager.load(testRef.getId());
         assertNotNull(loadedReference);
         assertNotNull(loadedReference.getGeneFile());
         assertNotNull(loadedReference.getGeneFile().getId());
@@ -320,7 +321,7 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
         request.setGeneFileId(testRef.getGeneFile().getId());
 
         Reference testRef2 = referenceManager.registerGenome(request);
-        loadedReference = referenceGenomeManager.loadReferenceGenome(testRef2.getId());
+        loadedReference = referenceGenomeManager.load(testRef2.getId());
         assertNotNull(loadedReference);
         assertNotNull(loadedReference.getGeneFile());
         assertNotNull(loadedReference.getGeneFile().getId());
@@ -397,5 +398,32 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
         assertTrue(errorMessage.contains(expectedMessage));
         assertTrue(biologicalDataItemDao.loadFilesByNameStrict(invalidReference).isEmpty());
 
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testRegisterWithSpecies() throws IOException {
+        Resource resource = context.getResource(A3_FA_PATH);
+
+        ReferenceRegistrationRequest request = new ReferenceRegistrationRequest();
+        request.setName("testReference1 " + this.getClass().getSimpleName());
+        request.setPath(resource.getFile().getPath());
+        request.setType(BiologicalDataItemResourceType.FILE);
+
+        Species species = new Species();
+        species.setName("human");
+        species.setVersion("hg19");
+        referenceGenomeManager.registerSpecies(species);
+
+
+        Species testSpecies = new Species();
+        testSpecies.setVersion("hg19");
+        request.setSpecies(testSpecies);
+
+        Reference reference = referenceManager.registerGenome(request);
+        assertNotNull(reference);
+        assertNotNull(reference.getSpecies());
+        assertEquals(species.getName(), reference.getSpecies().getName());
+        assertEquals(species.getVersion(), reference.getSpecies().getVersion());
     }
 }

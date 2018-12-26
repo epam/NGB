@@ -1,0 +1,83 @@
+<md-dialog aria-label="Edit/Create user" style="max-height: 75vh;">
+
+    <form name="userForm">
+
+        <md-toolbar class="ngb-reduced-popup-toolbar">
+            <div class="md-toolbar-tools">
+                <h2 ng-if="ctrl.dialogTitle">{{ctrl.dialogTitle}}</h2>
+                <span flex></span>
+                <md-button class="md-icon-button" ng-click="ctrl.cancel()" aria-label="Close">
+                    <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+                </md-button>
+            </div>
+        </md-toolbar>
+        <md-dialog-content>
+            <md-content class="md-padding">
+                <div class="column">
+                    <div layout="row">
+                        <md-input-container flex>
+                            <input name="userName"
+                                   type="text"
+                                   required
+                                   ng-disabled="!ctrl.isNewUser"
+                                   placeholder="User name"
+                                   ng-model="ctrl.userName" />
+                        </md-input-container>
+                    </div>
+                    <div layout="row">
+                        <md-input-container flex>
+                            <label>Select role or group to add</label>
+                            <md-select ng-model="ctrl.selectedRoles"
+                                       name="add_roles"
+                                       md-on-close="ctrl.clearSearchTerm()"
+                                       md-container-class="user-role-selector"
+                                       multiple>
+                                <md-select-header class="role-select-header">
+                                    <input ng-model="ctrl.searchTerm"
+                                           ng-keydown="$event.stopPropagation()"
+                                           type="search"
+                                           placeholder="Search for a role or a group..."
+                                           class="md-text role-header-searchbox" />
+                                </md-select-header>
+                                <md-optgroup label="roles and groups">
+                                    <md-option
+                                            ng-value="role"
+                                            ng-repeat="role in ctrl.availableRoles | filter:ctrl.searchTerm">
+                                        {{role.name}}
+                                    </md-option>
+                                </md-optgroup>
+                            </md-select>
+                        </md-input-container>
+                        <md-button ng-click="ctrl.addRolesToGrid()">Add</md-button>
+                    </div>
+                    <div layout="row" style="max-height: 50vh;">
+                        <div ng-if="ctrl.formGridOptions.data.length" class="ui-grid-container flex">
+                            <!-- todo: error ? -->
+                            <div ui-grid="ctrl.formGridOptions"
+                                 ui-grid-save-state
+                                 ui-grid-selection
+                                 ui-grid-resize-columns
+                                 ui-grid-auto-resize
+                                 ui-grid-move-columns
+                                 ui-grid-pinning
+                                 ui-grid-infinite-scroll
+                            ></div>
+                        </div>
+                    </div>
+                </div>
+            </md-content>
+        </md-dialog-content>
+        <md-dialog-actions layout="row">
+            <md-button class="md-warn" ng-if="!ctrl.isNewUser" ng-click="ctrl.delete()">
+                Delete
+            </md-button>
+            <span flex></span>
+            <md-button class="md-primary" ng-disabled="!ctrl.isValid" ng-click="ctrl.save()">
+                {{ctrl.isNewUser ? 'Create' : 'Save'}}
+            </md-button>
+            <md-button ng-click="ctrl.cancel()" style="margin-right:20px;">
+                Cancel
+            </md-button>
+        </md-dialog-actions>
+    </form>
+</md-dialog>

@@ -23,7 +23,8 @@ export default function run($mdDialog, dispatcher, projectContext) {
                     indexUrl: variant.indexUrl,
                     position: variant.position,
                     chromosomeId: variant.chromosome.id,
-                    projectId: variant.projectId
+                    projectId: variant.projectId,
+                    projectIdNumber: variant.projectIdNumber
                 }, variantInfo);
 
                 $scope.variant = variantInfo;

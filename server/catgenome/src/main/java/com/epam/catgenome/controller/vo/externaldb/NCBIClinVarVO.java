@@ -52,6 +52,17 @@ public class NCBIClinVarVO {
     @JsonProperty(value = "trait_set")
     private List<NCBITraitSet> traitSet;
 
+    @JsonProperty(value = "clinvar_link")
+    private String clinvarLink;
+
+    public String getClinvarLink() {
+        return clinvarLink;
+    }
+
+    public void setClinvarLink(String clinvarLink) {
+        this.clinvarLink = clinvarLink;
+    }
+
     public NCBIClinicalSignificance getClinicalSignificance() {
         return clinicalSignificance;
     }
@@ -79,6 +90,8 @@ public class NCBIClinVarVO {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class NCBIClinicalSignificance {
 
+        public static final String PATHOGENIC = "Pathogenic";
+
         @JsonProperty(value = "description")
         private String description;
 
@@ -87,6 +100,10 @@ public class NCBIClinVarVO {
 
         @JsonProperty(value = "review_status")
         private String reviewStatus;
+
+        public boolean isPathogenic() {
+            return description.equals(PATHOGENIC);
+        }
 
         public String getDescription() {
             return description;

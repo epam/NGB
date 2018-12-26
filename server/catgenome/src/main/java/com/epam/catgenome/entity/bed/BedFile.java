@@ -26,15 +26,22 @@ package com.epam.catgenome.entity.bed;
 
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.security.AclClass;
 
 /**
  * Represents a Bed File metadata in the system
  */
 public class BedFile extends FeatureFile {
+
     /**
      * Creates an empty {@code BedFile} record with a required type BED
      */
     public BedFile() {
         setFormat(BiologicalDataItemFormat.BED);
+    }
+
+    @Override
+    public AclClass getAclClass() {
+        return  AclClass.BED;
     }
 }

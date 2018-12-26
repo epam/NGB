@@ -20,6 +20,9 @@
         </property>
     </bean>
 
+    <!-- configures style of presigned s3 links -->
+    <bean id="s3Manager" class="com.epam.catgenome.manager.aws.S3Manager" factory-method="singleton"/>
+
     <!-- configures properties' placeholder to resolve placeholders for bean configurations -->
     <context:property-placeholder properties-ref="catgenome" order="1" ignore-unresolvable="true"/>
 

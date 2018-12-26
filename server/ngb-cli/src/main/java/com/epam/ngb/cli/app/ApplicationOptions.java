@@ -68,10 +68,21 @@ public class ApplicationOptions {
     private boolean doIndex = true;
 
     /**
-     * Option fo reference registration, if true, the GC content files will be created for
+     * Option for reference registration, if true, the GC content files will be created for
      * a reference during registration.
      */
     private boolean noGCContent = false;
+
+    /**
+     * Specifies if tabix index should be rewritten along with feature index during file reindexing
+     */
+    private boolean createTabixIndex = true;
+
+    /**
+     * Option for reference registration, specifies a version of species during registration.
+     */
+    private String speciesVersion;
+
 
     private String location;
 
@@ -81,11 +92,45 @@ public class ApplicationOptions {
 
     private String prettyName;
 
+    private String datasets;
+
+    private String files;
+
+    private String users;
+
+    private String groups;
+
+    private boolean showPermissions;
+
     /**
      * Creates object with default option's values
      */
     public ApplicationOptions() {
         //no operations, all values are default
+    }
+
+    public String getFiles() {
+        return files;
+    }
+
+    public void setFiles(String files) {
+        this.files = files;
+    }
+
+    public String getUsers() {
+        return users;
+    }
+
+    public void setUsers(String users) {
+        this.users = users;
+    }
+
+    public String getGroups() {
+        return groups;
+    }
+
+    public void setGroups(String groups) {
+        this.groups = groups;
     }
 
     public String getName() {
@@ -176,11 +221,43 @@ public class ApplicationOptions {
         return forceDeletion;
     }
 
-    public void setPrettyName(String prettyName) {
-        this.prettyName = prettyName;
+    public boolean isCreateTabixIndex() {
+        return createTabixIndex;
+    }
+
+    public void setCreateTabixIndex(boolean createTabixIndex) {
+        this.createTabixIndex = createTabixIndex;
     }
 
     public String getPrettyName() {
         return prettyName;
+    }
+
+    public void setPrettyName(String prettyName) {
+        this.prettyName = prettyName;
+    }
+
+    public String getSpeciesVersion() {
+        return speciesVersion;
+    }
+
+    public void setSpeciesVersion(String speciesVersion) {
+        this.speciesVersion = speciesVersion;
+    }
+
+    public String getDatasets() {
+        return datasets;
+    }
+
+    public void setDatasets(String datasets) {
+        this.datasets = datasets;
+    }
+
+    public boolean isShowPermissions() {
+        return showPermissions;
+    }
+
+    public void setShowPermissions(boolean showPermissions) {
+        this.showPermissions = showPermissions;
     }
 }

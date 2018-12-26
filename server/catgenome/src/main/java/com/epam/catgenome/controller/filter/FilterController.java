@@ -1,9 +1,37 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2017 EPAM Systems
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.epam.catgenome.controller.filter;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
+import com.epam.catgenome.controller.vo.ItemsByProject;
+import com.epam.catgenome.manager.FeatureIndexSecurityService;
+import com.epam.catgenome.manager.vcf.VcfSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,8 +48,6 @@ import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
-import com.epam.catgenome.manager.FeatureIndexManager;
-import com.epam.catgenome.manager.vcf.VcfManager;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -34,10 +60,10 @@ import com.wordnik.swagger.annotations.ApiResponses;
 @Api(value = "Filter", description = "Filtering operations")
 public class FilterController extends AbstractRESTController {
     @Autowired
-    private FeatureIndexManager featureIndexManager;
+    private FeatureIndexSecurityService featureIndexSecurityService;
 
     @Autowired
-    private VcfManager vcfManager;
+    private VcfSecurityService vcfSecurityService;
 
     @RequestMapping(value = "/filter/searchGenes", method = RequestMethod.POST)
     @ApiOperation(
@@ -48,7 +74,8 @@ public class FilterController extends AbstractRESTController {
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
     public Result<Set<String>> searchGenesInProject(@RequestBody GeneSearchQuery geneQuery) throws IOException {
-        return Result.success(featureIndexManager.searchGenesInVcfFiles(geneQuery.getSearch(), geneQuery.getVcfIds()));
+        return Result.success(featureIndexSecurityService.searchGenesInVcfFiles(geneQuery.getSearch(),
+                geneQuery.getVcfIdsByProject()));
     }
 
     @RequestMapping(value = "/filter/info", method = RequestMethod.POST)
@@ -59,8 +86,9 @@ public class FilterController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<VcfFilterInfo> getFieldInfo(@RequestBody List<Long> vcfFileIds) throws IOException {
-        return Result.success(vcfManager.getFiltersInfo(vcfFileIds));
+    public Result<VcfFilterInfo> getFieldInfo(
+            @RequestBody ItemsByProject vcfFileIdsByProjectId) throws IOException {
+        return Result.success(vcfSecurityService.getFiltersInfo(vcfFileIdsByProjectId.getValue()));
     }
 
     @RequestMapping(value = "/filter", method = RequestMethod.POST)
@@ -122,9 +150,9 @@ public class FilterController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<IndexSearchResult<VcfIndexEntry>> filterVcf(@RequestBody final VcfFilterForm filterForm)
+    public Callable<Result<IndexSearchResult<VcfIndexEntry>>> filterVcf(@RequestBody final VcfFilterForm filterForm)
         throws IOException {
-        return Result.success(featureIndexManager.filterVariations(filterForm));
+        return () -> Result.success(featureIndexSecurityService.filterVariations(filterForm));
     }
 
     @RequestMapping(value = "/filter/group", method = RequestMethod.POST)
@@ -180,8 +208,9 @@ public class FilterController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<List<Group>> groupVariations(@RequestBody final VcfFilterForm filterForm,
-                                               @RequestParam String groupBy) throws IOException {
-        return Result.success(featureIndexManager.groupVariations(filterForm, groupBy));
+    public Callable<Result<List<Group>>> groupVariations(
+                                                @RequestBody final VcfFilterForm filterForm,
+                                                @RequestParam String groupBy) {
+        return () -> Result.success(featureIndexSecurityService.groupVariations(filterForm, groupBy));
     }
 }

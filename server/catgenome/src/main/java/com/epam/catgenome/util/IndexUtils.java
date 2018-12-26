@@ -7,14 +7,20 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
 import com.epam.catgenome.manager.bam.BamHelper;
+import htsjdk.samtools.Defaults;
+import htsjdk.tribble.util.TabixUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.epam.catgenome.exception.IndexException;
@@ -28,7 +34,7 @@ import htsjdk.samtools.util.CloserUtil;
 import htsjdk.samtools.util.LocationAware;
 import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.samtools.util.Tuple;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.CloseableTribbleIterator;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureCodec;
@@ -57,6 +63,8 @@ import static com.epam.catgenome.util.NgbFileUtils.isGzCompressed;
 public final class IndexUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IndexUtils.class);
+    private static final String FIRST_PART_PATH_REGEX = "(.*?)\\?";
+    private static final Pattern FIRST_PART_PATH_PATTERN = Pattern.compile(FIRST_PART_PATH_REGEX);
 
     private IndexUtils() {
         //no operations
@@ -456,6 +464,51 @@ public final class IndexUtils {
                 // Be careful: peek will be null at the end of the stream.
                 return peek != null ? peek.b : lineReader.getPosition();
             }
+        }
+    }
+
+    /**
+     * Returns first part of URL for S3 created links (if "?" include in path) or else full path
+     */
+    public static String getFirstPartForIndexPath(String indexPath) {
+        Matcher matcher = FIRST_PART_PATH_PATTERN.matcher(indexPath);
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            return indexPath;
+        }
+    }
+
+    /**
+     * Load in index from the specified file.   The type of index (LinearIndex or IntervalTreeIndex) is determined
+     * at run time by reading the type flag in the file.
+     *
+     * @param indexResource from which to load the index
+     */
+    @SuppressWarnings("all")
+    public static Index loadIndex(final String indexResource) {
+        // Must be buffered, because getIndexType uses mark and reset
+        try (BufferedInputStream bufferedInputStream = new BufferedInputStream(
+                indexFileInputStream(IOHelper.openStream(indexResource), Utils.getFileExtension(indexResource)),
+                Defaults.NON_ZERO_BUFFER_SIZE)){
+            final Class<Index> indexClass = IndexFactory.IndexType.getIndexType(bufferedInputStream).getIndexType();
+            final Constructor<Index> ctor = indexClass.getConstructor(InputStream.class);
+            return ctor.newInstance(bufferedInputStream);
+        } catch (final IOException ex) {
+            throw new TribbleException.UnableToReadIndexFile("Unable to read index file", indexResource, ex);
+        } catch (final Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private static InputStream indexFileInputStream(final InputStream indexStream, String extension)
+            throws IOException {
+        if (extension.equals("gz")) {
+            return new GZIPInputStream(indexStream);
+        } else if (extension.equals(TabixUtils.STANDARD_INDEX_EXTENSION)) {
+            return new BlockCompressedInputStream(indexStream);
+        } else {
+            return indexStream;
         }
     }
 }

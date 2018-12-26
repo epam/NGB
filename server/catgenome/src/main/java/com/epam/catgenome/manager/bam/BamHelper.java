@@ -32,6 +32,7 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
@@ -50,6 +51,11 @@ import com.epam.catgenome.entity.bam.BamTrack;
 import com.epam.catgenome.entity.bam.BamTrackMode;
 import com.epam.catgenome.entity.bam.Read;
 import com.epam.catgenome.entity.wig.Wig;
+import com.epam.catgenome.exception.FeatureFileReadingException;
+import com.epam.catgenome.util.aws.S3Client;
+import com.epam.catgenome.util.aws.S3SeekableStreamFactory;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import com.epam.catgenome.util.feature.reader.IndexCache;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFlag;
 import htsjdk.samtools.SAMRecord;
@@ -59,6 +65,9 @@ import htsjdk.samtools.SamInputResource;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.ValidationStringency;
+import htsjdk.samtools.seekablestream.SeekableMemoryStream;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -71,24 +80,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.epam.catgenome.constant.Constants;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.bucket.Bucket;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.manager.bam.handlers.Handler;
-import com.epam.catgenome.manager.bucket.BucketManager;
 import com.epam.catgenome.manager.reference.ReferenceManager;
 import com.epam.catgenome.manager.reference.io.ChromosomeReferenceSequence;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.BamUtil;
 import com.epam.catgenome.util.ConsensusSequenceUtils;
 import com.epam.catgenome.util.HdfsSeekableInputStream;
@@ -118,6 +121,7 @@ public class BamHelper {
     public static final Set<String> BAM_EXTENSIONS = new HashSet<>();
     public static final Map<String, String> BAI_EXTENSIONS = new HashMap<>();
 
+
     static {
         BAM_EXTENSIONS.add(".bam");
         BAM_EXTENSIONS.add(".cram");
@@ -131,9 +135,6 @@ public class BamHelper {
     private BamFileManager bamFileManager;
 
     @Autowired
-    private BucketManager bucketManager;
-
-    @Autowired
     private ReferenceManager referenceManager;
 
     /*@Value("#{catgenome['bam.max.reads.count'] ?: 500000}")
@@ -141,6 +142,9 @@ public class BamHelper {
 
     @Value("#{catgenome['bam.regions.count'] ?: 20}")
     private int regionsCount;
+
+    @Autowired(required = false)
+    private EhCacheBasedIndexCache indexCache;
 
     /**
      * Calculates the consensus sequence from the reads from a {@code BamFile}
@@ -155,7 +159,7 @@ public class BamHelper {
         Assert.notNull(chromosome, getMessage(MessagesConstants.ERROR_CHROMOSOME_ID_NOT_FOUND));
         final long start = System.currentTimeMillis();
 
-        final BamFile bamFile = bamFileManager.loadBamFile(track.getId());
+        final BamFile bamFile = bamFileManager.load(track.getId());
         Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
         ConsensusSequenceUtils.calculateConsensusSequence(track,
                 getReadsFromFile(chromosome, track, bamFile, track.getBlocks()));
@@ -175,7 +179,7 @@ public class BamHelper {
     public void getReadsFromFile(final Track<Read> track, final BamQueryOption options,
                                  BamTrackEmitter emitter) throws IOException {
         final BamTrack<Read> bamTrack = new BamTrack<>(track);
-        final BamFile bamFile = bamFileManager.loadBamFile(bamTrack.getId());
+        final BamFile bamFile = bamFileManager.load(bamTrack.getId());
         Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
 
         fillEmitterByReads(bamFile, bamTrack, options, emitter);
@@ -192,7 +196,7 @@ public class BamHelper {
     public BamTrack<Read> getRegionsFromUrl(final Track<Read> track, String bamUrl, String bamIndexUrl)
             throws IOException {
         BamTrack<Read> bamTrack = new BamTrack<>(track);
-        final BamFile bamFile = makeUrlBamFile(bamUrl, bamIndexUrl, track.getChromosome().getReferenceId());
+        final BamFile bamFile = makeUrlBamFile(bamUrl, bamIndexUrl, track.getChromosome());
 
         Chromosome chromosome = bamTrack.getChromosome();
         bamTrack.setRegions(getRegions(bamFile, chromosome, track.getStartIndex(), track.getEndIndex()));
@@ -208,7 +212,7 @@ public class BamHelper {
      */
     public BamTrack<Read> getRegionsFromFile(final Track<Read> track) throws IOException {
         final BamTrack<Read> bamTrack = new BamTrack<>(track);
-        final BamFile bamFile = bamFileManager.loadBamFile(bamTrack.getId());
+        final BamFile bamFile = bamFileManager.load(bamTrack.getId());
         Assert.notNull(bamFile, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
 
         Chromosome chromosome = bamTrack.getChromosome();
@@ -232,7 +236,7 @@ public class BamHelper {
             throws IOException {
         final BamTrack<Read> bamTrack = new BamTrack<>(track);
         Assert.notNull(track.getChromosome().getReferenceId());
-        final BamFile bamFile = makeUrlBamFile(bamUrl, bamIndexUrl, track.getChromosome().getReferenceId());
+        final BamFile bamFile = makeUrlBamFile(bamUrl, bamIndexUrl, track.getChromosome());
 
         fillEmitterByReads(bamFile, bamTrack, options, bamTrackEmitter);
     }
@@ -241,23 +245,16 @@ public class BamHelper {
      * Creates a temporary BamFile, not stored the database, and represented by it's file URL and index URL
      * @param bamUrl a URL string ,locating BAM file
      * @param bamIndexUrl a URL string ,locating BAI index file
-     * @param referenceId - ID of the reference, for with this BAM is being browsed
+     * @param chromosome - chromosome with which BAM is being browsed
      * @return
      */
-    public BamFile makeUrlBamFile(String bamUrl, String bamIndexUrl, long referenceId) {
-        final BamFile bamFile = new BamFile();
-
-        bamFile.setReferenceId(referenceId);
-        bamFile.setPath(bamUrl);
-        bamFile.setType(BiologicalDataItemResourceType.getTypeFromPath(bamUrl));
-
-        BiologicalDataItem index = new BiologicalDataItem();
-        index.setPath(bamIndexUrl);
-        index.setType(BiologicalDataItemResourceType.getTypeFromPath(bamIndexUrl));
-        index.setFormat(BiologicalDataItemFormat.BAM_INDEX);
-        bamFile.setIndex(index);
-
-        return bamFile;
+    public BamFile makeUrlBamFile(String bamUrl, String bamIndexUrl, Chromosome chromosome)
+            throws FeatureFileReadingException {
+        try {
+            return Utils.createNonRegisteredFile(BamFile.class, bamUrl, bamIndexUrl, chromosome);
+        } catch (InvocationTargetException e) {
+            throw new FeatureFileReadingException(bamUrl, e);
+        }
     }
 
     //for the case when the resource type is file
@@ -272,10 +269,9 @@ public class BamHelper {
         final BamFile newBamFile = new BamFile();
         final String alternativeName = request.getName();
 
-        newBamFile.setName(parseName(new File(request.getPath()).getName(), alternativeName, request.getType()));
+        newBamFile.setName(parseName(request.getPath(), alternativeName, request.getType()));
         newBamFile.setType(request.getType());
         newBamFile.setFormat(BiologicalDataItemFormat.BAM);
-        newBamFile.setCreatedBy(AuthUtils.getCurrentUserId());
         newBamFile.setReferenceId(request.getReferenceId());
         newBamFile.setCreatedDate(new Date());
         newBamFile.setPath(request.getPath());
@@ -285,7 +281,6 @@ public class BamHelper {
         indexItem.setName("");
         indexItem.setType(request.getIndexType() == null ? request.getType() : request.getIndexType());
         indexItem.setFormat(BiologicalDataItemFormat.BAM_INDEX);
-        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
         indexItem.setCreatedDate(new Date());
         indexItem.setBucketId(request.getIndexS3BucketId() == null ? request.getS3BucketId() : request.
                 getIndexS3BucketId());
@@ -295,8 +290,9 @@ public class BamHelper {
         return newBamFile;
     }
 
-    protected String parseName(final String fileName, final String alternativeName,
+    protected String parseName(final String filePath, final String alternativeName,
             BiologicalDataItemResourceType type) {
+        String fileName = FilenameUtils.getName(filePath);
         if (type == BiologicalDataItemResourceType.URL) {
             return defaultString(trimToNull(alternativeName), fileName);
         }
@@ -504,14 +500,31 @@ public class BamHelper {
     }
 
     private SamInputResource getS3Index(SamInputResource samInputResource,
-            BiologicalDataItem indexFile) {
-        Assert.notNull(indexFile.getBucketId(), getMessage(MessagesConstants.ERROR_S3_BUCKET));
-        final Bucket bucket = bucketManager.loadBucket(indexFile.getBucketId());
-        Assert.notNull(bucket, getMessage(MessagesConstants.ERROR_S3_BUCKET));
-        final AmazonS3 s3Client = new AmazonS3Client(new BasicAWSCredentials(bucket.getAccessKeyId(),
-                bucket.getSecretAccessKey()));
-        return samInputResource.index(s3Client.generatePresignedUrl(bucket.getBucketName(), indexFile.getPath(),
-                Utils.getTimeForS3URL()));
+                                        BiologicalDataItem indexFile) throws IOException {
+        byte[] indexBuffer = fetchS3BamIndex(indexFile);
+        return samInputResource.index(new SeekableMemoryStream(indexBuffer, indexFile.getPath()));
+    }
+
+    private byte[] fetchS3BamIndex(BiologicalDataItem indexFile) throws IOException {
+        String indexPath = indexFile.getPath();
+        byte[] indexBuffer;
+        if (indexCache != null) {
+            if (indexCache.contains(indexPath)) {
+                LOG.debug("get from cache index: " + indexPath);
+                indexBuffer = ((BamIndex) indexCache.getFromCache(indexPath)).content;
+
+            } else {
+                long start = System.currentTimeMillis();
+                indexBuffer = IOUtils.toByteArray(S3Client.getInstance().loadFully(indexPath));
+                LOG.debug("put in cache index: " + indexPath);
+                indexCache.putInCache(new BamIndex(indexPath, indexBuffer), indexPath);
+                LOG.debug("download BAM index time: " + (System.currentTimeMillis() - start));
+            }
+        } else {
+            LOG.info("index cache isn't initialized");
+            indexBuffer = IOUtils.toByteArray(S3Client.getInstance().loadFully(indexPath));
+        }
+        return indexBuffer;
     }
 
     private SamInputResource loadFile(final BamFile bamFile)
@@ -542,13 +555,8 @@ public class BamHelper {
         return SamInputResource.of(new HdfsSeekableInputStream(inBam));
     }
 
-    @NotNull private SamInputResource getS3SamInputResource(BamFile bamFile) {
-        final Bucket bucket = bucketManager.loadBucket(bamFile.getBucketId());
-        Assert.notNull(bucket, getMessage(MessagesConstants.ERROR_S3_BUCKET));
-        final AmazonS3 s3Client = new AmazonS3Client(new BasicAWSCredentials(bucket.getAccessKeyId(),
-                bucket.getSecretAccessKey()));
-        return SamInputResource.of(s3Client.generatePresignedUrl(bucket.getBucketName(), bamFile.getPath(),
-                Utils.getTimeForS3URL()));
+    @NotNull private SamInputResource getS3SamInputResource(BamFile bamFile) throws IOException {
+        return SamInputResource.of(S3SeekableStreamFactory.getInstance().getStreamFor(bamFile.getPath()));
     }
 
     private SamReader openSamReaderResource(final SamInputResource inputResource,
@@ -578,4 +586,22 @@ public class BamHelper {
         Assert.notNull(iterator);
     }
 
+    static class BamIndex implements IndexCache {
+
+        private final String path;
+        private final byte[] content;
+
+        BamIndex(String path, byte[] content) {
+            this.path = path;
+            this.content = content;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public byte[] getContent() {
+            return content;
+        }
+    }
 }

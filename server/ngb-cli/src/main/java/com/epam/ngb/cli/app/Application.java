@@ -67,6 +67,12 @@ public class Application {
             + "ran\tremove_ann\t: remove a annotation file from the list of reference annotation files"
             + "\t{ran grch38 annotations.gtf}\n"
             + "rg\tremove_genes\t: removes a gene file from the reference\t{rg grch38}\n\n"
+            + "SPECIES commands:\n"
+            + "rs\treg_spec\t: registers a species\t{rs \\species\\name \\species\\version}\n"
+            + "ds\tdel_spec\t: unregisters a species \t{ds \"hg19\"}\n"
+            + "as\tadd_spec\t: adds a registered species to the registered reference\t{as grch38 \"hg19\"}\n"
+            + "remove_spec\t: removes a species from the reference\t{remove_spec grch38}\n"
+            + "list_spec\t: lists all species, registered on the server\t{list_spec}\n\n"
             + "FILE commands:\n"
             + "rf\treg_file\t: registers a feature file for a specified reference\t"
             + "{rf grch38 \\path\\to\\file.bam?\\path\\to\\file.bam.bai -n my_vcf}\n"
@@ -90,13 +96,21 @@ public class Application {
             + "ADDITIONAL commands:\n"
             + "url\t\t: generate url for displaying required files. "
                                        + "{url my_dataset}\n\n"
+            + "SECURITY commands:\n"
+            + "ru\treg_user\t: registers user (roles can be specified by -gr (--groups) option) {ru example@example.com -gr Developers,OA}\n"
+            + "du\tdel_user\t: deletes existing user by id or name {du example@example.com}\n"
+            + "rgrp\treg_group\t: registers new group (option -u (--users) can be used to assign the group on list of users) {rgrp example_group -u example@example.com,example2@example.com}\n"
+            + "dgrp\tdel_group\t: deletes existing user group by id or name {dgrp group_name}\n"
+            + "agrp\tadd_group\t: adds existing users to an existing group (users can be specified with option -u (--users) by names or ids) {agrp group_name -u example@example.com,example2@example.com}\n"
+            + "chmod\t\t: command to be used for granting permission {chmod rw+ --files <filename> --users <username>}\n"
             + "TOOLS commands:\n"
             + "sort\t\t: sorts given feature file. If target path is not specified, sorted file will be stored in the "
             + "same folder as the original one with the `.sorted.` suffix in the name.\n"
             + "CONFIGURATION commands:\n"
             + "srv\tset_srv\t\t: sets working server url for CLI\tsrv http://{SERVER_IP_OR_NAME}:"
             + "{SERVER_PORT}/catgenome\n"
-            + "v\tversion\t\t: prints CLI version to the console standard output\n\n"
+            + "v\tversion\t\t: prints CLI version to the console standard output\n"
+            + "st\tset_token\t\t: sets JWT token to authorize CLI calls to NGB server\n\n"
             + "Available options (options may go before, after or between the arguments):\n";
 
     @Option(name = "-n", usage = "explicitly specifies file name for registration", aliases = {
@@ -152,6 +166,27 @@ public class Application {
             aliases = {"--pretty"})
     private String prettyName;
 
+    @Option(name = "-nt", usage = "defines if tabix index shouldn't be rewritten during file reindexing",
+            aliases = {"--no-tabix"})
+    private boolean doNotCreateTabixIndex = false;
+
+    @Option(name = "-s", usage = "specifies reference genome species version for registration", aliases = {"--species"})
+    private String speciesVersion;
+
+    @Option(name = "-ds", usage = "Datasets for permission update",  aliases = {"--datasets"})
+    private String datasets;
+
+    @Option(name = "-fl", usage = "Files for permission update",  aliases = {"--files"})
+    private String files;
+
+    @Option(name = "-u", usage = "Users for permission update",  aliases = {"--users"})
+    private String users;
+
+    @Option(name = "-gr", usage = "Groups for permission update",  aliases = {"--groups"})
+    private String groups;
+
+    @Option(name = "-perm", usage = "shows permissions", aliases = {"--permissions"})
+    private boolean showPermissions = false;
 
     @Argument
     private List<String> arguments;
@@ -237,10 +272,19 @@ public class Application {
         options.setNoGCContent(noGCContent);
         options.setForceDeletion(forceDeletion);
         options.setPrettyName(prettyName);
+        options.setSpeciesVersion(speciesVersion);
+        options.setUsers(users);
+        options.setGroups(groups);
+        options.setFiles(files);
+        options.setDatasets(datasets);
+        if (doNotCreateTabixIndex) {
+            options.setCreateTabixIndex(false);
+        }
         if (doNotIndex) {
             options.setDoIndex(false);
         }
         options.setMaxMemory(maxMemory);
+        options.setShowPermissions(showPermissions);
         return options;
     }
 

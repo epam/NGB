@@ -240,14 +240,15 @@ export class BAMTrack extends ScrollableTrack {
     constructor(opts) {
         super(opts);
         this.state.readsViewMode = parseInt(this.state.readsViewMode);
-        this.cacheService = new BamCacheService(this,  Object.assign({}, this.trackConfig, this.config));
+        this.cacheService = new BamCacheService(this, Object.assign({}, this.trackConfig, this.config));
         this._bamRenderer = new BamRenderer(this.viewport, Object.assign({}, this.trackConfig, this.config), this._pixiRenderer, this.cacheService, opts);
 
         const bamSettings = {
             chromosomeId: this.config.chromosomeId,
             id: this.config.openByUrl ? undefined : this.config.id,
             file: this.config.openByUrl ? this.config.bioDataItemId : undefined,
-            index: this.config.openByUrl ? this.config.indexPath : undefined
+            index: this.config.openByUrl ? this.config.indexPath : undefined,
+            projectId: this.config.project ? this.config.project.id : undefined,
         };
         const bamRenderSettings = Object.assign({
             filterFailedVendorChecks: true,
@@ -299,6 +300,33 @@ export class BAMTrack extends ScrollableTrack {
         this.cacheService.cache.groupMode = this.state.groupMode;
     }
 
+    trackSettingsChanged(params) {
+        if (this.config.bioDataItemId === params.id) {
+            const settings = params.settings;
+            settings.forEach(setting => {
+                const menuItem = menuUtilities.findMenuItem(this._menu, setting.name);
+                if (menuItem.type === 'checkbox') {
+                    if (setting.name === 'coverage>scale>manual') {
+                        if (setting.value) {
+                            this.state.coverageScaleFrom = setting.extraOptions.from;
+                            this.state.coverageScaleTo = setting.extraOptions.to;
+                            this.state.coverageScaleMode = scaleModes.manualScaleMode;
+                        } else {
+                            this.state.coverageScaleMode = scaleModes.defaultScaleMode;
+                        }
+                        this._flags.dataChanged = true;
+                    } else if (setting.name.indexOf("bam>readsView") !== -1 && setting.name !== "bam>readsView>pairs") {
+                        menuItem.enable();
+                    } else {
+                        setting.value ? menuItem.enable() : menuItem.disable();
+                    }
+                } else if (menuItem.type === 'button') {
+                    menuItem.perform();
+                }
+            })
+        }
+    }
+
     globalSettingsChanged(state) {
         super.globalSettingsChanged(state);
         let shouldReloadData = this._bamRenderer.globalSettingsChanged(state)
@@ -309,7 +337,8 @@ export class BAMTrack extends ScrollableTrack {
             chromosomeId: this.config.chromosomeId,
             id: this.config.openByUrl ? undefined : this.config.id,
             file: this.config.openByUrl ? this.config.bioDataItemId : undefined,
-            index: this.config.openByUrl ? this.config.indexPath : undefined
+            index: this.config.openByUrl ? this.config.indexPath : undefined,
+            projectId: this.config.project ? this.config.project.id : undefined
         };
         const maxBpCount = 10000;
         const minBpCount = 50;
@@ -369,7 +398,7 @@ export class BAMTrack extends ScrollableTrack {
             };
         }
 
-        Promise.resolve().then(async() => {
+        Promise.resolve().then(async () => {
             if (shouldReloadData) {
                 await this.updateCache();
             }
@@ -403,7 +432,7 @@ export class BAMTrack extends ScrollableTrack {
     alignmentsVisibilityChanged() {
         if (this.state.alignments) {
             this.invalidateCache();
-            Promise.resolve().then(async() => {
+            Promise.resolve().then(async () => {
                 await this.updateCache();
                 this._flags.renderFeaturesChanged = true;
                 this.requestRenderRefresh();

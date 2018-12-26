@@ -39,7 +39,6 @@ import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.protein.ProteinSequenceEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * Source:      EntityHelper.java
@@ -92,6 +91,7 @@ public final class EntityHelper {
     };
 
     private static final int HUMAN_CHROMOSOME_LENGTH = 239107476;
+    public static final String TEST_OWNER = "TEST_USER";
 
     public static Reference createReference() {
         final Reference reference = new Reference();
@@ -99,10 +99,10 @@ public final class EntityHelper {
         reference.setName("Test.Reference.0.0.1");
         reference.setPath("/contents/tests/references/" + reference.getId());
         reference.setCreatedDate(DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH));
-        reference.setCreatedBy(AuthUtils.getCurrentUserId());
         reference.setType(BiologicalDataItemResourceType.FILE);
         reference.setIndex(createIndex(BiologicalDataItemFormat.REFERENCE_INDEX,
                 BiologicalDataItemResourceType.FILE, ""));
+        reference.setOwner(TEST_OWNER);
         final String[] dictionary = new String[]{"A1", "A2", "X"};
         for (String name : dictionary) {
             final Chromosome chromosome = new Chromosome(name, CHROMOSOME_LENGTH);
@@ -141,6 +141,7 @@ public final class EntityHelper {
         reference.setChromosomes(Collections.singletonList(chromosome));
         reference.setIndex(createIndex(BiologicalDataItemFormat.REFERENCE_INDEX,
                 BiologicalDataItemResourceType.FILE, ""));
+        reference.setOwner(TEST_OWNER);
         return reference;
     }
 
@@ -154,6 +155,7 @@ public final class EntityHelper {
         reference.setChromosomes(chromosomes);
         reference.setIndex(createIndex(BiologicalDataItemFormat.REFERENCE_INDEX,
                 BiologicalDataItemResourceType.FILE, ""));
+        reference.setOwner(TEST_OWNER);
         return reference;
     }
 
@@ -180,7 +182,7 @@ public final class EntityHelper {
         index.setFormat(format);
         index.setPath(path);
         index.setCreatedDate(new Date());
-        index.setCreatedBy(AuthUtils.getCurrentUserId());
+        index.setOwner(TEST_OWNER);
 
         return index;
     }

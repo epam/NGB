@@ -45,6 +45,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 @Service
 public class NCBIClinVarManager {
 
+    private static final String CLINVAR_LINK_TEMPLATE = "https://www.ncbi.nlm.nih.gov/clinvar?term=rs%s";
+
     private JsonMapper mapper = new JsonMapper();
 
     @Autowired
@@ -61,12 +63,21 @@ public class NCBIClinVarManager {
             throws ExternalDbUnavailableException {
         try {
             JsonNode root = ncbiAuxiliaryManager.summaryEntityById(NCBIDatabase.CLINVAR.name(), id);
-            return mapper.treeToValue(root, NCBIClinVarVO.class);
+            NCBIClinVarVO ncbiClinVarVO = mapper.treeToValue(root, NCBIClinVarVO.class);
+            if (ncbiClinVarVO.getClinicalSignificance() != null
+                    && ncbiClinVarVO.getClinicalSignificance().isPathogenic()) {
+                generateClinVarLink(id, ncbiClinVarVO);
+            }
+            return ncbiClinVarVO;
         } catch (JsonProcessingException e) {
             throw new ExternalDbUnavailableException(getMessage(MessagesConstants
                     .ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
         }
 
+    }
+
+    public void generateClinVarLink(String id, NCBIClinVarVO ncbiClinVarVO) {
+        ncbiClinVarVO.setClinvarLink(String.format(CLINVAR_LINK_TEMPLATE, id));
     }
 
 }

@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.dao;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.Arrays;
@@ -45,7 +46,6 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.helper.EntityHelper;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * Source:      GeneDaoTest
@@ -77,12 +77,12 @@ public class GeneDaoTest extends AbstractDaoTest {
 
         geneFile.setId(geneFileDao.createGeneFileId());
         geneFile.setName("testFile");
-        geneFile.setCreatedBy(AuthUtils.getCurrentUserId());
         geneFile.setCreatedDate(new Date());
         geneFile.setReferenceId(reference.getId());
         geneFile.setType(BiologicalDataItemResourceType.FILE);
         geneFile.setFormat(BiologicalDataItemFormat.GENE);
         geneFile.setPath("///");
+        geneFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.GENE_INDEX,
                 BiologicalDataItemResourceType.FILE, "////");
@@ -96,10 +96,8 @@ public class GeneDaoTest extends AbstractDaoTest {
         GeneFile loadedFile = geneFileDao.loadGeneFile(geneFile.getId());
 
         assertNotNull(loadedFile);
+        assertEquals(geneFile.getOwner(), loadedFile.getOwner());
 
-        List<GeneFile> files = geneFileDao.loadGeneFilesByReferenceId(reference.getId());
-        assertNotNull(files);
-        Assert.assertFalse(files.isEmpty());
     }
 
     @Test
@@ -109,12 +107,12 @@ public class GeneDaoTest extends AbstractDaoTest {
 
         geneFile.setId(geneFileDao.createGeneFileId());
         geneFile.setName("testFile");
-        geneFile.setCreatedBy(AuthUtils.getCurrentUserId());
         geneFile.setCreatedDate(new Date());
         geneFile.setReferenceId(reference.getId());
         geneFile.setType(BiologicalDataItemResourceType.FILE);
         geneFile.setFormat(BiologicalDataItemFormat.GENE);
         geneFile.setPath("///");
+        geneFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.GENE_INDEX,
                 BiologicalDataItemResourceType.FILE, "////");

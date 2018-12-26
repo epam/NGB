@@ -109,7 +109,8 @@ export default class ngbVariantVisualizerService {
                 fileUrl: variant.openByUrl ? variant.fileUrl : undefined,
                 indexUrl: variant.openByUrl ? variant.indexUrl : undefined,
                 chromosomeId: variant.chromosomeId,
-                position: variant.position
+                position: variant.position,
+                projectId: variant.projectIdNumber,
             });
             if (!variantData) {
                 return {
@@ -210,7 +211,12 @@ export default class ngbVariantVisualizerService {
 
         if (selectedGeneFile) {
             for (let i = 0; i < breakpoints.length; i++) {
-                breakpoints[i].affectedGenes = await this.getAffectedGenes(breakpoints[i], selectedGeneFile.id);
+                breakpoints[i].affectedGenes = await this.getAffectedGenes(
+                    breakpoints[i],
+                    selectedGeneFile.id,
+                    null,
+                    selectedGeneFile.projectIdNumber
+                );
                 if (!breakpoints[i].affectedGenes || breakpoints[i].affectedGenes.length === 0) {
                     breakpoints[i].affectedGenes = this.getEmptyAffectedGenes(i);
                 }
@@ -371,7 +377,7 @@ export default class ngbVariantVisualizerService {
         return visualizerData;
     }
 
-    async getAffectedGenes(breakpoint, geneFileId, genes) {
+    async getAffectedGenes(breakpoint, geneFileId, genes, geneProjectId = null) {
         const fakeRange = 1;
         if (breakpoint.chromosome.id === null || breakpoint.chromosome.id === undefined) {
             const chromosome = await this._genomeDataService.loadChromosomeByName(this.referenceId, breakpoint.chromosome.name);
@@ -387,6 +393,7 @@ export default class ngbVariantVisualizerService {
         if (!data) {
             data = await this._geneDataService.loadGeneTranscriptTrack({
                 id: geneFileId,
+                projectId: geneProjectId || undefined,
                 chromosomeId: breakpoint.chromosome.id,
                 startIndex: range.start,
                 endIndex: range.end,
@@ -403,7 +410,10 @@ export default class ngbVariantVisualizerService {
     }
 
     getEmptyAffectedGenes(index) {
-        return [{empty: true, name: `empty_${  index}`}];
+        return [{empty: true, name: `empty_${  index}`,
+            selectedTranscript: {empty: true, name: 'empty_transcript', canonicalCds: []},
+            transcripts: [{empty: true, name: 'empty_transcript', canonicalCds: []}]
+        }];
     }
 
     getAffectedGeneInfo(breakpoint, gene) {
@@ -954,6 +964,7 @@ export default class ngbVariantVisualizerService {
             // Downloading exon / intron structure
             let data = await this._geneDataService.loadGeneTranscriptTrack({
                 id: selectedGeneFile.id,
+                projectId: selectedGeneFile.projectIdNumber || undefined,
                 chromosomeId: this.chromosome.id,
                 startIndex: range.start,
                 endIndex: range.end,

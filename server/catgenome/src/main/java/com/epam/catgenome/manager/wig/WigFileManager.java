@@ -27,6 +27,10 @@ package com.epam.catgenome.manager.wig;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
+import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.security.acl.aspect.AclSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -52,8 +56,9 @@ import com.epam.catgenome.entity.wig.WigFile;
  * in the system
  * </p>
  */
+@AclSync
 @Service
-public class WigFileManager {
+public class WigFileManager implements SecuredEntityManager {
 
     @Autowired
     private WigFileDao wigFileDao;
@@ -74,7 +79,6 @@ public class WigFileManager {
 
         Assert.notNull(wigFile.getName());
         Assert.notNull(wigFile.getReferenceId());
-        Assert.notNull(wigFile.getCreatedBy());
         Assert.notNull(wigFile.getPath());
         Assert.notNull(wigFile.getType());
         Assert.notNull(wigFile.getFormat());
@@ -82,7 +86,7 @@ public class WigFileManager {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public Long createWigFileId() {
+    public Long create() {
         return wigFileDao.createWigFileId();
     }
 
@@ -92,20 +96,10 @@ public class WigFileManager {
      * @param wigFileId {@code long} a WigFile ID
      * @return {@code WigFile} instance
      */
+    @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public WigFile loadWigFile(Long wigFileId) {
+    public WigFile load(Long wigFileId) {
         return wigFileDao.loadWigFile(wigFileId);
-    }
-
-    /**
-     * Loads {@code WigFile} records, saved for a specific reference ID
-     *
-     * @param referenceId {@code long} a reference ID in the system
-     * @return {@code List&lt;WigFile&gt;} instance
-     */
-    @Transactional(propagation = Propagation.REQUIRED)
-    public List<WigFile> loadWigFilesByReferenceId(long referenceId) {
-        return wigFileDao.loadWigFilesByReferenceId(referenceId);
     }
 
     /**
@@ -113,7 +107,7 @@ public class WigFileManager {
      * @param wigFile to delete
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deleteWigFile(WigFile wigFile) {
+    public void delete(WigFile wigFile) {
         List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(wigFile.getBioDataItemId());
         Assert.isTrue(projectsWhereFileInUse.isEmpty(), MessageHelper.getMessage(MessagesConstants.ERROR_FILE_IN_USE,
                 wigFile.getName(), wigFile.getId(), projectsWhereFileInUse.stream().map(BaseEntity::getName)
@@ -121,5 +115,23 @@ public class WigFileManager {
 
         wigFileDao.deleteWigFile(wigFile.getId());
         biologicalDataItemDao.deleteBiologicalDataItem(wigFile.getBioDataItemId());
+        if (wigFile.getIndex() != null) {
+            biologicalDataItemDao.deleteBiologicalDataItem(wigFile.getIndex().getId());
+        }
     }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public AbstractSecuredEntity changeOwner(Long id, String owner) {
+        WigFile file = load(id);
+        biologicalDataItemDao.updateOwner(file.getBioDataItemId(), owner);
+        file.setOwner(owner);
+        return file;
+    }
+
+    @Override
+    public AclClass getSupportedClass() {
+        return AclClass.WIG;
+    }
+
 }

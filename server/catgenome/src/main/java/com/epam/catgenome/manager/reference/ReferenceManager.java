@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.reference;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
+import com.epam.catgenome.entity.reference.Species;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -38,10 +39,11 @@ import java.util.List;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.track.ReferenceTrackMode;
+import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.reference.io.FastaSequenceFile;
 import com.epam.catgenome.manager.reference.io.FastaUtils;
-import com.epam.catgenome.util.AuthUtils;
+import com.epam.catgenome.util.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -78,9 +80,6 @@ import com.epam.catgenome.manager.gene.GeneFileManager;
 import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.manager.reference.io.NibDataReader;
 import com.epam.catgenome.manager.reference.io.NibDataWriter;
-import com.epam.catgenome.util.BlockCompressedDataInputStream;
-import com.epam.catgenome.util.BlockCompressedDataOutputStream;
-import com.epam.catgenome.util.Utils;
 
 /**
  * Source:      ReferenceManager.java
@@ -113,6 +112,9 @@ import com.epam.catgenome.util.Utils;
 
     @Autowired private BiologicalDataItemManager biologicalDataItemManager;
 
+    @Autowired
+    private AuthManager authManager;
+
     private static final Logger LOG = LoggerFactory.getLogger(ReferenceManager.class);
 
     /**
@@ -139,6 +141,7 @@ import com.epam.catgenome.util.Utils;
      * @return an {@code Reference} instance persisted in the system
      * @throws IOException
      */
+    @Transactional(propagation = Propagation.REQUIRED)
     public Reference registerGenome(final ReferenceRegistrationRequest request) throws IOException {
 
         final String name;
@@ -167,7 +170,6 @@ import com.epam.catgenome.util.Utils;
             if (reference.getCreatedDate() == null) {
                 reference.setCreatedDate(new Date());
             }
-            reference.setCreatedBy(AuthUtils.getCurrentUserId());
             if (reference.getType() == null) {
                 reference.setType(BiologicalDataItemResourceType.FILE);
             }
@@ -188,10 +190,17 @@ import com.epam.catgenome.util.Utils;
             if (request.getGeneFileId() != null) {
                 Assert.isTrue(request.getGeneFileRequest() == null,
                         getMessage(MessagesConstants.ERROR_REFERENCE_REGISTRATION_PARAMS));
-                GeneFile geneFile = geneFileManager.loadGeneFile(request.getGeneFileId());
+                GeneFile geneFile = geneFileManager.load(request.getGeneFileId());
                 reference.setGeneFile(geneFile);
             }
-            referenceGenomeManager.register(reference);
+            if (request.getSpecies() != null) {
+                String version = request.getSpecies().getVersion();
+                Species species = referenceGenomeManager.loadSpeciesByVersion(version);
+                Assert.notNull(species, getMessage(MessageCode.NO_SUCH_SPECIES, version));
+                reference.setSpecies(species);
+            }
+
+            referenceGenomeManager.create(reference);
             processGeneRegistrationRequest(request, reference);
             // sets this flag to 'true' that means all activities are performed successfully and no
             // rollback for applied changes are required
@@ -316,10 +325,10 @@ import com.epam.catgenome.util.Utils;
     public Reference unregisterGenome(final long referenceId) throws IOException {
         Assert.notNull(referenceId, MessagesConstants.ERROR_INVALID_PARAM);
         Assert.isTrue(referenceId > 0, MessagesConstants.ERROR_INVALID_PARAM);
-        Reference reference = referenceGenomeManager.loadReferenceGenome(referenceId);
+        Reference reference = referenceGenomeManager.load(referenceId);
         Assert.notNull(reference, MessagesConstants.ERROR_NO_SUCH_FILE);
 
-        referenceGenomeManager.unregister(reference);
+        referenceGenomeManager.delete(reference);
         fileManager.deleteReferenceDir(reference);
         return reference;
     }
@@ -549,7 +558,7 @@ import com.epam.catgenome.util.Utils;
             reference.getChromosomes().add(chromosome);
 
             //work with GC
-            if (!FastaUtils.isRemote(path) && createGC) {
+            if (!NgbFileUtils.isRemotePath(path) && createGC) {
                 byte[] sequence = referenceReader.getChromosome(chr);
                 try (BlockCompressedDataOutputStream gcStream = fileManager
                         .makeGCOutputStream(referenceId, chromosome)) {
@@ -564,7 +573,7 @@ import com.epam.catgenome.util.Utils;
     private void setIndex(Reference reference) {
         String path = reference.getPath();
         String indexPath;
-        if (!FastaUtils.isRemote(path) && !FastaUtils.hasIndex(path)) {
+        if (!NgbFileUtils.isRemotePath(path) && !FastaUtils.hasIndex(path)) {
             indexPath = fileManager.createReferenceIndex(reference);
         } else {
             indexPath = path + FastaUtils.FASTA_INDEX;
@@ -575,7 +584,7 @@ import com.epam.catgenome.util.Utils;
         indexItem.setFormat(BiologicalDataItemFormat.REFERENCE_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
-        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
+        indexItem.setOwner(authManager.getAuthorizedUser());
         reference.setIndex(indexItem);
     }
 
@@ -601,13 +610,12 @@ import com.epam.catgenome.util.Utils;
         indexItem.setFormat(BiologicalDataItemFormat.REFERENCE_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.GA4GH);
         indexItem.setName("");
-        indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
         reference.setIndex(indexItem);
         return lengthOfGenome;
     }
 
     private boolean isNibReference(String path) {
-        return !FastaUtils.isRemote(path) && !FastaUtils.isFasta(path);
+        return !NgbFileUtils.isRemotePath(path) && !FastaUtils.isFasta(path);
     }
 
     //method to support intermediate references not nib but without registered index item

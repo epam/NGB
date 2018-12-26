@@ -74,6 +74,8 @@ public final class MessagesConstants {
 
     public static final String ERROR_VARIATIONID_NOT_SPECIFIED = "error.no.variationid";
     public static final String ERROR_SPECIES_NOT_SPECIFIED = "error.no.species";
+    public static final String ERROR_INDEX_NOT_SPECIFIED = "error.no.index.cache";
+    public static final String ERROR_INDEX_URL_NOT_SPECIFIED = "error.no.index.url.cache";
     public static final String ERROR_CHROMOSOME_NOT_SPECIFIED = "error.no.chromosome";
     public static final String ERROR_STARTPOSITION_NOT_SPECIFIED = "error.no.startposition";
     public static final String ERROR_FINISHPOSITION_NOT_SPECIFIED = "error.no.finishposition";
@@ -160,6 +162,12 @@ public final class MessagesConstants {
     public static final String WRONG_HEADER_BAM_FILE = "error.header.bam.file";
     public static final String WRONG_HEADER_BAM_FILE_EMPTY_FILE = "error.header.bam.file.empty";
 
+    //BLAT SEARCH
+    public static final String NULL_SPECIES_FOR_GENOME = "error.reference.species.empty";
+    public static final String ERROR_NO_SUCH_SPECIES = "error.no.such.species";
+    public static final String ERROR_SPECIES_EXISTS = "error.species.already.exists";
+    public static final String INFO_UNREGISTERED_SPECIES = "info.unregistered.species";
+
     //WIG
     public static final String WRONG_WIG_FILE = "error.wig.file";
     public static final String WRONG_BED_GRAPH_FILE = "error.bedgraph.file";
@@ -225,6 +233,26 @@ public final class MessagesConstants {
     //SHORT_URLS
     public static final String ERROR_URL_WAS_EXPIRED = "error.url.was.expired";
     public static final String INFO_ALIAS_ALREADY_EXIST_MASSAGE = "info.alias.already.exist";
+
+    //JWT
+    public static final String ERROR_NO_JWT_PRIVATE_KEY_CONFIGURED = "error.no.jwt.private.key.configured";
+
+    //ACL SERVICES MESSAGES
+    public static final String ERROR_MUTABLE_ACL_RETURN = "error.mutable.acl.return";
+    // AUTHORIZATION
+    public static final String ERROR_USER_NAME_NOT_FOUND = "error.user.name.not.found";
+    public static final String ERROR_ACL_CLASS_NOT_SUPPORTED = "error.acl.class.not.supported";
+    public static final String ERROR_PERMISSION_PARAM_REQUIRED = "error.permission.param.required";
+    public static final String ERROR_ROLE_OR_USER_NOT_FOUND = "error.role.or.user.not.found";
+
+    // USER
+    public static final String ERROR_USER_NAME_REQUIRED = "error.user.name.required";
+    public static final String ERROR_USER_NAME_EXISTS = "error.user.name.exists";
+    public static final String ERROR_ROLE_ID_NOT_FOUND = "error.role.id.not.found";
+    public static final String ERROR_USER_ID_NOT_FOUND = "error.user.id.not.found";
+    public static final String ERROR_USER_LIST_EMPTY = "error.user.list.empty";
+    public static final String ERROR_ROLE_NAME_REQUIRED = "error.role.name.required";
+    public static final String ERROR_ROLE_ALREADY_EXIST = "error.role.already.exists";
 
     private MessagesConstants() {
         // No-op

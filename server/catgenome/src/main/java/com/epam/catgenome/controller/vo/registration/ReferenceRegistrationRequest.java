@@ -26,6 +26,7 @@
 package com.epam.catgenome.controller.vo.registration;
 
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
+import com.epam.catgenome.entity.reference.Species;
 
 /**
  * Source:      ReferenceRegistrationRequest
@@ -43,6 +44,7 @@ public class ReferenceRegistrationRequest extends DefaultFileRegistrationRequest
     private Long geneFileId;
     private FeatureIndexedFileRegistrationRequest geneFileRequest;
     private boolean noGCContent;
+    private Species species;
 
     public BiologicalDataItemResourceType getType() {
         return fileType;
@@ -74,5 +76,13 @@ public class ReferenceRegistrationRequest extends DefaultFileRegistrationRequest
 
     public void setNoGCContent(boolean noGCContent) {
         this.noGCContent = noGCContent;
+    }
+
+    public Species getSpecies() {
+        return species;
+    }
+
+    public void setSpecies(Species species) {
+        this.species = species;
     }
 }

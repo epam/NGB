@@ -1,0 +1,43 @@
+Bootstrap: docker
+From: ubuntu:16.04
+
+%setup
+    mkdir -p ${SINGULARITY_ROOTFS}/opt/ngb/
+
+%files
+    catgenome.jar /opt/ngb/
+    ngb-cli.tar.gz /opt/
+
+%environment
+    INSTALL_DIR=/opt/
+    NGB_HOME=/opt/ngb/
+    CLI_HOME=/opt/ngb-cli/bin/
+    NGS_DATA_DIR=/ngs/
+    PATH=$PATH:$CLI_HOME
+    export INSTALL_DIR NGB_HOME CLI_HOME NGS_DATA_DIR PATH
+
+
+%post
+    apt-get -y -q update
+    apt-get -y -q install wget openjdk-8-jre
+    cd /opt
+    tar -zxvf ngb-cli.tar.gz
+    rm ngb-cli.tar.gz
+    mkdir -p /ngs/
+	cd /opt/ngb
+	mkdir -p config
+	cd config
+	echo "file.browsing.allowed=true" >> catgenome.properties
+    echo "ngs.data.root.path=/ngs/" >> catgenome.properties
+
+
+%startscript
+	cd /opt/ngb
+	nohup java -Xmx2G -jar \
+		-Dhttp.proxyHost=${NGB_PROXY_HOST} \
+		-Dhttp.proxyPort=${NGB_PROXY_PORT} \
+		-Dhttps.proxyHost=${NGB_PROXY_HOST} \
+		-Dhttps.proxyPort=${NGB_PROXY_PORT} \
+		-Dhttp.nonProxyHosts="${NGB_NON_PROXIED_HOSTS}" \
+		-Dhttps.nonProxyHosts="${NGB_NON_PROXIED_HOSTS}" \
+		catgenome.jar > /dev/null 2>&1 < /dev/null &

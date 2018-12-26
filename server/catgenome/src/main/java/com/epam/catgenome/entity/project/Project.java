@@ -24,12 +24,16 @@
 
 package com.epam.catgenome.entity.project;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import com.epam.catgenome.entity.BaseEntity;
+import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.security.AbstractHierarchicalEntity;
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
+import lombok.NoArgsConstructor;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Source:      Project
@@ -41,9 +45,9 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
  * Represents a project entity, that describes user's workspace with tracks, that he worked with.
  * </p>
  */
-public class Project extends BaseEntity {
-    private Long createdBy;
-    private Date createdDate;
+@NoArgsConstructor
+public class Project extends AbstractHierarchicalEntity {
+
     private List<ProjectItem> items;
     private Integer itemsCount;
     private Map<BiologicalDataItemFormat, Integer> itemsCountPerFormat;
@@ -51,20 +55,79 @@ public class Project extends BaseEntity {
     private List<Project> nestedProjects;
     private Long parentId;
 
-    public Long getCreatedBy() {
-        return createdBy;
+    public Project(Long id) {
+        super(id);
     }
 
-    public void setCreatedBy(Long createdBy) {
-        this.createdBy = createdBy;
+    @Override
+    public List<? extends BiologicalDataItem> getLeaves() {
+        return items == null
+                ? Collections.emptyList()
+                : items.stream().map(ProjectItem::getBioDataItem).collect(Collectors.toList());
     }
 
-    public Date getCreatedDate() {
-        return createdDate;
+    @Override
+    public List<? extends AbstractHierarchicalEntity> getChildren() {
+        return nestedProjects == null ? Collections.emptyList() : nestedProjects;
     }
 
-    public void setCreatedDate(Date createdDate) {
-        this.createdDate = createdDate;
+    @Override
+    public void filterLeaves(Map<AclClass, Set<Long>> idToRemove) {
+        if (CollectionUtils.isEmpty(items)) {
+            return;
+        }
+
+        Set<ProjectItem> toRemove = new HashSet<>();
+        for (ProjectItem item : items) {
+            BiologicalDataItem leaf = item.getBioDataItem();
+            if (leaf.getFormat() == BiologicalDataItemFormat.REFERENCE
+                    || leaf.getFormat() == BiologicalDataItemFormat.REFERENCE_INDEX) {
+                continue;
+            }
+
+            Set<Long> ids = idToRemove.get(leaf.getAclClass());
+            if (!CollectionUtils.isEmpty(ids) && ids.contains(leaf.getId())) {
+                toRemove.add(item);
+            }
+        }
+        items.removeAll(toRemove);
+    }
+
+    @Override
+    public void filterChildren(Map<AclClass, Set<Long>> idToRemove) {
+        if (nestedProjects == null) {
+            return;
+        }
+
+        Set<Long> ids = idToRemove.get(AclClass.PROJECT);
+        if (CollectionUtils.isEmpty(ids)) {
+            return;
+        }
+        nestedProjects = nestedProjects.stream()
+                .filter(item -> !ids.contains(item.getId()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void clearForReadOnlyView() {
+        itemsCount = 0;
+        itemsCountPerFormat = new HashMap<>();
+
+        if (items == null) {
+            return;
+        }
+
+        for (ProjectItem item : items) {
+            itemsCount++;
+            BiologicalDataItemFormat itemFormat = item.getBioDataItem().getFormat();
+            itemsCountPerFormat.putIfAbsent(itemFormat, 0);
+            itemsCountPerFormat.computeIfPresent(itemFormat, (k, i) -> i + 1);
+        }
+    }
+
+    @Override
+    public AbstractSecuredEntity getParent() {
+        return parentId != null ? new Project(parentId) : null;
     }
 
     public List<ProjectItem> getItems() {
@@ -113,5 +176,10 @@ public class Project extends BaseEntity {
 
     public void setParentId(Long parentId) {
         this.parentId = parentId;
+    }
+
+    @Override
+    public AclClass getAclClass() {
+        return  AclClass.PROJECT;
     }
 }

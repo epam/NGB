@@ -284,6 +284,7 @@ export default class ShortenedIntronsViewport {
                 centerPosition: center,
                 chromosomeId: this._configuration.chromosomeId,
                 id: this._configuration.id,
+                projectId: this._configuration.projectIdNumber || undefined,
                 intronLength: this.intronLength,
                 viewPortSize: 2 * brushSize
             });
@@ -292,6 +293,7 @@ export default class ShortenedIntronsViewport {
                 chromosomeId: this._configuration.chromosomeId,
                 endIndex: Math.min(this._viewport.chromosome.end, end + (end - start) / 2),
                 id: this._configuration.id,
+                projectId: this._configuration.projectIdNumber || undefined,
                 intronLength: this.intronLength,
                 startIndex: Math.max(this._viewport.chromosome.start, start - (end - start) / 2),
             });

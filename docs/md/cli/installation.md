@@ -14,17 +14,17 @@ For details on running docker image and attaching to a container - see descripti
 To manually install NGB CLI one can use the following script:
 
 (replace the value for CLI_HOME variable, if needed)
-```
-//Create a directory for ngb-cli
-$ CLI_HOME=/opt/catgenome/cli
+```bash
+# Create a directory for ngb-cli
+$ CLI_HOME=/opt/catgenome
 
 $ mkdir $CLI_HOME && cd $CLI_HOME
 
-//Download and unpack ngb-cli
+# Download and unpack ngb-cli
 $ wget http://ngb.opensource.epam.com/distr/latest/ngb-cli-latest.tar.gz && \
     tar -zxvf ngb-cli-latest.tar.gz && \
     rm ngb-cli-latest.tar.gz
 
-//Write ngb-cli location to $PATH
-$ export PATH="$CLI_HOME/bin:$PATH
+# Write ngb-cli location to $PATH
+$ export PATH="$CLI_HOME/ngb-cli/bin:$PATH"
 ```

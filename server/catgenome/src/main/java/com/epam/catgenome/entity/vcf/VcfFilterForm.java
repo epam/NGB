@@ -29,15 +29,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queries.TermsQuery;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.PrefixQuery;
-import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.*;
 import org.springframework.util.Assert;
 
 import com.epam.catgenome.dao.index.FeatureIndexDao.FeatureIndexFields;
@@ -64,12 +62,14 @@ public class VcfFilterForm {
     private Integer pageSize;
     private List<OrderBy> orderBy;
 
+    private Pointer pointer;
+
     /**
      * Additional fields to show in Variations table
      */
     private List<String> infoFields;
 
-    private List<Long> vcfFileIds;
+    private Map<Long, List<Long>> vcfFileIdsByProject;
     private List<Long> chromosomeIds;
 
     /**
@@ -99,6 +99,17 @@ public class VcfFilterForm {
         addPositionFilter(builder);
         addAdditionalFilters(builder);
         return builder.build();
+    }
+
+    public boolean filterEmpty() {
+        return isFilterEmpty(variationTypes) && isFilterEmpty(genes) && isFilterEmpty(effects)
+                && isFilterEmpty(impacts) && MapUtils.isEmpty(additionalFilters)
+                && CollectionUtils.isEmpty(quality) && (isExon == null || !isExon) && startIndex == null &&
+                endIndex == null && CollectionUtils.isEmpty(chromosomeIds);
+    }
+
+    private <T> boolean isFilterEmpty(FilterSection<List<T>> filterSection) {
+        return filterSection == null || CollectionUtils.isEmpty(filterSection.field);
     }
 
     private void addAdditionalFilters(BooleanQuery.Builder builder) {
@@ -216,8 +227,8 @@ public class VcfFilterForm {
     }
 
     private void addVcfFileFilter(BooleanQuery.Builder builder) {
-        if (vcfFileIds != null && !vcfFileIds.isEmpty()) {
-            List<Term> terms = vcfFileIds.stream()
+        if (vcfFileIdsByProject != null && !vcfFileIdsByProject.isEmpty()) {
+            List<Term> terms = vcfFileIdsByProject.values().stream().flatMap(List::stream)
                     .map(vcfFileId -> new Term(FeatureIndexFields.FILE_ID.getFieldName(), vcfFileId.toString()))
                     .collect(Collectors.toList());
             TermsQuery termsQuery = new TermsQuery(terms);
@@ -335,12 +346,12 @@ public class VcfFilterForm {
         return genes;
     }
 
-    public List<Long> getVcfFileIds() {
-        return vcfFileIds;
+    public Map<Long, List<Long>> getVcfFileIdsByProject() {
+        return vcfFileIdsByProject;
     }
 
-    public void setVcfFileIds(List<Long> vcfFileIds) {
-        this.vcfFileIds = vcfFileIds;
+    public void setVcfFileIdsByProject(Map<Long, List<Long>> vcfFileIdsByProject) {
+        this.vcfFileIdsByProject = vcfFileIdsByProject;
     }
 
     public Map<String, Object> getAdditionalFilters() {
@@ -415,10 +426,18 @@ public class VcfFilterForm {
         this.endIndex = endIndex;
     }
 
+    public Pointer getPointer() {
+        return pointer;
+    }
+
+    public void setPointer(Pointer pointer) {
+        this.pointer = pointer;
+    }
+
     public static class FilterSection<T> {
+
         private T field;
         private boolean conjunction = false;
-
         public FilterSection(T field, boolean conjunction) {
             this.field = field;
             this.conjunction = conjunction;
@@ -447,9 +466,15 @@ public class VcfFilterForm {
         public void setConjunction(boolean conjunction) {
             this.conjunction = conjunction;
         }
+
+    }
+
+    public List<Long> getVcfFileIds() {
+        return vcfFileIdsByProject.values().stream().flatMap(List::stream).collect(Collectors.toList());
     }
 
     public static class OrderBy {
+
         private String field;
         private boolean desc = false;
 
@@ -477,5 +502,6 @@ public class VcfFilterForm {
         public void setDesc(boolean desc) {
             this.desc = desc;
         }
+
     }
 }

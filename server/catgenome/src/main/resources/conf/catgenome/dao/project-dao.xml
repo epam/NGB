@@ -11,19 +11,19 @@
                     INSERT INTO catgenome.project (
                         project_id,
                         project_name,
-                        created_by,
                         created_date,
                         parent_id,
                         project_pretty_name,
-                        last_opened_date)
+                        last_opened_date,
+                        owner)
                     VALUES (
                         :PROJECT_ID,
                         :PROJECT_NAME,
-                        :CREATED_BY,
                         :CREATED_DATE,
                         :PARENT_ID,
                         :PROJECT_PRETTY_NAME,
-                        now())
+                        now(),
+                        :OWNER)
                 ]]>
             </value>
         </property>
@@ -34,6 +34,16 @@
                         project_name = :PROJECT_NAME,
                         project_pretty_name = :PROJECT_PRETTY_NAME,
                         last_opened_date = now()
+                    WHERE
+                        project_id = :PROJECT_ID
+                ]]>
+            </value>
+        </property>
+        <property name="updateProjectOwnerQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.project SET
+                        owner = :OWNER
                     WHERE
                         project_id = :PROJECT_ID
                 ]]>
@@ -55,16 +65,15 @@
                     SELECT
                         project_id,
                         project_name,
-                        created_by,
                         created_date,
                         project_pretty_name,
                         last_opened_date,
-                        parent_id
+                        parent_id,
+                        owner
                     FROM
                         catgenome.project
                     WHERE
-                        created_by = ?
-                        AND parent_id IS NULL
+                        parent_id IS NULL
                     ORDER BY
                         last_opened_date desc
                 ]]>
@@ -76,34 +85,13 @@
                     SELECT
                         project_id,
                         project_name,
-                        created_by,
                         created_date,
                         project_pretty_name,
                         last_opened_date,
-                        parent_id
+                        parent_id,
+                        owner
                     FROM
                         catgenome.project
-                    WHERE
-                        created_by = ?
-                ]]>
-            </value>
-        </property>
-        <property name="loadTopLevelProjectsForUserQuery">
-            <value>
-                <![CDATA[
-                    SELECT
-                        project_id,
-                        project_name,
-                        created_by,
-                        created_date,
-                        project_pretty_name,
-                        last_opened_date,
-                        parent_id
-                    FROM
-                        catgenome.project
-                    WHERE
-                        created_by = ?
-                        AND parent_id IS NULL
                 ]]>
             </value>
         </property>
@@ -113,11 +101,11 @@
                     SELECT
                         project_id,
                         project_name,
-                        created_by,
                         created_date,
                         project_pretty_name,
                         last_opened_date,
-                        parent_id
+                        parent_id,
+                        owner
                     FROM
                         catgenome.project
                     WHERE
@@ -131,34 +119,15 @@
                     SELECT
                         project_id,
                         project_name,
-                        created_by,
                         created_date,
                         project_pretty_name,
                         last_opened_date,
-                        parent_id
+                        parent_id,
+                        owner
                     FROM
                         catgenome.project
                     WHERE
                         parent_id = ?
-                ]]>
-            </value>
-        </property>
-        <property name="loadProjectsByParentIdsQuery">
-            <value>
-                <![CDATA[
-                    SELECT
-                        project_id,
-                        project_name,
-                        created_by,
-                        created_date,
-                        project_pretty_name,
-                        last_opened_date,
-                        parent_id
-                    FROM
-                        catgenome.project p
-                        JOIN t_list tmp ON p.parent_id = tmp.list_value
-                    WHERE
-                        tmp.list_id = ?
                 ]]>
             </value>
         </property>
@@ -285,11 +254,11 @@
                     SELECT
                         project_id,
                         project_name,
-                        created_by,
                         created_date,
                         project_pretty_name,
                         last_opened_date,
-                        parent_id
+                        parent_id,
+                        owner
                     FROM
                         catgenome.project
                     WHERE
@@ -309,9 +278,9 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
@@ -332,7 +301,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -365,7 +333,6 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM
@@ -408,9 +375,9 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
@@ -431,7 +398,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -461,7 +427,6 @@
                     FROM
                         catgenome.biological_data_item b
                         JOIN catgenome.project_item pi ON pi.referred_bio_data_item_id = b.bio_data_item_id
-                        JOIN t_list tmp ON pi.referred_project_id = tmp.list_value
                         LEFT JOIN catgenome.vcf v ON v.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.gene_item g ON g.bio_data_item_id = b.bio_data_item_id
 
@@ -475,7 +440,7 @@
                         LEFT JOIN catgenome.seg s ON s.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.maf maf ON maf.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.vg vg ON vg.bio_data_item_id = b.bio_data_item_id
-                    WHERE tmp.list_id = ?
+                    WHERE pi.referred_project_id IN @in@
                 ]]>
             </value>
         </property>
@@ -492,9 +457,9 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
@@ -515,7 +480,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -567,31 +531,17 @@
                     SELECT
                         project_id,
                         project_name,
-                        created_by,
                         created_date,
                         project_pretty_name,
                         last_opened_date,
-                        parent_id
+                        parent_id,
+                        owner
                     FROM
                         catgenome.project p
                         JOIN catgenome.project_item pi ON pi.referred_project_id = p.project_id
                     WHERE
                         pi.referred_bio_data_item_id = ?
                 ]]>
-            </value>
-        </property>
-        <property name="loadProjectIdsByBioDataItemIdsQuery">
-            <value>
-                SELECT
-                    p.project_name,
-                    b.name
-                FROM
-                    catgenome.project_item pi
-                    JOIN t_list tmp ON tmp.list_value = pi.referred_bio_data_item_id
-                    JOIN catgenome.biological_data_item b ON b.bio_data_item_id = pi.referred_bio_data_item_id
-                    JOIN catgenome.project p ON p.project_id = pi.referred_project_id
-                WHERE
-                    tmp.list_id = ?
             </value>
         </property>
     </bean>

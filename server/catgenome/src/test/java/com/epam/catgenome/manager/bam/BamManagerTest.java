@@ -25,6 +25,15 @@
 package com.epam.catgenome.manager.bam;
 
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.util.MultipartFileSender;
 import com.epam.catgenome.controller.util.ResultReference;
@@ -35,7 +44,12 @@ import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationReques
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.bam.*;
+import com.epam.catgenome.entity.bam.BamFile;
+import com.epam.catgenome.entity.bam.BamQueryOption;
+import com.epam.catgenome.entity.bam.BamTrack;
+import com.epam.catgenome.entity.bam.BamTrackMode;
+import com.epam.catgenome.entity.bam.Read;
+import com.epam.catgenome.entity.bam.TrackDirectionType;
 import com.epam.catgenome.entity.bucket.Bucket;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
@@ -54,6 +68,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,15 +79,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Source:      BamManagerTest.java
@@ -105,6 +111,7 @@ public class BamManagerTest extends AbstractManagerTest {
     private BiologicalDataItemDao biologicalDataItemDao;
 
     @Autowired
+    @InjectMocks
     private BamManager bamManager;
 
     @Autowired
@@ -191,7 +198,7 @@ public class BamManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void saveBamTest() throws IOException, InterruptedException {
-        final String path = resource.getFile().getAbsolutePath() + "//agnX1.09-28.trim.dm606.realign.bam";
+        final String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(path);
         request.setIndexPath(path + BAI_EXTENSION);
@@ -202,12 +209,11 @@ public class BamManagerTest extends AbstractManagerTest {
 
         BamFile bamFile = bamManager.registerBam(request);
         Assert.assertNotNull(bamFile);
-        final BamFile loadBamFile = bamFileManager.loadBamFile(bamFile.getId());
+        final BamFile loadBamFile = bamFileManager.load(bamFile.getId());
         Assert.assertNotNull(loadBamFile);
         Assert.assertTrue(bamFile.getId().equals(loadBamFile.getId()));
         Assert.assertTrue(bamFile.getName().equals(loadBamFile.getName()));
         Assert.assertEquals(PRETTY_NAME, bamFile.getPrettyName());
-        Assert.assertTrue(bamFile.getCreatedBy().equals(loadBamFile.getCreatedBy()));
         Assert.assertTrue(bamFile.getCreatedDate().equals(loadBamFile.getCreatedDate()));
         Assert.assertTrue(bamFile.getReferenceId().equals(loadBamFile.getReferenceId()));
         Assert.assertTrue(bamFile.getPath().equals(loadBamFile.getPath()));
@@ -347,7 +353,7 @@ public class BamManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadRead() throws IOException {
-        final String path = resource.getFile().getAbsolutePath() + "//agnX1.09-28.trim.dm606.realign.bam";
+        final String path = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(path);
         request.setIndexPath(path + BAI_EXTENSION);
@@ -393,6 +399,30 @@ public class BamManagerTest extends AbstractManagerTest {
         option.setFrame(TEST_FRAME_SIZE);
         option.setCount(TEST_COUNT);
         return option;
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testLoadLocalNonRegisteredBam() throws Exception {
+        final String bamPath = resource.getFile().getAbsolutePath() + TEST_BAM_NAME;
+        final String indexPath = bamPath + BAI_EXTENSION;
+        Track<Read> fullTrackQ = new Track<>();
+        fullTrackQ.setStartIndex(TEST_START_INDEX_SMALL_RANGE);
+        fullTrackQ.setEndIndex(TEST_END_INDEX_SMALL_RANGE);
+        fullTrackQ.setScaleFactor(SCALE_FACTOR_SMALL);
+        fullTrackQ.setChromosome(new Chromosome(testChromosome.getId()));
+
+        BamQueryOption option = new BamQueryOption();
+        option.setTrackDirection(TrackDirectionType.MIDDLE);
+        option.setShowSpliceJunction(true);
+        option.setShowClipping(true);
+        option.setFrame(TEST_FRAME_SIZE);
+        option.setCount(TEST_COUNT);
+
+        ResponseEmitterMock emitterMock = new ResponseEmitterMock();
+        bamManager.sendBamTrackToEmitterFromUrl(fullTrackQ, option, bamPath, indexPath, emitterMock);
+        BamTrack<Read> fullTrack = emitterMock.getBamTrack();
+        testBamTrack(fullTrack);
     }
 
     @Test
@@ -469,7 +499,7 @@ public class BamManagerTest extends AbstractManagerTest {
         bucket.setBucketName(s3BucketName);
         bucket.setAccessKeyId(s3AccessKey);
         bucket.setSecretAccessKey(s3SecretKey);
-        bucketManager.saveBucket(bucket);
+        bucketManager.save(bucket);
 
         IndexedFileRegistrationRequest request = new IndexedFileRegistrationRequest();
         request.setPath(s3FilePath);
@@ -482,11 +512,11 @@ public class BamManagerTest extends AbstractManagerTest {
         request.setIndexType(BiologicalDataItemResourceType.S3);
         BamFile bamFile = bamManager.registerBam(request);
         Assert.assertNotNull(bamFile);
-        BamFile loadBamFile = bamFileManager.loadBamFile(bamFile.getId());
+        BamFile loadBamFile = bamFileManager.load(bamFile.getId());
         Assert.assertNotNull(loadBamFile);
 
         bamManager.unregisterBamFile(loadBamFile.getId());
-        loadBamFile = bamFileManager.loadBamFile(bamFile.getId());
+        loadBamFile = bamFileManager.load(bamFile.getId());
         Assert.assertNull(loadBamFile);
 
         List<BiologicalDataItem> items = biologicalDataItemDao.loadBiologicalDataItemsByIds(Arrays.asList(
@@ -508,10 +538,10 @@ public class BamManagerTest extends AbstractManagerTest {
 
         BamFile bamFile = bamManager.registerBam(request);
         Assert.assertNotNull(bamFile);
-        BamFile loadBamFile = bamFileManager.loadBamFile(bamFile.getId());
+        BamFile loadBamFile = bamFileManager.load(bamFile.getId());
         Assert.assertNotNull(loadBamFile);
         bamManager.unregisterBamFile(loadBamFile.getId());
-        loadBamFile = bamFileManager.loadBamFile(bamFile.getId());
+        loadBamFile = bamFileManager.load(bamFile.getId());
         Assert.assertNotNull(loadBamFile);
 
         List<BiologicalDataItem> items = biologicalDataItemDao.loadBiologicalDataItemsByIds(Arrays.asList(
@@ -677,6 +707,7 @@ public class BamManagerTest extends AbstractManagerTest {
         Assert.assertTrue(!read.getCigarString().isEmpty());
         Assert.assertNotNull(read.getFlagMask());
         Assert.assertNotNull(read.getMappingQuality());
+        Assert.assertNotNull(read.getReadGroup());
         Assert.assertNotNull(read.getTLen());
         Assert.assertNotNull(read.getPNext());
         Assert.assertNotNull(read.getRNext());
@@ -714,5 +745,4 @@ public class BamManagerTest extends AbstractManagerTest {
         request.setType(BiologicalDataItemResourceType.FILE);
         bamManager.registerBam(request);
     }
-
 }

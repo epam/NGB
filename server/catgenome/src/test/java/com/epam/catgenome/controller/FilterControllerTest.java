@@ -1,6 +1,8 @@
 package com.epam.catgenome.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -9,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.epam.catgenome.controller.vo.ItemsByProject;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import org.junit.Assert;
 import org.junit.Before;
@@ -19,6 +22,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -62,10 +66,10 @@ public class FilterControllerTest extends AbstractControllerTest {
     private GeneFile geneFile;
     private VcfFile vcfFile;
 
-    private static final String URL_FILTER_SEARCH_GENES = "/filter/searchGenes";
-    private static final String URL_FILTER = "/filter";
-    private static final String URL_FILTER_INFO = "/filter/info";
-    private static final String URL_FILTER_GROUP = "/filter/group";
+    private static final String URL_FILTER_SEARCH_GENES = "/restapi/filter/searchGenes";
+    private static final String URL_FILTER = "/restapi/filter";
+    private static final String URL_FILTER_INFO = "/restapi/filter/info";
+    private static final String URL_FILTER_GROUP = "/restapi/filter/group";
 
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
@@ -84,7 +88,7 @@ public class FilterControllerTest extends AbstractControllerTest {
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
         testReference = EntityHelper.createNewReference(testChromosome,
                 referenceGenomeManager.createReferenceId());
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
 
         Resource resource = wac.getResource(CLASSPATH_TEMPLATES_GENES_SORTED);
@@ -113,7 +117,7 @@ public class FilterControllerTest extends AbstractControllerTest {
     public void testSearchGenesInProject() throws Exception {
         GeneSearchQuery geneSearchQuery = new GeneSearchQuery();
         geneSearchQuery.setSearch("ENS");
-        geneSearchQuery.setVcfIds(Collections.singletonList(vcfFile.getId()));
+        geneSearchQuery.setVcfIdsByProject(Collections.singletonMap(0L, Collections.singletonList(vcfFile.getId())));
 
         ResultActions actions = mvc()
             .perform(post(URL_FILTER_SEARCH_GENES).content(
@@ -138,7 +142,8 @@ public class FilterControllerTest extends AbstractControllerTest {
     public void testGetFieldInfo() throws Exception {
         ResultActions actions = mvc()
             .perform(post(URL_FILTER_INFO).content(getObjectMapper().writeValueAsBytes(
-                Collections.singletonList(vcfFile.getId()))).contentType(EXPECTED_CONTENT_TYPE))
+                new ItemsByProject(Collections.singletonMap(0L, Collections.singletonList(vcfFile.getId())))))
+                    .contentType(EXPECTED_CONTENT_TYPE))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
             .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
@@ -160,14 +165,18 @@ public class FilterControllerTest extends AbstractControllerTest {
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
     public void testFilterVcf() throws Exception {
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
-        vcfFilterForm.setVcfFileIds(Collections.singletonList(vcfFile.getId()));
+        vcfFilterForm.setVcfFileIdsByProject(Collections.singletonMap(1L, Collections.singletonList(vcfFile.getId())));
         vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(Collections.singletonList("ENS"), false));
         vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.MNP,
                                                                                 VariationType.INS), false));
 
-        ResultActions actions = mvc()
-            .perform(post(URL_FILTER).content(
-                getObjectMapper().writeValueAsString(vcfFilterForm)).contentType(EXPECTED_CONTENT_TYPE))
+        MvcResult mvcResult = mvc()
+                .perform(post(URL_FILTER).content(
+                        getObjectMapper().writeValueAsString(vcfFilterForm)).contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        ResultActions actions = mvc().perform(asyncDispatch(mvcResult))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
             .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
@@ -191,9 +200,14 @@ public class FilterControllerTest extends AbstractControllerTest {
         vcfFilterForm.setGenes(null);
         vcfFilterForm.setVariationTypes(null);
 
+        mvcResult = mvc()
+                .perform(post(URL_FILTER).content(
+                        getObjectMapper().writeValueAsString(vcfFilterForm)).contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
         actions = mvc()
-            .perform(post(URL_FILTER).content(
-                getObjectMapper().writeValueAsString(vcfFilterForm)).contentType(EXPECTED_CONTENT_TYPE))
+            .perform(asyncDispatch(mvcResult))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
             .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
@@ -215,16 +229,21 @@ public class FilterControllerTest extends AbstractControllerTest {
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
     public void testGroupVariations() throws Exception {
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
-        vcfFilterForm.setVcfFileIds(Collections.singletonList(vcfFile.getId()));
+        vcfFilterForm.setVcfFileIdsByProject(Collections.singletonMap(1L, Collections.singletonList(vcfFile.getId())));
 
-        ResultActions actions = mvc()
+        MvcResult mvcResult = mvc()
             .perform(post(URL_FILTER_GROUP).content(getObjectMapper().writeValueAsString(vcfFilterForm))
                          .param("groupBy", "VARIATION_TYPE")
                          .contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(MockMvcResultMatchers.status().isOk())
-            .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
-            .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+            .andExpect(request().asyncStarted())
+            .andReturn();
+
+        ResultActions actions = mvc().perform(asyncDispatch(mvcResult))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(
+                        MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
         actions.andDo(MockMvcResultHandlers.print());
 
         ResponseResult<List<Group>> groupRes = getObjectMapper()

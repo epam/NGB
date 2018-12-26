@@ -30,19 +30,26 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 public final class TestDataProvider {
 
-    private static final Long DEFAULT_USER = 42L;
     private static final Date DEFAULT_DATE = getDefaultDate();
     private static final JsonMapper MAPPER = JsonMapper.getMapper();
     private static final String FILE_TYPE = "FILE";
 
     private TestDataProvider() {
         //no operations
+    }
+
+    public static String getSpeciesPayloadJson(String speciesName, String speciesVersion) {
+        SpeciesEntity speciesEntity = new SpeciesEntity();
+        speciesEntity.setName(speciesName);
+        speciesEntity.setVersion(speciesVersion);
+        return getPayloadJson(speciesEntity);
     }
 
     public static String getFilePayloadJson(Long id, Long bioItemId,
@@ -76,7 +83,6 @@ public final class TestDataProvider {
         BiologicalDataItem item = new BiologicalDataItem();
         item.setId(id);
         item.setBioDataItemId(bioItemId);
-        item.setCreatedBy(DEFAULT_USER);
         item.setCreatedDate(DEFAULT_DATE);
         item.setType(FILE_TYPE);
         item.setFormat(format);
@@ -108,6 +114,15 @@ public final class TestDataProvider {
         request.setItems(items);
         request.setType(BiologicalDataItemResourceType.FILE);
         request.setIndexType(BiologicalDataItemResourceType.FILE);
+        return getJson(request);
+    }
+
+    public static String getSpecRegistrationJson(String speciesName, String speciesVersion) {
+        RegistrationRequest request = new RegistrationRequest();
+        SpeciesEntity entity = new SpeciesEntity();
+        entity.setName(speciesName);
+        entity.setVersion(speciesVersion);
+        request.setSpecies(entity);
         return getJson(request);
     }
 
@@ -204,12 +219,34 @@ public final class TestDataProvider {
         return getProject(id, name, items, null);
     }
 
+    public static AclSecuredEntry buildAclSecuredEntry(AclSecuredEntry.Entity entity, String user, String group) {
+        AclSecuredEntry.Sid userSid = new AclSecuredEntry.Sid();
+        userSid.setPrincipal(true);
+        userSid.setName(user);
+
+        AclSecuredEntry.Sid groupSid = new AclSecuredEntry.Sid();
+        groupSid.setPrincipal(false);
+        groupSid.setName(group);
+
+        AclSecuredEntry.AclPermissionEntry permission1 = new AclSecuredEntry.AclPermissionEntry();
+        permission1.setMask(1);
+        permission1.setSid(userSid);
+
+        AclSecuredEntry.AclPermissionEntry permission2 = new AclSecuredEntry.AclPermissionEntry();
+        permission2.setMask(2);
+        permission2.setSid(groupSid);
+
+        AclSecuredEntry entry = new AclSecuredEntry();
+        entry.setEntity(entity);
+        entry.setPermissions(Arrays.asList(permission1, permission2));
+        return entry;
+    }
+
     public static Project getProject(Long id, String name, List<BiologicalDataItem> items,
             String prettyName) {
         Project project = new Project();
         project.setId(id);
         project.setName(name);
-        project.setCreatedBy(DEFAULT_USER);
         project.setCreatedDate(DEFAULT_DATE);
         project.setLastOpenedDate(DEFAULT_DATE);
         project.setItems(items);

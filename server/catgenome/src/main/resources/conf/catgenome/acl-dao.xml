@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ /*
+  ~  * MIT License
+  ~  *
+  ~  * Copyright (c) 2018 EPAM Systems
+  ~  *
+  ~  * Permission is hereby granted, free of charge, to any person obtaining a copy
+  ~  * of this software and associated documentation files (the "Software"), to deal
+  ~  * in the Software without restriction, including without limitation the rights
+  ~  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~  * copies of the Software, and to permit persons to whom the Software is
+  ~  * furnished to do so, subject to the following conditions:
+  ~  *
+  ~  * The above copyright notice and this permission notice shall be included in all
+  ~  * copies or substantial portions of the Software.
+  ~  *
+  ~  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  ~  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  ~  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  ~  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  ~  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  ~  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  ~  * SOFTWARE.
+  ~  */
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.security.acl.JdbcMutableAclServiceImpl" id="jdbcMutableAclService" autowire="constructor">
+        <property name="classIdentityQuery">
+            <value>
+                <![CDATA[
+                    SELECT currval('catgenome.acl_class_id_seq')
+                ]]>
+            </value>
+        </property>
+        <property name="sidIdentityQuery">
+            <value>
+                <![CDATA[
+                    SELECT currval('catgenome.acl_sid_id_seq')
+                ]]>
+            </value>
+        </property>
+        <property name="sidPrimaryKeyQuery">
+            <value>
+                <![CDATA[
+                    select id from catgenome.acl_sid where principal=? and sid=?
+                ]]>
+            </value>
+        </property>
+        <property name="insertSidSql">
+            <value>
+                <![CDATA[
+                    insert into catgenome.acl_sid (principal, sid) values (?, ?)
+                ]]>
+            </value>
+        </property>
+        <property name="classPrimaryKeyQuery">
+            <value>
+                <![CDATA[
+                    select id from catgenome.acl_class where class=?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteEntryByObjectIdentityForeignKeySql">
+            <value>
+                <![CDATA[
+                    delete from catgenome.acl_entry where acl_object_identity=?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteObjectIdentityByPrimaryKeySql">
+            <value>
+                <![CDATA[
+                    delete from catgenome.acl_object_identity where id=?
+                ]]>
+            </value>
+        </property>
+        <property name="findChildrenQuery">
+            <value>
+                <![CDATA[
+                    select obj.object_id_identity as obj_id, class.class as class
+                    from catgenome.acl_object_identity obj, catgenome.acl_object_identity parent, catgenome.acl_class class
+			        where
+			            obj.parent_object = parent.id
+			            and obj.object_id_class = class.id
+			            and parent.object_id_identity = ?
+			            and parent.object_id_class = (
+			                select id FROM catgenome.acl_class where acl_class.class = ?
+                        )
+                ]]>
+            </value>
+        </property>
+        <property name="insertClassSql">
+            <value>
+                <![CDATA[
+                    insert into catgenome.acl_class (class) values (?)
+                ]]>
+            </value>
+        </property>
+        <property name="insertEntrySql">
+            <value>
+                <![CDATA[
+                    insert into catgenome.acl_entry (
+                        acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure
+                    ) values (?, ?, ?, ?, ?, ?, ?)
+                ]]>
+            </value>
+        </property>
+        <property name="insertObjectIdentitySql">
+            <value>
+                <![CDATA[
+                    insert into catgenome.acl_object_identity (
+                        object_id_class, object_id_identity, owner_sid, entries_inheriting
+                    ) values (?, ?, ?, ?)
+                ]]>
+            </value>
+        </property>
+        <property name="objectIdentityPrimaryKeyQuery">
+            <value>
+                <![CDATA[
+                    select acl_object_identity.id
+                    from
+                        catgenome.acl_object_identity,
+                        catgenome.acl_class
+                    where
+                        acl_object_identity.object_id_class = acl_class.id and acl_class.class=?
+			            and acl_object_identity.object_id_identity = ?
+                ]]>
+            </value>
+        </property>
+        <property name="updateObjectIdentity">
+            <value>
+                <![CDATA[
+                    update catgenome.acl_object_identity set
+			            parent_object = ?, owner_sid = ?, entries_inheriting = ?
+			        where id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteEntriesBySidQuery">
+            <value>
+                <![CDATA[
+                    delete from catgenome.acl_entry where sid=?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteSidByIdQuery">
+            <value>
+                <![CDATA[
+                    delete from catgenome.acl_sid where id=?
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

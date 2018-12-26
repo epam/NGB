@@ -21,6 +21,9 @@
      -->
     <import resource="classpath:conf/catgenome/applicationContext-database.xml"/>
 
+    <!-- Registers and configures caching -->
+    <import resource="classpath:conf/catgenome/applicationContext-cache.xml"/>
+
     <import resource="classpath:test-applicationContext-flyway.xml"/>
 
     <!-- Registers required post-processors and enables auto-detection of annotated components,
@@ -35,6 +38,7 @@
     <context:component-scan base-package="com.epam.catgenome.manager"/>
     <context:component-scan base-package="com.epam.catgenome.util"/>
     <context:component-scan base-package="com.epam.catgenome.dao"/>
+    <context:component-scan base-package="com.epam.catgenome.security.jwt"/>
         <!-- Excludes all controllers from application context component scanning. All controllers
              should be scanned by in a proper MVC configuration
         -->
@@ -43,5 +47,7 @@
 
     <!-- Multipart resolver required to support file upload -->
     <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
+
+    <bean id="s3Manager" class="com.epam.catgenome.manager.aws.S3Manager" factory-method="singleton"/>
 
 </beans>

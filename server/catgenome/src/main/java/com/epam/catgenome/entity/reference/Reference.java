@@ -31,6 +31,7 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.IndexedDataItem;
 import com.epam.catgenome.entity.gene.GeneFile;
+import com.epam.catgenome.entity.security.AclClass;
 
 /**
  * {@code Reference} represents a business entity designed to handle information that
@@ -59,6 +60,10 @@ public class Reference extends IndexedDataItem {
      */
     private List<FeatureFile> annotationFiles;
 
+    /**
+     * Represents a species associated with the reference genome
+     */
+    private Species species;
 
     public Reference() {
         chromosomes = new ArrayList<>();
@@ -111,6 +116,14 @@ public class Reference extends IndexedDataItem {
         this.annotationFiles = annotationFiles;
     }
 
+    public Species getSpecies() {
+        return species;
+    }
+
+    public void setSpecies(Species species) {
+        this.species = species;
+    }
+
     @Override public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -142,5 +155,10 @@ public class Reference extends IndexedDataItem {
         result = 31 * result + (size != null ? size.hashCode() : 0);
         result = 31 * result + (chromosomes != null ? chromosomes.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public AclClass getAclClass() {
+        return AclClass.REFERENCE;
     }
 }

@@ -40,6 +40,7 @@ import com.epam.catgenome.exception.VcfReadingException;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 
 /**
  *  {@code AbstractVcfReader} provides an abstract implementation of
@@ -99,7 +100,8 @@ public abstract class AbstractVcfReader implements VcfReader {
      */
     @Override
     public abstract Track<Variation> readVariations(VcfFile vcfFile, Track<Variation> track, Chromosome chromosome,
-                            Integer sampleIndex, boolean loadInfo, boolean collapse) throws VcfReadingException;
+                            Integer sampleIndex, boolean loadInfo, boolean collapse,
+                                                    EhCacheBasedIndexCache indexCache) throws VcfReadingException;
 
     /**
      * Allows navigating between the neighbouring variations
@@ -114,5 +116,6 @@ public abstract class AbstractVcfReader implements VcfReader {
     @Override
     public abstract Variation getNextOrPreviousVariation(int fromPosition, VcfFile vcfFile,
                                                 Integer sampleIndex, Chromosome chromosome,
-                                                boolean forward) throws VcfReadingException;
+                                                boolean forward, EhCacheBasedIndexCache indexCache)
+            throws VcfReadingException;
 }

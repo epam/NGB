@@ -27,6 +27,10 @@ package com.epam.catgenome.manager.bam;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
+import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.security.acl.aspect.AclSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -49,8 +53,9 @@ import com.epam.catgenome.entity.project.Project;
  * Make:        IntelliJ IDEA 14.1.4, JDK 1.8
  * Provides service for managing {@code BamFile} in the system
  */
+@AclSync
 @Service
-public class BamFileManager {
+public class BamFileManager implements SecuredEntityManager {
 
     @Autowired
     private BamFileDao bamFileDao;
@@ -67,11 +72,10 @@ public class BamFileManager {
      * @param bamFile a {@code BamFile} instance to be persisted
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void save(BamFile bamFile) {
+    public void create(BamFile bamFile) {
         Assert.notNull(bamFile);
         Assert.notNull(bamFile.getName());
         Assert.notNull(bamFile.getReferenceId());
-        Assert.notNull(bamFile.getCreatedBy());
         Assert.notNull(bamFile.getPath());
 
         bamFileDao.createBamFile(bamFile);
@@ -83,20 +87,10 @@ public class BamFileManager {
      * @param bamFileId {@code long} a BamFile ID
      * @return {@code BamFile} instance
      */
+    @Override
     @Transactional(propagation = Propagation.SUPPORTS)
-    public BamFile loadBamFile(Long bamFileId) {
+    public BamFile load(Long bamFileId) {
         return bamFileDao.loadBamFile(bamFileId);
-    }
-
-    /**
-     * Loads {@code BamFile} records, saved for a specific reference ID
-     *
-     * @param referenceId {@code long} a reference ID in the system
-     * @return {@code List&lt;BamFile&gt;} instance
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<BamFile> loadBamFilesByReferenceId(long referenceId) {
-        return bamFileDao.loadBamFilesByReferenceId(referenceId);
     }
 
     /**
@@ -104,7 +98,7 @@ public class BamFileManager {
      * @param bamFile a {@code BamFile} to delete
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deleteBamFile(BamFile bamFile) {
+    public void delete(BamFile bamFile) {
         List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(bamFile.getBioDataItemId());
         Assert.isTrue(projectsWhereFileInUse.isEmpty(), MessageHelper.getMessage(MessagesConstants.ERROR_FILE_IN_USE,
                 bamFile.getName(), bamFile.getId(), projectsWhereFileInUse.stream().map(BaseEntity::getName)
@@ -114,4 +108,19 @@ public class BamFileManager {
         biologicalDataItemDao.deleteBiologicalDataItem(bamFile.getIndex().getId());
         biologicalDataItemDao.deleteBiologicalDataItem(bamFile.getBioDataItemId());
     }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public AbstractSecuredEntity changeOwner(Long id, String owner) {
+        BamFile bamFile = load(id);
+        biologicalDataItemDao.updateOwner(bamFile.getBioDataItemId(), owner);
+        bamFile.setOwner(owner);
+        return bamFile;
+    }
+
+    @Override
+    public AclClass getSupportedClass() {
+        return AclClass.BAM;
+    }
+
 }

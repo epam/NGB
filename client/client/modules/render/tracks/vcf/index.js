@@ -4,7 +4,8 @@ import {
     VCFCollapsedRenderer,
     VCFExpandedRenderer,
     VcfTransformer,
-    PlaceholderRenderer} from './internal';
+    PlaceholderRenderer
+} from './internal';
 import {GENETrack} from '../gene';
 import VcfConfig from './vcfConfig';
 import {VcfDataService} from '../../../../dataServices';
@@ -14,7 +15,7 @@ import {variantsView} from './modes';
 import {menu as menuUtilities} from '../../utilities';
 import {EventVariationInfo} from '../../../../app/shared/utils/events';
 
-export class VCFTrack extends GENETrack{
+export class VCFTrack extends GENETrack {
 
     _collapsedRenderer: VCFCollapsedRenderer = null;
     _lastHovered = null;
@@ -38,13 +39,15 @@ export class VCFTrack extends GENETrack{
 
         this._actions = [
             {
-                enabled: function() {return true;},
+                enabled: function () {
+                    return true;
+                },
                 label: 'Navigation',
                 type: 'groupLinks',
                 links: [{
                     label: 'Prev',
                     handleClick: ::this.prevVariation
-                },{
+                }, {
                     label: 'Next',
                     handleClick: ::this.nextVariation
                 }]
@@ -59,11 +62,23 @@ export class VCFTrack extends GENETrack{
         return false;
     }
 
+    trackSettingsChanged(params) {
+        if (this.config.bioDataItemId === params.id && this.config.format.toLowerCase() === 'vcf') {
+            const settings = params.settings;
+            settings.forEach(setting => {
+                const menuItem = menuUtilities.findMenuItem(this._menu, setting.name);
+                if (menuItem.type === 'checkbox') {
+                    menuItem.enable();
+                }
+            })
+        }
+    }
+
     globalSettingsChanged(state) {
         const changed = this._variantsMaximumRange !== state.variantsMaximumRange;
         this._variantsMaximumRange = state.variantsMaximumRange;
         super.globalSettingsChanged(state);
-        Promise.resolve().then(async() => {
+        Promise.resolve().then(async () => {
             if (changed && this._variantsMaximumRange > this.viewport.actualBrushSize) {
                 await this.updateCache();
             }
@@ -139,7 +154,7 @@ export class VCFTrack extends GENETrack{
         };
         const _hotKeyListener = ::this.hotKeyListener;
         const self = this;
-        this._removeHotKeyListener = function() {
+        this._removeHotKeyListener = function () {
             self.dispatcher.removeListener('hotkeyPressed', _hotKeyListener);
         };
         this.dispatcher.on('hotkeyPressed', _hotKeyListener);
@@ -251,7 +266,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
             if (checkPositionResult && checkPositionResult.length > 0) {
                 const variant = checkPositionResult[0].feature;
                 const self = this;
-                const mapFn = function(m) {
+                const mapFn = function (m) {
                     return {
                         chromosome: m.mate.chromosome,
                         chromosomeId: self.dataConfig.chromosomeId,
@@ -281,7 +296,8 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                         position: variant.serverStartIndex,
                         type: variant.type,
                         vcfFileId: this.dataConfig.id,
-                        projectId: this.config.projectId
+                        projectId: this.config.projectId,
+                        projectIdNumber: this.config.project.id
                     }
                 );
                 if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
@@ -307,7 +323,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                         position: m.displayPosition || m.position
                     };
                 };
-                const [endPoints] = variantContainer._endContainers.filter(m=>m.visible === true).map(mapEndContainersFn);
+                const [endPoints] = variantContainer._endContainers.filter(m => m.visible === true).map(mapEndContainersFn);
                 const variantRequest = new EventVariationInfo(
                     {
                         chromosome: {
@@ -319,7 +335,8 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                         position: variantContainer._variant.serverStartIndex,
                         type: variantContainer._variant.type,
                         vcfFileId: this.dataConfig.id,
-                        projectId: this.config.projectId
+                        projectId: this.config.projectId,
+                        projectIdNumber: this.config.project.id
                     }
                 );
                 if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
@@ -406,7 +423,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
     }
 
     prevVariation() {
-        const position =  Math.floor((this.viewport.brush.end + this.viewport.brush.start)/2);
+        const position = Math.floor((this.viewport.brush.end + this.viewport.brush.start) / 2);
         this._dataService.getPreviousVariations(this.config, this.projectContext.currentChromosome.id, position - 1).then(
             (data) => {
                 this.viewport.selectPosition(data.startIndex);
@@ -415,7 +432,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
     }
 
     nextVariation() {
-        const position =  Math.floor((this.viewport.brush.end + this.viewport.brush.start)/2);
+        const position = Math.floor((this.viewport.brush.end + this.viewport.brush.start) / 2);
         this._dataService.getNextVariations(this.config, this.projectContext.currentChromosome.id, position + 1).then(
             (data) => {
                 this.viewport.selectPosition(data.startIndex);

@@ -52,9 +52,9 @@ public class VariationQuery {
     private Long chromosomeId;
 
     /**
-     * A optional field to load genes, affected by variation
+     * A optional field to specify project that track belong to.
      */
-    private Long projectId;  // TODO: remove
+    private Long projectId;
 
     public final Long getId() {
         return id;

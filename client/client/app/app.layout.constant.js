@@ -45,6 +45,15 @@ export default  {
             title: 'Variants',
             name: 'layout>variants'
         },
+        blat: {
+            isHidden: true,
+            displayed: false,
+            icon: '',
+            panel: 'ngbBlatSearchPanel',
+            position: 'right',
+            title: 'Blat',
+            name: 'layout>blat'
+        },
         ...(() => {
             const devPanels = {
                 DevLog: {

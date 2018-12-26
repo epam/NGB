@@ -24,19 +24,16 @@
 
 package com.epam.catgenome.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.controller.util.UrlTestingUtils;
+import com.epam.catgenome.entity.track.Block;
 import org.eclipse.jetty.server.Server;
 import org.junit.Assert;
 import org.junit.Before;
@@ -91,13 +88,12 @@ public class GeneControllerTest extends AbstractControllerTest {
     @Autowired
     private ReferenceManager referenceManager;
 
-    private static final String URL_GENE_FILE_REGISTER = "/gene/register";
-    private static final String URL_GENE_FILE_DELETE = "/secure/gene/register";
-    private static final String URL_LOAD_GENES = "/gene/%d/track/get";
-    private static final String URL_LOAD_GENES_HISTOGRAM = "/gene/track/histogram";
-    private static final String URL_LOAD_GENE_FILES = "/gene/%d/loadAll";
-    private static final String URL_GENE_NEXT = "/gene/%d/%d/next";
-    private static final String URL_GENE_PREV = "/gene/%d/%d/prev";
+    private static final String URL_GENE_FILE_REGISTER = "/restapi/gene/register";
+    private static final String URL_GENE_FILE_DELETE = "/restapi/secure/gene/register";
+    private static final String URL_LOAD_GENES = "/restapi/gene/%d/track/get";
+    private static final String URL_LOAD_GENES_HISTOGRAM = "/restapi/gene/track/histogram";
+    private static final String URL_GENE_NEXT = "/restapi/gene/%d/%d/next";
+    private static final String URL_GENE_PREV = "/restapi/gene/%d/%d/prev";
 
     private long referenceId;
 
@@ -131,11 +127,12 @@ public class GeneControllerTest extends AbstractControllerTest {
         TrackQuery trackQuery = initTrackQuery(1L);
         trackQuery.setId(null);
 
-        ResultActions actions = mvc().perform(post(String.format(URL_LOAD_GENES, testReference.getId()))
-                .content(getObjectMapper().writeValueAsString(trackQuery))
-                .param("fileUrl", resource.getFile().getAbsolutePath())
-                .param("indexUrl", index.getFile().getAbsolutePath())
-                .contentType(EXPECTED_CONTENT_TYPE))
+        ResultActions actions = mvc()
+                .perform(post(String.format(URL_LOAD_GENES, testReference.getId()))
+                        .content(getObjectMapper().writeValueAsString(trackQuery))
+                        .param("fileUrl", resource.getFile().getAbsolutePath())
+                        .param("indexUrl", index.getFile().getAbsolutePath())
+                        .contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(jsonPath(JPATH_PAYLOAD).exists())
@@ -164,11 +161,13 @@ public class GeneControllerTest extends AbstractControllerTest {
             // Load a track by fileId
             TrackQuery trackQuery = initTrackQuery(1L);
             trackQuery.setId(null);
-            ResultActions actions = mvc().perform(post(String.format(URL_LOAD_GENES, testReference.getId()))
-                    .content(getObjectMapper().writeValueAsString(trackQuery))
-                    .param("fileUrl", geneUrl)
-                    .param("indexUrl", indexUrl)
-                    .contentType(EXPECTED_CONTENT_TYPE))
+
+            ResultActions actions = mvc()
+                    .perform(post(String.format(URL_LOAD_GENES, testReference.getId()))
+                            .content(getObjectMapper().writeValueAsString(trackQuery))
+                            .param("fileUrl", geneUrl)
+                            .param("indexUrl", indexUrl)
+                            .contentType(EXPECTED_CONTENT_TYPE))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
                     .andExpect(jsonPath(JPATH_PAYLOAD).exists())
@@ -215,30 +214,13 @@ public class GeneControllerTest extends AbstractControllerTest {
         Long fileId = res.getPayload().getId();
         Assert.assertNotNull("Test chromosome is not saved", testChromosome.getId());
 
-        // Load all GeneFiles for testReference
-        actions = mvc()
-                .perform(get(String.format(URL_LOAD_GENE_FILES, testReference.getId()))
-                        .contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(jsonPath(JPATH_PAYLOAD).exists())
-                .andExpect(jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
-        actions.andDo(MockMvcResultHandlers.print());
-
-        ResponseResult<List<GeneFile>> geneFilesRes = getObjectMapper()
-                .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
-                        getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
-                                getTypeFactory().constructParametrizedType(List.class, List.class, GeneFile.class)));
-
-        Assert.assertFalse(geneFilesRes.getPayload().isEmpty());
-        Assert.assertEquals(geneFilesRes.getPayload().get(0).getId(), fileId);
-
         // Load a track by fileId
         TrackQuery trackQuery = initTrackQuery(fileId);
 
-        actions = mvc().perform(post(String.format(URL_LOAD_GENES, testReference.getId()))
-                .content(getObjectMapper().writeValueAsString(trackQuery))
-                .contentType(EXPECTED_CONTENT_TYPE))
+        actions = mvc()
+                .perform(post(String.format(URL_LOAD_GENES, testReference.getId()))
+                        .content(getObjectMapper().writeValueAsString(trackQuery))
+                        .contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(jsonPath(JPATH_PAYLOAD).exists())
@@ -269,7 +251,7 @@ public class GeneControllerTest extends AbstractControllerTest {
             }
         }
         Assert.assertFalse(exons.isEmpty());
-        Collections.sort(exons, (o1, o2) -> o1.getStartIndex().compareTo(o2.getStartIndex()));
+        exons.sort(Comparator.comparing(Block::getStartIndex));
         int middle = exons.size() / 2;
         GeneLowLevel firstExon = exons.get(middle);
         GeneLowLevel secondExon = exons.get(middle + 1);
@@ -309,7 +291,7 @@ public class GeneControllerTest extends AbstractControllerTest {
 
         // delete file
         actions = mvc()
-                .perform(delete(URL_GENE_FILE_DELETE).param("geneFileId", geneFilesRes.getPayload().get(0).getId()
+                .perform(delete(URL_GENE_FILE_DELETE).param("geneFileId", trackQuery.getId()
                         .toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
@@ -319,7 +301,7 @@ public class GeneControllerTest extends AbstractControllerTest {
 
         boolean failed = false;
         try {
-            geneFileManager.loadGeneFile(geneFilesRes.getPayload().get(0).getId());
+            geneFileManager.load(trackQuery.getId());
         } catch (IllegalArgumentException e) {
             failed = true;
         }

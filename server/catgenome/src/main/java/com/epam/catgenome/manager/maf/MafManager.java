@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -61,12 +62,11 @@ import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.maf.parser.MafCodec;
 import com.epam.catgenome.manager.maf.parser.MafFeature;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.comparator.FeatureComparator;
 import htsjdk.samtools.util.CloseableIterator;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.readers.LineIterator;
 
 /**
@@ -91,6 +91,9 @@ public class MafManager {
 
     @Autowired
     private DownloadFileManager downloadFileManager;
+
+    @Autowired(required = false)
+    private EhCacheBasedIndexCache indexCache;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MafManager.class);
 
@@ -147,7 +150,6 @@ public class MafManager {
         mafFile.setName(request.getName() != null ? request.getName() : file.getName());
         mafFile.setType(BiologicalDataItemResourceType.FILE); // For now we're working only with files
         mafFile.setCreatedDate(new Date());
-        mafFile.setCreatedBy(AuthUtils.getCurrentUserId());
         mafFile.setReferenceId(request.getReferenceId());
         mafFile.setRealPath(request.getPath());
         mafFile.setPrettyName(request.getPrettyName());
@@ -156,7 +158,7 @@ public class MafManager {
             double time2 = Utils.getSystemTimeMilliseconds();
             LOGGER.debug("MAF registration completed in {} ms", time2 - time1);
             biologicalDataItemManager.createBiologicalDataItem(mafFile.getIndex());
-            mafFileManager.createMafFile(mafFile);
+            mafFileManager.create(mafFile);
         } finally {
             if (mafFile.getId() != null && mafFile.getBioDataItemId() != null &&
                     mafFileManager.loadMafFileNullable(mafFile.getId()) == null) {
@@ -174,7 +176,7 @@ public class MafManager {
     public MafFile unregisterMafFile(final long mafFileId) throws IOException {
         Assert.notNull(mafFileId, MessagesConstants.ERROR_INVALID_PARAM);
         Assert.isTrue(mafFileId > 0, MessagesConstants.ERROR_INVALID_PARAM);
-        MafFile fileToDelete = mafFileManager.loadMafFile(mafFileId);
+        MafFile fileToDelete = mafFileManager.load(mafFileId);
         Assert.notNull(fileToDelete, MessagesConstants.ERROR_NO_SUCH_FILE);
 
         mafFileManager.deleteMafFile(fileToDelete);
@@ -185,7 +187,7 @@ public class MafManager {
 
     public MafFile updateMafFile(long mafFileId) throws IOException {
         LOGGER.debug("Updating MAF file " + mafFileId);
-        MafFile mafFile = mafFileManager.loadMafFile(mafFileId);
+        MafFile mafFile = mafFileManager.load(mafFileId);
         fileManager.deleteFeatureFileDirectory(mafFile);
 
         File file = new File(mafFile.getRealPath());
@@ -200,7 +202,7 @@ public class MafManager {
     public Track<MafRecord> loadFeatures(Track<MafRecord> track) throws IOException {
         Chromosome chromosome = trackHelper.validateTrack(track);
 
-        MafFile mafFile = mafFileManager.loadMafFile(track.getId());
+        MafFile mafFile = mafFileManager.load(track.getId());
 
         double time1 = Utils.getSystemTimeMilliseconds();
         try (AbstractFeatureReader<MafFeature, LineIterator> reader = fileManager.makeMafReader(mafFile)) {
@@ -221,7 +223,7 @@ public class MafManager {
     private void processRegistration(MafFile mafFile, File file, IndexedFileRegistrationRequest request)
             throws IOException {
         LOGGER.debug("Registering MAF file " + mafFile.getRealPath());
-        fileManager.makeMafDir(mafFile.getId(), AuthUtils.getCurrentUserId());
+        fileManager.makeMafDir(mafFile.getId());
         if (file.isDirectory()) {
             mergeMaf(file, mafFile);
         } else {
@@ -243,7 +245,7 @@ public class MafManager {
     private void mergeMaf(File directory, MafFile mafFile) throws IOException {
         Assert.notNull(directory.listFiles(), getMessage(ERROR_EMPTY_FOLDER));
         Assert.isTrue(directory.listFiles().length > 0, getMessage(ERROR_EMPTY_FOLDER));
-        Reference reference = referenceGenomeManager.loadReferenceGenome(mafFile.getReferenceId());
+        Reference reference = referenceGenomeManager.load(mafFile.getReferenceId());
         try (BufferedWriter writer = fileManager.makeMafFileWriter(mafFile)) {
             createMafBioItem(mafFile);
             for (File f : directory.listFiles()) {
@@ -269,7 +271,7 @@ public class MafManager {
             }
             writer.flush();
         } finally {
-            fileManager.deleteMafTempDir(mafFile.getId(), mafFile.getCreatedBy());
+            fileManager.deleteMafTempDir(mafFile.getId());
         }
         fileManager.makeBigMafIndex(mafFile);
     }
@@ -282,7 +284,7 @@ public class MafManager {
             MafCodec mafCodec = new MafCodec(f.getName());
 
             try (AbstractFeatureReader<MafFeature, LineIterator> reader = AbstractFeatureReader
-                    .getFeatureReader(f.getAbsolutePath(), indexFile.getAbsolutePath(), mafCodec, true)) {
+                    .getFeatureReader(f.getAbsolutePath(), indexFile.getAbsolutePath(), mafCodec, true, indexCache)) {
                 CloseableIterator<MafFeature> iterator = reader.query(chromosome.getName(), 1,
                         chromosome.getSize());
                 if (!iterator.hasNext()) {

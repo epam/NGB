@@ -13,20 +13,29 @@
                         type,
                         path,
                         format,
-                        created_by,
                         created_date,
                         bucket_id,
-                        pretty_name)
+                        pretty_name,
+                        owner)
                     VALUES (
                         :BIO_DATA_ITEM_ID,
                         :NAME,
                         :TYPE,
                         :PATH,
                         :FORMAT,
-                        :CREATED_BY,
                         :CREATED_DATE,
                         :BUCKET_ID,
-                        :PRETTY_NAME)
+                        :PRETTY_NAME,
+                        :OWNER)
+                ]]>
+            </value>
+        </property>
+        <property name="updateOwnerQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.biological_data_item
+                    SET owner = :OWNER
+                    WHERE bio_data_item_id = :BIO_DATA_ITEM_ID
                 ]]>
             </value>
         </property>
@@ -39,9 +48,9 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
@@ -62,7 +71,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -95,12 +103,10 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM
                         catgenome.biological_data_item b
-                        JOIN t_list tmp ON b.bio_data_item_id = tmp.list_value
                         LEFT JOIN catgenome.vcf v ON v.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.gene_item g ON g.bio_data_item_id = b.bio_data_item_id
 
@@ -121,7 +127,7 @@
                                 OR i.bio_data_item_id = bd.index_id
                                 OR i.bio_data_item_id = s.index_id
                                 OR i.bio_data_item_id = r.index_id
-                    WHERE tmp.list_id = :BIO_DATA_ITEM_ID
+                    WHERE b.bio_data_item_id IN @in@
                 ]]>
             </value>
         </property>
@@ -141,9 +147,9 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
@@ -164,7 +170,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -197,7 +202,6 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM
@@ -235,9 +239,9 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
@@ -258,7 +262,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -291,12 +294,10 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM
                         catgenome.biological_data_item b
-                        JOIN t_str_list tmp ON b.name = tmp.list_value
                         LEFT JOIN catgenome.vcf v ON v.bio_data_item_id = b.bio_data_item_id
                         LEFT JOIN catgenome.gene_item g ON g.bio_data_item_id = b.bio_data_item_id
 
@@ -317,7 +318,7 @@
                                 OR i.bio_data_item_id = bd.index_id
                                 OR i.bio_data_item_id = s.index_id
                                 OR i.bio_data_item_id = r.index_id
-                    WHERE tmp.list_id = ?
+                    WHERE b.name IN @in@
                 ]]>
             </value>
         </property>
@@ -330,9 +331,9 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
@@ -353,7 +354,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -386,7 +386,6 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM
@@ -424,9 +423,9 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.pretty_name,
+                        b.owner,
 
                         v.vcf_id,
                         v.reference_genome_id as vcf_reference_genome_id,
@@ -447,7 +446,6 @@
                         rgb.type as reference_gene_type,
                         rgb.path as reference_gene_path,
                         rgb.format as reference_gene_format,
-                        rgb.created_by as reference_gene_created_by,
                         rgb.created_date as reference_gene_created_date,
                         rg.reference_genome_id as reference_gene_reference_genome_id,
                         rg.compressed as reference_gene_compressed,
@@ -480,7 +478,6 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM

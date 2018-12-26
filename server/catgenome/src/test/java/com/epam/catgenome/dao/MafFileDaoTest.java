@@ -25,12 +25,10 @@
 package com.epam.catgenome.dao;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.Date;
-import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +44,6 @@ import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.maf.MafFile;
 import com.epam.catgenome.helper.EntityHelper;
-import com.epam.catgenome.util.AuthUtils;
 
 /**
  * Source:      MafFileDaoTest
@@ -78,11 +75,11 @@ public class MafFileDaoTest extends AbstractDaoTest {
 
         mafFile.setId(mafFileDao.createMafFileId());
         mafFile.setName("testFile");
-        mafFile.setCreatedBy(AuthUtils.getCurrentUserId());
         mafFile.setType(BiologicalDataItemResourceType.FILE);
         mafFile.setPath("///");
         mafFile.setCreatedDate(new Date());
         mafFile.setReferenceId(reference.getId());
+        mafFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.MAF_INDEX,
                 BiologicalDataItemResourceType.FILE, "////");
@@ -97,7 +94,6 @@ public class MafFileDaoTest extends AbstractDaoTest {
 
         assertNotNull(loadedFile);
         assertEquals(mafFile.getName(), loadedFile.getName());
-        assertEquals(mafFile.getCreatedBy(), loadedFile.getCreatedBy());
         assertEquals(mafFile.getType(), loadedFile.getType());
         assertEquals(mafFile.getFormat(), loadedFile.getFormat());
         assertEquals(mafFile.getPath(), loadedFile.getPath());
@@ -105,10 +101,7 @@ public class MafFileDaoTest extends AbstractDaoTest {
         assertEquals(mafFile.getCreatedDate(), loadedFile.getCreatedDate());
         assertEquals(mafFile.getReferenceId(), loadedFile.getReferenceId());
         assertEquals(mafFile.getBioDataItemId(), loadedFile.getBioDataItemId());
-
-        List<MafFile> segFiles = mafFileDao.loadMafFilesByReferenceId(reference.getId());
-
-        assertFalse(segFiles.isEmpty());
+        assertEquals(mafFile.getOwner(), loadedFile.getOwner());
 
         mafFileDao.deleteMafFile(mafFile.getId());
         assertNull(mafFileDao.loadMafFile(mafFile.getId()));

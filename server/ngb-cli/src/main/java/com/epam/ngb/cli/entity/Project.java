@@ -44,10 +44,6 @@ import com.epam.ngb.cli.manager.printer.Printable;
 public class Project extends BaseEntity implements Printable<Project> {
 
     /**
-     * ID of a user, who created the dataset
-     */
-    private Long createdBy;
-    /**
      * Data, when the dataset was created
      */
     private Date createdDate;
@@ -77,14 +73,6 @@ public class Project extends BaseEntity implements Printable<Project> {
      * ID of a parent dataset, Null for top-level datasets
      */
     private Long parentId;
-
-    public Long getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(Long createdBy) {
-        this.createdBy = createdBy;
-    }
 
     public Date getCreatedDate() {
         return createdDate;
@@ -160,7 +148,6 @@ public class Project extends BaseEntity implements Printable<Project> {
             calculateFieldWidth(formatMap, FieldFormat.PARENT_ID, item.getParentId() == null ? "" :
                     String.valueOf(item.getParentId()));
             calculateFieldWidth(formatMap, FieldFormat.NAME, item.getName());
-            calculateFieldWidth(formatMap, FieldFormat.CREATED_BY, String.valueOf(item.getCreatedBy()));
             calculateFieldWidth(formatMap, FieldFormat.CREATED_DATE, DATE_FORMAT.format(item.getCreatedDate()));
             calculateFieldWidth(formatMap, FieldFormat.ITEMS_COUNT, String.valueOf(itemsCount));
             calculateFieldWidth(formatMap, FieldFormat.LAST_OPENED_DATE, DATE_FORMAT.format(lastOpenedDate));
@@ -180,7 +167,6 @@ public class Project extends BaseEntity implements Printable<Project> {
         result.append(String.format(formatString,
                 String.valueOf(getId()),
                 getParentId() == null ? "" : String.valueOf(getParentId()), getName(),
-                String.valueOf(createdBy),
                 DATE_FORMAT.format(createdDate),
                 String.valueOf(calculateItemsCount()),
                 DATE_FORMAT.format(lastOpenedDate)));
@@ -235,7 +221,6 @@ public class Project extends BaseEntity implements Printable<Project> {
         ID,
         PARENT_ID,
         NAME,
-        CREATED_BY,
         CREATED_DATE,
         ITEMS_COUNT,
         LAST_OPENED_DATE

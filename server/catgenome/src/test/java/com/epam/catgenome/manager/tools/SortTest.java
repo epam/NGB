@@ -28,7 +28,9 @@ import com.epam.catgenome.common.AbstractJUnitTest;
 import com.epam.catgenome.controller.tools.FeatureFileSortRequest;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.util.NgbFileUtils;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.tribble.CloseableTribbleIterator;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureCodec;
@@ -61,6 +63,9 @@ public class SortTest extends AbstractJUnitTest {
 
     @Autowired
     private ToolsManager toolsManager;
+
+    @Autowired(required = false)
+    private EhCacheBasedIndexCache indexCache;
 
     @Test
     public void testSortBed() throws Exception {
@@ -132,12 +137,12 @@ public class SortTest extends AbstractJUnitTest {
         }
     }
 
-    public static  <F extends Feature, S> int checkFileSorted(File ofile, final FeatureCodec<F, S> codec)
+    public <F extends Feature, S> int checkFileSorted(File ofile, final FeatureCodec<F, S> codec)
             throws IOException {
         int numlines = 0;
 
         AbstractFeatureReader<F, S> reader =
-                AbstractFeatureReader.getFeatureReader(ofile.getAbsolutePath(), codec, false);
+                AbstractEnhancedFeatureReader.getFeatureReader(ofile.getAbsolutePath(), codec, false, indexCache);
         CloseableTribbleIterator<F> iterator = reader.iterator();
 
         final Map<String, Feature> visitedChromos = new HashMap<>(40);

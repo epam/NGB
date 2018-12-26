@@ -28,17 +28,16 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
 
 import java.io.IOException;
-import java.util.List;
 
 import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.bam.Read;
+import com.epam.catgenome.manager.bam.BamSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -53,8 +52,6 @@ import com.epam.catgenome.controller.vo.TrackQuery;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.manager.bam.BamFileManager;
-import com.epam.catgenome.manager.bam.BamManager;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -98,23 +95,7 @@ public class BamController extends AbstractRESTController {
     public static final long EMITTER_TIMEOUT = 100000L;
 
     @Autowired
-    private BamFileManager bamFileManager;
-
-    @Autowired
-    private BamManager bamManager;
-
-    @ResponseBody
-    @RequestMapping(value = "/bam/{referenceId}/loadAll", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Returns metadata for all BAM files filtered by a reference genome.",
-            notes = "Each summary in the list provides metadata per a single BAM file that is available in the system.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<List<BamFile>> loadBamFiles(@PathVariable(value = "referenceId") final Long referenceId) {
-        return Result.success(bamFileManager.loadBamFilesByReferenceId(referenceId));
-    }
+    private BamSecurityService bamSecurityService;
 
     @ResponseBody
     @RequestMapping(value = "/bam/register", method = RequestMethod.POST)
@@ -133,7 +114,7 @@ public class BamController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<BamFile> registerBamFile(@RequestBody IndexedFileRegistrationRequest request) throws IOException {
-        return Result.success(bamManager.registerBam(request));
+        return Result.success(bamSecurityService.registerBam(request));
     }
 
     @RequestMapping(value = "/bam/track/get", method = RequestMethod.POST)
@@ -168,12 +149,11 @@ public class BamController extends AbstractRESTController {
 
         final ResponseBodyEmitter emitter = new ResponseBodyEmitter(EMITTER_TIMEOUT);
         if (fileUrl == null) {
-            bamManager.sendBamTrackToEmitter(convertToTrack(query), query.getOption(), emitter);
+            bamSecurityService.sendBamTrackToEmitter(convertToTrack(query), query.getOption(), emitter);
         } else {
-            bamManager.sendBamTrackToEmitterFromUrl(convertToTrack(query), query.getOption(), fileUrl,
+            bamSecurityService.sendBamTrackToEmitterFromUrl(convertToTrack(query), query.getOption(), fileUrl,
                     indexUrl, emitter);
         }
-
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(MediaType.APPLICATION_JSON_UTF8);
         return new ResponseEntity<>(emitter, responseHeaders, HttpStatus.OK);
@@ -182,7 +162,7 @@ public class BamController extends AbstractRESTController {
     @ResponseBody
     @RequestMapping(value = "/secure/bam/register", method = RequestMethod.DELETE)
     public Result<Boolean> unregisterBamFile(@RequestParam final long bamFileId) throws IOException {
-        BamFile deletedFile = bamManager.unregisterBamFile(bamFileId);
+        BamFile deletedFile = bamSecurityService.unregisterBamFile(bamFileId);
         return Result.success(true, getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
     }
 
@@ -207,7 +187,7 @@ public class BamController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Track<Sequence> loadConsensusSequence(@RequestBody final TrackQuery query) throws IOException {
-        return bamManager.calculateConsensusSequence(convertToTrack(query));
+        return bamSecurityService.calculateConsensusSequence(convertToTrack(query));
     }
 
     @ResponseBody
@@ -222,6 +202,6 @@ public class BamController extends AbstractRESTController {
     public Result<Read> loadRead(@RequestBody final ReadQuery query,
                                  @RequestParam(required = false) final String fileUrl,
                                  @RequestParam(required = false) final String indexUrl) throws IOException {
-        return Result.success(bamManager.loadRead(query, fileUrl, indexUrl));
+        return Result.success(bamSecurityService.loadRead(query, fileUrl, indexUrl));
     }
 }

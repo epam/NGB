@@ -3,7 +3,7 @@ package com.epam.catgenome.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
-public class IndexedDataItem extends BiologicalDataItem{
+public class IndexedDataItem extends BiologicalDataItem {
 
     @JsonIgnore
     private BiologicalDataItem index;

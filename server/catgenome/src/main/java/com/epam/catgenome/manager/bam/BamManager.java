@@ -24,21 +24,26 @@
 
 package com.epam.catgenome.manager.bam;
 
-import static com.epam.catgenome.component.MessageCode.NO_SUCH_REFERENCE;
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.manager.parallel.TaskExecutorService.ExecutionMode.ASYNC;
-import static com.epam.catgenome.manager.parallel.TaskExecutorService.ExecutionMode.SEQUENTIAL;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-
-import com.epam.catgenome.entity.bam.BamFile;
-import com.epam.catgenome.entity.bam.BamQueryOption;
-import com.epam.catgenome.entity.bam.BamTrackMode;
-import com.epam.catgenome.entity.bam.BasePosition;
-import com.epam.catgenome.entity.bam.Read;
+import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.controller.vo.ReadQuery;
+import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
+import com.epam.catgenome.entity.bam.*;
+import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.entity.reference.Sequence;
+import com.epam.catgenome.entity.track.Track;
+import com.epam.catgenome.manager.BiologicalDataItemManager;
+import com.epam.catgenome.manager.TrackHelper;
+import com.epam.catgenome.manager.bam.handlers.SAMRecordHandler;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
+import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
+import com.epam.catgenome.manager.reference.ReferenceManager;
+import com.epam.catgenome.util.BamUtil;
+import com.epam.catgenome.util.Utils;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SamReader;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -47,26 +52,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-
-import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.controller.vo.ReadQuery;
-import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
-import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.entity.reference.Sequence;
-import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.manager.BiologicalDataItemManager;
-import com.epam.catgenome.manager.TrackHelper;
-import com.epam.catgenome.manager.bam.handlers.SAMRecordHandler;
-import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.manager.reference.ReferenceManager;
-import com.epam.catgenome.util.BamUtil;
-import com.epam.catgenome.util.Utils;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SamReader;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+
+import static com.epam.catgenome.component.MessageCode.NO_SUCH_REFERENCE;
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.manager.parallel.TaskExecutorService.ExecutionMode.ASYNC;
+import static com.epam.catgenome.manager.parallel.TaskExecutorService.ExecutionMode.SEQUENTIAL;
 
 /**
  * Source:      BamManager
@@ -121,7 +116,7 @@ public class BamManager {
         final BamFile newBamFile = bamHelper.fillBamFile(request);
         try {
             biologicalDataItemManager.createBiologicalDataItem(newBamFile);
-            Reference reference = referenceGenomeManager.loadReferenceGenome(request.getReferenceId());
+            Reference reference = referenceGenomeManager.load(request.getReferenceId());
             List<Chromosome> chromosomes = reference.getChromosomes();
             //we can read this file with this index file
             LOGGER.debug(getMessage(MessagesConstants.DEBUG_FILE_READING, request.getPath()));
@@ -129,10 +124,10 @@ public class BamManager {
 
 
             biologicalDataItemManager.createBiologicalDataItem(newBamFile.getIndex());
-            bamFileManager.save(newBamFile);
+            bamFileManager.create(newBamFile);
         } finally {
             if (newBamFile != null && newBamFile.getId() != null
-                    && bamFileManager.loadBamFile(newBamFile.getId()) == null) {
+                    && bamFileManager.load(newBamFile.getId()) == null) {
                 biologicalDataItemManager.deleteBiologicalDataItem(newBamFile.getId());
             }
         }
@@ -146,9 +141,9 @@ public class BamManager {
      * @return deleted {@code BamFile} entity
      */
     public BamFile unregisterBamFile(final long bamFileId) throws IOException {
-        BamFile fileToDelete = bamFileManager.loadBamFile(bamFileId);
+        BamFile fileToDelete = bamFileManager.load(bamFileId);
         Assert.notNull(fileToDelete, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
-        bamFileManager.deleteBamFile(fileToDelete);
+        bamFileManager.delete(fileToDelete);
         return fileToDelete;
     }
 
@@ -220,9 +215,9 @@ public class BamManager {
         final Chromosome chromosome = referenceGenomeManager.loadChromosome(query.getChromosomeId());
         BamFile bamFile;
         if (query.getId() != null) {
-            bamFile= bamFileManager.loadBamFile(query.getId());
+            bamFile= bamFileManager.load(query.getId());
         } else {
-            bamFile = bamHelper.makeUrlBamFile(fileUrl, indexUrl, chromosome.getReferenceId());
+            bamFile = bamHelper.makeUrlBamFile(fileUrl, indexUrl, chromosome);
         }
         return getReadFromBamFile(query, chromosome, bamFile);
     }

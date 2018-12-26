@@ -45,7 +45,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
@@ -76,14 +75,13 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
 
     private String insertProjectQuery;
     private String updateProjectQuery;
+    private String updateProjectOwnerQuery;
     private String loadTopLevelProjectsForUserOrderByLastOpenedQuery;
-    private String loadTopLevelProjectsForUserQuery;
     private String loadAllProjectsQuery;
     private String loadProjectByIdQuery;
     private String updateLastOpenedDateQuery;
     private String deleteProjectQuery;
     private String loadProjectsByParentIdQuery;
-    private String loadProjectsByParentIdsQuery;
     private String moveProjectToParentQuery;
 
     private String addProjectItemQuery;
@@ -99,8 +97,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     private String loadProjectItemsByProjectIdsQuery;
     private String loadProjectsByBioDataItemIdQuery;
     private String loadAllProjectItemsQuery;
-
-    private String loadProjectIdsByBioDataItemIdsQuery;
 
     /**
      * Persists a new or updates existing project in the database.
@@ -119,29 +115,18 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
 
     /**
      * Loads {@code Project}s for a user, specified bu user's ID, ordered by last opened date
-     * @param userId {@code Long} an ID of a user to load projects for.
      * @return a {@code List&lt;Project&gt;} of projects, created by specified user.
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Project> loadTopLevelProjectsOrderByLastOpened(long userId) {
+    public List<Project> loadTopLevelProjectsOrderByLastOpened() {
         return getJdbcTemplate().query(loadTopLevelProjectsForUserOrderByLastOpenedQuery,
-                                       ProjectParameters.getRowMapper(), userId);
+                                       ProjectParameters.getRowMapper());
     }
 
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Project> loadAllProjects(long userId) {
-        return getJdbcTemplate().query(loadAllProjectsQuery, ProjectParameters.getRowMapper(), userId);
-    }
-
-    /**
-     * Loads {@code Project}s for a user, specified bu user's ID.
-     * @param userId {@code Long} an ID of a user to load projects for.
-     * @return a {@code List&lt;Project&gt;} of projects, created by specified user.
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Project> loadTopLevelProjects(long userId) {
-        return getJdbcTemplate().query(loadTopLevelProjectsForUserQuery, ProjectParameters.getRowMapper(), userId);
+    public List<Project> loadAllProjects() {
+        return getJdbcTemplate().query(loadAllProjectsQuery, ProjectParameters.getRowMapper());
     }
 
     /**
@@ -155,27 +140,20 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public Map<Long, List<Project>> loadNestedProjects(List<Long> parentIds) {
-        if (CollectionUtils.isEmpty(parentIds)) {
-            return Collections.emptyMap();
-        }
-        long listId = daoHelper.createTempLongList(parentIds);
+    public Map<Long, Set<ProjectItem>> loadAllProjectItems() {
+        Map<Long, Set<ProjectItem>> itemsMap = new HashMap<>();
+        final RowMapper<ProjectItem> projectItemRowMapper = ProjectItemParameters.getSimpleItemMapper();
+        getJdbcTemplate().query(loadAllProjectItemsQuery, rs -> {
+            ProjectItem item = projectItemRowMapper.mapRow(rs, 0);
 
-        Map<Long, List<Project>> map = new HashMap<>();
-        RowMapper<Project> rowMapper = ProjectParameters.getRowMapper();
-        getJdbcTemplate().query(loadProjectsByParentIdsQuery, rs -> {
-            Project project = rowMapper.mapRow(rs, 0);
-
-            long parentId = rs.getLong(ProjectParameters.PARENT_ID.name());
-            if (!map.containsKey(parentId)) {
-                map.put(parentId, new ArrayList<>());
+            Long projectId = rs.getLong(ProjectItemParameters.REFERRED_PROJECT_ID.name());
+            if (!itemsMap.containsKey(projectId)) {
+                itemsMap.put(projectId, new HashSet<>());
             }
 
-            map.get(parentId).add(project);
-        }, listId);
-
-        daoHelper.clearTempList(listId);
-        return map;
+            itemsMap.get(projectId).add(item);
+        });
+        return itemsMap;
     }
 
     /**
@@ -206,25 +184,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     public List<Project> loadProjectsByBioDataItemId(final long bioDataItemId) {
         return getJdbcTemplate().query(loadProjectsByBioDataItemIdQuery, ProjectParameters.getRowMapper(),
                                        bioDataItemId);
-    }
-
-    /**
-     * Loads a {@link Map} of {@link String} BioDataItem names to Project names
-     * @param bioDataItemIds a {@link List} of IDs of {@link BiologicalDataItem}
-     * @return a {@link Map} of {@link String} BioDataItem names to Project names
-     */
-    @Transactional(propagation = Propagation.MANDATORY)
-    public Map<String, String> loadProjectNamesByBioDataItemIds(List<Long> bioDataItemIds) {
-        long listId = daoHelper.createTempLongList(bioDataItemIds);
-
-        Map<String, String> bioIdToProjectIdMap = new HashMap<>();
-        getJdbcTemplate().query(loadProjectIdsByBioDataItemIdsQuery, rs -> {
-            bioIdToProjectIdMap.put(rs.getString(ProjectItemParameters.NAME.name()),
-                                    rs.getString(ProjectParameters.PROJECT_NAME.name()));
-        }, listId);
-        daoHelper.clearTempList(listId);
-
-        return bioIdToProjectIdMap;
     }
 
     /**
@@ -285,15 +244,20 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
             return Collections.emptyMap();
         }
 
-        Long listId = daoHelper.createTempLongList(projectIds);
-        return loadProjectItemsByList(listId);
+        return loadProjectItemsByList(projectIds);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public Map<Long, Set<ProjectItem>> loadAllProjectItems() {
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Map<Long, Set<ProjectItem>> loadProjectItemsByProjects(List<Project> projects) {
+        List<Long> projectIds = projects.stream().map(Project::getId).collect(Collectors.toList());
+        return loadProjectItemsByProjectIds(projectIds);
+    }
+
+    private Map<Long, Set<ProjectItem>> loadProjectItemsByList(List<Long> projectIds) {
         Map<Long, Set<ProjectItem>> itemsMap = new HashMap<>();
         final RowMapper<ProjectItem> projectItemRowMapper = ProjectItemParameters.getSimpleItemMapper();
-        getJdbcTemplate().query(loadAllProjectItemsQuery, rs -> {
+        String query = DaoHelper.getQueryFilledWithIdArray(loadProjectItemsByProjectIdsQuery, projectIds);
+        getJdbcTemplate().query(query, rs -> {
             ProjectItem item = projectItemRowMapper.mapRow(rs, 0);
 
             Long projectId = rs.getLong(ProjectItemParameters.REFERRED_PROJECT_ID.name());
@@ -303,35 +267,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
 
             itemsMap.get(projectId).add(item);
         });
-        return itemsMap;
-    }
-
-    @Transactional(propagation = Propagation.MANDATORY)
-    public Map<Long, Set<ProjectItem>> loadProjectItemsByProjects(List<Project> projects) {
-        if (projects.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        Long listId = daoHelper.createTempList(projects);
-        return loadProjectItemsByList(listId);
-    }
-
-    private Map<Long, Set<ProjectItem>> loadProjectItemsByList(Long listId) {
-        Map<Long, Set<ProjectItem>> itemsMap = new HashMap<>();
-        final RowMapper<ProjectItem> projectItemRowMapper = ProjectItemParameters.getSimpleItemMapper();
-        getJdbcTemplate().query(loadProjectItemsByProjectIdsQuery, rs -> {
-            ProjectItem item = projectItemRowMapper.mapRow(rs, 0);
-
-            Long projectId = rs.getLong(ProjectItemParameters.REFERRED_PROJECT_ID.name());
-            if (!itemsMap.containsKey(projectId)) {
-                itemsMap.put(projectId, new HashSet<>());
-            }
-
-            itemsMap.get(projectId).add(item);
-        }, listId);
-
-        daoHelper.clearTempList(listId);
-
         return itemsMap;
     }
 
@@ -548,24 +483,33 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         }
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updateOwner(Long id, String owner) {
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue(ProjectParameters.PROJECT_ID.name(), id);
+        params.addValue(ProjectParameters.OWNER.name(), owner);
+
+        getNamedParameterJdbcTemplate().update(updateProjectOwnerQuery, params);
+    }
+
     enum ProjectParameters {
         PROJECT_ID,
         PROJECT_NAME,
         PARENT_ID,
         PROJECT_PRETTY_NAME,
-        CREATED_BY,
         CREATED_DATE,
-        LAST_OPENED_DATE;
+        LAST_OPENED_DATE,
+        OWNER;
 
         static MapSqlParameterSource getParameters(Project project, Long parentId) {
             MapSqlParameterSource params = new MapSqlParameterSource();
 
             params.addValue(PROJECT_ID.name(), project.getId());
             params.addValue(PROJECT_NAME.name(), project.getName());
-            params.addValue(CREATED_BY.name(), project.getCreatedBy());
             params.addValue(CREATED_DATE.name(), project.getCreatedDate());
             params.addValue(PARENT_ID.name(), parentId);
             params.addValue(PROJECT_PRETTY_NAME.name(), project.getPrettyName());
+            params.addValue(OWNER.name(), project.getOwner());
 
             return params;
         }
@@ -576,10 +520,10 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
 
                 project.setId(rs.getLong(PROJECT_ID.name()));
                 project.setName(rs.getString(PROJECT_NAME.name()));
-                project.setCreatedBy(rs.getLong(CREATED_BY.name()));
                 project.setCreatedDate(new Date(rs.getTimestamp(CREATED_DATE.name()).getTime()));
                 project.setPrettyName(rs.getString(PROJECT_PRETTY_NAME.name()));
                 project.setLastOpenedDate(new Date(rs.getTimestamp(LAST_OPENED_DATE.name()).getTime()));
+                project.setOwner(rs.getString(OWNER.name()));
 
                 long longVal = rs.getLong(PARENT_ID.name());
                 if (!rs.wasNull()) {
@@ -589,8 +533,8 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
                 return project;
             };
         }
-    }
 
+    }
     enum ProjectItemParameters {
         PROJECT_ITEM_ID,
         PROJECT_ID,
@@ -603,7 +547,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         TYPE,
         PATH,
         FORMAT,
-        CREATED_BY,
         CREATED_DATE,
 
         VCF_ID,
@@ -642,7 +585,6 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         INDEX_TYPE,
         INDEX_PATH,
         INDEX_FORMAT,
-        INDEX_CREATED_BY,
         INDEX_CREATED_DATE;
 
         /**
@@ -658,9 +600,9 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
         }
 
         static class ProjectItemMapper implements RowMapper<ProjectItem> {
+
             protected RowMapper<BiologicalDataItem> bioDataItemMapper = BiologicalDataItemDao
                     .BiologicalDataItemParameters.getRowMapper();
-
             @Override
             public ProjectItem mapRow(ResultSet rs, int rowNum) throws SQLException {
                 ProjectItem item = new ProjectItem();
@@ -673,15 +615,15 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
 
                 return item;
             }
-        }
 
+        }
         static class SimpleItemMapper extends ProjectItemMapper {
+
             SimpleItemMapper() {
                 bioDataItemMapper = BiologicalDataItemDao.BiologicalDataItemParameters.getRowMapper(false);
             }
         }
     }
-
     @Required
     public void setProjectSequenceName(String projectSequenceName) {
         this.projectSequenceName = projectSequenceName;
@@ -794,27 +736,17 @@ public class ProjectDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Required
-    public void setLoadProjectsByParentIdsQuery(String loadProjectsByParentIdsQuery) {
-        this.loadProjectsByParentIdsQuery = loadProjectsByParentIdsQuery;
-    }
-
-    @Required
-    public void setLoadTopLevelProjectsForUserQuery(String loadTopLevelProjectsForUserQuery) {
-        this.loadTopLevelProjectsForUserQuery = loadTopLevelProjectsForUserQuery;
-    }
-
-    @Required
     public void setLoadAllProjectsQuery(String loadAllProjectsQuery) {
         this.loadAllProjectsQuery = loadAllProjectsQuery;
     }
 
     @Required
-    public void setLoadProjectIdsByBioDataItemIdsQuery(String loadProjectIdsByBioDataItemIdsQuery) {
-        this.loadProjectIdsByBioDataItemIdsQuery = loadProjectIdsByBioDataItemIdsQuery;
+    public void setLoadAllProjectItemsQuery(String loadAllProjectItemsQuery) {
+        this.loadAllProjectItemsQuery = loadAllProjectItemsQuery;
     }
 
     @Required
-    public void setLoadAllProjectItemsQuery(String loadAllProjectItemsQuery) {
-        this.loadAllProjectItemsQuery = loadAllProjectItemsQuery;
+    public void setUpdateProjectOwnerQuery(String updateProjectOwnerQuery) {
+        this.updateProjectOwnerQuery = updateProjectOwnerQuery;
     }
 }

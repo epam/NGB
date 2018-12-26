@@ -27,7 +27,6 @@ package com.epam.catgenome.manager.vcf;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -44,8 +43,11 @@ import com.epam.catgenome.dao.project.ProjectDao;
 import com.epam.catgenome.dao.vcf.VcfFileDao;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.project.Project;
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.entity.vcf.VcfFile;
-import com.epam.catgenome.entity.vcf.VcfSample;
+import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.security.acl.aspect.AclSync;
 
 
 /**
@@ -58,8 +60,9 @@ import com.epam.catgenome.entity.vcf.VcfSample;
  * concerning {@code VcfFile}.
  * </p>
  */
+@AclSync
 @Service
-public class VcfFileManager {
+public class VcfFileManager implements SecuredEntityManager {
 
     @Autowired
     private VcfFileDao vcfFileDao;
@@ -76,11 +79,13 @@ public class VcfFileManager {
      * @param vcfFile a {@code VcfFile} instance to be persisted
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void createVcfFile(VcfFile vcfFile) {
+    public VcfFile create(VcfFile vcfFile) {
         vcfFileDao.createVcfFile(vcfFile);
         if (vcfFile.getSamples() != null) {
             vcfFileDao.createSamples(vcfFile.getSamples(), vcfFile.getId());
         }
+
+        return vcfFile;
     }
 
     /**
@@ -90,13 +95,28 @@ public class VcfFileManager {
      * @return {@code VcfFile} instance
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public VcfFile loadVcfFile(Long vcfFileId) {
+    @Override
+    public VcfFile load(Long vcfFileId) {
         VcfFile vcfFile = vcfFileDao.loadVcfFile(vcfFileId);
         if (vcfFile != null) {
             vcfFile.setSamples(vcfFileDao.loadSamplesForFile(vcfFileId));
         }
 
         return vcfFile;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public AbstractSecuredEntity changeOwner(Long id, String owner) {
+        VcfFile vcfFile = load(id);
+        biologicalDataItemDao.updateOwner(vcfFile.getBioDataItemId(), owner);
+        vcfFile.setOwner(owner);
+        return vcfFile;
+    }
+
+    @Override
+    public AclClass getSupportedClass() {
+        return AclClass.VCF;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -148,22 +168,4 @@ public class VcfFileManager {
         return vcfFileDao.createVcfFileId();
     }
 
-    /**
-     * Loads {@code VcfFile} records, saved for a specific reference ID
-     *
-     * @param referenceId {@code long} a reference ID in the system
-     * @return {@code List&lt;VcfFile&gt;} instance
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<VcfFile> loadVcfFilesByReferenceId(long referenceId) {
-        List<VcfFile> files = vcfFileDao.loadVcfFilesByReferenceId(referenceId);
-
-        Map<Long, List<VcfSample>> sampleMap = vcfFileDao.loadSamplesForFilesByReference(referenceId);
-
-        for (VcfFile vcfFile : files) {
-            vcfFile.setSamples(sampleMap.get(vcfFile.getId()));
-        }
-
-        return files;
-    }
 }

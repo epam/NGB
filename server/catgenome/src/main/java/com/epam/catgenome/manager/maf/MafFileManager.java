@@ -27,6 +27,10 @@ package com.epam.catgenome.manager.maf;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
+import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.security.acl.aspect.AclSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -45,8 +49,9 @@ import com.epam.catgenome.entity.project.Project;
 /**
  Provides service for managing {@code MafFile} in the system
  */
+@AclSync
 @Service
-public class MafFileManager {
+public class MafFileManager implements SecuredEntityManager {
     @Autowired
     private MafFileDao mafFileDao;
 
@@ -58,10 +63,10 @@ public class MafFileManager {
 
     /**
      * Saves a {@code MafFile} in the system
-     * @param mafFile instance to save
+     * @param mafFile instance to create
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void createMafFile(MafFile mafFile) {
+    public void create(MafFile mafFile) {
         mafFileDao.createMafFile(mafFile);
     }
 
@@ -71,10 +76,23 @@ public class MafFileManager {
      * @return {@code MafFile} instance
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public MafFile loadMafFile(long mafFileId) {
+    public MafFile load(Long mafFileId) {
         MafFile mafFile = mafFileDao.loadMafFile(mafFileId);
         Assert.notNull(mafFile, "MAF file with requested ID not found: " + mafFileId);
         return mafFile;
+    }
+
+    @Override
+    public AbstractSecuredEntity changeOwner(Long id, String owner) {
+        MafFile file = load(id);
+        biologicalDataItemDao.updateOwner(file.getBioDataItemId(), owner);
+        file.setOwner(owner);
+        return file;
+    }
+
+    @Override
+    public AclClass getSupportedClass() {
+        return AclClass.MAF;
     }
 
     /**
@@ -84,8 +102,7 @@ public class MafFileManager {
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     public MafFile loadMafFileNullable(long mafFileId) {
-        MafFile mafFile = mafFileDao.loadMafFile(mafFileId);
-        return mafFile;
+        return mafFileDao.loadMafFile(mafFileId);
     }
 
     /**
@@ -95,16 +112,6 @@ public class MafFileManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public Long createMafFileId() {
         return mafFileDao.createMafFileId();
-    }
-
-    /**
-     * Loads {@code MafFile} records, saved for a specific reference ID
-     * @param referenceId {@code long} a reference ID in the system
-     * @return {@code List&lt;MafFile&gt;} instance
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<MafFile> loadMafFilesByReferenceId(long referenceId) {
-        return mafFileDao.loadMafFilesByReferenceId(referenceId);
     }
 
     /**

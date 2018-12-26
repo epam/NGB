@@ -28,6 +28,7 @@ import com.epam.ngb.cli.AbstractCliTest;
 import com.epam.ngb.cli.TestDataProvider;
 import com.epam.ngb.cli.TestHttpServer;
 import com.epam.ngb.cli.app.ApplicationOptions;
+import com.epam.ngb.cli.entity.AclSecuredEntry;
 import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
 import com.epam.ngb.cli.manager.command.ServerParameters;
@@ -36,6 +37,8 @@ import org.junit.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.epam.ngb.cli.TestDataProvider.buildAclSecuredEntry;
 
 public class SearchHandlerTest extends AbstractCliTest {
 
@@ -58,7 +61,6 @@ public class SearchHandlerTest extends AbstractCliTest {
     @BeforeClass
     public static void setUp() {
         server.start();
-        server.addAuthorization();
         server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
         server.addFile(GENE_BIO_ID, GENE_ID, GENE_NAME, PATH_TO_GENE, BiologicalDataItemFormat.GENE);
         serverParameters = getDefaultServerOptions(server.getPort());
@@ -126,6 +128,28 @@ public class SearchHandlerTest extends AbstractCliTest {
         ApplicationOptions applicationOptions = new ApplicationOptions();
         applicationOptions.setPrintTable(true);
         handler.parseAndVerifyArguments(Collections.emptyList(), applicationOptions);
+    }
+
+    @Test
+    public void shouldPrintPermissions() {
+        AclSecuredEntry entry = buildAclSecuredEntry(
+                AclSecuredEntry.Entity
+                .builder()
+                .id(REF_ID)
+                .mask(1)
+                .name(REFERENCE_NAME)
+                .owner(TEST_OWNER)
+                .build(), TEST_OWNER, TEST_GROUP);
+
+        server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
+        server.addPermissions(entry, BiologicalDataItemFormat.REFERENCE.name());
+
+        SearchHandler handler = getSearchHandler();
+        ApplicationOptions applicationOptions = new ApplicationOptions();
+        applicationOptions.setPrintTable(true);
+        applicationOptions.setShowPermissions(true);
+        handler.parseAndVerifyArguments(Collections.singletonList(REFERENCE_NAME), applicationOptions);
+        Assert.assertEquals(RUN_STATUS_OK, handler.runCommand());
     }
 
     private SearchHandler getSearchHandler() {

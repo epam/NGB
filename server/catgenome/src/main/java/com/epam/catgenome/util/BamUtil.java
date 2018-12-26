@@ -101,6 +101,13 @@ public final class BamUtil {
         read.setDifferentBase(differentBase);
         read.setHeadSequence(head);
         read.setTailSequence(tail);
+
+        if (samRecord.getReadGroup() != null) {
+            read.setReadGroup(samRecord.getReadGroup().getReadGroupId());
+        } else {
+            read.setReadGroup("");
+        }
+
         return read;
     }
 

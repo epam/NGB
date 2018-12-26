@@ -24,19 +24,13 @@
 
 package com.epam.catgenome.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static java.util.Collections.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,6 +42,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -104,20 +99,20 @@ public class ProjectControllerTest extends AbstractControllerTest {
     @Autowired
     private GffManager gffManager;
 
-    private static final String URL_SAVE_PROJECT = "/project/save";
-    private static final String URL_LOAD_TREE = "/project/tree";
-    private static final String URL_LOAD_PROJECT = "/project/%d/load";
-    private static final String URL_MOVE_PROJECT = "/project/%d/move";
-    private static final String URL_LOAD_PROJECT_BY_NAME = "/project/load";
-    private static final String URL_LOAD_MY_PROJECTS = "/project/loadMy";
-    private static final String URL_ADD_PROJECT_ITEM = "/project/%d/add/%d";
-    private static final String URL_REMOVE_PROJECT_ITEM = "/project/%d/remove/%d";
-    private static final String URL_HIDE_PROJECT_ITEM = "/project/%d/hide/%d";
-    private static final String URL_SEARCH_FEATURE = "/project/%d/search";
-    private static final String URL_DELETE_PROJECT = "/project/%d";
-    private static final String URL_FILTER_VCF = "/project/%d/filter/vcf";
-    private static final String URL_FILTER_VCF_SEARCH_GENES = "/project/%d/filter/vcf/searchGenes";
-    private static final String URL_FILTER_VCF_INFO = "/project/%d/filter/vcf/info";
+    private static final String URL_SAVE_PROJECT = "/restapi/project/save";
+    private static final String URL_LOAD_TREE = "/restapi/project/tree";
+    private static final String URL_LOAD_PROJECT = "/restapi/project/%d/load";
+    private static final String URL_MOVE_PROJECT = "/restapi/project/%d/move";
+    private static final String URL_LOAD_PROJECT_BY_NAME = "/restapi/project/load";
+    private static final String URL_LOAD_MY_PROJECTS = "/restapi/project/loadMy";
+    private static final String URL_ADD_PROJECT_ITEM = "/restapi/project/%d/add/%d";
+    private static final String URL_REMOVE_PROJECT_ITEM = "/restapi/project/%d/remove/%d";
+    private static final String URL_HIDE_PROJECT_ITEM = "/restapi/project/%d/hide/%d";
+    private static final String URL_SEARCH_FEATURE = "/restapi/project/%d/search";
+    private static final String URL_DELETE_PROJECT = "/restapi/project/%d";
+    private static final String URL_FILTER_VCF = "/restapi/project/%d/filter/vcf";
+    private static final String URL_FILTER_VCF_SEARCH_GENES = "/restapi/project/%d/filter/vcf/searchGenes";
+    private static final String URL_FILTER_VCF_INFO = "/restapi/project/%d/filter/vcf/info";
 
     private static final String TEST_VCF_FILE_PATH = "classpath:templates/Felis_catus.vcf.gz";
     private static final String TEST_VCF_UNK_FILE_PATH = "classpath:templates/samples.vcf";
@@ -139,7 +134,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
         testReference = EntityHelper.createNewReference(testChromosome,
                 referenceGenomeManager.createReferenceId());
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
     }
 
@@ -325,14 +320,14 @@ public class ProjectControllerTest extends AbstractControllerTest {
     public void testMoveLoadNested() throws Exception {
         Project parent = new Project();
         parent.setName("testParent");
-        parent.setItems(Collections.singletonList(new ProjectItem(new BiologicalDataItem(
+        parent.setItems(singletonList(new ProjectItem(new BiologicalDataItem(
             testReference.getBioDataItemId()))));
 
         ProjectVO createdParentProject = saveProject(parent, null);
 
         Project child1 = new Project();
         child1.setName("testChild1");
-        child1.setItems(Collections.singletonList(new ProjectItem(new BiologicalDataItem(
+        child1.setItems(singletonList(new ProjectItem(new BiologicalDataItem(
             testReference.getBioDataItemId()))));
 
         ProjectVO createdChild1 = saveProject(child1, createdParentProject.getId());
@@ -342,7 +337,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
         Project child2 = new Project();
         child2.setName("testChild2");
-        child2.setItems(Collections.singletonList(new ProjectItem(new BiologicalDataItem(
+        child2.setItems(singletonList(new ProjectItem(new BiologicalDataItem(
             testReference.getBioDataItemId()))));
 
         ProjectVO createdChild2 = saveProject(child2, null);
@@ -375,13 +370,18 @@ public class ProjectControllerTest extends AbstractControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
         actions.andDo(MockMvcResultHandlers.print());
 
+        MvcResult mvcResult = mvc()
+                .perform(get(URL_LOAD_TREE)
+                        .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
         actions = mvc()
-            .perform(get(URL_LOAD_TREE)
-                         .contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(MockMvcResultMatchers.status().isOk())
-            .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
-            .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
-            .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
+                .perform(asyncDispatch(mvcResult))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
+                .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
         actions.andDo(MockMvcResultHandlers.print());
 
         ResponseResult<List<ProjectVO>> treeRes = getObjectMapper()
@@ -415,35 +415,40 @@ public class ProjectControllerTest extends AbstractControllerTest {
     public void testLoadTreeWithParent() throws Exception {
         Project parent = new Project();
         parent.setName("testParent");
-        parent.setItems(Collections.singletonList(new ProjectItem(new BiologicalDataItem(
+        parent.setItems(singletonList(new ProjectItem(new BiologicalDataItem(
                 testReference.getBioDataItemId()))));
 
         ProjectVO createdParentProject = saveProject(parent, null);
 
         Project child1 = new Project();
         child1.setName("testChild1");
-        child1.setItems(Collections.singletonList(new ProjectItem(new BiologicalDataItem(
+        child1.setItems(singletonList(new ProjectItem(new BiologicalDataItem(
                 testReference.getBioDataItemId()))));
 
         ProjectVO createdChild1 = saveProject(child1, createdParentProject.getId());
 
         Project child2 = new Project();
         child2.setName("testChild2");
-        child2.setItems(Collections.singletonList(new ProjectItem(new BiologicalDataItem(
+        child2.setItems(singletonList(new ProjectItem(new BiologicalDataItem(
                 testReference.getBioDataItemId()))));
 
         saveProject(child2, createdParentProject.getId());
 
         Project child11 = new Project();
         child11.setName("testChild11");
-        child11.setItems(Collections.singletonList(new ProjectItem(new BiologicalDataItem(
+        child11.setItems(singletonList(new ProjectItem(new BiologicalDataItem(
                 testReference.getBioDataItemId()))));
 
         saveProject(child11, createdChild1.getId());
 
-        ResultActions actions = mvc()
+        MvcResult mvcResult = mvc()
                 .perform(get(URL_LOAD_TREE)
                         .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        ResultActions actions = mvc()
+                .perform(asyncDispatch(mvcResult))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
@@ -460,10 +465,15 @@ public class ProjectControllerTest extends AbstractControllerTest {
         Assert.assertFalse(tree.isEmpty());
         Assert.assertEquals(2, tree.get(0).getNestedProjects().size());
 
-        actions = mvc()
+        mvcResult = mvc()
                 .perform(get(URL_LOAD_TREE)
                         .param("parentId", String.valueOf(createdChild1.getId()))
                         .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        actions = mvc()
+                .perform(asyncDispatch(mvcResult))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
@@ -745,8 +755,8 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
         // filter vcf
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
-        vcfFilterForm.setVcfFileIds(Collections.singletonList(vcfFile.getId()));
-        vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(Collections.singletonList("ENS"), false));
+        vcfFilterForm.setVcfFileIdsByProject(singletonMap(loadedProject.getId(), singletonList(vcfFile.getId())));
+        vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(singletonList("ENS"), false));
         vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.MNP,
                 VariationType.INS), false));
 
@@ -794,7 +804,7 @@ public class ProjectControllerTest extends AbstractControllerTest {
         // search genes
         GeneSearchQuery geneSearchQuery = new GeneSearchQuery();
         geneSearchQuery.setSearch("ENS");
-        geneSearchQuery.setVcfIds(Collections.singletonList(vcfFile.getId()));
+        geneSearchQuery.setVcfIdsByProject(singletonMap(loadedProject.getId(), singletonList(vcfFile.getId())));
 
         actions = mvc()
                 .perform(post(String.format(URL_FILTER_VCF_SEARCH_GENES, loadedProject.getId())).content(
@@ -900,8 +910,8 @@ public class ProjectControllerTest extends AbstractControllerTest {
 
         // filter vcf
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
-        vcfFilterForm.setVcfFileIds(Collections.singletonList(vcfFile.getId()));
-        vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(Collections.singletonList("ENS"), false));
+        vcfFilterForm.setVcfFileIdsByProject(singletonMap(loadedProject.getId(), singletonList(vcfFile.getId())));
+        vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(singletonList("ENS"), false));
         vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.MNP,
                 VariationType.INS), false));
 

@@ -26,8 +26,9 @@ package com.epam.catgenome.manager.wig;
 
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.controller.vo.registration.FileRegistrationRequest;
+import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.BaseEntity;
+import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.entity.reference.Chromosome;
@@ -42,8 +43,8 @@ import com.epam.catgenome.manager.DownloadFileManager;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.NgbFileUtils;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -95,6 +96,9 @@ public class FacadeWigManager {
     @Autowired
     protected DownloadFileManager downloadFileManager;
 
+    @Autowired(required = false)
+    protected EhCacheBasedIndexCache indexCache;
+
     protected static final Logger LOGGER = LoggerFactory.getLogger(FacadeWigManager.class);
 
     static final Set<String> WIG_EXTENSIONS = new HashSet<>();
@@ -119,7 +123,7 @@ public class FacadeWigManager {
      * @param request
      * @return
      */
-    public WigFile registerWigFile(final FileRegistrationRequest request) {
+    public WigFile registerWigFile(final IndexedFileRegistrationRequest request) {
         Assert.notNull(request, MessagesConstants.ERROR_NULL_PARAM);
         final String requestPath = request.getPath();
         Assert.notNull(requestPath, getMessage(MessagesConstants.WRONG_WIG_FILE));
@@ -132,24 +136,25 @@ public class FacadeWigManager {
             }
             switch (request.getType()) {
                 case FILE:
-                    wigFile = fillWigFile(requestPath, request.getName(),
-                            request.getPrettyName(), request.getReferenceId());
+                case S3:
+                    wigFile = fillWigFile(request);
                     break;
                 case DOWNLOAD:
                     final File newFile = downloadFileManager.downloadFromURL(requestPath);
                     request.setName(request.getName() != null ? request.getName() :
                             FilenameUtils.getBaseName(requestPath));
-                    wigFile = fillWigFile(newFile.getPath(), request.getName(),
-                            request.getPrettyName(), request.getReferenceId());
+                    request.setPath(newFile.getPath());
+                    wigFile = fillWigFile(request);
                     break;
                 default:
-                    throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
+                    throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM,
+                            "type", request.getType()));
             }
-            long id = wigFileManager.createWigFileId();
+            long id = wigFileManager.create();
             biologicalDataItemManager.createBiologicalDataItem(wigFile);
             wigFile.setBioDataItemId(wigFile.getId());
             wigFile.setId(id);
-            fileManager.makeWigDir(wigFile.getId(), AuthUtils.getCurrentUserId());
+            fileManager.makeWigDir(wigFile.getId());
 
             prepareWigFileToWork(wigFile);
 
@@ -158,7 +163,7 @@ public class FacadeWigManager {
             throw new RegistrationException(getMessage(MessagesConstants.ERROR_REGISTER_FILE, request.getName()), e);
         } finally {
             if (wigFile != null && wigFile.getId() != null &&
-                    wigFileManager.loadWigFile(wigFile.getId()) == null) {
+                    wigFileManager.load(wigFile.getId()) == null) {
                 biologicalDataItemManager.deleteBiologicalDataItem(wigFile.getBioDataItemId());
                 try {
                     fileManager.deleteFeatureFileDirectory(wigFile);
@@ -178,9 +183,9 @@ public class FacadeWigManager {
      * @throws IOException
      */
     public WigFile unregisterWigFile(final long wigFileId) throws IOException {
-        WigFile fileToDelete = wigFileManager.loadWigFile(wigFileId);
+        WigFile fileToDelete = wigFileManager.load(wigFileId);
         Assert.notNull(fileToDelete, getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND));
-        wigFileManager.deleteWigFile(fileToDelete);
+        wigFileManager.delete(fileToDelete);
         return fileToDelete;
     }
 
@@ -193,31 +198,39 @@ public class FacadeWigManager {
     public Track<Wig> getWigTrack(Track<Wig> track) throws IOException {
         track.setType(TrackType.WIG);
         final Chromosome chromosome = trackHelper.validateTrackWithBlockCount(track);
-        final WigFile wigFile = wigFileManager.loadWigFile(track.getId());
-        return fetchWigManager(wigFile.getPath()).getWigFromFile(wigFile, track, chromosome);
+        final WigFile wigFile = wigFileManager.load(track.getId());
+        return fetchWigManager(wigFile.getPath()).getWigFromFile(wigFile, track, chromosome, indexCache);
     }
 
     protected void prepareWigFileToWork(final WigFile wigFile) throws IOException {
         AbstractWigProcessor wigProcessor = fetchWigManager(wigFile.getPath());
-        final Reference reference = referenceGenomeManager.loadReferenceGenome(wigFile.getReferenceId());
+        final Reference reference = referenceGenomeManager.load(wigFile.getReferenceId());
         final Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(Collectors.toMap(
                 BaseEntity::getName, chromosome -> chromosome));
         wigProcessor.prepareWigFileToWork(wigFile);
-        wigProcessor.splitByChromosome(wigFile, chromosomeMap);
+        wigProcessor.splitByChromosome(wigFile, chromosomeMap, indexCache);
     }
 
-    private WigFile fillWigFile(final String wigFilePath, final String alternativeName, String prettyName,
-                                final long referenceId) {
+    private WigFile fillWigFile(IndexedFileRegistrationRequest request) {
         final WigFile wigFile = new WigFile();
 
-        wigFile.setName(parseName(new File(wigFilePath).getName(), alternativeName));
-        wigFile.setPrettyName(prettyName);
-        wigFile.setType(BiologicalDataItemResourceType.FILE);
+        wigFile.setName(parseName(FilenameUtils.getName(request.getPath()), request.getName()));
+        wigFile.setPrettyName(request.getPrettyName());
+        wigFile.setType(request.getType());
         wigFile.setFormat(BiologicalDataItemFormat.WIG);
-        wigFile.setCreatedBy(AuthUtils.getCurrentUserId());
-        wigFile.setReferenceId(referenceId);
+        wigFile.setReferenceId(request.getReferenceId());
         wigFile.setCreatedDate(new Date());
-        wigFile.setPath(wigFilePath);
+        wigFile.setPath(request.getPath());
+        if (StringUtils.isNotBlank(request.getIndexPath())) {
+            BiologicalDataItem indexItem = new BiologicalDataItem();
+            indexItem.setCreatedDate(new Date());
+            indexItem.setPath(request.getIndexPath());
+            indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
+            indexItem.setType(BiologicalDataItemResourceType.translateRequestType(request.getIndexType()));
+            indexItem.setName(request.getName() + "_index");
+
+            wigFile.setIndex(indexItem);
+        }
         return wigFile;
 
     }

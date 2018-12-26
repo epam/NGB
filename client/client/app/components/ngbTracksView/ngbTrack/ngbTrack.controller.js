@@ -67,7 +67,7 @@ export default class ngbTrackController {
                 ? this.instanceConstructor.config.height
                 : DEFAULT_HEIGHT;
 
-        this.trackNameTruncated = this.track.prettyName || this.track.name;
+        this.trackNameTruncated = this.getTrackFileName(this.track);
         if (this.trackNameTruncated.length > MAX_TRACK_NAME_LENGTH) {
             this.trackNameTruncated = `...${this.trackNameTruncated.substring(this.trackNameTruncated.length - MAX_TRACK_NAME_LENGTH)}`;
         }
@@ -132,21 +132,45 @@ export default class ngbTrackController {
                 this.trackInstance.coverageScaleSettingsChanged(state);
             }
         };
+
+        const trackSettingsChangedHandler = (params) => {
+            if(self.trackInstance.trackSettingsChanged) {
+                self.trackInstance.trackSettingsChanged(params);
+                this.scope.$apply();
+            }
+        }
+
         dispatcher.on('settings:change', globalSettingsChangedHandler);
         dispatcher.on('track:headers:changed', globalSettingsChangedHandler);
         dispatcher.on('tracks:coverage:manual:configure:done', trackCoverageSettingsChangedHandler);
+        dispatcher.on('trackSettings:change', trackSettingsChangedHandler);
 
         $scope.$on('$destroy', () => {
             if (this.trackInstance) {
                 dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
                 dispatcher.removeListener('track:headers:changed', globalSettingsChangedHandler);
                 dispatcher.removeListener('tracks:coverage:manual:configure:done', trackCoverageSettingsChangedHandler);
+                dispatcher.removeListener('trackSettings:change', trackSettingsChangedHandler);
                 this.trackInstance.destructor();
             }
             if (this.trackInstance && this.trackInstance.domElement && this.trackInstance.domElement.parentNode) {
                 this.trackInstance.domElement.parentNode.removeChild(this.trackInstance.domElement);
             }
         });
+    }
+
+    getTrackFileName(track) {
+        if (!track.isLocal) {
+            return track.prettyName || track.name;
+        } else {
+            const fileName = track.name;
+            if (!fileName || !fileName.length) {
+                return null;
+            }
+            let list = fileName.split('/');
+            list = list[list.length - 1].split('\\');
+            return list[list.length - 1];
+        }
     }
 
     onTrackItemClick(sender, data, event) {

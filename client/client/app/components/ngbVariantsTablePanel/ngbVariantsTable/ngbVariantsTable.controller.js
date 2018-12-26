@@ -15,6 +15,7 @@ export default class ngbVariantsTableController extends baseController {
 
     isProgressShown = true;
     errorMessageList = [];
+    variantsLoadError = null;
 
     gridOptions = {
         infiniteScrollRowsFromEnd: 10,
@@ -91,6 +92,7 @@ export default class ngbVariantsTableController extends baseController {
         this.errorMessageList = [];
         if (this.isProjectSelected) {
             this.isProgressShown = true;
+            this.variantsLoadError = null;
             Object.assign(this.gridOptions, {
                 appScopeProvider: this.$scope,
                 columnDefs: this.variantsTableService.getVariantsGridColumns([], []),
@@ -108,6 +110,7 @@ export default class ngbVariantsTableController extends baseController {
             });
             await this.loadData();
         } else {
+            this.variantsLoadError = null;
             this.isProgressShown = false;
             this.gridOptions.columnDefs = [];
         }
@@ -117,16 +120,18 @@ export default class ngbVariantsTableController extends baseController {
         try {
             if (!this.projectContext.reference) {
                 this.isProgressShown = false;
+                this.variantsLoadError = null;
                 this.$timeout(this.$scope.$apply());
                 return;
             }
             if (this.projectContext.containsVcfFiles) {
-                if (this.projectContext.filteredVariants.length) {
+                if (this.projectContext.filteredVariants.length || this.projectContext.variantsPageError) {
                     this.variantsLoadingFinished();
                 }
             } else {
                 this.onError(this.variantsTableMessages.ErrorMessage.VcfNotFound);
                 this.isProgressShown = false;
+                this.variantsLoadError = null;
             }
         }
         catch (errorObj) {
@@ -220,7 +225,8 @@ export default class ngbVariantsTableController extends baseController {
                 position: entity.startIndex,
                 type: entity.variationType,
                 vcfFileId: entity.vcfFileId,
-                projectId: entity.projectId
+                projectId: entity.projectId,
+                projectIdNumber: entity.projectIdNumber
             }
         );
         this.dispatcher.emitSimpleEvent('variant:details:select', {variant: state});
@@ -236,8 +242,14 @@ export default class ngbVariantsTableController extends baseController {
             this.gridOptions.columnDefs = [];
             return;
         }
-        this.gridOptions.columnDefs = this.variantsTableService.getVariantsGridColumns();
-        this.gridOptions.data = this.projectContext.filteredVariants;
+        if (this.projectContext.variantsPageError) {
+            this.variantsLoadError = this.projectContext.variantsPageError;
+            this.gridOptions.data = [];
+        } else {
+            this.variantsLoadError = null;
+            this.gridOptions.columnDefs = this.variantsTableService.getVariantsGridColumns();
+            this.gridOptions.data = this.projectContext.filteredVariants;
+        }
         this.isProgressShown = this.projectContext.isVariantsLoading;
 
         this.$timeout(::this.$scope.$apply);
@@ -249,12 +261,21 @@ export default class ngbVariantsTableController extends baseController {
         this.projectContext.lastPageVariations++;
 
         this.projectContext.loadVariations(this.projectContext.lastPageVariations).then((data) => {
-            this.gridApi.infiniteScroll.saveScrollPercentage();
-            this.gridOptions.data = this.gridOptions.data.concat(data);
-            this.gridApi.infiniteScroll.dataLoaded(
-                this.projectContext.firstPageVariations > 1,
-                (this.projectContext.totalPagesCountVariations === undefined && this.projectContext.hasMoreVariations)
-                || this.projectContext.lastPageVariations < this.projectContext.totalPagesCountVariations);
+            if (!this.isProjectSelected) {
+                return;
+            }
+            if (this.projectContext.variantsPageError) {
+                this.variantsLoadError = this.projectContext.variantsPageError;
+                this.gridOptions.data = [];
+            } else {
+                this.variantsLoadError = null;
+                this.gridApi.infiniteScroll.saveScrollPercentage();
+                this.gridOptions.data = this.gridOptions.data.concat(data);
+                this.gridApi.infiniteScroll.dataLoaded(
+                    this.projectContext.firstPageVariations > 1,
+                    (this.projectContext.totalPagesCountVariations === undefined && this.projectContext.hasMoreVariations)
+                    || this.projectContext.lastPageVariations < this.projectContext.totalPagesCountVariations);
+            }
         });
     }
 
@@ -264,17 +285,21 @@ export default class ngbVariantsTableController extends baseController {
         this.projectContext.firstPageVariations--;
 
         this.projectContext.loadVariations(this.projectContext.firstPageVariations).then((data) => {
-            this.gridApi.infiniteScroll.saveScrollPercentage();
-            this.gridOptions.data = data.concat(this.gridOptions.data);
-
-
-            const self = this;
-            this.$timeout(function () {
-                self.gridApi.infiniteScroll.dataLoaded(
-                    self.projectContext.firstPageVariations > 1,
-                    (self.projectContext.totalPagesCountVariations === undefined && self.projectContext.hasMoreVariations)
-                    || self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
-            });
+            if (this.projectContext.variantsPageError) {
+                this.variantsLoadError = this.projectContext.variantsPageError;
+                this.gridOptions.data = [];
+            } else {
+                this.variantsLoadError = null;
+                this.gridApi.infiniteScroll.saveScrollPercentage();
+                this.gridOptions.data = data.concat(this.gridOptions.data);
+                const self = this;
+                this.$timeout(function () {
+                    self.gridApi.infiniteScroll.dataLoaded(
+                        self.projectContext.firstPageVariations > 1,
+                        (self.projectContext.totalPagesCountVariations === undefined && self.projectContext.hasMoreVariations)
+                        || self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
+                });
+            }
         });
     }
 
@@ -286,14 +311,20 @@ export default class ngbVariantsTableController extends baseController {
         this.gridApi.infiniteScroll.setScrollDirections(false, false);
         this.gridOptions.data = [];
         this.projectContext.loadVariations(page).then((data) => {
-            const self = this;
-            this.gridOptions.data = data;
-            this.$timeout(function () {
-                self.gridApi.infiniteScroll.resetScroll(
-                    self.projectContext.firstPageVariations > 1,
-                    (self.projectContext.totalPagesCountVariations === undefined && self.projectContext.hasMoreVariations)
-                    || self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
-            });
+            if (this.projectContext.variantsPageError) {
+                this.variantsLoadError = this.projectContext.variantsPageError;
+                this.gridOptions.data = [];
+            } else {
+                this.variantsLoadError = null;
+                const self = this;
+                this.gridOptions.data = data;
+                this.$timeout(function () {
+                    self.gridApi.infiniteScroll.resetScroll(
+                        self.projectContext.firstPageVariations > 1,
+                        (self.projectContext.totalPagesCountVariations === undefined && self.projectContext.hasMoreVariations)
+                        || self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
+                });
+            }
         });
     }
 
@@ -311,20 +342,26 @@ export default class ngbVariantsTableController extends baseController {
             this.projectContext.orderByVariations = null;
         }
 
-        this.projectContext.firstPageVariations = this.projectContext.currentPageVariations;
-        this.projectContext.lastPageVariations = this.projectContext.currentPageVariations;
+        this.projectContext.firstPageVariations = 1;
+        this.projectContext.lastPageVariations = 1;
 
         this.gridApi.infiniteScroll.setScrollDirections(false, false);
         this.gridOptions.data = [];
-        this.projectContext.loadVariations(this.projectContext.currentPageVariations).then((data) => {
-            const self = this;
-            this.gridOptions.data = data;
-            this.$timeout(function () {
-                self.gridApi.infiniteScroll.resetScroll(
-                    self.projectContext.firstPageVariations > 1,
-                    (self.projectContext.totalPagesCountVariations === undefined && self.projectContext.hasMoreVariations)
-                    || self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
-            });
+        this.projectContext.loadVariations(1).then((data) => {
+            if (this.projectContext.variantsPageError) {
+                this.variantsLoadError = this.projectContext.variantsPageError;
+                this.gridOptions.data = [];
+            } else {
+                this.variantsLoadError = null;
+                const self = this;
+                this.gridOptions.data = data;
+                this.$timeout(function () {
+                    self.gridApi.infiniteScroll.resetScroll(
+                        self.projectContext.firstPageVariations > 1,
+                        (self.projectContext.totalPagesCountVariations === undefined && self.projectContext.hasMoreVariations)
+                        || self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
+                });
+            }
         });
     }
 

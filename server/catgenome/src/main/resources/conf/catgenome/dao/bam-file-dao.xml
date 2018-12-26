@@ -4,37 +4,6 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <bean class="com.epam.catgenome.dao.bam.BamFileDao" id="bamFileDao" autowire="byName">
         <property name="bamFileSequenceName" value="catgenome.s_bam_file"/>
-        <property name="loadBamFilesByReferenceIdQuery">
-            <value>
-                <![CDATA[
-                    SELECT
-                        b.bio_data_item_id,
-                        b.name,
-                        b.type,
-                        b.path,
-                        b.format,
-                        b.created_by,
-                        b.created_date,
-                        b.bucket_id,
-                        b.pretty_name,
-                        m.bam_id,
-                        m.reference_genome_id as bam_reference_genome_id,
-
-                        i.bio_data_item_id as index_id,
-                        i.name as index_name,
-                        i.type as index_type,
-                        i.path as index_path,
-                        i.format as index_format,
-                        i.created_by as index_created_by,
-                        i.bucket_id as index_bucket_id,
-                        i.created_date as index_created_date
-                    FROM catgenome.bam m
-                        JOIN catgenome.biological_data_item b ON m.bio_data_item_id = b.bio_data_item_id
-                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = m.index_id
-                    WHERE reference_genome_id = ?
-                ]]>
-            </value>
-        </property>
         <property name="loadBamFileQuery">
             <value>
                 <![CDATA[
@@ -44,10 +13,11 @@
                         b.type,
                         b.path,
                         b.format,
-                        b.created_by,
                         b.created_date,
                         b.bucket_id,
                         b.pretty_name,
+                        b.owner,
+
                         m.bam_id,
                         m.reference_genome_id as bam_reference_genome_id,
 
@@ -56,7 +26,6 @@
                         i.type as index_type,
                         i.path as index_path,
                         i.format as index_format,
-                        i.created_by as index_created_by,
                         i.bucket_id as index_bucket_id,
                         i.created_date as index_created_date
                     FROM catgenome.bam m

@@ -26,15 +26,22 @@ package com.epam.catgenome.entity.bam;
 
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.security.AclClass;
 
 /**
  * Represents a BAM File metadata in the system
  */
 public class BamFile extends FeatureFile {
+
     /**
      * Creates an empty {@code BamFile} record with a required type BAM
      */
     public BamFile() {
         super.setFormat(BiologicalDataItemFormat.BAM);
+    }
+
+    @Override
+    public AclClass getAclClass() {
+        return AclClass.BAM;
     }
 }

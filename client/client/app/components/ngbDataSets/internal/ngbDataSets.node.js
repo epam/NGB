@@ -32,4 +32,6 @@ export class Node {
 
     searchFilterPassed: Boolean;
     childrenFilterPassed: Boolean;
+
+    roles: Array<String>;
 }

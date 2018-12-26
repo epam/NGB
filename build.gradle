@@ -12,7 +12,7 @@ def buildNumber = hasProperty("buildNumber") ? buildNumber : ""
 def profile = hasProperty("profile") ? profile : "release"
 
 allprojects {
-    version = new Version(major: 2, minor: 5, patch: 1, build: buildNumber)    
+    version = new Version(major: 2, minor: 6, patch: 0, build: buildNumber)    
     task printVersion {
         doFirst {
             println "Project version is $version"
@@ -42,6 +42,13 @@ task ui(type: Copy) {
     }
     from "$rootDir/client/dist"
     into uiFilesDestination
+
+    doLast {
+        copy {
+            from "$rootDir/server/catgenome/src/main/resources/templates"
+            into uiFilesDestination
+        }
+    }
 }
 
 task buildWar(type: GradleBuild) {

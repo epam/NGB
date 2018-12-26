@@ -53,6 +53,10 @@ export class Track extends BaseTrack {
             this._flags.renderReset = true;
             this.invalidateCache();
         }),
+        this.viewport.blatRegionChangeSubject.subscribe(() => {
+            this._flags.blatRegionChanged = true;
+            requestAnimationFrame(::this.tick);
+        }),
         this.viewport.brushChangeSubject.subscribe(() =>
             this._flags.brushChanged = true),
         this.viewport.brushChangeSubject.subscribe((opts) => {
@@ -172,6 +176,7 @@ export class Track extends BaseTrack {
             bioDataItemId: this.config.name,
             index: this.config.indexPath,
             projectId: this.config.projectId,
+            projectIdNumber: this.config.project ? this.config.project.id : undefined,
             height: this.height,
             state: this.state,
             format: this.config.format,

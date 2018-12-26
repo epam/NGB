@@ -28,6 +28,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.dao.reference.ReferenceGenomeDao;
+import com.epam.catgenome.entity.security.AbstractSecuredEntity;
+import com.epam.catgenome.entity.security.AclClass;
+import com.epam.catgenome.manager.SecuredEntityManager;
+import com.epam.catgenome.security.acl.aspect.AclSync;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -46,8 +50,10 @@ import com.epam.catgenome.entity.project.Project;
 /**
  * Provides service for managing {@code BedFile} in the system
  */
+@AclSync
 @Service
-public class BedFileManager {
+public class BedFileManager implements SecuredEntityManager {
+
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
 
@@ -65,7 +71,7 @@ public class BedFileManager {
      * @param bedFile a {@code BedFile} instance to be persisted
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void createBedFile(BedFile bedFile) {
+    public void create(BedFile bedFile) {
         bedFileDao.createBedFile(bedFile);
     }
 
@@ -75,8 +81,9 @@ public class BedFileManager {
      * @param bedFileId {@code long} a BedFile ID
      * @return {@code BedFile} instance
      */
+    @Override
     @Transactional(propagation = Propagation.SUPPORTS)
-    public BedFile loadBedFile(long bedFileId) {
+    public BedFile load(Long bedFileId) {
         return bedFileDao.loadBedFile(bedFileId);
     }
 
@@ -91,23 +98,12 @@ public class BedFileManager {
     }
 
     /**
-     * Loads {@code BedFile} records, saved for a specific reference ID
-     *
-     * @param referenceId {@code long} a reference ID in the system
-     * @return {@code List&lt;BedFile&gt;} instance
-     */
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<BedFile> loadBedFilesByReferenceId(long referenceId) {
-        return bedFileDao.loadBedFilesByReferenceId(referenceId);
-    }
-
-    /**
      * Deletes {@code BedFile} record, specified by ID
      *
      * @param bedFile BedFile to delete
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deleteBedFile(BedFile bedFile) {
+    public void delete(BedFile bedFile) {
         List<Project> projectsWhereFileInUse = projectDao.loadProjectsByBioDataItemId(bedFile.getBioDataItemId());
         List<Long> genomeIdsByAnnotation = referenceGenomeDao.
                 loadGenomeIdsByAnnotationDataItemId(bedFile.getBioDataItemId());
@@ -134,4 +130,19 @@ public class BedFileManager {
         biologicalDataItemDao.deleteBiologicalDataItem(bedFile.getIndex().getId());
         biologicalDataItemDao.deleteBiologicalDataItem(bedFile.getBioDataItemId());
     }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public AbstractSecuredEntity changeOwner(Long id, String owner) {
+        BedFile file = load(id);
+        biologicalDataItemDao.updateOwner(file.getBioDataItemId(), owner);
+        file.setOwner(owner);
+        return file;
+    }
+
+    @Override
+    public AclClass getSupportedClass() {
+        return AclClass.BED;
+    }
+
 }

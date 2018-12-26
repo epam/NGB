@@ -156,4 +156,18 @@ export default class ngbDataSetsController extends baseController {
         else
             return 'ngbDataSetsTerminalNode.tpl.html';
     }
+
+    getTrackFileName(track) {
+        if (!track.isLocal) {
+            return track.prettyName || track.name;
+        } else {
+            const fileName = track.name;
+            if (!fileName || !fileName.length) {
+                return null;
+            }
+            let list = fileName.split('/');
+            list = list[list.length - 1].split('\\');
+            return list[list.length - 1];
+        }
+    }
 }

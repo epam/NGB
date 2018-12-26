@@ -17,6 +17,7 @@ export default class ngbMolecularViewerService {
         let blocks = (await this.geneDataService.loadGeneTranscriptTrack({
             id: +geneTrack.id,
             chromosomeId: +geneTrack.chromosomeId,
+            projectId: +geneTrack.projectId || undefined,
             startIndex: startIndex,
             endIndex: endIndex,
             scaleFactor: 1

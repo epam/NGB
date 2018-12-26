@@ -24,10 +24,12 @@
 
 package com.epam.catgenome.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 
 import java.io.File;
 import java.io.IOException;
@@ -99,14 +101,14 @@ public class ReferenceControllerTest extends AbstractControllerTest {
     private static final String TEST_SEQUENCE_STRING = "ACCCTAACCCTAACCCCTAAC";
 
     // describes REST API that should be covered by this test
-    private static final String LOAD_REFERENCE = "/reference/%s/load";
-    private static final String LOAD_ALL_REFERENCES = "/reference/loadAll";
-    private static final String GET_REFERENCE_TRACK = "/reference/track/get";
-    private static final String LOAD_CHROMOSOME = "/reference/chromosomes/%s/load";
-    private static final String LOAD_ALL_CHROMOSOMES = "/reference/%s/loadChromosomes";
-    private static final String REGISTER_GENOME_IN_FASTA_FORMAT = "/secure/reference/register/fasta";
-    private static final String UPDATE_REFERENCE_GENE_FILE = "/secure/reference/%d/genes";
-    private static final String ADD_REFERENCE_GENOME_ANNOTATION_FILE = "/secure/reference/%d/updateAnnotation";
+    private static final String LOAD_REFERENCE = "/restapi/reference/%s/load";
+    private static final String LOAD_ALL_REFERENCES = "/restapi/reference/loadAll";
+    private static final String GET_REFERENCE_TRACK = "/restapi/reference/track/get";
+    private static final String LOAD_CHROMOSOME = "/restapi/reference/chromosomes/%s/load";
+    private static final String LOAD_ALL_CHROMOSOMES = "/restapi/reference/%s/loadChromosomes";
+    private static final String REGISTER_GENOME_IN_FASTA_FORMAT = "/restapi/secure/reference/register/fasta";
+    private static final String UPDATE_REFERENCE_GENE_FILE = "/restapi/secure/reference/%d/genes";
+    private static final String ADD_REFERENCE_GENOME_ANNOTATION_FILE = "/restapi/secure/reference/%d/updateAnnotation";
 
     //describes GA4GH API Google genomic
     private static final String REFERENCE_SET_ID = "EJjur6DxjIa6KQ";
@@ -133,7 +135,7 @@ public class ReferenceControllerTest extends AbstractControllerTest {
         // creates a new reference and saves its metadata
         final Reference source = EntityHelper.createReference();
         source.setId(referenceGenomeManager.createReferenceId());
-        referenceGenomeManager.register(source);
+        referenceGenomeManager.create(source);
         source.setIndex(null);
 
 
@@ -143,8 +145,13 @@ public class ReferenceControllerTest extends AbstractControllerTest {
 
         // 1. load all references registered in the system, at least one reference should
         //    be returned
-        ResultActions actions = mvc()
+        MvcResult mvcResult = mvc()
                 .perform(get(LOAD_ALL_REFERENCES))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        ResultActions actions = mvc()
+                .perform(asyncDispatch(mvcResult))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(MockMvcResultMatchers.jsonPath(JPATH_PAYLOAD).exists())
@@ -196,7 +203,7 @@ public class ReferenceControllerTest extends AbstractControllerTest {
         // creates a new referenceResult and saves its metadata
         final Reference source = EntityHelper.createReference();
         source.setId(referenceGenomeManager.createReferenceId());
-        referenceGenomeManager.register(source);
+        referenceGenomeManager.create(source);
 
 
         // 0. cleans up 'path' parameters, because they never should be sent to the client
@@ -219,7 +226,7 @@ public class ReferenceControllerTest extends AbstractControllerTest {
         Assert.assertNotNull(referenceResult);
         Assert.assertTrue(referenceResult.getPayload().size() > 0);
 
-        referenceGenomeManager.unregister(referenceResult.getPayload().get(0));
+        referenceGenomeManager.delete(referenceResult.getPayload().get(0));
         result = mvc()
                 .perform(get(LOAD_ALL_REFERENCES))
                 .andExpect(MockMvcResultMatchers.status().isOk())

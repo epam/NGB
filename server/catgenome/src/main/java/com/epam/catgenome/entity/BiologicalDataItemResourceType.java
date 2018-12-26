@@ -27,6 +27,8 @@ package com.epam.catgenome.entity;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.epam.catgenome.util.NgbFileUtils;
+
 /**
  * Source:      BiologicalItemType
  * Created:     17.12.15, 12:45
@@ -74,6 +76,7 @@ public enum BiologicalDataItemResourceType {
      */
     DOWNLOAD(7);
 
+
     private long id;
     private static Map<Long, BiologicalDataItemResourceType> idMap = new HashMap<>((int) DOWNLOAD.getId());
 
@@ -114,9 +117,9 @@ public enum BiologicalDataItemResourceType {
      * @return {@code BiologicalDataItemResourceType}
      */
     public static BiologicalDataItemResourceType getTypeFromPath(final String path) {
-        if (path.startsWith("s3")) {
+        if (path.startsWith("s3") || path.startsWith("sws")) {
             return S3;
-        } else if (path.startsWith("http") || path.startsWith("https") || path.startsWith("ftsp")) {
+        } else if (NgbFileUtils.isRemotePath(path)) {
             return URL;
         } else {
             return FILE;

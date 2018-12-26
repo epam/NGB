@@ -1,4 +1,4 @@
-site_name: New Genome Browser 2.5.1
+site_name: New Genome Browser 2.6.0
 pages:
     - Home: index.md
     - Installation guide:
@@ -22,10 +22,11 @@ pages:
         - VCF track: user-guide/tracks-vcf.md
         - WIG track: user-guide/tracks-wig.md
         - BED track: user-guide/tracks-bed.md
-        - Aignments track: user-guide/tracks-bam.md
+        - Alignments track: user-guide/tracks-bam.md
         - Working with Annotations: user-guide/annotations.md
-        - Embedding NGB: user-guide/embedding.md
-theme: material  
+        - Embedding NGB with URL: user-guide/embedding-url.md
+        - Embedding NGB with JS: user-guide/embedding-js.md
+theme: material
 theme_dir: material-epam-theme
 docs_dir: md
 use_directory_urls: false

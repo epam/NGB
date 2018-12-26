@@ -1,6 +1,6 @@
 <script type="text/ng-template" id="ngbDataSetsTerminalNode.tpl.html">
     <div class="ivh-treeview-node-content" title="{{node.hint}}" ng-if="node.isTrack">
-        <div class="dataset-item-row">
+        <div class="dataset-item-row" ngb-context-menu data-target="ngbDataSetContextMenu" locals="node">
             <div class="folder-horizontal-line"></div>
             <div layout="row" layout-align="space-between center" class="dataset-item-row-track">
                 <div layout="row" layout-align="start center">
@@ -21,7 +21,7 @@
                     </div>
                     <span class="ivh-treeview-node-label dataset-track-title dataset-selectable"
                           ng-class="{selected: node.__selected}"
-                          ng-click="$ctrl.toggleSelected(node)">{{node.prettyName || node.name}}</span>
+                          ng-click="$ctrl.toggleSelected(node)">{{$ctrl.getTrackFileName(node)}}</span>
                 </div>
                 <div class="dataset-genome">{{node.reference.name}}</div>
             </div>

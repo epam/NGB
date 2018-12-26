@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2017 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,14 +24,8 @@
 
 package com.epam.catgenome.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.List;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,6 +37,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.transaction.annotation.Propagation;
@@ -73,10 +68,9 @@ import com.epam.catgenome.manager.wig.WigFileManager;
 @WebAppConfiguration()
 @ContextConfiguration({"classpath:applicationContext-test.xml", "classpath:catgenome-servlet-test.xml"})
 public class WigControllerTest extends AbstractControllerTest {
-    private static final String LOAD_WIG_FILES = "/wig/%d/loadAll";
-    private static final String WIG_FILE_REGISTER = "/wig/register";
-    private static final String WIG_FILE_DELETE = "/secure/wig/register";
-    private static final String WIG_GET_TRACK = "/wig/track/get";
+    private static final String WIG_FILE_REGISTER = "/restapi/wig/register";
+    private static final String WIG_FILE_DELETE = "/restapi/secure/wig/register";
+    private static final String WIG_GET_TRACK = "/restapi/wig/track/get";
 
 
     private static final String TEST_WIG_NSAME = "Hi Harry";
@@ -109,7 +103,7 @@ public class WigControllerTest extends AbstractControllerTest {
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
         testReference = EntityHelper.createNewReference(testChromosome, referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
 
         referenceId = testReference.getId();
     }
@@ -143,27 +137,7 @@ public class WigControllerTest extends AbstractControllerTest {
         Assert.assertNotNull(wigFile.getId());
         Assert.assertNotNull(wigFile.getName());
 
-        // Load all file by reference ID
         final Long fileId = res.getPayload().getId();
-
-        actions = mvc()
-                .perform(get(String.format(LOAD_WIG_FILES, testReference.getId()))
-                        .contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
-                .andExpect(jsonPath(JPATH_PAYLOAD).exists())
-                .andExpect(jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
-        actions.andDo(MockMvcResultHandlers.print());
-
-        ResponseResult<List<WigFile>> wigFilesRes = getObjectMapper()
-                .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
-                        getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
-                                getTypeFactory().constructParametrizedType(List.class, List.class, WigFile.class)));
-
-        Assert.assertNotNull(wigFilesRes.getPayload());
-        Assert.assertFalse(wigFilesRes.getPayload().isEmpty());
-        Assert.assertEquals(wigFilesRes.getPayload().get(0).getId(), wigFile.getId());
-
 
         // Load a track by fileId
         TrackQuery wigTrackQuery = new TrackQuery();
@@ -174,9 +148,14 @@ public class WigControllerTest extends AbstractControllerTest {
         wigTrackQuery.setScaleFactor(TEST_SCALE_FACTOR);
         wigTrackQuery.setId(fileId);
 
-        actions = mvc()
+        MvcResult mvcResult = mvc()
                 .perform(post(WIG_GET_TRACK).content(getObjectMapper().writeValueAsString(wigTrackQuery))
                         .contentType(EXPECTED_CONTENT_TYPE))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        actions = mvc()
+                .perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(jsonPath(JPATH_PAYLOAD).exists())
@@ -197,7 +176,7 @@ public class WigControllerTest extends AbstractControllerTest {
 
         //delete file
         actions = mvc()
-                .perform(delete(WIG_FILE_DELETE).param("wigFileId", wigFilesRes.getPayload().get(0).getId()
+                .perform(delete(WIG_FILE_DELETE).param("wigFileId", fileId
                         .toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(EXPECTED_CONTENT_TYPE))
@@ -205,7 +184,7 @@ public class WigControllerTest extends AbstractControllerTest {
                 .andExpect(jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
         actions.andDo(MockMvcResultHandlers.print());
 
-        wigFile = wigFileManager.loadWigFile(wigFilesRes.getPayload().get(0).getId());
+        wigFile = wigFileManager.load(fileId);
         Assert.assertNull(wigFile);
 
     }

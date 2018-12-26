@@ -48,6 +48,8 @@ import com.epam.catgenome.exception.HistogramReadingException;
 import com.epam.catgenome.exception.HistogramWritingException;
 import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.FeatureReader;
 import org.apache.commons.collections4.CollectionUtils;
@@ -67,7 +69,6 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.externaldb.ensemblevo.EnsemblEntryVO;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
-import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
@@ -107,7 +108,6 @@ import com.epam.catgenome.manager.gene.reader.AbstractGeneReader;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.parallel.ParallelTaskExecutionUtils;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
-import com.epam.catgenome.util.AuthUtils;
 import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.NggbIntervalTreeMap;
@@ -115,7 +115,7 @@ import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.samtools.util.Interval;
 import htsjdk.samtools.util.IntervalTree;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.readers.LineIterator;
 
 /**
@@ -165,6 +165,9 @@ public class GffManager {
     @Autowired
     private TaskExecutorService taskExecutorService;
 
+    @Autowired(required = false)
+    private EhCacheBasedIndexCache indexCache;
+
     private static final String EXON_FEATURE_NAME = "exon";
 
     private static final String PROTEIN_CODING = "protein_coding";
@@ -193,6 +196,7 @@ public class GffManager {
 
         switch (request.getType()) {
             case FILE:
+            case S3:
                 geneFile = registerGeneFileFromFile(request);
                 break;
             case URL:
@@ -215,19 +219,22 @@ public class GffManager {
      * from scratch
      * @param geneFileId an ID of gene file to reindex.
      * @param full
+     * @param createTabixIndex
      * @return a {@link GeneFile}, for which index was created
      * @throws IOException if an error occurred while writing index
      */
-    public GeneFile reindexGeneFile(long geneFileId, boolean full) throws IOException {
-        GeneFile geneFile = geneFileManager.loadGeneFile(geneFileId);
-        Reference reference = referenceGenomeManager.loadReferenceGenome(geneFile.getReferenceId());
-        Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
-            Collectors.toMap(BaseEntity::getName, chromosome -> chromosome));
-
+    public GeneFile reindexGeneFile(long geneFileId, boolean full, boolean createTabixIndex) throws IOException {
+        GeneFile geneFile = geneFileManager.load(geneFileId);
         fileManager.deleteFileFeatureIndex(geneFile);
-
-        featureIndexManager.processGeneFile(geneFile, chromosomeMap, full);
-
+        if (createTabixIndex) {
+            File index = new File(geneFile.getIndex().getPath());
+            if (index.exists()) {
+                index.delete();
+            }
+        }
+        GeneRegisterer geneRegisterer = new GeneRegisterer(referenceGenomeManager, fileManager, featureIndexManager,
+                geneFile);
+        geneRegisterer.reIndexFile(createTabixIndex);
         return geneFile;
     }
 
@@ -252,9 +259,8 @@ public class GffManager {
         geneFile.setCompressed(IOHelper.isGZIPFile(file.getName()));
         geneFile.setPath(request.getPath());
         geneFile.setName(request.getName() != null ? request.getName() : file.getName());
-        geneFile.setType(BiologicalDataItemResourceType.FILE); // For now we're working only with files
+        geneFile.setType(request.getType());
         geneFile.setCreatedDate(new Date());
-        geneFile.setCreatedBy(AuthUtils.getCurrentUserId());
         geneFile.setReferenceId(request.getReferenceId());
         geneFile.setPrettyName(request.getPrettyName());
 
@@ -263,9 +269,8 @@ public class GffManager {
             indexItem.setCreatedDate(new Date());
             indexItem.setPath(request.getIndexPath());
             indexItem.setFormat(BiologicalDataItemFormat.GENE_INDEX);
-            indexItem.setType(BiologicalDataItemResourceType.FILE);
+            indexItem.setType(request.getIndexType());
             indexItem.setName("");
-            indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
             geneFile.setIndex(indexItem);
         }
@@ -281,7 +286,7 @@ public class GffManager {
         try {
             geneRegisterer.processRegistration(request);
             biologicalDataItemManager.createBiologicalDataItem(geneFile.getIndex());
-            geneFileManager.createGeneFile(geneFile);
+            geneFileManager.create(geneFile);
         } catch (IOException e) {
             throw new RegistrationException("Error while Gene file registration: " + geneFile.getPath(), e);
         }  finally {
@@ -298,7 +303,7 @@ public class GffManager {
     }
 
     private GeneFile registerGeneFileFromUrl(final FeatureIndexedFileRegistrationRequest request) {
-        Reference reference = referenceGenomeManager.loadReferenceGenome(request.getReferenceId());
+        Reference reference = referenceGenomeManager.load(request.getReferenceId());
         Map<String, Chromosome> chromosomeMap = Utils.makeChromosomeMap(reference);
 
         GeneFile geneFile = null;
@@ -307,8 +312,8 @@ public class GffManager {
         GffCodec.GffType gffType = GffCodec.GffType.forExt(extension);
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(gffType);
 
-        try (FeatureReader<GeneFeature> reader = AbstractFeatureReader.getFeatureReader(request.getPath(),
-                request.getIndexPath(), codec, true)) {
+        try (FeatureReader<GeneFeature> reader = AbstractEnhancedFeatureReader.getFeatureReader(request.getPath(),
+                request.getIndexPath(), codec, true, indexCache)) {
             geneFile = createGeneFile(request);
             boolean hasGenes = false;
             for (Map.Entry<String, Chromosome> chrEntry : chromosomeMap.entrySet()) {
@@ -324,7 +329,7 @@ public class GffManager {
                     reference.getName()));
 
             biologicalDataItemManager.createBiologicalDataItem(geneFile.getIndex());
-            geneFileManager.createGeneFile(geneFile);
+            geneFileManager.create(geneFile);
         }  catch (IOException e) {
             throw new RegistrationException(getMessage(ERROR_REGISTER_FILE, request.getName()), e);
         } finally {
@@ -347,7 +352,6 @@ public class GffManager {
         geneFile.setName(request.getName() != null ? request.getName() : file.getName());
         geneFile.setType(request.getType());
         geneFile.setCreatedDate(new Date());
-        geneFile.setCreatedBy(AuthUtils.getCurrentUserId());
         geneFile.setReferenceId(request.getReferenceId());
 
         if (StringUtils.isNotBlank(request.getIndexPath())) {
@@ -357,7 +361,6 @@ public class GffManager {
             indexItem.setFormat(BiologicalDataItemFormat.GENE_INDEX);
             indexItem.setType(BiologicalDataItemResourceType.FILE);
             indexItem.setName("");
-            indexItem.setCreatedBy(AuthUtils.getCurrentUserId());
 
             geneFile.setIndex(indexItem);
         }
@@ -380,9 +383,9 @@ public class GffManager {
     public GeneFile unregisterGeneFile(final long geneFileId) throws IOException {
         Assert.notNull(geneFileId, MessagesConstants.ERROR_INVALID_PARAM);
         Assert.isTrue(geneFileId > 0, MessagesConstants.ERROR_INVALID_PARAM);
-        final GeneFile fileToDelete = geneFileManager.loadGeneFile(geneFileId);
+        final GeneFile fileToDelete = geneFileManager.load(geneFileId);
 
-        geneFileManager.deleteGeneFile(fileToDelete);
+        geneFileManager.delete(fileToDelete);
         fileManager.deleteFeatureFileDirectory(fileToDelete);
 
         return fileToDelete;
@@ -398,7 +401,7 @@ public class GffManager {
      */
     public Track<Gene> loadGenes(final Track<Gene> track, boolean collapse) throws GeneReadingException {
         final Chromosome chromosome = trackHelper.validateTrack(track);
-        final GeneFile geneFile = geneFileManager.loadGeneFile(track.getId());
+        final GeneFile geneFile = geneFileManager.load(track.getId());
 
         return loadGenes(track, geneFile, chromosome, collapse);
     }
@@ -677,8 +680,9 @@ public class GffManager {
     public Track<Wig> loadHistogram(final Track<Wig> track) throws HistogramReadingException {
         TrackHelper.validateHistogramTrack(track);
 
-        final GeneFile geneFile = geneFileManager.loadGeneFile(track.getId());
-        if (BiologicalDataItemResourceType.FILE != geneFile.getType()) {
+        final GeneFile geneFile = geneFileManager.load(track.getId());
+        if (BiologicalDataItemResourceType.FILE != geneFile.getType() &&
+                BiologicalDataItemResourceType.S3 != geneFile.getType()) {
             track.setBlocks(Collections.emptyList());
             return track;
         }
@@ -772,7 +776,7 @@ public class GffManager {
      */
     public Gene getNextOrPreviousFeature(final int fromPosition, final long geneFileId, final long chromosomeId,
                                          final boolean forward) throws IOException {
-        final GeneFile geneFile = geneFileManager.loadGeneFile(geneFileId);
+        final GeneFile geneFile = geneFileManager.load(geneFileId);
         final Chromosome chromosome = referenceGenomeManager.loadChromosome(chromosomeId);
         Assert.notNull(chromosome, getMessage(MessagesConstants.ERROR_CHROMOSOME_ID_NOT_FOUND));
 
@@ -885,7 +889,7 @@ public class GffManager {
                                           int intronLength)
             throws IOException {
         double time1 = Utils.getSystemTimeMilliseconds();
-        final GeneFile geneFile = geneFileManager.loadGeneFile(geneFileId);
+        final GeneFile geneFile = geneFileManager.load(geneFileId);
         final Chromosome chromosome = referenceGenomeManager.loadChromosome(chromosomeId);
         Assert.notNull(chromosome, getMessage(MessagesConstants.ERROR_CHROMOSOME_ID_NOT_FOUND));
 
@@ -932,7 +936,7 @@ public class GffManager {
                                         int intronLength)
             throws IOException {
         double time1 = Utils.getSystemTimeMilliseconds();
-        final GeneFile geneFile = geneFileManager.loadGeneFile(geneFileId);
+        final GeneFile geneFile = geneFileManager.load(geneFileId);
         final Chromosome chromosome = referenceGenomeManager.loadChromosome(chromosomeId);
         Assert.notNull(chromosome, getMessage(MessagesConstants.ERROR_CHROMOSOME_ID_NOT_FOUND));
 
@@ -1083,10 +1087,14 @@ public class GffManager {
         final List<Transcript> transcriptList = ExtenalDBUtils.ensemblEntryVO2Transcript(vo);
         for (Transcript transcript : transcriptList) {
             if (transcript.getBioType().equals(PROTEIN_CODING)) {
-                final Uniprot un = uniprotDataManager.fetchUniprotEntry(transcript.getId());
-                ExtenalDBUtils.fillDomain(un, transcript);
-                ExtenalDBUtils.fillPBP(un, transcript);
-                ExtenalDBUtils.fillSecondaryStructure(un, transcript);
+                try {
+                    final Uniprot un = uniprotDataManager.fetchUniprotEntry(transcript.getId());
+                    ExtenalDBUtils.fillDomain(un, transcript);
+                    ExtenalDBUtils.fillPBP(un, transcript);
+                    ExtenalDBUtils.fillSecondaryStructure(un, transcript);
+                } catch (ExternalDbUnavailableException e) {
+                    LOGGER.debug(e.getMessage(), e);
+                }
             }
         }
         return transcriptList;

@@ -6,6 +6,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +34,7 @@ import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.util.CachedFeatureReader;
 import htsjdk.samtools.util.Locatable;
-import htsjdk.tribble.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.readers.LineIterator;
 
 /**
@@ -68,15 +70,19 @@ public class GffManagerUnitTest {
     @Autowired
     private ApplicationContext context;
 
+    @Autowired(required = false)
+    private EhCacheBasedIndexCache indexCache;
+
     private List<GeneFeature> featureList;
 
     @Before
     public void setup() throws IOException {
         MockitoAnnotations.initMocks(this);
         Resource resource = context.getResource("classpath:templates/genes_sorted.gtf");
-        try (AbstractFeatureReader<GeneFeature, LineIterator> reader = AbstractFeatureReader.getFeatureReader(
+        try (AbstractFeatureReader<GeneFeature, LineIterator> reader = AbstractEnhancedFeatureReader
+                .getFeatureReader(
             resource.getFile().getAbsolutePath(), new GffCodec(
-            GffCodec.GffType.GTF), false)) {
+            GffCodec.GffType.GTF), false, indexCache)) {
             featureList = reader.iterator().toList();
         }
     }
@@ -94,7 +100,7 @@ public class GffManagerUnitTest {
         CachedFeatureReader<GeneFeature, LineIterator> reader = new CachedFeatureReader<>(featureList, new GffCodec(
             GffCodec.GffType.GTF));
 
-        Mockito.when(geneFileManager.loadGeneFile(TEST_GENE_FILE_ID)).thenReturn(testGeneFile);
+        Mockito.when(geneFileManager.load(TEST_GENE_FILE_ID)).thenReturn(testGeneFile);
         Mockito.when(fileManager.makeGeneReader(testGeneFile, GeneFileType.ORIGINAL)).thenReturn(reader);
         Mockito.when(referenceGenomeManager.loadChromosome(TEST_CHROMOSOME_ID)).thenReturn(testChromosome);
 

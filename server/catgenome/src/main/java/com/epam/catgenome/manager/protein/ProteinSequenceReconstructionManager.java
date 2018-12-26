@@ -154,7 +154,7 @@ public class ProteinSequenceReconstructionManager {
             return Collections.emptyMap();
         }
 
-        GeneFile geneFile = geneFileManager.loadGeneFile(geneTrack.getId());
+        GeneFile geneFile = geneFileManager.load(geneTrack.getId());
 
         return  fillCdsMap(blocks, geneTrack, geneFile, chromosome, collapsedTrack);
     }

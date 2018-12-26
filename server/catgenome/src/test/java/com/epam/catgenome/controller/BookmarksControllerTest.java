@@ -103,10 +103,10 @@ public class BookmarksControllerTest extends AbstractControllerTest {
     private static final int BOOKMARK_END_INDEX = 10000;
     private static final int BOOKMARK_END_INDEX2 = 20000;
 
-    private static final String URL_BOOKMARK_SAVE = "/bookmark/save";
-    private static final String URL_BOOKMARKS_LOAD = "/bookmarks";
-    private static final String URL_BOOKMARK_LOAD = "/bookmark/%d";
-    private static final String URL_BOOKMARK_DELETE = "/bookmark/%d";
+    private static final String URL_BOOKMARK_SAVE = "/restapi/bookmark/save";
+    private static final String URL_BOOKMARKS_LOAD = "/restapi/bookmarks";
+    private static final String URL_BOOKMARK_LOAD = "/restapi/bookmark/%d";
+    private static final String URL_BOOKMARK_DELETE = "/restapi/bookmark/%d";
 
     @Before
     public void setup() throws Exception {
@@ -115,7 +115,7 @@ public class BookmarksControllerTest extends AbstractControllerTest {
         testChromosome = EntityHelper.createNewChromosome();
         testReference = EntityHelper.createNewReference(testChromosome,
                 referenceGenomeManager.createReferenceId());
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
         VcfFile file = addVcfFile(TEST_VCF_FILE_NAME1, TEST_VCF_FILE_PATH);
         BiologicalDataItem item = new BiologicalDataItem();
@@ -129,7 +129,7 @@ public class BookmarksControllerTest extends AbstractControllerTest {
         items.add(new ProjectItem(item));
         testProject.setItems(items);
 
-        projectManager.saveProject(testProject);
+        projectManager.create(testProject);
     }
 
     @Test

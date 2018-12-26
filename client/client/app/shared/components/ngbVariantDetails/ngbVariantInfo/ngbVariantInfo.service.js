@@ -2,18 +2,21 @@ import {utilities} from '../utilities';
 
 export default class ngbVariantInfoService{
 
-    static instance(dispatcher, constants, vcfDataService) {
-        return new ngbVariantInfoService(dispatcher, constants, vcfDataService);
+    static instance(dispatcher, constants, vcfDataService, genomeDataService) {
+        return new ngbVariantInfoService(dispatcher, constants, vcfDataService, genomeDataService);
     }
 
     _constants;
     _dataService;
     _dispatcher;
+    _genomeDataService;
+    _chromosomeName;
 
-    constructor(dispatcher, constants, dataService){
+    constructor(dispatcher, constants, dataService, genomeDataService){
         this._dataService = dataService;
         this._constants = constants;
         this._dispatcher = dispatcher;
+        this._genomeDataService = genomeDataService;
     }
 
     loadVariantInfo(variantRequest, callback, errorCallback){
@@ -23,17 +26,34 @@ export default class ngbVariantInfoService{
             openByUrl: variantRequest.openByUrl,
             fileUrl: variantRequest.openByUrl ? variantRequest.fileUrl : undefined,
             indexUrl: variantRequest.openByUrl ? variantRequest.indexUrl : undefined,
-            position: variantRequest.position
+            position: variantRequest.position,
+            projectId: variantRequest.projectIdNumber,
         };
 
-        this._dataService.getVariantInfo(request)
+        this._genomeDataService.loadChromosome(variantRequest.chromosomeId)
             .then(
-                (data) => {
-                    callback(this._mapVariantPropertiesData(data));
-                },
-                () => {
-                    errorCallback(this._constants.errorMessages.errorLoadingVariantInfo);
-                });
+                (chr) => {
+                    this.chromosomeName = chr.name;
+                    this._dataService.getVariantInfo(request)
+                        .then(
+                            (data) => {
+                                callback(this._mapVariantPropertiesData(data));
+                            }, () => {
+                                errorCallback(this._constants.errorMessages.errorLoadingVariantInfo);
+                            }
+                        );
+                }, () => {
+                    errorCallback(this._constants.errorMessages.chromosomeNotFound);
+                }
+            );
+    }
+
+    get chromosomeName() {
+        return this._chromosomeName;
+    }
+
+    set chromosomeName(value) {
+        this._chromosomeName = value ? value : null;
     }
 
     _mapVariantPropertiesData(variantData){
@@ -42,6 +62,18 @@ export default class ngbVariantInfoService{
         const commonFlex = 50;
         const trimGenesMaxItems = 5;
         const trimGenesMaxLength = 30;
+
+        variantProperties.push({
+            displayMode: this._constants.displayModes.wide,
+            flex: wideFlex,
+            title: 'Description',
+            values: [
+                `${this.chromosomeName
+                    ? `${this.chromosomeName}: `
+                    : ''
+                }${variantData.startIndex} ${utilities.trimString(variantData.referenceAllele)} > ${utilities.trimString(variantData.alternativeAlleles[0])}`
+            ]
+        });
         if (variantData.hasOwnProperty('geneNames')) {
             if (variantData.geneNames.length === 1) {
                 variantProperties.push({

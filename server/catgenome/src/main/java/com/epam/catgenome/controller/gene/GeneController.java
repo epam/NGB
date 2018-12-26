@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import com.epam.catgenome.manager.gene.GeneSecurityService;
+import com.epam.catgenome.manager.protein.ProteinSequenceSecurityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,9 +66,6 @@ import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.exception.GeneReadingException;
 import com.epam.catgenome.exception.HistogramReadingException;
-import com.epam.catgenome.manager.gene.GeneFileManager;
-import com.epam.catgenome.manager.gene.GffManager;
-import com.epam.catgenome.manager.protein.ProteinSequenceManager;
 import com.epam.catgenome.util.Utils;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -92,13 +91,10 @@ public class GeneController extends AbstractRESTController {
     private static final Logger LOGGER = LoggerFactory.getLogger(GeneController.class);
 
     @Autowired
-    private GeneFileManager geneFileManager;
+    private GeneSecurityService geneSecurityService;
 
     @Autowired
-    private GffManager gffManager;
-
-    @Autowired
-    private ProteinSequenceManager proteinSequenceManager;
+    private ProteinSequenceSecurityService proteinSecurityService;
 
     @ResponseBody
     @RequestMapping(value = "/gene/register", method = RequestMethod.POST)
@@ -116,7 +112,7 @@ public class GeneController extends AbstractRESTController {
             })
     public Result<GeneFile> registerGeneFile(@RequestBody
                                                  FeatureIndexedFileRegistrationRequest request) {
-        return Result.success(gffManager.registerGeneFile(request));
+        return Result.success(geneSecurityService.registerGeneFile(request));
     }
 
     @ResponseBody
@@ -124,7 +120,7 @@ public class GeneController extends AbstractRESTController {
     @ApiOperation(value = "Unregisters a gene file in the system.",
             notes = "", produces = MediaType.APPLICATION_JSON_VALUE)
     public Result<Boolean> unregisterGeneFile(@RequestParam final long geneFileId) throws IOException {
-        GeneFile deletedFile = gffManager.unregisterGeneFile(geneFileId);
+        GeneFile deletedFile = geneSecurityService.unregisterGeneFile(geneFileId);
         return Result.success(true, MessageHelper.getMessage(MessagesConstants.INFO_UNREGISTER, deletedFile.getName()));
     }
 
@@ -135,25 +131,12 @@ public class GeneController extends AbstractRESTController {
                 "<b>full</b> parameter specifies if full original file should be reindexed, or " +
                 "preprocessed large scale and transcript files should be used for indexing.</br>",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Result<Boolean> reindexGeneFile(@PathVariable long geneFileId,  @RequestParam(defaultValue = "false")
-            boolean full) throws IOException {
-        GeneFile geneFile = gffManager.reindexGeneFile(geneFileId, full);
+    public Result<Boolean> reindexGeneFile(@PathVariable long geneFileId,
+            @RequestParam(defaultValue = "false") boolean full,
+            @RequestParam(defaultValue = "false") boolean createTabixIndex) throws IOException {
+        GeneFile geneFile = geneSecurityService.reindexGeneFile(geneFileId, full, createTabixIndex);
         return Result.success(true, MessageHelper.getMessage(MessagesConstants.INFO_FEATURE_INDEX_DONE,
                                                              geneFile.getId(), geneFile.getName()));
-    }
-
-    @ResponseBody
-    @RequestMapping(value = GENE_URL + REFERENCE_ID_FIELD + "}/loadAll", method = RequestMethod.GET)
-    @ApiOperation(
-            value = "Returns metadata for all gene files filtered by a reference genome.",
-            notes = "Each summary in the list provides metadata per a single gene file that is available in the " +
-                    "system.",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<List<GeneFile>> loadGeneFiles(@PathVariable(value = REFERENCE_ID_FIELD) final Long referenceId) {
-        return Result.success(geneFileManager.loadGeneFilesByReferenceId(referenceId));
     }
 
     @ResponseBody
@@ -177,35 +160,34 @@ public class GeneController extends AbstractRESTController {
     public Result<Track<GeneHighLevel>> loadTrack(@RequestBody final TrackQuery trackQuery,
             @PathVariable(value = REFERENCE_ID_FIELD) final Long referenceId,
             @RequestParam(required = false) final String fileUrl,
-            @RequestParam(required = false) final String indexUrl)
-        throws GeneReadingException {
+            @RequestParam(required = false) final String indexUrl) throws GeneReadingException {
         final Track<Gene> geneTrack = Query2TrackConverter.convertToTrack(trackQuery);
         boolean collapsed = trackQuery.getCollapsed() != null && trackQuery.getCollapsed();
 
         Track<Gene> genes;
         if (fileUrl == null) {
-            genes = gffManager.loadGenes(geneTrack, collapsed);
-        } else  {
-            genes = gffManager.loadGenes(geneTrack, collapsed, fileUrl, indexUrl);
+            genes = geneSecurityService.loadGenes(geneTrack, collapsed);
+        } else {
+            genes = geneSecurityService.loadGenes(geneTrack, collapsed, fileUrl, indexUrl);
         }
 
         Map<Gene, List<ProteinSequenceEntry>> aminoAcids = null;
         double time1 = Utils.getSystemTimeMilliseconds();
         if (geneTrack.getScaleFactor() > Constants.AA_SHOW_FACTOR && !collapsed) {
-            aminoAcids = proteinSequenceManager.loadProteinSequenceWithoutGrouping(genes, referenceId, collapsed);
+            aminoAcids = proteinSecurityService
+                    .loadProteinSequenceWithoutGrouping(genes, referenceId, collapsed);
         }
         double time2 = Utils.getSystemTimeMilliseconds();
         LOGGER.debug("Loading aminoacids took {} ms", time2 - time1);
 
         final Track<GeneHighLevel> result = new Track<>(geneTrack);
         time1 = Utils.getSystemTimeMilliseconds();
-        result.setBlocks(gffManager.convertGeneTrackForClient(genes.getBlocks(), aminoAcids));
+        result.setBlocks(geneSecurityService.convertGeneTrackForClient(genes.getBlocks(), aminoAcids));
         time2 = Utils.getSystemTimeMilliseconds();
         LOGGER.debug("Simplifying genes took {} ms", time2 - time1);
 
         return Result.success(result);
     }
-
 
     @ResponseBody
     @RequestMapping(value = "/gene/transcript/track/get", method = RequestMethod.POST)
@@ -229,7 +211,7 @@ public class GeneController extends AbstractRESTController {
             @RequestParam(required = false) final String fileUrl,
             @RequestParam(required = false) final String indexUrl)
         throws GeneReadingException {
-        return Result.success(gffManager.loadGenesTranscript(Query2TrackConverter.convertToTrack(trackQuery),
+        return Result.success(geneSecurityService.loadGenesTranscript(Query2TrackConverter.convertToTrack(trackQuery),
                 fileUrl, indexUrl));
     }
 
@@ -244,7 +226,7 @@ public class GeneController extends AbstractRESTController {
             })
     public Result<DimStructure> getPBDentity(@PathVariable(value = "pbdID") String pbdID)
             throws ExternalDbUnavailableException {
-        return Result.success(gffManager.getPBDItemsFromBD(pbdID));
+        return Result.success(geneSecurityService.getPBDItemsFromBD(pbdID));
     }
 
     @ResponseBody
@@ -268,7 +250,7 @@ public class GeneController extends AbstractRESTController {
             })
     public Result<Track<Wig>> loadHistogram(@RequestBody final TrackQuery trackQuery) throws HistogramReadingException {
         final Track<Wig> geneTrack = Query2TrackConverter.convertToTrack(trackQuery);
-        return Result.success(gffManager.loadHistogram(geneTrack));
+        return Result.success(geneSecurityService.loadHistogram(geneTrack));
     }
 
     @ResponseBody
@@ -293,7 +275,7 @@ public class GeneController extends AbstractRESTController {
             })
     public Result<Track<ProteinSequenceInfo>> loadProteinSequence(@RequestBody final TrackQuery trackQuery,
                       @PathVariable(value = REFERENCE_ID_FIELD) final Long referenceId) throws GeneReadingException {
-        return Result.success(proteinSequenceManager.loadProteinSequence(Query2TrackConverter.convertToTrack(
+        return Result.success(proteinSecurityService.loadProteinSequence(Query2TrackConverter.convertToTrack(
             trackQuery), referenceId));
     }
 
@@ -322,7 +304,7 @@ public class GeneController extends AbstractRESTController {
     public Result<Track<MrnaProteinSequenceVariants>> loadProteinSequenceForVariations(
             @RequestBody final ProteinSequenceVariationQuery psVariationQuery, @PathVariable final Long referenceId)
         throws GeneReadingException {
-        return Result.success(proteinSequenceManager.loadProteinSequenceWithVariations(psVariationQuery, referenceId));
+        return Result.success(proteinSecurityService.loadProteinSequenceWithVariations(psVariationQuery, referenceId));
     }
 
     @RequestMapping(value = "/gene/{trackId}/{chromosomeId}/next", method = RequestMethod.GET)
@@ -337,8 +319,11 @@ public class GeneController extends AbstractRESTController {
             })
     public Result<Gene> jumpToNextGene(@RequestParam int fromPosition,
                                        @PathVariable(value = "trackId") long geneFileId,
-                                       @PathVariable(value = "chromosomeId") long chromosomeId) throws IOException {
-        return Result.success(gffManager.getNextOrPreviousFeature(fromPosition, geneFileId, chromosomeId, true));
+                                       @PathVariable(value = "chromosomeId") long chromosomeId,
+                                       @PathVariable(value = "projectId", required = false) Long projectId)
+            throws IOException {
+        return Result.success(geneSecurityService.getNextOrPreviousFeature(
+                fromPosition, geneFileId, chromosomeId, true, projectId));
     }
 
     @RequestMapping(value = "/gene/{trackId}/{chromosomeId}/prev", method = RequestMethod.GET)
@@ -354,8 +339,11 @@ public class GeneController extends AbstractRESTController {
             })
     public Result<Gene> jumpToPrevGene(@RequestParam int fromPosition,
                                        @PathVariable(value = "trackId") long geneFileId,
-                                       @PathVariable(value = "chromosomeId") long chromosomeId) throws IOException {
-        return Result.success(gffManager.getNextOrPreviousFeature(fromPosition, geneFileId, chromosomeId, false));
+                                       @PathVariable(value = "chromosomeId") long chromosomeId,
+                                       @PathVariable(value = "projectId", required = false) Long projectId)
+            throws IOException {
+        return Result.success(geneSecurityService.getNextOrPreviousFeature(
+                fromPosition, geneFileId, chromosomeId, false, projectId));
     }
 
     @RequestMapping(value = "/gene/exons/viewport", method = RequestMethod.POST)
@@ -372,8 +360,8 @@ public class GeneController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<Block>> fetchExons(@RequestBody ExonViewPortQuery query) throws IOException {
-        return Result.success(gffManager.loadExonsInViewPort(query.getId(), query.getChromosomeId(),
-                query.getCenterPosition(), query.getViewPortSize(), query.getIntronLength()));
+        return Result.success(geneSecurityService.loadExonsInViewPort(query.getId(), query.getChromosomeId(),
+                query.getCenterPosition(), query.getViewPortSize(), query.getIntronLength(), query.getProjectId()));
     }
 
     @RequestMapping(value = "/gene/exons/range", method = RequestMethod.POST)
@@ -390,7 +378,7 @@ public class GeneController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<List<Block>> fetchExons(@RequestBody ExonRangeQuery query) throws IOException {
-        return Result.success(gffManager.loadExonsInTrack(query.getId(), query.getChromosomeId(),
-                query.getStartIndex(), query.getEndIndex(), query.getIntronLength()));
+        return Result.success(geneSecurityService.loadExonsInTrack(query.getId(), query.getChromosomeId(),
+                query.getStartIndex(), query.getEndIndex(), query.getIntronLength(), query.getProjectId()));
     }
 }

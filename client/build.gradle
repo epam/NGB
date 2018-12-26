@@ -5,6 +5,7 @@ plugins {
 }
 
 def desktop = hasProperty("desktop")
+def clientPath = hasProperty("clientPath") ? clientPath : "/catgenome"
 def nodeVersion = "6.9.5"
 
 //to handle Windows issue with CMD output buffer (can be removed
@@ -67,7 +68,7 @@ npmSetup.dependsOn clean
 
 task buildUI(type: NpmTask) {
     dependsOn npmInstall
-    args = ['run', 'build:prod', '--', '--publicPath', '/catgenome']
+    args = ['run', 'build:prod', '--', '--publicPath', clientPath]
     if (desktop) {
         println "Building NGB Desktop UI"
         args << '--desktop'

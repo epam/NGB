@@ -185,7 +185,7 @@ public class GffManagerTest extends AbstractManagerTest {
         testChromosome.setSize(TEST_CHROMOSOME_SIZE);
         testReference = EntityHelper.createNewReference(testChromosome, referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testReference);
+        referenceGenomeManager.create(testReference);
         referenceId = testReference.getId();
     }
 
@@ -230,7 +230,7 @@ public class GffManagerTest extends AbstractManagerTest {
             request.setPrettyName(PRETTY_NAME);
 
             GeneFile geneFile = gffManager.registerGeneFile(request);
-            GeneFile loadedGeneFile = geneFileManager.loadGeneFile(geneFile.getId());
+            GeneFile loadedGeneFile = geneFileManager.load(geneFile.getId());
             Assert.assertNotNull(loadedGeneFile);
             Assert.assertNotNull(loadedGeneFile.getId());
             Assert.assertEquals(PRETTY_NAME, loadedGeneFile.getPrettyName());
@@ -326,12 +326,12 @@ public class GffManagerTest extends AbstractManagerTest {
         Assert.assertNotNull(geneFile.getId());
         try {
             referenceGenomeManager.updateReferenceAnnotationFile(referenceId, geneFile.getBioDataItemId(), false);
-            geneFileManager.deleteGeneFile(geneFile);
+            geneFileManager.delete(geneFile);
         //expected exception
         } catch (IllegalArgumentException e) {
             //remove file correctly as expected
             referenceGenomeManager.updateReferenceAnnotationFile(referenceId, geneFile.getBioDataItemId(), true);
-            geneFileManager.deleteGeneFile(geneFile);
+            geneFileManager.delete(geneFile);
         }
     }
 
@@ -459,7 +459,7 @@ public class GffManagerTest extends AbstractManagerTest {
         Reference otherReference = EntityHelper.createNewReference(otherChromosome,
                 referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(otherReference);
+        referenceGenomeManager.create(otherReference);
         Long otherReferenceId = otherReference.getId();
 
         Resource resource = context.getResource("classpath:templates/Homo_sapiens.GRCh38.83.sorted.chr21-22.gtf");
@@ -539,7 +539,7 @@ public class GffManagerTest extends AbstractManagerTest {
         testChr1.setSize(TEST_CHROMOSOME_SIZE);
         Reference testRef = EntityHelper.createNewReference(testChr1, referenceGenomeManager.createReferenceId());
 
-        referenceGenomeManager.register(testRef);
+        referenceGenomeManager.create(testRef);
         Long testRefId = testReference.getId();
 
         Resource resource = context.getResource("classpath:templates/mrna.sorted.chunk.gtf");
@@ -628,7 +628,11 @@ public class GffManagerTest extends AbstractManagerTest {
         track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
 
         Track<Gene> featureList = gffManager.loadGenes(track, false);
+
         Assert.assertTrue(featureList.getBlocks().stream().anyMatch(g -> g.getItems().size() > 1));
+        Assert.assertTrue(featureList.getBlocks()
+                .stream().filter(g -> g.getItems() != null).flatMap(g -> g.getItems()
+                        .stream()).filter(GeneUtils::isTranscript).allMatch(t -> t.getExonsCount() > 0));
 
         track = new Track<>();
         track.setId(geneFile.getId());
@@ -648,6 +652,8 @@ public class GffManagerTest extends AbstractManagerTest {
         Assert.assertFalse(featureListCollapsed.getBlocks().stream().filter(GeneUtils::isGene)
                 .allMatch(g -> g.getItems().get(0).getItems().isEmpty()));
 
+        Assert.assertTrue(featureListCollapsed.getBlocks()
+                .stream().filter(GeneUtils::isGene).allMatch(g -> g.getExonsCount() == null));
         return true;
     }
 
@@ -735,12 +741,12 @@ public class GffManagerTest extends AbstractManagerTest {
         Assert.assertFalse(featureListLargeScale.getBlocks().isEmpty());
         Assert.assertTrue(featureListLargeScale.getBlocks().stream().allMatch(g -> g.getItems() == null));
 
-        // unregister:
+        // delete:
         gffManager.unregisterGeneFile(geneFile.getId());
 
         boolean failed = false;
         try {
-            geneFileManager.loadGeneFile(geneFile.getId());
+            geneFileManager.load(geneFile.getId());
         } catch (IllegalArgumentException e) {
             failed = true;
         }
@@ -771,6 +777,5 @@ public class GffManagerTest extends AbstractManagerTest {
         String pathStr = resource.getFile().getPath();
         return new String(Files.readAllBytes(Paths.get(pathStr)), Charset.defaultCharset());
     }
-
 
 }

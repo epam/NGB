@@ -18,4 +18,7 @@ export default angular.module('ngbDataServices', [])
     .service('mafDataService', dataServices.MafDataService.serviceFactory)
     .service('bucketDataService', dataServices.BucketDataService.serviceFactory)
     .service('externaldbDataService', dataServices.ExternaldbDataService.serviceFactory)
+    .service('roleDataService', dataServices.RoleDataService.serviceFactory)
+    .service('userDataService', dataServices.UserDataService.serviceFactory)
+    .service('permissionsDataService', dataServices.PermissionsDataService.serviceFactory)
     .name;
