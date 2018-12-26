@@ -31,6 +31,8 @@ import com.epam.ngb.cli.app.ApplicationOptions;
 import com.epam.ngb.cli.entity.AclSecuredEntry;
 import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
+import com.epam.ngb.cli.entity.Role;
+import com.epam.ngb.cli.entity.UserContext;
 import com.epam.ngb.cli.manager.command.ServerParameters;
 import org.junit.*;
 
@@ -132,6 +134,9 @@ public class SearchHandlerTest extends AbstractCliTest {
 
     @Test
     public void shouldPrintPermissions() {
+        UserContext user = new UserContext();
+        user.setRoles(Collections.singletonList(new Role("ROLE_ADMIN")));
+
         AclSecuredEntry entry = buildAclSecuredEntry(
                 AclSecuredEntry.Entity
                 .builder()
@@ -143,6 +148,7 @@ public class SearchHandlerTest extends AbstractCliTest {
 
         server.addReference(REF_BIO_ID, REF_ID, REFERENCE_NAME, PATH_TO_REFERENCE);
         server.addPermissions(entry, BiologicalDataItemFormat.REFERENCE.name());
+        server.addCurrentUserRequest(user);
 
         SearchHandler handler = getSearchHandler();
         ApplicationOptions applicationOptions = new ApplicationOptions();

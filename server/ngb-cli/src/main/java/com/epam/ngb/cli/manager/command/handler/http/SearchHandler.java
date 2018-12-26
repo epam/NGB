@@ -78,20 +78,25 @@ public class SearchHandler extends AbstractHTTPCommandHandler {
         AbstractResultPrinter printer = AbstractResultPrinter.getPrinter(printTable,
                 items.get(0).getFormatString(items));
         if (permissionsRequired) {
-            printWithPermissions(items, printer);
-            return 0;
+            PrintPermissionsHelper permissionsHelper = new PrintPermissionsHelper(this, printTable);
+            if (permissionsHelper.isCurrentUserIsAdmin()) {
+                printWithPermissions(items, printer, permissionsHelper);
+                return 0;
+            } else {
+                LOGGER.info("You are not authorized as admin. --permissions option will be ignored.");
+            }
         }
         printer.printHeader(items.get(0));
         items.forEach(printer::printItem);
         return 0;
     }
 
-    private void printWithPermissions(final List<BiologicalDataItem> items, final AbstractResultPrinter printer) {
+    private void printWithPermissions(final List<BiologicalDataItem> items, final AbstractResultPrinter printer,
+                                      final PrintPermissionsHelper permissionsHelper) {
         items.forEach(item -> {
             printer.printHeader(item);
             printer.printItem(item);
 
-            PrintPermissionsHelper permissionsHelper = new PrintPermissionsHelper(this, printTable);
             permissionsHelper.print(item.getId(), item.getFormat().name());
         });
     }

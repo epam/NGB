@@ -45,6 +45,7 @@ import com.epam.ngb.cli.entity.RequestPayload;
 import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.entity.Role;
 import com.epam.ngb.cli.entity.SpeciesEntity;
+import com.epam.ngb.cli.entity.UserContext;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -101,6 +102,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
     private static final String AUTHORIZATION = "Authorization";
     private static final String BEARER = "Bearer ";
     private static final String PERMISSIONS_URL = "/restapi/grant?id=%s&aclClass=%s";
+    private static final String CURRENT_USER_URL = "/restapi/user/current";
 
     /**
      * Delimiter between path to file and path to index in the input argument string
@@ -608,6 +610,23 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
                         ResponseResult.class, AclSecuredEntry.class));
         if (responseResult == null || responseResult.getPayload() == null) {
             throw new ApplicationException(getMessage(ERROR_PERMISSIONS_NOT_FOUND, entityClass, entityId));
+        }
+        return responseResult.getPayload();
+    }
+
+    /**
+     * Performs an HTTP request to load user info.
+     * @return user info
+     */
+    protected UserContext loadCurrentUser() throws IOException {
+        HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, serverParameters.getServerUrl()
+                + CURRENT_USER_URL);
+        String result = RequestManager.executeRequest(request);
+        ResponseResult<UserContext> responseResult = getMapper().readValue(result,
+                getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class,
+                        ResponseResult.class, UserContext.class));
+        if (responseResult == null || responseResult.getPayload() == null) {
+            throw new ApplicationException(ERROR_FAILED_TO_LOAD_USER);
         }
         return responseResult.getPayload();
     }

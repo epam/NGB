@@ -32,6 +32,8 @@ import com.epam.ngb.cli.entity.AclSecuredEntry;
 import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
 import com.epam.ngb.cli.entity.Project;
+import com.epam.ngb.cli.entity.Role;
+import com.epam.ngb.cli.entity.UserContext;
 import com.epam.ngb.cli.manager.command.ServerParameters;
 import org.junit.*;
 
@@ -117,6 +119,9 @@ public class DatasetListHandlerTest extends AbstractCliTest {
 
     @Test
     public void shouldPrintPermissions() {
+        UserContext user = new UserContext();
+        user.setRoles(Collections.singletonList(new Role("ROLE_ADMIN")));
+
         Project project = TestDataProvider
                 .getProject(DATASET_ID_1, DATASET_NAME_1, Collections.emptyList());
 
@@ -131,6 +136,7 @@ public class DatasetListHandlerTest extends AbstractCliTest {
 
         server.addDatasetListing(Collections.singletonList(project));
         server.addPermissions(entry, "PROJECT");
+        server.addCurrentUserRequest(user);
 
         DatasetListHandler handler = getDatasetListHandler();
         ApplicationOptions options = new ApplicationOptions();

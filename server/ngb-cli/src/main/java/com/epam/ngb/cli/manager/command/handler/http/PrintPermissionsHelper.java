@@ -52,6 +52,7 @@ import static com.epam.ngb.cli.manager.command.handler.http.GrantPermissionHandl
 public class PrintPermissionsHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PrintPermissionsHelper.class);
+    private static final String ROLE_ADMIN = "ROLE_ADMIN";
 
     private final AbstractHTTPCommandHandler handler;
     private final boolean printTable;
@@ -79,7 +80,20 @@ public class PrintPermissionsHelper {
                     .sorted(getSidComparator())
                     .forEach(printer::printItem);
         } catch (IOException | ApplicationException e) {
-            LOGGER.error("An error occurred during building permissions", e);
+            LOGGER.error(e.getMessage());
+        }
+    }
+
+    /**
+     * Checks if user is admin
+     * @return true if current user has ROLE_ADMIN
+     */
+    public boolean isCurrentUserIsAdmin() {
+        try {
+            return handler.loadCurrentUser().getRoles().stream()
+                    .anyMatch(role -> role.getName().equalsIgnoreCase(ROLE_ADMIN));
+        } catch (IOException e) {
+            throw new ApplicationException(e.getMessage(), e);
         }
     }
 
