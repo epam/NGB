@@ -31,7 +31,7 @@ import java.net.URISyntaxException;
 import java.util.Comparator;
 import java.util.List;
 
-import com.epam.ngb.cli.entity.PermissionGrantRequest;
+import com.epam.ngb.cli.entity.AclClass;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
@@ -119,9 +119,8 @@ public class DatasetListHandler extends AbstractHTTPCommandHandler {
             AbstractResultPrinter printer = AbstractResultPrinter
                     .getPrinter(printTable, items.get(0).getFormatString(items));
             if (permissionsRequired) {
-                PrintPermissionsHelper permissionsHelper = new PrintPermissionsHelper(this, printTable);
-                if (permissionsHelper.isCurrentUserIsAdmin()) {
-                    printWithPermissions(items, printer, permissionsHelper);
+                if (isCurrentUserIsAdmin()) {
+                    printWithPermissions(items, printer);
                     return 0;
                 } else {
                     LOGGER.info("You are not authorized as admin. --permissions option will be ignored.");
@@ -148,13 +147,13 @@ public class DatasetListHandler extends AbstractHTTPCommandHandler {
         return getRequest(getRequestUrl());
     }
 
-    private void printWithPermissions(final List<Project> items, final AbstractResultPrinter printer,
-                                      final PrintPermissionsHelper permissionsHelper) {
+    private void printWithPermissions(final List<Project> items, final AbstractResultPrinter printer) {
         items.forEach(item -> {
             printer.printHeader(item);
             printer.printItem(item);
 
-            permissionsHelper.print(item.getId(), PermissionGrantRequest.AclClass.PROJECT.name());
+            PrintPermissionsHelper permissionsHelper = new PrintPermissionsHelper(this, printTable);
+            permissionsHelper.print(item.getId(), AclClass.PROJECT.name());
         });
     }
 }

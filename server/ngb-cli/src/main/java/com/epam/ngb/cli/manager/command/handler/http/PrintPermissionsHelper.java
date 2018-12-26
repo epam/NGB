@@ -24,6 +24,7 @@
 
 package com.epam.ngb.cli.manager.command.handler.http;
 
+import com.epam.ngb.cli.entity.AclClass;
 import com.epam.ngb.cli.entity.AclSecuredEntry;
 import com.epam.ngb.cli.entity.PermissionsContainer;
 import com.epam.ngb.cli.exception.ApplicationException;
@@ -52,7 +53,6 @@ import static com.epam.ngb.cli.manager.command.handler.http.GrantPermissionHandl
 public class PrintPermissionsHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PrintPermissionsHelper.class);
-    private static final String ROLE_ADMIN = "ROLE_ADMIN";
 
     private final AbstractHTTPCommandHandler handler;
     private final boolean printTable;
@@ -64,7 +64,12 @@ public class PrintPermissionsHelper {
      */
     public void print(final Long entityId, final String entityClass) {
         try {
-            AclSecuredEntry permissions = handler.loadPermissions(entityId, entityClass);
+            AclClass aclClass = getAclClass(entityClass);
+            if (aclClass == null) {
+                return;
+            }
+
+            AclSecuredEntry permissions = handler.loadPermissions(entityId, aclClass);
             List<AclSecuredEntry.AclPermissionEntry> rawPermissions = permissions.getPermissions();
 
             List<PermissionsContainer> permissionsContainer = preparePermissions(rawPermissions);
@@ -84,17 +89,13 @@ public class PrintPermissionsHelper {
         }
     }
 
-    /**
-     * Checks if user is admin
-     * @return true if current user has ROLE_ADMIN
-     */
-    public boolean isCurrentUserIsAdmin() {
-        try {
-            return handler.loadCurrentUser().getRoles().stream()
-                    .anyMatch(role -> role.getName().equalsIgnoreCase(ROLE_ADMIN));
-        } catch (IOException e) {
-            throw new ApplicationException(e.getMessage(), e);
+    private static AclClass getAclClass(final String entityClass) {
+        for (AclClass aclClass : AclClass.values()) {
+            if (aclClass.name().equals(entityClass)) {
+                return aclClass;
+            }
         }
+        return null;
     }
 
     private static List<PermissionsContainer> preparePermissions(List<AclSecuredEntry.AclPermissionEntry> permissions) {

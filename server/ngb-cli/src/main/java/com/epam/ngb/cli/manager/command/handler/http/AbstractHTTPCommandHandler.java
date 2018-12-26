@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.epam.ngb.cli.app.Utils;
+import com.epam.ngb.cli.entity.AclClass;
 import com.epam.ngb.cli.entity.AclSecuredEntry;
 import com.epam.ngb.cli.entity.BiologicalDataItem;
 import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
@@ -76,6 +77,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * and printing requests results.
  */
 public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHandler {
+
+    private static final String ROLE_ADMIN = "ROLE_ADMIN";
 
     /**
      * For serialization and deserialization objects to JSON format
@@ -601,7 +604,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
      * @param entityClass entity acl class
      * @return entity and it's acl permissions
      */
-    protected AclSecuredEntry loadPermissions(Long entityId, String entityClass) throws IOException {
+    protected AclSecuredEntry loadPermissions(Long entityId, AclClass entityClass) throws IOException {
         HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, serverParameters.getServerUrl()
                 + String.format(PERMISSIONS_URL, entityId, entityClass));
         String result = RequestManager.executeRequest(request);
@@ -719,6 +722,19 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             }
         }
         return Pair.of(fileAbsolutePath, index);
+    }
+
+    /**
+     * Checks if user is admin
+     * @return true if current user has ROLE_ADMIN
+     */
+    public boolean isCurrentUserIsAdmin() {
+        try {
+            return loadCurrentUser().getRoles().stream()
+                    .anyMatch(role -> role.getName().equalsIgnoreCase(ROLE_ADMIN));
+        } catch (IOException e) {
+            throw new ApplicationException(e.getMessage(), e);
+        }
     }
 
     private Pair<String, String> setIndexPathFromServer(String path, Pair<String, String> fileWithIndex) {
