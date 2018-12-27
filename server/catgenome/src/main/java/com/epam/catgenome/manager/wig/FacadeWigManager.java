@@ -52,6 +52,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import java.io.File;
@@ -123,6 +125,7 @@ public class FacadeWigManager {
      * @param request
      * @return
      */
+    @Transactional(propagation = Propagation.REQUIRED)
     public WigFile registerWigFile(final IndexedFileRegistrationRequest request) {
         Assert.notNull(request, MessagesConstants.ERROR_NULL_PARAM);
         final String requestPath = request.getPath();
