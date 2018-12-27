@@ -33,17 +33,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.security.NgbSecurityGroup;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
@@ -75,7 +74,7 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     private String loadAllGroupsQuery;
     private String findGroupsQuery;
     private String loadUsersByGroupQuery;
-    private String loadUsesByNamesQuery;
+    private String loadUsersByNamesQuery;
     private String loadUserByNameAndGroupQuery;
     private String deleteUserGroupsQuery;
     private String loadUserListQuery;
@@ -88,14 +87,14 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     private DaoHelper daoHelper;
 
     /**
-     * Loads user by name with roles. Groups should be explicitly loaded with loadGroups method call
+     * Loads user by name with roles. Groups should be explicitly loaded with loadGroupsByUsersIds method call
      *
      * @param userName
      * @return user with roles
      */
     public NgbUser loadUserByName(String userName) {
         List<NgbUser> items = getJdbcTemplate().query(loadUserByNameQuery,
-                                    UserParameters.getUserWithRolesExtractor(), userName.toLowerCase());
+                                    UserParameters.getUserWithRolesAndGroupsExtractor(), userName.toLowerCase());
         if (CollectionUtils.isEmpty(items)) {
             return null;
         } else {
@@ -123,36 +122,41 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     }
 
     private void insertUserGroups(Long id, List<String> groups) {
-        List<Pair<Long, String>> existingGroups = loadExistingGroupsFromList(groups);
-        Set<String> existingGroupNames = existingGroups.stream().map(Pair::getRight).collect(Collectors.toSet());
+        List<NgbSecurityGroup> existingGroups = loadExistingGroupsFromList(groups);
+        Map<String, NgbSecurityGroup> existingGroupsByName = existingGroups.stream()
+                .collect(Collectors.toMap(NgbSecurityGroup::getGroupName, Function.identity()));
 
-        List<String> newGroups = groups.stream().filter(g -> !existingGroupNames.contains(g))
-            .collect(Collectors.toList());
+        List<String> newGroups = groups.stream()
+                .filter(g -> !existingGroupsByName.containsKey(g))
+                .collect(Collectors.toList());
         List<Long> ids = daoHelper.createIds(groupSequence, newGroups.size());
 
         MapSqlParameterSource[] groupParams = new MapSqlParameterSource[newGroups.size()];
         for (int i = 0; i < newGroups.size(); i++) {
+            NgbSecurityGroup group = new NgbSecurityGroup(ids.get(i), newGroups.get(i));
             MapSqlParameterSource param = new MapSqlParameterSource();
-            param.addValue(GroupParameters.GROUP_ID.name(), ids.get(i));
-            param.addValue(GroupParameters.GROUP_NAME.name(), newGroups.get(i));
+            param.addValue(GroupParameters.GROUP_ID.name(), group.getId());
+            param.addValue(GroupParameters.GROUP_NAME.name(), group.getGroupName());
             groupParams[i] = param;
-            existingGroups.add(new ImmutablePair<>(ids.get(i), newGroups.get(i)));
-        }
 
+            existingGroups.add(group);
+        }
         getNamedParameterJdbcTemplate().batchUpdate(insertGroupQuery, groupParams);
 
-        MapSqlParameterSource[] userGroupParams = existingGroups.stream().map(g -> {
-            MapSqlParameterSource param = new MapSqlParameterSource();
-            param.addValue(GroupParameters.USER_ID.name(), id);
-            param.addValue(GroupParameters.GROUP_ID.name(), g.getLeft());
-            return param;
-        }).toArray(MapSqlParameterSource[]::new);
+        List<NgbSecurityGroup> existingNewGroups = getExistingNewGroups(id, groups, existingGroups);
+        MapSqlParameterSource[] userGroupParams = existingNewGroups.stream()
+                .map(group -> {
+                    MapSqlParameterSource param = new MapSqlParameterSource();
+                    param.addValue(GroupParameters.USER_ID.name(), id);
+                    param.addValue(GroupParameters.GROUP_ID.name(), group.getId());
+                    return param;
+                }).toArray(MapSqlParameterSource[]::new);
 
         getNamedParameterJdbcTemplate().batchUpdate(insertUserGroupQuery, userGroupParams);
     }
 
     public List<NgbUser> loadAllUsers() {
-        return getJdbcTemplate().query(loadAllUsersQuery, UserParameters.getUserWithRolesExtractor());
+        return getJdbcTemplate().query(loadAllUsersQuery, UserParameters.getUserWithRolesAndGroupsExtractor());
     }
 
     public List<NgbUser> loadUsersByNames(List<String> names) {
@@ -160,14 +164,14 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
             return Collections.emptyList();
         }
 
-        String query = DaoHelper.replaceInClause(loadUsesByNamesQuery, names.size());
-        return getJdbcTemplate().query(query, UserParameters.getUserWithRolesExtractor(),
+        String query = DaoHelper.replaceInClause(loadUsersByNamesQuery, names.size());
+        return getJdbcTemplate().query(query, UserParameters.getUserWithRolesAndGroupsExtractor(),
                                        names.stream().map(String::toLowerCase).toArray());
     }
 
     public NgbUser loadUserById(Long id) {
         List<NgbUser> items =
-            getJdbcTemplate().query(loadUserByIdQuery, UserParameters.getUserWithRolesExtractor(), id);
+            getJdbcTemplate().query(loadUserByIdQuery, UserParameters.getUserWithRolesAndGroupsExtractor(), id);
         return items.stream().findFirst().orElse(null);
     }
 
@@ -198,6 +202,7 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public NgbUser updateUser(NgbUser user) {
         getNamedParameterJdbcTemplate().update(updateUserQuery, UserParameters.getParameters(user));
+        insertUserGroups(user.getId(), user.getGroups());
         return user;
     }
 
@@ -214,45 +219,31 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue(UserParameters.USER_NAME.name(), daoHelper.escapeUnderscore(prefix.toLowerCase() + "%"));
         return getNamedParameterJdbcTemplate().query(findUsersByPrefixQuery, params,
-                                                     UserParameters.getUserWithRolesExtractor());
+                                                     UserParameters.getUserWithRolesAndGroupsExtractor());
     }
 
-    public Map<Long, List<String>> loadGroups(List<Long> userIds) {
+    public Map<Long, List<NgbSecurityGroup>> loadGroupsByUsersIds(List<Long> userIds) {
         String query = DaoHelper.replaceInClause(loadGroupsByUserIdsQuery, userIds.size());
-        Map<Long, List<String>> result = new HashMap<>();
-        getJdbcTemplate().query(query, rs -> {
-            String groupName = rs.getString(GroupParameters.GROUP_NAME.name());
-            result.merge(
-                rs.getLong(UserParameters.USER_ID.name()),
-                new ArrayList<>(Collections.singletonList(groupName)),
-                (l1, l2) -> {
-                    l1.addAll(l2);
-                    return l1;
-                }
-            );
-        }, userIds.toArray(new Object[0]));
-
-        return result;
+        return getJdbcTemplate().query(query, GroupParameters.getGroupByUserExtractor(), userIds.toArray());
     }
 
-    public List<String> loadAllGroups() {
-        return getJdbcTemplate().query(loadAllGroupsQuery, new SingleColumnRowMapper<>());
+    public List<NgbSecurityGroup> loadAllGroups() {
+        return getJdbcTemplate().query(loadAllGroupsQuery, GroupParameters.getGroupRowMapper());
     }
 
-    public List<String> findGroups(String prefix) {
-        return getJdbcTemplate().query(findGroupsQuery, new SingleColumnRowMapper<>(), prefix.toLowerCase() + "%");
+    public List<NgbSecurityGroup> findGroups(String prefix) {
+        return getJdbcTemplate().query(findGroupsQuery, GroupParameters.getGroupRowMapper(),
+                prefix.toLowerCase() + "%");
     }
 
     public List<NgbUser> loadUsersByGroup(String group) {
-        return getJdbcTemplate().query(loadUsersByGroupQuery, UserParameters.getUserWithRolesExtractor(),
+        return getJdbcTemplate().query(loadUsersByGroupQuery, UserParameters.getUserWithRolesAndGroupsExtractor(),
                                        group.toLowerCase());
     }
 
-    public List<Pair<Long, String>> loadExistingGroupsFromList(List<String> groups) {
+    public List<NgbSecurityGroup> loadExistingGroupsFromList(List<String> groups) {
         String query = DaoHelper.replaceInClause(loadExistingGroupsFromListQuery, groups.size());
-        return getJdbcTemplate().query(query,
-            (rs, i) -> new ImmutablePair<>(rs.getLong(1), rs.getString(2)),
-                groups.toArray(new Object[0]));
+        return getJdbcTemplate().query(query, GroupParameters.getGroupRowMapper(), groups.toArray());
     }
 
     public boolean isUserInGroup(String userName, String group) {
@@ -263,7 +254,8 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
 
     public List<NgbUser> loadUsersList(List<Long> userIds) {
         return getNamedParameterJdbcTemplate().query(loadUserListQuery,
-                RoleDao.RoleParameters.getIdListParameters(userIds), UserParameters.getUserWithRolesExtractor());
+                RoleDao.RoleParameters.getIdListParameters(userIds),
+                UserParameters.getUserWithRolesAndGroupsExtractor());
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -283,10 +275,54 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
         getNamedParameterJdbcTemplate().batchUpdate(query, batchParameters);
     }
 
+    private List<NgbSecurityGroup> getExistingNewGroups(final Long userId, final List<String> groups,
+                                                        final List<NgbSecurityGroup> existingGroups) {
+        Set<String> userGroupNames = loadGroupsByUsersIds(Collections.singletonList(userId))
+                .getOrDefault(userId, Collections.emptyList())
+                .stream()
+                .map(NgbSecurityGroup::getGroupName)
+                .collect(Collectors.toSet());
+        Set<String> newUserGroups = groups.stream()
+                .filter(group -> !userGroupNames.contains(group))
+                .collect(Collectors.toSet());
+        return existingGroups
+                .stream()
+                .filter(group -> newUserGroups.contains(group.getGroupName()))
+                .collect(Collectors.toList());
+    }
+
     enum GroupParameters {
+        ID,
+        NAME,
         USER_ID,
         GROUP_ID,
-        GROUP_NAME
+        GROUP_NAME;
+
+        private static RowMapper<NgbSecurityGroup> getGroupRowMapper() {
+            return (rs, rowNum) -> NgbSecurityGroup
+                        .builder()
+                        .id(rs.getLong(ID.name()))
+                        .groupName(rs.getString(NAME.name()))
+                        .build();
+        }
+
+        private static ResultSetExtractor<Map<Long, List<NgbSecurityGroup>>> getGroupByUserExtractor() {
+            return rs -> {
+                Map<Long, List<NgbSecurityGroup>> result = new HashMap<>();
+                while (rs.next()) {
+                    result.merge(rs.getLong(UserParameters.USER_ID.name()),
+                            new ArrayList<>(Collections.singletonList(NgbSecurityGroup
+                                    .builder()
+                                    .id(rs.getLong(GROUP_ID.name()))
+                                    .groupName(rs.getString(GROUP_NAME.name()))
+                                    .build())), (l1, l2) -> {
+                            l1.addAll(l2);
+                            return l1;
+                        });
+                }
+                return result;
+            };
+        }
     }
 
     enum UserParameters {
@@ -313,7 +349,7 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
             return (rs, rowNum) -> parseUser(rs, rs.getLong(USER_ID.name()));
         }
 
-        private static ResultSetExtractor<List<NgbUser>> getUserWithRolesExtractor() {
+        private static ResultSetExtractor<List<NgbUser>> getUserWithRolesAndGroupsExtractor() {
             return (rs) -> {
                 Map<Long, NgbUser> users = new HashMap<>();
                 while (rs.next()) {
@@ -329,6 +365,11 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
 
                         return u;
                     });
+
+                    rs.getLong(GroupParameters.GROUP_ID.name());
+                    if (!rs.wasNull()) {
+                        user.getGroups().add(rs.getString(GroupParameters.GROUP_NAME.name()));
+                    }
 
                     rs.getLong(RoleDao.RoleParameters.ROLE_ID.name());
                     if (!rs.wasNull()) {
@@ -470,8 +511,8 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Required
-    public void setLoadUsesByNamesQuery(String loadUsesByNamesQuery) {
-        this.loadUsesByNamesQuery = loadUsesByNamesQuery;
+    public void setLoadUsersByNamesQuery(String loadUsersByNamesQuery) {
+        this.loadUsersByNamesQuery = loadUsersByNamesQuery;
     }
 
     @Required

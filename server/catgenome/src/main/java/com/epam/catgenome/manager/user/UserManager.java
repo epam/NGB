@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 import com.epam.catgenome.controller.vo.NgbUserVO;
 import com.epam.catgenome.dao.user.RoleDao;
+import com.epam.catgenome.entity.security.NgbSecurityGroup;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,6 +133,7 @@ public class UserManager {
     public NgbUser deleteUser(Long id) {
         NgbUser userContext = loadUserById(id);
         userDao.deleteUserRoles(id);
+        userDao.deleteUserGroups(id);
         userDao.deleteUser(id);
         return userContext;
     }
@@ -187,11 +189,13 @@ public class UserManager {
         Assert.isTrue(StringUtils.isNotBlank(prefix), MessageHelper.getMessage(MessagesConstants.ERROR_NULL_PARAM));
         List<NgbUser> users = userDao.findUsers(prefix);
         List<Long> userIds = users.stream().map(NgbUser::getId).collect(Collectors.toList());
-        Map<Long, List<String>> groups = userDao.loadGroups(userIds);
+        Map<Long, List<NgbSecurityGroup>> groups = userDao.loadGroupsByUsersIds(userIds);
         Map<Long, List<Role>> roles = roleDao.loadRolesByUserIds(userIds);
 
         users.forEach(u -> {
-            u.setGroups(groups.get(u.getId()));
+            u.setGroups(groups.get(u.getId()).stream()
+                    .map(NgbSecurityGroup::getGroupName)
+                    .collect(Collectors.toList()));
             u.setRoles(roles.get(u.getId()));
         });
 
@@ -205,9 +209,9 @@ public class UserManager {
      */
     public List<String> findGroups(String prefix) {
         if (StringUtils.isBlank(prefix)) {
-            return userDao.loadAllGroups();
+            return userDao.loadAllGroups().stream().map(NgbSecurityGroup::getGroupName).collect(Collectors.toList());
         }
-        return userDao.findGroups(prefix);
+        return userDao.findGroups(prefix).stream().map(NgbSecurityGroup::getGroupName).collect(Collectors.toList());
     }
 
     /**

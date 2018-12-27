@@ -253,6 +253,7 @@ public final class MessagesConstants {
     public static final String ERROR_USER_LIST_EMPTY = "error.user.list.empty";
     public static final String ERROR_ROLE_NAME_REQUIRED = "error.role.name.required";
     public static final String ERROR_ROLE_ALREADY_EXIST = "error.role.already.exists";
+    public static final String ERROR_NO_GROUP_WAS_FOUND = "error.no.group.was.found";
 
     private MessagesConstants() {
         // No-op

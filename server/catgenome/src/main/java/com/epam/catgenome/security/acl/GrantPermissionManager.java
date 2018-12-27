@@ -28,6 +28,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
@@ -173,6 +174,18 @@ public class GrantPermissionManager {
         return filterTree(permissionHelper.convertUserToSids(userName), entity, permission);
     }
 
+    public boolean isGroupRegistered(final List<String> groups) {
+        Set<Long> sidIds = groups.stream()
+                .map(group ->  aclService.getSidId(group, false))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        if (CollectionUtils.isEmpty(sidIds)) {
+            return false;
+        }
+        Integer entriesCount = aclService.loadEntriesBySidsCount(sidIds);
+        return entriesCount != null && entriesCount != 0;
+    }
+
     private boolean filterTree(List<Sid> sids, AbstractHierarchicalEntity entity, Permission permission) {
         if (entity == null) {
             return true;
@@ -236,7 +249,8 @@ public class GrantPermissionManager {
             Assert.notNull(userManager.loadUserByName(userName),
                     MessageHelper.getMessage(MessagesConstants.ERROR_ROLE_OR_USER_NOT_FOUND, userName));
         } else {
-            Assert.isTrue(roleManager.loadAllRoles(false).stream().anyMatch(r -> r.getName().equals(userName)),
+            Assert.isTrue(userManager.findGroups(null).stream().anyMatch(group -> group.equals(userName))
+                            || roleManager.loadAllRoles(false).stream().anyMatch(r -> r.getName().equals(userName)),
                     MessageHelper.getMessage(MessagesConstants.ERROR_ROLE_OR_USER_NOT_FOUND, userName));
         }
         Assert.notNull(aclClass, MessageHelper.getMessage(

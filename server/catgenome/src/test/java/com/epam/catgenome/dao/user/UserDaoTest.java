@@ -31,7 +31,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.security.NgbSecurityGroup;
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -144,22 +146,28 @@ public class UserDaoTest extends AbstractDaoTest {
         Assert.assertTrue(userByGroup.stream().noneMatch(u ->
                                                              u.getUserName().equals(TEST_USER3)));
 
-        Map<Long, List<String>> groupMap = userDao.loadGroups(Arrays.asList(user1.getId(), user2.getId(),
-                                                                            user3.getId()));
+        Map<Long, List<NgbSecurityGroup>> groupMap = userDao.loadGroupsByUsersIds(Arrays.asList(user1.getId(),
+                user2.getId(), user3.getId()));
 
         Assert.assertEquals(1, groupMap.get(user1.getId()).size());
         Assert.assertEquals(2, groupMap.get(user2.getId()).size());
         Assert.assertEquals(1, groupMap.get(user3.getId()).size());
 
-        List<String> foundGroups = userDao.findGroups("TEST_");
+        List<String> foundGroups = userDao.findGroups("TEST_")
+                .stream()
+                .map(NgbSecurityGroup::getGroupName)
+                .collect(Collectors.toList());
         Assert.assertEquals(TEST_GROUPS_1.size(), foundGroups.size());
         Assert.assertTrue(TEST_GROUPS_1.containsAll(foundGroups));
 
         Assert.assertFalse(userDao.isUserInGroup(user1.getUserName(), "TEST_GROUP_5"));
         Assert.assertTrue(userDao.isUserInGroup(user1.getUserName(), TEST_GROUP_1));
 
-        List<String> allLoadedGroups = userDao.loadAllGroups();
-        Collections.sort(allLoadedGroups);
+        List<String> allLoadedGroups = userDao.loadAllGroups()
+                .stream()
+                .map(NgbSecurityGroup::getGroupName)
+                .sorted()
+                .collect(Collectors.toList());
         Assert.assertEquals(TEST_GROUPS_1, allLoadedGroups);
 
         userDao.deleteUserGroups(user1.getId());

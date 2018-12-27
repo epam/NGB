@@ -24,12 +24,14 @@
 
 package com.epam.catgenome.security.acl;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
+import com.epam.catgenome.dao.DaoHelper;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -49,6 +51,7 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
 
     private String deleteSidByIdQuery;
     private String deleteEntriesBySidQuery;
+    private String loadEntriesBySidsCountQuery;
 
     public JdbcMutableAclServiceImpl(DataSource dataSource, LookupStrategy lookupStrategy,
                                      AclCache aclCache) {
@@ -166,6 +169,11 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
         updateAcl(acl);
     }
 
+    public Integer loadEntriesBySidsCount(final Collection<Long> sidIds) {
+        String query = DaoHelper.replaceInClause(loadEntriesBySidsCountQuery, sidIds.size());
+        return jdbcTemplate.queryForObject(query, sidIds.toArray(), Integer.class);
+    }
+
     @Required
     public void setDeleteSidByIdQuery(String deleteSidByIdQuery) {
         this.deleteSidByIdQuery = deleteSidByIdQuery;
@@ -174,5 +182,10 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
     @Required
     public void setDeleteEntriesBySidQuery(String deleteEntriesBySidQuery) {
         this.deleteEntriesBySidQuery = deleteEntriesBySidQuery;
+    }
+
+    @Required
+    public void setLoadEntriesBySidsCountQuery(String loadEntriesBySidsCountQuery) {
+        this.loadEntriesBySidsCountQuery = loadEntriesBySidsCountQuery;
     }
 }
