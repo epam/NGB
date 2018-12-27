@@ -87,8 +87,6 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
         Map<String, String> attributes = readAttributes(credential);
         NgbUser loadedUser = userManager.loadUserByName(userName);
 
-        groups.add("TEST_GROUP");
-
         if (loadedUser == null) {
             checkAbilityToCreate(userName, groups);
             LOGGER.debug(MessageHelper.getMessage(MessagesConstants.ERROR_USER_NAME_NOT_FOUND, userName));

@@ -94,7 +94,7 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
      */
     public NgbUser loadUserByName(String userName) {
         List<NgbUser> items = getJdbcTemplate().query(loadUserByNameQuery,
-                                    UserParameters.getUserWithRolesAndGroupsExtractor(), userName.toLowerCase());
+                UserParameters.getUserWithRolesAndGroupsExtractor(), userName.toLowerCase(), userName.toLowerCase());
         if (CollectionUtils.isEmpty(items)) {
             return null;
         } else {
@@ -164,14 +164,14 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
             return Collections.emptyList();
         }
 
-        String query = DaoHelper.replaceInClause(loadUsersByNamesQuery, names.size());
-        return getJdbcTemplate().query(query, UserParameters.getUserWithRolesAndGroupsExtractor(),
-                                       names.stream().map(String::toLowerCase).toArray());
+        List<String> args = names.stream().map(String::toLowerCase).collect(Collectors.toList());
+        String query = DaoHelper.getQueryFilledWithStringArray(loadUsersByNamesQuery, args);
+        return getJdbcTemplate().query(query, UserParameters.getUserWithRolesAndGroupsExtractor());
     }
 
     public NgbUser loadUserById(Long id) {
         List<NgbUser> items =
-            getJdbcTemplate().query(loadUserByIdQuery, UserParameters.getUserWithRolesAndGroupsExtractor(), id);
+            getJdbcTemplate().query(loadUserByIdQuery, UserParameters.getUserWithRolesAndGroupsExtractor(), id, id);
         return items.stream().findFirst().orElse(null);
     }
 
@@ -238,7 +238,7 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
 
     public List<NgbUser> loadUsersByGroup(String group) {
         return getJdbcTemplate().query(loadUsersByGroupQuery, UserParameters.getUserWithRolesAndGroupsExtractor(),
-                                       group.toLowerCase());
+                                       group.toLowerCase(), group.toLowerCase());
     }
 
     public List<NgbSecurityGroup> loadExistingGroupsFromList(List<String> groups) {
@@ -248,7 +248,7 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
 
     public boolean isUserInGroup(String userName, String group) {
         List<NgbUser> user = getJdbcTemplate().query(loadUserByNameAndGroupQuery,
-                                                     UserParameters.getUserRowMapper(), userName, group);
+                UserParameters.getUserRowMapper(), userName, group,  userName, group);
         return !CollectionUtils.isEmpty(user);
     }
 

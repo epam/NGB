@@ -31,7 +31,6 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
@@ -194,8 +193,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
             return Collections.emptyList();
         }
 
-        List<String> quotedNames = names.stream().map(n -> "'" + n + "'").collect(Collectors.toList());
-        String query = DaoHelper.getQueryFilledWithIdArray(loadBiologicalDataItemsByNamesStrictQuery, quotedNames);
+        String query = DaoHelper.getQueryFilledWithStringArray(loadBiologicalDataItemsByNamesStrictQuery, names);
 
         return getJdbcTemplate().query(query, getRowMapper());
     }
