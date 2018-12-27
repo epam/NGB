@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.entity.security.NgbSecurityGroup;
@@ -87,7 +86,7 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     private DaoHelper daoHelper;
 
     /**
-     * Loads user by name with roles. Groups should be explicitly loaded with loadGroupsByUsersIds method call
+     * Loads user by name with roles.
      *
      * @param userName
      * @return user with roles
@@ -123,11 +122,12 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
 
     private void insertUserGroups(Long id, List<String> groups) {
         List<NgbSecurityGroup> existingGroups = loadExistingGroupsFromList(groups);
-        Map<String, NgbSecurityGroup> existingGroupsByName = existingGroups.stream()
-                .collect(Collectors.toMap(NgbSecurityGroup::getGroupName, Function.identity()));
+        Set<String> existingGroupsNames = existingGroups.stream()
+                .map(NgbSecurityGroup::getGroupName)
+                .collect(Collectors.toSet());
 
         List<String> newGroups = groups.stream()
-                .filter(g -> !existingGroupsByName.containsKey(g))
+                .filter(g -> !existingGroupsNames.contains(g))
                 .collect(Collectors.toList());
         List<Long> ids = daoHelper.createIds(groupSequence, newGroups.size());
 
