@@ -165,6 +165,9 @@ public class FacadeWigManager {
             if (wigFile != null && wigFile.getId() != null &&
                     wigFileManager.load(wigFile.getId()) == null) {
                 biologicalDataItemManager.deleteBiologicalDataItem(wigFile.getBioDataItemId());
+                if (wigFile.getIndex() != null && wigFile.getIndex().getId() != null) {
+                    biologicalDataItemManager.deleteBiologicalDataItem(wigFile.getIndex().getId());
+                }
                 try {
                     fileManager.deleteFeatureFileDirectory(wigFile);
                 } catch (IOException e) {
