@@ -36,7 +36,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -84,7 +83,7 @@ public class PrintPermissionsHelper {
                     .stream()
                     .sorted(getSidComparator())
                     .forEach(printer::printItem);
-        } catch (IOException | ApplicationException e) {
+        } catch (ApplicationException e) {
             LOGGER.error(e.getMessage());
         }
     }

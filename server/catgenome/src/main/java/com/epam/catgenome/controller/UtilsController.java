@@ -81,6 +81,9 @@ public class UtilsController extends AbstractRESTController {
     @Value("#{catgenome['version']}")
     private String version;
 
+    @Value("${security.acl.enable: false}")
+    private boolean aclSecurityEnabled;
+
     @ResponseBody
     @RequestMapping(value = "/version", method = RequestMethod.GET)
     @ApiOperation(
@@ -91,6 +94,18 @@ public class UtilsController extends AbstractRESTController {
             })
     public Result<String> loadVersion() {
         return Result.success(version);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/isRoleModelEnabled", method = RequestMethod.GET)
+    @ApiOperation(
+            value = "Returns application's version",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> isRoleModelEnabled() {
+        return Result.success(aclSecurityEnabled);
     }
 
     @ResponseBody

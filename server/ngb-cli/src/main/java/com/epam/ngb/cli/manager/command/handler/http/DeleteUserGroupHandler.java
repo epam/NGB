@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import static com.epam.ngb.cli.constants.MessageConstants.ERROR_ROLE_MODEL_IS_NOT_SUPPORTED;
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
 /**
@@ -60,6 +61,12 @@ public class DeleteUserGroupHandler extends AbstractHTTPCommandHandler {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 1, arguments.size()));
         }
+
+        if (!isRoleModelEnable()) {
+            throw new IllegalArgumentException(MessageConstants.getMessage(
+                    ERROR_ROLE_MODEL_IS_NOT_SUPPORTED));
+        }
+
         String roleIdentifier = arguments.get(0);
         if (NumberUtils.isDigits(roleIdentifier)) {
             this.groupId = Long.parseLong(roleIdentifier);

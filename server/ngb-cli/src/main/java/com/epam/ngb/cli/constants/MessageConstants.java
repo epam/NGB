@@ -61,6 +61,8 @@ public final class MessageConstants {
     public static final String ERROR_PERMISSIONS_NOT_FOUND = "Failed to find permissions for %s with ID %d";
     public static final String ERROR_FAILED_TO_LOAD_USER = "Failed to load current user";
     public static final String INFO_SORT_SUCCESS = "File is successfully sorted and placed to [%s].";
+    public static final String ERROR_ROLE_MODEL_IS_NOT_SUPPORTED = "Role model is not supported on the server!";
+
 
     private MessageConstants(){
         //no op

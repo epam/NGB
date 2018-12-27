@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.epam.ngb.cli.constants.MessageConstants.ERROR_ROLE_MODEL_IS_NOT_SUPPORTED;
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
 /**
@@ -81,6 +82,11 @@ public class CreateUserGroupHandler extends AbstractHTTPCommandHandler {
         if (arguments.size() != 1) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 1, arguments.size()));
+        }
+
+        if (!isRoleModelEnable()) {
+            throw new IllegalArgumentException(MessageConstants.getMessage(
+                    ERROR_ROLE_MODEL_IS_NOT_SUPPORTED));
         }
 
         if (options.getUsers() != null) {

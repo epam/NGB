@@ -48,9 +48,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.epam.ngb.cli.constants.MessageConstants.ERROR_ROLE_MODEL_IS_NOT_SUPPORTED;
 import static com.epam.ngb.cli.constants.MessageConstants.ERROR_WRONG_PERMISSION;
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
-import static com.epam.ngb.cli.entity.PermissionGrantRequest.*;
 
 /**
  */
@@ -61,7 +61,6 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
 
     static final Map<String, Integer> PERMISSION_MAP = new HashMap<>();
     private static final String DELETE_PERMISSION_URL = "/restapi/grant?id=%d&aclClass=%s&user=%s&isPrincipal=%b";
-    private static final String GET_PERMISSION_URL = "/restapi/grant?id=%d&aclClass=%s";
     private static final String DELETE_TYPE = "DELETE";
     private static final String DELETE_PERMISSION_ACTION = "!";
     private static final String ROLE_PREFIX = "ROLE_";
@@ -96,6 +95,11 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
         if (arguments.size() != 1) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 1, arguments.size()));
+        }
+
+        if (!isRoleModelEnable()) {
+            throw new IllegalArgumentException(MessageConstants.getMessage(
+                    ERROR_ROLE_MODEL_IS_NOT_SUPPORTED));
         }
 
         String permissionAndAction = arguments.get(0);
@@ -137,7 +141,7 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
         int mask = getPermissionMask();
         files.forEach(item -> {
             AclClass aclClass = AclClass.valueOf(item.getFormat().name());
-            AclSecuredEntry permissions = getObjectPermissions(aclClass, item.getId());
+            AclSecuredEntry permissions = loadPermissions(item.getId(), aclClass);
             users.forEach(user -> grantOrDeletePermission(permissions, mask, aclClass, item.getId(),
                     item.getClass(), user, true));
             groups.forEach(group -> grantOrDeletePermission(permissions, mask, aclClass, item.getId(),
@@ -145,21 +149,13 @@ public class GrantPermissionHandler extends AbstractHTTPCommandHandler {
         });
         datasets.forEach(dataset -> {
             AclClass aclClass = AclClass.PROJECT;
-            AclSecuredEntry permissions = getObjectPermissions(aclClass, dataset.getId());
+            AclSecuredEntry permissions = loadPermissions(dataset.getId(), aclClass);
             users.forEach(user -> grantOrDeletePermission(permissions, mask, aclClass,
                     dataset.getId(), dataset.getClass(), user, true));
             groups.forEach(group -> grantOrDeletePermission(permissions, mask, aclClass,
                     dataset.getId(), dataset.getClass(), group, false));
         });
         return 0;
-    }
-
-    private AclSecuredEntry getObjectPermissions(AclClass aclClass, Long id) {
-        String existingPermissions = RequestManager.executeRequest(
-                getRequestFromURLByType(
-                        "GET",
-                        serverParameters.getServerUrl() + String.format(GET_PERMISSION_URL, id, aclClass)));
-        return getResult(existingPermissions, AclSecuredEntry.class);
     }
 
     private void grantOrDeletePermission(AclSecuredEntry existingPermissions, int mask, AclClass aclClass,

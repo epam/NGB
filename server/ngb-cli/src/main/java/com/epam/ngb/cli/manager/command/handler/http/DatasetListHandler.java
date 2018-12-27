@@ -119,7 +119,7 @@ public class DatasetListHandler extends AbstractHTTPCommandHandler {
             AbstractResultPrinter printer = AbstractResultPrinter
                     .getPrinter(printTable, items.get(0).getFormatString(items));
             if (permissionsRequired) {
-                if (isCurrentUserIsAdmin()) {
+                if (isRoleModelEnable() && isCurrentUserIsAdmin()) {
                     printWithPermissions(items, printer);
                     return 0;
                 } else {

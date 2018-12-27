@@ -106,6 +106,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
     private static final String BEARER = "Bearer ";
     private static final String PERMISSIONS_URL = "/restapi/grant?id=%s&aclClass=%s";
     private static final String CURRENT_USER_URL = "/restapi/user/current";
+    private static final String IS_ROLE_MODEL_ENABLED_URL = "/restapi/isRoleModelEnabled";
 
     /**
      * Delimiter between path to file and path to index in the input argument string
@@ -604,17 +605,21 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
      * @param entityClass entity acl class
      * @return entity and it's acl permissions
      */
-    protected AclSecuredEntry loadPermissions(Long entityId, AclClass entityClass) throws IOException {
+    protected AclSecuredEntry loadPermissions(Long entityId, AclClass entityClass) {
         HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, serverParameters.getServerUrl()
                 + String.format(PERMISSIONS_URL, entityId, entityClass));
-        String result = RequestManager.executeRequest(request);
-        ResponseResult<AclSecuredEntry> responseResult = getMapper().readValue(result,
-                getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class,
-                        ResponseResult.class, AclSecuredEntry.class));
-        if (responseResult == null || responseResult.getPayload() == null) {
-            throw new ApplicationException(getMessage(ERROR_PERMISSIONS_NOT_FOUND, entityClass, entityId));
+        try {
+            String result = RequestManager.executeRequest(request);
+            ResponseResult<AclSecuredEntry> responseResult = getMapper().readValue(result,
+                    getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class,
+                            ResponseResult.class, AclSecuredEntry.class));
+            if (responseResult == null || responseResult.getPayload() == null) {
+                throw new ApplicationException(getMessage(ERROR_PERMISSIONS_NOT_FOUND, entityClass, entityId));
+            }
+            return responseResult.getPayload();
+        } catch (IOException e) {
+            throw new ApplicationException(e.getMessage(), e);
         }
-        return responseResult.getPayload();
     }
 
     /**
@@ -632,6 +637,27 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             throw new ApplicationException(ERROR_FAILED_TO_LOAD_USER);
         }
         return responseResult.getPayload();
+    }
+
+    /**
+     * Performs an HTTP request to check that role model enabled on the server.
+     * @return user info
+     */
+    protected boolean isRoleModelEnable() {
+        HttpRequestBase request = getRequestFromURLByType(HttpGet.METHOD_NAME, serverParameters.getServerUrl()
+                + IS_ROLE_MODEL_ENABLED_URL);
+        String result = RequestManager.executeRequest(request);
+        try {
+            ResponseResult<Boolean> responseResult = getMapper().readValue(result,
+                    getMapper().getTypeFactory().constructParametrizedType(ResponseResult.class,
+                            ResponseResult.class, Boolean.class));
+            if (responseResult == null || responseResult.getPayload() == null) {
+                return false;
+            }
+            return responseResult.getPayload();
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private BiologicalDataItem loadFileByBioID(String id) {
