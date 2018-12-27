@@ -273,29 +273,39 @@ ngb reg_file|rf [<REFERENCE_NAME>|<REFERENCE_ID>] [<PATH_TO_NGS_FILE>] [options]
 *Description*
 
 Registers a specified file. At least two arguments have to be specified:
-Previously registered reference sequence file from NGB server. Reference file can be addressed by name or an identifier
-Flesystem path to the file to be registered. BAM, VCF, GFF, GTF, BED, SEG, WIG, BED GRAPH files are accepted. BGZipped files are also accepted in a format <FILE_NAME>.<FILE_EXT>.gz, e.g.: my_variants.vcf.gz. (`bgzip` tool is available as a part of [htslib](http://www.htslib.org/) package. Or NGB CLI `sort` command can used for that as well)
-BAM file path has to be followed by a '?' symbol and a path to an index file (.BAI) 
-(If a folder with BAM file also contains index for this BAM with the same name, CLI will find this index automatically. 
-It also works well for vcf, bed and gene files). 
-If and only if cli located on the same filesystem with NGB server relative path can be used.
+Previously registered reference sequence file from NGB server. Reference file can be addressed by name or an identifier.
+
+Filesystem path to the file to be registered. BAM, VCF, GFF, GTF, BED, SEG, WIG, BED GRAPH files are accepted. BGZipped files are also accepted in a format <FILE_NAME>.<FILE_EXT>.gz, e.g.: my_variants.vcf.gz. (`bgzip` tool is available as a part of [htslib](http://www.htslib.org/) package. Or NGB CLI `sort` command can used for that as well).
+
+BAM file path must be followed by a `?` symbol and a path to an index file (.BAI) 
+(if a folder with BAM file also contains index for this BAM with the same name, CLI will find this index automatically. It also works well for vcf, bed and gene files). 
+If and only if CLI located on the same filesystem with NGB server relative path can be used.
+
+To register files from external cloud data storages (AWS S3), file path must be in full view (starting from `s3://`, then the bucket name, folder name and so on slash-separated, ending with <FILE_NAME>.<FILE_EXT>), e.g.: `s3://ngb-s3/fruitfly/agnX1.09-28.trim.dm606.realign.vcf`. In case with AWS S3 storages, path to the files with indexes (BAM, VCF, BED, genes files) must be strongly followed by a `?` symbol and a path to their index files. CLI will not find such indexes automatically.
+> **Note**: for ability to work with files from AWS S3, do not forget to configure your NGB instance before start (see *"Configure for working with AWS S3"* paragraph [here](../installation/standalone.md)).
 
 *Example*
 ```
-//Register file, use "sample.vcf" as name for reference with id 18
-ngb reg_file 18 /opt/tracks/sample.vcf
+# Register file, use "sample.vcf" as a name for reference with id 18
+$ ngb reg_file 18 /opt/tracks/sample.vcf
 
-//Register file, use "sample" as name for reference with name grch38
-ngb reg_file grch38 /opt/tracks/sample.vcf -n sample
+# Register file, use "sample" as a name for reference with the name grch38
+$ ngb reg_file grch38 /opt/tracks/sample.vcf -n sample
 
-//Register indexed file, use "sample.bam" as name
-ngb reg_file grch38 /opt/tracks/sample.bam?/opt/tracks/sample.bam.bai
+# Register indexed file, use "sample.bam" as a name
+$ ngb reg_file grch38 /opt/tracks/sample.bam?/opt/tracks/sample.bam.bai
 
-//Register indexed file, use "sample.bam" as name, index for the BAM file is contained in the same directory as the BAM file
-ngb reg_file grch38 /opt/tracks/sample.bam
+# Register indexed file, use "sample.bam" as a name, index for the BAM file is contained in the same directory as the BAM file
+$ ngb reg_file grch38 /opt/tracks/sample.bam
 
-//Register file with relative path
-ngb reg_file hg19 ../tracks/sample.vcf
+# Register file with relative path
+$ ngb reg_file hg19 ../tracks/sample.vcf
+
+# Register file from AWS S3, use "sample1" as a name
+$ ngb reg_file grch38 s3://ngb-s3/human/grch38_tracks/sample1.vcf -n sample1
+
+# Register indexed file from AWS S3, use "sample1.bam" as a name
+$ ngb reg_file grch38 s3://ngb-s3/human/grch38_tracks/sample1.bam?s3://ngb-s3/human/grch38_tracks/sample1.bam.bai --name sample1.bam
 ```
 
 ### Delete file

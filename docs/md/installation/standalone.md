@@ -52,12 +52,13 @@ $ pwd
 $ java -jar NGB/dist/catgenome.jar
 ```
 
-NGB will be avalable at http://localhost:8080/catgenome
+NGB will be available at http://localhost:8080/catgenome
 
 ## Configuring NGB instance
 
-By default NGB will run on port 8080 and locate all the data (files and database) in the runtime folder
-To customize the configuration the following options are available
+By default NGB will run on port 8080 and locate all the data (files and database) in the runtime folder.
+
+To customize the configuration the following options are available:
 
 ### Configure data storage
 
@@ -88,7 +89,7 @@ If you want to disable cache for headers and indexes of VCF, GTF, BED files, cha
 * **server.index.cache.enabled=false** - disables caching for headers and indexes
 
 If you want to secure NGB we provide several options:
-####1. JWT Authentication 
+#### 1. JWT Authentication 
 With this option user can be authenticated using third-party JWT tokens. To enable this authentication, set the following properties:
  * **jwt.security.enable=true** enables the JWT Authorization
  * **jwt.key.public=PUBLIC_KEY_VALUE** public key to perform JWT token validation
@@ -97,7 +98,7 @@ With this option user can be authenticated using third-party JWT tokens. To enab
 
 If this authentication is enabled for NGB each call to server API should include a valid JWT token either in header (**"Authorization: Bearer {TOKEN_VALUE}"**) or in cookies.
 
-####2. SAML SSO Authentication
+#### 2. SAML SSO Authentication
 With this option users can be authenticated in NGB with the help of a third-party Identity Provider (**IDP**). 
 This is particularly useful when NGB needs to be integrated into some existing infrastructure.
 To enable this authentication option, first create a SAML SSO endpoint in your IDP. Then set the following properties:
@@ -149,3 +150,63 @@ or in **application.properties** file in **config** folder in the runtime folder
 * server.compression.enabled=false
 
 See the full list of available options in the [Spring Documentation](https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html)
+
+### Configure for working with AWS S3
+
+If you want to add the ability of browsing NGS files from external data storages (AWS S3), you need to configure some AWS parameters before running **catgenome.jar**.
+You may do it in two ways:
+
+#### 1. Through configuration and credential files
+
+Create folder with name ".aws" in home directory location:
+```
+$ mkdir $HOME/.aws
+```
+In this folder create two files - `credentials` and `config` - with the following content:
+> **$HOME/.aws/credentials**
+> ```
+> [default]
+> aws_access_key_id=AKIAIOSFODNN7EXAMPLE
+> aws_secret_access_key=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+> ```
+> Where:
+>
+> `[default]` - profile name
+>
+> `aws_access_key_id` – AWS access key
+>
+> `aws_secret_access_key` – AWS secret key
+>
+> **Note**: Do not forget to replace values of *aws_access_key_id* and *aws_secret_access_key* variables with your own AWS access key and AWS secret key.
+
+> **$HOME/.aws/config**
+> ```
+> [default]
+> region=us-east-1
+> ```
+> Where:
+>
+> `[default]` - profile name
+>
+> `region` – default AWS region
+>
+> **Note**: Replace value of *region* variable, if needed.
+
+More information about `credentials` and `config` AWS files see [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
+
+#### 2. Through setting environment variables
+
+Set the following AWS environment variables:
+```
+$ export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+$ export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+$ export AWS_DEFAULT_REGION=us-east-1
+```
+Where:
+- `AWS_ACCESS_KEY_ID` – specifies an AWS access key
+- `AWS_SECRET_ACCESS_KEY` – specifies the secret key associated with the access key
+- `AWS_DEFAULT_REGION` – specifies the AWS region
+
+> **Note**: Do not forget to replace values of *AWS_ACCESS_KEY_ID* and *AWS_SECRET_ACCESS_KEY* variables with your own AWS access key and AWS secret key. And replace value of *AWS_DEFAULT_REGION* variable, if needed.
+
+After that you may run **catgenome.jar** file to start NGB instance as usually.
