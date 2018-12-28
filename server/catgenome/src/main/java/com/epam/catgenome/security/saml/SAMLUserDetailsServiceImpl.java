@@ -114,6 +114,10 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
             loadedUser.setUserName(userName);
             List<Long> roles = loadedUser.getRoles().stream().map(Role::getId).collect(Collectors.toList());
 
+            if (userName.equalsIgnoreCase(defaultAdmin)) {
+                roles.add(DefaultRoles.ROLE_ADMIN.getId());
+            }
+
             if (userManager.userUpdateRequired(groups, attributes, loadedUser)) {
                 loadedUser = userManager.updateUserSAMLInfo(loadedUser.getId(), userName, roles, groups, attributes);
                 LOGGER.debug("Updated user groups {} ", groups);
