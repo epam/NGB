@@ -1,4 +1,5 @@
 import {DataService} from '../data-service';
+
 /**
  * data service for users
  * @extends DataService
@@ -12,9 +13,23 @@ export class UserDataService extends DataService {
                     resolve(null);
                 })
                 .then((data) => {
+                    this.cachedUsers = data;
                     resolve(data || null);
                 });
         });
+    }
+
+    cachedUsers = [];
+
+    getCachedUsers() {
+        if (this.cachedUsers && this.cachedUsers.length > 0) {
+            return new Promise(resolve => resolve(this.cachedUsers));
+        } else {
+            return this.getUsers().then(users => {
+                this.cachedUsers = users;
+                return users;
+            });
+        }
     }
 
     getUser(id) {

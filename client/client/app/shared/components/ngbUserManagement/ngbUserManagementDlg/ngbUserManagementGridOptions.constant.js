@@ -12,7 +12,7 @@ const gridOptions = {
     headerRowHeight: 20,
     height: '100%',
     multiSelect: false,
-    rowHeight: 30,
+    rowHeight: 40,
     showHeader: true,
     treeRowHeaderAlwaysVisible: false,
     saveWidths: true,

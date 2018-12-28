@@ -22,20 +22,6 @@ export default class ngbUserManagementDlgService {
         });
     }
 
-    /*
-        getGroups(callback) {
-            this._roleDataService.getRoles().then((data) => {
-                callback(this._mapGroupsData(data));
-            });
-        }
-
-        getRoles(callback) {
-            this._roleDataService.getRoles().then((data) => {
-                callback(this._mapRolesData(data));
-            });
-        }
-    */
-
     getRolesAndGroups(callback) {
         this._roleDataService.getRoles().then((data) => {
             callback(this._mapGroupsData(data), this._mapRolesData(data));
@@ -44,19 +30,37 @@ export default class ngbUserManagementDlgService {
 
     _mapUsersData(usersData) {
         if (usersData && usersData.length) {
+            const getUserAttributesString = (user) => {
+                const values = [];
+                for (const key in user.attributes.attributes) {
+                    if (user.attributes.attributes.hasOwnProperty(key)) {
+                        values.push(user.attributes.attributes[key]);
+                    }
+                }
+                return values.join(', ');
+            };
             return usersData.map(user => ({
-                // todo
                 editable: true,
                 id: user.id,
                 userName: user.userName,
-                groups: (user.roles || []).map(role => {
-                    const {id, predefined, name, userDefault} = role;
-                    if (`${predefined}`.toLowerCase() === 'false') {
-                        const groupName = name.includes(ROLE_NAME_FIRST_PART) ? name.slice(ROLE_NAME_FIRST_PART.length) : name;
-                        return { id, name: groupName, userDefault };
-                    }
-                    return false;
-                }).filter(i => !!i),
+                groups: [
+                    ...(user.groups || []).map(g => {
+                        return {
+                            id: -1,
+                            isAD: true,
+                            name: g,
+                            userDefault: false
+                        };
+                    }),
+                    ...(user.roles || []).map(role => {
+                        const {id, predefined, name, userDefault} = role;
+                        if (`${predefined}`.toLowerCase() === 'false') {
+                            const groupName = name.includes(ROLE_NAME_FIRST_PART) ? name.slice(ROLE_NAME_FIRST_PART.length) : name;
+                            return {id, isAD: false, name: groupName, userDefault};
+                        }
+                        return false;
+                    }).filter(i => !!i)
+                ],
                 roles: (user.roles || []).map(role => {
                     const {id, predefined, name, userDefault} = role;
                     if (predefined) {
@@ -65,6 +69,7 @@ export default class ngbUserManagementDlgService {
                     return false;
                 }).filter(i => !!i),
                 type: 'user',
+                userAttributes: user.attributes ? getUserAttributesString(user) : undefined
             }));
         }
         return [];
@@ -127,6 +132,7 @@ export default class ngbUserManagementDlgService {
                             <div layout="row" ng-if="row.entity.groups.length <= 3" style="flex-flow: row wrap; align-items: center;">
                                 <span
                                     ng-repeat="group in row.entity.groups track by $index"
+                                    ng-class="{'ad-group': group.isAD}"
                                     style="
                                         margin: 2px;
                                         padding: 2px 4px;
@@ -142,6 +148,7 @@ export default class ngbUserManagementDlgService {
                             <div layout="row" ng-if="row.entity.groups.length > 3" style="flex-flow: row wrap; align-items: center;">
                                 <span
                                     ng-repeat="group in row.entity.groups.slice(0, 3) track by $index"
+                                    ng-class="{'ad-group': group.isAD}"
                                     style="
                                         margin: 2px;
                                         padding: 2px 4px;
@@ -243,6 +250,14 @@ export default class ngbUserManagementDlgService {
                     break;
                 case 'user':
                     columnDefs.push({
+                        cellTemplate: `
+                                <div class="ui-grid-cell-contents" style="display: flex; flex-direction: column">
+                                    <span>{{row.entity.userName}}</span>
+                                    <div ng-if="row.entity.userAttributes" style="margin-top: 2px">
+                                        {row.entity.userAttributes}
+                                    </div>
+                                </div>
+                        `,
                         enableColumnMenu: false,
                         enableSorting: true,
                         field: 'userName',

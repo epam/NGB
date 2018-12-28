@@ -12,6 +12,7 @@
                             <md-select-header class="role-select-header">
                                 <input ng-model="ctrl.searchTerm"
                                        ng-keydown="$event.stopPropagation()"
+                                       ng-change="ctrl.search()"
                                        type="search"
                                        placeholder="Search for a {{ctrl.itemType}}..."
                                        class="md-text role-header-searchbox" />
@@ -19,8 +20,9 @@
                             <md-optgroup label="{{ctrl.itemType}}">
                                 <md-option
                                         ng-value="item"
-                                        ng-repeat="item in ctrl.availableItems | filter:ctrl.searchTerm">
-                                    {{ctrl.getItemDisplayName(item)}}
+                                        ng-repeat="item in ctrl.filteredItems">
+                                    <span ng-if="!ctrl.isUser">{{ctrl.getItemDisplayName(item)}}</span>
+                                    <ngb-user ng-if="ctrl.isUser" disable-tooltip="true" user="item.userName" />
                                 </md-option>
                             </md-optgroup>
                         </md-select>
