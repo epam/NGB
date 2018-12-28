@@ -58,39 +58,43 @@ export default class ngbUserManagementDlgController extends BaseController {
             }
         });
 
-        this.fetchUsers();
-        this.fetchRolesAndGroups();
+        this.fetchAll();
     }
 
     close() {
         this.$mdDialog.hide();
     }
 
-    fetchUsers() {
-        this.isUsersLoading = true;
-        this.service.getUsers((users) => {
-            this.usersGridOptions.data = users;
-
-            if (this.groupsGridOptions.data && this.rolesGridOptions.data) {
-                this.isUsersLoading = false;
-                if (this.scope !== null && this.scope !== undefined) {
-                    this.scope.$apply();
-                }
+    fetchAll() {
+        Promise.all([this.fetchUsers(), this.fetchRolesAndGroups()]).then(() => {
+            this.isUsersLoading = false;
+            if (this.scope !== null && this.scope !== undefined) {
+                this.scope.$apply();
             }
         });
     }
 
-    fetchRolesAndGroups() {
+    fetchUsers(scopeApply = false) {
         this.isUsersLoading = true;
-        this.service.getRolesAndGroups((groups, roles) => {
+        return this.service.getUsers().then((users) => {
+            this.usersGridOptions.data = users;
+
+            if (scopeApply && this.scope !== null && this.scope !== undefined) {
+                this.isUsersLoading = false;
+                this.scope.$apply();
+            }
+        });
+    }
+
+    fetchRolesAndGroups(scopeApply = false) {
+        this.isUsersLoading = true;
+        return this.service.getRolesAndGroups().then(({groups, roles}) => {
             this.groupsGridOptions.data = groups;
             this.rolesGridOptions.data = roles;
 
-            if (this.usersGridOptions.data) {
+            if (scopeApply && this.scope !== null && this.scope !== undefined) {
                 this.isUsersLoading = false;
-                if (this.scope !== null && this.scope !== undefined) {
-                    this.scope.$apply();
-                }
+                this.scope.$apply();
             }
         });
     }
@@ -153,7 +157,7 @@ export default class ngbUserManagementDlgController extends BaseController {
             skipHide: true,
             template: require('./ngbUserForm/ngbUserForm.tpl.html'),
         }).then(() => {
-            this.fetchUsers();
+            this.fetchUsers(true);
         });
     }
 
@@ -170,7 +174,7 @@ export default class ngbUserManagementDlgController extends BaseController {
             skipHide: true,
             template: require('./ngbUserForm/ngbUserForm.tpl.html'),
         }).then(() => {
-            this.fetchUsers();
+            this.fetchUsers(true);
         });
     }
 
@@ -188,8 +192,7 @@ export default class ngbUserManagementDlgController extends BaseController {
             skipHide: true,
             template: require('./ngbRoleForm/ngbRoleForm.tpl.html'),
         }).then(() => {
-            this.fetchUsers();
-            this.fetchRolesAndGroups();
+            this.fetchAll();
         });
     }
 
@@ -207,8 +210,7 @@ export default class ngbUserManagementDlgController extends BaseController {
             skipHide: true,
             template: require('./ngbRoleForm/ngbRoleForm.tpl.html'),
         }).then(() => {
-            this.fetchUsers();
-            this.fetchRolesAndGroups();
+            this.fetchAll();
         });
     }
 
@@ -226,8 +228,7 @@ export default class ngbUserManagementDlgController extends BaseController {
             skipHide: true,
             template: require('./ngbRoleForm/ngbRoleForm.tpl.html'),
         }).then(() => {
-            this.fetchUsers();
-            this.fetchRolesAndGroups();
+            this.fetchAll();
         });
     }
 

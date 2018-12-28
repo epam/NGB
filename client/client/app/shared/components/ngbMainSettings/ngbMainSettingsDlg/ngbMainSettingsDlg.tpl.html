@@ -12,8 +12,8 @@
         </md-toolbar>
 
         <md-dialog-content style="min-width:600px;max-width: 800px;max-height:80vh;">
-            <md-tabs md-center-tabs md-dynamic-height md-border-bottom md-stretch-tabs="always">
-                <md-tab label="CLI">
+            <md-tabs md-center-tabs md-autoselect md-no-pagination md-dynamic-height md-border-bottom md-stretch-tabs="always">
+                <md-tab label="CLI" ng-if="ctrl.isRoleModelEnabled">
                     <md-content class="md-padding">
                         <div class="column">
                             <div class="row"><h4>Access key</h4></div>

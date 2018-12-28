@@ -2,7 +2,7 @@ import ngbConstants from '../../../../constants';
 
 export default  {
     controller: class ngbHeaderProjectController {
-        constructor(projectContext, dispatcher, $scope, $location, $window, userDataService) {
+        constructor(projectContext, dispatcher, $scope, $location, $window, utilsDataService, userDataService) {
             this.toolbarVisibility = projectContext.toolbarVisibility;
             this.showBookmark = projectContext.currentChromosome !== null;
             this.browsingAllowed = () => projectContext.browsingAllowed;
@@ -10,18 +10,26 @@ export default  {
             const onStateChange = async () => {
                 this.showBookmark = projectContext.currentChromosome !== null;
             };
-            userDataService.currentUserIsAdmin().then(isAdmin => {
-                this.userIsAdmin = isAdmin;
-                $scope.$apply();
+
+            this.isRoleModelEnabled = false;
+            this.isLoggedIn = false;
+            this.userIsAdmin = false;
+
+            utilsDataService.isRoleModelEnabled().then(isRoleModelEnabled => {
+                this.isRoleModelEnabled = isRoleModelEnabled;
+
+                if (isRoleModelEnabled) {
+                    userDataService.currentUserIsAdmin().then(isAdmin => {
+                        this.userIsAdmin = isAdmin;
+                    });
+                    userDataService.getCurrentUser().then(user => {
+                        this.isLoggedIn = user && user.enabled;
+                    }, () => {
+                        this.isLoggedIn = false;
+                    });
+                }
             });
 
-            userDataService.getCurrentUser().then(user => {
-                this.isLoggedIn = user && user.enabled;
-                $scope.$apply();
-            }, () => {
-                this.isLoggedIn = false;
-                $scope.$apply();
-            });
 
             this.logout = () => {
                 $window.location.href = `${ngbConstants.urlPrefix}/saml/logout`;

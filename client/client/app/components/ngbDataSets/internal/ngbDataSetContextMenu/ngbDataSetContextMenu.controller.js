@@ -5,17 +5,24 @@ export default class NgbDataSetContextMenuController {
 
     node;
 
-    constructor($scope, $mdDialog, ngbDataSetContextMenu, userDataService) {
+    constructor($scope, $mdDialog, ngbDataSetContextMenu, utilsDataService, userDataService) {
         this.$scope = $scope;
         this.node = $scope.node;
         this.$mdDialog = $mdDialog;
         this.ngbDataSetContextMenu = ngbDataSetContextMenu;
+        this.utilsDataService = utilsDataService;
         this.userDataService = userDataService;
     }
 
     shouldOpenMenuPromise () {
-        return this.userDataService.getCurrentUser()
-            .then(user => user.hasRoles(this.node.roles || []));
+        return this.utilsDataService.isRoleModelEnabled().then(utilsDataService => {
+            if (utilsDataService) {
+                return this.userDataService.getCurrentUser()
+                    .then(user => user.hasRoles(this.node.roles || []));
+            } else {
+                return false;
+            }
+        });
     }
 
     openPermissions (event) {
