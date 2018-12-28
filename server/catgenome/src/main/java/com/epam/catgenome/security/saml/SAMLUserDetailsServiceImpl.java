@@ -116,11 +116,11 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
 
             boolean needToUpdateToAdmin = userName.equalsIgnoreCase(defaultAdmin)
                     && roles.stream().noneMatch(roleId -> DefaultRoles.ROLE_ADMIN.getId().equals(roleId));
-            if (needToUpdateToAdmin) {
-                roles.add(DefaultRoles.ROLE_ADMIN.getId());
-            }
 
-            if (userManager.userUpdateRequired(groups, attributes, loadedUser)) {
+            if (userManager.userUpdateRequired(groups, attributes, loadedUser) || needToUpdateToAdmin) {
+                if (needToUpdateToAdmin) {
+                    roles.add(DefaultRoles.ROLE_ADMIN.getId());
+                }
                 loadedUser = userManager.updateUserSAMLInfo(loadedUser.getId(), userName, roles, groups, attributes);
                 LOGGER.debug("Updated user groups {} ", groups);
             }
