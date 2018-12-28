@@ -22,7 +22,10 @@
                                         ng-value="item"
                                         ng-repeat="item in ctrl.filteredItems">
                                     <span ng-if="!ctrl.isUser">{{ctrl.getItemDisplayName(item)}}</span>
-                                    <ngb-user ng-if="ctrl.isUser" disable-tooltip="true" user="item.userName" />
+                                    <div ng-if="ctrl.isUser" style="display: flex; flex-direction: column">
+                                        <span>{{item.userName}}</span>
+                                        <span style="font-size: smaller" ng-if="item.userAttributes">{{item.userAttributes}}</span>
+                                    </div>
                                 </md-option>
                             </md-optgroup>
                         </md-select>

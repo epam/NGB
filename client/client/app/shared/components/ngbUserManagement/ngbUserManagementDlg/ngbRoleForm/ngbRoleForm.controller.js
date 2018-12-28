@@ -33,6 +33,10 @@ export default class ngbUserFormController extends BaseController {
         return this.groupName && this.groupName.length > 0;
     }
 
+    get selectedUsersStr() {
+        return (this.selectedUsers || []).map(u => u.name).join(', ');
+    }
+
     static get UID() {
         return 'ngbRoleFormController';
     }

@@ -91,7 +91,7 @@ export class RoleDataService extends DataService {
 
     findADGroup(prefix) {
         return new Promise(resolve => {
-            this.get(prefix ? `group/find?prefix=${prefix}` : 'group/find')
+            this.get(prefix ? `group/find?prefix=${encodeURIComponent(prefix)}` : 'group/find')
                 .catch(() => {
                     resolve([]);
                 })

@@ -74,6 +74,7 @@ export default class ngbUserManagementDlgService {
                     return false;
                 }).filter(i => !!i),
                 type: 'user',
+                attributes: user.attributes,
                 userAttributes: user.attributes ? getUserAttributesString(user) : undefined
             }));
         }
@@ -107,8 +108,8 @@ export default class ngbUserManagementDlgService {
 
     getUserManagementColumns(columnsList) {
         const columnDefs = [];
-        for (let i = 0; i < columnsList.length; i++) {
-            const column = columnsList[i];
+        for (let user = 0; user < columnsList.length; user++) {
+            const column = columnsList[user];
             switch (column.toLowerCase()) {
                 case 'actions':
                     columnDefs.push({
@@ -266,6 +267,28 @@ export default class ngbUserManagementDlgService {
                         enableColumnMenu: false,
                         enableSorting: true,
                         field: 'userName',
+                        filter: {
+                            condition: (term, value, row) => {
+                                if (term) {
+                                    const user = row.entity;
+                                    const matchAttributes = () => {
+                                        if (user.attributes) {
+                                            for (const key in user.attributes) {
+                                                if (user.attributes.hasOwnProperty(key) &&
+                                                    user.attributes[key] &&
+                                                    user.attributes[key].toLowerCase().indexOf(term.toLowerCase()) >= 0) {
+                                                    return true;
+                                                }
+                                            }
+                                        }
+                                        return false;
+                                    };
+                                    return (user.userName || '').toLowerCase().indexOf(term.toLowerCase()) >= 0 ||
+                                        matchAttributes();
+                                }
+                                return true;
+                            }
+                        },
                         minWidth: 50,
                         name: 'User',
                         width: '*',

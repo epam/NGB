@@ -16,6 +16,7 @@
                         <md-input-container flex>
                             <label>Owner</label>
                             <md-select ng-model="ctrl.selectedOwner"
+                                       md-selected-text="ctrl.selectedOwner"
                                        name="owner"
                                        ng-disabled="!ctrl.ownerChangeAllowed"
                                        md-on-close="ctrl.clearOwnerSearchTerm()"
@@ -31,7 +32,10 @@
                                     <md-option
                                             ng-value="(user.userName || '').toUpperCase()"
                                             ng-repeat="user in ctrl.users | filter:ctrl.ownerSearchTerm">
-                                        {{user.userName}}
+                                        <div style="display: flex; flex-direction: column">
+                                            <span>{{user.userName}}</span>
+                                            <span style="font-size: smaller" ng-if="user.userAttributes">{{user.userAttributes}}</span>
+                                        </div>
                                     </md-option>
                                 </md-optgroup>
                             </md-select>

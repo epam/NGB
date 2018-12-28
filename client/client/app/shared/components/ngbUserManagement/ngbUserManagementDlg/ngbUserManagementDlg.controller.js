@@ -78,9 +78,8 @@ export default class ngbUserManagementDlgController extends BaseController {
         this.isUsersLoading = true;
         return this.service.getUsers().then((users) => {
             this.usersGridOptions.data = users;
-
+            this.isUsersLoading = false;
             if (scopeApply && this.scope !== null && this.scope !== undefined) {
-                this.isUsersLoading = false;
                 this.scope.$apply();
             }
         });
@@ -91,9 +90,8 @@ export default class ngbUserManagementDlgController extends BaseController {
         return this.service.getRolesAndGroups().then(({groups, roles}) => {
             this.groupsGridOptions.data = groups;
             this.rolesGridOptions.data = roles;
-
+            this.isUsersLoading = false;
             if (scopeApply && this.scope !== null && this.scope !== undefined) {
-                this.isUsersLoading = false;
                 this.scope.$apply();
             }
         });

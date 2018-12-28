@@ -33,6 +33,7 @@
                         <md-input-container flex>
                             <label>Select user to add</label>
                             <md-select ng-model="ctrl.selectedUsers"
+                                       md-selected-text="ctrl.selectedUsersStr"
                                        name="add_user"
                                        md-on-close="ctrl.clearSearchTerm()"
                                        md-container-class="role-user-selector"
@@ -48,7 +49,10 @@
                                     <md-option
                                             ng-repeat="user in ctrl.availableUsers | filter:ctrl.searchTerm"
                                             ng-value="user">
-                                        {{user.name}}
+                                        <div style="display: flex; flex-direction: column">
+                                            <span>{{user.name}}</span>
+                                            <span style="font-size: smaller" ng-if="user.userAttributes">{{user.userAttributes}}</span>
+                                        </div>
                                     </md-option>
                                 </md-optgroup>
                             </md-select>
@@ -57,7 +61,6 @@
                     </div>
                     <div layout="row" style="max-height: 50vh;">
                         <div ng-if="ctrl.formGridOptions.data.length" class="ui-grid-container flex">
-                            <!-- todo: error ? -->
                             <div ui-grid="ctrl.formGridOptions"
                                  ui-grid-save-state
                                  ui-grid-selection

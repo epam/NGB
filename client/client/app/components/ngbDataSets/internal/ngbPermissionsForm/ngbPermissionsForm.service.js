@@ -23,7 +23,27 @@ export default class ngbPermissionsFormService {
     }
 
     getUsers() {
-        return this._userDataService.getUsers();
+        const getUserAttributesString = (user) => {
+            const values = [];
+            const firstAttributes = ['FirstName', 'LastName'];
+            for (const key in user.attributes) {
+                if (user.attributes.hasOwnProperty(key) && firstAttributes.indexOf(key) >= 0) {
+                    values.push(user.attributes[key]);
+                }
+            }
+            for (const key in user.attributes) {
+                if (user.attributes.hasOwnProperty(key) && firstAttributes.indexOf(key) === -1) {
+                    values.push(user.attributes[key]);
+                }
+            }
+            return values.join(' ');
+        };
+        return this._userDataService.getUsers().then(users => {
+            return (users || []).map(u => ({
+                ...u,
+                userAttributes: u.attributes ? getUserAttributesString(u) : undefined
+            }));
+        });
     }
 
     getRoles() {
