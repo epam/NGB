@@ -6,11 +6,35 @@ export default class ngbAddUserRoleDlgController extends BaseController {
 
     isUser = true;
     availableItems = [];
+    existedItems = [];
     selectedItem;
     ngbPermissionsFormService;
+    adGroups = [];
     node;
 
     searchTerm = '';
+
+    get filteredItems() {
+        return [...this.adGroups, ...(this.availableItems || [])].filter(i => {
+            if (!this.searchTerm) {
+                return true;
+            }
+            const str = this.searchTerm.toLowerCase();
+            const matchAttributes = () => {
+                if (i.attributes) {
+                    for (const key in i.attributes) {
+                        if (i.attributes.hasOwnProperty(key) &&
+                            i.attributes[key] &&
+                            i.attributes[key].toLowerCase().indexOf(str) >= 0) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            };
+            return (this.getItemName(i) || '').toLowerCase().indexOf(str) >= 0 || matchAttributes();
+        });
+    }
 
     get itemType() {
         if (this.isUser) {
@@ -24,12 +48,13 @@ export default class ngbAddUserRoleDlgController extends BaseController {
     }
 
     /* @ngInject */
-    constructor($mdDialog, $scope, isUser, availableItems, node, ngbPermissionsFormService) {
+    constructor($mdDialog, $scope, isUser, availableItems, existedItems, node, ngbPermissionsFormService) {
         super();
         Object.assign(this, {
             $mdDialog,
             $scope,
             availableItems,
+            existedItems,
             isUser,
             ngbPermissionsFormService,
             node
@@ -55,6 +80,29 @@ export default class ngbAddUserRoleDlgController extends BaseController {
             return name.substring(ROLE_NAME_FIRST_PART.length);
         }
         return name;
+    }
+
+    search() {
+        if (!this.isUser) {
+            const searchTerm = this.searchTerm;
+            if (!searchTerm) {
+                this.adGroups = [];
+            } else {
+                this.ngbPermissionsFormService
+                    .searchAdGroups(searchTerm)
+                    .then(results => {
+                        if (searchTerm === this.searchTerm) {
+                            this.adGroups = (results || [])
+                                .filter(g => this.existedItems.indexOf(g) === -1)
+                                .map(g => ({
+                                    name: g,
+                                    predefined: true
+                                }));
+                            this.$scope.$apply();
+                        }
+                    });
+            }
+        }
     }
 
     clearSearchTerm() {

@@ -55,12 +55,17 @@ import com.epam.catgenome.manager.user.UserManager;
 import com.epam.catgenome.entity.user.Role;
 import com.epam.catgenome.security.UserContext;
 
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
+
 @Service
 @ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SAMLUserDetailsServiceImpl.class);
     private static final String ATTRIBUTES_DELIMITER = "=";
+    public static final String LDAP_CN_FIELD = "CN";
 
     @Value("${saml.authorities.attribute.names: null}")
     private List<String> authorities;
@@ -116,11 +121,11 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
 
             boolean needToUpdateToAdmin = userName.equalsIgnoreCase(defaultAdmin)
                     && roles.stream().noneMatch(roleId -> DefaultRoles.ROLE_ADMIN.getId().equals(roleId));
-            if (needToUpdateToAdmin) {
-                roles.add(DefaultRoles.ROLE_ADMIN.getId());
-            }
 
-            if (userManager.userUpdateRequired(groups, attributes, loadedUser)) {
+            if (userManager.userUpdateRequired(groups, attributes, loadedUser) || needToUpdateToAdmin) {
+                if (needToUpdateToAdmin) {
+                    roles.add(DefaultRoles.ROLE_ADMIN.getId());
+                }
                 loadedUser = userManager.updateUserSAMLInfo(loadedUser.getId(), userName, roles, groups, attributes);
                 LOGGER.debug("Updated user groups {} ", groups);
             }
@@ -150,12 +155,13 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
             return Collections.emptyList();
         }
         List<String> grantedAuthorities = new ArrayList<>();
-        authorities.stream().forEach(auth -> {
+        authorities.forEach(auth -> {
             if (StringUtils.isEmpty(auth)) {
                 return;
             }
             String[] attributeValues = credential.getAttributeAsStringArray(auth);
             if (attributeValues != null && attributeValues.length > 0) {
+                attributeValues = getParsedLdapGroupName(attributeValues.clone());
                 grantedAuthorities.addAll(
                     Arrays.stream(attributeValues)
                         .map(String::toUpperCase)
@@ -163,6 +169,22 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
             }
         });
         return grantedAuthorities;
+    }
+
+    private String[] getParsedLdapGroupName(String[] attributeValues) {
+            for (int i = 0; i < attributeValues.length; i++) {
+                try {
+                    LdapName ldapName = new LdapName(attributeValues[i]);
+                    for (Rdn rdn : ldapName.getRdns()) {
+                        if (rdn.getType().equalsIgnoreCase(LDAP_CN_FIELD)) {
+                            attributeValues[i] = rdn.getValue().toString();
+                        }
+                    }
+                } catch (InvalidNameException e) {
+                    LOGGER.info("SAML attribute is not LDAP name, will leave as original value.");
+                }
+            }
+        return attributeValues;
     }
 
     private Map<String, String> readAttributes(SAMLCredential credential) {

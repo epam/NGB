@@ -69,6 +69,10 @@ export default class ngbPermissionsFormService {
             .grantOwner(node.id, aclClass, user);
     }
 
+    searchAdGroups(prefix) {
+        return this._roleDataService.findADGroup(prefix);
+    }
+
     getPermissionsColumns() {
         return [{
             cellTemplate: `
@@ -85,6 +89,12 @@ export default class ngbPermissionsFormService {
             minWidth: 50,
             name: ' ',
         }, {
+            cellTemplate: `
+                    <div class="ui-grid-cell-contents">
+                        <ngb-user ng-if="row.entity.principal" user="row.entity.name" />
+                        <span ng-if="!row.entity.principal">{{row.entity.displayName}}</span>
+                    </div>
+                `,
             enableColumnMenu: false,
             enableSorting: true,
             field: 'displayName',

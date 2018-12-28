@@ -260,6 +260,7 @@ export default class ngbPermissionsFormController extends BaseController {
             controllerAs: 'ctrl',
             locals: {
                 availableItems: this.availableRoles,
+                existedItems: (this.permissions || []).filter(p => !p.principal).map(p => p.name),
                 isUser: false,
                 node: this.node
             },
@@ -276,6 +277,7 @@ export default class ngbPermissionsFormController extends BaseController {
             controllerAs: 'ctrl',
             locals: {
                 availableItems: this.availableUsers,
+                existedItems: [],
                 isUser: true,
                 node: this.node
             },

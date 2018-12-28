@@ -89,4 +89,16 @@ export class RoleDataService extends DataService {
         });
     }
 
+    findADGroup(prefix) {
+        return new Promise(resolve => {
+            this.get(prefix ? `group/find?prefix=${prefix}` : 'group/find')
+                .catch(() => {
+                    resolve([]);
+                })
+                .then((data) => {
+                    resolve(data || []);
+                });
+        });
+    }
+
 }
