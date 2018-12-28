@@ -16,10 +16,8 @@ export default class ngbUserManagementDlgService {
         this._roleDataService = roleDataService;
     }
 
-    getUsers(callback) {
-        this._userDataService.getUsers().then((data) => {
-            callback(this._mapUsersData(data));
-        });
+    getUsers() {
+        return this._userDataService.getUsers().then((data) => this._mapUsersData(data));
     }
 
     /*
@@ -36,10 +34,11 @@ export default class ngbUserManagementDlgService {
         }
     */
 
-    getRolesAndGroups(callback) {
-        this._roleDataService.getRoles().then((data) => {
-            callback(this._mapGroupsData(data), this._mapRolesData(data));
-        });
+    getRolesAndGroups() {
+        return this._roleDataService.getRoles().then((data) => ({
+            groups: this._mapGroupsData(data),
+            roles: this._mapRolesData(data)
+        }));
     }
 
     _mapUsersData(usersData) {
