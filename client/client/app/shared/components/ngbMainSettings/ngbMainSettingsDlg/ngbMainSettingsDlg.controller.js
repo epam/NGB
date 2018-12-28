@@ -29,13 +29,13 @@ export default class ngbMainSettingsDlgController {
 
         this.tokenValidDate = this.moment().add(1, 'month').toDate();
 
-        userDataService.currentUserIsAdmin().then(isAdmin => {
-            this.userIsAdmin = isAdmin;
-            $scope.$apply();
-        });
-
         utilsDataService.isRoleModelEnabled().then(res => {
             this.isRoleModelEnabled = res;
+            if (this.isRoleModelEnabled) {
+                userDataService.currentUserIsAdmin().then(isAdmin => {
+                    this.userIsAdmin = isAdmin;
+                });
+            }
         });
 
         this.scope = $scope;

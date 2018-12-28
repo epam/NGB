@@ -35,13 +35,20 @@ export class UtilsDataService extends DataService {
         });
     }
 
+    _isRoleModelEnabled;
+
     isRoleModelEnabled() {
         return new Promise((resolve) => {
-            this.get('isRoleModelEnabled').then((result) => {
-                resolve(`${result}`.toLowerCase() === 'true');
-            }).catch(() => {
-                resolve(false);
-            });
+            if (this._isRoleModelEnabled !== null && this._isRoleModelEnabled !== undefined) {
+                resolve(this._isRoleModelEnabled);
+            } else {
+                this.get('isRoleModelEnabled').then((result) => {
+                    this._isRoleModelEnabled = `${result}`.toLowerCase() === 'true';
+                    resolve(this._isRoleModelEnabled);
+                }).catch(() => {
+                    resolve(false);
+                });
+            }
         });
     }
 

@@ -6,8 +6,8 @@
         <li><ngb-share-link></ngb-share-link></li>
         <li><ngb-main-settings></ngb-main-settings></li>
         <li ng-if="$ctrl.showBookmark"><ngb-bookmark></ngb-bookmark></li>
-        <li ng-if="$ctrl.userIsAdmin"><ngb-user-management></ngb-user-management></li>
-        <li ng-if="$ctrl.isLoggedIn" class="logout-button">
+        <li ng-if="$ctrl.isRoleModelEnabled && $ctrl.userIsAdmin"><ngb-user-management></ngb-user-management></li>
+        <li ng-if="$ctrl.isRoleModelEnabled && $ctrl.isLoggedIn" class="logout-button">
             <md-button aria-label="Menu" class="md-icon-button" ng-click="$ctrl.logout($event)">
                 <ng-md-icon icon="power_settings_new"></ng-md-icon>
             </md-button>
