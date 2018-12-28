@@ -10,10 +10,11 @@ export default class ngbMainSettingsDlgController {
         return 'ngbMainSettingsDlgController';
     }
 
+    isRoleModelEnabled = false;
     showTrackHeadersIsDisabled = false;
 
     /* @ngInject */
-    constructor(dispatcher, projectContext, localDataService, $mdDialog, ngbMainSettingsDlgService, $scope, settings, moment, userDataService) {
+    constructor(dispatcher, projectContext, localDataService, $mdDialog, ngbMainSettingsDlgService, $scope, settings, moment, userDataService, utilsDataService) {
         this._dispatcher = dispatcher;
         this._localDataService = localDataService;
         this.userIsAdmin = false;
@@ -31,6 +32,10 @@ export default class ngbMainSettingsDlgController {
         userDataService.currentUserIsAdmin().then(isAdmin => {
             this.userIsAdmin = isAdmin;
             $scope.$apply();
+        });
+
+        utilsDataService.isRoleModelEnabled().then(res => {
+            this.isRoleModelEnabled = res;
         });
 
         this.scope = $scope;

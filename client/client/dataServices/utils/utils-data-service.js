@@ -22,7 +22,7 @@ export class UtilsDataService extends DataService {
             }).then((result) => {
                 resolve(result);
             });
-        })
+        });
     }
 
     getDefaultTrackSettings() {
@@ -32,7 +32,17 @@ export class UtilsDataService extends DataService {
             }).then((result) => {
                 resolve(result);
             });
-        })
+        });
+    }
+
+    isRoleModelEnabled() {
+        return new Promise((resolve) => {
+            this.get('isRoleModelEnabled').then((result) => {
+                resolve(`${result}`.toLowerCase() === 'true');
+            }).catch(() => {
+                resolve(false);
+            });
+        });
     }
 
     generateShortUrl(fullUrl, alias) {
@@ -50,6 +60,6 @@ export class UtilsDataService extends DataService {
                     `${baseUrl}/navigate?alias=${result}`;
                 resolve(a.href);
             });
-        })
+        });
     }
 }
