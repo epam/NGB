@@ -154,5 +154,12 @@
                 ]]>
             </value>
         </property>
+        <property name="loadEntriesBySidsCountQuery">
+            <value>
+                <![CDATA[
+                    SELECT count(*) FROM catgenome.acl_entry where sid IN (@in@)
+                ]]>
+            </value>
+        </property>
     </bean>
 </beans>

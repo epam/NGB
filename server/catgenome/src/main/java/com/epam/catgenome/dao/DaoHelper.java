@@ -54,6 +54,7 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
     private static final String UNDERSCORE = "_";
     private static final String UNDERSCORE_ESCAPED = "\\\\_";
     private static final String IN_CLAUSE_PLACEHOLDER = "@in@";
+    public static final String QUOTE = "'";
 
     private String createIdQuery;
 
@@ -81,13 +82,19 @@ public class DaoHelper extends NamedParameterJdbcDaoSupport {
     }
 
     public static String getQueryFilledWithIdArray(String queryTemplate, Collection<?> ids) {
-        return queryTemplate.replace("@in@",
+        return queryTemplate.replaceAll(IN_CLAUSE_PLACEHOLDER,
                 "(" + ids.stream().filter(Objects::nonNull)
                         .map(Object::toString).collect(Collectors.joining(",")) + ")");
     }
 
+    public static String getQueryFilledWithStringArray(String queryTemplate, Collection<String> ids) {
+        return queryTemplate.replaceAll(IN_CLAUSE_PLACEHOLDER,
+                "(" + ids.stream().filter(Objects::nonNull)
+                        .map(s -> QUOTE + s + QUOTE).collect(Collectors.joining(",")) + ")");
+    }
+
     public static String getQueryFilledWithTempTable(String queryTemplate, Collection<?> ids) {
-        return queryTemplate.replace("@in@",
+        return queryTemplate.replaceAll(IN_CLAUSE_PLACEHOLDER,
                 ids.stream().filter(Objects::nonNull)
                         .map(Object::toString).collect(Collectors.joining(",")));
     }

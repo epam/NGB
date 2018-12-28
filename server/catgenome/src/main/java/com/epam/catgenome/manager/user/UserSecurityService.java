@@ -122,4 +122,9 @@ public class UserSecurityService {
     public Collection<NgbUser> loadUsersByNames(IDList userList) {
         return userManager.loadUsersByNames(userList.getIds());
     }
+
+    @PreAuthorize(ROLE_ADMIN)
+    public Collection<String> findGroups(final String prefix) {
+        return userManager.findGroups(prefix);
+    }
 }

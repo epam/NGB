@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.security.acl.GrantPermissionManager;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -67,14 +68,17 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
         "#{catgenome['saml.user.attributes'] != null ? catgenome['saml.user.attributes'].split(',') : new String[0]}")
     private Set<String> samlAttributes;
 
-    @Value("${saml.user.auto.create: false}")
-    private boolean autoCreateUsers;
+    @Value("${saml.user.auto.create: EXPLICIT}")
+    private SamlUserRegisterStrategy autoCreateUsers;
 
     @Autowired
     private UserManager userManager;
 
     @Autowired
     private RoleManager roleManager;
+
+    @Autowired
+    private GrantPermissionManager permissionManager;
 
     @Override
     public Object loadUserBySAML(SAMLCredential credential) throws UsernameNotFoundException {
@@ -84,12 +88,8 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
         NgbUser loadedUser = userManager.loadUserByName(userName);
 
         if (loadedUser == null) {
-            if (!autoCreateUsers) {
-                throw new UsernameNotFoundException(
-                    MessageHelper.getMessage(MessagesConstants.ERROR_USER_NAME_NOT_FOUND, userName));
-            }
+            checkAbilityToCreate(userName, groups);
             LOGGER.debug(MessageHelper.getMessage(MessagesConstants.ERROR_USER_NAME_NOT_FOUND, userName));
-
 
             List<Long> roles = roleManager.getDefaultRolesIds();
             NgbUser createdUser = userManager.createUser(userName, roles, groups, attributes);
@@ -111,6 +111,22 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
             }
 
             return new UserContext(loadedUser);
+        }
+    }
+
+    private void checkAbilityToCreate(final String userName, final List<String> groups) {
+        switch (autoCreateUsers) {
+            case EXPLICIT:
+                throw new UsernameNotFoundException(
+                        MessageHelper.getMessage(MessagesConstants.ERROR_USER_NAME_NOT_FOUND, userName));
+            case EXPLICIT_GROUP:
+                if (!permissionManager.isGroupRegistered(groups)) {
+                    throw new UsernameNotFoundException(
+                            MessageHelper.getMessage(MessagesConstants.ERROR_NO_GROUP_WAS_FOUND, userName));
+                }
+                break;
+            default:
+                break;
         }
     }
 

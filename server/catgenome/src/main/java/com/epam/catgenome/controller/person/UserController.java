@@ -175,4 +175,17 @@ public class UserController extends AbstractRESTController {
     public Result loadUserByName(@RequestParam String name) {
         return Result.success(userSecurityService.loadUserByName(name));
     }
+
+    @GetMapping(value = "/group/find")
+    @ResponseBody
+    @ApiOperation(
+            value = "Finds user group by a prefix (case insensitive).",
+            notes = "Finds user group by a prefix (case insensitive).",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Collection<String>> findGroups(@RequestParam(required = false) String prefix) {
+        return Result.success(userSecurityService.findGroups(prefix));
+    }
 }
