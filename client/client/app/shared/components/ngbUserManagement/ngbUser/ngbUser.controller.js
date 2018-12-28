@@ -17,12 +17,28 @@ export default class ngbUserController {
             if (userInfo && userInfo.attributes && userInfo.attributes.Name) {
                 this.displayName = userInfo.attributes.Name;
             }
+            if (userInfo && userInfo.attributes && (userInfo.attributes.FirstName || userInfo.attributes.LastName)) {
+                const parts = [];
+                if (userInfo.attributes.FirstName) {
+                    parts.push(userInfo.attributes.FirstName);
+                }
+                if (userInfo.attributes.LastName) {
+                    parts.push(userInfo.attributes.LastName);
+                }
+                this.displayName = parts.join(' ');
+            }
             if (!this.disableTooltip && userInfo && userInfo.attributes) {
                 const getAttributesValues = () => {
                     const values = [];
-                    for (const key in userInfo.attributes.attributes) {
-                        if (userInfo.attributes.attributes.hasOwnProperty(key)) {
-                            values.push(userInfo.attributes.attributes[key]);
+                    const firstAttributes = ['FirstName', 'LastName'];
+                    for (const key in userInfo.attributes) {
+                        if (userInfo.attributes.hasOwnProperty(key) && firstAttributes.indexOf(key) >= 0) {
+                            values.push(userInfo.attributes[key]);
+                        }
+                    }
+                    for (const key in userInfo.attributes) {
+                        if (userInfo.attributes.hasOwnProperty(key) && firstAttributes.indexOf(key) === -1) {
+                            values.push(userInfo.attributes[key]);
                         }
                     }
                     return values;

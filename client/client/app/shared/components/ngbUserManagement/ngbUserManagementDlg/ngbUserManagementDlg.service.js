@@ -31,12 +31,18 @@ export default class ngbUserManagementDlgService {
         if (usersData && usersData.length) {
             const getUserAttributesString = (user) => {
                 const values = [];
-                for (const key in user.attributes.attributes) {
-                    if (user.attributes.attributes.hasOwnProperty(key)) {
-                        values.push(user.attributes.attributes[key]);
+                const firstAttributes = ['FirstName', 'LastName'];
+                for (const key in user.attributes) {
+                    if (user.attributes.hasOwnProperty(key) && firstAttributes.indexOf(key) >= 0) {
+                        values.push(user.attributes[key]);
                     }
                 }
-                return values.join(', ');
+                for (const key in user.attributes) {
+                    if (user.attributes.hasOwnProperty(key) && firstAttributes.indexOf(key) === -1) {
+                        values.push(user.attributes[key]);
+                    }
+                }
+                return values.join(' ');
             };
             return usersData.map(user => ({
                 editable: true,
@@ -253,7 +259,7 @@ export default class ngbUserManagementDlgService {
                                 <div class="ui-grid-cell-contents" style="display: flex; flex-direction: column">
                                     <span>{{row.entity.userName}}</span>
                                     <div ng-if="row.entity.userAttributes" style="margin-top: 2px">
-                                        {row.entity.userAttributes}
+                                        {{row.entity.userAttributes}}
                                     </div>
                                 </div>
                         `,
