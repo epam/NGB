@@ -120,7 +120,7 @@ export default class ngbUserRoleFormService {
               if (group && users.length > 0) {
                   this._roleDataService.assignUsersToRole(group.id, users)
                     .then(res => callback(res));
-              } if (group) {
+              } else if (group) {
                   callback(group);
               } else {
                   callback(null);
