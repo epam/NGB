@@ -114,7 +114,9 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
             loadedUser.setUserName(userName);
             List<Long> roles = loadedUser.getRoles().stream().map(Role::getId).collect(Collectors.toList());
 
-            if (userName.equalsIgnoreCase(defaultAdmin)) {
+            boolean needToUpdateToAdmin = userName.equalsIgnoreCase(defaultAdmin)
+                    && roles.stream().noneMatch(roleId -> DefaultRoles.ROLE_ADMIN.getId().equals(roleId));
+            if (needToUpdateToAdmin) {
                 roles.add(DefaultRoles.ROLE_ADMIN.getId());
             }
 
