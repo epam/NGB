@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.user.DefaultRoles;
 import com.epam.catgenome.security.acl.GrantPermissionManager;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -71,6 +72,9 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
     @Value("${saml.user.auto.create: EXPLICIT}")
     private SamlUserRegisterStrategy autoCreateUsers;
 
+    @Value("${security.default.admin:}")
+    private String defaultAdmin;
+
     @Autowired
     private UserManager userManager;
 
@@ -88,10 +92,15 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
         NgbUser loadedUser = userManager.loadUserByName(userName);
 
         if (loadedUser == null) {
-            checkAbilityToCreate(userName, groups);
             LOGGER.debug(MessageHelper.getMessage(MessagesConstants.ERROR_USER_NAME_NOT_FOUND, userName));
 
             List<Long> roles = roleManager.getDefaultRolesIds();
+            if (!userName.equalsIgnoreCase(defaultAdmin)) {
+                checkAbilityToCreate(userName, groups);
+            } else {
+                roles.add(DefaultRoles.ROLE_ADMIN.getId());
+            }
+
             NgbUser createdUser = userManager.createUser(userName, roles, groups, attributes);
             LOGGER.debug("Created user {} with groups {}", userName, groups);
 
