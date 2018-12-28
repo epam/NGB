@@ -21,11 +21,14 @@ export default  {
                 if (isRoleModelEnabled) {
                     userDataService.currentUserIsAdmin().then(isAdmin => {
                         this.userIsAdmin = isAdmin;
+                        $scope.$apply();
                     });
                     userDataService.getCurrentUser().then(user => {
                         this.isLoggedIn = user && user.enabled;
+                        $scope.$apply();
                     }, () => {
                         this.isLoggedIn = false;
+                        $scope.$apply();
                     });
                 }
             });
