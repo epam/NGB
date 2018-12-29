@@ -5,9 +5,9 @@ In user management panel select "**Groups**" tab:
 
 ![NGB User Management](images/um-groups-1.png)
 
-On this tab you can view the full NGB users' groups list. Here you can add a new group or delete existing, also you can assign groups to users.
+On this tab you can view the full NGB users' groups list (only *internal groups*, not *domain*). Here you can add a new group or delete existing, also you can assign groups to the users.
 
-You can search specific group or limit displayed list by typing group name in the query string in upper side of the tab.
+You can search specific group or limit displayed list by typing group name in the query string in the upper side of the tab.
 
 ## Add new group
 To add a new group click "**Create group**" button on the right side of the panel.

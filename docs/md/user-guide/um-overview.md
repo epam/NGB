@@ -1,5 +1,5 @@
 # User management
-The security policy in NGB is based on the next principal entities: **Users**, **Groups**, **Roles** and **Permissions**.
+The security policy in NGB is based on the next principal entities: **Users**, **Groups**/**Roles** and **Permissions**.
 
 ## Users
 The **Users** entity defines the full list of the NGB users (accounts). Note that only authorized users that were registered early can work in NGB. The user can be added or deleted from NGB users list only by another user that have the *ADMIN* role. Users names represent the authentical domain accounts (SAML/OAuth/OpenID), e.g. e-mails. 
@@ -25,7 +25,7 @@ ROLE_WIG_MANAGER | Allows user to have access and control the WIG files and trac
 ROLE_SEG_MANAGER | Allows user to have access and control the SEG files and tracks
 
 ## Permissions
-The **Permissions** entity defines what actions with files and datasets are allowed to the user. The permission settings are divided into the following options which can be combined:
+The **Permissions** entity defines what actions with files and datasets are allowed to the user/user group(role). The permission settings are divided into the following options which can be combined:
 - Read
 - Write
 
@@ -35,4 +35,4 @@ The user management panel helps to manage users, groups and system roles.
 
 To open user management panel click on ![NGB User Management](images/um-overview-1.png) icon on the main toolbar of the application.
 
-Setting permissions on the specific files and datasets, users and groups management also can be done through CLI.
+Setting permissions on the specific files and datasets, users and groups management also can be done through CLI (see [here](../cli/command-reference.md)).

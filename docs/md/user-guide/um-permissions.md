@@ -4,9 +4,7 @@
 The permissions on the object could be granted to the user in one of the following ways:
 - the system has a "default" system role or users' group. This type of the system roles/groups assigned by default once a new user is created;
 - assigned user groups or system roles where each member has the same permissions for specific objects;
-- granted permissions for specific user.
-
-*The priority of the permissions granted for specific object explicitly is higher than the group or role permissions, e.g. if a basic user is included into the group that doesn't have an access to some file/dataset but he has permissions explicitly defined for himself that allow him to work with that file/dataset, he will have an access to it.*
+- granted permissions for the specific user.
 
 To open the form for changing permissions on the specific object (file or dataset) click right mouse-button on its name when hover over it in **Datasets list**, e.g.:
 
@@ -43,7 +41,7 @@ You can explicitly define permissions for the object for a particular user in th
 
     ![NGB User Management](images/um-permissions-8.png)
 
-4. Set permissions by ticking checkboxes. E.g. in example below both permissions ("**Read**" and "**Write**") were granted:
+4. Set permissions by ticking checkboxes. E.g. in the example below both permissions ("**Read**" and "**Write**") were granted:
 
     ![NGB User Management](images/um-permissions-9.png)
 
@@ -53,7 +51,7 @@ You can explicitly define permissions for the object for a particular user in th
     > ```
     > $ ngb chmod rw+ -fl agnX1.09-28.trim.dm606.realign.vcf -u test_test@epam.com
     > ```
-    > Set that permissions for a specific dataset (e.g. for a dataset "*fruitfly_local*"):
+    > Set that permissions for a specific dataset (e.g. for the dataset "*fruitfly_local*"):
     > ```
     > $ ngb chmod rw+ -ds fruitfly_local -u test_test@epam.com
     > ```
@@ -66,7 +64,7 @@ You can explicitly define permissions for the object for a particular user in th
     > ```
     > $ ngb chmod ! -fl agnX1.09-28.trim.dm606.realign.vcf -u test_test@epam.com
     > ```
-    > Unset permissions for a specific dataset (e.g. for a dataset "*fruitfly_local*"):
+    > Unset permissions for a specific dataset (e.g. for the dataset "*fruitfly_local*"):
     > ```
     > $ ngb chmod ! -ds fruitfly_local -u test_test@epam.com
     > ```
@@ -82,7 +80,7 @@ You can explicitly define permissions for the object for a particular user group
 
     ![NGB User Management](images/um-permissions-12.png)
 
-4. Set permissions by ticking checkboxes. E.g. in example below both permissions ("Read" and "Write") were denied:
+4. Set permissions by ticking checkboxes. E.g. in the example below both permissions ("Read" and "Write") were denied:
 
     ![NGB User Management](images/um-permissions-13.png)
 
@@ -92,7 +90,7 @@ You can explicitly define permissions for the object for a particular user group
     > ```
     > $ ngb chmod rw- -fl agnX1.09-28.trim.dm606.realign.vcf -gr REFERENCE_MANAGER
     > ```
-    > Set that permissions for a specific dataset (e.g. for a dataset "*fruitfly_local*"):
+    > Set that permissions for a specific dataset (e.g. for the dataset "*fruitfly_local*"):
     > ```
     > $ ngb chmod rw- -ds fruitfly_local -gr REFERENCE_MANAGER
     > ```
@@ -105,7 +103,7 @@ You can explicitly define permissions for the object for a particular user group
     > ```
     > $ ngb chmod ! -fl agnX1.09-28.trim.dm606.realign.vcf -gr REFERENCE_MANAGER
     > ```
-    > Unset permissions for a specific dataset (e.g. for a dataset "*fruitfly_local*"):
+    > Unset permissions for a specific dataset (e.g. for the dataset "*fruitfly_local*"):
     > ```
     > $ ngb chmod ! -ds fruitfly_local -gr REFERENCE_MANAGER
     > ```
