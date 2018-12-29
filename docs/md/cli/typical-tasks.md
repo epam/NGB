@@ -21,7 +21,7 @@ Scenarios provided below rely on the following data structure:
 
 ## Configure NGB CLI to use appropriate NGB instance
 
-If NGB instance is installed on a remote machine (i.e. can not be addressed via loopback interface `localhost`), then `set_srv` command should be used to perform configuration
+If NGB instance is installed on a remote machine (i.e. cannot be addressed via loopback interface `localhost`), then `set_srv` command should be used to perform configuration
 
 Assuming that NGB instance is installed to a server named `ngb.my-domain.com` the following command should be used:
 
@@ -184,7 +184,7 @@ http://ngb.my-domain.com/catgenome/#/grch38?tracks=[{"p":"my_sample1"}]
 
 ```
 # Generate url that opens all tracks for my_sample1 dataset
-# with 25223614-25229364 range of the chromsome 12 to be shown
+# with 25223614-25229364 range of the chromosome 12 to be shown
 $ ngb url my_sample1 --location chr12:25223614-25229364
 http://ngb.my-domain.com/catgenome/#/grch38/12/25223614/25229364?tracks=[{"p":"my_sample1"}]
 ```
@@ -195,7 +195,7 @@ http://ngb.my-domain.com/catgenome/#/grch38/12/25223614/25229364?tracks=[{"p":"m
 
 ```
 # Generate url that only opens sample1.bw track from my_sample1 dataset
-# with the whole first chromsome to be shown
+# with the whole first chromosome to be shown
 $ ngb url my_sample1 sample1.bw --location chr1
 http://ngb.my-domain.com/catgenome/#/grch38/chr1?tracks=[{"p":"my_sample1", "b":"sample1.bw"}]
 ```
