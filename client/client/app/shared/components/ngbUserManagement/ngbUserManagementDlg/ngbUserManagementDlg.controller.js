@@ -20,11 +20,12 @@ export default class ngbUserManagementDlgController extends BaseController {
     }
 
     /* @ngInject */
-    constructor($mdDialog, $scope, ngbUserManagementService, ngbUserManagementGridOptionsConstant) {
+    constructor($mdDialog, $scope, $timeout, ngbUserManagementService, ngbUserManagementGridOptionsConstant) {
         super();
         Object.assign(this, {
             $mdDialog,
             $scope,
+            $timeout,
             service: ngbUserManagementService,
         });
 
@@ -67,33 +68,39 @@ export default class ngbUserManagementDlgController extends BaseController {
 
     fetchAll() {
         Promise.all([this.fetchUsers(), this.fetchRolesAndGroups()]).then(() => {
-            this.isUsersLoading = false;
-            if (this.$scope !== null && this.$scope !== undefined) {
-                this.$scope.$apply();
-            }
+            this.$timeout(() => {
+                this.isUsersLoading = false;
+                if (this.$scope !== null && this.$scope !== undefined) {
+                    this.$scope.$apply();
+                }
+            });
         });
     }
 
     fetchUsers() {
         this.isUsersLoading = true;
         return this.service.getUsers().then((users) => {
-            this.usersGridOptions.data = users;
-            this.isUsersLoading = false;
-            if (this.$scope !== null && this.$scope !== undefined) {
-                this.$scope.$apply();
-            }
+            this.$timeout(() => {
+                this.usersGridOptions.data = users;
+                this.isUsersLoading = false;
+                if (this.$scope !== null && this.$scope !== undefined) {
+                    this.$scope.$apply();
+                }
+            });
         });
     }
 
     fetchRolesAndGroups() {
         this.isUsersLoading = true;
         return this.service.getRolesAndGroups().then(({groups, roles}) => {
-            this.groupsGridOptions.data = groups;
-            this.rolesGridOptions.data = roles;
-            this.isUsersLoading = false;
-            if (this.$scope !== null && this.$scope !== undefined) {
-                this.$scope.$apply();
-            }
+            this.$timeout(() => {
+                this.groupsGridOptions.data = groups;
+                this.rolesGridOptions.data = roles;
+                this.isUsersLoading = false;
+                if (this.$scope !== null && this.$scope !== undefined) {
+                    this.$scope.$apply();
+                }
+            });
         });
     }
 
