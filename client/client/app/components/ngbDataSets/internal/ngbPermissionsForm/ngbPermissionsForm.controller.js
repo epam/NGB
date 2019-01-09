@@ -287,7 +287,8 @@ export default class ngbPermissionsFormController extends BaseController {
         }).then(() => this.fetchPermissions());
     }
 
-    deleteSubjectPermissions = (subject) => {
+    deleteSubjectPermissions = (subject, $event) => {
+        $event.stopPropagation();
         this.ngbPermissionsFormService
             .deleteNodePermissions(this.node, subject)
             .then(() => this.fetchPermissions())
