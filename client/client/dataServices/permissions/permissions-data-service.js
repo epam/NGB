@@ -20,7 +20,7 @@ export class PermissionsDataService extends DataService {
 
     deleteObjectPermissions(id, aclClass, name, isPrincipal) {
         return new Promise(resolve => {
-            this.delete(`grant?id=${id}&aclClass=${aclClass}&user=${name}&isPrincipal=${isPrincipal}`)
+            this.delete(`grant?id=${id}&aclClass=${aclClass}&user=${encodeURIComponent(name)}&isPrincipal=${isPrincipal}`)
                 .catch(() => resolve(null))
                 .then(data => {
                     resolve(data || null);
