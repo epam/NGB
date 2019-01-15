@@ -310,7 +310,8 @@ public class BedManager {
 
                 bedFile.setIndex(indexItem);
             } else {
-                Assert.isTrue(resourceType == BiologicalDataItemResourceType.FILE,
+                Assert.isTrue(resourceType == BiologicalDataItemResourceType.FILE ||
+                                resourceType == BiologicalDataItemResourceType.S3,
                         "Auto indexing is supported only for FILE type requests");
                 fileManager.makeBedDir(bedFile.getId());
                 fileManager.makeBedIndex(bedFile);

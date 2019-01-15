@@ -719,19 +719,18 @@ public class FileManager {
                 VcfFileNames.VCF_FILE_NAME.getName());
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
-        File file = new File(vcfFile.getPath());
         VCFCodec codec = new VCFCodec();
         File indexFile;
 
         if (vcfFile.getCompressed()) {
             indexFile = new File(toRealPath(substitute(VCF_COMPRESSED_INDEX, params)));
             LOGGER.info(getMessage(MessagesConstants.INFO_VCF_INDEX_WRITING, indexFile.getAbsolutePath()));
-            TabixIndex index = IndexUtils.createTabixIndex(file, codec, TabixFormat.VCF);
+            TabixIndex index = IndexUtils.createTabixIndex(vcfFile, codec, TabixFormat.VCF);
             index.write(indexFile);
         } else {
             indexFile = new File(toRealPath(substitute(VCF_INDEX, params)));
             LOGGER.info(getMessage(MessagesConstants.INFO_VCF_INDEX_WRITING, indexFile.getAbsolutePath()));
-            IntervalTreeIndex intervalTreeIndex = IndexFactory.createIntervalIndex(file, codec); // Create an index
+            IntervalTreeIndex intervalTreeIndex = IndexUtils.createIntervalIndex(vcfFile, codec); // Create an index
             IndexFactory.writeIndex(intervalTreeIndex, indexFile); // Write it to a file
         }
 
@@ -1472,7 +1471,7 @@ public class FileManager {
             createGeneCompressedIndex(indexFile, file, gffType);
         } else {
             AsciiFeatureCodec<GeneFeature> codec = new GffCodec(gffType);
-            TabixIndex index = IndexUtils.createTabixIndex(file, codec, TabixFormat.GFF);
+            TabixIndex index = IndexUtils.createTabixIndex(geneFile, codec, TabixFormat.GFF);
             index.write(indexFile);
         }
 
@@ -1569,11 +1568,10 @@ public class FileManager {
         params.put(DIR_ID.name(), bedFile.getId());
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
-        File file = new File(bedFile.getPath());
         File indexFile = new File(toRealPath(substitute(BED_INDEX, params)));
         NggbBedCodec bedCodec = new NggbBedCodec();
 
-        TabixIndex index = IndexUtils.createTabixIndex(file, bedCodec, TabixFormat.BED);
+        TabixIndex index = IndexUtils.createTabixIndex(bedFile, bedCodec, TabixFormat.BED);
         index.write(indexFile);
 
         BiologicalDataItem indexItem = new BiologicalDataItem();
@@ -1611,12 +1609,11 @@ public class FileManager {
         params.put(DIR_ID.name(), segFile.getId());
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
-        File file = new File(segFile.getPath());
         File indexFile = new File(toRealPath(substitute(SEG_INDEX, params)));
         LOGGER.debug("Writing SEG index at {}", indexFile.getAbsolutePath());
         SegCodec segCodec = new SegCodec();
 
-        TabixIndex index = IndexUtils.createTabixIndex(file, segCodec, SEG_TABIX_FORMAT);
+        TabixIndex index = IndexUtils.createTabixIndex(segFile, segCodec, SEG_TABIX_FORMAT);
         index.write(indexFile);
 
         BiologicalDataItem indexItem = new BiologicalDataItem();
@@ -1645,7 +1642,7 @@ public class FileManager {
         if (bedGraphFile.getCompressed()) {
             indexFile = new File(toRealPath(substitute(BED_GRAPH_COMPRESSED_INDEX, params)));
             LOGGER.debug("Writing BED_GRAPH index at {}", indexFile.getAbsolutePath());
-            TabixIndex index = IndexUtils.createTabixIndex(file, bedGraphCodec, BED_GRAPH_TABIX_FORMAT);
+            TabixIndex index = IndexUtils.createTabixIndex(bedGraphFile, bedGraphCodec, BED_GRAPH_TABIX_FORMAT);
             index.write(indexFile);
         } else {
             indexFile = new File(toRealPath(substitute(BED_GRAPH_INDEX, params)));

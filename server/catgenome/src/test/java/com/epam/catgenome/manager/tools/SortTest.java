@@ -151,7 +151,7 @@ public class SortTest extends AbstractJUnitTest {
             Feature currentFeature = iterator.next();
             numlines++;
 
-            checkSorted(ofile, lastFeature, currentFeature, visitedChromos);
+            checkSorted(ofile.getAbsolutePath(), lastFeature, currentFeature, visitedChromos);
 
             lastFeature = currentFeature;
         }

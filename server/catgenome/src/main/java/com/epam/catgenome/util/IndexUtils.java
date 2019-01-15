@@ -3,7 +3,6 @@ package com.epam.catgenome.util;
 import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,15 +17,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
+import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.manager.bam.BamHelper;
 import htsjdk.samtools.Defaults;
+import htsjdk.tribble.index.interval.IntervalIndexCreator;
+import htsjdk.tribble.index.interval.IntervalTreeIndex;
 import htsjdk.tribble.util.TabixUtils;
+import htsjdk.variant.vcf.VCFCodec;
 import org.apache.commons.io.IOUtils;
 
 import com.epam.catgenome.exception.IndexException;
-import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
-import htsjdk.samtools.seekablestream.SeekableStream;
-import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import htsjdk.samtools.util.AbstractIterator;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedStreamConstants;
@@ -104,26 +105,30 @@ public final class IndexUtils {
     /**
      * If file isn't compressed HTSJDK method is used, for compressed files our methods are
      * used, which create the tabix index correctly.
-     *
-     * @param inputFile
-     * @param codec
-     * @param tabixFormat
-     * @param <F>
-     * @param <S>
-     * @return
      */
-    public static <F extends Feature, S> TabixIndex createTabixIndex(final File inputFile,
+    public static <F extends Feature, S> TabixIndex createTabixIndex(final FeatureFile featureFile,
             final FeatureCodec<F, S> codec, final TabixFormat tabixFormat) {
-        if (AbstractFeatureReader.hasBlockCompressedExtension(inputFile)) {
+
+        try {
             final TabixIndexCreator indexCreator = new TabixIndexCreator(null, tabixFormat);
-            return (TabixIndex) createIndex(inputFile, new FeatureIterator<>(inputFile, codec),
-                    indexCreator);
-        } else {
-            return IndexFactory.createTabixIndex(inputFile, codec, tabixFormat, null);
+            return (TabixIndex) createIndex(featureFile.getPath(),
+                    new FeatureIterator<>(featureFile.getPath(), codec), indexCreator);
+        } catch (IOException e) {
+            throw new RuntimeIOException(e);
         }
     }
 
-    private static Index createIndex(final File inputFile, final FeatureIterator iterator,
+    public static IntervalTreeIndex createIntervalIndex(VcfFile vcfFile, VCFCodec codec) {
+        try {
+            final IntervalIndexCreator indexCreator = new IntervalIndexCreator(new File(vcfFile.getPath()));
+            return (IntervalTreeIndex)createIndex(vcfFile.getPath(),
+                    new FeatureIterator<>(vcfFile.getPath(), codec), indexCreator);
+        } catch (IOException e) {
+            throw new RuntimeIOException(e);
+        }
+    }
+
+    private static Index createIndex(final String filePath, final FeatureIterator iterator,
             final IndexCreator creator) {
         Feature lastFeature = null;
         Feature currentFeature;
@@ -132,7 +137,7 @@ public final class IndexUtils {
             final long position = iterator.getPosition();
             currentFeature = iterator.next();
 
-            checkSorted(inputFile, lastFeature, currentFeature, visitedChromos);
+            checkSorted(filePath, lastFeature, currentFeature, visitedChromos);
 
             creator.addFeature(currentFeature, position);
             lastFeature = currentFeature;
@@ -142,7 +147,7 @@ public final class IndexUtils {
         return creator.finalizeIndex(iterator.getPosition());
     }
 
-    public static void checkSorted(final File inputFile, final Feature lastFeature,
+    public static void checkSorted(final String inputFile, final Feature lastFeature,
             final Feature currentFeature, Map<String, Feature> visitedChromos) {
         // if the last currentFeature is after the current currentFeature, exception out
         if (lastFeature != null && currentFeature.getStart() < lastFeature.getStart() && lastFeature
@@ -152,7 +157,7 @@ public final class IndexUtils {
                             + "We saw a record with a start of " + currentFeature.getContig() + ":"
                             + currentFeature.getStart() + " after a record with a start of "
                             + lastFeature.getContig() + ":" + lastFeature.getStart(),
-                    inputFile.getAbsolutePath());
+                    inputFile);
         }
 
         //should only visit chromosomes once
@@ -162,7 +167,7 @@ public final class IndexUtils {
             if (visitedChromos.containsKey(curChr)) {
                 String msg = "Input file must have contiguous chromosomes.";
                 throw new TribbleException.MalformedFeatureFile(msg,
-                        inputFile.getAbsolutePath());
+                        inputFile);
             } else {
                 visitedChromos.put(curChr, currentFeature);
             }
@@ -187,24 +192,18 @@ public final class IndexUtils {
         // we also need cache our position
         private long cachedPosition;
 
-        /**
-         * @param inputFile The file from which to read. Stream for reading is opened on construction.
-         * @param codec
-         */
-        public FeatureIterator(final File inputFile, final FeatureCodec<F, S> codec) {
-            this.codec = codec;
-            this.inputFile = inputFile;
-            final FeatureCodecHeader header = readHeader();
-            source =
-                    (S) makeIndexableSourceFromStream(initStream(inputFile, header.getHeaderEnd()));
-            readNextFeature();
-        }
-
-        public FeatureIterator(PositionalBufferedStream stream, final FeatureCodec<F, S> codec) throws IOException {
+        public FeatureIterator(String featureFilePath, final FeatureCodec<F, S> codec) throws IOException {
             this.codec = codec;
             this.inputFile = null;
-            initStream(stream, readHeader(stream).getHeaderEnd());
-            source = (S) codec.makeIndexableSourceFromStream(stream);
+            InputStream headerStream;
+            if (AbstractFeatureReader.hasBlockCompressedExtension(featureFilePath)) {
+                headerStream = new BlockCompressedInputStream(IOHelper.openStream(featureFilePath));
+            } else {
+                headerStream = IOHelper.openStream(featureFilePath);
+            }
+
+            FeatureCodecHeader header = readHeader(new PositionalBufferedStream(headerStream));
+            source = (S) makeIndexableSourceFromStream(initStream(featureFilePath, header.getHeaderEnd()));
             readNextFeature();
         }
 
@@ -213,24 +212,9 @@ public final class IndexUtils {
             if (bufferedInputStream instanceof BlockCompressedInputStream) {
                 pbs = (BlockCompressedInputStream) bufferedInputStream;
             } else {
-                throw new IllegalArgumentException();
+                return codec.makeIndexableSourceFromStream(bufferedInputStream);
             }
             return new TabixLineReaderIterator(new TabixLineReader(pbs));
-        }
-
-        /**
-         * Some codecs,  e.g. VCF files,  need the header to decode features.  This is a rather poor design,
-         * the internal header is set as a side-affect of reading it, but we have to live with it for now.
-         */
-        private FeatureCodecHeader readHeader() {
-            try {
-                final S headerSource = this.codec.makeSourceFromStream(initStream(inputFile, 0));
-                final FeatureCodecHeader header = this.codec.readHeader(headerSource);
-                codec.close(headerSource);
-                return header;
-            } catch (final IOException e) {
-                throw new IndexException(e.getMessage(), e);
-            }
         }
 
         private FeatureCodecHeader readHeader(PositionalBufferedStream stream) {
@@ -243,8 +227,8 @@ public final class IndexUtils {
             }
         }
 
-        private InputStream initStream(final File inputFile, final long skip) {
-            try (FileInputStream fileStream = new FileInputStream(inputFile)) {
+        private InputStream initStream(final String inputFile, final long skip) {
+            try (InputStream fileStream = IOHelper.openStream(inputFile)) {
                 InputStream is;
                 // if this looks like a block compressed file and it in fact is, we will use it
                 // otherwise we will use the file as is
@@ -257,15 +241,12 @@ public final class IndexUtils {
                     if (!BlockCompressedInputStream.isValidFile(bufferedStream)) {
                         throw new TribbleException.MalformedFeatureFile(
                                 "Input file is not in valid block compressed format.",
-                                inputFile.getAbsolutePath());
+                                inputFile);
                     }
 
-                    final ISeekableStreamFactory ssf = SeekableStreamFactory.getInstance();
-                    final SeekableStream seekableStream =
-                            ssf.getStreamFor(inputFile.getAbsolutePath());
-                    is = new BlockCompressedInputStream(seekableStream);
+                    is = new BlockCompressedInputStream(IOHelper.openStream(inputFile));
                 } else {
-                    throw new IllegalArgumentException("Only compressed files are supported.");
+                    is = IOHelper.openStream(inputFile);
                 }
                 if (skip > 0) {
                     IOUtils.skip(is, skip);
@@ -275,13 +256,7 @@ public final class IndexUtils {
                 throw new IndexException(e.getMessage(), e);
             } catch (final IOException e) {
                 throw new TribbleException.MalformedFeatureFile("Error initializing stream",
-                        inputFile.getAbsolutePath(), e);
-            }
-        }
-
-        private void initStream(PositionalBufferedStream stream, final long skip) throws IOException {
-            if (skip > 0) {
-                IOUtils.skip(stream, skip);
+                        inputFile, e);
             }
         }
 

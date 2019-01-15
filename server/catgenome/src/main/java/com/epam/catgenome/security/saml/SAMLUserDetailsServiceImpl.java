@@ -172,18 +172,18 @@ public class SAMLUserDetailsServiceImpl implements SAMLUserDetailsService {
     }
 
     private String[] getParsedLdapGroupName(String[] attributeValues) {
-            for (int i = 0; i < attributeValues.length; i++) {
-                try {
-                    LdapName ldapName = new LdapName(attributeValues[i]);
-                    for (Rdn rdn : ldapName.getRdns()) {
-                        if (rdn.getType().equalsIgnoreCase(LDAP_CN_FIELD)) {
-                            attributeValues[i] = rdn.getValue().toString();
-                        }
+        for (int i = 0; i < attributeValues.length; i++) {
+            try {
+                LdapName ldapName = new LdapName(attributeValues[i]);
+                for (Rdn rdn : ldapName.getRdns()) {
+                    if (rdn.getType().equalsIgnoreCase(LDAP_CN_FIELD)) {
+                        attributeValues[i] = rdn.getValue().toString();
                     }
-                } catch (InvalidNameException e) {
-                    LOGGER.info("SAML attribute is not LDAP name, will leave as original value.");
                 }
+            } catch (InvalidNameException e) {
+                LOGGER.info("SAML attribute is not LDAP name, will leave as original value.");
             }
+        }
         return attributeValues;
     }
 

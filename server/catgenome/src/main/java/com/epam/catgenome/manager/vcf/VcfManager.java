@@ -733,7 +733,8 @@ public class VcfManager {
             request.getType());
         String fileName = FilenameUtils.getName(request.getPath());
 
-        vcfFile.setCompressed(resourceType == BiologicalDataItemResourceType.FILE && IOHelper.isGZIPFile(fileName));
+        vcfFile.setCompressed((resourceType == BiologicalDataItemResourceType.FILE
+                || resourceType == BiologicalDataItemResourceType.S3) && IOHelper.isGZIPFile(fileName));
         vcfFile.setName(request.getName() != null ? request.getName() : fileName);
         vcfFile.setPrettyName(request.getPrettyName());
         vcfFile.setId(vcfFileManager.createVcfFileId());
@@ -895,7 +896,7 @@ public class VcfManager {
         indexFile.delete();
         LOGGER.info(getMessage(MessagesConstants.INFO_VCF_INDEX_WRITING, indexFile.getAbsolutePath()));
         if (vcfFile.getCompressed()) {
-            TabixIndex index = IndexUtils.createTabixIndex(file, codec, TabixFormat.VCF);
+            TabixIndex index = IndexUtils.createTabixIndex(vcfFile, codec, TabixFormat.VCF);
             index.write(indexFile);
         } else {
             IntervalTreeIndex intervalTreeIndex = IndexFactory.createIntervalIndex(file, codec);

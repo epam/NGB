@@ -61,14 +61,12 @@ import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.index.tabix.TabixFormat;
 import htsjdk.tribble.index.tabix.TabixIndex;
 import htsjdk.tribble.index.tabix.TabixIndexCreator;
 import htsjdk.tribble.readers.LineIterator;
-import htsjdk.tribble.readers.PositionalBufferedStream;
 import htsjdk.tribble.util.LittleEndianOutputStream;
 
 
@@ -98,8 +96,6 @@ public class GeneRegisterer {
     private BlockCompressedOutputStream transcriptBCOS = null;
     private BufferedWriter writerTranscript = null;
     private BufferedWriter writerLargeScale = null;
-    private BlockCompressedInputStream compressedInputStream = null;
-    private PositionalBufferedStream inputStream = null;
     private IndexUtils.FeatureIterator<GeneFeature, LineIterator> iterator = null;
     private LittleEndianOutputStream indexOutputStream = null;
     private LittleEndianOutputStream largeScaleIndexOutputStream = null;
@@ -451,9 +447,6 @@ public class GeneRegisterer {
         GffCodec.GffType gffType = GffCodec.GffType.forExt(extension);
         AsciiFeatureCodec<GeneFeature> codec = new GffCodec(gffType);
 
-        compressedInputStream = new BlockCompressedInputStream(IOHelper.openStream(filePath));
-        inputStream = new PositionalBufferedStream(IOHelper.openStream(filePath));
-
         if (geneFile.getCompressed()) {
             largeScaleOS = null;
             largeScaleBCOS = fileManager.makeGeneBlockCompressedOutputStream(gffType, geneFile,
@@ -465,8 +458,7 @@ public class GeneRegisterer {
                                                                          Charset.forName(CHARSET_NAME)));
             writerLargeScale = new BufferedWriter(new OutputStreamWriter(largeScaleBCOS,
                                                                          Charset.forName(CHARSET_NAME)));
-            iterator = new IndexUtils.FeatureIterator<>(new PositionalBufferedStream(
-                    new BlockCompressedInputStream(IOHelper.openStream(filePath))), codec);
+            iterator = new IndexUtils.FeatureIterator<>(filePath, codec);
         } else {
             largeScaleOS = fileManager.makePositionalOutputStream(gffType, geneFile, GeneFileType.LARGE_SCALE);
             largeScaleBCOS = null;
@@ -475,7 +467,7 @@ public class GeneRegisterer {
 
             writerTranscript = new BufferedWriter(new OutputStreamWriter(transcriptOS, Charset.forName(CHARSET_NAME)));
             writerLargeScale = new BufferedWriter(new OutputStreamWriter(largeScaleOS, Charset.forName(CHARSET_NAME)));
-            iterator = new IndexUtils.FeatureIterator<>(inputStream, codec);
+            iterator = new IndexUtils.FeatureIterator<>(filePath, codec);
         }
     }
 
@@ -484,8 +476,6 @@ public class GeneRegisterer {
         IOUtils.closeQuietly(largeScaleIndexOutputStream);
         IOUtils.closeQuietly(transcriptIndexOutputStream);
         IOUtils.closeQuietly(iterator);
-        IOUtils.closeQuietly(inputStream);
-        IOUtils.closeQuietly(compressedInputStream);
         IOUtils.closeQuietly(writerLargeScale);
         IOUtils.closeQuietly(writerTranscript);
         if (!geneFile.getCompressed()) { // is already closed
