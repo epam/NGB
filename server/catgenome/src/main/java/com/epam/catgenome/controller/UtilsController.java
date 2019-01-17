@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.UrlRequestVO;
+import com.epam.catgenome.entity.security.SessionExpirationBehavior;
 import com.epam.catgenome.manager.UrlShorterManager;
 import com.epam.catgenome.util.IndexUtils;
 import com.epam.catgenome.entity.UrlWithAliasItem;
@@ -84,6 +85,9 @@ public class UtilsController extends AbstractRESTController {
     @Value("${security.acl.enable: false}")
     private boolean aclSecurityEnabled;
 
+    @Value("${session.expiration.behavior: CONFIRM}")
+    private SessionExpirationBehavior expirationBehavior;
+
     @ResponseBody
     @RequestMapping(value = "/version", method = RequestMethod.GET)
     @ApiOperation(
@@ -106,6 +110,18 @@ public class UtilsController extends AbstractRESTController {
             })
     public Result<Boolean> isRoleModelEnabled() {
         return Result.success(aclSecurityEnabled);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/sessionExpirationBehavior", method = RequestMethod.GET)
+    @ApiOperation(
+            value = "Returns application's version",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<SessionExpirationBehavior> sessionExpirationBehaviour() {
+        return Result.success(expirationBehavior);
     }
 
     @ResponseBody
