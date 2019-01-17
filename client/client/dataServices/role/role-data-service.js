@@ -8,11 +8,11 @@ export class RoleDataService extends DataService {
     getRoles(loadUsers = false) {
         return new Promise(resolve => {
             this.get(loadUsers ? 'role/loadAll?loadUsers=true' : 'role/loadAll')
-                .catch(() => {
-                    resolve(null);
-                })
                 .then((data) => {
                     resolve(data || null);
+                })
+                .catch(() => {
+                    resolve(null);
                 });
         });
     }
@@ -20,71 +20,71 @@ export class RoleDataService extends DataService {
     getRole(id) {
         return new Promise(resolve => {
             this.get(`role/${id}`)
-                .catch(() => {
-                    resolve(null);
-                })
                 .then((data) => {
                     resolve(data || null);
+                })
+                .catch(() => {
+                    resolve(null);
                 });
         });
     }
 
     createGroup(name, userDefault = false) {
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             this.post(`role/create?roleName=${name}&userDefault=${userDefault}`)
-                .catch(() => {
-                    resolve(null);
-                })
                 .then((data) => {
                     resolve(data || null);
+                })
+                .catch((error) => {
+                    reject(error.message || error);
                 });
         });
     }
 
     assignUsersToRole(roleId, usersIds = []) {
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             this.post(`role/${roleId}/assign?userIds=${usersIds}`)
-                .catch(() => {
-                    resolve(null);
-                })
                 .then((data) => {
                     resolve(data || null);
+                })
+                .catch((error) => {
+                    reject(error.message || error);
                 });
         });
     }
 
     updateRole(id, roleBody) {
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             this.put(`role/${id}`, roleBody)
-                .catch(() => {
-                    resolve(null);
-                })
                 .then((data) => {
                     resolve(data || null);
+                })
+                .catch((error) => {
+                    reject(error.message || error);
                 });
         });
     }
 
     deleteRole(id) {
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             this.delete(`role/${id}`)
-                .catch(() => {
-                    resolve(null);
-                })
                 .then((data) => {
                     resolve(data || null);
+                })
+                .catch((error) => {
+                    reject(error.message || error);
                 });
         });
     }
 
     removeRoleFromUsers(roleId, usersIds = []) {
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             this.delete(`role/${roleId}/remove?userIds=${usersIds}`)
-                .catch(() => {
-                    resolve(null);
-                })
                 .then((data) => {
                     resolve(data || null);
+                })
+                .catch((error) => {
+                    reject(error.message || error);
                 });
         });
     }
@@ -92,11 +92,11 @@ export class RoleDataService extends DataService {
     findADGroup(prefix) {
         return new Promise(resolve => {
             this.get(prefix ? `group/find?prefix=${encodeURIComponent(prefix)}` : 'group/find')
-                .catch(() => {
-                    resolve([]);
-                })
                 .then((data) => {
                     resolve(data || []);
+                })
+                .catch(() => {
+                    resolve([]);
                 });
         });
     }

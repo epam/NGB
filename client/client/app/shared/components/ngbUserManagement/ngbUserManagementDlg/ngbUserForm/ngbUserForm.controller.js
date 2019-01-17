@@ -5,6 +5,7 @@ export default class ngbUserFormController extends BaseController {
     title = 'User';
     userId = null;
     availableRoles = [];
+    errorMessages = [];
 
     userName = '';
     selectedRoles = [];
@@ -46,6 +47,8 @@ export default class ngbUserFormController extends BaseController {
             service: ngbUserRoleFormService,
         });
 
+        this.clearErrors();
+
         Object.assign(this.formGridOptions, {
             ...ngbUserManagementGridOptionsConstant,
             appScopeProvider: this.scope,
@@ -63,6 +66,17 @@ export default class ngbUserFormController extends BaseController {
             this.fetchDefaultRolesData(::this.fetchAvailableRoles);
         }
 
+    }
+
+    clearErrors() {
+        this.errorMessages = [];
+    }
+
+    addError(error) {
+        this.errorMessages.push(error);
+        if (this.$scope !== null && this.$scope !== undefined) {
+            this.$scope.$apply();
+        }
     }
 
     removeRoleFromGrid(id) {
@@ -122,28 +136,40 @@ export default class ngbUserFormController extends BaseController {
     }
 
     close() {
+        this.clearErrors();
         this.$mdDialog.hide();
     }
 
     cancel() {
+        this.clearErrors();
         this.$mdDialog.cancel();
     }
 
     save() {
+        this.clearErrors();
         if (this.isNewUser) {
             // create
-            this.service.createUser(this.userName, this.currentRolesIds, () => {
-                this.close();
-            });
+            this.service.createUser(this.userName, this.currentRolesIds)
+                .then(() => {
+                    this.close();
+                })
+                .catch((error) => {
+                    this.addError(error || 'An error occurred upon user creation');
+                });
         } else {
             // update
-            this.service.saveUser(this.userId, this.userName, this.currentRolesIds, () => {
-                this.close();
-            });
+            this.service.saveUser(this.userId, this.userName, this.currentRolesIds)
+                .then(() => {
+                    this.close();
+                })
+                .catch((error) => {
+                    this.addError(error || 'An error occurred upon user update');
+                });
         }
     }
 
     delete() {
+        this.clearErrors();
         const confirm = this.$mdDialog.confirm({skipHide: true})
             .title('User will be deleted. Are you sure?')
             .textContent('This action can not be undone.')
@@ -151,9 +177,14 @@ export default class ngbUserFormController extends BaseController {
             .ok('OK')
             .cancel('Cancel');
         this.$mdDialog.show(confirm).then(() => {
-            this.service.deleteUser(this.userId, () => {
-                this.close();
-            });
+            this.service.deleteUser(this.userId)
+                .then(() => {
+                    this.close();
+                })
+                .catch((error) => {
+                    this.addError(error || 'An error occurred upon user deletion');
+                });
+
         });
     }
 

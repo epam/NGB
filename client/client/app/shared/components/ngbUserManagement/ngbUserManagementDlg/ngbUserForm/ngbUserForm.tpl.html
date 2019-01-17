@@ -13,6 +13,11 @@
         </md-toolbar>
         <md-dialog-content>
             <md-content class="md-padding">
+
+                <div class="column" ng-if="ctrl.errorMessages.length" style="padding-bottom: 20px">
+                    <ngb-panel-error-list message-list="ctrl.errorMessages"></ngb-panel-error-list>
+                </div>
+
                 <div class="column">
                     <div layout="row">
                         <md-input-container flex>

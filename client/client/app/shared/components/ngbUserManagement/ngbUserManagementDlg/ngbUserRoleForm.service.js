@@ -105,71 +105,62 @@ export default class ngbUserRoleFormService {
         }
     }
 
-    createUser(name, roles, callback) {
-        this._userDataService.createUser({
+    createUser(name, roles) {
+        return this._userDataService.createUser({
             userName: name,
             roleIds: roles,
-        }).then(res => {
-            callback(res);
         });
     }
 
-    createGroup(name, userDefault, users, callback) {
-        this._roleDataService.createGroup(name, userDefault)
+    createGroup(name, userDefault, users) {
+        return this._roleDataService.createGroup(name, userDefault)
           .then(group => {
               if (group && users.length > 0) {
-                  this._roleDataService.assignUsersToRole(group.id, users)
-                    .then(res => callback(res));
+                  return this._roleDataService.assignUsersToRole(group.id, users);
               } else if (group) {
-                  callback(group);
+                  return Promise.resolve(group);
               } else {
-                  callback(null);
+                  return Promise.resolve(null);
               }
           });
     }
 
-    updateGroup(roleId, name, userDefault, usersToAdd, usersToRemove, callback) {
-        this._roleDataService.updateRole(roleId, {name, userDefault,})
-          .then(group => {
-              if (group) {
-                  if (usersToAdd.length > 0) {
-                      this._roleDataService.assignUsersToRole(group.id, usersToAdd)
-                          .then(() => {
-                              if (usersToRemove.length > 0) {
-                                  this._roleDataService.removeRoleFromUsers(group.id, usersToRemove)
-                                      .then(() => callback(group));
-                              } else {
-                                  callback(group);
-                              }
-                          });
-                  } else if (usersToRemove.length > 0) {
-                      this._roleDataService.removeRoleFromUsers(group.id, usersToRemove)
-                          .then(() => callback(group));
-                  } else {
-                      callback(group);
-                  }
-              } else {
-                  callback(null);
-              }
-          });
+    updateGroup(roleId, name, userDefault, usersToAdd, usersToRemove) {
+        return this._roleDataService.updateRole(roleId, {name, userDefault,})
+            .then(group => {
+                if (group) {
+                    if (usersToAdd.length > 0) {
+                        return this._roleDataService.assignUsersToRole(group.id, usersToAdd)
+                            .then(() => {
+                                if (usersToRemove.length > 0) {
+                                    return this._roleDataService.removeRoleFromUsers(group.id, usersToRemove)
+                                        .then(() => Promise.resolve(group));
+                                } else {
+                                    return Promise.resolve(group);
+                                }
+                            });
+                    } else if (usersToRemove.length > 0) {
+                        return this._roleDataService.removeRoleFromUsers(group.id, usersToRemove)
+                            .then(() => Promise.resolve(group));
+                    } else {
+                        return Promise.resolve(group);
+                    }
+                } else {
+                    return Promise.resolve(null);
+                }
+            });
     }
 
-    saveUser(id, userName, roles, callback) {
-        this._userDataService.updateUser(id, {userName, roleIds: roles}).then(res => {
-            callback(res);
-        });
+    saveUser(id, userName, roles) {
+        return this._userDataService.updateUser(id, {userName, roleIds: roles});
     }
 
-    deleteUser(id, callback) {
-        this._userDataService.deleteUser(id).then((res) => {
-            callback(res);
-        });
+    deleteUser(id) {
+        return this._userDataService.deleteUser(id);
     }
 
-    deleteGroup(id, callback) {
-        this._roleDataService.deleteRole(id).then((res) => {
-            callback(res);
-        });
+    deleteGroup(id) {
+        return this._roleDataService.deleteRole(id);
     }
 
     getRolesColumns() {
