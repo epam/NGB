@@ -48,23 +48,13 @@ export default class ngbUserManagementDlgService {
                 editable: true,
                 id: user.id,
                 userName: user.userName,
-                groupsTooltip: {
-                    visible: false,
-                    hideTimeoutPromise: null
-                },
-                rolesTooltip: {
-                    visible: false,
-                    hideTimeoutPromise: null
-                },
                 groups: [
-                    ...(user.groups || []).map(g => {
-                        return {
-                            id: -1,
-                            isAD: true,
-                            name: g,
-                            userDefault: false
-                        };
-                    }),
+                    ...(user.groups || []).map(g => ({
+                        id: -1,
+                        isAD: true,
+                        name: g,
+                        userDefault: false
+                    })),
                     ...(user.roles || []).map(role => {
                         const {id, predefined, name, userDefault} = role;
                         if (`${predefined}`.toLowerCase() === 'false') {
@@ -146,7 +136,7 @@ export default class ngbUserManagementDlgService {
                             <div layout="row" ng-if="row.entity.groups.length <= 3" style="flex-flow: row wrap; align-items: center;">
                                 <span
                                     ng-repeat="group in row.entity.groups track by $index"
-                                    class="group-role-tag"
+                                    class="group-role-tag bordered"
                                     ng-class="{'ad-group': group.isAD}">
                                     {{group.name}}
                                 </span>
@@ -154,25 +144,14 @@ export default class ngbUserManagementDlgService {
                             <div layout="row" ng-if="row.entity.groups.length > 3" style="flex-flow: row wrap; align-items: center;">
                                 <span
                                     ng-repeat="group in row.entity.groups.slice(0, 3) track by $index"
-                                    class="group-role-tag"
+                                    class="group-role-tag bordered"
                                     ng-class="{'ad-group': group.isAD}">
                                     {{group.name}}
                                 </span>
-                                <ng-md-icon icon="more_horiz"
-                                    ng-mouseenter="grid.appScope.ctrl.showTooltip(row.entity.groupsTooltip, $event)"
-                                    ng-mouseleave="grid.appScope.ctrl.hideTooltipDelayed(row.entity.groupsTooltip, $event)">
-                                    <md-tooltip
-                                        class="multiline-tooltip"
-                                        md-visible="row.entity.groupsTooltip.visible"
-                                        ng-mouseenter="grid.appScope.ctrl.showTooltip(row.entity.groupsTooltip, $event)"
-                                        ng-mouseleave="grid.appScope.ctrl.hideTooltipDelayed(row.entity.groupsTooltip, $event)">
-                                        <span
-                                            ng-repeat="group in row.entity.groups track by $index"
-                                            class="group-role-tag"
-                                            ng-class="{'ad-group': group.isAD}">
-                                            {{group.name}}
-                                        </span>
-                                    </md-tooltip>
+                                <ng-md-icon
+                                    icon="more_horiz"
+                                    class="md-popover"
+                                    ng-mouseover="grid.appScope.ctrl.showPopover(row.entity.groups, $event)">
                                 </ng-md-icon>
                             </div>
                         `,
@@ -190,49 +169,20 @@ export default class ngbUserManagementDlgService {
                             <div layout="row" ng-if="row.entity.roles.length <= 3" style="flex-flow: row wrap; align-items: center;">
                                 <span
                                     ng-repeat="role in row.entity.roles track by $index"
-                                    style="
-                                        margin: 2px;
-                                        padding: 2px 4px;
-                                        border-radius: 5px;
-                                        border: 1px solid #ddd;
-                                        background-color: #fefefe;
-                                        font-size: x-small;
-                                        font-weight: bold;
-                                        text-transform: uppercase;">
+                                    class="group-role-tag bordered">
                                     {{role.name}}
                                 </span>
                             </div>
                             <div layout="row" ng-if="row.entity.roles.length > 3" style="flex-flow: row wrap; align-items: center;">
                                 <span
                                     ng-repeat="role in row.entity.roles.slice(0, 3) track by $index"
-                                    style="
-                                        margin: 2px;
-                                        padding: 2px 4px;
-                                        border-radius: 5px;
-                                        border: 1px solid #ddd;
-                                        background-color: #fefefe;
-                                        font-size: x-small;
-                                        font-weight: bold;
-                                        text-transform: uppercase;">
+                                    class="group-role-tag bordered">
                                     {{role.name}}
                                 </span>
-                                <ng-md-icon icon="more_horiz">
-                                    <md-tooltip>
-                                        <span
-                                            ng-repeat="role in row.entity.roles track by $index"
-                                            style="
-                                                margin: 2px;
-                                                padding: 2px 4px;
-                                                border-radius: 5px;
-                                                border: 1px solid #ddd;
-                                                background-color: #fefefe;
-                                                font-size: x-small;
-                                                font-weight: bold;
-                                                text-transform: uppercase;
-                                                color: black;">
-                                            {{role.name}}
-                                        </span>
-                                    </md-tooltip>
+                                <ng-md-icon
+                                    icon="more_horiz"
+                                    class="md-popover"
+                                    ng-mouseover="grid.appScope.ctrl.showPopover(row.entity.roles, $event)">
                                 </ng-md-icon>
                             </div>
                         `,
