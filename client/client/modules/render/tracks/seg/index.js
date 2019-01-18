@@ -6,8 +6,13 @@ import SegTransformer from './segTransformer';
 
 export class SEGTrack extends CachedTrack {
 
-    _dataService = new SegDataService();
+    _dataService;
     _renderer = new SegRenderer(this.trackConfig);
+
+    constructor(opts) {
+        super(opts);
+        this._dataService = new SegDataService(opts.viewport);
+    }
 
     static getTrackDefaultConfig() {
         return SegConfig;

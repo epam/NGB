@@ -1,22 +1,33 @@
+import {
+    SessionExpirationBehavior,
+    SessionExpirationBehaviorStorageKey
+} from './utils/session-expiration-behavior';
 import BluebirdPromise from 'bluebird';
 import ngbConstants from '../constants';
+
+const AUTH_ERROR_CODE = 401;
+
 /**
  * Data Service class
  */
 export class DataService {
     static get serviceFactory() {
-        return () => new this();
+        return (dispatcher) => new this(dispatcher);
     }
 
     ngbConstants = ngbConstants;
     _serverUrl;
+    _urlPrefix;
+    _dispatcher;
 
-    constructor() {
+    constructor(dispatcher) {
         this._serverUrl = this.ngbConstants.urlPrefix;
+        this._dispatcher = dispatcher;
         if (this._serverUrl[this._serverUrl.length - 1] !== '/') {
             this._serverUrl += '/';
         }
-        this._serverUrl += 'restapi/'
+        this._urlPrefix = this._serverUrl;
+        this._serverUrl += 'restapi/';
     }
 
     /**
@@ -64,10 +75,39 @@ export class DataService {
 
     callMethod(method, url, ...rest) {
         return $http(method, this._serverUrl + url, ...rest)
-            .then((xhr) =>
-                (xhr.response && xhr.response.status === 'OK')
+            .then((xhr) => {
+                if (xhr.status === AUTH_ERROR_CODE) {
+                    this.handleAuthenticationError();
+                    return Promise.reject(xhr.response);
+                }
+                return (xhr.response && xhr.response.status === 'OK')
                     ? xhr.response.payload
-                    : Promise.reject(xhr.response));
+                    : Promise.reject(xhr.response);
+            });
+    }
+
+    handleAuthenticationError() {
+        const behavior = localStorage.getItem(SessionExpirationBehaviorStorageKey);
+        if (behavior) {
+            switch (behavior) {
+                case SessionExpirationBehavior.auto:
+                    this.authenticate();
+                    break;
+                case SessionExpirationBehavior.confirm:
+                default:
+                    if (this._dispatcher) {
+                        this._dispatcher.emitGlobalEvent('confirm:authentication:redirect');
+                    }
+                    break;
+            }
+        } else {
+            // First initialization. Should redirect
+            this.authenticate();
+        }
+    }
+
+    authenticate() {
+        window.location = `${this._urlPrefix}saml/logout`;
     }
 }
 

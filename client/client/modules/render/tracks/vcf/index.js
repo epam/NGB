@@ -171,7 +171,7 @@ export class VCFTrack extends GENETrack {
 
     get dataService() {
         if (!this._dataService) {
-            this._dataService = new VcfDataService();
+            this._dataService = new VcfDataService(this.dispatcher);
         }
         return this._dataService;
     }

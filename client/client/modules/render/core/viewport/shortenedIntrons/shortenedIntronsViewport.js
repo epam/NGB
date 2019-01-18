@@ -20,7 +20,7 @@ export default class ShortenedIntronsViewport {
 
     brush: ShortenedIntronsBrush = null;
 
-    _geneDataService = new GeneDataService();
+    _geneDataService;
 
     _coveredRange = null;
     _intronLength = 0;
@@ -34,6 +34,7 @@ export default class ShortenedIntronsViewport {
 
     constructor(viewport) {
         this._viewport = viewport;
+        this._geneDataService = new GeneDataService(viewport.dispatcher);
     }
 
     get ranges() {

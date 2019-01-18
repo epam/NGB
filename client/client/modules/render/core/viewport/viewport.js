@@ -22,7 +22,7 @@ export class Viewport extends BaseViewport {
 
     onDestroy = null;
 
-    _shortenedIntronsViewport = new ShortenedIntronsViewport(this);
+    _shortenedIntronsViewport;
 
     browserId = null;
 
@@ -99,6 +99,7 @@ export class Viewport extends BaseViewport {
             this.dispatcher.removeListener('hotkeyPressed', _hotKeyListener);
         };
         this._initSubscriptions();
+        this._shortenedIntronsViewport = new ShortenedIntronsViewport(this);
         this.transform(brush);
         this.initialized = true;
     }

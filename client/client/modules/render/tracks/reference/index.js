@@ -10,7 +10,12 @@ import {menu as menuUtilities} from '../../utilities';
 export class REFERENCETrack extends CachedTrack {
 
     _referenceRenderer = new ReferenceRenderer(this.trackConfig);
-    dataService = new GenomeDataService();
+    dataService;
+
+    constructor(opts) {
+        super(opts);
+        this.dataService = new GenomeDataService(opts.dispatcher);
+    }
 
     trackSettingsChanged(params) {
         if(this.config.bioDataItemId === params.id) {
