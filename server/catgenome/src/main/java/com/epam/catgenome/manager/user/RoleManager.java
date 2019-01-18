@@ -64,7 +64,7 @@ public class RoleManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public Role createRole(final String name, final boolean predefined, final boolean userDefault) {
         String formattedName = getValidName(name);
-        Assert.isTrue(!roleDao.loadRoleByName(name).isPresent(),
+        Assert.isTrue(!roleDao.loadRoleByName(formattedName).isPresent(),
                 MessageHelper.getMessage(MessagesConstants.ERROR_ROLE_ALREADY_EXIST, name));
         return roleDao.createRole(formattedName, predefined, userDefault);
     }
