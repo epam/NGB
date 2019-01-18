@@ -48,6 +48,14 @@ export default class ngbUserManagementDlgService {
                 editable: true,
                 id: user.id,
                 userName: user.userName,
+                groupsTooltip: {
+                    visible: false,
+                    hideTimeoutPromise: null
+                },
+                rolesTooltip: {
+                    visible: false,
+                    hideTimeoutPromise: null
+                },
                 groups: [
                     ...(user.groups || []).map(g => {
                         return {
@@ -138,48 +146,30 @@ export default class ngbUserManagementDlgService {
                             <div layout="row" ng-if="row.entity.groups.length <= 3" style="flex-flow: row wrap; align-items: center;">
                                 <span
                                     ng-repeat="group in row.entity.groups track by $index"
-                                    ng-class="{'ad-group': group.isAD}"
-                                    style="
-                                        margin: 2px;
-                                        padding: 2px 4px;
-                                        border-radius: 5px;
-                                        border: 1px solid #ddd;
-                                        background-color: #fefefe;
-                                        font-size: x-small;
-                                        font-weight: bold;
-                                        text-transform: uppercase;">
+                                    class="group-role-tag"
+                                    ng-class="{'ad-group': group.isAD}">
                                     {{group.name}}
                                 </span>
                             </div>
                             <div layout="row" ng-if="row.entity.groups.length > 3" style="flex-flow: row wrap; align-items: center;">
                                 <span
                                     ng-repeat="group in row.entity.groups.slice(0, 3) track by $index"
-                                    ng-class="{'ad-group': group.isAD}"
-                                    style="
-                                        margin: 2px;
-                                        padding: 2px 4px;
-                                        border-radius: 5px;
-                                        border: 1px solid #ddd;
-                                        background-color: #fefefe;
-                                        font-size: x-small;
-                                        font-weight: bold;
-                                        text-transform: uppercase;">
+                                    class="group-role-tag"
+                                    ng-class="{'ad-group': group.isAD}">
                                     {{group.name}}
                                 </span>
-                                <ng-md-icon icon="more_horiz">
-                                    <md-tooltip>
+                                <ng-md-icon icon="more_horiz"
+                                    ng-mouseenter="grid.appScope.ctrl.showTooltip(row.entity.groupsTooltip, $event)"
+                                    ng-mouseleave="grid.appScope.ctrl.hideTooltipDelayed(row.entity.groupsTooltip, $event)">
+                                    <md-tooltip
+                                        class="multiline-tooltip"
+                                        md-visible="row.entity.groupsTooltip.visible"
+                                        ng-mouseenter="grid.appScope.ctrl.showTooltip(row.entity.groupsTooltip, $event)"
+                                        ng-mouseleave="grid.appScope.ctrl.hideTooltipDelayed(row.entity.groupsTooltip, $event)">
                                         <span
                                             ng-repeat="group in row.entity.groups track by $index"
-                                            style="
-                                                margin: 2px;
-                                                padding: 2px 4px;
-                                                border-radius: 5px;
-                                                border: 1px solid #ddd;
-                                                background-color: #fefefe;
-                                                font-size: x-small;
-                                                font-weight: bold;
-                                                text-transform: uppercase;
-                                                color: black;">
+                                            class="group-role-tag"
+                                            ng-class="{'ad-group': group.isAD}">
                                             {{group.name}}
                                         </span>
                                     </md-tooltip>

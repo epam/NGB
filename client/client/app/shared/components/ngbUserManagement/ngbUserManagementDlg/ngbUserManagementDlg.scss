@@ -27,6 +27,29 @@
   }
 }
 
-.ad-group {
+.group-role-tag.ad-group {
   color: #777;
+}
+
+.multiline-tooltip .md-content {
+  display: flex;
+  flex-wrap: wrap;
+  height: auto;
+  max-height: 400px;
+  max-width: 400px;
+  overflow-y: auto;
+  padding: 5px;
+}
+
+.group-role-tag {
+  background-color: #fefefe;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  color: #000;
+  font-size: x-small;
+  font-weight: bold;
+  line-height: initial;
+  margin: 2px;
+  padding: 1px 3px;
+  text-transform: uppercase;
 }

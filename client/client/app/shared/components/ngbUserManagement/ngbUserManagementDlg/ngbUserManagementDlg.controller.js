@@ -20,11 +20,12 @@ export default class ngbUserManagementDlgController extends BaseController {
     }
 
     /* @ngInject */
-    constructor($mdDialog, $scope, ngbUserManagementService, ngbUserManagementGridOptionsConstant) {
+    constructor($mdDialog, $scope, $timeout, ngbUserManagementService, ngbUserManagementGridOptionsConstant) {
         super();
         Object.assign(this, {
             $mdDialog,
             $scope,
+            $timeout,
             service: ngbUserManagementService,
         });
 
@@ -125,6 +126,26 @@ export default class ngbUserManagementDlgController extends BaseController {
         if (this.$scope !== null && this.$scope !== undefined) {
             this.$scope.$apply();
         }
+    }
+
+    showTooltip(tooltip, $event) {
+        $event.stopImmediatePropagation();
+        if (tooltip.hideTimeoutPromise) {
+            this.$timeout.cancel(tooltip.hideTimeoutPromise);
+        }
+
+        tooltip.visible = true;
+    }
+
+    hideTooltipDelayed(tooltip, $event) {
+        $event.stopImmediatePropagation();
+        if (tooltip.hideTimeoutPromise) {
+            this.$timeout.cancel(tooltip.hideTimeoutPromise);
+        }
+
+        tooltip.hideTimeoutPromise = this.$timeout(() => {
+            tooltip.visible = false;
+        }, 700);
     }
 
     rolesSearchChanged() {
