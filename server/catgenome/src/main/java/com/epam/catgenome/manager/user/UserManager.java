@@ -71,7 +71,7 @@ public class UserManager {
         String userName = name.trim().toUpperCase();
 
         NgbUser loadedUser = userDao.loadUserByName(userName);
-        Assert.isNull(loadedUser, MessageHelper.getMessage(MessagesConstants.ERROR_USER_NAME_EXISTS, name));
+        Assert.isNull(loadedUser, MessageHelper.getMessage(MessagesConstants.ERROR_USER_NAME_EXISTS, userName));
 
         NgbUser user = new NgbUser(userName);
         List<Long> userRoles = getNewUserRoles(roles);
