@@ -11,6 +11,7 @@ export default class ngbUserFormController extends BaseController {
     roleUsers = [];
     roleInitialUserIds = [];
     selectedUsers = [];
+    errorMessages = [];
 
     groupName = '';
     userDefault = false;
@@ -52,6 +53,8 @@ export default class ngbUserFormController extends BaseController {
             isGroup,
             service: ngbUserRoleFormService,
         });
+
+        this.clearErrors();
 
         const self = this;
 
@@ -108,6 +111,17 @@ export default class ngbUserFormController extends BaseController {
         });
     }
 
+    clearErrors() {
+        this.errorMessages = [];
+    }
+
+    addError(error) {
+        this.errorMessages.push(error);
+        if (this.$scope !== null && this.$scope !== undefined) {
+            this.$scope.$apply();
+        }
+    }
+
     addUsersToGrid() {
         this.formGridOptions.data = [
             ...this.selectedUsers,
@@ -134,14 +148,17 @@ export default class ngbUserFormController extends BaseController {
     }
 
     close() {
+        this.clearErrors();
         this.$mdDialog.hide();
     }
 
     cancel() {
+        this.clearErrors();
         this.$mdDialog.cancel();
     }
 
     save() {
+        this.clearErrors();
         const usersToAdd = [];
         const usersToRemove = [];
         const list = (this.formGridOptions.data || []).map(u => +u.id);
@@ -159,17 +176,26 @@ export default class ngbUserFormController extends BaseController {
         const groupName = this.isGroup ? `${ROLE_NAME_FIRST_PART}${this.groupName}` : this.groupName;
         if (this.isNewGroup) {
             // create
-            this.service.createGroup(groupName, this.userDefault, usersToAdd, () => {
-                this.close();
-            });
+            this.service.createGroup(groupName, this.userDefault, usersToAdd)
+                .then(() => {
+                    this.close();
+                })
+                .catch((error) => {
+                    this.addError(error || 'An error occurred upon group creation');
+                });
         } else {
-            this.service.updateGroup(this.roleId, groupName, this.userDefault, usersToAdd, usersToRemove, () => {
-                this.close();
-            });
+            this.service.updateGroup(this.roleId, groupName, this.userDefault, usersToAdd, usersToRemove)
+                .then(() => {
+                    this.close();
+                })
+                .catch((error) => {
+                    this.addError(error || `An error occurred upon ${this.isGroup ? 'group' : 'role'} update`);
+                });
         }
     }
 
     delete() {
+        this.clearErrors();
         const confirm = this.$mdDialog.confirm({skipHide: true})
             .title('Group will be deleted. Are you sure?')
             .textContent('This action can not be undone.')
@@ -177,9 +203,13 @@ export default class ngbUserFormController extends BaseController {
             .ok('OK')
             .cancel('Cancel');
         this.$mdDialog.show(confirm).then(() => {
-            this.service.deleteGroup(this.roleId, () => {
-                this.close();
-            });
+            this.service.deleteGroup(this.roleId)
+                .then(() => {
+                    this.close();
+                })
+                .catch((error) => {
+                    this.addError(error || `An error occurred upon ${this.isGroup ? 'group' : 'role'} deletion`);
+                });
         });
     }
 
