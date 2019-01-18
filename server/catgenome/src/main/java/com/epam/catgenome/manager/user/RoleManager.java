@@ -64,8 +64,8 @@ public class RoleManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public Role createRole(final String name, final boolean predefined, final boolean userDefault) {
         String formattedName = getValidName(name);
-        Assert.isTrue(!roleDao.loadRoleByName(name).isPresent(),
-                MessageHelper.getMessage(MessagesConstants.ERROR_ROLE_ALREADY_EXIST, name));
+        Assert.isTrue(!roleDao.loadRoleByName(formattedName).isPresent(),
+                MessageHelper.getMessage(MessagesConstants.ERROR_ROLE_ALREADY_EXIST, getPrettyName(formattedName)));
         return roleDao.createRole(formattedName, predefined, userDefault);
     }
 
@@ -134,6 +134,13 @@ public class RoleManager {
             formattedName = Role.ROLE_PREFIX + formattedName;
         }
         return formattedName;
+    }
+
+    private String getPrettyName(String name) {
+        if (name.startsWith(Role.ROLE_PREFIX)) {
+            name = name.replace(Role.ROLE_PREFIX, "");
+        }
+        return name;
     }
 
     public List<Long> getDefaultRolesIds() {
