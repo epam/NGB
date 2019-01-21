@@ -11,6 +11,8 @@ export default class ngbUserManagementDlgController extends BaseController {
     rolesGridOptions = {};
     isUsersLoading = true;
 
+    popoverRef = null;
+
     usersSearchTerm = '';
     groupsSearchTerm = '';
     rolesSearchTerm = '';
@@ -20,10 +22,11 @@ export default class ngbUserManagementDlgController extends BaseController {
     }
 
     /* @ngInject */
-    constructor($mdDialog, $scope, ngbUserManagementService, ngbUserManagementGridOptionsConstant) {
+    constructor($mdDialog, $mdPanel, $scope, ngbUserManagementService, ngbUserManagementGridOptionsConstant) {
         super();
         Object.assign(this, {
             $mdDialog,
+            $mdPanel,
             $scope,
             service: ngbUserManagementService,
         });
@@ -125,6 +128,52 @@ export default class ngbUserManagementDlgController extends BaseController {
         if (this.$scope !== null && this.$scope !== undefined) {
             this.$scope.$apply();
         }
+    }
+
+    showPopover(items, $ev) {
+        $ev.stopImmediatePropagation();
+        if (this.popoverRef) {
+            return;
+        }
+
+        const viewportHeight = angular.element(document).height();
+        const viewportWidth = angular.element(document).width();
+        const position = this.$mdPanel.newPanelPosition()
+            .relativeTo($ev.target)
+            .addPanelPosition(
+                viewportWidth / 2 > $ev.clientX
+                    ? this.$mdPanel.xPosition.ALIGN_START
+                    : this.$mdPanel.xPosition.ALIGN_END,
+                viewportHeight / 2 > $ev.clientY
+                    ? this.$mdPanel.yPosition.BELOW
+                    : this.$mdPanel.yPosition.ABOVE);
+        const panelAnimation = this.$mdPanel.newPanelAnimation()
+            .openFrom($ev.target)
+            .closeTo($ev.target)
+            .withAnimation(this.$mdPanel.animation.FADE);
+        const config = {
+            animation: panelAnimation,
+            attachTo: angular.element(document.body),
+            clickOutsideToClose: true,
+            escapeToClose: true,
+            focusOnOpen: false,
+            openFrom: $ev,
+            panelClass: 'simple-popover',
+            position: position,
+            template: items.map(item => `<span class="group-role-tag${item.isAD ? ' ad-group' : ''}">${item.name}</span>`).join('')
+        };
+        this.$mdPanel.open(config).then(popover => {
+            this.popoverRef = popover;
+            this.popoverRef.panelEl.on('mouseover', (event) => {
+                event.stopPropagation();
+            });
+            angular.element(document).one('mouseover', () => {
+                this.popoverRef.close().then(() => {
+                    this.popoverRef.destroy();
+                    this.popoverRef = null;
+                });
+            });
+        });
     }
 
     rolesSearchChanged() {
