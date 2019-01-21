@@ -160,7 +160,7 @@ export default class ngbUserManagementDlgController extends BaseController {
             openFrom: $ev,
             panelClass: 'simple-popover',
             position: position,
-            template: items.map(item => `<span class="group-role-tag${item.isAD ? ' ad-group' : ''}">${item.name}</span>`).join('')
+            template: items.map(item => `<span class="group-role-tag${item.isAD ? ' domain-group' : ''}">${item.name}</span>`).join('')
         };
         this.$mdPanel.open(config).then(popover => {
             this.popoverRef = popover;

@@ -137,7 +137,7 @@ export default class ngbUserManagementDlgService {
                                 <span
                                     ng-repeat="group in row.entity.groups track by $index"
                                     class="group-role-tag bordered"
-                                    ng-class="{'ad-group': group.isAD}">
+                                    ng-class="{'domain-group': group.isAD}">
                                     {{group.name}}
                                 </span>
                             </div>
@@ -145,7 +145,7 @@ export default class ngbUserManagementDlgService {
                                 <span
                                     ng-repeat="group in row.entity.groups.slice(0, 3) track by $index"
                                     class="group-role-tag bordered"
-                                    ng-class="{'ad-group': group.isAD}">
+                                    ng-class="{'domain-group': group.isAD}">
                                     {{group.name}}
                                 </span>
                                 <ng-md-icon
