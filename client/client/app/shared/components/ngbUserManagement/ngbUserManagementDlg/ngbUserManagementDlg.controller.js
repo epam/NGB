@@ -11,6 +11,8 @@ export default class ngbUserManagementDlgController extends BaseController {
     rolesGridOptions = {};
     isUsersLoading = true;
 
+    popoverRef = null;
+
     usersSearchTerm = '';
     groupsSearchTerm = '';
     rolesSearchTerm = '';
@@ -129,13 +131,20 @@ export default class ngbUserManagementDlgController extends BaseController {
     }
 
     showPopover(items, $ev) {
+        $ev.stopImmediatePropagation();
+        if (this.popoverRef) {
+            return;
+        }
+
+        const viewportHeight = angular.element(document).height();
+        const viewportWidth = angular.element(document).width();
         const position = this.$mdPanel.newPanelPosition()
             .relativeTo($ev.target)
             .addPanelPosition(
-                $ev.view.outerWidth / 2 > $ev.pageX
+                viewportWidth / 2 > $ev.clientX
                     ? this.$mdPanel.xPosition.ALIGN_START
                     : this.$mdPanel.xPosition.ALIGN_END,
-                $ev.view.outerHeight / 2 > $ev.pageY
+                viewportHeight / 2 > $ev.clientY
                     ? this.$mdPanel.yPosition.BELOW
                     : this.$mdPanel.yPosition.ABOVE);
         const panelAnimation = this.$mdPanel.newPanelAnimation()
@@ -153,7 +162,18 @@ export default class ngbUserManagementDlgController extends BaseController {
             position: position,
             template: items.map(item => `<span class="group-role-tag${item.isAD ? ' ad-group' : ''}">${item.name}</span>`).join('')
         };
-        this.$mdPanel.open(config);
+        this.$mdPanel.open(config).then(popover => {
+            this.popoverRef = popover;
+            this.popoverRef.panelEl.on('mouseover', (event) => {
+                event.stopPropagation();
+            });
+            angular.element(document).one('mouseover', () => {
+                this.popoverRef.close().then(() => {
+                    this.popoverRef.destroy();
+                    this.popoverRef = null;
+                });
+            });
+        });
     }
 
     rolesSearchChanged() {
