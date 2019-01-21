@@ -1,3 +1,4 @@
+import angular from 'angular';
 import baseController from './shared/baseController';
 
 export default class ngbAppController extends baseController {
@@ -7,6 +8,7 @@ export default class ngbAppController extends baseController {
 
     dispatcher;
     projectContext;
+    isAuthenticationInProgress;
 
     /* @ngInject */
     constructor(dispatcher,
@@ -16,22 +18,29 @@ export default class ngbAppController extends baseController {
                 $rootScope,
                 $scope,
                 $state,
+                $mdDialog,
                 projectDataService,
                 genomeDataService,
                 localDataService,
+                utilsDataService,
                 apiService) {
         super();
         Object.assign(this, {
             $scope,
             $state,
             $stateParams,
+            $mdDialog,
             dispatcher,
             eventHotkey,
             genomeDataService,
             projectContext,
             projectDataService,
+            utilsDataService,
             apiService
         });
+
+        this.utilsDataService.checkSessionExpirationBehavior();
+
         this.dictionaryState = localDataService.getDictionary().State;
 
         this.initStateFromParams();
@@ -57,6 +66,7 @@ export default class ngbAppController extends baseController {
     }
 
     events = {
+        'confirm:authentication:redirect': ::this.confirmAuthenticationRedirect,
         'route:change': ::this._goToState
     };
 
@@ -160,7 +170,7 @@ export default class ngbAppController extends baseController {
         if (window.location !== window.parent.location) {
             window.parent.postMessage(params, '*');
         }
-        if (window.opener){
+        if (window.opener) {
             window.opener.postMessage(params, '*');
         }
     }
@@ -235,5 +245,22 @@ export default class ngbAppController extends baseController {
             state.tracks = tracks;
         }
         this.$state.go(this.$state.current.name, state, options);
+    }
+
+    async confirmAuthenticationRedirect() {
+        if (this.isAuthenticationInProgress) {
+            return;
+        }
+        this.isAuthenticationInProgress = true;
+        this.$mdDialog.show({
+            clickOutsideToClose: false,
+            contentElement: '#authenticationConfirmDialog',
+            parent: angular.element(document.body)
+        });
+    }
+
+    redirectToAuthentication() {
+        this.utilsDataService.authenticate();
+        this.isAuthenticationInProgress = false;
     }
 }

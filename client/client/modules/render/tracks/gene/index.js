@@ -154,7 +154,7 @@ export class GENETrack extends CachedTrack {
 
     get dataService() {
         if (!this._dataService) {
-            this._dataService = new GeneDataService();
+            this._dataService = new GeneDataService(this.dispatcher);
         }
         return this._dataService;
     }

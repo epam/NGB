@@ -15,6 +15,11 @@ export class WIGTrack extends CachedTrack {
     _wigTransformer = new WIGTransformer(this.trackConfig);
     dataService = new WigDataService();
 
+    constructor(opts) {
+        super(opts);
+        this.dataService = new WigDataService(opts.viewport);
+    }
+
     trackSettingsChanged(params) {
         if (this.config.bioDataItemId === params.id) {
             const settings = params.settings;

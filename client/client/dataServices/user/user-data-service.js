@@ -9,12 +9,12 @@ export class UserDataService extends DataService {
     getUsers() {
         return new Promise(resolve => {
             this.get('users')
-                .catch(() => {
-                    resolve(null);
-                })
                 .then((data) => {
                     this.cachedUsers = data;
                     resolve(data || null);
+                })
+                .catch(() => {
+                    resolve(null);
                 });
         });
     }
@@ -35,11 +35,11 @@ export class UserDataService extends DataService {
     getUser(id) {
         return new Promise(resolve => {
             this.get(`user/${id}`)
-                .catch(() => {
-                    resolve(null);
-                })
                 .then((data) => {
                     resolve(data || null);
+                })
+                .catch(() => {
+                    resolve(null);
                 });
         });
     }
@@ -52,9 +52,6 @@ export class UserDataService extends DataService {
                 resolve(this._currentUser);
             } else {
                 this.get('user/current')
-                    .catch(() => {
-                        resolve(null);
-                    })
                     .then((data) => {
                         this._currentUser = data;
                         this._currentUser.hasRole = function (roleName) {
@@ -71,6 +68,9 @@ export class UserDataService extends DataService {
                             return (roleNames || []).length === 0;
                         };
                         resolve(this._currentUser);
+                    })
+                    .catch(() => {
+                        resolve(null);
                     });
             }
         });
@@ -92,47 +92,47 @@ export class UserDataService extends DataService {
     getJwtToken(expiration = null) {
         return new Promise(resolve => {
             this.get(expiration ? `user/token?expiration=${expiration}` : 'user/token')
-                .catch(() => {
-                    resolve(null);
-                })
                 .then((data) => {
                     resolve(data.token || null);
+                })
+                .catch(() => {
+                    resolve(null);
                 });
         });
     }
 
     createUser(userBody) {
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             this.post('user', userBody)
-                .catch(() => {
-                    resolve(null);
-                })
                 .then((data) => {
                     resolve(data || null);
+                })
+                .catch((error) => {
+                    reject(error.message || error);
                 });
         });
     }
 
     updateUser(id, userBody) {
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             this.put(`user/${id}`, userBody)
-                .catch(() => {
-                    resolve(null);
-                })
                 .then((data) => {
                     resolve(data || null);
+                })
+                .catch((error) => {
+                    reject(error.message || error);
                 });
         });
     }
 
     deleteUser(id) {
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             this.delete(`user/${id}`)
-                .catch(() => {
-                    resolve(null);
-                })
                 .then((data) => {
                     resolve(data || null);
+                })
+                .catch((error) => {
+                    reject(error.message || error);
                 });
         });
     }

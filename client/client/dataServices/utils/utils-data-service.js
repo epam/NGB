@@ -1,4 +1,9 @@
+import {
+    SessionExpirationBehavior,
+    SessionExpirationBehaviorStorageKey
+} from './session-expiration-behavior';
 import {DataService} from '../data-service';
+
 /**
  * data service for genome
  * @extends DataService
@@ -49,6 +54,21 @@ export class UtilsDataService extends DataService {
                     resolve(false);
                 });
             }
+        });
+    }
+
+    checkSessionExpirationBehavior() {
+        return new Promise((resolve) => {
+            this.get('sessionExpirationBehavior')
+                .then((result) => {
+                    if (result) {
+                        localStorage.setItem(SessionExpirationBehaviorStorageKey, result);
+                        resolve(result);
+                    } else {
+                        resolve(SessionExpirationBehavior.confirm);
+                    }
+                })
+                .catch(() => resolve(SessionExpirationBehavior.confirm));
         });
     }
 

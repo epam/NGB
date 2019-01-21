@@ -7,7 +7,7 @@ const Math = window.Math;
 
 export default class BamCacheService {
 
-    dataService = new BamDataService();
+    dataService;
 
     _properties = {
         maxAlignmentsRange: null,
@@ -23,6 +23,7 @@ export default class BamCacheService {
     }
 
     constructor(track, config) {
+        this.dataService = new BamDataService(config.dispatcher);
         this._cache = new BamCache(track);
         this._config = config;
         this._coverageTransformer = new CoverageTransformer(this._cache, config);

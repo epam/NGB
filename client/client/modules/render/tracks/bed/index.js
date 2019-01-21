@@ -26,7 +26,7 @@ export class BEDTrack extends GENETrack {
 
     get dataService() {
         if (!this._dataService) {
-            this._dataService = new BedDataService();
+            this._dataService = new BedDataService(this.dispatcher);
         }
         return this._dataService;
     }
