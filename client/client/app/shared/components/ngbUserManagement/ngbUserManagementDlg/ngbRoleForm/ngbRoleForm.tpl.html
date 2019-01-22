@@ -1,5 +1,5 @@
-<md-dialog aria-label="Edit/Create group or role" style="max-height: 75vh;">
-    <form name="roleForm">
+<md-dialog aria-label="Edit/Create group or role" style="max-height: 75%;">
+    <form name="roleForm" flex>
         <md-toolbar class="ngb-reduced-popup-toolbar">
             <div class="md-toolbar-tools">
                 <h2 ng-if="ctrl.dialogTitle">{{ctrl.dialogTitle}}</h2>
@@ -9,14 +9,14 @@
                 </md-button>
             </div>
         </md-toolbar>
-        <md-dialog-content>
-            <md-content class="md-padding">
+        <md-dialog-content layout="column" flex>
+            <md-content class="md-padding" layout="column">
 
-                <div class="column" ng-if="ctrl.errorMessages.length" style="padding-bottom: 20px">
-                    <ngb-panel-error-list message-list="ctrl.errorMessages"></ngb-panel-error-list>
-                </div>
+                <div>
+                    <div class="column" ng-if="ctrl.errorMessages.length" style="padding-bottom: 20px">
+                        <ngb-panel-error-list message-list="ctrl.errorMessages"></ngb-panel-error-list>
+                    </div>
 
-                <div class="column">
                     <div layout="row">
                         <md-input-container class="flex">
                             <input name="groupName"
@@ -64,18 +64,19 @@
                         </md-input-container>
                         <md-button ng-click="ctrl.addUsersToGrid()">Add</md-button>
                     </div>
-                    <div layout="row" style="max-height: 50vh;">
-                        <div ng-if="ctrl.formGridOptions.data.length" class="ui-grid-container flex">
-                            <div ui-grid="ctrl.formGridOptions"
-                                 ui-grid-save-state
-                                 ui-grid-selection
-                                 ui-grid-resize-columns
-                                 ui-grid-auto-resize
-                                 ui-grid-move-columns
-                                 ui-grid-pinning
-                                 ui-grid-infinite-scroll
-                            ></div>
-                        </div>
+                </div>
+                <div>
+                    <div ng-if="ctrl.formGridOptions.data.length"
+                         class="ui-grid-container user-management-ui-grid-container">
+                        <div ui-grid="ctrl.formGridOptions"
+                             ui-grid-save-state
+                             ui-grid-selection
+                             ui-grid-resize-columns
+                             ui-grid-auto-resize
+                             ui-grid-move-columns
+                             ui-grid-pinning
+                             ui-grid-infinite-scroll
+                        ></div>
                     </div>
                 </div>
             </md-content>

@@ -79,7 +79,6 @@ export default class ngbUserManagementDlgService {
         return [];
     }
 
-    // todo
     _mapRolesData(rolesData) {
         if (rolesData && rolesData.length) {
             return rolesData.filter(role => `${role.predefined}`.toLowerCase() === 'true').map(role => ({

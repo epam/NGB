@@ -27,7 +27,7 @@ export default class ngbUserFormController extends BaseController {
     }
 
     get deletable() {
-        return !this.isNewGroup && this.isGroup; // todo
+        return !this.isNewGroup && this.isGroup;
     }
 
     get isValid() {
@@ -124,8 +124,8 @@ export default class ngbUserFormController extends BaseController {
 
     addUsersToGrid() {
         this.formGridOptions.data = [
-            ...this.selectedUsers,
             ...this.formGridOptions.data,
+            ...this.selectedUsers,
         ];
         for (let i = 0; i < this.selectedUsers.length; i++) {
             const [user] = this.availableUsers.filter(u => +u.id === +this.selectedUsers[i].id);

@@ -3,7 +3,7 @@ const gridOptions = {
     infiniteScrollRowsFromEnd: 10,
     infiniteScrollUp: true,
     infiniteScrollDown: true,
-    enableFiltering: true,
+    enableFiltering: false,
     enableGridMenu: false,
     enableHorizontalScrollbar: 0,
     enablePinning: false,

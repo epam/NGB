@@ -8,7 +8,7 @@
             </md-button>
         </div>
     </md-toolbar>
-    <md-content>
+    <md-content layout="column" flex>
         <div flex="100" ng-show="ctrl.isUsersLoading">
             <div class="progress" layout-align="center center">
                 <span>Loading information...</span>
@@ -16,9 +16,9 @@
             <md-progress-linear md-mode="query"></md-progress-linear>
         </div>
 
-        <md-tabs ng-hide="ctrl.isUsersLoading" md-dynamic-height md-border-bottom md-stretch-tabs="always">
+        <md-tabs ng-hide="ctrl.isUsersLoading" md-border-bottom md-stretch-tabs="always" class="flex-tabs" flex>
             <md-tab label="Users">
-                <md-content>
+                <md-content layout="column" flex>
                     <div class="md-toolbar-panel user-management-tab-toolbar" layout="row">
                         <md-input-container flex class="grid-search-box">
                             <input ng-model="ctrl.usersSearchTerm"
@@ -32,8 +32,9 @@
                             Create user
                         </md-button>
                     </div>
-                    <div ng-if="ctrl.usersGridOptions.data.length" class="ui-grid-container">
-                        <!-- todo: error ? -->
+                    <div ng-if="ctrl.usersGridOptions.data.length"
+                         flex
+                         class="ui-grid-container user-management-ui-grid-container">
                         <div ui-grid="ctrl.usersGridOptions"
                              ui-grid-save-state
                              ui-grid-selection
@@ -47,7 +48,7 @@
                 </md-content>
             </md-tab>
             <md-tab label="Groups">
-                <md-content>
+                <md-content layout="column" flex>
                     <div class="md-toolbar-panel user-management-tab-toolbar" layout="row">
                         <md-input-container flex class="grid-search-box">
                             <input ng-model="ctrl.groupsSearchTerm"
@@ -61,8 +62,9 @@
                             Create group
                         </md-button>
                     </div>
-                    <div ng-if="ctrl.groupsGridOptions.data.length" class="ui-grid-container">
-                        <!-- todo: error ? -->
+                    <div ng-if="ctrl.groupsGridOptions.data.length"
+                         flex
+                         class="ui-grid-container user-management-ui-grid-container">
                         <div ui-grid="ctrl.groupsGridOptions"
                              ui-grid-save-state
                              ui-grid-selection
@@ -76,7 +78,7 @@
                 </md-content>
             </md-tab>
             <md-tab label="Roles">
-                <md-content>
+                <md-content layout="column" flex>
                     <div class="md-toolbar-panel user-management-tab-toolbar" layout="row">
                         <md-input-container class="grid-search-box" style="width: 90%">
                             <input ng-model="ctrl.rolesSearchTerm"
@@ -87,8 +89,9 @@
                                    class="md-text">
                         </md-input-container>
                     </div>
-                    <div ng-if="ctrl.rolesGridOptions.data.length" class="ui-grid-container">
-                        <!-- todo: error ? -->
+                    <div ng-if="ctrl.rolesGridOptions.data.length"
+                         flex
+                         class="ui-grid-container user-management-ui-grid-container">
                         <div ui-grid="ctrl.rolesGridOptions"
                              ui-grid-save-state
                              ui-grid-selection
