@@ -3,7 +3,7 @@
 <log4j:configuration>
     <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
         <param name="Target" value="System.out" />
-        <param name="Threshold" value="ERROR"/>
+        <param name="Threshold" value="DEBUG"/>
         <param name="Encoding" value="UTF-8" />
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%c{1}] %m%n" />
@@ -12,7 +12,7 @@
 
     <appender name="error-appender" class="org.apache.log4j.DailyRollingFileAppender">
         <param name="Encoding" value="UTF-8" />
-        <param name="Threshold" value="ERROR"/>
+        <param name="Threshold" value="DEBUG"/>
         <param name="File" value="./logs/catgenome-error.log"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%-5p [%d{dd/MM/yyyy HH:mm:ss}][%t][%c] %m%n" />
@@ -39,7 +39,7 @@
     </category>
 
     <root>
-        <level value="INFO"/>
+        <level value="DEBUG"/>
         <appender-ref ref="stdout"/>
         <appender-ref ref="error-appender"/>
     </root>
