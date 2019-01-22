@@ -58,9 +58,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ComponentScan(basePackages = {"com.epam.catgenome.config", "com.epam.catgenome.controller"})
 public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
 
-    private static final int CACHE_PERIOD = 60 * 60 * 24;
+    private static final int MILLISECONDS = 1000;
     private static final int CACHE_SIZE = 1024 * 1024 * 100;
-    private static final int TOMCAT_CACHE_PERIOD = CACHE_PERIOD * 1000;
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -70,6 +69,9 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
 
     @Value("#{catgenome['request.async.timeout'] ?: 10000}")
     private long asyncTimeout;
+
+    @Value("#{catgenome['static.resources.cache.period'] ?: 86400}")
+    private int staticResourcesCachePeriod;
 
     @Bean
     public TomcatConfigurer tomcatConfigurerImpl() {
@@ -92,9 +94,9 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
         return container -> {
             TomcatEmbeddedServletContainerFactory tomcat = (TomcatEmbeddedServletContainerFactory) container;
             tomcat.setTldSkip("*.jar");
-            if (useEmbeddedContainer()) {
+            if (useEmbeddedContainer() && staticResourcesCachePeriod > 0) {
                 TomcatConfigurer configurer = applicationContext.getBean(TomcatConfigurer.class);
-                configurer.configure(tomcat, CACHE_SIZE, TOMCAT_CACHE_PERIOD);
+                configurer.configure(tomcat, CACHE_SIZE, staticResourcesCachePeriod * MILLISECONDS);
             }
         };
     }
@@ -106,7 +108,7 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
                         "classpath:/META-INF/resources/webjars/swagger-ui/2.0.24/");
         registry.addResourceHandler("/**")
                 .addResourceLocations("classpath:/static/")
-                .setCachePeriod(CACHE_PERIOD);
+                .setCachePeriod(staticResourcesCachePeriod);
     }
 
     @Override
