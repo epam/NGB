@@ -1,5 +1,6 @@
 import angular from 'angular';
 import BaseController from '../../../../shared/baseController';
+import {getUserAttributesString, getUserDisplayNameString} from '../../../../shared/components/ngbUserManagement/internal/utilities';
 import roleModel from '../../../../shared/utils/roleModel';
 import ngbAddUserRoleDlgController from './ngbAddUserRoleDlg.controller';
 
@@ -50,7 +51,6 @@ export default class ngbPermissionsFormController extends BaseController {
                 this.gridApi.core.handleWindowResize();
                 this.gridApi.selection.on.rowSelectionChanged(this.$scope, (row) => this.selectPermissionSubject(row));
             },
-            // showHeader: false,
         });
 
         this.fetchPermissions();
@@ -88,14 +88,24 @@ export default class ngbPermissionsFormController extends BaseController {
         return this._selectedOwner && this._selectedOwner !== this.owner;
     }
 
-    setPermissionsGridData(data) {
+    getUserInfo(userName) {
+        return this.ngbPermissionsFormService.getUserInfo(userName).then(userInfo => ({
+            displayName: userInfo ? getUserDisplayNameString(userInfo) : userName,
+            userAttributes: getUserAttributesString(userInfo) || undefined
+        }));
+    }
+
+    async setPermissionsGridData(data) {
         if (this.subject && !data.map(i => i.name).includes(this.subject.name)) {
             this._subject = null;
         }
-        const mapGridData = (permission) => {
+        const mapGridData = async (permission) => {
             let displayName;
+            let userAttributes;
             if(permission.principal) {
-                displayName = permission.name;
+                const res = await this.getUserInfo(permission.name);
+                displayName = res.displayName;
+                userAttributes = res.userAttributes;
             } else {
                 const [role] = (this.roles || []).filter(r => (r.name || '').toLowerCase() === (permission.name || '').toLowerCase());
                 if (role && role.name) {
@@ -104,9 +114,17 @@ export default class ngbPermissionsFormController extends BaseController {
                     displayName = permission.name;
                 }
             }
-            return { ...permission, displayName };
+            return { ...permission, displayName, userAttributes };
         };
-        this.formGridOptions.data = data.map(mapGridData);
+
+        const rows = [];
+        for (const permission in data) {
+            if (data.hasOwnProperty(permission)) {
+                rows.push(await mapGridData(data[permission]));
+            }
+        }
+        this.formGridOptions.data = rows;
+
         if (this.$scope) {
             this.$scope.$apply();
         }

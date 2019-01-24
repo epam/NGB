@@ -5,6 +5,11 @@
   }
 }
 
+.form-ui-grid-container {
+  .ui-grid-viewport {
+    height: 100% !important;
+  }
+}
 // uiGrid height fix
 .user-management-ui-grid-container {
   .ui-grid {

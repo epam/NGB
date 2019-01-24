@@ -1,4 +1,7 @@
 .ui-grid-container.permissions-grid-container {
+  .ui-grid-viewport {
+    height: 100% !important;
+  }
   .grid-action-button {
     margin: 0 !important;
     height: 100% !important;

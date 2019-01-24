@@ -57,7 +57,6 @@ export default class ngbUserFormController extends BaseController {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
             },
-            // showHeader: false,
         });
 
         if (!this.isNewUser) {
@@ -86,11 +85,11 @@ export default class ngbUserFormController extends BaseController {
 
     addRolesToGrid() {
         this.formGridOptions.data = [
-            ...this.formGridOptions.data,
             ...this.selectedRoles.map(r => ({
                 ...r,
                 deletable: true,
             })),
+            ...this.formGridOptions.data,
         ];
         this.selectedRoles = [];
         this.fetchAvailableRoles();

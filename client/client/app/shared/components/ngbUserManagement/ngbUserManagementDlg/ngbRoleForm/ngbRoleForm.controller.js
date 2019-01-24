@@ -1,4 +1,5 @@
 import BaseController from '../../../../baseController';
+import {getUserAttributesString} from '../../internal/utilities';
 
 const ROLE_NAME_FIRST_PART = 'ROLE_';
 
@@ -70,7 +71,6 @@ export default class ngbUserFormController extends BaseController {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
             },
-            // showHeader: false,
         });
 
         if (roleId) {
@@ -85,10 +85,16 @@ export default class ngbUserFormController extends BaseController {
         }
 
         this.service.getUsers((users) => {
-            this.availableUsers = users;
+            this.availableUsers = users.map(user => ({
+                ...user,
+                userAttributes: getUserAttributesString(user) || undefined
+            }));
             if (roleId) {
                 this.service.getRoleUsers(roleId, (users) => {
-                    this.roleUsers = users;
+                    this.roleUsers = users.map(user => ({
+                        ...user,
+                        userAttributes: getUserAttributesString(user) || undefined
+                    }));
                     this.roleInitialUserIds = users.map(u => +u.id);
                     for (let i = 0; i < users.length; i++) {
                         const [user] = this.availableUsers.filter(u => +u.id === +users[i].id);
@@ -124,8 +130,8 @@ export default class ngbUserFormController extends BaseController {
 
     addUsersToGrid() {
         this.formGridOptions.data = [
-            ...this.formGridOptions.data,
             ...this.selectedUsers,
+            ...this.formGridOptions.data,
         ];
         for (let i = 0; i < this.selectedUsers.length; i++) {
             const [user] = this.availableUsers.filter(u => +u.id === +this.selectedUsers[i].id);
