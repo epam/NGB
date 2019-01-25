@@ -1,20 +1,29 @@
-
-// uiGrid height fix
-.ui-grid {
-  height: auto;
-  .ui-grid-filter-container {
-    display: none!important;
+.flex-tabs {
+  md-tab-content > div {
+    height: 100%;
+    display: flex;
   }
+}
+
+.form-ui-grid-container {
   .ui-grid-viewport {
     height: 100% !important;
   }
-  .grid-action-button {
-    margin: 0 !important;
-    height: 100% !important;
-    width: 100% !important;
-    min-height: unset !important;
-    line-height: 100% !important;
-    border-radius: 0;
+}
+// uiGrid height fix
+.user-management-ui-grid-container {
+  .ui-grid {
+    .ui-grid-filter-container {
+      display: none!important;
+    }
+    .grid-action-button {
+      margin: 0 !important;
+      height: 100% !important;
+      width: 100% !important;
+      min-height: unset !important;
+      line-height: 100% !important;
+      border-radius: 0;
+    }
   }
 }
 

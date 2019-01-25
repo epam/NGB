@@ -1,3 +1,5 @@
+import {getUserAttributesString} from '../../../../shared/components/ngbUserManagement/internal/utilities';
+
 export default class ngbPermissionsFormService {
 
     static instance(userDataService, roleDataService, permissionsDataService) {
@@ -23,27 +25,11 @@ export default class ngbPermissionsFormService {
     }
 
     getUsers() {
-        const getUserAttributesString = (user) => {
-            const values = [];
-            const firstAttributes = ['FirstName', 'LastName'];
-            for (const key in user.attributes) {
-                if (user.attributes.hasOwnProperty(key) && firstAttributes.indexOf(key) >= 0) {
-                    values.push(user.attributes[key]);
-                }
-            }
-            for (const key in user.attributes) {
-                if (user.attributes.hasOwnProperty(key) && firstAttributes.indexOf(key) === -1) {
-                    values.push(user.attributes[key]);
-                }
-            }
-            return values.join(' ');
-        };
-        return this._userDataService.getUsers().then(users => {
-            return (users || []).map(u => ({
+        return this._userDataService.getUsers().then(users =>
+            (users || []).map(u => ({
                 ...u,
                 userAttributes: u.attributes ? getUserAttributesString(u) : undefined
-            }));
-        });
+            })));
     }
 
     getRoles() {
@@ -93,6 +79,17 @@ export default class ngbPermissionsFormService {
         return this._roleDataService.findADGroup(prefix);
     }
 
+    getUserInfo(userName) {
+        return this._userDataService.getCachedUsers()
+            .then(users => {
+                const [user] = (users || []).filter(u => u.userName === userName);
+                if (user) {
+                    return user;
+                }
+                return null;
+            });
+    }
+
     getPermissionsColumns() {
         return [{
             cellTemplate: `
@@ -110,11 +107,16 @@ export default class ngbPermissionsFormService {
             name: ' ',
         }, {
             cellTemplate: `
-                    <div class="ui-grid-cell-contents">
-                        <ngb-user ng-if="row.entity.principal" user="row.entity.name" />
-                        <span ng-if="!row.entity.principal">{{row.entity.displayName}}</span>
-                    </div>
-                `,
+                <div class="ui-grid-cell-contents">
+                    <span ng-if="row.entity.principal">
+                        {{row.entity.displayName}}
+                        <md-tooltip ng-if="row.entity.userAttributes">
+                            {{row.entity.userAttributes}}
+                        </md-tooltip>
+                    </span>
+                    <span ng-if="!row.entity.principal">{{row.entity.displayName}}</span>
+                </div>
+            `,
             enableColumnMenu: false,
             enableSorting: true,
             field: 'displayName',

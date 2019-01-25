@@ -1,3 +1,5 @@
+import {getUserAttributesString} from '../internal/utilities';
+
 const ROLE_NAME_FIRST_PART = 'ROLE_';
 
 export default class ngbUserRoleFormService {
@@ -73,21 +75,6 @@ export default class ngbUserRoleFormService {
     }
 
     _mapUsers(users) {
-        const getUserAttributesString = (user) => {
-            const values = [];
-            const firstAttributes = ['FirstName', 'LastName'];
-            for (const key in user.attributes) {
-                if (user.attributes.hasOwnProperty(key) && firstAttributes.indexOf(key) >= 0) {
-                    values.push(user.attributes[key]);
-                }
-            }
-            for (const key in user.attributes) {
-                if (user.attributes.hasOwnProperty(key) && firstAttributes.indexOf(key) === -1) {
-                    values.push(user.attributes[key]);
-                }
-            }
-            return values.join(' ');
-        };
         return users.map(user => ({
             attributes: user.attributes,
             deletable: true,
@@ -173,15 +160,15 @@ export default class ngbUserRoleFormService {
             width: '*',
         }, {
             cellTemplate: `
-                      <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
-                          <md-button
-                              aria-label="Delete"
-                              class="md-mini md-hue-1 grid-action-button"
-                              ng-if="row.entity.deletable"
-                              ng-click="grid.appScope.ctrl.removeRoleFromGrid(row.entity.id, $event)">
-                              <ng-md-icon icon="delete"></ng-md-icon>
-                          </md-button>
-                      </div>`,
+                <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
+                  <md-button
+                      aria-label="Delete"
+                      class="md-mini md-hue-1 grid-action-button"
+                      ng-if="row.entity.deletable"
+                      ng-click="grid.appScope.ctrl.removeRoleFromGrid(row.entity.id, $event)">
+                      <ng-md-icon icon="delete"></ng-md-icon>
+                  </md-button>
+                </div>`,
             enableColumnMenu: false,
             enableSorting: false,
             enableMove: false,
@@ -192,9 +179,29 @@ export default class ngbUserRoleFormService {
         }];
     }
 
+    getUserInfo(userName) {
+        return this._userDataService.getCachedUsers()
+            .then(users => {
+                const [user] = (users || []).filter(u => u.userName === userName);
+                if (user) {
+                    return user;
+                }
+                return null;
+            });
+    }
+
     getUsersColumns() {
         return [{
-            cellTemplate: '<div class="ui-grid-cell-contents"><ngb-user user="row.entity.name" /></div>',
+            cellTemplate: `
+                <div class="ui-grid-cell-contents">
+                    <span>
+                        {{row.entity.name}}
+                        <md-tooltip ng-if="row.entity.userAttributes">
+                            {{row.entity.userAttributes}}
+                        </md-tooltip>
+                    </span>
+                </div>
+            `,
             enableColumnMenu: false,
             enableSorting: true,
             field: 'name',
@@ -203,14 +210,14 @@ export default class ngbUserRoleFormService {
             width: '*',
         }, {
             cellTemplate: `
-                            <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
-                                <md-button
-                                    aria-label="Delete"
-                                    class="md-mini md-hue-1 grid-action-button"
-                                    ng-click="grid.appScope.ctrl.removeUser(row.entity, $event)">
-                                    <ng-md-icon icon="delete"></ng-md-icon>
-                                </md-button>
-                            </div>`,
+                <div layout="row" style="flex-flow: row wrap; justify-content: center; align-items: center; width: 100%">
+                    <md-button
+                        aria-label="Delete"
+                        class="md-mini md-hue-1 grid-action-button"
+                        ng-click="grid.appScope.ctrl.removeUser(row.entity, $event)">
+                        <ng-md-icon icon="delete"></ng-md-icon>
+                    </md-button>
+                </div>`,
             enableColumnMenu: false,
             enableSorting: false,
             enableMove: false,
