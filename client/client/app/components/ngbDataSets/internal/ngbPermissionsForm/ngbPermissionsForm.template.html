@@ -1,5 +1,5 @@
-<md-dialog aria-label="Permissions" style="max-height: 75%;">
-    <form name="permissionsForm">
+<md-dialog aria-label="Permissions" style="height: 80%">
+    <form name="permissionsForm" style="flex: 1">
         <md-toolbar class="ngb-reduced-popup-toolbar">
             <div class="md-toolbar-tools">
                 <h2 ng-if="ctrl.node">{{ctrl.node.name}}</h2>
@@ -9,8 +9,8 @@
                 </md-button>
             </div>
         </md-toolbar>
-        <md-dialog-content>
-            <md-content class="md-padding">
+        <md-dialog-content style="flex: 1; display: flex; flex-direction: column">
+            <md-content class="md-padding" style="flex: 1; display: flex; flex-direction: column">
                 <div layout="column">
                     <div layout="row">
                         <md-input-container flex>
@@ -54,15 +54,15 @@
                                 ng-click="ctrl.clearSelectedOwner()">
                             <ng-md-icon icon="clear">
                         </md-button>
-                    </div>
-                    <div layout="row" layout-align="end" ng-if="ctrl.permissionsChangeAllowed">
                         <md-button
+                                ng-if="ctrl.permissionsChangeAllowed"
                                 aria-label="Add user"
                                 class="md-mini md-hue-1"
                                 ng-click="ctrl.onAddUser()">
                             <ng-md-icon icon="person_add"></ng-md-icon>
                         </md-button>
                         <md-button
+                                ng-if="ctrl.permissionsChangeAllowed"
                                 aria-label="Add group or role"
                                 class="md-mini md-hue-1"
                                 ng-click="ctrl.onAddRole()">
@@ -70,20 +70,16 @@
                         </md-button>
                     </div>
                 </div>
-                <div layout="row">
-                    <div ng-if="ctrl.formGridOptions.data.length"
-                         flex
-                         class="ui-grid-container permissions-grid-container">
-                        <div ui-grid="ctrl.formGridOptions"
-                             ui-grid-save-state
-                             ui-grid-selection
-                             ui-grid-resize-columns
-                             ui-grid-auto-resize
-                             ui-grid-move-columns
-                             ui-grid-pinning
-                             ui-grid-infinite-scroll
-                        ></div>
-                    </div>
+                <div class="ui-grid-container permissions-grid-container">
+                    <div ui-grid="ctrl.formGridOptions"
+                         ui-grid-save-state
+                         ui-grid-selection
+                         ui-grid-resize-columns
+                         ui-grid-auto-resize
+                         ui-grid-move-columns
+                         ui-grid-pinning
+                         ui-grid-infinite-scroll
+                    ></div>
                 </div>
                 <div ng-if="ctrl.subject">
                     <table class="permissions-table">
