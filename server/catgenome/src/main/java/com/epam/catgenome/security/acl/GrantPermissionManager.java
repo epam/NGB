@@ -249,8 +249,8 @@ public class GrantPermissionManager {
             Assert.notNull(userManager.loadUserByName(userName),
                     MessageHelper.getMessage(MessagesConstants.ERROR_ROLE_OR_USER_NOT_FOUND, userName));
         } else {
-            Assert.isTrue(userManager.findGroups(null).stream().anyMatch(group -> group.equals(userName))
-                            || roleManager.loadAllRoles(false).stream().anyMatch(r -> r.getName().equals(userName)),
+            Assert.isTrue(userManager.findGroups(null).stream().anyMatch(group -> group.equalsIgnoreCase(userName))
+                            || roleManager.loadAllRoles(false).stream().anyMatch(r -> r.getName().equalsIgnoreCase(userName)),
                     MessageHelper.getMessage(MessagesConstants.ERROR_ROLE_OR_USER_NOT_FOUND, userName));
         }
         Assert.notNull(aclClass, MessageHelper.getMessage(
