@@ -25,6 +25,7 @@ Detailed documentation on building, installation, usage is available at
 
 # Publications 
 Links to publications that contain NGB references
+* [Prioritisation of structural variant calls in cancer genomes](https://www.ncbi.nlm.nih.gov/pubmed/28392986)
 * [Dataset visualization for article **Prioritisation of Structural Variant Calls in Cancer Genomes**](docs/md/publications/dataset-prioritisation-of-sv.md)
 
 # Quickstart
