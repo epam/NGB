@@ -155,6 +155,7 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.requestMatcher(getFullRequestMatcher());
+        http.headers().httpStrictTransportSecurity().disable();
         http.httpBasic().authenticationEntryPoint(samlEntryPoint());
         http.csrf().disable();
         http
