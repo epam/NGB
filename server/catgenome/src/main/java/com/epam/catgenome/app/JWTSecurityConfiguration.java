@@ -94,6 +94,8 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .antMatchers(getUnsecuredResources()).permitAll()
                     .antMatchers(getSecuredResources()).authenticated()
                 .and()
+                .headers().httpStrictTransportSecurity().disable()
+                .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .and()
                 .addFilterBefore(getJwtAuthenticationFilter(),
