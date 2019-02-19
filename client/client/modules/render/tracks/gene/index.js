@@ -55,6 +55,7 @@ export class GENETrack extends CachedTrack {
 
         this._gffColorByFeatureType = opts.gffColorByFeatureType;
         this._gffShowNumbersAminoacid = opts.gffShowNumbersAminoacid;
+        this._collapsed = this.state.geneTranscript === GeneTypes.transcriptViewTypes.collapsed;
 
         if (opts.dispatcher) {
             this.dispatcher = opts.dispatcher;
@@ -192,7 +193,7 @@ export class GENETrack extends CachedTrack {
                         menuItem.enable();
                     }
                 }
-            })
+            });
         }
     }
 
@@ -213,7 +214,14 @@ export class GENETrack extends CachedTrack {
         }
         if (flags.brushChanged || flags.widthChanged || flags.heightChanged || flags.renderReset || flags.dataChanged) {
             this.renderer.height = this.height;
-            this.renderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, this._gffColorByFeatureType, this._gffShowNumbersAminoacid, this._showCenterLine);
+            this.renderer.render(
+                this.viewport,
+                this.cache,
+                flags.heightChanged || flags.dataChanged,
+                this._gffColorByFeatureType,
+                this._gffShowNumbersAminoacid,
+                this._showCenterLine,
+                this.state.geneTranscript === GeneTypes.transcriptViewTypes.collapsed);
             somethingChanged = true;
         }
         return somethingChanged;
@@ -290,7 +298,9 @@ export class GENETrack extends CachedTrack {
             const info = [];
             for (let i = 0; i < geneData.length; i++) {
                 const feature = geneData[i].feature;
-                if (feature.feature && feature.feature.toLowerCase() !== 'aminoacid') {
+                if (feature.feature && feature.feature.toLowerCase() === 'exon' && feature.exonNumber) {
+                    info.push(['Exon number', feature.exonNumber]);
+                } else if (feature.feature && feature.feature.toLowerCase() !== 'aminoacid') {
                     if (feature.name) {
                         info.push([feature.feature, feature.name]);
                     }
@@ -304,6 +314,9 @@ export class GENETrack extends CachedTrack {
                     }
                     if (feature.score) {
                         info.push(['Score', feature.score]);
+                    }
+                    if (feature.exonNumber) {
+                        info.push(['Exon number', feature.exonNumber]);
                     }
                 } else {
                     info.push([`${feature.name} #${feature.index}`]);

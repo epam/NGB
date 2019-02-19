@@ -34,6 +34,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
             if (transcriptLength > 0 && shouldDisplayDetails) {
                 for (let i = 0; i < transcriptLength; i++) {
                     this._transcriptFeatureRenderer.gffShowNumbersAminoacid = this._opts.gffShowNumbersAminoacid;
+                    this._transcriptFeatureRenderer.collapsedMode = this._opts.collapsedMode;
                     const childBoundaries = this._transcriptFeatureRenderer.analyzeBoundaries(transcripts[i], viewport);
                     if (childBoundaries) {
                         const childRect = childBoundaries.rect;
