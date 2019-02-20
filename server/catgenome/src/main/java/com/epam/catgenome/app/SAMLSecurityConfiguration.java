@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.velocity.app.VelocityEngine;
 import org.opensaml.saml2.metadata.provider.FilesystemMetadataProvider;
 import org.opensaml.saml2.metadata.provider.MetadataProvider;
@@ -142,6 +143,9 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Value("${saml.login.failure.redirect:/error-401.html}")
     private String loginFailureRedirect;
+
+    @Value("${saml.base.url:}")
+    private String samlBaseUrl;
 
     @Autowired
     private SAMLUserDetailsService samlUserDetailsService;
@@ -362,7 +366,8 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
         metadataGenerator.setBindingsSSO(Collections.singletonList("post"));
         metadataGenerator.setExtendedMetadata(extendedMetadata());
         metadataGenerator.setKeyManager(keyManager());
-        metadataGenerator.setEntityBaseURL(Utils.getUrlWithoutTrailingSlash(endpointId));
+        final String baseUrl = StringUtils.defaultIfBlank(samlBaseUrl, endpointId);
+        metadataGenerator.setEntityBaseURL(Utils.getUrlWithoutTrailingSlash(baseUrl));
         return metadataGenerator;
     }
 
