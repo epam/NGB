@@ -89,6 +89,7 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
     private static final Set<BiologicalDataItemFormat> ANNOTATION_FORMATS = new HashSet<>();
     static {
         ANNOTATION_FORMATS.add(BiologicalDataItemFormat.BED);
+        ANNOTATION_FORMATS.add(BiologicalDataItemFormat.WIG);
         ANNOTATION_FORMATS.add(BiologicalDataItemFormat.VCF);
         ANNOTATION_FORMATS.add(BiologicalDataItemFormat.GENE);
     }
