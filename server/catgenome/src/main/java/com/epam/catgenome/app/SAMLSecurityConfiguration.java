@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.security.saml.CustomSAMLProcessingFilter;
+import com.epam.catgenome.security.saml.SchemeInsensitiveUrlComparator;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.velocity.app.VelocityEngine;
@@ -146,6 +148,9 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Value("${saml.base.url:}")
     private String samlBaseUrl;
+
+    @Value("${saml.validate.url.without.scheme:false}")
+    private boolean samlValidateUrlWithoutScheme;
 
     @Autowired
     private SAMLUserDetailsService samlUserDetailsService;
@@ -409,7 +414,8 @@ public class SAMLSecurityConfiguration extends WebSecurityConfigurerAdapter {
     // Processing filter for WebSSO profile messages
     @Bean
     public SAMLProcessingFilter samlWebSSOProcessingFilter() throws Exception {
-        SAMLProcessingFilter samlWebSSOProcessingFilter = new SAMLProcessingFilter();
+        SAMLProcessingFilter samlWebSSOProcessingFilter = samlValidateUrlWithoutScheme ?
+                new CustomSAMLProcessingFilter(new SchemeInsensitiveUrlComparator()) : new SAMLProcessingFilter();
         samlWebSSOProcessingFilter.setAuthenticationManager(authenticationManager());
         samlWebSSOProcessingFilter.setAuthenticationSuccessHandler(successRedirectHandler());
         samlWebSSOProcessingFilter.setAuthenticationFailureHandler(authenticationFailureHandler());
