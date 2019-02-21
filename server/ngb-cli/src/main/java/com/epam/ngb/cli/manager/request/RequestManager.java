@@ -70,12 +70,13 @@ public final class RequestManager {
             }
 
             return HttpClientBuilder.create()
-                .setSSLContext(context)
-                .setSSLHostnameVerifier(new NoopHostnameVerifier())
-                .build();
+                    .useSystemProperties()
+                    .setSSLContext(context)
+                    .setSSLHostnameVerifier(new NoopHostnameVerifier())
+                    .build();
         }
 
-        return HttpClients.createDefault();
+        return HttpClientBuilder.create().useSystemProperties().build();
     }
 
     /**
