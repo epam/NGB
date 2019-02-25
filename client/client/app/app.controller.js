@@ -89,7 +89,9 @@ export default class ngbAppController extends baseController {
                 break;
             case 'navigateToCoordinate':
                 const coordinates = event.data.params && event.data.params.coordinates ? event.data.params.coordinates : null;
-                this._apiResponse(this.apiService.navigateToCoordinate(coordinates), callerId);
+                this.apiService.navigateToCoordinate(coordinates).then((response) => {
+                    this._apiResponse(response, callerId);
+                });
                 break;
             case 'toggleSelectTrack':
                 if (event.data.params && event.data.params.track) {
