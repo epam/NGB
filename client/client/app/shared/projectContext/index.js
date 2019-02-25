@@ -870,7 +870,7 @@ export default class projectContext {
         return findFn(this._datasets);
     }
 
-    changeState(state, silent = false) {
+    changeState(state, silent = false, callback = null) {
         const callbacks = this._getVcfCallbacks();
         const emitEventFn = (...opts) => {
             if (!silent) {
@@ -928,6 +928,9 @@ export default class projectContext {
                 emitEventFn('state:change', this.getCurrentStateObject());
             }
             this.dispatcher.emitGlobalEvent('route:change', this.getCurrentStateObject());
+            if (callback) {
+                callback();
+            }
         })();
     }
 
