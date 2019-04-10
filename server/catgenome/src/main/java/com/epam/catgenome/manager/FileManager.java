@@ -49,7 +49,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -166,6 +165,7 @@ public class FileManager {
     public static final String BED_GRAPH_FEATURE_TEMPLATE = "%s\t%d\t%d\t%f%n";
 
     private static final String ROOT_DIR_NAME = "42";
+    private static final String FILE_SYSTEM_ROOT = "/";
 
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
@@ -1915,17 +1915,19 @@ public class FileManager {
      * @throws IOException
      */
     public List<AbstractFsItem> loadDirectoryContents(String path) throws IOException {
-        if (!filesBrowsingAllowed) {
+
+        if(!StringUtils.isEmpty(path) && !Paths.get(path).startsWith(ngsDataRootPath)) {
+            throw new AccessDeniedException(
+                    String.format("Parameter path doesn't fall into 'ngs.data.root.path': %s", ngsDataRootPath));
+        }
+
+        if (!filesBrowsingAllowed || ngsDataRootPath.equals(FILE_SYSTEM_ROOT)) {
             throw new AccessDeniedException("Server file system browsing is not allowed");
         }
 
         List<File> parentDirs = new ArrayList<>();
         if (path == null) {
-            if ("/".equals(ngsDataRootPath)) {
-                parentDirs = Arrays.asList(File.listRoots());
-            } else {
-                parentDirs.add(new File(ngsDataRootPath));
-            }
+            parentDirs.add(new File(ngsDataRootPath));
         } else {
             parentDirs.add(new File(path));
         }
