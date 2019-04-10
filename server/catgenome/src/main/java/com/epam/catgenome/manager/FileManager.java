@@ -1916,7 +1916,7 @@ public class FileManager {
      */
     public List<AbstractFsItem> loadDirectoryContents(String path) throws IOException {
 
-        if(!StringUtils.isEmpty(path) && !path.startsWith(ngsDataRootPath)) {
+        if(!StringUtils.isEmpty(path) && !Paths.get(path).startsWith(ngsDataRootPath)) {
             throw new AccessDeniedException(
                     String.format("Parameter path doesn't fall into 'ngs.data.root.path': %s", ngsDataRootPath));
         }
