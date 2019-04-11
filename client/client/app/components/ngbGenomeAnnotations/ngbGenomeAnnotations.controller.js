@@ -80,12 +80,22 @@ export default class ngbGenomeAnnotationsController extends baseController{
             file.isLocal = true;
             tracks.push(file);
             const tracksState = this.projectContext.tracksState;
-            tracksState.push({
-                bioDataItemId: file.name,
-                projectId: '',
-                isLocal: true,
-                format: file.format
-            });
+            const savedState = this.projectContext.getTrackState((file.name || '').toLowerCase(), file.projectId);
+            if (savedState) {
+                tracksState.push(Object.assign(savedState,{
+                    bioDataItemId: file.name,
+                    projectId: '',
+                    isLocal: true,
+                    format: file.format
+                }));
+            } else {
+                tracksState.push({
+                    bioDataItemId: file.name,
+                    projectId: '',
+                    isLocal: true,
+                    format: file.format
+                });
+            }
             this.projectContext.changeState({tracks, tracksState});
         } else {
             const tracks = this.projectContext.tracks;

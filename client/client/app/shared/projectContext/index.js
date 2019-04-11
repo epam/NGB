@@ -1283,6 +1283,10 @@ export default class projectContext {
                             if (!shouldAddAnnotationTracks) {
                                 annotationFile.selected = true;
                             }
+                            const savedState = this.getTrackState((annotationFile.name || '').toLowerCase(), '');
+                            if (savedState) {
+                                return Object.assign({}, savedState, annotationFile);
+                            }
                             return annotationFile;
                         }
                         return t;
@@ -1475,12 +1479,13 @@ export default class projectContext {
                     annotationFile.projectId = '';
                     if (this._tracks.filter(t => t.name.toLowerCase() === annotationFile.name.toLowerCase() && t.format.toLowerCase() === annotationFile.format.toLowerCase()).length === 0) {
                         this._tracks.push(annotationFile);
-                        tracksState.splice(index + 1, 0, {
+                        const savedState = this.getTrackState((annotationFile.name || '').toLowerCase(), '');
+                        tracksState.splice(index + 1, 0, Object.assign(savedState || {}, {
                             bioDataItemId: annotationFile.name,
                             projectId: '',
                             isLocal: true,
                             format: annotationFile.format
-                        });
+                        }));
                         index++;
                     }
                 }
