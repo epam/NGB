@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2018 EPAM Systems
+ * Copyright (c) 2019 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,10 +29,14 @@ import static com.epam.catgenome.entity.user.DefaultRoles.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.sql.DataSource;
 
 import com.epam.catgenome.security.acl.customexpression.NGBMethodSecurityExpressionHandler;
+import net.sf.ehcache.config.PinningConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.ehcache.EhCacheFactoryBean;
+import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.security.access.PermissionEvaluator;
@@ -42,23 +46,31 @@ import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.acls.AclPermissionEvaluator;
 import org.springframework.security.acls.domain.*;
 import org.springframework.security.acls.jdbc.JdbcMutableAclService;
+import org.springframework.security.acls.jdbc.LookupStrategy;
+import org.springframework.security.acls.model.AclCache;
+import org.springframework.security.acls.model.PermissionGrantingStrategy;
 import org.springframework.security.acls.model.SidRetrievalStrategy;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 
 import com.epam.catgenome.entity.user.DefaultRoles;
 import com.epam.catgenome.security.acl.*;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @Configuration
 @ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 @ComponentScan(basePackages = "com.epam.catgenome.security.acl")
 @ImportResource("classpath*:conf/catgenome/acl-dao.xml")
-@Import(AclCacheConfiguration.class)
 public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration {
+
+    private static final int UNLIMITED_NUMBER_OF_ENTITIES = 0;
 
     @Autowired
     private ApplicationContext context;
+
+    @Autowired
+    private DataSource dataSource;
 
     @Autowired
     private PermissionFactory permissionFactory;
@@ -111,4 +123,53 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
         return new JdbcMutableAclServiceImpl(dataSource, lookupStrategy(), aclCache());
     }*/
 
+    @Bean
+    public LookupStrategy lookupStrategy() {
+        return new LookupStrategyImpl(dataSource, aclCache(), aclAuthorizationStrategy(),
+                                      auditLogger(), permissionFactory, permissionGrantingStrategy());
+    }
+
+    @Bean
+    public AuditLogger auditLogger() {
+        return new ConsoleAuditLogger();
+    }
+
+    @Bean
+    public AclAuthorizationStrategy aclAuthorizationStrategy() {
+        return new AclAuthorizationStrategyImpl(new SimpleGrantedAuthority(ROLE_ADMIN.getName()));
+    }
+
+    @Bean
+    public PermissionGrantingStrategy permissionGrantingStrategy() {
+        return new PermissionGrantingStrategyImpl(auditLogger());
+    }
+
+    @Bean
+    public AclCache aclCache() {
+        return new EhCacheBasedAclCache(ehCacheFactoryBean().getObject(),
+                permissionGrantingStrategy(), aclAuthorizationStrategy());
+    }
+
+    @Bean
+    public EhCacheFactoryBean ehCacheFactoryBean() {
+        int aclSecurityCachePeriodInSeconds = context.getEnvironment().getProperty("security.acl.cache.period", Integer.class, -1);
+        System.err.println(aclSecurityCachePeriodInSeconds);
+        EhCacheFactoryBean factoryBean = new EhCacheFactoryBean();
+        factoryBean.setCacheManager(ehCacheManagerFactoryBean().getObject());
+        factoryBean.setCacheName("aclCache");
+        if (aclSecurityCachePeriodInSeconds > 0) {
+            factoryBean.maxEntriesLocalHeap(UNLIMITED_NUMBER_OF_ENTITIES);
+            factoryBean.setTimeToLive(aclSecurityCachePeriodInSeconds);
+            factoryBean.setTimeToIdle(aclSecurityCachePeriodInSeconds);
+            factoryBean.pinning(new PinningConfiguration().store(PinningConfiguration.Store.LOCALMEMORY));
+        }
+        return factoryBean;
+    }
+
+    @Bean
+    public EhCacheManagerFactoryBean ehCacheManagerFactoryBean() {
+        EhCacheManagerFactoryBean factoryBean = new EhCacheManagerFactoryBean();
+        factoryBean.setCacheManagerName("aclCacheManager");
+        return factoryBean;
+    }
 }
