@@ -153,7 +153,6 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
     @Bean
     public EhCacheFactoryBean ehCacheFactoryBean() {
         int aclSecurityCachePeriodInSeconds = context.getEnvironment().getProperty("security.acl.cache.period", Integer.class, -1);
-        System.err.println(aclSecurityCachePeriodInSeconds);
         EhCacheFactoryBean factoryBean = new EhCacheFactoryBean();
         factoryBean.setCacheManager(ehCacheManagerFactoryBean().getObject());
         factoryBean.setCacheName("aclCache");
