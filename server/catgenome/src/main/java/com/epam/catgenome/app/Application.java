@@ -4,6 +4,7 @@ import java.io.PrintStream;
 
 import com.epam.catgenome.util.NgbSeekableStreamFactory;
 import com.epam.catgenome.util.aws.S3Client;
+import com.epam.catgenome.util.azure.AzureBlobClient;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -72,5 +73,11 @@ public class Application extends SpringBootServletInitializer {
     @Bean
     S3Client s3Client() {
         return S3Client.configure(swsEndpoint, swsRegion, isPathStyleAccess);
+    }
+
+    @Bean
+    public AzureBlobClient azureBlobClient(@Value("${azure.storage.account}") final String storageAccount,
+                                           @Value("${azure.storage.key}") final String storageKey) {
+        return new AzureBlobClient(storageAccount, storageKey);
     }
 }
