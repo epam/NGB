@@ -250,6 +250,7 @@ public class BedManager {
             case URL:
             case FILE:
             case S3:
+            case AZ:
                 bedFile = registerBedFileFromFile(request);
                 break;
             case DOWNLOAD:

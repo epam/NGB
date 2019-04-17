@@ -200,6 +200,7 @@ public class VcfManager {
                 break;
             case FILE:
             case S3:
+            case AZ:
                 vcfFile = createVcfFromFile(request, chromosomeMap, reference, request.isDoIndex());
                 break;
             case DOWNLOAD:

@@ -38,6 +38,7 @@ import lombok.Data;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
@@ -53,6 +54,7 @@ public class AzureBlobClient {
     private static final int NOT_FOUND_ERROR_CODE = 404;
 
     private ServiceURL blobService;
+    private static AzureBlobClient instance;
 
     public AzureBlobClient() {
         //just to make test context work
@@ -68,6 +70,11 @@ public class AzureBlobClient {
         } catch (InvalidKeyException e) {
             throw new IllegalArgumentException("Invalid credentials for Azure storage account: " + storageAccount);
         }
+    }
+
+    @PostConstruct
+    public void init() {
+        this.instance = this;
     }
 
     public InputStream loadFromTo(final String uri, final long offset, final long end) {
@@ -146,6 +153,15 @@ public class AzureBlobClient {
     @SuppressWarnings("WeakerAccess")
     public InputStream loadFully(String obj) {
         return loadFrom(obj, 0);
+    }
+
+
+    public static boolean isAzSource(String inputUrl) {
+        return inputUrl.startsWith(AZ_SCHEME);
+    }
+
+    public static AzureBlobClient getClient() {
+        return instance;
     }
 
     @Data

@@ -28,6 +28,8 @@ package com.epam.catgenome.util;
 
 import com.epam.catgenome.util.aws.S3Client;
 import com.epam.catgenome.util.aws.S3SeekableStreamFactory;
+import com.epam.catgenome.util.azure.AzureBlobClient;
+import com.epam.catgenome.util.azure.AzureSeekableStremFactory;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import htsjdk.samtools.seekablestream.SeekableBufferedStream;
 import htsjdk.samtools.seekablestream.SeekableStream;
@@ -59,6 +61,8 @@ public final class NgbSeekableStreamFactory implements ISeekableStreamFactory {
     public SeekableStream getStreamFor(URL url) throws IOException {
         if(S3Client.isS3Source(url.toString())) {
             return S3SeekableStreamFactory.getInstance().getStreamFor(url);
+        } else if (AzureBlobClient.isAzSource(url.toString())) {
+            return AzureSeekableStremFactory.getInstance().getStreamFor(url);
         } else {
             return localSeekableStreamFactory.getStreamFor(url);
         }
@@ -68,6 +72,8 @@ public final class NgbSeekableStreamFactory implements ISeekableStreamFactory {
     public SeekableStream getStreamFor(String path) throws IOException {
         if(S3Client.isS3Source(path)) {
             return S3SeekableStreamFactory.getInstance().getStreamFor(path);
+        } else if (AzureBlobClient.isAzSource(path)) {
+            return AzureSeekableStremFactory.getInstance().getStreamFor(path);
         } else {
             return localSeekableStreamFactory.getStreamFor(path);
         }
