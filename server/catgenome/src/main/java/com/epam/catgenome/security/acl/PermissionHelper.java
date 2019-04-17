@@ -208,13 +208,13 @@ public class PermissionHelper {
     public Integer retrieveMaskForSid(AbstractSecuredEntity entity, boolean merge,
                                        boolean includeInherited, List<Sid> sids) {
         Acl child = aclService.getAcl(entity);
-        //case for Runs and Nodes, that are not registered as ACL entities
         //check ownership
         if (child == null && isOwner(entity)) {
             return merge ?
                     AbstractSecuredEntity.ALL_PERMISSIONS_MASK :
                     AbstractSecuredEntity.ALL_PERMISSIONS_MASK_FULL;
         }
+        //case for objects, that are not registered as ACL entities
         if (child == null && entity.getParent() == null) {
             LOGGER.debug("Object is not registered in ACL {} {}", entity.getAclClass(), entity.getId());
             return 0;
