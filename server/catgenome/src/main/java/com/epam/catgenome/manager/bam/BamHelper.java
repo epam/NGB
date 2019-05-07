@@ -32,6 +32,7 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URL;
@@ -508,21 +509,21 @@ public class BamHelper {
     private byte[] fetchS3BamIndex(BiologicalDataItem indexFile) throws IOException {
         String indexPath = indexFile.getPath();
         byte[] indexBuffer;
-        if (indexCache != null) {
-            if (indexCache.contains(indexPath)) {
-                LOG.debug("get from cache index: " + indexPath);
-                indexBuffer = ((BamIndex) indexCache.getFromCache(indexPath)).content;
+        if (indexCache != null && indexCache.contains(indexPath)) {
+            LOG.debug("get from cache index: " + indexPath);
+            indexBuffer = ((BamIndex) indexCache.getFromCache(indexPath)).content;
 
-            } else {
-                long start = System.currentTimeMillis();
-                indexBuffer = IOUtils.toByteArray(S3Client.getInstance().loadFully(indexPath));
-                LOG.debug("put in cache index: " + indexPath);
-                indexCache.putInCache(new BamIndex(indexPath, indexBuffer), indexPath);
-                LOG.debug("download BAM index time: " + (System.currentTimeMillis() - start));
-            }
         } else {
-            LOG.info("index cache isn't initialized");
-            indexBuffer = IOUtils.toByteArray(S3Client.getInstance().loadFully(indexPath));
+            try (InputStream indexStream = S3Client.getInstance().loadFully(indexPath)) {
+                long start = System.currentTimeMillis();
+                indexBuffer = IOUtils.toByteArray(indexStream);
+                LOG.debug("download BAM index time: " + (System.currentTimeMillis() - start));
+
+                if (indexCache != null) {
+                    LOG.debug("put in cache index: " + indexPath);
+                    indexCache.putInCache(new BamIndex(indexPath, indexBuffer), indexPath);
+                }
+            }
         }
         return indexBuffer;
     }

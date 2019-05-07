@@ -202,9 +202,11 @@ public final class IndexUtils {
                 headerStream = IOHelper.openStream(featureFilePath);
             }
 
-            FeatureCodecHeader header = readHeader(new PositionalBufferedStream(headerStream));
-            source = (S) makeIndexableSourceFromStream(initStream(featureFilePath, header.getHeaderEnd()));
-            readNextFeature();
+            try (PositionalBufferedStream buffHeaderStream = new PositionalBufferedStream(headerStream)) {
+                FeatureCodecHeader header = readHeader(buffHeaderStream);
+                source = (S) makeIndexableSourceFromStream(initStream(featureFilePath, header.getHeaderEnd()));
+                readNextFeature();
+            }
         }
 
         public LocationAware makeIndexableSourceFromStream(InputStream bufferedInputStream) {
