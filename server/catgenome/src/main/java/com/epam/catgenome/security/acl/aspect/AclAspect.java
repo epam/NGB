@@ -29,6 +29,8 @@ import java.util.Map;
 
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.security.acl.PermissionHelper;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -49,7 +51,6 @@ import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.security.acl.AclPermission;
 import com.epam.catgenome.security.acl.GrantPermissionManager;
 import com.epam.catgenome.security.acl.JdbcMutableAclServiceImpl;
-import org.springframework.util.CollectionUtils;
 
 @Aspect
 @Component
@@ -128,7 +129,7 @@ public class AclAspect {
             returning = "list")
     @Transactional(propagation = Propagation.REQUIRED)
     public void setMaskForList(JoinPoint joinPoint, List<? extends AbstractSecuredEntity> list) {
-        list.forEach(entity ->
+        ListUtils.emptyIfNull(list).forEach(entity ->
                 entity.setMask(permissionHelper.getPermissionsMask(entity, true, true)));
     }
 
@@ -144,9 +145,7 @@ public class AclAspect {
     @Transactional(propagation = Propagation.REQUIRED)
     public void filterListOfTrees(JoinPoint joinPoint, List<? extends AbstractHierarchicalEntity> list) {
         // filter projects and remove it from list if it empty and we haven't permission on it
-        if (!CollectionUtils.isEmpty(list)) {
-            list.removeIf(e -> !permissionManager.filterTree(e, AclPermission.READ));
-        }
+        ListUtils.emptyIfNull(list).removeIf(e -> !permissionManager.filterTree(e, AclPermission.READ));
     }
 
     @Before("@annotation(com.epam.catgenome.security.acl.aspect.AclFilter) && args(filterForm,..)")
@@ -156,7 +155,7 @@ public class AclAspect {
 
     @Before("@annotation(com.epam.catgenome.security.acl.aspect.AclMapFilter) && args(.., fileIdsByProject)")
     public void extendMapFilter(JoinPoint joinPoint, Map<Long, List<Long>> fileIdsByProject) {
-        permissionManager.extendMapFilter(fileIdsByProject);
+        permissionManager.extendMapFilter(MapUtils.emptyIfNull(fileIdsByProject));
     }
 
 
