@@ -51,7 +51,7 @@ public class JwtRawToken {
             throw new AuthenticationServiceException("Authorization type Bearer is missed");
         }
 
-        return new JwtRawToken(authorizationHeader.substring(HEADER_PREFIX.length(), authorizationHeader.length()));
+        return new JwtRawToken(authorizationHeader.substring(HEADER_PREFIX.length()));
     }
 
     public static JwtRawToken fromCookie(Cookie authCookie) throws UnsupportedEncodingException {
@@ -61,10 +61,6 @@ public class JwtRawToken {
 
         String authCookieValue = URLDecoder.decode(authCookie.getValue(), "UTF-8");
 
-        if (!authCookieValue.startsWith(HEADER_PREFIX)) {
-            throw new AuthenticationServiceException("Authorization type Bearer is missed");
-        }
-
-        return new JwtRawToken(authCookieValue.substring(HEADER_PREFIX.length(), authCookieValue.length()));
+        return new JwtRawToken(authCookieValue);
     }
 }
