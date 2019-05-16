@@ -108,7 +108,7 @@ public class JwtTokenGenerator {
             .withJWTId(Strings.isNullOrEmpty(claims.getJwtTokenId()) ?
                        UUID.randomUUID().toString() : claims.getJwtTokenId())
             .withSubject(claims.getUserName())
-            .withClaim(CLAIM_USER_ID, claims.getUserId().intValue())
+            .withClaim(CLAIM_USER_ID, getUserIdClaim(claims))
             .withClaim(CLAIM_ORG_UNIT_ID, claims.getOrgUnitId());
 
         if (claims.getRoles() != null) {
@@ -120,6 +120,10 @@ public class JwtTokenGenerator {
         }
 
         return tokenBuilder;
+    }
+
+    private Integer getUserIdClaim(final JwtTokenClaims claims) {
+        return claims.getUserId() != null ? claims.getUserId().intValue() : null;
     }
 
     private Date toDate(LocalDateTime dateTime) {

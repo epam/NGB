@@ -27,6 +27,7 @@ package com.epam.catgenome.security.jwt;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.epam.catgenome.entity.security.JwtTokenClaims;
 import org.apache.commons.collections4.CollectionUtils;
@@ -78,26 +79,28 @@ public class JwtTokenVerifier {
         JwtTokenClaims tokenClaims = JwtTokenClaims.builder()
                 .jwtTokenId(decodedToken.getId())
                 .userName(decodedToken.getSubject())
-                .userId(new Long(decodedToken.getClaim(CLAIM_USER_ID).asInt()))
+                .userId(fetchUserIdFromToken(decodedToken.getClaim(CLAIM_USER_ID)))
                 .orgUnitId(decodedToken.getClaim(CLAIM_ORG_UNIT_ID).asString())
                 .issuedAt(decodedToken.getIssuedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
                 .expiresAt(decodedToken.getExpiresAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
                 .build();
-        if (decodedToken.getClaim(CLAIM_ROLES) != null) {
+        if (!decodedToken.getClaim(CLAIM_ROLES).isNull()) {
             tokenClaims.setRoles(decodedToken.getClaim(CLAIM_ROLES).asList(String.class));
         }
-        if (decodedToken.getClaim(CLAIM_GROUPS) != null) {
+        if (!decodedToken.getClaim(CLAIM_GROUPS).isNull()) {
             tokenClaims.setGroups(decodedToken.getClaim(CLAIM_GROUPS).asList(String.class));
         }
         return validateClaims(tokenClaims);
     }
 
+    private Long fetchUserIdFromToken(final Claim decodedToken) {
+        Integer userId = decodedToken.asInt();
+        return userId != null ? new Long(userId) : null;
+    }
+
     private JwtTokenClaims validateClaims(JwtTokenClaims tokenClaims) {
         if (StringUtils.isEmpty(tokenClaims.getJwtTokenId())) {
             throw new TokenVerificationException("Invalid token: token ID is empty");
-        }
-        if (tokenClaims.getUserId() == null) {
-            throw new TokenVerificationException("Invalid token: user ID is empty");
         }
         if (StringUtils.isEmpty(tokenClaims.getUserName())) {
             throw new TokenVerificationException("Invalid token: user name is empty");

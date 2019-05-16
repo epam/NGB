@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 import com.epam.catgenome.entity.user.Role;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -62,7 +63,7 @@ public class UserContext implements UserDetails {
         this.userId = claims.getUserId();
         this.userName = claims.getUserName();
         this.orgUnitId = claims.getOrgUnitId();
-        this.roles = claims.getRoles().stream().map(Role::new).collect(Collectors.toList());
+        this.roles = ListUtils.emptyIfNull(claims.getRoles()).stream().map(Role::new).collect(Collectors.toList());
     }
 
     public UserContext(String userName) {
@@ -81,7 +82,7 @@ public class UserContext implements UserDetails {
             .userId(userId)
             .userName(userName)
             .orgUnitId(orgUnitId)
-            .roles(roles.stream().map(Role::getName).collect(Collectors.toList()))
+            .roles(ListUtils.emptyIfNull(roles).stream().map(Role::getName).collect(Collectors.toList()))
             .groups(groups)
             .build();
     }
