@@ -388,14 +388,16 @@ public final class Utils {
             InvocationTargetException e) {
             throw new InvocationTargetException(e, "Cannot instantiate object of class " + c);
         }
-        notRegisteredFile.setPath(processUrl(fileUrl));
+        String preprocessedUrl = processUrl(fileUrl);
+        notRegisteredFile.setPath(preprocessedUrl);
         notRegisteredFile.setCompressed(false);
-        notRegisteredFile.setType(BiologicalDataItemResourceType.getTypeFromPath(fileUrl));
+        notRegisteredFile.setType(BiologicalDataItemResourceType.getTypeFromPath(preprocessedUrl));
         notRegisteredFile.setReferenceId(chromosome.getReferenceId());
 
         BiologicalDataItem index = new BiologicalDataItem();
-        index.setType(BiologicalDataItemResourceType.getTypeFromPath(indexUrl));
-        index.setPath(processUrl(indexUrl));
+        String preprocessedIndexUrl = processUrl(indexUrl);
+        index.setPath(preprocessedIndexUrl);
+        index.setType(BiologicalDataItemResourceType.getTypeFromPath(preprocessedIndexUrl));
         notRegisteredFile.setIndex(index);
         return notRegisteredFile;
     }
