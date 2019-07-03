@@ -1,6 +1,6 @@
 -- creates a new empty schema, which will be used to manage all objects
 -- which are required for CATGenome Browser
---CREATE SCHEMA CATGENOME;
+CREATE SCHEMA IF NOT EXISTS CATGENOME;
 
 -- creates a sequence used to generate primary key values for "bam" table
 CREATE SEQUENCE catgenome.S_BAM_FILE START WITH 1 INCREMENT BY 1;
