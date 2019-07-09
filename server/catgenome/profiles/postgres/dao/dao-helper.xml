@@ -42,70 +42,7 @@
             <value>
                 <![CDATA[
                         SELECT NEXTVAL(:SEQUENCE_NAME)
-                        FROM t_list list
-                        WHERE list.list_id = :LIST_ID
-                ]]>
-            </value>
-        </property>
-
-        <property name="listIdSequenceName" value="catgenome.s_list"/>
-
-        <property name="clearTemporaryListQuery">
-            <value>
-                <![CDATA[
-                        DELETE
-                        FROM t_list list
-                        WHERE list.list_id = :LIST_ID
-                ]]>
-            </value>
-
-        </property>
-
-        <property name="createTemporaryListQuery">
-            <value>
-                <![CDATA[
-                        CREATE LOCAL TEMPORARY TABLE IF NOT EXISTS t_list (
-                           list_id BIGINT,
-                           list_value BIGINT
-                        )
-                ]]>
-            </value>
-        </property>
-
-        <property name="insertTemporaryListItemQuery">
-            <value>
-                <![CDATA[
-                        INSERT INTO t_list (list_id, list_value)
-                           VALUES (:LIST_ID, :LIST_VALUE)
-                ]]>
-            </value>
-        </property>
-        <property name="createTemporaryStringListQuery">
-            <value>
-                <![CDATA[
-                        CREATE LOCAL TEMPORARY TABLE IF NOT EXISTS catgenome.t_str_list (
-                           list_id BIGINT,
-                           list_value VARCHAR(500)
-                        )
-                ]]>
-            </value>
-        </property>
-
-        <property name="insertTemporaryStringListItemQuery">
-            <value>
-                <![CDATA[
-                        INSERT INTO catgenome.t_str_list (list_id, list_value)
-                           VALUES (:LIST_ID, :LIST_VALUE)
-                ]]>
-            </value>
-        </property>
-
-        <property name="clearTemporaryStringListQuery">
-            <value>
-                <![CDATA[
-                        DELETE
-                        FROM catgenome.t_str_list list
-                        WHERE list.list_id = :LIST_ID
+                        FROM (VALUES @in@)
                 ]]>
             </value>
         </property>
