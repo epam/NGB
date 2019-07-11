@@ -23,8 +23,8 @@ export default class ngbApiService {
     $mdDialog;
     localDataService;
     dispatcher;
-    datasets;
-    references;
+    datasets = [];
+    references = [];
 
     constructor($state, projectContext, ngbDataSetsService, $mdDialog, localDataService, dispatcher) {
         Object.assign(this, {
@@ -35,10 +35,6 @@ export default class ngbApiService {
             ngbDataSetsService,
             projectContext,
         });
-        (async () => {
-            await this.projectContext.refreshReferences(true);
-            this.references = this.projectContext.references;
-        })();
     }
 
     /** returns a Promise */
@@ -235,7 +231,7 @@ export default class ngbApiService {
     }
 
     /** returns a Promise */
-    loadTracks(params) {
+    async loadTracks(params) {
         const forceSwitchRef = params.forceSwitchRef ? params.forceSwitchRef : false;
 
         if (!params.tracks || !params.referenceId) {
@@ -243,6 +239,11 @@ export default class ngbApiService {
                 isSuccessful: false,
                 message: 'Not enough params specified',
             });
+        }
+
+        if (!this.references || this.references.length === 0) {
+            await this.projectContext.refreshReferences(true);
+            this.references = this.projectContext.references || [];
         }
 
         const [chosenReference] = this.references.filter(r => r.id === params.referenceId);
