@@ -298,7 +298,7 @@ Force switch reference:&nbsp;
     }
 
     if (window.addEventListener) {
-        window.addEventListener("message", (event) => {
+        window.addEventListener("message", () => {
             if (event.data) {
                 console.log(event.data);
             }
