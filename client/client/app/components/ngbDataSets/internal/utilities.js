@@ -180,6 +180,9 @@ export function mapTrackFn(track: Node){
 }
 
 export function findProject(datasets: Array<Node>, project) {
+    if (!datasets) {
+        return null;
+    }
     const {name} = project;
     for (let i = 0; i < datasets.length; i++) {
         const dataset = datasets[i];
