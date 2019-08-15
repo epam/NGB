@@ -20,12 +20,7 @@ export default class ngbDataSetsService {
     }
 
     async getDatasets() {
-        let projects = this.projectContext.datasets;
-        if (!this.projectContext.datasetsArePrepared) {
-            projects = projects.map(utilities.preprocessNode);
-            this.projectContext.datasetsArePrepared = true;
-        }
-        const datasets = this.applyGenomeFilter(projects);
+        const datasets = this.applyGenomeFilter(this.projectContext.datasets);
         ngbDataSetsService.sort(datasets);
         await this.updateSelectionFromState(datasets);
         return datasets;
@@ -58,8 +53,8 @@ export default class ngbDataSetsService {
                 const dataset = _datasets[i];
                 if (dataset.name.toLowerCase() === track.projectId.toLowerCase()) {
                     const items = dataset._lazyItems || dataset.items;
-                    for (let j = 0; j < items.length; i++) {
-                        if (items[i] && items[i].isTrack && items[i].name.toLowerCase() === track.name.toLowerCase()) {
+                    for (let j = 0; j < items.length; j++) {
+                        if (items[j] && items[j].isTrack && items[j].name.toLowerCase() === track.name.toLowerCase()) {
                             return true;
                         }
                     }

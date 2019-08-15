@@ -102,7 +102,6 @@ export default class projectContext {
 
     _datasetsLoaded = false;
     _datasets = [];
-    _datasetsArePrepared = false;
     _datasetsFilter = null;
 
     _hotkeys = null;
@@ -569,14 +568,6 @@ export default class projectContext {
         return this._datasets;
     }
 
-    get datasetsArePrepared() {
-        return this._datasetsArePrepared;
-    }
-
-    set datasetsArePrepared(value) {
-        this._datasetsArePrepared = value;
-    }
-
     get datasetsFilter() {
         return this._datasetsFilter;
     }
@@ -744,11 +735,10 @@ export default class projectContext {
             return this.refreshDatasetsPromise;
         }
         this._datasetsAreLoading = true;
-        this._datasetsArePrepared = false;
         this.dispatcher.emitSimpleEvent('datasets:loading:started', null);
         this.refreshDatasetsPromise = new Promise((resolve) => {
             this.projectDataService.getProjects(this._datasetsFilter).then(data => {
-                this._datasets = data;
+                this._datasets = (data || []).map(utilities.preprocessNode);
                 if (this._localDataset) {
                     this._datasets.push(this._localDataset);
                 }
@@ -768,7 +758,7 @@ export default class projectContext {
         }
     }
 
-    refreshLocalDatasets() {
+    async refreshLocalDatasets() {
         if (this._lastLocalTracksUpdated) {
             this._lastLocalTracksUpdated = false;
             const localDataset = {
@@ -806,13 +796,17 @@ export default class projectContext {
                 }
             }
             this._localDataset = utilities.preprocessNode(localDataset);
-            const [__localDataset] = this.datasets.filter(d => d.isLocal);
-            if (__localDataset) {
-                const index = this.datasets.indexOf(__localDataset);
-                this.datasets.splice(index, 1);
+            if (!this._datasets || this._datasets.length === 0) {
+                // this.refreshDatasets() also adds _localDataset
+                await this.refreshDatasets();
+            } else {
+                const [__localDataset] = this._datasets.filter(d => d.isLocal);
+                if (__localDataset) {
+                    const index = this._datasets.indexOf(__localDataset);
+                    this._datasets.splice(index, 1);
+                }
+                this._datasets.push(this._localDataset);
             }
-
-            this._datasets.push(this._localDataset);
 
             return true;
         }
@@ -854,14 +848,16 @@ export default class projectContext {
     findDatasetByName(name) {
         if (!name || (typeof name) !== 'string') return null;
         const findFn = (items) => {
-            for (let i = 0; i < items.length; i++) {
-                const item = items[i];
-                if (item.name && item.name.toLowerCase() === name.toLowerCase()) {
-                    return item;
-                } else if (item.nestedProjects && item.nestedProjects.length) {
-                    const result = findFn(item.nestedProjects);
-                    if (result) {
-                        return result;
+            if (items && items.length) {
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    if (item.name && item.name.toLowerCase() === name.toLowerCase()) {
+                        return item;
+                    } else if (item.nestedProjects && item.nestedProjects.length) {
+                        const result = findFn(item.nestedProjects);
+                        if (result) {
+                            return result;
+                        }
                     }
                 }
             }
@@ -1133,7 +1129,7 @@ export default class projectContext {
             this.layout = layout;
         }
         const datasetsFilterChanged = this._datasetsFilter !== filterDatasets;
-        const datasetsUpdated = this.refreshLocalDatasets();
+        const datasetsUpdated = await this.refreshLocalDatasets();
         if (filterDatasets) {
             this._datasetsFilter = filterDatasets;
         }

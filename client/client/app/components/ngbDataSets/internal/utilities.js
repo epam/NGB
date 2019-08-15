@@ -101,10 +101,12 @@ export function sortDatasets(content, sortFn) {
                 if (node._lazyItems) {
                     items = node._lazyItems;
                 }
-                items.sort(itemsSort);
-                items
-                    .filter(child => child.isProject)
-                    .forEach(fn);
+                if (items) {
+                    items.sort(itemsSort);
+                    items
+                      .filter(child => child.isProject)
+                      .forEach(fn);
+                }
             }
         }
     };
