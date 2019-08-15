@@ -101,10 +101,12 @@ export function sortDatasets(content, sortFn) {
                 if (node._lazyItems) {
                     items = node._lazyItems;
                 }
-                items.sort(itemsSort);
-                items
-                    .filter(child => child.isProject)
-                    .forEach(fn);
+                if (items) {
+                    items.sort(itemsSort);
+                    items
+                      .filter(child => child.isProject)
+                      .forEach(fn);
+                }
             }
         }
     };
@@ -180,6 +182,9 @@ export function mapTrackFn(track: Node){
 }
 
 export function findProject(datasets: Array<Node>, project) {
+    if (!datasets) {
+        return null;
+    }
     const {name} = project;
     for (let i = 0; i < datasets.length; i++) {
         const dataset = datasets[i];
