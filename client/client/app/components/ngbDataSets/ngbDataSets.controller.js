@@ -119,6 +119,25 @@ export default class ngbDataSetsController extends baseController {
         }
     }
 
+    get searchLength() {
+        if (!this.searchPattern) {
+            return 0;
+        }
+        return this.searchPattern.length;
+    }
+
+    appearsInSearchResults(name) {
+        return this.searchLength > 0 && name.toLowerCase().indexOf(this.searchPattern.toLowerCase()) >= 0;
+    }
+
+    getSearchIndex(name) {
+        return name.toLowerCase().indexOf(this.searchPattern.toLowerCase());
+    }
+
+    getSearchEndIndex(name) {
+        return this.searchLength + name.toLowerCase().indexOf(this.searchPattern.toLowerCase());
+    }
+
     onResize() {
         this.$timeout(() => {
             this.$element.resize();

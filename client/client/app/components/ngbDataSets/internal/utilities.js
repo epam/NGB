@@ -285,7 +285,11 @@ export function search(pattern, items: Array<Node>) {
             item.searchFilterPassed = false;
             continue;
         }
-        item.searchFilterPassed = searchFilterPassed || item.name.toLowerCase().indexOf(pattern) === 0;
+        item.searchFilterPassed = searchFilterPassed || item.name.toLowerCase().indexOf(pattern) >= 0;
+        if (item.childrenFilterPassed && item.isProject && pattern.length > 0) {
+            expandNodeWithChilds(item);
+            item.__expanded = true;
+        }
         result = result || item.searchFilterPassed;
     }
     return result;

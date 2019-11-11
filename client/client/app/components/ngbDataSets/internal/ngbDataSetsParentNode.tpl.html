@@ -24,10 +24,15 @@
 
                     <span class="ivh-treeview-node-label dataset-project-title" ng-click="$ctrl.expanded(node)"
                           ng-class="{selected: node.__selected || node.__indeterminate, empty: node.isEmpty}">
-                                       {{node.name}}
-                                        <span class="dataset-project-title-structure-card" ng-if="node.datasetsCount">{{node.datasetsCount}} {{node.datasetsCount === 1 ? 'dataset' : 'datasets'}}</span>
-                                        <span class="dataset-project-title-structure-card" ng-if="node.filesCount">{{node.filesCount}} {{node.filesCount === 1 ? 'file' : 'files'}}</span>
-                                    </span>
+                        <span ng-if="$ctrl.appearsInSearchResults(node.name)">
+                            {{node.name | limitTo: $ctrl.getSearchIndex(node.name)}}<span class="search-result">{{node.name | limitTo: $ctrl.searchLength : $ctrl.getSearchIndex(node.name)}}</span>{{node.name | limitTo: node.name.length : $ctrl.getSearchEndIndex(node.name)}}
+                        </span>
+                        <span ng-if="!$ctrl.appearsInSearchResults(node.name)">
+                            {{node.name}}
+                        </span>
+                        <span class="dataset-project-title-structure-card" ng-if="node.datasetsCount">{{node.datasetsCount}} {{node.datasetsCount === 1 ? 'dataset' : 'datasets'}}</span>
+                        <span class="dataset-project-title-structure-card" ng-if="node.filesCount">{{node.filesCount}} {{node.filesCount === 1 ? 'file' : 'files'}}</span>
+                    </span>
                 </div>
                 <div class="dataset-genome" ng-if="node.reference">{{node.reference.name}}</div>
             </div>
