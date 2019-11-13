@@ -1,7 +1,6 @@
 <script type="text/ng-template" id="ngbDataSetsTerminalNode.tpl.html">
-    <div class="ivh-treeview-node-content" title="{{node.hint}}" ng-if="node.isTrack">
+    <div class="ivh-treeview-node-content" title="{{node.hint}}">
         <div class="dataset-item-row" ngb-context-menu data-target="ngbDataSetContextMenu" locals="node">
-            <div class="folder-horizontal-line"></div>
             <div layout="row" layout-align="space-between center" class="dataset-item-row-track">
                 <div layout="row" layout-align="start center">
 
@@ -21,12 +20,12 @@
                     </div>
                     <span class="ivh-treeview-node-label dataset-track-title dataset-selectable"
                           ng-class="{selected: node.__selected}"
-                          ng-click="$ctrl.toggleSelected(node)" ng-init="trackName = $ctrl.getTrackFileName(node)">
-                        <span ng-if="$ctrl.appearsInSearchResults(trackName)">
-                            {{trackName | limitTo: $ctrl.getSearchIndex(trackName)}}<span class="search-result">{{trackName | limitTo: $ctrl.searchLength : $ctrl.getSearchIndex(trackName)}}</span>{{trackName | limitTo: trackName.length : $ctrl.getSearchEndIndex(trackName)}}
+                          ng-click="$ctrl.toggleSelected(node)">
+                        <span ng-if="$ctrl.searchLength && node.searchInfo && node.searchInfo.passed">
+                            {{node.searchInfo.pre}}<span class="search-result">{{node.searchInfo.match}}</span>{{node.searchInfo.post}}
                         </span>
-                        <span ng-if="!$ctrl.appearsInSearchResults(trackName)">
-                            {{trackName}}
+                        <span ng-if="!$ctrl.searchLength || !node.searchInfo || !node.searchInfo.passed">
+                            {{node.displayName}}
                         </span>
                     </span>
                 </div>

@@ -1,7 +1,6 @@
 <script type="text/ng-template" id="ngbDataSetsParentNode.tpl.html">
-    <div flex ng-if="node.isProject" class="ivh-treeview-node-content" title="{{node.hint}}">
+    <div flex class="ivh-treeview-node-content" title="{{node.hint}}">
         <div class="dataset-item-row" ngb-context-menu data-target="ngbDataSetContextMenu" locals="node">
-            <div class="folder-horizontal-line" ng-if="node.project" ng-class="{empty: node.isEmpty}"></div>
             <div layout="row" layout-align="space-between center">
                 <div layout="row" layout-align="start center">
                                     <span ng-if="!node.isEmpty">
@@ -24,10 +23,10 @@
 
                     <span class="ivh-treeview-node-label dataset-project-title" ng-click="$ctrl.expanded(node)"
                           ng-class="{selected: node.__selected || node.__indeterminate, empty: node.isEmpty}">
-                        <span ng-if="$ctrl.appearsInSearchResults(node.name)">
-                            {{node.name | limitTo: $ctrl.getSearchIndex(node.name)}}<span class="search-result">{{node.name | limitTo: $ctrl.searchLength : $ctrl.getSearchIndex(node.name)}}</span>{{node.name | limitTo: node.name.length : $ctrl.getSearchEndIndex(node.name)}}
+                        <span ng-if="$ctrl.searchLength && node.searchInfo && node.searchInfo.passed">
+                            {{node.searchInfo.pre}}<span class="search-result">{{node.searchInfo.match}}</span>{{node.searchInfo.post}}
                         </span>
-                        <span ng-if="!$ctrl.appearsInSearchResults(node.name)">
+                        <span ng-if="!$ctrl.searchLength || !node.searchInfo || !node.searchInfo.passed">
                             {{node.name}}
                         </span>
                         <span class="dataset-project-title-structure-card" ng-if="node.datasetsCount">{{node.datasetsCount}} {{node.datasetsCount === 1 ? 'dataset' : 'datasets'}}</span>
@@ -35,17 +34,6 @@
                     </span>
                 </div>
                 <div class="dataset-genome" ng-if="node.reference">{{node.reference.name}}</div>
-            </div>
-        </div>
-        <div class="ivh-treeview-children-wrapper" flex layout="row"
-             ng-if="!node.isEmpty && node.childrenFilterPassed && node.__expanded">
-            <div flex="none" class="folder-vertical-line"></div>
-            <div flex class="flex">
-                <ul class="treeview ng-scope">
-                    <li ng-repeat="node in node.items | filter:$ctrl.filter()">
-                        <div ng-include="$ctrl.getTemplateNode(node)"></div>
-                    </li>
-                </ul>
             </div>
         </div>
     </div>

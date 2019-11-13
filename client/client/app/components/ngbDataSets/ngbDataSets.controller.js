@@ -1,5 +1,5 @@
 import baseController from '../../shared/baseController';
-import ngbDataSetsService from './ngbDataSets.service';
+import ngbDataSetsService, {toPlainList} from './ngbDataSets.service';
 
 export default class ngbDataSetsController extends baseController {
     static get UID() {
@@ -58,6 +58,10 @@ export default class ngbDataSetsController extends baseController {
         this._isLoading = !this.projectContext.datasetsLoaded;
         this.$timeout(::this.$scope.$apply);
         this.onResize();
+    }
+
+    get datasetsPlain() {
+        return toPlainList(this.datasets);
     }
 
     get isLoading() {
@@ -126,18 +130,6 @@ export default class ngbDataSetsController extends baseController {
         return this.searchPattern.length;
     }
 
-    appearsInSearchResults(name) {
-        return this.searchLength > 0 && name.toLowerCase().indexOf(this.searchPattern.toLowerCase()) >= 0;
-    }
-
-    getSearchIndex(name) {
-        return name.toLowerCase().indexOf(this.searchPattern.toLowerCase());
-    }
-
-    getSearchEndIndex(name) {
-        return this.searchLength + name.toLowerCase().indexOf(this.searchPattern.toLowerCase());
-    }
-
     onResize() {
         this.$timeout(() => {
             this.$element.resize();
@@ -174,19 +166,5 @@ export default class ngbDataSetsController extends baseController {
             return 'ngbDataSetsParentNode.tpl.html';
         else
             return 'ngbDataSetsTerminalNode.tpl.html';
-    }
-
-    getTrackFileName(track) {
-        if (!track.isLocal) {
-            return track.prettyName || track.name;
-        } else {
-            const fileName = track.name;
-            if (!fileName || !fileName.length) {
-                return null;
-            }
-            let list = fileName.split('/');
-            list = list[list.length - 1].split('\\');
-            return list[list.length - 1];
-        }
     }
 }

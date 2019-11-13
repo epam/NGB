@@ -2,6 +2,8 @@ import {Node, utilities} from './internal';
 
 export const SORT_MODE_BY_NAME_ASCENDING = 'sortByNameAsc';
 export const SORT_MODE_BY_NAME_DESCENDING = 'sortByNameDesc';
+const toPlainList = utilities.toPlainList;
+export {toPlainList};
 
 export default class ngbDataSetsService {
     static instance(dispatcher, projectContext, projectDataService) {

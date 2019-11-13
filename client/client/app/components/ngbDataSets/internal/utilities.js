@@ -1,4 +1,4 @@
-import {Node} from './ngbDataSets.node';
+import {Node, SearchInfo} from './ngbDataSets.node';
 
 export function preprocessNode(node: Node) {
     return _preprocessNode(node, null);
@@ -20,6 +20,8 @@ function _preprocessNode(node: Node, parent: Node = null) {
     node.searchFilterPassed = true;
     node.childrenFilterPassed = true;
     node.roles = ['ROLE_ADMIN'];
+    node.displayName = node.prettyName || node.name;
+    node.searchInfo = new SearchInfo();
     let hasNestedProjects = false;
     if (node.nestedProjects) {
         hasNestedProjects = true;
@@ -37,6 +39,7 @@ function _preprocessNode(node: Node, parent: Node = null) {
         track.hint = `${getTrackFileName(track)}${reference ? `\r\nReference: ${reference.name}` : ''}`;
         track.searchFilterPassed = true;
         track.roles = ['ROLE_ADMIN'];
+        track.displayName = getTrackFileName(track);
         return track;
     };
     node.hint = _getProjectHint(node, reference);
@@ -59,9 +62,7 @@ function getTrackFileName(track) {
         if (!fileName || !fileName.length) {
             return null;
         }
-        let list = fileName.split('/');
-        list = list[list.length - 1].split('\\');
-        return list[list.length - 1];
+        return fileName.split('/').pop().split('\\').pop();
     }
 }
 
@@ -285,12 +286,31 @@ export function search(pattern, items: Array<Node>) {
             item.searchFilterPassed = false;
             continue;
         }
-        item.searchFilterPassed = searchFilterPassed || item.name.toLowerCase().indexOf(pattern) >= 0;
+        if (!item.searchInfo) {
+            item.searchInfo = new SearchInfo();
+        }
+        item.searchInfo.test(pattern, item.displayName);
+        item.searchFilterPassed = searchFilterPassed || item.searchInfo.passed;
         if (item.childrenFilterPassed && item.isProject && pattern.length > 0) {
             expandNodeWithChilds(item);
             item.__expanded = true;
         }
         result = result || item.searchFilterPassed;
+    }
+    return result;
+}
+
+export function toPlainList(items, ident = 0) {
+    const result = [];
+    if (items && items.length) {
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            item.ident = ident;
+            result.push(item);
+            if (item.isProject && item.__expanded) {
+                result.push(...toPlainList(item.items, ident + 1));
+            }
+        }
     }
     return result;
 }
