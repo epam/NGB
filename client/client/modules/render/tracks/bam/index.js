@@ -12,7 +12,7 @@ import {dataModes, groupModes, sortTypes} from './modes';
 import Promise from 'bluebird';
 import {ScrollableTrack} from '../../core';
 import BAMConfig from './bamConfig';
-import {default as menu} from './menu';
+import {default as menu, sashimiMenu} from './menu';
 import {menu as menuUtilities} from '../../utilities';
 import scaleModes from '../wig/modes';
 
@@ -54,7 +54,9 @@ export class BAMTrack extends ScrollableTrack {
             'coverageLogScale',
             'coverageScaleMode',
             'coverageScaleFrom',
-            'coverageScaleTo'];
+            'coverageScaleTo',
+            'sashimi'
+        ];
     }
 
     get trackHasCoverageSubTrack() {
@@ -157,12 +159,12 @@ export class BAMTrack extends ScrollableTrack {
         };
 
         const wrapPerformFn = (fn) => () => {
-            fn(this.bamRenderSettings);
+            fn(this.bamRenderSettings, this.config, this.dispatcher, this.cacheService.clone());
             this.sortingModeChanged();
             this.reportTrackState();
         };
 
-        this._menu = menu.map(function processMenuList(menuEntry) {
+        this._menu = (this.state.sashimi ? sashimiMenu : menu).map(function processMenuList(menuEntry) {
             const result = {};
             for (const key of Object.keys(menuEntry)) {
                 switch (true) {
@@ -239,8 +241,9 @@ export class BAMTrack extends ScrollableTrack {
 
     constructor(opts) {
         super(opts);
+        const cacheServiceInitialized = !!opts.cacheService;
         this.state.readsViewMode = parseInt(this.state.readsViewMode);
-        this.cacheService = new BamCacheService(this, Object.assign({}, this.trackConfig, this.config));
+        this.cacheService = opts.cacheService || new BamCacheService(this, Object.assign({}, this.trackConfig, this.config));
         this._bamRenderer = new BamRenderer(this.viewport, Object.assign({}, this.trackConfig, this.config), this._pixiRenderer, this.cacheService, opts);
 
         const bamSettings = {
@@ -290,13 +293,14 @@ export class BAMTrack extends ScrollableTrack {
         this.bamRequestSettings = bamSettings;
         this.bamRenderSettings = bamRenderSettings;
 
-        this.cacheService.properties = {
-            maxAlignmentsRange: this._bamRenderer.maximumAlignmentsRange,
-            maxCoverageRange: this._bamRenderer.maximumCoverageRange,
-            rendering: bamRenderSettings,
-            request: this.bamRequestSettings
-        };
-
+        if (!cacheServiceInitialized) {
+            this.cacheService.properties = {
+                maxAlignmentsRange: this._bamRenderer.maximumAlignmentsRange,
+                maxCoverageRange: this._bamRenderer.maximumCoverageRange,
+                rendering: bamRenderSettings,
+                request: this.bamRequestSettings
+            };
+        }
         this.cacheService.cache.groupMode = this.state.groupMode;
     }
 
@@ -456,7 +460,7 @@ export class BAMTrack extends ScrollableTrack {
         }
         const currentMode = this.cacheService.cache.dataMode;
         let _dataMode = dataModes.full;
-        if (!this.state.alignments) {
+        if (!this.state.alignments && !this.state.sashimi) {
             _dataMode = dataModes.coverage;
         }
         if (this.viewport.actualBrushSize > this._bamRenderer.maximumCoverageRange) {

@@ -1,0 +1,11 @@
+.sashimi-plot {
+  width: 90vw;
+  height: 90vh;
+  max-width: 90vw;
+  max-height: 90vh;
+
+  .sashimi-plot-container {
+    position: relative;
+    overflow: auto;
+  }
+}

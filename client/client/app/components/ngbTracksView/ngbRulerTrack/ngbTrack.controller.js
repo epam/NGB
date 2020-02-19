@@ -47,7 +47,8 @@ export default class ngbTrackController {
             viewport: this.viewport,
             ...this.trackOpts,
             ...this.track,
-            projectContext: this.projectContext
+            projectContext: this.projectContext,
+            silentInteractions: this.silentInteractions
         });
         ngbTrackController.instanceCache.push(this.trackInstance);
 

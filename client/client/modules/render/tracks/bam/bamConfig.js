@@ -82,7 +82,11 @@ export default {
             height += config.coverage.height;
         }
         if (state.spliceJunctions) {
-            height += config.spliceJunctions.height;
+            if (state.sashimi) {
+                height += config.spliceJunctions.sashimi.height;
+            } else {
+                height += config.spliceJunctions.height;
+            }
         }
         return height;
     },
@@ -109,7 +113,11 @@ export default {
             maxHeight += config.coverage.height;
         }
         if (state.spliceJunctions) {
-            maxHeight += config.spliceJunctions.height;
+            if (state.sashimi) {
+                maxHeight += config.spliceJunctions.sashimi.height;
+            } else {
+                maxHeight += config.spliceJunctions.height;
+            }
         }
         return maxHeight;
     },
@@ -122,7 +130,11 @@ export default {
             minHeight += config.coverage.height;
         }
         if (state.spliceJunctions) {
-            minHeight += config.spliceJunctions.height;
+            if (state.sashimi) {
+                minHeight += config.spliceJunctions.sashimi.height;
+            } else {
+                minHeight += config.spliceJunctions.height;
+            }
         }
         return minHeight;
     },
@@ -161,7 +173,56 @@ export default {
             stroke: 0x444444,
             thickness: 1
         },
-        height: 75
+        height: 75,
+        sashimi: {
+            border: {
+                stroke: 0x777777,
+                thickness: 1
+            },
+            divider: {
+                stroke: 0x444444,
+                thickness: 1
+            },
+            coverage: {
+                area: {
+                    dividers: 2,
+                    maximum: null,
+                    minimum: 0,
+                    thresholdMax: null,
+                    thresholdMin: null
+                },
+                divider: {
+                    color: 0x777777
+                },
+                height: 75,
+                logScaleIndicator: {
+                    alpha: 0.8,
+                    label: {
+                        fill: 0xFFFFFF,
+                        font: 'normal 8pt arial'
+                    },
+                    margin: 1,
+                    padding: 2,
+                    fill: 0xCCD8DD
+                },
+                maxHeight: 75,
+                minHeight: 75,
+                wig: {
+                    color: 0xe69696,
+                    lineColor: 0xe69696,
+                    detailedStyleStartingAtPixelsPerBP: Infinity,
+                    thresholdColor: 0xe69696,
+                    lineThresholdColor: 0xe69696
+                }
+            },
+            height: 150,
+            levelHeight: 20,
+            color: 0xE21F27,
+            label: {
+                fill: 0xE21F27,
+                font: '8pt arial'
+            }
+        }
     },
     yElementOffset: 1,
     yScale: 10

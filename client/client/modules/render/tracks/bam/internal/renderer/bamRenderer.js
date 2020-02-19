@@ -5,6 +5,7 @@ import {
     CoverageRenderer,
     RegionsRenderer,
     PlaceholderRenderer,
+    SashimiRenderer,
     renderCenterLine,
     renderDownSampleIndicators,
     renderGroups,
@@ -28,8 +29,10 @@ export class BamRenderer {
 
     _alignmentsRenderProcessor: AlignmentsRenderProcessor = null;
     _coverageRenderer: CoverageRenderer = null;
+    _sashimiRenderer: SashimiRenderer = null;
     _regionsRenderer: RegionsRenderer = null;
     _coverageArea: CoverageArea = null;
+    _sashimiArea: CoverageArea = null;
 
     _zoomInPlaceholderRenderer: PlaceholderRenderer = null;
     _noReadsInRangePlaceholderRenderer: PlaceholderRenderer = null;
@@ -43,6 +46,8 @@ export class BamRenderer {
     _noReadsInRangePlaceholderContainer = null;
     _dataContainer = null;
     _coverageContainer = null;
+    _sashimiContainer = null;
+    _sashimiLabelsContainer = null;
     _centerLineGraphics = null;
     _downSampleGraphics = null;
     _spliceJunctionsGraphics = null;
@@ -266,13 +271,7 @@ export class BamRenderer {
                 shouldRender: this._settings.isDownSampling,
                 y: this.downsampleIndicatorsTopMargin
             }, features, this.maximumAlignmentsRange);
-            renderSpliceJunctions(this._cacheService.cache.spliceJunctions, this._viewport, {
-                colors: this._settings.colors,
-                config: this._config.spliceJunctions,
-                graphics: this._spliceJunctionsGraphics,
-                shouldRender: features.spliceJunctions && this._viewport.actualBrushSize <= this.maximumAlignmentsRange,
-                y: this.spliceJunctionsTopMargin
-            });
+            this._renderSpliceJunctions(flags, features);
             renderCenterLine(this._viewport, {
                 config: this._config,
                 graphics: this._centerLineGraphics,
@@ -348,7 +347,14 @@ export class BamRenderer {
 
     _initSpliceJunctionsGraphics() {
         this._spliceJunctionsGraphics = new PIXI.Graphics();
+        this._dataContainer.addChild(this._sashimiContainer = new PIXI.Container());
         this._dataContainer.addChild(this._spliceJunctionsGraphics);
+        this._sashimiRenderer = new SashimiRenderer(this._config.spliceJunctions.sashimi, this._config);
+        this._sashimiArea = new CoverageArea(this._viewport, this._config.spliceJunctions.sashimi.coverage);
+        this._sashimiContainer.addChild(this._sashimiRenderer.container);
+        this._sashimiContainer.addChild(this._sashimiArea.axis);
+        this._sashimiLabelsContainer = new PIXI.Container();
+        this._dataContainer.addChild(this._sashimiLabelsContainer);
     }
 
     _initDownsampleGraphics() {
@@ -449,6 +455,38 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
         }
         if (this._state.coverage && this._viewport.actualBrushSize > this.maximumCoverageRange) {
             this._regionsRenderer.render(this._viewport, this._cacheService.cache.regionItems);
+        }
+    }
+
+    _renderSpliceJunctions(flags, features) {
+        this._sashimiContainer.visible = features.sashimi;
+        this._sashimiLabelsContainer.removeChildren();
+        if (features.sashimi) {
+            this._sashimiArea.render(this._viewport, this._cacheService.cache.coverage.coordinateSystem);
+            this._sashimiRenderer.render(
+                this._viewport,
+                this._cacheService.cache,
+                false,
+                {
+                    graphics: this._spliceJunctionsGraphics,
+                    labelsContainer: this._sashimiLabelsContainer,
+                    shouldRender: this._viewport.actualBrushSize <= this.maximumAlignmentsRange,
+                    y: this.spliceJunctionsTopMargin
+                }
+            );
+        } else {
+            this._sashimiContainer.visible = false;
+            renderSpliceJunctions(
+                this._cacheService.cache.spliceJunctions,
+                this._viewport,
+                {
+                    colors: this._settings.colors,
+                    config: this._config.spliceJunctions,
+                    graphics: this._spliceJunctionsGraphics,
+                    sashimi: features.sashimi,
+                    shouldRender: features.spliceJunctions && this._viewport.actualBrushSize <= this.maximumAlignmentsRange,
+                    y: this.spliceJunctionsTopMargin
+                });
         }
     }
 
@@ -566,16 +604,22 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                     this._regionsRenderer.render(this._viewport, this._cacheService.cache.regionItems, feature.item);
                 } break;
                 case HOVERED_ITEM_TYPE_SPLICE_JUNCTION: {
-                    const graphics = new PIXI.Graphics();
-                    renderSpliceJunctions(this._cacheService.cache.spliceJunctions, this._viewport, {
-                        colors: this._settings.colors,
-                        config: this._config.spliceJunctions,
-                        graphics: graphics,
-                        shouldRender: this._state.spliceJunctions && this._viewport.actualBrushSize <= this.maximumAlignmentsRange,
-                        y: this.spliceJunctionsTopMargin,
-                        hovered: feature.item
-                    });
-                    this._hoveredItemContainer.addChild(graphics);
+                    if (!this._state.sashimi) {
+                        const graphics = new PIXI.Graphics();
+                        renderSpliceJunctions(
+                            this._cacheService.cache.spliceJunctions,
+                            this._viewport,
+                            {
+                                colors: this._settings.colors,
+                                config: this._config.spliceJunctions,
+                                graphics: graphics,
+                                sashimi: this._state.sashimi,
+                                shouldRender: this._state.spliceJunctions && this._viewport.actualBrushSize <= this.maximumAlignmentsRange,
+                                y: this.spliceJunctionsTopMargin,
+                                hovered: feature.item
+                            });
+                        this._hoveredItemContainer.addChild(graphics);
+                    }
                 } break;
                 case HOVERED_ITEM_TYPE_ALIGNMENT: {
                     this._alignmentsRenderProcessor.hoverRead(

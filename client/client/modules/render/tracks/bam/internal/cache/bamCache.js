@@ -135,9 +135,11 @@ export default class BamCache {
         return this._isUpdating;
     }
 
-    constructor(track) {
+    constructor(track, invalidate = true) {
         this.track = track;
-        this.invalidate();
+        if (invalidate) {
+            this.invalidate();
+        }
     }
 
     invalidate(delayed = false): BamCache {
@@ -589,5 +591,44 @@ export default class BamCache {
 
     sort(mode, position) {
         actions.sort(this._groups, mode, position, this.renderingProperties.viewAsPairs);
+    }
+
+    clone() {
+        if (this.isUpdating) {
+            return undefined;
+        }
+        const cloneArray = source => (source || []).map(o => o);
+        const cloneGroups = source => (source || []).map(group => ({
+            displayName: group.groupDisplayName,
+            lines: cloneArray(group.lines),
+            name: group.groupName,
+            pairedLines: cloneArray(group.pairedLines),
+            rawPairedReads: cloneArray(group.rawPairedReads),
+            rawReads: cloneArray(group.rawReads)
+        }));
+        const cloned = new BamCache(this.track, false);
+        cloned.coverageRange = Object.assign({}, this.coverageRange);
+        cloned.readNames = this.readNames.clone();
+        cloned.downsampleCoverage = cloneArray(this.downsampleCoverage);
+        cloned.coverageItems = cloneArray(this.coverageItems);
+        cloned.regionItems = cloneArray(this.regionItems);
+        cloned.spliceJunctions = cloneArray(this.spliceJunctions);
+        cloned.coverage = Object.assign({}, this.coverage);
+        cloned.regions = Object.assign({}, this.regions);
+        cloned._groups = cloneGroups(this._groups);
+        cloned._renderingProperties = Object.assign({}, this._renderingProperties);
+        cloned._isUpdating = false;
+        cloned._updatingBoundaries = null;
+        cloned._shouldRearrangeReads = false;
+        cloned._referenceBuffers = cloneArray(this._referenceBuffers);
+
+        cloned._cacheUpdated = false;
+        cloned._groupMode = this._groupMode;
+        cloned._totalLines = this._totalLines;
+        cloned._totalPairedLines = this._totalPairedLines;
+        cloned._dataMode = this._dataMode;
+        cloned._dataModeChanged = false;
+        cloned._delayedInvalidateRequested = false;
+        return cloned;
     }
 }

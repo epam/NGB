@@ -47,6 +47,7 @@ export class Track extends BaseTrack {
 
     _settings = null;
     projectContext = null;
+    silentInteractions = false; // true, if `track` should not send events (like apply state) to global project context
 
     _disposables = [
         this.viewport.shortenedIntronsChangeSubject.subscribe(() => {
@@ -160,6 +161,7 @@ export class Track extends BaseTrack {
             this.shouldDisplayTooltips = opts.displayTooltips;
             this.hoveringEffects = opts.hoveringEffects;
             this.projectContext = opts.projectContext;
+            this.silentInteractions = !!opts.silentInteractions;
             this.reportTrackState();
         }
         this._refreshPixiRenderer();
@@ -169,7 +171,7 @@ export class Track extends BaseTrack {
     }
 
     reportTrackState(silent = false) {
-        if (!this.projectContext || this.config.format.toLowerCase() === 'ruler') {
+        if (!this.projectContext || this.silentInteractions || this.config.format.toLowerCase() === 'ruler') {
             return;
         }
         const track = {

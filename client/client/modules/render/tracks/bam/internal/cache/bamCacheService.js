@@ -22,12 +22,14 @@ export default class BamCacheService {
         return this._cache;
     }
 
-    constructor(track, config) {
+    constructor(track, config, cache) {
         this.dataService = new BamDataService(config.dispatcher);
-        this._cache = new BamCache(track);
+        this._cache = cache || new BamCache(track);
         this._config = config;
         this._coverageTransformer = new CoverageTransformer(this._cache, config);
-        this.cache.invalidate();
+        if (!cache) {
+            this.cache.invalidate();
+        }
     }
 
     get properties() {
@@ -256,5 +258,15 @@ export default class BamCacheService {
 
     clear() {
         this.cache.invalidate();
+    }
+
+    clone() {
+        const cache = this._cache.clone();
+        if (!cache) {
+            return undefined;
+        }
+        const cloned = new BamCacheService(cache.track, this._config, cache);
+        cloned._properties = this._properties;
+        return cloned;
     }
 }

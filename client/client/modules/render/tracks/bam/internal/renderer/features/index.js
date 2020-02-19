@@ -5,5 +5,6 @@ export {PlaceholderRenderer} from './placeholderRenderer';
 export {renderCenterLine} from './centerLineRenderer';
 export {renderDownSampleIndicators} from './downSampleRenderer';
 export {renderGroups} from './groupsRenderer';
+export {SashimiRenderer} from './sashimiRenderer';
 export {renderScrollBar} from './scrollBarRenderer';
 export {renderSpliceJunctions} from './spliceJunctionsRenderer';

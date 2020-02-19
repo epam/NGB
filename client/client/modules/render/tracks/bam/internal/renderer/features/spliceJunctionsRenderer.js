@@ -1,18 +1,11 @@
-const Math = window.Math;
+import {renderArea} from './spliceJunctions';
 
 export function renderSpliceJunctions(spliceJunctions, viewport, drawingConfig) {
-    const {colors, config, graphics, shouldRender, y, hovered} = drawingConfig;
+    const {colors, config, graphics, shouldRender, hovered} = drawingConfig;
     graphics.clear();
+    const {centerLine, height} = renderArea(viewport, drawingConfig);
     if (shouldRender) {
         graphics.lineStyle(config.border.thickness, config.border.stroke, 1);
-        const centerLine = y + config.height / 2;
-        if (!hovered) {
-            graphics.moveTo(0, y + config.height);
-            graphics.lineTo(viewport.canvasSize, y + config.height);
-            graphics.lineStyle(config.divider.thickness, config.divider.stroke, 1);
-            graphics.moveTo(0, centerLine);
-            graphics.lineTo(viewport.canvasSize, centerLine);
-        }
         let maxValue = 0;
         for (let i = 0; i < spliceJunctions.length; i++) {
             const spliceJunctionItem = spliceJunctions[i];
@@ -20,7 +13,7 @@ export function renderSpliceJunctions(spliceJunctions, viewport, drawingConfig) 
                 continue;
             maxValue = Math.max(maxValue, Math.abs(spliceJunctionItem.count));
         }
-        const arcMaxHeight = config.height / 2
+        const arcMaxHeight = height / 2
             - config.arc.offset.top - config.arc.offset.bottom;
         const renderArc = (startPx, endPx, strand, value) => {
             const innerRadius = config.arc.offset.top;

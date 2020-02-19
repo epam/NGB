@@ -110,7 +110,9 @@ export default class ngbTrackController {
                 } else {
                     tracksSettings.height = this.track.height;
                 }
-                this.projectContext.changeState({tracksState});
+                if (!this.silentInteractions) {
+                    this.projectContext.changeState({tracksState});
+                }
                 this.isResizing = false;
             }
         });
@@ -215,6 +217,9 @@ export default class ngbTrackController {
                 height = trackSettings.height;
             }
         }
+        if (this.state) {
+            state = Object.assign(state, this.state);
+        }
         this.trackInstance = new this.instanceConstructor({
             dataItemClicked: ::this.onTrackItemClick,
             changeTrackVisibility: ::this.changeTrackVisibility,
@@ -225,6 +230,7 @@ export default class ngbTrackController {
             ...this.track,
             restoredHeight: height,
             projectContext: this.projectContext,
+            silentInteractions: this.silentInteractions,
             state: state,
             viewport: this.viewport
         });
@@ -248,6 +254,11 @@ export default class ngbTrackController {
     }
 
     hideTrack(event) {
+        if (this.silentInteractions) {
+            event.stopImmediatePropagation();
+            event.stopPropagation();
+            return false;
+        }
         const tracksState = this.projectContext.tracksState;
         const trackName = this.track.name.toLowerCase();
         const projectId = this.track.projectId.toLowerCase();

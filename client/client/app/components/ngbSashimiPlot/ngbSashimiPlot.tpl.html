@@ -1,0 +1,33 @@
+<ngb-browser-toolbar-panel style="display: block;"
+                           zoom-manager="ctrl.zoomManager"
+                           bookmark-camera="ctrl.bookmarkCamera"
+                           attach-to-element="ctrl.browserToolbarAttachedToElement"
+></ngb-browser-toolbar-panel>
+<div class="sashimi-plot-container" layout-fill>
+    <div class="tracks-panel">
+        <div ng-if="ctrl.renderable">
+            <ngb-ruler-track
+                    track="ctrl.rulerTrack"
+                    track-opts="ctrl.trackOpts"
+                    silent-interactions="true"
+                    viewport="ctrl.viewport"></ngb-ruler-track>
+        </div>
+        <div ng-if="ctrl.renderable">
+            <div class="dndPlaceholder"></div>
+            <ngb-track
+                    track="ctrl.bamTrack"
+                    menu-manager="ctrl.menuManager"
+                    track-opts="ctrl.trackOpts"
+                    state="ctrl.bamTrackState"
+                    silent-interactions="true"
+                    viewport="ctrl.viewport"></ngb-track>
+            <ngb-track
+                    ng-repeat="track in ctrl.geneTracks track by ctrl.trackHash(track)"
+                    track="track"
+                    menu-manager="ctrl.menuManager"
+                    track-opts="ctrl.geneTrackOpts"
+                    silent-interactions="true"
+                    viewport="ctrl.viewport"></ngb-track>
+        </div>
+    </div>
+</div>

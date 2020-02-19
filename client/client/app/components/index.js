@@ -6,6 +6,7 @@ import ngbFeatureInfoPanel from './ngbFeatureInfoPanel';
 import ngbLogModule from './ngbLog';
 import ngbMolecularViewer from './ngbMolecularViewer';
 import ngbProjectInfoPanel from './ngbProjectInfoPanel';
+import ngbSashimiPlot from './ngbSashimiPlot';
 import ngbTracksView from './ngbTracksView';
 import ngbVariantPanel from './ngbVariantPanel';
 import ngbVariantsTablePanel from './ngbVariantsTablePanel';
@@ -20,6 +21,7 @@ export default angular.module('NGB_Panels', [
     ngbLogModule,
     ngbMolecularViewer,
     ngbProjectInfoPanel,
+    ngbSashimiPlot,
     ngbTracksView,
     ngbVariantPanel,
     ngbVariantsTablePanel,

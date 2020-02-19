@@ -34,7 +34,15 @@ export default {
             label: 'Show splice junctions',
             name: 'bam>showSpliceJunctions',
             type: 'checkbox'
-        }
+        },
+        menu.getDivider(),
+        menu.getActionButton(
+          'bam>showSashimiPlot',
+          'Sashimi plot',
+          (renderSettings, config, dispatcher, cacheService) => {
+              dispatcher.emitSimpleEvent('bam:sashimi', {config, cacheService});
+          }
+        )
     ],
     label:'General',
     name:'bam>general',

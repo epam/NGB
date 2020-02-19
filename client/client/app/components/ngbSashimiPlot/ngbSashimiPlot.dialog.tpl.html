@@ -1,0 +1,20 @@
+<md-dialog aria-label="sashimi plot" class="sashimi-plot">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2>Sashimi plot</h2>
+            <span flex></span>
+            <md-button class="md-icon-button" ng-click="close()" aria-label="Close">
+                <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    <md-dialog-content>
+        <ngb-sashimi-plot
+                chromosome-name="chromosomeName"
+                reference-id="referenceId"
+                track="track"
+                cache-service="cacheService"
+        >
+        </ngb-sashimi-plot>
+    </md-dialog-content>
+</md-dialog>

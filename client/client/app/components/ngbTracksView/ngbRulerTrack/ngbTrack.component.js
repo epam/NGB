@@ -5,7 +5,8 @@ export default {
         menuManager: '=',
         track: '=',
         trackOpts: '=',
-        viewport: '='
+        viewport: '=',
+        silentInteractions: '='
     },
     controller: controller.UID,
     controllerAs: 'ctrl',

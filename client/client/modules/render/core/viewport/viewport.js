@@ -20,6 +20,8 @@ export class Viewport extends BaseViewport {
 
     projectContext;
 
+    silentInteractions = false; // true, if `viewport` should not send events (like change position) to global project context
+
     onDestroy = null;
 
     _shortenedIntronsViewport;
@@ -54,13 +56,16 @@ export class Viewport extends BaseViewport {
         this.vcfDataService = vcfDataService;
         this.blatRegion = blatRegion;
 
-        if (browserInitialSetting && browserInitialSetting.browserId) {
+        if (browserInitialSetting && browserInitialSetting.browserId && !browserInitialSetting.silentInteractions) {
             this.browserId = browserInitialSetting.browserId;
             this.projectContext.changeViewportState(this.browserId, this.brush, true);
         }
+        if (browserInitialSetting && browserInitialSetting.silentInteractions) {
+            this.silentInteractions = true;
+        }
 
         this.hotKeyListener = (event) => {
-            if (event) {
+            if (event && !this.silentInteractions) {
                 const path = event.split('>');
                 if (path && path[0] === 'vcf') {
                     const tracksVCF = this.projectContext.getActiveTracks().filter(track => track.format === 'VCF');
@@ -93,7 +98,7 @@ export class Viewport extends BaseViewport {
         this.dispatcher.on('hotkeyPressed', _hotKeyListener);
 
         this.onDestroy = () => {
-            if (this.browserId) {
+            if (this.browserId && !this.silentInteractions) {
                 this.projectContext.changeViewportState(this.browserId, undefined);
             }
             this.dispatcher.removeListener('hotkeyPressed', _hotKeyListener);
@@ -256,7 +261,7 @@ export class Viewport extends BaseViewport {
                     start,
                 });
                 if (finish || !this.initialized || oldBrush.start !== this.brush.start || oldBrush.end !== this.brush.end) {
-                    if (finish) {
+                    if (finish && !this.silentInteractions) {
                         this.projectContext.changeViewportState(this.browserId, Object.assign({}, this.brush));
                     }
                     this.brushChangeSubject.onNext({sender: this, reload: finish});
@@ -264,7 +269,7 @@ export class Viewport extends BaseViewport {
             })();
         }
         else if (finish || awakeFromShortenedIntrons || !this.initialized || oldBrush.start !== this.brush.start || oldBrush.end !== this.brush.end) {
-            if (finish) {
+            if (finish && !this.silentInteractions) {
                 this.projectContext.changeViewportState(this.browserId, this.brush);
             }
             this.brushChangeSubject.onNext({sender: this, reload: finish});
@@ -276,7 +281,7 @@ export class Viewport extends BaseViewport {
         if (!interval) {
             return;
         }
-        if (!this.canTransform) {
+        if (!this.canTransform && !this.silentInteractions) {
             if (!this.browserId) {
                 this.projectContext.changeState({viewport: this.brush}, true);
             } else {
@@ -306,7 +311,7 @@ export class Viewport extends BaseViewport {
         if (!position) {
             return;
         }
-        if (!this.canTransform) {
+        if (!this.canTransform && !this.silentInteractions) {
             if (!this.browserId) {
                 this.projectContext.changeState({viewport: this.brush}, true);
             } else {
