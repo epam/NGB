@@ -6,13 +6,13 @@ os:
   - linux
 dist: xenial
 install: 
-    - sudo add-apt-repository -y ppa:jonathonf/python-2.7
     - sudo apt-get update
-    - sudo apt-get install --only-upgrade python
+    - sudo apt-get install python3
+    - sudo rm -f /usr/bin/python && sudo ln -s $(which python3) /usr/bin/python
     - wget https://bootstrap.pypa.io/get-pip.py
-    - sudo python get-pip.py
-    - sudo pip install mkdocs
-    - sudo pip install mkdocs-material
+    - sudo python3 get-pip.py
+    - sudo python3 -m pip install mkdocs
+    - sudo python3 -m pip install mkdocs-material
 script:
     - ./gradlew buildJar buildWar buildCli buildDoc buildDocker -PbuildNumber=${TRAVIS_JOB_NUMBER} ${CLIENT_PATH}
     - ./gradlew jacocoTestReport
