@@ -67,7 +67,7 @@
     "html-loader": "0.4.3",
     "html-webpack-plugin": "^2.17.0",
     "intl": "1.2.5",
-    "lodash": "^3.10.1",
+    "lodash": "^4.17.19",
     "minimist": "1.2.0",
     "ng-annotate-loader": "0.1.0",
     "node-sass": "^3.4.2",
