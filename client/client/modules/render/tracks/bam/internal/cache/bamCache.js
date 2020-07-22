@@ -505,7 +505,7 @@ export default class BamCache {
         }
         if (data.referenceBuffer) {
             this._referenceBuffers.push({
-                endIndex: data.minPosition + data.referenceBuffer.length,
+                endIndex: data.minPosition + data.referenceBuffer.length - 1,
                 reference: data.referenceBuffer,
                 startIndex: data.minPosition
             });
