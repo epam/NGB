@@ -35,7 +35,6 @@ import com.epam.catgenome.entity.bam.BamQueryOption;
 import com.epam.catgenome.entity.bam.BamTrackMode;
 import com.epam.catgenome.entity.bam.TrackDirectionType;
 import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.exception.SamAlignmentException;
 import com.epam.catgenome.manager.bam.filters.Filter;
 import com.epam.catgenome.manager.bam.filters.MiddleSAMRecordFilter;
 import com.epam.catgenome.manager.bam.handlers.SAMRecordHandler;
@@ -130,21 +129,4 @@ public class SamRecordHandlerTest extends AbstractManagerTest {
         Assert.assertEquals(2, recordHandler.getSifter().getFilteredReadsCount());
     }
 
-    @Test(expected = SamAlignmentException.class)
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void matchBeyondReferenceUpperBorderTest() throws IOException {
-
-        final SAMRecord rec = set.addFrag("read3", 0, 100, false, false, "75M", "*", 151);
-
-        recordHandler.add(rec);
-    }
-
-    @Test(expected = SamAlignmentException.class)
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-    public void matchBeyondReferenceLowerBorderTest() throws IOException {
-
-        final SAMRecord rec = set.addFrag("read4", 0, -4, false, false, "75M", "*", 151);
-
-        recordHandler.add(rec);
-    }
 }
