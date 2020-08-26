@@ -37,7 +37,6 @@ import com.epam.catgenome.entity.bam.BamTrackMode;
 import com.epam.catgenome.entity.bam.BaseCoverage;
 import com.epam.catgenome.entity.bam.BasePosition;
 import com.epam.catgenome.entity.bam.SpliceJunctionsEntity;
-import com.epam.catgenome.exception.SamAlignmentException;
 import com.epam.catgenome.manager.bam.filters.Filter;
 import com.epam.catgenome.manager.bam.sifters.DownsamplingSifter;
 import com.epam.catgenome.manager.reference.ReferenceManager;
@@ -435,8 +434,7 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
 
         private void processMatch(List<BasePosition> basePositions, int cigarLength) {
             for (int j = 0; j < cigarLength; j++) {
-                checkIfBiasOutOfBound();
-                if (bufferBase != null && bufferBase.charAt(bias) != upperReadString.charAt(position)) {
+                if (checkIfBiasOutOfBound() && bufferBase != null && bufferBase.charAt(bias) != upperReadString.charAt(position)) {
                     basePositions.add(
                             new BasePosition(position + corrector, upperReadString.charAt(position))
                     );
@@ -448,12 +446,8 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
             }
         }
 
-        private void checkIfBiasOutOfBound() {
-            if (0 > bias || bias >= endTrack) {
-                //add +1 for better readability
-                throw new SamAlignmentException(
-                        "Read contains match that falls out of reference at position " + (bias + 1));
-            }
+        private boolean checkIfBiasOutOfBound() {
+            return 0 <= bias && bias < endTrack;
         }
 
         private String getXSTag(List<SAMRecord.SAMTagAndValue> list) {
