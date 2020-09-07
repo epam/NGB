@@ -5,7 +5,7 @@ const tooltipElementContainer: HTMLElement = document.body;
 
 const defaultStyle = `
 width: auto;
-min-width: 200px;
+min-width: 285px;
 height: auto;
 z-index: 1000;
 margin: 2px;
