@@ -156,7 +156,7 @@ export default {
         hoveredAlpha: 1,
         margin: 2,
         minHeight: 25,
-        width: 7
+        width: 13
     },
     spliceJunctions: {
         arc: {

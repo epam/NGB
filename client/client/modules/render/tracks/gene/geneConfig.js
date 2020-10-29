@@ -77,7 +77,7 @@ export default {
         fill: 0x92AEE7,
         hoveredAlpha: 1,
         margin: 2,
-        width: 7
+        width: 13
     },
     transcript: {
         features: {

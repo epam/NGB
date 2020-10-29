@@ -18,7 +18,7 @@ export default {
         hoveredAlpha: 1,
         margin: 2,
         minHeight: 6,
-        width: 7
+        width: 13
     },
     centerLine:{
         dash: {
