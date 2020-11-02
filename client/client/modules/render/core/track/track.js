@@ -1,10 +1,10 @@
 import BaseTrack from './baseTrack';
 import PIXI from 'pixi.js';
 import {Subject} from 'rx';
-import {getRenderer, drawingConfiguration} from '../configuration';
+import {getRenderer} from '../configuration';
 import menuFactory from './menu';
 import tooltipFactory from './tooltip';
-import scaleModes from '../../tracks/wig/modes';
+import {scaleModes} from '../../tracks/wig/modes';
 
 const DEBOUNCE_TIMEOUT = 100;
 const Math = window.Math;

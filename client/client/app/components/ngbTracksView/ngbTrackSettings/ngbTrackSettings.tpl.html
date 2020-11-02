@@ -13,7 +13,7 @@
             <md-divider ng-if="subfield.type === 'divider'">
             </md-divider>
             <md-menu-item
-                    ng-if="subfield.type === 'button'"
+                    ng-if="subfield.type === 'button' && (subfield.isVisible === undefined || subfield.isVisible())"
                     class="track-menu-item">
                 <md-button
                         aria-label="button"
@@ -24,7 +24,7 @@
                 </md-button>
             </md-menu-item>
             <md-menu-item
-                    ng-if="subfield.type === 'checkbox'"
+                    ng-if="subfield.type === 'checkbox' && (subfield.isVisible === undefined || subfield.isVisible())"
                     class="track-menu-item">
                 <div
                         layout="row"

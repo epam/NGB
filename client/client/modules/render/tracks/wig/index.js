@@ -5,7 +5,7 @@ import WIGRenderer from './wigRenderer';
 import WIGTransformer from './wigTransformer';
 import {WigDataService} from '../../../../dataServices';
 import {default as menu} from './menu';
-import scaleModes from './modes';
+import {scaleModes} from './modes';
 import {menu as menuUtilities} from '../../utilities';
 
 export class WIGTrack extends CachedTrack {
@@ -39,7 +39,7 @@ export class WIGTrack extends CachedTrack {
                         setting.value ? menuItem.enable() : menuItem.disable();
                     }
                 }
-            })
+            });
         }
     }
 
@@ -69,6 +69,7 @@ export class WIGTrack extends CachedTrack {
         };
         const wrapStateFn = (fn) => () => fn(this.state);
         const wrapMutatorFn = (fn, key) => () => {
+            const currentDisplayMode = this.state.coverageDisplayMode;
             const currentScaleMode = this.state.coverageScaleMode;
             const logScaleEnabled = this.state.coverageLogScale;
             fn(this.state);
@@ -90,6 +91,8 @@ export class WIGTrack extends CachedTrack {
                 this.state.coverageScaleFrom = undefined;
                 this.state.coverageScaleTo = undefined;
             } else if (logScaleEnabled !== this.state.coverageLogScale) {
+                this._flags.dataChanged = true;
+            } else if (currentDisplayMode !== this.state.coverageDisplayMode) {
                 this._flags.dataChanged = true;
             }
             if (shouldReportTrackState) {
@@ -137,7 +140,13 @@ export class WIGTrack extends CachedTrack {
     }
 
     get stateKeys() {
-        return ['coverageLogScale', 'coverageScaleMode', 'coverageScaleFrom', 'coverageScaleTo'];
+        return [
+            'coverageDisplayMode',
+            'coverageLogScale',
+            'coverageScaleMode',
+            'coverageScaleFrom',
+            'coverageScaleTo'
+        ];
     }
 
     async updateCache() {

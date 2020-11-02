@@ -102,6 +102,9 @@ export default class WIGRenderer extends CachedTrackRenderer{
     }
 
     _renderItems(items, color, lineColor, viewport, wig, coordinateSystem) {
+        if (coordinateSystem && coordinateSystem.isHeatMap) {
+            return this._renderHeatMapItems(items, color, lineColor, viewport, wig, coordinateSystem);
+        }
         const block = new PIXI.Graphics();
         const line = new PIXI.Graphics();
 
@@ -198,11 +201,40 @@ export default class WIGRenderer extends CachedTrackRenderer{
         return {block, line};
     }
 
+    _renderHeatMapItems(items, color, lineColor, viewport, wig, coordinateSystem) {
+        const block = new PIXI.Graphics();
+        const line = new PIXI.Graphics();
+        for (let i = 0; i < items.length; i++){
+            const item = items[i];
+            for (let ii = 0; ii < item.points.length; ii++) {
+                const point = item.points[ii];
+                const percent = this._getPercentValue(point.dataValue, coordinateSystem);
+                if (percent > 0) {
+                    const x1 = Math.round(viewport.project.brushBP2pixel(point.startIndex - 0.5));
+                    const x2 = Math.round(viewport.project.brushBP2pixel(point.endIndex + 0.5));
+                    block.beginFill(color, percent);
+                    block.drawRect(
+                        Math.min(x1, x2),
+                        0,
+                        Math.abs(x2 - x1),
+                        this.height
+                    );
+                    block.endFill();
+                }
+            }
+        }
+        return {block, line};
+    }
+
     _getYValue(value, coordinateSystem) {
         if (coordinateSystem.isLogScale) {
             value = WIGRenderer.getBaseScale(value);
         }
         return Math.round(this.height - this.height * (value - coordinateSystem.minimum) / (coordinateSystem.maximum - coordinateSystem.minimum));
+    }
+
+    _getPercentValue(value, coordinateSystem) {
+        return (value - coordinateSystem.minimum) / (coordinateSystem.maximum - coordinateSystem.minimum);
     }
 
     onMove(viewport, cursor, data) {

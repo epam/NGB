@@ -1,5 +1,5 @@
 import {NumberFormatter, Sorting} from '../../utilities';
-import scaleModes from './modes';
+import {displayModes, scaleModes} from './modes';
 const Math = window.Math;
 
 export default class WIGTransformer {
@@ -44,8 +44,14 @@ export default class WIGTransformer {
         return {maximum, minimum: 0};
     }
 
-    transformCoordinateSystem(wigData, viewport, cachedCoordinateSystem, scaleConfig) {
-        const {coverageScaleMode, coverageLogScale, coverageScaleFrom, coverageScaleTo} = scaleConfig;
+    transformCoordinateSystem(wigData, viewport, cachedCoordinateSystem, coverageConfig) {
+        const {
+            coverageDisplayMode,
+            coverageScaleMode,
+            coverageLogScale,
+            coverageScaleFrom,
+            coverageScaleTo
+        } = coverageConfig;
         if (wigData === null)
             return;
         let maximum = null;
@@ -105,11 +111,12 @@ export default class WIGTransformer {
         }
         return {
             dividers: dividers,
+            isHeatMap: coverageDisplayMode === displayModes.heatMapDisplayMode,
+            isLogScale: coverageLogScale,
             maximum: maximum,
             minimum: minimum,
             realMaximum: realMaximum,
-            realMinimum: realMinimum,
-            isLogScale: coverageLogScale
+            realMinimum: realMinimum
         };
     }
 

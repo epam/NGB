@@ -1,22 +1,22 @@
-import scaleModes from '../modes';
+import {displayModes, scaleModes} from '../modes';
 import {menu} from '../../../utilities';
 
 export default {
-    displayAdditionalName: state => {
+    displayName: state => {
         if (state.coverageLogScale) {
             return 'Log scale';
         }
-    },
-    displayName: state => {
         let additionalInfo = '';
         if (state.coverageScaleFrom !== undefined && state.coverageScaleTo !== undefined) {
             additionalInfo = ` (${state.coverageScaleFrom} - ${state.coverageScaleTo})`;
         }
         switch (state.coverageScaleMode) {
             case scaleModes.defaultScaleMode:
-                return 'Default';
+                return 'Auto-scale';
             case scaleModes.manualScaleMode:
                 return `Manual${additionalInfo}`;
+            case scaleModes.groupAutoScaleMode:
+                return 'Group auto-scale';
         }
     },
     fields: [
@@ -24,7 +24,7 @@ export default {
             disable: state => state.coverageScaleMode = scaleModes.defaultScaleMode,
             enable: state => state.coverageScaleMode = scaleModes.defaultScaleMode,
             isEnabled: state => state.coverageScaleMode === scaleModes.defaultScaleMode,
-            label: 'Default scale',
+            label: 'Auto-scale',
             name: 'coverage>scale>default',
             type: 'checkbox'
         },
@@ -41,6 +41,7 @@ export default {
             disable: state => state.coverageLogScale = false,
             enable: state => state.coverageLogScale = true,
             isEnabled: state => state.coverageLogScale,
+            isVisible: state => state.coverageDisplayMode !== displayModes.heatMapDisplayMode,
             label: 'Log scale',
             name: 'coverage>scale>log',
             type: 'checkbox'

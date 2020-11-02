@@ -1,7 +1,7 @@
 import * as  geneTypes  from '../../modules/render/tracks/gene/geneTypes';
 import {colorModes, groupModes, readsViewTypes} from '../../modules/render/tracks/bam/modes';
 import {variantsView} from '../../modules/render/tracks/vcf/modes';
-import scaleModes from '../../modules/render/tracks/wig/modes';
+import {scaleModes, displayModes} from '../../modules/render/tracks/wig/modes';
 
 export default {
     defaultSettings: {
@@ -48,6 +48,7 @@ export default {
             spliceJunctions: false,
             variantsView: variantsView.variantsViewCollapsed,
             viewAsPairs: false,
+            coverageDisplayMode: displayModes.defaultDisplayMode,
             coverageScaleMode: scaleModes.defaultScaleMode,
             coverageLogScale: false,
             coverageScaleFrom: undefined,

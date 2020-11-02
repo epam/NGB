@@ -51,6 +51,7 @@ export default class projectContext {
         spliceJunctions: 's3',
         variantsView: 'v',
         viewAsPairs: 'v1',
+        coverageDisplayMode: 'cdm',
         coverageScaleMode: 'csm',
         coverageLogScale: 'cls',
         coverageScaleFrom: 'csf',

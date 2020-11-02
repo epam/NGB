@@ -140,7 +140,7 @@ export default class ngbTrackController {
                 self.trackInstance.trackSettingsChanged(params);
                 this.scope.$apply();
             }
-        }
+        };
 
         dispatcher.on('settings:change', globalSettingsChangedHandler);
         dispatcher.on('track:headers:changed', globalSettingsChangedHandler);

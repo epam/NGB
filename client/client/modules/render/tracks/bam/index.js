@@ -14,7 +14,7 @@ import {ScrollableTrack} from '../../core';
 import BAMConfig from './bamConfig';
 import {default as menu, sashimiMenu} from './menu';
 import {menu as menuUtilities} from '../../utilities';
-import scaleModes from '../wig/modes';
+import {scaleModes} from '../wig/modes';
 
 const Math = window.Math;
 export class BAMTrack extends ScrollableTrack {
@@ -51,6 +51,7 @@ export class BAMTrack extends ScrollableTrack {
             'softClip',
             'spliceJunctions',
             'viewAsPairs',
+            'coverageDisplayMode',
             'coverageLogScale',
             'coverageScaleMode',
             'coverageScaleFrom',
@@ -93,6 +94,7 @@ export class BAMTrack extends ScrollableTrack {
             const viewAsPairsFlag = this.state.viewAsPairs;
             const groupingMode = this.state.groupMode;
             let shouldReportTracksState = true;
+            const currentDisplayMode = this.state.coverageDisplayMode;
             const currentScaleMode = this.state.coverageScaleMode;
             const logScaleEnabled = this.state.coverageLogScale;
             const alignments = this.state.alignments;
@@ -128,6 +130,8 @@ export class BAMTrack extends ScrollableTrack {
                 this.state.coverageScaleFrom = undefined;
                 this.state.coverageScaleTo = undefined;
             } else if (logScaleEnabled !== this.state.coverageLogScale) {
+                this._flags.dataChanged = true;
+            } else if (currentDisplayMode !== this.state.coverageDisplayMode) {
                 this._flags.dataChanged = true;
             }
             const viewAsPairsFlagChanged = viewAsPairsFlag !== this.state.viewAsPairs;
