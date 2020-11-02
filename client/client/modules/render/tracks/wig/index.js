@@ -205,9 +205,8 @@ export class WIGTrack extends CachedTrack {
     onHover({x, y}) {
         super.onHover({x, y});
         if (this.shouldDisplayTooltips) {
-            const { isHeatMap } = this.cache.coordinateSystem || {};
             const hoveredItem = this._wigRenderer.onMove(this.viewport, {x, y}, this.cache.data);
-            if (this.hoveringEffects && !isHeatMap) {
+            if (this.hoveringEffects) {
                 this._wigRenderer.hoverItem(hoveredItem, this.viewport, this.cache.data, this.cache.coordinateSystem);
             }
             if (hoveredItem) {

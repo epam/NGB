@@ -55,8 +55,9 @@ export default class WIGRenderer extends CachedTrackRenderer{
         this.dataContainer.addChild(this._hoveredItemContainer);
     }
 
-    hoverItem(item, viewport, wig, coordinateSystem) {
-        if (!this._hoveredItemContainer) {
+    hoverItem(item, viewport, wig, coordinateSystem = {}) {
+        const { isHeatMap } = coordinateSystem;
+        if (!this._hoveredItemContainer || isHeatMap) {
             return;
         }
         this._hoveredItemContainer.removeChildren();
