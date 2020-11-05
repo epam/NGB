@@ -29,7 +29,7 @@ export default function run($mdDialog, dispatcher) {
                             isLogScale: $scope.isLogScale
                         }
                     });
-                }
+                };
             },
             clickOutsideToClose: true,
             onRemoving: () => {
@@ -45,5 +45,4 @@ export default function run($mdDialog, dispatcher) {
     };
 
     dispatcher.on('tracks:coverage:manual:configure', displayTrackCoverageSettingsCallback);
-
 }

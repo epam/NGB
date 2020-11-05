@@ -74,6 +74,11 @@ export class WIGTrack extends CachedTrack {
             const logScaleEnabled = this.state.coverageLogScale;
             fn(this.state);
             let shouldReportTrackState = true;
+            if(key === 'coverage>color') {
+                this.config.dispatcher.emitSimpleEvent('wig:color:configure', {
+                    source: this.config.name
+                });
+            }
             if (key === 'coverage>scale>manual' && this.state.coverageScaleMode === scaleModes.manualScaleMode) {
                 shouldReportTrackState = false;
                 if (currentScaleMode !== this.state.coverageScaleMode) {
