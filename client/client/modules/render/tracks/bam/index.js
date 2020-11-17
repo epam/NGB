@@ -4,15 +4,15 @@ import {
     CoverageTransformer,
     HOVERED_ITEM_TYPE_ALIGNMENT,
     HOVERED_ITEM_TYPE_COVERAGE,
-    HOVERED_ITEM_TYPE_REGION,
     HOVERED_ITEM_TYPE_DOWNSAMPLE_INDICATOR,
+    HOVERED_ITEM_TYPE_REGION,
     HOVERED_ITEM_TYPE_SPLICE_JUNCTION
 } from './internal';
 import {dataModes, groupModes, sortTypes} from './modes';
+import {default as menu, sashimiMenu} from './menu';
+import BAMConfig from './bamConfig';
 import Promise from 'bluebird';
 import {ScrollableTrack} from '../../core';
-import BAMConfig from './bamConfig';
-import {default as menu, sashimiMenu} from './menu';
 import {menu as menuUtilities} from '../../utilities';
 import {scaleModes} from '../wig/modes';
 
@@ -119,11 +119,11 @@ export class BAMTrack extends ScrollableTrack {
                     this.state.coverageScaleMode = scaleModes.defaultScaleMode;
                 }
                 this.config.dispatcher.emitSimpleEvent('tracks:coverage:manual:configure', {
-                    source: this.config.name,
                     config: {
                         extremumFn: getCoverageExtremum,
                         isLogScale: this.state.coverageLogScale
-                    }
+                    },
+                    source: this.config.name,
                 });
             } else if (currentScaleMode !== this.state.coverageScaleMode) {
                 this._flags.dataChanged = true;
@@ -252,8 +252,8 @@ export class BAMTrack extends ScrollableTrack {
 
         const bamSettings = {
             chromosomeId: this.config.chromosomeId,
-            id: this.config.openByUrl ? undefined : this.config.id,
             file: this.config.openByUrl ? this.config.bioDataItemId : undefined,
+            id: this.config.openByUrl ? undefined : this.config.id,
             index: this.config.openByUrl ? this.config.indexPath : undefined,
             projectId: this.config.project ? this.config.project.id : undefined,
         };
@@ -323,7 +323,7 @@ export class BAMTrack extends ScrollableTrack {
                             this.state.coverageScaleMode = scaleModes.defaultScaleMode;
                         }
                         this._flags.dataChanged = true;
-                    } else if (setting.name.indexOf("bam>readsView") !== -1 && setting.name !== "bam>readsView>pairs") {
+                    } else if (setting.name.indexOf('bam>readsView') !== -1 && setting.name !== 'bam>readsView>pairs') {
                         menuItem.enable();
                     } else {
                         setting.value ? menuItem.enable() : menuItem.disable();
@@ -331,7 +331,7 @@ export class BAMTrack extends ScrollableTrack {
                 } else if (menuItem.type === 'button') {
                     menuItem.perform();
                 }
-            })
+            });
         }
     }
 
@@ -343,8 +343,8 @@ export class BAMTrack extends ScrollableTrack {
 
         const bamSettings = {
             chromosomeId: this.config.chromosomeId,
-            id: this.config.openByUrl ? undefined : this.config.id,
             file: this.config.openByUrl ? this.config.bioDataItemId : undefined,
+            id: this.config.openByUrl ? undefined : this.config.id,
             index: this.config.openByUrl ? this.config.indexPath : undefined,
             projectId: this.config.project ? this.config.project.id : undefined
         };
@@ -525,7 +525,7 @@ export class BAMTrack extends ScrollableTrack {
     onClick({x, y}) {
         const hoveredItem = this._bamRenderer.checkFeature({x, y});
         if (hoveredItem && hoveredItem.type === HOVERED_ITEM_TYPE_REGION) {
-            this.moveBrush({start: hoveredItem.item.startIndex, end: hoveredItem.item.endIndex});
+            this.moveBrush({end: hoveredItem.item.endIndex, start: hoveredItem.item.startIndex});
         } else if (hoveredItem && hoveredItem.type === HOVERED_ITEM_TYPE_ALIGNMENT &&
             this.dataItemClicked !== null && this.dataItemClicked !== undefined &&
             hoveredItem.item && hoveredItem.item.render && hoveredItem.item.render.info) {

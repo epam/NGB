@@ -1,5 +1,5 @@
-import {tracks as trackConstructors} from '../../../../modules/render/';
 import ngbTrackEvents from './ngbTrack.events';
+import {tracks as trackConstructors} from '../../../../modules/render/';
 
 const DEFAULT_HEIGHT = 40;
 const MAX_TRACK_NAME_LENGTH = 30;
@@ -229,15 +229,15 @@ export default class ngbTrackController {
             state = Object.assign(state, this.state);
         }
         this.trackInstance = new this.instanceConstructor({
-            dataItemClicked: ::this.onTrackItemClick,
-            changeTrackVisibility: ::this.changeTrackVisibility,
             changeTrackHeight: ::this.changeTrackHeight,
+            changeTrackVisibility: ::this.changeTrackVisibility,
+            dataItemClicked: ::this.onTrackItemClick,
             dispatcher: this.dispatcher,
             ...this.trackOpts,
             ...this._localDataService.getSettings(),
             ...this.track,
-            restoredHeight: height,
             projectContext: this.projectContext,
+            restoredHeight: height,
             silentInteractions: this.silentInteractions,
             state: state,
             viewport: this.viewport

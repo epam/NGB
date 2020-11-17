@@ -20,8 +20,8 @@ export default class ngbMainSettingsDlgService {
             obj => obj.type === 'item' && obj.byDefault && obj.byDefault.type === 'radio' && obj.byDefault.group)
             .forEach(name => {
                 this.featureGroups[name] = {
+                    byDefault: '',
                     value: '',
-                    byDefault: ''
                 };
             });
 

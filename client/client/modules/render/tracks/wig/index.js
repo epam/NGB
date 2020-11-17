@@ -5,8 +5,8 @@ import WIGRenderer from './wigRenderer';
 import WIGTransformer from './wigTransformer';
 import {WigDataService} from '../../../../dataServices';
 import {default as menu} from './menu';
-import {scaleModes} from './modes';
 import {menu as menuUtilities} from '../../utilities';
+import {scaleModes} from './modes';
 
 export class WIGTrack extends CachedTrack {
 
@@ -100,11 +100,11 @@ export class WIGTrack extends CachedTrack {
                     this.state.coverageScaleMode = scaleModes.defaultScaleMode;
                 }
                 this.config.dispatcher.emitSimpleEvent('tracks:coverage:manual:configure', {
-                    source: this.config.name,
                     config: {
                         extremumFn: getCoverageExtremum,
                         isLogScale: this.state.coverageLogScale
-                    }
+                    },
+                    source: this.config.name,
                 });
             } else if (currentScaleMode !== this.state.coverageScaleMode) {
                 this._flags.dataChanged = true;

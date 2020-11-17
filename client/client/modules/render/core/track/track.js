@@ -3,8 +3,8 @@ import PIXI from 'pixi.js';
 import {Subject} from 'rx';
 import {getRenderer} from '../configuration';
 import menuFactory from './menu';
-import tooltipFactory from './tooltip';
 import {scaleModes} from '../../tracks/wig/modes';
+import tooltipFactory from './tooltip';
 
 const DEBOUNCE_TIMEOUT = 100;
 const Math = window.Math;
@@ -12,13 +12,13 @@ const Math = window.Math;
 const getFlags = () => ({
     brushChanged: false,
     dataChanged: false,
+    dragFinished: false,
     heightChanged: false,
     heightChanging: false,
+    hoverChanged: false,
     renderReset: false,
     settingsChanged: false,
     widthChanged: false,
-    dragFinished: false,
-    hoverChanged: false
 });
 
 function refreshRender(render, size) {
@@ -176,13 +176,13 @@ export class Track extends BaseTrack {
         }
         const track = {
             bioDataItemId: this.config.name,
+            format: this.config.format,
+            height: this.height,
             index: this.config.indexPath,
+            isLocal: this.config.isLocal,
             projectId: this.config.projectId,
             projectIdNumber: this.config.project ? this.config.project.id : undefined,
-            height: this.height,
             state: this.state,
-            format: this.config.format,
-            isLocal: this.config.isLocal
         };
         this.projectContext.applyTrackState(track, silent);
     }
