@@ -1,13 +1,17 @@
+import controller from './ngbWigColorPreference.controller';
+
 export default function run($mdDialog, dispatcher) {
-    const displayWigColorSettingsCallback = ()=> {
+    const displayWigColorSettingsCallback = ({ source, config })=> {
         $mdDialog.show({
-            template: require('./ngbWigColorPreference.dialog.tpl.html'),
-            controller: function ($scope) {
-                $scope.applyToCurrentTrack = true;
-                $scope.close = () => $mdDialog.hide();
-                $scope.save = () => $mdDialog.hide();
-            },
             clickOutsideToClose: true,
+            controller: controller.UID,
+            controllerAs: 'ctrl',
+            locals: { 
+                defaults: config.defaults,
+                settings: config.settings,
+                source,
+            },
+            template: require('./ngbWigColorPreference.dialog.tpl.html'),
         });
     };
 

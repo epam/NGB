@@ -11,7 +11,7 @@ import {menu as menuUtilities} from '../../utilities';
 export class WIGTrack extends CachedTrack {
 
     _wigArea = new WIGArea(this.viewport, this.trackConfig);
-    _wigRenderer = new WIGRenderer(this.trackConfig);
+    _wigRenderer = new WIGRenderer(this.trackConfig, this.state);
     _wigTransformer = new WIGTransformer(this.trackConfig);
     dataService = new WigDataService();
 
@@ -72,11 +72,26 @@ export class WIGTrack extends CachedTrack {
             const currentDisplayMode = this.state.coverageDisplayMode;
             const currentScaleMode = this.state.coverageScaleMode;
             const logScaleEnabled = this.state.coverageLogScale;
+            const defaultWigColors = this.config.defaultFeatures.wigColors;
+            const wigSettings = {
+                ...this.trackConfig.wig,
+                ...this.state.wigColors
+            };
             fn(this.state);
             let shouldReportTrackState = true;
             if(key === 'coverage>color') {
                 this.config.dispatcher.emitSimpleEvent('wig:color:configure', {
-                    source: this.config.name
+                    config: {
+                        defaults: {
+                            negative: defaultWigColors.negative,
+                            positive: defaultWigColors.positive,
+                        },
+                        settings: {
+                            negative: wigSettings.negative,
+                            positive: wigSettings.positive,
+                        },
+                    },
+                    source: this.config.name,
                 });
             }
             if (key === 'coverage>scale>manual' && this.state.coverageScaleMode === scaleModes.manualScaleMode) {
@@ -150,7 +165,8 @@ export class WIGTrack extends CachedTrack {
             'coverageLogScale',
             'coverageScaleMode',
             'coverageScaleFrom',
-            'coverageScaleTo'
+            'coverageScaleTo',
+            'wigColors',
         ];
     }
 

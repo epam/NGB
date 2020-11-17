@@ -7,10 +7,11 @@ export default class WIGRenderer extends CachedTrackRenderer{
 
     _hoveredItemContainer;
 
-    constructor(config){
+    constructor(config, trackState){
         super();
         this._config = config;
         this._height = config.height;
+        this.trackState = trackState || {};
     }
 
     get height() { return this._height; }

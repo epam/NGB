@@ -3,19 +3,31 @@
       <div class="md-toolbar-tools">
           <h2 ng-hide="name">Set WIG color preference</h2>
           <span flex></span>
-          <md-button class="md-icon-button" ng-click="close()" aria-label="Close">
+          <md-button class="md-icon-button" ng-click="ctrl.close()" aria-label="Close">
               <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
           </md-button>
       </div>
   </md-toolbar>
   <md-dialog-content>
-    <!-- TODO: add color preference content -->
+    <div layout="row" class="content-wrapper">
+      <div class="color-preference-wrapper">
+        <div class="label">Positive values:</div>
+        <color-picker options="ctrl.pickerOptions" ng-cloak ng-model="ctrl.settings.positive"></color-picker>
+      </div>
+      <div class="color-preference-wrapper">
+        <div class="label">Negative values:</div>
+        <color-picker options="ctrl.pickerOptions" ng-cloak ng-model="ctrl.settings.negative"></color-picker>
+      </div>
+    </div>
   </md-dialog-content>
   <md-dialog-actions layout="row">
-      <md-button aria-label="save" ng-click="save()" class="md-primary">
+      <md-button aria-label="apply defaults" ng-click="ctrl.resetToDefaults()" style="margin-right: auto;" class="md-primary" ng-disabled="!ctrl.settingsChanged">
+          Reset to defaults
+      </md-button>
+      <md-button aria-label="save" ng-click="ctrl.save()" class="md-primary">
           Save
       </md-button>
-      <md-button aria-label="cancel" ng-click="close()">
+      <md-button aria-label="cancel" ng-click="ctrl.close()">
           Cancel
       </md-button>
   </md-dialog-actions>

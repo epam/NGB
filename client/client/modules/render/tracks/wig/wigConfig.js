@@ -25,6 +25,8 @@ export default {
     minHeight: 50,
     wig: {
         color: 0x92AEE7,
+        negative: 0xfa8c16,
+        positive: 0xfa8c16,
         lineColor: 0x697EA6,
         detailedStyleStartingAtPixelsPerBP: 7.5,
         thresholdColor: 0xFAA3A3,

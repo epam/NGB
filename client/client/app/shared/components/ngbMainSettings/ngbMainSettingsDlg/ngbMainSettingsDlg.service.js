@@ -15,7 +15,7 @@ export default class ngbMainSettingsDlgService {
         this.settings = ngbMainSettingsDlgConstant;
         this.defaultLocalSettings = localDataService.getDefaultSettings();
         this.featureGroups = {};
-
+        
         parseObjectInSubItems(this.settings,
             obj => obj.type === 'item' && obj.byDefault && obj.byDefault.type === 'radio' && obj.byDefault.group)
             .forEach(name => {

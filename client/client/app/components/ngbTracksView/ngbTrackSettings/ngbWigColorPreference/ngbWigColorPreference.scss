@@ -1,0 +1,16 @@
+.content-wrapper {
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+}
+
+.color-preference-wrapper {
+  display: flex;
+  flex-direction: row;
+  margin-bottom:5px;
+  .label {
+    display: inline-block;
+    margin-right: 5px;
+  }
+}
