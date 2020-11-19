@@ -72,7 +72,7 @@ export class WIGTrack extends CachedTrack {
             const currentDisplayMode = this.state.coverageDisplayMode;
             const currentScaleMode = this.state.coverageScaleMode;
             const logScaleEnabled = this.state.coverageLogScale;
-            const defaultWigColors = this.config.defaultFeatures.wigColors;
+            const defaultWigColors = this.trackConfig.wig || {};
             const wigSettings = {
                 ...this.trackConfig.wig,
                 ...this.state.wigColors

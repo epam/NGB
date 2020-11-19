@@ -18,13 +18,16 @@
         <div class="label">Negative values:</div>
         <color-picker options="ctrl.pickerOptions" ng-cloak ng-model="ctrl.settings.negative"></color-picker>
       </div>
+      <div class="color-preference-controls">
+        <md-checkbox flex aria-label="apply to all WIG tracks" ng-model="ctrl.applyToWIGTracks">Apply to all WIG tracks</md-checkbox>
+      </div>
     </div>
   </md-dialog-content>
   <md-dialog-actions layout="row">
-      <md-button aria-label="apply defaults" ng-click="ctrl.resetToDefaults()" style="margin-right: auto;" class="md-primary" ng-disabled="!ctrl.settingsChanged">
+      <md-button aria-label="apply defaults" ng-click="ctrl.resetToDefaults()" style="margin-right: auto;" class="md-primary" ng-disabled="ctrl.isDefaultSettings">
           Reset to defaults
       </md-button>
-      <md-button aria-label="save" ng-click="ctrl.save()" class="md-primary">
+      <md-button aria-label="save" ng-click="ctrl.save()" class="md-primary" ng-disabled="!ctrl.settingsChanged">
           Save
       </md-button>
       <md-button aria-label="cancel" ng-click="ctrl.close()">

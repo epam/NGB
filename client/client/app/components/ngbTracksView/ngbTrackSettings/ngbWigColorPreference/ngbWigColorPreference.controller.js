@@ -1,3 +1,5 @@
+const RADIX = 16;
+
 export default class ngbWigColorPreferenceController {
 
     static get UID() {
@@ -10,6 +12,7 @@ export default class ngbWigColorPreferenceController {
             $scope,
             defaults,
             dispatcher,
+            settings,
             source,
         });
         this.pickerOptions = {
@@ -19,22 +22,32 @@ export default class ngbWigColorPreferenceController {
             swatchOnly: true,
         };
         this.settings = this.preprocessColors(settings);
+        this.prevSettings = Object.assign({}, this.settings);
         this.applyToWIGTracks = false;
-        this.applyToCurrentTrack =  true;
     }
 
     get settingsChanged () {
-        return JSON.stringify(this.preprocessColors(this.defaults)) !== JSON.stringify(this.preprocessColors(this.settings)); 
+        return (
+          JSON.stringify(this.preprocessColors(this.prevSettings)) !==
+            JSON.stringify(this.preprocessColors(this.settings)) ||
+          this.applyToWIGTracks
+        ); 
+    }
+
+    get isDefaultSettings() {
+        return JSON.stringify(this.preprocessColors(this.defaults)) === JSON.stringify(this.preprocessColors(this.settings)); 
     }
 
     convertDecimalToHex(decimal) {
-        let hex = Number(decimal).toString(16);
-        hex = `#${  '000000'.substr(0, 6 - hex.length)  }${hex}`;
+        const from = 0;
+        const to = 6;
+        let hex = Number(decimal).toString(RADIX);
+        hex = `#${'000000'.substr(from, to - hex.length)}${hex}`;
         return hex;
     }
 
     convertHexToDecimal(hex) {
-        return parseInt(hex.substring(1), 16);
+        return parseInt(hex.substring(1), RADIX);
     }
 
     preprocessColors(settings = {}) {
@@ -61,7 +74,6 @@ export default class ngbWigColorPreferenceController {
         this.dispatcher.emitSimpleEvent('wig:color:configure:done', {
             cancel: false,
             data: {
-                applyToCurrentTrack: this.applyToCurrentTrack,
                 applyToWIGTracks: this.applyToWIGTracks,
                 settings: this.postprocessColors(this.settings),
             },
@@ -75,10 +87,6 @@ export default class ngbWigColorPreferenceController {
     }
 
     resetToDefaults() {
-        this.dispatcher.emitSimpleEvent('wig:color:configure:done', {
-            cancel: true,
-            source: this.source,
-        });
         this.settings = this.preprocessColors(this.defaults);
     }
 }

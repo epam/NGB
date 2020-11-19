@@ -35,8 +35,8 @@ export default {
         detailedStyleStartingAtPixelsPerBP: 7.5,
         lineColor: 0x697EA6,
         lineThresholdColor: 0xF87272,
-        negative: 0xfa8c16,
-        positive: 0xfa8c16,
+        negative: 0xff4d4f,
+        positive: 0x73d13d,
         thresholdColor: 0xFAA3A3,
     },
 };

@@ -136,7 +136,9 @@ export default class ngbTrackController {
         };
 
         const trackColorsChangedHandler = (state) => {
-            if (state.source === this.track.name) {
+            if (state.data.applyToWIGTracks && this.track.format === 'WIG') {
+                this.trackInstance.colorSettingsChanged(state);
+            } else if (!state.data.applyToWIGTracks && state.source === this.track.name) {
                 this.trackInstance.colorSettingsChanged(state);
             }
         };

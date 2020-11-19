@@ -8,9 +8,18 @@
 .color-preference-wrapper {
   display: flex;
   flex-direction: row;
-  margin-bottom:5px;
+  margin-bottom: 5px;
   .label {
     display: inline-block;
     margin-right: 5px;
+    min-width: 130px;
   }
+}
+
+.color-preference-controls {
+  display: flex;
+  flex-direction: row;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  width: max-content;
 }
