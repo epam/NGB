@@ -6,7 +6,7 @@ export default class ngbWigColorPreferenceController {
         return 'ngbWigColorPreferenceController';
     }
 
-    constructor($scope, $mdDialog, dispatcher, settings, defaults, source) {
+    constructor($scope, $mdDialog, dispatcher, settings = {}, defaults = {}, source) {
         Object.assign(this, {
             $mdDialog,
             $scope,
@@ -50,7 +50,7 @@ export default class ngbWigColorPreferenceController {
         return parseInt(hex.substring(1), RADIX);
     }
 
-    preprocessColors(settings = {}) {
+    preprocessColors(settings) {
         return Object.fromEntries(Object.entries(settings)
           .map(([key, color]) => (
             typeof color === 'number'
@@ -60,7 +60,7 @@ export default class ngbWigColorPreferenceController {
         );
     }
 
-    postprocessColors(settings = {}) {
+    postprocessColors(settings) {
         return Object.fromEntries(Object.entries(settings)
           .map(([key, color]) => (
             typeof color === 'string' && color.charAt(0) === '#'
