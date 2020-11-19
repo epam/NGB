@@ -94,6 +94,11 @@ export class WIGTrack extends CachedTrack {
                     source: this.config.name,
                 });
             }
+            if (key === 'coverage>resize') {
+                this.config.dispatcher.emitSimpleEvent('wig:height:configure', {
+                    config: this.config,
+                });
+            }
             if (key === 'coverage>scale>manual' && this.state.coverageScaleMode === scaleModes.manualScaleMode) {
                 shouldReportTrackState = false;
                 if (currentScaleMode !== this.state.coverageScaleMode) {
