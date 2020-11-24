@@ -1,7 +1,7 @@
 export default function run($mdDialog, dispatcher) {
     const displaySashimiPlot = ({config, cacheService})=> {
         $mdDialog.show({
-            template: require('./ngbSashimiPlot.dialog.tpl.html'),
+            clickOutsideToClose: true,
             controller: function ($scope) {
                 $scope.chromosomeName = config.chromosome ? config.chromosome.name : undefined;
                 $scope.referenceId = config.referenceId;
@@ -14,9 +14,10 @@ export default function run($mdDialog, dispatcher) {
                     $mdDialog.hide();
                 };
             },
-            clickOutsideToClose: true
+            multiple: true,
+            skipHide: true,
+            template: require('./ngbSashimiPlot.dialog.tpl.html'),
         });
-
     };
 
     dispatcher.on('bam:sashimi', displaySashimiPlot);

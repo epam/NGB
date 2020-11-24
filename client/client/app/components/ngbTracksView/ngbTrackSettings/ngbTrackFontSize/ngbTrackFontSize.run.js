@@ -11,6 +11,8 @@ export default function run($mdDialog, dispatcher) {
                 settings: config.settings,
                 source,
             },
+            multiple: true,
+            skipHide: true,
             template: require('./ngbTrackFontSize.dialog.tpl.html'),
         });
     };

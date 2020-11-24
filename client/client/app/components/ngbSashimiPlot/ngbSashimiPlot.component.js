@@ -1,17 +1,14 @@
 import controller from './ngbSashimiPlot.controller';
 
 export default {
-    restrict: 'EA',
-    template: require('./ngbSashimiPlot.tpl.html'),
-    controller: controller.UID,
-    controllerAs: 'ctrl',
     bindings: {
+        cacheService: '<',
         chromosomeName: '<',
         referenceId: '<',
         track: '<',
-        cacheService: '<'
-    }
+    },
+    controller: controller.UID,
+    controllerAs: 'ctrl',
+    restrict: 'EA',
+    template: require('./ngbSashimiPlot.tpl.html'),
 };
-
-
-
