@@ -15,6 +15,7 @@ export class REFERENCETrack extends CachedTrack {
     constructor(opts) {
         super(opts);
         this.dataService = new GenomeDataService(opts.dispatcher);
+        this.dispatcher = opts.dispatcher;
     }
 
     trackSettingsChanged(params) {
@@ -25,7 +26,7 @@ export class REFERENCETrack extends CachedTrack {
                 if (menuItem.type === 'checkbox') {
                     setting.value ? menuItem.enable() : menuItem.disable();
                 }
-            })
+            });
         }
     }
 
@@ -39,6 +40,7 @@ export class REFERENCETrack extends CachedTrack {
 
     get stateKeys() {
         return [
+            'header',
             'referenceShowTranslation',
             'referenceShowForwardStrand',
             'referenceShowReverseStrand'
@@ -56,6 +58,10 @@ export class REFERENCETrack extends CachedTrack {
             this.updateAndRefresh();
             this.reportTrackState();
         };
+        const wrapPerformFn = (fn) => () => {
+            fn(this.config, this.dispatcher, this.state);
+            this.reportTrackState();
+        };
 
         this._menu = menu.map(function processMenuList(menuEntry) {
             const result = {};
@@ -71,6 +77,9 @@ export class REFERENCETrack extends CachedTrack {
                                 break;
                             case key.startsWith('display'):
                                 result[key] = wrapStateFn(menuEntry[key]);
+                                break;
+                            case key === 'perform':
+                                result[key] = wrapPerformFn(menuEntry[key]);
                                 break;
                             default:
                                 result[key] = wrapMutatorFn(menuEntry[key]);

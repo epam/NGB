@@ -367,6 +367,17 @@ export class Track extends BaseTrack {
         this.requestRenderRefresh();
     }
 
+    headerStyleSettingsChanged(state) {
+        if (state.cancel) {
+            this.state.header = {};
+        } else {
+            this.state.header = state.data.settings;
+        }
+        this._flags.dataChanged = true;
+        this.reportTrackState();
+        this.requestRenderRefresh();
+    }
+
     get settings() {
         return this._settings;
     }

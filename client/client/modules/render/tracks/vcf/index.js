@@ -29,7 +29,7 @@ export class VCFTrack extends GENETrack {
     }
 
     get stateKeys() {
-        return ['variantsView'];
+        return ['variantsView', 'header'];
     }
 
     constructor(opts) {
@@ -106,6 +106,10 @@ export class VCFTrack extends GENETrack {
             this.updateAndRefresh();
             this.reportTrackState();
         };
+        const wrapPerformFn = (fn) => () => {
+            fn(this.config, this.dispatcher, this.state);
+            this.reportTrackState();
+        };
 
         this._menu = menu.map(function processMenuList(menuEntry) {
             const result = {};
@@ -121,6 +125,9 @@ export class VCFTrack extends GENETrack {
                                 break;
                             case key.startsWith('display'):
                                 result[key] = wrapStateFn(menuEntry[key]);
+                                break;
+                            case key.startsWith('perform'):
+                                result[key] = wrapPerformFn(menuEntry[key]);
                                 break;
                             default:
                                 result[key] = wrapMutatorFn(menuEntry[key]);

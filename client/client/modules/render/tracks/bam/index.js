@@ -44,6 +44,7 @@ export class BAMTrack extends ScrollableTrack {
             'coverage',
             'diffBase',
             'groupMode',
+            'header',
             'ins_del',
             'mismatches',
             'readsViewMode',
@@ -163,7 +164,7 @@ export class BAMTrack extends ScrollableTrack {
         };
 
         const wrapPerformFn = (fn) => () => {
-            fn(this.bamRenderSettings, this.config, this.dispatcher, this.cacheService.clone());
+            fn(this.bamRenderSettings, this.config, this.dispatcher, this.cacheService.clone(), this.state);
             this.sortingModeChanged();
             this.reportTrackState();
         };

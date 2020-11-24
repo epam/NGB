@@ -15,7 +15,11 @@
             ng-class="{'collapsed': !ctrl.showTracksHeaders }">
         <input type="checkbox" />
         <div class="ngb-track-header-type">{{ctrl.track.format}}</div>
-        <div class="ngb-track-header-file-name">{{ctrl.trackNameTruncated}}
+        <div
+          class="ngb-track-header-file-name"
+          ng-style="ctrl.trackHeaderStyle"
+        >
+            {{ctrl.trackNameTruncated}}
             <md-tooltip md-direction="top">
                 {{ctrl.getTrackFileName(ctrl.track)}}
             </md-tooltip>

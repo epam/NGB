@@ -94,6 +94,18 @@ export class WIGTrack extends CachedTrack {
                     source: this.config.name,
                 });
             }
+            if (key === 'coverage>font') {
+                this.config.dispatcher.emitSimpleEvent('tracks:header:style:configure', {
+                    config: {
+                        defaults: this.config.header,
+                        settings: {
+                            ...this.config.header,
+                            ...this.state.header
+                        },
+                    },
+                    source: this.config.name,
+                });
+            }
             if (key === 'coverage>resize') {
                 this.config.dispatcher.emitSimpleEvent('wig:height:configure', {
                     config: this.config,
@@ -172,6 +184,7 @@ export class WIGTrack extends CachedTrack {
             'coverageScaleFrom',
             'coverageScaleTo',
             'wigColors',
+            'header'
         ];
     }
 

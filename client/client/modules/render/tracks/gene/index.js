@@ -20,7 +20,7 @@ export class GENETrack extends CachedTrack {
     }
 
     get stateKeys() {
-        return ['geneTranscript'];
+        return ['geneTranscript', 'header'];
     }
 
     constructor(opts) {
@@ -106,6 +106,10 @@ export class GENETrack extends CachedTrack {
             this.updateAndRefresh();
             this.reportTrackState();
         };
+        const wrapPerformFn = (fn) => () => {
+            fn(this.config, this.dispatcher, this.state);
+            this.reportTrackState();
+        };
 
         this._menu = this.menuService.getMenu().map(function processMenuList(menuEntry) {
             const result = {};
@@ -123,6 +127,10 @@ export class GENETrack extends CachedTrack {
                                 break;
                             case key.startsWith('display'): {
                                 result[key] = wrapStateFn(menuEntry[key]);
+                            }
+                                break;
+                            case key.startsWith('perform'): {
+                                result[key] = wrapPerformFn(menuEntry[key]);
                             }
                                 break;
                             default: {
