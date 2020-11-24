@@ -1,4 +1,4 @@
-export default function helper($mdDialog, projectContext, config) {
+export default function helper($mdDialog, projectContext, config, options) {
     const filterWigTracks = (tracks) =>
         tracks.filter(
             (m) =>
@@ -8,6 +8,18 @@ export default function helper($mdDialog, projectContext, config) {
 
     return function ($scope) {
         $scope.applyToWIGTracks = false;
+        $scope.maxHeight = options.maxHeight;
+        $scope.minHeight = options.minHeight;
+
+        if (options.maxHeight === undefined) {
+            const values = Object.values(options);
+            const overallHeight = values.reduce((val, acc) => ({
+                max: Math.min(val.maxHeight, acc.maxHeight),
+                min: Math.max(val.minHeight, acc.minHeight),
+            }));
+            $scope.maxHeight = overallHeight.max;
+            $scope.minHeight = overallHeight.min;
+        }
 
         const tracksState = projectContext.tracksState || [];
         const [tracksSettings] = tracksState.filter(
