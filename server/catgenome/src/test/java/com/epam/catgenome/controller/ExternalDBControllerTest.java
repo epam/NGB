@@ -36,6 +36,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -98,6 +99,9 @@ public class ExternalDBControllerTest extends AbstractControllerTest {
     @InjectMocks
     @Spy
     private ExternalDBController dbControllerMock;
+
+    @Mock
+    private NCBIGeneManager ncbiGeneManager;
 
     @Autowired
     private ApplicationContext context;

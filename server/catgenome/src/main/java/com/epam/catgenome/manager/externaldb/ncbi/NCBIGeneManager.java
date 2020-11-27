@@ -55,7 +55,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class NCBIGeneManager {
 
     private static final String RESULT_PATH = "result";
-    public static final String ENSEMBLE_GENE_PREFIX = "ENSG";
+    public static final String ENSEMBL_GENE_PREFIX = "ENSG";
 
     private JsonMapper mapper = new JsonMapper();
 
@@ -90,14 +90,11 @@ public class NCBIGeneManager {
         NCBIGeneVO ncbiGeneVO = null;
 
         if (StringUtils.isNotBlank(id)) {
-            String realID = fetchExternalId(id);
-
-            String geneInfoXml = ncbiAuxiliaryManager.fetchXmlById(NCBIDatabase.GENE.name(), realID, null);
-            ncbiGeneVO = geneInfoParser.parseGeneInfo(geneInfoXml);
+            ncbiGeneVO = fetchBaseGeneInfo(id);
             ncbiGeneVO.setLinkToCitations(String.format(NCBI_PUBMED_FULL_URL, ncbiGeneVO.getGeneId()));
             ncbiGeneVO.setGeneLink(String.format(NCBI_GENE_LINK, ncbiGeneVO.getGeneId()));
             String pubmedQueryXml =
-                    ncbiAuxiliaryManager.link(realID,
+                    ncbiAuxiliaryManager.link(ncbiGeneVO.getGeneId(),
                             NCBIDatabase.GENE.name(), NCBIDatabase.PUBMED.name(), "gene_pubmed");
 
 
@@ -117,7 +114,7 @@ public class NCBIGeneManager {
             }
 
             String biosystemsQueryXml =
-                    ncbiAuxiliaryManager.link(realID,
+                    ncbiAuxiliaryManager.link(ncbiGeneVO.getGeneId(),
                             NCBIDatabase.GENE.name(), NCBIDatabase.BIOSYSTEMS.name(), "gene_biosystems");
             Pair<String, String> biosystemsParams =
                     geneInfoParser.parseHistoryResponse(biosystemsQueryXml, NCBIUtility.NCBI_LINK);
@@ -136,7 +133,7 @@ public class NCBIGeneManager {
             }
 
             String homologsQueryXml =
-                    ncbiAuxiliaryManager.link(realID,
+                    ncbiAuxiliaryManager.link(ncbiGeneVO.getGeneId(),
                             NCBIDatabase.GENE.name(), NCBIDatabase.HOMOLOGENE.name(), "gene_homologene");
             Pair<String, String> homologsParams =
                     geneInfoParser.parseHistoryResponse(homologsQueryXml, NCBIUtility.NCBI_LINK);
@@ -157,13 +154,20 @@ public class NCBIGeneManager {
         return ncbiGeneVO;
     }
 
-    private String fetchExternalId(String id) throws ExternalDbUnavailableException {
+    public NCBIGeneVO fetchBaseGeneInfo(String id) throws ExternalDbUnavailableException {
+        String realID = fetchExternalId(id);
+
+        String geneInfoXml = ncbiAuxiliaryManager.fetchXmlById(NCBIDatabase.GENE.name(), realID, null);
+        return geneInfoParser.parseGeneInfo(geneInfoXml);
+    }
+
+    public String fetchExternalId(String id) throws ExternalDbUnavailableException {
         String externalID = id;
         // if ID contains literals then we consider this external ID and perform search
         if (!id.matches("\\d+")) {
             String ncbiId;
 
-            if (id.startsWith(ENSEMBLE_GENE_PREFIX)) { // For ensemble geneIds (that starts with ENSG*), simple query
+            if (id.startsWith(ENSEMBL_GENE_PREFIX)) { // For ensemble geneIds (that starts with ENSG*), simple query
                                                         // seems to return what's needed
                 ncbiId = ncbiAuxiliaryManager.searchDbForId(NCBIDatabase.GENE.name(), externalID, null);
             } else {

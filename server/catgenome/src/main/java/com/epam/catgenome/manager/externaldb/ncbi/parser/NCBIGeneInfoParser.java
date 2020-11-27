@@ -86,6 +86,7 @@ public class NCBIGeneInfoParser {
     private static final XPathExpression ENTREZ_GENE_TYPE_XPATH;
     private static final XPathExpression ENTREZ_GENE_SUMMARY_XPATH;
     private static final XPathExpression REFSEQ_STATUS_XPATH;
+    private static final XPathExpression ENSEMBL_GENE_ID;
     // Interactions xpaths
 
     private static final XPathExpression INTERACTIONS_XPATH;
@@ -177,6 +178,8 @@ public class NCBIGeneInfoParser {
 
             GROUP_LABEL_XPATH = X_PATH.compile("/ExchangeSet/Rs/Assembly/@groupLabel");
             CONTIG_LABEL_XPATH = X_PATH.compile("/ExchangeSet/Rs/Assembly/Component/@contigLabel");
+            ENSEMBL_GENE_ID = X_PATH.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_db/" +
+                    "Dbtag/Dbtag_db[text()=\"Ensembl\"]/../Dbtag_tag/Object-id/Object-id_str");
         } catch (XPathExpressionException e) {
             throw new NgbException(e);
         }
@@ -244,6 +247,7 @@ public class NCBIGeneInfoParser {
             ncbiGeneVO.setLocusTag(LOCUS_TAG_XPATH.evaluate(document));
             ncbiGeneVO.setLineage(LINEAGE_XPATH.evaluate(document));
             ncbiGeneVO.setRnaName(RNA_NAME_XPATH.evaluate(document));
+            ncbiGeneVO.setEnsemblGeneId(ENSEMBL_GENE_ID.evaluate(document));
 
             NodeList alsoKnown = (NodeList) ALSO_KNOWN_AS_XPATH.evaluate(document, XPathConstants.NODESET);
             List<String> alsoKnownList = new ArrayList<>(alsoKnown.getLength());

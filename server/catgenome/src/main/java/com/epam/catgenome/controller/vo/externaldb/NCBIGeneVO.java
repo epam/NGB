@@ -63,6 +63,7 @@ public class NCBIGeneVO {
     private String refSeqStatus;
     @JsonProperty(value = "gene_summary")
     private String geneSummary;
+    private String ensemblGeneId;
 
     @JsonProperty(value = "official_symbol")
     private String officialSymbol;
@@ -273,6 +274,14 @@ public class NCBIGeneVO {
 
     public void setGeneLink(String geneLink) {
         this.geneLink = geneLink;
+    }
+
+    public String getEnsemblGeneId() {
+        return ensemblGeneId;
+    }
+
+    public void setEnsemblGeneId(String ensemblGeneId) {
+        this.ensemblGeneId = ensemblGeneId;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

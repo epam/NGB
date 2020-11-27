@@ -24,20 +24,24 @@
 
 package com.epam.catgenome.manager.externaldb;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.JsonMapper;
+import com.epam.catgenome.controller.vo.externaldb.NCBIGeneVO;
 import com.epam.catgenome.controller.vo.externaldb.ensemblevo.EnsemblEntryVO;
 import com.epam.catgenome.controller.vo.externaldb.ensemblevo.EnsemblVariationEntryVO;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * <p>
@@ -46,7 +50,7 @@ import com.epam.catgenome.exception.ExternalDbUnavailableException;
  */
 @Service
 public class EnsemblDataManager {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(EnsemblDataManager.class);
     private static final String ENSEMBL_SERVER = "http://rest.ensembl.org/";
 
     private static final String ENSEMBL_TOOL = "lookup/id";
@@ -63,6 +67,9 @@ public class EnsemblDataManager {
     @Autowired
     private HttpDataManager httpDataManager;
 
+    @Autowired
+    private NCBIGeneManager ncbiGeneManager;
+
     /**
      * Method fetching gene data from Ensemble
      *
@@ -70,13 +77,27 @@ public class EnsemblDataManager {
      * @return Ensemble entry from query
      * @throws ExternalDbUnavailableException
      */
-    public EnsemblEntryVO fetchEnsemblEntry(String geneId) throws ExternalDbUnavailableException {
-        ParameterNameValue[] params = new ParameterNameValue[]{
+    public EnsemblEntryVO fetchEnsemblEntry(final String geneId) throws ExternalDbUnavailableException {
+        Assert.isTrue(StringUtils.isNotBlank(geneId), "geneId myst not be empty");
+
+        String ensemblGeneId = geneId;
+
+        if (!geneId.startsWith(NCBIGeneManager.ENSEMBL_GENE_PREFIX)) {
+            NCBIGeneVO ncbiVO = ncbiGeneManager.fetchBaseGeneInfo(geneId);
+            if (ncbiVO == null || StringUtils.isBlank(ncbiVO.getEnsemblGeneId())) {
+                LOGGER.warn("Ensembl gene ID not found for supplied geneId {}, trying original one", geneId);
+            } else {
+                ensemblGeneId = ncbiVO.getEnsemblGeneId();
+            }
+        }
+
+        ParameterNameValue[] params = new ParameterNameValue[] {
             new ParameterNameValue(CONTENT_TYPE, APPLICATION_JSON),
             new ParameterNameValue(ENSEMBL_EXPAND_TOOL, "1"),
-            new ParameterNameValue("utr", "1")};
+            new ParameterNameValue("utr", "1")
+        };
 
-        String location = ENSEMBL_SERVER + ENSEMBL_TOOL + "/" + geneId + "?";
+        String location = ENSEMBL_SERVER + ENSEMBL_TOOL + "/" + ensemblGeneId + "?";
 
         String geneData = httpDataManager.fetchData(location, params);
 
