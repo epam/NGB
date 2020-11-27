@@ -45,9 +45,6 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 @Service
 public class NCBIAuxiliaryManager extends NCBIDataManager {
-
-    public static final String SYMBOL_SEARCH_FIELD = "symbol";
-
     /**
      * Fetches organism info from NCBI's taxonomy database
      * <p>
@@ -73,13 +70,14 @@ public class NCBIAuxiliaryManager extends NCBIDataManager {
      *
      * @param db   db name
      * @param term term name
+     * @param field
      * @return String with data
      * @throws ExternalDbUnavailableException
      */
 
-    public String searchDbForId(String db, String term) throws ExternalDbUnavailableException {
+    public String searchDbForId(String db, String term, String field) throws ExternalDbUnavailableException {
 
-        String searchResult = searchById(db, term, SYMBOL_SEARCH_FIELD);
+        String searchResult = searchById(db, term, field);
         JsonNode idlist;
         try {
             JsonNode root;

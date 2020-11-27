@@ -75,6 +75,7 @@ public class NCBIGeneManager {
     private static final String NCBI_PUBMED_HOMOLOG_URL = "https://www.ncbi.nlm.nih.gov/pubmed?LinkName="
             + "homologene_pubmed&from_uid=%s";
     private static final String NCBI_GENE_LINK = "https://www.ncbi.nlm.nih.gov/gene/%s";
+    private static final String SYMBOL_SEARCH_FIELD = "symbol";
 
     /**
      * Retrieves XML gene info from NCBI's gene database
@@ -159,7 +160,8 @@ public class NCBIGeneManager {
         String externalID = id;
         // if ID contains literals then we consider this external ID and perform search
         if (!id.matches("\\d+")) {
-            String ncbiId = ncbiAuxiliaryManager.searchDbForId(NCBIDatabase.GENE.name(), externalID);
+            String ncbiId = ncbiAuxiliaryManager.searchDbForId(NCBIDatabase.GENE.name(), externalID,
+                                                                SYMBOL_SEARCH_FIELD);
             if (StringUtils.isNotBlank(ncbiId)) {
                 externalID = ncbiId;
             } else {

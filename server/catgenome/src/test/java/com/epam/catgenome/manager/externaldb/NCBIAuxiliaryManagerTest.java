@@ -79,7 +79,7 @@ public class NCBIAuxiliaryManagerTest {
         Mockito.doReturn("{\"esearchresult\":{\"idlist\":[99464]}}").when(ncbiAuxiliaryManager).fetchData(Mockito
                 .anyString(), Mockito.any(ParameterNameValue[].class));
 
-        String id = ncbiAuxiliaryManager.searchDbForId("testDb", "test");
+        String id = ncbiAuxiliaryManager.searchDbForId("testDb", "test", null);
         assertEquals(id, "99464");
     }
 

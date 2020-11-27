@@ -95,7 +95,7 @@ public class NCBIShortVarManager {
         String contigLabel = snp.getContigLabel();
 
         if (StringUtils.isNotBlank(contigLabel)) {
-            String annotationId = ncbiAuxiliaryManager.searchDbForId("annotinfo", contigLabel);
+            String annotationId = ncbiAuxiliaryManager.searchDbForId("annotinfo", contigLabel, null);
             if (StringUtils.isNotBlank(annotationId)) {
                 JsonNode jsonNode = ncbiAuxiliaryManager.fetchAnnotationInfoById(annotationId);
                 String annotreleaseid = jsonNode.get("annotreleaseid").toString();

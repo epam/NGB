@@ -98,7 +98,7 @@ public class NCBIDataManager extends HttpDataManager {
         List<ParameterNameValue> parametersList = new ArrayList<>();
 
         parametersList.add(new ParameterNameValue("db", db));
-        parametersList.add(new ParameterNameValue("term", term + "[" + field + "]"));
+        parametersList.add(new ParameterNameValue("term", field != null ? term + "[" + field + "]" : term));
         parametersList.add(new ParameterNameValue(RETMODE_PARAM, "json"));
 
         ParameterNameValue[] parameterNameValues = parametersList.toArray(

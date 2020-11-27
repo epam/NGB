@@ -63,7 +63,7 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 public class NCBIGeneInfoParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(NCBIGeneInfoParser.class);
-    private static final XPath xPath = XPathFactory.newInstance().newXPath();
+    private static final XPath X_PATH = XPathFactory.newInstance().newXPath();
     // eSearch-related xpaths
 
     private static final String ESEARCH_QUERY_XPATH = "/eSearchResult/QueryKey";
@@ -113,63 +113,70 @@ public class NCBIGeneInfoParser {
     private static final XPathExpression GROUP_LABEL_XPATH;
     private static final XPathExpression CONTIG_LABEL_XPATH;
 
-    private static final DocumentBuilderFactory builderFactory;
+    private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY;
 
     static {
-        builderFactory = DocumentBuilderFactory.newInstance();
-        builderFactory.setNamespaceAware(false);
-        builderFactory.setValidating(false); // disable all validation to speed up processing of large (46k lines)
-        try {                                // XML documents. We expect NCBI responses to be correct anyway
-            builderFactory.setFeature("http://xml.org/sax/features/namespaces", false);
-            builderFactory.setFeature("http://xml.org/sax/features/validation", false);
-            builderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
-            builderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        // disable all validation to speed up processing of large (46k lines XML documents.
+        // We expect NCBI responses to be correct anyway
+        DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
+        DOCUMENT_BUILDER_FACTORY.setNamespaceAware(false);
+        DOCUMENT_BUILDER_FACTORY.setValidating(false);
+        try {
+            DOCUMENT_BUILDER_FACTORY.setFeature("http://xml.org/sax/features/namespaces", false);
+            DOCUMENT_BUILDER_FACTORY.setFeature("http://xml.org/sax/features/validation", false);
+            DOCUMENT_BUILDER_FACTORY.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar",
+                    false);
+            DOCUMENT_BUILDER_FACTORY.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd",
+                    false);
         } catch (ParserConfigurationException e) {
             LOG.error("Failed to set XML parsing settings", e);
         }
 
         try {
 
-            ORGANISM_SCIENTIFIC_XPATH = xPath.compile(ORGANISM_XPATH + "/Org-ref_taxname");
-            ORGANISM_COMMON_XPATH = xPath.compile(ORGANISM_XPATH + "/Org-ref_common");
-            REFSEQ_STATUS_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_comments/Gene-commentary/Gene-commentary_heading" +
+            ORGANISM_SCIENTIFIC_XPATH = X_PATH.compile(ORGANISM_XPATH + "/Org-ref_taxname");
+            ORGANISM_COMMON_XPATH = X_PATH.compile(ORGANISM_XPATH + "/Org-ref_common");
+            REFSEQ_STATUS_XPATH = X_PATH.compile(GENE_XPATH +
+                    "/Entrezgene_comments/Gene-commentary/Gene-commentary_heading" +
                     "[text()=\"RefSeq Status\"]/../Gene-commentary_label");
-            ENTREZ_GENE_SUMMARY_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_summary");
-            PRIMARY_SOURCE_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_db/" +
+            ENTREZ_GENE_SUMMARY_XPATH = X_PATH.compile(GENE_XPATH + "/Entrezgene_summary");
+            PRIMARY_SOURCE_XPATH = X_PATH.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_db/" +
                     "Dbtag[1]/Dbtag_tag/Object-id/Object-id_str");
-            ENTREZ_GENE_TYPE_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_type/@value");
-            PRIMARY_SOURCE_PREFIX_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_db/" +
+            ENTREZ_GENE_TYPE_XPATH = X_PATH.compile(GENE_XPATH + "/Entrezgene_type/@value");
+            PRIMARY_SOURCE_PREFIX_XPATH = X_PATH.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_db/" +
                     "Dbtag[1]/Dbtag_db");
 
             // Interactions xpaths
-            INTERACTIONS_XPATH = xPath.compile("//Gene-commentary_heading[text()=\"Interactions\"]/../Gene-commentary_comment/Gene-commentary");
-            REF_ID_XPATH = xPath.compile("Gene-commentary_source/Other-source/Other-source_src/" +
+            INTERACTIONS_XPATH = X_PATH.compile(
+                    "//Gene-commentary_heading[text()=\"Interactions\"]/../Gene-commentary_comment/Gene-commentary");
+            REF_ID_XPATH = X_PATH.compile("Gene-commentary_source/Other-source/Other-source_src/" +
                     "Dbtag/Dbtag_tag/Object-id/*[self::Object-id_id or self::Object-id_str]");
-            REF_NAME_XPATH = xPath.compile("Gene-commentary_source/Other-source/Other-source_src/Dbtag/Dbtag_db");
+            REF_NAME_XPATH = X_PATH.compile("Gene-commentary_source/Other-source/Other-source_src/Dbtag/Dbtag_db");
 
-            OTHSOURCE_ID_XPATH = xPath.compile("Other-source_src/Dbtag/Dbtag_tag/Object-id/*[self::Object-id_id or self::Object-id_str]");
-            OTHSOURCE_REF_NAME_XPATH = xPath.compile("Other-source_src/Dbtag/Dbtag_db");
-            OTHSOURCE_ANCHOR_NAME_XPATH = xPath.compile("Other-source_anchor");
+            OTHSOURCE_ID_XPATH = X_PATH.compile(
+                    "Other-source_src/Dbtag/Dbtag_tag/Object-id/*[self::Object-id_id or self::Object-id_str]");
+            OTHSOURCE_REF_NAME_XPATH = X_PATH.compile("Other-source_src/Dbtag/Dbtag_db");
+            OTHSOURCE_ANCHOR_NAME_XPATH = X_PATH.compile("Other-source_anchor");
 
-            OFFICIAL_FULL_NAME_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_desc");
-            OFFICIAL_SYMBOL_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_locus");
-            LOCUS_TAG_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_locus-tag");
-            ALSO_KNOWN_AS_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/"
+            OFFICIAL_FULL_NAME_XPATH = X_PATH.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_desc");
+            OFFICIAL_SYMBOL_XPATH = X_PATH.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_locus");
+            LOCUS_TAG_XPATH = X_PATH.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_locus-tag");
+            ALSO_KNOWN_AS_XPATH = X_PATH.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/"
                     + "Gene-ref_syn/Gene-ref_syn_E");
 
-            RNA_NAME_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_rna/RNA-ref/RNA-ref_ext/RNA-ref_ext_name");
-            LINEAGE_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_source/BioSource/BioSource_org/Org-ref/"
+            RNA_NAME_XPATH = X_PATH.compile(GENE_XPATH + "/Entrezgene_rna/RNA-ref/RNA-ref_ext/RNA-ref_ext_name");
+            LINEAGE_XPATH = X_PATH.compile(GENE_XPATH + "/Entrezgene_source/BioSource/BioSource_org/Org-ref/"
                     + "Org-ref_orgname/OrgName/OrgName_lineage");
-            ID_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_track-info/Gene-track/Gene-track_geneid");
+            ID_XPATH = X_PATH.compile(GENE_XPATH + "/Entrezgene_track-info/Gene-track/Gene-track_geneid");
 
-            PUBMED_ID_XPATH = xPath.compile("Pub_pmid/PubMedId");
-            GENE_COMMENTARY_TEXT_XPATH = xPath.compile("Gene-commentary_text");
-            GENE_COMMENTARY_PUB_LIST_XPATH = xPath.compile("Gene-commentary_refs/Pub");
-            GENE_COMMENTARY_XPATH = xPath.compile("Gene-commentary_comment/Gene-commentary");
-            OTHER_SOURCES_XPATH = xPath.compile("Gene-commentary_source/Other-source");
+            PUBMED_ID_XPATH = X_PATH.compile("Pub_pmid/PubMedId");
+            GENE_COMMENTARY_TEXT_XPATH = X_PATH.compile("Gene-commentary_text");
+            GENE_COMMENTARY_PUB_LIST_XPATH = X_PATH.compile("Gene-commentary_refs/Pub");
+            GENE_COMMENTARY_XPATH = X_PATH.compile("Gene-commentary_comment/Gene-commentary");
+            OTHER_SOURCES_XPATH = X_PATH.compile("Gene-commentary_source/Other-source");
 
-            GROUP_LABEL_XPATH = xPath.compile("/ExchangeSet/Rs/Assembly/@groupLabel");
-            CONTIG_LABEL_XPATH = xPath.compile("/ExchangeSet/Rs/Assembly/Component/@contigLabel");
+            GROUP_LABEL_XPATH = X_PATH.compile("/ExchangeSet/Rs/Assembly/@groupLabel");
+            CONTIG_LABEL_XPATH = X_PATH.compile("/ExchangeSet/Rs/Assembly/Component/@contigLabel");
         } catch (XPathExpressionException e) {
             throw new NgbException(e);
         }
@@ -219,7 +226,7 @@ public class NCBIGeneInfoParser {
         NCBIGeneVO ncbiGeneVO = new NCBIGeneVO();
 
         try {
-            DocumentBuilder builder = builderFactory.newDocumentBuilder();
+            DocumentBuilder builder = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
 
             InputSource is = new InputSource(new StringReader(xml));
             Document document = builder.parse(is);
@@ -277,11 +284,11 @@ public class NCBIGeneInfoParser {
             String pubmedHistoryWebenv;
 
             if (NCBIUtility.NCBI_LINK == utility) {
-                pubmedHistoryQuery = xPath.evaluate(ELINK_QUERY_XPATH, xmlDocument);
-                pubmedHistoryWebenv = xPath.evaluate(ELINK_WEBENV_XPATH, xmlDocument);
+                pubmedHistoryQuery = X_PATH.evaluate(ELINK_QUERY_XPATH, xmlDocument);
+                pubmedHistoryWebenv = X_PATH.evaluate(ELINK_WEBENV_XPATH, xmlDocument);
             } else if (NCBIUtility.NCBI_SEARCH == utility) {
-                pubmedHistoryQuery = xPath.evaluate(ESEARCH_QUERY_XPATH, xmlDocument);
-                pubmedHistoryWebenv = xPath.evaluate(ESEARCH_WEBENV_XPATH, xmlDocument);
+                pubmedHistoryQuery = X_PATH.evaluate(ESEARCH_QUERY_XPATH, xmlDocument);
+                pubmedHistoryWebenv = X_PATH.evaluate(ESEARCH_WEBENV_XPATH, xmlDocument);
             } else {
                 pubmedHistoryQuery = StringUtils.EMPTY;
                 pubmedHistoryWebenv = StringUtils.EMPTY;

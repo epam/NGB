@@ -130,7 +130,7 @@ public class NCBIShortVarManagerTest {
 
         //Mockito.when(ncbiAuxiliaryManager.searchDbForId("annotinfo", contigLabel))
 
-        Mockito.when(ncbiAuxiliaryManager.searchDbForId(Mockito.any(), Mockito.any())).thenReturn("99464");
+        Mockito.when(ncbiAuxiliaryManager.searchDbForId(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn("99464");
 
         String annotInfoJson = readFile("ncbi_summary_annotinfo_99464.json");
         String clinvarJson = readFile("ncbi_summary_clinvar_7412.json");
