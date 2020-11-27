@@ -36,10 +36,11 @@ import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.logging.Logger;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -55,7 +56,7 @@ public class HttpDataManager {
     private static final String EXCEPTION_MESSAGE = "Couldn't fetch data for URL %s";
     private static final int MILLIS_IN_SECOND = 1000;
     private static final String HTTP_HEADER_RETRY_AFTER = "Retry-After";
-    private static final Logger LOGGER = Logger.getLogger(HttpDataManager.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpDataManager.class);
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String APPLICATION_JSON = "application/json";
     private static final String WAITING_FORMAT = "Waiting (%d)...";
@@ -83,6 +84,7 @@ public class HttpDataManager {
             throws ExternalDbUnavailableException {
 
         final String location = getLocationStub(locationStub, params);
+        LOGGER.debug("Hitting URL: {}", location);
 
         String resultData = getResultFromURL(location);
 
@@ -204,7 +206,7 @@ public class HttpDataManager {
             throws IOException, ExternalDbUnavailableException {
         String result;
         if (status == HttpURLConnection.HTTP_OK) {
-            LOGGER.info("HTTP_OK reply from destination server");
+            LOGGER.info("HTTP_OK reply from destination server {}", location);
 
             InputStream inputStream = conn.getInputStream();
             BufferedReader streamReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
@@ -219,7 +221,7 @@ public class HttpDataManager {
 
         } else {
 
-            LOGGER.severe("Unexpected HTTP status:" + conn.getResponseMessage() + " for " + location);
+            LOGGER.error("Unexpected HTTP status:" + conn.getResponseMessage() + " for " + location);
             throw new ExternalDbUnavailableException(
                     String.format("Unexpected HTTP status: %d %s for URL %s", status,
                             conn.getResponseMessage(), location));

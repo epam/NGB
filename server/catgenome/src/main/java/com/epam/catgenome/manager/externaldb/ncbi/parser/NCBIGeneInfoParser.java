@@ -24,23 +24,12 @@
 
 package com.epam.catgenome.manager.externaldb.ncbi.parser;
 
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.StringReader;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
+import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.controller.vo.externaldb.NCBIGeneVO;
+import com.epam.catgenome.controller.vo.externaldb.NCBIShortVarVO;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.exception.NgbException;
+import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIUtility;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -52,11 +41,18 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.controller.vo.externaldb.NCBIGeneVO;
-import com.epam.catgenome.controller.vo.externaldb.NCBIShortVarVO;
-import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIUtility;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 /**
  * <p>
@@ -67,6 +63,7 @@ import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIUtility;
 public class NCBIGeneInfoParser {
 
     private static final Logger LOG = LoggerFactory.getLogger(NCBIGeneInfoParser.class);
+    private static final XPath xPath = XPathFactory.newInstance().newXPath();
     // eSearch-related xpaths
 
     private static final String ESEARCH_QUERY_XPATH = "/eSearchResult/QueryKey";
@@ -80,47 +77,107 @@ public class NCBIGeneInfoParser {
     // Common gene data xpaths
 
     private static final String GENE_XPATH = "/Entrezgene-Set/Entrezgene";
-    private static final String ORGANISM_XPATH =
-            GENE_XPATH + "/Entrezgene_source/BioSource/BioSource_org/Org-ref";
-    private static final String PRIMARY_SOURCE_PREFIX_XPATH =
-            GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_db/" +
-                    "Dbtag[1]/Dbtag_db";
-    private static final String PRIMARY_SOURCE_XPATH = GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_db/" +
-                    "Dbtag[1]/Dbtag_tag/Object-id/Object-id_str";
-    private static final String ENTREZ_GENE_TYPE_XPATH = GENE_XPATH + "/Entrezgene_type/@value";
-    private static final String ENTREZ_GENE_SUMMARY_XPATH = GENE_XPATH + "/Entrezgene_summary";
-    private static final String REFSEQ_STATUS_XPATH =
-            GENE_XPATH + "/Entrezgene_comments/Gene-commentary/Gene-commentary_heading" +
-                    "[text()=\"RefSeq Status\"]/../Gene-commentary_label";
+    private static final String ORGANISM_XPATH = GENE_XPATH + "/Entrezgene_source/BioSource/BioSource_org/Org-ref";
 
+    private static final XPathExpression ORGANISM_SCIENTIFIC_XPATH;
+    private static final XPathExpression ORGANISM_COMMON_XPATH;
+    private static final XPathExpression PRIMARY_SOURCE_PREFIX_XPATH;
+    private static final XPathExpression PRIMARY_SOURCE_XPATH;
+    private static final XPathExpression ENTREZ_GENE_TYPE_XPATH;
+    private static final XPathExpression ENTREZ_GENE_SUMMARY_XPATH;
+    private static final XPathExpression REFSEQ_STATUS_XPATH;
     // Interactions xpaths
 
-    private static final String INTERACTIONS_XPATH =
-            "//Gene-commentary_heading[text()=\"Interactions\"]/../Gene-commentary_comment/Gene-commentary";
+    private static final XPathExpression INTERACTIONS_XPATH;
 
-    private static final String REF_ID_XPATH =
-            "Gene-commentary_source/Other-source/Other-source_src/" +
-                    "Dbtag/Dbtag_tag/Object-id/*[self::Object-id_id or self::Object-id_str]";
-    private static final String REF_NAME_XPATH = "Gene-commentary_source/Other-source/Other-source_src/Dbtag/Dbtag_db";
+    private static final XPathExpression REF_ID_XPATH;
+    private static final XPathExpression REF_NAME_XPATH;
 
-    private static final String OTHSOURCE_ID_XPATH =
-            "Other-source_src/Dbtag/Dbtag_tag/Object-id/*[self::Object-id_id or self::Object-id_str]";
-    private static final String OTHSOURCE_REF_NAME_XPATH = "Other-source_src/Dbtag/Dbtag_db";
-    private static final String OTHSOURCE_ANCHOR_NAME_XPATH = "Other-source_anchor";
-    private static final String OFFICIAL_FULL_NAME_XPATH =  GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_desc";
-    private static final String OFFICIAL_SYMBOL_XPATH =  GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_locus";
-    private static final String LOCUS_TAG_XPATH = GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_locus-tag";
-    private static final String ALSO_KNOWN_AS_XPATH = GENE_XPATH + "/Entrezgene_gene/Gene-ref/"
-            + "Gene-ref_syn/Gene-ref_syn_E";
-    private static final String RNA_NAME_XPATH = GENE_XPATH + "/Entrezgene_rna/RNA-ref/RNA-ref_ext/RNA-ref_ext_name";
-    private static final String LINEAGE_XPATH = GENE_XPATH + "/Entrezgene_source/BioSource/BioSource_org/Org-ref/"
-            + "Org-ref_orgname/OrgName/OrgName_lineage";
-    private static final String ID_XPATH = GENE_XPATH + "/Entrezgene_track-info/Gene-track/Gene-track_geneid";
+    private static final XPathExpression OTHSOURCE_ID_XPATH;
+    private static final XPathExpression OTHSOURCE_REF_NAME_XPATH;
+    private static final XPathExpression OTHSOURCE_ANCHOR_NAME_XPATH;
+    private static final XPathExpression OFFICIAL_FULL_NAME_XPATH;
+    private static final XPathExpression OFFICIAL_SYMBOL_XPATH;
+    private static final XPathExpression LOCUS_TAG_XPATH;
+    private static final XPathExpression ALSO_KNOWN_AS_XPATH;
+    private static final XPathExpression RNA_NAME_XPATH;
+    private static final XPathExpression LINEAGE_XPATH;
+    private static final XPathExpression ID_XPATH;
+
+    private static final XPathExpression PUBMED_ID_XPATH;
+    private static final XPathExpression GENE_COMMENTARY_TEXT_XPATH;
+    private static final XPathExpression GENE_COMMENTARY_PUB_LIST_XPATH;
+    private static final XPathExpression GENE_COMMENTARY_XPATH;
+    private static final XPathExpression OTHER_SOURCES_XPATH;
+
+    private static final XPathExpression GROUP_LABEL_XPATH;
+    private static final XPathExpression CONTIG_LABEL_XPATH;
+
+    private static final DocumentBuilderFactory builderFactory;
+
+    static {
+        builderFactory = DocumentBuilderFactory.newInstance();
+        builderFactory.setNamespaceAware(false);
+        builderFactory.setValidating(false); // disable all validation to speed up processing of large (46k lines)
+        try {                                // XML documents. We expect NCBI responses to be correct anyway
+            builderFactory.setFeature("http://xml.org/sax/features/namespaces", false);
+            builderFactory.setFeature("http://xml.org/sax/features/validation", false);
+            builderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+            builderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        } catch (ParserConfigurationException e) {
+            LOG.error("Failed to set XML parsing settings", e);
+        }
+
+        try {
+
+            ORGANISM_SCIENTIFIC_XPATH = xPath.compile(ORGANISM_XPATH + "/Org-ref_taxname");
+            ORGANISM_COMMON_XPATH = xPath.compile(ORGANISM_XPATH + "/Org-ref_common");
+            REFSEQ_STATUS_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_comments/Gene-commentary/Gene-commentary_heading" +
+                    "[text()=\"RefSeq Status\"]/../Gene-commentary_label");
+            ENTREZ_GENE_SUMMARY_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_summary");
+            PRIMARY_SOURCE_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_db/" +
+                    "Dbtag[1]/Dbtag_tag/Object-id/Object-id_str");
+            ENTREZ_GENE_TYPE_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_type/@value");
+            PRIMARY_SOURCE_PREFIX_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_db/" +
+                    "Dbtag[1]/Dbtag_db");
+
+            // Interactions xpaths
+            INTERACTIONS_XPATH = xPath.compile("//Gene-commentary_heading[text()=\"Interactions\"]/../Gene-commentary_comment/Gene-commentary");
+            REF_ID_XPATH = xPath.compile("Gene-commentary_source/Other-source/Other-source_src/" +
+                    "Dbtag/Dbtag_tag/Object-id/*[self::Object-id_id or self::Object-id_str]");
+            REF_NAME_XPATH = xPath.compile("Gene-commentary_source/Other-source/Other-source_src/Dbtag/Dbtag_db");
+
+            OTHSOURCE_ID_XPATH = xPath.compile("Other-source_src/Dbtag/Dbtag_tag/Object-id/*[self::Object-id_id or self::Object-id_str]");
+            OTHSOURCE_REF_NAME_XPATH = xPath.compile("Other-source_src/Dbtag/Dbtag_db");
+            OTHSOURCE_ANCHOR_NAME_XPATH = xPath.compile("Other-source_anchor");
+
+            OFFICIAL_FULL_NAME_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_desc");
+            OFFICIAL_SYMBOL_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_locus");
+            LOCUS_TAG_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/Gene-ref_locus-tag");
+            ALSO_KNOWN_AS_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_gene/Gene-ref/"
+                    + "Gene-ref_syn/Gene-ref_syn_E");
+
+            RNA_NAME_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_rna/RNA-ref/RNA-ref_ext/RNA-ref_ext_name");
+            LINEAGE_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_source/BioSource/BioSource_org/Org-ref/"
+                    + "Org-ref_orgname/OrgName/OrgName_lineage");
+            ID_XPATH = xPath.compile(GENE_XPATH + "/Entrezgene_track-info/Gene-track/Gene-track_geneid");
+
+            PUBMED_ID_XPATH = xPath.compile("Pub_pmid/PubMedId");
+            GENE_COMMENTARY_TEXT_XPATH = xPath.compile("Gene-commentary_text");
+            GENE_COMMENTARY_PUB_LIST_XPATH = xPath.compile("Gene-commentary_refs/Pub");
+            GENE_COMMENTARY_XPATH = xPath.compile("Gene-commentary_comment/Gene-commentary");
+            OTHER_SOURCES_XPATH = xPath.compile("Gene-commentary_source/Other-source");
+
+            GROUP_LABEL_XPATH = xPath.compile("/ExchangeSet/Rs/Assembly/@groupLabel");
+            CONTIG_LABEL_XPATH = xPath.compile("/ExchangeSet/Rs/Assembly/Component/@contigLabel");
+        } catch (XPathExpressionException e) {
+            throw new NgbException(e);
+        }
+
+    }
+
     private static final String PARSING_EXCEPTION_HAPPENED = "Parsing exception happened";
     private static final int LIST_SIZE = 3;
-
-
-    private final XPath xPath = XPathFactory.newInstance().newXPath();
 
     /**
      * Method parsing NCBI xml snp information
@@ -137,8 +194,8 @@ public class NCBIGeneInfoParser {
             InputSource is = new InputSource(new StringReader(xml));
             Document document = builder.parse(is);
 
-            String groupLabel = xPath.compile("/ExchangeSet/Rs/Assembly/@groupLabel").evaluate(document);
-            String contigLabel = xPath.compile("/ExchangeSet/Rs/Assembly/Component/@contigLabel").evaluate(document);
+            String groupLabel = GROUP_LABEL_XPATH.evaluate(document);
+            String contigLabel = CONTIG_LABEL_XPATH.evaluate(document);
 
             shortVarVO.setGenomeLabel(groupLabel);
             shortVarVO.setContigLabel(contigLabel);
@@ -159,38 +216,34 @@ public class NCBIGeneInfoParser {
      * @return NCBIGeneVO
      */
     public NCBIGeneVO parseGeneInfo(String xml) throws ExternalDbUnavailableException {
-
-        DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
         NCBIGeneVO ncbiGeneVO = new NCBIGeneVO();
 
         try {
-
             DocumentBuilder builder = builderFactory.newDocumentBuilder();
+
             InputSource is = new InputSource(new StringReader(xml));
             Document document = builder.parse(is);
-            ncbiGeneVO.setGeneId(xPath.compile(ID_XPATH).evaluate(document));
-            ncbiGeneVO.setOrganismScientific(xPath.compile(ORGANISM_XPATH + "/Org-ref_taxname").evaluate(document));
-            ncbiGeneVO.setOrganismCommon(xPath.compile(ORGANISM_XPATH + "/Org-ref_common").evaluate(document));
-            ncbiGeneVO.setPrimarySource(xPath.compile(PRIMARY_SOURCE_XPATH).evaluate(document));
-            ncbiGeneVO.setPrimarySourcePrefix(xPath.compile(PRIMARY_SOURCE_PREFIX_XPATH).evaluate(document));
-            ncbiGeneVO.setGeneType(xPath.compile(ENTREZ_GENE_TYPE_XPATH).evaluate(document));
-            ncbiGeneVO.setRefSeqStatus(xPath.compile(REFSEQ_STATUS_XPATH).evaluate(document));
-            ncbiGeneVO.setGeneSummary(xPath.compile(ENTREZ_GENE_SUMMARY_XPATH).evaluate(document));
 
-            ncbiGeneVO.setOfficialSymbol(xPath.compile(OFFICIAL_SYMBOL_XPATH).evaluate(document));
-            ncbiGeneVO.setOfficialFullName(xPath.compile(OFFICIAL_FULL_NAME_XPATH).evaluate(document));
-            ncbiGeneVO.setLocusTag(xPath.compile(LOCUS_TAG_XPATH).evaluate(document));
-            ncbiGeneVO.setLineage(xPath.compile(LINEAGE_XPATH).evaluate(document));
-            ncbiGeneVO.setRnaName(xPath.compile(RNA_NAME_XPATH).evaluate(document));
+            ncbiGeneVO.setGeneId(ID_XPATH.evaluate(document));
+            ncbiGeneVO.setOrganismScientific(ORGANISM_SCIENTIFIC_XPATH.evaluate(document));
+            ncbiGeneVO.setOrganismCommon(ORGANISM_COMMON_XPATH.evaluate(document));
+            ncbiGeneVO.setPrimarySource(PRIMARY_SOURCE_XPATH.evaluate(document));
+            ncbiGeneVO.setPrimarySourcePrefix(PRIMARY_SOURCE_PREFIX_XPATH.evaluate(document));
+            ncbiGeneVO.setGeneType(ENTREZ_GENE_TYPE_XPATH.evaluate(document));
+            ncbiGeneVO.setRefSeqStatus(REFSEQ_STATUS_XPATH.evaluate(document));
+            ncbiGeneVO.setGeneSummary(ENTREZ_GENE_SUMMARY_XPATH.evaluate(document));
+            ncbiGeneVO.setOfficialSymbol(OFFICIAL_SYMBOL_XPATH.evaluate(document));
+            ncbiGeneVO.setOfficialFullName(OFFICIAL_FULL_NAME_XPATH.evaluate(document));
+            ncbiGeneVO.setLocusTag(LOCUS_TAG_XPATH.evaluate(document));
+            ncbiGeneVO.setLineage(LINEAGE_XPATH.evaluate(document));
+            ncbiGeneVO.setRnaName(RNA_NAME_XPATH.evaluate(document));
 
-            NodeList alsoKnown =
-                    (NodeList) xPath.compile(ALSO_KNOWN_AS_XPATH).evaluate(document, XPathConstants.NODESET);
+            NodeList alsoKnown = (NodeList) ALSO_KNOWN_AS_XPATH.evaluate(document, XPathConstants.NODESET);
             List<String> alsoKnownList = new ArrayList<>(alsoKnown.getLength());
             fillGeneAlsoKnownList(alsoKnown, alsoKnownList);
             ncbiGeneVO.setAlsoKnownAs(alsoKnownList);
 
-            NodeList interactionsNodesList =
-                    (NodeList) xPath.compile(INTERACTIONS_XPATH).evaluate(document, XPathConstants.NODESET);
+            NodeList interactionsNodesList = (NodeList) INTERACTIONS_XPATH.evaluate(document, XPathConstants.NODESET);
 
             List<NCBIGeneVO.NCBIGeneInteractionVO> geneInteractionsList =
                     new ArrayList<>(interactionsNodesList.getLength());
@@ -239,8 +292,7 @@ public class NCBIGeneInfoParser {
         } catch (ParserConfigurationException | SAXException | XPathExpressionException e) {
             LOG.error(PARSING_EXCEPTION_HAPPENED, e);
         } catch (IOException e) {
-            throw new ExternalDbUnavailableException(getMessage(MessagesConstants
-                    .ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+            throw new ExternalDbUnavailableException(getMessage(MessagesConstants.ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
         }
 
         return result;
@@ -252,9 +304,9 @@ public class NCBIGeneInfoParser {
         for (int i = 0; i < refs.getLength(); i++) {
             Node source = refs.item(i).cloneNode(true);
 
-            String refDbName = xPath.compile(OTHSOURCE_REF_NAME_XPATH).evaluate(source);
-            String refId = xPath.compile(OTHSOURCE_ID_XPATH).evaluate(source);
-            String anchorName = xPath.compile(OTHSOURCE_ANCHOR_NAME_XPATH).evaluate(source);
+            String refDbName = OTHSOURCE_REF_NAME_XPATH.evaluate(source);
+            String refId = OTHSOURCE_ID_XPATH.evaluate(source);
+            String anchorName = OTHSOURCE_ANCHOR_NAME_XPATH.evaluate(source);
 
             ReferenceSource rs = new ReferenceSource(refDbName, refId, anchorName);
             rsList.add(rs);
@@ -265,7 +317,7 @@ public class NCBIGeneInfoParser {
         List<Long> result = new ArrayList<>(pubmedIdList.getLength());
         for (int pubmedCnt = 0, length = pubmedIdList.getLength(); pubmedCnt < length; pubmedCnt++) {
             Node pubmedIdNode = pubmedIdList.item(pubmedCnt).cloneNode(true);
-            String pubmedIdValue = xPath.compile("Pub_pmid/PubMedId").evaluate(pubmedIdNode);
+            String pubmedIdValue = PUBMED_ID_XPATH.evaluate(pubmedIdNode);
             if (StringUtils.isNotBlank(pubmedIdValue)) {
                 result.add(Long.valueOf(pubmedIdValue));
             }
@@ -289,25 +341,23 @@ public class NCBIGeneInfoParser {
             NCBIGeneVO.NCBIGeneInteractionVO interactionVO = new NCBIGeneVO.NCBIGeneInteractionVO();
             Node item = interactionsNodesList.item(interactionsCnt).cloneNode(true);
 
-            interactionVO.setDescription(xPath.compile("Gene-commentary_text").evaluate(item));
+            interactionVO.setDescription(GENE_COMMENTARY_TEXT_XPATH.evaluate(item));
 
             NodeList pubmedIdList =
-                    (NodeList) xPath.compile("Gene-commentary_refs/Pub").evaluate(item, XPathConstants.NODESET);
+                    (NodeList) GENE_COMMENTARY_PUB_LIST_XPATH.evaluate(item, XPathConstants.NODESET);
 
             interactionVO.setPubmedIdList(fillList(pubmedIdList));
-            interactionVO.setSourceName(xPath.compile(REF_NAME_XPATH).evaluate(item));
-            interactionVO.setSourceId(xPath.compile(REF_ID_XPATH).evaluate(item));
+            interactionVO.setSourceName(REF_NAME_XPATH.evaluate(item));
+            interactionVO.setSourceId(REF_ID_XPATH.evaluate(item));
 
-            NodeList refs = (NodeList) xPath.
-                    compile("Gene-commentary_comment/Gene-commentary").evaluate(item, XPathConstants.NODESET);
+            NodeList refs = (NodeList) GENE_COMMENTARY_XPATH.evaluate(item, XPathConstants.NODESET);
 
             List<ReferenceSource> rsList = new ArrayList<>();
 
             for (int otherSourcesCnt = 0; otherSourcesCnt < refs.getLength(); otherSourcesCnt++) {
                 Node otherGeneItem = refs.item(otherSourcesCnt).cloneNode(true);
 
-                NodeList otherSources = (NodeList) xPath.compile("Gene-commentary_source/Other-source").
-                        evaluate(otherGeneItem, XPathConstants.NODESET);
+                NodeList otherSources = (NodeList) OTHER_SOURCES_XPATH.evaluate(otherGeneItem, XPathConstants.NODESET);
 
                 parseOtherSource(otherSources, rsList);
             }

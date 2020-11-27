@@ -93,12 +93,12 @@ public class NCBIDataManager extends HttpDataManager {
      * @return string with data
      * @throws ExternalDbUnavailableException
      */
-    public String searchById(String db, String term) throws ExternalDbUnavailableException {
+    public String searchById(String db, String term, String field) throws ExternalDbUnavailableException {
 
         List<ParameterNameValue> parametersList = new ArrayList<>();
 
         parametersList.add(new ParameterNameValue("db", db));
-        parametersList.add(new ParameterNameValue("term", term));
+        parametersList.add(new ParameterNameValue("term", term + "[" + field + "]"));
         parametersList.add(new ParameterNameValue(RETMODE_PARAM, "json"));
 
         ParameterNameValue[] parameterNameValues = parametersList.toArray(
