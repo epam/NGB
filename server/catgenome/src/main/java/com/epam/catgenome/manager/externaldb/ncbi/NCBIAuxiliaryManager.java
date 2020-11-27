@@ -70,7 +70,7 @@ public class NCBIAuxiliaryManager extends NCBIDataManager {
      *
      * @param db   db name
      * @param term term name
-     * @param field
+     * @param field a field to search for. If null, search for all the fields
      * @return String with data
      * @throws ExternalDbUnavailableException
      */

@@ -90,6 +90,7 @@ public class NCBIDataManager extends HttpDataManager {
     /**
      * @param db   DB name
      * @param term tern name
+     * @param field a field to search for. If null, search for all the fields
      * @return string with data
      * @throws ExternalDbUnavailableException
      */
