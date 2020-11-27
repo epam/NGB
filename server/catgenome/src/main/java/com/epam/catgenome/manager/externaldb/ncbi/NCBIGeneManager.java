@@ -55,6 +55,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class NCBIGeneManager {
 
     private static final String RESULT_PATH = "result";
+    public static final String ENSEMBLE_GENE_PREFIX = "ENSG";
 
     private JsonMapper mapper = new JsonMapper();
 
@@ -160,8 +161,15 @@ public class NCBIGeneManager {
         String externalID = id;
         // if ID contains literals then we consider this external ID and perform search
         if (!id.matches("\\d+")) {
-            String ncbiId = ncbiAuxiliaryManager.searchDbForId(NCBIDatabase.GENE.name(), externalID,
-                                                                SYMBOL_SEARCH_FIELD);
+            String ncbiId;
+
+            if (id.startsWith(ENSEMBLE_GENE_PREFIX)) { // For ensemble geneIds (that starts with ENSG*), simple query
+                                                        // seems to return what's needed
+                ncbiId = ncbiAuxiliaryManager.searchDbForId(NCBIDatabase.GENE.name(), externalID, null);
+            } else {
+                ncbiId = ncbiAuxiliaryManager.searchDbForId(NCBIDatabase.GENE.name(), externalID, SYMBOL_SEARCH_FIELD);
+            }
+
             if (StringUtils.isNotBlank(ncbiId)) {
                 externalID = ncbiId;
             } else {
