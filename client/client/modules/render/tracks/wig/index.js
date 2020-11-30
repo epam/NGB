@@ -99,6 +99,12 @@ export class WIGTrack extends CachedTrack {
                     config: this.config,
                 });
             }
+            if (key === 'coverage>opacity') {
+                this.config.dispatcher.emitSimpleEvent('wig:opacity:configure', {
+                    config: this.config,
+                    source: this.config.name,
+                });
+            }
             if (key === 'coverage>scale>manual' && this.state.coverageScaleMode === scaleModes.manualScaleMode) {
                 shouldReportTrackState = false;
                 if (currentScaleMode !== this.state.coverageScaleMode) {

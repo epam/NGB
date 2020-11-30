@@ -1,0 +1,49 @@
+<md-dialog aria-label="track opacity settings">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2 ng-hide="name">Set WIG opacity</h2>
+            <span flex></span>
+            <md-button
+                class="md-icon-button"
+                ng-click="ctrl.close()"
+                aria-label="Close"
+            >
+                <ng-md-icon style="fill: #fff" icon="clear"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    <md-dialog-content>
+        <div layout="column" layout-margin>
+            <md-slider-container>
+                <div flex="10" layout layout-align="center center">
+                    <span class="md-body-1">Opacity</span>
+                </div>
+                <md-slider
+                    ng-model="ctrl.opacity"
+                    min="0"
+                    max="100"
+                    aria-label="opacity"
+                    id="opacity-slider"
+                >
+                </md-slider>
+
+                <md-input-container>
+                    <input
+                        type="number"
+                        ng-model="ctrl.opacity"
+                        aria-label="opacity"
+                        aria-controls="opacity-slider"
+                    />
+                </md-input-container>
+            </md-slider-container>
+        </div>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+        <md-button aria-label="save" ng-click="ctrl.save()" class="md-primary">
+            Save
+        </md-button>
+        <md-button aria-label="cancel" ng-click="ctrl.close()">
+            Cancel
+        </md-button>
+    </md-dialog-actions>
+</md-dialog>

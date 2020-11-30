@@ -17,6 +17,12 @@ export default {
             label: 'Font size',
             name: 'coverage>font',
             type: 'button'
+        },
+        {
+            perform: () => {},
+            label: 'Opacity',
+            name: 'coverage>opacity',
+            type: 'button'
         }
     ],
     label:'General',
