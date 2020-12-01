@@ -23,21 +23,8 @@ done
 
 echo "Publishing ${NGB_VERSION} distribution"
 
-aws s3 cp ${NGB_VERSION} s3://ngb-oss-builds/${APPVEYOR_REPO_BRANCH}/ --recursive
-# sudo ssh ${DEMO_USER}@${DEMO_SRV} -o StrictHostKeyChecking=no -i ../demo.pem \
-#     "test -d ${DEMO_PATH}/${VERSION} || mkdir -p ${DEMO_PATH}/${VERSION}"
+aws s3 cp ${NGB_VERSION} s3://ngb-oss-builds/builds/${APPVEYOR_REPO_BRANCH}/ --recursive
 
-# sudo rsync -rave "ssh -o StrictHostKeyChecking=no -i ../demo.pem" ${VERSION}/* ${DEMO_USER}@${DEMO_SRV}:${DEMO_PATH}/${VERSION}
-
-# sudo ssh ${DEMO_USER}@${DEMO_SRV} -o StrictHostKeyChecking=no -i ../demo.pem \
-#     "find ${DEMO_PATH}/* -maxdepth 0  -type d -ctime +60 -not -path "*latest" -exec rm -rf {} \; &&" \
-#     "cd ${DEMO_PATH} &&" \
-#     "rm -rf ${VERSION}/docs &&" \
-#     "mkdir -p ${VERSION}/docs &&" \
-#     "tar -zxf ${VERSION}/${DOCS_VERSION} -C ${VERSION}/docs"
-
-# Publish the docker image from develop branch to dockerhub
-## Check whether ngb:latest is built
 docker inspect --type=image "ngb:latest" &> /dev/null
 if [ $? -ne 0 ]; then
     echo "Docker image is not built"
