@@ -1,0 +1,19 @@
+version: 2.6.0.{build}
+
+branches:
+  only:
+    - develop
+    - /release\/.*/
+
+skip_tags: true
+max_jobs: 1
+image: Ubuntu1604
+stack: jdk 8, python 3
+
+build_script:
+  - python3 -m pip install mkdocs mkdocs-material
+  - ./gradlew buildJar buildCli buildDoc buildDocker -PbuildNumber=${APPVEYOR_BUILD_NUMBER} -PnoTest
+  - ./gradlew jacocoTestReport
+  - bash <(curl -s https://codecov.io/bash)
+  - ./publish.sh
+test: off
