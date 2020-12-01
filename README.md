@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/epam/NGB.svg?branch=master)](https://travis-ci.org/epam/NGB)
+[![Build status](https://ci.appveyor.com/api/projects/status/sat5156jrv3lw9qw?svg=true)](https://ci.appveyor.com/project/epam/ngb)
 [![codecov](https://codecov.io/gh/epam/NGB/branch/master/graph/badge.svg)](https://codecov.io/gh/epam/NGB)
 
 # NGB
@@ -89,8 +89,8 @@ That's it. Now NGS files could be added and viewed. Please refer to [NGB Command
 NGB binaries can be retrieved from the following locations:
 * Releases:
     * GitHub Releases: [https://github.com/epam/NGB/releases](https://github.com/epam/NGB/releases)
-    * Direct HTTP links: [http://ngb.opensource.epam.com/distr](http://ngb.opensource.epam.com/distr)
-* Development builds (created from `develop` branch - each commit): [http://ngb.opensource.epam.com/distr/dev](http://ngb.opensource.epam.com/distr/dev)
+    * Direct HTTP links: [Release versions](https://ngb-oss-builds.s3.amazonaws.com/web/index.html?prefix=builds/release/)
+* Development builds (created from `develop` branch - each commit): [Development versions](https://ngb-oss-builds.s3.amazonaws.com/web/index.html?prefix=builds/develop/)
 
 # How to build NGB
 
