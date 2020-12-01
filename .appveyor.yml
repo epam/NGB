@@ -15,4 +15,5 @@ build_script:
   - ./gradlew buildJar buildWar buildCli buildDoc buildDocker -PbuildNumber=${APPVEYOR_BUILD_NUMBER}
   - ./gradlew jacocoTestReport
   - bash <(curl -s https://codecov.io/bash)
+  - ./publish.sh
 test: off
