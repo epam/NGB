@@ -55,7 +55,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class NCBIGeneManager {
 
     private static final String RESULT_PATH = "result";
-    public static final String ENSEMBL_GENE_PREFIX = "ENSG";
+    public static final String ENSEMBL_GENE_PREFIX = "ENS";
 
     private JsonMapper mapper = new JsonMapper();
 
