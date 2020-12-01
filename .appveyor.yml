@@ -12,9 +12,8 @@ image: Ubuntu1604
 stack: jdk 8, python 3
 
 build_script:
-  - which python
-  - which python3
   - python3 -m pip install mkdocs mkdocs-material
+  - mkdocs --version
   - ./gradlew buildJar buildWar buildCli buildDoc buildDocker -PbuildNumber=${APPVEYOR_BUILD_NUMBER}
   - ./gradlew jacocoTestReport
   - bash <(curl -s https://codecov.io/bash)
