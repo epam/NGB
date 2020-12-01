@@ -1,0 +1,18 @@
+version: 2.6.0.{build}
+
+branches:
+  only:
+    - develop
+    - /release\/.*/
+    - publish_to_s3
+
+skip_tags: true
+max_jobs: 1
+image: Ubuntu1604
+stack: jdk 8
+
+build_script:
+  - ./gradlew buildJar buildWar buildCli buildDoc buildDocker -PbuildNumber=${APPVEYOR_BUILD_NUMBER}
+  - ./gradlew jacocoTestReport
+  - bash <(curl -s https://codecov.io/bash)
+test: off
