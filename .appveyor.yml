@@ -13,7 +13,7 @@ stack: jdk 8, python 3
 
 build_script:
   - python3 -m pip install mkdocs mkdocs-material
-  - ./gradlew buildJar buildCli buildDoc -PbuildNumber=${APPVEYOR_BUILD_NUMBER} -PnoTest
+  - ./gradlew buildJar buildCli buildDoc buildDocker -PbuildNumber=${APPVEYOR_BUILD_NUMBER} -PnoTest
   - ./gradlew jacocoTestReport
   - bash <(curl -s https://codecov.io/bash)
   - ./publish.sh
