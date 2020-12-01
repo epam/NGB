@@ -3,7 +3,7 @@
 echo "Starting deployment"
 
 # Get current version
-NGB_VERSION=$(./gradlew :printVersion -PbuildNumber=$TRAVIS_JOB_NUMBER |  grep "Project version is " | sed 's/^.*is //')
+NGB_VERSION=$(./gradlew :printVersion -PbuildNumber=$APPVEYOR_BUILD_NUMBER |  grep "Project version is " | sed 's/^.*is //')
 echo "Current version is ${NGB_VERSION}"
 
 cd dist
@@ -23,7 +23,7 @@ done
 
 echo "Publishing ${NGB_VERSION} distribution"
 
-aws s3 cp ${NGB_VERSION} s3://ngb-oss-builds/builds/${APPVEYOR_REPO_BRANCH}/ --recursive
+aws s3 cp ${NGB_VERSION} s3://ngb-oss-builds/builds/${APPVEYOR_REPO_BRANCH}/${NGB_VERSION}/ --recursive
 
 docker inspect --type=image "ngb:latest" &> /dev/null
 if [ $? -ne 0 ]; then
