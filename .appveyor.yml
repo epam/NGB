@@ -4,7 +4,6 @@ branches:
   only:
     - develop
     - /release\/.*/
-    - publish_to_s3
 
 skip_tags: true
 max_jobs: 1
