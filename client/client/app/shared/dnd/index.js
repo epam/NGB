@@ -165,19 +165,25 @@ export default angular.module('dndLists', [])
                         if (!fileSettings) {
                             return {
                                 bioDataItemId: file.name,
+                                isLocal: file.isLocal,
                                 projectId: file.projectId,
-                                isLocal: file.isLocal
                             };
                         } else {
                             const height = fileSettings.height;
+                            const prettyName = fileSettings.prettyName;
                             const state = fileSettings.state;
                             const index = fileSettings.index;
                             const format = fileSettings.format;
                             const isLocal = fileSettings.isLocal;
                             return {
-                                height, state, index, format, isLocal,
                                 bioDataItemId: file.name,
-                                projectId: file.projectId
+                                format,
+                                height,
+                                index,
+                                isLocal,
+                                prettyName,
+                                projectId: file.projectId,
+                                state,
                             };
                         }
                     })];
