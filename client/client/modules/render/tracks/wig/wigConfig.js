@@ -36,7 +36,7 @@ export default {
         lineColor: 0x697EA6,
         lineThresholdColor: 0xF87272,
         negative: 0xff4d4f,
-        positive: 0x73d13d,
+        positive: 0x92AEE7,
         thresholdColor: 0xFAA3A3,
     },
 };
