@@ -89,8 +89,8 @@ That's it. Now NGS files could be added and viewed. Please refer to [NGB Command
 NGB binaries can be retrieved from the following locations:
 * Releases:
     * GitHub Releases: [https://github.com/epam/NGB/releases](https://github.com/epam/NGB/releases)
-    * Direct HTTP links: [Release versions](https://ngb-oss-builds.s3.amazonaws.com/web/index.html?prefix=builds/release/)
-* Development builds (created from `develop` branch - each commit): [Development versions](https://ngb-oss-builds.s3.amazonaws.com/web/index.html?prefix=builds/develop/)
+    * Direct HTTP links: [Release versions](https://ngb-oss-builds.s3.amazonaws.com/web/index.html?prefix=public/builds/release/)
+* Development builds (created from `develop` branch - each commit): [Development versions](https://ngb-oss-builds.s3.amazonaws.com/web/index.html?prefix=public/builds/develop/)
 
 # How to build NGB
 
