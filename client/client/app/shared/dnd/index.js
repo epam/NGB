@@ -64,7 +64,6 @@ export default angular.module('dndLists', [])
                 window.removeEventListener('mouseleave', endDraggingHandler);
             };
 
-            initialEvent.preventDefault();
             initialEvent.stopImmediatePropagation();
 
             window.addEventListener('mousemove', onDragging);

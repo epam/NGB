@@ -168,6 +168,7 @@ export class Track extends BaseTrack {
         this._refreshCache();
         this._showCenterLine = opts.showCenterLine;
         requestAnimationFrame(::this.tick);
+        this._pixiRenderer.plugins.interaction.autoPreventDefault = false;
     }
 
     reportTrackState(silent = false) {

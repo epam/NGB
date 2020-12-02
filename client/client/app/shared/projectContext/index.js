@@ -463,7 +463,6 @@ export default class projectContext {
     }
 
     setTrackState(track) {
-      console.log('setTrackState', track.prettyName);
         const name = track.name ? track.name.toLowerCase() : track.bioDataItemId.toString().toLowerCase();
         const key = `track[${name}][${track.projectId.toLowerCase()}]`;
         const state = {
