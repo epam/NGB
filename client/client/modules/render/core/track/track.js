@@ -18,7 +18,8 @@ const getFlags = () => ({
     settingsChanged: false,
     widthChanged: false,
     dragFinished: false,
-    hoverChanged: false
+    hoverChanged: false,
+    blatRegionChanged: false
 });
 
 function refreshRender(render, size) {

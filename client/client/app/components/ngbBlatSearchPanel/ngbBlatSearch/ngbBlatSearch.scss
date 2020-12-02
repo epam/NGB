@@ -6,5 +6,21 @@
 }
 
 .blat-search-header {
-  padding-left: .5rem;
+  padding: .5rem;
+}
+
+.blat-search-read-sequence {
+  padding: 5px;
+}
+
+.blat-search-btn{
+  line-height: 24px;
+  min-height: 24px;
+  font-size: 12px;
+}
+
+.blat-search-warning {
+  font-size: small;
+  color: #888888;
+  text-align: center;
 }

@@ -17,6 +17,7 @@ export default class ngbBlatSearchController extends baseController {
     blatSearchEmptyResult = null;
 
     readSequence = null;
+    warningMessage = null;
 
     gridOptions = {
         enableFiltering: false,
@@ -58,12 +59,33 @@ export default class ngbBlatSearchController extends baseController {
         });
 
         this.initEvents();
+        $scope.$on('$destroy', () => {
+            localStorage.setItem('blatSearchRequest', null);
+        });
     }
 
     events = {
-        'reference:change': ::this.initialize,
+        'reference:change': ::this.onReferenceChange,
         'read:show:blat': ::this.initialize,
     };
+
+    onReferenceChange() {
+        localStorage.setItem('blatSearchRequest',
+            JSON.stringify({
+                referenceId: this.projectContext.reference ? this.projectContext.reference.id: null,
+                sequence: this.blatSearchService.blatRequest ? this.blatSearchService.blatRequest.sequence : ''
+            }));
+        this.initialize();
+    }
+
+    validateReadSequence() {
+        const regexp = /^[a-zA-Z]+$/;
+        if (regexp.test(this.readSequence)) {
+            this.warningMessage = null;
+        } else {
+            this.warningMessage = 'Read sequence can contain only letters';
+        }
+    }
 
     async $onInit() {
         await this.initialize();
@@ -97,8 +119,26 @@ export default class ngbBlatSearchController extends baseController {
             this.blatSearchEmptyResult = null;
             this.isProgressShown = false;
             this.gridOptions.columnDefs = [];
+            if (!this.projectContext.reference) {
+                this.onError(this.blatSearchMessages.ErrorMessage.ReferencNotFound);
+            }
+        }
+    }
 
+    async onClickReadSequenceSearch() {
+        if(this.readSequence) {
+            this.isProgressShown = true;
+            localStorage.setItem('blatSearchRequest',
+                JSON.stringify(
+                    {
+                        referenceId: this.projectContext.reference ? this.projectContext.reference.id : null,
+                        sequence: this.readSequence
+                    }));
+            await this.loadData();
             this.$timeout(this.$scope.$apply());
+        } else {
+            this.gridOptions.data = [];
+            this.blatSearchEmptyResult = this.blatSearchMessages.ErrorMessage.EmptySearchResults;
         }
     }
 
@@ -108,6 +148,7 @@ export default class ngbBlatSearchController extends baseController {
                 this.isProgressShown = false;
                 this.blatSearchEmptyResult = null;
                 this.gridOptions.columnDefs = [];
+                this.onError(this.blatSearchMessages.ErrorMessage.ReferencNotFound);
                 return;
             }
             await this.blatSearchLoadingFinished();
@@ -127,6 +168,7 @@ export default class ngbBlatSearchController extends baseController {
         this.gridOptions.columnDefs = this.blatSearchService.getBlatSearchGridColumns();
         this.gridOptions.data = await this.blatSearchService.getBlatSearchResults();
         this.readSequence = this.blatSearchService.readSequence;
+        this.validateReadSequence();
 
         if(this.gridOptions.data && this.gridOptions.data.length) {
             this.blatSearchEmptyResult = null;

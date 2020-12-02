@@ -1,9 +1,13 @@
 <div layout="row" class="golden-layout-content-0" layout-fill>
 
     <div ng-if="!$ctrl.isProgressShown && !$ctrl.errorMessageList.length" class="ui-grid-container">
-        <div ng-if="$ctrl.readSequence" layout="column" class="blat-search-header">
+        <div layout="column" class="blat-search-header">
             <h5>BLAT result for query sequence:</h5>
-            <p class="u-break-word">{{$ctrl.readSequence}}</p>
+            <textarea rows="2" class="u-break-word blat-search-read-sequence" ng-change="$ctrl.validateReadSequence()"  ng-model="$ctrl.readSequence"/>
+            <div flex class="blat-search-warning" ng-show="$ctrl.warningMessage">{{$ctrl.warningMessage}}</div>
+            <div layout="row" layout-align="end center" flex="50">
+                <md-button class="md-raised md-primary blat-search-btn" ng-disabled="$ctrl.warningMessage" ng-click="$ctrl.onClickReadSequenceSearch()">Search</md-button>
+            </div>
         </div>
         <div ng-if="$ctrl.blatSearchEmptyResult" class="blat-search-load-error-container">
             <small>{{$ctrl.blatSearchEmptyResult}}</small>

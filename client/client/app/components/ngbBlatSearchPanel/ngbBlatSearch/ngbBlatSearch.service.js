@@ -65,19 +65,11 @@ export default class ngbBlatSearchService {
     }
 
     get readSequence() {
-        return this._detailedRead && this._detailedRead.sequence ? this._detailedRead.sequence : null;
+        return this.blatRequest && this.blatRequest.sequence ? this.blatRequest.sequence : null;
     }
 
     get blatRequest() {
         return JSON.parse(localStorage.getItem('blatSearchRequest')) || null;
-    }
-
-    async getDetailedRead(payload) {
-        let read = await this.bamDataService.loadRead(payload);
-
-        this._detailedRead = read ? read : null;
-
-        return this._detailedRead;
     }
 
     async getBlatSearchResults(){
@@ -85,11 +77,7 @@ export default class ngbBlatSearchService {
 
         if(!payload) return;
 
-        let searchResults, read;
-
-        read = await this.getDetailedRead(payload);
-
-        searchResults = await this.bamDataService.getBlatSearchResults(payload.referenceId, read.sequence);
+        const searchResults = await this.bamDataService.getBlatSearchResults(payload.referenceId, payload.sequence);
 
         return searchResults;
     }

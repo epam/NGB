@@ -251,12 +251,23 @@ export default class RulerRenderer {
     }
 
     changeBlatRegion(container, viewport) {
-        container.removeChildren();
-        if (viewport.blatRegion && viewport.blatRegion.chromosomeName === viewport.projectContext.currentChromosome.name) {
-            const blatRegionGraphics = new PIXI.Graphics();
-            container.addChild(blatRegionGraphics);
+        if(viewport.blatRegion) {
+            const blatRegionChromosomeName =
+                viewport.blatRegion.chromosomeName.toLowerCase().startsWith('chr')
+                    ? viewport.blatRegion.chromosomeName.substr(3)
+                    : viewport.blatRegion.chromosomeName;
+            const projectContextChromosomeName =
+                viewport.projectContext.currentChromosome.name.toLowerCase().startsWith('chr')
+                    ? viewport.projectContext.currentChromosome.name.substr(3)
+                    : viewport.projectContext.currentChromosome.name;
 
-            this.renderBlatRegion(blatRegionGraphics, viewport.blatRegion);
+            container.removeChildren();
+            if (blatRegionChromosomeName === projectContextChromosomeName) {
+                const blatRegionGraphics = new PIXI.Graphics();
+                container.addChild(blatRegionGraphics);
+
+                this.renderBlatRegion(blatRegionGraphics, viewport.blatRegion);
+            }
         }
     }
 
