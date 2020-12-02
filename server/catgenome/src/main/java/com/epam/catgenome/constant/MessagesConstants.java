@@ -143,6 +143,8 @@ public final class MessagesConstants {
     public static final String ERROR_UNSUPPORTED_GENE_FILE_TYPE = "error.unsupported.genefiletype";
     public static final String ERROR_HELPER_FILE_DOES_NOT_EXIST = "error.helper.file.does.not.exist";
     public static final String ERROR_INVALID_NUCLEOTIDE = "error.invalid.nucleotide";
+    public static final String ERROR_LOADING_TRANSCRIPT_GENE_ID_NULL = "error.transcript.not.loaded.gene.id.null";
+
 
     //VCF
     public static final String ERROR_UNSUPPORTED_VCF_FILE_EXTESION = "error.unsupported.vcf.file.extension";

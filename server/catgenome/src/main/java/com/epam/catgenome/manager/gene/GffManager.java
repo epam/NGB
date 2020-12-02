@@ -584,7 +584,7 @@ public class GffManager {
      * @throws GeneReadingException
      */
     public Track<GeneTranscript> loadGenesTranscript(final Track<Gene> track,
-            String fileUrl, String indexUrl) throws GeneReadingException {
+                                                     String fileUrl, String indexUrl) throws GeneReadingException {
         final Track<Gene> geneTrack;
         if (fileUrl == null) {
             geneTrack = loadGenes(track, false);
@@ -593,18 +593,22 @@ public class GffManager {
         }
 
         final Track<GeneTranscript> geneTranscriptTrack = new Track<>(track);
-        final List<GeneTranscript> geneTranscriptList = new ArrayList<>();
-
-        for (Gene gene : geneTrack.getBlocks()) {
+        final List<GeneTranscript> geneTranscripts = geneTrack.getBlocks().stream().map(gene -> {
             try {
-                gene.setTranscripts(getTranscriptFromDB(gene.getGroupId()));
-                geneTranscriptList.add(new GeneTranscript(gene));
+                if (StringUtils.isNotBlank(gene.getGroupId())) {
+                    gene.setTranscripts(getTranscriptFromDB(gene.getGroupId()));
+                    return new GeneTranscript(gene);
+                } else {
+                    return new GeneTranscript(gene, getMessage(
+                        MessagesConstants.ERROR_LOADING_TRANSCRIPT_GENE_ID_NULL));
+                }
             } catch (ExternalDbUnavailableException e) {
                 LOGGER.info("External DB Exception", e);
-                geneTranscriptList.add(new GeneTranscript(gene, e.getMessage()));
+                return new GeneTranscript(gene, e.getMessage());
             }
-        }
-        geneTranscriptTrack.setBlocks(geneTranscriptList);
+        }).collect(Collectors.toList());
+
+        geneTranscriptTrack.setBlocks(geneTranscripts);
         return geneTranscriptTrack;
     }
 
