@@ -1,5 +1,5 @@
 import {drawingConfiguration} from '../../../../modules/render/core';
-import PIXI from 'pixi.js';
+import {SVG} from '../../../shared/utils/svg';
 
 export default class ngbTracksViewBookmarkCamera {
     getTitle;
@@ -10,7 +10,7 @@ export default class ngbTracksViewBookmarkCamera {
         this.getTracks = getTracks;
     }
 
-    saveBrowserView() {
+    saveBrowserView(type) {
         const tracks = this.getTracks();
         if (tracks && tracks.length > 0) {
             requestAnimationFrame(() => {
@@ -34,12 +34,17 @@ export default class ngbTracksViewBookmarkCamera {
                     })
                     .filter(x => x);
 
-                this._downloadView(data);
+                if (type === 'png') {
+                    this._downloadPNGView(data);
+                }
+                else {
+                    this._downloadSVGView(data);
+                }
             });
         }
     }
 
-    _downloadView(data) {
+    _downloadPNGView(data) {
         if (data && data.length > 0) {
 
             const canvas = this._getPureCanvas(data);
@@ -62,6 +67,35 @@ export default class ngbTracksViewBookmarkCamera {
                 download: `${this.getTitle()}.png`,
                 name: `${this.getTitle()}.png`,
                 href: canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream')
+            }).click();
+        }
+    }
+
+    _downloadSVGView(data) {
+        if (data && data.length > 0) {
+            const width = this._getCanvasWidth(data);
+            const height = this._getCanvasHeight(data);
+
+            let svg = new SVG(width, height);
+            let y = 0;
+
+            data.forEach(x => {
+                if (x.name) {
+                    y += 15;
+                    svg.addText(`${x.format} ${x.name}`, 0, y - 3);
+                }
+                if (x.img) {
+                    svg.addImage(x.img.width, x.img.height, x.img.toDataURL(), 0, y);
+                    y += x.height;
+                }
+            });
+
+            let url = svg.getUrl();
+
+            Object.assign(document.createElement('a'), {
+                download: `${this.getTitle()}.svg`,
+                name: `${this.getTitle()}.svg`,
+                href: url
             }).click();
         }
     }

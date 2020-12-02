@@ -28,7 +28,7 @@ export default class ngbBrowserToolbarPanelController {
         return this.zoomManager && this.zoomManager.canZoom;
     }
 
-    saveBrowserView() {
-        this.bookmarkCamera.saveBrowserView();
+    saveBrowserView(type) {
+        this.bookmarkCamera.saveBrowserView(type);
     }
-} 
+}

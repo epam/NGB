@@ -173,6 +173,14 @@
     </div>
     <div flex="100" id="cnv" ng-show="ctrl._loaded && !ctrl._visualizationError">
         <div class="visualizer-tooltip-target"></div>
+        <section class="visualizer-camera-panel" layout="column" ng-cloak>
+            <md-button
+                    class="md-raised bookmark camera"
+                    aria-label="save screenshot"
+                    ng-click="ctrl.saveVisualizerView()">
+                <ng-md-icon icon="camera_alt"></ng-md-icon>
+            </md-button>
+        </section>
     </div>
     <div flex="100" layout="row" layout-align="center center" ng-show="ctrl._loaded && ctrl._visualizationError">
         <div class="visualization-error">{{ctrl._visualizationError}}</div>

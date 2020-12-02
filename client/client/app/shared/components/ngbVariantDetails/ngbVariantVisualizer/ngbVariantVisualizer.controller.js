@@ -3,6 +3,7 @@ import ngbVariantVisualizerService from './ngbVariantVisualizer.service';
 import {VariantRenderer} from '../../../../../modules/render';
 import Tether from 'tether';
 import $ from 'jquery';
+import {SVG} from '../../../utils/svg';
 
 export default class ngbVariantVisualizerController extends ngbVariantDetailsController {
     static get UID() {
@@ -30,12 +31,13 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
     _highlightBreakpoints = true;
 
     /* @ngInject */
-    constructor($scope, $element, vcfDataService, constants, $timeout, ngbVariantVisualizerService) {
+    constructor($scope, $element, vcfDataService, constants, $timeout, ngbVariantVisualizerService, projectContext) {
         super($scope, vcfDataService, constants);
         this._scope = $scope;
         this._timeout = $timeout;
         this._service = ngbVariantVisualizerService;
-        (async() => {
+        this.projectContext = projectContext;
+        (async () => {
             await new Promise(resolve => $timeout(resolve));
 
             this._variantRendererDiv = $($element[0]).find('#cnv')[0];
@@ -58,7 +60,7 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
 
     INIT() {
         if (this._service !== undefined && this._service !== null) {
-            (async() => {
+            (async () => {
                 if (this.variantRequest !== null && this.variantRequest !== undefined) {
                     const preAnalyzeResult = await this._service.preAnalyze(this.variantRequest);
                     if (preAnalyzeResult.error) {
@@ -71,12 +73,12 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
                         this._geneFilesLoaded = true;
                         this._geneFiles = preAnalyzeResult.geneFiles;
                         this._selectedGeneFile = preAnalyzeResult.selectedGeneFile;
-                        this._scope.$watch('ctrl._variantVisualizerData.selectedAltField', ()=> {
+                        this._scope.$watch('ctrl._variantVisualizerData.selectedAltField', () => {
                             if (this.variantRenderer !== null && this.variantRenderer !== undefined) {
                                 this.variantRenderer.variantSubFeatureChanged();
                             }
                         });
-                        this._scope.$watch('ctrl._highlightBreakpoints', ()=> {
+                        this._scope.$watch('ctrl._highlightBreakpoints', () => {
                             if (this.variantRenderer !== null && this.variantRenderer !== undefined) {
                                 this.variantRenderer.options = {
                                     highlightBreakpoints: this._highlightBreakpoints
@@ -84,7 +86,7 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
                                 this.variantRenderer.reRenderScene(true);
                             }
                         });
-                        this._scope.$watch('ctrl._selectedGeneFile', ()=> {
+                        this._scope.$watch('ctrl._selectedGeneFile', () => {
                             this.getVariantVisualizerData();
                         });
                     }
@@ -95,7 +97,7 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
     }
 
     getVariantVisualizerData() {
-        (async() => {
+        (async () => {
             if (this.variantRequest !== null && this.variantRequest !== undefined) {
                 if (!this._variantVisualizerData || this._variantVisualizerData.geneFile !== this._selectedGeneFile) {
                     this._loaded = false;
@@ -124,7 +126,7 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
 
     affectedGeneChanged(breakpoint, gene) {
         breakpoint.affectedGene = gene;
-        (async() => {
+        (async () => {
             if (this._variantVisualizerData) {
                 this._variantVisualizerData = this._service.rebuildStructuralVariantVisualizerData(this._variantVisualizerData);
                 await new Promise(resolve => this._timeout(resolve));
@@ -149,7 +151,7 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
     }
 
     affectedGeneTranscriptChanged(transcript) {
-        (async() => {
+        (async () => {
             if (this._variantVisualizerData) {
                 this._variantVisualizerData = this._service.changeAffectedTranscript(this._variantVisualizerData, transcript);
                 await new Promise(resolve => this._timeout(resolve));
@@ -213,4 +215,21 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
         }
     }
 
+    saveVisualizerView() {
+        if (this.variantRenderer !== null && this.variantRenderer !== undefined) {
+            let svg = new SVG(this.variantRenderer.width, this.variantRenderer.height);
+            svg.addImage(this.variantRenderer.width, this.variantRenderer.height, this.variantRenderer.canvasElement.querySelector('canvas').toDataURL());
+            let url = svg.getUrl();
+
+            const reference = this.projectContext.reference;
+            const startIndex = this._variantVisualizerData.variantInfo.startIndex;
+            const endIndex = this._variantVisualizerData.variantInfo.endIndex;
+
+            Object.assign(document.createElement('a'), {
+                download: `NGB_Variation_${reference.name}_${startIndex}_${endIndex}.svg`,
+                name: `NGB_Variation_${reference.name}_${startIndex}_${endIndex}.svg`,
+                href: url
+            }).click();
+        }
+    }
 }
