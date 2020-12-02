@@ -24,6 +24,13 @@ export default class CachedTrackRenderer{
     get viewport() { return this._viewport; }
 
     render(viewport, cache, forseRedraw = false, _gffShowNumbersAminoacid, _showCenterLine){
+        this.renderCenterLine(viewport, {
+            config: this._config,
+            graphics: this._centerLineGraphics,
+            height: this._height,
+            shouldRender: _showCenterLine
+        });
+
         if (cache === null || cache === undefined || cache.viewport === undefined)
             return;
         const factor = viewport.factor / cache.viewport.factor;
@@ -40,12 +47,6 @@ export default class CachedTrackRenderer{
             this.containerIsReady = true;
             cache.isNew = false;
         }
-        this.renderCenterLine(viewport, {
-            config: this._config,
-            graphics: this._centerLineGraphics,
-            height: this._height,
-            shouldRender: _showCenterLine
-        });
     }
 
     translateContainer(viewport, cache){
