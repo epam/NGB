@@ -23,7 +23,7 @@ done
 
 echo "Publishing ${NGB_VERSION} distribution"
 
-aws s3 cp ${NGB_VERSION} s3://ngb-oss-builds/builds/${APPVEYOR_REPO_BRANCH}/${NGB_VERSION}/ --recursive
+aws s3 cp ${NGB_VERSION} s3://ngb-oss-builds/public/builds/${APPVEYOR_REPO_BRANCH}/${NGB_VERSION}/ --recursive
 
 docker inspect --type=image "ngb:latest" &> /dev/null
 if [ $? -ne 0 ]; then
