@@ -4,6 +4,18 @@ ngb-tracks-view {
   background-color: #ffffff;
 }
 
+ngb-tracks-selection-menu {
+  top: -50px;
+  position: absolute;
+  left: 5px;
+  right: 15px;
+  transition: top 200ms ease-in-out;
+
+  &.visible {
+    top: 5px;
+  }
+}
+
 ngb-tracks-view .dndHasDraggingElement ngb-track {
   transition: transform .25s ease-out;
 }

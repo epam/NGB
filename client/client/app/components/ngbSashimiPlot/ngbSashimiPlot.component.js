@@ -8,8 +8,7 @@ export default {
     bindings: {
         chromosomeName: '<',
         referenceId: '<',
-        track: '<',
-        cacheService: '<'
+        tracks: '<'
     }
 };
 

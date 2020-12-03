@@ -11,6 +11,7 @@ import VcfConfig from './vcfConfig';
 import {VcfDataService} from '../../../../dataServices';
 import GeneConfig from '../gene/geneConfig';
 import {default as menu} from './menu';
+import Menu from '../../core/menu';
 import {variantsView} from './modes';
 import {menu as menuUtilities} from '../../utilities';
 import {EventVariationInfo} from '../../../../app/shared/utils/events';
@@ -31,6 +32,29 @@ export class VCFTrack extends GENETrack {
     get stateKeys() {
         return ['variantsView'];
     }
+
+    static preStateMutatorFn = (track) => ({
+        oldVariantsView: track.state.variantsView
+    });
+
+    static postStateMutatorFn = (track, key, prePayload) => {
+        const {oldVariantsView} = prePayload || {};
+        track.transformer.collapsed = track.state.variantsView === variantsView.variantsViewCollapsed;
+        if (oldVariantsView !== track.state.variantsView) {
+            track.cache = {};
+            track._flags.renderReset = true;
+        }
+        track.updateAndRefresh();
+        track.reportTrackState();
+    }
+
+    static Menu = Menu(
+        menu,
+        {
+            postStateMutatorFn: VCFTrack.postStateMutatorFn,
+            preStateMutatorFn: VCFTrack.preStateMutatorFn
+        }
+    );
 
     constructor(opts) {
         super(opts);
@@ -70,7 +94,7 @@ export class VCFTrack extends GENETrack {
                 if (menuItem.type === 'checkbox') {
                     menuItem.enable();
                 }
-            })
+            });
         }
     }
 
@@ -94,47 +118,7 @@ export class VCFTrack extends GENETrack {
         if (this._menu) {
             return this._menu;
         }
-        const wrapStateFn = (fn) => () => fn(this.state);
-        const wrapMutatorFn = (fn) => () => {
-            const oldVariantsView = this.state.variantsView;
-            fn(this.state);
-            this.transformer.collapsed = this.state.variantsView === variantsView.variantsViewCollapsed;
-            if (oldVariantsView !== this.state.variantsView) {
-                this.cache = {};
-                this._flags.renderReset = true;
-            }
-            this.updateAndRefresh();
-            this.reportTrackState();
-        };
-
-        this._menu = menu.map(function processMenuList(menuEntry) {
-            const result = {};
-            for (const key of Object.keys(menuEntry)) {
-                switch (true) {
-                    case Array.isArray(menuEntry[key]):
-                        result[key] = menuEntry[key].map(processMenuList);
-                        break;
-                    case menuEntry[key] instanceof Function: {
-                        switch (true) {
-                            case key.startsWith('is'):
-                                result[key] = wrapStateFn(menuEntry[key]);
-                                break;
-                            case key.startsWith('display'):
-                                result[key] = wrapStateFn(menuEntry[key]);
-                                break;
-                            default:
-                                result[key] = wrapMutatorFn(menuEntry[key]);
-                                break;
-                        }
-                    }
-                        break;
-                    default:
-                        result[key] = menuEntry[key];
-                }
-            }
-
-            return result;
-        });
+        this._menu = this.constructor.Menu.attach(this);
         this.hotKeyListener = (event) => {
             if (event) {
                 const path = event.split('>');
@@ -143,8 +127,7 @@ export class VCFTrack extends GENETrack {
                     if (menuItem) {
                         if (menuItem.type === 'button') {
                             menuItem.perform();
-                        }
-                        else if (menuItem.type === 'checkbox') {
+                        } else if (menuItem.type === 'checkbox') {
                             menuItem.isEnabled() ? menuItem.disable() : menuItem.enable();
                         }
 
@@ -313,8 +296,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                     end: variantContainer.variant.endIndex + length / bubbleExpandFactor,
                     start: variantContainer.variant.startIndex - length / bubbleExpandFactor
                 });
-            }
-            else if (variantContainer instanceof VariantContainer) {
+            } else if (variantContainer instanceof VariantContainer) {
                 const self = this;
                 const mapEndContainersFn = function (m) {
                     return {

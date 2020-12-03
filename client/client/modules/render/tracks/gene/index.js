@@ -3,7 +3,8 @@ import {GeneRenderer, GeneTransformer} from './internal';
 import {CachedTrack} from '../../core';
 import GeneConfig from './geneConfig';
 import {GeneDataService} from '../../../../dataServices';
-import GeneMenuService from './exterior/geneMenuService';
+import geneMenuConfig from './exterior/geneMenuConfig';
+import Menu from '../../core/menu';
 import {menu as menuUtilities} from '../../utilities';
 
 export class GENETrack extends CachedTrack {
@@ -22,6 +23,18 @@ export class GENETrack extends CachedTrack {
     get stateKeys() {
         return ['geneTranscript'];
     }
+
+    static postStateMutatorFn = (track) => {
+        track.updateAndRefresh();
+        track.reportTrackState();
+    };
+
+    static Menu = Menu(
+        geneMenuConfig,
+        {
+            postStateMutatorFn: GENETrack.postStateMutatorFn
+        }
+    );
 
     constructor(opts) {
         super(opts);
@@ -63,8 +76,12 @@ export class GENETrack extends CachedTrack {
 
         this.hotKeyListener = (event) => {
             if (event) {
-                if(this.menuService.actions[event]){
-                    this.menuService.actions[event].enable(this.state);
+                if(event === 'gene>transcript>collapsed'){
+                    this.state.geneTranscript = GeneTypes.transcriptViewTypes.collapsed;
+                    this.updateAndRefresh();
+                }
+                if(event === 'gene>transcript>expanded'){
+                    this.state.geneTranscript = GeneTypes.transcriptViewTypes.expanded;
                     this.updateAndRefresh();
                 }
                 if(event === 'gene>showNumbersAminoacid'){
@@ -100,48 +117,7 @@ export class GENETrack extends CachedTrack {
         if (this._menu) {
             return this._menu;
         }
-        const wrapStateFn = (fn) => () => fn(this.state);
-        const wrapMutatorFn = (fn) => () => {
-            fn(this.state);
-            this.updateAndRefresh();
-            this.reportTrackState();
-        };
-
-        this._menu = this.menuService.getMenu().map(function processMenuList(menuEntry) {
-            const result = {};
-            for (const key of Object.keys(menuEntry)) {
-                switch (true) {
-                    case Array.isArray(menuEntry[key]): {
-                        result[key] = menuEntry[key].map(processMenuList);
-                    }
-                        break;
-                    case menuEntry[key] instanceof Function: {
-                        switch (true) {
-                            case key.startsWith('is'): {
-                                result[key] = wrapStateFn(menuEntry[key]);
-                            }
-                                break;
-                            case key.startsWith('display'): {
-                                result[key] = wrapStateFn(menuEntry[key]);
-                            }
-                                break;
-                            default: {
-                                result[key] = wrapMutatorFn(menuEntry[key]);
-                            }
-                                break;
-                        }
-                    }
-                        break;
-                    default: {
-                        result[key] = menuEntry[key];
-                    }
-                        break;
-                }
-            }
-
-            return result;
-        });
-
+        this._menu = this.constructor.Menu.attach(this);
         return this._menu;
     }
 
@@ -158,13 +134,6 @@ export class GENETrack extends CachedTrack {
             this._dataService = new GeneDataService(this.dispatcher);
         }
         return this._dataService;
-    }
-
-    get menuService() {
-        if (!this._menuService) {
-            this._menuService = new GeneMenuService();
-        }
-        return this._menuService;
     }
 
     get transformer(): GeneTransformer {

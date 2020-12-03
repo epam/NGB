@@ -1,13 +1,16 @@
+import coverageColorPerform from './coverageColorPerform';
+import coverageResizePerform from './coverageResizePerform';
+
 export default {
     fields:[
         {
-            perform: () => {},
+            perform: coverageResizePerform,
             label: 'Resize',
             name: 'coverage>resize',
             type: 'button'
         },
         {
-            perform: () => {},
+            perform: coverageColorPerform,
             label: 'Color',
             name: 'coverage>color',
             type: 'button'

@@ -18,6 +18,7 @@ import angularUiRouter from 'angular-ui-router';
 
 // Import internal modules
 import projectContext from './shared/projectContext';
+import SelectionContext from './shared/selectionContext';
 import config from './app.config';
 import controller from './app.controller';
 import {dispatcher} from './shared/dispatcher';
@@ -57,6 +58,7 @@ export default angular.module('NGB', [
     .service('interceptor', interceptor)
     .service('dispatcher', dispatcher.instance)
     .service('projectContext', projectContext.instance)
+    .service('selectionContext', SelectionContext.instance)
     .service('eventHotkey', eventHotkey.instance)
     .service('lastActionRepeater', lastActionRepeater.instance)
     .constant('appLayout', layoutConstant)

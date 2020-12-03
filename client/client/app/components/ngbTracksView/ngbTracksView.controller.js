@@ -26,12 +26,23 @@ export default class ngbTracksViewController extends baseController {
 
     dispatcher;
     projectContext;
+    selectionContext;
 
     static get UID() {
         return 'ngbTracksViewController';
     }
 
-    constructor($scope, $element, localDataService, projectDataService, genomeDataService, vcfDataService, dispatcher, projectContext) {
+    constructor(
+        $scope,
+        $element,
+        localDataService,
+        projectDataService,
+        genomeDataService,
+        vcfDataService,
+        dispatcher,
+        projectContext,
+        selectionContext
+    ) {
         super();
 
         Object.assign(this, {
@@ -42,7 +53,8 @@ export default class ngbTracksViewController extends baseController {
             genomeDataService,
             projectContext,
             projectDataService,
-            vcfDataService
+            vcfDataService,
+            selectionContext
         });
 
         this.domElement = this.$element[0];
@@ -74,6 +86,10 @@ export default class ngbTracksViewController extends baseController {
             this.initEvents();
 
         })();
+    }
+
+    get selectedTracksMenuIsVisible() {
+        return this.selectionContext.selected.length > 1;
     }
 
     events = {

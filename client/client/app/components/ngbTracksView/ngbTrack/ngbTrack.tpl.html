@@ -13,7 +13,11 @@
             layout-align="start center"
             ng-mousedown="ctrl.onHeaderMouseDown($event)"
             ng-class="{'collapsed': !ctrl.showTracksHeaders }">
-        <input type="checkbox" />
+        <input
+                type="checkbox"
+                ng-model="ctrl.trackIsSelected"
+                dnd-nodrag
+        />
         <div class="ngb-track-header-type">{{ctrl.track.format}}</div>
         <div class="ngb-track-header-file-name">{{ctrl.trackNameTruncated}}
             <md-tooltip md-direction="top">

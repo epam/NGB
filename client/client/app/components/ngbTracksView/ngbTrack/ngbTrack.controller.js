@@ -1,4 +1,5 @@
 import ngbTrackEvents from './ngbTrack.events';
+import SelectionContext, {SelectionEvents} from '../../../shared/selectionContext';
 import {tracks as trackConstructors} from '../../../../modules/render/';
 
 const DEFAULT_HEIGHT = 40;
@@ -7,6 +8,7 @@ export default class ngbTrackController {
     domElement = null;
     dispatcher = null;
     projectContext;
+    selectionContext: SelectionContext;
 
     static get UID() {
         return 'ngbTrackController';
@@ -35,10 +37,24 @@ export default class ngbTrackController {
 
     trackNameTruncated;
 
-    constructor($scope, $element, $compile, $timeout, dispatcher, projectContext, projectDataService, genomeDataService, localDataService, bamDataService, appLayout) {
+    constructor(
+        $scope,
+        $element,
+        $compile,
+        $timeout,
+        dispatcher,
+        projectContext,
+        projectDataService,
+        genomeDataService,
+        localDataService,
+        bamDataService,
+        appLayout,
+        selectionContext
+    ) {
         this.scope = $scope;
         this.dispatcher = dispatcher;
         this.projectContext = projectContext;
+        this.selectionContext = selectionContext;
         this.domElement = $element[0];
         this._localDataService = localDataService;
         this.$timeout = $timeout;
@@ -126,11 +142,11 @@ export default class ngbTrackController {
             }
         };
         const trackCoverageSettingsChangedHandler = (state) => {
-            if (!state.cancel && ((state.data.applyToCurrentTrack && this.track.name === state.source) ||
+            if (!state.cancel && ((state.data.applyToCurrentTrack && state.sources.indexOf(this.track.name) >= 0) ||
                 (state.data.applyToWIGTracks && this.track.format === 'WIG') ||
                 (state.data.applyToBAMTracks && this.track.format === 'BAM'))) {
                 this.trackInstance.coverageScaleSettingsChanged(state);
-            } else if (state.cancel && state.source === this.track.name && this.trackInstance.trackHasCoverageSubTrack) {
+            } else if (state.cancel && state.sources.indexOf(this.track.name) >= 0 && this.trackInstance.trackHasCoverageSubTrack) {
                 this.trackInstance.coverageScaleSettingsChanged(state);
             }
         };
@@ -150,11 +166,14 @@ export default class ngbTrackController {
             }
         };
 
+        const tracksSelectionChangedHandler = () => {};
+
         dispatcher.on('settings:change', globalSettingsChangedHandler);
         dispatcher.on('track:headers:changed', globalSettingsChangedHandler);
         dispatcher.on('tracks:coverage:manual:configure:done', trackCoverageSettingsChangedHandler);
         dispatcher.on('wig:color:configure:done', trackColorsChangedHandler);
         dispatcher.on('trackSettings:change', trackSettingsChangedHandler);
+        dispatcher.on(SelectionEvents.changed, tracksSelectionChangedHandler);
 
         $scope.$on('$destroy', () => {
             if (this.trackInstance) {
@@ -163,6 +182,7 @@ export default class ngbTrackController {
                 dispatcher.removeListener('tracks:coverage:manual:configure:done', trackCoverageSettingsChangedHandler);
                 dispatcher.removeListener('wig:color:configure:done', trackColorsChangedHandler);
                 dispatcher.removeListener('trackSettings:change', trackSettingsChangedHandler);
+                dispatcher.removeListener(SelectionEvents.changed, tracksSelectionChangedHandler);
                 this.trackInstance.destructor();
             }
             if (this.trackInstance && this.trackInstance.domElement && this.trackInstance.domElement.parentNode) {
@@ -208,6 +228,16 @@ export default class ngbTrackController {
             this._trackIsVisible = visible;
             this.scope.$apply();
         }
+    }
+
+    get trackIsSelected() {
+        return this.selectionContext
+            .getTrackIsSelected(this.track ? this.track.bioDataItemId : undefined);
+    }
+
+    set trackIsSelected(value) {
+        return this.selectionContext
+            .setTrackIsSelected(this.track ? this.track.bioDataItemId : undefined, value);
     }
 
     changeTrackHeight(newHeight) {

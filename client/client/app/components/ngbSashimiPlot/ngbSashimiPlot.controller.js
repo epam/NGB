@@ -21,6 +21,7 @@ export default class ngbSashimiPlotController extends baseController{
     };
 
     geneTracks = [];
+    bamTracks = [];
 
     bamTrackState = {
         alignments: false,
@@ -74,23 +75,22 @@ export default class ngbSashimiPlotController extends baseController{
         if (!this.referenceId) {
             this.referenceId = this.projectContext.referenceId;
         }
-
-        const [currentBamTrack] = (this.projectContext.getActiveTracks() || []).filter((t) => {
-            if (this.track) {
-                return `${t.bioDataItemId}` === `${this.track.bioDataItemId}` &&
-                  t.format === this.track.format;
-            }
-            return false;
-        });
-        this.geneTracks = (this.projectContext.getActiveTracks() || []).filter((t) => /^gene$/i.test(t.format));
-        this.bamTrack = currentBamTrack;
-
         this.chromosome = chromosome;
 
         if (!this.chromosome.size)
             return;
 
-        this.trackOpts = {
+        const currentTracks = (this.projectContext.getActiveTracks() || []).filter((t) => {
+            if (this.tracks) {
+                return (this.tracks || [])
+                    .filter(selectedTrack => `${t.bioDataItemId}` === `${selectedTrack.config.bioDataItemId}` &&
+                        t.format === selectedTrack.config.format
+                    ).length > 0;
+            }
+            return false;
+        });
+        this.geneTracks = (this.projectContext.getActiveTracks() || []).filter((t) => /^gene$/i.test(t.format));
+        const defaultOpts = {
             chromosome: this.chromosome,
             chromosomeId: this.chromosome.id,
             isFixed: false,
@@ -98,9 +98,21 @@ export default class ngbSashimiPlotController extends baseController{
             sashimi: true,
             state: {
                 alignments: false
-            },
-            cacheService: this.cacheService
+            }
         };
+        this.bamTracks = currentTracks.map(track => {
+            const [cacheService] = (this.tracks || [])
+                .filter(({config}) => config.bioDataItemId === track.bioDataItemId)
+                .map(({cacheService}) => cacheService);
+            return {
+                track,
+                opts: {
+                    cacheService,
+                    ...defaultOpts
+                }
+            };
+        });
+
         this.geneTrackOpts = {
             chromosome: this.chromosome,
             chromosomeId: this.chromosome.id,
@@ -126,12 +138,12 @@ export default class ngbSashimiPlotController extends baseController{
 
         const viewportPxMargin = 6;
         this.viewport = new Viewport(scrollPanel,
-          {brush, chromosomeSize: this.chromosome.size},
-          this.dispatcher,
-          this.projectContext,
-          viewportPxMargin,
-          browserInitialSetting,
-          this.vcfDataService);
+            {brush, chromosomeSize: this.chromosome.size},
+            this.dispatcher,
+            this.projectContext,
+            viewportPxMargin,
+            browserInitialSetting,
+            this.vcfDataService);
 
         if (this.brushStart && this.brushEnd) {
             this.viewport.transform({end: this.brushEnd, start: this.brushStart});
@@ -146,16 +158,16 @@ export default class ngbSashimiPlotController extends baseController{
         const reference = this.projectContext.reference;
 
         this.bookmarkCamera =
-          new ngbTracksViewCameraManager(
-            () => [
-                'NGB',
-                reference.name,
-                this.chromosome.name,
-                Math.floor(this.viewport.brush.start),
-                Math.floor(this.viewport.brush.end),
-                getFormattedDate()
-            ].join('_'),
-            () => [this.rulerTrack, this.bamTrack, ...this.geneTracks]);
+            new ngbTracksViewCameraManager(
+                () => [
+                    'NGB',
+                    reference.name,
+                    this.chromosome.name,
+                    Math.floor(this.viewport.brush.start),
+                    Math.floor(this.viewport.brush.end),
+                    getFormattedDate()
+                ].join('_'),
+                () => [this.rulerTrack, ...this.bamTracks.map(t => t.track), ...this.geneTracks]);
 
         this.renderable = true;
     }

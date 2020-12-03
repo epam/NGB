@@ -1,0 +1,31 @@
+<div ng-if="ctrl.isVisible" class="selection-info">
+    <b>{{ctrl.selectedTracks.length}} files selected</b>
+</div>
+<a
+        class="selection-action"
+        ng-if="ctrl.isVisible && !ctrl.allSelected"
+        ng-click="ctrl.selectAll()"
+        aria-label="Select all"
+        href=""
+>
+    Select all
+</a>
+<a
+        class="selection-action"
+        ng-if="ctrl.isVisible"
+        ng-click="ctrl.clearSelection()"
+        aria-label="Clear selection"
+        href=""
+>
+    Clear
+</a>
+<div ng-if="ctrl.isVisible" class="divider" >&nbsp</div>
+<div ng-repeat="type in ctrl.types track by type" class="track-type-menu">
+    <b ng-if="ctrl.types.length > 1">{{ctrl.getTracksByType(type).length}} {{type}}</b>
+    <ngb-track-settings
+            ng-if="ctrl.tracksMenu && ctrl.tracksMenu[type]"
+            settings="ctrl.tracksMenu[type]">
+
+    </ngb-track-settings>
+    <div ng-if="ctrl.isVisible" class="divider" >&nbsp</div>
+</div>

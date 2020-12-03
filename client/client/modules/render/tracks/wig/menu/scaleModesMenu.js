@@ -2,10 +2,12 @@ import {displayModes, scaleModes} from '../modes';
 import {menu} from '../../../utilities';
 
 export default {
-    displayName: state => {
+    displayAdditionalName: state => {
         if (state.coverageLogScale) {
             return 'Log scale';
         }
+    },
+    displayName: state => {
         let additionalInfo = '';
         if (state.coverageScaleFrom !== undefined && state.coverageScaleTo !== undefined) {
             additionalInfo = ` (${state.coverageScaleFrom} - ${state.coverageScaleTo})`;
@@ -29,6 +31,11 @@ export default {
             type: 'checkbox'
         },
         {
+            // enable & disable methods both sets `scaleModes.manualScaleMode` because
+            // they are acting like Perform Button with checkbox
+            // (we need to open configuration window first and then set the scale mode:
+            // manualScaleMode if we clicked on 'Save' and defaultScaleMode if we clicked
+            // on 'Cancel')
             disable: state => state.coverageScaleMode = scaleModes.manualScaleMode,
             enable: state => state.coverageScaleMode = scaleModes.manualScaleMode,
             isEnabled: state => state.coverageScaleMode === scaleModes.manualScaleMode,
