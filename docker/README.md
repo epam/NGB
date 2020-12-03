@@ -83,3 +83,34 @@ There are two version of NGB in this repository:
 * **ngb:latest-demo** - a "demo" version - contains demo data set, which does not require any data registration, you need only to run an image
 
 Details on usage of these images are available in [DockerHub Readme](https://hub.docker.com/r/lifescience/ngb/)
+
+# Develop versions of docker images
+
+Docker images from develop branch are automatically builded by Travis-CI and pushed to DockerHub. 
+Unfourunately, the demo data could not be included in the image due to the large size of demo data and Travis disk space limitations.  
+
+At first, put the demo_data_script.sh file to the folder on the host machine you want to be used for the data download. 
+Just for the example let it be /home/user/ngb_files
+
+Next, download the pull the -dev docker image and launch it (replace 2.6.0.34.1.34.1 with the version number you want)
+
+```
+$ docker run -d -p 8080:8080 --name ngbcore -v /home/user/ngb_files/:/ngs epam/lifesciences/ngb:2.6.0.34.1.34.1-dev
+```
+This command will start docker with the ngbcore name, mount the folder /home/user/ngb_files on the host machine to the /ngs mount point of the container and expose the 8080 port for the ngb graphical interface
+
+Now run the script to download demo data 
+```
+$ docker exec -it ngbcore /ngs/demo_data_download.sh
+```
+demo_data_download.sh script will download genome references to ~/ngb_data/references and demo data to /home /ngb_data/data_files by default
+But you can change the paths for references and data files by passing -r and -f arguments to the demo_data_download.sh script, respectively if you want to
+
+For example:
+```
+./demo_data_download.sh -r ~/references -f ~/some/other/folder  
+```
+
+The script will download all the necessary files and will register them by itself. But please be patient, as the reference donwload may take much time. 
+
+
