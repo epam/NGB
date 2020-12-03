@@ -1,8 +1,9 @@
-export function getActionButton(name, label, action = null){
+export function getActionButton(name, label, action = null, ...rest){
     return {
         label,
         name,
         perform: action ? action : () => {},
-        type: 'button'
+        type: 'button',
+        ...rest
     };
 }

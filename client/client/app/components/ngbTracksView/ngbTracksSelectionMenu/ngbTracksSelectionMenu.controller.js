@@ -1,4 +1,5 @@
 import SelectionContext, {SelectionEvents} from '../../../shared/selectionContext';
+import {CommonMenu} from '../../../../modules/render/tracks/common/menu';
 
 export default class ngbTracksSelectionMenuController {
 
@@ -10,6 +11,7 @@ export default class ngbTracksSelectionMenuController {
     selectionContext;
     dispatcher;
     tracksMenu = {};
+    commonMenu;
 
     constructor($scope, projectContext, selectionContext: SelectionContext, dispatcher) {
         this.projectContext = projectContext;
@@ -23,6 +25,7 @@ export default class ngbTracksSelectionMenuController {
 
     onTracksSelectionChanged() {
         this.tracksMenu = {};
+        this.commonMenu = CommonMenu.attach(...this.selectedTracks.map(track => track.instance));
         this.types.forEach(type => {
             const tracks = this.selectedTracks
                 .filter(track => track.format === type)

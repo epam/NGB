@@ -1,4 +1,4 @@
-import header from '../../common/menu/header';
+import commonMenu from '../../common/menu';
 import {menu} from '../../../utilities';
 
 export default {
@@ -56,7 +56,7 @@ export default {
           }
         ),
         menu.getDivider(),
-        header,
+        ...commonMenu
     ],
     label:'General',
     name:'bam>general',

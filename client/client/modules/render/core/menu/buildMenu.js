@@ -1,16 +1,26 @@
-function wrapStateFn(fn) {
+function getFilter (o) {
+    if (o.exclude && o.exclude.length > 0) {
+        return track => o.exclude.indexOf(track.format) === -1;
+    } else if (o.include && o.include.length > 0) {
+        return track => o.include.indexOf(track.format) >= 0;
+    }
+    return () => true;
+}
+
+function wrapStateFn(fn, o) {
     return tracks => tracks
+        .filter(getFilter(o))
         .map(track => fn(track.state))
         .reduce((r, c) => r && c, true);
 }
 
-function wrapIndeterminateStateFn(fn) {
-    return tracks => [...(new Set(tracks.map(track => fn(track.state))))].length > 1;
+function wrapIndeterminateStateFn(fn, o) {
+    return tracks => [...(new Set(tracks.filter(getFilter(o)).map(track => fn(track.state))))].length > 1;
 }
 
-function wrapDisplayFn(fn) {
+function wrapDisplayFn(fn, o) {
     return (tracks) => {
-        const display = [...(new Set(tracks.map(track => fn(track.state))))];
+        const display = [...(new Set(tracks.filter(getFilter(o)).map(track => fn(track.state))))];
         if (display.length === 1) {
             return display[0];
         }
@@ -22,7 +32,7 @@ function wrapDisplayFn(fn) {
 // preFn(track) - called before each track's state mutation
 // postFn(track) - called after each track's state mutation
 // afterFn(tracks) - called after all tracks state mutation
-function wrapStateMutatorFn(fn, key, preFn, postFn, beforeFn, afterFn) {
+function wrapStateMutatorFn(fn, key, preFn, postFn, beforeFn, afterFn, o) {
     const singleTrackMutatorFn = (track) => {
         const prePayload = typeof preFn === 'function'
             ? preFn(track)
@@ -34,11 +44,11 @@ function wrapStateMutatorFn(fn, key, preFn, postFn, beforeFn, afterFn) {
     };
     return (tracks) => {
         if (typeof beforeFn === 'function') {
-            beforeFn(tracks);
+            beforeFn(tracks.filter(getFilter(o)));
         }
-        tracks.forEach(singleTrackMutatorFn);
+        tracks.filter(getFilter(o)).forEach(singleTrackMutatorFn);
         if (typeof afterFn === 'function') {
-            afterFn(tracks, key);
+            afterFn(tracks.filter(getFilter(o)), key);
         }
     };
 }
@@ -47,25 +57,29 @@ function wrapStateMutatorFn(fn, key, preFn, postFn, beforeFn, afterFn) {
 // preFn(track) - called before each track's action
 // postFn(track) - called after each track's action
 // afterFn(tracks) - called after all tracks action
-function wrapPerformFn(fn, key, preFn, postFn, beforeFn, afterFn) {
+function wrapPerformFn(fn, key, preFn, postFn, beforeFn, afterFn, o) {
     return (tracks) => {
         if (typeof beforeFn === 'function') {
-            beforeFn(tracks);
+            beforeFn(tracks.filter(getFilter(o)));
         }
-        const prePayloads = tracks.reduce((r, track) => ({
-            ...r,
-            [`${track.bioDataItemId}`]: typeof preFn === 'function'
-                ? preFn(track)
-                : {}
-        }), {});
-        fn(tracks);
-        tracks.forEach(track => {
-            if (typeof postFn === 'function') {
-                postFn(track, key, prePayloads[`${track.bioDataItemId}`]);
-            }
-        });
+        const prePayloads = tracks
+            .filter(getFilter(o))
+            .reduce((r, track) => ({
+                ...r,
+                [`${track.bioDataItemId}`]: typeof preFn === 'function'
+                    ? preFn(track)
+                    : {}
+            }), {});
+        fn(tracks.filter(getFilter(o)));
+        tracks
+            .filter(getFilter(o))
+            .forEach(track => {
+                if (typeof postFn === 'function') {
+                    postFn(track, key, prePayloads[`${track.bioDataItemId}`]);
+                }
+            });
         if (typeof afterFn === 'function') {
-            afterFn(tracks, key);
+            afterFn(tracks.filter(getFilter(o)), key);
         }
     };
 }
@@ -81,7 +95,7 @@ function processMenuEntry(menuEntry, options) {
         preStateMutatorFn,
         postStateMutatorFn,
         afterStateMutatorFn
-    } = options;
+    } = options || {};
     for (const key of Object.keys(menuEntry)) {
         switch (true) {
             case Array.isArray(menuEntry[key]):
@@ -90,11 +104,11 @@ function processMenuEntry(menuEntry, options) {
             case menuEntry[key] instanceof Function: {
                 switch (true) {
                     case key.startsWith('is'):
-                        result[key] = wrapStateFn(menuEntry[key]);
-                        result[`${key}Indeterminate`] = wrapIndeterminateStateFn(menuEntry[key]);
+                        result[key] = wrapStateFn(menuEntry[key], result);
+                        result[`${key}Indeterminate`] = wrapIndeterminateStateFn(menuEntry[key], result);
                         break;
                     case key.startsWith('display'):
-                        result[key] = wrapDisplayFn(menuEntry[key]);
+                        result[key] = wrapDisplayFn(menuEntry[key], result);
                         break;
                     case key === 'perform':
                         result[key] = wrapPerformFn(
@@ -103,7 +117,8 @@ function processMenuEntry(menuEntry, options) {
                             prePerformFn,
                             postPerformFn,
                             beforePerformFn,
-                            afterPerformFn
+                            afterPerformFn,
+                            result
                         );
                         break;
                     default:
@@ -113,7 +128,8 @@ function processMenuEntry(menuEntry, options) {
                             preStateMutatorFn,
                             postStateMutatorFn,
                             beforeStateMutatorFn,
-                            afterStateMutatorFn
+                            afterStateMutatorFn,
+                            result
                         );
                         break;
                 }

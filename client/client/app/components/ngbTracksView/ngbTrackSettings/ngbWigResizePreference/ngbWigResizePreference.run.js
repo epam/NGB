@@ -15,5 +15,5 @@ export default function run($mdDialog, dispatcher, projectContext) {
         }
     };
 
-    dispatcher.on('wig:height:configure', displayWigResizeSettingsCallback);
+    dispatcher.on('tracks:height:configure', displayWigResizeSettingsCallback);
 }

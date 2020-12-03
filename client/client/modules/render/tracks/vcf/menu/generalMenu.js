@@ -1,8 +1,8 @@
-import header from '../../common/menu/header';
+import commonMenu from '../../common/menu';
 
 export default {
     fields:[
-        header
+        ...commonMenu
     ],
     label:'General',
     name:'vcf>general',

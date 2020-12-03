@@ -1,5 +1,5 @@
-import {menu} from '../../../utilities';
 import header from '../../common/menu/header';
+import {menu} from '../../../utilities';
 
 export default {
     displayName: state => {

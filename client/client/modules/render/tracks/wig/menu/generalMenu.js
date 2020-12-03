@@ -1,22 +1,17 @@
+import commonMenu from '../../common/menu';
 import coverageColorPerform from './coverageColorPerform';
-import coverageResizePerform from './coverageResizePerform';
-import header from '../../common/menu/header';
+import {getDivider} from '../../../utilities/menu';
 
 export default {
     fields:[
         {
-            perform: coverageResizePerform,
-            label: 'Resize',
-            name: 'coverage>resize',
-            type: 'button'
-        },
-        {
-            perform: coverageColorPerform,
             label: 'Color',
             name: 'coverage>color',
+            perform: coverageColorPerform,
             type: 'button'
         },
-        header
+        getDivider(),
+        ...commonMenu
     ],
     label:'General',
     name:'coverage>general',

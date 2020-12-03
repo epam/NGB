@@ -1,5 +1,3 @@
-import {menu} from '../../../utilities';
-
 function headerPerform (tracks) {
     const [dispatcher] = (tracks || [])
         .map(track => track.config.dispatcher)
@@ -40,8 +38,10 @@ function headerPerform (tracks) {
     }
 }
 
-export default menu.getActionButton(
-    'general>font',
-    'Font size',
-    headerPerform
-);
+export default {
+    common: true,
+    label: 'Font size',
+    name: 'general>font',
+    perform: headerPerform,
+    type: 'button'
+};

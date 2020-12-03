@@ -20,8 +20,13 @@
     Clear
 </a>
 <div ng-if="ctrl.isVisible" class="divider" >&nbsp</div>
+<ngb-track-settings
+        ng-if="ctrl.isVisible && ctrl.commonMenu && ctrl.types.length > 1"
+        settings="ctrl.commonMenu">
+</ngb-track-settings>
+<div ng-if="ctrl.isVisible && ctrl.types.length > 1" class="divider" >&nbsp</div>
 <div ng-repeat="type in ctrl.types track by type" class="track-type-menu">
-    <b ng-if="ctrl.types.length > 1">{{ctrl.getTracksByType(type).length}} {{type}}</b>
+    <b>{{ctrl.getTracksByType(type).length}} {{type}}</b>
     <ngb-track-settings
             ng-if="ctrl.tracksMenu && ctrl.tracksMenu[type]"
             settings="ctrl.tracksMenu[type]">

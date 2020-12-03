@@ -12,11 +12,11 @@ const coverageDisplayModesMenu = Object.assign({}, displayModesMenu, {label: 'Co
 
 export {sashimiMenu};
 export default [
+    generalMenu,
     colorModeMenu,
     groupModeMenu,
     readsViewMenu,
     sortingModeMenu,
-    generalMenu,
     coverageDisplayModesMenu,
     scaleModesMenu
 ];
