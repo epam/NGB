@@ -1,13 +1,13 @@
 <div layout="column" flex>
     <div layout="row" flex>
-        <md-input-container >
+        <md-input-container>
             <input
                 name="height"
                 type="number"
                 required
                 placeholder="WIG track height"
-                ng-min="50"
-                ng-max="150"
+                ng-min="ctrl.minHeight"
+                ng-max="ctrl.maxHeight"
                 ng-model="ctrl.height"
             />
             <div ng-messages="height.$error" role="alert">
