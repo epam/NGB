@@ -4,6 +4,10 @@ import {tracks as trackConstructors} from '../../../../modules/render/';
 
 const DEFAULT_HEIGHT = 40;
 const MAX_TRACK_NAME_LENGTH = 30;
+const KEYS = {
+    enter: 13,
+    esc: 27,
+};
 export default class ngbTrackController {
     domElement = null;
     dispatcher = null;
@@ -49,8 +53,10 @@ export default class ngbTrackController {
         localDataService,
         bamDataService,
         appLayout,
-        selectionContext
+        selectionContext,
+        trackNamingService
     ) {
+        this.trackNamingService = trackNamingService;
         this.scope = $scope;
         this.dispatcher = dispatcher;
         this.projectContext = projectContext;
@@ -83,7 +89,9 @@ export default class ngbTrackController {
                 ? this.instanceConstructor.config.height
                 : DEFAULT_HEIGHT;
 
-        this.trackNameTruncated = this.getTrackFileName(this.track);
+        this.showTrackNameInput = false;
+        this.fileName = this.trackNamingService.getTrackName(this.track);
+        this.trackNameTruncated = this.fileName;
         if (this.trackNameTruncated.length > MAX_TRACK_NAME_LENGTH) {
             this.trackNameTruncated = `...${this.trackNameTruncated.substring(this.trackNameTruncated.length - MAX_TRACK_NAME_LENGTH)}`;
         }
@@ -198,17 +206,26 @@ export default class ngbTrackController {
         });
     }
 
-    getTrackFileName(track) {
-        if (!track.isLocal) {
-            return track.prettyName || track.name;
+    get showFileNameHint() {
+        return this.trackNamingService.nameChanged(this.track);
+    }
+
+    toggleTrackNameInput() {
+        this.showTrackNameInput = !this.showTrackNameInput;
+    }
+
+    getterSetterPrettyName(newName) {
+        if (!arguments.length && newName === undefined) {
+            return this.trackNamingService.getPrettyName(this.track);
         } else {
-            const fileName = track.name;
-            if (!fileName || !fileName.length) {
-                return null;
-            }
-            let list = fileName.split('/');
-            list = list[list.length - 1].split('\\');
-            return list[list.length - 1];
+            this.trackNamingService.setPrettyName(newName, this.track);
+            this.showFileName = this.trackNamingService.nameChanged(this.track);
+        }
+    }
+
+    handleNameInputKeydown(event) {
+        if (event.keyCode === KEYS.esc || event.keyCode === KEYS.enter) {
+            return this.toggleTrackNameInput();
         }
     }
 
