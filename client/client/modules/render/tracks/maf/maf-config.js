@@ -9,7 +9,7 @@ export default {
     scroll: {
         fill: 0x92AEE7,
         alpha: 0.5,
-        width: 5,
+        width: 13,
         margin: 2
     },
     colors: {
