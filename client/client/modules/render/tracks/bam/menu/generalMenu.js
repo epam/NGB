@@ -53,7 +53,24 @@ export default {
                   );
               }
           }
-        )
+        ),
+        menu.getDivider(),
+        menu.getActionButton(
+          'coverage>font',
+          'Font size',
+          (renderSettings, config, dispatcher, cacheService, state) => {
+              dispatcher.emitSimpleEvent('tracks:header:style:configure', {
+                  config: {
+                      defaults: config.header,
+                      settings: {
+                          ...config.header,
+                          ...state.header
+                      },
+                  },
+                  source: config.name,
+              });
+          }
+        ),
     ],
     label:'General',
     name:'bam>general',

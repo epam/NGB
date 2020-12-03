@@ -21,7 +21,7 @@ export class GENETrack extends CachedTrack {
     }
 
     get stateKeys() {
-        return ['geneTranscript'];
+        return ['geneTranscript', 'header'];
     }
 
     static postStateMutatorFn = (track) => {

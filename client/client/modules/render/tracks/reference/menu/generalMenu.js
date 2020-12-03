@@ -43,7 +43,24 @@ export default {
             label: 'Show reverse strand',
             name: 'reference>showReverseStrand',
             type: 'checkbox'
-        }
+        },
+        menu.getDivider(),
+        menu.getActionButton(
+          'coverage>font',
+          'Font size',
+          (config, dispatcher, state) => {
+              dispatcher.emitSimpleEvent('tracks:header:style:configure', {
+                  config: {
+                      defaults: config.header,
+                      settings: {
+                          ...config.header,
+                          ...state.header,
+                      },
+                  },
+                  source: config.name,
+              });
+          }
+        ),
     ],
     name: 'reference>general',
     type: 'submenu'

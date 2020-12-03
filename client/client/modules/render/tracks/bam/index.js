@@ -171,6 +171,7 @@ export class BAMTrack extends ScrollableTrack {
             'coverage',
             'diffBase',
             'groupMode',
+            'header',
             'ins_del',
             'mismatches',
             'readsViewMode',

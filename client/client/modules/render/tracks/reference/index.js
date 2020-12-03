@@ -16,6 +16,7 @@ export class REFERENCETrack extends CachedTrack {
     constructor(opts) {
         super(opts);
         this.dataService = new GenomeDataService(opts.dispatcher);
+        this.dispatcher = opts.dispatcher;
     }
 
     trackSettingsChanged(params) {
@@ -40,6 +41,7 @@ export class REFERENCETrack extends CachedTrack {
 
     get stateKeys() {
         return [
+            'header',
             'referenceShowTranslation',
             'referenceShowForwardStrand',
             'referenceShowReverseStrand'

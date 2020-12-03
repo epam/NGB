@@ -6,7 +6,16 @@ import {default as readsViewMenu} from './readsViewMenu';
 import {default as scaleModesMenu} from '../../wig/menu/scaleModesMenu';
 import {default as sortingModeMenu} from './sortingModeMenu';
 
-const sashimiMenu = [];
+const sashimiFieldsAllowed = [
+    'coverage>font',
+];
+
+const sashimiMenu = [
+    Object.assign({}, generalMenu, {
+        fields: generalMenu.fields
+          .filter(field => sashimiFieldsAllowed.includes(field.name))
+    }),
+];
 
 const coverageDisplayModesMenu = Object.assign({}, displayModesMenu, {label: 'Coverage Display'});
 

@@ -31,6 +31,8 @@ export class WIGTrack extends CachedTrack {
         let shouldReportTrackState = true;
         if (key === 'coverage>scale>manual') {
             shouldReportTrackState = false;
+        } else if (key === 'coverage>font') {
+            shouldReportTrackState = false;
         } else if (currentScaleMode !== track.state.coverageScaleMode) {
             track._flags.dataChanged = true;
             track.state.coverageScaleFrom = undefined;
@@ -80,6 +82,22 @@ export class WIGTrack extends CachedTrack {
                         isLogScale
                     },
                     sources: (tracks || []).map(track => track.config.name),
+                });
+            }
+        } else if (key === 'coverage>font') {
+            const [dispatcher] = (tracks || [])
+                .map(track => track.config.dispatcher)
+                .filter(Boolean);
+            if (dispatcher) {
+                dispatcher.emitSimpleEvent('tracks:header:style:configure', {
+                    config: {
+                        defaults: this.config.header,
+                        settings: {
+                            ...this.config.header,
+                            ...this.state.header
+                        },
+                    },
+                    source: this.config.name,
                 });
             }
         }
@@ -146,6 +164,7 @@ export class WIGTrack extends CachedTrack {
             'coverageScaleFrom',
             'coverageScaleTo',
             'wigColors',
+            'header'
         ];
     }
 

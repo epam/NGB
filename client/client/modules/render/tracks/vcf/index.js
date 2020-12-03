@@ -30,7 +30,7 @@ export class VCFTrack extends GENETrack {
     }
 
     get stateKeys() {
-        return ['variantsView'];
+        return ['variantsView', 'header'];
     }
 
     static preStateMutatorFn = (track) => ({

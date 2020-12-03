@@ -168,8 +168,17 @@ export default class ngbTrackController {
 
         const tracksSelectionChangedHandler = () => {};
 
+        const trackHeaderStyleChangedHandler = (state) => {
+            if (state.data.applyToAllTracks) {
+                this.trackInstance.headerStyleSettingsChanged(state);
+            } else if (!state.data.applyToAllTracks && state.source === this.track.name) {
+                this.trackInstance.headerStyleSettingsChanged(state);
+            }
+        };
+
         dispatcher.on('settings:change', globalSettingsChangedHandler);
         dispatcher.on('track:headers:changed', globalSettingsChangedHandler);
+        dispatcher.on('tracks:header:style:configure:done', trackHeaderStyleChangedHandler);
         dispatcher.on('tracks:coverage:manual:configure:done', trackCoverageSettingsChangedHandler);
         dispatcher.on('wig:color:configure:done', trackColorsChangedHandler);
         dispatcher.on('trackSettings:change', trackSettingsChangedHandler);
@@ -221,6 +230,16 @@ export default class ngbTrackController {
 
     get trackIsVisible() {
         return this._trackIsVisible;
+    }
+
+    get trackHeaderStyle() {
+        const styles = {
+            ...this.trackInstance.config.header,
+            ...this.trackInstance.state.header,
+        };
+        return {
+            'font-size': styles.fontSize || '12px',
+        };
     }
 
     changeTrackVisibility(visible) {

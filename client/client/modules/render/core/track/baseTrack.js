@@ -54,8 +54,11 @@ export default class BaseTrack {
         };
 
         const defaultConfig = {
+            header: {
+                fontSize: '12px',
+            },
             maxHeight: 500,
-            minHeight: 20
+            minHeight: 20,
         };
 
         Reflect.defineProperty(this, 'config', {

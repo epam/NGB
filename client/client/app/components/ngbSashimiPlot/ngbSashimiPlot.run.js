@@ -13,7 +13,9 @@ export default function run($mdDialog, dispatcher) {
                         $mdDialog.hide();
                     };
                 },
-                clickOutsideToClose: true
+                clickOutsideToClose: true,
+                multiple: true,
+                skipHide: true,
             });
         }
     };
