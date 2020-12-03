@@ -3,11 +3,12 @@ import controller from './ngbTrack.controller';
 export default {
     bindings:{
         menuManager: '=',
+        selectable: '=',
+        silentInteractions: '=',
+        state: '=',
         track: '=',
         trackOpts: '=',
-        viewport: '=',
-        silentInteractions: '=',
-        state: '='
+        viewport: '='
     },
     controller: controller.UID,
     controllerAs: 'ctrl',
