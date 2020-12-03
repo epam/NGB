@@ -210,8 +210,10 @@ export default class ngbTrackController {
         return this.trackNamingService.nameChanged(this.track);
     }
 
-    toggleTrackNameInput() {
-        this.showTrackNameInput = !this.showTrackNameInput;
+    toggleTrackNameInput(openFlag) {
+        return !arguments.length
+          ? this.showTrackNameInput = !this.showTrackNameInput
+          : this.showTrackNameInput = openFlag;
     }
 
     getterSetterPrettyName(newName) {
@@ -225,7 +227,7 @@ export default class ngbTrackController {
 
     handleNameInputKeydown(event) {
         if (event.keyCode === KEYS.esc || event.keyCode === KEYS.enter) {
-            return this.toggleTrackNameInput();
+            return this.toggleTrackNameInput(false);
         }
     }
 
