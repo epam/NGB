@@ -31,10 +31,11 @@
                 ng-model="ctrl.getterSetterPrettyName"
                 ng-value="ctrl.getterSetterPrettyName()"
                 ng-show="ctrl.showTrackNameInput"
-                ng-Blur="ctrl.toggleTrackNameInput()"
+                ng-Blur="ctrl.toggleTrackNameInput(false)"
                 ng-keydown="ctrl.handleNameInputKeydown($event)"
         />
         <div
+                dnd-nodrag
                 class="ngb-track-header-file-name"
                 ng-hide="ctrl.showTrackNameInput"
                 ng-click="ctrl.toggleTrackNameInput()"
