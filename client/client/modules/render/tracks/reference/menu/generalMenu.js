@@ -1,4 +1,5 @@
 import {menu} from '../../../utilities';
+import header from '../../common/menu/header';
 
 export default {
     displayName: state => {
@@ -45,22 +46,7 @@ export default {
             type: 'checkbox'
         },
         menu.getDivider(),
-        menu.getActionButton(
-          'coverage>font',
-          'Font size',
-          (config, dispatcher, state) => {
-              dispatcher.emitSimpleEvent('tracks:header:style:configure', {
-                  config: {
-                      defaults: config.header,
-                      settings: {
-                          ...config.header,
-                          ...state.header,
-                      },
-                  },
-                  source: config.name,
-              });
-          }
-        ),
+        header,
     ],
     name: 'reference>general',
     type: 'submenu'

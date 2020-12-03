@@ -6,7 +6,7 @@ export default class ngbTrackFontSizeController {
         return 'ngbTrackFontSizeController';
     }
 
-    constructor($scope, $mdDialog, projectContext, dispatcher, settings, defaults, source) {
+    constructor($scope, $mdDialog, projectContext, dispatcher, settings, defaults, sources) {
         Object.assign(this, {
             $mdDialog,
             $scope,
@@ -14,7 +14,7 @@ export default class ngbTrackFontSizeController {
             dispatcher,
             projectContext,
             settings,
-            source,
+            sources,
         });
         this.prevSettings = Object.assign({}, settings);
         this.applyToAllTracks = false;
@@ -41,7 +41,7 @@ export default class ngbTrackFontSizeController {
                 applyToAllTracks: this.applyToAllTracks,
                 settings: this.settings,
             },
-            source: this.source,
+            sources: this.sources,
         });
         this.$mdDialog.hide();
     }

@@ -1,7 +1,7 @@
 import controller from './ngbTrackFontSize.controller';
 
 export default function run($mdDialog, dispatcher) {
-    const displayNgbTrackFontSizeCallback = ({source, config})=> {
+    const displayNgbTrackFontSizeCallback = ({sources, config})=> {
         $mdDialog.show({
             clickOutsideToClose: true,
             controller: controller.UID,
@@ -9,7 +9,7 @@ export default function run($mdDialog, dispatcher) {
             locals: { 
                 defaults: config.defaults,
                 settings: config.settings,
-                source,
+                sources,
             },
             multiple: true,
             skipHide: true,

@@ -1,3 +1,4 @@
+import header from '../../common/menu/header';
 import {menu} from '../../../utilities';
 
 export default {
@@ -55,22 +56,7 @@ export default {
           }
         ),
         menu.getDivider(),
-        menu.getActionButton(
-          'coverage>font',
-          'Font size',
-          (renderSettings, config, dispatcher, cacheService, state) => {
-              dispatcher.emitSimpleEvent('tracks:header:style:configure', {
-                  config: {
-                      defaults: config.header,
-                      settings: {
-                          ...config.header,
-                          ...state.header
-                      },
-                  },
-                  source: config.name,
-              });
-          }
-        ),
+        header,
     ],
     label:'General',
     name:'bam>general',

@@ -1,5 +1,6 @@
 import coverageColorPerform from './coverageColorPerform';
 import coverageResizePerform from './coverageResizePerform';
+import header from '../../common/menu/header';
 
 export default {
     fields:[
@@ -15,12 +16,7 @@ export default {
             name: 'coverage>color',
             type: 'button'
         },
-        {
-            perform: () => {},
-            label: 'Font size',
-            name: 'coverage>font',
-            type: 'button'
-        }
+        header
     ],
     label:'General',
     name:'coverage>general',
