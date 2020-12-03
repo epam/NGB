@@ -1,7 +1,7 @@
 <md-dialog aria-label="track resize settings">
     <md-toolbar>
         <div class="md-toolbar-tools">
-            <h2 ng-hide="name">Set track height</h2>
+            <h2 ng-hide="name">Set track{{multiple ? 's' : ''}} height</h2>
             <span flex></span>
             <md-button
                 class="md-icon-button"
@@ -13,14 +13,16 @@
         </div>
     </md-toolbar>
     <md-dialog-content>
-        <ngb-wig-resize-preference
+        <ngb-track-resize-preference
             track="track"
             height="height"
-            apply-to-wig-tracks="applyToWIGTracks"
+            apply-to-all-tracks-title="applyToAllTracksTitle"
+            apply-to-all-tracks="applyToAllTracks"
             min-height="minHeight"
             max-height="maxHeight"
+            multiple="multiple"
             layout-margin
-        ></ngb-wig-resize-preference>
+        ></ngb-track-resize-preference>
     </md-dialog-content>
     <md-dialog-actions layout="row">
         <md-button
