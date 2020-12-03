@@ -45,12 +45,14 @@ export default class projectContext {
         groupMode: 'g1',
         ins_del: 'i',
         mismatches: 'm',
+        prettyName: 'pn',
         readsViewMode: 'r',
         shadeByQuality: 's1',
         softClip: 's2',
         spliceJunctions: 's3',
         variantsView: 'v',
         viewAsPairs: 'v1',
+        coverageDisplayMode: 'cdm',
         coverageScaleMode: 'csm',
         coverageLogScale: 'cls',
         coverageScaleFrom: 'csf',
@@ -465,11 +467,12 @@ export default class projectContext {
         const key = `track[${name}][${track.projectId.toLowerCase()}]`;
         const state = {
             bioDataItemId: name,
+            height: track.height,
+            isLocal: track.isLocal,
+            prettyName: track.prettyName,
             projectId: track.projectId,
             projectIdNumber: track.projectIdNumber,
             state: track.state,
-            height: track.height,
-            isLocal: track.isLocal
         };
         localStorage[key] = JSON.stringify(state);
     }
@@ -942,13 +945,33 @@ export default class projectContext {
     }
 
     applyTrackState(track, silent = false) {
-        const {bioDataItemId, index, isLocal, format, height, projectId, projectIdNumber, state} = track;
+        const {
+          bioDataItemId,
+          index,
+          isLocal,
+          prettyName,
+          format,
+          height,
+          projectId,
+          projectIdNumber,
+          state,
+        } = track;
         const __tracksState = this.tracksState || [];
         let [existedState] = __tracksState.filter(t => t.bioDataItemId.toString().toLowerCase() === bioDataItemId.toString().toLowerCase() &&
         t.projectId.toLowerCase() === projectId.toLowerCase());
         let elementIndex = -1;
         if (!existedState) {
-            existedState = {bioDataItemId, index, isLocal, height, format, projectId, projectIdNumber, state};
+            existedState = {
+                bioDataItemId,
+                format,
+                height,
+                index,
+                isLocal,
+                prettyName,
+                projectId,
+                projectIdNumber,
+                state,
+            };
         } else {
             elementIndex = __tracksState.indexOf(existedState);
             Object.assign(existedState, {height, state});

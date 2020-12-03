@@ -1,0 +1,59 @@
+ngb-tracks-selection-menu {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 3px;
+  border: 1px solid #999;
+  box-shadow: 0 0 2px 2px #bbb;
+  padding: 2px 10px;
+  min-height: 40px;
+  box-sizing: border-box;
+  font-size: small;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  overflow: auto;
+  white-space: nowrap;
+
+  .selection-action {
+    margin: 0 4px;
+  }
+
+  .selection-info {
+    display: inline-block;
+  }
+
+  .divider {
+    display: inline-block;
+    width: 1px;
+    height: 100%;
+    background-color: #aaa;
+    margin: 0 5px;
+  }
+
+  .track-type-menu {
+
+  }
+
+  .track-type-menu:last-child {
+    .divider {
+      display: none;
+    }
+  }
+
+  .selection-menu-button {
+    padding-right: 0;
+    margin: 0 5px;
+    cursor: pointer;
+
+    &.close {
+      margin-right: 0;
+    }
+
+    &.mini {
+      min-width: 0;
+      min-height: 0;
+      padding: 0;
+      width: auto;
+      height: auto;
+    }
+  }
+}

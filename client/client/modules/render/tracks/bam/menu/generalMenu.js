@@ -1,3 +1,4 @@
+import header from '../../common/menu/header';
 import {menu} from '../../../utilities';
 
 export default {
@@ -39,10 +40,23 @@ export default {
         menu.getActionButton(
           'bam>showSashimiPlot',
           'Sashimi plot',
-          (renderSettings, config, dispatcher, cacheService) => {
-              dispatcher.emitSimpleEvent('bam:sashimi', {config, cacheService});
+          (tracks) => {
+              const [dispatcher] = (tracks || [])
+                  .map(track => track.dispatcher)
+                  .filter(Boolean);
+              if (dispatcher) {
+                  dispatcher.emitSimpleEvent(
+                      'bam:sashimi',
+                      tracks.map(track => ({
+                          cacheService: track.cacheService.clone(),
+                          config: track.config
+                      }))
+                  );
+              }
           }
-        )
+        ),
+        menu.getDivider(),
+        header,
     ],
     label:'General',
     name:'bam>general',

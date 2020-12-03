@@ -5,15 +5,94 @@ import WIGRenderer from './wigRenderer';
 import WIGTransformer from './wigTransformer';
 import {WigDataService} from '../../../../dataServices';
 import {default as menu} from './menu';
-import scaleModes from './modes';
 import {menu as menuUtilities} from '../../utilities';
+import Menu from '../../core/menu';
+import {scaleModes} from './modes';
 
 export class WIGTrack extends CachedTrack {
 
     _wigArea = new WIGArea(this.viewport, this.trackConfig);
-    _wigRenderer = new WIGRenderer(this.trackConfig);
+    _wigRenderer = new WIGRenderer(this.trackConfig, this.state);
     _wigTransformer = new WIGTransformer(this.trackConfig);
     dataService = new WigDataService();
+
+    static preStateMutatorFn = (track) => ({
+        currentDisplayMode: track.state.coverageDisplayMode,
+        currentScaleMode: track.state.coverageScaleMode,
+        logScaleEnabled: track.state.coverageLogScale
+    });
+
+    static postStateMutatorFn = (track, key, prePayload) => {
+        const {
+            currentDisplayMode,
+            currentScaleMode,
+            logScaleEnabled
+        } = prePayload || {};
+        let shouldReportTrackState = true;
+        if (key === 'coverage>scale>manual') {
+            shouldReportTrackState = false;
+        } else if (currentScaleMode !== track.state.coverageScaleMode) {
+            track._flags.dataChanged = true;
+            track.state.coverageScaleFrom = undefined;
+            track.state.coverageScaleTo = undefined;
+        } else if (logScaleEnabled !== track.state.coverageLogScale) {
+            track._flags.dataChanged = true;
+        } else if (currentDisplayMode !== track.state.coverageDisplayMode) {
+            track._flags.dataChanged = true;
+        }
+        if (shouldReportTrackState) {
+            track.reportTrackState();
+        }
+        track.requestRenderRefresh();
+    }
+
+    static afterStateMutatorFn = (tracks, key) => {
+        if (key === 'coverage>scale>manual') {
+            const getCoverageExtremum = (track) => {
+                let max = 0;
+                let min = 0;
+                if (track.cache && track.cache.coordinateSystem) {
+                    max = track.cache.coordinateSystem.realMaximum;
+                    min = track.cache.coordinateSystem.realMinimum;
+                } else {
+                    min = track.state.coverageScaleFrom;
+                    max = track.state.coverageScaleTo;
+                }
+                return {max, min};
+            };
+            const getCoverageExtremums = () => {
+                const values = (tracks || []).map(getCoverageExtremum);
+                return values.reduce((r, c) => ({
+                    max: Math.min(c.max, r.max),
+                    min: Math.max(c.min, r.min)
+                }), {max: Infinity, min: -Infinity});
+            };
+            const isLogScale = (tracks || [])
+                .map(track => track.state.coverageLogScale)
+                .reduce((r, c) => r && c, true);
+            const [dispatcher] = (tracks || [])
+                .map(track => track.config.dispatcher)
+                .filter(Boolean);
+            if (dispatcher) {
+                dispatcher.emitSimpleEvent('tracks:coverage:manual:configure', {
+                    config: {
+                        extremumFn: getCoverageExtremums,
+                        isLogScale
+                    },
+                    sources: (tracks || []).map(track => track.config.name),
+                });
+            }
+        }
+    }
+
+    static Menu = Menu(
+        menu,
+        {
+            postStateMutatorFn: WIGTrack.postStateMutatorFn,
+            preStateMutatorFn: WIGTrack.preStateMutatorFn,
+            afterStateMutatorFn: WIGTrack.afterStateMutatorFn
+        }
+    );
 
     constructor(opts) {
         super(opts);
@@ -39,7 +118,7 @@ export class WIGTrack extends CachedTrack {
                         setting.value ? menuItem.enable() : menuItem.disable();
                     }
                 }
-            })
+            });
         }
     }
 
@@ -55,89 +134,20 @@ export class WIGTrack extends CachedTrack {
         if (this._menu) {
             return this._menu;
         }
-        const getCoverageExtremum = () => {
-            let max = 0;
-            let min = 0;
-            if (this.cache && this.cache.coordinateSystem) {
-                max = this.cache.coordinateSystem.realMaximum;
-                min = this.cache.coordinateSystem.realMinimum;
-            } else {
-                min = this.state.coverageScaleFrom;
-                max = this.state.coverageScaleTo;
-            }
-            return {max, min};
-        };
-        const wrapStateFn = (fn) => () => fn(this.state);
-        const wrapMutatorFn = (fn, key) => () => {
-            const currentScaleMode = this.state.coverageScaleMode;
-            const logScaleEnabled = this.state.coverageLogScale;
-            fn(this.state);
-            let shouldReportTrackState = true;
-            if (key === 'coverage>scale>manual' && this.state.coverageScaleMode === scaleModes.manualScaleMode) {
-                shouldReportTrackState = false;
-                if (currentScaleMode !== this.state.coverageScaleMode) {
-                    this.state.coverageScaleMode = scaleModes.defaultScaleMode;
-                }
-                this.config.dispatcher.emitSimpleEvent('tracks:coverage:manual:configure', {
-                    source: this.config.name,
-                    config: {
-                        extremumFn: getCoverageExtremum,
-                        isLogScale: this.state.coverageLogScale
-                    }
-                });
-            } else if (currentScaleMode !== this.state.coverageScaleMode) {
-                this._flags.dataChanged = true;
-                this.state.coverageScaleFrom = undefined;
-                this.state.coverageScaleTo = undefined;
-            } else if (logScaleEnabled !== this.state.coverageLogScale) {
-                this._flags.dataChanged = true;
-            }
-            if (shouldReportTrackState) {
-                this.reportTrackState();
-            }
-            this.requestRenderRefresh();
-        };
-
-        this._menu = menu.map(function processMenuList(menuEntry) {
-            const result = {};
-            for (const key of Object.keys(menuEntry)) {
-                switch (true) {
-                    case Array.isArray(menuEntry[key]): {
-                        result[key] = menuEntry[key].map(processMenuList);
-                    }
-                        break;
-                    case menuEntry[key] instanceof Function: {
-                        switch (true) {
-                            case key.startsWith('is'): {
-                                result[key] = wrapStateFn(menuEntry[key]);
-                            }
-                                break;
-                            case key.startsWith('display'): {
-                                result[key] = wrapStateFn(menuEntry[key]);
-                            }
-                                break;
-                            default: {
-                                result[key] = wrapMutatorFn(menuEntry[key], menuEntry.name);
-                            }
-                                break;
-                        }
-                    }
-                        break;
-                    default: {
-                        result[key] = menuEntry[key];
-                    }
-                        break;
-                }
-            }
-
-            return result;
-        });
-
+        this._menu = this.constructor.Menu.attach(this);
         return this._menu;
     }
 
     get stateKeys() {
-        return ['coverageLogScale', 'coverageScaleMode', 'coverageScaleFrom', 'coverageScaleTo'];
+        return [
+            'coverageDisplayMode',
+            'coverageLogScale',
+            'coverageScaleMode',
+            'coverageScaleFrom',
+            'coverageScaleTo',
+            'wigColors',
+            'header'
+        ];
     }
 
     async updateCache() {
@@ -197,7 +207,9 @@ export class WIGTrack extends CachedTrack {
         super.onHover({x, y});
         if (this.shouldDisplayTooltips) {
             const hoveredItem = this._wigRenderer.onMove(this.viewport, {x, y}, this.cache.data);
-            if (this.hoveringEffects) this._wigRenderer.hoverItem(hoveredItem, this.viewport, this.cache.data, this.cache.coordinateSystem);
+            if (this.hoveringEffects) {
+                this._wigRenderer.hoverItem(hoveredItem, this.viewport, this.cache.data, this.cache.coordinateSystem);
+            }
             if (hoveredItem) {
                 const {dataItem} = hoveredItem;
                 this.tooltip.setContent([['Count', Math.ceil(dataItem.value)]]);

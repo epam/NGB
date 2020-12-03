@@ -27,6 +27,9 @@
                 </div>
         </div>
 </div>
-
+<ngb-tracks-selection-menu
+        ng-if="ctrl.renderable"
+        ng-class="{'visible': ctrl.selectedTracksMenuIsVisible}"
+/>
 <ngb-track-view-menu menu-data="ctrl.menuManager.menuData"
                      tether-menu="ctrl.menuManager.tetherMenu"></ngb-track-view-menu>

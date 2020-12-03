@@ -15,9 +15,10 @@
         <div ng-if="ctrl.renderable">
             <div class="dndPlaceholder"></div>
             <ngb-track
-                    track="ctrl.bamTrack"
+                    ng-repeat="trackInfo in ctrl.bamTracks track by ctrl.trackHash(trackInfo.track)"
+                    track="trackInfo.track"
                     menu-manager="ctrl.menuManager"
-                    track-opts="ctrl.trackOpts"
+                    track-opts="trackInfo.opts"
                     state="ctrl.bamTrackState"
                     silent-interactions="true"
                     viewport="ctrl.viewport"></ngb-track>

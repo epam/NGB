@@ -61,6 +61,9 @@ export default class WIGArea{
         if (this._area.children.length > 0) {
             this._area.removeChildren(0, this._area.children.length);
         }
+        if (coordinateSystem.isHeatMap) {
+            return;
+        }
 
         const dashSize = 2;
         const spaceSize = 2;

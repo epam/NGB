@@ -1,12 +1,18 @@
-import {tracks as trackConstructors} from '../../../../modules/render/';
 import ngbTrackEvents from './ngbTrack.events';
+import SelectionContext, {SelectionEvents} from '../../../shared/selectionContext';
+import {tracks as trackConstructors} from '../../../../modules/render/';
 
 const DEFAULT_HEIGHT = 40;
 const MAX_TRACK_NAME_LENGTH = 30;
+const KEYS = {
+    enter: 13,
+    esc: 27,
+};
 export default class ngbTrackController {
     domElement = null;
     dispatcher = null;
     projectContext;
+    selectionContext: SelectionContext;
 
     static get UID() {
         return 'ngbTrackController';
@@ -35,10 +41,26 @@ export default class ngbTrackController {
 
     trackNameTruncated;
 
-    constructor($scope, $element, $compile, $timeout, dispatcher, projectContext, projectDataService, genomeDataService, localDataService, bamDataService, appLayout) {
+    constructor(
+        $scope,
+        $element,
+        $compile,
+        $timeout,
+        dispatcher,
+        projectContext,
+        projectDataService,
+        genomeDataService,
+        localDataService,
+        bamDataService,
+        appLayout,
+        selectionContext,
+        trackNamingService
+    ) {
+        this.trackNamingService = trackNamingService;
         this.scope = $scope;
         this.dispatcher = dispatcher;
         this.projectContext = projectContext;
+        this.selectionContext = selectionContext;
         this.domElement = $element[0];
         this._localDataService = localDataService;
         this.$timeout = $timeout;
@@ -67,7 +89,9 @@ export default class ngbTrackController {
                 ? this.instanceConstructor.config.height
                 : DEFAULT_HEIGHT;
 
-        this.trackNameTruncated = this.getTrackFileName(this.track);
+        this.showTrackNameInput = false;
+        this.fileName = this.trackNamingService.getTrackName(this.track);
+        this.trackNameTruncated = this.fileName;
         if (this.trackNameTruncated.length > MAX_TRACK_NAME_LENGTH) {
             this.trackNameTruncated = `...${this.trackNameTruncated.substring(this.trackNameTruncated.length - MAX_TRACK_NAME_LENGTH)}`;
         }
@@ -126,12 +150,20 @@ export default class ngbTrackController {
             }
         };
         const trackCoverageSettingsChangedHandler = (state) => {
-            if (!state.cancel && ((state.data.applyToCurrentTrack && this.track.name === state.source) ||
+            if (!state.cancel && ((state.data.applyToCurrentTrack && state.sources.indexOf(this.track.name) >= 0) ||
                 (state.data.applyToWIGTracks && this.track.format === 'WIG') ||
                 (state.data.applyToBAMTracks && this.track.format === 'BAM'))) {
                 this.trackInstance.coverageScaleSettingsChanged(state);
-            } else if (state.cancel && state.source === this.track.name && this.trackInstance.trackHasCoverageSubTrack) {
+            } else if (state.cancel && state.sources.indexOf(this.track.name) >= 0 && this.trackInstance.trackHasCoverageSubTrack) {
                 this.trackInstance.coverageScaleSettingsChanged(state);
+            }
+        };
+
+        const trackColorsChangedHandler = (state) => {
+            if (state.data.applyToWIGTracks && this.track.format === 'WIG') {
+                this.trackInstance.colorSettingsChanged(state);
+            } else if (!state.data.applyToWIGTracks && state.source === this.track.name) {
+                this.trackInstance.colorSettingsChanged(state);
             }
         };
 
@@ -140,19 +172,32 @@ export default class ngbTrackController {
                 self.trackInstance.trackSettingsChanged(params);
                 this.scope.$apply();
             }
-        }
+        };
+
+        const tracksSelectionChangedHandler = () => {};
+
+        const trackHeaderStyleChangedHandler = (state) => {
+            if (state.data.applyToAllTracks || state.sources.indexOf(this.track.name) >= 0) {
+                this.trackInstance.headerStyleSettingsChanged(state);
+            }
+        };
 
         dispatcher.on('settings:change', globalSettingsChangedHandler);
         dispatcher.on('track:headers:changed', globalSettingsChangedHandler);
+        dispatcher.on('tracks:header:style:configure:done', trackHeaderStyleChangedHandler);
         dispatcher.on('tracks:coverage:manual:configure:done', trackCoverageSettingsChangedHandler);
+        dispatcher.on('wig:color:configure:done', trackColorsChangedHandler);
         dispatcher.on('trackSettings:change', trackSettingsChangedHandler);
+        dispatcher.on(SelectionEvents.changed, tracksSelectionChangedHandler);
 
         $scope.$on('$destroy', () => {
             if (this.trackInstance) {
                 dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
                 dispatcher.removeListener('track:headers:changed', globalSettingsChangedHandler);
                 dispatcher.removeListener('tracks:coverage:manual:configure:done', trackCoverageSettingsChangedHandler);
+                dispatcher.removeListener('wig:color:configure:done', trackColorsChangedHandler);
                 dispatcher.removeListener('trackSettings:change', trackSettingsChangedHandler);
+                dispatcher.removeListener(SelectionEvents.changed, tracksSelectionChangedHandler);
                 this.trackInstance.destructor();
             }
             if (this.trackInstance && this.trackInstance.domElement && this.trackInstance.domElement.parentNode) {
@@ -161,17 +206,26 @@ export default class ngbTrackController {
         });
     }
 
-    getTrackFileName(track) {
-        if (!track.isLocal) {
-            return track.prettyName || track.name;
+    get showFileNameHint() {
+        return this.trackNamingService.nameChanged(this.track);
+    }
+
+    toggleTrackNameInput() {
+        this.showTrackNameInput = !this.showTrackNameInput;
+    }
+
+    getterSetterPrettyName(newName) {
+        if (!arguments.length && newName === undefined) {
+            return this.trackNamingService.getPrettyName(this.track);
         } else {
-            const fileName = track.name;
-            if (!fileName || !fileName.length) {
-                return null;
-            }
-            let list = fileName.split('/');
-            list = list[list.length - 1].split('\\');
-            return list[list.length - 1];
+            this.trackNamingService.setPrettyName(newName, this.track);
+            this.showFileName = this.trackNamingService.nameChanged(this.track);
+        }
+    }
+
+    handleNameInputKeydown(event) {
+        if (event.keyCode === KEYS.esc || event.keyCode === KEYS.enter) {
+            return this.toggleTrackNameInput();
         }
     }
 
@@ -193,11 +247,31 @@ export default class ngbTrackController {
         return this._trackIsVisible;
     }
 
+    get trackHeaderStyle() {
+        const styles = {
+            ...this.trackInstance.config.header,
+            ...this.trackInstance.state.header,
+        };
+        return {
+            'font-size': styles.fontSize || '12px',
+        };
+    }
+
     changeTrackVisibility(visible) {
         if (visible !== this._trackIsVisible) {
             this._trackIsVisible = visible;
             this.scope.$apply();
         }
+    }
+
+    get trackIsSelected() {
+        return this.selectionContext
+            .getTrackIsSelected(this.track ? this.track.bioDataItemId : undefined);
+    }
+
+    set trackIsSelected(value) {
+        return this.selectionContext
+            .setTrackIsSelected(this.track ? this.track.bioDataItemId : undefined, value);
     }
 
     changeTrackHeight(newHeight) {
@@ -221,15 +295,15 @@ export default class ngbTrackController {
             state = Object.assign(state, this.state);
         }
         this.trackInstance = new this.instanceConstructor({
-            dataItemClicked: ::this.onTrackItemClick,
-            changeTrackVisibility: ::this.changeTrackVisibility,
             changeTrackHeight: ::this.changeTrackHeight,
+            changeTrackVisibility: ::this.changeTrackVisibility,
+            dataItemClicked: ::this.onTrackItemClick,
             dispatcher: this.dispatcher,
             ...this.trackOpts,
             ...this._localDataService.getSettings(),
             ...this.track,
-            restoredHeight: height,
             projectContext: this.projectContext,
+            restoredHeight: height,
             silentInteractions: this.silentInteractions,
             state: state,
             viewport: this.viewport

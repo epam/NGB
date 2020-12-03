@@ -1,6 +1,6 @@
 export default function run($mdDialog, dispatcher) {
     const displayTrackCoverageSettingsCallback = (state)=> {
-        const {source, config} = state;
+        const {sources, config} = state;
         let processed = false;
         $mdDialog.show({
             template: require('./ngbTrackCoverageSettings.dialog.tpl.html'),
@@ -18,7 +18,7 @@ export default function run($mdDialog, dispatcher) {
                     processed = true;
                     $mdDialog.hide();
                     dispatcher.emitSimpleEvent('tracks:coverage:manual:configure:done', {
-                        source: source,
+                        sources,
                         cancel: false,
                         data: {
                             from: $scope.from,
@@ -29,13 +29,13 @@ export default function run($mdDialog, dispatcher) {
                             isLogScale: $scope.isLogScale
                         }
                     });
-                }
+                };
             },
             clickOutsideToClose: true,
             onRemoving: () => {
                 if (!processed) {
                     dispatcher.emitSimpleEvent('tracks:coverage:manual:configure:done', {
-                        source: source,
+                        sources,
                         cancel: true
                     });
                 }
@@ -45,5 +45,4 @@ export default function run($mdDialog, dispatcher) {
     };
 
     dispatcher.on('tracks:coverage:manual:configure', displayTrackCoverageSettingsCallback);
-
 }

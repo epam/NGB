@@ -6,6 +6,7 @@ import ReferenceRenderer from './referenceRenderer';
 import ReferenceTransformer from './referenceTransformer';
 import {default as menu} from './menu';
 import {menu as menuUtilities} from '../../utilities';
+import Menu from '../../core/menu';
 
 export class REFERENCETrack extends CachedTrack {
 
@@ -15,6 +16,7 @@ export class REFERENCETrack extends CachedTrack {
     constructor(opts) {
         super(opts);
         this.dataService = new GenomeDataService(opts.dispatcher);
+        this.dispatcher = opts.dispatcher;
     }
 
     trackSettingsChanged(params) {
@@ -25,7 +27,7 @@ export class REFERENCETrack extends CachedTrack {
                 if (menuItem.type === 'checkbox') {
                     setting.value ? menuItem.enable() : menuItem.disable();
                 }
-            })
+            });
         }
     }
 
@@ -39,55 +41,31 @@ export class REFERENCETrack extends CachedTrack {
 
     get stateKeys() {
         return [
+            'header',
             'referenceShowTranslation',
             'referenceShowForwardStrand',
             'referenceShowReverseStrand'
         ];
     }
 
+    static postStateMutatorFn = (track) => {
+        track.updateHeight();
+        track.updateAndRefresh();
+        track.reportTrackState();
+    };
+
+    static Menu = Menu(
+        menu,
+        {
+            postStateMutatorFn: REFERENCETrack.postStateMutatorFn
+        }
+    );
+
     getSettings() {
         if (this._menu) {
             return this._menu;
         }
-        const wrapStateFn = (fn) => () => fn(this.state);
-        const wrapMutatorFn = (fn) => () => {
-            fn(this.state);
-            this.updateHeight();
-            this.updateAndRefresh();
-            this.reportTrackState();
-        };
-
-        this._menu = menu.map(function processMenuList(menuEntry) {
-            const result = {};
-            for (const key of Object.keys(menuEntry)) {
-                switch (true) {
-                    case Array.isArray(menuEntry[key]):
-                        result[key] = menuEntry[key].map(processMenuList);
-                        break;
-                    case menuEntry[key] instanceof Function: {
-                        switch (true) {
-                            case key.startsWith('is'):
-                                result[key] = wrapStateFn(menuEntry[key]);
-                                break;
-                            case key.startsWith('display'):
-                                result[key] = wrapStateFn(menuEntry[key]);
-                                break;
-                            default:
-                                result[key] = wrapMutatorFn(menuEntry[key]);
-                                break;
-                        }
-                    }
-                        break;
-                    default: {
-                        result[key] = menuEntry[key];
-                    }
-                        break;
-                }
-            }
-
-            return result;
-        });
-
+        this._menu = this.constructor.Menu.attach(this);
         return this._menu;
     }
 

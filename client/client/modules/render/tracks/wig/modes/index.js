@@ -1,3 +1,4 @@
 import * as scaleModes from './scaleModes';
+import * as displayModes from './displayModes';
 
-export default scaleModes;
+export {scaleModes, displayModes};

@@ -1,0 +1,36 @@
+<md-dialog aria-label="track resize settings">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2 ng-hide="name">Set track height</h2>
+            <span flex></span>
+            <md-button
+                class="md-icon-button"
+                ng-click="close()"
+                aria-label="Close"
+            >
+                <ng-md-icon style="fill: #fff" icon="clear"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    <md-dialog-content>
+        <ngb-wig-resize-preference
+            track="track"
+            height="height"
+            apply-to-wig-tracks="applyToWIGTracks"
+            min-height="minHeight"
+            max-height="maxHeight"
+            layout-margin
+        ></ngb-wig-resize-preference>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+        <md-button
+            aria-label="save"
+            ng-disabled="!height"
+            ng-click="save()"
+            class="md-primary"
+        >
+            Save
+        </md-button>
+        <md-button aria-label="cancel" ng-click="close()"> Cancel </md-button>
+    </md-dialog-actions>
+</md-dialog>

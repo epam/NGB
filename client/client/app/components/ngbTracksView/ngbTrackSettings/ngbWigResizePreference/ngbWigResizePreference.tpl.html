@@ -1,0 +1,28 @@
+<div layout="column" flex>
+    <div layout="row" flex>
+        <md-input-container>
+            <input
+                name="height"
+                type="number"
+                required
+                placeholder="WIG track height"
+                ng-min="ctrl.minHeight"
+                ng-max="ctrl.maxHeight"
+                ng-model="ctrl.height"
+            />
+            <div ng-messages="height.$error" role="alert">
+                <div ng-message="required,min,max">
+                    Value must be greater than or equal 50px and less than or
+                    equal 150px.
+                </div>
+            </div>
+        </md-input-container>
+    </div>
+    <md-checkbox
+        flex
+        aria-label="apply to all WIG tracks"
+        ng-model="ctrl.applyToWigTracks"
+    >
+        Apply to all WIG tracks
+    </md-checkbox>
+</div>

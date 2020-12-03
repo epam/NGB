@@ -1,0 +1,52 @@
+<md-dialog aria-label="track color settings">
+  <md-toolbar>
+      <div class="md-toolbar-tools">
+          <h2 ng-hide="name">Set font-size of track label</h2>
+          <span flex></span>
+          <md-button class="md-icon-button" ng-click="ctrl.close()" aria-label="Close">
+              <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+          </md-button>
+      </div>
+  </md-toolbar>
+  <md-dialog-content>
+    <div layout="row" class="content-wrapper">
+      <md-input-container class="font-size-input">
+        <input
+            name="fontSize"
+            type="number"
+            required
+            placeholder="Font-size (px)"
+            ng-model-options="{getterSetter: true}"
+            ng-model="ctrl.getSetFontSize"
+            step="1"
+            restrict-input
+        />
+        <div ng-messages="fontSize.$error" role="alert">
+          <div ng-message="required">
+              Please enter the font-size value
+          </div>
+        </div>
+      </md-input-container>
+      <div class="modal-content-controls">
+        <md-checkbox
+          flex
+          aria-label="apply to all WIG tracks"
+          ng-model="ctrl.applyToAllTracks"
+        >
+          Apply to all tracks
+        </md-checkbox>
+      </div>
+    </div>
+  </md-dialog-content>
+  <md-dialog-actions layout="row">
+      <md-button aria-label="apply defaults" ng-click="ctrl.resetToDefaults()" style="margin-right: auto;" class="md-primary" ng-disabled="!ctrl.canApplyDefaults">
+          Reset to defaults
+      </md-button>
+      <md-button aria-label="save" ng-click="ctrl.save()" class="md-primary" ng-disabled="!ctrl.settingsChanged">
+          Save
+      </md-button>
+      <md-button aria-label="cancel" ng-click="ctrl.close()">
+          Cancel
+      </md-button>
+  </md-dialog-actions>
+</md-dialog>

@@ -4,17 +4,18 @@ import {
     CoverageTransformer,
     HOVERED_ITEM_TYPE_ALIGNMENT,
     HOVERED_ITEM_TYPE_COVERAGE,
-    HOVERED_ITEM_TYPE_REGION,
     HOVERED_ITEM_TYPE_DOWNSAMPLE_INDICATOR,
+    HOVERED_ITEM_TYPE_REGION,
     HOVERED_ITEM_TYPE_SPLICE_JUNCTION
 } from './internal';
+import {default as bamMenu, sashimiMenu} from './menu';
 import {dataModes, groupModes, sortTypes} from './modes';
+import BAMConfig from './bamConfig';
 import Promise from 'bluebird';
 import {ScrollableTrack} from '../../core';
-import BAMConfig from './bamConfig';
-import {default as menu, sashimiMenu} from './menu';
 import {menu as menuUtilities} from '../../utilities';
-import scaleModes from '../wig/modes';
+import Menu from '../../core/menu';
+import {scaleModes} from '../wig/modes';
 
 const Math = window.Math;
 export class BAMTrack extends ScrollableTrack {
@@ -36,6 +37,132 @@ export class BAMTrack extends ScrollableTrack {
         return BAMConfig;
     }
 
+    static preStateMutatorFn = (track) => {
+        const viewAsPairsFlag = track.state.viewAsPairs;
+        const groupingMode = track.state.groupMode;
+        const currentDisplayMode = track.state.coverageDisplayMode;
+        const currentScaleMode = track.state.coverageScaleMode;
+        const logScaleEnabled = track.state.coverageLogScale;
+        const alignments = track.state.alignments;
+        return {
+            alignments,
+            currentDisplayMode,
+            currentScaleMode,
+            groupingMode,
+            logScaleEnabled,
+            viewAsPairsFlag
+        };
+    };
+
+    static postStateMutatorFn = (track, key, prePayload) => {
+        const getCoverageExtremum = () => {
+            let max = 0;
+            let min = 0;
+            if (
+                this.cacheService &&
+                this.cacheService.cache &&
+                this.cacheService.cache.coverage &&
+                this.cacheService.cache.coverage.coordinateSystem
+            ) {
+                max = this.cacheService.cache.coverage.coordinateSystem.realMaximum;
+                min = this.cacheService.cache.coverage.coordinateSystem.realMinimum;
+            } else {
+                min = this.state.coverageScaleFrom;
+                max = this.state.coverageScaleTo;
+            }
+            return {max, min};
+        };
+        let shouldReportTracksState = true;
+        const {
+            alignments,
+            currentDisplayMode,
+            currentScaleMode,
+            groupingMode,
+            logScaleEnabled,
+            viewAsPairsFlag
+        } = prePayload;
+        if ((!track.state.alignments || track.state.alignments !== alignments) && track.changeTrackHeight) {
+            if (track.state.alignments) {
+                track.changeTrackHeight(track.trackConfig.defaultHeight);
+            } else {
+                let newHeight = 0;
+                if (track.state.coverage) {
+                    newHeight += track.trackConfig.coverage.height;
+                }
+                if (track.state.spliceJunctions) {
+                    newHeight += track.trackConfig.spliceJunctions.height;
+                }
+                track.changeTrackHeight(newHeight);
+            }
+        }
+        if (key === 'coverage>scale>manual' && track.state.coverageScaleMode === scaleModes.manualScaleMode) {
+            shouldReportTracksState = false;
+            if (currentScaleMode !== track.state.coverageScaleMode) {
+                track.state.coverageScaleMode = scaleModes.defaultScaleMode;
+            }
+            track.config.dispatcher.emitSimpleEvent('tracks:coverage:manual:configure', {
+                config: {
+                    extremumFn: getCoverageExtremum,
+                    isLogScale: track.state.coverageLogScale
+                },
+                sources: [track.config.name]
+            });
+        } else if (currentScaleMode !== track.state.coverageScaleMode) {
+            track._flags.dataChanged = true;
+            track.state.coverageScaleFrom = undefined;
+            track.state.coverageScaleTo = undefined;
+        } else if (logScaleEnabled !== track.state.coverageLogScale) {
+            track._flags.dataChanged = true;
+        } else if (currentDisplayMode !== track.state.coverageDisplayMode) {
+            track._flags.dataChanged = true;
+        }
+        const viewAsPairsFlagChanged = viewAsPairsFlag !== track.state.viewAsPairs;
+        if (viewAsPairsFlagChanged) {
+            if (track.state.groupMode === groupModes.groupByReadStrandMode && track.state.viewAsPairs) {
+                track.state.groupMode = groupModes.defaultGroupingMode;
+            }
+            track.bamRenderSettings.viewAsPairs = track.state.viewAsPairs;
+        }
+        const groupingModeChanged = groupingMode !== track.state.groupMode;
+        if (groupingModeChanged) {
+            if (track.state.groupMode === groupModes.groupByReadStrandMode && track.state.viewAsPairs) {
+                track.state.viewAsPairs = false;
+                track.viewAsPairsFlagChanged();
+            }
+            track.groupingModeChanged();
+        }
+        else if (viewAsPairsFlagChanged) {
+            track.viewAsPairsFlagChanged();
+        }
+        if (alignments !== track.state.alignments) {
+            track.alignmentsVisibilityChanged();
+        }
+        track._flags.renderFeaturesChanged = true;
+        track.requestRenderRefresh();
+        if (shouldReportTracksState) {
+            track.reportTrackState();
+        }
+    };
+
+    static postPerformFn = (track) => {
+        track.sortingModeChanged();
+        track.reportTrackState();
+    };
+
+    static Menu = Menu(
+        bamMenu,
+        {
+            postPerformFn: BAMTrack.postPerformFn,
+            postStateMutatorFn: BAMTrack.postStateMutatorFn,
+            preStateMutatorFn: BAMTrack.preStateMutatorFn
+        }
+    );
+
+    static SashimiMenu = Menu(
+        sashimiMenu,
+        {}
+    );
+
     get stateKeys() {
         return [
             'arrows',
@@ -44,6 +171,7 @@ export class BAMTrack extends ScrollableTrack {
             'coverage',
             'diffBase',
             'groupMode',
+            'header',
             'ins_del',
             'mismatches',
             'readsViewMode',
@@ -51,6 +179,7 @@ export class BAMTrack extends ScrollableTrack {
             'softClip',
             'spliceJunctions',
             'viewAsPairs',
+            'coverageDisplayMode',
             'coverageLogScale',
             'coverageScaleMode',
             'coverageScaleFrom',
@@ -74,127 +203,9 @@ export class BAMTrack extends ScrollableTrack {
         if (this._menu) {
             return this._menu;
         }
-        const wrapStateFn = (fn) => () => fn(this.state);
-
-        const getCoverageExtremum = () => {
-            let max = 0;
-            let min = 0;
-            if (this.cacheService && this.cacheService.cache && this.cacheService.cache.coverage && this.cacheService.cache.coverage.coordinateSystem) {
-                max = this.cacheService.cache.coverage.coordinateSystem.realMaximum;
-                min = this.cacheService.cache.coverage.coordinateSystem.realMinimum;
-            } else {
-                min = this.state.coverageScaleFrom;
-                max = this.state.coverageScaleTo;
-            }
-            return {max, min};
-        };
-
-        const wrapMutatorFn = (fn, key) => () => {
-            const viewAsPairsFlag = this.state.viewAsPairs;
-            const groupingMode = this.state.groupMode;
-            let shouldReportTracksState = true;
-            const currentScaleMode = this.state.coverageScaleMode;
-            const logScaleEnabled = this.state.coverageLogScale;
-            const alignments = this.state.alignments;
-            fn(this.state);
-            if ((!this.state.alignments || this.state.alignments !== alignments) && this.changeTrackHeight) {
-                if (this.state.alignments) {
-                    this.changeTrackHeight(this.trackConfig.defaultHeight);
-                } else {
-                    let newHeight = 0;
-                    if (this.state.coverage) {
-                        newHeight += this.trackConfig.coverage.height;
-                    }
-                    if (this.state.spliceJunctions) {
-                        newHeight += this.trackConfig.spliceJunctions.height;
-                    }
-                    this.changeTrackHeight(newHeight);
-                }
-            }
-            if (key === 'coverage>scale>manual' && this.state.coverageScaleMode === scaleModes.manualScaleMode) {
-                shouldReportTracksState = false;
-                if (currentScaleMode !== this.state.coverageScaleMode) {
-                    this.state.coverageScaleMode = scaleModes.defaultScaleMode;
-                }
-                this.config.dispatcher.emitSimpleEvent('tracks:coverage:manual:configure', {
-                    source: this.config.name,
-                    config: {
-                        extremumFn: getCoverageExtremum,
-                        isLogScale: this.state.coverageLogScale
-                    }
-                });
-            } else if (currentScaleMode !== this.state.coverageScaleMode) {
-                this._flags.dataChanged = true;
-                this.state.coverageScaleFrom = undefined;
-                this.state.coverageScaleTo = undefined;
-            } else if (logScaleEnabled !== this.state.coverageLogScale) {
-                this._flags.dataChanged = true;
-            }
-            const viewAsPairsFlagChanged = viewAsPairsFlag !== this.state.viewAsPairs;
-            if (viewAsPairsFlagChanged) {
-                if (this.state.groupMode === groupModes.groupByReadStrandMode && this.state.viewAsPairs) {
-                    this.state.groupMode = groupModes.defaultGroupingMode;
-                }
-                this.bamRenderSettings.viewAsPairs = this.state.viewAsPairs;
-            }
-            const groupingModeChanged = groupingMode !== this.state.groupMode;
-            if (groupingModeChanged) {
-                if (this.state.groupMode === groupModes.groupByReadStrandMode && this.state.viewAsPairs) {
-                    this.state.viewAsPairs = false;
-                    this.viewAsPairsFlagChanged();
-                }
-                this.groupingModeChanged();
-            }
-            else if (viewAsPairsFlagChanged) {
-                this.viewAsPairsFlagChanged();
-            }
-            if (alignments !== this.state.alignments) {
-                this.alignmentsVisibilityChanged();
-            }
-            this._flags.renderFeaturesChanged = true;
-            this.requestRenderRefresh();
-            if (shouldReportTracksState) {
-                this.reportTrackState();
-            }
-        };
-
-        const wrapPerformFn = (fn) => () => {
-            fn(this.bamRenderSettings, this.config, this.dispatcher, this.cacheService.clone());
-            this.sortingModeChanged();
-            this.reportTrackState();
-        };
-
-        this._menu = (this.state.sashimi ? sashimiMenu : menu).map(function processMenuList(menuEntry) {
-            const result = {};
-            for (const key of Object.keys(menuEntry)) {
-                switch (true) {
-                    case Array.isArray(menuEntry[key]):
-                        result[key] = menuEntry[key].map(processMenuList);
-                        break;
-                    case menuEntry[key] instanceof Function: {
-                        switch (true) {
-                            case key.startsWith('is'):
-                                result[key] = wrapStateFn(menuEntry[key]);
-                                break;
-                            case key.startsWith('display'):
-                                result[key] = wrapStateFn(menuEntry[key]);
-                                break;
-                            case key === 'perform':
-                                result[key] = wrapPerformFn(menuEntry[key], menuEntry.name);
-                                break;
-                            default:
-                                result[key] = wrapMutatorFn(menuEntry[key], menuEntry.name);
-                                break;
-                        }
-                    }
-                        break;
-                    default:
-                        result[key] = menuEntry[key];
-                }
-            }
-
-            return result;
-        });
+        this._menu = this.state.sashimi
+            ? this.constructor.SashimiMenu.attach(this)
+            : this.constructor.Menu.attach(this);
 
         this.hotKeyListener = (event) => {
             if (event) {
@@ -248,8 +259,8 @@ export class BAMTrack extends ScrollableTrack {
 
         const bamSettings = {
             chromosomeId: this.config.chromosomeId,
-            id: this.config.openByUrl ? undefined : this.config.id,
             file: this.config.openByUrl ? this.config.bioDataItemId : undefined,
+            id: this.config.openByUrl ? undefined : this.config.id,
             index: this.config.openByUrl ? this.config.indexPath : undefined,
             projectId: this.config.project ? this.config.project.id : undefined,
         };
@@ -319,7 +330,7 @@ export class BAMTrack extends ScrollableTrack {
                             this.state.coverageScaleMode = scaleModes.defaultScaleMode;
                         }
                         this._flags.dataChanged = true;
-                    } else if (setting.name.indexOf("bam>readsView") !== -1 && setting.name !== "bam>readsView>pairs") {
+                    } else if (setting.name.indexOf('bam>readsView') !== -1 && setting.name !== 'bam>readsView>pairs') {
                         menuItem.enable();
                     } else {
                         setting.value ? menuItem.enable() : menuItem.disable();
@@ -327,7 +338,7 @@ export class BAMTrack extends ScrollableTrack {
                 } else if (menuItem.type === 'button') {
                     menuItem.perform();
                 }
-            })
+            });
         }
     }
 
@@ -339,8 +350,8 @@ export class BAMTrack extends ScrollableTrack {
 
         const bamSettings = {
             chromosomeId: this.config.chromosomeId,
-            id: this.config.openByUrl ? undefined : this.config.id,
             file: this.config.openByUrl ? this.config.bioDataItemId : undefined,
+            id: this.config.openByUrl ? undefined : this.config.id,
             index: this.config.openByUrl ? this.config.indexPath : undefined,
             projectId: this.config.project ? this.config.project.id : undefined
         };
@@ -521,7 +532,7 @@ export class BAMTrack extends ScrollableTrack {
     onClick({x, y}) {
         const hoveredItem = this._bamRenderer.checkFeature({x, y});
         if (hoveredItem && hoveredItem.type === HOVERED_ITEM_TYPE_REGION) {
-            this.moveBrush({start: hoveredItem.item.startIndex, end: hoveredItem.item.endIndex});
+            this.moveBrush({end: hoveredItem.item.endIndex, start: hoveredItem.item.startIndex});
         } else if (hoveredItem && hoveredItem.type === HOVERED_ITEM_TYPE_ALIGNMENT &&
             this.dataItemClicked !== null && this.dataItemClicked !== undefined &&
             hoveredItem.item && hoveredItem.item.render && hoveredItem.item.render.info) {

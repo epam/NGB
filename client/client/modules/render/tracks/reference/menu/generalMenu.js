@@ -1,8 +1,9 @@
 import {menu} from '../../../utilities';
+import header from '../../common/menu/header';
 
 export default {
     displayName: state => {
-        let selectedStates = [];
+        const selectedStates = [];
         if (state.referenceShowForwardStrand) {
             selectedStates.push('Forward strand');
         }
@@ -15,7 +16,7 @@ export default {
         if(selectedStates.length > 0) {
             return `General (${selectedStates.join(', ')})`;
         } else {
-            return `General`
+            return 'General';
         }
     },
     fields: [
@@ -43,7 +44,9 @@ export default {
             label: 'Show reverse strand',
             name: 'reference>showReverseStrand',
             type: 'checkbox'
-        }
+        },
+        menu.getDivider(),
+        header,
     ],
     name: 'reference>general',
     type: 'submenu'
