@@ -10,29 +10,7 @@ export default class WIGTransformer {
     _getExtremumValues(wigData, viewport) {
 
         let maximum = this._config.area.maximum;
-        const allowedStart = viewport.project.pixel2brushBP(-viewport.canvasSize);
-        const allowedEnd = viewport.project.pixel2brushBP(2 * viewport.canvasSize);
-
-        const skipItem = function(item) {
-            return item.value === 0 || item.startIndex < viewport.brush.start || item.endIndex > viewport.brush.end ||
-                item.startIndex > allowedEnd || item.endIndex < allowedStart;
-        };
-
-        for (let i = 0; i < wigData.dataItems.length; i++) {
-            const item = wigData.dataItems[i];
-            if (skipItem(item)) {
-                continue;
-            }
-            if (maximum === null || maximum === undefined || maximum < item.value) {
-                maximum = item.value;
-            }
-        }
-        return {maximum, minimum: 0};
-    }
-
-    _getExtremumValues2(wigData, viewport) {
-
-        let maximum = this._config.area.maximum;
+        let minimum = this._config.area.minimum || 0;
 
         for (let i = 0; i < wigData.extremumSupportStructure.length; i++) {
             const item = wigData.extremumSupportStructure[i];
@@ -41,7 +19,16 @@ export default class WIGTransformer {
                 break;
             }
         }
-        return {maximum, minimum: 0};
+
+        for (let i = 0; i < wigData.minExtremumSupportStructure.length; i++) {
+            const item = wigData.minExtremumSupportStructure[i];
+            if (item.startIndex <= viewport.brush.end && item.endIndex >= viewport.brush.start) {
+                minimum = item.value;
+                break;
+            }
+        }
+
+        return {maximum, minimum: Math.min(0, minimum)};
     }
 
     transformCoordinateSystem(wigData, viewport, cachedCoordinateSystem, coverageConfig) {
@@ -56,7 +43,7 @@ export default class WIGTransformer {
             return;
         let maximum = null;
         let minimum = 0; // by default
-        const extremumValues = this._getExtremumValues2(wigData, viewport);
+        const extremumValues = this._getExtremumValues(wigData, viewport);
         switch (coverageScaleMode) {
             case scaleModes.manualScaleMode: {
                 maximum = !isNaN(coverageScaleTo) ? +coverageScaleTo : extremumValues.maximum;
@@ -157,6 +144,7 @@ export default class WIGTransformer {
 
         const _baseAxis = 0;
         const extremumSupportStructure = [];
+        const minExtremumSupportStructure = [];
 
         const pushItem = function(item) {
             if (item && item.threshold) {
@@ -199,6 +187,11 @@ export default class WIGTransformer {
             }
 
             extremumSupportStructure.push({
+                value: dataItem.value,
+                startIndex: dataItem.startIndex,
+                endIndex: dataItem.endIndex
+            });
+            minExtremumSupportStructure.push({
                 value: dataItem.value,
                 startIndex: dataItem.startIndex,
                 endIndex: dataItem.endIndex
@@ -279,10 +272,12 @@ export default class WIGTransformer {
         }
         pushItem(lastItem);
         Sorting.quickSort(extremumSupportStructure, false, x => x.value);
+        Sorting.quickSort(minExtremumSupportStructure, true, x => x.value);
         return {
             baseAxis: _baseAxis,
             dataItems: data,
             extremumSupportStructure: extremumSupportStructure,
+            minExtremumSupportStructure: minExtremumSupportStructure,
             isDetailed: isDetailed,
             items: items,
             pixelsPerBp: pixelsPerBp,

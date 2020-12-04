@@ -46,9 +46,11 @@ export default class WIGRenderer extends CachedTrackRenderer {
             const { block, line } = this._renderItems(
                 wig.items.aboveBaseAxis,
                 this.trackState.wigColors
-                    ? this.trackState.wigColors.positive
+                    ? (this.trackState.wigColors.positive || this._config.wig.color)
                     : this._config.wig.color,
-                this._config.wig.lineColor,
+                this.trackState.wigColors
+                    ? (this.trackState.wigColors.positive || this._config.wig.lineColor)
+                    : this._config.wig.lineColor,
                 viewport,
                 wig,
                 coordinateSystem,
@@ -59,8 +61,12 @@ export default class WIGRenderer extends CachedTrackRenderer {
         {
             const { block, line } = this._renderItems(
                 wig.items.belowBaseAxis,
-                this._config.wig.color,
-                this._config.wig.lineColor,
+                this.trackState.wigColors
+                    ? (this.trackState.wigColors.negative || this._config.wig.color)
+                    : this._config.wig.color,
+                this.trackState.wigColors
+                    ? (this.trackState.wigColors.negative || this._config.wig.lineColor)
+                    : this._config.wig.lineColor,
                 viewport,
                 wig,
                 coordinateSystem,

@@ -16,12 +16,13 @@ export class CoverageRenderer extends WIGRenderer {
         if (!coordinateSystem.isHeatMap) {
             const padding = 0.5;
             const barOrders = ['A', 'C', 'G', 'T', 'N'];
+            const baseAxis = Math.max(0, cache.baseAxis);
             for (let i = 0; i < items.length; i++) {
                 for (let j = 0; j < items[i].points.length; j++) {
                     const point = items[i].points[j];
-                    if (point.dataItem.isHighlightedLocus) {
+                    if (point.dataItem.isHighlightedLocus && point.dataValue > 0) {
                         const max = this._getYValue(point.dataValue, coordinateSystem) + 1;
-                        const min = this._getYValue(cache.baseAxis, coordinateSystem) - 1;
+                        const min = this._getYValue(baseAxis, coordinateSystem) - 1;
                         let prevPercentage = 0;
                         for (let k = barOrders.length - 1; k >= 0; k--) {
                             let color = this._bamConfig.colors[barOrders[k]];
@@ -33,7 +34,7 @@ export class CoverageRenderer extends WIGRenderer {
                             if (value === 0) {
                                 continue;
                             }
-                            const percentage = (value - cache.baseAxis) / (point.dataValue - cache.baseAxis);
+                            const percentage = (value - baseAxis) / (point.dataValue - baseAxis);
                             const y1 = Math.round(Math.min(this.height - 1, min + (max - min) * (percentage + prevPercentage))) - .5;
                             const y2 = Math.round(Math.min(this.height - 1, min + (max - min) * prevPercentage)) + .5;
                             const x1 = Math.round(viewport.project.brushBP2pixel(point.startIndex - 0.5) + padding);
