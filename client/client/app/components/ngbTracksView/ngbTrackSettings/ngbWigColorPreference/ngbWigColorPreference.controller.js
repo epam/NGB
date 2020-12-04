@@ -6,14 +6,14 @@ export default class ngbWigColorPreferenceController {
         return 'ngbWigColorPreferenceController';
     }
 
-    constructor($scope, $mdDialog, dispatcher, settings, defaults, source) {
+    constructor($scope, $mdDialog, dispatcher, settings, defaults, sources) {
         Object.assign(this, {
             $mdDialog,
             $scope,
             defaults,
             dispatcher,
             settings,
-            source,
+            sources,
         });
         this.pickerOptions = {
             format: 'hex',
@@ -24,18 +24,6 @@ export default class ngbWigColorPreferenceController {
         this.settings = this.preprocessColors(settings);
         this.prevSettings = Object.assign({}, this.settings);
         this.applyToWIGTracks = false;
-    }
-
-    get settingsChanged () {
-        return (
-          JSON.stringify(this.preprocessColors(this.prevSettings)) !==
-            JSON.stringify(this.preprocessColors(this.settings)) ||
-          this.applyToWIGTracks
-        ); 
-    }
-
-    get isDefaultSettings() {
-        return JSON.stringify(this.preprocessColors(this.defaults)) === JSON.stringify(this.preprocessColors(this.settings)); 
     }
 
     convertDecimalToHex(decimal) {
@@ -77,7 +65,7 @@ export default class ngbWigColorPreferenceController {
                 applyToWIGTracks: this.applyToWIGTracks,
                 settings: this.postprocessColors(this.settings),
             },
-            source: this.source,
+            sources: this.sources,
         });
         this.$mdDialog.hide();
     }

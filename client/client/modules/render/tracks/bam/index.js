@@ -55,23 +55,6 @@ export class BAMTrack extends ScrollableTrack {
     };
 
     static postStateMutatorFn = (track, key, prePayload) => {
-        const getCoverageExtremum = () => {
-            let max = 0;
-            let min = 0;
-            if (
-                this.cacheService &&
-                this.cacheService.cache &&
-                this.cacheService.cache.coverage &&
-                this.cacheService.cache.coverage.coordinateSystem
-            ) {
-                max = this.cacheService.cache.coverage.coordinateSystem.realMaximum;
-                min = this.cacheService.cache.coverage.coordinateSystem.realMinimum;
-            } else {
-                min = this.state.coverageScaleFrom;
-                max = this.state.coverageScaleTo;
-            }
-            return {max, min};
-        };
         let shouldReportTracksState = true;
         const {
             alignments,
@@ -95,18 +78,8 @@ export class BAMTrack extends ScrollableTrack {
                 track.changeTrackHeight(newHeight);
             }
         }
-        if (key === 'coverage>scale>manual' && track.state.coverageScaleMode === scaleModes.manualScaleMode) {
+        if (key === 'coverage>scale>manual') {
             shouldReportTracksState = false;
-            if (currentScaleMode !== track.state.coverageScaleMode) {
-                track.state.coverageScaleMode = scaleModes.defaultScaleMode;
-            }
-            track.config.dispatcher.emitSimpleEvent('tracks:coverage:manual:configure', {
-                config: {
-                    extremumFn: getCoverageExtremum,
-                    isLogScale: track.state.coverageLogScale
-                },
-                sources: [track.config.name]
-            });
         } else if (currentScaleMode !== track.state.coverageScaleMode) {
             track._flags.dataChanged = true;
             track.state.coverageScaleFrom = undefined;
@@ -149,12 +122,57 @@ export class BAMTrack extends ScrollableTrack {
         track.reportTrackState();
     };
 
+    static afterStateMutatorFn = (tracks, key) => {
+        if (key === 'coverage>scale>manual') {
+            const getCoverageExtremum = (track) => {
+                let max = 0;
+                let min = 0;
+                if (
+                    track.cacheService &&
+                    track.cacheService.cache &&
+                    track.cacheService.cache.coverage &&
+                    track.cacheService.cache.coverage.coordinateSystem
+                ) {
+                    max = track.cacheService.cache.coverage.coordinateSystem.realMaximum;
+                    min = track.cacheService.cache.coverage.coordinateSystem.realMinimum;
+                } else {
+                    min = track.state.coverageScaleFrom;
+                    max = track.state.coverageScaleTo;
+                }
+                return {max, min};
+            };
+            const getCoverageExtremums = () => {
+                const values = (tracks || []).map(getCoverageExtremum);
+                return values.reduce((r, c) => ({
+                    max: Math.min(c.max, r.max),
+                    min: Math.max(c.min, r.min)
+                }), {max: Infinity, min: -Infinity});
+            };
+            const isLogScale = (tracks || [])
+                .map(track => track.state.coverageLogScale)
+                .reduce((r, c) => r && c, true);
+            const [dispatcher] = (tracks || [])
+                .map(track => track.config.dispatcher)
+                .filter(Boolean);
+            if (dispatcher) {
+                dispatcher.emitSimpleEvent('tracks:coverage:manual:configure', {
+                    config: {
+                        extremumFn: getCoverageExtremums,
+                        isLogScale
+                    },
+                    sources: (tracks || []).map(track => track.config.name),
+                });
+            }
+        }
+    }
+
     static Menu = Menu(
         bamMenu,
         {
             postPerformFn: BAMTrack.postPerformFn,
             postStateMutatorFn: BAMTrack.postStateMutatorFn,
-            preStateMutatorFn: BAMTrack.preStateMutatorFn
+            preStateMutatorFn: BAMTrack.preStateMutatorFn,
+            afterStateMutatorFn: BAMTrack.afterStateMutatorFn,
         }
     );
 
@@ -184,7 +202,8 @@ export class BAMTrack extends ScrollableTrack {
             'coverageScaleMode',
             'coverageScaleFrom',
             'coverageScaleTo',
-            'sashimi'
+            'sashimi',
+            'wigColors'
         ];
     }
 

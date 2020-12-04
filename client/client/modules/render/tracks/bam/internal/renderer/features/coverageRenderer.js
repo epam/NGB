@@ -6,13 +6,13 @@ export class CoverageRenderer extends WIGRenderer {
 
     _bamConfig;
 
-    constructor(config, bamConfig) {
-        super(config);
+    constructor(config, bamConfig, bamState) {
+        super(config, bamState);
         this._bamConfig = bamConfig;
     }
 
-    _renderItems(items, color, lineColor, viewport, cache, coordinateSystem) {
-        const {block, line} = super._renderItems(items, color, lineColor, viewport, cache, coordinateSystem);
+    _renderItems(items, baseColor, lineColor, viewport, cache, coordinateSystem) {
+        const {block, line} = super._renderItems(items, baseColor, lineColor, viewport, cache, coordinateSystem);
         if (!coordinateSystem.isHeatMap) {
             const padding = 0.5;
             const barOrders = ['A', 'C', 'G', 'T', 'N'];
@@ -27,7 +27,7 @@ export class CoverageRenderer extends WIGRenderer {
                         for (let k = barOrders.length - 1; k >= 0; k--) {
                             let color = this._bamConfig.colors[barOrders[k]];
                             if (point.dataItem.locusLetter.toLowerCase() === barOrders[k].toLowerCase()) {
-                                color = this._bamConfig.colors.base;
+                                color = baseColor || this._bamConfig.colors.base;
                             }
                             const value = point.dataItem.locusInfo && point.dataItem.locusInfo[barOrders[k].toLowerCase()] ?
                                 point.dataItem.locusInfo[barOrders[k].toLowerCase()] : 0;

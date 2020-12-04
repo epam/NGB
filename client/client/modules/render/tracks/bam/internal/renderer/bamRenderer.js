@@ -331,7 +331,7 @@ export class BamRenderer {
 
     _initCoverage() {
         this._dataContainer.addChild(this._coverageContainer = new PIXI.Container());
-        this._coverageRenderer = new CoverageRenderer(this._config.coverage, this._config);
+        this._coverageRenderer = new CoverageRenderer(this._config.coverage, this._config, this._state);
         this._coverageArea = new CoverageArea(this._viewport, this._config.coverage);
         this._coverageContainer.addChild(this._coverageRenderer.container);
         this._coverageContainer.addChild(this._coverageArea.logScaleIndicator);
