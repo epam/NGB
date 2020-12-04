@@ -1,7 +1,7 @@
 <md-dialog aria-label="track color settings">
   <md-toolbar>
       <div class="md-toolbar-tools">
-          <h2 ng-hide="name">Set WIG color preference</h2>
+          <h2 ng-hide="name">Color configuration</h2>
           <span flex></span>
           <md-button class="md-icon-button" ng-click="ctrl.close()" aria-label="Close">
               <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
@@ -19,7 +19,13 @@
         <color-picker options="ctrl.pickerOptions" ng-cloak ng-model="ctrl.settings.negative"></color-picker>
       </div>
       <div class="color-preference-controls">
-        <md-checkbox flex aria-label="apply to all WIG tracks" ng-model="ctrl.applyToWIGTracks">Apply to all WIG tracks</md-checkbox>
+        <md-checkbox
+                flex aria-label="apply to all coverage tracks"
+                ng-model="ctrl.applyToWIGTracks"
+                ng-disabled="ctrl.sources.length > 1"
+        >
+            Apply to all tracks
+        </md-checkbox>
       </div>
     </div>
   </md-dialog-content>

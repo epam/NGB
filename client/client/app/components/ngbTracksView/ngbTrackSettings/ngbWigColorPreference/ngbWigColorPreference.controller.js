@@ -23,7 +23,7 @@ export default class ngbWigColorPreferenceController {
         };
         this.settings = this.preprocessColors(settings);
         this.prevSettings = Object.assign({}, this.settings);
-        this.applyToWIGTracks = false;
+        this.applyToWIGTracks = (sources || []).length > 1;
     }
 
     convertDecimalToHex(decimal) {
