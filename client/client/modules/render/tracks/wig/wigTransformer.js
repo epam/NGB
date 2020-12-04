@@ -7,6 +7,19 @@ export default class WIGTransformer {
         this._config = config;
     }
 
+    registerGroupAutoScaleManager(manager, track) {
+        this.groupAutoScaleManager = manager;
+        this.track = track;
+    }
+
+    getExtremumValues(dataCollection, viewport) {
+        const extremums = dataCollection.map(wigData => this._getExtremumValues(wigData, viewport));
+        return extremums.reduce((r, c) => ({
+            maximum: Math.max(r.maximum, c.maximum),
+            minimum: Math.min(r.minimum, c.minimum),
+        }), {maximum: 0, minimum: 0});
+    }
+
     _getExtremumValues(wigData, viewport) {
 
         let maximum = this._config.area.maximum;
@@ -37,13 +50,17 @@ export default class WIGTransformer {
             coverageScaleMode,
             coverageLogScale,
             coverageScaleFrom,
-            coverageScaleTo
+            coverageScaleTo,
+            groupAutoScale
         } = coverageConfig;
         if (wigData === null)
             return;
         let maximum = null;
         let minimum = 0; // by default
-        const extremumValues = this._getExtremumValues(wigData, viewport);
+        const dataCollection = coverageScaleMode === scaleModes.groupAutoScaleMode && this.groupAutoScaleManager
+            ? this.groupAutoScaleManager.getGroupData(groupAutoScale)
+            : [wigData];
+        const extremumValues = this.getExtremumValues(dataCollection, viewport);
         switch (coverageScaleMode) {
             case scaleModes.manualScaleMode: {
                 maximum = !isNaN(coverageScaleTo) ? +coverageScaleTo : extremumValues.maximum;
@@ -273,6 +290,15 @@ export default class WIGTransformer {
         pushItem(lastItem);
         Sorting.quickSort(extremumSupportStructure, false, x => x.value);
         Sorting.quickSort(minExtremumSupportStructure, true, x => x.value);
+        if (this.groupAutoScaleManager) {
+            this.groupAutoScaleManager.registerTrackData(
+                this.track,
+                {
+                    extremumSupportStructure,
+                    minExtremumSupportStructure,
+                }
+            );
+        }
         return {
             baseAxis: _baseAxis,
             dataItems: data,

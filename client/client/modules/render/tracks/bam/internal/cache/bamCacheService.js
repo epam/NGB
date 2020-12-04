@@ -27,6 +27,7 @@ export default class BamCacheService {
         this._cache = cache || new BamCache(track);
         this._config = config;
         this._coverageTransformer = new CoverageTransformer(this._cache, config);
+        this._coverageTransformer.registerGroupAutoScaleManager(config.groupAutoScaleManager, track);
         if (!cache) {
             this.cache.invalidate();
         }

@@ -27,12 +27,13 @@ import interceptor from './app.interceptor';
 import lastActionRepeater from './shared/lastActionRepeater';
 import layoutConstant from './app.layout.constant.js';
 import routes from './app.routes';
-
 // Import dependencies
+
 import appConstants from '../constants/angular-module';
 import appServices from './shared/services';
 import components from './components';
 import dataServices from '../dataServices/angular-module';
+import {GroupAutoScaleManager} from '../modules/render/index';
 import sharedComponents from './shared/components';
 
 //Import styles
@@ -62,4 +63,5 @@ export default angular.module('NGB', [
     .service('eventHotkey', eventHotkey.instance)
     .service('lastActionRepeater', lastActionRepeater.instance)
     .constant('appLayout', layoutConstant)
+    .service('groupAutoScaleManager', GroupAutoScaleManager.instance)
     .name;

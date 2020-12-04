@@ -161,6 +161,7 @@ export class Track extends BaseTrack {
             this.shouldDisplayTooltips = opts.displayTooltips;
             this.hoveringEffects = opts.hoveringEffects;
             this.projectContext = opts.projectContext;
+            this.groupAutoScaleManager = opts.groupAutoScaleManager;
             this.silentInteractions = !!opts.silentInteractions;
             this.reportTrackState();
         }
@@ -341,17 +342,14 @@ export class Track extends BaseTrack {
     }
 
     coverageScaleSettingsChanged(state) {
-        if (this.trackHasCoverageSubTrack) {
-            if (state.cancel) {
-                this.state.coverageScaleFrom = undefined;
-                this.state.coverageScaleTo = undefined;
-                this.state.coverageScaleMode = scaleModes.defaultScaleMode;
-            } else {
-                this.state.coverageScaleFrom = state.data.from;
-                this.state.coverageScaleTo = state.data.to;
-                this.state.coverageScaleMode = scaleModes.manualScaleMode;
-                this.state.coverageLogScale = state.data.isLogScale;
+        if (this.trackHasCoverageSubTrack && !state.cancel) {
+            if (this.state.coverageScaleMode === scaleModes.groupAutoScaleMode) {
+                this.groupAutoScaleManager.unregisterTrack(this);
             }
+            this.state.coverageScaleFrom = state.data.from;
+            this.state.coverageScaleTo = state.data.to;
+            this.state.coverageScaleMode = scaleModes.manualScaleMode;
+            this.state.coverageLogScale = state.data.isLogScale;
             this._flags.dataChanged = true;
             this.reportTrackState();
             this.requestRenderRefresh();
@@ -379,6 +377,8 @@ export class Track extends BaseTrack {
         this.reportTrackState();
         this.requestRenderRefresh();
     }
+
+    groupAutoScaleChanged() {}
 
     get settings() {
         return this._settings;

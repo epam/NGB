@@ -1,4 +1,6 @@
 import {Viewport, drawingConfiguration} from '../../core';
+import * as ScaleModes from './modes/scaleModes';
+import wigConfig from './wigConfig';
 import PIXI from 'pixi.js';
 
 const Math = window.Math;
@@ -17,16 +19,23 @@ export default class WIGArea{
         this._area = new PIXI.Container();
         this._logScaleIndicator = this._createLogScaleIndicator();
         this._logScaleIndicator.visible = false;
+        this._groupAutoScaleIndicator = this._createGroupAutoScaleIndicator();
+        this._groupAutoScaleIndicator.visible = false;
+    }
+
+    registerGroupAutoScaleManager(manager) {
+        this.groupAutoScaleManager = manager;
     }
 
     get axis(){ return this._area; }
-    get logScaleIndicator() {return this._logScaleIndicator; }
+    get logScaleIndicator() { return this._logScaleIndicator; }
+    get groupAutoScaleIndicator() { return this._groupAutoScaleIndicator; }
     get height() { return this._height; }
     set height(value) { this._height = value; }
 
-    render(viewport, coordinateSystem){
+    render(viewport, coordinateSystem, features){
         this._viewport = viewport;
-        this._changeAxises(viewport, coordinateSystem);
+        this._changeAxises(viewport, coordinateSystem, features);
     }
 
     _createLogScaleIndicator() {
@@ -54,17 +63,58 @@ export default class WIGArea{
         return container;
     }
 
-    _changeAxises(viewport, coordinateSystem){
+    _createGroupAutoScaleIndicator() {
+        const container = new PIXI.Container();
+        container.x = 0;
+        container.y = 0;
+        const graphics = new PIXI.Graphics();
+        graphics.beginFill(0xffffff, 1.0);
+        graphics.drawRect(
+            0,
+            0,
+            (this._config.autoScaleGroupIndicator || wigConfig.autoScaleGroupIndicator).width,
+            this.height
+        );
+        graphics.endFill();
+        container.addChild(graphics);
+        return container;
+    }
+
+    _renderGroupAutoScaleIndicator(features) {
+        if (this.groupAutoScaleManager) {
+            const group = this.groupAutoScaleManager.getGroup(features.groupAutoScale);
+            if (group) {
+                const colors = this._config.autoScaleGroupsColors || wigConfig.autoScaleGroupsColors || [];
+                const color = colors[group.index % colors.length];
+                const graphics = this._groupAutoScaleIndicator.children[0];
+                graphics.clear();
+                graphics.beginFill(color, 1.0);
+                graphics.drawRect(
+                    0,
+                    0,
+                    (this._config.autoScaleGroupIndicator || wigConfig.autoScaleGroupIndicator).width,
+                    this.height
+                );
+                graphics.endFill();
+            }
+        }
+    }
+
+    _changeAxises(viewport, coordinateSystem, features){
         if (coordinateSystem === null || coordinateSystem === undefined)
             return;
-        this._logScaleIndicator.visible = coordinateSystem.isLogScale;
+        this._logScaleIndicator.visible = !coordinateSystem.isHeatMap && coordinateSystem.isLogScale;
+        this._groupAutoScaleIndicator.visible = !coordinateSystem.isHeatMap &&
+            features.coverageScaleMode === ScaleModes.groupAutoScaleMode;
         if (this._area.children.length > 0) {
             this._area.removeChildren(0, this._area.children.length);
         }
         if (coordinateSystem.isHeatMap) {
             return;
         }
-
+        if (!coordinateSystem.isHeatMap && features.coverageScaleMode === ScaleModes.groupAutoScaleMode) {
+            this._renderGroupAutoScaleIndicator(features);
+        }
         const dashSize = 2;
         const spaceSize = 2;
         const dashCount = Math.floor(viewport.canvasSize / (dashSize + spaceSize));

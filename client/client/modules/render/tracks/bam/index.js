@@ -80,10 +80,14 @@ export class BAMTrack extends ScrollableTrack {
         }
         if (key === 'coverage>scale>manual') {
             shouldReportTracksState = false;
+        } else if (key === 'coverage>scale>group-auto-scale') {
+            shouldReportTracksState = true;
         } else if (currentScaleMode !== track.state.coverageScaleMode) {
             track._flags.dataChanged = true;
             track.state.coverageScaleFrom = undefined;
             track.state.coverageScaleTo = undefined;
+            shouldReportTracksState = currentScaleMode === scaleModes.groupAutoScaleMode;
+            track._flags.dataChanged = true;
         } else if (logScaleEnabled !== track.state.coverageLogScale) {
             track._flags.dataChanged = true;
         } else if (currentDisplayMode !== track.state.coverageDisplayMode) {
@@ -203,7 +207,8 @@ export class BAMTrack extends ScrollableTrack {
             'coverageScaleFrom',
             'coverageScaleTo',
             'sashimi',
-            'wigColors'
+            'wigColors',
+            'groupAutoScale'
         ];
     }
 

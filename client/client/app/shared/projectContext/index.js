@@ -42,6 +42,7 @@ export default class projectContext {
         coverage: 'c1',
         diffBase: 'd',
         geneTranscript: 'g',
+        groupAutoScale: 'gas',
         groupMode: 'g1',
         ins_del: 'i',
         mismatches: 'm',
@@ -59,7 +60,8 @@ export default class projectContext {
         coverageScaleTo: 'cst',
         referenceShowTranslation: 'rt',
         referenceShowForwardStrand: 'rsfs',
-        referenceShowReverseStrand: 'rsrs'
+        referenceShowReverseStrand: 'rsrs',
+        header: 'he'
     };
 
     _tracksStateRevertRules = {};

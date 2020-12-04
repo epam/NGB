@@ -12,6 +12,7 @@ export default class ngbTrackController {
     domElement = null;
     dispatcher = null;
     projectContext;
+    groupAutoScaleManager;
     selectionContext: SelectionContext;
 
     static get UID() {
@@ -54,13 +55,15 @@ export default class ngbTrackController {
         bamDataService,
         appLayout,
         selectionContext,
-        trackNamingService
+        trackNamingService,
+        groupAutoScaleManager
     ) {
         this.trackNamingService = trackNamingService;
         this.scope = $scope;
         this.dispatcher = dispatcher;
         this.projectContext = projectContext;
         this.selectionContext = selectionContext;
+        this.groupAutoScaleManager = groupAutoScaleManager;
         this.domElement = $element[0];
         this._localDataService = localDataService;
         this.$timeout = $timeout;
@@ -305,6 +308,7 @@ export default class ngbTrackController {
             ...this.trackOpts,
             ...this._localDataService.getSettings(),
             ...this.track,
+            groupAutoScaleManager: this.groupAutoScaleManager,
             projectContext: this.projectContext,
             restoredHeight: height,
             silentInteractions: this.silentInteractions,

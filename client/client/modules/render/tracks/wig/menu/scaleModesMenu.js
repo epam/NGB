@@ -24,7 +24,10 @@ export default {
     fields: [
         {
             disable: state => state.coverageScaleMode = scaleModes.defaultScaleMode,
-            enable: state => state.coverageScaleMode = scaleModes.defaultScaleMode,
+            enable: (state, tracks, track) => {
+                track.groupAutoScaleManager.unregisterTrack(track);
+                state.coverageScaleMode = scaleModes.defaultScaleMode;
+            },
             isEnabled: state => state.coverageScaleMode === scaleModes.defaultScaleMode,
             label: 'Auto-scale',
             name: 'coverage>scale>default',
@@ -37,11 +40,33 @@ export default {
             // manualScaleMode if we clicked on 'Save' and defaultScaleMode if we clicked
             // on 'Cancel')
             disable: state => state.coverageScaleMode = scaleModes.manualScaleMode,
-            enable: state => state.coverageScaleMode = scaleModes.manualScaleMode,
+            enable: () => {},
             isEnabled: state => state.coverageScaleMode === scaleModes.manualScaleMode,
             label: 'Manual scale',
             name: 'coverage>scale>manual',
             type: 'checkbox'
+        },
+        {
+            disable: (state, tracks, track) => {
+                track.groupAutoScaleManager.unregisterTrack(track);
+                state.coverageScaleMode = scaleModes.defaultScaleMode;
+            },
+            enable: (state, tracks, track) => {
+                const groupAutoScale = tracks.map(t => t.config.bioDataItemId.toString()).join('-');
+                if (
+                    state.coverageScaleMode === scaleModes.groupAutoScaleMode &&
+                    groupAutoScale !== state.groupAutoScale
+                ) {
+                    track.groupAutoScaleManager.unregisterTrack(track);
+                }
+                state.groupAutoScale = tracks.map(t => t.config.bioDataItemId.toString()).join('-');
+                state.coverageScaleMode = scaleModes.groupAutoScaleMode;
+            },
+            isEnabled: state => state.coverageScaleMode === scaleModes.groupAutoScaleMode,
+            label: 'Group Auto-scale',
+            name: 'coverage>scale>group-auto-scale',
+            type: 'checkbox',
+            isVisible: (state, tracks) => tracks.length > 1
         },
         menu.getDivider(),
         {

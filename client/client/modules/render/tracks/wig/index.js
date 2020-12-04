@@ -31,10 +31,14 @@ export class WIGTrack extends CachedTrack {
         let shouldReportTrackState = true;
         if (key === 'coverage>scale>manual') {
             shouldReportTrackState = false;
+        } else if (key === 'coverage>scale>group-auto-scale') {
+            shouldReportTrackState = true;
         } else if (currentScaleMode !== track.state.coverageScaleMode) {
             track._flags.dataChanged = true;
             track.state.coverageScaleFrom = undefined;
             track.state.coverageScaleTo = undefined;
+            shouldReportTrackState = currentScaleMode === scaleModes.groupAutoScaleMode;
+            track._flags.dataChanged = true;
         } else if (logScaleEnabled !== track.state.coverageLogScale) {
             track._flags.dataChanged = true;
         } else if (currentDisplayMode !== track.state.coverageDisplayMode) {
@@ -97,6 +101,8 @@ export class WIGTrack extends CachedTrack {
     constructor(opts) {
         super(opts);
         this.dataService = new WigDataService(opts.viewport);
+        this._wigTransformer.registerGroupAutoScaleManager(opts.groupAutoScaleManager, this);
+        this._wigArea.registerGroupAutoScaleManager(opts.groupAutoScaleManager, this);
     }
 
     trackSettingsChanged(params) {
@@ -146,7 +152,8 @@ export class WIGTrack extends CachedTrack {
             'coverageScaleFrom',
             'coverageScaleTo',
             'wigColors',
-            'header'
+            'header',
+            'groupAutoScale'
         ];
     }
 
@@ -175,6 +182,7 @@ export class WIGTrack extends CachedTrack {
         if (flags.renderReset) {
             this.container.addChild(this._wigRenderer.container);
             this.container.addChild(this._wigArea.logScaleIndicator);
+            this.container.addChild(this._wigArea.groupAutoScaleIndicator);
             this.container.addChild(this._wigArea.axis);
             somethingChanged = true;
         }
@@ -187,7 +195,7 @@ export class WIGTrack extends CachedTrack {
                         this.viewport, this.cache.coordinateSystem, this.state);
                 }
             }
-            this._wigArea.render(this.viewport, this.cache.coordinateSystem);
+            this._wigArea.render(this.viewport, this.cache.coordinateSystem, this.state);
             this._wigRenderer.render(this.viewport, this.cache, flags.heightChanged || flags.dataChanged, null, this._showCenterLine);
             somethingChanged = true;
 

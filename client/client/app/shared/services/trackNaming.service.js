@@ -33,7 +33,11 @@ export default class ngbTrackNamingService {
     }
 
     getPrettyName(track) {
-        return this.getTrackState(track).prettyName || this.getTrackName(track);
+        const trackState = this.getTrackState(track);
+        if (!trackState) {
+            return this.getTrackName(track);
+        }
+        return trackState.prettyName || this.getTrackName(track);
     }
 
     setPrettyName(newName, track) {

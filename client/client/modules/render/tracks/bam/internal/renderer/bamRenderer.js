@@ -197,6 +197,7 @@ export class BamRenderer {
         this._container.addChild(this._zoomInPlaceholderContainer);
         this._container.addChild(this._noReadsInRangePlaceholderContainer);
         this._yPosition = 0;
+        this._groupAutoScaleManager = opts.groupAutoScaleManager;
     }
 
     _initializeSubRenderers() {
@@ -333,8 +334,10 @@ export class BamRenderer {
         this._dataContainer.addChild(this._coverageContainer = new PIXI.Container());
         this._coverageRenderer = new CoverageRenderer(this._config.coverage, this._config, this._state);
         this._coverageArea = new CoverageArea(this._viewport, this._config.coverage);
+        this._coverageArea.registerGroupAutoScaleManager(this._groupAutoScaleManager);
         this._coverageContainer.addChild(this._coverageRenderer.container);
         this._coverageContainer.addChild(this._coverageArea.logScaleIndicator);
+        this._coverageContainer.addChild(this._coverageArea.groupAutoScaleIndicator);
         this._coverageContainer.addChild(this._coverageArea.axis);
     }
 
@@ -450,7 +453,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
             if (flags.dataChanged || flags.dragFinished) {
                 this._cacheService.transform(this._viewport, features);
             }
-            this._coverageArea.render(this._viewport, this._cacheService.cache.coverage.coordinateSystem);
+            this._coverageArea.render(this._viewport, this._cacheService.cache.coverage.coordinateSystem, features);
             this._coverageRenderer.render(this._viewport, this._cacheService.cache.coverage, false);
         }
         if (this._state.coverage && this._viewport.actualBrushSize > this.maximumCoverageRange) {
