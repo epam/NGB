@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/tx
+                           http://www.springframework.org/schema/tx/spring-tx.xsd
+                           http://www.springframework.org/schema/aop
+                           http://www.springframework.org/schema/aop/spring-aop.xsd"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop">
+
+    <!-- Configures database connection pool used to establish and manage connections to a content
+         database. It is required to support interaction between database server and application
+    -->
+    <bean id="testDataSourceFactory" class="com.epam.catgenome.util.EmbeddedPostgresDataSourceFactory" />
+    <bean id="dataSource" class="javax.sql.DataSource"
+          factory-bean="testDataSourceFactory" factory-method="getDataSource" />
+
+    <!-- Enables the annotations-based configuration for transactional behavior  -->
+    <aop:config proxy-target-class="true"/>
+    <tx:annotation-driven transaction-manager="txManager"/>
+    <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="txManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+</beans>

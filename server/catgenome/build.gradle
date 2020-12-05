@@ -58,6 +58,14 @@ apply plugin: "jacoco"
 
 test {
     jvmArgs = ["-XX:MaxDirectMemorySize=7937m"]
+    include 'com/epam/catgenome/**/*Test.class'
+}
+
+task daoTest(type: Test) {
+    group = "verification"
+    description = "Run DAO layer tests only"
+
+    include 'com/epam/catgenome/dao/**/*Test.class'
 }
 
 // >>>>> defines external project properties, e.g. external dependencies versions
@@ -178,6 +186,7 @@ dependencies {
     testCompile group: "com.jayway.jsonpath", name: "json-path-assert", version: project.ext.versionJayWayJsonPath
     testCompile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.8.v20171121'
     testCompile group: "org.springframework.security", name: "spring-security-test", version: versionSpringSecurity
+    testCompile group: 'com.opentable.components', name: 'otj-pg-embedded', version: '0.13.3'
 
     testRuntime group: "javax.transaction", name: "jta", version: "1.1"
 }
