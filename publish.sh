@@ -31,7 +31,7 @@ if [ $? -ne 0 ]; then
     exit 0
 fi
 
-echo "branch: $APPVEYOR_REPO_BRANCH"
+echo "branch: $APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH"
 
 if [[ "$APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" == "develop" ]] || [[ "$APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" == "release/"* ]]; then
   echo "Publishing into Docker repository: $DOCKER_USER"
