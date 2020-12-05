@@ -15,10 +15,10 @@ build_script:
   # Run NGB tests on H2
   - ./gradlew :server:catgenome:check
   # Run NGB tests on Postgres
-  - ./gradlew :server:catgenome:check -Pdatabase=postgres
+  - ./gradlew :server:catgenome:test -Pdatabase=postgres
   # Build everything with no tests
   - ./gradlew buildJar buildCli buildDoc buildDocker -PbuildNumber=${APPVEYOR_BUILD_NUMBER} -PnoTest
   - ./gradlew jacocoTestReport
-  - bash <(curl -s https://codecov.io/bash)
+  - bash <(curl -s https://codecov.io/bash) -f $APPVEYOR_BUILD_FOLDER/server/catgenome/build/jacoco/test.exec
   - ./publish.sh
 test: off
