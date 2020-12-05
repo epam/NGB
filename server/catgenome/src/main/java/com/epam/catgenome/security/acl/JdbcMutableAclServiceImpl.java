@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
 import com.epam.catgenome.dao.DaoHelper;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -170,6 +171,10 @@ public class JdbcMutableAclServiceImpl extends JdbcMutableAclService {
     }
 
     public Integer loadEntriesBySidsCount(final Collection<Long> sidIds) {
+        if (CollectionUtils.isEmpty(sidIds)) {
+            return 0;
+        }
+
         String query = DaoHelper.replaceInClause(loadEntriesBySidsCountQuery, sidIds.size());
         return jdbcTemplate.queryForObject(query, sidIds.toArray(), Integer.class);
     }

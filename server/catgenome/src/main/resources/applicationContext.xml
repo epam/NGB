@@ -15,6 +15,7 @@
          transaction management through AOP
      -->
     <import resource="classpath:conf/catgenome/applicationContext-database.xml"/>
+    <import resource="classpath:conf/catgenome/applicationContext-dao.xml" />
     <!-- Registers and configures caching -->
     <import resource="classpath:conf/catgenome/applicationContext-cache.xml"/>
 

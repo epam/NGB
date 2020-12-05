@@ -43,7 +43,6 @@ import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.SecuredEntityManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
-import com.epam.catgenome.util.ListMapCollector;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -247,8 +246,11 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
             return Collections.singletonList(reference);
         }
         List<Reference> references = referenceGenomeDao.loadAllReferenceGenomes();
-        Map<Long, List<Reference>> referenceToGeneIds = references.stream().collect(new ListMapCollector<>(
-            reference -> reference.getGeneFile() != null ? reference.getGeneFile().getId() : null));
+        Map<Long, List<Reference>> referenceToGeneIds = references.stream()
+                .filter(r -> r.getGeneFile() != null)
+                .collect(Collectors.groupingBy(r -> r.getGeneFile().getId()));
+//                .collect(new ListMapCollector<>(
+//            reference -> reference.getGeneFile() != null ? reference.getGeneFile().getId() : null));
 
         List<GeneFile> geneFiles = geneFileDao.loadGeneFiles(referenceToGeneIds.keySet());
         List<Reference> result = new ArrayList<>(references.size());
@@ -260,8 +262,10 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
             result.addAll(referenceToGeneIds.get(geneFile.getId()));
         }
 
-        if (referenceToGeneIds.containsKey(null)) {
-            List<Reference> refsWithoutGeneFile = referenceToGeneIds.get(null);
+        List<Reference> refsWithoutGeneFile = references.stream()
+                .filter(r -> r.getGeneFile() == null)
+                .collect(Collectors.toList());
+        if (!refsWithoutGeneFile.isEmpty()) {
             refsWithoutGeneFile.forEach(reference -> reference.setAnnotationFiles(
                     getAnnotationFilesByReferenceId(reference.getId())
             ));
