@@ -249,8 +249,6 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         Map<Long, List<Reference>> referenceToGeneIds = references.stream()
                 .filter(r -> r.getGeneFile() != null)
                 .collect(Collectors.groupingBy(r -> r.getGeneFile().getId()));
-//                .collect(new ListMapCollector<>(
-//            reference -> reference.getGeneFile() != null ? reference.getGeneFile().getId() : null));
 
         List<GeneFile> geneFiles = geneFileDao.loadGeneFiles(referenceToGeneIds.keySet());
         List<Reference> result = new ArrayList<>(references.size());
