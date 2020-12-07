@@ -230,6 +230,8 @@ export default class ngbTrackController {
     }
 
     handleNameInputKeydown(event) {
+        event.stopPropagation();
+        event.stopImmediatePropagation();
         if (event.keyCode === KEYS.esc || event.keyCode === KEYS.enter) {
             return this.toggleTrackNameInput(false);
         }
