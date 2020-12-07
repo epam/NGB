@@ -169,7 +169,6 @@ export default angular.module('dndLists', [])
                             };
                         } else {
                             const height = fileSettings.height;
-                            const prettyName = fileSettings.prettyName;
                             const state = fileSettings.state;
                             const index = fileSettings.index;
                             const format = fileSettings.format;
@@ -180,7 +179,6 @@ export default angular.module('dndLists', [])
                                 height,
                                 index,
                                 isLocal,
-                                prettyName,
                                 projectId: file.projectId,
                                 state,
                             };

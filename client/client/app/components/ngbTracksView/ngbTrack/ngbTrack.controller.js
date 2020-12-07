@@ -92,9 +92,10 @@ export default class ngbTrackController {
                 ? this.instanceConstructor.config.height
                 : DEFAULT_HEIGHT;
 
-        this.showTrackNameInput = false;
-        this.fileName = this.trackNamingService.getTrackName(this.track);
-        this.trackNameTruncated = this.fileName;
+        this.customNameTemp = this.customName;
+        this.nameInputVisible = false;
+        this.trackName = this.track.name;
+        this.trackNameTruncated = this.trackName;
         if (this.trackNameTruncated.length > MAX_TRACK_NAME_LENGTH) {
             this.trackNameTruncated = `...${this.trackNameTruncated.substring(this.trackNameTruncated.length - MAX_TRACK_NAME_LENGTH)}`;
         }
@@ -210,30 +211,40 @@ export default class ngbTrackController {
         });
     }
 
+    get customName() {
+        return this.trackNamingService.getCustomName(this.track);
+    }
+
     get showFileNameHint() {
         return this.trackNamingService.nameChanged(this.track);
     }
 
-    toggleTrackNameInput(openFlag) {
-        return !arguments.length
-          ? this.showTrackNameInput = !this.showTrackNameInput
-          : this.showTrackNameInput = openFlag;
+    setCustomName(newName) {
+        this.showFileName = this.trackNamingService.nameChanged(this.track);
+        this.trackNamingService.setCustomName(this.track, newName);
+        return this.hideTrackNameInput();
     }
 
-    getterSetterPrettyName(newName) {
-        if (!arguments.length && newName === undefined) {
-            return this.trackNamingService.getPrettyName(this.track);
-        } else {
-            this.trackNamingService.setPrettyName(newName, this.track);
-            this.showFileName = this.trackNamingService.nameChanged(this.track);
-        }
+    resetCustomNameChanges() {
+        this.customNameTemp = this.trackNamingService.getCustomName(this.track);
+        return this.hideTrackNameInput();
+    }
+
+    showTrackNameInput() {
+        return this.nameInputVisible = true;
+    }
+
+    hideTrackNameInput() {
+        return this.nameInputVisible = false;
     }
 
     handleNameInputKeydown(event) {
         event.stopPropagation();
-        event.stopImmediatePropagation();
-        if (event.keyCode === KEYS.esc || event.keyCode === KEYS.enter) {
-            return this.toggleTrackNameInput(false);
+        if (event.keyCode === KEYS.esc) {
+            this.resetCustomNameChanges();
+        }
+        if (event.keyCode === KEYS.enter) {
+            this.setCustomName(this.customNameTemp);
         }
     }
 

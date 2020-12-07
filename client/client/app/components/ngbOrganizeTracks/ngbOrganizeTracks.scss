@@ -1,10 +1,12 @@
 md-dialog.organize-tracks-dialog{
   height: 90%;
   width:66%;
+
   md-dialog-content.dialog-organize-tracks {
     height: 90%;
   }
 }
+
 ngb-organize-tracks {
   .main-row {
     margin: 10px;
@@ -15,6 +17,7 @@ ngb-organize-tracks {
       align-self: center;
       height: auto;
     }
+
     .ui-grid-cell {
       display: flex;
     }
@@ -27,20 +30,34 @@ ngb-organize-tracks {
       min-width: 400px;
       width: 100%;
     }
+
     .right-column {
       width: 150px;
+    }
+
+    .file-hint {
+      font-weight: normal;
+      font-size: 12px;
+      color: #595959;
+      background-color: #f0f0f0;
+      padding: 0 5px;
+      border-radius: 5px;
+      border: solid 1px #bfbfbf;
+      margin-left: 5px;
     }
   }
 
   .button-column {
     .block-button {
       margin: 10px;
+
       .md-button {
         min-height: 20px;
         margin: 0;
         line-height: 10px;
       }
     }
+
     button {
       text-align: left;
     }
