@@ -1,12 +1,13 @@
-import  baseController from '../../shared/baseController';
-
-import $ from 'jquery';
-
 import 'jquery-ui/themes/base/core.css';
 import 'jquery-ui/themes/base/theme.css';
 import 'jquery-ui/themes/base/selectable.css';
 import 'jquery-ui/ui/core';
 import 'jquery-ui/ui/widgets/sortable';
+import $ from 'jquery';
+
+import  baseController from '../../shared/baseController';
+
+const nameCellTemplate = require('./ngbOrganizeTracksNameCell.tpl.html');
 
 export default class ngbOrganizeTracksController extends baseController {
     static get UID() {
@@ -14,46 +15,48 @@ export default class ngbOrganizeTracksController extends baseController {
     }
 
     gridOptions = {
-        enableSorting: false,
+        columnDefs: [
+            {
+                cellTemplate: nameCellTemplate,
+                field: 'name',
+                minWidth: 50,
+                name: 'Track name',
+                width: '80%',
+            },
+            {
+                field: 'format',
+                minWidth: 16,
+                name: 'Track type',
+                width: '20%',
+            }
+        ],
+        enableColumnMenus: false,
         enableFiltering: false,
         enableGridMenu: false,
         enableHorizontalScrollbar: 0,
         enablePinning: false,
         enableRowHeaderSelection: false,
         enableRowSelection: true,
+        enableSorting: false,
         headerRowHeight: 20,
+        modifierKeysToMultiSelect: true,
         multiSelect: true,
         rowHeight: 20,
         showHeader: true,
         treeRowHeaderAlwaysVisible: false,
-        enableColumnMenus: false,
-        modifierKeysToMultiSelect: true,
-        columnDefs: [
-            {
-                field: 'name',
-                minWidth: 50,
-                width: '80%',
-                name: 'Track name'
-            },
-            {
-                field: 'format',
-                minWidth: 16,
-                width: '20%',
-                name: 'Track type'
-            }
-        ]
     };
 
-    constructor($scope, $element, $timeout, $mdDialog, dispatcher, projectContext) {
+    constructor($scope, $element, $timeout, $mdDialog, dispatcher, projectContext, trackNamingService) {
         super($scope);
 
         Object.assign(this, {
-            $scope,
-            projectContext,
-            $mdDialog,
-            $timeout,
             $element,
-            dispatcher
+            $mdDialog,
+            $scope,
+            $timeout,
+            dispatcher,
+            projectContext,
+            trackNamingService,
         });
 
         this.disabledButton = true;
@@ -76,6 +79,13 @@ export default class ngbOrganizeTracksController extends baseController {
             self.initSortable();
         }, 0);
 
+    }
+
+    getCustomName(track) {
+        if (track && track.bioDataItemId) {
+            return this.trackNamingService.getCustomName(track);
+        }
+        return '';
     }
 
     rowClick() {
@@ -152,17 +162,17 @@ export default class ngbOrganizeTracksController extends baseController {
         let unselect = false;
 
         this.elmTracks.sortable({
-            update: function (e, ui) {
-                const end = ui.item.index();
-                const selectedRows = self.gridApi.selection.getSelectedRows();
+            helper: function (e, item) {
+                if (!item.hasClass('ui-grid-row-selected')) {
+                    item.addClass('ui-grid-row-selected').siblings().removeClass('ui-grid-row-selected');
+                    unselect = true;
+                }
+                const elements = item.parent().children('.ui-grid-row-selected').clone();
 
-                selectedRows.forEach((row) => {
-                    const index = self.gridOptions.data.indexOf(row);
-                    self.gridOptions.data.splice(index, 1);
-                    self.gridOptions.data.splice(end, 0, row);
-                });
-                self.$timeout(::self.$scope.$apply);
-                return false;
+                item.siblings('.ui-grid-row-selected').css('visibility', 'hidden');
+                const helper = $('<div/>');
+                return helper.append(elements);
+
             },
             start: function (e, ui) {
                 if (unselect) {
@@ -176,18 +186,18 @@ export default class ngbOrganizeTracksController extends baseController {
             stop: function (e, ui) {
                 $(self.$element).find('.ui-grid-row-selected').css('visibility', 'visible');
             },
-            helper: function (e, item) {
-                if (!item.hasClass('ui-grid-row-selected')) {
-                    item.addClass('ui-grid-row-selected').siblings().removeClass('ui-grid-row-selected');
-                    unselect = true;
-                }
-                const elements = item.parent().children('.ui-grid-row-selected').clone();
+            update: function (e, ui) {
+                const end = ui.item.index();
+                const selectedRows = self.gridApi.selection.getSelectedRows();
 
-                item.siblings('.ui-grid-row-selected').css('visibility', 'hidden');
-                const helper = $('<div/>');
-                return helper.append(elements);
-
-            }
+                selectedRows.forEach((row) => {
+                    const index = self.gridOptions.data.indexOf(row);
+                    self.gridOptions.data.splice(index, 1);
+                    self.gridOptions.data.splice(end, 0, row);
+                });
+                self.$timeout(::self.$scope.$apply);
+                return false;
+            },
         });
     }
 

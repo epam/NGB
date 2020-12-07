@@ -44,8 +44,14 @@ $folder-line: #cccccc;
   }
 }
 
+.dataset-info {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .dataset-genome {
-  margin-right:10px;
+  margin: 0px 10px;
   text-transform: uppercase;
   color: #888888;
   font-size: x-small;
@@ -86,8 +92,20 @@ $folder-line: #cccccc;
 }
 
 .dataset-track-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   &.selected {
     font-weight: bold;
+  }
+  .file-hint {
+    font-weight: normal;
+    font-size: 12px;
+    color: #595959;
+    background-color: #f0f0f0;
+    padding: 1px 5px;
+    border-radius: 5px;
+    margin-left: 5px;
   }
 }
 

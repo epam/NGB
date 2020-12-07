@@ -1,35 +1,65 @@
 <script type="text/ng-template" id="ngbDataSetsTerminalNode.tpl.html">
     <div class="ivh-treeview-node-content" title="{{node.hint}}">
-        <div class="dataset-item-row" ngb-context-menu data-target="ngbDataSetContextMenu" locals="node">
-            <div layout="row" layout-align="space-between center" class="dataset-item-row-track">
-                <div layout="row" layout-align="start center">
-
-                                                            <span class="ivh-treeview-checkbox-wrapper track">
-                                                                <span class="ng-isolate-scope">
-                                                                    <input type="checkbox"
-                                                                           class="ivh-treeview-checkbox ng-pristine ng-untouched ng-valid ng-empty"
-                                                                           ng-change="$ctrl.toggle(node)"
-                                                                           ng-model="node.__selected"
-                                                                           aria-invalid="false">
-                                                                </span>
-                                                            </span>
-
-                    <div class="dataset-track-format-title {{node.format}} dataset-selectable"
-                         ng-class="{selected: node.__selected}" ng-click="$ctrl.toggleSelected(node)">{{node.format ||
-                        '&nbsp'}}
-                    </div>
-                    <span class="ivh-treeview-node-label dataset-track-title dataset-selectable"
-                          ng-class="{selected: node.__selected}"
-                          ng-click="$ctrl.toggleSelected(node)">
-                        <span ng-if="$ctrl.searchLength && node.searchInfo && node.searchInfo.passed">
-                            {{node.searchInfo.pre}}<span class="search-result">{{node.searchInfo.match}}</span>{{node.searchInfo.post}}
+        <div
+          class="dataset-item-row"
+          ngb-context-menu
+          data-target="ngbDataSetContextMenu"
+          locals="node"
+        >
+            <div
+              layout="row"
+              layout-align="space-between center"
+              class="dataset-item-row-track"
+            >
+                <div
+                  layout="row"
+                  layout-align="start center"
+                  class="dataset-info"
+                >
+                    <span class="ivh-treeview-checkbox-wrapper track">
+                        <span class="ng-isolate-scope">
+                            <input
+                              type="checkbox"
+                              class="ivh-treeview-checkbox ng-pristine ng-untouched ng-valid ng-empty"
+                              ng-change="$ctrl.toggle(node)"
+                              ng-model="node.__selected"
+                              aria-invalid="false"
+                            >
                         </span>
-                        <span ng-if="!$ctrl.searchLength || !node.searchInfo || !node.searchInfo.passed">
+                    </span>
+                    <div
+                      class="dataset-track-format-title {{node.format}} dataset-selectable"
+                      ng-class="{selected: node.__selected}"
+                      ng-click="$ctrl.toggleSelected(node)"
+                    >
+                        {{node.format || '&nbsp'}}
+                    </div>
+                    <span
+                      class="ivh-treeview-node-label dataset-track-title dataset-selectable"
+                      ng-class="{selected: node.__selected}"
+                      ng-click="$ctrl.toggleSelected(node)"
+                    >
+                        <span ng-if="$ctrl.searchLength && node.searchInfo && node.searchInfo.passed">
+                            {{node.searchInfo.pre}}
+                            <span class="search-result">
+                                {{node.searchInfo.match}}
+                            </span>
+                            {{node.searchInfo.post}}
+                        </span>
+                        <span ng-show="$ctrl.nameIsChanged(node)">
+                            {{$ctrl.getCustomName(node)}}
+                        </span>
+                        <span
+                          ng-if="!$ctrl.searchLength || !node.searchInfo || !node.searchInfo.passed"
+                          ng-class="{'file-hint': $ctrl.nameIsChanged(node)}"
+                        >
                             {{node.displayName}}
                         </span>
                     </span>
                 </div>
-                <div class="dataset-genome">{{node.reference.name}}</div>
+                <div class="dataset-genome">
+                    {{node.reference.name}}
+                </div>
             </div>
         </div>
     </div>

@@ -2,10 +2,12 @@ ngb-project-summary {
   h2, h5 {
     margin-bottom: 0;
   }
+
   .created-date > span{
     display: inline-block;
     width: 70px;
   }
+
   .frame {
     margin-right: 4px;
     margin-bottom: 8px;
@@ -15,11 +17,22 @@ ngb-project-summary {
     padding: 0;
     border-bottom: none;
   }
+
   .project-summary-layout {
     height:100%;
   }
 
   md-list-item {
     overflow: hidden;
+  }
+
+  .file-hint {
+    font-weight: normal;
+    font-size: 12px;
+    color: #595959;
+    background-color: #f0f0f0;
+    padding: 1px 5px;
+    border-radius: 5px;
+    margin-left: 5px;
   }
 }

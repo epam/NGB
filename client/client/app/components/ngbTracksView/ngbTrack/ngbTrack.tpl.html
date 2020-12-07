@@ -23,27 +23,26 @@
         <div class="ngb-track-header-type">{{ctrl.track.format}}</div>
         <input
                 ngb-autofocus
-                emit-focus="ctrl.showTrackNameInput"
+                emit-focus="ctrl.nameInputVisible"
                 spellcheck="false"
                 dnd-nodrag
                 class="ngb-track-header-file-input"
-                ng-model-options="{ getterSetter: true }"
-                ng-model="ctrl.getterSetterPrettyName"
-                ng-value="ctrl.getterSetterPrettyName()"
-                ng-show="ctrl.showTrackNameInput"
-                ng-Blur="ctrl.toggleTrackNameInput(false)"
+                ng-model="ctrl.customNameTemp"
+                ng-show="ctrl.nameInputVisible"
+                ng-Blur="ctrl.setCustomName(ctrl.customNameTemp)"
                 ng-keydown="ctrl.handleNameInputKeydown($event)"
+                placeholder="Enter new track name..."
         />
         <div
                 dnd-nodrag
                 class="ngb-track-header-file-name"
-                ng-hide="ctrl.showTrackNameInput"
-                ng-click="ctrl.toggleTrackNameInput()"
+                ng-hide="ctrl.nameInputVisible"
+                ng-click="ctrl.showTrackNameInput()"
                 ng-style="ctrl.trackHeaderStyle"
         >
-            {{ctrl.getterSetterPrettyName()}}
+            {{ctrl.customName || ctrl.trackNameTruncated}}
             <md-tooltip md-direction="top">
-                {{ctrl.getterSetterPrettyName()}}
+                {{ctrl.customName}}
             </md-tooltip>
         </div>
         <div
@@ -52,7 +51,7 @@
         >
             {{ctrl.trackNameTruncated}}
             <md-tooltip md-direction="top">
-                {{ctrl.fileName}}
+                {{ctrl.trackName}}
             </md-tooltip>
         </div>
         <ngb-track-settings

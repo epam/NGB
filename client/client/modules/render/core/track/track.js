@@ -179,7 +179,6 @@ export class Track extends BaseTrack {
         const track = {
             bioDataItemId: this.config.name,
             format: this.config.format,
-            prettyName: this.prettyName,
             height: this.height,
             index: this.config.indexPath,
             isLocal: this.config.isLocal,
