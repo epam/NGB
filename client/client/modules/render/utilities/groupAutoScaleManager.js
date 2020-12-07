@@ -109,7 +109,7 @@ class GroupAutoScaleManager {
     reportTrackDataChangedForGroup(group) {
         const groupTracks = (this.projectContext.tracks || [])
             .map(t => t.instance)
-            .filter(t => t.state.groupAutoScale === group);
+            .filter(t => t.state && t.state.groupAutoScale === group);
         if (groupTracks.length > 0) {
             groupTracks.forEach(track => track._flags.dataChanged = true);
         }
