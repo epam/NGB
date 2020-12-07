@@ -67,16 +67,6 @@ export default class WIGArea{
         const container = new PIXI.Container();
         container.x = 0;
         container.y = 0;
-        const graphics = new PIXI.Graphics();
-        graphics.beginFill(0xffffff, 1.0);
-        graphics.drawRect(
-            0,
-            0,
-            (this._config.autoScaleGroupIndicator || wigConfig.autoScaleGroupIndicator).width,
-            this.height
-        );
-        graphics.endFill();
-        container.addChild(graphics);
         return container;
     }
 
@@ -86,8 +76,8 @@ export default class WIGArea{
             if (group) {
                 const colors = this._config.autoScaleGroupsColors || wigConfig.autoScaleGroupsColors || [];
                 const color = colors[group.index % colors.length];
-                const graphics = this._groupAutoScaleIndicator.children[0];
-                graphics.clear();
+                this._groupAutoScaleIndicator.removeChildren();
+                const graphics = new PIXI.Graphics();
                 graphics.beginFill(color, 1.0);
                 graphics.drawRect(
                     0,
@@ -96,6 +86,7 @@ export default class WIGArea{
                     this.height
                 );
                 graphics.endFill();
+                this._groupAutoScaleIndicator.addChild(graphics);
             }
         }
     }
