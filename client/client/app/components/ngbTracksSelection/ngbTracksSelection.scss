@@ -1,0 +1,16 @@
+ngb-tracks-selection {
+  .md-button.md-icon-button {
+    ng-md-icon {
+      fill: #FFF;
+    }
+  }
+}
+
+.tracks-selection-menu {
+  position: absolute;
+  top: 20px;
+  padding: 4px;
+  md-checkbox {
+    margin: 8px;
+  }
+}

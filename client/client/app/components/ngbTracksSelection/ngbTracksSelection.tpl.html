@@ -1,0 +1,25 @@
+<md-menu>
+    <md-button aria-label="Tracks selection"
+               class="md-icon-button tracks-selection-button"
+               style="width: auto; padding-left: 7px"
+               ng-click="$ctrl.openMenu($mdOpenMenu, $event);">
+        <ng-md-icon icon="playlist_add_check" size="20"></ng-md-icon>
+    </md-button>
+    <md-menu-content width="4" class="tracks-selection-menu" md-whiteframe="4">
+        <md-checkbox
+                     aria-label="select all"
+                     ng-model="$ctrl.allSelected"
+        >
+            Select All
+        </md-checkbox>
+        <md-divider></md-divider>
+        <md-checkbox ng-repeat="o in $ctrl.tracks track by $ctrl.trackHash(o.track)"
+                     aria-label="o.track.name"
+                     ng-if="o.track.format !== 'REFERENCE'"
+                     ng-model="o.selected"
+                     ng-change="$ctrl.setTrackIsSelected(o.track)"
+        >
+            {{o.track.name}}
+        </md-checkbox>
+    </md-menu-content>
+</md-menu>
