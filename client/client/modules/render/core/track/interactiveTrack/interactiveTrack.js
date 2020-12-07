@@ -54,7 +54,6 @@ export default class InteractiveTrack extends Track {
     }
 
     _onTouchMoved(event){
-        event.preventDefault();
         this._currentPosition = {x: event.offsetX, y: event.offsetY};
         let delta = null;
         if (this._lastPosition) {
@@ -70,6 +69,7 @@ export default class InteractiveTrack extends Track {
         }
 
         if (this._dragged && this._touched) {
+            event.preventDefault();
             this.onDrag({
                 currentGlobal: {x: event.screenX, y: event.screenY},
                 currentLocal: {x: event.offsetX, y: event.offsetY},
