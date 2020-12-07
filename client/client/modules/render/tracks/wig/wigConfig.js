@@ -40,7 +40,7 @@ export default {
         padding: 2,
     },
     maxHeight: 150,
-    minHeight: 50,
+    minHeight: 25,
     wig: {
         color: 0x92AEE7,
         detailedStyleStartingAtPixelsPerBP: 7.5,

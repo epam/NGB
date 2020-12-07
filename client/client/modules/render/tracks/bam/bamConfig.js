@@ -31,7 +31,7 @@ export default {
             fill: 0xCCD8DD
         },
         maxHeight: 50,
-        minHeight: 50,
+        minHeight: 25,
         wig: {
             color: 0xCCD8DD,
             lineColor: 0xA2ABAF,

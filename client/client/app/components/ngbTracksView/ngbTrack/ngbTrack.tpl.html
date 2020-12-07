@@ -84,6 +84,12 @@
          ng-mouseleave="ctrl.onMinifiedHeaderMouseLeave()"
          ng-mouseover="ctrl.onMinifiedHeaderMouseOver()"
          layout="row">
+        <input
+                ng-if="ctrl.selectable && ctrl.track.format !== 'REFERENCE'"
+                type="checkbox"
+                ng-model="ctrl.trackIsSelected"
+                dnd-nodrag
+        />
         <ngb-track-settings
                 dnd-nodrag
                 ng-if="ctrl.minifiedMenuIsOpened && ctrl.trackInstance !== undefined && ctrl.trackInstance.getSettings"
