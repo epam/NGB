@@ -28,8 +28,10 @@ export default class SelectionContext {
 
     get allSelected() {
         const selected = new Set(this.selected.map(id => `${id}`));
-        for (let idx = 0; idx < (this.projectContext.tracks || []).length; idx++) {
-            if (!selected.has(`${this.projectContext.tracks[idx].bioDataItemId}`)) {
+        const tracks = (this.projectContext.tracks || [])
+            .filter(track => track.format !== 'REFERENCE');
+        for (let idx = 0; idx < tracks.length; idx++) {
+            if (!selected.has(`${tracks[idx].bioDataItemId}`)) {
                 return false;
             }
         }
@@ -37,7 +39,9 @@ export default class SelectionContext {
     }
 
     selectAll() {
-        this.selected = (this.projectContext.tracks || []).map(t => t.bioDataItemId);
+        this.selected = (this.projectContext.tracks || [])
+            .filter(track => track.format !== 'REFERENCE')
+            .map(t => t.bioDataItemId);
         this.dispatcher.emitSimpleEvent(SelectionEvents.changed, this.selected);
     }
 
@@ -47,7 +51,11 @@ export default class SelectionContext {
     }
 
     onTracksStateChanged() {
-        const actualBioDataItemIds = new Set((this.projectContext.tracks || []).map(t => `${t.bioDataItemId}`));
+        const actualBioDataItemIds = new Set(
+            (this.projectContext.tracks || [])
+                .filter(track => track.format !== 'REFERENCE')
+                .map(t => `${t.bioDataItemId}`)
+        );
         this.selected = this.selected.filter(t => actualBioDataItemIds.has(`${t}`));
         this.dispatcher.emitSimpleEvent(SelectionEvents.changed, this.selected);
     }

@@ -62,19 +62,28 @@ const genomeAnnotationsAction = {
     }
 };
 
+const tracksSelectionAction = {
+    isVisible: (context) => context.tracks && context.tracks.length,
+    liStyle: {
+        width: 'auto'
+    },
+    name: 'tracksSelection'
+};
+
 export default {
     actions: {
         closeAllTracks: closeAllTracksAction,
         fitAllTracks: fitAllTracksAction,
         genomeAnnotations: genomeAnnotationsAction,
         organizeTracks: organizeTracksAction,
+        tracksSelection: tracksSelectionAction,
         variantsLoadingIndicator: variantsLoadingIndicatorAction,
         variantsResetFilter: variantsResetFilterActions,
         variantsTableColumn: variantsTableColumnAction,
         variantsTablePagination: variantsTablePaginationAction
     },
     viewActions: {
-        ngbBrowser: [genomeAnnotationsAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
+        ngbBrowser: [genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
         ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsResetFilterActions, variantsTableColumnAction]
     }
 };
