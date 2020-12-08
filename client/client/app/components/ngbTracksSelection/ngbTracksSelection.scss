@@ -12,5 +12,25 @@ ngb-tracks-selection {
   padding: 4px;
   md-checkbox {
     margin: 8px;
+    .md-label {
+      max-width: 350px;
+      font-weight: normal;
+      font-size: 12px;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .custom-name {
+      margin-right: 5px;
+    }
+    .file-hint {
+      color: #595959;
+      background-color: #f0f0f0;
+      padding: 1px 5px;
+      border-radius: 5px;
+    }
   }
 }

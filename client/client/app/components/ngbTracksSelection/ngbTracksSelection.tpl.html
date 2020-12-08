@@ -19,7 +19,14 @@
                      ng-model="o.selected"
                      ng-change="$ctrl.setTrackIsSelected(o.track)"
         >
-            {{o.track.name}}
+            <span ng-if="$ctrl.getCustomName(o.track)"
+                  class="custom-name"
+            >
+                {{$ctrl.getCustomName(o.track)}}
+            </span>
+            <span ng-class="{'file-hint': $ctrl.getCustomName(o.track)}">
+                {{o.track.name}}
+            </span>
         </md-checkbox>
     </md-menu-content>
 </md-menu>

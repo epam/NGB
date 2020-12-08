@@ -12,10 +12,17 @@ export default class ngbTracksSelectionController extends baseController{
     _allSelected = false;
     _tracks = [];
 
-    constructor($scope, dispatcher, projectContext, selectionContext) {
+    constructor(
+      $scope,
+      dispatcher,
+      projectContext,
+      selectionContext,
+      trackNamingService
+    ) {
         super(dispatcher);
         this.projectContext = projectContext;
         this.selectionContext = selectionContext;
+        this.trackNamingService = trackNamingService;
         this.scope = $scope;
         this.dispatcher = dispatcher;
         const reloadTracks = () => {
@@ -74,6 +81,10 @@ export default class ngbTracksSelectionController extends baseController{
             this.selectionContext
                 .setTrackIsSelected(track ? track.bioDataItemId : undefined, t.selected);
         }
+    }
+
+    getCustomName(track) {
+        return this.trackNamingService.getCustomName(track);
     }
 
     trackHash(track) {
