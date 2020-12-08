@@ -30,8 +30,9 @@
       <div class="modal-content-controls">
         <md-checkbox
           flex
-          aria-label="apply to all WIG tracks"
+          aria-label="apply to all tracks"
           ng-model="ctrl.applyToAllTracks"
+          ng-disabled="ctrl.sources.length > 1"
         >
           Apply to all tracks
         </md-checkbox>

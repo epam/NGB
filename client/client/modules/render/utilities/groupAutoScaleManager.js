@@ -80,8 +80,7 @@ class GroupAutoScaleManager {
     unregisterTrack(track) {
         const group = track.state.groupAutoScale;
         if (group) {
-            const groupTracks = (this.projectContext.tracks || [])
-                .map(t => t.instance)
+            const groupTracks = (this.projectContext.trackInstances || [])
                 .filter(t => t.state.groupAutoScale === group && t !== track);
             if (groupTracks.length < 2) {
                 groupTracks.forEach((groupTrack) => {
@@ -107,9 +106,8 @@ class GroupAutoScaleManager {
     }
 
     reportTrackDataChangedForGroup(group) {
-        const groupTracks = (this.projectContext.tracks || [])
-            .map(t => t.instance)
-            .filter(t => t.state && t.state.groupAutoScale === group);
+        const groupTracks = (this.projectContext.trackInstances || [])
+            .filter(t => t && t.state && t.state.groupAutoScale === group);
         if (groupTracks.length > 0) {
             groupTracks.forEach(track => track._flags.dataChanged = true);
         }

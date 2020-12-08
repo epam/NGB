@@ -61,6 +61,7 @@ export default {
                 }
                 state.groupAutoScale = tracks.map(t => t.config.bioDataItemId.toString()).join('-');
                 state.coverageScaleMode = scaleModes.groupAutoScaleMode;
+                track._flags.dataChanged = true;
             },
             isEnabled: state => state.coverageScaleMode === scaleModes.groupAutoScaleMode,
             label: 'Group Auto-scale',

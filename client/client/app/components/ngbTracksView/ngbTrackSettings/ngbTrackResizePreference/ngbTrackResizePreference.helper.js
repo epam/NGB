@@ -14,7 +14,7 @@ function correctTrackHeight(track, height) {
 
 export default function helper($mdDialog, projectContext, tracks) {
     const filterCommonTracks = (allTracks, format) =>
-        allTracks.filter(m => m.format === format);
+        allTracks.filter(m => m.config.format === format);
 
     return function ($scope) {
         const multiple = tracks.length > 1;
@@ -54,9 +54,8 @@ export default function helper($mdDialog, projectContext, tracks) {
             };
             tracks.forEach(saveTrackHeight);
             if ($scope.applyToAllTracks && !multiple) {
-                const allTracks = (projectContext.tracks || []);
-                const commonFormatTracks = filterCommonTracks(allTracks, commonFormat)
-                    .map(track => track.instance);
+                const allTracks = (projectContext.trackInstances || []);
+                const commonFormatTracks = filterCommonTracks(allTracks, commonFormat);
                 commonFormatTracks.forEach(saveTrackHeight);
             }
             $mdDialog.hide();

@@ -25,12 +25,10 @@ export default class ngbTracksSelectionMenuController {
 
     onTracksSelectionChanged() {
         this.tracksMenu = {};
-        this.commonMenu = CommonMenu.attach(...this.selectedTracks.map(track => track.instance));
+        this.commonMenu = CommonMenu.attach(...this.selectedTracks);
         this.types.forEach(type => {
             const tracks = this.selectedTracks
-                .filter(track => track.format === type)
-                .map(track => track.instance)
-                .filter(Boolean);
+                .filter(track => track.config.format === type);
             const [anyTrack] = tracks;
             if (anyTrack && anyTrack.constructor.Menu) {
                 this.tracksMenu[type] = anyTrack.constructor.Menu.attach(...tracks);
@@ -60,13 +58,13 @@ export default class ngbTracksSelectionMenuController {
 
     get types() {
         const types = [
-            ...(new Set(this.selectedTracks.map(track => track.format).filter(Boolean)))
+            ...(new Set(this.selectedTracks.map(track => track.config.format).filter(Boolean)))
         ];
         types.sort();
         return types;
     }
 
     getTracksByType(type) {
-        return this.selectedTracks.filter(track => track.format === type);
+        return this.selectedTracks.filter(track => track.config.format === type);
     }
 }
