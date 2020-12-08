@@ -465,7 +465,11 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
         this._sashimiContainer.visible = features.sashimi;
         this._sashimiLabelsContainer.removeChildren();
         if (features.sashimi) {
-            this._sashimiArea.render(this._viewport, this._cacheService.cache.coverage.coordinateSystem);
+            this._sashimiArea.render(
+                this._viewport,
+                this._cacheService.cache.coverage.coordinateSystem,
+                features
+            );
             this._sashimiRenderer.render(
                 this._viewport,
                 this._cacheService.cache,

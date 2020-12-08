@@ -117,7 +117,8 @@ export default class ngbSashimiPlotController extends baseController{
             chromosome: this.chromosome,
             chromosomeId: this.chromosome.id,
             isFixed: false,
-            referenceId: this.referenceId
+            referenceId: this.referenceId,
+            sashimi: true
         };
 
 

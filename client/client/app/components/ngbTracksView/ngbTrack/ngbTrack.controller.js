@@ -195,7 +195,9 @@ export default class ngbTrackController {
         dispatcher.on(SelectionEvents.changed, tracksSelectionChangedHandler);
         $scope.$on('$destroy', () => {
             if (this.trackInstance) {
-                this.projectContext.unregisterTrackInstance(this.trackInstance);
+                if (this.trackInstanceRegistered) {
+                    this.projectContext.unregisterTrackInstance(this.trackInstance);
+                }
                 dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
                 dispatcher.removeListener('track:headers:changed', globalSettingsChangedHandler);
                 dispatcher.removeListener('tracks:coverage:manual:configure:done', trackCoverageSettingsChangedHandler);
@@ -317,8 +319,10 @@ export default class ngbTrackController {
             state: state,
             viewport: this.viewport
         });
-
-        this.projectContext.registerTrackInstance(this.trackInstance);
+        if (!state || !state.sashimi) {
+            this.trackInstanceRegistered = true;
+            this.projectContext.registerTrackInstance(this.trackInstance);
+        }
 
         this.track.instance = this.trackInstance;
         this.track.height = this.trackInstance.height;
