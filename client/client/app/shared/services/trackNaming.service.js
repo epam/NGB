@@ -21,11 +21,10 @@ export default class ngbTrackNamingService {
         this.customNames = JSON.parse(localStorage.getItem('custom-names'));
     }
 
-    nameChanged(track) {
+    nameChanged(track = {}) {
         const customName = this.getCustomName(track);
-        const trackName = track.name;
-        if (this.checkTrackValidity(track) && customName && trackName) {
-            return customName.toLowerCase() !== trackName.toLowerCase();
+        if (this.checkTrackValidity(track) && customName && track.name) {
+            return customName.toLowerCase() !== track.name.toLowerCase();
         }
         return false;
     }

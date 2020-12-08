@@ -240,6 +240,7 @@ export default class ngbTrackController {
 
     handleNameInputKeydown(event) {
         event.stopPropagation();
+        event.stopImmediatePropagation();
         if (event.keyCode === KEYS.esc) {
             this.resetCustomNameChanges();
         }
