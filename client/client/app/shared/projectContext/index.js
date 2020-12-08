@@ -67,6 +67,7 @@ export default class projectContext {
     _tracksStateRevertRules = {};
 
     _tracks = [];
+    _trackInstances = [];
     _reference = null;
     _referenceIsPromised = false; // should be set to 'true' if reference requested, but not loaded yet
     _references = null;
@@ -232,6 +233,10 @@ export default class projectContext {
 
     get tracks() {
         return this._tracks;
+    }
+
+    get trackInstances() {
+        return this._trackInstances;
     }
 
     get vcfTracks() {
@@ -477,6 +482,28 @@ export default class projectContext {
             state: track.state,
         };
         localStorage[key] = JSON.stringify(state);
+    }
+
+    registerTrackInstance(track) {
+        const [existingTrack] = this._trackInstances
+            .filter(t => t.config.bioDataItemId === track.config.bioDataItemId);
+        if (existingTrack) {
+            const index = this._trackInstances.indexOf(existingTrack);
+            this._trackInstances.splice(index, 1, track);
+        } else {
+            this._trackInstances.push(track);
+        }
+        this.dispatcher.emitSimpleEvent('tracks:instance:change', {});
+    }
+
+    unregisterTrackInstance(track) {
+        const [existingTrack] = this._trackInstances
+            .filter(t => t.config.bioDataItemId === track.config.bioDataItemId);
+        if (existingTrack) {
+            const index = this._trackInstances.indexOf(existingTrack);
+            this._trackInstances.splice(index, 1);
+            this.dispatcher.emitSimpleEvent('tracks:instance:change', {});
+        }
     }
 
     applyAnnotationTracksState() {
@@ -1306,9 +1333,9 @@ export default class projectContext {
                             }
                             const savedState = this.getTrackState((annotationFile.name || '').toLowerCase(), '');
                             if (savedState) {
-                                return Object.assign({}, savedState, annotationFile);
+                                return Object.assign({instance: t.instance}, savedState, annotationFile);
                             }
-                            return annotationFile;
+                            return {...annotationFile, instance: t.instance};
                         }
                         return t;
                     });

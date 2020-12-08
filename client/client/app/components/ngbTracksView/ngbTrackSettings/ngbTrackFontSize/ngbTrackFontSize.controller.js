@@ -17,7 +17,7 @@ export default class ngbTrackFontSizeController {
             sources,
         });
         this.prevSettings = Object.assign({}, settings);
-        this.applyToAllTracks = false;
+        this.applyToAllTracks = sources.length > 1;
     }
 
     get settingsChanged() {
@@ -38,7 +38,7 @@ export default class ngbTrackFontSizeController {
         this.dispatcher.emitSimpleEvent('tracks:header:style:configure:done', {
             cancel: false,
             data: {
-                applyToAllTracks: this.applyToAllTracks,
+                applyToAllTracks: this.sources.length > 1 ? false : this.applyToAllTracks,
                 settings: this.settings,
             },
             sources: this.sources,

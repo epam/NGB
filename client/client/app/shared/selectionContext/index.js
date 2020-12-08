@@ -17,21 +17,22 @@ export default class SelectionContext {
         this.dispatcher = dispatcher;
         this.projectContext = projectContext;
         this.dispatcher.on('reference:change', ::this.clearSelection);
-        this.dispatcher.on('tracks:state:change', ::this.onTracksStateChanged);
+        this.dispatcher.on('chromosome:change', ::this.clearSelection);
+        this.dispatcher.on('tracks:instance:change', ::this.onTracksStateChanged);
     }
 
     get tracks() {
         const set = new Set(this.selected.map(id => `${id}`));
-        return (this.projectContext.tracks || [])
-            .filter(track => set.has(`${track.bioDataItemId}`));
+        return (this.projectContext.trackInstances || [])
+            .filter(track => set.has(`${track.config.bioDataItemId}`));
     }
 
     get allSelected() {
         const selected = new Set(this.selected.map(id => `${id}`));
-        const tracks = (this.projectContext.tracks || [])
-            .filter(track => track.format !== 'REFERENCE');
+        const tracks = (this.projectContext.trackInstances || [])
+            .filter(track => track.config.format !== 'REFERENCE');
         for (let idx = 0; idx < tracks.length; idx++) {
-            if (!selected.has(`${tracks[idx].bioDataItemId}`)) {
+            if (!selected.has(`${tracks[idx].config.bioDataItemId}`)) {
                 return false;
             }
         }
@@ -39,9 +40,9 @@ export default class SelectionContext {
     }
 
     selectAll() {
-        this.selected = (this.projectContext.tracks || [])
-            .filter(track => track.format !== 'REFERENCE')
-            .map(t => t.bioDataItemId);
+        this.selected = (this.projectContext.trackInstances || [])
+            .filter(track => track.config.format !== 'REFERENCE')
+            .map(t => t.config.bioDataItemId);
         this.dispatcher.emitSimpleEvent(SelectionEvents.changed, this.selected);
     }
 
@@ -52,9 +53,9 @@ export default class SelectionContext {
 
     onTracksStateChanged() {
         const actualBioDataItemIds = new Set(
-            (this.projectContext.tracks || [])
-                .filter(track => track.format !== 'REFERENCE')
-                .map(t => `${t.bioDataItemId}`)
+            (this.projectContext.trackInstances || [])
+                .filter(track => track.config.format !== 'REFERENCE')
+                .map(t => `${t.config.bioDataItemId}`)
         );
         this.selected = this.selected.filter(t => actualBioDataItemIds.has(`${t}`));
         this.dispatcher.emitSimpleEvent(SelectionEvents.changed, this.selected);
