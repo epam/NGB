@@ -56,14 +56,17 @@
         </div>
         <ngb-track-settings
                 dnd-nodrag
+                style="flex: 1; overflow: hidden"
                 ng-if="ctrl.trackInstance !== undefined && ctrl.trackInstance.getSettings"
-                settings="ctrl.trackInstance.getSettings()"></ngb-track-settings>
+                settings="ctrl.trackInstance.getSettings()"
+        />
         <ngb-track-actions
                 dnd-nodrag
                 ng-if="ctrl.trackInstance !== undefined && ctrl.trackInstance.actions"
-                actions="ctrl.trackInstance.actions"></ngb-track-actions>
+                actions="ctrl.trackInstance.actions"
+        />
 
-        <div ng-show="ctrl.trackDataIsLoading">
+        <div ng-style="{'visibility': ctrl.trackDataIsLoading ? 'visible' : 'hidden'}">
             <md-progress-circular md-mode="indeterminate" md-diameter="12"></md-progress-circular>
         </div>
         <div title="Hide Track" class="buttons-menu-track hide-track" dnd-nodrag>
@@ -79,7 +82,7 @@
     </div>
 
     <div class="ngb-track-header-floating md-raised md-button"
-         ng-class="{'collapsed': ctrl.showTracksHeaders, 'reference': ctrl.isReference}"
+         ng-class="{'collapsed': ctrl.showTracksHeaders, 'reference': ctrl.isReference, 'opened': ctrl.minifiedMenuIsOpened}"
          ng-mouseleave="ctrl.onMinifiedHeaderMouseLeave()"
          ng-mouseover="ctrl.onMinifiedHeaderMouseOver()"
          layout="row">
@@ -92,6 +95,7 @@
         <ngb-track-settings
                 dnd-nodrag
                 ng-if="ctrl.minifiedMenuIsOpened && ctrl.trackInstance !== undefined && ctrl.trackInstance.getSettings"
+                style="flex: 1; overflow: hidden"
                 settings="ctrl.trackInstance.getSettings()"
                 track-controller="ctrl"
                 on-menu-opened="::ctrl.onMenuOpened"

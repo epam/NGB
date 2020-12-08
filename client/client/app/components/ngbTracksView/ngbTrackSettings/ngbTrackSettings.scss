@@ -1,3 +1,8 @@
+ngb-track-settings {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
 
 md-menu-item {
   width: 100%;
@@ -21,9 +26,29 @@ button {
 
 a:hover {
   cursor:pointer;
-
 }
 
 .info-hotkey{
   font-size: 9px;
+}
+
+.hidden-menu-button {
+  width: 100%;
+  text-align: left;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+.hidden-menu-button label {
+  text-transform: initial;
+}
+
+.track-hidden-settings-button {
+  width: 20px;
+  min-width: 20px!important;
+  padding: 0px!important;
+  margin: 0 2px!important;
+  min-height: 20px!important;
+  height: 20px!important;
+  line-height: initial;
 }

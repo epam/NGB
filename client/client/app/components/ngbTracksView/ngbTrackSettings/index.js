@@ -8,9 +8,11 @@ import ngbTrackFontSize from './ngbTrackFontSize';
 import trackCoverageSettings from './ngbTrackCoverageSettings';
 import trackResizePreference from './ngbTrackResizePreference';
 import wigColorPreference from './ngbWigColorPreference';
+import collapsibleMenu from './ngbTrackSettings.collapsible.menu';
 
 export default angular
     .module('ngbTrackSettings', [
+        collapsibleMenu,
         trackCoverageSettings,
         trackResizePreference,
         wigColorPreference,

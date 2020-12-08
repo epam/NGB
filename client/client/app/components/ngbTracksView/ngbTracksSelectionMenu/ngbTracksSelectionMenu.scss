@@ -30,7 +30,12 @@ ngb-tracks-selection-menu {
   }
 
   .track-type-menu {
-
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex: 1;
+    overflow: hidden;
+    margin-top: 2px;
   }
 
   .track-type-menu:last-child {

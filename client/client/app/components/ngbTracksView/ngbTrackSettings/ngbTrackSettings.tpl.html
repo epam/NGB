@@ -1,5 +1,14 @@
-<md-menu style="white-space: nowrap" ng-repeat="field in ctrl.settings track by field.label" ng-if="field.isVisible === undefined || field.isVisible()" class="track-menu" md-offset="0 36">
+<md-menu
+        style="white-space: nowrap"
+        ng-repeat="field in ctrl.settings track by field.label"
+        collapsible-menu-item="field"
+        ng-if="field.isVisible === undefined || field.isVisible()"
+        class="track-menu"
+        md-offset="0 36"
+        ng-style="{'display': (field.__menuHidden ? 'none' : '')}"
+>
     <button
+            class="ngb-track-settings-button"
             aria-label="menu"
             ng-click="$mdOpenMenu()"
             style="height: 100%;">
@@ -29,7 +38,8 @@
                 <div
                         layout="row"
                         layout-align="start middle"
-                        class="track-menu-item-div">
+                        class="track-menu-item-div"
+                >
                     <md-checkbox
                             aria-label="checkbox"
                             ng-disabled="subfield.disabled"
@@ -41,5 +51,73 @@
                 </div>
             </md-menu-item>
         </div>
+    </md-menu-content>
+</md-menu>
+<md-menu ng-if="ctrl.hiddenSettings.length > 0">
+    <md-button aria-label="Menu"
+               class="md-icon-button track-hidden-settings-button"
+               ng-click="$mdOpenMenu()"
+    >
+        <ng-md-icon
+                icon="more_horiz"
+                size="20"
+                style="fill: #666666"
+                md-menu-origin
+        />
+    </md-button>
+    <md-menu-content class="track-hidden-settings-menu">
+        <md-menu-item
+                ng-repeat="field in ctrl.hiddenSettings track by field.label"
+                ng-if="field.isVisible === undefined || field.isVisible()"
+        >
+            <md-menu>
+                <div layout="row">
+                    <md-button
+                            class="hidden-menu-button"
+                            aria-label="menu"
+                            ng-click="$mdOpenMenu()"
+                    >
+                        <label ng-if="field.displayName() && field.label"> {{field.label}}: </label>
+                        <a class="capitalize" ng-if="field.displayName() == null" href=""> {{field.label}} </a>
+                        <a class="capitalize"ng-if="field.displayAdditionalName() == null" href = "">{{field.displayName()}}</a>
+                        <a class="capitalize" ng-if="field.displayAdditionalName()" href = "">{{field.displayName()}}/{{field.displayAdditionalName()}}</a>
+                    </md-button>
+                </div>
+                <md-menu-content width="4">
+                    <div layout="column" ng-repeat="subfield in field.fields track by subfield.label">
+                        <md-divider ng-if="subfield.type === 'divider'">
+                        </md-divider>
+                        <md-menu-item
+                                ng-if="subfield.type === 'button' && (subfield.isVisible === undefined || subfield.isVisible())"
+                                class="track-menu-item">
+                            <md-button
+                                    aria-label="button"
+                                    class="track-menu-button"
+                                    ng-click="ctrl.handleButtonField($event, subfield)">
+                                {{subfield.label}}
+                                <span class="info-hotkey" ng-if="subfield.hotkey">({{subfield.hotkey}})</span>
+                            </md-button>
+                        </md-menu-item>
+                        <md-menu-item
+                                ng-if="subfield.type === 'checkbox' && (subfield.isVisible === undefined || subfield.isVisible())"
+                                class="track-menu-item">
+                            <div
+                                    layout="row"
+                                    layout-align="start middle"
+                                    class="track-menu-item-div">
+                                <md-checkbox
+                                        aria-label="checkbox"
+                                        ng-disabled="subfield.disabled"
+                                        ng-checked="subfield.isEnabled()"
+                                        ng-click="ctrl.handleField($event, subfield)">
+                                    {{subfield.label}}
+                                    <span class="info-hotkey" ng-if="subfield.hotkey">({{subfield.hotkey}})</span>
+                                </md-checkbox>
+                            </div>
+                        </md-menu-item>
+                    </div>
+                </md-menu-content>
+            </md-menu>
+        </md-menu-item>
     </md-menu-content>
 </md-menu>

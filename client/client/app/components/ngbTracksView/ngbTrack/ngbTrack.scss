@@ -80,6 +80,9 @@ ngb-track.dndDragging .ngb-track-container, ngb-track.resizing .ngb-track-contai
   cursor: move;
   margin-bottom: 2px;
   padding-left: 5px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 
   &.collapsed {
     display: none;
@@ -88,14 +91,18 @@ ngb-track.dndDragging .ngb-track-container, ngb-track.resizing .ngb-track-contai
 
 .ngb-track-header-floating {
   position: absolute; 
-  top: 0px; 
-  right: 0px; 
+  top: 0;
+  right: 0;
   z-index: 1;
   font-size: 12px;
   min-height: 20px;
   line-height: 20px;
   text-transform: none;
   opacity: .40;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  left: unset;
 
   .track-title {
     cursor: move;
@@ -105,8 +112,14 @@ ngb-track.dndDragging .ngb-track-container, ngb-track.resizing .ngb-track-contai
     opacity: 1;
   }
 
+  &.opened {
+    left:0;
+    opacity: 1;
+  }
+
   &.collapsed {
     display: none;
+    width: initial;
   }
 
   &.reference{
