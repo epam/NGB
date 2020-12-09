@@ -1,7 +1,7 @@
 import {SelectionEvents} from '../../shared/selectionContext';
 import baseController from '../../shared/baseController';
 
-export default class ngbTracksSelectionController extends baseController{
+export default class ngbTracksSelectionController extends baseController {
     static get UID() {
         return 'ngbTracksSelectionController';
     }
@@ -11,20 +11,24 @@ export default class ngbTracksSelectionController extends baseController{
     scope;
     _allSelected = false;
     _tracks = [];
+    showTrackOriginalName = true;
 
     constructor(
-      $scope,
-      dispatcher,
-      projectContext,
-      selectionContext,
-      trackNamingService
+        $scope,
+        dispatcher,
+        projectContext,
+        selectionContext,
+        trackNamingService,
+        localDataService
     ) {
         super(dispatcher);
         this.projectContext = projectContext;
         this.selectionContext = selectionContext;
         this.trackNamingService = trackNamingService;
+        this.localDataService = localDataService;
         this.scope = $scope;
         this.dispatcher = dispatcher;
+        this.showTrackOriginalName = localDataService.getSettings().showTrackOriginalName;
         const reloadTracks = () => {
             this._tracks = (this.projectContext.tracks || []).map(track => ({
                 selected: this.getTrackIsSelected(track),
@@ -32,12 +36,17 @@ export default class ngbTracksSelectionController extends baseController{
             }));
             this._allSelected = this.selectionContext.allSelected;
         };
+        const globalSettingsChangedHandler = (state) => {
+            this.showTrackOriginalName = state.showTrackOriginalName;
+        };
         this.dispatcher.on('tracks:state:change', reloadTracks);
         this.dispatcher.on(SelectionEvents.changed, reloadTracks);
+        this.dispatcher.on('settings:change', globalSettingsChangedHandler);
         // We must remove event listener when component is destroyed.
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('tracks:state:change', reloadTracks);
-            this.dispatcher.removeListener(SelectionEvents.changed, reloadTracks);
+            dispatcher.removeListener(SelectionEvents.changed, reloadTracks);
+            dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
         });
     }
 

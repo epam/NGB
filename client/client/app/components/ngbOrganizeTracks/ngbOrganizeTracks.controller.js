@@ -46,7 +46,9 @@ export default class ngbOrganizeTracksController extends baseController {
         treeRowHeaderAlwaysVisible: false,
     };
 
-    constructor($scope, $element, $timeout, $mdDialog, dispatcher, projectContext, trackNamingService) {
+    showTrackOriginalName = true;
+
+    constructor($scope, $element, $timeout, $mdDialog, dispatcher, projectContext, trackNamingService, localDataService) {
         super($scope);
 
         Object.assign(this, {
@@ -57,10 +59,12 @@ export default class ngbOrganizeTracksController extends baseController {
             dispatcher,
             projectContext,
             trackNamingService,
+            localDataService
         });
 
         this.disabledButton = true;
         this.disabledSortButton = false;
+        this.showTrackOriginalName = this.localDataService.getSettings().showTrackOriginalName;
 
         Object.assign(this.gridOptions, {
             appScopeProvider: $scope,
@@ -79,6 +83,13 @@ export default class ngbOrganizeTracksController extends baseController {
             self.initSortable();
         }, 0);
 
+        const globalSettingsChangedHandler = (state) => {
+            self.showTrackOriginalName = state.showTrackOriginalName;
+        };
+        this.dispatcher.on('settings:change', globalSettingsChangedHandler);
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
+        });
     }
 
     getCustomName(track) {

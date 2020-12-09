@@ -39,18 +39,29 @@
                       ng-class="{selected: node.__selected}"
                       ng-click="$ctrl.toggleSelected(node)"
                     >
-                        <span ng-if="$ctrl.searchLength && node.searchInfo && node.searchInfo.passed">
-                            {{node.searchInfo.pre}}
-                            <span class="search-result">
-                                {{node.searchInfo.match}}
-                            </span>
-                            {{node.searchInfo.post}}
+                        <span
+                                ng-if="node.modifiedName && $ctrl.searchLength && node.modifiedNameSearchInfo && node.modifiedNameSearchInfo.passed"
+                                class="dataset-track-title-search"
+                        >
+                            <span>{{node.modifiedNameSearchInfo.pre}}</span>
+                            <span class="search-result">{{node.modifiedNameSearchInfo.match}}</span>
+                            <span>{{node.modifiedNameSearchInfo.post}}</span>
                         </span>
-                        <span ng-show="$ctrl.nameIsChanged(node)">
-                            {{$ctrl.getCustomName(node)}}
+                        <span ng-if="node.modifiedName && (!$ctrl.searchLength || !node.modifiedNameSearchInfo || !node.modifiedNameSearchInfo.passed)">
+                            {{node.modifiedName}}
+                        </span>
+                        <span
+                                ng-if="$ctrl.searchLength && node.searchInfo && node.searchInfo.passed"
+                                class="dataset-track-title-search"
+                                ng-class="{'file-hint': !!node.modifiedName}"
+                        >
+                            <span>{{node.searchInfo.pre}}</span>
+                            <span class="search-result">{{node.searchInfo.match}}</span>
+                            <span>{{node.searchInfo.post}}</span>
                         </span>
                         <span
                           ng-if="!$ctrl.searchLength || !node.searchInfo || !node.searchInfo.passed"
+                          ng-hide="!!node.modifiedName && !$ctrl.showTrackOriginalName"
                           ng-class="{'file-hint': $ctrl.nameIsChanged(node)}"
                         >
                             {{node.displayName}}

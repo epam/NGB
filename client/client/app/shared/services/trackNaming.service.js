@@ -4,7 +4,8 @@ export default class ngbTrackNamingService {
         return new ngbTrackNamingService();
     }
 
-    constructor() {
+    constructor(dispatcher) {
+        this.dispatcher = dispatcher;
         this.customNames = {};
         this.updateNamesFromLocalStorage();
     }
@@ -38,6 +39,7 @@ export default class ngbTrackNamingService {
             }
             this.customNames[id] = newName.trim();
             localStorage.setItem('custom-names', JSON.stringify(this.customNames));
+            this.dispatcher.emitSimpleEvent('track:custom:name', this.customNames);
         }
     }
 

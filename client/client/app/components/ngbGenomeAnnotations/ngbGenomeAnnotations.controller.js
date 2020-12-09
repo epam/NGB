@@ -1,4 +1,5 @@
 import baseController from '../../shared/baseController';
+import {SelectionEvents} from '../../shared/selectionContext';
 
 export default class ngbGenomeAnnotationsController extends baseController{
     static get UID() {
@@ -7,11 +8,15 @@ export default class ngbGenomeAnnotationsController extends baseController{
 
     projectContext;
     scope;
+    showTrackOriginalName = true;
 
-    constructor($scope, dispatcher, projectContext) {
+    constructor($scope, dispatcher, projectContext, trackNamingService, localDataService) {
         super(dispatcher);
         this.projectContext = projectContext;
+        this.trackNamingService = trackNamingService;
         this.scope = $scope;
+        this.localDataService = localDataService;
+        this.showTrackOriginalName = localDataService.getSettings().showTrackOriginalName;
         this.annotationFiles = [
             {
                 name: 'Human_genome.fa'
@@ -20,6 +25,14 @@ export default class ngbGenomeAnnotationsController extends baseController{
                 name: 'Human_genome.bed'
             }
         ];
+        const globalSettingsChangedHandler = (state) => {
+            this.showTrackOriginalName = state.showTrackOriginalName;
+        };
+        this.dispatcher.on('settings:change', globalSettingsChangedHandler);
+        // We must remove event listener when component is destroyed.
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
+        });
     }
 
     openMenu($mdOpenMenu, $event) {
@@ -33,8 +46,8 @@ export default class ngbGenomeAnnotationsController extends baseController{
             return this.projectContext.reference;
         }
         return {
+            annotationFiles: null,
             name: null,
-            annotationFiles: null
         };
     }
 
@@ -43,6 +56,10 @@ export default class ngbGenomeAnnotationsController extends baseController{
             return this.projectContext.reference.annotationFiles && this.projectContext.reference.annotationFiles.length;
         }
         return false;
+    }
+
+    getCustomName(file) {
+        return this.trackNamingService.getCustomName(file);
     }
 
     onAnnotationFileChanged(file) {
@@ -84,28 +101,36 @@ export default class ngbGenomeAnnotationsController extends baseController{
             if (savedState) {
                 tracksState.push(Object.assign(savedState,{
                     bioDataItemId: file.name,
-                    projectId: '',
+                    format: file.format,
                     isLocal: true,
-                    format: file.format
+                    projectId: '',
                 }));
             } else {
                 tracksState.push({
                     bioDataItemId: file.name,
-                    projectId: '',
+                    format: file.format,
                     isLocal: true,
-                    format: file.format
+                    projectId: '',
                 });
             }
             this.projectContext.changeState({tracks, tracksState});
         } else {
             const tracks = this.projectContext.tracks;
-            const [track] = tracks.filter(t => t.name.toLowerCase() === file.name.toLowerCase() && t.format.toLowerCase() === file.format.toLowerCase());
+            const [track] = tracks.filter(
+              (t) =>
+                t.name.toLowerCase() === file.name.toLowerCase() &&
+                t.format.toLowerCase() === file.format.toLowerCase()
+            );
             if (track) {
                 const index = tracks.indexOf(track);
                 tracks.splice(index, 1);
             }
             const tracksState = this.projectContext.tracksState;
-            const [trackState] = tracksState.filter(t => t.bioDataItemId.toLowerCase() === file.name.toLowerCase() && t.format.toLowerCase() === file.format.toLowerCase());
+            const [trackState] = tracksState.filter(
+              (t) => 
+                t.bioDataItemId.toLowerCase() === file.name.toLowerCase() &&
+                t.format.toLowerCase() === file.format.toLowerCase()
+            );
             if (trackState) {
                 tracksState.splice(tracksState.indexOf(trackState), 1);
             }

@@ -3,16 +3,19 @@
         <div class="frame u-column-padding" flex ng-repeat="file in ctrl.files">
             <h5 class="format-header">{{file.type}}</h5>
             <md-list flex class="md-dense md-list__text">
-                <md-list-item
-                  class="md-list-item__sm md-list-item__nospace"
-                  ng-repeat="names in file.names"
+                <md-list-item class="md-list-item__sm md-list-item__nospace"
+                              ng-repeat="nameObject in file.names"
                 >
-                    <div
-                      class="md-list-item__sm md-list-item__nospace"
-                      ng-repeat="name in names track by $index"
-                      ng-class="{'file-hint': $index}"
+                    <div class="md-list-item__sm md-list-item__nospace"
+                         ng-if="nameObject.customName"
                     >
-                        {{name}}
+                        {{nameObject.customName}}
+                    </div>
+                    <div class="md-list-item__sm md-list-item__nospace"
+                         ng-class="{'file-hint': nameObject.customName}"
+                         ng-hide="nameObject.customName && !ctrl.showTrackOriginalName"
+                    >
+                        {{nameObject.name}}
                     </div>
                 </md-list-item>
             </md-list>

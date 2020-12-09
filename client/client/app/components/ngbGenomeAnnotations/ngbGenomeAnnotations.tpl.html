@@ -2,22 +2,41 @@
     <md-button aria-label="Genome"
                class="md-icon-button genome-button"
                style="width: auto; padding-left: 7px"
-               ng-click="$ctrl.openMenu($mdOpenMenu, $event);">
-        {{$ctrl.reference.name}}<ng-md-icon ng-if="$ctrl.referenceContainsAnnotations" icon="keyboard_arrow_down" size="20"></ng-md-icon>
+               ng-click="$ctrl.openMenu($mdOpenMenu, $event);"
+    >
+        {{$ctrl.getCustomName($ctrl.reference) || $ctrl.reference.name}}
+        <span ng-hide="!$ctrl.getCustomName($ctrl.reference) || !$ctrl.showTrackOriginalName"
+              ng-class="{'file-hint-btn': $ctrl.getCustomName($ctrl.reference)}"
+        >
+            {{$ctrl.reference.name}}
+        </span>
+        <ng-md-icon ng-if="$ctrl.referenceContainsAnnotations"
+                    icon="keyboard_arrow_down"
+                    size="20"></ng-md-icon>
     </md-button>
     <md-menu-content width="4" class="genome-annotations-menu" md-whiteframe="4">
         <md-checkbox ng-repeat="annotationFile in $ctrl.reference.annotationFiles | orderBy: 'name'"
                      ng-if="annotationFile.isGeneFile"
                      ng-model="annotationFile.selected"
                      ng-change="$ctrl.onAnnotationFileChanged(annotationFile)">
-            {{annotationFile.name}}
+            {{$ctrl.getCustomName(annotationFile) || annotationFile.name}}
+            <span ng-class="{'file-hint': $ctrl.getCustomName(annotationFile)}"
+                  ng-hide="!$ctrl.getCustomName(annotationFile) || !$ctrl.showTrackOriginalName"
+            >
+                {{annotationFile.name}}
+            </span>
         </md-checkbox>
         <md-divider></md-divider>
         <md-checkbox ng-repeat="annotationFile in $ctrl.reference.annotationFiles | orderBy: 'name'"
                      ng-if="!annotationFile.isGeneFile"
                      ng-model="annotationFile.selected"
                      ng-change="$ctrl.onAnnotationFileChanged(annotationFile)">
-            {{annotationFile.name}}
+            {{$ctrl.getCustomName(annotationFile) || annotationFile.name}}
+            <span ng-class="{'file-hint': $ctrl.getCustomName(annotationFile)}"
+                  ng-hide="!$ctrl.getCustomName(annotationFile) || !$ctrl.showTrackOriginalName"
+            >
+                {{annotationFile.name}}
+            </span>
         </md-checkbox>
     </md-menu-content>
 </md-menu>

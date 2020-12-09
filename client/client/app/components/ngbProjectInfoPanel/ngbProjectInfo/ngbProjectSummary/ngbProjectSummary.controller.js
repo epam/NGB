@@ -4,6 +4,7 @@ export default class ngbProjectSummaryController {
     }
 
     projectContext;
+    showTrackOriginalName = true;
 
     /**
      * @constructor
@@ -13,24 +14,33 @@ export default class ngbProjectSummaryController {
      */
     /** @ngInject */
     constructor(
-      $scope,
-      projectDataService,
-      dispatcher,
-      projectContext,
-      trackNamingService
+        $scope,
+        projectDataService,
+        dispatcher,
+        projectContext,
+        trackNamingService,
+        localDataService
     ) {
         const __dispatcher = this._dispatcher = dispatcher;
         this._dataService = projectDataService;
         this.trackNamingService = trackNamingService;
         this.projectContext = projectContext;
+        this.localDataService = localDataService;
         this.$scope = $scope;
+        this.showTrackOriginalName = this.localDataService.getSettings().showTrackOriginalName;
 
         this.INIT();
         const reloadPanel = ::this.INIT;
+        const self = this;
+        const globalSettingsChangedHandler = (state) => {
+            self.showTrackOriginalName = state.showTrackOriginalName;
+        };
         this._dispatcher.on('tracks:state:change', reloadPanel);
+        this._dispatcher.on('settings:change', globalSettingsChangedHandler);
         // We must remove event listener when component is destroyed.
         $scope.$on('$destroy', () => {
             __dispatcher.removeListener('tracks:state:change', reloadPanel);
+            __dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
         });
     }
 
@@ -43,14 +53,11 @@ export default class ngbProjectSummaryController {
         for (const item of items) {
             let added = false;
             const name = this.getTrackFileName(item);
-            const customName = this.getCustomName(item);
+            const customName = this.getCustomName(item) || '';
             for (const file of files) {
                 if (file.type === item.format) {
-                    if (!file.names.includes(name)) {
-                        customName
-                          ? file.names.push([customName, name])
-                          : file.names.push([name]);
-                        
+                    if (!file.names.some((nameObj) => nameObj.name === name)) {
+                        file.names.push({customName, name});
                     }
                     added = true;
                     break;
@@ -58,7 +65,7 @@ export default class ngbProjectSummaryController {
             }
             if (!added) {
                 files.push({
-                    names: [[customName, name].filter(Boolean)],
+                    names: [{customName, name}],
                     type: item.format,
                 });
             }

@@ -59,6 +59,7 @@ export default {
         },
         displayAlignmentsCoverageTooltips: true,
         displayTooltips: true,
+        showTrackOriginalName: true,
         showTracksHeaders: true,
         hoveringEffects: true,
         filterReads: {
