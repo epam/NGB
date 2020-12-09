@@ -8,9 +8,10 @@ export default class ngbGenomeAnnotationsController extends baseController{
     projectContext;
     scope;
 
-    constructor($scope, dispatcher, projectContext) {
+    constructor($scope, dispatcher, projectContext, trackNamingService) {
         super(dispatcher);
         this.projectContext = projectContext;
+        this.trackNamingService = trackNamingService;
         this.scope = $scope;
         this.annotationFiles = [
             {
@@ -33,8 +34,8 @@ export default class ngbGenomeAnnotationsController extends baseController{
             return this.projectContext.reference;
         }
         return {
+            annotationFiles: null,
             name: null,
-            annotationFiles: null
         };
     }
 
@@ -43,6 +44,10 @@ export default class ngbGenomeAnnotationsController extends baseController{
             return this.projectContext.reference.annotationFiles && this.projectContext.reference.annotationFiles.length;
         }
         return false;
+    }
+
+    getCustomName(file) {
+        return this.trackNamingService.getCustomName(file);
     }
 
     onAnnotationFileChanged(file) {
@@ -84,28 +89,36 @@ export default class ngbGenomeAnnotationsController extends baseController{
             if (savedState) {
                 tracksState.push(Object.assign(savedState,{
                     bioDataItemId: file.name,
-                    projectId: '',
+                    format: file.format,
                     isLocal: true,
-                    format: file.format
+                    projectId: '',
                 }));
             } else {
                 tracksState.push({
                     bioDataItemId: file.name,
-                    projectId: '',
+                    format: file.format,
                     isLocal: true,
-                    format: file.format
+                    projectId: '',
                 });
             }
             this.projectContext.changeState({tracks, tracksState});
         } else {
             const tracks = this.projectContext.tracks;
-            const [track] = tracks.filter(t => t.name.toLowerCase() === file.name.toLowerCase() && t.format.toLowerCase() === file.format.toLowerCase());
+            const [track] = tracks.filter(
+              (t) =>
+                t.name.toLowerCase() === file.name.toLowerCase() &&
+                t.format.toLowerCase() === file.format.toLowerCase()
+            );
             if (track) {
                 const index = tracks.indexOf(track);
                 tracks.splice(index, 1);
             }
             const tracksState = this.projectContext.tracksState;
-            const [trackState] = tracksState.filter(t => t.bioDataItemId.toLowerCase() === file.name.toLowerCase() && t.format.toLowerCase() === file.format.toLowerCase());
+            const [trackState] = tracksState.filter(
+              (t) => 
+                t.bioDataItemId.toLowerCase() === file.name.toLowerCase() &&
+                t.format.toLowerCase() === file.format.toLowerCase()
+            );
             if (trackState) {
                 tracksState.splice(tracksState.indexOf(trackState), 1);
             }

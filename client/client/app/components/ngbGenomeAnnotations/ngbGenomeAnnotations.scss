@@ -13,5 +13,28 @@ ngb-genome-annotations {
   padding: 4px;
   md-checkbox {
     margin: 8px;
+    .md-label {
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: row;
+    }
   }
+}
+
+.file-hint-btn {
+  border: 1px solid #bae7ff;
+  font-weight: normal;
+  font-size: 12px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  margin-left: 5px;
+}
+
+.file-hint {
+  border: solid 1px #bfbfbf;
+  font-weight: normal;
+  font-size: 12px;
+  color: #595959;
+  padding: 1px 5px;
+  border-radius: 5px;
 }

@@ -27,7 +27,9 @@ export default () => ({
         const endListener = event => {
             isResizing = false;
             scope.$emit('resizeEnd');
-
+            if (event.target.tagName.toLowerCase() === 'input' && event.target.type === 'text' && event.target === document.activeElement) {
+                return;
+            }
             event.preventDefault();
         };
 

@@ -43,14 +43,11 @@ export default class ngbProjectSummaryController {
         for (const item of items) {
             let added = false;
             const name = this.getTrackFileName(item);
-            const customName = this.getCustomName(item);
+            const customName = this.getCustomName(item) || '';
             for (const file of files) {
                 if (file.type === item.format) {
-                    if (!file.names.includes(name)) {
-                        customName
-                          ? file.names.push([customName, name])
-                          : file.names.push([name]);
-                        
+                    if (!file.names.some((nameObj) => nameObj.name === name)) {
+                        file.names.push({customName, name});
                     }
                     added = true;
                     break;
@@ -58,7 +55,7 @@ export default class ngbProjectSummaryController {
             }
             if (!added) {
                 files.push({
-                    names: [[customName, name].filter(Boolean)],
+                    names: [{customName, name}],
                     type: item.format,
                 });
             }
