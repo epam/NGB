@@ -1,8 +1,10 @@
 import {BEDRenderer, BEDTransformer} from './internal';
 import BEDConfig from './bedConfig';
 import {BedDataService} from '../../../../dataServices';
+import BedMenu from './menu';
 import {GENETrack} from '../gene';
 import GeneConfig from '../gene/geneConfig';
+import Menu from '../../core/menu';
 
 export class BEDTrack extends GENETrack {
 
@@ -10,10 +12,24 @@ export class BEDTrack extends GENETrack {
         return Object.assign({}, GeneConfig, BEDConfig);
     }
 
+    static Menu = Menu(
+        BedMenu,
+        {
+            postStateMutatorFn: GENETrack.postStateMutatorFn,
+        }
+    );
+
     constructor(opts) {
         super(opts);
         this._actions = null;
-        this.getSettings = undefined;
+    }
+
+    getSettings() {
+        if (this._menu) {
+            return this._menu;
+        }
+        this._menu = this.config.sashimi ? [] : this.constructor.Menu.attach(this);
+        return this._menu;
     }
 
     get downloadHistogramFn() {
@@ -45,7 +61,8 @@ export class BEDTrack extends GENETrack {
         return this._renderer;
     }
 
-    applyAdditionalRequestParameters() {}
+    applyAdditionalRequestParameters() {
+    }
 
     getTooltipDataObject(isHistogram, item) {
         if (isHistogram) {

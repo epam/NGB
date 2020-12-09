@@ -1,6 +1,8 @@
 import {CachedTrack} from '../../core';
+import Menu from '../../core/menu';
 import SegConfig from './segConfig';
 import {SegDataService} from '../../../../dataServices';
+import SegMenu from './menu';
 import SegRenderer from './segRenderer';
 import SegTransformer from './segTransformer';
 
@@ -9,9 +11,28 @@ export class SEGTrack extends CachedTrack {
     _dataService;
     _renderer = new SegRenderer(this.trackConfig);
 
+    static postStateMutatorFn = (track) => {
+        track.reportTrackState();
+    };
+
+    static Menu = Menu(
+        SegMenu,
+        {
+            postStateMutatorFn: SEGTrack.postStateMutatorFn
+        }
+    );
+
     constructor(opts) {
         super(opts);
         this._dataService = new SegDataService(opts.viewport);
+    }
+
+    getSettings() {
+        if (this._menu) {
+            return this._menu;
+        }
+        this._menu = this.constructor.Menu.attach(this);
+        return this._menu;
     }
 
     static getTrackDefaultConfig() {
