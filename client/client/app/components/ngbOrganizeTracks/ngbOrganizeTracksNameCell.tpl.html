@@ -1,0 +1,14 @@
+<div>
+    <span
+      class="ui-grid-cell-contents"
+      ng-show="grid.appScope.$ctrl.getCustomName(row.entity)"
+    >
+        {{grid.appScope.$ctrl.getCustomName(row.entity)}}
+    </span>
+    <span
+      class="ui-grid-cell-contents"
+      ng-class="{'file-hint': grid.appScope.$ctrl.getCustomName(row.entity)}"
+    >
+        {{row.entity.name}}
+    </span>
+</div>

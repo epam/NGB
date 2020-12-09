@@ -1,56 +1,51 @@
 export default class ngbTrackNamingService {
 
-    static instance($state, projectContext) {
-        return new ngbTrackNamingService($state, projectContext);
+    static instance() {
+        return new ngbTrackNamingService();
     }
 
-    constructor($state, projectContext) {
-        this.projectContext = projectContext;
+    constructor() {
+        this.customNames = {};
+        this.updateNamesFromLocalStorage();
     }
 
-    nameChanged(track) {
-        const prettyName = this.getPrettyName(track) || '';
-        return prettyName.toLowerCase() !== this.getTrackName(track).toLowerCase();
+    checkTrackValidity(track) {
+        return typeof track === 'object' && track !== null && track.bioDataItemId;
     }
 
-    getTrackState(track) {
-        const [trackState] = (this.projectContext.tracksState || [])
-          .filter(m => m.bioDataItemId.toLowerCase() === track.name.toLowerCase() && m.projectId.toLowerCase() === track.projectId.toLowerCase());
-        return trackState;
+    updateNamesFromLocalStorage() {
+        if(!localStorage.getItem('custom-names')) {
+            return localStorage
+              .setItem('custom-names', JSON.stringify(this.customNames));
+        }
+        this.customNames = JSON.parse(localStorage.getItem('custom-names'));
     }
 
-    getTrackName(track) {
-        if (track.isLocal) {
-            const fileName = track.name;
-            if (!fileName || !fileName.length) {
+    nameChanged(track = {}) {
+        const customName = this.getCustomName(track);
+        if (this.checkTrackValidity(track) && customName && track.name) {
+            return customName.toLowerCase() !== track.name.toLowerCase();
+        }
+        return false;
+    }
+
+    setCustomName(track, newName) {
+        if (this.checkTrackValidity(track)) {
+            const id = track.bioDataItemId.toString();
+            const currentCustomName = this.customNames[id] || '';
+            if (currentCustomName === newName.trim()) {
                 return null;
             }
-            let list = fileName.split('/');
-            list = list[list.length - 1].split('\\');
-            return list[list.length - 1];
+            this.customNames[id] = newName.trim();
+            localStorage.setItem('custom-names', JSON.stringify(this.customNames));
         }
-        return track.name;
     }
 
-    getPrettyName(track) {
-        const trackState = this.getTrackState(track);
-        if (!trackState) {
-            return this.getTrackName(track);
+    getCustomName(track) {
+        if (this.checkTrackValidity(track)) {
+            const id = track.bioDataItemId.toString();
+            return this.customNames[id] || '';
         }
-        return trackState.prettyName || this.getTrackName(track);
-    }
-
-    setPrettyName(newName, track) {
-        const tracksState = this.projectContext.tracksState || [];
-        const [tracksSettings] = tracksState
-          .filter(m => m.bioDataItemId.toLowerCase() === track.name.toLowerCase() && m.projectId.toLowerCase() === track.projectId.toLowerCase());
-        if (!tracksSettings) {
-            tracksState.push({
-                prettyName: newName,
-            });
-        } else {
-            tracksSettings.prettyName = newName;
-        }
-        this.projectContext.changeState({tracksState});
+        return '';
     }
 }

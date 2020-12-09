@@ -14,16 +14,26 @@ export default class ngbDataSetsController extends baseController {
 
     service;
 
-    constructor($mdDialog, $scope, $element, $timeout, dispatcher, ngbDataSetsService, projectContext) {
+    constructor(
+      $mdDialog,
+      $scope,
+      $element,
+      $timeout,
+      dispatcher,
+      ngbDataSetsService,
+      projectContext,
+      trackNamingService
+    ) {
         super();
         Object.assign(this, {
+            $element,
             $mdDialog,
             $scope,
             $timeout,
-            $element,
             dispatcher,
             projectContext,
-            service: ngbDataSetsService
+            service: ngbDataSetsService,
+            trackNamingService,
         });
         $scope.$watch('$ctrl.searchPattern', ::this.searchPatternChanged);
         this.initEvents();
@@ -69,11 +79,11 @@ export default class ngbDataSetsController extends baseController {
     }
 
     events = {
+        'activeDataSets': ::this.onResize,
+        'datasets:filter:changed': ::this.loadingFinished,
         'datasets:loading:finished': ::this.loadingFinished,
         'datasets:loading:started': ::this.loadingStarted,
-        'datasets:filter:changed': ::this.loadingFinished,
         'reference:change': ::this.onProjectChanged,
-        'activeDataSets': ::this.onResize
     };
 
     async onProjectChanged() {
@@ -128,6 +138,20 @@ export default class ngbDataSetsController extends baseController {
             return 0;
         }
         return this.searchPattern.length;
+    }
+
+    getCustomName(node) {
+        if(!node.isProject) {
+            return this.trackNamingService.getCustomName(node);
+        } 
+        return null;
+    }
+
+    nameIsChanged(node) {
+        if(!node.isProject) {
+            return this.trackNamingService.nameChanged(node);
+        } 
+        return false;
     }
 
     onResize() {
