@@ -42,7 +42,7 @@
         >
             {{ctrl.customName || ctrl.trackNameTruncated}}
             <md-tooltip md-direction="top">
-                {{ctrl.customName}}
+                {{ctrl.trackName}}
             </md-tooltip>
         </div>
         <div
@@ -86,6 +86,12 @@
          ng-mouseleave="ctrl.onMinifiedHeaderMouseLeave()"
          ng-mouseover="ctrl.onMinifiedHeaderMouseOver()"
          layout="row">
+        <ng-md-icon
+                class="track-button mini button-icon"
+                icon="format_line_spacing"
+                size="16"
+                style="cursor: move;"
+        />
         <input
                 ng-if="ctrl.selectable && ctrl.track.format !== 'REFERENCE'"
                 type="checkbox"
@@ -108,19 +114,42 @@
                 track-controller="ctrl"
                 on-handle="::ctrl.onHandleAction"></ngb-track-actions>
         <div class="buttons-menu-track"
-             dnd-nodrag
              ng-show="ctrl.isMinifiedMenuButtonVisible">
             <md-button md-no-ink
+                       dnd-nodrag
                        class="md-icon-button track-button mini"
                        aria-label="Menu"
                        ng-click="ctrl.openOrCloseMinifiedMenu()">
-                <ng-md-icon class="button-icon" icon="menu" size="16"></ng-md-icon>
+                <ng-md-icon class="button-icon" icon="tune" size="16"></ng-md-icon>
             </md-button>
         </div>
         <div ng-show="ctrl.trackDataIsLoading" class="track-loader-minified">
             <md-progress-circular md-mode="indeterminate" md-diameter="12"></md-progress-circular>
         </div>
-        <div class="track-title">{{ctrl.customName || ctrl.trackNameTruncated}}</div>
+        <input
+                ngb-autofocus
+                emit-focus="ctrl.nameInputVisible"
+                spellcheck="false"
+                dnd-nodrag
+                class="ngb-track-header-file-input"
+                ng-model="ctrl.customNameTemp"
+                ng-show="ctrl.nameInputVisible"
+                ng-Blur="ctrl.setCustomName(ctrl.customNameTemp)"
+                ng-keydown="ctrl.handleNameInputKeydown($event)"
+                placeholder="Enter new track name..."
+        />
+        <div
+                dnd-nodrag
+                class="ngb-track-header-file-name"
+                ng-hide="ctrl.nameInputVisible"
+                ng-click="ctrl.showTrackNameInput()"
+                ng-style="ctrl.trackHeaderStyle"
+        >
+            {{ctrl.customName || ctrl.trackNameTruncated}}
+            <md-tooltip md-direction="top">
+                {{ctrl.trackName}}
+            </md-tooltip>
+        </div>
         <div class="buttons-menu-track" dnd-nodrag>
             <md-button md-no-ink
                        ng-show="ctrl.showHideTrackButton"
