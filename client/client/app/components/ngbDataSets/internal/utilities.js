@@ -22,6 +22,7 @@ function _preprocessNode(node: Node, parent: Node = null) {
     node.roles = ['ROLE_ADMIN'];
     node.displayName = node.prettyName || node.name;
     node.searchInfo = new SearchInfo();
+    node.modifiedNameSearchInfo = new SearchInfo();
     let hasNestedProjects = false;
     if (node.nestedProjects) {
         hasNestedProjects = true;
@@ -289,8 +290,12 @@ export function search(pattern, items: Array<Node>) {
         if (!item.searchInfo) {
             item.searchInfo = new SearchInfo();
         }
+        if (!item.modifiedNameSearchInfo) {
+            item.modifiedNameSearchInfo = new SearchInfo();
+        }
         item.searchInfo.test(pattern, item.displayName);
-        item.searchFilterPassed = searchFilterPassed || item.searchInfo.passed;
+        item.modifiedNameSearchInfo.test(pattern, item.modifiedName);
+        item.searchFilterPassed = searchFilterPassed || item.searchInfo.passed || item.modifiedNameSearchInfo.passed;
         if (item.childrenFilterPassed && item.isProject && pattern.length > 0) {
             expandNodeWithChilds(item);
             item.__expanded = true;
@@ -300,15 +305,20 @@ export function search(pattern, items: Array<Node>) {
     return result;
 }
 
-export function toPlainList(items, ident = 0) {
+export function toPlainList(items, namingService, ident = 0) {
     const result = [];
     if (items && items.length) {
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
             item.ident = ident;
+            if (!item.isProject && namingService.nameChanged(item)) {
+                item.modifiedName = namingService.getCustomName(item);
+            } else {
+                item.modifiedName = undefined;
+            }
             result.push(item);
             if (item.isProject && item.__expanded) {
-                result.push(...toPlainList(item.items, ident + 1));
+                result.push(...toPlainList(item.items, namingService, ident + 1));
             }
         }
     }

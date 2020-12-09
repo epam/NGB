@@ -24,7 +24,10 @@
             >
                 {{$ctrl.getCustomName(o.track)}}
             </span>
-            <span ng-class="{'file-hint': $ctrl.getCustomName(o.track)}">
+            <span
+                    ng-class="{'file-hint': $ctrl.getCustomName(o.track)}"
+                    ng-hide="!!$ctrl.getCustomName(o.track) && !$ctrl.showTrackOriginalName"
+            >
                 {{o.track.name}}
             </span>
         </md-checkbox>

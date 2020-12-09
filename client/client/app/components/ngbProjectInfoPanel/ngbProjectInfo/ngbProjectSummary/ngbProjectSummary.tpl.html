@@ -13,6 +13,7 @@
                     </div>
                     <div class="md-list-item__sm md-list-item__nospace"
                          ng-class="{'file-hint': nameObject.customName}"
+                         ng-hide="nameObject.customName && !ctrl.showTrackOriginalName"
                     >
                         {{nameObject.name}}
                     </div>

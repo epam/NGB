@@ -31,6 +31,7 @@ export default class ngbTrackController {
 
     isResizing = false;
     showTracksHeaders = true;
+    showTrackOriginalName = true;
 
     scope;
 
@@ -73,6 +74,7 @@ export default class ngbTrackController {
         } else {
             this.showTracksHeaders = this._localDataService.getSettings().showTracksHeaders;
         }
+        this.showTrackOriginalName = this._localDataService.getSettings().showTrackOriginalName;
         this.isReference = this.track.format === 'REFERENCE';
         this.isRuler = this.track.format === 'Ruler';
 
@@ -152,6 +154,7 @@ export default class ngbTrackController {
             } else {
                 self.showTracksHeaders = state.showTracksHeaders;
             }
+            self.showTrackOriginalName = state.showTrackOriginalName;
         };
         const trackCoverageSettingsChangedHandler = (state) => {
             if (!state.cancel && ((state.data.applyToCurrentTrack && state.sources.indexOf(this.track.name) >= 0) ||
@@ -218,7 +221,7 @@ export default class ngbTrackController {
     }
 
     get showFileNameHint() {
-        return this.trackNamingService.nameChanged(this.track);
+        return this.trackNamingService.nameChanged(this.track) && this.showTrackOriginalName;
     }
 
     setCustomName(newName) {

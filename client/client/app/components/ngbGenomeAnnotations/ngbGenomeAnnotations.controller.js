@@ -1,4 +1,5 @@
 import baseController from '../../shared/baseController';
+import {SelectionEvents} from '../../shared/selectionContext';
 
 export default class ngbGenomeAnnotationsController extends baseController{
     static get UID() {
@@ -7,12 +8,15 @@ export default class ngbGenomeAnnotationsController extends baseController{
 
     projectContext;
     scope;
+    showTrackOriginalName = true;
 
-    constructor($scope, dispatcher, projectContext, trackNamingService) {
+    constructor($scope, dispatcher, projectContext, trackNamingService, localDataService) {
         super(dispatcher);
         this.projectContext = projectContext;
         this.trackNamingService = trackNamingService;
         this.scope = $scope;
+        this.localDataService = localDataService;
+        this.showTrackOriginalName = localDataService.getSettings().showTrackOriginalName;
         this.annotationFiles = [
             {
                 name: 'Human_genome.fa'
@@ -21,6 +25,14 @@ export default class ngbGenomeAnnotationsController extends baseController{
                 name: 'Human_genome.bed'
             }
         ];
+        const globalSettingsChangedHandler = (state) => {
+            this.showTrackOriginalName = state.showTrackOriginalName;
+        };
+        this.dispatcher.on('settings:change', globalSettingsChangedHandler);
+        // We must remove event listener when component is destroyed.
+        $scope.$on('$destroy', () => {
+            dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
+        });
     }
 
     openMenu($mdOpenMenu, $event) {

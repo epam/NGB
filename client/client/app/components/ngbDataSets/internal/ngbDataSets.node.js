@@ -45,6 +45,7 @@ export class Node {
     name;
     prettyName;
     displayName;
+    modifiedName;
 
     project;
     projectId;
@@ -63,6 +64,7 @@ export class Node {
     hint: string;
 
     searchInfo: SearchInfo;
+    modifiedNameSearchInfo: SearchInfo;
     searchFilterPassed: Boolean;
     childrenFilterPassed: Boolean;
 

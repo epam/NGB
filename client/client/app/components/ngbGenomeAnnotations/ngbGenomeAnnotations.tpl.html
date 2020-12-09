@@ -2,9 +2,10 @@
     <md-button aria-label="Genome"
                class="md-icon-button genome-button"
                style="width: auto; padding-left: 7px"
-               ng-click="$ctrl.openMenu($mdOpenMenu, $event);">
+               ng-click="$ctrl.openMenu($mdOpenMenu, $event);"
+    >
         {{$ctrl.getCustomName($ctrl.reference) || $ctrl.reference.name}}
-        <span ng-hide="!$ctrl.getCustomName($ctrl.reference)"
+        <span ng-hide="!$ctrl.getCustomName($ctrl.reference) || !$ctrl.showTrackOriginalName"
               ng-class="{'file-hint-btn': $ctrl.getCustomName($ctrl.reference)}"
         >
             {{$ctrl.reference.name}}
@@ -20,7 +21,7 @@
                      ng-change="$ctrl.onAnnotationFileChanged(annotationFile)">
             {{$ctrl.getCustomName(annotationFile) || annotationFile.name}}
             <span ng-class="{'file-hint': $ctrl.getCustomName(annotationFile)}"
-                  ng-hide="!$ctrl.getCustomName(annotationFile)"
+                  ng-hide="!$ctrl.getCustomName(annotationFile) || !$ctrl.showTrackOriginalName"
             >
                 {{annotationFile.name}}
             </span>
@@ -32,7 +33,7 @@
                      ng-change="$ctrl.onAnnotationFileChanged(annotationFile)">
             {{$ctrl.getCustomName(annotationFile) || annotationFile.name}}
             <span ng-class="{'file-hint': $ctrl.getCustomName(annotationFile)}"
-                  ng-hide="!$ctrl.getCustomName(annotationFile)"
+                  ng-hide="!$ctrl.getCustomName(annotationFile) || !$ctrl.showTrackOriginalName"
             >
                 {{annotationFile.name}}
             </span>

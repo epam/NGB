@@ -11,18 +11,20 @@ export default class ngbDataSetsController extends baseController {
     noDatasets = false;
     _isLoading = true;
     projectContext;
+    showTrackOriginalName = true;
 
     service;
 
     constructor(
-      $mdDialog,
-      $scope,
-      $element,
-      $timeout,
-      dispatcher,
-      ngbDataSetsService,
-      projectContext,
-      trackNamingService
+        $mdDialog,
+        $scope,
+        $element,
+        $timeout,
+        dispatcher,
+        ngbDataSetsService,
+        projectContext,
+        trackNamingService,
+        localDataService
     ) {
         super();
         Object.assign(this, {
@@ -31,23 +33,35 @@ export default class ngbDataSetsController extends baseController {
             $scope,
             $timeout,
             dispatcher,
+            localDataService,
             projectContext,
             service: ngbDataSetsService,
-            trackNamingService,
+            trackNamingService
         });
         $scope.$watch('$ctrl.searchPattern', ::this.searchPatternChanged);
         this.initEvents();
         this._isLoading = true;
+        this.showTrackOriginalName = this.localDataService.getSettings().showTrackOriginalName;
 
         const self = this;
-        this.tracksStateChangeListener = async() => {
+        this.tracksStateChangeListener = async () => {
             await self.service.updateSelectionFromState(self.datasets);
         };
         const tracksStateChangeListener = ::this.tracksStateChangeListener;
+        const globalSettingsChangedHandler = (state) => {
+            self.showTrackOriginalName = state.showTrackOriginalName;
+        };
+        const trackNameChanged = () => {
+            $scope.apply();
+        };
+        dispatcher.on('tracks:state:change', tracksStateChangeListener);
+        dispatcher.on('settings:change', globalSettingsChangedHandler);
+        dispatcher.on('track:custom:name', trackNameChanged);
         $scope.$on('$destroy', () => {
             dispatcher.removeListener('tracks:state:change', tracksStateChangeListener);
+            dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
+            dispatcher.removeListener('track:custom:name', trackNameChanged);
         });
-        dispatcher.on('tracks:state:change', tracksStateChangeListener);
     }
 
     async $onInit() {
@@ -71,7 +85,7 @@ export default class ngbDataSetsController extends baseController {
     }
 
     get datasetsPlain() {
-        return toPlainList(this.datasets);
+        return toPlainList(this.datasets, this.trackNamingService);
     }
 
     get isLoading() {
@@ -141,16 +155,16 @@ export default class ngbDataSetsController extends baseController {
     }
 
     getCustomName(node) {
-        if(!node.isProject) {
+        if (!node.isProject) {
             return this.trackNamingService.getCustomName(node);
-        } 
+        }
         return null;
     }
 
     nameIsChanged(node) {
-        if(!node.isProject) {
+        if (!node.isProject) {
             return this.trackNamingService.nameChanged(node);
-        } 
+        }
         return false;
     }
 
