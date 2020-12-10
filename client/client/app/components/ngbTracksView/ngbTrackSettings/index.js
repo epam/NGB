@@ -8,6 +8,7 @@ import ngbTrackFontSize from './ngbTrackFontSize';
 import trackCoverageSettings from './ngbTrackCoverageSettings';
 import trackResizePreference from './ngbTrackResizePreference';
 import wigColorPreference from './ngbWigColorPreference';
+import bedColorPreference from './ngbBedColorPreference';
 import collapsibleMenu from './ngbTrackSettings.collapsible.menu';
 
 export default angular
@@ -16,6 +17,7 @@ export default angular
         trackCoverageSettings,
         trackResizePreference,
         wigColorPreference,
+        bedColorPreference,
         ngbTrackFontSize,
     ])
     .controller(controller.UID, controller)
