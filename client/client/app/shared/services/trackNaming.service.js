@@ -1,7 +1,7 @@
 export default class ngbTrackNamingService {
 
-    static instance() {
-        return new ngbTrackNamingService();
+    static instance(dispatcher) {
+        return new ngbTrackNamingService(dispatcher);
     }
 
     constructor(dispatcher) {

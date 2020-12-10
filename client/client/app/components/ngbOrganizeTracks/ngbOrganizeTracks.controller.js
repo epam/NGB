@@ -150,7 +150,13 @@ export default class ngbOrganizeTracksController extends baseController {
     }
 
     sortByName() {
-        this.gridOptions.data.sort((a, b) => a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1);
+        this.gridOptions.data.sort((a, b) => {
+            const customA = this.getCustomName(a).toLowerCase();
+            const customB = this.getCustomName(b).toLowerCase();
+            const nameA = a.name.toLowerCase();
+            const nameB = b.name.toLowerCase();
+            return (customA || nameA) > (customB || nameB) ? 1 : -1;
+        });
         this.organizeTracks = this.gridOptions.data;
     }
 

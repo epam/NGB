@@ -1,4 +1,4 @@
-const MAX_SIZE = 20;
+const MAX_SIZE = 18;
 
 export default class ngbTrackFontSizeController {
 

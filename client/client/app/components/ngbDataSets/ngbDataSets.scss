@@ -95,6 +95,8 @@ $folder-line: #cccccc;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
   &.selected {
     font-weight: bold;
   }

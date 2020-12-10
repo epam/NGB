@@ -52,7 +52,7 @@ export default class ngbDataSetsController extends baseController {
             self.showTrackOriginalName = state.showTrackOriginalName;
         };
         const trackNameChanged = () => {
-            $scope.apply();
+            $timeout(::$scope.$apply);
         };
         dispatcher.on('tracks:state:change', tracksStateChangeListener);
         dispatcher.on('settings:change', globalSettingsChangedHandler);

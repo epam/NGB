@@ -19,7 +19,9 @@
                      ng-if="annotationFile.isGeneFile"
                      ng-model="annotationFile.selected"
                      ng-change="$ctrl.onAnnotationFileChanged(annotationFile)">
-            {{$ctrl.getCustomName(annotationFile) || annotationFile.name}}
+            <span class="file-info">
+                {{$ctrl.getCustomName(annotationFile) || annotationFile.name}}
+            </span>         
             <span ng-class="{'file-hint': $ctrl.getCustomName(annotationFile)}"
                   ng-hide="!$ctrl.getCustomName(annotationFile) || !$ctrl.showTrackOriginalName"
             >
