@@ -23,7 +23,11 @@
         <md-content flex>
 
             <md-virtual-repeat-container  ng-if="!$ctrl.nothingFound" class="vertical-container" flex >
-                <div md-virtual-repeat="node in $ctrl.datasetsPlain | filter:$ctrl.filter()" md-item-size="18" flex>
+                <div md-virtual-repeat="node in $ctrl.datasetsPlain | filter:$ctrl.filter()"
+                     md-item-size="18"
+                     flex
+                     style="margin-bottom: 2px;"
+                >
                     <div ng-include="$ctrl.getTemplateNode(node)" ng-style="{'margin-left': node.ident * 16}"></div>
                 </div>
             </md-virtual-repeat-container>
