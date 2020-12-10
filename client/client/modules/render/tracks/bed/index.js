@@ -19,6 +19,13 @@ export class BEDTrack extends GENETrack {
         }
     );
 
+    get stateKeys() {
+        return [
+            'header',
+            'color'
+        ];
+    }
+
     constructor(opts) {
         super(opts);
         this._actions = null;
@@ -56,7 +63,12 @@ export class BEDTrack extends GENETrack {
 
     get renderer() {
         if (!this._renderer) {
-            this._renderer = new BEDRenderer(this.trackConfig, this.transformer, this._pixiRenderer);
+            this._renderer = new BEDRenderer(
+                this,
+                this.trackConfig,
+                this.transformer,
+                this._pixiRenderer
+            );
         }
         return this._renderer;
     }

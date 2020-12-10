@@ -60,7 +60,8 @@ export default class projectContext {
         referenceShowTranslation: 'rt',
         referenceShowForwardStrand: 'rsfs',
         referenceShowReverseStrand: 'rsrs',
-        header: 'he'
+        header: 'he',
+        color: 'co'
     };
 
     _tracksStateRevertRules = {};

@@ -6,13 +6,13 @@ export default class ngbBedColorPreferenceController {
         return 'ngbBedColorPreferenceController';
     }
 
-    constructor($scope, $mdDialog, dispatcher, settings, defaults, sources) {
+    constructor($scope, $mdDialog, dispatcher, color, defaultColor, sources) {
         Object.assign(this, {
             $mdDialog,
             $scope,
-            defaults,
+            defaultColor,
             dispatcher,
-            settings,
+            color,
             sources,
         });
         this.pickerOptions = {
@@ -21,8 +21,7 @@ export default class ngbBedColorPreferenceController {
             swatch: true,
             swatchOnly: true,
         };
-        this.settings = this.preprocessColors(settings);
-        this.prevSettings = Object.assign({}, this.settings);
+        this.color = this.preprocessColor(color);
         this.applyToAllTracks = (sources || []).length > 1;
     }
 
@@ -38,24 +37,10 @@ export default class ngbBedColorPreferenceController {
         return parseInt(hex.substring(1), RADIX);
     }
 
-    preprocessColors(settings = {}) {
-        return Object.fromEntries(Object.entries(settings)
-          .map(([key, color]) => (
-            typeof color === 'number'
-              ? [key, this.convertDecimalToHex(color)]
-              : [key, color]
-          ))
-        );
-    }
-
-    postprocessColors(settings = {}) {
-        return Object.fromEntries(Object.entries(settings)
-          .map(([key, color]) => (
-            typeof color === 'string' && color.charAt(0) === '#'
-              ? [key, this.convertHexToDecimal(color)]
-              : [key, color]
-          ))
-        );
+    preprocessColor(color) {
+        return typeof color === 'number'
+            ? this.convertDecimalToHex(color)
+            : color;
     }
 
     save() {
@@ -67,6 +52,6 @@ export default class ngbBedColorPreferenceController {
     }
 
     resetToDefaults() {
-        this.settings = this.preprocessColors(this.defaults);
+        this.color = this.preprocessColor(this.defaultColor);
     }
 }

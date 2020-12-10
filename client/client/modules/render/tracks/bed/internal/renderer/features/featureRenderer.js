@@ -5,12 +5,15 @@ export default class BEDFeatureRenderer extends FeatureRenderer {
 
     _bedItemFeatureRenderer = null;
 
-    constructor(config) {
+    constructor(track, config) {
         super(config);
-        this._bedItemFeatureRenderer = new BedItemFeatureRenderer(config,
+        this._bedItemFeatureRenderer = new BedItemFeatureRenderer(
+            track,
+            config,
             ::this.registerLabel,
             ::this.registerDockableElement,
-            ::this.registerFeaturePosition);
+            ::this.registerFeaturePosition
+        );
     }
 
     get renderers() {
