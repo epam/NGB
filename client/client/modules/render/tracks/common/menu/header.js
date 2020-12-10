@@ -1,11 +1,11 @@
-function headerPerform (tracks) {
+function headerPerform (tracks, options) {
     const [dispatcher] = (tracks || [])
         .map(track => track.config.dispatcher)
         .filter(Boolean);
     function reduce (result, current) {
         const {fontSize} = result || {};
         const {fontSize: currentFontSize} = current || {};
-        if (!fontSize) {
+        if (!result && !fontSize) {
             return {
                 fontSize: currentFontSize
             };
@@ -27,13 +27,14 @@ function headerPerform (tracks) {
         const stateHeaders = (tracks || []).map(track => track.state.header);
         dispatcher.emitSimpleEvent('tracks:header:style:configure', {
             config: {
-                defaults: configHeaders.reduce(reduce, {}),
+                defaults: {...configHeaders.reduce(reduce)},
                 settings: {
-                    ...configHeaders.reduce(reduce, {}),
-                    ...stateHeaders.reduce(reduce, {})
-                },
+                    ...configHeaders.reduce(reduce),
+                    ...stateHeaders.reduce(reduce)}
             },
+            options,
             sources: (tracks || []).map(track => track.config.name),
+            types: [...(new Set((tracks || []).map(track => track.config.format)))]
         });
     }
 }

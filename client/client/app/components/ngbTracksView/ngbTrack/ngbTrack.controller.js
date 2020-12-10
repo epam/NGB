@@ -185,7 +185,11 @@ export default class ngbTrackController {
         const tracksSelectionChangedHandler = () => {};
 
         const trackHeaderStyleChangedHandler = (state) => {
-            if (state.data.applyToAllTracks || state.sources.indexOf(this.track.name) >= 0) {
+            if (
+                (state.data.applyToAllTracks) ||
+                (state.data.applyToAllTracksOfType && state.data.type === this.track.format) ||
+                state.sources.indexOf(this.track.name) >= 0
+            ) {
                 this.trackInstance.headerStyleSettingsChanged(state);
             }
         };

@@ -2,12 +2,14 @@ import controller from './ngbTrackResizePreference.controller';
 
 export default {
     bindings: {
-        applyToAllTracksTitle: '=',
         applyToAllTracks: '=',
+        applyToAllTracksOfType: '=',
+        applyToAllTracksOfTypeVisible: '<',
+        applyToAllTracksVisible: '<',
         height: '=',
         maxHeight: '<',
         minHeight: '<',
-        multiple: '<'
+        types: '<'
     },
     controller: controller.UID,
     controllerAs: 'ctrl',

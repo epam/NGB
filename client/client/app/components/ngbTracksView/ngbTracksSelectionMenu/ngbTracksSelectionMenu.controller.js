@@ -25,15 +25,33 @@ export default class ngbTracksSelectionMenuController {
 
     onTracksSelectionChanged() {
         this.tracksMenu = {};
-        this.commonMenu = CommonMenu.attach(...this.selectedTracks);
-        this.types.forEach(type => {
-            const tracks = this.selectedTracks
-                .filter(track => track.config.format === type);
-            const [anyTrack] = tracks;
-            if (anyTrack && anyTrack.constructor.Menu) {
-                this.tracksMenu[type] = anyTrack.constructor.Menu.attach(...tracks);
+        if (this.types.length > 1) {
+            this.commonMenu = CommonMenu.attach(
+                this.selectedTracks,
+                {
+                    group: true,
+                    selection: this.selectedTracks,
+                    types: this.types.slice()
+                });
+        } else {
+            this.commonMenu = undefined;
+            if (this.types.length === 1) {
+                const type = this.types[0];
+                const tracks = this.selectedTracks
+                    .filter(track => track.config.format === type);
+                const [anyTrack] = tracks;
+                if (anyTrack && anyTrack.constructor.Menu) {
+                    this.tracksMenu[type] = anyTrack.constructor.Menu.attach(
+                        tracks,
+                        {
+                            group: true,
+                            selection: this.selectedTracks,
+                            types: [type]
+                        }
+                    );
+                }
             }
-        });
+        }
     }
 
     get isVisible() {

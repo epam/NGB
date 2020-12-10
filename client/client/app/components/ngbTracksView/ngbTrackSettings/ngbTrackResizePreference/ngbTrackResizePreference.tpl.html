@@ -15,12 +15,25 @@
             </div>
         </md-input-container>
     </div>
-    <md-checkbox
-        flex
-        aria-label="apply to all tracks"
-        ng-model="ctrl.applyToAllTracks"
-        ng-disabled="ctrl.multiple"
-    >
-        {{ctrl.applyToAllTracksTitle}}
-    </md-checkbox>
+    <div class="modal-content-controls">
+        <md-checkbox
+                flex
+                aria-label="apply to all tracks"
+                ng-if="ctrl.applyToAllTracksVisible"
+                ng-model="ctrl.applyToAllTracks"
+        >
+            Apply to all tracks
+        </md-checkbox>
+    </div>
+    <div class="modal-content-controls">
+        <md-checkbox
+                flex
+                aria-label="apply to all tracks of type"
+                ng-if="ctrl.applyToAllTracksOfTypeVisible"
+                ng-model="ctrl.applyToAllTracksOfType"
+                ng-disabled="ctrl.applyToAllTracks"
+        >
+            Apply to all {{ctrl.types[0]}} tracks
+        </md-checkbox>
+    </div>
 </div>

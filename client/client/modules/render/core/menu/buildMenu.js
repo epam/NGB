@@ -8,29 +8,29 @@ function getFilter (o) {
 }
 
 function wrapStateFn(fn, o) {
-    return tracks => tracks
+    return (tracks, options) => tracks
         .filter(getFilter(o))
-        .map(track => fn(track.state, tracks.filter(getFilter(o)), track))
+        .map(track => fn(track.state, tracks.filter(getFilter(o)), track, options))
         .reduce((r, c) => r && c, true);
 }
 
 function wrapIndeterminateStateFn(fn, o) {
-    return tracks => [
+    return (tracks, options) => [
         ...(new Set(
             tracks
                 .filter(getFilter(o))
-                .map(track => fn(track.state, tracks.filter(getFilter(o)), track))
+                .map(track => fn(track.state, tracks.filter(getFilter(o)), track, options))
         ))
     ].length > 1;
 }
 
 function wrapDisplayFn(fn, o) {
-    return (tracks) => {
+    return (tracks, options) => {
         const display = [
             ...(new Set(
                 tracks
                     .filter(getFilter(o))
-                    .map(track => fn(track.state, tracks.filter(getFilter(o)), track))
+                    .map(track => fn(track.state, tracks.filter(getFilter(o)), track, options))
             ))
         ];
         if (display.length === 1) {
@@ -45,22 +45,22 @@ function wrapDisplayFn(fn, o) {
 // postFn(track) - called after each track's state mutation
 // afterFn(tracks) - called after all tracks state mutation
 function wrapStateMutatorFn(fn, key, preFn, postFn, beforeFn, afterFn, o) {
-    const singleTrackMutatorFn = (track, idx, tracks) => {
+    const singleTrackMutatorFn = (options) => (track, idx, tracks) => {
         const prePayload = typeof preFn === 'function'
-            ? preFn(track)
+            ? preFn(track, options)
             : {};
-        fn(track.state, tracks, track);
+        fn(track.state, tracks, track, options);
         if (typeof postFn === 'function') {
-            postFn(track, key, prePayload);
+            postFn(track, key, prePayload, options);
         }
     };
-    return (tracks) => {
+    return (tracks, options) => {
         if (typeof beforeFn === 'function') {
-            beforeFn(tracks.filter(getFilter(o)));
+            beforeFn(tracks.filter(getFilter(o)), options);
         }
-        tracks.filter(getFilter(o)).forEach(singleTrackMutatorFn);
+        tracks.filter(getFilter(o)).forEach(singleTrackMutatorFn(options));
         if (typeof afterFn === 'function') {
-            afterFn(tracks.filter(getFilter(o)), key);
+            afterFn(tracks.filter(getFilter(o)), key, options);
         }
     };
 }
@@ -70,28 +70,28 @@ function wrapStateMutatorFn(fn, key, preFn, postFn, beforeFn, afterFn, o) {
 // postFn(track) - called after each track's action
 // afterFn(tracks) - called after all tracks action
 function wrapPerformFn(fn, key, preFn, postFn, beforeFn, afterFn, o) {
-    return (tracks) => {
+    return (tracks, options) => {
         if (typeof beforeFn === 'function') {
-            beforeFn(tracks.filter(getFilter(o)));
+            beforeFn(tracks.filter(getFilter(o)), options);
         }
         const prePayloads = tracks
             .filter(getFilter(o))
             .reduce((r, track) => ({
                 ...r,
                 [`${track.bioDataItemId}`]: typeof preFn === 'function'
-                    ? preFn(track)
+                    ? preFn(track, options)
                     : {}
             }), {});
-        fn(tracks.filter(getFilter(o)));
+        fn(tracks.filter(getFilter(o)), options);
         tracks
             .filter(getFilter(o))
             .forEach(track => {
                 if (typeof postFn === 'function') {
-                    postFn(track, key, prePayloads[`${track.bioDataItemId}`]);
+                    postFn(track, key, prePayloads[`${track.bioDataItemId}`], options);
                 }
             });
         if (typeof afterFn === 'function') {
-            afterFn(tracks.filter(getFilter(o)), key);
+            afterFn(tracks.filter(getFilter(o)), key, options);
         }
     };
 }

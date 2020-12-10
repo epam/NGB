@@ -6,40 +6,50 @@ export default class ngbTrackFontSizeController {
         return 'ngbTrackFontSizeController';
     }
 
-    constructor($scope, $mdDialog, projectContext, dispatcher, settings, defaults, sources) {
+    constructor($scope, $mdDialog, projectContext, dispatcher, settings, defaults, sources, types, options) {
         Object.assign(this, {
             $mdDialog,
             $scope,
             defaults,
             dispatcher,
+            options,
             projectContext,
             settings,
             sources,
+            types
         });
         this.prevSettings = Object.assign({}, settings);
-        this.applyToAllTracks = sources.length > 1;
+        this.applyToAllTracks = false;
+        this.applyToAllTracksOfType = false;
     }
 
     get settingsChanged() {
-        return (this.settings.fontSize !== this.prevSettings.fontSize) || this.applyToAllTracks;
+        return (this.settings.fontSize !== this.prevSettings.fontSize) || this.applyToAllTracks || this.applyToAllTracksOfType;
     }
 
     get canApplyDefaults() {
-        return (this.settings.fontSize !== this.defaults.fontSize) || this.applyToAllTracks;
+        return (this.settings.fontSize !== this.defaults.fontSize) || this.applyToAllTracks || this.applyToAllTracksOfType;
     }
 
-    getSetFontSize(size) {
-        return arguments.length
-          ? this.settings.fontSize = `${size > MAX_SIZE ? MAX_SIZE : size}px`
-          : parseInt((this.settings.fontSize || this.defaults.fontSize), 10);
+    get fontSize() {
+        if (this.settings.fontSize && /^[\d]+px$/.test(this.settings.fontSize)) {
+            return Number(/^([\d]+)px$/i.exec(this.settings.fontSize)[1]);
+        }
+        return undefined;
+    }
+
+    set fontSize(size) {
+        this.settings.fontSize = `${size > MAX_SIZE ? MAX_SIZE : size}px`;
     }
 
     save() {
         this.dispatcher.emitSimpleEvent('tracks:header:style:configure:done', {
             cancel: false,
             data: {
-                applyToAllTracks: this.sources.length > 1 ? false : this.applyToAllTracks,
+                applyToAllTracks: this.applyToAllTracks,
+                applyToAllTracksOfType: this.applyToAllTracksOfType,
                 settings: this.settings,
+                type: (this.types || [])[0]
             },
             sources: this.sources,
         });

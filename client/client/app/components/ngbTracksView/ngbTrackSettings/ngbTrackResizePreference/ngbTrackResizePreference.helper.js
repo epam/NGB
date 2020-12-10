@@ -12,20 +12,21 @@ function correctTrackHeight(track, height) {
     return Math.max(Math.min(height, maxHeight || Infinity), minHeight || TRACKS_MIN_HEIGHT);
 }
 
-export default function helper($mdDialog, projectContext, tracks) {
+export default function helper($mdDialog, projectContext, options) {
     const filterCommonTracks = (allTracks, format) =>
         allTracks.filter(m => m.config.format === format);
 
     return function ($scope) {
+        const {tracks, options: actionOptions, types} = options;
+        const {group = false} = actionOptions || {};
         const multiple = tracks.length > 1;
-        $scope.multiple = multiple;
-        $scope.applyToAllTracks = multiple;
-        const formats = [...(new Set((tracks || []).map(track => track.config.format)))];
-        const commonFormat = formats.length === 1 ? formats[0] : '';
-        $scope.commonFormat = commonFormat;
-        $scope.applyToAllTracksTitle = formats.length === 1
-            ? `Apply fo all ${formats[0]} tracks`
-            : 'Apply to all tracks';
+        $scope.applyToAllTracks = false;
+        $scope.applyToAllTracksOfType = false;
+        $scope.applyToAllTracksVisible = !group;
+        $scope.applyToAllTracksOfTypeVisible = !group;
+        const formats = (types || []).slice();
+        const commonFormat = formats[0];
+        $scope.types = formats;
         if (!multiple) {
             tracks.forEach(track => {
                 $scope.maxHeight =
@@ -41,7 +42,11 @@ export default function helper($mdDialog, projectContext, tracks) {
 
         $scope.minHeight = $scope.minHeight || 0;
         $scope.maxHeight = $scope.maxHeight || Infinity;
-        $scope.height = multiple ? '' : tracks[0]._height;
+        $scope.height = multiple
+            ? tracks
+                .map(track => track._height)
+                .reduce((r, c) => (r === undefined || r === c) ? c : '', undefined)
+            : tracks[0]._height;
 
         $scope.close = () => $mdDialog.hide();
         $scope.save = () => {
@@ -53,7 +58,10 @@ export default function helper($mdDialog, projectContext, tracks) {
                 }
             };
             tracks.forEach(saveTrackHeight);
-            if ($scope.applyToAllTracks && !multiple) {
+            if ($scope.applyToAllTracks) {
+                const allTracks = (projectContext.trackInstances || []);
+                allTracks.forEach(saveTrackHeight);
+            } else if ($scope.applyToAllTracksOfType) {
                 const allTracks = (projectContext.trackInstances || []);
                 const commonFormatTracks = filterCommonTracks(allTracks, commonFormat);
                 commonFormatTracks.forEach(saveTrackHeight);

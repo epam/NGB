@@ -30,12 +30,11 @@
 <div
         ng-repeat="type in ctrl.types track by type"
         class="track-type-menu"
+        ng-if="ctrl.tracksMenu && ctrl.tracksMenu[type]"
 >
     <b>{{ctrl.getTracksByType(type).length}} {{type}}</b>
     <ngb-track-settings
             style="flex: 1; overflow: hidden"
-            logger="true"
-            ng-if="ctrl.tracksMenu && ctrl.tracksMenu[type]"
             settings="ctrl.tracksMenu[type]"
     >
 
