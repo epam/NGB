@@ -7,6 +7,10 @@ import {drawingConfiguration} from '../../../../../../core';
 const Math = window.Math;
 
 export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
+    constructor(track, config, registerLabel, registerDockableElement, registerFeaturePosition, registerAttachedElement) {
+        super(config, registerLabel, registerDockableElement, registerFeaturePosition, registerAttachedElement);
+        this.track = track;
+    }
 
     analyzeBoundaries(feature, viewport) {
         const boundaries = super.analyzeBoundaries(feature, viewport);
@@ -25,7 +29,10 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
         return boundaries;
     }
 
-    _getFeatureColor(feature) {
+    _getFeatureColor(feature, state) {
+        if (state && state.color && !feature.rgb) {
+            return state.color;
+        }
         let color = this.config.bed.defaultColor;
         const oneByte = 256;
         if (feature.rgb) {
@@ -72,7 +79,7 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
             y2: position.y + this.config.bed.height
         });
 
-        const color = this._getFeatureColor(feature);
+        const color = this._getFeatureColor(feature, this.track ? this.track.state : undefined);
         let structureToDisplay = null;
 
         for (let i = 0; i < feature.structures.length; i++) {
