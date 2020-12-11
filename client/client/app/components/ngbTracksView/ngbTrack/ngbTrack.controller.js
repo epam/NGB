@@ -168,14 +168,21 @@ export default class ngbTrackController {
 
         const trackColorsChangedHandler = state => {
             if (
-                /^(wig|bam|bed)$/i.test(this.track.format) &&
-                (state.data.applyToWIGTracks || state.data.applyToAllTracks ||
-                    (state.sources || []).indexOf(this.track.name) >= 0)
+                (state.sources || []).indexOf(this.track.name) >= 0 ||
+                (state.data.applyToAllTracks && /^(wig|bam)$/i.test(this.track.format)) ||
+                (state.data.applyToAlignmentTracks && /^bam$/i.test(this.track.format)) ||
+                (state.data.applyToWIGTracks && /^wig$/i.test(this.track.format))
             ) {
-                this.trackInstance.colorSettingsChanged(
-                    state,
-                    this.track.format,
-                );
+                this.trackInstance.colorSettingsChanged(state);
+            }
+        };
+
+        const bedTrackColorsChangedHandler = state => {
+            if (
+                (state.sources || []).indexOf(this.track.name) >= 0 ||
+                (state.data.applyToBEDTracks && /^bed$/i.test(this.track.format))
+            ) {
+                this.trackInstance.colorSettingsChanged(state);
             }
         };
 
@@ -198,7 +205,8 @@ export default class ngbTrackController {
         dispatcher.on('track:headers:changed', globalSettingsChangedHandler);
         dispatcher.on('tracks:header:style:configure:done', trackHeaderStyleChangedHandler);
         dispatcher.on('tracks:coverage:manual:configure:done', trackCoverageSettingsChangedHandler);
-        dispatcher.on('track:color:configure:done', trackColorsChangedHandler);
+        dispatcher.on('coverage:color:configure:done', trackColorsChangedHandler);
+        dispatcher.on('bed:color:configure:done', bedTrackColorsChangedHandler);
         dispatcher.on('trackSettings:change', trackSettingsChangedHandler);
         dispatcher.on(SelectionEvents.changed, tracksSelectionChangedHandler);
         $scope.$on('$destroy', () => {
@@ -209,7 +217,8 @@ export default class ngbTrackController {
                 dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
                 dispatcher.removeListener('track:headers:changed', globalSettingsChangedHandler);
                 dispatcher.removeListener('tracks:coverage:manual:configure:done', trackCoverageSettingsChangedHandler);
-                dispatcher.removeListener('track:color:configure:done', trackColorsChangedHandler);
+                dispatcher.removeListener('coverage:color:configure:done', trackColorsChangedHandler);
+                dispatcher.removeListener('bed:color:configure:done', bedTrackColorsChangedHandler);
                 dispatcher.removeListener('trackSettings:change', trackSettingsChangedHandler);
                 dispatcher.removeListener(SelectionEvents.changed, tracksSelectionChangedHandler);
                 this.trackInstance.destructor();

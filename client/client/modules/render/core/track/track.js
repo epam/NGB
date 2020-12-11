@@ -354,8 +354,8 @@ export class Track extends BaseTrack {
             this.requestRenderRefresh();
         }
     }
-    colorSettingsChanged(state, format) {
-        if (format === 'BED') {
+    colorSettingsChanged(state) {
+        if (this.config.format === 'BED') {
             state.cancel
                 ? this.state.color = {}
                 : this.state.color = state.data.settings;

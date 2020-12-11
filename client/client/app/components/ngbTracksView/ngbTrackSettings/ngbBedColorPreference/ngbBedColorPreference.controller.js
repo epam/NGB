@@ -50,10 +50,10 @@ export default class ngbBedColorPreferenceController {
     }
 
     save() {
-        this.dispatcher.emitSimpleEvent('track:color:configure:done', {
+        this.dispatcher.emitSimpleEvent('bed:color:configure:done', {
             cancel: false,
             data: {
-                applyToAllTracks: this.applyToAllTracks,
+                applyToBEDTracks: this.applyToAllTracks,
                 settings: this.postprocessColors(this.color),
             },
             sources: this.sources,
