@@ -55,7 +55,7 @@ export default class ngbTracksSelectionController extends baseController {
     }
 
     get tracks() {
-        return this._tracks;
+        return this.sortTracksWithCustomName(this._tracks);
     }
 
     get allSelected() {
@@ -98,5 +98,16 @@ export default class ngbTracksSelectionController extends baseController {
 
     trackHash(track) {
         return `[${track.bioDataItemId}][${track.projectId}]`;
+    }
+
+    sortTracksWithCustomName(tracks = []) {
+        const sortedTracks = [...tracks].sort((a, b) => {
+            const customA = this.getCustomName(a.track).toLowerCase();
+            const customB = this.getCustomName(b.track).toLowerCase();
+            const nameA = a.track.name.toLowerCase();
+            const nameB = b.track.name.toLowerCase();
+            return (customA || nameA) > (customB || nameB) ? 1 : -1;
+        });
+        return sortedTracks;
     }
 }

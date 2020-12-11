@@ -41,7 +41,7 @@
                 ng-click="ctrl.showTrackNameInput()"
                 ng-style="ctrl.trackHeaderStyle"
         >
-            {{ctrl.customName || ctrl.trackNameTruncated}}
+            {{ctrl.truncate(ctrl.customName || ctrl.trackName)}}
             <md-tooltip md-direction="top">
                 {{ctrl.trackName}}
             </md-tooltip>
@@ -50,7 +50,7 @@
                 class="ngb-track-header-file-hint"
                 ng-show="ctrl.showFileNameHint"
         >
-            {{ctrl.trackNameTruncated}}
+            {{ctrl.truncate(ctrl.trackName)}}
             <md-tooltip md-direction="top">
                 {{ctrl.trackName}}
             </md-tooltip>
@@ -146,7 +146,7 @@
                 ng-click="ctrl.showTrackNameInput()"
                 ng-style="ctrl.trackHeaderStyle"
         >
-            {{ctrl.customName || ctrl.trackNameTruncated}}
+            {{ctrl.truncate(ctrl.customName || ctrl.trackName)}}
             <md-tooltip md-direction="top">
                 {{ctrl.trackName}}
             </md-tooltip>

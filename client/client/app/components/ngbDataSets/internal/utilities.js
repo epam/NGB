@@ -32,7 +32,7 @@ function _preprocessNode(node: Node, parent: Node = null) {
     }
     const [reference] = node.items.filter(track => track.format === 'REFERENCE');
     const isEmpty = reference && node.items.length === 1 && !hasNestedProjects;
-    const mapTrackFn = function(track) {
+    const mapTrackFn = function (track) {
         track.isTrack = true;
         track.project = node;
         track.projectId = node.name;
@@ -82,7 +82,7 @@ export function sortDatasets(content, sortFn) {
     if (!sortFn || !(sortFn instanceof Function)) {
         sortFn = sortByNameAsc;
     }
-    const itemsSort = function(node1: Node, node2: Node) {
+    const itemsSort = function (node1: Node, node2: Node) {
         if ((node1.isTrack && node2.isTrack) || (node1.isProject && node2.isProject)) {
             return sortFn(node1, node2);
         } else if (node1.isProject) {
@@ -93,7 +93,7 @@ export function sortDatasets(content, sortFn) {
             return 1;
         }
     };
-    const fn = function(item) {
+    const fn = function (item) {
         if (item instanceof Array) {
             item.sort(itemsSort).forEach(fn);
         } else {
@@ -106,8 +106,8 @@ export function sortDatasets(content, sortFn) {
                 if (items) {
                     items.sort(itemsSort);
                     items
-                      .filter(child => child.isProject)
-                      .forEach(fn);
+                        .filter(child => child.isProject)
+                        .forEach(fn);
                 }
             }
         }
@@ -174,7 +174,7 @@ export function selectRecursively(item: Node, isSelected) {
     }
 }
 
-export function mapTrackFn(track: Node){
+export function mapTrackFn(track: Node) {
     return {
         bioDataItemId: track.name,
         projectId: track.projectId,
@@ -265,7 +265,7 @@ export function getGenomeFilter(genome) {
             return true;
         };
     } else {
-        return function (node:Node) {
+        return function (node: Node) {
             return !node.reference || node.reference.name.toLowerCase() === genome.toLowerCase();
         };
     }
@@ -308,14 +308,27 @@ export function search(pattern, items: Array<Node>) {
 export function toPlainList(items, namingService, ident = 0) {
     const result = [];
     if (items && items.length) {
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            item.ident = ident;
+        const sortedItems = items.map(item => {
             if (!item.isProject && namingService.nameChanged(item)) {
                 item.modifiedName = namingService.getCustomName(item);
             } else {
                 item.modifiedName = undefined;
             }
+            return item;
+        }).sort((a, b) => {
+            const aName = (a.modifiedName || a.displayName || '').toLowerCase();
+            const bName = (b.modifiedName || b.displayName || '').toLowerCase();
+            if (aName > bName) {
+                return 1;
+            }
+            if (aName < bName) {
+                return -1;
+            }
+            return 0;
+        });
+        for (let i = 0; i < sortedItems.length; i++) {
+            const item = sortedItems[i];
+            item.ident = ident;
             result.push(item);
             if (item.isProject && item.__expanded) {
                 result.push(...toPlainList(item.items, namingService, ident + 1));
