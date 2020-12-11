@@ -316,8 +316,8 @@ export function toPlainList(items, namingService, ident = 0) {
             }
             return item;
         }).sort((a, b) => {
-            const aName = a.modifiedName || a.displayName;
-            const bName = b.modifiedName || b.displayName;
+            const aName = (a.modifiedName || a.displayName || '').toLowerCase();
+            const bName = (b.modifiedName || b.displayName || '').toLowerCase();
             if (aName > bName) {
                 return 1;
             }
