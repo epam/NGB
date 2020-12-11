@@ -233,6 +233,14 @@ export default class ngbTrackController {
         });
     }
 
+    truncate (o) {
+        let result = o || '';
+        if (result.length > MAX_TRACK_NAME_LENGTH) {
+            result = `${result.substring(0, MAX_TRACK_NAME_LENGTH)}...`;
+        }
+        return result;
+    }
+
     get customName() {
         return this.trackNamingService.getCustomName(this.track);
     }
