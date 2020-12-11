@@ -128,7 +128,7 @@ export default class WIGArea{
             axis.endFill();
             this._area.addChild(axis);
             if (divider.value !== 0) {
-                let value = coordinateSystem.isLogScale ? Math.pow(10, divider.value)  : divider.value;
+                const value = coordinateSystem.isLogScale ? Math.pow(10, divider.value)  : divider.value;
                 const label = new PIXI.Text(value, {font: '30px'});
                 label.resolution = drawingConfiguration.resolution;
                 label.x = 0;

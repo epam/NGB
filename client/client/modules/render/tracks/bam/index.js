@@ -129,19 +129,18 @@ export class BAMTrack extends ScrollableTrack {
     static afterStateMutatorFn = (tracks, key) => {
         if (key === 'coverage>scale>manual') {
             const getCoverageExtremum = (track) => {
-                let max = 0;
-                let min = 0;
-                if (
-                    track.cacheService &&
+                let max = track.state.coverageScaleTo;
+                let min = track.state.coverageScaleFrom;
+                const hasRealValues = track.cacheService &&
                     track.cacheService.cache &&
                     track.cacheService.cache.coverage &&
-                    track.cacheService.cache.coverage.coordinateSystem
-                ) {
+                    track.cacheService.cache.coverage.coordinateSystem;
+                const isNone = o => o === undefined || o === null;
+                if (isNone(max) && hasRealValues) {
                     max = track.cacheService.cache.coverage.coordinateSystem.realMaximum;
+                }
+                if (isNone(min) && hasRealValues) {
                     min = track.cacheService.cache.coverage.coordinateSystem.realMinimum;
-                } else {
-                    min = track.state.coverageScaleFrom;
-                    max = track.state.coverageScaleTo;
                 }
                 return {max, min};
             };

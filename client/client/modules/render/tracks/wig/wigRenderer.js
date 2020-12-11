@@ -365,8 +365,11 @@ export default class WIGRenderer extends CachedTrackRenderer {
         }
         return Math.round(
             this.height -
-                (this.height * (value - coordinateSystem.minimum)) /
-                    (coordinateSystem.maximum - coordinateSystem.minimum),
+                Math.max(
+                    0,
+                    (this.height * (value - coordinateSystem.minimum)) /
+                    (coordinateSystem.maximum - coordinateSystem.minimum)
+                )
         );
     }
 

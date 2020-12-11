@@ -1,5 +1,5 @@
 <md-menu
-        dnd-nodrag=""
+        dnd-nodrag
         style="white-space: nowrap"
         ng-repeat="field in ctrl.settings track by field.label"
         collapsible-menu-item="field"
@@ -54,7 +54,7 @@
         </div>
     </md-menu-content>
 </md-menu>
-<md-menu ng-if="ctrl.hiddenSettings.length > 0">
+<md-menu dnd-nodrag ng-if="ctrl.hiddenSettings.length > 0">
     <md-button aria-label="Menu"
                class="md-icon-button track-hidden-settings-button"
                ng-click="$mdOpenMenu()"

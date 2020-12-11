@@ -53,14 +53,16 @@ export class WIGTrack extends CachedTrack {
     static afterStateMutatorFn = (tracks, key) => {
         if (key === 'coverage>scale>manual') {
             const getCoverageExtremum = (track) => {
-                let max = 0;
-                let min = 0;
-                if (track.cache && track.cache.coordinateSystem) {
+                let max = track.state.coverageScaleTo;
+                let min = track.state.coverageScaleFrom;
+                const hasRealValues = track.cache &&
+                    track.cache.coordinateSystem;
+                const isNone = o => o === undefined || o === null;
+                if (isNone(max) && hasRealValues) {
                     max = track.cache.coordinateSystem.realMaximum;
+                }
+                if (isNone(min) && hasRealValues) {
                     min = track.cache.coordinateSystem.realMinimum;
-                } else {
-                    min = track.state.coverageScaleFrom;
-                    max = track.state.coverageScaleTo;
                 }
                 return {max, min};
             };
