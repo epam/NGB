@@ -168,8 +168,10 @@ export default class ngbTrackController {
 
         const trackColorsChangedHandler = (state) => {
             if (
-                /^(wig|bam)$/i.test(this.track.format) &&
-                (state.data.applyToWIGTracks || (state.sources || []).indexOf(this.track.name) >= 0)
+                (state.sources || []).indexOf(this.track.name) >= 0 ||
+                (state.data.applyToAllTracks && /^(wig|bam)$/i.test(this.track.format)) ||
+                (state.data.applyToAlignmentTracks && /^bam$/i.test(this.track.format)) ||
+                (state.data.applyToWIGTracks && /^wig$/i.test(this.track.format))
             ) {
                 this.trackInstance.colorSettingsChanged(state);
             }

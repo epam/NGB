@@ -1,7 +1,10 @@
 import controller from './ngbWigColorPreference.controller';
 
 export default function run($mdDialog, dispatcher) {
-    const displayWigColorSettingsCallback = ({config, sources})=> {
+    const displayWigColorSettingsCallback = ({config, options, sources})=> {
+        const {
+            group = false
+        } = options || {};
         if ((sources || []).length > 0) {
             $mdDialog.show({
                 clickOutsideToClose: true,
@@ -9,6 +12,7 @@ export default function run($mdDialog, dispatcher) {
                 controllerAs: 'ctrl',
                 locals: {
                     defaults: config.defaults,
+                    group,
                     settings: config.settings,
                     sources,
                 },

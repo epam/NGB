@@ -6,12 +6,13 @@ export default class ngbWigColorPreferenceController {
         return 'ngbWigColorPreferenceController';
     }
 
-    constructor($scope, $mdDialog, dispatcher, settings, defaults, sources) {
+    constructor($scope, $mdDialog, dispatcher, settings, defaults, sources, group) {
         Object.assign(this, {
             $mdDialog,
             $scope,
             defaults,
             dispatcher,
+            group,
             settings,
             sources,
         });
@@ -23,7 +24,9 @@ export default class ngbWigColorPreferenceController {
         };
         this.settings = this.preprocessColors(settings);
         this.prevSettings = Object.assign({}, this.settings);
-        this.applyToWIGTracks = (sources || []).length > 1;
+        this.applyToAllTracks = false;
+        this.applyToAlignmentTracks = false;
+        this.applyToWIGTracks = false;
     }
 
     convertDecimalToHex(decimal) {
@@ -62,6 +65,8 @@ export default class ngbWigColorPreferenceController {
         this.dispatcher.emitSimpleEvent('wig:color:configure:done', {
             cancel: false,
             data: {
+                applyToAlignmentTracks: this.applyToAlignmentTracks,
+                applyToAllTracks: this.applyToAllTracks,
                 applyToWIGTracks: this.applyToWIGTracks,
                 settings: this.postprocessColors(this.settings),
             },

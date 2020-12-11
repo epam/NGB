@@ -1,43 +1,64 @@
 <md-dialog aria-label="track color settings">
-  <md-toolbar>
-      <div class="md-toolbar-tools">
-          <h2 ng-hide="name">Color configuration</h2>
-          <span flex></span>
-          <md-button class="md-icon-button" ng-click="ctrl.close()" aria-label="Close">
-              <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
-          </md-button>
-      </div>
-  </md-toolbar>
-  <md-dialog-content>
-    <div layout="row" class="content-wrapper">
-      <div class="color-preference-wrapper">
-        <div class="label">Positive values:</div>
-        <color-picker options="ctrl.pickerOptions" ng-cloak ng-model="ctrl.settings.positive"></color-picker>
-      </div>
-      <div class="color-preference-wrapper">
-        <div class="label">Negative values:</div>
-        <color-picker options="ctrl.pickerOptions" ng-cloak ng-model="ctrl.settings.negative"></color-picker>
-      </div>
-      <div class="color-preference-controls">
-        <md-checkbox
-                flex aria-label="apply to all coverage tracks"
-                ng-model="ctrl.applyToWIGTracks"
-                ng-disabled="ctrl.sources.length > 1"
-        >
-            Apply to all tracks
-        </md-checkbox>
-      </div>
-    </div>
-  </md-dialog-content>
-  <md-dialog-actions layout="row">
-      <md-button aria-label="apply defaults" ng-click="ctrl.resetToDefaults()" style="margin-right: auto;" class="md-primary">
-          Reset to defaults
-      </md-button>
-      <md-button aria-label="save" ng-click="ctrl.save()" class="md-primary">
-          Save
-      </md-button>
-      <md-button aria-label="cancel" ng-click="ctrl.close()">
-          Cancel
-      </md-button>
-  </md-dialog-actions>
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2 ng-hide="name">Color configuration</h2>
+            <span flex></span>
+            <md-button class="md-icon-button" ng-click="ctrl.close()" aria-label="Close">
+                <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    <md-dialog-content>
+        <div layout="row" class="content-wrapper">
+            <div class="color-preference-wrapper">
+                <div class="label">Positive values:</div>
+                <color-picker options="ctrl.pickerOptions" ng-cloak ng-model="ctrl.settings.positive"></color-picker>
+            </div>
+            <div class="color-preference-wrapper">
+                <div class="label">Negative values:</div>
+                <color-picker options="ctrl.pickerOptions" ng-cloak ng-model="ctrl.settings.negative"></color-picker>
+            </div>
+            <div class="color-preference-controls" style="margin-top: 15px">
+                <md-checkbox
+                        flex aria-label="apply to all coverage tracks"
+                        ng-model="ctrl.applyToAllTracks"
+                        ng-if="!ctrl.group"
+                >
+                    Apply to all tracks
+                </md-checkbox>
+            </div>
+            <div class="color-preference-controls">
+                <md-checkbox
+                        flex aria-label="apply to all coverage tracks"
+                        ng-model="ctrl.applyToAlignmentTracks"
+                        ng-if="!ctrl.group"
+                        ng-disabled="ctrl.applyToAllTracks"
+                >
+                    Apply to all alignment tracks
+                </md-checkbox>
+            </div>
+            <div class="color-preference-controls">
+                <md-checkbox
+                        flex aria-label="apply to all coverage tracks"
+                        ng-model="ctrl.applyToWIGTracks"
+                        ng-if="!ctrl.group"
+                        ng-disabled="ctrl.applyToAllTracks"
+                >
+                    Apply to all WIG tracks
+                </md-checkbox>
+            </div>
+        </div>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+        <md-button aria-label="apply defaults" ng-click="ctrl.resetToDefaults()" style="margin-right: auto;"
+                   class="md-primary">
+            Reset to defaults
+        </md-button>
+        <md-button aria-label="save" ng-click="ctrl.save()" class="md-primary">
+            Save
+        </md-button>
+        <md-button aria-label="cancel" ng-click="ctrl.close()">
+            Cancel
+        </md-button>
+    </md-dialog-actions>
 </md-dialog>

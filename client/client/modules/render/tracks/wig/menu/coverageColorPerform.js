@@ -23,7 +23,7 @@ function reduce (result, current) {
     };
 }
 
-export default function coverageColorPerform (tracks) {
+export default function coverageColorPerform (tracks, options) {
     const [dispatcher] = (tracks || [])
         .map(track => track.config.dispatcher)
         .filter(Boolean);
@@ -53,6 +53,7 @@ export default function coverageColorPerform (tracks) {
         };
         dispatcher.emitSimpleEvent('wig:color:configure', {
             config,
+            options,
             sources: (tracks || []).map(track => track.config.name)
         });
     }
