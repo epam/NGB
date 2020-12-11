@@ -6,13 +6,14 @@ export default class ngbBedColorPreferenceController {
         return 'ngbBedColorPreferenceController';
     }
 
-    constructor($scope, $mdDialog, dispatcher, color, defaultColor, sources) {
+    constructor($scope, $mdDialog, dispatcher, color, defaultColor, sources, options) {
         Object.assign(this, {
             $mdDialog,
             $scope,
+            color,
             defaultColor,
             dispatcher,
-            color,
+            options,
             sources,
         });
         this.pickerOptions = {
@@ -22,7 +23,7 @@ export default class ngbBedColorPreferenceController {
             swatchOnly: true,
         };
         this.color = this.preprocessColor(color);
-        this.applyToAllTracks = (sources || []).length > 1;
+        this.applyToAllTracks = false;
     }
 
     convertDecimalToHex(decimal) {

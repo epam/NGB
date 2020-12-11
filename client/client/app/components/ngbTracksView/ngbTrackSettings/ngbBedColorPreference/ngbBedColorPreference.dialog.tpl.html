@@ -18,7 +18,7 @@
           <md-checkbox
                   flex aria-label="apply to all coverage tracks"
                   ng-model="ctrl.applyToAllTracks"
-                  ng-disabled="ctrl.sources.length > 1"
+                  ng-if="!ctrl.options.group"
           >
               Apply to all BED tracks
           </md-checkbox>
