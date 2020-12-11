@@ -1,7 +1,7 @@
 import controller from './ngbBedColorPreference.controller';
 
 export default function run($mdDialog, dispatcher) {
-    const displayBedColorSettingsCallback = ({ config, sources, options, types }) => {
+    const displayBedColorSettingsCallback = ({ config, sources }) => {
         if ((sources || []).length > 0) {
             const {
                 color,

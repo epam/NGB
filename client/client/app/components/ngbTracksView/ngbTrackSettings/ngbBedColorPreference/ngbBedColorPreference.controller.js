@@ -1,7 +1,7 @@
 const RADIX = 16;
 
 export default class ngbBedColorPreferenceController {
-
+    
     static get UID() {
         return 'ngbBedColorPreferenceController';
     }
@@ -43,7 +43,21 @@ export default class ngbBedColorPreferenceController {
             : color;
     }
 
+    postprocessColors(color = {}) {
+        return typeof color === 'string' && color.charAt(0) === '#'
+            ? this.convertHexToDecimal(color)
+            : color;
+    }
+
     save() {
+        this.dispatcher.emitSimpleEvent('track:color:configure:done', {
+            cancel: false,
+            data: {
+                applyToAllTracks: this.applyToAllTracks,
+                settings: this.postprocessColors(this.color),
+            },
+            sources: this.sources,
+        });
         this.$mdDialog.hide();
     }
 

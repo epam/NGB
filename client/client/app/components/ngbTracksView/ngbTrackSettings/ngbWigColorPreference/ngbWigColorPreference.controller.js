@@ -59,7 +59,7 @@ export default class ngbWigColorPreferenceController {
     }
 
     save() {
-        this.dispatcher.emitSimpleEvent('wig:color:configure:done', {
+        this.dispatcher.emitSimpleEvent('track:color:configure:done', {
             cancel: false,
             data: {
                 applyToWIGTracks: this.applyToWIGTracks,

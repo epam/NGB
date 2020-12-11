@@ -354,12 +354,15 @@ export class Track extends BaseTrack {
             this.requestRenderRefresh();
         }
     }
-
-    colorSettingsChanged(state) {
-        if (state.cancel) {
-            this.state.wigColors = {};
+    colorSettingsChanged(state, format) {
+        if (format === 'BED') {
+            state.cancel
+                ? this.state.color = {}
+                : this.state.color = state.data.settings;
         } else {
-            this.state.wigColors = state.data.settings;
+            state.cancel
+                ? this.state.wigColors = {}
+                : this.state.wigColors = state.data.settings;
         }
         this._flags.dataChanged = true;
         this.reportTrackState();
