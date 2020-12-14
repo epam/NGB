@@ -43,11 +43,17 @@
                                 ng-if="node.modifiedName && $ctrl.searchLength && node.modifiedNameSearchInfo && node.modifiedNameSearchInfo.passed"
                                 class="dataset-track-title-search"
                         >
+                            <md-tooltip md-direction="top">
+                                {{node.modifiedName}}
+                            </md-tooltip>
                             <span>{{node.modifiedNameSearchInfo.pre}}</span>
                             <span class="search-result">{{node.modifiedNameSearchInfo.match}}</span>
                             <span>{{node.modifiedNameSearchInfo.post}}</span>
                         </span>
                         <span ng-if="node.modifiedName && (!$ctrl.searchLength || !node.modifiedNameSearchInfo || !node.modifiedNameSearchInfo.passed)">
+                            <md-tooltip md-direction="top">
+                                {{node.modifiedName}}
+                            </md-tooltip>
                             {{node.modifiedName}}
                         </span>
                         <span
@@ -55,6 +61,9 @@
                                 class="dataset-track-title-search"
                                 ng-class="{'file-hint': !!node.modifiedName}"
                         >
+                            <md-tooltip md-direction="top">
+                                {{node.displayName}}
+                            </md-tooltip>
                             <span>{{node.searchInfo.pre}}</span>
                             <span class="search-result">{{node.searchInfo.match}}</span>
                             <span>{{node.searchInfo.post}}</span>
@@ -64,6 +73,9 @@
                           ng-hide="!!node.modifiedName && !$ctrl.showTrackOriginalName"
                           ng-class="{'file-hint': $ctrl.nameIsChanged(node)}"
                         >
+                            <md-tooltip md-direction="top">
+                                {{node.displayName}}
+                            </md-tooltip>
                             {{node.displayName}}
                         </span>
                     </span>
