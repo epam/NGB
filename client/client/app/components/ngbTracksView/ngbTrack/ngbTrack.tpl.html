@@ -43,7 +43,7 @@
         >
             {{ctrl.truncate(ctrl.customName || ctrl.trackName)}}
             <md-tooltip md-direction="top">
-                {{ctrl.trackName}}
+                {{ctrl.customName || ctrl.trackName}}
             </md-tooltip>
         </div>
         <div
@@ -148,7 +148,7 @@
         >
             {{ctrl.truncate(ctrl.customName || ctrl.trackName)}}
             <md-tooltip md-direction="top">
-                {{ctrl.trackName}}
+                {{ctrl.customName || ctrl.trackName}}
             </md-tooltip>
         </div>
         <div class="buttons-menu-track" dnd-nodrag>
