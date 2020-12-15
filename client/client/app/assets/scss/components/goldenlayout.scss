@@ -143,20 +143,21 @@ ngb-golden-layout {
     background-position: center center;
     background-repeat: no-repeat;
     position: relative;
+    margin-top: 3px;
+  }
+
+  .lm_controls > li button {
     opacity: 0.4;
-    z-index: 3;
     filter: alpha(opacity=40);
     -webkit-transition: opacity 300ms ease;
     -o-transition: opacity 300ms ease;
     -ms-transition: opacity 300ms ease;
     -moz-transition: opacity 300ms ease;
     transition: opacity 300ms ease;
-    margin-top: 3px;
   }
 
-  .lm_controls > li:hover {
+  .lm_controls > li:hover button {
     opacity: 1;
-    z-index: 4;
     filter: alpha(opacity=100);
   }
 
