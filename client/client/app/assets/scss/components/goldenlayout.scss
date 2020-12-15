@@ -144,6 +144,7 @@ ngb-golden-layout {
     background-repeat: no-repeat;
     position: relative;
     opacity: 0.4;
+    z-index: 3;
     filter: alpha(opacity=40);
     -webkit-transition: opacity 300ms ease;
     -o-transition: opacity 300ms ease;
@@ -155,6 +156,7 @@ ngb-golden-layout {
 
   .lm_controls > li:hover {
     opacity: 1;
+    z-index: 4;
     filter: alpha(opacity=100);
   }
 

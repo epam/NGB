@@ -1,23 +1,32 @@
-<md-menu>
-    <md-button aria-label="Tracks selection"
-               class="md-icon-button tracks-selection-button"
-               style="width: auto; padding-left: 7px"
-               ng-click="$ctrl.openMenu($mdOpenMenu, $event);">
-        <ng-md-icon icon="playlist_add_check" size="20"></ng-md-icon>
-    </md-button>
-    <md-menu-content width="4" class="tracks-selection-menu" md-whiteframe="4">
-        <md-checkbox
-                     aria-label="select all"
+<div class="tracks-selection-container">
+    <div class="overlay"
+         ng-class="{'overlay-visible': $ctrl.menuIsOpen}"
+         ng-click="$ctrl.closeMenu($event)"
+    >
+    </div>
+    <button class="tracks-selection-button"
+            ng-click="$ctrl.menuIsOpen ? $ctrl.closeMenu($event) : $ctrl.openMenu($event)"
+            aria-label="Tracks selection"
+            style="width: auto; padding-left: 7px"
+    >
+        <ng-md-icon icon="playlist_add_check"
+                    size="20"
+        ></ng-md-icon>
+    </button>
+    <div class="tracks-selection-content md-whiteframe-z2"
+         ng-class="{'content-visible': $ctrl.menuIsOpen}"
+    >
+        <md-checkbox aria-label="select all"
                      ng-model="$ctrl.allSelected"
         >
             Select All
         </md-checkbox>
         <md-divider></md-divider>
-        <md-checkbox ng-repeat="o in $ctrl.tracks track by $ctrl.trackHash(o.track)"
-                     aria-label="o.track.name"
+        <md-checkbox aria-label="o.track.name"
                      ng-if="o.track.format !== 'REFERENCE'"
                      ng-model="o.selected"
                      ng-change="$ctrl.setTrackIsSelected(o.track)"
+                     ng-repeat="o in $ctrl.tracks track by $ctrl.trackHash(o.track)"
         >
             <span ng-if="$ctrl.getCustomName(o.track)"
                   class="custom-name"
@@ -31,5 +40,5 @@
                 {{o.track.name}}
             </span>
         </md-checkbox>
-    </md-menu-content>
-</md-menu>
+    </div>
+</div>
