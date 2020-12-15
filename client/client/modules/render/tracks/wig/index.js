@@ -33,6 +33,9 @@ export class WIGTrack extends CachedTrack {
             shouldReportTrackState = false;
         } else if (key === 'coverage>scale>group-auto-scale') {
             shouldReportTrackState = true;
+            if (track.cache && track.cache.originalData) {
+                track.cache.data = track._wigTransformer.transform(track.cache.originalData, track.viewport);
+            }
         } else if (currentScaleMode !== track.state.coverageScaleMode) {
             track._flags.dataChanged = true;
             track.state.coverageScaleFrom = undefined;
@@ -169,11 +172,11 @@ export class WIGTrack extends CachedTrack {
             this.trackDataLoadingStatusChanged(false);
         }
         if (reqToken === this.__currentDataUpdateReq) {
-            const transformedData = this._wigTransformer.transform(data, this.viewport);
             if (!this.cache) {
                 return false;
             }
-            this.cache.data = transformedData;
+            this.cache.originalData = data;
+            this.cache.data = this._wigTransformer.transform(data, this.viewport);
             return await super.updateCache();
         }
         return false;

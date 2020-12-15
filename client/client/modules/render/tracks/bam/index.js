@@ -82,6 +82,9 @@ export class BAMTrack extends ScrollableTrack {
             shouldReportTracksState = false;
         } else if (key === 'coverage>scale>group-auto-scale') {
             shouldReportTracksState = true;
+            if (track.cacheService) {
+                track.cacheService.transform(track.viewport, track.state);
+            }
         } else if (currentScaleMode !== track.state.coverageScaleMode) {
             track._flags.dataChanged = true;
             track.state.coverageScaleFrom = undefined;
