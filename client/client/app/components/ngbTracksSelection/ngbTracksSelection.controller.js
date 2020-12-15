@@ -29,6 +29,7 @@ export default class ngbTracksSelectionController extends baseController {
         this.scope = $scope;
         this.dispatcher = dispatcher;
         this.showTrackOriginalName = localDataService.getSettings().showTrackOriginalName;
+        this.menuIsOpen = false;
         const reloadTracks = () => {
             this._tracks = (this.projectContext.tracks || []).map(track => ({
                 selected: this.getTrackIsSelected(track),
@@ -50,8 +51,18 @@ export default class ngbTracksSelectionController extends baseController {
         });
     }
 
-    openMenu($mdOpenMenu, $event) {
-        $mdOpenMenu($event);
+    openMenu($event) {
+        if($event) {
+            $event.stopPropagation();
+        }
+        return this.menuIsOpen = true;
+    }
+
+    closeMenu($event) {
+        if($event) {
+            $event.stopPropagation();
+        }
+        return this.menuIsOpen = false;
     }
 
     get tracks() {

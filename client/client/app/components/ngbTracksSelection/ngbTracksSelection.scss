@@ -1,36 +1,95 @@
 ngb-tracks-selection {
-  .md-button.md-icon-button {
-    ng-md-icon {
-      fill: #FFF;
+  .tracks-selection-container {
+    display: flex;
+    height: 100%;
+    position: relative;
+    z-index: 99;
+    transition: all 300ms ease;
+
+    .overlay {
+      display: none;
+
+      &.overlay-visible {
+        display: block;
+        position: fixed;
+        width: 100vw;
+        height: 100vh;
+        cursor: default;
+        top: 0;
+        left: 0;
+      }
+    }
+
+    .tracks-selection-button {
+      padding: 0;
+      margin: 0 3px;
+      z-index: 100;
+      fill: #fff;
+    }
+  }
+
+  .tracks-selection-content {
+    animation: menuFadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    display: none;
+    opacity: 0;
+    position: absolute;
+    top: 25px;
+    padding: 4px;
+    background-color: #ffffff;
+
+    &.content-visible {
+      animation: menuFadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      animation-fill-mode: forwards;  
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+  
+      md-checkbox {
+        animation: menuFadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        animation-fill-mode: forwards;  
+        animation-delay: 0.2s;
+      }
+    }
+
+    md-checkbox {
+      margin: 8px;
+      opacity: 0;
+
+      .md-icon {
+        box-sizing: border-box !important;
+      }
+
+      .md-label {
+        max-width: 350px;
+        font-weight: normal;
+        font-size: 12px;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .custom-name {
+        margin-right: 5px;
+      }
+
+      .file-hint {
+        color: #595959;
+        background-color: #f0f0f0;
+        padding: 1px 5px;
+        border-radius: 5px;
+      }
     }
   }
 }
 
-.tracks-selection-menu {
-  position: absolute;
-  top: 20px;
-  padding: 4px;
-  md-checkbox {
-    margin: 8px;
-    .md-label {
-      max-width: 350px;
-      font-weight: normal;
-      font-size: 12px;
-      display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .custom-name {
-      margin-right: 5px;
-    }
-    .file-hint {
-      color: #595959;
-      background-color: #f0f0f0;
-      padding: 1px 5px;
-      border-radius: 5px;
-    }
+@keyframes menuFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
   }
 }
