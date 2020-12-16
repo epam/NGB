@@ -95,7 +95,10 @@ public class WigProcessor extends AbstractWigProcessor {
                         List<BigSummary> summaries = bigWigFile.summarize(chr, chunkStart, chunkStop, 1, true, null);
                         TFloatList values = new TFloatArrayList();
                         BigSummary bigSummary = summaries.get(0);
-                        values.add((float) bigSummary.getMaxValue());
+                        double value = Math.abs(bigSummary.getMaxValue()) > Math.abs(bigSummary.getMinValue())
+                                ? bigSummary.getMaxValue()
+                                : bigSummary.getMinValue();
+                        values.add((float) value);
                         WigSection wigSection = new FixedStepSection(chr, chunkStart, chunkStop, 1, values);
                         sectionList.add(wigSection);
 
@@ -175,8 +178,11 @@ public class WigProcessor extends AbstractWigProcessor {
         }
         double res = 0.0;
         for (BigSummary summary : summarize) {
-            if (!Double.isNaN(summary.getMaxValue()) && !Double.isInfinite(summary.getMaxValue())) {
-                res += summary.getMaxValue();
+            double value = Math.abs(summary.getMaxValue()) > Math.abs(summary.getMinValue())
+                    ? summary.getMaxValue()
+                    : summary.getMinValue();
+            if (!Double.isNaN(value) && !Double.isInfinite(value)) {
+                res += value;
             }
         }
         return res;

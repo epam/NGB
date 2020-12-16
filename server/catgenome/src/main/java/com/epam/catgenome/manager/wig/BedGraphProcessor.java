@@ -171,7 +171,7 @@ public class BedGraphProcessor extends AbstractWigProcessor {
         while (query.hasNext()) {
             BedGraphFeature bedGraphFeature = query.peek();
             if (bedGraphFeature.getStart() < chunkStop && bedGraphFeature.getEnd() > chunkStart) {
-                score = score < bedGraphFeature.getValue() ? bedGraphFeature.getValue() : score;
+                score = Math.abs(score) < Math.abs(bedGraphFeature.getValue()) ? bedGraphFeature.getValue() : score;
             }
 
             if (chunkStop >= bedGraphFeature.getEnd()) {
