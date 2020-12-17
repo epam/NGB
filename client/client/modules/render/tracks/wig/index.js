@@ -225,7 +225,7 @@ export class WIGTrack extends CachedTrack {
             }
             if (hoveredItem) {
                 const {dataItem} = hoveredItem;
-                this.tooltip.setContent([['Count', Math.ceil(dataItem.value)]]);
+                this.tooltip.setContent([['Count', dataItem.value]]);
                 this.tooltip.move({x, y});
                 this.tooltip.show({x, y});
                 return;

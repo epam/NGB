@@ -3,7 +3,7 @@ import PIXI from 'pixi.js';
 import {Subject} from 'rx';
 import {getRenderer} from '../configuration';
 import menuFactory from './menu';
-import {scaleModes} from '../../tracks/wig/modes';
+import {scaleModes, displayModes} from '../../tracks/wig/modes';
 import tooltipFactory from './tooltip';
 
 const DEBOUNCE_TIMEOUT = 100;
@@ -348,7 +348,8 @@ export class Track extends BaseTrack {
             this.state.coverageScaleFrom = state.data.from;
             this.state.coverageScaleTo = state.data.to;
             this.state.coverageScaleMode = scaleModes.manualScaleMode;
-            this.state.coverageLogScale = state.data.isLogScale;
+            this.state.coverageLogScale = this.state.coverageDisplayMode === displayModes.defaultDisplayMode &&
+                state.data.isLogScale;
             this._flags.dataChanged = true;
             this.reportTrackState();
             this.requestRenderRefresh();
