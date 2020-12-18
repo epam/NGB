@@ -36,7 +36,7 @@ export default class SelectionContext {
                 return false;
             }
         }
-        return true;
+        return tracks.length > 0;
     }
 
     selectAll() {

@@ -63,7 +63,7 @@ const genomeAnnotationsAction = {
 };
 
 const tracksSelectionAction = {
-    isVisible: (context) => context.tracks && context.tracks.length,
+    isVisible: (context) => context.tracks && context.tracks.length && context.currentChromosome,
     liStyle: {
         width: 'auto'
     },
