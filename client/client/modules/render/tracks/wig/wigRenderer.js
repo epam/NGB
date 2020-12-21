@@ -1,5 +1,6 @@
 import { CachedTrackRenderer } from '../../core';
 import PIXI from 'pixi.js';
+import {ColorProcessor} from '../../utilities';
 
 const Math = window.Math;
 const VIEWPORT_PADDING = 0.5;
@@ -48,9 +49,11 @@ export default class WIGRenderer extends CachedTrackRenderer {
                 this.trackState.wigColors
                     ? (this.trackState.wigColors.positive || this._config.wig.positive)
                     : this._config.wig.positive,
-                this.trackState.wigColors
-                    ? (this.trackState.wigColors.positive || this._config.wig.positive)
-                    : this._config.wig.positive,
+                ColorProcessor.darkenColor(
+                    this.trackState.wigColors
+                        ? (this.trackState.wigColors.positive || this._config.wig.positive)
+                        : this._config.wig.positive
+                ),
                 viewport,
                 wig,
                 coordinateSystem,
@@ -64,9 +67,11 @@ export default class WIGRenderer extends CachedTrackRenderer {
                 this.trackState.wigColors
                     ? (this.trackState.wigColors.negative || this._config.wig.negative)
                     : this._config.wig.negative,
-                this.trackState.wigColors
-                    ? (this.trackState.wigColors.negative || this._config.wig.negative)
-                    : this._config.wig.negative,
+                ColorProcessor.darkenColor(
+                    this.trackState.wigColors
+                        ? (this.trackState.wigColors.negative || this._config.wig.negative)
+                        : this._config.wig.negative
+                ),
                 viewport,
                 wig,
                 coordinateSystem,

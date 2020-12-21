@@ -45,8 +45,14 @@ export default class FeatureBaseRenderer{
     analyzeBoundaries(feature, viewport){
         if (feature.hasOwnProperty('startIndex') && feature.hasOwnProperty('endIndex')){
             const pixelsInBp = viewport.factor; // pixels in 1 bp.
-            const x1 = Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize) - pixelsInBp / 2;
-            const x2 = Math.min(viewport.project.brushBP2pixel(feature.endIndex), 2 * viewport.canvasSize) + pixelsInBp / 2;
+            const x1 = Math.min(
+                Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize),
+                2 * viewport.canvasSize
+            ) - pixelsInBp / 2;
+            const x2 = Math.max(
+                Math.min(viewport.project.brushBP2pixel(feature.endIndex), 2 * viewport.canvasSize),
+                -viewport.canvasSize
+            ) + pixelsInBp / 2;
             return {
                 margin:{
                     marginX: 0,
