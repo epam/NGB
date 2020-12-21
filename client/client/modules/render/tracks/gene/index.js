@@ -355,6 +355,7 @@ export class GENETrack extends CachedTrack {
                 if (!this.cache) {
                     return false;
                 }
+                delete this.cache.data;
                 this.cache.data = downloadedData;
                 return await super.updateCache(this.viewport);
             }
