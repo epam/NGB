@@ -19,7 +19,7 @@
                        ng-auto-focus>
             </md-input-container>
             <a class="chromosome-link" ng-if="!$ctrl.isChromosomeEditingMode"
-               ng-click="$ctrl.startEdit('chromosome', $event)">{{$ctrl.chromosomeText ? ($ctrl.chromosomeText.toLowerCase().indexOf('chr') === 0 ? $ctrl.chromosomeText : ('Chr:' + $ctrl.chromosomeText)) : 'Chr:none'}}</a>
+               ng-mousedown="$ctrl.startEdit('chromosome', $event)">{{$ctrl.chromosomeText ? ($ctrl.chromosomeText.toLowerCase().indexOf('chr') === 0 ? $ctrl.chromosomeText : ('Chr:' + $ctrl.chromosomeText)) : 'Chr:none'}}</a>
         </div>
         <div class="coordinates-block">
             <md-input-container aria-label="chromosome selection" class="md-block" md-no-float
@@ -36,7 +36,7 @@
                        ng-auto-focus>
             </md-input-container>
             <a class="coordinates-link" ng-if="!$ctrl.isCoordinatesEditingMode"
-               ng-click="$ctrl.startEdit('coordinates', $event)">{{$ctrl.coordinatesText || 'Type coordinates'}}</a>
+               ng-mousedown="$ctrl.startEdit('coordinates', $event)">{{$ctrl.coordinatesText || 'Type coordinates'}}</a>
         </div>
     </div>
     <md-virtual-repeat-container flex
