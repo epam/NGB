@@ -81,7 +81,12 @@ export default class ngbCoordinatesController extends baseController {
         }
     }
 
-    startEdit(mode) {
+    startEdit(mode, e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+        }
         if (!this.isEnabled) {
             return;
         }
