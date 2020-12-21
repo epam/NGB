@@ -41,6 +41,13 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
         super.render(viewport, cache, forseRedraw, _gffShowNumbersAminoacid, _showCenterLine);
     }
 
+    correctCanvasXPosition (position, viewport) {
+        return Math.max(
+            Math.min(position, 2.0 * viewport.canvasSize),
+            -viewport.canvasSize
+        );
+    }
+
     _changeNucleotidesReferenceGraph(viewport, items, isReverse) {
         const height = this.height;
         const heightBlock = this._config.nucleotidesHeight;
@@ -69,10 +76,12 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
             if (viewport.isShortenedIntronsMode && !viewport.shortenedIntronsViewport.checkFeature(item))
                 continue;
             let startX = Math.round(this.correctedXPosition(item.xStart) - padding);
-            const endX = Math.round(this.correctedXPosition(item.xEnd) + padding);
+            let endX = Math.round(this.correctedXPosition(item.xEnd) + padding);
             if (pixelsPerBp >= this._config.largeScale.separateBarsAfterBp && prevX !== null && prevX === startX) {
                 startX++;
             }
+            startX = this.correctCanvasXPosition(startX, viewport);
+            endX = this.correctCanvasXPosition(endX, viewport);
             block.beginFill(this._config.largeScale[item.value.toUpperCase()], 1);
             block.moveTo(startX, isReverse ? startY + lowScaleMarginOffset : startY - lowScaleMarginOffset);
             if (this.isRenderingStartsAtMiddle) {
@@ -96,7 +105,10 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
             if (pixelsPerBp >= this._config.largeScale.labelDisplayAfterPixelsPerBp) {
                 const label = new PIXI.Text(item.value, this._config.largeScale.labelStyle);
                 label.resolution = drawingConfiguration.resolution;
-                label.x = Math.round(this.correctedXPosition(item.xStart) - label.width / 2.0);
+                label.x = this.correctCanvasXPosition(
+                    Math.round(this.correctedXPosition(item.xStart) - label.width / 2.0),
+                    viewport
+                );
                 label.y = Math.round(isReverse ? startY - heightBlock / 2.0 - label.height / 2.0 : startY + heightBlock / 2.0 - label.height / 2.0 - 1);
 
                 this.dataContainer.addChild(label);
@@ -112,12 +124,15 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
                 continue;
             const color = this._gradientColor(item.value);
             const position = {
-                x: this.correctedXPosition(item.xStart),
+                x: this.correctCanvasXPosition(this.correctedXPosition(item.xStart), viewport),
                 y: 0
             };
             const size = {
                 height: this.height,
-                width: Math.max(this.correctedXMeasureValue(item.xEnd - item.xStart), 1)
+                width: Math.min(
+                    Math.max(this.correctedXMeasureValue(item.xEnd - item.xStart), 1),
+                    3.0 * viewport.canvasSize
+                )
             };
 
             block.beginFill(color.color, color.alpha);
@@ -182,8 +197,8 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
 
                 if (viewport.isShortenedIntronsMode && !viewport.shortenedIntronsViewport.checkFeature(item))
                     continue;
-                let startX = Math.round(this.correctedXPosition(item.xStart) - padding);
-                const endX = Math.round(this.correctedXPosition(item.xEnd) + padding);
+                const startX = this.correctCanvasXPosition(Math.round(this.correctedXPosition(item.xStart) - padding), viewport);
+                const endX = this.correctCanvasXPosition(Math.round(this.correctedXPosition(item.xEnd) + padding), viewport);
 
                 block.beginFill(fill, 1).lineStyle(0, fill, 0);
                 block.moveTo(startX, isReverse ? startY + lowScaleMarginOffset : startY - lowScaleMarginOffset);
@@ -220,7 +235,10 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
                     }
                     label.resolution = drawingConfiguration.resolution;
 
-                    label.x = Math.round(this.correctedXPosition(item.xStart) + (item.xEnd - item.xStart) / 2.0 - label.width / 2.0);
+                    label.x = this.correctCanvasXPosition(
+                        Math.round(this.correctedXPosition(item.xStart) + (item.xEnd - item.xStart) / 2.0 - label.width / 2.0),
+                        viewport
+                    );
                     label.y = Math.round(isReverse ? startY + heightBlock / 2.0 - labelPadding : startY - heightBlock / 2.0 - labelPadding - 1);
                     this.dataContainer.addChild(label);
                 }
