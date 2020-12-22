@@ -13,7 +13,7 @@ export default {
         labelDisplayAfterPixelsPerBp: 10,
         labelStyle: {
             fill: 0xFFFFFF,
-            font: '24px'
+            font: '8pt'
         },
         separateBarsAfterBp: 5
     },
