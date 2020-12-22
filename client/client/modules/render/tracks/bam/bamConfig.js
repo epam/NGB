@@ -214,7 +214,9 @@ export default {
                     lineColor: 0xe69696,
                     detailedStyleStartingAtPixelsPerBP: Infinity,
                     thresholdColor: 0xe69696,
-                    lineThresholdColor: 0xe69696
+                    lineThresholdColor: 0xe69696,
+                    negative: 0xff4d4f,
+                    positive: 0x92AEE7
                 }
             },
             height: 150,
