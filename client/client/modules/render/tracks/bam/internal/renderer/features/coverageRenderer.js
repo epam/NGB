@@ -37,8 +37,14 @@ export class CoverageRenderer extends WIGRenderer {
                             const percentage = (value - baseAxis) / (point.dataValue - baseAxis);
                             const y1 = Math.round(Math.min(this.height - 1, min + (max - min) * (percentage + prevPercentage))) - .5;
                             const y2 = Math.round(Math.min(this.height - 1, min + (max - min) * prevPercentage)) + .5;
-                            const x1 = Math.round(viewport.project.brushBP2pixel(point.startIndex - 0.5) + padding);
-                            const x2 = Math.round(viewport.project.brushBP2pixel(point.endIndex + 0.5) - padding);
+                            const x1 = this.correctCanvasXPosition(
+                                Math.round(viewport.project.brushBP2pixel(point.startIndex - 0.5) + padding),
+                                viewport
+                            );
+                            const x2 = this.correctCanvasXPosition(
+                                Math.round(viewport.project.brushBP2pixel(point.endIndex + 0.5) - padding),
+                                viewport
+                            );
                             block.beginFill(color, 1);
                             block.lineStyle(1, color, 1);
                             block.moveTo(x1 + .5, y2);

@@ -92,13 +92,6 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
         super.render(viewport, cache, forseRedraw, _gffShowNumbersAminoacid, _showCenterLine);
     }
 
-    correctCanvasXPosition (position, viewport) {
-        return Math.max(
-            Math.min(position, 2.0 * viewport.canvasSize),
-            -viewport.canvasSize
-        );
-    }
-
     _changeNucleotidesReferenceGraph(viewport, items, isReverse) {
         const height = this.height;
         const heightBlock = this._config.nucleotidesHeight;
