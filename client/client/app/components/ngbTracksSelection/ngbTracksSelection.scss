@@ -76,22 +76,20 @@ ngb-tracks-selection {
       .track-badge {
         border-radius: 3px;
         box-sizing: border-box;
-        height: 20px;
-        border: 2px solid #777777;
-        min-width: 30px;
-        font-size: x-small;
+        border: 1px solid #777777;
+        font-size: xx-small;
         background-color: #ffffff;
         text-align: center;
         align-self: center;
         margin-right: 5px;
-        padding: 0 3px;
+        padding: 1px 2px;
         display: flex;
         justify-content: center;
         align-items: center;
 
         &.selected {
           background-color: #d8efdd;
-          border: 2px solid darken(#d8efdd, 30%);
+          border: 1px solid darken(#d8efdd, 30%);
         }
       }
 
