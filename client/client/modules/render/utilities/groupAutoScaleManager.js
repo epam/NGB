@@ -126,7 +126,6 @@ class GroupAutoScaleManager {
                     groupTrack.state.coverageScaleMode = scaleModes.defaultScaleMode;
                     groupTrack.state.groupAutoScale = undefined;
                     groupTrack._flags.dataChanged = true;
-                    groupTrack.requestRender();
                     groupTrack.reportTrackState();
                 });
                 this.removeGroup(group);
@@ -136,7 +135,6 @@ class GroupAutoScaleManager {
                 groupTracks.forEach((groupTrack) => {
                     groupTrack.state.groupAutoScale = newGroupName;
                     groupTrack._flags.dataChanged = true;
-                    groupTrack.requestRender();
                     groupTrack.reportTrackState();
                 });
                 this.detachTrackData(newGroupName);
@@ -144,17 +142,13 @@ class GroupAutoScaleManager {
         }
         track.state.groupAutoScale = undefined;
         track._flags.dataChanged = true;
-        track.requestRender();
     }
 
     reportTrackDataChangedForGroup(group) {
         const groupTracks = (this.projectContext.trackInstances || [])
             .filter(t => t && t.state && t.state.groupAutoScale === group);
         if (groupTracks.length > 0) {
-            groupTracks.forEach(track => {
-                track._flags.dataChanged = true;
-                track.requestRender();
-            });
+            groupTracks.forEach(track => track._flags.dataChanged = true);
         }
     }
 }
