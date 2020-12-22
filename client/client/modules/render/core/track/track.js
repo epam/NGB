@@ -123,6 +123,10 @@ export class Track extends BaseTrack {
         }
     }
 
+    requestRender() {
+        requestAnimationFrame(::this.tick);
+    }
+
     requestAnimation() {
         if (this._animating) {
             return;

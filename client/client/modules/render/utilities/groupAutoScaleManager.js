@@ -1,16 +1,55 @@
 import {scaleModes} from '../tracks/wig/modes';
 
 class GroupAutoScaleManager {
-    static instance (projectContext) {
-        return new GroupAutoScaleManager(projectContext);
+    static instance (projectContext, dispatcher) {
+        return new GroupAutoScaleManager(projectContext, dispatcher);
     }
 
     projectContext;
     groups = [];
 
-    constructor(projectContext) {
+    constructor(projectContext, dispatcher) {
         this.projectContext = projectContext;
+        dispatcher.on('tracks:state:change', this.correctAutoScaleGroups);
+        dispatcher.on('chromosome:change', this.correctAutoScaleGroups);
+        this.correctAutoScaleGroups();
     }
+
+    correctAutoScaleGroups = () => {
+        const tracksState = this.projectContext.tracksState || [];
+        const groups = [
+            ...(new Set(
+                (tracksState || [])
+                    .map(t => t.state ? t.state.groupAutoScale : undefined)
+                    .filter(Boolean)
+                )
+            )
+        ];
+        let changed = false;
+        for (let g = 0; g < groups.length; g++) {
+            const group = groups[g];
+            const groupTracks = tracksState.filter(t => t.state && t.state.groupAutoScale === group);
+            if (groupTracks.length < 2) {
+                groupTracks.forEach(t => {
+                    t.state.coverageScaleMode = scaleModes.defaultScaleMode;
+                    t.state.groupAutoScale = undefined;
+                });
+                changed = true;
+                const groupTracksInstances = (this.projectContext.trackInstances || [])
+                    .filter(t => t.state.groupAutoScale === group);
+                groupTracksInstances.forEach((groupTrack) => {
+                    groupTrack.state.coverageScaleMode = scaleModes.defaultScaleMode;
+                    groupTrack.state.groupAutoScale = undefined;
+                    groupTrack._flags.dataChanged = true;
+                    groupTrack.requestRender();
+                });
+                this.removeGroup(group);
+            }
+        }
+        if (changed) {
+            this.projectContext.changeState({tracksState});
+        }
+    };
 
     removeGroup(name) {
         const [group] = this.groups.filter(g => g.name === name);
@@ -87,6 +126,7 @@ class GroupAutoScaleManager {
                     groupTrack.state.coverageScaleMode = scaleModes.defaultScaleMode;
                     groupTrack.state.groupAutoScale = undefined;
                     groupTrack._flags.dataChanged = true;
+                    groupTrack.requestRender();
                     groupTrack.reportTrackState();
                 });
                 this.removeGroup(group);
@@ -96,6 +136,7 @@ class GroupAutoScaleManager {
                 groupTracks.forEach((groupTrack) => {
                     groupTrack.state.groupAutoScale = newGroupName;
                     groupTrack._flags.dataChanged = true;
+                    groupTrack.requestRender();
                     groupTrack.reportTrackState();
                 });
                 this.detachTrackData(newGroupName);
@@ -103,13 +144,17 @@ class GroupAutoScaleManager {
         }
         track.state.groupAutoScale = undefined;
         track._flags.dataChanged = true;
+        track.requestRender();
     }
 
     reportTrackDataChangedForGroup(group) {
         const groupTracks = (this.projectContext.trackInstances || [])
             .filter(t => t && t.state && t.state.groupAutoScale === group);
         if (groupTracks.length > 0) {
-            groupTracks.forEach(track => track._flags.dataChanged = true);
+            groupTracks.forEach(track => {
+                track._flags.dataChanged = true;
+                track.requestRender();
+            });
         }
     }
 }
