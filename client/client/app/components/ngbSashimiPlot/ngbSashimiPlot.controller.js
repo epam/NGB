@@ -30,12 +30,14 @@ export default class ngbSashimiPlotController extends baseController{
         sashimi: true
     };
 
-    constructor($scope, $element, projectContext, dispatcher) {
+    constructor($scope, $element, projectContext, dispatcher, localDataService, trackNamingService) {
         super(dispatcher);
         this.$scope = $scope;
         this.domElement = $element[0];
         this.projectContext = projectContext;
         this.dispatcher = dispatcher;
+        this.localDataService = localDataService;
+        this.trackNamingService = trackNamingService;
         this.refreshTracksScope = () => $scope.$apply();
 
         (async() => {
@@ -168,7 +170,10 @@ export default class ngbSashimiPlotController extends baseController{
                     Math.floor(this.viewport.brush.end),
                     getFormattedDate()
                 ].join('_'),
-                () => [this.rulerTrack, ...this.bamTracks.map(t => t.track), ...this.geneTracks]);
+                () => [this.rulerTrack, ...this.bamTracks.map(t => t.track), ...this.geneTracks],
+                track => this.trackNamingService.getCustomName(track),
+                () => this.localDataService.getSettings().showTrackOriginalName
+            );
 
         this.renderable = true;
     }

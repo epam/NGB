@@ -4,10 +4,14 @@ import PIXI from 'pixi.js';
 export default class ngbTracksViewBookmarkCamera {
     getTitle;
     getTracks;
+    getTrackTitle;
+    showOriginalName;
 
-    constructor(getTitle, getTracks) {
+    constructor(getTitle, getTracks, getTrackTitle, showOriginalName) {
         this.getTitle = getTitle;
         this.getTracks = getTracks;
+        this.getTrackTitle = getTrackTitle;
+        this.showOriginalName = showOriginalName;
     }
 
     saveBrowserView() {
@@ -21,11 +25,12 @@ export default class ngbTracksViewBookmarkCamera {
                             const imgData = track.instance.getImageData();
                             if (imgData) {
                                 return {
-                                    'name': track.name,
+                                    'customName': this.getTrackTitle ? this.getTrackTitle(track) : undefined,
                                     'format': track.format,
-                                    'width': element.clientWidth * drawingConfiguration.scale,
                                     'height': element.clientHeight * drawingConfiguration.scale,
-                                    'img': imgData
+                                    'img': imgData,
+                                    'name': track.name,
+                                    'width': element.clientWidth * drawingConfiguration.scale
                                 };
                             }
                             return null;
@@ -46,15 +51,22 @@ export default class ngbTracksViewBookmarkCamera {
             const ctx = canvas.getContext('2d');
 
             let y = 0;
+            const margin = 5;
             data.forEach(x => {
                 if (x.name) {
-                    y += 15;
                     ctx.fillStyle = '#000000';
-                    ctx.fillText(`${x.format} ${x.name}`, 0, y);
+                    ctx.font = '17pt arial';
+                    const name = x.customName || x.name;
+                    const additional = x.customName && this.showOriginalName() ? ` (${x.name})` : '';
+                    const text = `${x.format} ${name}${additional}`;
+                    const {fontBoundingBoxAscent = 0, fontBoundingBoxDescent = 0} = ctx.measureText(text);
+                    y += Math.max(15, fontBoundingBoxAscent + fontBoundingBoxDescent) + margin;
+                    ctx.fillText(text, 0, y);
+                    y += margin;
                 }
                 if (x.img) {
                     ctx.drawImage(x.img, 0, y);
-                    y += x.height;
+                    y += x.height + margin;
                 }
             });
 
