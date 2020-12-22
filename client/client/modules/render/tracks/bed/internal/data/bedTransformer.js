@@ -65,8 +65,8 @@ export class BEDTransformer extends GeneTransformer {
                         if (featuresCoordinates.indexOf(bedItem.startIndex + bedItem.blockStarts[i]) === -1) {
                             featuresCoordinates.push(bedItem.startIndex + bedItem.blockStarts[i]);
                         }
-                        if (featuresCoordinates.indexOf(bedItem.startIndex + bedItem.blockStarts[i] + bedItem.blockSizes[i]) === -1) {
-                            featuresCoordinates.push(bedItem.startIndex + bedItem.blockStarts[i] + bedItem.blockSizes[i]);
+                        if (featuresCoordinates.indexOf(bedItem.startIndex + bedItem.blockStarts[i] + bedItem.blockSizes[i] - 1) === -1) {
+                            featuresCoordinates.push(bedItem.startIndex + bedItem.blockStarts[i] + bedItem.blockSizes[i] - 1);
                         }
                     }
 
@@ -83,7 +83,7 @@ export class BEDTransformer extends GeneTransformer {
                             isEmpty: true
                         };
                         for (let j = 0; j < bedItem.blockStarts.length; j++) {
-                            if (item.startIndex >= bedItem.startIndex + bedItem.blockStarts[j] && item.endIndex <= bedItem.startIndex + bedItem.blockStarts[j] + bedItem.blockSizes[j]) {
+                            if (item.startIndex >= bedItem.startIndex + bedItem.blockStarts[j] && item.endIndex <= bedItem.startIndex + bedItem.blockStarts[j] + bedItem.blockSizes[j] - 1) {
                                 item.isEmpty = false;
                                 item.index = j;
                                 break;
