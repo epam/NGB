@@ -145,7 +145,8 @@ After the track is renamed, you can see the new name and the original one near i
 - in the **Selection** menu:  
   ![NGB GUI](images/tracks-26.png)
 
-The behavior (whether to show the original name) is being controlled via separate global NGB setting.
+The behavior (whether to show the original name) is being controlled via separate global NGB setting:  
+  ![NGB GUI](images/tracks-40.png)
 
 **_Note_**: once the track is renamed - the new name will be stored in the session. So the next time the track is loaded – the settings are restored.
 
@@ -160,7 +161,7 @@ For that:
   ![NGB GUI](images/tracks-27.png)
 2. In the appeared list, click the **Resize** item:  
   ![NGB GUI](images/tracks-28.png)
-3. In the popup, specify the height of the track in pixels and confirm, e.g.:
+3. In the popup, specify the height of the track in pixels and confirm, e.g.:  
   ![NGB GUI](images/tracks-29.png)
 4. The track will be resized according to the set height:  
   ![NGB GUI](images/tracks-30.png)
@@ -184,7 +185,7 @@ For that:
   ![NGB GUI](images/tracks-27.png)
 2. In the appeared list, click the **Font size** item:  
   ![NGB GUI](images/tracks-35.png)
-3. In the popup, specify the font size (in `px`) for the track label and confirm, e.g.:
+3. In the popup, specify the font size (in `px`) for the track label and confirm, e.g.:  
   ![NGB GUI](images/tracks-36.png)
 4. The track label font size will be changed according to the set value:  
   ![NGB GUI](images/tracks-37.png)

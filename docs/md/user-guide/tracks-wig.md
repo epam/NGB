@@ -132,7 +132,7 @@ To customize colors of the `BigWig` track:
     If you wish to apply changed color scheme for all `BigWig` tracks in the browser - return at step 3 and set the "**Apply to all WIG tracks**" checkbox.  
 
 Also, you can manage the colors for a group of selected `BigWig` tracks. For that, use the **General** -> **Color** items in the [floating menu](tracks.md#tracks-selection) of selected tracks:  
-    ![NGB GUI](images/tracks-wig-30.png)
+    ![NGB GUI](images/tracks-wig-30.png)  
 In such case, the set color scheme will be applied only to selected tracks:  
     ![NGB GUI](images/tracks-wig-31.png)  
     ![NGB GUI](images/tracks-wig-32.png)

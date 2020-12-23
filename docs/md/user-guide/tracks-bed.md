@@ -30,7 +30,7 @@ To customize colors of the `BED` track:
 7. If you wish to apply changed color scheme for all `BED` tracks in the browser - return at step 3 and set the "**Apply to all BED tracks**" checkbox.  
 
 Also, you can manage the colors for a group of selected `BED` tracks. For that, use the **General** -> **Color** items in the [floating menu](tracks.md#tracks-selection) of selected tracks:  
-    ![NGB GUI](images/tracks-bed-7.png)
+    ![NGB GUI](images/tracks-bed-7.png)  
 In such case, the set color scheme will be applied to all selected `BED` tracks:  
     ![NGB GUI](images/tracks-bed-8.png)  
     ![NGB GUI](images/tracks-bed-9.png)
