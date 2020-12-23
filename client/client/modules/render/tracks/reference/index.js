@@ -10,11 +10,12 @@ import Menu from '../../core/menu';
 
 export class REFERENCETrack extends CachedTrack {
 
-    _referenceRenderer = new ReferenceRenderer(this.trackConfig);
+    _referenceRenderer;
     dataService;
 
     constructor(opts) {
         super(opts);
+        this._referenceRenderer = new ReferenceRenderer(this.trackConfig, this._pixiRenderer);
         this.dataService = new GenomeDataService(opts.dispatcher);
         this.dispatcher = opts.dispatcher;
     }

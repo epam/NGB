@@ -127,11 +127,13 @@ export default class InteractiveTrack extends Track {
     }
 
     _onClick(event) {
+        const x = event.offsetX;
+        const y = event.offsetY;
         if (!this._isDoubleClick && !this._dragged) {
             const self = this;
             const handler = function () {
                 if (!self._isDoubleClick)
-                    self.onClick({x: event.offsetX, y: event.offsetY});
+                    self.onClick({x, y});
             };
             setTimeout(handler, DOUBLE_CLICK_TIMEOUT);
         }

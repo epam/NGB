@@ -78,6 +78,13 @@ export default class CachedTrackRenderer{
         return (x + this._drawScope.translateFactor) * this._drawScope.scaleFactor;
     }
 
+    correctCanvasXPosition (position, viewport) {
+        return Math.max(
+            Math.min(position, 2.0 * viewport.canvasSize),
+            -viewport.canvasSize
+        );
+    }
+
     correctedXMeasureValue(measure){
         return measure * this._drawScope.scaleFactor;
     }

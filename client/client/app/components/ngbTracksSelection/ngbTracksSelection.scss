@@ -34,8 +34,12 @@ ngb-tracks-selection {
     opacity: 0;
     position: absolute;
     top: 25px;
-    padding: 4px;
+    padding: 8px 10px;
     background-color: #ffffff;
+    min-width: 300px;
+    max-width: 400px;
+    white-space: nowrap;
+    overflow-x: scroll;
 
     &.content-visible {
       animation: menuFadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -52,7 +56,7 @@ ngb-tracks-selection {
     }
 
     md-checkbox {
-      margin: 8px;
+      margin: 6px 3px;
       opacity: 0;
 
       .md-icon {
@@ -60,19 +64,38 @@ ngb-tracks-selection {
       }
 
       .md-label {
-        max-width: 350px;
+        margin-left: 22px;
         font-weight: normal;
         font-size: 12px;
         display: flex;
         flex-direction: row;
-        flex-wrap: wrap;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        align-items: center;
+        flex-wrap: nowrap;
+      }
+
+      .track-badge {
+        border-radius: 3px;
+        box-sizing: border-box;
+        border: 1px solid #777777;
+        font-size: xx-small;
+        background-color: #ffffff;
+        text-align: center;
+        align-self: center;
+        margin-right: 5px;
+        padding: 1px 2px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        &.selected {
+          background-color: #d8efdd;
+          border: 1px solid darken(#d8efdd, 30%);
+        }
       }
 
       .custom-name {
         margin-right: 5px;
+        white-space: nowrap;
       }
 
       .file-hint {
@@ -80,6 +103,7 @@ ngb-tracks-selection {
         background-color: #f0f0f0;
         padding: 1px 5px;
         border-radius: 5px;
+        white-space: nowrap;
       }
     }
   }

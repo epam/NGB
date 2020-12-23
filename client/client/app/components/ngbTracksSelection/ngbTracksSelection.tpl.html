@@ -28,14 +28,19 @@
                      ng-change="$ctrl.setTrackIsSelected(o.track)"
                      ng-repeat="o in $ctrl.tracks track by $ctrl.trackHash(o.track)"
         >
+            <span ng-if="o.track.format"
+                  class="track-badge"
+                  ng-class="{selected: o.selected}"
+            >
+                {{o.track.format.toUpperCase()}}
+            </span>
             <span ng-if="$ctrl.getCustomName(o.track)"
                   class="custom-name"
             >
                 {{$ctrl.getCustomName(o.track)}}
             </span>
-            <span
-                    ng-class="{'file-hint': $ctrl.getCustomName(o.track)}"
-                    ng-hide="!!$ctrl.getCustomName(o.track) && !$ctrl.showTrackOriginalName"
+            <span ng-class="{'file-hint': $ctrl.getCustomName(o.track)}"
+                  ng-hide="!!$ctrl.getCustomName(o.track) && !$ctrl.showTrackOriginalName"
             >
                 {{o.track.name}}
             </span>

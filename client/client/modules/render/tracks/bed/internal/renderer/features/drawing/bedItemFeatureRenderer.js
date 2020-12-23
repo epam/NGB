@@ -101,22 +101,26 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
             if (block.isEmpty) {
                 graphics.beginFill(color, 0);
                 graphics.lineStyle(1, color, 1);
-                graphics.moveTo(Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2,
-                    -viewport.canvasSize), position.y + this.config.bed.margin + this.config.bed.height / 2);
-                graphics.lineTo(Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2,
-                    2 * viewport.canvasSize), position.y + this.config.bed.margin + this.config.bed.height / 2);
+                const x1 = Math.min(
+                    Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2, -viewport.canvasSize),
+                    2.0 * viewport.canvasSize
+                );
+                const x2 = Math.max(
+                    Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2, 2 * viewport.canvasSize),
+                    -viewport.canvasSize
+                );
+                graphics.moveTo(x1, position.y + this.config.bed.margin + this.config.bed.height / 2);
+                graphics.lineTo(x2, position.y + this.config.bed.margin + this.config.bed.height / 2);
                 graphics.endFill();
 
                 hoveredGraphics.beginFill(ColorProcessor.darkenColor(color), 0);
                 hoveredGraphics.lineStyle(1, ColorProcessor.darkenColor(color), 1);
-                hoveredGraphics.moveTo(Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2,
-                    -viewport.canvasSize), position.y + this.config.bed.margin + this.config.bed.height / 2);
-                hoveredGraphics.lineTo(Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2,
-                    2 * viewport.canvasSize), position.y + this.config.bed.margin + this.config.bed.height / 2);
+                hoveredGraphics.moveTo(x1, position.y + this.config.bed.margin + this.config.bed.height / 2);
+                hoveredGraphics.lineTo(x2, position.y + this.config.bed.margin + this.config.bed.height / 2);
                 hoveredGraphics.endFill();
                 this.updateTextureCoordinates(
                     {
-                        x: Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2, -viewport.canvasSize),
+                        x: x1,
                         y: position.y + this.config.bed.margin + this.config.bed.height / 2
                     });
                 if (block.hasOwnProperty('strand')) {
@@ -125,11 +129,8 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
                         {
                             centerY: position.y + this.config.bed.margin + this.config.bed.height / 2,
                             height: this.config.bed.height,
-                            width: Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2
-                                - Math.max(viewport.project.brushBP2pixel(block.startIndex), -viewport.canvasSize),
-                                maxViewportsOnScreen * viewport.canvasSize),
-                            x: Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2,
-                                -viewport.canvasSize)
+                            width: Math.min(x2 - x1, maxViewportsOnScreen * viewport.canvasSize),
+                            x: x1
                         },
                         graphics,
                         color,
@@ -142,11 +143,8 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
                         {
                             centerY: position.y + this.config.bed.margin + this.config.bed.height / 2,
                             height: this.config.bed.height,
-                            width: Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2
-                                - Math.max(viewport.project.brushBP2pixel(block.startIndex), -viewport.canvasSize),
-                                maxViewportsOnScreen * viewport.canvasSize),
-                            x: Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2,
-                                -viewport.canvasSize)
+                            width: Math.min(x2 - x1, maxViewportsOnScreen * viewport.canvasSize),
+                            x: x1
                         },
                         hoveredGraphics,
                         ColorProcessor.darkenColor(color),
@@ -159,8 +157,14 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
             else {
                 graphics.beginFill(color, 1);
                 graphics.lineStyle(0, color, 0);
-                const start = Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2, -viewport.canvasSize);
-                const end = Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2, 2 * viewport.canvasSize);
+                const start = Math.min(
+                    Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2, -viewport.canvasSize),
+                    2.0 * viewport.canvasSize
+                );
+                const end = Math.max(
+                    Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2, 2 * viewport.canvasSize),
+                    -viewport.canvasSize
+                );
                 graphics.drawRect(
                     start,
                     position.y + this.config.bed.margin,
@@ -190,11 +194,8 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
                         {
                             centerY: position.y + this.config.bed.margin + this.config.bed.height / 2,
                             height: this.config.bed.height,
-                            width: Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2
-                                - Math.max(viewport.project.brushBP2pixel(block.startIndex), -viewport.canvasSize),
-                                maxViewportsOnScreen * viewport.canvasSize),
-                            x: Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2,
-                                -viewport.canvasSize)
+                            width: Math.min(end - start, maxViewportsOnScreen * viewport.canvasSize),
+                            x: start
                         },
                         graphics,
                         white,
@@ -207,11 +208,8 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
                         {
                             centerY: position.y + this.config.bed.margin + this.config.bed.height / 2,
                             height: this.config.bed.height,
-                            width: Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2
-                                - Math.max(viewport.project.brushBP2pixel(block.startIndex), -viewport.canvasSize),
-                                maxViewportsOnScreen * viewport.canvasSize),
-                            x: Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2,
-                                -viewport.canvasSize)
+                            width: Math.min(end - start, maxViewportsOnScreen * viewport.canvasSize),
+                            x: start
                         },
                         hoveredGraphics,
                         white,

@@ -1,5 +1,6 @@
 import { CachedTrackRenderer } from '../../core';
 import PIXI from 'pixi.js';
+import {ColorProcessor} from '../../utilities';
 
 const Math = window.Math;
 const VIEWPORT_PADDING = 0.5;
@@ -48,9 +49,11 @@ export default class WIGRenderer extends CachedTrackRenderer {
                 this.trackState.wigColors
                     ? (this.trackState.wigColors.positive || this._config.wig.positive)
                     : this._config.wig.positive,
-                this.trackState.wigColors
-                    ? (this.trackState.wigColors.positive || this._config.wig.positive)
-                    : this._config.wig.positive,
+                ColorProcessor.darkenColor(
+                    this.trackState.wigColors
+                        ? (this.trackState.wigColors.positive || this._config.wig.positive)
+                        : this._config.wig.positive
+                ),
                 viewport,
                 wig,
                 coordinateSystem,
@@ -64,9 +67,11 @@ export default class WIGRenderer extends CachedTrackRenderer {
                 this.trackState.wigColors
                     ? (this.trackState.wigColors.negative || this._config.wig.negative)
                     : this._config.wig.negative,
-                this.trackState.wigColors
-                    ? (this.trackState.wigColors.negative || this._config.wig.negative)
-                    : this._config.wig.negative,
+                ColorProcessor.darkenColor(
+                    this.trackState.wigColors
+                        ? (this.trackState.wigColors.negative || this._config.wig.negative)
+                        : this._config.wig.negative
+                ),
                 viewport,
                 wig,
                 coordinateSystem,
@@ -199,12 +204,17 @@ export default class WIGRenderer extends CachedTrackRenderer {
                     (wig.isDetailed &&
                         pixelsPerBp >= this._config.wig.detailedStyleStartingAtPixelsPerBP)
                 ) {
-                    const startX1 = Math.round(
-                        viewport.project.brushBP2pixel(start.startIndex - VIEWPORT_PADDING) +
-                            padding,
+                    const startX1 = this.correctCanvasXPosition(
+                        Math.round(
+                            viewport.project.brushBP2pixel(start.startIndex - VIEWPORT_PADDING) + padding
+                        ),
+                        viewport
                     );
-                    let startX2 = Math.round(
-                        viewport.project.brushBP2pixel(start.endIndex + VIEWPORT_PADDING) - padding,
+                    let startX2 = this.correctCanvasXPosition(
+                        Math.round(
+                            viewport.project.brushBP2pixel(start.endIndex + VIEWPORT_PADDING) - padding
+                        ),
+                        viewport
                     );
 
                     if (startX1 === startX2) {
@@ -230,13 +240,17 @@ export default class WIGRenderer extends CachedTrackRenderer {
                     for (let j = 1; j < item.points.length; j++) {
                         count++;
                         const point = item.points[j];
-                        let startX = Math.round(
-                            viewport.project.brushBP2pixel(point.startIndex - VIEWPORT_PADDING) +
-                                padding,
+                        let startX = this.correctCanvasXPosition(
+                            Math.round(
+                                viewport.project.brushBP2pixel(point.startIndex - VIEWPORT_PADDING) + padding
+                            ),
+                            viewport
                         );
-                        const endX = Math.round(
-                            viewport.project.brushBP2pixel(point.endIndex + VIEWPORT_PADDING) -
-                                padding,
+                        const endX = this.correctCanvasXPosition(
+                            Math.round(
+                                viewport.project.brushBP2pixel(point.endIndex + VIEWPORT_PADDING) - padding
+                            ),
+                            viewport
                         );
                         if (startX === prevX) {
                             startX++;
@@ -260,12 +274,17 @@ export default class WIGRenderer extends CachedTrackRenderer {
 
                     block.lineTo(startX1, this._getYValue(wig.baseAxis, coordinateSystem));
                 } else {
-                    const startX1 = Math.round(
-                        viewport.project.brushBP2pixel(start.startIndex - VIEWPORT_PADDING) +
-                            padding,
+                    const startX1 = this.correctCanvasXPosition(
+                        Math.round(
+                            viewport.project.brushBP2pixel(start.startIndex - VIEWPORT_PADDING) + padding
+                        ),
+                        viewport
                     );
-                    const startX2 = Math.round(
-                        viewport.project.brushBP2pixel(start.endIndex + VIEWPORT_PADDING) - padding,
+                    const startX2 = this.correctCanvasXPosition(
+                        Math.round(
+                            viewport.project.brushBP2pixel(start.endIndex + VIEWPORT_PADDING) - padding
+                        ),
+                        viewport
                     );
 
                     block.moveTo(startX1, this._getYValue(wig.baseAxis, coordinateSystem));
@@ -292,13 +311,17 @@ export default class WIGRenderer extends CachedTrackRenderer {
                     for (let j = 1; j < item.points.length; j++) {
                         count++;
                         const point = item.points[j];
-                        const x1 = Math.round(
-                            viewport.project.brushBP2pixel(point.startIndex - VIEWPORT_PADDING) +
-                                padding,
+                        const x1 = this.correctCanvasXPosition(
+                            Math.round(
+                                viewport.project.brushBP2pixel(point.startIndex - VIEWPORT_PADDING) + padding
+                            ),
+                            viewport
                         );
-                        const x2 = Math.round(
-                            viewport.project.brushBP2pixel(point.endIndex + VIEWPORT_PADDING) -
-                                padding,
+                        const x2 = this.correctCanvasXPosition(
+                            Math.round(
+                                viewport.project.brushBP2pixel(point.endIndex + VIEWPORT_PADDING) - padding
+                            ),
+                            viewport
                         );
                         block.lineTo(x1, this._getYValue(point.dataValue, coordinateSystem));
                         block.lineTo(x2, this._getYValue(point.dataValue, coordinateSystem));
@@ -314,8 +337,9 @@ export default class WIGRenderer extends CachedTrackRenderer {
                     }
 
                     const end = item.points[item.points.length - 1];
-                    const endX = Math.round(
-                        viewport.project.brushBP2pixel(end.endIndex + VIEWPORT_PADDING) - padding,
+                    const endX = this.correctCanvasXPosition(
+                        Math.round(viewport.project.brushBP2pixel(end.endIndex + VIEWPORT_PADDING) - padding),
+                        viewport
                     );
                     block.lineTo(endX, this._getYValue(wig.baseAxis, coordinateSystem));
                     block.lineTo(startX1, this._getYValue(wig.baseAxis, coordinateSystem));
@@ -344,11 +368,13 @@ export default class WIGRenderer extends CachedTrackRenderer {
                 const point = item.points[ii];
                 const percent = this._getPercentValue(point.dataValue, coordinateSystem);
                 if (percent > 0) {
-                    const x1 = Math.round(
-                        viewport.project.brushBP2pixel(point.startIndex - VIEWPORT_PADDING),
+                    const x1 = this.correctCanvasXPosition(
+                        Math.round(viewport.project.brushBP2pixel(point.startIndex - VIEWPORT_PADDING)),
+                        viewport
                     );
-                    const x2 = Math.round(
-                        viewport.project.brushBP2pixel(point.endIndex + VIEWPORT_PADDING),
+                    const x2 = this.correctCanvasXPosition(
+                        Math.round(viewport.project.brushBP2pixel(point.endIndex + VIEWPORT_PADDING)),
+                        viewport
                     );
                     block.beginFill(color, percent);
                     block.drawRect(Math.min(x1, x2), 0, Math.abs(x2 - x1), this.height);

@@ -70,6 +70,21 @@ export default class ngbProjectSummaryController {
                 });
             }
         }
+        files.forEach(f => {
+            f.names.sort((a, b) => {
+                const {customName: aCustomName, name: aName} = a;
+                const {customName: bCustomName, name: bName} = b;
+                const aDisplayName = aCustomName || aName;
+                const bDisplayName = bCustomName || bName;
+                if (aDisplayName > bDisplayName) {
+                    return 1;
+                }
+                if (aDisplayName < bDisplayName) {
+                    return -1;
+                }
+                return 0;
+            });
+        });
         this.files = files;
     }
 

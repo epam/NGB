@@ -37,7 +37,9 @@ export default {
             lineColor: 0xA2ABAF,
             detailedStyleStartingAtPixelsPerBP: 7.5,
             thresholdColor: 0xFAA3A3,
-            lineThresholdColor: 0xF87272
+            lineThresholdColor: 0xF87272,
+            negative: 0xff4d4f,
+            positive: 0x92AEE7
         }
     },
     downSampling:{
@@ -212,7 +214,9 @@ export default {
                     lineColor: 0xe69696,
                     detailedStyleStartingAtPixelsPerBP: Infinity,
                     thresholdColor: 0xe69696,
-                    lineThresholdColor: 0xe69696
+                    lineThresholdColor: 0xe69696,
+                    negative: 0xff4d4f,
+                    positive: 0x92AEE7
                 }
             },
             height: 150,

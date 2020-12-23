@@ -27,6 +27,7 @@ export default class ngbTracksViewController extends baseController {
     dispatcher;
     projectContext;
     selectionContext;
+    trackNamingService;
 
     static get UID() {
         return 'ngbTracksViewController';
@@ -41,7 +42,8 @@ export default class ngbTracksViewController extends baseController {
         vcfDataService,
         dispatcher,
         projectContext,
-        selectionContext
+        selectionContext,
+        trackNamingService
     ) {
         super();
 
@@ -54,7 +56,8 @@ export default class ngbTracksViewController extends baseController {
             projectContext,
             projectDataService,
             vcfDataService,
-            selectionContext
+            selectionContext,
+            trackNamingService
         });
 
         this.domElement = this.$element[0];
@@ -206,7 +209,10 @@ export default class ngbTracksViewController extends baseController {
                     Math.floor(this.viewport.brush.end),
                     getFormattedDate()
                 ].join('_'),
-                () => [this.rulerTrack, ...this.tracks]);
+                () => [this.rulerTrack, ...this.tracks],
+                track => this.trackNamingService.getCustomName(track),
+                () => this.localDataService.getSettings().showTrackOriginalName
+            );
 
         this.renderable = true;
     }

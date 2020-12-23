@@ -31,6 +31,28 @@ export class BEDTrack extends GENETrack {
         this._actions = null;
     }
 
+    cacheUpdateParameters(viewport) {
+        const params = super.cacheUpdateParameters(viewport);
+        let extraFactor = 1;
+        const kb = 1000;
+        const mb = 1000 * kb;
+        if (viewport.brushSize > 20 * mb) {
+            extraFactor = viewport.brushSize / mb;
+        } else if (viewport.brushSize > 500 * kb) {
+            extraFactor = 20;
+        } else if (viewport.brushSize > 5 * kb) {
+            extraFactor = 10;
+        }
+        const mapParams = p => ({
+            ...p,
+            scaleFactor: p.scaleFactor / extraFactor
+        });
+        if (Array.isArray(params)) {
+            return params.map(mapParams);
+        }
+        return mapParams(params);
+    }
+
     getSettings() {
         if (this._menu) {
             return this._menu;
