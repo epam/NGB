@@ -161,22 +161,25 @@ export class BamRenderer {
     }
 
     get alignmentsRowHeight() {
-        switch (this._state.readsViewMode) {
-            case readsViewTypes.readsViewCollapsed:
-                return 1;
-            case readsViewTypes.readsViewExpanded:
-                return this._config.yScale;
-            case readsViewTypes.readsViewAutomatic: {
-                const x1 = 1 / CAN_SHOW_DETAILS_FACTOR;
-                const x2 = 1 / this._noDataScaleFactor;
-                const x = 1 / this._viewport.factor;
-                const scale = (x2 - x) / (x2 - x1);
-
-                return Math.max(1, Math.floor(1 + (this._config.yScale - 1) * scale));
+        if (this._state) {
+            switch (this._state.readsViewMode) {
+                case readsViewTypes.readsViewCollapsed:
+                    return 1;
+                case readsViewTypes.readsViewExpanded:
+                    return this._config.yScale;
+                case readsViewTypes.readsViewAutomatic: {
+                    const x1 = 1 / CAN_SHOW_DETAILS_FACTOR;
+                    const x2 = 1 / this._noDataScaleFactor;
+                    const x = 1 / this._viewport.factor;
+                    const scale = (x2 - x) / (x2 - x1);
+    
+                    return Math.max(1, Math.floor(1 + (this._config.yScale - 1) * scale));
+                }
+                default:
+                    return this._config.yScale;
             }
-            default:
-                return this._config.yScale;
         }
+        return this._config.yScale;
     }
 
     constructor(viewport, config, renderer, cacheService, opts) {

@@ -3,8 +3,11 @@ ngb-tracks-selection {
     display: flex;
     height: 100%;
     position: relative;
-    z-index: 99;
     transition: all 300ms ease;
+
+    &.overlay-visible {
+      z-index: 99;
+    }
 
     .overlay {
       display: none;
@@ -23,7 +26,6 @@ ngb-tracks-selection {
     .tracks-selection-button {
       padding: 0;
       margin: 0 3px;
-      z-index: 100;
       fill: #fff;
     }
   }

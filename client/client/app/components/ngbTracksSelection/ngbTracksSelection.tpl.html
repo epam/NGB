@@ -1,4 +1,6 @@
-<div class="tracks-selection-container">
+<div class="tracks-selection-container"
+     ng-class="{'overlay-visible': $ctrl.menuIsOpen}"
+>
     <div class="overlay"
          ng-class="{'overlay-visible': $ctrl.menuIsOpen}"
          ng-click="$ctrl.closeMenu($event)"
