@@ -74,8 +74,8 @@ export default class ngbProjectSummaryController {
             f.names.sort((a, b) => {
                 const {customName: aCustomName, name: aName} = a;
                 const {customName: bCustomName, name: bName} = b;
-                const aDisplayName = aCustomName || aName;
-                const bDisplayName = bCustomName || bName;
+                const aDisplayName = (aCustomName || aName).toLowerCase();
+                const bDisplayName = (bCustomName || bName).toLowerCase();
                 if (aDisplayName > bDisplayName) {
                     return 1;
                 }
