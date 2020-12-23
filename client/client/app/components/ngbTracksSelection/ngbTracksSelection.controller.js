@@ -49,6 +49,7 @@ export default class ngbTracksSelectionController extends baseController {
             dispatcher.removeListener(SelectionEvents.changed, reloadTracks);
             dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
         });
+        reloadTracks();
     }
 
     openMenu($event) {
