@@ -41,7 +41,7 @@ ngb-tracks-selection {
     min-width: 300px;
     max-width: 400px;
     white-space: nowrap;
-    overflow-x: scroll;
+    overflow-x: hidden;
 
     &.content-visible {
       animation: menuFadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -54,11 +54,18 @@ ngb-tracks-selection {
         animation: menuFadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         animation-fill-mode: forwards;  
         animation-delay: 0.2s;
+        transition: background-color 0.15s ease;
+
+        &:hover {
+          background-color: #f4f4f4;
+        }
       }
     }
 
     md-checkbox {
-      margin: 6px 3px;
+      margin: 2px 3px 1px 3px;
+      padding-top: 4px;
+      padding-bottom: 4px;
       opacity: 0;
 
       .md-icon {
@@ -96,16 +103,26 @@ ngb-tracks-selection {
       }
 
       .custom-name {
+        width: 100%;
+        max-width: min-content;
         margin-right: 5px;
         white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
       }
 
-      .file-hint {
-        color: #595959;
-        background-color: #f0f0f0;
-        padding: 1px 5px;
-        border-radius: 5px;
+      .original-name {
         white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+
+        &.file-hint {
+          min-width: 50px;
+          color: #595959;
+          background-color: #f0f0f0;
+          padding: 1px 5px;
+          border-radius: 5px;
+        }
       }
     }
   }
