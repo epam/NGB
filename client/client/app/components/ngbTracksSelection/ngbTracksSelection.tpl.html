@@ -40,11 +40,18 @@
                   class="custom-name"
             >
                 {{$ctrl.getCustomName(o.track)}}
+                <md-tooltip md-direction="top">
+                  {{$ctrl.getCustomName(o.track)}}
+                </md-tooltip>
             </span>
-            <span ng-class="{'file-hint': $ctrl.getCustomName(o.track)}"
+            <span class="original-name"
+                  ng-class="{'file-hint': $ctrl.getCustomName(o.track)}"
                   ng-hide="!!$ctrl.getCustomName(o.track) && !$ctrl.showTrackOriginalName"
             >
                 {{o.track.name}}
+                <md-tooltip md-direction="top">
+                  {{o.track.name}}
+                </md-tooltip>
             </span>
         </md-checkbox>
     </div>
