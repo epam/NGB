@@ -6,10 +6,11 @@ export default class ngbWigColorPreferenceController {
         return 'ngbWigColorPreferenceController';
     }
 
-    constructor($scope, $mdDialog, dispatcher, settings, defaults, sources, group) {
+    constructor($scope, $mdDialog, dispatcher, settings, defaults, sources, group, browserId) {
         Object.assign(this, {
             $mdDialog,
             $scope,
+            browserId,
             defaults,
             dispatcher,
             group,
@@ -68,6 +69,7 @@ export default class ngbWigColorPreferenceController {
                 applyToAlignmentTracks: this.applyToAlignmentTracks,
                 applyToAllTracks: this.applyToAllTracks,
                 applyToWIGTracks: this.applyToWIGTracks,
+                browserId: this.browserId,
                 settings: this.postprocessColors(this.settings),
             },
             sources: this.sources,

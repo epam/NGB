@@ -2,7 +2,7 @@ import controller from './ngbTrackFontSize.controller';
 
 export default function run($mdDialog, dispatcher) {
     const displayNgbTrackFontSizeCallback = ({sources, config, types, options})=> {
-        const {group = false} = options || {};
+        const {browserId, group = false} = options || {};
         const applyToAllTracksVisible = !group;
         const applyToAllTracksOfTypeVisible = !group;
         $mdDialog.show({
@@ -10,6 +10,7 @@ export default function run($mdDialog, dispatcher) {
             controller: controller.UID,
             controllerAs: 'ctrl',
             locals: {
+                browserId,
                 defaults: config.defaults,
                 options: {
                     applyToAllTracksOfTypeVisible,

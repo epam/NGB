@@ -52,14 +52,17 @@ export default {
                 state.coverageScaleMode = scaleModes.defaultScaleMode;
             },
             enable: (state, tracks, track) => {
-                const groupAutoScale = tracks.map(t => t.config.bioDataItemId.toString()).join('-');
+                const groupAutoScale = [
+                    track.config.browserId || 'default',
+                    ...tracks.map(t => t.config.bioDataItemId.toString())
+                ].join('-');
                 if (
                     state.coverageScaleMode === scaleModes.groupAutoScaleMode &&
                     groupAutoScale !== state.groupAutoScale
                 ) {
                     track.groupAutoScaleManager.unregisterTrack(track);
                 }
-                state.groupAutoScale = tracks.map(t => t.config.bioDataItemId.toString()).join('-');
+                state.groupAutoScale = groupAutoScale;
                 state.coverageScaleMode = scaleModes.groupAutoScaleMode;
                 track._flags.dataChanged = true;
             },

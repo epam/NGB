@@ -92,7 +92,7 @@ export default class ngbTracksViewController extends baseController {
     }
 
     get selectedTracksMenuIsVisible() {
-        return this.selectionContext.selected.length > 1;
+        return this.selectionContext.getSelected(this.browserId).length > 1;
     }
 
     events = {

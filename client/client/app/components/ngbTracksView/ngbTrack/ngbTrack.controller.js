@@ -42,6 +42,7 @@ export default class ngbTrackController {
     minifiedMenuCloseTimeout = null;
 
     trackNameTruncated;
+    browserId;
 
     constructor(
         $scope,
@@ -157,9 +158,15 @@ export default class ngbTrackController {
             self.showTrackOriginalName = state.showTrackOriginalName;
         };
         const trackCoverageSettingsChangedHandler = (state) => {
-            if (!state.cancel && ((state.data.applyToCurrentTrack && state.sources.indexOf(this.track.name) >= 0) ||
-                (state.data.applyToWIGTracks && this.track.format === 'WIG') ||
-                (state.data.applyToBAMTracks && this.track.format === 'BAM'))) {
+            if (
+                !state.cancel &&
+                this.browserId === state.data.browserId &&
+                (
+                    (state.data.applyToCurrentTrack && state.sources.indexOf(this.track.name) >= 0) ||
+                    (state.data.applyToWIGTracks && this.track.format === 'WIG') ||
+                    (state.data.applyToBAMTracks && this.track.format === 'BAM')
+                )
+            ) {
                 this.trackInstance.coverageScaleSettingsChanged(state);
             } else if (state.cancel && state.sources.indexOf(this.track.name) >= 0 && this.trackInstance.trackHasCoverageSubTrack) {
                 this.trackInstance.coverageScaleSettingsChanged(state);
@@ -168,10 +175,13 @@ export default class ngbTrackController {
 
         const trackColorsChangedHandler = state => {
             if (
-                (state.sources || []).indexOf(this.track.name) >= 0 ||
-                (state.data.applyToAllTracks && /^(wig|bam)$/i.test(this.track.format)) ||
-                (state.data.applyToAlignmentTracks && /^bam$/i.test(this.track.format)) ||
-                (state.data.applyToWIGTracks && /^wig$/i.test(this.track.format))
+                this.browserId === state.data.browserId &&
+                (
+                    (state.sources || []).indexOf(this.track.name) >= 0 ||
+                    (state.data.applyToAllTracks && /^(wig|bam)$/i.test(this.track.format)) ||
+                    (state.data.applyToAlignmentTracks && /^bam$/i.test(this.track.format)) ||
+                    (state.data.applyToWIGTracks && /^wig$/i.test(this.track.format))
+                )
             ) {
                 this.trackInstance.colorSettingsChanged(state);
             }
@@ -179,8 +189,11 @@ export default class ngbTrackController {
 
         const bedTrackColorsChangedHandler = state => {
             if (
-                (state.sources || []).indexOf(this.track.name) >= 0 ||
-                (state.data.applyToBEDTracks && /^bed$/i.test(this.track.format))
+                this.browserId === state.data.browserId &&
+                (
+                    (state.sources || []).indexOf(this.track.name) >= 0 ||
+                    (state.data.applyToBEDTracks && /^bed$/i.test(this.track.format))
+                )
             ) {
                 this.trackInstance.colorSettingsChanged(state);
             }
@@ -197,9 +210,12 @@ export default class ngbTrackController {
 
         const trackHeaderStyleChangedHandler = (state) => {
             if (
-                (state.data.applyToAllTracks) ||
-                (state.data.applyToAllTracksOfType && state.data.type === this.track.format) ||
-                state.sources.indexOf(this.track.name) >= 0
+                this.browserId === state.data.browserId &&
+                (
+                    (state.data.applyToAllTracks) ||
+                    (state.data.applyToAllTracksOfType && state.data.type === this.track.format) ||
+                    state.sources.indexOf(this.track.name) >= 0
+                )
             ) {
                 this.trackInstance.headerStyleSettingsChanged(state);
             }
@@ -316,12 +332,12 @@ export default class ngbTrackController {
 
     get trackIsSelected() {
         return this.selectionContext
-            .getTrackIsSelected(this.track ? this.track.bioDataItemId : undefined);
+            .getTrackIsSelected(this.track ? this.track.bioDataItemId : undefined, this.browserId);
     }
 
     set trackIsSelected(value) {
         return this.selectionContext
-            .setTrackIsSelected(this.track ? this.track.bioDataItemId : undefined, value);
+            .setTrackIsSelected(this.track ? this.track.bioDataItemId : undefined, this.browserId, value);
     }
 
     changeTrackHeight(newHeight) {
@@ -345,13 +361,14 @@ export default class ngbTrackController {
             state = Object.assign(state, this.state);
         }
         this.trackInstance = new this.instanceConstructor({
+            browserId: this.browserId,
             changeTrackHeight: ::this.changeTrackHeight,
             changeTrackVisibility: ::this.changeTrackVisibility,
             dataItemClicked: ::this.onTrackItemClick,
-            dispatcher: this.dispatcher,
             ...this.trackOpts,
             ...this._localDataService.getSettings(),
             ...this.track,
+            dispatcher: this.dispatcher,
             groupAutoScaleManager: this.groupAutoScaleManager,
             projectContext: this.projectContext,
             restoredHeight: height,

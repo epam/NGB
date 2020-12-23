@@ -31,7 +31,7 @@ export class SEGTrack extends CachedTrack {
         if (this._menu) {
             return this._menu;
         }
-        this._menu = this.constructor.Menu.attach(this);
+        this._menu = this.constructor.Menu.attach(this, {browserId: this.browserId});
         return this._menu;
     }
 

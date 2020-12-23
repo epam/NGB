@@ -17,6 +17,7 @@
                                 ng-repeat="track in ctrl.tracks track by ctrl.trackHash(track)"
                                 dnd-draggable="track"
                                 selectable="true"
+                                browser-id="ctrl.browserId"
 
                                 track="track"
                                 index="$index"
@@ -31,6 +32,7 @@
 <ngb-tracks-selection-menu
         ng-if="ctrl.renderable"
         ng-class="{'visible': ctrl.selectedTracksMenuIsVisible}"
+        browser-id="ctrl.browserId"
 />
 <ngb-track-view-menu menu-data="ctrl.menuManager.menuData"
                      tether-menu="ctrl.menuManager.tetherMenu"></ngb-track-view-menu>

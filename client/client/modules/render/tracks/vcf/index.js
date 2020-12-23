@@ -118,7 +118,7 @@ export class VCFTrack extends GENETrack {
         if (this._menu) {
             return this._menu;
         }
-        this._menu = this.constructor.Menu.attach(this);
+        this._menu = this.constructor.Menu.attach(this, {browserId: this.browserId});
         this.hotKeyListener = (event) => {
             if (event) {
                 const path = event.split('>');

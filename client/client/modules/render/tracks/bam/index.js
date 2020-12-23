@@ -160,13 +160,20 @@ export class BAMTrack extends ScrollableTrack {
             const [dispatcher] = (tracks || [])
                 .map(track => track.config.dispatcher)
                 .filter(Boolean);
+            const [browserId] = (tracks || [])
+                .map(track => track.config.browserId)
+                .filter(Boolean);
             if (dispatcher) {
                 dispatcher.emitSimpleEvent('tracks:coverage:manual:configure', {
                     config: {
                         extremumFn: getCoverageExtremums,
                         isLogScale
                     },
-                    sources: (tracks || []).map(track => track.config.name),
+                    options: {
+                        browserId,
+                        group: (tracks || []).length > 1
+                    },
+                    sources: (tracks || []).map(track => track.config.name)
                 });
             }
         }
@@ -230,8 +237,8 @@ export class BAMTrack extends ScrollableTrack {
             return this._menu;
         }
         this._menu = this.state.sashimi
-            ? this.constructor.SashimiMenu.attach(this)
-            : this.constructor.Menu.attach(this);
+            ? this.constructor.SashimiMenu.attach(this, {browserId: this.browserId})
+            : this.constructor.Menu.attach(this, {browserId: this.browserId});
 
         this.hotKeyListener = (event) => {
             if (event) {

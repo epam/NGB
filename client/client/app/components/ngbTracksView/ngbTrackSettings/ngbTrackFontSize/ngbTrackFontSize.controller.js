@@ -6,10 +6,11 @@ export default class ngbTrackFontSizeController {
         return 'ngbTrackFontSizeController';
     }
 
-    constructor($scope, $mdDialog, projectContext, dispatcher, settings, defaults, sources, types, options) {
+    constructor($scope, $mdDialog, projectContext, dispatcher, settings, defaults, sources, types, browserId, options) {
         Object.assign(this, {
             $mdDialog,
             $scope,
+            browserId,
             defaults,
             dispatcher,
             options,
@@ -48,6 +49,7 @@ export default class ngbTrackFontSizeController {
             data: {
                 applyToAllTracks: this.applyToAllTracks,
                 applyToAllTracksOfType: this.applyToAllTracksOfType,
+                browserId: this.browserId,
                 settings: this.settings,
                 type: (this.types || [])[0]
             },

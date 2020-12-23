@@ -17,7 +17,7 @@ export default function helper($mdDialog, projectContext, options) {
         allTracks.filter(m => m.config.format === format);
 
     return function ($scope) {
-        const {tracks, options: actionOptions, types} = options;
+        const {browserId, tracks, options: actionOptions, types} = options;
         const {group = false} = actionOptions || {};
         const multiple = tracks.length > 1;
         $scope.applyToAllTracks = false;
@@ -59,10 +59,10 @@ export default function helper($mdDialog, projectContext, options) {
             };
             tracks.forEach(saveTrackHeight);
             if ($scope.applyToAllTracks) {
-                const allTracks = (projectContext.trackInstances || []);
+                const allTracks = (projectContext.getTrackInstances(browserId) || []);
                 allTracks.forEach(saveTrackHeight);
             } else if ($scope.applyToAllTracksOfType) {
-                const allTracks = (projectContext.trackInstances || []);
+                const allTracks = (projectContext.getTrackInstances(browserId) || []);
                 const commonFormatTracks = filterCommonTracks(allTracks, commonFormat);
                 commonFormatTracks.forEach(saveTrackHeight);
             }

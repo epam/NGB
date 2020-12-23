@@ -1,6 +1,7 @@
 export default function run($mdDialog, dispatcher) {
     const displayTrackCoverageSettingsCallback = (state)=> {
-        const {sources, config} = state;
+        const {sources, config, options} = state;
+        const {browserId} = options || {};
         let processed = false;
         $mdDialog.show({
             template: require('./ngbTrackCoverageSettings.dialog.tpl.html'),
@@ -21,6 +22,7 @@ export default function run($mdDialog, dispatcher) {
                         sources,
                         cancel: false,
                         data: {
+                            browserId,
                             from: $scope.from,
                             to: $scope.to,
                             applyToCurrentTrack: $scope.applyToCurrentTrack,

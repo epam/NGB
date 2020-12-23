@@ -82,11 +82,18 @@ export class WIGTrack extends CachedTrack {
             const [dispatcher] = (tracks || [])
                 .map(track => track.config.dispatcher)
                 .filter(Boolean);
+            const [browserId] = (tracks || [])
+                .map(track => track.config.browserId)
+                .filter(Boolean);
             if (dispatcher) {
                 dispatcher.emitSimpleEvent('tracks:coverage:manual:configure', {
                     config: {
                         extremumFn: getCoverageExtremums,
                         isLogScale
+                    },
+                    options: {
+                        browserId,
+                        group: (tracks || []).length > 1
                     },
                     sources: (tracks || []).map(track => track.config.name),
                 });
@@ -145,7 +152,7 @@ export class WIGTrack extends CachedTrack {
         if (this._menu) {
             return this._menu;
         }
-        this._menu = this.constructor.Menu.attach(this);
+        this._menu = this.constructor.Menu.attach(this, {browserId: this.browserId});
         return this._menu;
     }
 

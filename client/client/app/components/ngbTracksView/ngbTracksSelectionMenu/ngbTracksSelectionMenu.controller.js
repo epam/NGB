@@ -12,6 +12,7 @@ export default class ngbTracksSelectionMenuController {
     dispatcher;
     tracksMenu = {};
     commonMenu;
+    browserId;
 
     constructor($scope, projectContext, selectionContext: SelectionContext, dispatcher) {
         this.projectContext = projectContext;
@@ -29,6 +30,7 @@ export default class ngbTracksSelectionMenuController {
             this.commonMenu = CommonMenu.attach(
                 this.selectedTracks,
                 {
+                    browserId: this.browserId,
                     group: true,
                     selection: this.selectedTracks,
                     types: this.types.slice()
@@ -44,6 +46,7 @@ export default class ngbTracksSelectionMenuController {
                     this.tracksMenu[type] = anyTrack.constructor.Menu.attach(
                         tracks,
                         {
+                            browserId: this.browserId,
                             group: true,
                             selection: this.selectedTracks,
                             types: [type]
@@ -55,23 +58,23 @@ export default class ngbTracksSelectionMenuController {
     }
 
     get isVisible() {
-        return this.selectionContext.selected.length > 1;
+        return this.selectionContext.getSelected(this.browserId).length > 1;
     }
 
     get allSelected() {
-        return this.selectionContext.allSelected;
+        return this.selectionContext.allSelected(this.browserId);
     }
 
     selectAll() {
-        this.selectionContext.selectAll();
+        this.selectionContext.selectAll(this.browserId);
     }
 
     clearSelection() {
-        this.selectionContext.clearSelection();
+        this.selectionContext.clearSelection(this.browserId);
     }
 
     get selectedTracks() {
-        return this.selectionContext.tracks;
+        return this.selectionContext.getTracks(this.browserId);
     }
 
     get types() {

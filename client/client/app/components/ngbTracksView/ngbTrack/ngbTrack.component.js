@@ -2,6 +2,7 @@ import controller from './ngbTrack.controller';
 
 export default {
     bindings:{
+        browserId: '=',
         menuManager: '=',
         selectable: '=',
         silentInteractions: '=',

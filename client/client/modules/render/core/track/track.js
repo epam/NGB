@@ -167,6 +167,7 @@ export class Track extends BaseTrack {
             this.projectContext = opts.projectContext;
             this.groupAutoScaleManager = opts.groupAutoScaleManager;
             this.silentInteractions = !!opts.silentInteractions;
+            this.browserId = opts.browserId;
             this.reportTrackState();
         }
         this._refreshPixiRenderer();

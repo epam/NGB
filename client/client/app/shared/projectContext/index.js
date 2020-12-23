@@ -235,7 +235,11 @@ export default class projectContext {
         return this._tracks;
     }
 
-    get trackInstances() {
+    getTrackInstances(browserId) {
+        return (this._trackInstances || []).filter(t => t.config.browserId === browserId);
+    }
+
+    getAllTrackInstances() {
         return this._trackInstances;
     }
 
@@ -485,7 +489,10 @@ export default class projectContext {
 
     registerTrackInstance(track) {
         const [existingTrack] = this._trackInstances
-            .filter(t => t.config.bioDataItemId === track.config.bioDataItemId);
+            .filter(t =>
+                t.config.bioDataItemId === track.config.bioDataItemId &&
+                t.config.browserId === track.config.browserId
+            );
         if (existingTrack) {
             const index = this._trackInstances.indexOf(existingTrack);
             this._trackInstances.splice(index, 1, track);
@@ -497,7 +504,10 @@ export default class projectContext {
 
     unregisterTrackInstance(track) {
         const [existingTrack] = this._trackInstances
-            .filter(t => t.config.bioDataItemId === track.config.bioDataItemId);
+            .filter(t =>
+                t.config.bioDataItemId === track.config.bioDataItemId &&
+                t.config.browserId === track.config.browserId
+            );
         if (existingTrack) {
             const index = this._trackInstances.indexOf(existingTrack);
             this._trackInstances.splice(index, 1);

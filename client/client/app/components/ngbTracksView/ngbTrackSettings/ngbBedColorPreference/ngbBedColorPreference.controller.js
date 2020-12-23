@@ -14,7 +14,7 @@ export default class ngbBedColorPreferenceController {
             defaultColor,
             dispatcher,
             options,
-            sources,
+            sources
         });
         this.pickerOptions = {
             format: 'hex',
@@ -55,6 +55,7 @@ export default class ngbBedColorPreferenceController {
             cancel: false,
             data: {
                 applyToBEDTracks: this.applyToAllTracks,
+                browserId: (this.options || {}).browserId,
                 settings: this.postprocessColors(this.color),
             },
             sources: this.sources,

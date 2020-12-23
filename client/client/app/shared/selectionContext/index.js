@@ -11,25 +11,35 @@ export default class SelectionContext {
 
     dispatcher;
     projectContext;
-    selected = [];
+    selected = {};
 
     constructor(dispatcher, projectContext) {
         this.dispatcher = dispatcher;
         this.projectContext = projectContext;
-        this.dispatcher.on('reference:change', ::this.clearSelection);
-        this.dispatcher.on('chromosome:change', ::this.clearSelection);
-        this.dispatcher.on('tracks:instance:change', ::this.onTracksStateChanged);
+        this.dispatcher.on('reference:change', () => this.clearSelection());
+        this.dispatcher.on('chromosome:change', () => this.clearSelection());
+        this.dispatcher.on('tracks:instance:change', () => this.onTracksStateChanged());
     }
 
-    get tracks() {
-        const set = new Set(this.selected.map(id => `${id}`));
-        return (this.projectContext.trackInstances || [])
+    getSelected(browserId) {
+        const id = browserId || 'default';
+        return this.selected[id] || [];
+    }
+
+    setSelected(browserId, selected) {
+        const id = browserId || 'default';
+        this.selected[id] = selected || [];
+    }
+
+    getTracks(browserId) {
+        const set = new Set(this.getSelected(browserId).map(id => `${id}`));
+        return (this.projectContext.getTrackInstances(browserId) || [])
             .filter(track => set.has(`${track.config.bioDataItemId}`));
     }
 
-    get allSelected() {
-        const selected = new Set(this.selected.map(id => `${id}`));
-        const tracks = (this.projectContext.trackInstances || [])
+    allSelected(browserId) {
+        const selected = new Set(this.getSelected(browserId).map(id => `${id}`));
+        const tracks = (this.projectContext.getTrackInstances(browserId) || [])
             .filter(track => track.config.format !== 'REFERENCE');
         for (let idx = 0; idx < tracks.length; idx++) {
             if (!selected.has(`${tracks[idx].config.bioDataItemId}`)) {
@@ -39,49 +49,59 @@ export default class SelectionContext {
         return tracks.length > 0;
     }
 
-    selectAll() {
-        this.selected = (this.projectContext.trackInstances || [])
+    selectAll(browserId) {
+        const selected = (this.projectContext.getTrackInstances(browserId) || [])
             .filter(track => track.config.format !== 'REFERENCE')
             .map(t => t.config.bioDataItemId);
-        this.dispatcher.emitSimpleEvent(SelectionEvents.changed, this.selected);
+        this.setSelected(browserId, selected);
+        this.dispatcher.emitSimpleEvent(SelectionEvents.changed, selected);
     }
 
-    clearSelection() {
-        this.selected = [];
-        this.dispatcher.emitSimpleEvent(SelectionEvents.changed, this.selected);
+    clearSelection(browserId) {
+        this.setSelected(browserId, []);
+        this.dispatcher.emitSimpleEvent(SelectionEvents.changed, []);
     }
 
     onTracksStateChanged() {
+        const browsers = Object.keys(this.selected);
+        browsers.forEach(browser => this.onTracksStateChangedForBrowser(browser));
+    }
+
+    onTracksStateChangedForBrowser(browserId) {
         const actualBioDataItemIds = new Set(
-            (this.projectContext.trackInstances || [])
+            (this.projectContext.getTrackInstances(browserId) || [])
                 .filter(track => track.config.format !== 'REFERENCE')
                 .map(t => `${t.config.bioDataItemId}`)
         );
-        this.selected = this.selected.filter(t => actualBioDataItemIds.has(`${t}`));
-        this.dispatcher.emitSimpleEvent(SelectionEvents.changed, this.selected);
+        const selected = this.getSelected(browserId).filter(t => actualBioDataItemIds.has(`${t}`));
+        this.setSelected(browserId, selected);
+        this.dispatcher.emitSimpleEvent(SelectionEvents.changed, selected);
     }
 
-    setTrackIsSelected(bioDataItemId, selected) {
+    setTrackIsSelected(bioDataItemId, browserId, selected) {
         if (!bioDataItemId) {
             return;
         }
-        const isSelected = this.getTrackIsSelected(bioDataItemId);
+        const isSelected = this.getTrackIsSelected(bioDataItemId, browserId);
         const modified = isSelected !== selected;
+        const selectedArray = this.getSelected(browserId);
         if (isSelected && !selected) {
-            const index = this.selected.findIndex(t => `${t}` === `${bioDataItemId}`);
-            this.selected.splice(index, 1);
+            const index = selectedArray.findIndex(t => `${t}` === `${bioDataItemId}`);
+            selectedArray.splice(index, 1);
+            this.setSelected(browserId, selectedArray);
         } else if (!isSelected && selected) {
-            this.selected.push(bioDataItemId);
+            selectedArray.push(bioDataItemId);
+            this.setSelected(browserId, selectedArray);
         }
         if (modified) {
-            this.dispatcher.emitSimpleEvent(SelectionEvents.changed, this.selected);
+            this.dispatcher.emitSimpleEvent(SelectionEvents.changed, selectedArray);
         }
     }
 
-    getTrackIsSelected(bioDataItemId) {
+    getTrackIsSelected(bioDataItemId, browserId) {
         if (!bioDataItemId) {
             return false;
         }
-        return this.selected.findIndex(t => `${t}` === `${bioDataItemId}`) >= 0;
+        return this.getSelected(browserId).findIndex(t => `${t}` === `${bioDataItemId}`) >= 0;
     }
 }

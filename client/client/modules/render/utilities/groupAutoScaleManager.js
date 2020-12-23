@@ -10,45 +10,70 @@ class GroupAutoScaleManager {
 
     constructor(projectContext, dispatcher) {
         this.projectContext = projectContext;
-        dispatcher.on('tracks:state:change', this.correctAutoScaleGroups);
-        dispatcher.on('chromosome:change', this.correctAutoScaleGroups);
+        dispatcher.on('tracks:instance:change', this.correctAutoScaleGroupsDebounced);
         this.correctAutoScaleGroups();
     }
 
+    correctAutoScaleGroupsDebounced = () => {
+        if (this.correctAutoScaleGroupsDebouncedTimer) {
+            clearTimeout(this.correctAutoScaleGroupsDebouncedTimer);
+            this.correctAutoScaleGroupsDebouncedTimer = undefined;
+        }
+        const debounceMs = 100;
+        this.correctAutoScaleGroupsDebouncedTimer = setTimeout(
+            () => this.correctAutoScaleGroups(),
+            debounceMs
+        );
+    };
+
     correctAutoScaleGroups = () => {
-        const tracksState = this.projectContext.tracksState || [];
-        const groups = [
+        const browsers = [
             ...(new Set(
-                (tracksState || [])
-                    .map(t => t.state ? t.state.groupAutoScale : undefined)
-                    .filter(Boolean)
+                    (this.projectContext.getAllTrackInstances() || [])
+                        .map(t => t.config ? t.config.browserId : undefined)
                 )
             )
         ];
-        let changed = false;
-        for (let g = 0; g < groups.length; g++) {
-            const group = groups[g];
-            const groupTracks = tracksState.filter(t => t.state && t.state.groupAutoScale === group);
-            if (groupTracks.length < 2) {
-                groupTracks.forEach(t => {
-                    t.state.coverageScaleMode = scaleModes.defaultScaleMode;
-                    t.state.groupAutoScale = undefined;
-                });
-                changed = true;
-                const groupTracksInstances = (this.projectContext.trackInstances || [])
-                    .filter(t => t.state.groupAutoScale === group);
-                groupTracksInstances.forEach((groupTrack) => {
-                    groupTrack.state.coverageScaleMode = scaleModes.defaultScaleMode;
-                    groupTrack.state.groupAutoScale = undefined;
-                    groupTrack._flags.dataChanged = true;
-                    groupTrack.requestRender();
-                });
-                this.removeGroup(group);
+        const correctForBrowser = (browser) => {
+            const tracks = this.projectContext.getTrackInstances(browser) || [];
+            const groups = [
+                ...(new Set(
+                        (tracks || [])
+                            .map(t => t.state ? t.state.groupAutoScale : undefined)
+                            .filter(Boolean)
+                    )
+                )
+            ];
+            for (let g = 0; g < groups.length; g++) {
+                const group = groups[g];
+                const [b, ...rest] = group.split('-');
+                if (b !== (browser || 'default')) {
+                    const newName = [browser || 'default', ...rest].join('-');
+                    this.renameGroup(group, newName);
+                    tracks
+                        .filter(t => t.state && t.state.groupAutoScale === group)
+                        .forEach(t => {
+                            t.state.groupAutoScale = newName;
+                        });
+                    groups[g] = newName;
+                }
             }
-        }
-        if (changed) {
-            this.projectContext.changeState({tracksState});
-        }
+            for (let g = 0; g < groups.length; g++) {
+                const group = groups[g];
+                const groupTracks = tracks.filter(t => t.state && t.state.groupAutoScale === group);
+                if (groupTracks.length < 2) {
+                    groupTracks.forEach(t => {
+                        t.state.coverageScaleMode = scaleModes.defaultScaleMode;
+                        t.state.groupAutoScale = undefined;
+                        t._flags.dataChanged = true;
+                        t.reportTrackState();
+                        t.requestRender();
+                    });
+                    this.removeGroup(group);
+                }
+            }
+        };
+        browsers.forEach(browser => correctForBrowser(browser));
     };
 
     removeGroup(name) {
@@ -119,7 +144,7 @@ class GroupAutoScaleManager {
     unregisterTrack(track) {
         const group = track.state.groupAutoScale;
         if (group) {
-            const groupTracks = (this.projectContext.trackInstances || [])
+            const groupTracks = (this.projectContext.getTrackInstances(track.browserId) || [])
                 .filter(t => t.state.groupAutoScale === group && t !== track);
             if (groupTracks.length < 2) {
                 groupTracks.forEach((groupTrack) => {
@@ -127,15 +152,20 @@ class GroupAutoScaleManager {
                     groupTrack.state.groupAutoScale = undefined;
                     groupTrack._flags.dataChanged = true;
                     groupTrack.reportTrackState();
+                    groupTrack.requestRender();
                 });
                 this.removeGroup(group);
             } else {
-                const newGroupName = groupTracks.map(t => t.config.bioDataItemId.toString()).join('-');
+                const newGroupName = [
+                    track.browserId || 'default',
+                    ...groupTracks.map(t => t.config.bioDataItemId.toString())
+                ].join('-');
                 this.renameGroup(group, newGroupName);
                 groupTracks.forEach((groupTrack) => {
                     groupTrack.state.groupAutoScale = newGroupName;
                     groupTrack._flags.dataChanged = true;
                     groupTrack.reportTrackState();
+                    groupTrack.requestRender();
                 });
                 this.detachTrackData(newGroupName);
             }
@@ -145,7 +175,7 @@ class GroupAutoScaleManager {
     }
 
     reportTrackDataChangedForGroup(group) {
-        const groupTracks = (this.projectContext.trackInstances || [])
+        const groupTracks = (this.projectContext.getAllTrackInstances() || [])
             .filter(t => t && t.state && t.state.groupAutoScale === group);
         if (groupTracks.length > 0) {
             groupTracks.forEach(track => track._flags.dataChanged = true);

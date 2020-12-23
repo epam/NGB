@@ -35,7 +35,7 @@ export default class ngbTracksSelectionController extends baseController {
                 selected: this.getTrackIsSelected(track),
                 track
             }));
-            this._allSelected = this.selectionContext.allSelected;
+            this._allSelected = this.selectionContext.allSelected(this.browserId);
         };
         const globalSettingsChangedHandler = (state) => {
             this.showTrackOriginalName = state.showTrackOriginalName;
@@ -83,23 +83,23 @@ export default class ngbTracksSelectionController extends baseController {
     }
 
     selectAll() {
-        this.selectionContext.selectAll();
+        this.selectionContext.selectAll(this.browserId);
     }
 
     clearSelection() {
-        this.selectionContext.clearSelection();
+        this.selectionContext.clearSelection(this.browserId);
     }
 
     getTrackIsSelected(track) {
         return this.selectionContext
-            .getTrackIsSelected(track ? track.bioDataItemId : undefined);
+            .getTrackIsSelected(track ? track.bioDataItemId : undefined, this.browserId);
     }
 
     setTrackIsSelected(track) {
         const [t] = this.tracks.filter(o => o.track.bioDataItemId === track.bioDataItemId);
         if (t) {
             this.selectionContext
-                .setTrackIsSelected(track ? track.bioDataItemId : undefined, t.selected);
+                .setTrackIsSelected(track ? track.bioDataItemId : undefined, this.browserId, t.selected);
         }
     }
 

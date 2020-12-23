@@ -6,7 +6,7 @@ export default {
     controller: controller.UID,
     controllerAs: 'ctrl',
     bindings: {
-
+        browserId: '='
     }
 };
 
