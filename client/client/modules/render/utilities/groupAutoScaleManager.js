@@ -66,6 +66,9 @@ class GroupAutoScaleManager {
                         t.state.coverageScaleMode = scaleModes.defaultScaleMode;
                         t.state.groupAutoScale = undefined;
                         t._flags.dataChanged = true;
+                        if (t.config && typeof t.config.reloadScope === 'function') {
+                            t.config.reloadScope();
+                        }
                         t.reportTrackState();
                         t.requestRender();
                     });

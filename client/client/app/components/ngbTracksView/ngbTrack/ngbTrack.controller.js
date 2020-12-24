@@ -371,6 +371,7 @@ export default class ngbTrackController {
             dispatcher: this.dispatcher,
             groupAutoScaleManager: this.groupAutoScaleManager,
             projectContext: this.projectContext,
+            reloadScope: () => this.scope.$apply(),
             restoredHeight: height,
             silentInteractions: this.silentInteractions,
             state: state,
