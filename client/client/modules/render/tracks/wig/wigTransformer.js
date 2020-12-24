@@ -94,7 +94,7 @@ export default class WIGTransformer {
             dividers = cachedCoordinateSystem.dividers;
         }
         else {
-            const closestDecimalDegree = NumberFormatter.findClosestDecimalDegree(diff, this._config.area.dividers);
+            const closestDecimalDegree = NumberFormatter.findClosestDecimalDegree(Math.max(diff, 0), this._config.area.dividers);
             const decimalBase = 10;
             const module = Math.pow(decimalBase, closestDecimalDegree);
             const subModule = module / 2;

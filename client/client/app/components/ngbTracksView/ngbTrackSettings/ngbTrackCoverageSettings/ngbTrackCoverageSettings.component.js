@@ -11,7 +11,8 @@ export default {
         applyToCurrentTrack: '=',
         applyToWigTracks: '=',
         applyToBamTracks: '=',
-        isLogScale: '='
+        isLogScale: '=',
+        error: '='
     }
 };
 

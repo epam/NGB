@@ -12,10 +12,15 @@ export default function run($mdDialog, dispatcher) {
                 $scope.applyToWIGTracks = false;
                 $scope.applyToBAMTracks = false;
                 $scope.isLogScale = config && config.isLogScale !== undefined ? config.isLogScale : false;
+                $scope.error = undefined;
                 $scope.close = () => {
                     $mdDialog.hide();
                 };
                 $scope.save = () => {
+                    if ($scope.from >= $scope.to) {
+                        $scope.error = 'Incorrect "from" and "to" values';
+                        return;
+                    }
                     processed = true;
                     $mdDialog.hide();
                     dispatcher.emitSimpleEvent('tracks:coverage:manual:configure:done', {

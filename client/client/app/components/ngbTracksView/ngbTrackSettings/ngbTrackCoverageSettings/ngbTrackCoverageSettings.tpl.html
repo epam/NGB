@@ -3,12 +3,16 @@
         <md-input-container>
             <input name="from" type="number" placeholder="From"
                    ng-required
-                   ng-model="ctrl.from"/>
+                   ng-model="ctrl.from"
+                   ng-change="ctrl.error = undefined"
+            />
         </md-input-container>
         <md-input-container>
             <input name="to" type="number" placeholder="To"
                    ng-required
-                   ng-model="ctrl.to"/>
+                   ng-model="ctrl.to"
+                   ng-change="ctrl.error = undefined"
+            />
         </md-input-container>
         <md-input-container>
             <md-checkbox flex aria-label="is log scale" ng-model="ctrl.isLogScale">Log scale</md-checkbox>
@@ -17,4 +21,7 @@
     <md-checkbox flex aria-label="apply to current track" ng-model="ctrl.applyToCurrentTrack">Apply to current track</md-checkbox>
     <md-checkbox flex aria-label="apply to all alignments tracks" ng-model="ctrl.applyToBamTracks">Apply to all alignments tracks</md-checkbox>
     <md-checkbox flex aria-label="apply to all WIG tracks" ng-model="ctrl.applyToWigTracks">Apply to all WIG tracks</md-checkbox>
+    <div ng-if="ctrl.error" class="coverage-scale-error">
+        {{ctrl.error}}
+    </div>
 </div>
