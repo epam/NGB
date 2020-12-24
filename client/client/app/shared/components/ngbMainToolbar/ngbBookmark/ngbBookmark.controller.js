@@ -12,9 +12,22 @@ export default class ngbBookmarkController extends baseController {
     projectContext;
     localDataService;
     showContentMenu;
+    trackNamingService;
     $mdMenu;
 
-    constructor($scope, $element, $timeout, $mdMenu, bookmarkDataService, genomeDataService, localDataService, projectDataService, projectContext, dispatcher) {
+    constructor(
+        $scope,
+        $element,
+        $timeout,
+        $mdMenu,
+        bookmarkDataService,
+        genomeDataService,
+        localDataService,
+        projectDataService,
+        projectContext,
+        dispatcher,
+        trackNamingService
+    ) {
         super();
 
         Object.assign(this, {
@@ -27,7 +40,8 @@ export default class ngbBookmarkController extends baseController {
             localDataService,
             projectContext,
             projectDataService,
-            dispatcher
+            dispatcher,
+            trackNamingService
         });
         this.input = $element.find('input');
 
@@ -85,7 +99,8 @@ export default class ngbBookmarkController extends baseController {
         const tracks = this.projectContext.tracksState;
         const layout = this.projectContext.layout;
         const vcfColumns = this.projectContext.vcfColumns;
-        const query = new Bookmark(name, ruler, chromosome, tracks, layout, vcfColumns);
+        const customNames = this.trackNamingService.customNames;
+        const query = new Bookmark(name, ruler, chromosome, tracks, layout, vcfColumns, customNames);
         try {
             const savingResult = this.localDataService.saveBookmark(query);
             this.isSaveSuccess = true;
@@ -98,8 +113,9 @@ export default class ngbBookmarkController extends baseController {
     }
 };
 
-function Bookmark(name, ruler, chromosome, tracks, layout, vcfColumns) {
+function Bookmark(name, ruler, chromosome, tracks, layout, vcfColumns, customNames) {
     this.name = name;
+    this.customNames = customNames || {};
     this.startIndex = parseInt(ruler.start);
     this.endIndex = parseInt(ruler.end);
     this.chromosome = {

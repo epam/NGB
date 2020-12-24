@@ -22,15 +22,16 @@ export default class ngbBookmarksTableController extends baseController {
 
     dispatcher;
     projectContext;
+    trackNamingService;
 
     events = {
         'bookmark:save': ::this.loadData
     };
 
-    constructor($scope, bookmarksTableService, dispatcher, projectContext, $mdDialog) {
+    constructor($scope, bookmarksTableService, dispatcher, projectContext, $mdDialog, trackNamingService) {
         super();
 
-        Object.assign(this, {$scope, bookmarksTableService, dispatcher, projectContext, $mdDialog});
+        Object.assign(this, {$scope, bookmarksTableService, dispatcher, projectContext, $mdDialog, trackNamingService});
 
         $scope.$watch('$ctrl.searchPattern', ::this.loadData);
 
@@ -78,6 +79,10 @@ export default class ngbBookmarksTableController extends baseController {
         const vcfColumns = entity.vcfColumns;
         if (vcfColumns) {
             this.projectContext.vcfColumns = vcfColumns;
+        }
+        const customNames = entity.customNames;
+        if (customNames) {
+            this.trackNamingService.setCustomNames(customNames);
         }
         this.projectContext.changeState({chromosome: {name: chromosomeName}, viewport: position, tracksState, layout, forceVariantsFilter: true});
     }

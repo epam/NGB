@@ -30,6 +30,12 @@ export default class ngbTrackNamingService {
         return false;
     }
 
+    setCustomNames(names) {
+        this.customNames = names;
+        localStorage.setItem('custom-names', JSON.stringify(this.customNames));
+        this.dispatcher.emitSimpleEvent('track:custom:name', this.customNames);
+    }
+
     setCustomName(track, newName) {
         if (this.checkTrackValidity(track)) {
             const id = track.bioDataItemId.toString();
