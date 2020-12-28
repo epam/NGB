@@ -31,9 +31,6 @@ ngb-tracks-selection {
   }
 
   .tracks-selection-content {
-    animation: menuFadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    display: none;
-    opacity: 0;
     position: absolute;
     top: 25px;
     padding: 8px 10px;
@@ -42,19 +39,26 @@ ngb-tracks-selection {
     max-width: 400px;
     white-space: nowrap;
     overflow-x: hidden;
+    opacity: 0;
+    visibility: hidden;
+    height: 0;
 
     &.content-visible {
+      visibility: visible;
+      height: auto;
+      max-height: 70vh;
       animation: menuFadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-      animation-fill-mode: forwards;  
+      animation-fill-mode: forwards;
       display: flex;
       flex-direction: column;
       z-index: 100;
   
       md-checkbox {
         animation: menuFadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        animation-fill-mode: forwards;  
+        animation-fill-mode: forwards;
         animation-delay: 0.2s;
         transition: background-color 0.15s ease;
+        box-sizing: content-box;
 
         &:hover {
           background-color: #f4f4f4;

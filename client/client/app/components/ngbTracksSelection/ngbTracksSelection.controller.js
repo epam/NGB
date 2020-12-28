@@ -1,5 +1,6 @@
 import {SelectionEvents} from '../../shared/selectionContext';
 import baseController from '../../shared/baseController';
+import angular from 'angular';
 
 export default class ngbTracksSelectionController extends baseController {
     static get UID() {
@@ -15,6 +16,7 @@ export default class ngbTracksSelectionController extends baseController {
 
     constructor(
         $scope,
+        $element,
         dispatcher,
         projectContext,
         selectionContext,
@@ -27,6 +29,7 @@ export default class ngbTracksSelectionController extends baseController {
         this.trackNamingService = trackNamingService;
         this.localDataService = localDataService;
         this.scope = $scope;
+        this.domElement = $element[0];
         this.dispatcher = dispatcher;
         this.showTrackOriginalName = localDataService.getSettings().showTrackOriginalName;
         this.menuIsOpen = false;
@@ -56,7 +59,8 @@ export default class ngbTracksSelectionController extends baseController {
         if($event) {
             $event.stopPropagation();
         }
-        return this.menuIsOpen = true;
+        this.menuIsOpen = true;
+        this.realignMenuPosition();
     }
 
     closeMenu($event) {
@@ -64,6 +68,23 @@ export default class ngbTracksSelectionController extends baseController {
             $event.stopPropagation();
         }
         return this.menuIsOpen = false;
+    }
+
+    realignMenuPosition() {
+        const [menuContent] = angular.element(this.domElement)
+          .find('.tracks-selection-content');
+        if (menuContent && menuContent instanceof HTMLElement) {
+            const menuRect = menuContent.getBoundingClientRect();
+            const parentRect = this.domElement.getBoundingClientRect();
+            const availableSpace = window.innerWidth - parentRect.left;
+            const margin = 20;
+            if (availableSpace < menuRect.width) {
+                const cuttedAmount = menuRect.width - availableSpace;
+                menuContent.style.left = `-${cuttedAmount + margin}px`;
+            } else {
+                menuContent.style.left = '0px';
+            }
+        }
     }
 
     get tracks() {
