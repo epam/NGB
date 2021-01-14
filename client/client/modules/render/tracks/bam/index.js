@@ -227,7 +227,7 @@ export class BAMTrack extends ScrollableTrack {
 
     get trackIsResizable() {
         if (this.state) {
-            return this.state.alignments;
+            return this.state.alignments || this.state.sashimi;
         }
         return true;
     }
