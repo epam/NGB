@@ -1,6 +1,6 @@
 export default function renderArea(viewport, drawingConfig) {
-    const {config, graphics, shouldRender, y, hovered} = drawingConfig;
-    const height = config.height;
+    const {config, graphics, shouldRender, y, hovered, height: predefinedHeight} = drawingConfig;
+    const height = predefinedHeight || config.height;
     graphics.clear();
     const centerLine = y + height / 2;
     if (shouldRender) {

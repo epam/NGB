@@ -17,7 +17,7 @@ function intersects(candidate, test) {
 export function renderSashimiPlot(spliceJunctions, viewport, drawingConfig) {
     const {config, graphics, labelsContainer, shouldRender, hovered} = drawingConfig;
     graphics.clear();
-    const {centerLine} = renderArea(viewport, drawingConfig);
+    const {centerLine, height} = renderArea(viewport, drawingConfig);
     if (shouldRender) {
         graphics.lineStyle(config.border.thickness, config.border.stroke, 1);
         const sorted = spliceJunctions
@@ -31,6 +31,7 @@ export function renderSashimiPlot(spliceJunctions, viewport, drawingConfig) {
                     hovered.count === spliceJunction.count && hovered.strand === spliceJunction.strand
             }));
         sorted.sort(({length: a}, {length: b}) => a - b);
+        let maxLevels = 1;
         for (let i = 0; i < sorted.length; i++) {
             const spliceJunction = sorted[i];
             let up = 0;
@@ -50,9 +51,17 @@ export function renderSashimiPlot(spliceJunctions, viewport, drawingConfig) {
             } else {
                 spliceJunction.sashimi = up + 1;
             }
+            maxLevels = Math.max(Math.abs(spliceJunction.sashimi), maxLevels);
         }
+        const levelHeight = Math.max(
+            config.levelHeight,
+            Math.min(
+                config.maxLevelHeight,
+                (height / 2.0 - 15) / maxLevels
+            )
+        );
         const renderArc = (startPx, endPx, level) => {
-            const radius = Math.abs(level) * config.levelHeight;
+            const radius = Math.abs(level) * levelHeight;
             const xRadius = (endPx - startPx) / 2;
             const centerPoint = {
                 x: (endPx + startPx) / 2,
@@ -76,7 +85,7 @@ export function renderSashimiPlot(spliceJunctions, viewport, drawingConfig) {
             }
         };
         const renderLabel = (startPx, endPx, level, count) => {
-            const radius = Math.abs(level) * config.levelHeight;
+            const radius = Math.abs(level) * levelHeight;
             const multiplier = level < 0 ? 1 : -1;
             const centerPoint = {
                 x: (endPx + startPx) / 2,

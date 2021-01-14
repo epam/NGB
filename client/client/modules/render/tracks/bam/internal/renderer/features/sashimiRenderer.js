@@ -16,6 +16,7 @@ export class SashimiRenderer extends WIGRenderer {
             {
                 config: this._globalConfig,
                 graphics,
+                height: this.height * 2.0,
                 labelsContainer,
                 sashimi: true,
                 shouldRender,

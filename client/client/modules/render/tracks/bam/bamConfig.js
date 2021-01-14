@@ -107,7 +107,7 @@ export default {
     },
     defaultHeight: 250,
     maxHeight: (state, config) => {
-        if (state.alignments) {
+        if (state.alignments || state.sashimi) {
             return Infinity;
         }
         let maxHeight = 0;
@@ -220,7 +220,8 @@ export default {
                 }
             },
             height: 150,
-            levelHeight: 20,
+            levelHeight: 10,
+            maxLevelHeight: 20,
             color: 0xE21F27,
             label: {
                 fill: 0xE21F27,
