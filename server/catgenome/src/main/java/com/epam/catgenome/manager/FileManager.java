@@ -882,8 +882,10 @@ public class FileManager {
             throw e;
         }
 
-        Assert.isTrue(!indexes.isEmpty(), getMessage(MessagesConstants.ERROR_FEATURE_INDEX_NOT_FOUND,
-                         featureFiles.stream().map(BaseEntity::getName).collect(Collectors.joining(", "))));
+        if (indexes.isEmpty()) {
+            LOGGER.info(getMessage(MessagesConstants.INFO_FEATURE_INDEX_NOT_FOUND,
+                    featureFiles.stream().map(BaseEntity::getName).collect(Collectors.joining(", "))));
+        }
 
         return indexes.toArray(new SimpleFSDirectory[indexes.size()]);
     }

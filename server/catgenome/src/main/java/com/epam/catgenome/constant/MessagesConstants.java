@@ -117,7 +117,7 @@ public final class MessagesConstants {
     public static final String ERROR_UNSUPPORTED_OPERATION = "error.unsupported.operation";
 
     //Feature index
-    public static final String ERROR_FEATURE_INDEX_NOT_FOUND = "error.feature.index.not.found";
+    public static final String INFO_FEATURE_INDEX_NOT_FOUND = "info.feature.index.not.found";
     public static final String INFO_FEATURE_INDEX_LOADING = "info.feature.index.loading";
     public static final String INFO_FEATURE_INDEX_WRITING = "info.feature.index.writing";
     public static final String ERROR_FEATURE_INEDX_TOO_LARGE = "error.feature.index.too.large";
