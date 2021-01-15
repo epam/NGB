@@ -28,7 +28,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import org.eclipse.jetty.server.Server;
 import org.junit.Assert;
@@ -70,7 +69,6 @@ import com.epam.catgenome.helper.EntityHelper;
 import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.project.ProjectManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.util.TestUtils;
 
 /**
  * Source:      VcfControllerTest.java
@@ -272,8 +270,9 @@ public class VcfControllerTest extends AbstractControllerTest {
 
         projectManager.create(project); // Index is created when vcf file is added
 
-        TestUtils.assertFail(() -> featureIndexManager.filterVariations(new VcfFilterForm(), project.getId()),
-                             Collections.singletonList(IllegalArgumentException.class));
+        Assert.assertTrue(
+                featureIndexManager.filterVariations(new VcfFilterForm(), project.getId()).getEntries().isEmpty()
+        );
     }
 
     @Test
