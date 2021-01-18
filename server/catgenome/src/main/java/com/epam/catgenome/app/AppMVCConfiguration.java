@@ -41,6 +41,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -72,6 +73,9 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
 
     @Value("#{catgenome['static.resources.cache.period'] ?: 86400}")
     private int staticResourcesCachePeriod;
+
+    @Value("#{catgenome['static.resources.cache.paths'] ?: '/app.**,/ngb-logo.png'}")
+    private String staticResourcesPaths;
 
     @Bean
     public TomcatConfigurer tomcatConfigurerImpl() {
@@ -106,9 +110,11 @@ public class AppMVCConfiguration extends WebMvcConfigurerAdapter {
         registry.addResourceHandler("/swagger-ui/**")
                 .addResourceLocations("/swagger-ui/", "classpath:/static/swagger-ui/",
                         "classpath:/META-INF/resources/webjars/swagger-ui/2.0.24/");
-        registry.addResourceHandler("/**")
-                .addResourceLocations("classpath:/static/")
-                .setCachePeriod(staticResourcesCachePeriod);
+        if (!StringUtils.isEmpty(staticResourcesPaths)) {
+            registry.addResourceHandler(staticResourcesPaths.split(","))
+                    .addResourceLocations("classpath:/static/")
+                    .setCachePeriod(staticResourcesCachePeriod);
+        }
     }
 
     @Override

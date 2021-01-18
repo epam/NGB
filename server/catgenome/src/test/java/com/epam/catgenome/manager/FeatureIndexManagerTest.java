@@ -897,8 +897,9 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         fileManager.deleteFileFeatureIndex(vcfFile);
 
-        TestUtils.assertFail(() -> featureIndexManager.filterVariations(vcfFilterForm),
-                             singletonList(IllegalArgumentException.class));
+        Assert.assertTrue(
+                featureIndexManager.filterVariations(vcfFilterForm).getEntries().isEmpty()
+        );
 
         vcfManager.reindexVcfFile(vcfFile.getId(), false);
         entryList = featureIndexManager.filterVariations(vcfFilterForm);
@@ -922,8 +923,9 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         Assert.assertTrue(searchResult.isExceedsLimit());
 
         fileManager.deleteFileFeatureIndex(geneFile);
-        TestUtils.assertFail(() -> featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), geneFile, 10),
-                             singletonList(IllegalArgumentException.class));
+        Assert.assertTrue(
+                featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), geneFile, 10).getEntries().isEmpty()
+        );
 
         gffManager.reindexGeneFile(geneFile.getId(), false, false);
         searchResult = featureIndexDao.searchFeatures("ens", geneFile, 10);
@@ -954,8 +956,8 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         projectManager.create(project); // Index is created when vcf file is added
 
-        TestUtils.assertFail(() -> featureIndexManager.filterVariations(new VcfFilterForm(), project.getId()),
-                             singletonList(IllegalArgumentException.class));
+        Assert.assertTrue(
+                featureIndexManager.filterVariations(new VcfFilterForm(), project.getId()).getEntries().isEmpty());
     }
 
     @Test
@@ -971,8 +973,9 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         GeneFile geneFile = gffManager.registerGeneFile(geneRequest);
         Assert.assertNotNull(geneFile);
 
-        TestUtils.assertFail(() -> featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), geneFile, 10),
-                             singletonList(IllegalArgumentException.class));
+        Assert.assertTrue(
+                featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), geneFile, 10).getEntries().isEmpty()
+        );
     }
 
     @Test
