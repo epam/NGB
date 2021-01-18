@@ -24,34 +24,21 @@
 
 package com.epam.catgenome.manager.bed.parser;
 
-import java.awt.*;
-import java.util.Collections;
-import java.util.Map;
-
 import htsjdk.tribble.annotation.Strand;
+
+import java.awt.*;
+import java.util.Map;
 
 /**
  * Implementation of {@code NggbBedFeature} according to Bed file format
  */
-public class NggbSimpleBedFeature implements NggbBedFeature {
+public class NggbMultiFormatBedFeature implements NggbBedFeature {
     protected String chr;
     protected int start = -1;
     protected int end = -1;
-    protected Integer thickStart;
-    protected Integer thickEnd;
-    protected Strand strand = Strand.NONE;
-    private String name = "";
-    private float score = Float.NaN;
-    private String type = "";
-    private Color color;
-    private String description;
-    private String id;
-    private String link;
-    private int blockCount;
-    private int[] blockSizes;
-    private int[] blockStarts;
+    protected Map<String, String> additional;
 
-    public NggbSimpleBedFeature(int start, int end, String chr) {
+    public NggbMultiFormatBedFeature(int start, int end, String chr) {
         this.start = start;
         this.end = end;
         this.chr = chr;
@@ -59,52 +46,52 @@ public class NggbSimpleBedFeature implements NggbBedFeature {
 
     @Override
     public Map<String, String> getAdditional() {
-        return Collections.emptyMap();
+        return additional;
     }
 
     @Override
     public Strand getStrand() {
-        return strand;
+        return null;
     }
 
     @Override
     public String getType() {
-        return type;
+        return null;
     }
 
     @Override
     public Color getColor() {
-        return color;
+        return null;
     }
 
     @Override
     public String getDescription() {
-        return description;
+        return null;
     }
 
     @Override
     public String getName() {
-        return name;
+        return null;
     }
 
     @Override
     public float getScore() {
-        return score;
+        return 0;
     }
 
     @Override
     public String getLink() {
-        return link;
+        return null;
     }
 
     @Override
     public Integer getThickStart() {
-        return thickStart;
+        return null;
     }
 
     @Override
     public Integer getThickEnd() {
-        return thickEnd;
+        return null;
     }
 
     @Override
@@ -128,66 +115,55 @@ public class NggbSimpleBedFeature implements NggbBedFeature {
     }
 
     public void setStrand(Strand strand) {
-        this.strand = strand;
     }
 
     public void setColor(Color color) {
-        this.color = color;
     }
 
     public void setScore(float score) {
-        this.score = score;
     }
 
     public void setName(String name) {
-        this.name = name;
     }
 
     public void setThickStart(int thickStart) {
-        this.thickStart = thickStart;
     }
 
     public void setThickEnd(int thickEnd) {
-        this.thickEnd = thickEnd;
     }
 
     @Override
     public int getBlockCount() {
-        return blockCount;
+        return 0;
     }
 
     public void setBlockCount(int blockCount) {
-        this.blockCount = blockCount;
     }
 
     @Override
     public int[] getBlockSizes() {
-        return blockSizes;
+        return null;
     }
 
     public void setBlockSizes(int[] blockSizes) {
-        this.blockSizes = blockSizes;
     }
 
     @Override
     public int[] getBlockStarts() {
-        return blockStarts;
+        return null;
     }
 
     public void setBlockStarts(int[] blockStarts) {
-        this.blockStarts = blockStarts;
     }
 
     @Override
     public String getId() {
-        return id;
+        return null;
     }
 
     public void setId(String id) {
-        this.id = id;
     }
 
     public void setDescription(String description) {
-        this.description = description;
     }
 }

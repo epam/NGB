@@ -25,6 +25,7 @@
 package com.epam.catgenome.manager.bed.parser;
 
 import java.awt.*;
+import java.util.Map;
 
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.annotation.Strand;
@@ -33,6 +34,9 @@ import htsjdk.tribble.annotation.Strand;
  * Interface represents one record from the Bed file
  */
 public interface NggbBedFeature extends Feature {
+
+    Map<String, String> getAdditional();
+
     Strand getStrand();
 
     String getType();
