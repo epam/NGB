@@ -63,8 +63,7 @@ public class BedFile extends FeatureFile {
 
     public enum FileExtension {
         BED(
-                new HashMap<Integer, String>() {{
-                }},
+               Collections.emptyMap(),
                 "bed"
         ),
         NARROW_PEAK(
@@ -125,7 +124,7 @@ public class BedFile extends FeatureFile {
                     put(5, "score");
                     put(6, "strand");
                 }},
-                "tagAlign", "tAlgn"
+                "tagAlign", "ta"
         ),
         PAIRED_TAG_ALIGN(
                 new HashMap<Integer, String>() {{
@@ -135,7 +134,7 @@ public class BedFile extends FeatureFile {
                     put(7, "seq1");
                     put(8, "seq2");
                 }},
-                "pairedTagAlign", "ptAlgn"
+                "pairedTagAlign", "pta"
         ),
         PEPTIDE_MAPPING(
                 new HashMap<Integer, String>() {{
