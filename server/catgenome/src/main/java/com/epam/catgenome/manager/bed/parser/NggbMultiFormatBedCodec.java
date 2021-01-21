@@ -24,13 +24,14 @@
 
 package com.epam.catgenome.manager.bed.parser;
 
+import com.epam.catgenome.entity.bed.FileExtension.BedColumnMapping;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.readers.LineIterator;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * Codec for parsing data from the Bed files and conversion it into a {@code NggbBedFeature}
@@ -41,16 +42,16 @@ public class NggbMultiFormatBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
     private static final int START_OFFSET = 1;
     private static final int END_OFFSET = 2;
     private final int startOffsetValue;
-    private final Map<Integer, String> mapping;
+    private final List<BedColumnMapping> mapping;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NggbMultiFormatBedCodec.class);
 
     /**
-     * Calls {@link #NggbMultiFormatBedCodec(StartOffset, Map)} with an argument
+     * Calls {@link #NggbMultiFormatBedCodec(StartOffset, List)} with an argument
      * of {@code StartOffset.ONE}
      * @param mapping
      */
-    public NggbMultiFormatBedCodec(final Map<Integer, String> mapping) {
+    public NggbMultiFormatBedCodec(final List<BedColumnMapping> mapping) {
         this(StartOffset.ONE, mapping);
     }
 
@@ -58,7 +59,8 @@ public class NggbMultiFormatBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
      * BED format is 0-based, but Tribble is 1-based.
      * Set desired start position at either ZERO or ONE
      */
-    public NggbMultiFormatBedCodec(final StartOffset startOffset, final Map<Integer, String> mapping) {
+    public NggbMultiFormatBedCodec(final StartOffset startOffset,
+                                   final List<BedColumnMapping> mapping) {
         super(NggbBedFeature.class);
         this.startOffsetValue = startOffset.value();
         this.mapping = mapping;
@@ -113,13 +115,13 @@ public class NggbMultiFormatBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
             return null;
         }
         NggbMultiFormatBedFeature feature = getNggbMultiFormatBedFeature(tokens, tokenCount);
-        mapping.forEach((index, column) -> {
-            if (index > tokens.length - 1) {
+        mapping.forEach(column -> {
+            if (column.getIndex() > tokens.length - 1) {
                 throw new IllegalArgumentException(String.format(
-                        "MultiFormat BED record doesn't have token with index: %d", index)
+                        "MultiFormat BED record doesn't have token with index: %d", column.getIndex())
                 );
             }
-            feature.additional.put(column, tokens[index]);
+            feature.additional.put(column.getColumn(), tokens[column.getIndex()]);
         });
         return feature;
     }

@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.bed.FileExtension;
 import com.epam.catgenome.manager.bed.parser.NggbBedCodec;
 import com.epam.catgenome.manager.bed.parser.NggbMultiFormatBedCodec;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
@@ -577,8 +578,9 @@ public class BedManager {
 
     @NotNull
     private AsciiFeatureCodec<NggbBedFeature> getBedCodec(final BedFile bedFile) {
-        BedFile.FileExtension extension = BedFile.FileExtension.byExtension(bedFile.getExtension());
-        if (extension == BedFile.FileExtension.BED) {
+        FileExtension extension = BedFile.EXTENSION_MAP.getOrDefault(bedFile.getExtension(),
+                new FileExtension(Collections.emptyList(), Collections.singletonList("bed")));
+        if (extension.getExtensions().contains("bed")) {
             return new NggbBedCodec();
         }
         return new NggbMultiFormatBedCodec(extension.getMapping());

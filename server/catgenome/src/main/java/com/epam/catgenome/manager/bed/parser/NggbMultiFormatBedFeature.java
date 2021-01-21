@@ -27,6 +27,7 @@ package com.epam.catgenome.manager.bed.parser;
 import htsjdk.tribble.annotation.Strand;
 
 import java.awt.*;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -36,7 +37,7 @@ public class NggbMultiFormatBedFeature implements NggbBedFeature {
     protected String chr;
     protected int start = -1;
     protected int end = -1;
-    protected Map<String, String> additional;
+    protected Map<String, Object> additional = new HashMap<>();
 
     public NggbMultiFormatBedFeature(int start, int end, String chr) {
         this.start = start;
@@ -45,7 +46,7 @@ public class NggbMultiFormatBedFeature implements NggbBedFeature {
     }
 
     @Override
-    public Map<String, String> getAdditional() {
+    public Map<String, Object> getAdditional() {
         return additional;
     }
 

@@ -30,15 +30,34 @@ import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.manager.bed.parser.NggbBedCodec;
 import com.epam.catgenome.manager.bed.parser.NggbBedFeature;
 import com.epam.catgenome.manager.bed.parser.NggbMultiFormatBedCodec;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import htsjdk.samtools.util.Tuple;
 import htsjdk.tribble.AsciiFeatureCodec;
-import htsjdk.tribble.Feature;
+import lombok.SneakyThrows;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents a Bed File metadata in the system
  */
 public class BedFile extends FeatureFile {
+
+    public static final Map<String, FileExtension> EXTENSION_MAP = readExtensionMap();
+    private static final String BED = "bed";
+
+    @SneakyThrows
+    private static Map<String, FileExtension> readExtensionMap() {
+        List<FileExtension> extensions = new ObjectMapper().readValue(
+                BedFile.class.getClassLoader().getResource("conf/catgenome/format/bed/formats.json"),
+                new TypeReference<List<FileExtension>>() {
+                }
+        );
+        return extensions.stream().flatMap(e -> e.getExtensions().stream()
+                .map(ext -> new Tuple<>(ext, e)))
+                .collect(Collectors.toMap(t -> t.a, t -> t.b));
+    }
 
     /**
      * Creates an empty {@code BedFile} record with a required type BED
@@ -49,123 +68,17 @@ public class BedFile extends FeatureFile {
 
     @Override
     public AclClass getAclClass() {
-        return  AclClass.BED;
+        return AclClass.BED;
     }
 
     @Override
     public AsciiFeatureCodec<NggbBedFeature> getCodec() {
-        BedFile.FileExtension extension = BedFile.FileExtension.byExtension(getExtension());
-        if (extension == BedFile.FileExtension.BED) {
+        FileExtension extension = EXTENSION_MAP.getOrDefault(getExtension(),
+                new FileExtension(Collections.emptyList(), Collections.singletonList(BED)));
+        if (extension.getExtensions().contains(BED)) {
             return new NggbBedCodec();
         }
         return new NggbMultiFormatBedCodec(extension.getMapping());
     }
 
-    public enum FileExtension {
-        BED(
-               Collections.emptyMap(),
-                "bed"
-        ),
-        NARROW_PEAK(
-                new HashMap<Integer, String>() {{
-                    put(4, "name");
-                    put(5, "score");
-                    put(6, "strand");
-                    put(7, "signalValue");
-                    put(8, "pValue");
-                    put(9, "qValue");
-                    put(10, "peak");
-                }},
-                "narrowPeak", "nPk"
-        ),
-        BROAD_PEAK(
-                new HashMap<Integer, String>() {{
-                    put(4, "name");
-                    put(5, "score");
-                    put(6, "strand");
-                    put(7, "signalValue");
-                    put(8, "pValue");
-                    put(9, "qValue");
-                    put(10, "peak");
-                }},
-                "broadPeak", "bPk"
-        ),
-        RNA_ELEMENTS(
-                new HashMap<Integer, String>() {{
-                    put(4, "name");
-                    put(5, "score");
-                    put(6, "strand");
-                    put(7, "level");
-                    put(8, "signif");
-                    put(9, "score2");
-                }},
-                "RNAelements", "RNAe"
-        ),
-        GAPPED_PEAK(
-                new HashMap<Integer, String>() {{
-                    put(4, "name");
-                    put(5, "score");
-                    put(6, "strand");
-                    put(7, "thickStart");
-                    put(8, "thickEnd");
-                    put(9, "itemRgb");
-                    put(10, "blockCount");
-                    put(11, "blockSizes");
-                    put(12, "blockStarts");
-                    put(13, "signalValue");
-                    put(14, "pValue");
-                    put(15, "qValue");
-                }},
-                "gappedPeak", "gPk"
-        ),
-        TAG_ALIGN(
-                new HashMap<Integer, String>() {{
-                    put(4, "sequence");
-                    put(5, "score");
-                    put(6, "strand");
-                }},
-                "tagAlign", "ta"
-        ),
-        PAIRED_TAG_ALIGN(
-                new HashMap<Integer, String>() {{
-                    put(4, "sequence");
-                    put(5, "score");
-                    put(6, "strand");
-                    put(7, "seq1");
-                    put(8, "seq2");
-                }},
-                "pairedTagAlign", "pta"
-        ),
-        PEPTIDE_MAPPING(
-                new HashMap<Integer, String>() {{
-                    put(4, "sequence");
-                    put(5, "score");
-                    put(6, "strand");
-                    put(7, "rawScore");
-                    put(8, "spectrumId");
-                    put(9, "peptideRank");
-                    put(10, "peptideRepeatCount");
-                }},
-                "peptideMapping", "pMap"
-        );
-
-        private Map<Integer, String> mapping;
-        private List<String> values;
-
-        FileExtension(final Map<Integer, String> mapping, final String... values) {
-            this.mapping = mapping;
-            this.values = Arrays.asList(values.clone());
-        }
-
-        public static FileExtension byExtension(final String value) {
-            return Arrays.stream(FileExtension.values())
-                    .findFirst()
-                    .filter(ext -> ext.values.contains(value))
-                    .orElseThrow(() -> new IllegalArgumentException(String.format("Wrong extension %s", value)));
-        }
-
-        public Map<Integer, String> getMapping() {
-            return mapping;
-        }
-    }
 }

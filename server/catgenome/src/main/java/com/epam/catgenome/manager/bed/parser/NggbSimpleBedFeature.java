@@ -58,7 +58,7 @@ public class NggbSimpleBedFeature implements NggbBedFeature {
     }
 
     @Override
-    public Map<String, String> getAdditional() {
+    public Map<String, Object> getAdditional() {
         return Collections.emptyMap();
     }
 

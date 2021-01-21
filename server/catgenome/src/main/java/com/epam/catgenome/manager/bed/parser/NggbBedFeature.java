@@ -35,7 +35,7 @@ import htsjdk.tribble.annotation.Strand;
  */
 public interface NggbBedFeature extends Feature {
 
-    Map<String, String> getAdditional();
+    Map<String, Object> getAdditional();
 
     Strand getStrand();
 
