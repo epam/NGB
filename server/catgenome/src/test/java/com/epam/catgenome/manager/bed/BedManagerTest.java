@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.exception.FeatureIndexException;
@@ -78,6 +79,11 @@ import htsjdk.tribble.TribbleException;
 public class BedManagerTest extends AbstractManagerTest {
 
     public static final String GENES_SORTED_BED_PATH = "classpath:templates/genes_sorted.bed";
+    public static final String NARROWPEAK_BED_PATH = "classpath:templates/NarrowPeak.narrowPeak";
+    public static final String BROADPEAK_BED_PATH = "classpath:templates/BroadPeak.broadPeak";
+    public static final String GAPPEDPEAK_BED_PATH = "classpath:templates/GappedPeak.gPk";
+    public static final String TAGALIGN_BED_PATH = "classpath:templates/tagAlign.tagAlign";
+
     public static final String GENES_SORTED_BED_GZ_PATH = "classpath:templates/genes_sorted.bed.gz";
     public static final String PRETTY_NAME = "pretty";
 
@@ -121,6 +127,50 @@ public class BedManagerTest extends AbstractManagerTest {
     public void testRegisterBed() throws IOException, FeatureFileReadingException {
         BedFile bedFile = testRegisterBed(GENES_SORTED_BED_PATH);
         Assert.assertTrue(testLoadBedRecords(bedFile));
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterNarrowPeak() throws IOException, FeatureFileReadingException {
+        BedFile bedFile = testRegisterBed(NARROWPEAK_BED_PATH);
+        Assert.assertTrue(
+                testLoadMultiFormatBedRecords(
+                        bedFile,
+                        b -> !b.getAdditional().isEmpty() && b.getAdditional().containsKey("peak")
+                )
+        );
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterBroadPeak() throws IOException, FeatureFileReadingException {
+        BedFile bedFile = testRegisterBed(BROADPEAK_BED_PATH);
+        Assert.assertTrue(
+                testLoadMultiFormatBedRecords(
+                        bedFile,
+                        b -> !b.getAdditional().isEmpty() && b.getAdditional().containsKey("qValue")
+                )
+        );
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterTagAlign() throws IOException, FeatureFileReadingException {
+        BedFile bedFile = testRegisterBed(TAGALIGN_BED_PATH);
+        Assert.assertTrue(testLoadMultiFormatBedRecords(
+                bedFile,
+                b -> !b.getAdditional().isEmpty() && b.getAdditional().containsKey("sequence")
+        ));
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterGappedPeakWithSmallExtension() throws IOException, FeatureFileReadingException {
+        BedFile bedFile = testRegisterBed(GAPPEDPEAK_BED_PATH);
+        Assert.assertTrue(testLoadMultiFormatBedRecords(
+                bedFile,
+                b -> !b.getAdditional().isEmpty() && b.getAdditional().containsKey("itemRgb")
+        ));
     }
 
     @Test
@@ -251,6 +301,21 @@ public class BedManagerTest extends AbstractManagerTest {
 
         return true;
     }
+
+    private boolean testLoadMultiFormatBedRecords(BedFile bedFile, Predicate<BedRecord> check)
+            throws FeatureFileReadingException {
+        Track<BedRecord> track = new Track<>();
+        track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
+        track.setStartIndex(1);
+        track.setEndIndex(TEST_END_INDEX);
+        track.setChromosome(testChromosome);
+        track.setId(bedFile.getId());
+
+        track = bedManager.loadFeatures(track);
+        Assert.assertFalse(track.getBlocks().isEmpty());
+        return track.getBlocks().stream().allMatch(check);
+    }
+
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)

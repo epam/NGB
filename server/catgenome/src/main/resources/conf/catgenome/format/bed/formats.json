@@ -75,11 +75,6 @@
         "index": 8,
         "column": "qValue",
         "cast": "FLOAT"
-      },
-      {
-        "index": 9,
-        "column": "peak",
-        "cast": "INT"
       }
     ]
   },
@@ -88,62 +83,62 @@
     "mapping" : [
       {
         "index": 3,
-        "column": " name",
+        "column": "name",
         "cast": "STRING"
       },
       {
         "index": 4,
-        "column": " score",
+        "column": "score",
         "cast": "INT"
       },
       {
         "index": 5,
-        "column": " strand",
+        "column": "strand",
         "cast": "STRING"
       },
       {
         "index": 6,
-        "column": " thickStart",
+        "column": "thickStart",
         "cast": "INT"
       },
       {
         "index": 7,
-        "column": " thickEnd",
+        "column": "thickEnd",
         "cast": "INT"
       },
       {
         "index": 8,
-        "column": " itemRgb",
+        "column": "itemRgb",
         "cast": "STRING"
       },
       {
         "index": 9,
-        "column": " blockCount",
+        "column": "blockCount",
         "cast": "INT"
       },
       {
         "index": 10,
-        "column": " blockSizes",
+        "column": "blockSizes",
         "cast": "STRING"
       },
       {
         "index": 11,
-        "column": " blockStarts",
+        "column": "blockStarts",
         "cast": "STRING"
       },
       {
         "index": 12,
-        "column": " signalValue",
+        "column": "signalValue",
         "cast": "FLOAT"
       },
       {
         "index": 13,
-        "column": " pValue",
+        "column": "pValue",
         "cast": "FLOAT"
       },
       {
         "index": 14,
-        "column": " qValue",
+        "column": "qValue",
         "cast": "FLOAT"
       }
     ]
