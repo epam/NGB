@@ -26,7 +26,10 @@ package com.epam.catgenome.entity;
 
 import java.util.Objects;
 
+import com.epam.catgenome.manager.bed.parser.NggbBedFeature;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import htsjdk.tribble.AsciiFeatureCodec;
+import htsjdk.tribble.Feature;
 
 /**
  * Source:      FeatureFile
@@ -80,5 +83,17 @@ public class FeatureFile extends IndexedDataItem {
     @Override
     public int hashCode() {
         return getId().hashCode();
+    }
+
+    public String getExtension() {
+        String[] pathParts = getPath().split("\\.");
+        if (getCompressed() && getPath().endsWith("gz") && pathParts.length > 2) {
+            return String.format("%s.%s", pathParts[pathParts.length - 2], pathParts[pathParts.length - 1]);
+        }
+        return pathParts[pathParts.length - 1];
+    }
+
+    public AsciiFeatureCodec<? extends Feature> getCodec() {
+        throw new UnsupportedOperationException();
     }
 }

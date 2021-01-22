@@ -1,0 +1,5 @@
+track	type=narrowPeak	visibility=3	db=hg19	name="nPk"	description="ENCODE	narrowPeak	Example"
+browser	position	chr1:9356000-9365000
+A1	9356548	9456648	.	0	.	182	5.0945	-1	50
+A1	9458722	9558822	.	0	.	91	4.6052	-1	40
+A1	9561082	9661182	.	0	.	182	9.2103	-1	75

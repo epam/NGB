@@ -82,6 +82,7 @@ import com.epam.catgenome.exception.HistogramWritingException;
 import com.epam.catgenome.exception.UnsupportedGeneFileTypeException;
 import com.epam.catgenome.manager.bed.parser.NggbBedCodec;
 import com.epam.catgenome.manager.bed.parser.NggbBedFeature;
+import com.epam.catgenome.manager.bed.parser.NggbMultiFormatBedCodec;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.gene.parser.GtfFeature;
@@ -1556,7 +1557,7 @@ public class FileManager {
      * @return a reader of specified BedFile
      */
     public AbstractFeatureReader<NggbBedFeature, LineIterator> makeBedReader(final BedFile bedFile) {
-        NggbBedCodec nggbBedCodec = new NggbBedCodec();
+        AsciiFeatureCodec<NggbBedFeature> nggbBedCodec = bedFile.getCodec();
         return AbstractEnhancedFeatureReader.getFeatureReader(bedFile.getPath(), bedFile.getIndex().getPath(),
                 nggbBedCodec, true, indexCache);
     }
@@ -1571,7 +1572,7 @@ public class FileManager {
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File indexFile = new File(toRealPath(substitute(BED_INDEX, params)));
-        NggbBedCodec bedCodec = new NggbBedCodec();
+        AsciiFeatureCodec<NggbBedFeature> bedCodec = bedFile.getCodec();
 
         TabixIndex index = IndexUtils.createTabixIndex(bedFile, bedCodec, TabixFormat.BED);
         index.write(indexFile);
