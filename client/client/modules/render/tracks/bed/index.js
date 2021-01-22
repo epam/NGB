@@ -124,7 +124,7 @@ export class BEDTrack extends GENETrack {
             if (bedItem.additional) {
                 const keys = Object
                     .keys(bedItem.additional)
-                    .filter(key => ['name', 'startIndex', 'endIndex', 'description', 'strand'].indexOf(key) === -1);
+                    .filter(key => ['name', 'startIndex', 'endIndex', 'description', 'strand', 'score'].indexOf(key) === -1);
                 for (let i = 0; i < keys.length; i++) {
                     const key = keys[i];
                     if (bedItem.additional.hasOwnProperty(key)) {
