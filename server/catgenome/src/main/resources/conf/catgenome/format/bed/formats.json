@@ -4,7 +4,7 @@
     "mapping" : []
   },
   {
-    "extension": ["narrowPeak", "nPk"],
+    "extension": ["narrowPeak", "nPk", "narrowPeak.gz", "nPk.gz"],
     "mapping" : [
       {
         "index":3,
@@ -44,7 +44,7 @@
     ]
   },
   {
-    "extension": ["broadPeak", "bPk"],
+    "extension": ["broadPeak", "bPk", "broadPeak.gz", "bPk.gz"],
     "mapping" : [
       {
         "index": 3,
@@ -79,7 +79,7 @@
     ]
   },
   {
-    "extension": ["gappedPeak", "gPk"],
+    "extension": ["gappedPeak", "gPk", "gappedPeak.gz", "gPk.gz"],
     "mapping" : [
       {
         "index": 3,
@@ -144,7 +144,7 @@
     ]
   },
   {
-    "extension": ["RNAelements", "RNAe"],
+    "extension": ["RNAelements", "RNAe", "RNAelements.gz", "RNAe.gz"],
     "mapping" : [
       {
         "index":3,
@@ -184,7 +184,7 @@
     ]
   },
   {
-    "extension": ["tagAlign", "ta"],
+    "extension": ["tagAlign", "ta", "tagAlign.gz", "ta.gz"],
     "mapping" : [
       {
         "index":3,
@@ -204,7 +204,7 @@
     ]
   },
   {
-    "extension": ["pairedTagAlign", "pta"],
+    "extension": ["pairedTagAlign", "pta", "pairedTagAlign.gz", "pta.gz"],
     "mapping" : [
       {
         "index":3,
@@ -234,7 +234,7 @@
     ]
   },
   {
-    "extension": ["peptideMapping", "pMap"],
+    "extension": ["peptideMapping", "pMap", "peptideMapping.gz", "pMap.gz"],
     "mapping" : [
       {
         "index":3,

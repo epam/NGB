@@ -81,6 +81,7 @@ public class BedManagerTest extends AbstractManagerTest {
 
     public static final String GENES_SORTED_BED_PATH = "classpath:templates/genes_sorted.bed";
     public static final String NARROWPEAK_BED_PATH = "classpath:templates/NarrowPeak.narrowPeak";
+    public static final String NARROWPEAK_GZ_BED_PATH = "classpath:templates/NarrowPeak.narrowPeak.gz";
     public static final String BROADPEAK_BED_PATH = "classpath:templates/BroadPeak.broadPeak";
     public static final String GAPPEDPEAK_BED_PATH = "classpath:templates/GappedPeak.gPk";
     public static final String TAGALIGN_BED_PATH = "classpath:templates/tagAlign.tagAlign";
@@ -147,6 +148,28 @@ public class BedManagerTest extends AbstractManagerTest {
                             && additional.containsKey("strand")
                             && additional.containsKey("name")
                             && additional.containsKey("score");
+                        }
+                )
+        );
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterNarrowPeakGz() throws IOException, FeatureFileReadingException {
+        BedFile bedFile = testRegisterBed(NARROWPEAK_GZ_BED_PATH);
+        Assert.assertTrue(
+                testLoadMultiFormatBedRecords(
+                        bedFile,
+                        b -> {
+                            Map<String, Object> additional = b.getAdditional();
+                            return !additional.isEmpty()
+                                    && additional.containsKey("peak")
+                                    && additional.containsKey("pValue")
+                                    && additional.containsKey("qValue")
+                                    && additional.containsKey("signalValue")
+                                    && additional.containsKey("strand")
+                                    && additional.containsKey("name")
+                                    && additional.containsKey("score");
                         }
                 )
         );
