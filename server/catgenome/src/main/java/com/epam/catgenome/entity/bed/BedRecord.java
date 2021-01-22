@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,9 +29,7 @@ import java.util.Objects;
 
 import com.epam.catgenome.entity.track.Block;
 import com.epam.catgenome.manager.bed.parser.NggbBedFeature;
-import htsjdk.samtools.util.CollectionUtil;
 import htsjdk.tribble.annotation.Strand;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 
 /**
@@ -87,7 +85,7 @@ public class BedRecord extends Block {
         blockStarts = bedFeature.getBlockStarts();
         id = bedFeature.getId();
         description = bedFeature.getDescription();
-        if (!MapUtils.isEmpty(bedFeature.getAdditional())) {
+        if (MapUtils.isNotEmpty(bedFeature.getAdditional())) {
             additional = bedFeature.getAdditional();
         }
     }

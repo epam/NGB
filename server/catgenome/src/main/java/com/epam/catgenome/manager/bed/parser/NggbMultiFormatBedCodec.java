@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 
 package com.epam.catgenome.manager.bed.parser;
 
-import com.epam.catgenome.entity.bed.FileExtension.BedColumnMapping;
+import com.epam.catgenome.entity.bed.FileExtensionMapping.ColumnMapping;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.readers.LineIterator;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +42,7 @@ public class NggbMultiFormatBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
     private static final int START_OFFSET = 1;
     private static final int END_OFFSET = 2;
     private final int startOffsetValue;
-    private final List<BedColumnMapping> mapping;
+    private final List<ColumnMapping> mapping;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NggbMultiFormatBedCodec.class);
 
@@ -51,7 +51,7 @@ public class NggbMultiFormatBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
      * of {@code StartOffset.ONE}
      * @param mapping
      */
-    public NggbMultiFormatBedCodec(final List<BedColumnMapping> mapping) {
+    public NggbMultiFormatBedCodec(final List<ColumnMapping> mapping) {
         this(StartOffset.ONE, mapping);
     }
 
@@ -60,7 +60,7 @@ public class NggbMultiFormatBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
      * Set desired start position at either ZERO or ONE
      */
     public NggbMultiFormatBedCodec(final StartOffset startOffset,
-                                   final List<BedColumnMapping> mapping) {
+                                   final List<ColumnMapping> mapping) {
         super(NggbBedFeature.class);
         this.startOffsetValue = startOffset.value();
         this.mapping = mapping;
