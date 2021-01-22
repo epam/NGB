@@ -24,7 +24,7 @@
 
 package com.epam.catgenome.manager.bed.parser;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.Collections;
 import java.util.Map;
 

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import com.epam.catgenome.entity.security.AclClass;
 import com.epam.catgenome.manager.bed.parser.NggbBedCodec;
 import com.epam.catgenome.manager.bed.parser.NggbBedFeature;
 import com.epam.catgenome.manager.bed.parser.NggbMultiFormatBedCodec;
+import com.epam.catgenome.util.NgbFileUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import htsjdk.samtools.util.Tuple;
@@ -46,14 +47,14 @@ import java.util.stream.Collectors;
  */
 public class BedFile extends FeatureFile {
 
-    public static final Map<String, FileExtension> EXTENSION_MAP = readExtensionMap();
+    public static final Map<String, FileExtensionMapping> EXTENSION_MAP = readExtensionMap();
     private static final String BED = "bed";
 
     @SneakyThrows
-    private static Map<String, FileExtension> readExtensionMap() {
-        List<FileExtension> extensions = new ObjectMapper().readValue(
+    private static Map<String, FileExtensionMapping> readExtensionMap() {
+        List<FileExtensionMapping> extensions = new ObjectMapper().readValue(
                 BedFile.class.getClassLoader().getResource("conf/catgenome/format/bed/formats.json"),
-                new TypeReference<List<FileExtension>>() {
+                new TypeReference<List<FileExtensionMapping>>() {
                 }
         );
         return extensions.stream().flatMap(e -> e.getExtensions().stream()
@@ -73,10 +74,11 @@ public class BedFile extends FeatureFile {
         return AclClass.BED;
     }
 
-    @Override
     public AsciiFeatureCodec<NggbBedFeature> getCodec() {
-        FileExtension extension = EXTENSION_MAP.getOrDefault(getExtension(),
-                new FileExtension(Collections.emptyList(), Collections.singletonList(BED)));
+        FileExtensionMapping extension = BedFile.EXTENSION_MAP.getOrDefault(
+                NgbFileUtils.getFileExtension(getPath()),
+                new FileExtensionMapping(Collections.emptyList(), Collections.singletonList(BED))
+        );
         if (extension.getExtensions().contains(BED)) {
             return new NggbBedCodec();
         }

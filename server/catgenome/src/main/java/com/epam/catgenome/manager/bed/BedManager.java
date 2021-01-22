@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,12 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.epam.catgenome.entity.bed.FileExtension;
-import com.epam.catgenome.manager.bed.parser.NggbBedCodec;
-import com.epam.catgenome.manager.bed.parser.NggbMultiFormatBedCodec;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
-import htsjdk.tribble.AsciiFeatureCodec;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -566,7 +562,7 @@ public class BedManager {
             fileManager.deleteFileFeatureIndex(bedFile);
             try (AbstractFeatureReader<NggbBedFeature, LineIterator> reader =
                     AbstractEnhancedFeatureReader
-                                 .getFeatureReader(bedFile.getPath(), getBedCodec(bedFile), false, indexCache)) {
+                                 .getFeatureReader(bedFile.getPath(), bedFile.getCodec(), false, indexCache)) {
                 featureIndexManager.makeIndexForBedReader(bedFile, reader, chromosomeMap);
             }
         } catch (IOException e) {
@@ -574,15 +570,5 @@ public class BedManager {
         }
 
         return bedFile;
-    }
-
-    @NotNull
-    private AsciiFeatureCodec<NggbBedFeature> getBedCodec(final BedFile bedFile) {
-        FileExtension extension = BedFile.EXTENSION_MAP.getOrDefault(bedFile.getExtension(),
-                new FileExtension(Collections.emptyList(), Collections.singletonList("bed")));
-        if (extension.getExtensions().contains("bed")) {
-            return new NggbBedCodec();
-        }
-        return new NggbMultiFormatBedCodec(extension.getMapping());
     }
 }
