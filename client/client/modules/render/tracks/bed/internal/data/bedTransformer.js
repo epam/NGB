@@ -168,6 +168,32 @@ export class BEDTransformer extends GeneTransformer {
     }
 
     analyzeBedItem(bedItem) {
+        if (bedItem.additional) {
+            const keys = Object.keys(bedItem.additional);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                if (!bedItem.hasOwnProperty(key)) {
+                    const v = bedItem.additional[key];
+                    if (!Number.isNaN(Number(v))) {
+                        bedItem[key] = Number(v);
+                    } else if (typeof v === 'string' && v.toLowerCase() === 'true') {
+                        bedItem[key] = true;
+                    } else if (typeof v === 'string' && v.toLowerCase() === 'false') {
+                        bedItem[key] = false;
+                    } else {
+                        bedItem[key] = v;
+                    }
+                }
+            }
+        }
+        if (typeof bedItem.strand === 'string') {
+            switch ((bedItem.strand || '').trim()) {
+                case '+': bedItem.strand = 'POSITIVE'; break;
+                case '-': bedItem.strand = 'NEGATIVE'; break;
+                default:
+                    break;
+            }
+        }
         if (bedItem.rgb && bedItem.rgb.split(',').length === 3) {
             bedItem.rgb = bedItem.rgb.split(',').map(x => parseInt(x));
             if (bedItem.rgb[0] === 0 && bedItem.rgb[1] === 0 && bedItem.rgb[2] === 0) {

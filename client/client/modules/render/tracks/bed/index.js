@@ -121,6 +121,17 @@ export class BEDTrack extends GENETrack {
             if (bedItem.description && bedItem.description.length < this.trackConfig.bed.description.maximumDisplayLength) {
                 tooltipData.push(['Description', bedItem.description]);
             }
+            if (bedItem.additional) {
+                const keys = Object
+                    .keys(bedItem.additional)
+                    .filter(key => ['name', 'startIndex', 'endIndex', 'description', 'strand'].indexOf(key) === -1);
+                for (let i = 0; i < keys.length; i++) {
+                    const key = keys[i];
+                    if (bedItem.additional.hasOwnProperty(key)) {
+                        tooltipData.push([key, bedItem.additional[key]]);
+                    }
+                }
+            }
             return tooltipData;
         }
     }
