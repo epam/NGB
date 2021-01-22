@@ -29,15 +29,27 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.bed.FileExtensionMapping;
+import com.epam.catgenome.manager.bed.parser.NggbBedCodec;
+import com.epam.catgenome.manager.bed.parser.NggbMultiFormatBedCodec;
+import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import htsjdk.samtools.util.Tuple;
+import htsjdk.tribble.AsciiFeatureCodec;
+import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -45,6 +57,8 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -80,6 +94,8 @@ import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.readers.LineIterator;
 
+import javax.annotation.PostConstruct;
+
 /**
  * Provides service for handling {@code BedFile}: CRUD operations and loading data from the files
  */
@@ -87,6 +103,7 @@ import htsjdk.tribble.readers.LineIterator;
 public class BedManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BedManager.class);
+    private static final String BED = "bed";
 
     @Autowired
     private FileManager fileManager;
@@ -112,8 +129,32 @@ public class BedManager {
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
+    @Value("${bed.multi.format.file.path}")
+    private String bedMultiFormatFilePath;
+
+    private final Map<String, FileExtensionMapping> extensionMappingMap = new HashMap<>();
 
     private static final Logger LOG = LoggerFactory.getLogger(BedManager.class);
+
+    @PostConstruct
+    @SneakyThrows
+    public void readExtensionMap() {
+        List<FileExtensionMapping> extensions;
+        if (StringUtils.isNotBlank(bedMultiFormatFilePath) && Files.exists(Paths.get(bedMultiFormatFilePath))) {
+            extensions = new ObjectMapper().readValue(
+                    new File(bedMultiFormatFilePath),
+                    new TypeReference<List<FileExtensionMapping>>() {}
+            );
+        } else {
+            extensions = new ObjectMapper().readValue(
+                    new ClassPathResource("conf/catgenome/format/bed/formats.json").getURL(),
+                    new TypeReference<List<FileExtensionMapping>>() {}
+            );
+        }
+        extensions.stream().flatMap(e -> e.getExtensions().stream()
+                .map(ext -> new Tuple<>(ext, e)))
+                .forEach(t -> extensionMappingMap.put(t.a, t.b));
+    }
 
     /**
      * Registers a BED file in the system to work with it in future
@@ -172,7 +213,8 @@ public class BedManager {
     private Track<BedRecord> loadTrackFromFile(Track<BedRecord> track, BedFile bedFile, Chromosome chromosome)
         throws FeatureFileReadingException {
         final double time1 = Utils.getSystemTimeMilliseconds();
-        try (AbstractFeatureReader<NggbBedFeature, LineIterator> reader = fileManager.makeBedReader(bedFile)) {
+        try (AbstractFeatureReader<NggbBedFeature, LineIterator> reader =
+                     fileManager.makeBedReader(bedFile, getCodec(bedFile))) {
             CloseableIterator<NggbBedFeature> iterator = reader.query(chromosome.getName(), track.getStartIndex(),
                                                                       track.getEndIndex());
             if (!iterator.hasNext()) {
@@ -313,7 +355,7 @@ public class BedManager {
                                 resourceType == BiologicalDataItemResourceType.S3,
                         "Auto indexing is supported only for FILE type requests");
                 fileManager.makeBedDir(bedFile.getId());
-                fileManager.makeBedIndex(bedFile);
+                fileManager.makeBedIndex(bedFile, getCodec(bedFile));
             }
 
             double time1 = Utils.getSystemTimeMilliseconds();
@@ -342,7 +384,8 @@ public class BedManager {
     }
 
     private void createHistogram(BedFile bedFile) throws IOException {
-        try (AbstractFeatureReader<NggbBedFeature, LineIterator> featureReader = fileManager.makeBedReader(bedFile)) {
+        try (AbstractFeatureReader<NggbBedFeature, LineIterator> featureReader =
+                     fileManager.makeBedReader(bedFile, getCodec(bedFile))) {
             CloseableIterator<NggbBedFeature> iterator = featureReader.iterator();
             if (iterator.hasNext()) {
                 makeHistogramFromIterator(iterator, bedFile);
@@ -453,7 +496,8 @@ public class BedManager {
 
     private List<Wig> readHistogramPortion(final Track<Wig> track, final BedFile bedFile, final Chromosome
             chromosome, final List<Pair<Integer, Integer>> portion) throws IOException {
-        try (AbstractFeatureReader<NggbBedFeature, LineIterator> featureReader = fileManager.makeBedReader(bedFile)) {
+        try (AbstractFeatureReader<NggbBedFeature, LineIterator> featureReader =
+                     fileManager.makeBedReader(bedFile, getCodec(bedFile))) {
             return getWigFromHistogram(track, chromosome, portion, featureReader);
         }
     }
@@ -562,7 +606,7 @@ public class BedManager {
             fileManager.deleteFileFeatureIndex(bedFile);
             try (AbstractFeatureReader<NggbBedFeature, LineIterator> reader =
                     AbstractEnhancedFeatureReader
-                                 .getFeatureReader(bedFile.getPath(), bedFile.getCodec(), false, indexCache)) {
+                                 .getFeatureReader(bedFile.getPath(), getCodec(bedFile), false, indexCache)) {
                 featureIndexManager.makeIndexForBedReader(bedFile, reader, chromosomeMap);
             }
         } catch (IOException e) {
@@ -570,5 +614,24 @@ public class BedManager {
         }
 
         return bedFile;
+    }
+
+    public AsciiFeatureCodec<NggbBedFeature> getCodec(final BedFile bedFile) {
+        FileExtensionMapping extension = extensionMappingMap.getOrDefault(
+                getExtension(bedFile),
+                new FileExtensionMapping(Collections.emptyList(), Collections.singletonList(BED))
+        );
+        if (extension.getExtensions().contains(BED)) {
+            return new NggbBedCodec();
+        }
+        return new NggbMultiFormatBedCodec(extension.getMapping());
+    }
+
+    public String getExtension(final BedFile bedFile) {
+        String[] pathParts = bedFile.getPath().split("\\.");
+        if (bedFile.getCompressed() && bedFile.getPath().endsWith("gz") && pathParts.length > 2) {
+            return String.format("%s.%s", pathParts[pathParts.length - 2], pathParts[pathParts.length - 1]);
+        }
+        return pathParts[pathParts.length - 1];
     }
 }

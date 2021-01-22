@@ -1556,8 +1556,8 @@ public class FileManager {
      * @param bedFile a BedFile, from which reader to create
      * @return a reader of specified BedFile
      */
-    public AbstractFeatureReader<NggbBedFeature, LineIterator> makeBedReader(final BedFile bedFile) {
-        AsciiFeatureCodec<NggbBedFeature> nggbBedCodec = bedFile.getCodec();
+    public AbstractFeatureReader<NggbBedFeature, LineIterator> makeBedReader(final BedFile bedFile,
+                                                                             final AsciiFeatureCodec<NggbBedFeature> nggbBedCodec) {
         return AbstractEnhancedFeatureReader.getFeatureReader(bedFile.getPath(), bedFile.getIndex().getPath(),
                 nggbBedCodec, true, indexCache);
     }
@@ -1566,15 +1566,14 @@ public class FileManager {
      * Creates an index for a specified BedFile
      * @param bedFile BedFile to create index for
      */
-    public void makeBedIndex(final BedFile bedFile) {
+    public void makeBedIndex(final BedFile bedFile, final AsciiFeatureCodec<NggbBedFeature> nggbBedCodec) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), bedFile.getId());
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
 
         File indexFile = new File(toRealPath(substitute(BED_INDEX, params)));
-        AsciiFeatureCodec<NggbBedFeature> bedCodec = bedFile.getCodec();
 
-        TabixIndex index = IndexUtils.createTabixIndex(bedFile, bedCodec, TabixFormat.BED);
+        TabixIndex index = IndexUtils.createTabixIndex(bedFile, nggbBedCodec, TabixFormat.BED);
         index.write(indexFile);
 
         BiologicalDataItem indexItem = new BiologicalDataItem();
