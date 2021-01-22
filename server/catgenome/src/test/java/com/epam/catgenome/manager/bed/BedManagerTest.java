@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
@@ -136,7 +137,17 @@ public class BedManagerTest extends AbstractManagerTest {
         Assert.assertTrue(
                 testLoadMultiFormatBedRecords(
                         bedFile,
-                        b -> !b.getAdditional().isEmpty() && b.getAdditional().containsKey("peak")
+                        b -> {
+                            Map<String, Object> additional = b.getAdditional();
+                            return !additional.isEmpty()
+                            && additional.containsKey("peak")
+                            && additional.containsKey("pValue")
+                            && additional.containsKey("qValue")
+                            && additional.containsKey("signalValue")
+                            && additional.containsKey("strand")
+                            && additional.containsKey("name")
+                            && additional.containsKey("score");
+                        }
                 )
         );
     }
@@ -148,7 +159,16 @@ public class BedManagerTest extends AbstractManagerTest {
         Assert.assertTrue(
                 testLoadMultiFormatBedRecords(
                         bedFile,
-                        b -> !b.getAdditional().isEmpty() && b.getAdditional().containsKey("qValue")
+                        b -> {
+                            Map<String, Object> additional = b.getAdditional();
+                            return !additional.isEmpty()
+                                    && additional.containsKey("pValue")
+                                    && additional.containsKey("qValue")
+                                    && additional.containsKey("signalValue")
+                                    && additional.containsKey("strand")
+                                    && additional.containsKey("name")
+                                    && additional.containsKey("score");
+                        }
                 )
         );
     }
@@ -157,20 +177,45 @@ public class BedManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testRegisterTagAlign() throws IOException, FeatureFileReadingException {
         BedFile bedFile = testRegisterBed(TAGALIGN_BED_PATH);
-        Assert.assertTrue(testLoadMultiFormatBedRecords(
-                bedFile,
-                b -> !b.getAdditional().isEmpty() && b.getAdditional().containsKey("sequence")
-        ));
+        Assert.assertTrue(
+                testLoadMultiFormatBedRecords(
+                        bedFile,
+                        b -> {
+                            Map<String, Object> additional = b.getAdditional();
+                            return !additional.isEmpty()
+                                    && additional.containsKey("strand")
+                                    && additional.containsKey("sequence")
+                                    && additional.containsKey("score");
+                        }
+                )
+        );
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testRegisterGappedPeakWithSmallExtension() throws IOException, FeatureFileReadingException {
         BedFile bedFile = testRegisterBed(GAPPEDPEAK_BED_PATH);
-        Assert.assertTrue(testLoadMultiFormatBedRecords(
-                bedFile,
-                b -> !b.getAdditional().isEmpty() && b.getAdditional().containsKey("itemRgb")
-        ));
+        Assert.assertTrue(
+                testLoadMultiFormatBedRecords(
+                        bedFile,
+                        b -> {
+                            Map<String, Object> additional = b.getAdditional();
+                            return !additional.isEmpty()
+                                    && additional.containsKey("thickStart")
+                                    && additional.containsKey("pValue")
+                                    && additional.containsKey("qValue")
+                                    && additional.containsKey("signalValue")
+                                    && additional.containsKey("strand")
+                                    && additional.containsKey("name")
+                                    && additional.containsKey("thickEnd")
+                                    && additional.containsKey("itemRgb")
+                                    && additional.containsKey("blockCount")
+                                    && additional.containsKey("blockSizes")
+                                    && additional.containsKey("blockStarts")
+                                    && additional.containsKey("score");
+                        }
+                )
+        );
     }
 
     @Test
