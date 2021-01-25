@@ -80,9 +80,7 @@ import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.entity.wig.WigFile;
 import com.epam.catgenome.exception.HistogramWritingException;
 import com.epam.catgenome.exception.UnsupportedGeneFileTypeException;
-import com.epam.catgenome.manager.bed.parser.NggbBedCodec;
 import com.epam.catgenome.manager.bed.parser.NggbBedFeature;
-import com.epam.catgenome.manager.bed.parser.NggbMultiFormatBedCodec;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.gene.parser.GtfFeature;
@@ -1556,8 +1554,9 @@ public class FileManager {
      * @param bedFile a BedFile, from which reader to create
      * @return a reader of specified BedFile
      */
-    public AbstractFeatureReader<NggbBedFeature, LineIterator> makeBedReader(final BedFile bedFile,
-                                                                             final AsciiFeatureCodec<NggbBedFeature> nggbBedCodec) {
+    public AbstractFeatureReader<NggbBedFeature, LineIterator> makeBedReader(
+            final BedFile bedFile,
+            final AsciiFeatureCodec<NggbBedFeature> nggbBedCodec) {
         return AbstractEnhancedFeatureReader.getFeatureReader(bedFile.getPath(), bedFile.getIndex().getPath(),
                 nggbBedCodec, true, indexCache);
     }

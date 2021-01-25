@@ -152,14 +152,14 @@ public enum BiologicalDataItemFormat {
      * @return true if server supports this index, otherwise - false
      * @throws IllegalArgumentException if index format doesn't match the file format
      */
-    public boolean verifyIndex(String indexPath) {
-        Set<String> expectedIndexFormat = INDEX_EXTENSION_MAP.get(this);
+    public boolean verifyIndex(final String indexPath) {
+        final Set<String> expectedIndexFormat = INDEX_EXTENSION_MAP.get(this);
         if (expectedIndexFormat == null) {
             LOGGER.error(String.format("Provided index file won't be used, since server creates its own "
                     + "index for %s format.", this.name()));
             return false;
         }
-        String indexExtension = FilenameUtils.getExtension(indexPath);
+       final String indexExtension = FilenameUtils.getExtension(indexPath);
         if (!expectedIndexFormat.contains(indexExtension)) {
             throw new IllegalArgumentException(getMessage(ERROR_INDEX_FORMAT_DOES_NOT_MATCH,
                     indexPath, this.name()));
@@ -176,7 +176,7 @@ public enum BiologicalDataItemFormat {
      *          supported for a format
      */
     public static BiologicalDataItemFormat getByFilePath(
-            String path,
+            final String path,
             final Map<String, BiologicalDataItemFormat> additionalFormats) {
         String extension = FilenameUtils.getExtension(path);
         boolean isZipped = false;

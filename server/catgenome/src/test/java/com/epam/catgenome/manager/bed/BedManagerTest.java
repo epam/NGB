@@ -151,18 +151,18 @@ public class BedManagerTest extends AbstractManagerTest {
     public void testRegisterNarrowPeak() throws IOException, FeatureFileReadingException {
         BedFile bedFile = testRegisterBed(NARROWPEAK_BED_PATH);
         Assert.assertTrue(
-                testLoadMultiFormatBedRecords(
-                        bedFile,
-                        b -> {
-                            Map<String, Object> additional = b.getAdditional();
-                            return additional.keySet().containsAll(
-                                    Arrays.asList(
-                                            PEAK, P_VALUE, Q_VALUE,
-                                            SIGNAL_VALUE, STRAND, NAME, SCORE
-                                    )
-                            );
-                        }
-                )
+            testLoadMultiFormatBedRecords(
+                bedFile,
+                b -> {
+                    Map<String, Object> additional = b.getAdditional();
+                    return additional.keySet().containsAll(
+                        Arrays.asList(
+                                PEAK, P_VALUE, Q_VALUE,
+                                SIGNAL_VALUE, STRAND, NAME, SCORE
+                        )
+                    );
+                }
+            )
         );
     }
 
@@ -171,18 +171,18 @@ public class BedManagerTest extends AbstractManagerTest {
     public void testRegisterNarrowPeakGz() throws IOException, FeatureFileReadingException {
         BedFile bedFile = testRegisterBed(NARROWPEAK_GZ_BED_PATH);
         Assert.assertTrue(
-                testLoadMultiFormatBedRecords(
-                        bedFile,
-                        b -> {
-                            Map<String, Object> additional = b.getAdditional();
-                            return additional.keySet().containsAll(
-                                    Arrays.asList(
-                                            PEAK, P_VALUE, Q_VALUE,
-                                            SIGNAL_VALUE, STRAND, NAME, SCORE
-                                    )
-                            );
-                        }
-                )
+            testLoadMultiFormatBedRecords(
+                bedFile,
+                b -> {
+                    Map<String, Object> additional = b.getAdditional();
+                    return additional.keySet().containsAll(
+                        Arrays.asList(
+                                PEAK, P_VALUE, Q_VALUE,
+                                SIGNAL_VALUE, STRAND, NAME, SCORE
+                        )
+                    );
+                }
+            )
         );
     }
 
@@ -191,18 +191,18 @@ public class BedManagerTest extends AbstractManagerTest {
     public void testRegisterBroadPeak() throws IOException, FeatureFileReadingException {
         BedFile bedFile = testRegisterBed(BROADPEAK_BED_PATH);
         Assert.assertTrue(
-                testLoadMultiFormatBedRecords(
-                        bedFile,
-                        b -> {
-                            Map<String, Object> additional = b.getAdditional();
-                            return additional.keySet().containsAll(
-                                    Arrays.asList(
-                                            P_VALUE, Q_VALUE,
-                                            SIGNAL_VALUE, STRAND, NAME, SCORE
-                                    )
-                            );
-                        }
-                )
+            testLoadMultiFormatBedRecords(
+                bedFile,
+                b -> {
+                    Map<String, Object> additional = b.getAdditional();
+                    return additional.keySet().containsAll(
+                        Arrays.asList(
+                                P_VALUE, Q_VALUE,
+                                SIGNAL_VALUE, STRAND, NAME, SCORE
+                        )
+                    );
+                }
+            )
         );
     }
 
@@ -211,17 +211,17 @@ public class BedManagerTest extends AbstractManagerTest {
     public void testRegisterTagAlign() throws IOException, FeatureFileReadingException {
         BedFile bedFile = testRegisterBed(TAGALIGN_BED_PATH);
         Assert.assertTrue(
-                testLoadMultiFormatBedRecords(
-                        bedFile,
-                        b -> {
-                            Map<String, Object> additional = b.getAdditional();
-                            return additional.keySet().containsAll(
-                                    Arrays.asList(
-                                          STRAND, SEQUENCE, SCORE
-                                    )
-                            );
-                        }
-                )
+            testLoadMultiFormatBedRecords(
+                bedFile,
+                b -> {
+                    Map<String, Object> additional = b.getAdditional();
+                    return additional.keySet().containsAll(
+                        Arrays.asList(
+                              STRAND, SEQUENCE, SCORE
+                        )
+                    );
+                }
+            )
         );
     }
 
@@ -230,18 +230,18 @@ public class BedManagerTest extends AbstractManagerTest {
     public void testRegisterGappedPeakWithSmallExtension() throws IOException, FeatureFileReadingException {
         BedFile bedFile = testRegisterBed(GAPPEDPEAK_BED_PATH);
         Assert.assertTrue(
-                testLoadMultiFormatBedRecords(
-                        bedFile,
-                        b -> {
-                            Map<String, Object> additional = b.getAdditional();
-                            return additional.keySet().containsAll(
-                                    Arrays.asList(
-                                            THICK_START, P_VALUE, Q_VALUE, SIGNAL_VALUE, STRAND,
-                                            NAME, SCORE, THICK_END, ITEM_RGB, BLOCK_COUNT, BLOCK_SIZES, BLOCK_STARTS
-                                    )
-                            );
-                        }
-                )
+            testLoadMultiFormatBedRecords(
+                bedFile,
+                b -> {
+                    Map<String, Object> additional = b.getAdditional();
+                    return additional.keySet().containsAll(
+                        Arrays.asList(
+                                THICK_START, P_VALUE, Q_VALUE, SIGNAL_VALUE, STRAND,
+                                NAME, SCORE, THICK_END, ITEM_RGB, BLOCK_COUNT, BLOCK_SIZES, BLOCK_STARTS
+                        )
+                    );
+                }
+            )
         );
     }
 

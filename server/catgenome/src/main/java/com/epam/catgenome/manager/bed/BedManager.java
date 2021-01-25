@@ -139,7 +139,7 @@ public class BedManager {
     @PostConstruct
     @SneakyThrows
     public void readExtensionMap() {
-        List<FileExtensionMapping> extensions;
+        final List<FileExtensionMapping> extensions;
         if (StringUtils.isNotBlank(bedMultiFormatFilePath) && Files.exists(Paths.get(bedMultiFormatFilePath))) {
             extensions = new ObjectMapper().readValue(
                     new File(bedMultiFormatFilePath),
@@ -617,7 +617,7 @@ public class BedManager {
     }
 
     public AsciiFeatureCodec<NggbBedFeature> getCodec(final BedFile bedFile) {
-        FileExtensionMapping extension = extensionMappingMap.getOrDefault(
+        final FileExtensionMapping extension = extensionMappingMap.getOrDefault(
                 getExtension(bedFile),
                 new FileExtensionMapping(Collections.emptyList(), Collections.singletonList(BED))
         );
@@ -628,7 +628,7 @@ public class BedManager {
     }
 
     public String getExtension(final BedFile bedFile) {
-        String[] pathParts = bedFile.getPath().split("\\.");
+        final String[] pathParts = bedFile.getPath().split("\\.");
         if (bedFile.getCompressed() && bedFile.getPath().endsWith("gz") && pathParts.length > 2) {
             return String.format("%s.%s", pathParts[pathParts.length - 2], pathParts[pathParts.length - 1]);
         }

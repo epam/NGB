@@ -28,8 +28,6 @@ import com.epam.catgenome.entity.bed.FileExtensionMapping.ColumnMapping;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.readers.LineIterator;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -43,8 +41,6 @@ public class NggbMultiFormatBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
     private static final int END_OFFSET = 2;
     private final int startOffsetValue;
     private final List<ColumnMapping> mapping;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(NggbMultiFormatBedCodec.class);
 
     /**
      * Calls {@link #NggbMultiFormatBedCodec(StartOffset, List)} with an argument
