@@ -32,6 +32,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -42,7 +43,6 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.entity.bed.FileExtensionMapping;
 import com.epam.catgenome.manager.bed.parser.NggbBedCodec;
 import com.epam.catgenome.manager.bed.parser.NggbMultiFormatBedCodec;
-import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -139,7 +139,7 @@ public class BedManager {
     @PostConstruct
     @SneakyThrows
     public void readExtensionMap() {
-        List<FileExtensionMapping> extensions;
+        final List<FileExtensionMapping> extensions;
         if (StringUtils.isNotBlank(bedMultiFormatFilePath) && Files.exists(Paths.get(bedMultiFormatFilePath))) {
             extensions = new ObjectMapper().readValue(
                     new File(bedMultiFormatFilePath),
@@ -383,7 +383,7 @@ public class BedManager {
         }
     }
 
-    private void createHistogram(BedFile bedFile) throws IOException {
+    private void createHistogram(final BedFile bedFile) throws IOException {
         try (AbstractFeatureReader<NggbBedFeature, LineIterator> featureReader =
                      fileManager.makeBedReader(bedFile, getCodec(bedFile))) {
             CloseableIterator<NggbBedFeature> iterator = featureReader.iterator();
@@ -617,7 +617,7 @@ public class BedManager {
     }
 
     public AsciiFeatureCodec<NggbBedFeature> getCodec(final BedFile bedFile) {
-        FileExtensionMapping extension = extensionMappingMap.getOrDefault(
+        final FileExtensionMapping extension = extensionMappingMap.getOrDefault(
                 getExtension(bedFile),
                 new FileExtensionMapping(Collections.emptyList(), Collections.singletonList(BED))
         );
@@ -628,10 +628,15 @@ public class BedManager {
     }
 
     public String getExtension(final BedFile bedFile) {
-        String[] pathParts = bedFile.getPath().split("\\.");
+        final String[] pathParts = bedFile.getPath().split("\\.");
         if (bedFile.getCompressed() && bedFile.getPath().endsWith("gz") && pathParts.length > 2) {
             return String.format("%s.%s", pathParts[pathParts.length - 2], pathParts[pathParts.length - 1]);
         }
         return pathParts[pathParts.length - 1];
+    }
+
+    public Collection<String> getFormats() {
+        return extensionMappingMap.values().stream()
+                .flatMap(fe -> fe.getExtensions().stream()).collect(Collectors.toSet());
     }
 }

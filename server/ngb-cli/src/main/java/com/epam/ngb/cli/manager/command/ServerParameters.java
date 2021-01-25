@@ -48,5 +48,5 @@ public class ServerParameters {
     private String serverVersion;
     private String existingIndexSearchUrl;
     private String jwtAuthenticationToken;
-
+    private String formatsUrl;
 }

@@ -31,8 +31,12 @@ import static com.epam.catgenome.constant.MessagesConstants.ERROR_UNSUPPORTED_FI
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.manager.wig.FacadeWigManager;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -156,5 +160,11 @@ public class DataItemManager {
         }
         return item;
 
+    }
+
+    public Map<String, BiologicalDataItemFormat> getFormats() {
+        return bedManager.getFormats().stream()
+                .map(e -> Pair.of(e, BiologicalDataItemFormat.BED))
+                .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
     }
 }

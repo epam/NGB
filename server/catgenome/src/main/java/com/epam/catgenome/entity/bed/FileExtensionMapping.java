@@ -42,10 +42,6 @@ public class FileExtensionMapping {
         this.extensions = extensions;
     }
 
-    synchronized public static Object getInstance() {
-        return null;
-    }
-
     public List<ColumnMapping> getMapping() {
         return mapping;
     }
