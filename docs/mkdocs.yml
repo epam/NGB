@@ -30,6 +30,7 @@ pages:
         - VCF track: user-guide/tracks-vcf.md
         - WIG track: user-guide/tracks-wig.md
         - BED track: user-guide/tracks-bed.md
+        - ENCODE-specific tracks: user-guide/tracks-encode.md
         - Alignments track: user-guide/tracks-bam.md
         - Working with Annotations: user-guide/annotations.md
         - Embedding NGB with URL: user-guide/embedding-url.md
