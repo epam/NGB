@@ -178,7 +178,7 @@ public class FileRegistrationHandler extends AbstractHTTPCommandHandler {
         List<BiologicalDataItem> items = new ArrayList<>(files.size());
         List<Pair<String, String>> failed = new ArrayList<>(files.size());
         for (Pair<String, String> file : files) {
-            BiologicalDataItemFormat format = BiologicalDataItemFormat.getByFilePath(
+            final BiologicalDataItemFormat format = BiologicalDataItemFormat.getByFilePath(
                     file.getLeft(),
                     getAdditionalFormats()
             );

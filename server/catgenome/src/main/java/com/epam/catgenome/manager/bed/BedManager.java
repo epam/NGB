@@ -383,7 +383,7 @@ public class BedManager {
         }
     }
 
-    private void createHistogram(BedFile bedFile) throws IOException {
+    private void createHistogram(final BedFile bedFile) throws IOException {
         try (AbstractFeatureReader<NggbBedFeature, LineIterator> featureReader =
                      fileManager.makeBedReader(bedFile, getCodec(bedFile))) {
             CloseableIterator<NggbBedFeature> iterator = featureReader.iterator();

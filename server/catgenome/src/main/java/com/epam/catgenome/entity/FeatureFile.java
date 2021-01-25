@@ -81,5 +81,4 @@ public class FeatureFile extends IndexedDataItem {
     public int hashCode() {
         return getId().hashCode();
     }
-
 }

@@ -1572,7 +1572,7 @@ public class FileManager {
 
         File indexFile = new File(toRealPath(substitute(BED_INDEX, params)));
 
-        TabixIndex index = IndexUtils.createTabixIndex(bedFile, nggbBedCodec, TabixFormat.BED);
+        final TabixIndex index = IndexUtils.createTabixIndex(bedFile, nggbBedCodec, TabixFormat.BED);
         index.write(indexFile);
 
         BiologicalDataItem indexItem = new BiologicalDataItem();
