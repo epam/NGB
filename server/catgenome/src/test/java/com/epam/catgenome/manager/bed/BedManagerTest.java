@@ -89,6 +89,21 @@ public class BedManagerTest extends AbstractManagerTest {
     public static final String GENES_SORTED_BED_GZ_PATH = "classpath:templates/genes_sorted.bed.gz";
     public static final String PRETTY_NAME = "pretty";
 
+    private static final String P_VALUE = "pValue";
+    private static final String Q_VALUE = "qValue";
+    private static final String THICK_START = "thickStart";
+    private static final String SIGNAL_VALUE = "signalValue";
+    private static final String STRAND = "strand";
+    private static final String NAME = "name";
+    private static final String THICK_END = "thickEnd";
+    private static final String ITEM_RGB = "itemRgb";
+    private static final String BLOCK_COUNT = "blockCount";
+    private static final String BLOCK_SIZES = "blockSizes";
+    private static final String BLOCK_STARTS = "blockStarts";
+    private static final String SCORE = "score";
+    private static final String SEQUENCE = "sequence";
+    private static final String PEAK = "peak";
+
     @Autowired
     private BedManager bedManager;
 
@@ -140,14 +155,12 @@ public class BedManagerTest extends AbstractManagerTest {
                         bedFile,
                         b -> {
                             Map<String, Object> additional = b.getAdditional();
-                            return !additional.isEmpty()
-                            && additional.containsKey("peak")
-                            && additional.containsKey("pValue")
-                            && additional.containsKey("qValue")
-                            && additional.containsKey("signalValue")
-                            && additional.containsKey("strand")
-                            && additional.containsKey("name")
-                            && additional.containsKey("score");
+                            return additional.keySet().containsAll(
+                                    Arrays.asList(
+                                            PEAK, P_VALUE, Q_VALUE,
+                                            SIGNAL_VALUE, STRAND, NAME, SCORE
+                                    )
+                            );
                         }
                 )
         );
@@ -162,14 +175,12 @@ public class BedManagerTest extends AbstractManagerTest {
                         bedFile,
                         b -> {
                             Map<String, Object> additional = b.getAdditional();
-                            return !additional.isEmpty()
-                                    && additional.containsKey("peak")
-                                    && additional.containsKey("pValue")
-                                    && additional.containsKey("qValue")
-                                    && additional.containsKey("signalValue")
-                                    && additional.containsKey("strand")
-                                    && additional.containsKey("name")
-                                    && additional.containsKey("score");
+                            return additional.keySet().containsAll(
+                                    Arrays.asList(
+                                            PEAK, P_VALUE, Q_VALUE,
+                                            SIGNAL_VALUE, STRAND, NAME, SCORE
+                                    )
+                            );
                         }
                 )
         );
@@ -184,13 +195,12 @@ public class BedManagerTest extends AbstractManagerTest {
                         bedFile,
                         b -> {
                             Map<String, Object> additional = b.getAdditional();
-                            return !additional.isEmpty()
-                                    && additional.containsKey("pValue")
-                                    && additional.containsKey("qValue")
-                                    && additional.containsKey("signalValue")
-                                    && additional.containsKey("strand")
-                                    && additional.containsKey("name")
-                                    && additional.containsKey("score");
+                            return additional.keySet().containsAll(
+                                    Arrays.asList(
+                                            P_VALUE, Q_VALUE,
+                                            SIGNAL_VALUE, STRAND, NAME, SCORE
+                                    )
+                            );
                         }
                 )
         );
@@ -205,10 +215,11 @@ public class BedManagerTest extends AbstractManagerTest {
                         bedFile,
                         b -> {
                             Map<String, Object> additional = b.getAdditional();
-                            return !additional.isEmpty()
-                                    && additional.containsKey("strand")
-                                    && additional.containsKey("sequence")
-                                    && additional.containsKey("score");
+                            return additional.keySet().containsAll(
+                                    Arrays.asList(
+                                          STRAND, SEQUENCE, SCORE
+                                    )
+                            );
                         }
                 )
         );
@@ -223,19 +234,12 @@ public class BedManagerTest extends AbstractManagerTest {
                         bedFile,
                         b -> {
                             Map<String, Object> additional = b.getAdditional();
-                            return !additional.isEmpty()
-                                    && additional.containsKey("thickStart")
-                                    && additional.containsKey("pValue")
-                                    && additional.containsKey("qValue")
-                                    && additional.containsKey("signalValue")
-                                    && additional.containsKey("strand")
-                                    && additional.containsKey("name")
-                                    && additional.containsKey("thickEnd")
-                                    && additional.containsKey("itemRgb")
-                                    && additional.containsKey("blockCount")
-                                    && additional.containsKey("blockSizes")
-                                    && additional.containsKey("blockStarts")
-                                    && additional.containsKey("score");
+                            return additional.keySet().containsAll(
+                                    Arrays.asList(
+                                            THICK_START, P_VALUE, Q_VALUE, SIGNAL_VALUE, STRAND,
+                                            NAME, SCORE, THICK_END, ITEM_RGB, BLOCK_COUNT, BLOCK_SIZES, BLOCK_STARTS
+                                    )
+                            );
                         }
                 )
         );
