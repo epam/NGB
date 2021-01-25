@@ -94,7 +94,9 @@ public class SortHandler extends AbstractHTTPCommandHandler {
             throw new IllegalArgumentException(MessageConstants.getMessage(MessageConstants.ERROR_NEGATIVE_MEMORY));
         }
 
-        BiologicalDataItemFormat format = BiologicalDataItemFormat.getByFilePath(originalFilePath);
+        BiologicalDataItemFormat format = BiologicalDataItemFormat.getByFilePath(
+                originalFilePath, getAdditionalFormats()
+        );
         if (format != BiologicalDataItemFormat.VCF
                 && format != BiologicalDataItemFormat.GENE
                 && format != BiologicalDataItemFormat.BED) {

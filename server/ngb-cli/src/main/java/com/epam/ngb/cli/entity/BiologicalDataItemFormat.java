@@ -100,20 +100,6 @@ public enum BiologicalDataItemFormat {
         EXTENSIONS_MAP.put("bw", WIG);
         EXTENSIONS_MAP.put("bigwig", WIG);
         EXTENSIONS_MAP.put("bed", BED);
-        EXTENSIONS_MAP.put("narrowPeak", BED);
-        EXTENSIONS_MAP.put("nPk", BED);
-        EXTENSIONS_MAP.put("broadPeak", BED);
-        EXTENSIONS_MAP.put("bPk", BED);
-        EXTENSIONS_MAP.put("gappedPeak", BED);
-        EXTENSIONS_MAP.put("gPk", BED);
-        EXTENSIONS_MAP.put("RNAelements", BED);
-        EXTENSIONS_MAP.put("RNAe", BED);
-        EXTENSIONS_MAP.put("tagAlign", BED);
-        EXTENSIONS_MAP.put("ta", BED);
-        EXTENSIONS_MAP.put("pairedTagAlign", BED);
-        EXTENSIONS_MAP.put("pta", BED);
-        EXTENSIONS_MAP.put("peptideMapping", BED);
-        EXTENSIONS_MAP.put("pMap", BED);
         EXTENSIONS_MAP.put("maf", MAF);
         EXTENSIONS_MAP.put("vg", VG);
         EXTENSIONS_MAP.put("bdg", WIG);
@@ -184,11 +170,14 @@ public enum BiologicalDataItemFormat {
     /**
      * Determines {@code BiologicalDataItemFormat} by a path to the file
      * @param path to the file
+     * @param additionalFormats additional formats that NGB supports (f.e bed-like narrowPeak and broadPeak)
      * @return defined {@code BiologicalDataItemFormat}
      * @throws IllegalArgumentException if file format is not supported or GZIP compression is not
      *          supported for a format
      */
-    public static BiologicalDataItemFormat getByFilePath(String path) {
+    public static BiologicalDataItemFormat getByFilePath(
+            String path,
+            final Map<String, BiologicalDataItemFormat> additionalFormats) {
         String extension = FilenameUtils.getExtension(path);
         boolean isZipped = false;
         if (GZ_EXTENSION.equals(extension)) {
@@ -198,7 +187,10 @@ public enum BiologicalDataItemFormat {
         }
         BiologicalDataItemFormat format = EXTENSIONS_MAP.get(extension);
         if (format == null) {
-            throw new IllegalArgumentException(getMessage(ERROR_UNSUPPORTED_FORMAT, extension));
+            format = additionalFormats.get(extension);
+            if (format == null) {
+                throw new IllegalArgumentException(getMessage(ERROR_UNSUPPORTED_FORMAT, extension));
+            }
         }
         if (!format.supportGZip && isZipped) {
             throw new IllegalArgumentException(getMessage(ERROR_UNSUPPORTED_ZIP, format.name()));

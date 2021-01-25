@@ -32,6 +32,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -42,7 +43,6 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.entity.bed.FileExtensionMapping;
 import com.epam.catgenome.manager.bed.parser.NggbBedCodec;
 import com.epam.catgenome.manager.bed.parser.NggbMultiFormatBedCodec;
-import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -633,5 +633,10 @@ public class BedManager {
             return String.format("%s.%s", pathParts[pathParts.length - 2], pathParts[pathParts.length - 1]);
         }
         return pathParts[pathParts.length - 1];
+    }
+
+    public Collection<String> getFormats() {
+        return extensionMappingMap.values().stream()
+                .flatMap(fe -> fe.getExtensions().stream()).collect(Collectors.toSet());
     }
 }

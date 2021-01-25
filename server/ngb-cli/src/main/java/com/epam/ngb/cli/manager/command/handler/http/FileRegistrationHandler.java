@@ -32,7 +32,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.epam.ngb.cli.entity.*;
+import com.epam.ngb.cli.entity.BiologicalDataItem;
+import com.epam.ngb.cli.entity.BiologicalDataItemFormat;
+import com.epam.ngb.cli.entity.BiologicalDataItemResourceType;
+import com.epam.ngb.cli.entity.RegistrationRequest;
+import com.epam.ngb.cli.entity.ResponseResult;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -174,7 +178,10 @@ public class FileRegistrationHandler extends AbstractHTTPCommandHandler {
         List<BiologicalDataItem> items = new ArrayList<>(files.size());
         List<Pair<String, String>> failed = new ArrayList<>(files.size());
         for (Pair<String, String> file : files) {
-            BiologicalDataItemFormat format = BiologicalDataItemFormat.getByFilePath(file.getLeft());
+            BiologicalDataItemFormat format = BiologicalDataItemFormat.getByFilePath(
+                    file.getLeft(),
+                    getAdditionalFormats()
+            );
             String url = String.format(getRequestUrl(), format.name().toLowerCase());
             HttpRequestBase request = getRequest(url);
 
