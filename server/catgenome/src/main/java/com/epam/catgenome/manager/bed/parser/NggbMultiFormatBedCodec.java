@@ -117,7 +117,7 @@ public class NggbMultiFormatBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
                         "MultiFormat BED record doesn't have token with index: %d", column.getIndex())
                 );
             }
-            feature.additional.put(column.getColumn(), tokens[column.getIndex()]);
+            feature.additional.put(column.getColumn(), column.casted(tokens[column.getIndex()]));
         });
         return feature;
     }
