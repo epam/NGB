@@ -42,7 +42,7 @@ public class BedRecord extends Block {
     private Integer thickStart;
     private Integer thickEnd;
     private String rgb;
-    private int blockCount;
+    private Integer blockCount;
     private int[] blockSizes;
     private int[] blockStarts;
     private String id;
@@ -158,11 +158,11 @@ public class BedRecord extends Block {
         return getStartIndex(); // if records have the same start, they are equals
     }
 
-    public int getBlockCount() {
+    public Integer getBlockCount() {
         return blockCount;
     }
 
-    public void setBlockCount(int blockCount) {
+    public void setBlockCount(Integer blockCount) {
         this.blockCount = blockCount;
     }
 

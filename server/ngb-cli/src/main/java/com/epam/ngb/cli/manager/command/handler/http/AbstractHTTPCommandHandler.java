@@ -33,6 +33,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import com.epam.ngb.cli.app.Utils;
 import com.epam.ngb.cli.entity.AclClass;
@@ -47,6 +48,7 @@ import com.epam.ngb.cli.entity.ResponseResult;
 import com.epam.ngb.cli.entity.Role;
 import com.epam.ngb.cli.entity.SpeciesEntity;
 import com.epam.ngb.cli.entity.UserContext;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -119,6 +121,8 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
     protected ServerParameters serverParameters;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractHTTPCommandHandler.class);
+
+    private Map<String, BiologicalDataItemFormat> additionalFormats;
 
     /**
      * Default constructor to enable reflexion instance creation
@@ -330,6 +334,30 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         }
         throw new ApplicationException(String.format("No reference specified for dataset with id %d.",
                 datasetId));
+    }
+
+    Map<String, BiologicalDataItemFormat> getAdditionalFormats() {
+        if (additionalFormats == null) {
+            additionalFormats = fetchAdditionalFormats();
+        }
+        return additionalFormats;
+    }
+
+    protected Map<String, BiologicalDataItemFormat> fetchAdditionalFormats() {
+        final HttpRequestBase request = getRequestFromURLByType(
+                HttpGet.METHOD_NAME, serverParameters.getServerUrl() + serverParameters.getFormatsUrl()
+        );
+        final String result = RequestManager.executeRequest(request);
+        try {
+            final ResponseResult<Map<String, BiologicalDataItemFormat>> responseResult = getMapper().readValue(result,
+                    new TypeReference<ResponseResult<Map<String, BiologicalDataItemFormat>>>() {});
+            if (responseResult == null || responseResult.getPayload() == null) {
+                throw new ApplicationException(getMessage(ERROR_DATAITEM_FORMATS_NOT_FOUND));
+            }
+            return responseResult.getPayload();
+        } catch (IOException e) {
+            throw new ApplicationException(getMessage(ERROR_DATAITEM_FORMATS_NOT_FOUND));
+        }
     }
 
     /**
@@ -720,7 +748,7 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
      * @param path input CLI argument
      * @return pair, where left part is path to file and rights one optional path to index
      */
-    protected Pair<String, String> parseAndVerifyFilePath(String path) {
+    protected Pair<String, String> parseAndVerifyFilePath(final String path) {
         Pair<String, String> fileWithIndex = splitFilePath(path);
         String fileAbsolutePath = fileWithIndex.getLeft();
         if (getTypeFromPath(fileAbsolutePath) == FILE) {
@@ -730,7 +758,9 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
             fileWithIndex = setIndexPathFromServer(fileAbsolutePath, fileWithIndex);
         }
 
-        BiologicalDataItemFormat format = BiologicalDataItemFormat.getByFilePath(fileWithIndex.getLeft());
+        final BiologicalDataItemFormat format = BiologicalDataItemFormat.getByFilePath(
+                fileWithIndex.getLeft(), getAdditionalFormats()
+        );
         if (format.isRequireIndex() && fileWithIndex.getRight() == null) {
             throw new IllegalArgumentException(getMessage(ERROR_INDEX_REQUIRED, fileWithIndex.getLeft()));
         }

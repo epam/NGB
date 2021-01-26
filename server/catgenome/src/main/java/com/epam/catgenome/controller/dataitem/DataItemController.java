@@ -28,7 +28,9 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
+import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.manager.dataitem.DataItemSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -79,6 +81,18 @@ public class DataItemController extends AbstractRESTController {
     public final Result<List<BiologicalDataItem>> findFilesByName(@RequestParam(value = "name") final String name,
             @RequestParam(value = "strict", required = false, defaultValue = "true") final boolean strict) {
         return Result.success(dataItemSecurityService.findFilesByName(name, strict));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/dataitem/formats", method = RequestMethod.GET)
+    @ApiOperation(
+            value = "Get all available bed formats.",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Map<String, BiologicalDataItemFormat>> getBedFormats() {
+        return Result.success(dataItemSecurityService.getFormats());
     }
 
     @ResponseBody

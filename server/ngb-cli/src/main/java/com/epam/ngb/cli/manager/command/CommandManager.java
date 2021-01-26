@@ -60,6 +60,7 @@ public class CommandManager {
     private static final String VERSION_URL_PROPERTY = "version_url";
     private static final String ALL_ROLES_URL_PROPERTY = "roles_url";
     private static final String ROLE_URL_PROPERTY = "role_url";
+    private static final String FORMAT_URL_PROPERTY = "formats_url";
     private static final String FIND_USER_URL_PROPERTY = "find_user_url";
     private static final String FIND_USERS_URL_PROPERTY = "find_users_url";
     public static final String SERVER_VERSION_PROPERTY = "version";
@@ -152,6 +153,7 @@ public class CommandManager {
         parameters.setFindUserUrl(serverProperties.getProperty(FIND_USER_URL_PROPERTY));
         parameters.setFindUsersUrl(serverProperties.getProperty(FIND_USERS_URL_PROPERTY));
         parameters.setExistingIndexSearchUrl(serverProperties.getProperty(GET_EXISTING_INDEX_URL_PROPERTY));
+        parameters.setFormatsUrl(serverProperties.getProperty(FORMAT_URL_PROPERTY));
         return parameters;
     }
 

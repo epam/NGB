@@ -42,10 +42,6 @@ public class FileExtensionMapping {
         this.extensions = extensions;
     }
 
-    synchronized public static Object getInstance() {
-        return null;
-    }
-
     public List<ColumnMapping> getMapping() {
         return mapping;
     }
@@ -66,7 +62,11 @@ public class FileExtensionMapping {
         }
 
         public Object casted(String value) {
-            return cast.cast.apply(value);
+            try {
+                return cast.cast.apply(value);
+            } catch (IllegalArgumentException e) {
+                return value;
+            }
         }
 
     }

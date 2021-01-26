@@ -28,8 +28,6 @@ import com.epam.catgenome.entity.bed.FileExtensionMapping.ColumnMapping;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.readers.LineIterator;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -43,8 +41,6 @@ public class NggbMultiFormatBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
     private static final int END_OFFSET = 2;
     private final int startOffsetValue;
     private final List<ColumnMapping> mapping;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(NggbMultiFormatBedCodec.class);
 
     /**
      * Calls {@link #NggbMultiFormatBedCodec(StartOffset, List)} with an argument
@@ -72,7 +68,7 @@ public class NggbMultiFormatBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
      * @return parsed {@code NggbBedFeature}
      */
     @Override
-    public NggbBedFeature decode(String line) {
+    public NggbBedFeature decode(final String line) {
         if (line.trim().isEmpty()) {
             return null;
         }
@@ -80,7 +76,7 @@ public class NggbMultiFormatBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
             this.readHeaderLine();
             return null;
         }
-        String[] tokens = line.split("\t");
+        final String[] tokens = line.split("\t");
         return decode(tokens);
     }
 
@@ -90,7 +86,7 @@ public class NggbMultiFormatBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
      * @return always null
      */
     @Override
-    public Object readActualHeader(LineIterator reader) {
+    public Object readActualHeader(final LineIterator reader) {
         return null;
     }
 
@@ -107,27 +103,28 @@ public class NggbMultiFormatBedCodec extends AsciiFeatureCodec<NggbBedFeature> {
         return this.startOffsetValue;
     }
 
-    private NggbBedFeature decode(String[] tokens) {
+    private NggbBedFeature decode(final String[] tokens) {
         int tokenCount = tokens.length;
         // The first 3 columns are non optional for BED.  We will relax this
         // and only require 2.
         if (tokenCount < 2) {
             return null;
         }
-        NggbMultiFormatBedFeature feature = getNggbMultiFormatBedFeature(tokens, tokenCount);
+        final NggbMultiFormatBedFeature feature = getNggbMultiFormatBedFeature(tokens, tokenCount);
         mapping.forEach(column -> {
             if (column.getIndex() > tokens.length - 1) {
                 throw new IllegalArgumentException(String.format(
                         "MultiFormat BED record doesn't have token with index: %d", column.getIndex())
                 );
             }
-            feature.additional.put(column.getColumn(), tokens[column.getIndex()]);
+            feature.additional.put(column.getColumn(), column.casted(tokens[column.getIndex()]));
         });
         return feature;
     }
 
-    @NotNull private NggbMultiFormatBedFeature getNggbMultiFormatBedFeature(String[] tokens, int tokenCount) {
-        String chr = tokens[CHR_OFFSET];
+    @NotNull private NggbMultiFormatBedFeature getNggbMultiFormatBedFeature(
+            final String[] tokens, final int tokenCount) {
+        final String chr = tokens[CHR_OFFSET];
         // The BED format uses a first-base-is-zero convention,  Tribble features use 1 => add 1.
         int start = Integer.parseInt(tokens[START_OFFSET]) + startOffsetValue;
         int end = start;
