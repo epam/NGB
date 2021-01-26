@@ -14,7 +14,7 @@
       {
         "index":4,
         "column":"score",
-        "cast": "INT"
+        "cast": "FLOAT"
       },
       {
         "index":5,
@@ -24,7 +24,7 @@
       {
         "index":6,
         "column":"signalValue",
-        "cast": "INT"
+        "cast": "FLOAT"
       },
       {
         "index":7,
@@ -54,7 +54,7 @@
       {
         "index": 4,
         "column": "score",
-        "cast": "INT"
+        "cast": "FLOAT"
       },
       {
         "index": 5,
@@ -64,7 +64,7 @@
       {
         "index": 6,
         "column": "signalValue",
-        "cast": "INT"
+        "cast": "FLOAT"
       },
       {
         "index": 7,
@@ -89,7 +89,7 @@
       {
         "index": 4,
         "column": "score",
-        "cast": "INT"
+        "cast": "FLOAT"
       },
       {
         "index": 5,
@@ -154,7 +154,7 @@
       {
         "index":4,
         "column":"score",
-        "cast": "INT"
+        "cast": "FLOAT"
       },
       {
         "index":5,
@@ -164,7 +164,7 @@
       {
         "index":6,
         "column":"signalValue",
-        "cast": "INT"
+        "cast": "FLOAT"
       },
       {
         "index":7,
@@ -194,7 +194,7 @@
       {
         "index":4,
         "column":"score",
-        "cast": "INT"
+        "cast": "FLOAT"
       },
       {
         "index":5,
@@ -214,7 +214,7 @@
       {
         "index":4,
         "column":"score",
-        "cast": "INT"
+        "cast": "FLOAT"
       },
       {
         "index":5,
@@ -244,7 +244,7 @@
       {
         "index":4,
         "column":"score",
-        "cast": "INT"
+        "cast": "FLOAT"
       },
       {
         "index":5,
@@ -254,7 +254,7 @@
       {
         "index":6,
         "column":"rawScore",
-        "cast": "INT"
+        "cast": "FLOAT"
       },
       {
         "index":7,

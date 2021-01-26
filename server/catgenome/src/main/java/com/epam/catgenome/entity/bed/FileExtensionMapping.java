@@ -62,7 +62,11 @@ public class FileExtensionMapping {
         }
 
         public Object casted(String value) {
-            return cast.cast.apply(value);
+            try {
+                return cast.cast.apply(value);
+            } catch (IllegalArgumentException e) {
+                return value;
+            }
         }
 
     }
