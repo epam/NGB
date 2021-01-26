@@ -47,7 +47,7 @@ public interface NggbBedFeature extends Feature {
 
     String getName();
 
-    float getScore();
+    Float getScore();
 
     String getLink();
 
@@ -55,7 +55,7 @@ public interface NggbBedFeature extends Feature {
 
     Integer getThickEnd();
 
-    int getBlockCount();
+    Integer getBlockCount();
 
     int[] getBlockSizes();
 

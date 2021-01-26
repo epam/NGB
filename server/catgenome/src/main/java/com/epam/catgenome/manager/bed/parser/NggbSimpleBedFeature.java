@@ -88,7 +88,7 @@ public class NggbSimpleBedFeature implements NggbBedFeature {
     }
 
     @Override
-    public float getScore() {
+    public Float getScore() {
         return score;
     }
 
@@ -152,7 +152,7 @@ public class NggbSimpleBedFeature implements NggbBedFeature {
     }
 
     @Override
-    public int getBlockCount() {
+    public Integer getBlockCount() {
         return blockCount;
     }
 

@@ -76,8 +76,8 @@ public class NggbMultiFormatBedFeature implements NggbBedFeature {
     }
 
     @Override
-    public float getScore() {
-        return 0;
+    public Float getScore() {
+        return null;
     }
 
     @Override
@@ -134,8 +134,8 @@ public class NggbMultiFormatBedFeature implements NggbBedFeature {
     }
 
     @Override
-    public int getBlockCount() {
-        return 0;
+    public Integer getBlockCount() {
+        return null;
     }
 
     public void setBlockCount(int blockCount) {
