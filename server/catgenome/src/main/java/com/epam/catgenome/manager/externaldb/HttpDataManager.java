@@ -38,6 +38,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.logging.Logger;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,6 +52,7 @@ import com.epam.catgenome.exception.ExternalDbUnavailableException;
  * </p>
  */
 @Service
+@Slf4j
 public class HttpDataManager {
     private static final String EXCEPTION_MESSAGE = "Couldn't fetch data for URL %s";
     private static final int MILLIS_IN_SECOND = 1000;
@@ -83,7 +85,7 @@ public class HttpDataManager {
             throws ExternalDbUnavailableException {
 
         final String location = getLocationStub(locationStub, params);
-
+        log.info(location);
         String resultData = getResultFromURL(location);
 
 
