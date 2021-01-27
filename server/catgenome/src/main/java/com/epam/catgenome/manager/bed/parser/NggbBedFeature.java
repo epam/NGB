@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,8 @@
 
 package com.epam.catgenome.manager.bed.parser;
 
-import java.awt.*;
+import java.awt.Color;
+import java.util.Map;
 
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.annotation.Strand;
@@ -33,6 +34,9 @@ import htsjdk.tribble.annotation.Strand;
  * Interface represents one record from the Bed file
  */
 public interface NggbBedFeature extends Feature {
+
+    Map<String, Object> getAdditional();
+
     Strand getStrand();
 
     String getType();
@@ -43,7 +47,7 @@ public interface NggbBedFeature extends Feature {
 
     String getName();
 
-    float getScore();
+    Float getScore();
 
     String getLink();
 
@@ -51,7 +55,7 @@ public interface NggbBedFeature extends Feature {
 
     Integer getThickEnd();
 
-    int getBlockCount();
+    Integer getBlockCount();
 
     int[] getBlockSizes();
 

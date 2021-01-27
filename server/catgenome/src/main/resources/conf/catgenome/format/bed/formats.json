@@ -1,0 +1,276 @@
+[
+  {
+    "extension": ["bed"],
+    "mapping" : []
+  },
+  {
+    "extension": ["narrowPeak", "nPk", "narrowPeak.gz", "nPk.gz"],
+    "mapping" : [
+      {
+        "index":3,
+        "column":"name",
+        "cast": "STRING"
+      },
+      {
+        "index":4,
+        "column":"score",
+        "cast": "FLOAT"
+      },
+      {
+        "index":5,
+        "column":"strand",
+        "cast": "STRING"
+      },
+      {
+        "index":6,
+        "column":"signalValue",
+        "cast": "FLOAT"
+      },
+      {
+        "index":7,
+        "column":"pValue",
+        "cast": "FLOAT"
+      },
+      {
+        "index":8,
+        "column":"qValue",
+        "cast": "FLOAT"
+      },
+      {
+        "index":9,
+        "column":"peak",
+        "cast": "INT"
+      }
+    ]
+  },
+  {
+    "extension": ["broadPeak", "bPk", "broadPeak.gz", "bPk.gz"],
+    "mapping" : [
+      {
+        "index": 3,
+        "column": "name",
+        "cast": "STRING"
+      },
+      {
+        "index": 4,
+        "column": "score",
+        "cast": "FLOAT"
+      },
+      {
+        "index": 5,
+        "column": "strand",
+        "cast": "STRING"
+      },
+      {
+        "index": 6,
+        "column": "signalValue",
+        "cast": "FLOAT"
+      },
+      {
+        "index": 7,
+        "column": "pValue",
+        "cast": "FLOAT"
+      },
+      {
+        "index": 8,
+        "column": "qValue",
+        "cast": "FLOAT"
+      }
+    ]
+  },
+  {
+    "extension": ["gappedPeak", "gPk", "gappedPeak.gz", "gPk.gz"],
+    "mapping" : [
+      {
+        "index": 3,
+        "column": "name",
+        "cast": "STRING"
+      },
+      {
+        "index": 4,
+        "column": "score",
+        "cast": "FLOAT"
+      },
+      {
+        "index": 5,
+        "column": "strand",
+        "cast": "STRING"
+      },
+      {
+        "index": 6,
+        "column": "thickStart",
+        "cast": "INT"
+      },
+      {
+        "index": 7,
+        "column": "thickEnd",
+        "cast": "INT"
+      },
+      {
+        "index": 8,
+        "column": "itemRgb",
+        "cast": "STRING"
+      },
+      {
+        "index": 9,
+        "column": "blockCount",
+        "cast": "INT"
+      },
+      {
+        "index": 10,
+        "column": "blockSizes",
+        "cast": "STRING"
+      },
+      {
+        "index": 11,
+        "column": "blockStarts",
+        "cast": "STRING"
+      },
+      {
+        "index": 12,
+        "column": "signalValue",
+        "cast": "FLOAT"
+      },
+      {
+        "index": 13,
+        "column": "pValue",
+        "cast": "FLOAT"
+      },
+      {
+        "index": 14,
+        "column": "qValue",
+        "cast": "FLOAT"
+      }
+    ]
+  },
+  {
+    "extension": ["RNAelements", "RNAe", "RNAelements.gz", "RNAe.gz"],
+    "mapping" : [
+      {
+        "index":3,
+        "column":"name",
+        "cast": "STRING"
+      },
+      {
+        "index":4,
+        "column":"score",
+        "cast": "FLOAT"
+      },
+      {
+        "index":5,
+        "column":"strand",
+        "cast": "STRING"
+      },
+      {
+        "index":6,
+        "column":"signalValue",
+        "cast": "FLOAT"
+      },
+      {
+        "index":7,
+        "column":"pValue",
+        "cast": "FLOAT"
+      },
+      {
+        "index":8,
+        "column":"qValue",
+        "cast": "FLOAT"
+      },
+      {
+        "index":9,
+        "column":"peak",
+        "cast": "INT"
+      }
+    ]
+  },
+  {
+    "extension": ["tagAlign", "ta", "tagAlign.gz", "ta.gz"],
+    "mapping" : [
+      {
+        "index":3,
+        "column":"sequence",
+        "cast": "STRING"
+      },
+      {
+        "index":4,
+        "column":"score",
+        "cast": "FLOAT"
+      },
+      {
+        "index":5,
+        "column":"strand",
+        "cast": "STRING"
+      }
+    ]
+  },
+  {
+    "extension": ["pairedTagAlign", "pta", "pairedTagAlign.gz", "pta.gz"],
+    "mapping" : [
+      {
+        "index":3,
+        "column":"sequence",
+        "cast": "STRING"
+      },
+      {
+        "index":4,
+        "column":"score",
+        "cast": "FLOAT"
+      },
+      {
+        "index":5,
+        "column":"strand",
+        "cast": "STRING"
+      },
+      {
+        "index":6,
+        "column":"seq1",
+        "cast": "STRING"
+      },
+      {
+        "index":7,
+        "column":"seq2",
+        "cast": "STRING"
+      }
+    ]
+  },
+  {
+    "extension": ["peptideMapping", "pMap", "peptideMapping.gz", "pMap.gz"],
+    "mapping" : [
+      {
+        "index":3,
+        "column":"sequence",
+        "cast": "STRING"
+      },
+      {
+        "index":4,
+        "column":"score",
+        "cast": "FLOAT"
+      },
+      {
+        "index":5,
+        "column":"strand",
+        "cast": "STRING"
+      },
+      {
+        "index":6,
+        "column":"rawScore",
+        "cast": "FLOAT"
+      },
+      {
+        "index":7,
+        "column":"spectrumId",
+        "cast": "STRING"
+      },
+      {
+        "index":8,
+        "column":"peptideRank",
+        "cast": "INT"
+      },
+      {
+        "index":9,
+        "column":"peptideRepeatCount",
+        "cast": "INT"
+      }
+    ]
+  }
+]

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,11 +24,13 @@
 
 package com.epam.catgenome.entity.bed;
 
+import java.util.Map;
 import java.util.Objects;
 
 import com.epam.catgenome.entity.track.Block;
 import com.epam.catgenome.manager.bed.parser.NggbBedFeature;
 import htsjdk.tribble.annotation.Strand;
+import org.apache.commons.collections4.MapUtils;
 
 /**
  * Bed File record representation for the client. Class holds all the necessary data from the file.
@@ -40,11 +42,12 @@ public class BedRecord extends Block {
     private Integer thickStart;
     private Integer thickEnd;
     private String rgb;
-    private int blockCount;
+    private Integer blockCount;
     private int[] blockSizes;
     private int[] blockStarts;
     private String id;
     private String description;
+    private Map<String, Object> additional;
 
     public BedRecord() {
         //default constructor
@@ -82,6 +85,9 @@ public class BedRecord extends Block {
         blockStarts = bedFeature.getBlockStarts();
         id = bedFeature.getId();
         description = bedFeature.getDescription();
+        if (MapUtils.isNotEmpty(bedFeature.getAdditional())) {
+            additional = bedFeature.getAdditional();
+        }
     }
 
     public String getName() {
@@ -152,11 +158,11 @@ public class BedRecord extends Block {
         return getStartIndex(); // if records have the same start, they are equals
     }
 
-    public int getBlockCount() {
+    public Integer getBlockCount() {
         return blockCount;
     }
 
-    public void setBlockCount(int blockCount) {
+    public void setBlockCount(Integer blockCount) {
         this.blockCount = blockCount;
     }
 
@@ -190,5 +196,13 @@ public class BedRecord extends Block {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Map<String, Object> getAdditional() {
+        return additional;
+    }
+
+    public void setAdditional(final Map<String, Object> additional) {
+        this.additional = additional;
     }
 }

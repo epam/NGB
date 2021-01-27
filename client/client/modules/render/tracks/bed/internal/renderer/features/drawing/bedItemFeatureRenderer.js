@@ -14,8 +14,11 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
 
     analyzeBoundaries(feature, viewport) {
         const boundaries = super.analyzeBoundaries(feature, viewport);
-        const labelSize = PixiTextSize.getTextSize(feature.name, this.config.bed.label);
         let descriptionLabelSize = {height: 0, width: 0};
+        let labelSize = {height: 0, width: 0};
+        if (feature.name && feature.name !== '.') {
+            labelSize = PixiTextSize.getTextSize(feature.name, this.config.bed.label);
+        }
         if (feature.description && feature.description.length < this.config.bed.description.maximumDisplayLength) {
             descriptionLabelSize = PixiTextSize.getTextSize(feature.description, this.config.bed.description.label);
         }
@@ -44,24 +47,30 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
     render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position) {
         super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
         const pixelsInBp = viewport.factor;
-        const label = new PIXI.Text(feature.name, this.config.bed.label);
-        label.resolution = drawingConfiguration.resolution;
-        label.x = Math.round(position.x);
-        label.y = Math.round(position.y);
-        dockableElementsContainer.addChild(label);
         const yStart = position.y;
-        this.registerLabel(label, position, {end: feature.endIndex, start: feature.startIndex});
+        let labelHeight = 0;
+        let labelWidth = 0;
+        if (feature.name && feature.name !== '.') {
+            const label = new PIXI.Text(feature.name, this.config.bed.label);
+            label.resolution = drawingConfiguration.resolution;
+            label.x = Math.round(position.x);
+            label.y = Math.round(position.y);
+            dockableElementsContainer.addChild(label);
+            labelHeight = label.height;
+            labelWidth = label.width;
+            this.registerLabel(label, position, {end: feature.endIndex, start: feature.startIndex});
+        }
         if (feature.description && feature.description.length < this.config.bed.description.maximumDisplayLength) {
             const descriptionLabelWidth = PixiTextSize.getTextSize(feature.description, this.config.bed.description.label).width;
             if (descriptionLabelWidth < position.width) {
                 const descriptionLabel = new PIXI.Text(feature.description, this.config.bed.description.label);
                 descriptionLabel.resolution = drawingConfiguration.resolution;
                 descriptionLabel.x = Math.round(position.x);
-                descriptionLabel.y = Math.round(position.y + label.height);
+                descriptionLabel.y = Math.round(position.y + labelHeight);
                 dockableElementsContainer.addChild(descriptionLabel);
                 this.registerLabel(descriptionLabel, {
                     x: position.x,
-                    y: Math.round(position.y + label.height)
+                    y: Math.round(position.y + labelHeight)
                 }, {
                     end: feature.endIndex,
                     start: feature.startIndex
@@ -70,11 +79,11 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
             }
         }
         
-        position.y += label.height;
+        position.y += labelHeight;
 
         this.registerFeaturePosition(feature, {
             x1: viewport.project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2,
-            x2: Math.max(viewport.project.brushBP2pixel(feature.endIndex) + pixelsInBp / 2, position.x + label.width),
+            x2: Math.max(viewport.project.brushBP2pixel(feature.endIndex) + pixelsInBp / 2, position.x + labelWidth),
             y1: yStart,
             y2: position.y + this.config.bed.height
         });

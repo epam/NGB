@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -152,14 +152,14 @@ public enum BiologicalDataItemFormat {
      * @return true if server supports this index, otherwise - false
      * @throws IllegalArgumentException if index format doesn't match the file format
      */
-    public boolean verifyIndex(String indexPath) {
-        Set<String> expectedIndexFormat = INDEX_EXTENSION_MAP.get(this);
+    public boolean verifyIndex(final String indexPath) {
+        final Set<String> expectedIndexFormat = INDEX_EXTENSION_MAP.get(this);
         if (expectedIndexFormat == null) {
             LOGGER.error(String.format("Provided index file won't be used, since server creates its own "
                     + "index for %s format.", this.name()));
             return false;
         }
-        String indexExtension = FilenameUtils.getExtension(indexPath);
+       final String indexExtension = FilenameUtils.getExtension(indexPath);
         if (!expectedIndexFormat.contains(indexExtension)) {
             throw new IllegalArgumentException(getMessage(ERROR_INDEX_FORMAT_DOES_NOT_MATCH,
                     indexPath, this.name()));
@@ -170,11 +170,14 @@ public enum BiologicalDataItemFormat {
     /**
      * Determines {@code BiologicalDataItemFormat} by a path to the file
      * @param path to the file
+     * @param additionalFormats additional formats that NGB supports (f.e bed-like narrowPeak and broadPeak)
      * @return defined {@code BiologicalDataItemFormat}
      * @throws IllegalArgumentException if file format is not supported or GZIP compression is not
      *          supported for a format
      */
-    public static BiologicalDataItemFormat getByFilePath(String path) {
+    public static BiologicalDataItemFormat getByFilePath(
+            final String path,
+            final Map<String, BiologicalDataItemFormat> additionalFormats) {
         String extension = FilenameUtils.getExtension(path);
         boolean isZipped = false;
         if (GZ_EXTENSION.equals(extension)) {
@@ -184,7 +187,10 @@ public enum BiologicalDataItemFormat {
         }
         BiologicalDataItemFormat format = EXTENSIONS_MAP.get(extension);
         if (format == null) {
-            throw new IllegalArgumentException(getMessage(ERROR_UNSUPPORTED_FORMAT, extension));
+            format = additionalFormats.get(extension);
+            if (format == null) {
+                throw new IllegalArgumentException(getMessage(ERROR_UNSUPPORTED_FORMAT, extension));
+            }
         }
         if (!format.supportGZip && isZipped) {
             throw new IllegalArgumentException(getMessage(ERROR_UNSUPPORTED_ZIP, format.name()));

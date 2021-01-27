@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.exception.FeatureIndexException;
@@ -78,8 +80,29 @@ import htsjdk.tribble.TribbleException;
 public class BedManagerTest extends AbstractManagerTest {
 
     public static final String GENES_SORTED_BED_PATH = "classpath:templates/genes_sorted.bed";
+    public static final String NARROWPEAK_BED_PATH = "classpath:templates/NarrowPeak.narrowPeak";
+    public static final String NARROWPEAK_GZ_BED_PATH = "classpath:templates/NarrowPeak.narrowPeak.gz";
+    public static final String BROADPEAK_BED_PATH = "classpath:templates/BroadPeak.broadPeak";
+    public static final String GAPPEDPEAK_BED_PATH = "classpath:templates/GappedPeak.gPk";
+    public static final String TAGALIGN_BED_PATH = "classpath:templates/tagAlign.tagAlign";
+
     public static final String GENES_SORTED_BED_GZ_PATH = "classpath:templates/genes_sorted.bed.gz";
     public static final String PRETTY_NAME = "pretty";
+
+    private static final String P_VALUE = "pValue";
+    private static final String Q_VALUE = "qValue";
+    private static final String THICK_START = "thickStart";
+    private static final String SIGNAL_VALUE = "signalValue";
+    private static final String STRAND = "strand";
+    private static final String NAME = "name";
+    private static final String THICK_END = "thickEnd";
+    private static final String ITEM_RGB = "itemRgb";
+    private static final String BLOCK_COUNT = "blockCount";
+    private static final String BLOCK_SIZES = "blockSizes";
+    private static final String BLOCK_STARTS = "blockStarts";
+    private static final String SCORE = "score";
+    private static final String SEQUENCE = "sequence";
+    private static final String PEAK = "peak";
 
     @Autowired
     private BedManager bedManager;
@@ -121,6 +144,105 @@ public class BedManagerTest extends AbstractManagerTest {
     public void testRegisterBed() throws IOException, FeatureFileReadingException {
         BedFile bedFile = testRegisterBed(GENES_SORTED_BED_PATH);
         Assert.assertTrue(testLoadBedRecords(bedFile));
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterNarrowPeak() throws IOException, FeatureFileReadingException {
+        BedFile bedFile = testRegisterBed(NARROWPEAK_BED_PATH);
+        Assert.assertTrue(
+            testLoadMultiFormatBedRecords(
+                bedFile,
+                b -> {
+                    Map<String, Object> additional = b.getAdditional();
+                    return additional.keySet().containsAll(
+                        Arrays.asList(
+                                PEAK, P_VALUE, Q_VALUE,
+                                SIGNAL_VALUE, STRAND, NAME, SCORE
+                        )
+                    );
+                }
+            )
+        );
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterNarrowPeakGz() throws IOException, FeatureFileReadingException {
+        BedFile bedFile = testRegisterBed(NARROWPEAK_GZ_BED_PATH);
+        Assert.assertTrue(
+            testLoadMultiFormatBedRecords(
+                bedFile,
+                b -> {
+                    Map<String, Object> additional = b.getAdditional();
+                    return additional.keySet().containsAll(
+                        Arrays.asList(
+                                PEAK, P_VALUE, Q_VALUE,
+                                SIGNAL_VALUE, STRAND, NAME, SCORE
+                        )
+                    );
+                }
+            )
+        );
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterBroadPeak() throws IOException, FeatureFileReadingException {
+        BedFile bedFile = testRegisterBed(BROADPEAK_BED_PATH);
+        Assert.assertTrue(
+            testLoadMultiFormatBedRecords(
+                bedFile,
+                b -> {
+                    Map<String, Object> additional = b.getAdditional();
+                    return additional.keySet().containsAll(
+                        Arrays.asList(
+                                P_VALUE, Q_VALUE,
+                                SIGNAL_VALUE, STRAND, NAME, SCORE
+                        )
+                    );
+                }
+            )
+        );
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterTagAlign() throws IOException, FeatureFileReadingException {
+        BedFile bedFile = testRegisterBed(TAGALIGN_BED_PATH);
+        Assert.assertTrue(
+            testLoadMultiFormatBedRecords(
+                bedFile,
+                b -> {
+                    Map<String, Object> additional = b.getAdditional();
+                    return additional.keySet().containsAll(
+                        Arrays.asList(
+                              STRAND, SEQUENCE, SCORE
+                        )
+                    );
+                }
+            )
+        );
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testRegisterGappedPeakWithSmallExtension() throws IOException, FeatureFileReadingException {
+        BedFile bedFile = testRegisterBed(GAPPEDPEAK_BED_PATH);
+        Assert.assertTrue(
+            testLoadMultiFormatBedRecords(
+                bedFile,
+                b -> {
+                    Map<String, Object> additional = b.getAdditional();
+                    return additional.keySet().containsAll(
+                        Arrays.asList(
+                                THICK_START, P_VALUE, Q_VALUE, SIGNAL_VALUE, STRAND,
+                                NAME, SCORE, THICK_END, ITEM_RGB, BLOCK_COUNT, BLOCK_SIZES, BLOCK_STARTS
+                        )
+                    );
+                }
+            )
+        );
     }
 
     @Test
@@ -251,6 +373,21 @@ public class BedManagerTest extends AbstractManagerTest {
 
         return true;
     }
+
+    private boolean testLoadMultiFormatBedRecords(BedFile bedFile, Predicate<BedRecord> check)
+            throws FeatureFileReadingException {
+        Track<BedRecord> track = new Track<>();
+        track.setScaleFactor(FULL_QUERY_SCALE_FACTOR);
+        track.setStartIndex(1);
+        track.setEndIndex(TEST_END_INDEX);
+        track.setChromosome(testChromosome);
+        track.setId(bedFile.getId());
+
+        track = bedManager.loadFeatures(track);
+        Assert.assertFalse(track.getBlocks().isEmpty());
+        return track.getBlocks().stream().allMatch(check);
+    }
+
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
