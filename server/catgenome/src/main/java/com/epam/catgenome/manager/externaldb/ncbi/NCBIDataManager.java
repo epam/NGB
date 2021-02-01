@@ -30,6 +30,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 
 import com.epam.catgenome.component.MessageHelper;
@@ -40,6 +42,9 @@ import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.externaldb.ParameterNameValue;
 import com.epam.catgenome.manager.externaldb.ncbi.util.NCBIDatabase;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.beans.factory.annotation.Value;
+
+import javax.annotation.PostConstruct;
 
 /**
  * <p>
@@ -60,7 +65,26 @@ public class NCBIDataManager extends HttpDataManager {
     protected static final String NCBI_LINK = "entrez/eutils/elink.fcgi?";
     protected static final String RETMODE_PARAM = "retmode";
 
-    protected JsonMapper mapper = new JsonMapper();
+    // entrez/eutils/esummary can return maximum 500 results. If we need to fetch more, we'll have to do pagination.
+    // But perhaps it doesn't make sense to fetch more...
+    protected static final String MAX_RESULTS_PARAM = "retmax";
+    private static final int MAX_RESULTS_PARAM_VALUE = 500;
+
+    @Value("#{catgenome['externaldb.ncbi.max.results'] ?: 100}")
+    protected Integer ncbiMaxResultsParamValue;
+
+    @PostConstruct
+    public void init() {
+        if (ncbiMaxResultsParamValue > MAX_RESULTS_PARAM_VALUE) {
+            throw new IllegalArgumentException(
+                    "externaldb.ncbi.max.results configuration parameter values should exceed 500");
+        }
+    }
+
+    protected ObjectMapper mapper = new JsonMapper()
+            // NCBI sometimes include control characters like line endings in response.
+            // Enable this feature to allow them.
+            .configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true);
 
     /**
      * @param id       element id
@@ -177,7 +201,8 @@ public class NCBIDataManager extends HttpDataManager {
             final String json = fetchData(NCBI_SERVER + NCBI_SUMMARY, new ParameterNameValue[]{
                 new ParameterNameValue(RETMODE_PARAM, "json"),
                 new ParameterNameValue(QUERY_KEY, queryKey),
-                new ParameterNameValue(WEB_ENV, webEnv)
+                new ParameterNameValue(WEB_ENV, webEnv),
+                new ParameterNameValue(MAX_RESULTS_PARAM, ncbiMaxResultsParamValue.toString())
             });
             return mapper.readTree(json);
         } catch (IOException e) {
@@ -197,7 +222,7 @@ public class NCBIDataManager extends HttpDataManager {
         });
     }
 
-    public JsonMapper getMapper() {
+    public ObjectMapper getMapper() {
         return mapper;
     }
 
