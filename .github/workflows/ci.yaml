@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request: {}
+
+jobs:
+  test:
+    name: Node 12.x - ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: volta-cli/action@v1
+
+      - name: install client dependencies
+        run: |
+          cd client
+          npm run install
+          cd ..
+
+      - name: install client-test dependencies
+        run: |
+          cd client-tests
+          yarn install
+          cd ..
+
+      - name: start client tests
+        run: |
+          cd client-tests
+          yarn ci

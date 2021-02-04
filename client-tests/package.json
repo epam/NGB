@@ -1,0 +1,22 @@
+{
+  "name": "ngb-tests",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "npx folio ./test --param browserName=chromium",
+    "start-server": "yarn --cwd ./../client serve:dev",
+    "start-test": "yarn --cwd . test",
+    "ci": "start-server-and-test start-server http-get://localhost:8080 start-test"
+  },
+  "author": "",
+  "dependencies": {
+    "@playwright/test": "^0.180.0",
+    "folio": "^0.3.17",
+    "start-server-and-test": "^1.12.0"
+  },
+  "volta": {
+    "node": "12.20.1"
+  }
+}
