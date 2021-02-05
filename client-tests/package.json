@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "test": "npx folio ./test --param browserName=chromium",
-    "start-server": "yarn --cwd ./../client serve:dev",
+    "start-server": "yarn --cwd ./../client serve:test",
     "start-test": "yarn --cwd . test",
     "ci": "start-server-and-test start-server http-get://localhost:8080 start-test"
   },

@@ -13,6 +13,7 @@
     "build:prod": "webpack --env prod --prodBuild",
     "serve": "npm run serve:dev",
     "serve:dev": "node webpack.devserver.js --env dev",
+    "serve:test": "node webpack.devserver.js --env test",
     "serve:prod": "node webpack.devserver.js --env prod --prodBuild",
     "lint:scsslint": "sass-lint -v -c .sass-lint.yml -q",
     "lint:eslint": "node_modules/.bin/eslint client/"
