@@ -120,6 +120,12 @@ describe("foo", () => {
       // @ts-expect-error
       var imageData = context.getImageData(0, 0, $0.width, $0.height);
       var items = imageData.data.length;
+
+
+      // 204, 216, 221, 1 // #ccd8dd
+      // 162, 171, 175, 1 // #A2ABAF
+
+      // convert blue to white
       for (var j = 0; j < items; j += 4) {
         if (imageData.data[j] >= 150) {
           if (imageData.data[j + 1] >= 150) {
