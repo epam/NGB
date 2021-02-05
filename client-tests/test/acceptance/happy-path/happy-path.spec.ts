@@ -3,7 +3,7 @@ import tracksFor from "../../test-support/data-storage";
 import { ITrack } from "../../test-support/types";
 import { pageObject, setupPage, buildUrl } from "../../test-support/page-object";
 
-describe("Acceptance | Happy path", () => {
+describe("Acceptance | Happy path |", () => {
   xit("is a basic test with the page", async ({ page }) => {
     await setupPage(page);
 
