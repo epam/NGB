@@ -28,8 +28,14 @@ new DevServer(compiler, {
     },
 
     proxy: {
-        '/api': {
-            pathRewrite: {'^/api' : ''},
+        '/api/epam': {
+            pathRewrite: {'^/api/epam' : ''},
+            target: 'http://oss-1204092014.us-east-1.elb.amazonaws.com:8080/catgenome/',
+
+            // target: 'http://ngb.opensource.epam.com/catgenome/',
+        },
+        '/api/opensource': {
+            pathRewrite: {'^/api/opensource' : ''},
             target: 'http://ngb.opensource.epam.com/catgenome/',
         }
     }

@@ -1,4 +1,4 @@
 module.exports = {
     env: 'development',
-    urlPrefix: 'api'
+    urlPrefix: 'api/opensource'
 };
