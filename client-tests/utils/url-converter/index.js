@@ -37,4 +37,4 @@ urls.forEach((url) => {
 });
 
 
-fs.writeFileSync('output.json', JSON.stringify(results), 'utf8');
+fs.writeFileSync('output.json', JSON.stringify(results, null, 4), 'utf8');
