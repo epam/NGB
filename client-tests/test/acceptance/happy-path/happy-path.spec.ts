@@ -1,9 +1,9 @@
-import { describe, it, xit, expect } from "./index";
-import tracksFor from "./test-support/data-storage";
-import { pageObject, setupPage, buildUrl } from "./test-support/page-object";
-import { ITrack } from "./test-support/types";
+import { describe, it, xit, expect } from "../../test-support";
+import tracksFor from "../../test-support/data-storage";
+import { ITrack } from "../../test-support/types";
+import { pageObject, setupPage, buildUrl } from "../../test-support/page-object";
 
-describe("foo", () => {
+describe("Acceptance | Happy path", () => {
   xit("is a basic test with the page", async ({ page }) => {
     await setupPage(page);
 
