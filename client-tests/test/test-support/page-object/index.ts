@@ -2,17 +2,19 @@ import { ITrack } from "../types";
 import fs from 'fs';
 import { parse, join } from 'path';
 
+const ENDPOINT_PREFIX = 'restapi';
+
 function extractHARData(str) {
   const input = JSON.parse(str);
   const jsons = input.log.entries.filter((el) => {
-      return el.response.content.mimeType === 'application/json' && el.request.url.includes('restapi');
+      return el.response.content.mimeType === 'application/json' && el.request.url.includes(ENDPOINT_PREFIX);
   });
   
   const datasets = {};
 
   jsons.forEach((r) => {
-      const key = r.request.url.split('restapi')[1];
-      datasets[`restapi${key}`] = r.response.content.text;
+      const key = r.request.url.split(ENDPOINT_PREFIX)[1];
+      datasets[`${ENDPOINT_PREFIX}${key}`] = r.response.content.text;
   })
   
   return datasets;
@@ -45,7 +47,7 @@ function addMixins(path) {
   const parts = parse(path);
   const dirname = fs.lstatSync(path).isDirectory() ? path : parts.dir;
   const files = fs.readdirSync(dirname).filter((el) => {
-    return el.endsWith('.json') && el.startsWith('restapi');
+    return el.endsWith('.json') && el.startsWith(ENDPOINT_PREFIX);
   });
   const additions = {};
   files.forEach((name) => {
