@@ -67,6 +67,16 @@ Extracting `referenceId`, `chromosome`, `start`, `end` and `tracks` properties f
 1. Check `./utils/url-converter/output.json`
 
 
+### `har-extractor`
+
+Used to extract json payload from har file, and map it to endpoints.
+Accept any `*.har` file in dir.
+Result will be saved in `output.json`
+
+
+1. Copy har file into `./utils/har-extractor/`
+1. Run `node ./utils/har-extractor/index.js`
+1. Check `./utils/har-extractor/output.json`
 
 ## Credits
 
