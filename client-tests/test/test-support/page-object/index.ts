@@ -1,6 +1,7 @@
 import { ITrack } from "../types";
 import fs from 'fs';
 import { parse, join } from 'path';
+import type { Page } from 'playwright';
 
 const ENDPOINT_PREFIX = 'restapi';
 
@@ -20,7 +21,7 @@ function extractHARData(str) {
   return datasets;
 }
 
-export async function setupPage(page) {
+export async function setupPage(page: Page) {
   page.setViewportSize({ width: 1500, height: 800 });
 }
 
