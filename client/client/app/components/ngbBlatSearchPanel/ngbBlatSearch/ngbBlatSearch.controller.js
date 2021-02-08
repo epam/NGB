@@ -61,8 +61,8 @@ export default class ngbBlatSearchController extends baseController {
     }
 
     events = {
-        'reference:change': ::this.initialize,
-        'read:show:blat': ::this.initialize,
+        'reference:change': this.initialize.bind(this),
+        'read:show:blat': this.initialize.bind(this),
     };
 
     async $onInit() {
@@ -84,10 +84,10 @@ export default class ngbBlatSearchController extends baseController {
                 onRegisterApi: (gridApi) => {
                     this.gridApi = gridApi;
                     this.gridApi.core.handleWindowResize();
-                    this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
-                    this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
-                    this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
-                    this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
+                    this.gridApi.core.on.sortChanged(this.$scope, this.sortChanged.bind(this));
+                    this.gridApi.selection.on.rowSelectionChanged(this.$scope, this.rowClick.bind(this));
+                    this.gridApi.colMovable.on.columnPositionChanged(this.$scope, this.saveColumnsState.bind(this));
+                    this.gridApi.colResizable.on.columnSizeChanged(this.$scope, this.saveColumnsState.bind(this));
                 }
             });
             await this.loadData();

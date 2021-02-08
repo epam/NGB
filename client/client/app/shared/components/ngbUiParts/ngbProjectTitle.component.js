@@ -7,7 +7,9 @@ export default {
         const self = this;
         const callback = function() {
             self.reference = projectContext.reference;
-            $timeout(::$scope.$apply);
+            $timeout(() => {
+                $scope.$apply();
+            });
         };
 
         dispatcher.on('reference:change', callback);

@@ -1,6 +1,6 @@
 import ngbTrackEvents from './ngbTrack.events';
 import SelectionContext, {SelectionEvents} from '../../../shared/selectionContext';
-import {tracks as trackConstructors} from '../../../../modules/render/';
+import {tracks as trackConstructors} from '../../../../modules/render';
 
 const DEFAULT_HEIGHT = 40;
 const MAX_TRACK_NAME_LENGTH = 30;
@@ -9,7 +9,7 @@ const KEYS = {
     esc: 27,
 };
 export default class ngbTrackController {
-    domElement = null;
+    domElement: null | HTMLDivElement = null;
     dispatcher = null;
     projectContext;
     groupAutoScaleManager;
@@ -108,7 +108,9 @@ export default class ngbTrackController {
         this.trackDataIsLoading = false;
         this.trackInstance.trackDataLoadingStatusChanged = (status) => {
             this.trackDataIsLoading = status;
-            this.$timeout(::$scope.$apply);
+            this.$timeout(() => {
+                $scope.$apply();
+            });
         };
 
         $scope.$on('resizeStart', () => {
@@ -362,9 +364,9 @@ export default class ngbTrackController {
         }
         this.trackInstance = new this.instanceConstructor({
             browserId: this.browserId,
-            changeTrackHeight: ::this.changeTrackHeight,
-            changeTrackVisibility: ::this.changeTrackVisibility,
-            dataItemClicked: ::this.onTrackItemClick,
+            changeTrackHeight: this.changeTrackHeight.bind(this),
+            changeTrackVisibility: this.changeTrackVisibility.bind(this),
+            dataItemClicked: this.onTrackItemClick.bind(this),
             ...this.trackOpts,
             ...this._localDataService.getSettings(),
             ...this.track,

@@ -53,7 +53,7 @@ export default class ngbVariantQualityDiagramController {
         };
 
 
-        const reloadPanel = ::this.INIT;
+        const reloadPanel = this.INIT.bind(this);
         const updating = async () => {
             this.isProgressShown = true;
         };

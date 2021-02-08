@@ -25,7 +25,7 @@ export default class ngbBookmarksTableController extends baseController {
     trackNamingService;
 
     events = {
-        'bookmark:save': ::this.loadData
+        'bookmark:save': this.loadData.bind(this)
     };
 
     constructor($scope, bookmarksTableService, dispatcher, projectContext, $mdDialog, trackNamingService) {
@@ -33,7 +33,7 @@ export default class ngbBookmarksTableController extends baseController {
 
         Object.assign(this, {$scope, bookmarksTableService, dispatcher, projectContext, $mdDialog, trackNamingService});
 
-        $scope.$watch('$ctrl.searchPattern', ::this.loadData);
+        $scope.$watch('$ctrl.searchPattern', this.loadData.bind(this));
 
         this.initEvents();
     }
@@ -44,7 +44,7 @@ export default class ngbBookmarksTableController extends baseController {
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
-                this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
+                this.gridApi.selection.on.rowSelectionChanged(this.$scope, this.rowClick.bind(this));
             },
             ...this.bookmarksTableService.getBookmarksGridColumns()
         });

@@ -156,7 +156,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                     white,
                     gene.strand.arrow,
                     1,
-                    ::this.updateTextureCoordinates
+                    this.updateTextureCoordinates.bind(this)
                 );
                 drawStrandDirection(
                     feature.strand,
@@ -171,7 +171,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                     white,
                     gene.strand.arrow,
                     1,
-                    ::this.updateTextureCoordinates
+                    this.updateTextureCoordinates.bind(this)
                 );
             }
             this.registerFeaturePosition(feature, {

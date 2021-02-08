@@ -36,9 +36,9 @@ export default class ngbVariantsTablePaginateController extends baseController {
         'pageVariations:scroll': (page) => {
             this.setPage(page);
         },
-        'variants:loading:finished': ::this.refresh,
-        'activeVariants': ::this.refresh,
-        'reference:change': ::this.refresh
+        'variants:loading:finished': this.refresh.bind(this),
+        'activeVariants': this.refresh.bind(this),
+        'reference:change': this.refresh.bind(this)
     };
 
     setPage(page, loadData)

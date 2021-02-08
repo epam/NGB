@@ -37,15 +37,15 @@ export class BamDataService extends DataService {
             let loadDataFn = null;
             switch (side) {
                 case 'center': {
-                    loadDataFn = ::self.getFullCenter;
+                    loadDataFn = self.getFullCenter.bind(self);
                 }
                     break;
                 case 'left': {
-                    loadDataFn = ::self.getFullLeft;
+                    loadDataFn = self.getFullLeft.bind(self);
                 }
                     break;
                 case 'right': {
-                    loadDataFn = ::self.getFullRight;
+                    loadDataFn = self.getFullRight.bind(self);
                 }
                     break;
                 default: {

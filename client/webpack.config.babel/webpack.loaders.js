@@ -1,13 +1,15 @@
-import {extractTextPlugin} from './webpack.plugins';
+const {extractTextPlugin} = require('./webpack.plugins');
 const DEV = global.buildOptions.dev;
 
 const wrapStyleLoader = loader => DEV
     ? `style?sourceMap!${loader}`
     : extractTextPlugin.extract('style?sourceMap', loader);
 
+    // 'ts-loader?transpileOnly', 
+    // 'babel-loader?cacheDirectory'
 const appJsLoader = {
-    test: /\.js$/,
-    loaders: ['ng-annotate', 'babel'],
+    test: /\.m?(j|t)sx?$/,
+    loaders: ['babel-loader?cacheDirectory=true'],
     include: /client/,
     exclude: [/3rd-party/, /node_modules/]
 };
@@ -73,7 +75,7 @@ const HTMLLoader = {
     loader: 'html?attrs[]=md-icon:md-svg-src',
 };
 
-export default [
+module.exports = [
     appJsLoader,
     rawJsLoader,
     ejsLoader,

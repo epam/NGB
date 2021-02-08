@@ -10,9 +10,9 @@ export default class BEDFeatureRenderer extends FeatureRenderer {
         this._bedItemFeatureRenderer = new BedItemFeatureRenderer(
             track,
             config,
-            ::this.registerLabel,
-            ::this.registerDockableElement,
-            ::this.registerFeaturePosition
+            this.registerLabel.bind(this),
+            this.registerDockableElement.bind(this),
+            this.registerFeaturePosition.bind(this)
         );
     }
 

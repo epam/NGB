@@ -39,7 +39,7 @@ export default class VariantRenderer {
             this.resizeRenderer();
         });
 
-        requestAnimationFrame(::this.render);
+        requestAnimationFrame(this.render.bind(this));
     }
 
     get canvasElement() {
@@ -112,12 +112,12 @@ export default class VariantRenderer {
                     case 'ins':
                     case 'snp':
                     case 'snv':
-                        this._variantFeatureRenderer = new ShortVariantRenderer(this.variant, ::this.onRendererHeightChanged, ::this._displayTooltipFn, ::this._affectedGeneTranscriptChanged, ::this.updateScene, ::this.reRenderScene);
+                        this._variantFeatureRenderer = new ShortVariantRenderer(this.variant, this.onRendererHeightChanged.bind(this), this._displayTooltipFn.bind(this), this._affectedGeneTranscriptChanged.bind(this), this.updateScene.bind(this), this.reRenderScene.bind(this));
                         break;
                 }
             }
             else {
-                this._variantFeatureRenderer = new StructuralVariantRenderer(this.variant, ::this.onRendererHeightChanged, ::this._displayTooltipFn, ::this._affectedGeneTranscriptChanged, ::this.updateScene, ::this.reRenderScene);
+                this._variantFeatureRenderer = new StructuralVariantRenderer(this.variant, this.onRendererHeightChanged.bind(this), this._displayTooltipFn.bind(this), this._affectedGeneTranscriptChanged.bind(this), this.updateScene.bind(this), this.reRenderScene.bind(this));
             }
             if (this.variantFeatureRenderer !== null && this.variantFeatureRenderer !== undefined) {
                 this.variantFeatureRenderer._options = this.options;
@@ -184,7 +184,7 @@ export default class VariantRenderer {
                 this.variantFeatureRenderer._presentationChanged = true;
             }
         }
-        requestAnimationFrame(::this.render);
+        requestAnimationFrame(this.render.bind(this));
     }
 
     resizeRenderer() {

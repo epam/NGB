@@ -143,7 +143,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                     strandFill,
                     this.config.transcript.features.strand.arrow,
                     1,
-                    ::this.updateTextureCoordinates
+                    this.updateTextureCoordinates.bind(this)
                 );
                 drawStrandDirection(
                     block.strand,
@@ -157,7 +157,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                     hoveredStrandFill,
                     this.config.transcript.features.strand.arrow,
                     1,
-                    ::this.updateTextureCoordinates
+                    this.updateTextureCoordinates.bind(this)
                 );
             }
             if (!this.collapsedMode && blockItem.attributes && blockItem.attributes.exon_number) {
@@ -236,7 +236,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                 this.config.transcript.strand.fill,
                 this.config.transcript.strand.arrow,
                 1,
-                ::this.updateTextureCoordinates
+                this.updateTextureCoordinates.bind(this)
             );
             drawStrandDirection(
                 block.strand,
@@ -250,7 +250,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                 ColorProcessor.darkenColor(this.config.transcript.strand.fill),
                 this.config.transcript.strand.arrow,
                 1,
-                ::this.updateTextureCoordinates
+                this.updateTextureCoordinates.bind(this)
             );
         }
     }

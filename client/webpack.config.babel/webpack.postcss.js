@@ -1,6 +1,6 @@
 const DEV = global.buildOptions.dev;
 
-export default [
+module.exports = [
     require('postcss-import')(),
     require('postcss-cssnext')({
         browsers: DEV

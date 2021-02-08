@@ -27,7 +27,7 @@ function colorPerform (tracks, options) {
             },
             options,
             sources: (tracks || []).map(track => track.config.name),
-            types: [...(new Set((tracks || []).map(track => track.config.format)))]
+            types: [...(Array.from(new Set((tracks || []).map(track => track.config.format))))]
         });
     }
 }

@@ -18,9 +18,9 @@ export default class ngbTracksSelectionMenuController {
         this.projectContext = projectContext;
         this.selectionContext = selectionContext;
         this.dispatcher = dispatcher;
-        this.dispatcher.on(SelectionEvents.changed, ::this.onTracksSelectionChanged);
+        this.dispatcher.on(SelectionEvents.changed, this.onTracksSelectionChanged.bind(this));
         $scope.$on('$destroy', () => {
-            this.dispatcher.removeListener(SelectionEvents.changed, ::this.onTracksSelectionChanged);
+            this.dispatcher.removeListener(SelectionEvents.changed, this.onTracksSelectionChanged.bind(this));
         });
     }
 
@@ -79,7 +79,7 @@ export default class ngbTracksSelectionMenuController {
 
     get types() {
         const types = [
-            ...(new Set(this.selectedTracks.map(track => track.config.format).filter(Boolean)))
+            ...(Array.from(new Set(this.selectedTracks.map(track => track.config.format).filter(Boolean))))
         ];
         types.sort();
         return types;

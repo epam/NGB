@@ -66,12 +66,12 @@ export default class ngbVariantsTableController extends baseController {
     //todo doesn't need events
     //variants:loading:started and variants:loading:finished - should be promise from service
     events = {
-        'reference:change': ::this.initialize,
-        'variants:loading:finished': ::this.variantsLoadingFinished,
-        'variants:loading:started': ::this.initialize,
-        'pageVariations:change': ::this.getDataOnPage,
-        'activeVariants': ::this.resizeGrid,
-        'display:variants:filter': ::this.refreshScope
+        'reference:change': this.initialize.bind(this),
+        'variants:loading:finished': this.variantsLoadingFinished.bind(this),
+        'variants:loading:started': this.initialize.bind(this),
+        'pageVariations:change': this.getDataOnPage.bind(this),
+        'activeVariants': this.resizeGrid.bind(this),
+        'display:variants:filter': this.refreshScope.bind(this)
     };
 
     $onInit() {
@@ -99,13 +99,13 @@ export default class ngbVariantsTableController extends baseController {
                 onRegisterApi: (gridApi) => {
                     this.gridApi = gridApi;
                     this.gridApi.core.handleWindowResize();
-                    this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
-                    this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
-                    this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
-                    this.gridApi.infiniteScroll.on.needLoadMoreData(this.$scope, ::this.getDataDown);
-                    this.gridApi.infiniteScroll.on.needLoadMoreDataTop(this.$scope, ::this.getDataUp);
-                    this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
-                    this.gridApi.core.on.scrollEnd(this.$scope, ::this.changeCurrentPage);
+                    this.gridApi.colMovable.on.columnPositionChanged(this.$scope, this.saveColumnsState.bind(this));
+                    this.gridApi.colResizable.on.columnSizeChanged(this.$scope, this.saveColumnsState.bind(this));
+                    this.gridApi.selection.on.rowSelectionChanged(this.$scope, this.rowClick.bind(this));
+                    this.gridApi.infiniteScroll.on.needLoadMoreData(this.$scope, this.getDataDown.bind(this));
+                    this.gridApi.infiniteScroll.on.needLoadMoreDataTop(this.$scope, this.getDataUp.bind(this));
+                    this.gridApi.core.on.sortChanged(this.$scope, this.sortChanged.bind(this));
+                    this.gridApi.core.on.scrollEnd(this.$scope, this.changeCurrentPage.bind(this));
                 }
             });
             await this.loadData();
@@ -137,7 +137,7 @@ export default class ngbVariantsTableController extends baseController {
         catch (errorObj) {
             this.onError(errorObj.message);
         }
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
     }
 
     onError(message) {
@@ -252,7 +252,7 @@ export default class ngbVariantsTableController extends baseController {
         }
         this.isProgressShown = this.projectContext.isVariantsLoading;
 
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
     }
 
     getDataDown() {

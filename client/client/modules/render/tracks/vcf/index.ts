@@ -70,10 +70,10 @@ export class VCFTrack extends GENETrack {
                 type: 'groupLinks',
                 links: [{
                     label: 'Prev',
-                    handleClick: ::this.prevVariation
+                    handleClick: this.prevVariation.bind(this)
                 }, {
                     label: 'Next',
-                    handleClick: ::this.nextVariation
+                    handleClick: this.nextVariation.bind(this)
                 }]
             }
         ];
@@ -135,7 +135,7 @@ export class VCFTrack extends GENETrack {
                 }
             }
         };
-        const _hotKeyListener = ::this.hotKeyListener;
+        const _hotKeyListener = this.hotKeyListener.bind(this);
         const self = this;
         this._removeHotKeyListener = function () {
             self.dispatcher.removeListener('hotkeyPressed', _hotKeyListener);
@@ -164,7 +164,7 @@ export class VCFTrack extends GENETrack {
     }
 
     get downloadDataFn() {
-        return ::this.dataService.loadVcfTrack;
+        return this.dataService.loadVcfTrack.bind(this.dataService);
     }
 
     applyAdditionalRequestParameters(params) {
