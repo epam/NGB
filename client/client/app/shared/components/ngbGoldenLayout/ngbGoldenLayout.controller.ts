@@ -45,21 +45,20 @@ export default class ngbGoldenLayoutController extends baseController {
     }
 
     events = {
-        'chromosome:change': ::this.panelRemoveExtraWindows,
+        'chromosome:change': this.panelRemoveExtraWindows.bind(this),
         'eventHub': (event) => {
             this.emitHubEvent && this.emitHubEvent(event);
         },
-        'hotkeyPressed': ::this.handleKeyPressed,
-        'layout:item:change': ::this.handlePanelChange,
-        'layout:restore:default': ::this.restoreDefault,
-        'layout:load': ::this.loadLayout,
-        'ngbFilter:change': ::this.panelRemoveExtraWindows,
-        'reference:change': ::this.panelRemoveExtraWindows,
-        'read:show:mate': ::this.panelAddBrowserWithPairRead,
-        'read:show:blat': ::this.panelAddBlatSearchPanel,
-        'read:show:blast': :: this.panelAddBlastSearchPanel,
-        'tracks:state:change': ::this.panelRemoveBlatSearchPanel,
-        'variant:show:pair': ::this.panelAddBrowserWithVariation
+        'hotkeyPressed': this.handleKeyPressed.bind(this),
+        'layout:item:change': this.handlePanelChange.bind(this),
+        'layout:restore:default': this.restoreDefault.bind(this),
+        'layout:load': this.loadLayout.bind(this),
+        'ngbFilter:change': this.panelRemoveExtraWindows.bind(this),
+        'reference:change': this.panelRemoveExtraWindows.bind(this),
+        'read:show:mate': this.panelAddBrowserWithPairRead.bind(this),
+        'read:show:blat': this.panelAddBlatSearchPanel.bind(this),
+        'tracks:state:change': this.panelRemoveBlatSearchPanel.bind(this),
+        'variant:show:pair': this.panelAddBrowserWithVariation.bind(this)
     };
 
     $onDestroy() {
@@ -279,7 +278,7 @@ export default class ngbGoldenLayoutController extends baseController {
         }
     }
 
-    panelAddBrowserWithPairRead(event: PairReadInfo) {
+    panelAddBrowserWithPairRead(event) {
         this.panelRemoveExtraWindows();
 
         const newItem = this.service.createBrowserItem(event);

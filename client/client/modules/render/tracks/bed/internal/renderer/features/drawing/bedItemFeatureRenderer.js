@@ -145,7 +145,7 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
                         color,
                         this.config.bed.strand.arrow,
                         1,
-                        ::this.updateTextureCoordinates
+                        this.updateTextureCoordinates.bind(this)
                     );
                     drawStrandDirection(
                         block.strand,
@@ -159,7 +159,7 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
                         ColorProcessor.darkenColor(color),
                         this.config.bed.strand.arrow,
                         1,
-                        ::this.updateTextureCoordinates
+                        this.updateTextureCoordinates.bind(this)
                     );
                 }
             }
@@ -210,7 +210,7 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
                         white,
                         this.config.bed.strand.arrow,
                         1,
-                        ::this.updateTextureCoordinates
+                        this.updateTextureCoordinates.bind(this)
                     );
                     drawStrandDirection(
                         block.strand,
@@ -224,7 +224,7 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
                         white,
                         this.config.bed.strand.arrow,
                         1,
-                        ::this.updateTextureCoordinates
+                        this.updateTextureCoordinates.bind(this)
                     );
                 }
             }

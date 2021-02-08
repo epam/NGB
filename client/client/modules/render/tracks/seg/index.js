@@ -44,7 +44,7 @@ export class SEGTrack extends CachedTrack {
     }
 
     get segTrack() {
-        return ::this.dataService.loadSegTrack;
+        return this.dataService.loadSegTrack.bind(this.dataService);
     }
 
     async updateCache() {

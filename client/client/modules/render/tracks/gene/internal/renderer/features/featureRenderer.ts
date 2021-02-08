@@ -31,18 +31,18 @@ export default class FeatureRenderer {
     constructor(config) {
         this._config = config;
         this._aminoacidFeatureRenderer = new AminoacidFeatureRenderer(config,
-            ::this.registerLabel,
-            ::this.registerDockableElement,
-            ::this.registerFeaturePosition);
+            this.registerLabel.bind(this),
+            this.registerDockableElement.bind(this),
+            this.registerFeaturePosition.bind(this));
         this._transcriptFeatureRenderer = new TranscriptFeatureRenderer(config,
-            ::this.registerLabel,
-            ::this.registerDockableElement,
-            ::this.registerFeaturePosition,
+            this.registerLabel.bind(this),
+            this.registerDockableElement.bind(this),
+            this.registerFeaturePosition.bind(this),
             this._aminoacidFeatureRenderer);
         this._geneFeatureRenderer = new GeneFeatureRenderer(config,
-            ::this.registerLabel,
-            ::this.registerDockableElement,
-            ::this.registerFeaturePosition,
+            this.registerLabel.bind(this),
+            this.registerDockableElement.bind(this),
+            this.registerFeaturePosition.bind(this),
             this._transcriptFeatureRenderer);
 
         this._labels = [];

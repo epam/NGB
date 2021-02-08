@@ -28,20 +28,20 @@ class GroupAutoScaleManager {
 
     correctAutoScaleGroups = () => {
         const browsers = [
-            ...(new Set(
-                    (this.projectContext.getAllTrackInstances() || [])
-                        .map(t => t.config ? t.config.browserId : undefined)
-                )
+            ...(Array.from(new Set(
+                (this.projectContext.getAllTrackInstances() || [])
+                    .map(t => t.config ? t.config.browserId : undefined)
             )
+            ))
         ];
         const correctForBrowser = (browser) => {
             const tracks = this.projectContext.getTrackInstances(browser) || [];
             const groups = [
-                ...(new Set(
-                        (tracks || [])
-                            .map(t => t.state ? t.state.groupAutoScale : undefined)
-                            .filter(Boolean)
-                    )
+                ...Array.from((new Set(
+                    (tracks || [])
+                        .map(t => t.state ? t.state.groupAutoScale : undefined)
+                        .filter(Boolean)
+                ))
                 )
             ];
             for (let g = 0; g < groups.length; g++) {

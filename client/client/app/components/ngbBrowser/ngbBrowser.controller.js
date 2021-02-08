@@ -21,9 +21,9 @@ export default class ngbBrowserController extends baseController {
     }
 
     events = {
-        'chromosome:change': ::this.onStateChange,
-        'reference:change': ::this.onStateChange,
-        'reference:pre:change': ::this.onStateChange
+        'chromosome:change': this.onStateChange.bind(this),
+        'reference:change': this.onStateChange.bind(this),
+        'reference:pre:change': this.onStateChange.bind(this)
     };
 
     $onInit() {
@@ -37,7 +37,9 @@ export default class ngbBrowserController extends baseController {
         this.isProject = reference !== null && reference !== undefined;
         this.isProjectLoading = this.projectContext.referenceIsPromised;
 
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => {
+            this.$scope.$apply();
+        });
     }
 
     browserHomePageUrl() {

@@ -104,7 +104,7 @@ export default class ngbOpenFileFromNGBServerController {
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
-                this.gridApi.selection.on.rowSelectionChanged(this.scope, ::this.rowClick);
+                this.gridApi.selection.on.rowSelectionChanged(this.scope, this.rowClick.bind(this));
             }
         });
         this.projectContext = projectContext;
@@ -125,7 +125,7 @@ export default class ngbOpenFileFromNGBServerController {
             this.selectedItems = [];
             this.check();
         };
-        $scope.$watch('$ctrl.referenceId', ::this.check);
+        $scope.$watch('$ctrl.referenceId', this.check.bind(this));
         (async() => {
             await this.loadCurrentDirectory();
             await this.projectContext.refreshReferences(true);

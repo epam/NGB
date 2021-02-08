@@ -36,14 +36,14 @@ export default class ngbMolecularViewerController extends baseController {
             }
         });
 
-        this.$scope.$watch('$ctrl.selectedGeneTrack', ::this.geneTrackChanged);
+        this.$scope.$watch('$ctrl.selectedGeneTrack', this.geneTrackChanged.bind(this));
 
         this.descriptionDone = false;
     }
 
     events = {
-        'miew:show:structure': ::this.geneClick,
-        'miew:highlight:region': ::this.geneClick
+        'miew:show:structure': this.geneClick.bind(this),
+        'miew:highlight:region': this.geneClick.bind(this)
     };
 
     async geneTrackChanged() {

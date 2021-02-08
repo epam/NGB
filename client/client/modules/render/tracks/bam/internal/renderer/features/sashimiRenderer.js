@@ -7,7 +7,7 @@ export class SashimiRenderer extends WIGRenderer {
         this._globalConfig = config;
     }
 
-    render(viewport, {coverage, spliceJunctions}, forseRedraw = false, drawingConfig): undefined {
+    render(viewport, {coverage, spliceJunctions}, forseRedraw = false, drawingConfig) {
         super.render(viewport, coverage, forseRedraw);
         const {graphics, labelsContainer, shouldRender, y} = drawingConfig || {};
         renderSashimiPlot(

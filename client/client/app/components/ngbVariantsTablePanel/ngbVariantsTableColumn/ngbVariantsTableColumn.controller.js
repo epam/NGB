@@ -26,9 +26,9 @@ export default class ngbVariantTableColumnController extends baseController {
     }
 
     events = {
-        'ngbColumns:change': ::this.onColumnChange,
-        'reference:change': ::this.loadColumns,
-        'display:variants:filter' : ::this.updateDisplayVariantsFilterValue
+        'ngbColumns:change': this.onColumnChange.bind(this),
+        'reference:change': this.loadColumns.bind(this),
+        'display:variants:filter' : this.updateDisplayVariantsFilterValue.bind(this)
     };
 
     $onInit() {
@@ -45,7 +45,7 @@ export default class ngbVariantTableColumnController extends baseController {
 
     loadColumns() {
         this.onColumnChange([]);
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => this.$scope.$apply());
     }
 
     addColumnToTable() {

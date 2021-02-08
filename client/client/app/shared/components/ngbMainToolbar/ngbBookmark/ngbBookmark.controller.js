@@ -55,11 +55,11 @@ export default class ngbBookmarkController extends baseController {
     }
 
     events = {
-        'viewport:position': ::this.resetButtonState
+        'viewport:position': this.resetButtonState.bind(this)
     };
 
     onClick() {
-        this.$timeout(::this.input.focus, 200);
+        this.$timeout(() => this.input.focus(), 200);
 
     }
 

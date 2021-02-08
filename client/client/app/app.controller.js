@@ -66,8 +66,8 @@ export default class ngbAppController extends baseController {
     }
 
     events = {
-        'confirm:authentication:redirect': ::this.confirmAuthenticationRedirect,
-        'route:change': ::this._goToState
+        'confirm:authentication:redirect': this.confirmAuthenticationRedirect.bind(this),
+        'route:change': this._goToState.bind(this)
     };
 
     _listener(event) {

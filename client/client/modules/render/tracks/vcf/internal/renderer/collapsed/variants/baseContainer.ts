@@ -1,4 +1,7 @@
+import PIXI from 'pixi.js';
+
 const Math = window.Math;
+
 
 export class VariantBaseContainer {
 

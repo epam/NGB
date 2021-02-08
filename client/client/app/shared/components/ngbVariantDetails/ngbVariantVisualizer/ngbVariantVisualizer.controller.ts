@@ -41,7 +41,7 @@ export default class ngbVariantVisualizerController extends ngbVariantDetailsCon
             this._variantRendererDiv = $($element[0]).find('#cnv')[0];
             this._tooltipElement = $($element[0]).find('#vtooltip')[0];
             this._tooltipTarget = $($element[0]).find('.visualizer-tooltip-target')[0];
-            const variantRenderer = this._variantRenderer = new VariantRenderer(this._variantRendererDiv, ::this.displayTooltip, ::this.affectedGeneTranscriptChanged);
+            const variantRenderer = this._variantRenderer = new VariantRenderer(this._variantRendererDiv, this.displayTooltip.bind(this), this.affectedGeneTranscriptChanged.bind(this));
             if (this._variantVisualizerData !== null && this._variantVisualizerData !== undefined) {
                 this.variantRenderer.options = {
                     highlightBreakpoints: this._highlightBreakpoints

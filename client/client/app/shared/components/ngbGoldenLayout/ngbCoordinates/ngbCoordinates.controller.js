@@ -53,12 +53,12 @@ export default class ngbCoordinatesController extends baseController {
             const event = `viewport:position:${this.browserId}`;
 
             this.events = {
-                [event]: ::this._createTitleBrowserId
+                [event]: this._createTitleBrowserId.bind(this)
             };
 
         } else {
             this.events = {
-                'state:change': ::this.initialization
+                'state:change': this.initialization.bind(this)
             };
         }
         this.initEvents();

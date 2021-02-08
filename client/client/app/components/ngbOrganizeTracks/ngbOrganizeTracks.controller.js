@@ -71,7 +71,7 @@ export default class ngbOrganizeTracksController extends baseController {
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
-                this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
+                this.gridApi.selection.on.rowSelectionChanged(this.$scope, this.rowClick.bind(this));
             }
         });
 
@@ -212,7 +212,7 @@ export default class ngbOrganizeTracksController extends baseController {
                     self.gridOptions.data.splice(index, 1);
                     self.gridOptions.data.splice(end, 0, row);
                 });
-                self.$timeout(::self.$scope.$apply);
+                self.$timeout(() => self.$scope.$apply());
                 return false;
             },
         });

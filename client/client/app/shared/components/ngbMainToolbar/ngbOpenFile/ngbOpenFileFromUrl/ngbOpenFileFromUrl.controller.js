@@ -17,9 +17,9 @@ export default class ngbOpenFileFromUrlController {
         if (!this.referenceId && this.references && this.references.length > 0) {
             this.referenceId = this.references[0].id;
         }
-        $scope.$watch('$ctrl.filePath', ::this.check);
-        $scope.$watch('$ctrl.indexFilePath', ::this.check);
-        $scope.$watch('$ctrl.referenceId', ::this.check);
+        $scope.$watch('$ctrl.filePath', this.check.bind(this));
+        $scope.$watch('$ctrl.indexFilePath', this.check.bind(this));
+        $scope.$watch('$ctrl.referenceId', this.check.bind(this));
         (async() => {
             await this.projectContext.refreshReferences(true);
             this.references = this.projectContext.references;

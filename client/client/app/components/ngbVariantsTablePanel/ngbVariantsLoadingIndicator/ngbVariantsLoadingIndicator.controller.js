@@ -24,8 +24,8 @@ export default class ngbVariantsLoadingIndicatorController extends baseControlle
     }
 
     events = {
-        'variants:page:loading:finished': ::this.refresh,
-        'variants:page:loading:started': ::this.refresh
+        'variants:page:loading:finished': this.refresh.bind(this),
+        'variants:page:loading:started': this.refresh.bind(this)
     };
 
     refresh () {

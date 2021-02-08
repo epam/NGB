@@ -1,4 +1,7 @@
 {
-  "presets": ["es2015", "stage-0"],
-  "plugins": ["syntax-flow", "transform-flow-strip-types"]
+  "presets": [["@babel/preset-env", {
+    "modules": "commonjs",
+    "loose": true
+  }], "@babel/preset-typescript"],
+  "plugins": ["@babel/plugin-proposal-class-properties", "angularjs-annotate"]
 }

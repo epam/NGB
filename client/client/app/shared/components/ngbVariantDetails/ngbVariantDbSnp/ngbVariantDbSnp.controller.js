@@ -46,7 +46,7 @@ export default class ngbVariantDbSnpController extends ngbVariantDetailsControll
                             this._scope.$apply();
                         }
                     },
-                    ::this._handleError);
+                    this._handleError.bind(this));
         }
         else{
             if (this._constants !== null && this._constants !== undefined)

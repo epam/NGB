@@ -681,8 +681,8 @@ export default class projectContext {
     }
 
     initEvents() {
-        const resetVariantsFilterFn = ::this.resetVariantsFilter;
-        const hotkeyPressedFn = ::this.hotkeyPressed;
+        const resetVariantsFilterFn = this.resetVariantsFilter.bind(this);
+        const hotkeyPressedFn = this.hotkeyPressed.bind(this);
         this.dispatcher.on('variants:reset:filter', resetVariantsFilterFn);
         this.dispatcher.on('hotkeyPressed', hotkeyPressedFn);
     }

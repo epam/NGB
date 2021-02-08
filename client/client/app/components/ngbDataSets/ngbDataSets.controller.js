@@ -38,7 +38,7 @@ export default class ngbDataSetsController extends baseController {
             service: ngbDataSetsService,
             trackNamingService
         });
-        $scope.$watch('$ctrl.searchPattern', ::this.searchPatternChanged);
+        $scope.$watch('$ctrl.searchPattern', this.searchPatternChanged.bind(this));
         this.initEvents();
         this._isLoading = true;
         this.showTrackOriginalName = this.localDataService.getSettings().showTrackOriginalName;
@@ -47,12 +47,14 @@ export default class ngbDataSetsController extends baseController {
         this.tracksStateChangeListener = async () => {
             await self.service.updateSelectionFromState(self.datasets);
         };
-        const tracksStateChangeListener = ::this.tracksStateChangeListener;
+        const tracksStateChangeListener = this.tracksStateChangeListener.bind(this);
         const globalSettingsChangedHandler = (state) => {
             self.showTrackOriginalName = state.showTrackOriginalName;
         };
         const trackNameChanged = () => {
-            $timeout(::$scope.$apply);
+            $timeout(() => {
+                $scope.$apply();
+            });
         };
         dispatcher.on('tracks:state:change', tracksStateChangeListener);
         dispatcher.on('settings:change', globalSettingsChangedHandler);
@@ -70,7 +72,9 @@ export default class ngbDataSetsController extends baseController {
 
     async loadingStarted() {
         this._isLoading = true;
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => {
+            this.$scope.$apply();
+        });
     }
 
     async loadingFinished() {
@@ -80,7 +84,9 @@ export default class ngbDataSetsController extends baseController {
         }
         this.noDatasets = !this.datasets || this.datasets.length === 0;
         this._isLoading = !this.projectContext.datasetsLoaded;
-        this.$timeout(::this.$scope.$apply);
+        this.$timeout(() => {
+            this.$scope.$apply();
+        });
         this.onResize();
     }
 
@@ -93,11 +99,11 @@ export default class ngbDataSetsController extends baseController {
     }
 
     events = {
-        'activeDataSets': ::this.onResize,
-        'datasets:filter:changed': ::this.loadingFinished,
-        'datasets:loading:finished': ::this.loadingFinished,
-        'datasets:loading:started': ::this.loadingStarted,
-        'reference:change': ::this.onProjectChanged,
+        'activeDataSets': this.onResize.bind(this),
+        'datasets:filter:changed': this.loadingFinished.bind(this),
+        'datasets:loading:finished': this.loadingFinished.bind(this),
+        'datasets:loading:started': this.loadingStarted.bind(this),
+        'reference:change': this.onProjectChanged.bind(this),
     };
 
     async onProjectChanged() {

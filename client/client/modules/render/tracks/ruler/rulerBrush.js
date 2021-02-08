@@ -161,9 +161,9 @@ export default class RulerBrush {
         element.interactive = true;
         element.interactiveChildren = false;
         element.buttonMode = buttonMode;
-        const _onDragStart = ::this.onDragStart;
-        const _onDragEnd = ::this.onDragEnd;
-        const _onDragMove = ::this.onDragMove;
+        const _onDragStart = this.onDragStart.bind(this);
+        const _onDragEnd = this.onDragEnd.bind(this);
+        const _onDragMove = this.onDragMove.bind(this);
         element
             .on('mousedown', _onDragStart)
             .on('touchstart', _onDragStart)

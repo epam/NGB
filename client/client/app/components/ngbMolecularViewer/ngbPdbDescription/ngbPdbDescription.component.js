@@ -1,4 +1,4 @@
-import controller from './ngbPdbDescription.controller.js';
+import controller from './ngbPdbDescription.controller';
 
 export default  {
     template: require('./ngbPdbDescription.tpl.html'),

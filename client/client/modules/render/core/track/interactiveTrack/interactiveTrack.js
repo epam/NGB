@@ -109,7 +109,7 @@ export default class InteractiveTrack extends Track {
 
     _onMouseOver() {
         window.jQuery(document.body)
-            .on(`mousewheel.${this._trackSystemName}`, ::this._onMouseWheel);
+            .on(`mousewheel.${this._trackSystemName}`, this._onMouseWheel.bind(this));
         const self = this;
         this._removeWheelEventListener = function() {
             window.jQuery(document.body)
@@ -233,13 +233,13 @@ export default class InteractiveTrack extends Track {
     }
 
     initializeEventListeners() {
-        const _onTouchBegan = ::this._onTouchBegan;
-        const _onTouchMoved = ::this._onTouchMoved;
-        const _onTouchEnded = ::this._onTouchEnded;
-        const _onMouseOver = ::this._onMouseOver;
-        const _onMouseOut = ::this._onMouseOut;
-        const _onClick = ::this._onClick;
-        const _onDoubleClick = ::this._onDoubleClick;
+        const _onTouchBegan = this._onTouchBegan.bind(this);
+        const _onTouchMoved = this._onTouchMoved.bind(this);
+        const _onTouchEnded = this._onTouchEnded.bind(this);
+        const _onMouseOver = this._onMouseOver.bind(this);
+        const _onMouseOut = this._onMouseOut.bind(this);
+        const _onClick = this._onClick.bind(this);
+        const _onDoubleClick = this._onDoubleClick.bind(this);
         window.jQuery(this.domElement)
             .on('mouseenter', _onMouseOver)
             .on('mouseleave', _onMouseOut)

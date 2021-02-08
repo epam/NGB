@@ -21,10 +21,18 @@ export default class BaseViewport {
     }
 
     get brushSize(): number {
+        return this._brushSize();
+    }
+
+    _brushSize() {
         return this.brush.end - this.brush.start;
     }
 
     get factor() {
+        return this._getFactor();
+    }
+
+    _getFactor() {
         return this.canvasSize / this.brushSize;
     }
 
@@ -53,10 +61,18 @@ export default class BaseViewport {
     };
 
     get convert() {
-        return this._convert;
+        return this._getConvert();
     }
 
     get project() {
+        return this._getProject();
+    }
+
+    _getConvert() {
+        return this._convert;
+    }
+
+    _getProject() {
         return this._project;
     }
 

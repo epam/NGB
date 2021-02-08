@@ -1,8 +1,9 @@
 import {CommonVariantFeatureRenderer} from './commonVariantFeatureRenderer';
 import {ColorProcessor, PixiTextSize} from '../../../../../../../utilities';
 import {drawingConfiguration} from '../../../../../../../core';
-const Math = window.Math;
+import PIXI from 'pixi.js';
 
+const Math = window.Math;
 export class VariantAltFeatureRenderer extends CommonVariantFeatureRenderer {
 
     _alleleLabelHeight;

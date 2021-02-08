@@ -1,6 +1,6 @@
 import {ngbTracksViewZoomManager, ngbTracksViewCameraManager} from './managers';
 import Promise from 'bluebird';
-import {Viewport} from '../../../modules/render/';
+import {Viewport} from '../../../modules/render';
 import angular from 'angular';
 import baseController from '../../shared/baseController';
 import {getFormattedDate} from '../../shared/utils/date';
@@ -80,9 +80,9 @@ export default class ngbTracksViewController extends baseController {
                             })
                             .then(this.refreshTracksScope);
                     },
-                    'position:select': ::this.selectPosition,
-                    'viewport:position': ::this.setViewport,
-                    'blatRegion:change': ::this.setBlatRegion
+                    'position:select': this.selectPosition.bind(this),
+                    'viewport:position': this.setViewport.bind(this),
+                    'blatRegion:change': this.setBlatRegion.bind(this)
                 });
             }
 
@@ -98,11 +98,11 @@ export default class ngbTracksViewController extends baseController {
     events = {
         'tracks:state:change': () => {
             Promise.delay(0)
-                .then(::this.manageTracks)
-                .then(::this.refreshTracksScope);
+                .then(this.manageTracks.bind(this))
+                .then(this.refreshTracksScope.bind(this));
         },
-        'tracks:fit:height': ::this.fitTracksHeights,
-        'hotkeyPressed': ::this.hotKeyListener
+        'tracks:fit:height': this.fitTracksHeights.bind(this),
+        'hotkeyPressed': this.hotKeyListener.bind(this)
     };
 
     hotKeyListener(event) {
