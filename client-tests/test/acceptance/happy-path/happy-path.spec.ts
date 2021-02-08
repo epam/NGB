@@ -1,7 +1,14 @@
 import { describe, it, xit, expect } from "../../test-support";
 import tracksFor from "../../test-support/data-storage";
 import { ITrack } from "../../test-support/types";
-import { pageObject, setupPage, buildUrl } from "../../test-support/page-object";
+import { join } from 'path';
+
+import {
+  pageObject,
+  setupPage,
+  buildUrl,
+  mockData
+} from "../../test-support/page-object";
 
 describe("Acceptance | Happy path |", () => {
   xit("is a basic test with the page", async ({ page }) => {
@@ -88,6 +95,62 @@ describe("Acceptance | Happy path |", () => {
     expect(screenshot).toMatchSnapshot(`tracks-panel.png`, { threshold: 0 });
   });
 
+  it("works for track renderer from mocked backend", async ({ page }) => {
+    await mockData(join(__dirname, './data-storage/works for track renderer from mocked backend/raw.json'), page);
+ 
+    await setupPage(page);
+
+    const tracks: ITrack[] = tracksFor("works for track renderer");
+
+    const url = buildUrl("dm6", "X", "12584385", "12592193", tracks);
+
+    await page.goto(url);
+
+    // animations
+    await page.waitForTimeout(10000);
+
+    // by insert size
+    // await page.click();
+
+    await page.evaluate(() => {
+      var $0 = document.querySelector(
+        "body > ui-view > div > div.golden-layout > ngb-golden-layout > div > div > div > div:nth-child(1) > div.lm_items > div > div > ngb-browser > ngb-tracks-view > div > div > div:nth-child(2) > ngb-track:nth-child(3) > div > div.ngb-track-renderer.js-ngb-render-container-target.flex-100 > div > canvas"
+      );
+      // @ts-expect-error
+      var context = $0.getContext("2d");
+      // @ts-expect-error
+      var imageData = context.getImageData(0, 0, $0.width, $0.height);
+      var items = imageData.data.length;
+
+      // 204, 216, 221, 1 // #ccd8dd
+      // 162, 171, 175, 1 // #A2ABAF
+
+      // convert blue to white
+      for (var j = 0; j < items; j += 4) {
+        if (imageData.data[j] >= 150) {
+          if (imageData.data[j + 1] >= 150) {
+            if (imageData.data[j + 2] >= 150) {
+              imageData.data[j] = 255;
+              imageData.data[j + 1] = 255;
+              imageData.data[j + 2] = 255;
+            }
+          }
+        }
+      }
+
+      context.putImageData(imageData, 0, 0);
+    });
+
+    const element = await page.$(pageObject.windows.main.canvas);
+
+    // const coords = await element.boundingBox();
+    const screenshot = await element.screenshot({ omitBackground: true });
+    // 0.7
+    expect(screenshot).toMatchSnapshot(`ngb-track-renderer-canvas.png`, {
+      threshold: 0.6,
+    });
+  });
+
   it("works for track renderer", async ({ page }) => {
     await setupPage(page);
 
@@ -120,7 +183,6 @@ describe("Acceptance | Happy path |", () => {
       // @ts-expect-error
       var imageData = context.getImageData(0, 0, $0.width, $0.height);
       var items = imageData.data.length;
-
 
       // 204, 216, 221, 1 // #ccd8dd
       // 162, 171, 175, 1 // #A2ABAF
