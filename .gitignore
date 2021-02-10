@@ -2,4 +2,4 @@
 /docs/site
 /.gradle
 node_modules
-client-tests/test-results
+test-results
