@@ -39,5 +39,13 @@ All scripts are run with `npm run [script]`, for example: `npm run lint:eslint`.
 * `serve:prod`- start development server with production configuration
 * `lint:eslint` - will run es linter
 * `lint:scsslint` - will run scss linter (currently used for checks only)
+* `test` - run tests on already running server
+* `test:visual` - run tests in visual mode (show browser window)
+* `ci` - start server & run tests
 
 See what each script does by looking at the `scripts` section in [package.json](./package.json)
+
+
+# Tests
+
+see [tests readme](./tests/readme.md)

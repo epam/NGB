@@ -1,19 +1,8 @@
 ## Description
 
-This folder contains visual regression tests for [client](./../client).
+This folder contains visual regression tests for web client.
 
-There is a few `examples` in `tests/acceptance` folder.
-
-
-## Usage
-
-
-Install packages in this folder, using:
-
-```sh
-yarn
-```
-
+There is a few `examples` in `acceptance` folder.
 
 
 ### Basic usage
@@ -21,7 +10,7 @@ yarn
 Run dev backend and tests:
 
 ```sh
-yarn ci
+npm run ci
 ```
 
 ### Usage with already running dev server
@@ -29,28 +18,25 @@ yarn ci
 Run tests:
 
 ```sh
-yarn test
+npm run test
 ```
 
 
 ## Folder structure
 
-`./test/` - all files, related to test setup.
+`./test-support/` - includes test setup files`
 
-`./test/test-support/` - includes test setup files`
+`./test-support/data-storage/` - tracks list for every test case.
 
-`./test/test-support/data-storage/` - tracks list for every test case.
+`./test-support/page-object/` - shared selectors for dom nodes, used inside tests.
 
-`./test/test-support/page-object/` - shared selectors for dom nodes, used inside tests.
-
-`./test/test-support/types/` - types for tracks objects.
+`./test-support/types/` - types for tracks objects.
 
 `./utils/` - list of useful utils.
 
 ## Requirements
 
 * `node >= 12`
-* `yarn < 2`
 
 
 ## Utils
