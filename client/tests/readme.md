@@ -68,3 +68,53 @@ Result will be saved in `output.json`
 
 * [@playwright/test](https://github.com/microsoft/playwright-test) - test runner
 
+
+## How to add new acceptance test
+
+---
+
+`q:` why we need to create folders for tests?
+
+`a:` folders we could use to have `scoped` data, related for tests (mocks, utils and such)
+
+---
+
+1.) figure out name for test suite, for example `user login`,
+1.) create folder, named `user-login` in `tests/acceptance` folder.
+1.) create file, named `user-login.spec.ts` in `tests/acceptance/user-login` folder.
+
+
+basic test file should look like:
+
+* for additional references, check [happy path](./acceptance/happy-path/happy-path.spec.ts) test case.
+
+```ts
+import { describe, it, expect } from "../../test-support";
+import {
+  setupPage
+} from "../../test-support/page-object";
+
+describe("Acceptance | User Login |", () => {
+  it("is a basic test case ", async ({ page }) => {
+    await setupPage(page);
+
+    await page.goto('http://localhost:8080/some-endpoint');
+
+    // wait for dom node to appear
+    await page.waitForSelector(".ngb-variant-density-diagram .nvd3-svg g");
+
+    // animations
+    await page.waitForTimeout(1000);
+
+    // get element node representation
+    const element = await page.$(`.ngb-variant-density-diagram`);
+
+    // create element screenshot
+    const screenshot = await element.screenshot();
+
+    // assert it with already saves screenshot for this test
+    expect(screenshot).toMatchSnapshot(`density-diagram.png`);
+  });
+
+});
+```
