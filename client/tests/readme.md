@@ -24,11 +24,19 @@ npm run test
 
 ## Folder structure
 
-`./test-support/` - includes test setup files`
+`./test-support/` - includes generic test setup files`
 
-`./test-support/data-storage/` - tracks list for every test case.
 
-`./test-support/page-object/` - shared selectors for dom nodes, used inside tests.
+In { `test-support`, `acceptance/test-name` } :
+
+`./*/data-storage/` - tracks list for every test case.
+
+`./*/page-object/` - shared selectors for dom nodes, used inside tests.
+
+`./*/test-helpers/` - different test helpers (mocks, url constructors).
+
+same structure may be created per test case ^
+
 
 `./test-support/types/` - types for tracks objects.
 
@@ -36,7 +44,7 @@ npm run test
 
 ## Requirements
 
-* `node >= 12`
+* `node >= 14`
 
 
 ## Utils
