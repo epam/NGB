@@ -3,3 +3,4 @@
 /.gradle
 node_modules
 client/test-results
+package-lock.json
