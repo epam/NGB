@@ -30,6 +30,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.epam.catgenome.component.MessageHelper;
@@ -47,8 +48,6 @@ import com.epam.catgenome.exception.ExternalDbUnavailableException;
 @Service
 public class EnsemblDataManager {
 
-    private static final String ENSEMBL_SERVER = "http://rest.ensembl.org/";
-
     private static final String ENSEMBL_TOOL = "lookup/id";
 
     private static final String ENSEMBL_VARIATION_TOOL = "variation";
@@ -63,6 +62,9 @@ public class EnsemblDataManager {
     @Autowired
     private HttpDataManager httpDataManager;
 
+    @Value("${ensembl.base.url:http://rest.ensembl.org/}")
+    private String ensemblServer;
+
     /**
      * Method fetching gene data from Ensemble
      *
@@ -76,7 +78,7 @@ public class EnsemblDataManager {
             new ParameterNameValue(ENSEMBL_EXPAND_TOOL, "1"),
             new ParameterNameValue("utr", "1")};
 
-        String location = ENSEMBL_SERVER + ENSEMBL_TOOL + "/" + geneId + "?";
+        String location = ensemblServer + ENSEMBL_TOOL + "/" + geneId + "?";
 
         String geneData = httpDataManager.fetchData(location, params);
 
@@ -107,7 +109,7 @@ public class EnsemblDataManager {
             new ParameterNameValue(CONTENT_TYPE, APPLICATION_JSON),
             new ParameterNameValue(ENSEMBL_EXPAND_TOOL, "1")};
 
-        String location = String.format("%s%s/%s/%s?", ENSEMBL_SERVER, ENSEMBL_VARIATION_TOOL, species, variationId);
+        String location = String.format("%s%s/%s/%s?", ensemblServer, ENSEMBL_VARIATION_TOOL, species, variationId);
 
         String variationData = httpDataManager.fetchData(location, params);
         try {
@@ -143,7 +145,7 @@ public class EnsemblDataManager {
             new ParameterNameValue("feature", ENSEMBL_VARIATION_TOOL),
             new ParameterNameValue(CONTENT_TYPE, APPLICATION_JSON)};
 
-        String location = String.format("%s%s/%s/%s", ENSEMBL_SERVER, ENSEMBL_OVERLAP_TOOL, species,
+        String location = String.format("%s%s/%s/%s", ensemblServer, ENSEMBL_OVERLAP_TOOL, species,
                 chromosome + ":" + start + "-" + finish + "?");
 
         String variationData = httpDataManager.fetchData(location, params);

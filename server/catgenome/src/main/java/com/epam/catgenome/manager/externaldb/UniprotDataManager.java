@@ -31,6 +31,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
@@ -44,14 +45,15 @@ import com.epam.catgenome.manager.externaldb.bindings.uniprot.Uniprot;
 @Service
 public class UniprotDataManager {
 
-    private static final String UNIPROT_SERVER = "http://www.uniprot.org/";
-
     private static final String UNIPROT_TOOL = "uniprot";
 
     private Uniprot fetchedUniprotData = null;
 
     @Autowired
     private HttpDataManager httpDataManager;
+
+    @Value("${uniprot.base.url:https://www.uniprot.org/}")
+    private String uniprotServer;
 
     /**
      * Method fetching data from UniProt
@@ -64,7 +66,7 @@ public class UniprotDataManager {
         ParameterNameValue[] params = new ParameterNameValue[]{new ParameterNameValue("query", geneId),
             new ParameterNameValue("format", "xml")};
 
-        String location = UNIPROT_SERVER + UNIPROT_TOOL + "/?";
+        String location = uniprotServer + UNIPROT_TOOL + "/?";
 
         String uniprotData = httpDataManager.fetchData(location, params);
 
