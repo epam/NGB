@@ -1,0 +1,9 @@
+Template: port_request
+Type: string
+Default: 8080
+Description: Please, define the port to start ngb browser on.
+
+Template: invalid_port
+Type: note
+Description: Port number is invalid! Port number is integer value between 1023 and 65535
+
