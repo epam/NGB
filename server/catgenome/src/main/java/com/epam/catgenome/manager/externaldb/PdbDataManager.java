@@ -45,7 +45,6 @@ import org.apache.catalina.util.URLEncoder;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -132,20 +131,20 @@ public class PdbDataManager {
     }
 
     private Dataset parseToDataset(DatasetDTO datasetDTO, String structureId) {
-        List<Record> records = new ArrayList<>();
-
         Entry entry = datasetDTO.getData().getEntry();
-        String structureTitle = entry.getStruct().getTitle();
+        String title = entry.getStruct().getTitle();
         String classification = entry.getKeywords().getValue();
 
-        for (PolymerEntity entity : entry.getEntities()) {
-            String compound = entity.getRcsbPolymerEntity().getDescription();
+        List<Record> records = entry.getEntities().stream().flatMap(entity -> {
+            String compound = entity.getRcsbPoly().getDescription();
             String uniName = validateUniName(entity);
 
-            for (String chainId : entity.getIdentifiers().getIds()) {
-                records.add(parseRecord(structureTitle, classification, compound, uniName, structureId, chainId));
-            }
-        }
+            return entity.getIdentifiers().getIds().stream()
+                    .map(chainId -> parseRecord(title, classification, compound, uniName, structureId, chainId))
+                    .collect(toList())
+                    .stream();
+
+        }).collect(toList());
 
         return parseDataset(records);
     }

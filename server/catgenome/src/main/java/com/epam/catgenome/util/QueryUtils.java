@@ -10,12 +10,12 @@ import java.io.IOException;
 
 public interface QueryUtils {
 
-    static String normalizeUrl(String url) {
+    static String normalizeUrl(final String url) {
         Assert.state(StringUtils.isNotBlank(url), "Url shall be specified");
         return url.endsWith("/") ? url : url + "/";
     }
 
-    static <T> T execute(Call<T> call) {
+    static <T> T execute(final Call<T> call) {
         try {
             Response<T> response = call.execute();
             validateResponseStatus(response);
@@ -26,7 +26,7 @@ public interface QueryUtils {
         }
     }
 
-    static <T> void validateResponseStatus(Response<T> response) throws IOException {
+    static <T> void validateResponseStatus(final Response<T> response) throws IOException {
         if (!response.isSuccessful()) {
             throw new RSCBResponseException(String.format("Unexpected status code: %d, %s", response.code(),
                     response.errorBody() != null ? response.errorBody().string() : ""));
