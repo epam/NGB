@@ -39,15 +39,16 @@ import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.Record;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.DasalignmentDTO;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.DatasetDTO;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.Entry;
-import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.FeaturePosition;
-import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.InstanceFeature;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.PolymerEntity;
-import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.dto.PolymerEntityInstance;
 import com.epam.catgenome.util.QueryUtils;
+import org.apache.catalina.util.URLEncoder;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * <p>
@@ -58,6 +59,11 @@ import java.util.List;
 public class PdbDataManager {
     private static final String RCSB_SERVER = "https://data.rcsb.org/";
     private static final String LOCATION = RCSB_SERVER + "graphql";
+    private static final String RCSB_ENTRY_QUERY = "{entry(entry_id:\"%s\"){struct{title}struct_keywords" +
+            "{pdbx_keywords}polymer_entities{uniprots{rcsb_uniprot_entry_name}rcsb_polymer_entity{pdbx_description}" +
+            "rcsb_polymer_entity_container_identifiers{auth_asym_ids}}}}";
+    private static final String PDB_MAP_ENTRY = "{entry(entry_id:\"%s\"){polymer_entities{polymer_entity_instances" +
+            "{rcsb_polymer_instance_feature{feature_positions{beg_seq_id end_seq_id}}rcsb_id}}}}";
 
     private final RCSBApi rcsbApi;
 
@@ -72,10 +78,7 @@ public class PdbDataManager {
      */
     public Dataset fetchRCSBEntry(final String pdbIds) throws ExternalDbUnavailableException {
         try {
-            String query = replaceHttpSymbols("{entry(entry_id:\"%s\"){struct{title}struct_keywords{pdbx_keywords}" +
-                    "polymer_entities{uniprots{rcsb_uniprot_entry_name}rcsb_polymer_entity{pdbx_description}" +
-                    "rcsb_polymer_entity_container_identifiers{auth_asym_ids}}}}", pdbIds);
-
+            String query = replaceHttpSymbols(RCSB_ENTRY_QUERY, pdbIds);
             return parseToDataset(QueryUtils.execute(rcsbApi.getDataset(query)), pdbIds);
         } catch (RSCBResponseException e) {
             throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants
@@ -90,9 +93,7 @@ public class PdbDataManager {
      */
     public Dasalignment fetchPdbMapEntry(final String pdbIds) throws ExternalDbUnavailableException {
         try {
-            String query = replaceHttpSymbols("{entry(entry_id:\"%s\"){polymer_entities{polymer_entity_instances" +
-                    "{rcsb_polymer_instance_feature{feature_positions{beg_seq_id end_seq_id}}rcsb_id}}}}", pdbIds);
-
+            String query = replaceHttpSymbols(PDB_MAP_ENTRY, pdbIds);
             return parseToDasalignment(QueryUtils.execute(rcsbApi.getDasalignment(query)));
 
         } catch (RSCBResponseException e) {
@@ -102,38 +103,32 @@ public class PdbDataManager {
     }
 
     private String replaceHttpSymbols(String query, String pdbIds) {
-        return String.format(query, pdbIds)
-                .replaceAll("\\{", "%7B")
-                .replaceAll("}", "%7D")
-                .replaceAll(" ", "%20");
+        return URLEncoder.DEFAULT.encode(String.format(query, pdbIds), StandardCharsets.UTF_8.toString());
+
     }
 
     private Dasalignment parseToDasalignment(DasalignmentDTO das) {
-        List<Alignment> alignments = new ArrayList<>();
-
         List<PolymerEntity> polymerEntities = das.getData().getEntry().getEntities();
-        for (PolymerEntity entity : polymerEntities) {
-            for (PolymerEntityInstance instance : entity.getEntityInstances()) {
-                String id = instance.getId();
-                List<PdbBlock> pdbBlocks = new ArrayList<>();
 
-                for (InstanceFeature feature : instance.getInstanceFeatures()) {
-                    List<Segment> segments = new ArrayList<>();
+        List<Alignment> alignments = polymerEntities.stream()
+                .flatMap(entity -> entity.getEntityInstances().stream())
+                .map(instance -> {
+                    List<PdbBlock> pdbBlocks = instance.getInstanceFeatures().stream()
+                            .map(feature -> {
+                                List<Segment> segments = feature.getPositions().stream()
+                                        .map(position -> parseSegment(
+                                                position.getStart(),
+                                                position.getEnd(),
+                                                instance.getId()))
+                                        .collect(toList());
 
-                    for (FeaturePosition position : feature.getPositions()) {
-                        Integer start = position.getStart();
-                        Integer end = position.getEnd();
-                        segments.add(parseSegment(start, end, id));
-                    }
-                    pdbBlocks.add(parsePdbBlock(segments));
-                }
-                alignments.add(parseAlignment(pdbBlocks));
-            }
-        }
+                                return parsePdbBlock(segments);
+                            }).collect(toList());
 
-        Dasalignment dasalignment = new Dasalignment();
-        dasalignment.setAlignment(alignments);
-        return dasalignment;
+                    return parseAlignment(pdbBlocks);
+                }).collect(toList());
+
+        return parseDasalignment(alignments);
     }
 
     private Dataset parseToDataset(DatasetDTO datasetDTO, String structureId) {
@@ -145,16 +140,19 @@ public class PdbDataManager {
 
         for (PolymerEntity entity : entry.getEntities()) {
             String compound = entity.getRcsbPolymerEntity().getDescription();
-            String uniprotName = entity.getUniprots().get(0).getNames().get(0);
+            String uniName = validateUniName(entity);
 
             for (String chainId : entity.getIdentifiers().getIds()) {
-                records.add(parseRecord(structureTitle, classification, compound, uniprotName, structureId, chainId));
+                records.add(parseRecord(structureTitle, classification, compound, uniName, structureId, chainId));
             }
         }
 
-        Dataset dataset = new Dataset();
-        dataset.setRecord(records);
-        return dataset;
+        return parseDataset(records);
+    }
+
+    private String validateUniName(PolymerEntity entity) {
+        List<PolymerEntity.Uniprot> uniprots = entity.getUniprots();
+        return (uniprots == null || uniprots.isEmpty()) ? "" : uniprots.get(0).getNames().get(0);
     }
 
     private Record parseRecord(String title, String classification, String compound,
@@ -167,6 +165,12 @@ public class PdbDataManager {
         record.setStructureId(structureId);
         record.setChainId(chainId);
         return record;
+    }
+
+    private Dataset parseDataset(List<Record> records) {
+        Dataset dataset = new Dataset();
+        dataset.setRecord(records);
+        return dataset;
     }
 
     private Segment parseSegment(Integer start, Integer end, String id) {
@@ -191,5 +195,11 @@ public class PdbDataManager {
         Alignment alignment = new Alignment();
         alignment.setBlock(blocks);
         return alignment;
+    }
+
+    private Dasalignment parseDasalignment(List<Alignment> alignments) {
+        Dasalignment dasalignment = new Dasalignment();
+        dasalignment.setAlignment(alignments);
+        return dasalignment;
     }
 }
