@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -77,7 +77,7 @@ public class PdbDataManager {
      */
     public Dataset fetchRCSBEntry(final String pdbIds) throws ExternalDbUnavailableException {
         try {
-            String query = replaceHttpSymbols(RCSB_ENTRY_QUERY, pdbIds);
+            final String query = replaceHttpSymbols(RCSB_ENTRY_QUERY, pdbIds);
             return parseToDataset(QueryUtils.execute(rcsbApi.getDataset(query)), pdbIds);
         } catch (RSCBResponseException e) {
             throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants
@@ -92,7 +92,7 @@ public class PdbDataManager {
      */
     public Dasalignment fetchPdbMapEntry(final String pdbIds) throws ExternalDbUnavailableException {
         try {
-            String query = replaceHttpSymbols(PDB_MAP_ENTRY, pdbIds);
+            final String query = replaceHttpSymbols(PDB_MAP_ENTRY, pdbIds);
             return parseToDasalignment(QueryUtils.execute(rcsbApi.getDasalignment(query)));
 
         } catch (RSCBResponseException e) {
@@ -101,20 +101,19 @@ public class PdbDataManager {
         }
     }
 
-    private String replaceHttpSymbols(String query, String pdbIds) {
+    private String replaceHttpSymbols(final String query, final String pdbIds) {
         return URLEncoder.DEFAULT.encode(String.format(query, pdbIds), StandardCharsets.UTF_8.toString());
-
     }
 
-    private Dasalignment parseToDasalignment(DasalignmentDTO das) {
-        List<PolymerEntity> polymerEntities = das.getData().getEntry().getEntities();
+    private Dasalignment parseToDasalignment(final DasalignmentDTO das) {
+        final List<PolymerEntity> polymerEntities = das.getData().getEntry().getEntities();
 
-        List<Alignment> alignments = polymerEntities.stream()
+        final List<Alignment> alignments = polymerEntities.stream()
                 .flatMap(entity -> entity.getEntityInstances().stream())
                 .map(instance -> {
-                    List<PdbBlock> pdbBlocks = instance.getInstanceFeatures().stream()
+                    final List<PdbBlock> pdbBlocks = instance.getInstanceFeatures().stream()
                             .map(feature -> {
-                                List<Segment> segments = feature.getPositions().stream()
+                                final List<Segment> segments = feature.getPositions().stream()
                                         .map(position -> parseSegment(
                                                 position.getStart(),
                                                 position.getEnd(),
@@ -130,14 +129,14 @@ public class PdbDataManager {
         return parseDasalignment(alignments);
     }
 
-    private Dataset parseToDataset(DatasetDTO datasetDTO, String structureId) {
-        Entry entry = datasetDTO.getData().getEntry();
-        String title = entry.getStruct().getTitle();
-        String classification = entry.getKeywords().getValue();
+    private Dataset parseToDataset(final DatasetDTO datasetDTO, final String structureId) {
+        final Entry entry = datasetDTO.getData().getEntry();
+        final String title = entry.getStruct().getTitle();
+        final String classification = entry.getKeywords().getValue();
 
-        List<Record> records = entry.getEntities().stream().flatMap(entity -> {
-            String compound = entity.getRcsbPoly().getDescription();
-            String uniName = validateUniName(entity);
+        final List<Record> records = entry.getEntities().stream().flatMap(entity -> {
+            final String compound = entity.getRcsbPoly().getDescription();
+            final String uniName = validateUniprotName(entity);
 
             return entity.getIdentifiers().getIds().stream()
                     .map(chainId -> parseRecord(title, classification, compound, uniName, structureId, chainId))
@@ -149,14 +148,14 @@ public class PdbDataManager {
         return parseDataset(records);
     }
 
-    private String validateUniName(PolymerEntity entity) {
-        List<PolymerEntity.Uniprot> uniprots = entity.getUniprots();
+    private String validateUniprotName(final PolymerEntity entity) {
+        final List<PolymerEntity.Uniprot> uniprots = entity.getUniprots();
         return (uniprots == null || uniprots.isEmpty()) ? "" : uniprots.get(0).getNames().get(0);
     }
 
-    private Record parseRecord(String title, String classification, String compound,
-                               String uniprotName, String structureId, String chainId) {
-        Record record = new Record();
+    private Record parseRecord(final String title, final String classification, final String compound,
+                               final String uniprotName, final String structureId, final String chainId) {
+        final Record record = new Record();
         record.setStructureTitle(title);
         record.setClassification(classification);
         record.setCompound(compound);
@@ -166,38 +165,40 @@ public class PdbDataManager {
         return record;
     }
 
-    private Dataset parseDataset(List<Record> records) {
-        Dataset dataset = new Dataset();
+    private Dataset parseDataset(final List<Record> records) {
+        final Dataset dataset = new Dataset();
         dataset.setRecord(records);
         return dataset;
     }
 
-    private Segment parseSegment(Integer start, Integer end, String id) {
+    private Segment parseSegment(final Integer start, final Integer end, final String id) {
+        final Segment segment = new Segment();
+        segment.setStart(start);
+        segment.setIntObjectId(id);
+
         //start and end coordinates are the same, if no end.
         if (end == null) {
-            end = start;
+            segment.setEnd(start);
+        } else {
+            segment.setEnd(end);
         }
-        Segment segment = new Segment();
-        segment.setStart(start);
-        segment.setEnd(end);
-        segment.setIntObjectId(id);
         return segment;
     }
 
-    private PdbBlock parsePdbBlock(List<Segment> segments) {
-        PdbBlock block = new PdbBlock();
+    private PdbBlock parsePdbBlock(final List<Segment> segments) {
+        final PdbBlock block = new PdbBlock();
         block.setSegment(segments);
         return block;
     }
 
-    private Alignment parseAlignment(List<PdbBlock> blocks) {
-        Alignment alignment = new Alignment();
+    private Alignment parseAlignment(final List<PdbBlock> blocks) {
+        final Alignment alignment = new Alignment();
         alignment.setBlock(blocks);
         return alignment;
     }
 
-    private Dasalignment parseDasalignment(List<Alignment> alignments) {
-        Dasalignment dasalignment = new Dasalignment();
+    private Dasalignment parseDasalignment(final List<Alignment> alignments) {
+        final Dasalignment dasalignment = new Dasalignment();
         dasalignment.setAlignment(alignments);
         return dasalignment;
     }

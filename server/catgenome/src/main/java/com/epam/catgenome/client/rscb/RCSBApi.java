@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,11 +31,9 @@ import retrofit2.http.GET;
 import retrofit2.http.Query;
 
 public interface RCSBApi {
-
     @GET("graphql")
     Call<DatasetDTO> getDataset(@Query(value = "query", encoded = true) String query);
 
     @GET("graphql")
     Call<DasalignmentDTO> getDasalignment(@Query(value = "query", encoded = true) String query);
-
 }

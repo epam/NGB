@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,9 +53,9 @@ public class RCSBApiBuilder {
     }
 
     private OkHttpClient buildHttpClient() {
-        OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        builder.hostnameVerifier((hostname, session) -> true);
-        return builder.readTimeout(readTimeout, TimeUnit.SECONDS)
+        return new OkHttpClient.Builder()
+                .hostnameVerifier((hostname, session) -> true)
+                .readTimeout(readTimeout, TimeUnit.SECONDS)
                 .connectTimeout(connectTimeout, TimeUnit.SECONDS)
                 .hostnameVerifier((s, sslSession) -> true)
                 .build();

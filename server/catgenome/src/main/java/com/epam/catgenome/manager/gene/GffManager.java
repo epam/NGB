@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -112,7 +112,6 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
@@ -1039,7 +1038,7 @@ public class GffManager {
                 }
             }
             return chainMinMax;
-        }).collect(Collectors.toMap(ChainMinMax::getName, Function.identity()));
+        }).collect(Collectors.toMap(ChainMinMax::getName, cMM -> cMM));
     }
 
     private List<Wig> readHistogramPortion(final Track<Wig> track, final GeneFile geneFile, final Chromosome
