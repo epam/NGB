@@ -24,15 +24,15 @@
 
 package com.epam.catgenome.dao.index.field;
 
+import com.epam.catgenome.dao.index.FeatureIndexDao.FeatureIndexFields;
+import org.apache.lucene.search.SortField;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.lucene.search.SortField;
-
-import com.epam.catgenome.dao.index.FeatureIndexDao.FeatureIndexFields;
-
 public enum IndexSortField {
     CHROMOSOME_NAME(FeatureIndexFields.CHROMOSOME_NAME, SortField.Type.STRING),
+    FEATURE_NAME(FeatureIndexFields.FEATURE_NAME, SortField.Type.STRING),
     START_INDEX(FeatureIndexFields.START_INDEX, SortField.Type.INT),
     END_INDEX(FeatureIndexFields.END_INDEX, SortField.Type.INT),
     FILTER(FeatureIndexFields.FAILED_FILTER, SortField.Type.STRING),
@@ -44,6 +44,7 @@ public enum IndexSortField {
     private static Map<String, IndexSortField> fieldMap = new HashMap<>();
     static {
         fieldMap.put(CHROMOSOME_NAME.name(), CHROMOSOME_NAME);
+        fieldMap.put(FEATURE_NAME.name(), FEATURE_NAME);
         fieldMap.put(START_INDEX.name(), START_INDEX);
         fieldMap.put(END_INDEX.name(), END_INDEX);
         fieldMap.put(FILTER.name(), FILTER);

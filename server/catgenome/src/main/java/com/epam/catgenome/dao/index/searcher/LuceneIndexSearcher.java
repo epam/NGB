@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2017-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +25,15 @@
 
 package com.epam.catgenome.dao.index.searcher;
 
-import java.io.IOException;
-import java.util.List;
-
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import org.apache.lucene.search.Query;
 
-public interface LuceneIndexSearcher<T extends FeatureIndexEntry>  {
+import java.io.IOException;
+import java.util.List;
+
+public interface LuceneIndexSearcher<T extends FeatureIndexEntry> {
 
     IndexSearchResult<T> getSearchResults(List<? extends FeatureFile> files, Query query) throws IOException;
 }

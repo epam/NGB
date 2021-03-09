@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2017-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,20 +25,14 @@
 
 package com.epam.catgenome.dao.index.searcher;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
-
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.field.IndexSortField;
 import com.epam.catgenome.dao.index.indexer.AbstractDocumentBuilder;
+import com.epam.catgenome.entity.AbstractFilterForm;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.IndexSearchResult;
-import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.vcf.InfoItem;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
@@ -56,42 +50,50 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.springframework.util.Assert;
 
-public abstract class AbstractIndexSearcher implements LuceneIndexSearcher<VcfIndexEntry> {
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
+
+public abstract class AbstractIndexSearcher<T extends FeatureIndexEntry, R extends AbstractFilterForm>
+        implements LuceneIndexSearcher<T> {
     private FeatureIndexDao featureIndexDao;
     private FileManager fileManager;
     private VcfManager vcfManager;
-    private VcfFilterForm vcfFilterForm;
+    private R filterForm;
     private ExecutorService executorService;
 
     public AbstractIndexSearcher(FeatureIndexDao featureIndexDao, FileManager fileManager,
-            VcfManager vcfManager, VcfFilterForm filterForm, ExecutorService executorService) {
+                                 VcfManager vcfManager, R filterForm, ExecutorService executorService) {
         this.featureIndexDao = featureIndexDao;
         this.fileManager = fileManager;
         this.vcfManager = vcfManager;
-        this.vcfFilterForm = filterForm;
+        this.filterForm = filterForm;
         this.executorService = executorService;
     }
 
-    public static LuceneIndexSearcher<VcfIndexEntry> getIndexSearcher(VcfFilterForm filterForm,
-            FeatureIndexDao featureIndexDao, FileManager fileManager, VcfManager vcfManager,
-            ExecutorService executorService) {
+    public static <T extends FeatureIndexEntry, R extends AbstractFilterForm> LuceneIndexSearcher<T> getIndexSearcher(
+            R filterForm, FeatureIndexDao featureIndexDao, FileManager fileManager,
+            VcfManager vcfManager, ExecutorService executorService) {
+
         if (filterForm.getPointer() != null) {
-            return new NextPageSearcher(featureIndexDao, fileManager, vcfManager, filterForm, executorService);
+            return new NextPageSearcher<T, R>(featureIndexDao, fileManager, vcfManager, filterForm, executorService);
         } else {
-            return new PagingSearcher(featureIndexDao, fileManager, vcfManager, filterForm, executorService);
+            return new PagingSearcher<T, R>(featureIndexDao, fileManager, vcfManager, filterForm, executorService);
         }
     }
 
     @Override
-    public IndexSearchResult<VcfIndexEntry> getSearchResults(List<? extends FeatureFile> files, Query query)
-            throws IOException {
+    public IndexSearchResult<T> getSearchResults(List<? extends FeatureFile> files, Query query) throws IOException {
         if (CollectionUtils.isEmpty(files)) {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
 
         SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
         long indexSize = featureIndexDao.getTotalIndexSize(indexes);
-        if (indexSize > featureIndexDao.getLuceneIndexMaxSizeForGrouping() && vcfFilterForm.filterEmpty()) {
+        if (indexSize > featureIndexDao.getLuceneIndexMaxSizeForGrouping() && filterForm.filterEmpty()) {
             throw new IllegalArgumentException("Variations filter shall be specified");
         }
 
@@ -100,10 +102,10 @@ public abstract class AbstractIndexSearcher implements LuceneIndexSearcher<VcfIn
                 return new IndexSearchResult<>(Collections.emptyList(), false, 0);
             }
             IndexSearcher searcher = new IndexSearcher(reader, executorService);
-            AbstractDocumentBuilder<VcfIndexEntry> documentCreator = AbstractDocumentBuilder
-                    .createDocumentCreator(files.get(0).getFormat(), vcfFilterForm.getInfoFields());
-            Sort sort = createSorting(vcfFilterForm.getOrderBy(), files);
-            IndexSearchResult<VcfIndexEntry> searchResults = performSearch(searcher, reader, query,
+            AbstractDocumentBuilder<T> documentCreator = AbstractDocumentBuilder
+                    .createDocumentCreator(files.get(0).getFormat(), filterForm.getInfoFields());
+            Sort sort = createSorting(filterForm.getOrderBy(), files);
+            IndexSearchResult<T> searchResults = performSearch(searcher, reader, query,
                     sort, documentCreator);
             //return 0 to prevent random access in UI
             if (indexSize > featureIndexDao.getLuceneIndexMaxSizeForGrouping()) {
@@ -117,17 +119,18 @@ public abstract class AbstractIndexSearcher implements LuceneIndexSearcher<VcfIn
         }
     }
 
-    protected TopDocs performSearch(IndexSearcher searcher, Query query, MultiReader reader, int numDocs,
-            Sort sort) throws IOException {
+    protected TopDocs performSearch(IndexSearcher searcher, Query query, MultiReader reader,
+                                    int numDocs, Sort sort) throws IOException {
         return featureIndexDao.performSearch(searcher, query, reader, numDocs, sort);
     }
 
-    protected abstract IndexSearchResult<VcfIndexEntry> performSearch(IndexSearcher searcher,
-            MultiReader reader, Query query, Sort sort, AbstractDocumentBuilder<VcfIndexEntry> documentCreator)
+    protected abstract IndexSearchResult<T> performSearch(IndexSearcher searcher,
+                                                          MultiReader reader, Query query, Sort sort,
+                                                          AbstractDocumentBuilder<T> documentCreator)
             throws IOException;
 
     private Sort createSorting(List<VcfFilterForm.OrderBy> orderBy,
-            List<? extends FeatureFile> files) throws IOException {
+                               List<? extends FeatureFile> files) throws IOException {
         if (CollectionUtils.isNotEmpty(orderBy)) {
             ArrayList<SortField> sortFields = new ArrayList<>();
             for (VcfFilterForm.OrderBy o : orderBy) {

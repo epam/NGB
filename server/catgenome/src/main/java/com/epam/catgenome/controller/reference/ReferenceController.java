@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,18 +24,27 @@
 
 package com.epam.catgenome.controller.reference;
 
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
-
+import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.controller.AbstractRESTController;
+import com.epam.catgenome.controller.Result;
 import com.epam.catgenome.controller.vo.SpeciesVO;
+import com.epam.catgenome.controller.vo.TrackQuery;
+import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
+import com.epam.catgenome.entity.gene.GeneFilterForm;
+import com.epam.catgenome.entity.index.IndexSearchResult;
+import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.reference.Species;
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.Callable;
-
+import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.exception.FeatureIndexException;
+import com.epam.catgenome.exception.ReferenceReadingException;
 import com.epam.catgenome.manager.FeatureIndexSecurityService;
 import com.epam.catgenome.manager.reference.ReferenceSecurityService;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiResponse;
+import com.wordnik.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -46,21 +55,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.controller.AbstractRESTController;
-import com.epam.catgenome.controller.Result;
-import com.epam.catgenome.controller.vo.TrackQuery;
-import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
-import com.epam.catgenome.entity.index.IndexSearchResult;
-import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.entity.reference.Sequence;
-import com.epam.catgenome.entity.track.Track;
-import com.epam.catgenome.exception.ReferenceReadingException;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.Callable;
+
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
 
 /**
  * <p>
@@ -190,6 +190,22 @@ public class ReferenceController extends AbstractRESTController {
                                                             @RequestParam String featureId)
         throws IOException {
         return Result.success(featureIndexSecurityService.searchFeaturesByReference(featureId, referenceId));
+    }
+
+    @RequestMapping(value = "/reference/{referenceId}/filter/gene", method = RequestMethod.POST)
+    @ResponseBody
+    @ApiOperation(
+        value = "Searches for given filter parameters in a reference gene file, case-sensitive",
+        notes = "Searches an index of a gene file, associated with a given reference's ID for filter parameters",
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+        })
+    public Result<IndexSearchResult> searchFeatureInProjectWithFilter(
+                                                            @PathVariable(value = "referenceId") final Long referenceId,
+                                                            @RequestBody final GeneFilterForm geneFilterForm)
+        throws IOException {
+        return Result.success(featureIndexSecurityService.searchFeaturesByReference(geneFilterForm, referenceId));
     }
 
     @ResponseBody

@@ -2,7 +2,7 @@
  *
  *  * MIT License
  *  *
- *  * Copyright (c) 2018 EPAM Systems
+ *  * Copyright (c) 2018-2021 EPAM Systems
  *  *
  *  * Permission is hereby granted, free of charge, to any person obtaining a copy
  *  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 
 package com.epam.catgenome.manager;
 
+import com.epam.catgenome.entity.gene.GeneFilterForm;
 import com.epam.catgenome.entity.index.Group;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
@@ -43,7 +44,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.epam.catgenome.security.acl.SecurityExpressions.*;
+import static com.epam.catgenome.security.acl.SecurityExpressions.OR;
+import static com.epam.catgenome.security.acl.SecurityExpressions.READ_PROJECT_BY_ID;
+import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
+import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
 @Service
 public class FeatureIndexSecurityService {
@@ -54,6 +58,11 @@ public class FeatureIndexSecurityService {
     @PreAuthorize(ROLE_USER)
     public IndexSearchResult searchFeaturesByReference(String featureId, Long referenceId) throws IOException {
         return featureIndexManager.searchFeaturesByReference(featureId, referenceId);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public IndexSearchResult searchFeaturesByReference(GeneFilterForm filterForm, Long referenceId) throws IOException {
+        return featureIndexManager.searchFeaturesByReference(filterForm, referenceId);
     }
 
     @AclMapFilter

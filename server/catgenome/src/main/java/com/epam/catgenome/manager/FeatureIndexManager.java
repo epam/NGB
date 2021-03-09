@@ -24,12 +24,6 @@
 
 package com.epam.catgenome.manager;
 
-import static com.epam.catgenome.dao.index.searcher.AbstractIndexSearcher.getIndexSearcher;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
@@ -42,7 +36,12 @@ import com.epam.catgenome.entity.bed.BedFile;
 import com.epam.catgenome.entity.gene.Gene;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.gene.GeneFileType;
-import com.epam.catgenome.entity.index.*;
+import com.epam.catgenome.entity.gene.GeneFilterForm;
+import com.epam.catgenome.entity.index.FeatureIndexEntry;
+import com.epam.catgenome.entity.index.FeatureType;
+import com.epam.catgenome.entity.index.Group;
+import com.epam.catgenome.entity.index.IndexSearchResult;
+import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.project.Project;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
@@ -66,8 +65,8 @@ import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.vcf.VcfFileManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import com.epam.catgenome.util.Utils;
-import htsjdk.samtools.util.CloseableIterator;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.readers.LineIterator;
@@ -82,6 +81,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static com.epam.catgenome.dao.index.searcher.AbstractIndexSearcher.getIndexSearcher;
 
 /**
  * Source:      VcfIndexManager
@@ -344,6 +356,26 @@ public class FeatureIndexManager {
         }
     }
 
+    private IndexSearchResult<FeatureIndexEntry> getGeneSearchResult(GeneFilterForm filterForm,
+                                                                     List<FeatureFile> featureFiles)
+            throws IOException {
+        if (filterForm.getPageSize() != null) {
+            LuceneIndexSearcher<FeatureIndexEntry> indexSearcher =
+                    getIndexSearcher(filterForm, featureIndexDao,
+                            fileManager, vcfManager, taskExecutorService.getSearchExecutor());
+            IndexSearchResult<FeatureIndexEntry> res =
+                    indexSearcher.getSearchResults(featureFiles, filterForm.computeQuery());
+            res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount()
+                    / filterForm.getPageSize().doubleValue()));
+            return res;
+        } else {
+            IndexSearchResult<FeatureIndexEntry> res = featureIndexDao.searchFileIndexes(featureFiles,
+                    filterForm.computeQuery(), null, null, filterForm.createSorting());
+            res.setExceedsLimit(false);
+            return res;
+        }
+    }
+
     /**
      * Searches genes by it's ID in project's gene files. Minimum featureId prefix length == 2
      *
@@ -374,32 +406,30 @@ public class FeatureIndexManager {
         return bookmarkSearchRes;
     }
 
+    public IndexSearchResult searchFeaturesByReference(GeneFilterForm filterForm, long referenceId) throws IOException {
+        final String featureId = filterForm.getFeatureId();
+        if (featureId == null || featureId.length() < 2) {
+            return new IndexSearchResult<>(Collections.emptyList(), false, 0);
+        }
+
+        IndexSearchResult<FeatureIndexEntry> res = getGeneSearchResult(filterForm, getFeatureFiles(referenceId));
+
+        return mergeWithBookmarkSearch(res, featureId);
+    }
+
     public IndexSearchResult searchFeaturesByReference(String featureId, long referenceId) throws IOException {
         if (featureId == null || featureId.length() < 2) {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
 
-        IndexSearchResult<FeatureIndexEntry> bookmarkSearchRes = bookmarkManager.searchBookmarks(featureId,
-                maxFeatureSearchResultsCount);
-
-        Reference reference = referenceGenomeManager.load(referenceId);
-
-        List<FeatureFile> annotationFiles = referenceGenomeManager.getReferenceAnnotationFiles(referenceId)
-                .stream()
-                .map(biologicalDataItem -> (FeatureFile) biologicalDataItem)
-                .collect(Collectors.toList());
-        GeneFile geneFile = reference.getGeneFile();
-        if (geneFile != null) {
-            Long geneFileId = geneFile.getId();
-            annotationFiles.add(geneFileManager.load(geneFileId));
-        }
-
         IndexSearchResult<FeatureIndexEntry> res = featureIndexDao.searchFeatures(
-                featureId, annotationFiles, maxFeatureSearchResultsCount
+                featureId, getFeatureFiles(referenceId), maxFeatureSearchResultsCount
         );
-        bookmarkSearchRes.mergeFrom(res);
-        return bookmarkSearchRes;
+
+        return mergeWithBookmarkSearch(res, featureId);
     }
+
+
 
     /**
      * Loads {@code VcfFilterInfo} object for a specified project. {@code VcfFilterInfo} contains information about
@@ -598,6 +628,29 @@ public class FeatureIndexManager {
         } else {
             addFeaturesFromUsualGeneFileToIndex(geneFile, chromosomeMap, allEntries);
         }
+    }
+
+    private IndexSearchResult<FeatureIndexEntry> mergeWithBookmarkSearch(IndexSearchResult<FeatureIndexEntry> res,
+                                                                         String featureId) {
+        IndexSearchResult<FeatureIndexEntry> bookmarkSearchRes = bookmarkManager.searchBookmarks(featureId,
+                maxFeatureSearchResultsCount);
+        bookmarkSearchRes.mergeFrom(res);
+        return bookmarkSearchRes;
+    }
+
+    private List<FeatureFile> getFeatureFiles(long referenceId) {
+        Reference reference = referenceGenomeManager.load(referenceId);
+
+        List<FeatureFile> annotationFiles = referenceGenomeManager.getReferenceAnnotationFiles(referenceId)
+                .stream()
+                .map(biologicalDataItem -> (FeatureFile) biologicalDataItem)
+                .collect(Collectors.toList());
+        GeneFile geneFile = reference.getGeneFile();
+        if (geneFile != null) {
+            Long geneFileId = geneFile.getId();
+            annotationFiles.add(geneFileManager.load(geneFileId));
+        }
+        return annotationFiles;
     }
 
     private void addFeaturesFromUsualGeneFileToIndex(GeneFile geneFile, Map<String, Chromosome> chromosomeMap,
