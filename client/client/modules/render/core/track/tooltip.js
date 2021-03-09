@@ -93,7 +93,7 @@ export default function tooltipFactory(track) {
                 return `<tr style="border-bottom: 1px solid #ececec">${line.map(mapLineElements).join('')}</tr>`;
             };
 
-            tooltipElement.innerHTML = `<div class='md-open-menu-container md-whiteframe-z2 md-active md-clickable' style='width:100%'><table style='width:100%'>${normalizeTooltipData(content).map(mapLine).join('')}</table></div>`;
+            tooltipElement.innerHTML = `<div class='md-open-menu-container md-whiteframe-z2 md-active md-clickable' style='width:auto'><table style='width:100%'>${normalizeTooltipData(content).map(mapLine).join('')}</table></div>`;
         },
         show(position) {
             if (this.delayedFn) {
