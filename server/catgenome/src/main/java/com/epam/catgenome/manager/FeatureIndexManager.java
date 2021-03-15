@@ -406,7 +406,8 @@ public class FeatureIndexManager {
         return bookmarkSearchRes;
     }
 
-    public IndexSearchResult searchFeaturesByReference(GeneFilterForm filterForm, long referenceId) throws IOException {
+    public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(GeneFilterForm filterForm, long referenceId)
+            throws IOException {
         final String featureId = filterForm.getFeatureId();
         if (featureId == null || featureId.length() < 2) {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);

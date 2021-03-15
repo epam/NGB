@@ -28,9 +28,11 @@ import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.field.IndexSortField;
+import com.epam.catgenome.entity.AbstractFilterForm.OrderBy;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.bed.BedFile;
 import com.epam.catgenome.entity.gene.GeneFile;
+import com.epam.catgenome.entity.gene.GeneFilterForm;
 import com.epam.catgenome.entity.index.BookmarkIndexEntry;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.FeatureType;
@@ -43,6 +45,7 @@ import com.epam.catgenome.entity.reference.Bookmark;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.vcf.InfoItem;
+import com.epam.catgenome.entity.vcf.Pointer;
 import com.epam.catgenome.entity.vcf.Variation;
 import com.epam.catgenome.entity.vcf.VariationQuery;
 import com.epam.catgenome.entity.vcf.VariationType;
@@ -83,6 +86,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -166,6 +170,14 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     private static final String SVTYPE_FIELD = "SVTYPE";
     private static final String SVLEN_FIELD = "SVLEN";
     private static final List<Float> TEST_QUALITY_BOUNDS = Arrays.asList(0.5F, 1.0F);
+    private static final long TEST_AMOUNT = 78L;
+    private static final long TEST_PAGE_SIZE = 50L;
+    private static final long TEST_AMOUNT_OF_MRNA = 10L;
+    private static final long TEST_AMOUNT_OF_GENE = 9L;
+    private static final long TEST_AMOUNT_POSITION = 5L;
+    private static final int TEST_START_INDEX = 65000;
+    private static final int TEST_END_INDEX = 80000;
+
 
     private long referenceId;
     private Reference testReference;
@@ -1022,7 +1034,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         vcfFilterForm.setPageSize(10);
 
         for (IndexSortField sortField : IndexSortField.values()) {
-            vcfFilterForm.setOrderBy(singletonList(new VcfFilterForm.OrderBy(sortField.name(), false)));
+            vcfFilterForm.setOrderBy(singletonList(new OrderBy(sortField.name(), false)));
 
             IndexSearchResult<VcfIndexEntry> entryList = featureIndexManager.filterVariations(vcfFilterForm,
                                                                                               testProject.getId());
@@ -1140,8 +1152,8 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         VcfFilterForm filterForm = new VcfFilterForm();
         filterForm.setPageSize(10);
-        filterForm.setOrderBy(Arrays.asList(new VcfFilterForm.OrderBy(IndexSortField.START_INDEX.name(), false),
-                                        new VcfFilterForm.OrderBy(IndexSortField.VARIATION_TYPE.name(), false)));
+        filterForm.setOrderBy(Arrays.asList(new OrderBy(IndexSortField.START_INDEX.name(), false),
+                                        new OrderBy(IndexSortField.VARIATION_TYPE.name(), false)));
 
         for (int i = 1; i < (referentList.getEntries().size() / 10) + 2; i++) {
             filterForm.setPage(i);
@@ -1168,6 +1180,99 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         }
     }
 
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void searchGenesByFilterWithFeatureName() throws IOException {
+        GeneFilterForm geneFilterForm = getSimpleFilter();
+
+        Assert.assertEquals(TEST_AMOUNT, featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId)
+                .getEntries().size());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void searchGenesByFilterWithChromosome() throws IOException {
+        GeneFilterForm geneFilterForm = getSimpleFilter();
+        geneFilterForm.setChromosomes(Arrays.asList("A1", "B1", "C1"));
+
+        //We have only 1 chromosome A1 at the test data, other names are artificial:)
+        Assert.assertEquals(TEST_AMOUNT, featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId)
+                .getEntries().size());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void searchGenesByFilterWithFeatureTypes() throws IOException {
+        GeneFilterForm geneFilterForm = getSimpleFilter();
+        geneFilterForm.setFeatureTypes(Arrays.asList(FeatureType.MRNA, FeatureType.GENE));
+
+        Assert.assertEquals(TEST_AMOUNT_OF_GENE + TEST_AMOUNT_OF_MRNA,
+                featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId).getEntries().size());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void searchGenesByFilterWithPositions() throws IOException {
+        GeneFilterForm geneFilterForm = getSimpleFilter();
+        geneFilterForm.setStartIndex(TEST_START_INDEX);
+        geneFilterForm.setEndIndex(TEST_END_INDEX);
+
+        Assert.assertEquals(TEST_AMOUNT_POSITION,
+                featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId).getEntries().size());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void searchGenesByFilterWithSorting() throws IOException {
+        GeneFilterForm geneFilterForm = getSimpleFilter();
+        geneFilterForm.setFeatureTypes(singletonList(FeatureType.GENE));
+        geneFilterForm.setOrderBy(singletonList(new OrderBy("START_INDEX", true)));
+
+        IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchFeaturesByReference(
+                geneFilterForm, referenceId);
+
+        Assert.assertEquals(TEST_AMOUNT_OF_GENE, result.getEntries().size());
+
+        Integer maxInt = result.getEntries().stream()
+                .map(FeatureIndexEntry::getStartIndex)
+                .max(Comparator.naturalOrder())
+                .orElse(0);
+
+        Assert.assertEquals(maxInt, result.getEntries().get(0).getStartIndex());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void searchGenesByFilterWithPageSize() throws IOException {
+        GeneFilterForm geneFilterForm = getSimpleFilter();
+        geneFilterForm.setPageSize((int) TEST_PAGE_SIZE);
+
+        Assert.assertEquals(TEST_PAGE_SIZE, featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId)
+                .getEntries().size());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void searchGenesByFilterWithPointer() throws IOException {
+        GeneFilterForm geneFilterForm = getSimpleFilter();
+        geneFilterForm.setPageSize((int) TEST_PAGE_SIZE);
+
+        Pointer pointer = new Pointer();
+        pointer.setScore(1.0F);
+        pointer.setDoc((int) TEST_PAGE_SIZE - 1);
+        pointer.setShardIndex(0);
+        geneFilterForm.setPointer(pointer);
+
+        Assert.assertEquals(TEST_AMOUNT - TEST_PAGE_SIZE,
+                featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId).getEntries().size());
+    }
+
+    private GeneFilterForm getSimpleFilter() {
+        final GeneFilterForm geneFilterForm = new GeneFilterForm();
+        geneFilterForm.setFeatureId("ENSFCA");
+        return geneFilterForm;
+    }
+
     private void checkSorted(String orderBy, boolean desc, SortTestingPredicate testingPredicate, Long projectId)
         throws IOException {
         checkSorted(orderBy, desc, testingPredicate, projectId, null);
@@ -1181,7 +1286,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
         vcfFilterForm.setPageSize(10);
-        vcfFilterForm.setOrderBy(singletonList(new VcfFilterForm.OrderBy(orderBy, desc)));
+        vcfFilterForm.setOrderBy(singletonList(new OrderBy(orderBy, desc)));
         vcfFilterForm.setInfoFields(additionalFields);
 
         for (int i = 1; i < (referentList.getEntries().size() / 10) + 2; i++) {
@@ -1312,7 +1417,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         form.setPage(1);
         form.setPageSize(5);
         form.setOrderBy(singletonList(
-                new VcfFilterForm.OrderBy(FeatureIndexDao.FeatureIndexFields.VARIATION_TYPE.name(), false)));
+                new OrderBy(FeatureIndexDao.FeatureIndexFields.VARIATION_TYPE.name(), false)));
         res = featureIndexManager.filterVariations(form);
         Assert.assertFalse(res.getEntries().isEmpty());
     }
