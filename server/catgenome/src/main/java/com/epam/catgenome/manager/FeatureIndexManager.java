@@ -383,9 +383,9 @@ public class FeatureIndexManager {
      * @return a {@code List} of {@code FeatureIndexEntry}
      * @throws IOException if something goes wrong with the file system
      */
-    public IndexSearchResult searchFeaturesInProject(String featureId, long projectId) throws IOException {
+    public IndexSearchResult<FeatureIndexEntry> searchFeaturesInProject(String featureId, long projectId) throws IOException {
         if (featureId == null || featureId.length() < 2) {
-            return new IndexSearchResult(Collections.emptyList(), false, 0);
+            return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
 
         IndexSearchResult<FeatureIndexEntry> bookmarkSearchRes = bookmarkManager.searchBookmarks(featureId,

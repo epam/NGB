@@ -35,5 +35,5 @@ import java.util.List;
 
 public interface LuceneIndexSearcher<T extends FeatureIndexEntry> {
 
-    IndexSearchResult<T> getSearchResults(List<? extends FeatureFile> files, Query query) throws IOException;
+    IndexSearchResult<T> getSearchResults(final List<? extends FeatureFile> files, final Query query) throws IOException;
 }

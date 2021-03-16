@@ -51,6 +51,7 @@ import com.epam.catgenome.entity.vcf.VariationQuery;
 import com.epam.catgenome.entity.vcf.VariationType;
 import com.epam.catgenome.entity.vcf.VcfFile;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
+import com.epam.catgenome.entity.vcf.VcfFilterForm.FilterSection;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.exception.VcfReadingException;
@@ -62,12 +63,10 @@ import com.epam.catgenome.manager.reference.BookmarkManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import com.epam.catgenome.util.TestUtils;
-import com.epam.catgenome.util.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -86,7 +85,6 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -94,10 +92,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
+import static com.epam.catgenome.util.Utils.getSystemTimeMilliseconds;
+import static java.lang.String.format;
+import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
+import static java.util.Comparator.naturalOrder;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Source:      FeatureIndexManagerTest
@@ -169,7 +177,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     private static final String TEST_GENE_AND_FILE_ID_QUERY = "geneId:ENS* AND fileId:%d";
     private static final String SVTYPE_FIELD = "SVTYPE";
     private static final String SVLEN_FIELD = "SVLEN";
-    private static final List<Float> TEST_QUALITY_BOUNDS = Arrays.asList(0.5F, 1.0F);
+    private static final List<Float> TEST_QUALITY_BOUNDS = asList(0.5F, 1.0F);
     private static final long TEST_AMOUNT = 78L;
     private static final long TEST_PAGE_SIZE = 50L;
     private static final long TEST_AMOUNT_OF_MRNA = 10L;
@@ -227,7 +235,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         testProject = new Project();
         testProject.setName(TEST_PROJECT_NAME);
         testProject.setItems(
-                Arrays.asList(new ProjectItem(new BiologicalDataItem(testVcf.getBioDataItemId())),
+                asList(new ProjectItem(new BiologicalDataItem(testVcf.getBioDataItemId())),
                         new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
 
         projectManager.create(testProject); // Index is created when vcf file is added
@@ -237,37 +245,37 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testCreateFeatureIndex() throws Exception {
         List<FeatureIndexEntry> entryList = (List<FeatureIndexEntry>) featureIndexDao.searchFileIndexes(
-                singletonList(testVcf),  String.format(TEST_GENE_AND_FILE_ID_QUERY, testVcf.getId()),
+                singletonList(testVcf),  format(TEST_GENE_AND_FILE_ID_QUERY, testVcf.getId()),
                 null).getEntries();
-        Assert.assertFalse(entryList.isEmpty());
+        assertFalse(entryList.isEmpty());
 
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
         vcfFilterForm.setVcfFileIdsByProject(singletonMap(testProject.getId(), singletonList(testVcf.getId())));
-        vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(singletonList(TEST_GENE_PREFIX), false));
-        vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.MNP,
+        vcfFilterForm.setGenes(new FilterSection<>(singletonList(TEST_GENE_PREFIX), false));
+        vcfFilterForm.setVariationTypes(new FilterSection<>(asList(VariationType.MNP,
                 VariationType.SNV), false));
         vcfFilterForm.setQuality(TEST_QUALITY_BOUNDS);
         IndexSearchResult<VcfIndexEntry> entryList2 = featureIndexManager.filterVariations(vcfFilterForm,
                 testProject.getId());
-        Assert.assertFalse(entryList2.getEntries().isEmpty());
-        Assert.assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getInfo() != null && (Boolean) e.getInfo()
+        assertFalse(entryList2.getEntries().isEmpty());
+        assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getInfo() != null && (Boolean) e.getInfo()
                 .get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName())));
 
         vcfFilterForm.setChromosomeIds(singletonList(testChromosome.getId()));
         entryList2 = featureIndexManager.filterVariations(vcfFilterForm, testProject.getId());
-        Assert.assertFalse(entryList2.getEntries().isEmpty());
+        assertFalse(entryList2.getEntries().isEmpty());
 
-        double time1 = Utils.getSystemTimeMilliseconds();
+        double time1 = getSystemTimeMilliseconds();
         List<Long> chromosomeIds = featureIndexDao.getChromosomeIdsWhereVariationsPresentFacet(
                 singletonList(testVcf), "geneId:ENS* AND fileId:"
                         + testVcf.getId() + " AND variationType:snv");
-        double time2 = Utils.getSystemTimeMilliseconds();
+        double time2 = getSystemTimeMilliseconds();
         logger.info("Get chromosomes by facets time: {} ms", time2 - time1);
 
-        Assert.assertFalse(chromosomeIds.isEmpty());
+        assertFalse(chromosomeIds.isEmpty());
 
         List<Chromosome> chromosomes = featureIndexManager.filterChromosomes(vcfFilterForm, testProject.getId());
-        Assert.assertFalse(chromosomes.isEmpty());
+        assertFalse(chromosomes.isEmpty());
 
         // filter by additional fields
         Map<String, Object> additionalFilters = new HashMap<>();
@@ -277,36 +285,36 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         vcfFilterForm.setAdditionalFilters(additionalFilters);
         vcfFilterForm.setGenes(null);
         vcfFilterForm.setVariationTypes(null);
-        vcfFilterForm.setInfoFields(Arrays.asList(SVTYPE_FIELD, SVLEN_FIELD));
+        vcfFilterForm.setInfoFields(asList(SVTYPE_FIELD, SVLEN_FIELD));
         entryList2 = featureIndexManager.filterVariations(vcfFilterForm, testProject.getId());
-        Assert.assertFalse(entryList2.getEntries().isEmpty());
-        Assert.assertFalse(entryList2.getEntries().stream().anyMatch(e -> e.getInfo().isEmpty()));
+        assertFalse(entryList2.getEntries().isEmpty());
+        assertFalse(entryList2.getEntries().stream().anyMatch(e -> e.getInfo().isEmpty()));
 
         Set<String> genes = featureIndexManager.searchGenesInVcfFilesInProject(testProject.getId(), TEST_GENE_PREFIX,
                 singletonList(testVcf.getId()));
-        Assert.assertFalse(genes.isEmpty());
+        assertFalse(genes.isEmpty());
 
         // search by gene name pglyrp4
         vcfFilterForm = new VcfFilterForm();
-        vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(singletonList(TEST_GENE_NAME)));
+        vcfFilterForm.setGenes(new FilterSection<>(singletonList(TEST_GENE_NAME)));
         IndexSearchResult<VcfIndexEntry> entries = featureIndexManager.filterVariations(vcfFilterForm,
                 testProject.getId());
-        Assert.assertFalse(entries.getEntries().isEmpty());
+        assertFalse(entries.getEntries().isEmpty());
 
         genes = featureIndexManager.searchGenesInVcfFilesInProject(testProject.getId(), TEST_GENE_NAME,
                 singletonList(testVcf.getId()));
-        Assert.assertFalse(genes.isEmpty());
+        assertFalse(genes.isEmpty());
 
         vcfFilterForm.setPageSize(1);
         int totalCount = featureIndexManager.getTotalPagesCount(vcfFilterForm, testProject.getId());
-        Assert.assertEquals(entries.getEntries().size(), totalCount);
+        assertEquals(entries.getEntries().size(), totalCount);
 
         // search exons
         vcfFilterForm = new VcfFilterForm();
         vcfFilterForm.setExon(true);
         entryList2 = featureIndexManager.filterVariations(vcfFilterForm, testProject.getId());
-        Assert.assertFalse(entryList2.getEntries().isEmpty());
-        Assert.assertTrue(entryList2.getEntries().stream().allMatch(e -> e.getInfo() != null && (Boolean) e.getInfo()
+        assertFalse(entryList2.getEntries().isEmpty());
+        assertTrue(entryList2.getEntries().stream().allMatch(e -> e.getInfo() != null && (Boolean) e.getInfo()
                 .get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName())));
 
         // check duplicates
@@ -320,8 +328,8 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         filterForm.setEndIndex(e.getEndIndex());
         entryList2 = featureIndexManager.filterVariations(filterForm, testProject.getId());
 
-        Assert.assertFalse(entryList2.getEntries().isEmpty());
-        Assert.assertTrue(entryList2.getEntries().stream().allMatch(v -> v.getStartIndex() >= filterForm
+        assertFalse(entryList2.getEntries().isEmpty());
+        assertTrue(entryList2.getEntries().stream().allMatch(v -> v.getStartIndex() >= filterForm
                 .getStartIndex() && v.getEndIndex() <= filterForm.getEndIndex()));
     }
 
@@ -330,11 +338,11 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     public void testLoadAllFields() throws IOException {
         VcfFilterForm filterForm = new VcfFilterForm();
         VcfFilterInfo info = vcfManager.getFiltersInfo(singletonList(testVcf.getId()));
-        filterForm.setInfoFields(info.getInfoItems().stream().map(InfoItem::getName).collect(Collectors.toList()));
+        filterForm.setInfoFields(info.getInfoItems().stream().map(InfoItem::getName).collect(toList()));
 
         IndexSearchResult<VcfIndexEntry> entries = featureIndexManager.filterVariations(filterForm,
                                                                                         testProject.getId());
-        Assert.assertFalse(entries.getEntries().isEmpty());
+        assertFalse(entries.getEntries().isEmpty());
     }
 
     /**
@@ -364,7 +372,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         Project project = new Project();
         project.setName(TEST_PROJECT_NAME + "1");
-        project.setItems(Arrays.asList(new ProjectItem(
+        project.setItems(asList(new ProjectItem(
                 new BiologicalDataItem(testHumanReference.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(vcfFile.getBioDataItemId()))));
 
@@ -373,18 +381,18 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         VcfFilterForm vcfFilterForm = new VcfFilterForm();
         vcfFilterForm.setVcfFileIdsByProject(singletonMap(project.getId(), singletonList(vcfFile.getId())));
-        vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.DEL,
+        vcfFilterForm.setVariationTypes(new FilterSection<>(asList(VariationType.DEL,
                 VariationType.SNV), false));
 
         String cipos95 = "CIPOS95";
-        vcfFilterForm.setInfoFields(info.getInfoItems().stream().map(InfoItem::getName).collect(Collectors.toList()));
-        vcfFilterForm.setAdditionalFilters(singletonMap(cipos95, Arrays.asList(CONST_42, CONST_42)));
+        vcfFilterForm.setInfoFields(info.getInfoItems().stream().map(InfoItem::getName).collect(toList()));
+        vcfFilterForm.setAdditionalFilters(singletonMap(cipos95, asList(CONST_42, CONST_42)));
         vcfFilterForm.setVcfFileIdsByProject(singletonMap(project.getId(), singletonList(vcfFile.getId())));
 
         IndexSearchResult<VcfIndexEntry> entryList2 = featureIndexManager.filterVariations(vcfFilterForm);
-        Assert.assertFalse(entryList2.getEntries().isEmpty());
-        Assert.assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getInfo().containsKey(cipos95)));
-        Assert.assertTrue(entryList2.getEntries().stream().filter(e -> e.getInfo().containsKey(cipos95)).allMatch(e -> {
+        assertFalse(entryList2.getEntries().isEmpty());
+        assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getInfo().containsKey(cipos95)));
+        assertTrue(entryList2.getEntries().stream().filter(e -> e.getInfo().containsKey(cipos95)).allMatch(e -> {
             String cipos = (String) e.getInfo().get(cipos95);
             return cipos.startsWith("[") && cipos.endsWith("]");
         }));
@@ -397,7 +405,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
             query.setChromosomeId(e.getChromosome().getId());
             query.setPosition(e.getStartIndex());
             Variation variation = vcfManager.loadVariation(query);
-            Assert.assertNotNull(variation);
+            assertNotNull(variation);
 
 //            for (Map.Entry<String, Variation.InfoField> i : variation.getInfo().entrySet()) {
 //                if (i.getValue().getValue() != null) {
@@ -416,15 +424,15 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         vcfFilterForm.setVcfFileIdsByProject(singletonMap(project.getId(), singletonList(vcfFile.getId())));
         IndexSearchResult<VcfIndexEntry> entryList21 = featureIndexManager.filterVariations(vcfFilterForm);
 
-        Assert.assertFalse(entryList21.getEntries().isEmpty());
-        Assert.assertEquals(entryList21.getEntries().size(), entryList2.getEntries().size());
-        Assert.assertEquals(entryList21.getEntries().get(0).getGene(), entryList2.getEntries().get(0).getGene());
+        assertFalse(entryList21.getEntries().isEmpty());
+        assertEquals(entryList21.getEntries().size(), entryList2.getEntries().size());
+        assertEquals(entryList21.getEntries().get(0).getGene(), entryList2.getEntries().get(0).getGene());
 
         // empty filter test
         VcfFilterForm emptyForm = new VcfFilterForm();
         emptyForm.setVcfFileIdsByProject(singletonMap(project.getId(), singletonList(vcfFile.getId())));
         entryList2 = featureIndexManager.filterVariations(emptyForm);
-        Assert.assertFalse(entryList2.getEntries().isEmpty());
+        assertFalse(entryList2.getEntries().isEmpty());
         checkDuplicates(entryList2.getEntries());
     }
 
@@ -439,8 +447,8 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         request.setName("testGeneFile");
 
         GeneFile geneFile = gffManager.registerGeneFile(request);
-        Assert.assertNotNull(geneFile);
-        Assert.assertNotNull(geneFile.getId());
+        assertNotNull(geneFile);
+        assertNotNull(geneFile.getId());
 
         referenceGenomeManager.updateReferenceGeneFileId(testReference.getId(), geneFile.getId());
 
@@ -455,7 +463,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         Project project = new Project();
         project.setName(TEST_PROJECT_NAME + 1);
-        project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(vcfFile.getBioDataItemId())),
+        project.setItems(asList(new ProjectItem(new BiologicalDataItem(vcfFile.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(geneFile.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
 
@@ -465,12 +473,12 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         vcfFilterForm.setVcfFileIdsByProject(
                 singletonMap(project.getId(), singletonList(vcfFile.getId())));
         vcfFilterForm.setChromosomeIds(singletonList(testChromosome.getId()));
-        vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(singletonList(TEST_GENE_PREFIX), false));
-        vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.MNP,
+        vcfFilterForm.setGenes(new FilterSection<>(singletonList(TEST_GENE_PREFIX), false));
+        vcfFilterForm.setVariationTypes(new FilterSection<>(asList(VariationType.MNP,
                 VariationType.SNV), false));
         IndexSearchResult<VcfIndexEntry> entryList = featureIndexManager.filterVariations(vcfFilterForm,
                                                                                           project.getId());
-        Assert.assertFalse(entryList.getEntries().isEmpty());
+        assertFalse(entryList.getEntries().isEmpty());
 
         // try to add an vcf item
         request = new FeatureIndexedFileRegistrationRequest();
@@ -482,75 +490,75 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         project = projectManager.addProjectItem(project.getId(), vcfFile2.getBioDataItemId());
 
         entryList = featureIndexManager.filterVariations(vcfFilterForm, project.getId());
-        Assert.assertFalse(entryList.getEntries().isEmpty());
-        Assert.assertTrue(entryList.getEntries().stream().allMatch(e -> e.getFeatureFileId().equals(vcfFile.getId())));
+        assertFalse(entryList.getEntries().isEmpty());
+        assertTrue(entryList.getEntries().stream().allMatch(e -> e.getFeatureFileId().equals(vcfFile.getId())));
 
 
         VcfFilterForm vcfFilterForm2 = new VcfFilterForm();
         vcfFilterForm2.setVcfFileIdsByProject(
                 singletonMap(project.getId(), singletonList(vcfFile2.getId())));
         vcfFilterForm.setChromosomeIds(singletonList(testChromosome.getId()));
-        vcfFilterForm2.setGenes(new VcfFilterForm.FilterSection<>(singletonList(TEST_GENE_PREFIX), false));
-        vcfFilterForm2.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.MNP,
+        vcfFilterForm2.setGenes(new FilterSection<>(singletonList(TEST_GENE_PREFIX), false));
+        vcfFilterForm2.setVariationTypes(new FilterSection<>(asList(VariationType.MNP,
                 VariationType.SNV), false));
         IndexSearchResult<VcfIndexEntry> entryList2 = featureIndexManager.filterVariations(vcfFilterForm2,
                                                                                            project.getId());
-        Assert.assertFalse(entryList2.getEntries().isEmpty());
-        Assert.assertEquals(entryList.getEntries().size(), entryList2.getEntries().size());
+        assertFalse(entryList2.getEntries().isEmpty());
+        assertEquals(entryList.getEntries().size(), entryList2.getEntries().size());
 
-        Assert.assertTrue(entryList2.getEntries().stream().allMatch(e -> e.getFeatureFileId().equals(
+        assertTrue(entryList2.getEntries().stream().allMatch(e -> e.getFeatureFileId().equals(
             vcfFile2.getId())));
 
         // test no vcfFileIds
         vcfFilterForm2.setVcfFileIdsByProject(null);
         entryList2 = featureIndexManager.filterVariations(vcfFilterForm2, project.getId());
-        Assert.assertFalse(entryList2.getEntries().isEmpty());
-        Assert.assertEquals(entryList2.getEntries().size(), entryList.getEntries().size() * 2);
+        assertFalse(entryList2.getEntries().isEmpty());
+        assertEquals(entryList2.getEntries().size(), entryList.getEntries().size() * 2);
 
         // test with multiple vcfFileIds
         vcfFilterForm2.setVcfFileIdsByProject(
-                singletonMap(project.getId(), Arrays.asList(vcfFile.getId(), vcfFile2.getId())));
+                singletonMap(project.getId(), asList(vcfFile.getId(), vcfFile2.getId())));
         entryList2 = featureIndexManager.filterVariations(vcfFilterForm2, project.getId());
-        Assert.assertFalse(entryList2.getEntries().isEmpty());
-        Assert.assertEquals(entryList2.getEntries().size(), entryList.getEntries().size() * 2);
+        assertFalse(entryList2.getEntries().isEmpty());
+        assertEquals(entryList2.getEntries().size(), entryList.getEntries().size() * 2);
 
         // try to remove a vcf item by save - should be not indexed
         project.setItems(project.getItems().stream()
                 .filter(i -> !(i.getBioDataItem() instanceof VcfFile) || !((VcfFile) i.getBioDataItem()).getId().equals(
                         vcfFile2.getId()))
-                .collect(Collectors.toList()));
+                .collect(toList()));
 
         project = projectManager.create(project);
 
         vcfFilterForm2.setVcfFileIdsByProject(singletonMap(project.getId(), singletonList(vcfFile2.getId())));
         entryList2 = featureIndexManager.filterVariations(vcfFilterForm2, project.getId());
-        Assert.assertTrue(entryList2.getEntries().isEmpty());
+        assertTrue(entryList2.getEntries().isEmpty());
 
         // try to remove gene file
         project.setItems(project.getItems().stream()
                 .filter(i -> !(i.getBioDataItem() instanceof GeneFile))
-                .collect(Collectors.toList()));
+                .collect(toList()));
         project = projectManager.create(project);
 
         vcfFilterForm.setGenes(null);
         entryList = featureIndexManager.filterVariations(vcfFilterForm, project.getId());
-        Assert.assertFalse(entryList.getEntries().isEmpty());
+        assertFalse(entryList.getEntries().isEmpty());
 
         // add multiple files
         project.getItems().clear();
         projectManager.create(project);
         Project loadedProject = projectManager.load(project.getId());
-        Assert.assertTrue(loadedProject.getItems().isEmpty());
+        assertTrue(loadedProject.getItems().isEmpty());
         entryList2 = featureIndexManager.filterVariations(new VcfFilterForm(), project.getId());
-        Assert.assertTrue(entryList2.getEntries().isEmpty());
+        assertTrue(entryList2.getEntries().isEmpty());
 
-        project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(vcfFile.getBioDataItemId())),
+        project.setItems(asList(new ProjectItem(new BiologicalDataItem(vcfFile.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(vcfFile2.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
         projectManager.create(project);
         entryList2 = featureIndexManager.filterVariations(new VcfFilterForm(), project.getId());
-        Assert.assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getFeatureFileId().equals(vcfFile.getId())));
-        Assert.assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getFeatureFileId().equals(
+        assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getFeatureFileId().equals(vcfFile.getId())));
+        assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getFeatureFileId().equals(
             vcfFile2.getId())));
     }
 
@@ -559,8 +567,8 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     public void testLoadVcfFilterInfoForProject()
         throws IOException, InterruptedException, NoSuchAlgorithmException, VcfReadingException, FeatureIndexException {
         VcfFilterInfo filterInfo = featureIndexManager.loadVcfFilterInfoForProject(testProject.getId());
-        Assert.assertFalse(filterInfo.getAvailableFilters().isEmpty());
-        Assert.assertFalse(filterInfo.getInfoItems().isEmpty());
+        assertFalse(filterInfo.getAvailableFilters().isEmpty());
+        assertFalse(filterInfo.getInfoItems().isEmpty());
     }
 
     @Test
@@ -568,482 +576,473 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     public void testCreateGeneIndex() throws IOException, InterruptedException, FeatureIndexException,
                                              NoSuchAlgorithmException, VcfReadingException {
         IndexSearchResult searchResult = featureIndexManager.searchFeaturesInProject("", testProject.getId());
-        Assert.assertTrue(searchResult.getEntries().isEmpty());
+        assertTrue(searchResult.getEntries().isEmpty());
 
         searchResult = featureIndexManager.searchFeaturesInProject("ens", testProject.getId());
-        Assert.assertFalse(searchResult.getEntries().isEmpty());
-        Assert.assertTrue(searchResult.getEntries().size() <= 10);
-        Assert.assertTrue(searchResult.isExceedsLimit());
+        assertFalse(searchResult.getEntries().isEmpty());
+        assertTrue(searchResult.getEntries().size() <= 10);
+        assertTrue(searchResult.isExceedsLimit());
 
         // ensfcag00000031547 and ccdc115
         searchResult = featureIndexManager.searchFeaturesInProject("ensfcag00000031547", testProject.getId());
-        Assert.assertEquals(searchResult.getEntries().size(), 1);
+        assertEquals(searchResult.getEntries().size(), 1);
         searchResult = featureIndexManager.searchFeaturesInProject("ccdc115", testProject.getId());
-        Assert.assertEquals(searchResult.getEntries().size(), 2);
+        assertEquals(searchResult.getEntries().size(), 2);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testIntervalQuery() throws IOException, InterruptedException, FeatureIndexException,
-            NoSuchAlgorithmException, VcfReadingException {
-        Resource resource = context.getResource(CLASSPATH_TEMPLATES_GENES_SORTED);
+    public void testIntervalQuery() throws IOException {
+        final Resource resource = context.getResource(CLASSPATH_TEMPLATES_GENES_SORTED);
 
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        final FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceId);
         request.setName("GENES_SORTED_INT");
         request.setPath(resource.getFile().getAbsolutePath());
 
-        GeneFile geneFile = gffManager.registerGeneFile(request);
-        Assert.assertNotNull(geneFile);
-        Assert.assertNotNull(geneFile.getId());
+        final GeneFile geneFile = gffManager.registerGeneFile(request);
+        assertNotNull(geneFile);
+        assertNotNull(geneFile.getId());
 
         referenceGenomeManager.updateReferenceGeneFileId(testReference.getId(), geneFile.getId());
 
-        Project project = new Project();
+        final Project project = new Project();
         project.setName(TEST_PROJECT_NAME + "_INT");
 
-        project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId())),
+        project.setItems(asList(new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(geneFile.getBioDataItemId()))));
         projectManager.create(project);
 
-        IndexSearchResult result1 = featureIndexDao
-                .searchFeaturesInInterval(singletonList(geneFile), INTERVAL1_START, INTERVAL1_END,
-                        testChromosome);
+        final IndexSearchResult result1 = featureIndexDao
+                .searchFeaturesInInterval(singletonList(geneFile), INTERVAL1_START, INTERVAL1_END, testChromosome);
 
-        Assert.assertEquals(3, result1.getEntries().size());
+        assertEquals(3, result1.getEntries().size());
 
-        IndexSearchResult result2 = featureIndexDao
-                .searchFeaturesInInterval(singletonList(geneFile), INTERVAL2_START, INTERVAL2_END,
-                        testChromosome);
-        Assert.assertEquals(0, result2.getEntries().size());
+        final IndexSearchResult result2 = featureIndexDao
+                .searchFeaturesInInterval(singletonList(geneFile), INTERVAL2_START, INTERVAL2_END, testChromosome);
+        assertEquals(0, result2.getEntries().size());
 
-        IndexSearchResult result3 = featureIndexDao
-                .searchFeaturesInInterval(singletonList(geneFile), INTERVAL3_START, INTERVAL3_END,
-                        testChromosome);
-        Assert.assertEquals(3, result3.getEntries().size());
+        final IndexSearchResult result3 = featureIndexDao
+                .searchFeaturesInInterval(singletonList(geneFile), INTERVAL3_START, INTERVAL3_END, testChromosome);
+        assertEquals(3, result3.getEntries().size());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testCreateUnmappedGeneIndex() throws IOException, InterruptedException, FeatureIndexException,
-            NoSuchAlgorithmException {
-        Chromosome chr1 = EntityHelper.createNewChromosome("chr1");
+    public void testCreateUnmappedGeneIndex() throws IOException {
+        final Chromosome chr1 = EntityHelper.createNewChromosome("chr1");
         chr1.setSize(TEST_CHROMOSOME_SIZE);
-        Reference testHumanReference = EntityHelper.createNewReference(chr1,
+        final Reference testHumanReference = EntityHelper.createNewReference(chr1,
                 referenceGenomeManager.createReferenceId());
 
         referenceGenomeManager.create(testHumanReference);
-        Long humanReferenceId = testHumanReference.getId();
+        final Long humanReferenceId = testHumanReference.getId();
 
-        Resource resource = context.getResource("classpath:templates/mrna.sorted.chunk.gtf");
+        final Resource resource = context.getResource("classpath:templates/mrna.sorted.chunk.gtf");
 
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        final FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(humanReferenceId);
         request.setPath(resource.getFile().getAbsolutePath());
 
-        GeneFile geneFile = gffManager.registerGeneFile(request);
-        Assert.assertNotNull(geneFile);
-        Assert.assertNotNull(geneFile.getId());
+        final GeneFile geneFile = gffManager.registerGeneFile(request);
+        assertNotNull(geneFile);
+        assertNotNull(geneFile.getId());
 
-        Project project = new Project();
+        final Project project = new Project();
         project.setName(TEST_PROJECT_NAME + 1);
 
-        project.setItems(Arrays.asList(
+        project.setItems(asList(
                 new ProjectItem(new BiologicalDataItem(geneFile.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(testHumanReference.getBioDataItemId()))));
         projectManager.create(project);
 
-        List<FeatureIndexEntry> entryList = (List<FeatureIndexEntry>)
+        final List<FeatureIndexEntry> entryList1 =
                 featureIndexManager.searchFeaturesInProject("", project.getId()).getEntries();
-        Assert.assertTrue(entryList.isEmpty());
+        assertTrue(entryList1.isEmpty());
 
-        entryList = (List<FeatureIndexEntry>) featureIndexManager.searchFeaturesInProject("AM992871",
-                                                                                          project.getId()).getEntries();
-        Assert.assertTrue(entryList.isEmpty()); // we don't search for exons
+        final List<FeatureIndexEntry> entryList2 =
+                featureIndexManager.searchFeaturesInProject("AM992871", project.getId()).getEntries();
+        assertTrue(entryList2.isEmpty()); // we don't search for exons
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testBookmarkSearch() throws IOException, InterruptedException, FeatureIndexException {
-        Bookmark bookmark = new Bookmark();
+    public void testBookmarkSearch() throws IOException {
+        final Bookmark bookmark = new Bookmark();
         bookmark.setChromosome(testChromosome);
         bookmark.setStartIndex(1);
         bookmark.setEndIndex(testChromosome.getSize());
         bookmark.setName("testBookmark");
 
         bookmarkManager.create(bookmark);
-        Bookmark loadedBookmark = bookmarkManager.load(bookmark.getId());
-        Assert.assertNotNull(loadedBookmark);
+        final Bookmark loadedBookmark = bookmarkManager.load(bookmark.getId());
+        assertNotNull(loadedBookmark);
 
-        IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchFeaturesInProject(bookmark.getName(),
-                                                                                                  testProject.getId());
-        Assert.assertFalse(result.getEntries().isEmpty());
-        Assert.assertEquals(result.getEntries().get(0).getFeatureType(), FeatureType.BOOKMARK);
-        Assert.assertNotNull(((BookmarkIndexEntry) result.getEntries().get(0)).getBookmark());
-        Assert.assertEquals(result.getEntries().size(), result.getTotalResultsCount());
+        final IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchFeaturesInProject(
+                bookmark.getName(), testProject.getId());
+        assertFalse(result.getEntries().isEmpty());
+        assertEquals(result.getEntries().get(0).getFeatureType(), FeatureType.BOOKMARK);
+        assertNotNull(((BookmarkIndexEntry) result.getEntries().get(0)).getBookmark());
+        assertEquals(result.getEntries().size(), result.getTotalResultsCount());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testWickedVcfIndex() throws IOException, InterruptedException, FeatureIndexException,
-                                            NoSuchAlgorithmException, ParseException, VcfReadingException {
-        Chromosome chr1 = EntityHelper.createNewChromosome("chr21");
+    public void testWickedVcfIndex() throws IOException {
+        final Chromosome chr1 = EntityHelper.createNewChromosome("chr21");
         chr1.setSize(TEST_WICKED_VCF_LENGTH);
-        Chromosome chr2 = EntityHelper.createNewChromosome("chr22");
+        final Chromosome chr2 = EntityHelper.createNewChromosome("chr22");
         chr2.setSize(TEST_WICKED_VCF_LENGTH);
-        Reference testHumanReference = EntityHelper.createNewReference(Arrays.asList(chr1, chr2),
+        final Reference testHumanReference = EntityHelper.createNewReference(asList(chr1, chr2),
                 referenceGenomeManager.createReferenceId());
         referenceGenomeManager.create(testHumanReference);
-        Long humanReferenceId = testHumanReference.getId();
+        final Long humanReferenceId = testHumanReference.getId();
 
-        Project project = new Project();
+        final Project project = new Project();
         project.setName(TEST_PROJECT_NAME + 1);
-        project.setItems(singletonList(new ProjectItem(
-                new BiologicalDataItem(testHumanReference.getBioDataItemId()))));
+        project.setItems(singletonList(new ProjectItem(new BiologicalDataItem(testHumanReference.getBioDataItemId()))));
 
         projectManager.create(project);
 
-        Resource resource = context.getResource("classpath:templates/Homo_sapiens.GRCh38.83.sorted.chr21-22.gtf");
-        FeatureIndexedFileRegistrationRequest geneRequest = new FeatureIndexedFileRegistrationRequest();
-        geneRequest.setPath(resource.getFile().getAbsolutePath());
+        final Resource resource1 = context.getResource("classpath:templates/Homo_sapiens.GRCh38.83.sorted.chr21-22.gtf");
+        final FeatureIndexedFileRegistrationRequest geneRequest = new FeatureIndexedFileRegistrationRequest();
+        geneRequest.setPath(resource1.getFile().getAbsolutePath());
         geneRequest.setReferenceId(humanReferenceId);
 
-        GeneFile geneFile = gffManager.registerGeneFile(geneRequest);
+        final GeneFile geneFile = gffManager.registerGeneFile(geneRequest);
         referenceGenomeManager.updateReferenceGeneFileId(humanReferenceId, geneFile.getId());
 
-        resource = context.getResource("classpath:templates/Dream.set3.VarDict.SV.vcf");
+        final Resource resource2 = context.getResource("classpath:templates/Dream.set3.VarDict.SV.vcf");
 
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        final FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(humanReferenceId);
-        request.setPath(resource.getFile().getAbsolutePath());
+        request.setPath(resource2.getFile().getAbsolutePath());
 
-        VcfFile vcfFile = vcfManager.registerVcfFile(request);
-        Assert.assertNotNull(vcfFile);
-        Assert.assertNotNull(vcfFile.getId());
+        final VcfFile vcfFile = vcfManager.registerVcfFile(request);
+        assertNotNull(vcfFile);
+        assertNotNull(vcfFile.getId());
 
-        project.setItems(Arrays.asList(new ProjectItem(geneFile), new ProjectItem(vcfFile)));
+        project.setItems(asList(new ProjectItem(geneFile), new ProjectItem(vcfFile)));
 
         projectManager.create(project);
 
-        IndexSearchResult<VcfIndexEntry> entries = featureIndexManager.filterVariations(new VcfFilterForm(),
+        final IndexSearchResult<VcfIndexEntry> entries = featureIndexManager.filterVariations(new VcfFilterForm(),
                                                                                         project.getId());
-        Assert.assertFalse(entries.getEntries().isEmpty());
+        assertFalse(entries.getEntries().isEmpty());
 
-        long varGenesCount = entries.getEntries().stream().filter(e -> StringUtils.isNotBlank(e.getGene())).count();
-        Assert.assertTrue(varGenesCount > 0);
+        final long varGenesCount = entries.getEntries().stream()
+                .filter(e -> isNotBlank(e.getGene()))
+                .count();
+        assertTrue(varGenesCount > 0);
         /*entries.stream().filter(e -> StringUtils.isNotBlank(e.getGene())).forEach(e -> logger.info("{} - {}, {}", e
                 .getStartIndex(), e.getEndIndex(), e.getGeneIds()));*/
 
         // check chromosome filter
-        VcfFilterForm chr21Form = new VcfFilterForm();
-        chr21Form.setChromosomeIds(singletonList(chr1.getId()));
-        IndexSearchResult<VcfIndexEntry> chr21Entries = featureIndexManager.filterVariations(chr21Form,
-                project.getId());
-        Assert.assertFalse(chr21Entries.getEntries().isEmpty());
-        Assert.assertTrue(chr21Entries.getEntries().stream()
-                .allMatch(e -> e.getChromosome().getId().equals(chr1.getId())));
+        int chr21EntrySize = checkChromosomeFilterAndGetEntrySize(project, chr1.getId());
+        int chr22EntrySize = checkChromosomeFilterAndGetEntrySize(project, chr2.getId());
+        int chr2122EntrySize = checkChromosomeFilterAndGetEntrySize(project, chr1.getId(), chr2.getId());
 
-        VcfFilterForm chr22Form = new VcfFilterForm();
-        chr22Form.setChromosomeIds(singletonList(chr2.getId()));
-        IndexSearchResult<VcfIndexEntry> chr22Entries = featureIndexManager.filterVariations(chr22Form,
-                project.getId());
-        Assert.assertFalse(chr22Entries.getEntries().isEmpty());
-        Assert.assertTrue(chr22Entries.getEntries().stream()
-                .allMatch(e -> e.getChromosome().getId().equals(chr2.getId())));
+        assertEquals(chr21EntrySize + chr22EntrySize, chr2122EntrySize);
+    }
 
-        VcfFilterForm chr2122Form = new VcfFilterForm();
-        chr2122Form.setChromosomeIds(Arrays.asList(chr1.getId(), chr2.getId()));
-        IndexSearchResult<VcfIndexEntry> chr2122Entries = featureIndexManager.filterVariations(chr2122Form,
-                project.getId());
-        Assert.assertFalse(chr2122Entries.getEntries().isEmpty());
-        Assert.assertTrue(chr2122Entries.getEntries().stream()
-                .anyMatch(e -> e.getChromosome().getId().equals(chr1.getId())));
-        Assert.assertTrue(chr2122Entries.getEntries().stream()
-                .anyMatch(e -> e.getChromosome().getId().equals(chr2.getId())));
-        Assert.assertEquals(chr21Entries.getEntries().size() + chr22Entries.getEntries().size(), chr2122Entries
-                .getEntries().size());
+    private int checkChromosomeFilterAndGetEntrySize(final Project project, final Long... chrIds) throws IOException {
+        final VcfFilterForm chrForm = new VcfFilterForm();
+        chrForm.setChromosomeIds(Arrays.asList(chrIds));
+        final IndexSearchResult<VcfIndexEntry> chrEntries =
+                featureIndexManager.filterVariations(chrForm, project.getId());
+
+        assertFalse(chrEntries.getEntries().isEmpty());
+
+        for (final Long chrId : chrIds) {
+            if (chrIds.length > 1) {
+                assertTrue(chrEntries.getEntries().stream().anyMatch(e -> e.getChromosome().getId().equals(chrId)));
+            } else {
+                assertTrue(chrEntries.getEntries().stream().allMatch(e -> e.getChromosome().getId().equals(chrId)));
+            }
+        }
+
+        return chrEntries.getEntries().size();
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testSearchIndexForFile() throws IOException, FeatureIndexException {
-        List<FeatureIndexEntry> entryList = (List<FeatureIndexEntry>) featureIndexDao.searchFileIndexes(
-                singletonList(testVcf), String.format(TEST_GENE_AND_FILE_ID_QUERY, testVcf.getId()),
-                null).getEntries();
-        Assert.assertFalse(entryList.isEmpty());
+        final List<FeatureIndexEntry> entryList = featureIndexDao.searchFileIndexes(singletonList(testVcf),
+                format(TEST_GENE_AND_FILE_ID_QUERY, testVcf.getId()),null).getEntries();
+        assertFalse(entryList.isEmpty());
 
-        VcfFilterForm vcfFilterForm = new VcfFilterForm();
-        vcfFilterForm.setVcfFileIdsByProject(singletonMap(testProject.getId(), singletonList(testVcf.getId())));
-        vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(singletonList(TEST_GENE_PREFIX), false));
-        vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.MNP,
-                VariationType.SNV), false));
+        final VcfFilterForm vcfFilterForm1 = getSimpleVcfFilter();
+        vcfFilterForm1.setGenes(new FilterSection<>(singletonList(TEST_GENE_PREFIX), false));
+        vcfFilterForm1.setVariationTypes(new FilterSection<>(asList(VariationType.MNP, VariationType.SNV), false));
+
         //vcfFilterForm.setQuality(Collections.singletonList(QUAL_VALUE));
-        IndexSearchResult<VcfIndexEntry> entryList2 = featureIndexManager.filterVariations(vcfFilterForm);
-        Assert.assertFalse(entryList2.getEntries().isEmpty());
-        Assert.assertTrue(entryList2.getEntries().stream().anyMatch(e -> e.getInfo() != null && (Boolean) e.getInfo()
+        final IndexSearchResult<VcfIndexEntry> result1 = featureIndexManager.filterVariations(vcfFilterForm1);
+        assertFalse(result1.getEntries().isEmpty());
+        assertTrue(result1.getEntries().stream().anyMatch(e -> e.getInfo() != null && (Boolean) e.getInfo()
                 .get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName())));
 
-        vcfFilterForm.setChromosomeIds(singletonList(testChromosome.getId()));
-        entryList2 = featureIndexManager.filterVariations(vcfFilterForm);
-        Assert.assertFalse(entryList2.getEntries().isEmpty());
+        vcfFilterForm1.setChromosomeIds(singletonList(testChromosome.getId()));
+        final IndexSearchResult<VcfIndexEntry> result2 = featureIndexManager.filterVariations(vcfFilterForm1);
+        assertFalse(result2.getEntries().isEmpty());
 
-        double time1 = Utils.getSystemTimeMilliseconds();
-        List<Long> chromosomeIds = featureIndexDao.getChromosomeIdsWhereVariationsPresentFacet(
-                singletonList(testVcf), "geneId:ENS* AND fileId:" + testVcf.getId() +
-                        " AND variationType:snv");
-        double time2 = Utils.getSystemTimeMilliseconds();
+        final double time1 = getSystemTimeMilliseconds();
+        final List<Long> chromosomeIds = featureIndexDao.getChromosomeIdsWhereVariationsPresentFacet(
+                singletonList(testVcf), format("geneId:ENS* AND fileId:%d AND variationType:snv", testVcf.getId()));
+        final double time2 = getSystemTimeMilliseconds();
         logger.info("Get chromosomes by facets time: {} ms", time2 - time1);
 
-        Assert.assertFalse(chromosomeIds.isEmpty());
+        assertFalse(chromosomeIds.isEmpty());
 
-        List<Chromosome> chromosomes = featureIndexManager.filterChromosomes(vcfFilterForm);
-        Assert.assertFalse(chromosomes.isEmpty());
+        final List<Chromosome> chromosomes = featureIndexManager.filterChromosomes(vcfFilterForm1);
+        assertFalse(chromosomes.isEmpty());
 
         // filter by additional fields
-        Map<String, Object> additionalFilters = new HashMap<>();
+        final Map<String, Object> additionalFilters = new HashMap<>();
         additionalFilters.put(SVTYPE_FIELD, "del");
         additionalFilters.put(SVLEN_FIELD, String.valueOf(SVLEN_VALUE));
-        vcfFilterForm.setAdditionalFilters(additionalFilters);
-        vcfFilterForm.setGenes(null);
-        vcfFilterForm.setVariationTypes(null);
-        vcfFilterForm.setInfoFields(Arrays.asList(SVTYPE_FIELD, SVLEN_FIELD));
-        entryList2 = featureIndexManager.filterVariations(vcfFilterForm);
-        Assert.assertFalse(entryList2.getEntries().isEmpty());
-        Assert.assertFalse(entryList2.getEntries().stream().anyMatch(e -> e.getInfo().isEmpty()));
+        vcfFilterForm1.setAdditionalFilters(additionalFilters);
+        vcfFilterForm1.setGenes(null);
+        vcfFilterForm1.setVariationTypes(null);
+        vcfFilterForm1.setInfoFields(asList(SVTYPE_FIELD, SVLEN_FIELD));
 
-        Set<String> genes = featureIndexManager.searchGenesInVcfFiles(TEST_GENE_PREFIX, singletonList(
-                testVcf.getId()));
-        Assert.assertFalse(genes.isEmpty());
+        final IndexSearchResult<VcfIndexEntry> result3 = featureIndexManager.filterVariations(vcfFilterForm1);
+        assertFalse(result3.getEntries().isEmpty());
+        assertFalse(result3.getEntries().stream().anyMatch(e -> e.getInfo().isEmpty()));
+
+        final Set<String> genes1 = featureIndexManager.searchGenesInVcfFiles(
+                TEST_GENE_PREFIX, singletonList(testVcf.getId()));
+        assertFalse(genes1.isEmpty());
 
         // search by gene name pglyrp4
-        vcfFilterForm = new VcfFilterForm();
-        vcfFilterForm.setVcfFileIdsByProject(singletonMap(testProject.getId(), singletonList(testVcf.getId())));
-        vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(singletonList(TEST_GENE_NAME)));
-        IndexSearchResult<VcfIndexEntry> entries = featureIndexManager.filterVariations(vcfFilterForm);
-        Assert.assertFalse(entries.getEntries().isEmpty());
+        final VcfFilterForm vcfFilterForm2 = getSimpleVcfFilter();
+        vcfFilterForm2.setGenes(new FilterSection<>(singletonList(TEST_GENE_NAME)));
+        final IndexSearchResult<VcfIndexEntry> entries = featureIndexManager.filterVariations(vcfFilterForm2);
+        assertFalse(entries.getEntries().isEmpty());
 
-        genes = featureIndexManager.searchGenesInVcfFiles(TEST_GENE_NAME, singletonList(testVcf.getId()));
-        Assert.assertFalse(genes.isEmpty());
+        final Set<String> genes2 = featureIndexManager.searchGenesInVcfFiles(
+                TEST_GENE_NAME, singletonList(testVcf.getId()));
+        assertFalse(genes2.isEmpty());
 
-        vcfFilterForm.setPageSize(1);
-        int totalCount = featureIndexManager.getTotalPagesCount(vcfFilterForm);
-        Assert.assertEquals(entries.getEntries().size(), totalCount);
+        vcfFilterForm2.setPageSize(1);
+        final int totalCount = featureIndexManager.getTotalPagesCount(vcfFilterForm2);
+        assertEquals(entries.getEntries().size(), totalCount);
 
         // search exons
-        vcfFilterForm = new VcfFilterForm();
-        vcfFilterForm.setVcfFileIdsByProject(singletonMap(testProject.getId(), singletonList(testVcf.getId())));
-        vcfFilterForm.setExon(true);
-        entryList2 = featureIndexManager.filterVariations(vcfFilterForm);
-        Assert.assertFalse(entryList2.getEntries().isEmpty());
-        Assert.assertTrue(entryList2.getEntries().stream().allMatch(e -> e.getInfo() != null && (Boolean) e.getInfo()
+        final VcfFilterForm vcfFilterForm3 = getSimpleVcfFilter();
+        vcfFilterForm3.setExon(true);
+
+        final IndexSearchResult<VcfIndexEntry> result4 = featureIndexManager.filterVariations(vcfFilterForm3);
+        assertFalse(result4.getEntries().isEmpty());
+        assertTrue(result4.getEntries().stream().allMatch(e -> e.getInfo() != null && (Boolean) e.getInfo()
                 .get(FeatureIndexDao.FeatureIndexFields.IS_EXON.getFieldName())));
 
         // check duplicates
-        vcfFilterForm = new VcfFilterForm();
+        final VcfFilterForm vcfFilterForm4 = getSimpleVcfFilter();
+
+        final IndexSearchResult<VcfIndexEntry> result5 = featureIndexManager.filterVariations(vcfFilterForm4);
+        checkDuplicates(result5.getEntries());
+    }
+
+    private VcfFilterForm getSimpleVcfFilter() {
+        final VcfFilterForm vcfFilterForm = new VcfFilterForm();
         vcfFilterForm.setVcfFileIdsByProject(singletonMap(testProject.getId(), singletonList(testVcf.getId())));
-        entryList2 = featureIndexManager.filterVariations(vcfFilterForm);
-        checkDuplicates(entryList2.getEntries());
+        return vcfFilterForm;
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testGeneIndexForFile() throws IOException {
-        IndexSearchResult searchResult = featureIndexDao.searchFeatures("", testGeneFile, null);
-        Assert.assertTrue(searchResult.getEntries().isEmpty());
+        final IndexSearchResult<FeatureIndexEntry> searchResult1 =
+                featureIndexDao.searchFeatures("", testGeneFile, null);
+        assertTrue(searchResult1.getEntries().isEmpty());
 
-        searchResult = featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), testGeneFile, 10);
-        Assert.assertFalse(searchResult.getEntries().isEmpty());
-        Assert.assertTrue(searchResult.getEntries().size() <= 10);
-        Assert.assertTrue(searchResult.isExceedsLimit());
+        final IndexSearchResult<FeatureIndexEntry> searchResult2 =
+                featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), testGeneFile, 10);
+        assertFalse(searchResult2.getEntries().isEmpty());
+        assertTrue(searchResult2.getEntries().size() <= 10);
+        assertTrue(searchResult2.isExceedsLimit());
 
         // ensfcag00000031547 and ccdc115
-        searchResult = featureIndexDao.searchFeatures("ensfcag00000031547", testGeneFile, null);
-        Assert.assertEquals(searchResult.getEntries().size(), 1);
-        searchResult = featureIndexDao.searchFeatures("ccdc115", testGeneFile, null);
-        Assert.assertEquals(searchResult.getEntries().size(), 2);
+        final IndexSearchResult<FeatureIndexEntry> searchResult3 =
+                featureIndexDao.searchFeatures("ensfcag00000031547", testGeneFile, null);
+        assertEquals(searchResult3.getEntries().size(), 1);
+
+        final IndexSearchResult<FeatureIndexEntry> searchResult4 =
+                featureIndexDao.searchFeatures("ccdc115", testGeneFile, null);
+        assertEquals(searchResult4.getEntries().size(), 2);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testBedIndexForFile() throws IOException {
-        IndexSearchResult<FeatureIndexEntry> searchResult = featureIndexDao.searchFeatures(
-                "",
-                testBedFile,
-                null
-        );
-        Assert.assertTrue(searchResult.getEntries().isEmpty());
+        final IndexSearchResult<FeatureIndexEntry> searchResult1 =
+                featureIndexDao.searchFeatures("", testBedFile, null);
+        assertTrue(searchResult1.getEntries().isEmpty());
 
-        searchResult = featureIndexDao.searchFeatures(
-                "Pos1",
-               testBedFile,
-                null
-        );
-        List<FeatureIndexEntry> entries = searchResult.getEntries();
-        Assert.assertEquals(1, entries.size());
-        Assert.assertEquals("pos1", entries.get(0).getFeatureName());
-        Assert.assertEquals("A1", entries.get(0).getChromosome().getName());
+        final IndexSearchResult<FeatureIndexEntry> searchResult2 =
+                featureIndexDao.searchFeatures("Pos1", testBedFile, null);
+        final List<FeatureIndexEntry> entries = searchResult2.getEntries();
+        assertEquals(1, entries.size());
+        assertEquals("pos1", entries.get(0).getFeatureName());
+        assertEquals("A1", entries.get(0).getChromosome().getName());
         // The BED format uses a first-base-is-zero convention,  Tribble features use 1 => add 1.
-        Assert.assertEquals(BED_FEATURE_START, (int) entries.get(0).getStartIndex());
-        Assert.assertEquals(BED_FEATURE_END, (int) entries.get(0).getEndIndex());
+        assertEquals(BED_FEATURE_START, (int) entries.get(0).getStartIndex());
+        assertEquals(BED_FEATURE_END, (int) entries.get(0).getEndIndex());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testReindexVcf() throws FeatureIndexException, IOException {
-        Resource resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
+        final Resource resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        final FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceId);
         request.setPath(resource.getFile().getAbsolutePath());
         request.setName(UUID.randomUUID().toString());
 
-        VcfFile vcfFile = vcfManager.registerVcfFile(request);
+        final VcfFile vcfFile = vcfManager.registerVcfFile(request);
 
-        VcfFilterForm vcfFilterForm = new VcfFilterForm();
+        final VcfFilterForm vcfFilterForm = new VcfFilterForm();
         vcfFilterForm.setVcfFileIdsByProject(singletonMap(testProject.getId(), singletonList(vcfFile.getId())));
-        vcfFilterForm.setGenes(new VcfFilterForm.FilterSection<>(singletonList(TEST_GENE_PREFIX), false));
-        vcfFilterForm.setVariationTypes(new VcfFilterForm.FilterSection<>(Arrays.asList(VariationType.MNP,
-                                                                                        VariationType.SNV), false));
-        IndexSearchResult<VcfIndexEntry> entryList = featureIndexManager.filterVariations(vcfFilterForm);
-        Assert.assertFalse(entryList.getEntries().isEmpty());
+        vcfFilterForm.setGenes(new FilterSection<>(singletonList(TEST_GENE_PREFIX), false));
+        vcfFilterForm.setVariationTypes(new FilterSection<>(asList(VariationType.MNP, VariationType.SNV), false));
+        final IndexSearchResult<VcfIndexEntry> entryList1 = featureIndexManager.filterVariations(vcfFilterForm);
+        assertFalse(entryList1.getEntries().isEmpty());
 
         fileManager.deleteFileFeatureIndex(vcfFile);
 
-        Assert.assertTrue(
-                featureIndexManager.filterVariations(vcfFilterForm).getEntries().isEmpty()
-        );
+        assertTrue(featureIndexManager.filterVariations(vcfFilterForm).getEntries().isEmpty());
 
         vcfManager.reindexVcfFile(vcfFile.getId(), false);
-        entryList = featureIndexManager.filterVariations(vcfFilterForm);
-        Assert.assertFalse(entryList.getEntries().isEmpty());
+        final IndexSearchResult<VcfIndexEntry> entryList2 = featureIndexManager.filterVariations(vcfFilterForm);
+        assertFalse(entryList2.getEntries().isEmpty());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testReindexGene() throws IOException {
-        FeatureIndexedFileRegistrationRequest geneRequest = new FeatureIndexedFileRegistrationRequest();
-        Resource resource = context.getResource(CLASSPATH_TEMPLATES_GENES_SORTED);
+        final FeatureIndexedFileRegistrationRequest geneRequest = new FeatureIndexedFileRegistrationRequest();
+        final Resource resource = context.getResource(CLASSPATH_TEMPLATES_GENES_SORTED);
         geneRequest.setReferenceId(referenceId);
         geneRequest.setPath(resource.getFile().getAbsolutePath());
         geneRequest.setName(UUID.randomUUID().toString());
 
-        GeneFile geneFile = gffManager.registerGeneFile(geneRequest);
+        final GeneFile geneFile = gffManager.registerGeneFile(geneRequest);
 
-        IndexSearchResult searchResult = featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), geneFile, 10);
-        Assert.assertFalse(searchResult.getEntries().isEmpty());
-        Assert.assertTrue(searchResult.getEntries().size() <= 10);
-        Assert.assertTrue(searchResult.isExceedsLimit());
+        final IndexSearchResult<FeatureIndexEntry> searchResult1 =
+                featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), geneFile, 10);
+        assertFalse(searchResult1.getEntries().isEmpty());
+        assertTrue(searchResult1.getEntries().size() <= 10);
+        assertTrue(searchResult1.isExceedsLimit());
 
         fileManager.deleteFileFeatureIndex(geneFile);
-        Assert.assertTrue(
-                featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), geneFile, 10).getEntries().isEmpty()
-        );
+        assertTrue(featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), geneFile, 10)
+                .getEntries().isEmpty());
 
         gffManager.reindexGeneFile(geneFile.getId(), false, false);
-        searchResult = featureIndexDao.searchFeatures("ens", geneFile, 10);
-        Assert.assertFalse(searchResult.getEntries().isEmpty());
-        Assert.assertTrue(searchResult.getEntries().size() <= 10);
-        Assert.assertTrue(searchResult.isExceedsLimit());
+        final IndexSearchResult<FeatureIndexEntry> searchResult2 =
+                featureIndexDao.searchFeatures("ens", geneFile, 10);
+        assertFalse(searchResult2.getEntries().isEmpty());
+        assertTrue(searchResult2.getEntries().size() <= 10);
+        assertTrue(searchResult2.isExceedsLimit());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void testNoIndexVcf() throws IOException, FeatureIndexException {
-        Resource resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
+    public void testNoIndexVcf() throws IOException {
+        final Resource resource = context.getResource(CLASSPATH_TEMPLATES_FELIS_CATUS_VCF);
 
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        final FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceId);
         request.setPath(resource.getFile().getAbsolutePath());
         request.setDoIndex(false);
         request.setName(UUID.randomUUID().toString());
 
-        VcfFile vcfFile = vcfManager.registerVcfFile(request);
+        final VcfFile vcfFile = vcfManager.registerVcfFile(request);
 
-        Assert.assertNotNull(vcfFile);
+        assertNotNull(vcfFile);
 
-        Project project = new Project();
+        final Project project = new Project();
         project.setName(TEST_PROJECT_NAME + UUID.randomUUID().toString());
-        project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(vcfFile.getBioDataItemId())),
+        project.setItems(asList(new ProjectItem(new BiologicalDataItem(vcfFile.getBioDataItemId())),
                 new ProjectItem(new BiologicalDataItem(testReference.getBioDataItemId()))));
 
         projectManager.create(project); // Index is created when vcf file is added
 
-        Assert.assertTrue(
-                featureIndexManager.filterVariations(new VcfFilterForm(), project.getId()).getEntries().isEmpty());
+        assertTrue(featureIndexManager.filterVariations(new VcfFilterForm(), project.getId()).getEntries().isEmpty());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testNoIndexGene() throws IOException {
-        FeatureIndexedFileRegistrationRequest geneRequest = new FeatureIndexedFileRegistrationRequest();
-        Resource resource = context.getResource(CLASSPATH_TEMPLATES_GENES_SORTED);
+        final FeatureIndexedFileRegistrationRequest geneRequest = new FeatureIndexedFileRegistrationRequest();
+        final Resource resource = context.getResource(CLASSPATH_TEMPLATES_GENES_SORTED);
         geneRequest.setReferenceId(referenceId);
         geneRequest.setPath(resource.getFile().getAbsolutePath());
         geneRequest.setDoIndex(false);
         geneRequest.setName(UUID.randomUUID().toString());
 
-        GeneFile geneFile = gffManager.registerGeneFile(geneRequest);
-        Assert.assertNotNull(geneFile);
+        final GeneFile geneFile = gffManager.registerGeneFile(geneRequest);
+        assertNotNull(geneFile);
 
-        Assert.assertTrue(
-                featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), geneFile, 10).getEntries().isEmpty()
-        );
+        assertTrue(featureIndexDao.searchFeatures(TEST_GENE_PREFIX.toLowerCase(), geneFile, 10)
+                .getEntries().isEmpty());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void pagingTest() throws IOException, FeatureIndexException {
-        VcfFilterForm vcfFilterForm = new VcfFilterForm();
+    public void pagingTest() throws IOException {
+        final VcfFilterForm vcfFilterForm = new VcfFilterForm();
 
-        IndexSearchResult<VcfIndexEntry> entryList = featureIndexManager.filterVariations(vcfFilterForm,
+        final IndexSearchResult<VcfIndexEntry> entryList = featureIndexManager.filterVariations(vcfFilterForm,
                                                                                           testProject.getId());
-        Assert.assertFalse(entryList.getEntries().isEmpty());
+        assertFalse(entryList.getEntries().isEmpty());
 
         vcfFilterForm.setPageSize(10);
         int total = featureIndexManager.getTotalPagesCount(vcfFilterForm, testProject.getId());
 
-        Set<VcfIndexEntry> pagedEntries = new HashSet<>();
+        final Set<VcfIndexEntry> pagedEntries = new HashSet<>();
         for (int i = 1; i < total + 1; i++) {
             vcfFilterForm.setPage(i);
-            IndexSearchResult<VcfIndexEntry> page = featureIndexManager.filterVariations(vcfFilterForm,
+            final IndexSearchResult<VcfIndexEntry> page = featureIndexManager.filterVariations(vcfFilterForm,
                                                                                          testProject.getId());
-            Assert.assertFalse(page.getEntries().isEmpty());
-            Assert.assertEquals(total, page.getTotalPagesCount().intValue());
+            assertFalse(page.getEntries().isEmpty());
+            assertEquals(total, page.getTotalPagesCount().intValue());
 
             if (i < (entryList.getEntries().size() / 10) + 1) { // check if only it is not the last page
                                                     // (there should be 4 variations)
-                Assert.assertEquals(10, page.getEntries().size());
+                assertEquals(10, page.getEntries().size());
             } else {
-                Assert.assertEquals(4, page.getEntries().size());
+                assertEquals(4, page.getEntries().size());
             }
 
-            List<VcfIndexEntry> duplicates = page.getEntries().stream().filter(e -> pagedEntries.contains(e))
-                .collect(Collectors.toList());
-            Assert.assertTrue(duplicates.isEmpty());
+            final List<VcfIndexEntry> duplicates = page.getEntries().stream()
+                    .filter(pagedEntries::contains)
+                .collect(toList());
+            assertTrue(duplicates.isEmpty());
             pagedEntries.addAll(page.getEntries());
         }
 
-        Assert.assertEquals(entryList.getEntries().size(), pagedEntries.size());
+        assertEquals(entryList.getEntries().size(), pagedEntries.size());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRED)
     public void sortingTest() throws IOException {
-        VcfFilterForm vcfFilterForm = new VcfFilterForm();
+        final VcfFilterForm vcfFilterForm = new VcfFilterForm();
         vcfFilterForm.setPage(1);
         vcfFilterForm.setPageSize(10);
 
-        for (IndexSortField sortField : IndexSortField.values()) {
+        for (final IndexSortField sortField : IndexSortField.values()) {
             vcfFilterForm.setOrderBy(singletonList(new OrderBy(sortField.name(), false)));
 
-            IndexSearchResult<VcfIndexEntry> entryList = featureIndexManager.filterVariations(vcfFilterForm,
+            final IndexSearchResult<VcfIndexEntry> entryList = featureIndexManager.filterVariations(vcfFilterForm,
                                                                                               testProject.getId());
-            Assert.assertFalse(entryList.getEntries().isEmpty());
-            Assert.assertEquals(vcfFilterForm.getPageSize().intValue(), entryList.getEntries().size());
+            assertFalse(entryList.getEntries().isEmpty());
+            assertEquals(vcfFilterForm.getPageSize().intValue(), entryList.getEntries().size());
         }
 
         // check sorting by various fields
-
         checkSorted(IndexSortField.START_INDEX.name(), false,
             (page, seenEntries) -> page.stream().anyMatch(
                 p -> seenEntries.stream().anyMatch(e -> e.getStartIndex() > p.getStartIndex())),
@@ -1061,29 +1060,29 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         checkSorted(IndexSortField.GENE_NAME.name(), false,
             (page, seenEntries) -> page.stream().anyMatch(
-                p -> seenEntries.stream().anyMatch(e -> StringUtils.isNotBlank(e.getGeneName()) &&
-                                                        StringUtils.isNotBlank(p.getGeneName()) &&
+                p -> seenEntries.stream().anyMatch(e -> isNotBlank(e.getGeneName()) &&
+                                                        isNotBlank(p.getGeneName()) &&
                                                         e.getGeneName().compareTo(p.getGeneName()) > 0)),
                     testProject.getId());
 
         checkSorted(IndexSortField.GENE_NAME.name(), false,
             (page, seenEntries) -> page.stream().anyMatch(
-                p -> seenEntries.stream().anyMatch(e -> StringUtils.isNotBlank(e.getGeneNames()) &&
-                                                        StringUtils.isNotBlank(p.getGeneNames()) &&
+                p -> seenEntries.stream().anyMatch(e -> isNotBlank(e.getGeneNames()) &&
+                                                        isNotBlank(p.getGeneNames()) &&
                                                         e.getGeneNames().compareTo(p.getGeneNames()) > 0)),
                     testProject.getId());
 
         checkSorted(IndexSortField.GENE_ID.name(), false,
             (page, seenEntries) -> page.stream().anyMatch(
-                p -> seenEntries.stream().anyMatch(e -> StringUtils.isNotBlank(e.getGene()) &&
-                                                        StringUtils.isNotBlank(p.getGene()) &&
+                p -> seenEntries.stream().anyMatch(e -> isNotBlank(e.getGene()) &&
+                                                        isNotBlank(p.getGene()) &&
                                                         e.getGene().compareTo(p.getGene()) > 0)),
                     testProject.getId());
 
         checkSorted(IndexSortField.GENE_ID.name(), false,
             (page, seenEntries) -> page.stream().anyMatch(
-                p -> seenEntries.stream().anyMatch(e -> StringUtils.isNotBlank(e.getGeneIds()) &&
-                                                        StringUtils.isNotBlank(p.getGeneIds()) &&
+                p -> seenEntries.stream().anyMatch(e -> isNotBlank(e.getGeneIds()) &&
+                                                        isNotBlank(p.getGeneIds()) &&
                                                         e.getGeneIds().compareTo(p.getGeneIds()) > 0)),
                     testProject.getId());
 
@@ -1100,19 +1099,10 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
                     testProject.getId());
 
         // check order by additional fields
-        VcfFilterInfo info = vcfManager.getFiltersInfo(singletonList(testVcf.getId()));
-        for (InfoItem item : info.getInfoItems()) {
+        final VcfFilterInfo info = vcfManager.getFiltersInfo(singletonList(testVcf.getId()));
+        for (final InfoItem item : info.getInfoItems()) {
             switch (item.getType()) {
                 case Integer:
-                    checkSorted(item.getName(), false,
-                        (page, seenEntries) -> page.stream().anyMatch(p -> seenEntries.stream().anyMatch(
-                            e -> e.getInfo().containsKey(item.getName()) && e.getInfo().get(item.getName()) != null
-                                 && e.getInfo().containsKey(item.getName()) && p.getInfo().get(item.getName()) != null
-                                 && (e.getInfo().get(item.getName()).toString()).compareTo(
-                                     p.getInfo().get(item.getName()).toString()) > 0
-                        )),
-                        testProject.getId(), singletonList(item.getName()));
-                    break;
                 case Float:
                     checkSorted(item.getName(), false,
                         (page, seenEntries) -> page.stream().anyMatch(p -> seenEntries.stream().anyMatch(
@@ -1137,7 +1127,8 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         // Test sort desc
         checkSorted(IndexSortField.START_INDEX.name(), true,
             (page, seenEntries) -> page.stream().anyMatch(
-                p -> seenEntries.stream().anyMatch(e -> e.getStartIndex() < p.getStartIndex())),
+                p -> seenEntries.stream()
+                        .anyMatch(e -> e.getStartIndex() < p.getStartIndex())),
             testProject.getId());
     }
 
@@ -1145,35 +1136,36 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testSortByMultipleFields() throws IOException {
         // check sorted by multiple fields
-
-        IndexSearchResult<VcfIndexEntry> referentList = featureIndexManager.filterVariations(new VcfFilterForm(),
+        final IndexSearchResult<VcfIndexEntry> referentList = featureIndexManager.filterVariations(new VcfFilterForm(),
                                                                                 testProject.getId());
-        List<VcfIndexEntry> pagedEntries = new ArrayList<>();
+        final List<VcfIndexEntry> pagedEntries = new ArrayList<>();
 
-        VcfFilterForm filterForm = new VcfFilterForm();
+        final VcfFilterForm filterForm = new VcfFilterForm();
         filterForm.setPageSize(10);
-        filterForm.setOrderBy(Arrays.asList(new OrderBy(IndexSortField.START_INDEX.name(), false),
+        filterForm.setOrderBy(asList(new OrderBy(IndexSortField.START_INDEX.name(), false),
                                         new OrderBy(IndexSortField.VARIATION_TYPE.name(), false)));
 
         for (int i = 1; i < (referentList.getEntries().size() / 10) + 2; i++) {
             filterForm.setPage(i);
-            IndexSearchResult<VcfIndexEntry> pageRes = featureIndexManager.filterVariations(filterForm,
+            final IndexSearchResult<VcfIndexEntry> pageRes = featureIndexManager.filterVariations(filterForm,
                                                                                             testProject.getId());
-            List<VcfIndexEntry> page = pageRes.getEntries();
-            Assert.assertFalse(page.isEmpty());
+            final List<VcfIndexEntry> page = pageRes.getEntries();
+            assertFalse(page.isEmpty());
 
             if (i < (referentList.getEntries().size() / 10) + 1) { // check if only it is not the last page
                 // (there should be 4 variations)
-                Assert.assertEquals(page.size(), 10);
+                assertEquals(page.size(), 10);
             } else {
-                Assert.assertEquals(page.size(), 4);
+                assertEquals(page.size(), 4);
             }
 
-            List<VcfIndexEntry> duplicates = page.stream().filter(pagedEntries::contains).collect(Collectors.toList());
-            Assert.assertTrue(duplicates.isEmpty());
-            Assert.assertFalse(page.stream().anyMatch(p -> pagedEntries.stream().anyMatch(
+            final List<VcfIndexEntry> duplicates = page.stream()
+                    .filter(pagedEntries::contains)
+                    .collect(toList());
+            assertTrue(duplicates.isEmpty());
+            assertFalse(page.stream().anyMatch(p -> pagedEntries.stream().anyMatch(
                 e -> e.getStartIndex() > p.getStartIndex())));
-            Assert.assertFalse(page.stream().anyMatch(
+            assertFalse(page.stream().anyMatch(
                 p -> pagedEntries.stream().anyMatch(e -> e.getVariationType().name().compareTo(
                     p.getVariationType().name()) > 0)));
             pagedEntries.addAll(page);
@@ -1183,172 +1175,171 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void searchGenesByFilterWithFeatureName() throws IOException {
-        GeneFilterForm geneFilterForm = getSimpleFilter();
+        final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
 
-        Assert.assertEquals(TEST_AMOUNT, featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId)
+        assertEquals(TEST_AMOUNT, featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId)
                 .getEntries().size());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void searchGenesByFilterWithChromosome() throws IOException {
-        GeneFilterForm geneFilterForm = getSimpleFilter();
-        geneFilterForm.setChromosomes(Arrays.asList("A1", "B1", "C1"));
+        final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
+        geneFilterForm.setChromosomes(asList("A1", "B1", "C1"));
 
         //We have only 1 chromosome A1 at the test data, other names are artificial:)
-        Assert.assertEquals(TEST_AMOUNT, featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId)
+        assertEquals(TEST_AMOUNT, featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId)
                 .getEntries().size());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void searchGenesByFilterWithFeatureTypes() throws IOException {
-        GeneFilterForm geneFilterForm = getSimpleFilter();
-        geneFilterForm.setFeatureTypes(Arrays.asList(FeatureType.MRNA, FeatureType.GENE));
+        final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
+        geneFilterForm.setFeatureTypes(asList(FeatureType.MRNA, FeatureType.GENE));
 
-        Assert.assertEquals(TEST_AMOUNT_OF_GENE + TEST_AMOUNT_OF_MRNA,
+        assertEquals(TEST_AMOUNT_OF_GENE + TEST_AMOUNT_OF_MRNA,
                 featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId).getEntries().size());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void searchGenesByFilterWithPositions() throws IOException {
-        GeneFilterForm geneFilterForm = getSimpleFilter();
+        final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
         geneFilterForm.setStartIndex(TEST_START_INDEX);
         geneFilterForm.setEndIndex(TEST_END_INDEX);
 
-        Assert.assertEquals(TEST_AMOUNT_POSITION,
+        assertEquals(TEST_AMOUNT_POSITION,
                 featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId).getEntries().size());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void searchGenesByFilterWithSorting() throws IOException {
-        GeneFilterForm geneFilterForm = getSimpleFilter();
+        final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
         geneFilterForm.setFeatureTypes(singletonList(FeatureType.GENE));
         geneFilterForm.setOrderBy(singletonList(new OrderBy("START_INDEX", true)));
 
-        IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchFeaturesByReference(
+        final IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchFeaturesByReference(
                 geneFilterForm, referenceId);
 
-        Assert.assertEquals(TEST_AMOUNT_OF_GENE, result.getEntries().size());
+        assertEquals(TEST_AMOUNT_OF_GENE, result.getEntries().size());
 
-        Integer maxInt = result.getEntries().stream()
+        final Integer maxInt = result.getEntries().stream()
                 .map(FeatureIndexEntry::getStartIndex)
-                .max(Comparator.naturalOrder())
+                .max(naturalOrder())
                 .orElse(0);
 
-        Assert.assertEquals(maxInt, result.getEntries().get(0).getStartIndex());
+        assertEquals(maxInt, result.getEntries().get(0).getStartIndex());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void searchGenesByFilterWithPageSize() throws IOException {
-        GeneFilterForm geneFilterForm = getSimpleFilter();
+        final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
         geneFilterForm.setPageSize((int) TEST_PAGE_SIZE);
 
-        Assert.assertEquals(TEST_PAGE_SIZE, featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId)
+        assertEquals(TEST_PAGE_SIZE, featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId)
                 .getEntries().size());
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void searchGenesByFilterWithPointer() throws IOException {
-        GeneFilterForm geneFilterForm = getSimpleFilter();
+        final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
         geneFilterForm.setPageSize((int) TEST_PAGE_SIZE);
 
-        Pointer pointer = new Pointer();
+        final Pointer pointer = new Pointer();
         pointer.setScore(1.0F);
         pointer.setDoc((int) TEST_PAGE_SIZE - 1);
         pointer.setShardIndex(0);
         geneFilterForm.setPointer(pointer);
 
-        Assert.assertEquals(TEST_AMOUNT - TEST_PAGE_SIZE,
+        assertEquals(TEST_AMOUNT - TEST_PAGE_SIZE,
                 featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId).getEntries().size());
     }
 
-    private GeneFilterForm getSimpleFilter() {
+    private GeneFilterForm getSimpleGeneFilter() {
         final GeneFilterForm geneFilterForm = new GeneFilterForm();
         geneFilterForm.setFeatureId("ENSFCA");
         return geneFilterForm;
     }
 
-    private void checkSorted(String orderBy, boolean desc, SortTestingPredicate testingPredicate, Long projectId)
-        throws IOException {
+    private void checkSorted(final String orderBy, final boolean desc, final SortTestingPredicate testingPredicate,
+                             final Long projectId) throws IOException {
         checkSorted(orderBy, desc, testingPredicate, projectId, null);
     }
 
-    private void checkSorted(String orderBy, boolean desc, SortTestingPredicate testingPredicate, Long projectId,
-                             List<String> additionalFields) throws IOException {
-        IndexSearchResult<VcfIndexEntry> referentList = featureIndexManager.filterVariations(new VcfFilterForm(),
+    private void checkSorted(final String orderBy, final boolean desc, final SortTestingPredicate testingPredicate,
+                             final Long projectId, final List<String> additionalFields) throws IOException {
+        final IndexSearchResult<VcfIndexEntry> referentList = featureIndexManager.filterVariations(new VcfFilterForm(),
                                                                                              projectId);
-        List<VcfIndexEntry> pagedEntries = new ArrayList<>();
+        final List<VcfIndexEntry> pagedEntries = new ArrayList<>();
 
-        VcfFilterForm vcfFilterForm = new VcfFilterForm();
+        final VcfFilterForm vcfFilterForm = new VcfFilterForm();
         vcfFilterForm.setPageSize(10);
         vcfFilterForm.setOrderBy(singletonList(new OrderBy(orderBy, desc)));
         vcfFilterForm.setInfoFields(additionalFields);
 
         for (int i = 1; i < (referentList.getEntries().size() / 10) + 2; i++) {
             vcfFilterForm.setPage(i);
-            IndexSearchResult<VcfIndexEntry> pageRes = featureIndexManager.filterVariations(vcfFilterForm, projectId);
-            List<VcfIndexEntry> page = pageRes.getEntries();
+            final IndexSearchResult<VcfIndexEntry> pageRes = featureIndexManager
+                    .filterVariations(vcfFilterForm, projectId);
+            final List<VcfIndexEntry> page = pageRes.getEntries();
 
-            Assert.assertFalse(page.isEmpty());
+            assertFalse(page.isEmpty());
 
             if (i < (referentList.getEntries().size() / 10) + 1) { // check if only it is not the last page
                 // (there should be 4 variations)
-                Assert.assertEquals(page.size(), 10);
+                assertEquals(page.size(), 10);
             } else {
-                Assert.assertEquals(page.size(), 4);
+                assertEquals(page.size(), 4);
             }
 
-            List<VcfIndexEntry> duplicates = page.stream().filter(pagedEntries::contains).collect(Collectors.toList());
-            Assert.assertTrue(duplicates.isEmpty());
-            Assert.assertFalse(testingPredicate.doTest(page, pagedEntries));
+            final List<VcfIndexEntry> duplicates = page.stream()
+                    .filter(pagedEntries::contains)
+                    .collect(toList());
+            assertTrue(duplicates.isEmpty());
+            assertFalse(testingPredicate.doTest(page, pagedEntries));
             pagedEntries.addAll(page);
         }
     }
 
     @FunctionalInterface
     private interface SortTestingPredicate {
-        boolean doTest(List<VcfIndexEntry> page, List<VcfIndexEntry> seenEntries);
+        boolean doTest(final List<VcfIndexEntry> page, final List<VcfIndexEntry> seenEntries);
     }
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void groupingTest() throws IOException {
-        VcfFilterForm vcfFilterForm = new VcfFilterForm();
-
-        IndexSearchResult<VcfIndexEntry> entryList = featureIndexManager.filterVariations(vcfFilterForm,
+        final IndexSearchResult<VcfIndexEntry> entryList1 = featureIndexManager.filterVariations(new VcfFilterForm(),
                 testProject.getId());
-        Assert.assertFalse(entryList.getEntries().isEmpty());
+        assertFalse(entryList1.getEntries().isEmpty());
 
-        List<Group> counts = featureIndexManager.groupVariations(new VcfFilterForm(), testProject.getId(),
-                IndexSortField.CHROMOSOME_NAME.name());
-        Assert.assertFalse(counts.isEmpty());
-
-        counts = featureIndexManager.groupVariations(new VcfFilterForm(), testProject.getId(),
-                IndexSortField.QUALITY.name());
-        Assert.assertFalse(counts.isEmpty());
+        testGroupingBy(IndexSortField.CHROMOSOME_NAME);
+        testGroupingBy(IndexSortField.QUALITY);
 
         // test load additional info and group by it
-        VcfFilterInfo info = vcfManager.getFiltersInfo(singletonList(testVcf.getId()));
+        final VcfFilterInfo info = vcfManager.getFiltersInfo(singletonList(testVcf.getId()));
+        final VcfFilterForm vcfFilterForm = new VcfFilterForm();
+        vcfFilterForm.setInfoFields(info.getInfoItems().stream()
+                .map(InfoItem::getName)
+                .collect(toList()));
 
-        vcfFilterForm = new VcfFilterForm();
-        vcfFilterForm.setInfoFields(info.getInfoItems().stream().map(i -> i.getName()).collect(Collectors.toList()));
+        final IndexSearchResult<VcfIndexEntry> entryList2 = featureIndexManager.filterVariations(vcfFilterForm,
+                testProject.getId());
+        assertFalse(entryList2.getEntries().isEmpty());
 
-        entryList = featureIndexManager.filterVariations(vcfFilterForm, testProject.getId());
-        Assert.assertFalse(entryList.getEntries().isEmpty());
-
-        for (InfoItem infoItem : info.getInfoItems()) {
-            String groupByField = infoItem.getName();
-            List<Group> c = featureIndexManager.groupVariations(new VcfFilterForm(), testProject.getId(),
+        for (final InfoItem infoItem : info.getInfoItems()) {
+            final String groupByField = infoItem.getName();
+            final List<Group> c = featureIndexManager.groupVariations(new VcfFilterForm(), testProject.getId(),
                     groupByField);
-            List<VcfIndexEntry> entriesWithField = entryList.getEntries().stream()
-                    .filter(e -> e.getInfo().get(groupByField) != null).collect(Collectors.toList());
+            final List<VcfIndexEntry> entriesWithField = entryList2.getEntries().stream()
+                    .filter(e -> e.getInfo().get(groupByField) != null)
+                    .collect(toList());
             if (!entriesWithField.isEmpty()) {
-                Assert.assertFalse("Empty grouping for field: " + groupByField, c.isEmpty());
+                assertFalse("Empty grouping for field: " + groupByField, c.isEmpty());
             }
         }
     }
@@ -1356,70 +1347,71 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testGroupingForPlots() throws IOException {
-        // chromosomes histogram
-        List<Group> counts = featureIndexManager.groupVariations(new VcfFilterForm(), testProject.getId(),
-                                                     IndexSortField.CHROMOSOME_NAME.name());
-        Assert.assertFalse(counts.isEmpty());
-
-        // variation types histogram
-
-        counts = featureIndexManager.groupVariations(new VcfFilterForm(), testProject.getId(),
-                                                     IndexSortField.VARIATION_TYPE.name());
-        Assert.assertFalse(counts.isEmpty());
-
-        counts = featureIndexManager.groupVariations(new VcfFilterForm(), testProject.getId(),
-                                                     IndexSortField.QUALITY.name());
-        Assert.assertFalse(counts.isEmpty());
+        testGroupingBy(IndexSortField.CHROMOSOME_NAME);
+        testGroupingBy(IndexSortField.VARIATION_TYPE);
+        testGroupingBy(IndexSortField.QUALITY);
     }
 
-    @Test @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void testGroupingBy(final IndexSortField field) throws IOException {
+        final List<Group> counts = featureIndexManager.groupVariations(new VcfFilterForm(), testProject.getId(),
+                field.name());
+        assertFalse(counts.isEmpty());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testMultipleVariationTypes() throws IOException {
-        FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        final FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
         request.setReferenceId(referenceId);
-        Resource resource = context.getResource("classpath:templates/samples.vcf");
+        final Resource resource = context.getResource("classpath:templates/samples.vcf");
         request.setPath(resource.getFile().getAbsolutePath());
 
-        VcfFile samplesVcf = vcfManager.registerVcfFile(request);
+        final VcfFile samplesVcf = vcfManager.registerVcfFile(request);
 
-        VcfFilterForm form = new VcfFilterForm();
+        final VcfFilterForm form = new VcfFilterForm();
         form.setVcfFileIdsByProject(singletonMap(testProject.getId(), singletonList(samplesVcf.getId())));
 
-        IndexSearchResult<VcfIndexEntry> res = featureIndexManager.filterVariations(form);
-        long mnpCount = res.getEntries().stream()
-                .filter(e -> e.getVariationTypes().contains(VariationType.MNP)).count();
-        long insCount = res.getEntries().stream()
-                .filter(e -> e.getVariationTypes().contains(VariationType.INS)).count();
+        final IndexSearchResult<VcfIndexEntry> res1 = featureIndexManager.filterVariations(form);
+        final long mnpCount = res1.getEntries().stream()
+                .filter(e -> e.getVariationTypes().contains(VariationType.MNP))
+                .count();
+        final long insCount = res1.getEntries().stream()
+                .filter(e -> e.getVariationTypes().contains(VariationType.INS))
+                .count();
 
-        List<Group> variationTypes =
+        final List<Group> variationTypes =
                 featureIndexManager.groupVariations(form, FeatureIndexDao.FeatureIndexFields.VARIATION_TYPE.name());
-        Group mnp = variationTypes.stream().filter(g -> g.getGroupName().equals("MNP")).findFirst()
+        final Group mnp = variationTypes.stream()
+                .filter(g -> g.getGroupName().equals("MNP"))
+                .findFirst()
                 .get();
-        Group ins = variationTypes.stream().filter(g -> g.getGroupName().equals("INS")).findFirst()
+        final Group ins = variationTypes.stream()
+                .filter(g -> g.getGroupName().equals("INS"))
+                .findFirst()
                 .get();
 
-        Assert.assertEquals((int) mnpCount, mnp.getEntriesCount().intValue());
-        Assert.assertEquals((int) insCount, ins.getEntriesCount().intValue());
+        assertEquals((int) mnpCount, mnp.getEntriesCount().intValue());
+        assertEquals((int) insCount, ins.getEntriesCount().intValue());
 
-        form.setVariationTypes(
-                new VcfFilterForm.FilterSection<>(singletonList(VariationType.INS)));
-        res = featureIndexManager.filterVariations(form);
+        form.setVariationTypes(new FilterSection<>(singletonList(VariationType.INS)));
+        final IndexSearchResult<VcfIndexEntry> res2 = featureIndexManager.filterVariations(form);
 
-        Assert.assertTrue(
-                res.getEntries().stream().anyMatch(e -> e.getFeatureId().equals("rs11804171")));
+        assertTrue(res2.getEntries().stream()
+                .anyMatch(e -> e.getFeatureId().equals("rs11804171")));
 
-        form.setVariationTypes(
-                new VcfFilterForm.FilterSection<>(singletonList(VariationType.MNP)));
-        res = featureIndexManager.filterVariations(form);
-        Assert.assertTrue(
-                res.getEntries().stream().anyMatch(e -> e.getFeatureId().equals("rs11804171")));
+        form.setVariationTypes(new FilterSection<>(singletonList(VariationType.MNP)));
+
+        final IndexSearchResult<VcfIndexEntry> res3 = featureIndexManager.filterVariations(form);
+        assertTrue(res3.getEntries().stream()
+                .anyMatch(e -> e.getFeatureId().equals("rs11804171")));
 
         form.setVariationTypes(null);
         form.setPage(1);
         form.setPageSize(5);
-        form.setOrderBy(singletonList(
-                new OrderBy(FeatureIndexDao.FeatureIndexFields.VARIATION_TYPE.name(), false)));
-        res = featureIndexManager.filterVariations(form);
-        Assert.assertFalse(res.getEntries().isEmpty());
+        form.setOrderBy(singletonList(new OrderBy(FeatureIndexDao.FeatureIndexFields.VARIATION_TYPE.name(), false)));
+
+        final IndexSearchResult<VcfIndexEntry> res4 = featureIndexManager.filterVariations(form);
+        assertFalse(res4.getEntries().isEmpty());
     }
 
 
@@ -1441,7 +1433,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         Project project = new Project();
         project.setName(TEST_PROJECT_NAME + 1);
-        project.setItems(Arrays.asList(new ProjectItem(new BiologicalDataItem(vcfFile1.getBioDataItemId())),
+        project.setItems(asList(new ProjectItem(new BiologicalDataItem(vcfFile1.getBioDataItemId())),
                                        new ProjectItem(new BiologicalDataItem(vcfFile2.getBioDataItemId()))));
 
         projectManager.create(project);
@@ -1449,7 +1441,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         IndexSearchResult<VcfIndexEntry> entriesRes = featureIndexManager.filterVariations(new VcfFilterForm(),
                                                                                            project.getId());
         List<VcfIndexEntry> entries = entriesRes.getEntries();
-        Assert.assertFalse(entries.isEmpty());
+        assertFalse(entries.isEmpty());
         logger.info("!! Variations count: {}", entries.size());
 
         TestUtils.warmUp(() -> featureIndexManager.filterVariations(new VcfFilterForm(), project.getId()),
@@ -1509,11 +1501,11 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         logger.info("!! Performing total facet page count lookup took: {} ms", averageTime);*/
     }
 
-    private void checkDuplicates(List<VcfIndexEntry> entryList) {
-        Map<Pair<Integer, Integer>, FeatureIndexEntry> duplicateMap = new HashMap<>();
-        entryList.stream().forEach(e -> {
-            Pair<Integer, Integer> indexPair = new ImmutablePair<>(e.getStartIndex(), e.getEndIndex());
-            Assert.assertFalse(String.format("Found duplicate: %d, %d", e.getStartIndex(), e.getEndIndex()),
+    private void checkDuplicates(final List<VcfIndexEntry> entryList) {
+        final Map<Pair<Integer, Integer>, FeatureIndexEntry> duplicateMap = new HashMap<>();
+        entryList.forEach(e -> {
+            final Pair<Integer, Integer> indexPair = new ImmutablePair<>(e.getStartIndex(), e.getEndIndex());
+            assertFalse(format("Found duplicate: %d, %d", e.getStartIndex(), e.getEndIndex()),
                     duplicateMap.containsKey(indexPair));
             duplicateMap.put(indexPair, e);
         });

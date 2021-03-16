@@ -50,33 +50,34 @@ public class NextPageSearcher<T extends FeatureIndexEntry, R extends AbstractFil
     private ScoreDoc pointer;
     private Integer pageSize;
 
-    public NextPageSearcher(FeatureIndexDao featureIndexDao, FileManager fileManager,
-            VcfManager vcfManager, R filterForm, ExecutorService executorService) {
+    public NextPageSearcher(final FeatureIndexDao featureIndexDao, final FileManager fileManager,
+            final VcfManager vcfManager, final R filterForm, final ExecutorService executorService) {
         super(featureIndexDao, fileManager, vcfManager, filterForm, executorService);
         this.pointer = filterForm.getPointer().toScoreDoc();
         this.pageSize = filterForm.getPageSize();
     }
 
     @Override
-    protected IndexSearchResult<T> performSearch(IndexSearcher searcher,
-            MultiReader reader, Query query, Sort sort, AbstractDocumentBuilder<T> documentCreator)
+    protected IndexSearchResult<T> performSearch(final IndexSearcher searcher, final MultiReader reader,
+                                                 final Query query, final Sort sort,
+                                                 final AbstractDocumentBuilder<T> documentCreator)
             throws IOException {
         final TopDocs docs = getNextPage(searcher, query, pointer, pageSize, sort);
         final ScoreDoc[] hits = docs.scoreDocs;
-        List<T> entries = new ArrayList<>(pageSize);
+        final List<T> entries = new ArrayList<>(pageSize);
         for (int i = 0; i < hits.length; i++) {
-            T entry = documentCreator.buildEntry(searcher, hits[i].doc);
+            final T entry = documentCreator.buildEntry(searcher, hits[i].doc);
             entries.add(entry);
         }
 
-        ScoreDoc lastEntry = hits.length == 0 ? null : hits[hits.length-1];
+        final ScoreDoc lastEntry = hits.length == 0 ? null : hits[hits.length-1];
         return new IndexSearchResult<>(entries, false, docs.totalHits, lastEntry);
     }
 
-    private TopDocs getNextPage(IndexSearcher searcher, Query query, ScoreDoc pointer,
-            Integer pageSize, Sort sort) throws IOException {
+    private TopDocs getNextPage(final IndexSearcher searcher, final Query query, final ScoreDoc pointer,
+                                final Integer pageSize, final Sort sort) throws IOException {
         final TopDocs docs;
-        Query constantQuery = new ConstantScoreQuery(query);
+        final Query constantQuery = new ConstantScoreQuery(query);
         if (sort == null) {
             docs = searcher.searchAfter(pointer, constantQuery, pageSize);
         } else {

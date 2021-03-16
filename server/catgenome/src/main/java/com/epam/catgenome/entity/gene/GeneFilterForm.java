@@ -64,9 +64,9 @@ public class GeneFilterForm extends AbstractFilterForm {
         if (isEmpty(orderBy)) {
             return new Sort();
         }
-        List<SortField> sortFields = new ArrayList<>();
+        final List<SortField> sortFields = new ArrayList<>();
         for (OrderBy order : orderBy) {
-            IndexSortField indexSortField = IndexSortField.getByName(order.getField());
+            final IndexSortField indexSortField = IndexSortField.getByName(order.getField());
             sortFields.add(new SortField(indexSortField.getFieldName(), indexSortField.getType(), order.isDesc()));
         }
         return sortFields.isEmpty() ? new Sort() : new Sort(sortFields.toArray(new SortField[sortFields.size()]));
@@ -78,7 +78,7 @@ public class GeneFilterForm extends AbstractFilterForm {
      * @return a {@code BooleanQuery} to a lucene index without filtering by a{@code FeatureType}
      */
     public BooleanQuery computeQuery() {
-        BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
         addFeatureNameFilter(mainBuilder);
         addFeatureTypesFilter(mainBuilder);
         addChromosomeFilter(mainBuilder);
@@ -91,11 +91,11 @@ public class GeneFilterForm extends AbstractFilterForm {
      *
      * @param builder
      */
-    private void addFeatureNameFilter(BooleanQuery.Builder builder) {
-        BooleanQuery.Builder prefixQueryBuilder = new BooleanQuery.Builder();
-        prefixQueryBuilder.add(new PrefixQuery(new Term(FeatureIndexDao.FeatureIndexFields.FEATURE_ID.getFieldName(),
-                featureId.toLowerCase())), BooleanClause.Occur.SHOULD);
-        prefixQueryBuilder.add(new PrefixQuery(new Term(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName(),
+    private void addFeatureNameFilter(final BooleanQuery.Builder builder) {
+        final BooleanQuery.Builder prefixQueryBuilder = new BooleanQuery.Builder()
+        .add(new PrefixQuery(new Term(FeatureIndexDao.FeatureIndexFields.FEATURE_ID.getFieldName(),
+                featureId.toLowerCase())), BooleanClause.Occur.SHOULD)
+        .add(new PrefixQuery(new Term(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName(),
                 featureId.toLowerCase())), BooleanClause.Occur.SHOULD);
 
         builder.add(prefixQueryBuilder.build(), BooleanClause.Occur.MUST);
@@ -106,9 +106,9 @@ public class GeneFilterForm extends AbstractFilterForm {
      *
      * @param builder
      */
-    private void addFeatureTypesFilter(BooleanQuery.Builder builder) {
+    private void addFeatureTypesFilter(final BooleanQuery.Builder builder) {
         if (isNotEmpty(featureTypes)) {
-            BooleanQuery.Builder featureTypeBuilder = new BooleanQuery.Builder();
+            final BooleanQuery.Builder featureTypeBuilder = new BooleanQuery.Builder();
             for (FeatureType type : featureTypes) {
                 featureTypeBuilder.add(new TermQuery(new Term(
                                 FeatureIndexDao.FeatureIndexFields.FEATURE_TYPE.getFieldName(), type.getFileValue())),
@@ -123,9 +123,9 @@ public class GeneFilterForm extends AbstractFilterForm {
      *
      * @param builder
      */
-    private void addChromosomeFilter(BooleanQuery.Builder builder) {
+    private void addChromosomeFilter(final BooleanQuery.Builder builder) {
         if (isNotEmpty(chromosomes)) {
-            BooleanQuery.Builder chromosomeBuilder = new BooleanQuery.Builder();
+            final BooleanQuery.Builder chromosomeBuilder = new BooleanQuery.Builder();
             for (String chromosome : chromosomes) {
                 chromosomeBuilder.add(new TermQuery(new Term(
                                 FeatureIndexDao.FeatureIndexFields.CHROMOSOME_NAME.getFieldName(), chromosome)),
@@ -140,12 +140,12 @@ public class GeneFilterForm extends AbstractFilterForm {
      *
      * @param builder
      */
-    private void addPositionFilter(BooleanQuery.Builder builder) {
+    private void addPositionFilter(final BooleanQuery.Builder builder) {
         if (startIndex != null && endIndex != null) {
-            BooleanQuery.Builder positionBuilder = new BooleanQuery.Builder();
-            positionBuilder.add(IntPoint.newRangeQuery(FeatureIndexDao.FeatureIndexFields.START_INDEX.getFieldName(),
-                    startIndex, endIndex), BooleanClause.Occur.MUST);
-            positionBuilder.add(IntPoint.newRangeQuery(FeatureIndexDao.FeatureIndexFields.END_INDEX.getFieldName(),
+            final BooleanQuery.Builder positionBuilder = new BooleanQuery.Builder()
+            .add(IntPoint.newRangeQuery(FeatureIndexDao.FeatureIndexFields.START_INDEX.getFieldName(),
+                    startIndex, endIndex), BooleanClause.Occur.MUST)
+            .add(IntPoint.newRangeQuery(FeatureIndexDao.FeatureIndexFields.END_INDEX.getFieldName(),
                     startIndex, endIndex), BooleanClause.Occur.MUST);
 
             builder.add(positionBuilder.build(), BooleanClause.Occur.MUST);

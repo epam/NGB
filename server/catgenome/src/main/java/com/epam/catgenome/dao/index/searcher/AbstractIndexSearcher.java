@@ -65,8 +65,9 @@ public abstract class AbstractIndexSearcher<T extends FeatureIndexEntry, R exten
     private R filterForm;
     private ExecutorService executorService;
 
-    public AbstractIndexSearcher(FeatureIndexDao featureIndexDao, FileManager fileManager,
-                                 VcfManager vcfManager, R filterForm, ExecutorService executorService) {
+    public AbstractIndexSearcher(final FeatureIndexDao featureIndexDao, final FileManager fileManager,
+                                 final VcfManager vcfManager, final R filterForm,
+                                 final ExecutorService executorService) {
         this.featureIndexDao = featureIndexDao;
         this.fileManager = fileManager;
         this.vcfManager = vcfManager;
@@ -75,8 +76,8 @@ public abstract class AbstractIndexSearcher<T extends FeatureIndexEntry, R exten
     }
 
     public static <T extends FeatureIndexEntry, R extends AbstractFilterForm> LuceneIndexSearcher<T> getIndexSearcher(
-            R filterForm, FeatureIndexDao featureIndexDao, FileManager fileManager,
-            VcfManager vcfManager, ExecutorService executorService) {
+            final R filterForm, final FeatureIndexDao featureIndexDao, final FileManager fileManager,
+            final VcfManager vcfManager, final ExecutorService executorService) {
 
         if (filterForm.getPointer() != null) {
             return new NextPageSearcher<T, R>(featureIndexDao, fileManager, vcfManager, filterForm, executorService);
@@ -86,26 +87,27 @@ public abstract class AbstractIndexSearcher<T extends FeatureIndexEntry, R exten
     }
 
     @Override
-    public IndexSearchResult<T> getSearchResults(List<? extends FeatureFile> files, Query query) throws IOException {
+    public IndexSearchResult<T> getSearchResults(final List<? extends FeatureFile> files, final Query query)
+            throws IOException {
         if (CollectionUtils.isEmpty(files)) {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
 
-        SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
         long indexSize = featureIndexDao.getTotalIndexSize(indexes);
         if (indexSize > featureIndexDao.getLuceneIndexMaxSizeForGrouping() && filterForm.filterEmpty()) {
             throw new IllegalArgumentException("Variations filter shall be specified");
         }
 
-        try (MultiReader reader = featureIndexDao.openMultiReader(indexes)) {
+        try (final MultiReader reader = featureIndexDao.openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
                 return new IndexSearchResult<>(Collections.emptyList(), false, 0);
             }
-            IndexSearcher searcher = new IndexSearcher(reader, executorService);
-            AbstractDocumentBuilder<T> documentCreator = AbstractDocumentBuilder
+            final IndexSearcher searcher = new IndexSearcher(reader, executorService);
+            final AbstractDocumentBuilder<T> documentCreator = AbstractDocumentBuilder
                     .createDocumentCreator(files.get(0).getFormat(), filterForm.getInfoFields());
-            Sort sort = createSorting(filterForm.getOrderBy(), files);
-            IndexSearchResult<T> searchResults = performSearch(searcher, reader, query,
+            final Sort sort = createSorting(filterForm.getOrderBy(), files);
+            final IndexSearchResult<T> searchResults = performSearch(searcher, reader, query,
                     sort, documentCreator);
             //return 0 to prevent random access in UI
             if (indexSize > featureIndexDao.getLuceneIndexMaxSizeForGrouping()) {
@@ -119,38 +121,38 @@ public abstract class AbstractIndexSearcher<T extends FeatureIndexEntry, R exten
         }
     }
 
-    protected TopDocs performSearch(IndexSearcher searcher, Query query, MultiReader reader,
-                                    int numDocs, Sort sort) throws IOException {
+    protected TopDocs performSearch(final IndexSearcher searcher, final Query query, final MultiReader reader,
+                                    int numDocs, final Sort sort) throws IOException {
         return featureIndexDao.performSearch(searcher, query, reader, numDocs, sort);
     }
 
-    protected abstract IndexSearchResult<T> performSearch(IndexSearcher searcher,
-                                                          MultiReader reader, Query query, Sort sort,
-                                                          AbstractDocumentBuilder<T> documentCreator)
+    protected abstract IndexSearchResult<T> performSearch(final IndexSearcher searcher, final MultiReader reader,
+                                                          final Query query, final Sort sort,
+                                                          final AbstractDocumentBuilder<T> documentCreator)
             throws IOException;
 
-    private Sort createSorting(List<VcfFilterForm.OrderBy> orderBy,
-                               List<? extends FeatureFile> files) throws IOException {
+    private Sort createSorting(final List<VcfFilterForm.OrderBy> orderBy,
+                               final List<? extends FeatureFile> files) throws IOException {
         if (CollectionUtils.isNotEmpty(orderBy)) {
-            ArrayList<SortField> sortFields = new ArrayList<>();
+            final ArrayList<SortField> sortFields = new ArrayList<>();
             for (VcfFilterForm.OrderBy o : orderBy) {
-                IndexSortField sortField = IndexSortField.getByName(o.getField());
+                final IndexSortField sortField = IndexSortField.getByName(o.getField());
                 if (sortField == null) {
-                    VcfFilterInfo info = vcfManager.getFiltersInfo(
+                    final VcfFilterInfo info = vcfManager.getFiltersInfo(
                             files.stream().map(BaseEntity::getId).collect(Collectors.toList()));
 
-                    InfoItem infoItem = info.getInfoItemMap().get(o.getField());
+                    final InfoItem infoItem = info.getInfoItemMap().get(o.getField());
                     Assert.notNull(infoItem, "Unknown sort field: " + o.getField());
 
-                    SortField.Type type = determineSortType(infoItem);
-                    SortField sf =
+                    final SortField.Type type = determineSortType(infoItem);
+                    final SortField sf =
                             new SortedSetSortField(infoItem.getName().toLowerCase(), o.isDesc());
 
                     setMissingValuesOrder(sf, type, o.isDesc());
 
                     sortFields.add(sf);
                 } else {
-                    SortField sf;
+                    final SortField sf;
                     if (sortField.getType() == SortField.Type.STRING) {
                         sf = new SortedSetSortField(sortField.getField().getFieldName(), o.isDesc());
                     } else {
@@ -169,7 +171,7 @@ public abstract class AbstractIndexSearcher<T extends FeatureIndexEntry, R exten
         return null;
     }
 
-    private void setMissingValuesOrder(SortField sf, SortField.Type type, boolean desc) {
+    private void setMissingValuesOrder(final SortField sf, final SortField.Type type, final boolean desc) {
         if (sf instanceof SortedSetSortField) {
             sf.setMissingValue(desc ? SortField.STRING_FIRST : SortField.STRING_LAST);
         } else {
@@ -189,7 +191,7 @@ public abstract class AbstractIndexSearcher<T extends FeatureIndexEntry, R exten
         }
     }
 
-    private SortField.Type determineSortType(InfoItem item) {
+    private SortField.Type determineSortType(final InfoItem item) {
         switch (item.getType()) {
             case Integer:
                 return SortField.Type.INT;

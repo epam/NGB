@@ -50,40 +50,41 @@ public class PagingSearcher<T extends FeatureIndexEntry, R extends AbstractFilte
     private final Integer page;
     private final Integer pageSize;
 
-    public PagingSearcher(FeatureIndexDao featureIndexDao, FileManager fileManager,
-            VcfManager vcfManager, R filterForm, ExecutorService executorService) {
+    public PagingSearcher(final FeatureIndexDao featureIndexDao, final FileManager fileManager,
+                          final VcfManager vcfManager, final R filterForm, final ExecutorService executorService) {
         super(featureIndexDao, fileManager, vcfManager, filterForm, executorService);
         this.page = filterForm.getPage();
         this.pageSize = filterForm.getPageSize();
     }
 
     @Override
-    protected IndexSearchResult<T> performSearch(IndexSearcher searcher,
-            MultiReader reader, Query query, Sort sort, AbstractDocumentBuilder<T> documentCreator)
+    protected IndexSearchResult<T> performSearch(final IndexSearcher searcher, final MultiReader reader,
+                                                 final Query query, final  Sort sort,
+                                                 final AbstractDocumentBuilder<T> documentCreator)
             throws IOException {
-        int numDocs = page == null ? reader.numDocs() : page * pageSize;
+        final int numDocs = page == null ? reader.numDocs() : page * pageSize;
         final TopDocs docs = performSearch(searcher, query, reader, numDocs, sort);
 
-        int totalHits = docs.totalHits;
+        final int totalHits = docs.totalHits;
 
         final ScoreDoc[] hits = docs.scoreDocs;
-        List<T> entries = new ArrayList<>(pageSize);
-        ScoreDoc lastEntry = createIndexEntries(hits, entries, searcher, documentCreator, page, pageSize);
+        final List<T> entries = new ArrayList<>(pageSize);
+        final ScoreDoc lastEntry = createIndexEntries(hits, entries, searcher, documentCreator, page, pageSize);
 
         return new IndexSearchResult<>(entries, false, totalHits, lastEntry);
     }
 
-    private ScoreDoc createIndexEntries(final ScoreDoc[] hits, List<T> entries,
-            IndexSearcher searcher, AbstractDocumentBuilder<T> documentCreator, Integer page,
-            Integer pageSize) throws IOException {
-        int from = page != null ? (page - 1) * pageSize : 0;
-        int to = page != null ? Math.min(from + pageSize, hits.length) : hits.length;
+    private ScoreDoc createIndexEntries(final ScoreDoc[] hits, final List<T> entries, final IndexSearcher searcher,
+                                        final AbstractDocumentBuilder<T> documentCreator, final Integer page,
+                                        final Integer pageSize) throws IOException {
+        final int from = page != null ? (page - 1) * pageSize : 0;
+        final int to = page != null ? Math.min(from + pageSize, hits.length) : hits.length;
         if (from > hits.length) {
             return null;
         }
 
         for (int i = from; i < to; i++) {
-            T entry = documentCreator.buildEntry(searcher, hits[i].doc);
+            final T entry = documentCreator.buildEntry(searcher, hits[i].doc);
             entries.add(entry);
         }
         return hits.length == 0 ? null : hits[to-1];

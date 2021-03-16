@@ -437,7 +437,7 @@ public class FeatureIndexDao {
      * @return a {List} of {@code FeatureIndexEntry} objects that satisfy index query
      * @throws FeatureIndexException if something is wrong in the filesystem or query syntax is wrong
      */
-    public IndexSearchResult searchFileIndexes(List<? extends FeatureFile> files, String query,
+    public IndexSearchResult<FeatureIndexEntry> searchFileIndexes(List<? extends FeatureFile> files, String query,
                                                List<String> vcfInfoFields) throws FeatureIndexException {
         try (Analyzer analyzer = new StandardAnalyzer()) {
             QueryParser queryParser = new QueryParser(FeatureIndexFields.FEATURE_ID.getFieldName(), analyzer);
