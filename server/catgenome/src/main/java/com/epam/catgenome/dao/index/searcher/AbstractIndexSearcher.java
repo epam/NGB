@@ -99,7 +99,7 @@ public abstract class AbstractIndexSearcher<T extends FeatureIndexEntry, R exten
             throw new IllegalArgumentException("Variations filter shall be specified");
         }
 
-        try (final MultiReader reader = featureIndexDao.openMultiReader(indexes)) {
+        try (MultiReader reader = featureIndexDao.openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
                 return new IndexSearchResult<>(Collections.emptyList(), false, 0);
             }
@@ -126,9 +126,8 @@ public abstract class AbstractIndexSearcher<T extends FeatureIndexEntry, R exten
         return featureIndexDao.performSearch(searcher, query, reader, numDocs, sort);
     }
 
-    protected abstract IndexSearchResult<T> performSearch(final IndexSearcher searcher, final MultiReader reader,
-                                                          final Query query, final Sort sort,
-                                                          final AbstractDocumentBuilder<T> documentCreator)
+    protected abstract IndexSearchResult<T> performSearch(IndexSearcher searcher, MultiReader reader, Query query,
+                                                          Sort sort, AbstractDocumentBuilder<T> documentCreator)
             throws IOException;
 
     private Sort createSorting(final List<VcfFilterForm.OrderBy> orderBy,

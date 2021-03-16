@@ -93,9 +93,9 @@ public class GeneFilterForm extends AbstractFilterForm {
      */
     private void addFeatureNameFilter(final BooleanQuery.Builder builder) {
         final BooleanQuery.Builder prefixQueryBuilder = new BooleanQuery.Builder()
-        .add(new PrefixQuery(new Term(FeatureIndexDao.FeatureIndexFields.FEATURE_ID.getFieldName(),
+                .add(new PrefixQuery(new Term(FeatureIndexDao.FeatureIndexFields.FEATURE_ID.getFieldName(),
                 featureId.toLowerCase())), BooleanClause.Occur.SHOULD)
-        .add(new PrefixQuery(new Term(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName(),
+                .add(new PrefixQuery(new Term(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName(),
                 featureId.toLowerCase())), BooleanClause.Occur.SHOULD);
 
         builder.add(prefixQueryBuilder.build(), BooleanClause.Occur.MUST);
@@ -143,9 +143,9 @@ public class GeneFilterForm extends AbstractFilterForm {
     private void addPositionFilter(final BooleanQuery.Builder builder) {
         if (startIndex != null && endIndex != null) {
             final BooleanQuery.Builder positionBuilder = new BooleanQuery.Builder()
-            .add(IntPoint.newRangeQuery(FeatureIndexDao.FeatureIndexFields.START_INDEX.getFieldName(),
+                    .add(IntPoint.newRangeQuery(FeatureIndexDao.FeatureIndexFields.START_INDEX.getFieldName(),
                     startIndex, endIndex), BooleanClause.Occur.MUST)
-            .add(IntPoint.newRangeQuery(FeatureIndexDao.FeatureIndexFields.END_INDEX.getFieldName(),
+                    .add(IntPoint.newRangeQuery(FeatureIndexDao.FeatureIndexFields.END_INDEX.getFieldName(),
                     startIndex, endIndex), BooleanClause.Occur.MUST);
 
             builder.add(positionBuilder.build(), BooleanClause.Occur.MUST);

@@ -27,6 +27,7 @@
 package com.epam.catgenome.manager;
 
 import com.epam.catgenome.entity.gene.GeneFilterForm;
+import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.Group;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
@@ -56,12 +57,14 @@ public class FeatureIndexSecurityService {
     private FeatureIndexManager featureIndexManager;
 
     @PreAuthorize(ROLE_USER)
-    public IndexSearchResult searchFeaturesByReference(String featureId, Long referenceId) throws IOException {
+    public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(final String featureId,
+                                                                          final Long referenceId) throws IOException {
         return featureIndexManager.searchFeaturesByReference(featureId, referenceId);
     }
 
     @PreAuthorize(ROLE_USER)
-    public IndexSearchResult searchFeaturesByReference(GeneFilterForm filterForm, Long referenceId) throws IOException {
+    public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(final GeneFilterForm filterForm,
+                                                                          final Long referenceId) throws IOException {
         return featureIndexManager.searchFeaturesByReference(filterForm, referenceId);
     }
 
@@ -85,7 +88,8 @@ public class FeatureIndexSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + READ_PROJECT_BY_ID)
-    public IndexSearchResult searchFeaturesInProject(String featureId, Long projectId) throws IOException {
+    public IndexSearchResult<FeatureIndexEntry> searchFeaturesInProject(final String featureId,
+                                                                        final Long projectId) throws IOException {
         return featureIndexManager.searchFeaturesInProject(featureId, projectId);
     }
 

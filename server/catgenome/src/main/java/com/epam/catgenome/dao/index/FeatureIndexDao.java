@@ -227,10 +227,8 @@ public class FeatureIndexDao {
         }
     }
 
-    public IndexSearchResult<FeatureIndexEntry> searchFeatures(String featureId,
-                                                               FeatureFile featureFile,
-                                                               Integer maxResultsCount)
-            throws IOException {
+    public IndexSearchResult<FeatureIndexEntry> searchFeatures(final String featureId, final FeatureFile featureFile,
+                                                               final Integer maxResultsCount) throws IOException {
         return searchFeatures(featureId, Collections.singletonList(featureFile), maxResultsCount);
     }
 
@@ -242,33 +240,30 @@ public class FeatureIndexDao {
      * @return a {@code List} of {@code FeatureIndexEntry}
      * @throws IOException
      */
-    public IndexSearchResult<FeatureIndexEntry> searchFeatures(String featureId,
-                                                               List<? extends FeatureFile> featureFiles,
-                                                               Integer maxResultsCount)
-            throws IOException {
-
+    public IndexSearchResult<FeatureIndexEntry> searchFeatures(final String featureId,
+                                                               final List<? extends FeatureFile> featureFiles,
+                                                               final Integer maxResultsCount) throws IOException {
         if (featureId == null || featureId.length() < 2) {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
 
-        BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-
-        BooleanQuery.Builder prefixQueryBuilder = new BooleanQuery.Builder();
-        prefixQueryBuilder.add(new PrefixQuery(new Term(FeatureIndexFields.FEATURE_ID.getFieldName(),
-                featureId.toLowerCase())), BooleanClause.Occur.SHOULD);
-        prefixQueryBuilder.add(new PrefixQuery(new Term(FeatureIndexFields.FEATURE_NAME.getFieldName(),
+        final BooleanQuery.Builder prefixQueryBuilder = new BooleanQuery.Builder()
+                .add(new PrefixQuery(new Term(FeatureIndexFields.FEATURE_ID.getFieldName(),
+                featureId.toLowerCase())), BooleanClause.Occur.SHOULD)
+                .add(new PrefixQuery(new Term(FeatureIndexFields.FEATURE_NAME.getFieldName(),
                 featureId.toLowerCase())), BooleanClause.Occur.SHOULD);
 
         mainBuilder.add(prefixQueryBuilder.build(), BooleanClause.Occur.MUST);
 
-        BooleanQuery.Builder featureTypeBuilder = new BooleanQuery.Builder();
-        featureTypeBuilder.add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                FeatureType.GENE.getFileValue())), BooleanClause.Occur.SHOULD);
-        featureTypeBuilder.add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                FeatureType.MRNA.getFileValue())), BooleanClause.Occur.SHOULD);
-        featureTypeBuilder.add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                FeatureType.BOOKMARK.getFileValue())), BooleanClause.Occur.SHOULD);
-        featureTypeBuilder.add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
+        final BooleanQuery.Builder featureTypeBuilder = new BooleanQuery.Builder()
+                .add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
+                FeatureType.GENE.getFileValue())), BooleanClause.Occur.SHOULD)
+                .add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
+                FeatureType.MRNA.getFileValue())), BooleanClause.Occur.SHOULD)
+                .add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
+                FeatureType.BOOKMARK.getFileValue())), BooleanClause.Occur.SHOULD)
+                .add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
                 FeatureType.BED_FEATURE.getFileValue())), BooleanClause.Occur.SHOULD);
         mainBuilder.add(featureTypeBuilder.build(), BooleanClause.Occur.MUST);
 
@@ -459,31 +454,32 @@ public class FeatureIndexDao {
      * @return a {List} of {@code FeatureIndexEntry} objects that satisfy index query
      * @throws IOException if something is wrong in the filesystem
      */
-    public <T extends FeatureIndexEntry> IndexSearchResult<T> searchFileIndexes(List<? extends FeatureFile> files,
-                                                                                Query query, List<String> vcfInfoFields,
-                                                                                Integer maxResultsCount, Sort sort)
-            throws IOException {
+    public <T extends FeatureIndexEntry> IndexSearchResult<T> searchFileIndexes(final List<? extends FeatureFile> files,
+                                                                                final Query query,
+                                                                                final List<String> vcfInfoFields,
+                                                                                final Integer maxResultsCount,
+                                                                                final Sort sort) throws IOException {
         if (CollectionUtils.isEmpty(files)) {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
 
-        Map<Integer, FeatureIndexEntry> entryMap = new LinkedHashMap<>();
+        final Map<Integer, FeatureIndexEntry> entryMap = new LinkedHashMap<>();
 
-        SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
 
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
                 return new IndexSearchResult<>(Collections.emptyList(), false, 0);
             }
 
-            IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
+            final IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
             final TopDocs docs = performSearch(searcher, query, reader, maxResultsCount, sort);
 
             int totalHits = docs.totalHits;
             final ScoreDoc[] hits = docs.scoreDocs;
 
-            Map<Long, BookmarkIndexEntry> foundBookmarkEntries = new HashMap<>(); // for batch bookmarks loading
-            AbstractDocumentBuilder documentCreator = AbstractDocumentBuilder.createDocumentCreator(
+            final Map<Long, BookmarkIndexEntry> foundBookmarkEntries = new HashMap<>(); // for batch bookmarks loading
+            final AbstractDocumentBuilder documentCreator = AbstractDocumentBuilder.createDocumentCreator(
                     files.get(0).getFormat(), vcfInfoFields);
             createIndexEntries(hits, entryMap, searcher, documentCreator);
             setBookmarks(foundBookmarkEntries);
@@ -492,7 +488,7 @@ public class FeatureIndexDao {
                     maxResultsCount != null &&
                             totalHits > maxResultsCount, totalHits);
         } finally {
-            for (SimpleFSDirectory index : indexes) {
+            for (final SimpleFSDirectory index : indexes) {
                 IOUtils.closeQuietly(index);
             }
         }

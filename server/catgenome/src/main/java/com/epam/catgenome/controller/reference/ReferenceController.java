@@ -31,6 +31,7 @@ import com.epam.catgenome.controller.vo.SpeciesVO;
 import com.epam.catgenome.controller.vo.TrackQuery;
 import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.entity.gene.GeneFilterForm;
+import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
@@ -186,9 +187,9 @@ public class ReferenceController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<IndexSearchResult> searchFeatureInProject(@PathVariable(value = "referenceId") final Long referenceId,
-                                                            @RequestParam String featureId)
-        throws IOException {
+    public Result<IndexSearchResult<FeatureIndexEntry>> searchFeatureInProject(
+            @PathVariable(value = "referenceId") final Long referenceId,
+            @RequestParam final String featureId) throws IOException {
         return Result.success(featureIndexSecurityService.searchFeaturesByReference(featureId, referenceId));
     }
 
@@ -201,7 +202,7 @@ public class ReferenceController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<IndexSearchResult> searchFeatureInProjectWithFilter(
+    public Result<IndexSearchResult<FeatureIndexEntry>> searchFeatureInProjectWithFilter(
                                                             @PathVariable(value = "referenceId") final Long referenceId,
                                                             @RequestBody final GeneFilterForm geneFilterForm)
         throws IOException {

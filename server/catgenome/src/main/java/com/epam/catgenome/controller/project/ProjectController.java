@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.manager.FeatureIndexSecurityService;
 import com.epam.catgenome.manager.project.ProjectSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -231,8 +232,8 @@ public class ProjectController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<IndexSearchResult> searchFeatureInProject(
-            @PathVariable(value = PROJECT_ID_PARAM) final Long projectId, @RequestParam String featureId)
+    public Result<IndexSearchResult<FeatureIndexEntry>> searchFeatureInProject(
+            @PathVariable(value = PROJECT_ID_PARAM) final Long projectId, @RequestParam final String featureId)
             throws IOException {
         return Result.success(featureIndexSecurityService.searchFeaturesInProject(featureId, projectId));
     }

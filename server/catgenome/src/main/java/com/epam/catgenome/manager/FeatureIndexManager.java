@@ -94,6 +94,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.dao.index.searcher.AbstractIndexSearcher.getIndexSearcher;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Source:      VcfIndexManager
@@ -174,14 +175,14 @@ public class FeatureIndexManager {
         List<VcfFile> vcfFiles = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
-            .collect(Collectors.toList());
+            .collect(toList());
 
         List<VcfFile> selectedVcfFiles;
         if (CollectionUtils.isEmpty(vcfFileIds)) {
             selectedVcfFiles = vcfFiles;
         } else {
             selectedVcfFiles = vcfFiles.stream().filter(f -> vcfFileIds.contains(f.getId()))
-                .collect(Collectors.toList());
+                .collect(toList());
         }
 
         return featureIndexDao.searchGenesInVcfFiles(gene, selectedVcfFiles);
@@ -215,7 +216,7 @@ public class FeatureIndexManager {
         List<VcfFile> vcfFiles = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
-            .collect(Collectors.toList());
+            .collect(toList());
 
         List<Chromosome> chromosomes = referenceGenomeManager.loadChromosomes(vcfFiles.get(0).getReferenceId());
         Map<Long, Chromosome> chromosomeMap = chromosomes.parallelStream()
@@ -224,7 +225,7 @@ public class FeatureIndexManager {
         List<Long> chromosomeIds = featureIndexDao.getChromosomeIdsWhereVariationsPresentFacet(vcfFiles, filterForm
                 .computeQuery(FeatureType.VARIATION));
 
-        return chromosomeIds.stream().map(chromosomeMap::get).collect(Collectors.toList());
+        return chromosomeIds.stream().map(chromosomeMap::get).collect(toList());
     }
 
     /**
@@ -246,7 +247,7 @@ public class FeatureIndexManager {
         List<Long> chromosomeIds = featureIndexDao.getChromosomeIdsWhereVariationsPresentFacet(vcfFiles, filterForm
                                                                                 .computeQuery(FeatureType.VARIATION));
 
-        return chromosomeIds.stream().map(chromosomeMap::get).collect(Collectors.toList());
+        return chromosomeIds.stream().map(chromosomeMap::get).collect(toList());
     }
 
     /**
@@ -263,7 +264,7 @@ public class FeatureIndexManager {
         List<VcfFile> files = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
-            .collect(Collectors.toList());
+            .collect(toList());
         return getVcfSearchResult(filterForm, files);
     }
 
@@ -287,7 +288,7 @@ public class FeatureIndexManager {
         List<VcfFile> files = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
-            .collect(Collectors.toList());
+            .collect(toList());
         int totalCount = featureIndexDao.getTotalVariationsCountFacet(files, filterForm.computeQuery(
             FeatureType.VARIATION));
         return (int) Math.ceil(totalCount / filterForm.getPageSize().doubleValue());
@@ -307,7 +308,7 @@ public class FeatureIndexManager {
         List<VcfFile> files = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
-            .collect(Collectors.toList());
+            .collect(toList());
         return featureIndexDao.groupVariations(files, filterForm.computeQuery(FeatureType.VARIATION), groupByField);
     }
 
@@ -336,19 +337,19 @@ public class FeatureIndexManager {
         return getVcfSearchResult(filterForm, files);
     }
 
-    @NotNull private IndexSearchResult<VcfIndexEntry> getVcfSearchResult(VcfFilterForm filterForm,
-            List<VcfFile> files) throws IOException {
+    @NotNull private IndexSearchResult<VcfIndexEntry> getVcfSearchResult(final VcfFilterForm filterForm,
+            final List<VcfFile> files) throws IOException {
         if (filterForm.getPage() != null && filterForm.getPageSize() != null) {
-            LuceneIndexSearcher<VcfIndexEntry> indexSearcher =
+            final LuceneIndexSearcher<VcfIndexEntry> indexSearcher =
                     getIndexSearcher(filterForm, featureIndexDao,
                             fileManager, vcfManager, taskExecutorService.getSearchExecutor());
-            IndexSearchResult<VcfIndexEntry> res =
+            final IndexSearchResult<VcfIndexEntry> res =
                     indexSearcher.getSearchResults(files, filterForm.computeQuery(FeatureType.VARIATION));
             res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount()
                     / filterForm.getPageSize().doubleValue()));
             return res;
         } else {
-            IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexes(files,
+            final IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexes(files,
                                filterForm.computeQuery(FeatureType.VARIATION), filterForm.getInfoFields(),
                                                                            null, null);
             res.setExceedsLimit(false);
@@ -356,20 +357,21 @@ public class FeatureIndexManager {
         }
     }
 
-    private IndexSearchResult<FeatureIndexEntry> getGeneSearchResult(GeneFilterForm filterForm,
-                                                                     List<FeatureFile> featureFiles)
+    private IndexSearchResult<FeatureIndexEntry> getGeneSearchResult(final GeneFilterForm filterForm,
+                                                                     final List<FeatureFile> featureFiles)
             throws IOException {
         if (filterForm.getPageSize() != null) {
-            LuceneIndexSearcher<FeatureIndexEntry> indexSearcher =
-                    getIndexSearcher(filterForm, featureIndexDao,
-                            fileManager, vcfManager, taskExecutorService.getSearchExecutor());
-            IndexSearchResult<FeatureIndexEntry> res =
+            final LuceneIndexSearcher<FeatureIndexEntry> indexSearcher =
+                    getIndexSearcher(filterForm, featureIndexDao, fileManager, vcfManager,
+                            taskExecutorService.getSearchExecutor());
+            final IndexSearchResult<FeatureIndexEntry> res =
                     indexSearcher.getSearchResults(featureFiles, filterForm.computeQuery());
+
             res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount()
                     / filterForm.getPageSize().doubleValue()));
             return res;
         } else {
-            IndexSearchResult<FeatureIndexEntry> res = featureIndexDao.searchFileIndexes(featureFiles,
+            final IndexSearchResult<FeatureIndexEntry> res = featureIndexDao.searchFileIndexes(featureFiles,
                     filterForm.computeQuery(), null, null, filterForm.createSorting());
             res.setExceedsLimit(false);
             return res;
@@ -383,47 +385,48 @@ public class FeatureIndexManager {
      * @return a {@code List} of {@code FeatureIndexEntry}
      * @throws IOException if something goes wrong with the file system
      */
-    public IndexSearchResult<FeatureIndexEntry> searchFeaturesInProject(String featureId, long projectId) throws IOException {
+    public IndexSearchResult<FeatureIndexEntry> searchFeaturesInProject(final String featureId,
+                                                                        final long projectId) throws IOException {
         if (featureId == null || featureId.length() < 2) {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
 
-        IndexSearchResult<FeatureIndexEntry> bookmarkSearchRes = bookmarkManager.searchBookmarks(featureId,
+        final IndexSearchResult<FeatureIndexEntry> bookmarkSearchRes = bookmarkManager.searchBookmarks(featureId,
                                                                                          maxFeatureSearchResultsCount);
-
-        Project project = projectManager.load(projectId);
-        Optional<Reference> opt = project.getItems().stream()
+        final Project project = projectManager.load(projectId);
+        final Optional<Reference> opt = project.getItems().stream()
                 .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.REFERENCE)
-                .map(i -> (Reference) i.getBioDataItem()).findFirst();
+                .map(i -> (Reference) i.getBioDataItem())
+                .findFirst();
         if (opt.isPresent() && opt.get().getGeneFile() != null) {
-            IndexSearchResult<FeatureIndexEntry> res = featureIndexDao.searchFeatures(featureId,
+            final IndexSearchResult<FeatureIndexEntry> res = featureIndexDao.searchFeatures(featureId,
                     geneFileManager.load(opt.get().getGeneFile().getId()),
                     maxFeatureSearchResultsCount);
             bookmarkSearchRes.mergeFrom(res);
             return bookmarkSearchRes;
         }
-
         return bookmarkSearchRes;
     }
 
-    public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(GeneFilterForm filterForm, long referenceId)
-            throws IOException {
+    public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(final GeneFilterForm filterForm,
+                                                                          final long referenceId) throws IOException {
         final String featureId = filterForm.getFeatureId();
         if (featureId == null || featureId.length() < 2) {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
 
-        IndexSearchResult<FeatureIndexEntry> res = getGeneSearchResult(filterForm, getFeatureFiles(referenceId));
+        final IndexSearchResult<FeatureIndexEntry> res = getGeneSearchResult(filterForm, getFeatureFiles(referenceId));
 
         return mergeWithBookmarkSearch(res, featureId);
     }
 
-    public IndexSearchResult searchFeaturesByReference(String featureId, long referenceId) throws IOException {
+    public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(final String featureId,
+                                                                          final long referenceId) throws IOException {
         if (featureId == null || featureId.length() < 2) {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
 
-        IndexSearchResult<FeatureIndexEntry> res = featureIndexDao.searchFeatures(
+        final IndexSearchResult<FeatureIndexEntry> res = featureIndexDao.searchFeatures(
                 featureId, getFeatureFiles(referenceId), maxFeatureSearchResultsCount
         );
 
@@ -446,7 +449,7 @@ public class FeatureIndexManager {
                 .filter(item -> item.getBioDataItem() != null
                         && item.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
                 .map(item -> (item.getBioDataItem()).getId())
-                .collect(Collectors.toList());
+                .collect(toList());
 
         return vcfManager.getFiltersInfo(vcfIds);
     }
@@ -514,7 +517,7 @@ public class FeatureIndexManager {
             geneIds.addAll(genes.stream()
                     .filter(GeneUtils::isGene)
                     .map(Gene::getGroupId)
-                    .collect(Collectors.toList()));
+                    .collect(toList()));
         }
 
         return geneIds;
@@ -631,24 +634,24 @@ public class FeatureIndexManager {
         }
     }
 
-    private IndexSearchResult<FeatureIndexEntry> mergeWithBookmarkSearch(IndexSearchResult<FeatureIndexEntry> res,
-                                                                         String featureId) {
-        IndexSearchResult<FeatureIndexEntry> bookmarkSearchRes = bookmarkManager.searchBookmarks(featureId,
+    private IndexSearchResult<FeatureIndexEntry> mergeWithBookmarkSearch(final IndexSearchResult<FeatureIndexEntry> res,
+                                                                         final String featureId) {
+        final IndexSearchResult<FeatureIndexEntry> bookmarkSearchRes = bookmarkManager.searchBookmarks(featureId,
                 maxFeatureSearchResultsCount);
         bookmarkSearchRes.mergeFrom(res);
         return bookmarkSearchRes;
     }
 
-    private List<FeatureFile> getFeatureFiles(long referenceId) {
-        Reference reference = referenceGenomeManager.load(referenceId);
+    private List<FeatureFile> getFeatureFiles(final long referenceId) {
+        final Reference reference = referenceGenomeManager.load(referenceId);
 
-        List<FeatureFile> annotationFiles = referenceGenomeManager.getReferenceAnnotationFiles(referenceId)
+        final List<FeatureFile> annotationFiles = referenceGenomeManager.getReferenceAnnotationFiles(referenceId)
                 .stream()
                 .map(biologicalDataItem -> (FeatureFile) biologicalDataItem)
-                .collect(Collectors.toList());
-        GeneFile geneFile = reference.getGeneFile();
+                .collect(toList());
+        final GeneFile geneFile = reference.getGeneFile();
         if (geneFile != null) {
-            Long geneFileId = geneFile.getId();
+            final Long geneFileId = geneFile.getId();
             annotationFiles.add(geneFileManager.load(geneFileId));
         }
         return annotationFiles;
