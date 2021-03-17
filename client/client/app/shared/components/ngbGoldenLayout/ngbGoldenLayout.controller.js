@@ -16,7 +16,8 @@ export default class ngbGoldenLayoutController extends baseController {
         ngbVariations: 'ngbVariantsTablePanel',
         ngbDataSets: 'ngbDataSets',
         ngbLog: 'ngbLog',
-        ngbBlatSearchPanel: 'ngbBlatSearchPanel'
+        ngbBlatSearchPanel: 'ngbBlatSearchPanel',
+        ngbBlastSearchPanel: 'ngbBlastSearchPanel',
     };
     eventsNotForShareFromParent = ['layout:panels:displayed', 'layout:restore:default', 'layout:load',
         'layout:item:change', 'ngbFilter:setDefault'];
@@ -56,6 +57,7 @@ export default class ngbGoldenLayoutController extends baseController {
         'reference:change': ::this.panelRemoveExtraWindows,
         'read:show:mate': ::this.panelAddBrowserWithPairRead,
         'read:show:blat': ::this.panelAddBlatSearchPanel,
+        'read:show:blast': :: this.panelAddBlastSearchPanel,
         'tracks:state:change': ::this.panelRemoveBlatSearchPanel,
         'variant:show:pair': ::this.panelAddBrowserWithVariation
     };
@@ -329,6 +331,13 @@ export default class ngbGoldenLayoutController extends baseController {
             }
         }
     }
+    blastSearchPanelDestroyedHandler(item) {
+        if (item.type === 'component') {
+            if (item.config.componentState.panel === this.panels.ngbBlastSearchPanel) {
+                this.goldenLayout.off('itemDestroyed', this.blastSearchPanelDestroyedHandler, this);
+            }
+        }
+    }
 
     blatSearchPanelRemoved() {
         localStorage.removeItem('blatSearchRequest');
@@ -366,6 +375,25 @@ export default class ngbGoldenLayoutController extends baseController {
             const parent = blatSearchItem.parent;
             if (parent && parent.type === 'stack') {
                 parent.setActiveContentItem(blatSearchItem);
+            }
+        }
+    }
+    panelAddBlastSearchPanel() {
+        const layoutChange = this.appLayout.Panels.blast;
+        layoutChange.displayed = true;
+
+        const [blastSearchItem] = this.goldenLayout.root
+            .getItemsByFilter((obj) => obj.config && obj.config.componentState
+                && obj.config.componentState.panel === this.panels.ngbBlastSearchPanel);
+
+        this.goldenLayout.on('itemDestroyed', this.blatSearchPanelDestroyedHandler, this);
+
+        if (!blastSearchItem) {
+            this.panelAdd(layoutChange);
+        } else {
+            const parent = blatSearchItem.parent;
+            if (parent && parent.type === 'stack') {
+                parent.setActiveContentItem(blastSearchItem);
             }
         }
     }

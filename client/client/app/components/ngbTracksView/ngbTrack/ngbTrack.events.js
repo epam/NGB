@@ -65,7 +65,7 @@ export default class ngbTrackEvents {
                         menuData.push({
                             events: [
                                 {
-                                    data: {layoutChange: layoutChange},
+                                    data: { layoutChange },
                                     name: 'layout:item:change'
                                 },
                                 {
@@ -315,6 +315,13 @@ export default class ngbTrackEvents {
                 name: 'read:show:blat',
             }],
         };
+        const openBlastSearchMenuItem = {
+            title: 'BLAST Search',
+            events: [{
+                data: {},
+                name: 'read:show:blast',
+            }],
+        };
 
         const menuData = [];
         menuData.push(showInfo);
@@ -323,6 +330,7 @@ export default class ngbTrackEvents {
             menuData.push(openMateMenuItem);
         }
         menuData.push(openBlatSearchMenuItem);
+        menuData.push(openBlastSearchMenuItem);
         menuData.push(copyToClipboard);
         menuData.push(copySequenceToClipboard);
         if (chromosomeNotFoundError) {

@@ -1,4 +1,4 @@
-export default  {
+export default {
     Columns: {
         center: {
             width: 75
@@ -53,6 +53,15 @@ export default  {
             position: 'right',
             title: 'Blat',
             name: 'layout>blat'
+        },
+        blast: {
+            isHidden: true,
+            displayed: false,
+            icon: '',
+            panel: 'ngbBlastSearchPanel',
+            position: 'right',
+            title: 'Blast',
+            name: 'layout>blast'
         },
         ...(() => {
             const devPanels = {
