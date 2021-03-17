@@ -31,7 +31,6 @@ import com.epam.catgenome.entity.AbstractFilterForm;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.manager.FileManager;
-import com.epam.catgenome.manager.vcf.VcfManager;
 import org.apache.lucene.index.MultiReader;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -51,8 +50,8 @@ public class PagingSearcher<T extends FeatureIndexEntry, R extends AbstractFilte
     private final Integer pageSize;
 
     public PagingSearcher(final FeatureIndexDao featureIndexDao, final FileManager fileManager,
-                          final VcfManager vcfManager, final R filterForm, final ExecutorService executorService) {
-        super(featureIndexDao, fileManager, vcfManager, filterForm, executorService);
+                          final R filterForm, final ExecutorService executorService) {
+        super(featureIndexDao, fileManager, filterForm, executorService);
         this.page = filterForm.getPage();
         this.pageSize = filterForm.getPageSize();
     }

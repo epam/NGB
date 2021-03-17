@@ -1258,6 +1258,31 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void searchGenesByFilterWithIncorrectSortingName() throws IOException {
+        final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
+        geneFilterForm.setOrderBy(Collections.singletonList(new OrderBy("TEST_TEST", true)));
+
+        final IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchFeaturesByReference(
+                geneFilterForm, referenceId);
+
+        assertEquals(TEST_AMOUNT, result.getEntries().size());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void searchGenesByFilterWithPageSizeAndIncorrectSortingName() throws IOException {
+        final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
+        geneFilterForm.setOrderBy(Collections.singletonList(new OrderBy("TEST_TEST", true)));
+        geneFilterForm.setPageSize((int) TEST_AMOUNT);
+
+        final IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchFeaturesByReference(
+                geneFilterForm, referenceId);
+
+        assertEquals(TEST_AMOUNT, result.getEntries().size());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void searchGenesByFilterWithPageSize() throws IOException {
         final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
         geneFilterForm.setPageSize((int) TEST_PAGE_SIZE);

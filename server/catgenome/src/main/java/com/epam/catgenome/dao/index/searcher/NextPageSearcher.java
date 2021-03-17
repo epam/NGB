@@ -30,7 +30,6 @@ import com.epam.catgenome.entity.AbstractFilterForm;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.manager.FileManager;
-import com.epam.catgenome.manager.vcf.VcfManager;
 import org.apache.lucene.index.MultiReader;
 import org.apache.lucene.search.ConstantScoreQuery;
 import org.apache.lucene.search.IndexSearcher;
@@ -51,8 +50,8 @@ public class NextPageSearcher<T extends FeatureIndexEntry, R extends AbstractFil
     private Integer pageSize;
 
     public NextPageSearcher(final FeatureIndexDao featureIndexDao, final FileManager fileManager,
-            final VcfManager vcfManager, final R filterForm, final ExecutorService executorService) {
-        super(featureIndexDao, fileManager, vcfManager, filterForm, executorService);
+                            final R filterForm, final ExecutorService executorService) {
+        super(featureIndexDao, fileManager, filterForm, executorService);
         this.pointer = filterForm.getPointer().toScoreDoc();
         this.pageSize = filterForm.getPageSize();
     }

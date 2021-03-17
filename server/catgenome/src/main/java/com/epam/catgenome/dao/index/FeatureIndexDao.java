@@ -27,6 +27,7 @@ package com.epam.catgenome.dao.index;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.index.field.IndexSortField;
 import com.epam.catgenome.dao.index.indexer.AbstractDocumentBuilder;
+import com.epam.catgenome.entity.AbstractFilterForm;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
@@ -83,6 +84,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.SortedSetSortField;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
@@ -110,6 +112,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 /**
  * Source:      FeatureIndexDao
@@ -526,6 +529,78 @@ public class FeatureIndexDao {
             for (SimpleFSDirectory index : indexes) {
                 IOUtils.closeQuietly(index);
             }
+        }
+    }
+
+    public Sort createSorting(final List<AbstractFilterForm.OrderBy> orderBy,
+                              final List<? extends FeatureFile> files) throws IOException {
+        if (isNotEmpty(orderBy)) {
+            final ArrayList<SortField> sortFields = new ArrayList<>();
+            for (AbstractFilterForm.OrderBy o : orderBy) {
+                final IndexSortField sortField = IndexSortField.getByName(o.getField());
+                if (sortField == null) {
+                    if (!files.isEmpty() && files.get(0) instanceof VcfFile) {
+                        final VcfFilterInfo info = vcfManager.getFiltersInfo(
+                                files.stream().map(BaseEntity::getId).collect(Collectors.toList()));
+
+                        final InfoItem infoItem = info.getInfoItemMap().get(o.getField());
+                        Assert.notNull(infoItem, "Unknown sort field: " + o.getField());
+
+                        final SortField.Type type = determineSortType(infoItem);
+                        final SortField sf =
+                                new SortedSetSortField(infoItem.getName().toLowerCase(), o.isDesc());
+
+                        setMissingValuesOrder(sf, type, o.isDesc());
+
+                        sortFields.add(sf);
+                    }
+                } else {
+                    final SortField sf;
+                    if (sortField.getType() == SortField.Type.STRING) {
+                        sf = new SortedSetSortField(sortField.getField().getFieldName(), o.isDesc());
+                    } else {
+                        sf = new SortField(sortField.getField().getFieldName(), sortField.getType(),
+                                o.isDesc());
+                    }
+                    setMissingValuesOrder(sf, sortField.getType(), o.isDesc());
+
+                    sortFields.add(sf);
+                }
+            }
+
+            return sortFields.isEmpty() ? new Sort() : new Sort(sortFields.toArray(new SortField[sortFields.size()]));
+        }
+
+        return null;
+    }
+    private void setMissingValuesOrder(final SortField sf, final SortField.Type type, final boolean desc) {
+        if (sf instanceof SortedSetSortField) {
+            sf.setMissingValue(desc ? SortField.STRING_FIRST : SortField.STRING_LAST);
+        } else {
+            switch (type) {
+                case STRING:
+                    sf.setMissingValue(desc ? SortField.STRING_FIRST : SortField.STRING_LAST);
+                    break;
+                case FLOAT:
+                    sf.setMissingValue(Float.MIN_VALUE);
+                    break;
+                case INT:
+                    sf.setMissingValue(Integer.MIN_VALUE);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unexpected sort type: " + type);
+            }
+        }
+    }
+
+    private SortField.Type determineSortType(final InfoItem item) {
+        switch (item.getType()) {
+            case Integer:
+                return SortField.Type.INT;
+            case Float:
+                return SortField.Type.FLOAT;
+            default:
+                return SortField.Type.STRING;
         }
     }
 

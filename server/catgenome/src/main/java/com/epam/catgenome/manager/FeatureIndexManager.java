@@ -341,8 +341,7 @@ public class FeatureIndexManager {
             final List<VcfFile> files) throws IOException {
         if (filterForm.getPage() != null && filterForm.getPageSize() != null) {
             final LuceneIndexSearcher<VcfIndexEntry> indexSearcher =
-                    getIndexSearcher(filterForm, featureIndexDao,
-                            fileManager, vcfManager, taskExecutorService.getSearchExecutor());
+                    getIndexSearcher(filterForm, featureIndexDao, fileManager, taskExecutorService.getSearchExecutor());
             final IndexSearchResult<VcfIndexEntry> res =
                     indexSearcher.getSearchResults(files, filterForm.computeQuery(FeatureType.VARIATION));
             res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount()
@@ -362,8 +361,7 @@ public class FeatureIndexManager {
             throws IOException {
         if (filterForm.getPageSize() != null) {
             final LuceneIndexSearcher<FeatureIndexEntry> indexSearcher =
-                    getIndexSearcher(filterForm, featureIndexDao, fileManager, vcfManager,
-                            taskExecutorService.getSearchExecutor());
+                    getIndexSearcher(filterForm, featureIndexDao, fileManager, taskExecutorService.getSearchExecutor());
             final IndexSearchResult<FeatureIndexEntry> res =
                     indexSearcher.getSearchResults(featureFiles, filterForm.computeQuery());
 

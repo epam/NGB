@@ -67,7 +67,9 @@ public class GeneFilterForm extends AbstractFilterForm {
         final List<SortField> sortFields = new ArrayList<>();
         for (OrderBy order : orderBy) {
             final IndexSortField indexSortField = IndexSortField.getByName(order.getField());
-            sortFields.add(new SortField(indexSortField.getFieldName(), indexSortField.getType(), order.isDesc()));
+            if (indexSortField != null) {
+                sortFields.add(new SortField(indexSortField.getFieldName(), indexSortField.getType(), order.isDesc()));
+            }
         }
         return sortFields.isEmpty() ? new Sort() : new Sort(sortFields.toArray(new SortField[sortFields.size()]));
     }
