@@ -413,9 +413,7 @@ public class FeatureIndexManager {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
 
-        final IndexSearchResult<FeatureIndexEntry> res = getGeneSearchResult(filterForm, getFeatureFiles(referenceId));
-
-        return mergeWithBookmarkSearch(res, featureId);
+        return getGeneSearchResult(filterForm, getFeatureFiles(referenceId));
     }
 
     public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(final String featureId,
