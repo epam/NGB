@@ -231,6 +231,35 @@
                                     </div>
                                 </md-input-container>
                             </div>
+                            <div class="row"><h4>Splice Junctions</h4></div>
+                            <div class="row">
+                                <md-checkbox
+                                    aria-label="Enable filtering"
+                                    ng-model="ctrl.settings.spliceJunctionsFiltering"
+                                >
+                                    <div class="hint">Enable filtering</div>
+                                </md-checkbox>
+                                <md-input-container>
+                                    <input
+                                        name="coverageThreshold"
+                                        type="number"
+                                        placeholder="coverage threshold"
+                                        ng-disabled="!ctrl.settings.spliceJunctionsFiltering"
+                                        ng-required="ctrl.settings.spliceJunctionsFiltering"
+                                        ng-min="0"
+                                        ng-model="ctrl.settings.spliceJunctionsCoverageThreshold"
+                                    />
+                                    <div ng-messages="settingsForm.coverageThreshold.$error">
+                                        <div
+                                            ng-message="required"
+                                            ng-show="ctrl.settings.spliceJunctionsFiltering &&
+                                                !ctrl.settings.spliceJunctionsCoverageThreshold"
+                                        >
+                                            Enter coverage threshold
+                                        </div>
+                                    </div>
+                                </md-input-container>
+                            </div>
                         </div>
                     </md-content>
                 </md-tab>

@@ -187,6 +187,7 @@ export default {
         maxBAMBP: 100000,
         maxBAMCoverageBP: 500000,
         alleleFrequencyThresholdBam: 0.1,
+        spliceJunctionsFiltering: false,
         maxBpCount: 10000,
         maxFrameSize: 50,
         maxReadsCount: 300,
