@@ -4,13 +4,16 @@ import $ from 'jquery';
 import { getRenderer } from '../core';
 import { ScaleRenderer } from './partials/scale/scaleRenderer';
 import { ScaleTransformer } from './partials/scale/scaleTransformer';
+import { ChromosomeColumnRenderer } from './partials/chromosomeColumn/chromosomeColumnRenderer';
+import drawingConfig from './whole-genome-config';
 
 export default class WholeGenomeRenderer {
 
-    constructor(canvas, displayTooltip = null) {
+    constructor(canvas, maxChromosomeSize, chromosomes, displayTooltip = null) {
         
-        this._ticksCount = 50;
-        this._range = 500000;
+        this._ticksCount = drawingConfig.ticks;
+        this._range = maxChromosomeSize;
+        this._chromosomes = chromosomes;
 
         this._canvas = canvas;
         this._width = canvas.clientWidth;
@@ -22,28 +25,35 @@ export default class WholeGenomeRenderer {
         this._pixiRenderer = getRenderer({
             width: this.width,
             height: this.height
-          }, 
-          { backgroundColor: 0xffffff});
+            }, 
+            { backgroundColor: 0xffffff });
 
         this._scaleRenderer = new ScaleRenderer(
-          this.container,
-          {
-            width: $(this.canvasElement).width(),
-            height: $(this.canvasElement).height()
-          },
-          {
-            start: { x: 10, y:30 },
-          },
-          {
-            topMargin: 20
-          },
-           this._range
+            this.container,
+            {
+                width: $(this.canvasElement).width(),
+                height: $(this.canvasElement).height()
+            },
+            drawingConfig.start,
+            this.range
           );
+
+          this._chromosomeRenderer = new ChromosomeColumnRenderer(
+              this.container,
+              {
+                  width: $(this.canvasElement).width(),
+                  height: $(this.canvasElement).height()
+              },
+              drawingConfig,
+              this.chromosomes,
+              this.range
+            );
 
         this.canvasElement.appendChild(this.renderer.view);
         this.scaleRenderer.init(
             ScaleTransformer.buildTicks(this._range, this._ticksCount)
         );
+        this.chromosomeRenderer.init();
         this.resizeRenderer();
 
         $(window).on('resize', () => {
@@ -69,12 +79,24 @@ export default class WholeGenomeRenderer {
       return this._scaleRenderer;
     }
 
+    get chromosomeRenderer() {
+        return this._chromosomeRenderer;
+    }
+
     get width() {
         return this._width;
     }
 
     get height() {
         return this._height;
+    }
+    
+    get range() {
+        return this._range;
+    }
+
+    get chromosomes(){
+        return this._chromosomes;
     }
 
     get flags() {

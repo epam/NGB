@@ -3,52 +3,81 @@ import config from '../../whole-genome-config';
 
 export class ScaleRenderer {
 
-    constructor(container, canvasSize, positionInfo, drawingConfig, range){
+    constructor(container, canvasSize, drawingConfig, range){
         this._ticksNumber;
+        this._ticks;
         Object.assign(this, {
             container,
-            positionInfo,
             canvasSize,
             drawingConfig,
             range
         });
     }
 
-    get start() { return this.positionInfo.start };
+    get start() { 
+        return this.drawingConfig 
+    };
 
-    get width(){ return this.canvasSize.width };
-    get height(){ return this.canvasSize.height };
+    get width() { 
+        return this.canvasSize.width 
+    };
+    get height() { 
+        return this.canvasSize.height 
+    };
 
-    get containerHeight(){ return this.height - 2 * this.topMargin};
-    get topMargin(){ return this.drawingConfig.topMargin };
-    get config(){ return config };
+    get containerHeight() { 
+        return this.height - 2 * this.topMargin
+    };
+
+    get topMargin() { 
+        return this.drawingConfig.topMargin 
+    };
+
+    get config() { 
+        return config 
+    };
     
-    get ticksNumber(){ return this._ticksNumber };
-    set ticksNumber(newTicksNumber){ this._ticksNumber = newTicksNumber };
-    get pixelStep(){ return Math.round(this.containerHeight/this.ticksNumber) }
+    get ticksNumber() { 
+        return this._ticksNumber 
+    };
+
+    set ticksNumber(newTicksNumber){ 
+        this._ticksNumber = newTicksNumber 
+    };
+    get ticks() {
+        return this._ticks;
+    }
+    get realStep() {
+        return this.ticks[1].value - this.ticks[0].value;
+    }
+    get pixelStep() {
+        return (this.containerHeight/ (this.ticksNumber - 1) - this.config.tick.thickness);
+    }
   
     init(ticks) { 
+        this._ticks = ticks;
         this.ticksNumber = ticks.length;
         const container = new PIXI.Container();
+        container.x = 0;
+        container.y = this.topMargin;
         this.createAxis(this.config, container);
-        this.createTicks(container, ticks || [])
+        this.createTicks(container, ticks || []);
         this.container.addChild(container);
         return container;
     }
 
     createAxis(config, container){
         const axis = new PIXI.Graphics();
+        axis.x = 0;
+        axis.y = 0;
         axis
         .lineStyle(config.axis.thickness, config.axis.color, 1)
-        .moveTo(this.start.x, this.start.y)
-        .lineTo(this.start.x, this.containerHeight + (this.ticksNumber * config.axis.thickness/2))
-        //.lineTo(this.start.x, this.containerHeight)
-        .moveTo(this.start.x, this.start.y);
+        .moveTo(this.start.x, 0)
+        .lineTo(this.start.x, this.containerHeight);
         container.addChild(axis);
     }
 
     renderTick(tick, graphics, tickConfig){
-
         const {
             container,
             ticksGraphics,
@@ -94,13 +123,16 @@ export class ScaleRenderer {
         if (ticks.length > 1) {
             const ticksGraphics = new PIXI.Graphics();
             container.addChild(ticksGraphics);
+            ticksGraphics.x = 0;
+            ticksGraphics.y = 0;
             ticksGraphics.lineStyle(this.config.tick.thickness, this.config.axis.color, 1);
 
             let tickLabels = [];
-            let prevPosition = this.start.y;
+            let prevPosition = 0;
             let tickType = 'odd';
 
-            for (let i = 0; i < ticks.length - 1; i++){
+            for (let i = 0; i < ticks.length; i++){
+                
                 const tick = ticks[i];
                 this.renderTick(
                 tick, 
@@ -114,7 +146,7 @@ export class ScaleRenderer {
                     tickType
                 }
                 );
-                prevPosition += this.pixelStep;
+                prevPosition += this.pixelStep + this.config.tick.thickness;
                 tickType = (tickType === 'odd') ? 'even' : 'odd';
             };
             tickLabels = null;
