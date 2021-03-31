@@ -1,44 +1,44 @@
 import { drawingConfiguration } from '../../../core';
+import config from '../../whole-genome-config';
 
 export class ChromosomeColumnRenderer {
 
-    constructor(container, canvasSize, drawingConfig, chromosomes, maxChrSize){
-      
+    constructor({ container, canvasSize, chromosomes, range: maxChrSize }){
+
         Object.assign(this, {
             container,
             canvasSize,
-            drawingConfig,
             chromosomes,
             maxChrSize
         });
     }
 
     get width() { 
-        return this.canvasSize.width 
+        return this.canvasSize ? this.canvasSize.width : 0;
     };
     get height() { 
-        return this.canvasSize.height 
+        return this.canvasSize ? this.canvasSize.height : 0;
     };
 
     get containerHeight() { 
-        return this.height - 2 * this.drawingConfig.start.topMargin
+        return this.height - 2 * config.start.topMargin;
     };
 
     get topMargin() { 
-        return this.drawingConfig.start.topMargin;
+        return config.start.topMargin;
     };
 
     get columnWidth() {
-      return this.drawingConfig.chromosomeColumn.width;
+      return config.chromosomeColumn.width;
     }
 
     get chrPixelValue() {
-        return (this.currentChromosome.size/ this.maxChrSize) * this.containerHeight;
+        return (this.currentChromosome.size / this.maxChrSize) * this.containerHeight;
     }
   
     init() { 
         const container = new PIXI.Container();
-        container.x = this.drawingConfig.start.margin;
+        container.x = config.start.margin;
         container.y = this.topMargin;
         this.buildColumns(container);
         this.container.addChild(container);
@@ -52,14 +52,14 @@ export class ChromosomeColumnRenderer {
       container.addChild(column);
 
       column
-          .beginFill(this.drawingConfig.chromosomeColumn.fill, 1)
+          .beginFill(config.chromosomeColumn.fill, 1)
           .drawRect(
               position.x,
               0,
               this.columnWidth,
               chrPixelValue)
           .endFill()
-          .lineStyle(this.drawingConfig.chromosomeColumn.thickness, this.drawingConfig.chromosomeColumn.lineColor, 1)
+          .lineStyle(config.chromosomeColumn.thickness, config.chromosomeColumn.lineColor, 1)
           .moveTo(position.x, 0)
           .lineTo(position.x + this.columnWidth, 0)
           .lineTo(position.x + this.columnWidth, chrPixelValue)
@@ -68,13 +68,12 @@ export class ChromosomeColumnRenderer {
 
       const label = this.createLabel(`chr ${id}`, position);
       container.addChild(label);
-
     }
 
     buildColumns(container) {
 
       let position = {
-          x: this.drawingConfig.start.x,
+          x: config.start.x,
           y: 0 
       }
       for (let i = 0; i < this.chromosomes.length; i++){
@@ -83,15 +82,14 @@ export class ChromosomeColumnRenderer {
         const pixelSize = this.convertToPixels(chr.size)
         this.createColumn(container, position, pixelSize, chr.id);
         position = {
-          x: position.x + this.drawingConfig.start.margin,
+          x: position.x + config.start.margin,
           y: 0
         }
       }
     }
 
     convertToPixels(size) {
-      const pixelSize = (size/ this.maxChrSize) * this.containerHeight;
-      return pixelSize;
+      return (size / this.maxChrSize) * this.containerHeight;
     }
 
     createLabel(text, position) {

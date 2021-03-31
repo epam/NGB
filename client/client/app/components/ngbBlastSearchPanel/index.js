@@ -14,4 +14,5 @@ import ngbBlastWholeGenomeView from './ngbBlastWholeGenomeView';
 export default angular
     .module('ngbBlastSearchPanel', [ngbBlastWholeGenomeView])
     .component('ngbBlastSearchPanel', ngbBlastSearchPanel)
-    .controller(controller.UID, controller).name;
+    .controller(controller.UID, controller)
+    .name;

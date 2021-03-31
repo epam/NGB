@@ -13,20 +13,17 @@ export default class ngbBlastGenomeViewController {
     _scope;
     _timeout;
 
-    constructor($scope, $element,$timeout, projectContext) {
+    constructor($scope, $element, $timeout) {
 
         this._scope = $scope;
         this._timeout = $timeout;
         this._genomeRenderer = null;
         this._genomeRendererDiv = null;
-        this.projectContext = projectContext;
 
         (async() => {
             await new Promise(resolve => $timeout(resolve));
-            this.getMaxChromosomeSize();
-            this._genomeRendererDiv = $($element[0]).find('#cnv')[0];
-            //this._genomeRenderer = new WholeGenomeRenderer(this.genomeRendererDiv, this.getMaxChromosomeSize(), projectContext.chromosomes.slice(1,5), null);
-            this._genomeRenderer = new WholeGenomeRenderer(this.genomeRendererDiv, this.getMaxChromosomeSize(), projectContext.chromosomes.slice(0,8), null);
+            this._genomeRendererDiv = $($element[0]).find('#whole-genome-view-container')[0];
+            this._genomeRenderer = new WholeGenomeRenderer(this.genomeRendererDiv, this.maxChrSize, this.chromosomes, null);
 
             $scope.$on('$destroy', () => {
                 this.genomeRenderer.destroy();
@@ -40,13 +37,5 @@ export default class ngbBlastGenomeViewController {
     }
     get genomeRendererDiv(){
         return this._genomeRendererDiv;
-    }
-    getMaxChromosomeSize() {
-        //const maxSize = this.projectContext.chromosomes.reduce((max, chr) => {
-        const maxSize = this.projectContext.chromosomes.slice(0,8).reduce((max, chr) => {
-            max = Math.max(chr.size, max);
-            return max;
-        }, 0);
-        return maxSize;
     }
 }

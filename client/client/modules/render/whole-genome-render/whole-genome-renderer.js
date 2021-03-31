@@ -28,26 +28,9 @@ export default class WholeGenomeRenderer {
             }, 
             { backgroundColor: 0xffffff });
 
-        this._scaleRenderer = new ScaleRenderer(
-            this.container,
-            {
-                width: $(this.canvasElement).width(),
-                height: $(this.canvasElement).height()
-            },
-            drawingConfig.start,
-            this.range
-          );
+        this._scaleRenderer = new ScaleRenderer(this.renderParams);
 
-          this._chromosomeRenderer = new ChromosomeColumnRenderer(
-              this.container,
-              {
-                  width: $(this.canvasElement).width(),
-                  height: $(this.canvasElement).height()
-              },
-              drawingConfig,
-              this.chromosomes,
-              this.range
-            );
+        this._chromosomeRenderer = new ChromosomeColumnRenderer(this.renderParams);
 
         this.canvasElement.appendChild(this.renderer.view);
         this.scaleRenderer.init(
@@ -111,6 +94,18 @@ export default class WholeGenomeRenderer {
             flags.widthChanged = true;
         };
         return flags;
+    }
+
+    get renderParams() {
+        return {
+            container: this.container,
+            canvasSize: {
+                width: $(this.canvasElement).width(),
+                height: $(this.canvasElement).height()
+            },
+            chromosomes: this.chromosomes,
+            range: this.range
+        };
     }
 
     render() {

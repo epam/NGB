@@ -4,11 +4,10 @@ export default class ngbBlastSearchPanelController {
         return 'ngbBlastSearchPanelController';
     }
 
-    constructor($scope, dispatcher, projectContext) {
+    constructor($scope, dispatcher) {
         Object.assign(this, {
             $scope,
             dispatcher,
-            projectContext
         })
     }
 
