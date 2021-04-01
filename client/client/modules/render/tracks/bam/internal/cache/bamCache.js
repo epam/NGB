@@ -440,25 +440,27 @@ export default class BamCache {
             data.spliceJunctions.sort( (a,b) => a.start - b.start );
             let n = 0, k = 0;
             while (k < data.baseCoverage.length && n < data.spliceJunctions.length) {
+                let endIndex = data.baseCoverage[k].endIndex ?
+                    data.baseCoverage[k].endIndex : data.baseCoverage[k].startIndex;
                 if (
                     data.baseCoverage[k].startIndex >= data.spliceJunctions[n].start &&
-                    data.baseCoverage[k].startIndex <= data.spliceJunctions[n].end
+                    (endIndex <= data.spliceJunctions[n].end)
                 ) {
                     data.spliceJunctions[n].coverage = Math.max(
                         data.baseCoverage[k].value,
                         (data.spliceJunctions[n].coverage || 0)
                     );
                 }
-                if (data.baseCoverage[k].startIndex >= data.spliceJunctions[n].end) { n++; }
+                if (endIndex >= data.spliceJunctions[n].end) { n++; }
                 k++;
             }
             return data.spliceJunctions;
         }
-        data.spliceJunctions = addCoverage(data);
+        data.spliceJunctions = data.spliceJunctions ? addCoverage(data) : [];
         if (cachePosition === cachePositions.cachePositionMiddle) {
-            this.spliceJunctions = data.spliceJunctions || [];
+            this.spliceJunctions = data.spliceJunctions;
         } else {
-            for (let i = 0; i < (data.spliceJunctions || []).length; i++) {
+            for (let i = 0; i < data.spliceJunctions.length; i++) {
 
                 let exists = false;
                 for (let j = 0; j < this.spliceJunctions.length; j++) {
