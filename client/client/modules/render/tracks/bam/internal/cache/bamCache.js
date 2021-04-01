@@ -436,6 +436,25 @@ export default class BamCache {
     }
 
     _appendSpliceJunctions(data, cachePosition) {
+        function addCoverage(data) {
+            data.spliceJunctions.sort( (a,b) => a.start - b.start );
+            let n = 0, k = 0;
+            while (k < data.baseCoverage.length && n < data.spliceJunctions.length) {
+                if (
+                    data.baseCoverage[k].startIndex >= data.spliceJunctions[n].start &&
+                    data.baseCoverage[k].startIndex <= data.spliceJunctions[n].end
+                ) {
+                    data.spliceJunctions[n].coverage = Math.max(
+                        data.baseCoverage[k].value,
+                        (data.spliceJunctions[n].coverage || 0)
+                    );
+                }
+                if (data.baseCoverage[k].startIndex >= data.spliceJunctions[n].end) { n++; }
+                k++;
+            }
+            return data.spliceJunctions;
+        }
+        data.spliceJunctions = addCoverage(data);
         if (cachePosition === cachePositions.cachePositionMiddle) {
             this.spliceJunctions = data.spliceJunctions || [];
         } else {
