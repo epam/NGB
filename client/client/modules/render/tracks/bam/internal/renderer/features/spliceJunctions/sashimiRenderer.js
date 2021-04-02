@@ -23,7 +23,7 @@ export function renderSashimiPlot(spliceJunctions, viewport, drawingConfig) {
         const sorted = spliceJunctions
             .filter(item => item.end > viewport.brush.start && item.start < viewport.brush.end)
             .filter(item => spliceJunctionsFiltering.isFiltering ?
-                item.coverage <= spliceJunctionsFiltering.threshold : item)
+                item.coverage >= spliceJunctionsFiltering.threshold : item)
             .map(spliceJunction => ({
                 start: viewport.project.brushBP2pixel(spliceJunction.start),
                 end: viewport.project.brushBP2pixel(spliceJunction.end),
