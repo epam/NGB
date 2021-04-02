@@ -23,7 +23,12 @@ export default class ngbBlastGenomeViewController {
         (async() => {
             await new Promise(resolve => $timeout(resolve));
             this._genomeRendererDiv = $($element[0]).find('#whole-genome-view-container')[0];
-            this._genomeRenderer = new WholeGenomeRenderer(this.genomeRendererDiv, this.maxChrSize, this.chromosomes, null);
+            this._genomeRenderer = new WholeGenomeRenderer(
+                this.genomeRendererDiv,
+                this.getMaxChromosomeSize(this.chromosomes),
+                this.chromosomes,
+                null
+            );
 
             $scope.$on('$destroy', () => {
                 this.genomeRenderer.destroy();
@@ -38,4 +43,10 @@ export default class ngbBlastGenomeViewController {
     get genomeRendererDiv(){
         return this._genomeRendererDiv;
     }
+    
+    getMaxChromosomeSize(chrArray) {
+        return chrArray.reduce((max, chr) => {
+            return Math.max(chr.size, max);
+        }, 0);
+    };
 }

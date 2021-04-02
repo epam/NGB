@@ -1,14 +1,13 @@
-md-dialog {
-  min-width: 800px;
-  min-height: 800px;
-  height: 800px;
+.whole-genome-md-dialog {
+  min-height: 400px;
+  height: 80vh;
   background-color: #ffffff;
   overflow-y: hidden;
 }
 
 #whole-genome-view-container {
-  min-width: 800px;
-  height: 736px;
+  width:100%;
+  height: calc(80vh - 64px);
 }
 
 canvas {
