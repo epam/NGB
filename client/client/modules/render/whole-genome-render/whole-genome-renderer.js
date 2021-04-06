@@ -9,11 +9,12 @@ import drawingConfig from './whole-genome-config';
 
 export default class WholeGenomeRenderer {
 
-    constructor(canvas, maxChromosomeSize, chromosomes, displayTooltip = null) {
+    constructor(canvas, maxChromosomeSize, chromosomes, blastResult, displayTooltip = null) {
         
         this._ticksCount = drawingConfig.ticks;
         this._range = maxChromosomeSize;
         this._chromosomes = chromosomes;
+        this._blastResult = blastResult;
 
         this._canvas = canvas;
         this._width = canvas.clientWidth;
@@ -81,6 +82,9 @@ export default class WholeGenomeRenderer {
     get chromosomes(){
         return this._chromosomes;
     }
+    get hits(){
+        return this._blastResult;
+    }
 
     get flags() {
         const flags = {
@@ -104,7 +108,8 @@ export default class WholeGenomeRenderer {
                 height: $(this.canvasElement).height()
             },
             chromosomes: this.chromosomes,
-            range: this.range
+            range: this.range,
+            hits: this.hits,
         };
     }
 

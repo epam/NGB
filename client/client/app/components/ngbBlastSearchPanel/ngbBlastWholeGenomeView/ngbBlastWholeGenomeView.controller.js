@@ -27,6 +27,7 @@ export default class ngbBlastGenomeViewController {
                 this.genomeRendererDiv,
                 this.getMaxChromosomeSize(this.chromosomes),
                 this.chromosomes,
+                this.blastResult,
                 null
             );
 

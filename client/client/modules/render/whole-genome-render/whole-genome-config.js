@@ -31,5 +31,10 @@ export default {
         lineColor: 0x000000,
         fill: 0xadadad,
         thickness:1
+    },
+    hit:{
+        width: 3,
+        lineColor: 0x32cd32,
+        offset: 5,
     }
 };
