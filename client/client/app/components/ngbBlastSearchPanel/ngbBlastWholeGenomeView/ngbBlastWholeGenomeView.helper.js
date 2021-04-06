@@ -1,8 +1,11 @@
-export function helper($mdDialog, projectContext) {
+export function helper($mdDialog, projectContext, {data}) {
 
-  const blastResults = projectContext.chromosomes.slice(0,8);
+    const currentChromosomesNames = data.map(obj => obj.chromosome);
+    const currentChromosomes = projectContext.chromosomes.filter(chr => currentChromosomesNames.includes(chr.name));
+    
     return function($scope) {
-        $scope.chromosomes = blastResults;
+        $scope.chromosomes = currentChromosomes;
+        $scope.result = data;
         $scope.close = () => {
             $mdDialog.hide();
         };

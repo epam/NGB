@@ -1,10 +1,10 @@
 import { helper } from './ngbBlastWholeGenomeView.helper';
 
 export default function run($mdDialog, dispatcher, projectContext) {
-    const displayWholeGenomeViewCallback = () => {
+    const displayWholeGenomeViewCallback = (data) => {
         $mdDialog.show({
             template: require('./ngbBlastWholeGenomeView.dialog.tpl.html'),
-            controller: helper($mdDialog, projectContext),
+            controller: helper($mdDialog, projectContext, data),
             clickOutsideToClose: true,
         });
     };

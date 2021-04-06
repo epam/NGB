@@ -3,17 +3,17 @@ export default class ngbBlastSearchPanelController {
     static get UID() {
         return 'ngbBlastSearchPanelController';
     }
-
-    constructor($scope, dispatcher) {
+    projectContext;
+    constructor($scope, dispatcher, ngbBlastSearchService) {
         Object.assign(this, {
             $scope,
             dispatcher,
+            ngbBlastSearchService,
         })
     }
 
-    isProgressShown = true;
-
     handleOpenGenomeView() {
-        this.dispatcher.emitSimpleEvent('blast:whole:genome:view', {});
+        const data = this.ngbBlastSearchService.generateBlastSearchResults();
+        this.dispatcher.emitSimpleEvent('blast:whole:genome:view', { data });
     }
 }
