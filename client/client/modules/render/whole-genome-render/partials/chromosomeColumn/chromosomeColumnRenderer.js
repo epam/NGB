@@ -16,27 +16,27 @@ export class ChromosomeColumnRenderer {
 
     get width() { 
         return this.canvasSize ? this.canvasSize.width : 0;
-    };
+    }
     get height() { 
         return this.canvasSize ? this.canvasSize.height : 0;
-    };
+    }
 
     get containerHeight() { 
         return this.height - 2 * config.start.topMargin;
-    };
+    }
 
     get topMargin() { 
         return config.start.topMargin;
-    };
+    }
 
     get columnWidth() {
-      return config.chromosomeColumn.width;
+        return config.chromosomeColumn.width;
     }
 
     get hitsLimit() {
-      return Math.floor(config.start.margin/(config.hit.width + config.hit.offset));
+        return Math.floor(config.start.margin/(config.hit.width + config.hit.offset));
     }
-  
+
     init() { 
         const container = new PIXI.Container();
         container.x = config.start.margin;

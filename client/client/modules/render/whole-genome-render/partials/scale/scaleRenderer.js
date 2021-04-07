@@ -15,31 +15,31 @@ export class ScaleRenderer {
 
     get start() { 
         return config.start;
-    };
+    }
 
     get width() { 
         return this.canvasSize ? this.canvasSize.width : 0;
-    };
+    }
 
     get height() { 
         return this.canvasSize ? this.canvasSize.height : 0;
-    };
+    }
 
     get containerHeight() { 
         return this.height - 2 * this.topMargin
-    };
+    }
 
     get topMargin() { 
         return config.start.topMargin;
-    };
+    }
 
     get ticksNumber() { 
         return this._ticksNumber 
-    };
+    }
 
     set ticksNumber(newTicksNumber){ 
         this._ticksNumber = newTicksNumber 
-    };
+    }
 
     get ticks() {
         return this._ticks;
@@ -164,5 +164,5 @@ export class ScaleRenderer {
         } else {
             return null;
         }
-    };
+    }
 }

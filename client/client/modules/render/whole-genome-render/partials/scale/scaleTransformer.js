@@ -1,4 +1,4 @@
-import  NumberFormatter  from '../../../utilities/numberFormatter';
+import NumberFormatter from '../../../utilities/numberFormatter';
 
 export class ScaleTransformer {
 

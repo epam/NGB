@@ -44,10 +44,7 @@ export default class ngbBlastGenomeViewController {
     get genomeRendererDiv(){
         return this._genomeRendererDiv;
     }
-    
     getMaxChromosomeSize(chrArray) {
-        return chrArray.reduce((max, chr) => {
-            return Math.max(chr.size, max);
-        }, 0);
-    };
+        return chrArray.reduce((max, chr) => Math.max(chr.size, max), 0);
+    }
 }
