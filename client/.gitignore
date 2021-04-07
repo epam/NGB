@@ -46,5 +46,3 @@ jspm_packages
 
 # Developer configuration
 client/constants/dev.js
-
-package-lock.json
