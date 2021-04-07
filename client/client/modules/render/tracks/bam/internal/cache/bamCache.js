@@ -443,10 +443,10 @@ export default class BamCache {
                 return 1;
             });
             const auxiliarySet = new Set();
-            data.spliceJunctions.map(item => {
+            for (const item of data.spliceJunctions) {
                 auxiliarySet.add(item.start);
                 auxiliarySet.add(item.end);
-            });
+            }
             const auxiliaryArray = Array.from(auxiliarySet)
                 .sort((a,b) => a - b)
                 .map((item, index, array) => {
@@ -455,44 +455,36 @@ export default class BamCache {
                             spliceJunction.start <= item && spliceJunction.end >= array[index+1]
                         )) {
                             return {
-                                start: item,
                                 end: array[index + 1],
+                                start: item,
                             };
                         }
                     }
                     return undefined;})
                 .filter(a => a);
-            let n = 0, k = 0;
-            while (k < (data.baseCoverage || []).length && n < auxiliaryArray.length) {
-                const endIndex = data.baseCoverage[k].endIndex ?
-                    data.baseCoverage[k].endIndex : data.baseCoverage[k].startIndex;
-                if (
-                    data.baseCoverage[k].startIndex >= auxiliaryArray[n].start &&
-                    (endIndex <= auxiliaryArray[n].end)
-                ) {
-                    auxiliaryArray[n].coverage = Math.max(
-                        data.baseCoverage[k].value,
-                        (auxiliaryArray[n].coverage || 0)
-                    );
+            for (const section of auxiliaryArray) {
+                let startNumber;
+                for (let k = startNumber || 0; k < (data.baseCoverage || []).length; k++) {
+                    const item = data.baseCoverage[k];
+                    const endIndex = item.endIndex ? item.endIndex : item.startIndex;
+                    if (section.start === item.startIndex) { startNumber = k; }
+                    if (section.start <= item.startIndex && endIndex <= section.end) {
+                        section.coverage = Math.max(
+                            item.value, (section.coverage || 0));
+                    }
+                    if (item.startIndex > section.end) { break; }
                 }
-                if (endIndex >= auxiliaryArray[n].end) { n++; k--;}
-                k++;
             }
-            data.spliceJunctions.map(item => {
-                let index = 0;
+            for (const spliceJunction of data.spliceJunctions) {
                 const coverageArray = [];
-                while (index < auxiliaryArray.length) {
-                    if (item.start <= auxiliaryArray[index].start && item.end >= auxiliaryArray[index].end) {
-                        coverageArray.push(auxiliaryArray[index].coverage);
+                for (const section of auxiliaryArray) {
+                    if (spliceJunction.start <= section.start && spliceJunction.end >= section.end) {
+                        coverageArray.push(section.coverage);
                     }
-                    if (item.end < auxiliaryArray[index].start) {
-                        index = auxiliaryArray.length;
-                    } else {
-                        index++;
-                    }
+                    if (spliceJunction.end < section.start) { break; }
                 }
-                item.coverage = Math.max(...coverageArray);
-            })
+                spliceJunction.coverage = Math.max(...coverageArray);
+            }
             return data.spliceJunctions;
         }
         data.spliceJunctions = data.spliceJunctions ? addCoverage(data) : [];
