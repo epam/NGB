@@ -1,5 +1,3 @@
-import lodash from 'lodash';
-
 import * as actions from './actions';
 import * as cachePositions from './bamCachePositions';
 import {dataModes, groupModes} from '../../modes';
@@ -444,47 +442,51 @@ export default class BamCache {
                 if (a.start === b.start && a.end <= b.end) { return -1; }
                 return 1;
             });
-            const auxiliarySet = new Set;
+            const auxiliarySet = new Set();
             data.spliceJunctions.map(item => {
                 auxiliarySet.add(item.start);
                 auxiliarySet.add(item.end);
             });
-            const auxiliaryArray = Array.from(auxiliarySet).sort((a,b) => a - b);
-            const auxiliarySections = [];
-            let index = 0;
-            while (index+1 < auxiliaryArray.length) {
-                if (data.spliceJunctions.some(spliceJunction =>
-                    spliceJunction.start <= auxiliaryArray[index] && spliceJunction.end >= auxiliaryArray[index+1]
-                )) {
-                    auxiliarySections.push({start: auxiliaryArray[index], end: auxiliaryArray[index+1]});
-                }
-                index++;
-            }
+            const auxiliaryArray = Array.from(auxiliarySet)
+                .sort((a,b) => a - b)
+                .map((item, index, array) => {
+                    if (index < array.length - 1) {
+                        if (data.spliceJunctions.some(spliceJunction =>
+                            spliceJunction.start <= item && spliceJunction.end >= array[index+1]
+                        )) {
+                            return {
+                                start: item,
+                                end: array[index + 1],
+                            };
+                        }
+                    }
+                    return undefined;})
+                .filter(a => a);
             let n = 0, k = 0;
-            while (k < (data.baseCoverage || []).length && n < auxiliarySections.length) {
-                let endIndex = data.baseCoverage[k].endIndex ?
+            while (k < (data.baseCoverage || []).length && n < auxiliaryArray.length) {
+                const endIndex = data.baseCoverage[k].endIndex ?
                     data.baseCoverage[k].endIndex : data.baseCoverage[k].startIndex;
                 if (
-                    data.baseCoverage[k].startIndex >= auxiliarySections[n].start &&
-                    (endIndex <= auxiliarySections[n].end)
+                    data.baseCoverage[k].startIndex >= auxiliaryArray[n].start &&
+                    (endIndex <= auxiliaryArray[n].end)
                 ) {
-                    auxiliarySections[n].coverage = Math.max(
+                    auxiliaryArray[n].coverage = Math.max(
                         data.baseCoverage[k].value,
-                        (auxiliarySections[n].coverage || 0)
+                        (auxiliaryArray[n].coverage || 0)
                     );
                 }
-                if (endIndex >= auxiliarySections[n].end) { n++; k--;}
+                if (endIndex >= auxiliaryArray[n].end) { n++; k--;}
                 k++;
             }
             data.spliceJunctions.map(item => {
                 let index = 0;
-                let coverageArray = [];
-                while (index < auxiliarySections.length) {
-                    if (item.start <= auxiliarySections[index].start && item.end >= auxiliarySections[index].end) {
-                        coverageArray.push(auxiliarySections[index].coverage);
+                const coverageArray = [];
+                while (index < auxiliaryArray.length) {
+                    if (item.start <= auxiliaryArray[index].start && item.end >= auxiliaryArray[index].end) {
+                        coverageArray.push(auxiliaryArray[index].coverage);
                     }
-                    if (item.end < auxiliarySections[index].start) {
-                        index = auxiliarySections.length;
+                    if (item.end < auxiliaryArray[index].start) {
+                        index = auxiliaryArray.length;
                     } else {
                         index++;
                     }
