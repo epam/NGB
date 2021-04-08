@@ -289,6 +289,8 @@ export class BAMTrack extends ScrollableTrack {
         this.state.readsViewMode = parseInt(this.state.readsViewMode);
         this.cacheService = opts.cacheService || new BamCacheService(this, Object.assign({}, this.trackConfig, this.config));
         this._bamRenderer = new BamRenderer(this.viewport, Object.assign({}, this.trackConfig, this.config), this._pixiRenderer, this.cacheService, opts);
+        this.spliceJunctionsFiltering = opts.spliceJunctionsFiltering;
+        this.spliceJunctionsCoverageThreshold = opts.spliceJunctionsCoverageThreshold;
 
         const bamSettings = {
             chromosomeId: this.config.chromosomeId,
@@ -346,6 +348,20 @@ export class BAMTrack extends ScrollableTrack {
             };
         }
         this.cacheService.cache.groupMode = this.state.groupMode;
+
+        if (this.state.sashimi) {
+            const value = this.spliceJunctionsFiltering ? this.spliceJunctionsCoverageThreshold : 'not assigned';
+            this._actions = [
+                {
+                    enabled: function () {
+                        return true;
+                    },
+                    label: 'Splice junctions coverage threshold: ',
+                    type: 'text',
+                    value: value,
+                }
+            ];
+        }
     }
 
     trackSettingsChanged(params) {
