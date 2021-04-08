@@ -5,6 +5,7 @@ import {layoutReads, transform} from '../transformers';
 import FastSet from 'collections/fast-set';
 import {Line} from './line';
 import {Sorting} from '../../../../utilities';
+import addCoverage from './bamCache.helper';
 
 const Math = window.Math;
 
@@ -436,58 +437,7 @@ export default class BamCache {
     }
 
     _appendSpliceJunctions(data, cachePosition) {
-        function addCoverage(data) {
-            data.spliceJunctions.sort( (a,b) => {
-                if (a.start < b.start) { return -1; }
-                if (a.start === b.start && a.end <= b.end) { return -1; }
-                return 1;
-            });
-            const auxiliarySet = new Set();
-            for (const item of data.spliceJunctions) {
-                auxiliarySet.add(item.start);
-                auxiliarySet.add(item.end);
-            }
-            const auxiliaryArray = Array.from(auxiliarySet)
-                .sort((a,b) => a - b)
-                .map((item, index, array) => {
-                    if (index < array.length - 1) {
-                        if (data.spliceJunctions.some(spliceJunction =>
-                            spliceJunction.start <= item && spliceJunction.end >= array[index+1]
-                        )) {
-                            return {
-                                end: array[index + 1],
-                                start: item,
-                            };
-                        }
-                    }
-                    return undefined;})
-                .filter(a => a);
-            for (const section of auxiliaryArray) {
-                let startNumber;
-                for (let k = startNumber || 0; k < (data.baseCoverage || []).length; k++) {
-                    const item = data.baseCoverage[k];
-                    const endIndex = item.endIndex ? item.endIndex : item.startIndex;
-                    if (section.start === item.startIndex) { startNumber = k; }
-                    if (section.start <= item.startIndex && endIndex <= section.end) {
-                        section.coverage = Math.max(
-                            item.value, (section.coverage || 0));
-                    }
-                    if (item.startIndex > section.end) { break; }
-                }
-            }
-            for (const spliceJunction of data.spliceJunctions) {
-                const coverageArray = [];
-                for (const section of auxiliaryArray) {
-                    if (spliceJunction.start <= section.start && spliceJunction.end >= section.end) {
-                        coverageArray.push(section.coverage);
-                    }
-                    if (spliceJunction.end < section.start) { break; }
-                }
-                spliceJunction.coverage = Math.max(...coverageArray);
-            }
-            return data.spliceJunctions;
-        }
-        data.spliceJunctions = data.spliceJunctions ? addCoverage(data) : [];
+        data.spliceJunctions = data.spliceJunctions ? addCoverage(data.spliceJunctions, data.baseCoverage) : [];
         if (cachePosition === cachePositions.cachePositionMiddle) {
             this.spliceJunctions = data.spliceJunctions;
         } else {
