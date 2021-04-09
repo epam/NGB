@@ -347,12 +347,10 @@ export class BAMTrack extends ScrollableTrack {
         }
         this.cacheService.cache.groupMode = this.state.groupMode;
 
-        if (this.state.sashimi && this.config.spliceJunctionsFiltering) {
+        if (this.state.sashimi) {
             this._actions = [
                 {
-                    enabled: function () {
-                        return true;
-                    },
+                    enabled: () => this.config.spliceJunctionsFiltering,
                     label: 'Splice junctions are filtered by coverage threshold: ',
                     type: 'text',
                     value: this.getValueSpliceJunctionsCoverageThreshold.bind(this),
