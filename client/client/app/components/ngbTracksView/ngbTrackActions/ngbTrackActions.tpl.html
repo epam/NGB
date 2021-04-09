@@ -5,7 +5,7 @@
                  class="ngb-track-header-action-text"
                  layout="row"
                  layout-align="start center">
-                {{action.label}}{{action.value}}
+                {{action.label}}{{action.value()}}
             </div>
             <div ng-if="action.type === 'checkbox'"
                  layout="row"
