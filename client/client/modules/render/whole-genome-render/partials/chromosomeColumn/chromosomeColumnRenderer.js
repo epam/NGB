@@ -1,9 +1,19 @@
-import { drawingConfiguration } from '../../../core';
+import PIXI from 'pixi.js';
+
+import {
+    drawingConfiguration
+} from '../../../core';
 import config from '../../whole-genome-config';
 
 export class ChromosomeColumnRenderer {
 
-    constructor({ container, canvasSize, chromosomes, range: maxChrSize, hits }){
+    constructor({
+        container,
+        canvasSize,
+        chromosomes,
+        range: maxChrSize,
+        hits
+    }) {
 
         Object.assign(this, {
             container,
@@ -14,18 +24,18 @@ export class ChromosomeColumnRenderer {
         });
     }
 
-    get width() { 
+    get width() {
         return this.canvasSize ? this.canvasSize.width : 0;
     }
-    get height() { 
+    get height() {
         return this.canvasSize ? this.canvasSize.height : 0;
     }
 
-    get containerHeight() { 
+    get containerHeight() {
         return this.height - 2 * config.start.topMargin;
     }
 
-    get topMargin() { 
+    get topMargin() {
         return config.start.topMargin;
     }
 
@@ -34,10 +44,10 @@ export class ChromosomeColumnRenderer {
     }
 
     get hitsLimit() {
-        return Math.floor(config.start.margin/(config.hit.width + config.hit.offset));
+        return Math.floor(config.start.margin / (config.hit.width + config.hit.offset));
     }
 
-    init() { 
+    init() {
         const container = new PIXI.Container();
         container.x = config.start.margin;
         container.y = this.topMargin;
@@ -46,7 +56,9 @@ export class ChromosomeColumnRenderer {
         return container;
     }
 
-    createColumn(container, position, chrPixelValue, chromosome, hitsColumns) {
+    createColumn(container, position, chrPixelValue, chromosome, hits) {
+
+        let pixelArray = Array(Math.floor(chrPixelValue)).fill(0);
 
         const column = new PIXI.Graphics();
         column.x = position.x;
@@ -67,47 +79,63 @@ export class ChromosomeColumnRenderer {
             .lineTo(position.x + this.columnWidth, chrPixelValue)
             .lineTo(position.x, chrPixelValue)
             .lineTo(position.x, 0)
-            .moveTo(position.x + config.hit.offset, 0)
+            .moveTo(position.x + config.hit.offset, 0);
 
-            let offset = config.hit.offset;
 
-            for (let colIndex = 0; colIndex < hitsColumns.length && colIndex <= this.hitsLimit; colIndex++){
-
-            const hitColumn = hitsColumns[colIndex];
-
-                for (let hitIndex = 0; hitIndex < hitColumn.length; hitIndex++){
-                    let hit = hitColumn[hitIndex];
-                    const hitPixelLength = this.convertToPixels(hit.endIndex - hit.startIndex);
-                    const hitPixelStart =  (hit.startIndex/chromosome.size) * chrPixelValue;
-                    column 
-                        .lineStyle(config.hit.width, config.hit.lineColor, 1)
-                        .moveTo(position.x + this.columnWidth + offset, hitPixelStart)
-                        .lineTo(position.x + this.columnWidth + offset, hitPixelStart + hitPixelLength);
+        hits.forEach((hit) => {
+            const start = hit.startIndex;
+            const end = hit.endIndex;
+            const offset = end - start < 3 ? 3 : 0;
+            const gap = 2;
+            const currentLevel = Math.max(pixelArray[start], pixelArray[end + offset]) + 1;
+            for (let i = start; i <= end + offset; i++) {
+                if (currentLevel <= this.hitsLimit) {
+                    if (pixelArray[start - 1] !== currentLevel) {
+                        pixelArray[i] = currentLevel;
+                        column
+                            .lineStyle(config.hit.width, config.hit.lineColor, 1)
+                            .moveTo(position.x + 2 * this.columnWidth + (currentLevel - 1) * (2 * config.hit.width), start)
+                            .lineTo(position.x + 2 * this.columnWidth + (currentLevel - 1) * (2 * config.hit.width), end + offset);
+                    } else {
+                        pixelArray[i + gap] = currentLevel;
+                        column
+                            .lineStyle(config.hit.width, config.hit.lineColor, 1)
+                            .moveTo(position.x + 2 * this.columnWidth + (currentLevel - 1) * (2 * config.hit.width), start + gap)
+                            .lineTo(position.x + 2 * this.columnWidth + (currentLevel - 1) * (2 * config.hit.width), end + offset + gap);
+                    }
                 }
 
-                offset += config.hit.offset;
             }
+        });
+        pixelArray = [];
 
-            const label = this.createLabel(`chr ${chromosome.id}`, position);
-            container.addChild(label);
+        const label = this.createLabel(`chr ${chromosome.id}`, position);
+        container.addChild(label);
     }
 
     buildColumns(container) {
 
         let position = {
             x: config.start.x,
-            y: 0 
-        }
-      
-        for (let i = 0; i < this.chromosomes.length; i++){
+            y: 0
+        };
 
-            let chr = this.chromosomes[i];
+        for (let i = 0; i < this.chromosomes.length; i++) {
+
+            const chr = this.chromosomes[i];
             const chrHits = this.hits.filter(hit => hit.chromosome === chr.name);
 
-            const pixelSize = this.convertToPixels(chr.size);
+            const pixelSize = this.convertToPixels(chr.size, this.maxChrSize, this.containerHeight);
             const sortedHits = this.sortHitsByLength(chrHits);
-            const hitsColumns = this.initBuildColumns(sortedHits);
-            this.createColumn(container, position, pixelSize, chr, hitsColumns);
+            const self = this;
+            const pixeledHits = sortedHits.map(function(hit) {
+                return {
+                    startIndex: Math.floor(self.convertToPixels(hit.startIndex, chr.size, pixelSize)),
+                    endIndex: Math.ceil(self.convertToPixels(hit.endIndex, chr.size, pixelSize)),
+                };
+            });
+            this.createColumn(container, position, pixelSize, chr, pixeledHits);
+
             position = {
                 x: position.x + config.start.margin,
                 y: 0
@@ -115,8 +143,8 @@ export class ChromosomeColumnRenderer {
         }
     }
 
-    convertToPixels(size) {
-        return (size / this.maxChrSize) * this.containerHeight;
+    convertToPixels(size, realRange, pixelRange) {
+        return (size / realRange) * pixelRange;
     }
 
     createLabel(text, position) {
@@ -124,42 +152,16 @@ export class ChromosomeColumnRenderer {
         const label = new PIXI.Text(text, {
             fill: config.tick.label.fill,
             font: config.tick.label.font,
-            margin:config.tick.label.margin,
+            margin: config.tick.label.margin,
         });
 
         label.resolution = drawingConfiguration.resolution;
-        label.y = position.y - this.topMargin/2 - label.height/2;
+        label.y = position.y - this.topMargin / 2 - label.height / 2;
         label.x = 2 * position.x;
         return label;
     }
 
-    sortHitsByLength(hits){
+    sortHitsByLength(hits) {
         return hits.sort((hit1, hit2) => (hit2.endIndex - hit2.startIndex) - (hit1.endIndex - hit1.startIndex));
     }
-
-    initBuildColumns(hits, columnsArray = []) {
-
-        let remain = [];
-        let column = [];
-        const hitsColumns = columnsArray;
-
-        hits.forEach((el, index) => {
-            if (index === 0) {
-                column.push(el);
-            } else if (el.startIndex > column[column.length-1].endIndex){
-                column.push(el);
-            } else {
-                remain.push(el);
-            };
-        });
-
-        hitsColumns.push(column);
-
-        if (remain.length){
-                this.initBuildColumns(remain, hitsColumns);
-                return hitsColumns;
-        } else {
-                return hitsColumns;
-        };
-  }
 }
