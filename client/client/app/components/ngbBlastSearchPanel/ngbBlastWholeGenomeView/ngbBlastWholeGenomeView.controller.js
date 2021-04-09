@@ -1,9 +1,11 @@
 import $ from 'jquery';
 
-import { WholeGenomeRenderer } from '../../../../modules/render/whole-genome-render';
+import {
+    WholeGenomeRenderer
+} from '../../../../modules/render/whole-genome-render';
 
 export default class ngbBlastGenomeViewController {
-    
+
     static get UID() {
         return 'ngbBlastGenomeViewController';
     }
@@ -20,7 +22,7 @@ export default class ngbBlastGenomeViewController {
         this._genomeRenderer = null;
         this._genomeRendererDiv = null;
 
-        (async() => {
+        (async () => {
             await new Promise(resolve => $timeout(resolve));
             this._genomeRendererDiv = $($element[0]).find('.whole-genome-view-container')[0];
             this._genomeRenderer = new WholeGenomeRenderer(
@@ -41,7 +43,7 @@ export default class ngbBlastGenomeViewController {
     get genomeRenderer() {
         return this._genomeRenderer;
     }
-    get genomeRendererDiv(){
+    get genomeRendererDiv() {
         return this._genomeRendererDiv;
     }
     getMaxChromosomeSize(chrArray) {

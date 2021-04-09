@@ -1,16 +1,24 @@
 import PIXI from 'pixi.js';
 import $ from 'jquery';
 
-import { getRenderer } from '../core';
-import { ScaleRenderer } from './partials/scale/scaleRenderer';
-import { ScaleTransformer } from './partials/scale/scaleTransformer';
-import { ChromosomeColumnRenderer } from './partials/chromosomeColumn/chromosomeColumnRenderer';
+import {
+    getRenderer
+} from '../core';
+import {
+    ScaleRenderer
+} from './partials/scale/scaleRenderer';
+import {
+    ScaleTransformer
+} from './partials/scale/scaleTransformer';
+import {
+    ChromosomeColumnRenderer
+} from './partials/chromosomeColumn/chromosomeColumnRenderer';
 import drawingConfig from './whole-genome-config';
 
 export default class WholeGenomeRenderer {
 
     constructor(canvas, maxChromosomeSize, chromosomes, blastResult, displayTooltip = null) {
-        
+
         this._ticksCount = drawingConfig.ticks;
         this._range = maxChromosomeSize;
         this._chromosomes = chromosomes;
@@ -26,8 +34,9 @@ export default class WholeGenomeRenderer {
         this._pixiRenderer = getRenderer({
             width: this.width,
             height: this.height
-            }, 
-            { backgroundColor: 0xffffff });
+        }, {
+            backgroundColor: 0xffffff
+        });
 
         this._scaleRenderer = new ScaleRenderer(this.renderParams);
 
@@ -60,7 +69,7 @@ export default class WholeGenomeRenderer {
     }
 
     get scaleRenderer() {
-      return this._scaleRenderer;
+        return this._scaleRenderer;
     }
 
     get chromosomeRenderer() {
@@ -74,15 +83,15 @@ export default class WholeGenomeRenderer {
     get height() {
         return this._height;
     }
-    
+
     get range() {
         return this._range;
     }
 
-    get chromosomes(){
+    get chromosomes() {
         return this._chromosomes;
     }
-    get hits(){
+    get hits() {
         return this._blastResult;
     }
 
@@ -96,7 +105,7 @@ export default class WholeGenomeRenderer {
         ) {
             this._width = $(this.canvasElement).width();
             flags.widthChanged = true;
-        };
+        }
         return flags;
     }
 
@@ -116,13 +125,13 @@ export default class WholeGenomeRenderer {
     render() {
         if (this.renderer !== null &&
             this.renderer !== undefined
-        ) { 
+        ) {
             const flags = this.flags;
             if (flags.widthChanged) {
                 this.resizeRenderer();
             }
             this.renderer.render(this.container);
-        };
+        }
     }
 
     resizeRenderer() {
@@ -134,7 +143,7 @@ export default class WholeGenomeRenderer {
                 height: `${this.height}px`
             });
             this.render();
-        };
+        }
     }
 
     destroy() {
@@ -144,6 +153,6 @@ export default class WholeGenomeRenderer {
             this.canvasElement.removeChild(this.renderer.view);
             this.renderer.destroy(true);
             this._pixiRenderer = null;
-        };
+        }
     }
 }

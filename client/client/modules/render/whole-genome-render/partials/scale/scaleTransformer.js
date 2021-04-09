@@ -11,13 +11,15 @@ export class ScaleTransformer {
         const tickStep = ScaleTransformer.findBestStep(range / (ticksCount + 1), subModule);
 
         const ticks = [];
-        for (let i = 0; i <= (range + tickStep); i += tickStep){
-            ticks.push({ value: i })
+        for (let i = 0; i <= (range + tickStep); i += tickStep) {
+            ticks.push({
+                value: i
+            });
         }
         return ticks;
-        }
+    }
 
-        static findBestStep(value, module) {
+    static findBestStep(value, module) {
         const v1 = Math.floor(value / module) * module;
         const v2 = v1 + module;
 
