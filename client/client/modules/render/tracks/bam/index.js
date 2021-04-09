@@ -347,13 +347,13 @@ export class BAMTrack extends ScrollableTrack {
         }
         this.cacheService.cache.groupMode = this.state.groupMode;
 
-        if (this.state.sashimi) {
+        if (this.state.sashimi && this.config.spliceJunctionsFiltering) {
             this._actions = [
                 {
                     enabled: function () {
                         return true;
                     },
-                    label: 'Splice junctions coverage threshold: ',
+                    label: 'Splice junctions are filtered by coverage threshold: ',
                     type: 'text',
                     value: this.getValueSpliceJunctionsCoverageThreshold.bind(this),
                 }
@@ -362,8 +362,7 @@ export class BAMTrack extends ScrollableTrack {
     }
 
     getValueSpliceJunctionsCoverageThreshold() {
-        return this._bamRenderer._config.spliceJunctionsFiltering ?
-            this._bamRenderer._config.spliceJunctionsCoverageThreshold : 'not assigned';
+        return this.config.spliceJunctionsCoverageThreshold;
     }
 
     trackSettingsChanged(params) {
