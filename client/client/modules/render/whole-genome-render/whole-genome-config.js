@@ -32,6 +32,7 @@ export default {
         fill: 0xadadad,
         thickness:1
     },
+    gridSize: 5,
     hit:{
         width: 3,
         lineColor: 0x32cd32,
