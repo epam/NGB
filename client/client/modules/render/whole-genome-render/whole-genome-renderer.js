@@ -39,13 +39,13 @@ export default class WholeGenomeRenderer {
         });
 
         this._scaleRenderer = new ScaleRenderer(this.renderParams);
-
-        this._chromosomeRenderer = new ChromosomeColumnRenderer(this.renderParams);
-
-        this.canvasElement.appendChild(this.renderer.view);
         this.scaleRenderer.init(
             ScaleTransformer.buildTicks(this._range, this._ticksCount)
         );
+        this._scaleLabelWidth =  this._scaleRenderer.labelWidth;
+        this.canvasElement.appendChild(this.renderer.view);
+
+        this._chromosomeRenderer = new ChromosomeColumnRenderer(this.renderParams);
         this.chromosomeRenderer.init();
         this.resizeRenderer();
 
@@ -119,6 +119,7 @@ export default class WholeGenomeRenderer {
             chromosomes: this.chromosomes,
             range: this.range,
             hits: this.hits,
+            labelWidth: this._scaleLabelWidth || 0,
         };
     }
 

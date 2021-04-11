@@ -6,7 +6,7 @@ export default {
         x: 10,
         y: 30,
         margin: 50,
-        topMargin:20,
+        topMargin:10,
     },
     axis: {
         color: 0x000000,

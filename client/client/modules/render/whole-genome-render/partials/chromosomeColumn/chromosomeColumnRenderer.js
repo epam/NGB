@@ -12,7 +12,8 @@ export class ChromosomeColumnRenderer {
         canvasSize,
         chromosomes,
         range: maxChrSize,
-        hits
+        hits,
+        labelWidth
     }) {
 
         Object.assign(this, {
@@ -20,7 +21,8 @@ export class ChromosomeColumnRenderer {
             canvasSize,
             chromosomes,
             maxChrSize,
-            hits
+            hits,
+            labelWidth
         });
     }
 
@@ -49,7 +51,7 @@ export class ChromosomeColumnRenderer {
 
     init() {
         const container = new PIXI.Container();
-        container.x = config.start.margin;
+        container.x = this.labelWidth;
         container.y = this.topMargin;
         this.buildColumns(container);
         this.container.addChild(container);
@@ -93,7 +95,7 @@ export class ChromosomeColumnRenderer {
             .lineTo(position.x, chrPixelValue)
             .lineTo(position.x, 0)
             .moveTo(position.x + config.hit.offset, 0);
-        
+
         const initialMargin = position.x + 2 * this.columnWidth;
         hits.forEach((hit) => {
             const start = this.getGridStart(hit.startIndex, chromosome.size, chrPixelValue);
@@ -129,13 +131,13 @@ export class ChromosomeColumnRenderer {
     buildColumns(container) {
 
         let position = {
-            x: config.start.x,
+            x: this.labelWidth,
             y: 0
         };
-
+        const sortedChromosomes = this.chromosomes.sort((chr1, chr2) => chr2.size - chr1.size);
         for (let i = 0; i < this.chromosomes.length; i++) {
 
-            const chr = this.chromosomes[i];
+            const chr = sortedChromosomes[i];
             const chrHits = this.hits.filter(hit => hit.chromosome === chr.name);
 
             const pixelSize = this.convertToPixels(chr.size, this.maxChrSize, this.containerHeight);

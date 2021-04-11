@@ -1,6 +1,8 @@
 import PIXI from 'pixi.js';
 
-import { drawingConfiguration } from '../../../core';
+import {
+    drawingConfiguration
+} from '../../../core';
 import config from '../../whole-genome-config';
 
 export class ScaleRenderer {
@@ -12,6 +14,7 @@ export class ScaleRenderer {
     }) {
         this._ticksNumber;
         this._ticks;
+        this._labelWidth;
         Object.assign(this, {
             container,
             canvasSize,
@@ -57,6 +60,12 @@ export class ScaleRenderer {
 
     get pixelStep() {
         return this.containerHeight / (this.ticksNumber - 1) - config.tick.thickness;
+    }
+    set labelWidth(width) {
+        this._labelWidth = width;
+    }
+    get labelWidth() {
+        return this._labelWidth;
     }
 
     init(ticks) {
@@ -167,6 +176,7 @@ export class ScaleRenderer {
 
         if (tickType === 'odd') {
             const text = new PIXI.Text(label, config.tick.label);
+            this.labelWidth = text.width;
             text.resolution = drawingConfiguration.resolution;
             text.y = prevPosition - this.pixelStep / 2 + text.height / 2 - 4 * config.axis.thickness;
             text.x = this.start.x + config.tick.offsetXOdd + config.tick.label.margin;
