@@ -318,7 +318,17 @@ export default class ngbTrackEvents {
         const openBlastSearchMenuItem = {
             title: 'BLAST Search',
             events: [{
-                data: {},
+                data: {
+                    id: track.id,
+                    referenceId: track.referenceId,
+                    chromosomeId: data.chromosome.id,
+                    startIndex: data.read.startIndex,
+                    endIndex: data.read.endIndex,
+                    name: data.read.name,
+                    openByUrl: track.openByUrl,
+                    file: track.openByUrl ? track.id : null,
+                    index: track.openByUrl ? track.indexPath : null
+                },
                 name: 'read:show:blast',
             }],
         };
