@@ -2,7 +2,7 @@ const port = 8080;
 const webpack = require('webpack');
 const config = require('./webpack.config');
 for (const key of Object.keys(config.entry))
-    config.entry[key].unshift(`webpack-dev-server/client?http://localhost:${port}/`, "webpack/hot/dev-server");
+    config.entry[key].unshift(`webpack-dev-server/client?http://localhost:${port}/`, 'webpack/hot/dev-server');
 
 config.plugins.push(new webpack.HotModuleReplacementPlugin());
 const compiler = webpack(config);
@@ -30,15 +30,13 @@ new DevServer(compiler, {
     proxy: {
         '/api/epam': {
             pathRewrite: {'^/api/epam' : ''},
-            target: 'http://oss-1204092014.us-east-1.elb.amazonaws.com:8080/catgenome/',
-
-            // target: 'http://ngb.opensource.epam.com/catgenome/',
+            target: process.env.NGB_API_EPAM || '/',
         },
         '/api/opensource': {
             pathRewrite: {'^/api/opensource' : ''},
-            target: 'http://ngb.opensource.epam.com/catgenome/',
+            target: process.env.NGB_API_OPENSOURCE || '/',
         }
     }
 })
-    .listen(port, "localhost", () => console.log('webpack dev server started on http://localhost:8080'));
+    .listen(port, 'localhost', () => console.log('webpack dev server started on http://localhost:8080'));
 

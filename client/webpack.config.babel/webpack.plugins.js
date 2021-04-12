@@ -7,7 +7,9 @@ const globals = {
     __ENV__: `"${global.buildOptions.env}"`,
     __DEV__: String(DEV),
     __DESKTOP__: !!global.buildOptions.desktop,
-    __API_URL__: JSON.stringify(global.buildOptions.publicPath || '/')
+    __API_URL__: JSON.stringify(global.buildOptions.publicPath || '/'),
+    __API_EPAM__: JSON.stringify(process.env.NGB_API_EPAM || '/'),
+    __API_OPENSOURCE__: JSON.stringify(process.env.NGB_API_OPENSOURCE || '/')
 };
 
 const devPlugins = [

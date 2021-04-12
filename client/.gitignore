@@ -46,3 +46,6 @@ jspm_packages
 
 # Developer configuration
 client/constants/dev.js
+.env.local
+.env.development.local
+.env.production.local

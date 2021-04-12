@@ -1,4 +1,8 @@
+require('./envs');
 import path from 'path';
+
+console.log('HERE');
+console.log(process.env);
 
 import loaders from './webpack.loaders';
 
