@@ -1,0 +1,139 @@
+[
+    {
+        "referenceId": "h37",
+        "chromosome": "1",
+        "start": "150964883",
+        "end": "150967542",
+        "tracks": [
+            {
+                "b": "h37",
+                "p": "h37_data",
+                "f": "REFERENCE",
+                "projectIdNumber": 1,
+                "h": 100,
+                "s": {
+                    "rt": false,
+                    "rsfs": true,
+                    "rsrs": false
+                }
+            },
+            {
+                "b": "Homo_sapiens.GRCh37.gtf.gz",
+                "h": 33,
+                "l": true,
+                "p": "",
+                "s": {
+                    "g": "expanded"
+                },
+                "f": "GENE"
+            },
+            {
+                "b": "sv_sample_2.bw",
+                "h": 50,
+                "p": "h37_data",
+                "projectIdNumber": 1,
+                "s": {
+                    "cdm": "Bar Graph",
+                    "cls": false,
+                    "csm": "default",
+                    "csf": 100,
+                    "cst": 900,
+                    "wigColors": {
+                        "negative": 16731471,
+                        "positive": 3265094
+                    }
+                },
+                "n": "sv_sample_2.bw",
+                "f": "WIG"
+            }
+        ]
+    },
+    {
+        "referenceId": "h37",
+        "chromosome": "1",
+        "start": "150966170",
+        "end": "150966249",
+        "tracks": [
+            {
+                "b": "h37",
+                "p": "h37_data",
+                "f": "REFERENCE",
+                "projectIdNumber": 1,
+                "h": 100,
+                "s": {
+                    "rt": false,
+                    "rsfs": true,
+                    "rsrs": false
+                }
+            },
+            {
+                "b": "sv_sample_2.bw",
+                "h": 86,
+                "p": "h37_data",
+                "projectIdNumber": 1,
+                "s": {
+                    "cdm": "Bar Graph",
+                    "cls": false,
+                    "csm": "default",
+                    "csf": 100,
+                    "cst": 900,
+                    "wigColors": {
+                        "negative": 16731471,
+                        "positive": 3265094
+                    }
+                },
+                "n": "sv_sample_2.bw",
+                "f": "WIG"
+            }
+        ]
+    },
+    {
+        "referenceId": "dm6",
+        "chromosome": "X",
+        "start": "12584385",
+        "end": "12592193",
+        "tracks": [
+            {
+                "b": "dm6",
+                "p": "dm6_data",
+                "f": "REFERENCE",
+                "projectIdNumber": 2,
+                "h": 100,
+                "s": {
+                    "rt": false,
+                    "rsfs": true,
+                    "rsrs": false
+                }
+            },
+            {
+                "b": "agnX1.09-28.trim.dm606.realign.bam",
+                "h": 576,
+                "p": "dm6_data",
+                "projectIdNumber": 2,
+                "s": {
+                    "a": true,
+                    "aa": true,
+                    "c": "insertSize",
+                    "c1": true,
+                    "d": true,
+                    "g1": "default",
+                    "he": {
+                        "fontSize": "16px"
+                    },
+                    "i": true,
+                    "m": true,
+                    "r": 2,
+                    "s1": true,
+                    "s2": true,
+                    "s3": false,
+                    "v1": false,
+                    "cdm": "Bar Graph",
+                    "cls": false,
+                    "csm": "default"
+                },
+                "n": "agnX1.09-28.trim.dm606.realign.bam",
+                "f": "BAM"
+            }
+        ]
+    }
+]

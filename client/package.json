@@ -13,9 +13,15 @@
     "build:prod": "webpack --env prod --prodBuild",
     "serve": "npm run serve:dev",
     "serve:dev": "node webpack.devserver.js --env dev",
+    "serve:test": "node webpack.devserver.js --env test",
     "serve:prod": "node webpack.devserver.js --env prod --prodBuild",
     "lint:scsslint": "sass-lint -v -c .sass-lint.yml -q",
-    "lint:eslint": "node_modules/.bin/eslint client/"
+    "lint:eslint": "node_modules/.bin/eslint client/",
+    "test": "npx folio ./tests/acceptance --param browserName=chromium",
+    "test:visual": "cross-env HEADFUL=true yarn test",
+    "start-server": "npm run serve:test",
+    "start-test": "npm run test",
+    "ci": "start-server-and-test start-server http-get://localhost:8080 start-test"
   },
   "dependencies": {
     "angular": "1.5.11",
@@ -43,6 +49,10 @@
     "tether": "1.3.2"
   },
   "devDependencies": {
+    "@playwright/test": "^0.180.0",
+    "cross-env": "^7.0.3",
+    "folio": "^0.3.17",
+    "start-server-and-test": "^1.12.0",
     "babel-core": "6.9.0",
     "babel-eslint": "6.1.0",
     "babel-loader": "^6.2.0",

@@ -25,6 +25,19 @@ new DevServer(compiler, {
         timings: true,
         chunks: false,
         chunkModules: false
+    },
+
+    proxy: {
+        '/api/epam': {
+            pathRewrite: {'^/api/epam' : ''},
+            target: 'http://oss-1204092014.us-east-1.elb.amazonaws.com:8080/catgenome/',
+
+            // target: 'http://ngb.opensource.epam.com/catgenome/',
+        },
+        '/api/opensource': {
+            pathRewrite: {'^/api/opensource' : ''},
+            target: 'http://ngb.opensource.epam.com/catgenome/',
+        }
     }
 })
     .listen(port, "localhost", () => console.log('webpack dev server started on http://localhost:8080'));
