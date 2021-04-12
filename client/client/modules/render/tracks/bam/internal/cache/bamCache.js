@@ -5,6 +5,7 @@ import {layoutReads, transform} from '../transformers';
 import FastSet from 'collections/fast-set';
 import {Line} from './line';
 import {Sorting} from '../../../../utilities';
+import addCoverage from './bamCache.helper';
 
 const Math = window.Math;
 
@@ -436,10 +437,11 @@ export default class BamCache {
     }
 
     _appendSpliceJunctions(data, cachePosition) {
+        data.spliceJunctions = data.spliceJunctions ? addCoverage(data.spliceJunctions, data.baseCoverage) : [];
         if (cachePosition === cachePositions.cachePositionMiddle) {
-            this.spliceJunctions = data.spliceJunctions || [];
+            this.spliceJunctions = data.spliceJunctions;
         } else {
-            for (let i = 0; i < (data.spliceJunctions || []).length; i++) {
+            for (let i = 0; i < data.spliceJunctions.length; i++) {
 
                 let exists = false;
                 for (let j = 0; j < this.spliceJunctions.length; j++) {

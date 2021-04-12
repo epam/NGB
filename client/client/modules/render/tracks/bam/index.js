@@ -346,6 +346,21 @@ export class BAMTrack extends ScrollableTrack {
             };
         }
         this.cacheService.cache.groupMode = this.state.groupMode;
+
+        if (this.state.sashimi) {
+            this._actions = [
+                {
+                    enabled: () => this.config.spliceJunctionsFiltering,
+                    label: 'Splice junctions are filtered by coverage threshold: ',
+                    type: 'text',
+                    value: this.getValueSpliceJunctionsCoverageThreshold.bind(this),
+                }
+            ];
+        }
+    }
+
+    getValueSpliceJunctionsCoverageThreshold() {
+        return this.config.spliceJunctionsCoverageThreshold;
     }
 
     trackSettingsChanged(params) {

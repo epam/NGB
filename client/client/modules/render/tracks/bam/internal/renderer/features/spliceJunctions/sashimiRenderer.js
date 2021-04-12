@@ -15,13 +15,15 @@ function intersects(candidate, test) {
 }
 
 export function renderSashimiPlot(spliceJunctions, viewport, drawingConfig) {
-    const {config, graphics, labelsContainer, shouldRender, hovered} = drawingConfig;
+    const {config, graphics, labelsContainer, spliceJunctionsFiltering, shouldRender, hovered} = drawingConfig;
     graphics.clear();
     const {centerLine, height} = renderArea(viewport, drawingConfig);
     if (shouldRender) {
         graphics.lineStyle(config.border.thickness, config.border.stroke, 1);
         const sorted = spliceJunctions
             .filter(item => item.end > viewport.brush.start && item.start < viewport.brush.end)
+            .filter(item => spliceJunctionsFiltering.isFiltering ?
+                item.coverage >= spliceJunctionsFiltering.threshold : item)
             .map(spliceJunction => ({
                 start: viewport.project.brushBP2pixel(spliceJunction.start),
                 end: viewport.project.brushBP2pixel(spliceJunction.end),
