@@ -97,13 +97,14 @@ export class ChromosomeColumnRenderer {
         const initialMargin = position + this.columnWidth + config.chromosomeColumn.margin;
         hits.forEach((hit) => {
             const start = this.getGridStart(hit.startIndex, chromosome.size, chrPixelValue);
-            const end = this.getGridEnd(hit.endIndex, chromosome.size, chrPixelValue);
+            const lengthPx = this.getPixelLength(hit.startIndex, hit.endIndex, chromosome.size, chrPixelValue);
+            const lengthInGridCells = (lengthPx >= config.gridSize) ? (Math.ceil(lengthPx / config.gridSize)) : 1;
+            const end = start + lengthInGridCells;
             const currentLevel = Math.max(...pixelGrid.slice(start, end)) + 1;
-            const length = this.getPixelLength(hit.startIndex, hit.endIndex, chromosome.size, chrPixelValue);
-            for (let i = start; i < end; i++) {
+            for (let i = start; i <= end; i++) {
                 if (
                     currentLevel <= this.hitsLimit &&
-                    this.getEndPx(hit.endIndex, chromosome.size, chrPixelValue) <= chrPixelValue
+                    end * config.gridSize <= chrPixelValue
                 ) {
                     pixelGrid[i] = currentLevel;
                     column
@@ -113,7 +114,7 @@ export class ChromosomeColumnRenderer {
                             initialMargin + (currentLevel - 1) * config.gridSize - 1,
                             this.getStartPx(hit.startIndex, chromosome.size, chrPixelValue) + 1,
                             config.gridSize - 1,
-                            length >= config.gridSize ? (Math.ceil(length / config.gridSize)) * config.gridSize - 1 : config.gridSize - 1
+                            lengthInGridCells * config.gridSize - 1
                         )
                         .endFill();
                 }
