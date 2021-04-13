@@ -9,7 +9,13 @@ export class SashimiRenderer extends WIGRenderer {
 
     render(viewport, {coverage, spliceJunctions}, forseRedraw = false, drawingConfig): undefined {
         super.render(viewport, coverage, forseRedraw);
-        const {graphics, labelsContainer, shouldRender, y} = drawingConfig || {};
+        const {
+            graphics,
+            labelsContainer,
+            shouldRender,
+            y,
+            spliceJunctionsFiltering
+        } = drawingConfig || {};
         renderSashimiPlot(
             spliceJunctions,
             viewport,
@@ -17,10 +23,7 @@ export class SashimiRenderer extends WIGRenderer {
                 config: this._globalConfig,
                 graphics,
                 height: this.height * 2.0,
-                spliceJunctionsFiltering: {
-                    isFiltering: this.trackState.spliceJunctionsFiltering,
-                    threshold: this.trackState.spliceJunctionsCoverageThreshold
-                },
+                spliceJunctionsFiltering,
                 labelsContainer,
                 sashimi: true,
                 shouldRender,

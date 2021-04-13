@@ -243,7 +243,7 @@
                                     <input
                                         name="coverageThreshold"
                                         type="number"
-                                        placeholder="coverage threshold"
+                                        placeholder="minimum threshold"
                                         ng-disabled="!ctrl.settings.spliceJunctionsFiltering"
                                         ng-required="ctrl.settings.spliceJunctionsFiltering"
                                         ng-min="0"
@@ -255,7 +255,7 @@
                                             ng-show="ctrl.settings.spliceJunctionsFiltering &&
                                                 !ctrl.settings.spliceJunctionsCoverageThreshold"
                                         >
-                                            Enter coverage threshold
+                                            Enter minimum coverage threshold
                                         </div>
                                     </div>
                                 </md-input-container>
