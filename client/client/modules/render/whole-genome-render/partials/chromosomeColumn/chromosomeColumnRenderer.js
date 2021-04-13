@@ -55,6 +55,9 @@ export class ChromosomeColumnRenderer {
         return container;
     }
 
+    getPixelLength(start, end, chrSize, chrPixelValue) {
+        return Math.round(this.convertToPixels(end, chrSize, chrPixelValue) - this.convertToPixels(start, chrSize, chrPixelValue));
+    }
     getStartPx(nucleotide, chrSize, chrPixelValue) {
         return this.getGridStart(nucleotide, chrSize, chrPixelValue) * config.gridSize;
     }
@@ -62,7 +65,7 @@ export class ChromosomeColumnRenderer {
         return this.getGridEnd(nucleotide, chrSize, chrPixelValue) * config.gridSize;
     }
     getGridStart(nucleotide, chrSize, chrPixelValue) {
-        return (Math.floor(this.convertToPixels(nucleotide, chrSize, chrPixelValue) / config.gridSize));
+        return (Math.round(this.convertToPixels(nucleotide, chrSize, chrPixelValue) / config.gridSize));
     }
     getGridEnd(nucleotide, chrSize, chrPixelValue) {
         return (Math.ceil(this.convertToPixels(nucleotide, chrSize, chrPixelValue) / config.gridSize));
@@ -91,13 +94,12 @@ export class ChromosomeColumnRenderer {
             .lineTo(position + this.columnWidth, chrPixelValue)
             .lineTo(position, chrPixelValue)
             .lineTo(position, 0);
-
         const initialMargin = position + this.columnWidth + config.chromosomeColumn.margin;
         hits.forEach((hit) => {
             const start = this.getGridStart(hit.startIndex, chromosome.size, chrPixelValue);
             const end = this.getGridEnd(hit.endIndex, chromosome.size, chrPixelValue);
             const currentLevel = Math.max(...pixelGrid.slice(start, end)) + 1;
-
+            const length = this.getPixelLength(hit.startIndex, hit.endIndex, chromosome.size, chrPixelValue);
             for (let i = start; i < end; i++) {
                 if (
                     currentLevel <= this.hitsLimit &&
@@ -111,7 +113,7 @@ export class ChromosomeColumnRenderer {
                             initialMargin + (currentLevel - 1) * config.gridSize - 1,
                             this.getStartPx(hit.startIndex, chromosome.size, chrPixelValue) + 1,
                             config.gridSize - 1,
-                            this.getEndPx(hit.endIndex, chromosome.size, chrPixelValue) - this.getStartPx(hit.startIndex, chromosome.size, chrPixelValue) - 1
+                            length >= config.gridSize ? (Math.ceil(length / config.gridSize)) * config.gridSize - 1 : config.gridSize - 1
                         )
                         .endFill();
                 }
