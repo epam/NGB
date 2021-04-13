@@ -48,9 +48,9 @@ export class ChromosomeColumnRenderer {
 
     init() {
         const container = new PIXI.Container();
-        container.x = this.labelWidth;
-        container.y = this.topMargin;
         this.buildColumns(container);
+        container.x = config.start.x + config.axis.width + this.labelWidth;
+        container.y = config.start.topMargin;
         this.container.addChild(container);
         return container;
     }

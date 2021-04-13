@@ -11,7 +11,8 @@ export default {
     axis: {
         color: 0x000000,
         thickness: 1,
-        offsetX: 0
+        offsetX: 0,
+        width: 50
     },
     tick: {
         formatter: ::formatter.format,
