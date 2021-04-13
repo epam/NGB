@@ -26,6 +26,8 @@ export default {
         }
     },
     chromosomeColumn: {
+        spaceBetween: 70,
+        margin:5,
         topMargin: 20,
         width: 15,
         lineColor: 0x000000,

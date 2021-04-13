@@ -26,9 +26,6 @@ export class ChromosomeColumnRenderer {
         });
     }
 
-    get width() {
-        return this.canvasSize ? this.canvasSize.width : 0;
-    }
     get height() {
         return this.canvasSize ? this.canvasSize.height : 0;
     }
@@ -46,9 +43,7 @@ export class ChromosomeColumnRenderer {
     }
 
     get hitsLimit() {
-        return Math.floor(
-            (this.width - config.start.x - config.tick.offsetXOdd - 2 * config.tick.margin - 2 * this.labelWidth - (this.chromosomes.length + 1) * this.columnWidth) /
-            (this.chromosomes.length * config.gridSize));
+        return Math.floor((config.chromosomeColumn.spaceBetween - 2 * config.chromosomeColumn.margin) / config.gridSize);
     }
 
     init() {
@@ -78,7 +73,7 @@ export class ChromosomeColumnRenderer {
         let pixelGrid = Array(Math.floor(chrPixelValue / config.gridSize)).fill(0);
 
         const column = new PIXI.Graphics();
-        column.x = position;
+        column.x = 0;
         column.y = 0;
         container.addChild(column);
 
@@ -97,7 +92,7 @@ export class ChromosomeColumnRenderer {
             .lineTo(position, chrPixelValue)
             .lineTo(position, 0);
 
-        const initialMargin = position + this.columnWidth + config.gridSize;
+        const initialMargin = position + this.columnWidth + config.chromosomeColumn.margin;
         hits.forEach((hit) => {
             const start = this.getGridStart(hit.startIndex, chromosome.size, chrPixelValue);
             const end = this.getGridEnd(hit.endIndex, chromosome.size, chrPixelValue);
@@ -129,19 +124,16 @@ export class ChromosomeColumnRenderer {
     }
 
     buildColumns(container) {
-
-        let position = this.labelWidth;
-
         const sortedChromosomes = this.chromosomes.sort((chr1, chr2) => chr2.size - chr1.size);
         for (let i = 0; i < this.chromosomes.length; i++) {
-
+            const position = (this.hitsLimit * config.gridSize + 2 * config.chromosomeColumn.margin + this.columnWidth) * i;
             const chr = sortedChromosomes[i];
             const chrHits = this.hits.filter(hit => hit.chromosome === chr.name);
 
             const pixelSize = this.convertToPixels(chr.size, this.maxChrSize, this.containerHeight);
             const sortedHits = this.sortHitsByLength(chrHits);
             this.createColumn(container, position, pixelSize, chr, sortedHits);
-            position += this.hitsLimit * (config.gridSize - 1);
+
         }
     }
 
@@ -154,7 +146,7 @@ export class ChromosomeColumnRenderer {
         const label = new PIXI.Text(text, config.tick.label);
         label.resolution = drawingConfiguration.resolution;
         label.y = 0 - this.topMargin / 2 - label.height / 2;
-        label.x = 2 * position;
+        label.x = position;
         return label;
     }
 
