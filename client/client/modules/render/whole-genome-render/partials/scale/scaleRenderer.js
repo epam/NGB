@@ -95,7 +95,6 @@ export class ScaleRenderer {
         const {
             container,
             ticksGraphics,
-            tickLabels,
         } = graphics;
 
         if (!tick) return;
@@ -115,16 +114,15 @@ export class ScaleRenderer {
 
         if (label) {
             container.addChild(label);
-            tickLabels.push(label);
         }
     }
 
     appendTickGraphics(graphics, tickConfig) {
         const {
             prevPosition,
-            tickType
+            isEven
         } = tickConfig;
-        if (tickType === 'odd') {
+        if (!isEven) {
             graphics
                 .moveTo(this.start.x, prevPosition)
                 .lineTo(this.start.x + config.tick.offsetXOdd, prevPosition);
@@ -144,10 +142,7 @@ export class ScaleRenderer {
             ticksGraphics.y = 0;
             ticksGraphics.lineStyle(config.tick.thickness, config.axis.color, 1);
 
-            let tickLabels = [];
             let prevPosition = 0;
-            let tickType = 'odd';
-
             for (let i = 0; i < ticks.length; i++) {
 
                 const tick = ticks[i];
@@ -155,31 +150,29 @@ export class ScaleRenderer {
                     tick, {
                         container,
                         ticksGraphics,
-                        tickLabels,
                     }, {
                         prevPosition,
-                        tickType
+                        isEven: !!(i % 2)
                     }
                 );
                 prevPosition += this.pixelStep + config.tick.thickness;
-                tickType = (tickType === 'odd') ? 'even' : 'odd';
             }
-            tickLabels = null;
         }
     }
 
     createLabel(label, tickConfig) {
         const {
             prevPosition,
-            tickType
+            isEven
         } = tickConfig;
 
-        if (tickType === 'odd') {
+        if (!isEven) {
             const text = new PIXI.Text(label, config.tick.label);
+            text.resolution = drawingConfiguration.resolution;
             this.labelWidth = text.width;
             text.resolution = drawingConfiguration.resolution;
             text.y = prevPosition - this.pixelStep / 2 + text.height / 2 - 4 * config.axis.thickness;
-            text.x = this.start.x + config.tick.offsetXOdd + config.tick.label.margin;
+            text.x = this.start.x + config.tick.offsetXOdd + config.tick.margin;
             return text;
         } else {
             return null;
