@@ -14,6 +14,8 @@ export default class ngbBlastSearchPanelController extends baseController {
     isProgressShown = true;
     errorMessageList = [];
     blastSearchEmptyResult = null;
+    _sequense = '';
+    regexp = '\^[ACGTacgt]*$';
 
     gridOptions = {
         enableFiltering: false,
@@ -22,7 +24,7 @@ export default class ngbBlastSearchPanelController extends baseController {
         enablePinning: false,
         enableRowHeaderSelection: false,
         enableRowSelection: true,
-        headerRowHeight: 20,
+        headerRowHeight: 21,
         height: '100%',
         multiSelect: false,
         rowHeight: ROW_HEIGHT,
@@ -70,6 +72,7 @@ export default class ngbBlastSearchPanelController extends baseController {
     }
 
     async initialize() {
+        this._sequense = '';
         this.errorMessageList = [];
         if (this.isReadSelected) {
             this.isProgressShown = true;
@@ -99,6 +102,25 @@ export default class ngbBlastSearchPanelController extends baseController {
     handleOpenGenomeView() {
         const data = this.ngbBlastSearchService.generateBlastSearchResults();
         this.dispatcher.emitSimpleEvent('blast:whole:genome:view', { data });
+    }
+
+    handleSearchGenome(sequense) {
+        if (sequense !== this.readSequence) {
+            this.blastSearchLoadingFinished();
+        }
+    }
+
+    get sequense() {
+        return this._sequense;
+    }
+
+    set sequense(sequense) {
+        if (sequense) {
+            this._sequense = sequense.toUpperCase();
+        }
+        if (sequense === '') {
+            this._sequense = sequense;
+        }
     }
 
     async loadData() {
@@ -208,6 +230,9 @@ export default class ngbBlastSearchPanelController extends baseController {
         this.gridOptions.columnDefs = this.ngbBlastSearchService.getBlastSearchGridColumns();
         this.gridOptions.data = await this.ngbBlastSearchService.getBlastSearchResults();
         this.readSequence = this.ngbBlastSearchService.readSequence;
+        if (!this._sequense) {
+            this.sequense = this.readSequence;
+        }
 
         if (this.gridOptions.data && this.gridOptions.data.length) {
             this.blastSearchEmptyResult = null;

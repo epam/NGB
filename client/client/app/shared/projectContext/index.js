@@ -76,7 +76,6 @@ export default class projectContext {
     _position = null;
     _viewport = null;
     _blatRegion = null;
-    _blastRegion = null;
 
     _vcfFilter = {};
     _vcfFilterIsDefault = true;
@@ -230,10 +229,6 @@ export default class projectContext {
 
     get blatRegion() {
         return this._blatRegion;
-    }
-
-    get blastRegion() {
-        return this._blastRegion;
     }
 
     get tracks() {
@@ -930,8 +925,7 @@ export default class projectContext {
                 referenceDidChange,
                 tracksStateDidChange,
                 viewportDidChange,
-                blatRegionDidChange,
-                blastRegionDidChange
+                blatRegionDidChange
             } = result;
             let stateChanged = false;
             if (referenceDidChange) {
@@ -948,10 +942,6 @@ export default class projectContext {
             }
             if (blatRegionDidChange) {
                 emitEventFn('blatRegion:change', this.getCurrentStateObject());
-                stateChanged = true;
-            }
-            if (blastRegionDidChange) {
-                emitEventFn('blastRegion:change', this.getCurrentStateObject());
                 stateChanged = true;
             }
             if (viewportDidChange) {
@@ -1150,8 +1140,7 @@ export default class projectContext {
             tracksReordering,
             filterDatasets,
             shouldAddAnnotationTracks,
-            blatRegion,
-            blastRegion
+            blatRegion
         } = state;
         if (reference && !this._reference) {
             this._referenceIsPromised = true;
@@ -1176,14 +1165,9 @@ export default class projectContext {
         let positionDidChange = false;
         let viewportDidChange = false;
         let blatRegionDidChange = false;
-        let blastRegionDidChange = false;
 
         if (blatRegion) {
             blatRegionDidChange = this._changeBlatRegion(blatRegion);
-        }
-
-        if (blastRegion) {
-            blastRegionDidChange = this._changeBlastRegion(blastRegion);
         }
 
         if (viewport) {
@@ -1218,8 +1202,7 @@ export default class projectContext {
             referenceDidChange,
             tracksStateDidChange,
             viewportDidChange,
-            blatRegionDidChange,
-            blastRegionDidChange
+            blatRegionDidChange
         };
     }
 
@@ -1229,14 +1212,12 @@ export default class projectContext {
         const position = this._position;
         const viewport = this._viewport;
         const blatRegion = this.blatRegion;
-        const blastRegion = this.blastRegion;
         return {
             chromosome,
             position,
             referenceId,
             viewport,
-            blatRegion,
-            blastRegion
+            blatRegion
         };
     }
 
@@ -1710,23 +1691,6 @@ export default class projectContext {
             (oldBlatRegion !== null && this.blatRegion !== null && (
                 (oldBlatRegion.start !== this.blatRegion.start) ||
                 (oldBlatRegion.end !== this.blatRegion.end)
-            ));
-    }
-
-    _changeBlastRegion(blastRegion) {
-        const oldBlastRegion = this.blastRegion;
-
-        if (blastRegion.forceReset === true) {
-            this._blastRegion = null;
-        } else if (this._currentChromosome) {
-            this._blastRegion = blastRegion;
-        }
-
-        return (oldBlastRegion === null && this.blastRegion !== null) ||
-            (oldBlastRegion !== null && this.blastRegion === null) ||
-            (oldBlastRegion !== null && this.blastRegion !== null && (
-                (oldBlastRegion.start !== this.blastRegion.start) ||
-                (oldBlastRegion.end !== this.blastRegion.end)
             ));
     }
 

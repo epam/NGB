@@ -21,19 +21,25 @@
                         <textarea
                             flex
                             class="sequence-area"
-                        >{{$ctrl.readSequence}}
+                            name="sequense"
+                            ng-model="$ctrl.sequense"
+                            ng-change="$ctrl.sequense"
+                            ng-pattern="$ctrl.regexp"
+                        >
                         </textarea>
                     </div>
                     <div class="btn-container">
                         <md-button
                             class="md-accent md-raised"
                             ng-click="$ctrl.handleOpenGenomeView($event)"
-                            ng-disabled="!$ctrl.readSequence"
+                            ng-disabled="!$ctrl.sequense"
                         >
                             Browse genome view
                         </md-button>
                         <md-button
                             class="md-accent md-raised"
+                            ng-click="$ctrl.handleSearchGenome($ctrl.sequense)"
+                            ng-disabled="!$ctrl.sequense"
                         >
                             Search
                         </md-button>

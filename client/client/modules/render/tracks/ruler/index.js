@@ -46,7 +46,7 @@ export class RulerTrack extends Track {
                 RulerTransformer.transform(this.viewport, this.trackConfig.global, true),
                 RulerTransformer.transform(this.viewport, this.trackConfig.local));
         }
-        if (flags.brushChanged || flags.widthChanged || flags.renderReset || flags.blatRegionChanged || flags.blastRegionChanged) {
+        if (flags.brushChanged || flags.widthChanged || flags.renderReset || flags.blatRegionChanged) {
             this.brush.render();
             this.renderer.render(this.viewport, RulerTransformer.transform(this.viewport, this.trackConfig.local));
         }

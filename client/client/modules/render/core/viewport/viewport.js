@@ -30,7 +30,6 @@ export class Viewport extends BaseViewport {
     browserId = null;
 
     _blatRegion = null;
-
     _blastRegion = null;
 
     constructor(element: HTMLElement, {
@@ -154,13 +153,13 @@ export class Viewport extends BaseViewport {
         return this._blatRegion;
     }
 
-    get blastRegion() {
-        return this._blastRegion;
-    }
-
     set blatRegion(blatRegion) {
         this._blatRegion = blatRegion;
         this.blatRegionChangeSubject.onNext(this);
+    }
+
+    get blastRegion() {
+        return this._blastRegion;
     }
 
     set blastRegion(blastRegion) {
