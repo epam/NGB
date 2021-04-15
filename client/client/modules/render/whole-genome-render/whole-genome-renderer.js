@@ -38,14 +38,13 @@ export default class WholeGenomeRenderer {
             backgroundColor: 0xffffff
         });
 
-        this._scaleRenderer = new ScaleRenderer(this.renderParams);
+        this._scaleRenderer = new ScaleRenderer(this.scaleRenderParams);
         this.scaleRenderer.init(
             ScaleTransformer.buildTicks(this._range, this._ticksCount)
         );
-        this._scaleLabelWidth =  this._scaleRenderer.labelWidth;
         this.canvasElement.appendChild(this.renderer.view);
 
-        this._chromosomeRenderer = new ChromosomeColumnRenderer(this.renderParams);
+        this._chromosomeRenderer = new ChromosomeColumnRenderer(this.chrRenderParams);
         this.chromosomeRenderer.init();
         this.resizeRenderer();
 
@@ -109,17 +108,29 @@ export default class WholeGenomeRenderer {
         return flags;
     }
 
-    get renderParams() {
+    get chrRenderParams() {
         return {
             container: this.container,
             canvasSize: {
-                width: $(this.canvasElement).width(),
+                width: $(this.canvasElement).width() - drawingConfig.axis.canvasWidth,
                 height: $(this.canvasElement).height()
             },
             chromosomes: this.chromosomes,
             range: this.range,
             hits: this.hits,
-            labelWidth: this._scaleLabelWidth || 0,
+            renderer: this._pixiRenderer 
+        };
+    }
+    get scaleRenderParams() {
+        return {
+            container: this.container,
+            canvasSize: {
+                width: drawingConfig.axis.canvasWidth,
+                height: $(this.canvasElement).height()
+            },
+            chromosomes: this.chromosomes,
+            range: this.range,
+            hits: this.hits,
         };
     }
 
@@ -146,7 +157,6 @@ export default class WholeGenomeRenderer {
             this.render();
         }
     }
-
     destroy() {
         this._destroyed = true;
         if (this.renderer && this.renderer.view) {

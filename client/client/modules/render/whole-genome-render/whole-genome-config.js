@@ -12,7 +12,8 @@ export default {
         color: 0x000000,
         thickness: 1,
         offsetX: 0,
-        width: 50
+        width: 50,
+        canvasWidth: 100
     },
     tick: {
         formatter: ::formatter.format,
@@ -40,5 +41,15 @@ export default {
         width: 3,
         lineColor: 0x32cd32,
         offset: 5,
+    },
+    scrollBar: {
+        height: 15,
+        fill: 0xfffff,
+        border: 0x4285f4,
+        margin:5,
+        slider: {
+            margin: 15,
+            fill: 0x4285f4
+        }
     }
 };
