@@ -12,7 +12,7 @@ def buildNumber = hasProperty("buildNumber") ? buildNumber : ""
 def profile = hasProperty("profile") ? profile : "release"
 
 allprojects {
-    version = new Version(major: 2, minor: 6, patch: 0, build: buildNumber)    
+    version = new Version(major: 2, minor: 6, patch: 1, build: buildNumber)    
     task printVersion {
         doFirst {
             println "Project version is $version"
@@ -248,8 +248,3 @@ task buildAll(type: GradleBuild) {
                                             noTest: '']
     }
 }
-
-
-
-
-
