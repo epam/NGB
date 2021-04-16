@@ -10,7 +10,7 @@ import config from '../../whole-genome-config';
 export class ChromosomeColumnRenderer {
 
     scrollBar = new PIXI.Graphics();
-
+    scrollContainer = new PIXI.Container();
     constructor({
         container,
         canvasSize,
@@ -44,7 +44,7 @@ export class ChromosomeColumnRenderer {
     }
 
     get scrollBarWidth() {
-        return Math.pow((this.containerWidth - config.scrollBar.slider.margin), 2) / this.actualDrawingWidth;
+        return Math.pow((this.canvasSize.width - config.scrollBar.slider.margin), 2) / this.actualDrawingWidth;
     }
 
     get topMargin() {
@@ -63,8 +63,8 @@ export class ChromosomeColumnRenderer {
         const container = new PIXI.Container();
         this.buildColumns(container);
         if (this.containerWidth < this.actualDrawingWidth) {
-            const scroll = this.createScrollBar();
-            container.addChild(scroll);
+            this.createScrollBar();
+            container.addChild(this.scrollContainer);
         }
         container.x = config.axis.canvasWidth;
         container.y = config.start.topMargin;
@@ -170,54 +170,64 @@ export class ChromosomeColumnRenderer {
         label.x = position;
         return label;
     }
-    createScrollBar() {
+    createScrollBar(scrollParams = {}) {
 
         const pixiEventStream = new Subject();
         const toStream = (e) => pixiEventStream.onNext(e);
         let subscription;
 
-        const scrollContainer = new PIXI.Container();
-        scrollContainer.x = 0;
-        scrollContainer.y = this.containerHeight + config.scrollBar.margin;
-        scrollContainer.addChild(this.scrollBar);
-        scrollContainer.interactive = true;
-        scrollContainer.buttonMode = true;
-        const scrollParams = {
-            start: 0,
-            currentPosition: 0,
-            end: this.containerWidth - config.scrollBar.slider.margin
-        };
-        scrollContainer.on('mouseup', () => {
+        this.scrollContainer.x = 0;
+        this.scrollContainer.y = this.containerHeight + config.scrollBar.margin;
+        this.scrollContainer.addChild(this.scrollBar);
+        this.drawScrollBar(0);
+
+        this.scrollContainer.interactive = true;
+        this.scrollContainer.buttonMode = true;
+        if (!scrollParams.start && !scrollParams.end) {
+            scrollParams.start = 0;
+            scrollParams.currentPosition = 0;
+            scrollParams.end = this.canvasSize.width - config.scrollBar.slider.margin;
+        }
+        this.scrollContainer.on('mouseup', () => {
             if (subscription) {
                 subscription.dispose();
             }
         });
-        scrollContainer.on('mouseupoutside', () => {
+        this.scrollContainer.on('mouseupoutside', () => {
             if (subscription) {
                 subscription.dispose();
             }
         });
-        scrollContainer.on('mousedown', () => {
+        this.scrollContainer.on('mousedown', () => {
             subscription = pixiEventStream.subscribe((e) => {
-                this.scrollBarMove(e, scrollContainer, scrollParams);
+                this.scrollBarMove(e, this.scrollContainer, scrollParams);
             });
         });
-        scrollContainer.on('mousemove', (e) => {
+        this.scrollContainer.on('mousemove', (e) => {
             if (subscription) {
                 toStream(e);
             }
         });
-        this.drawScrollBar(0);
-        return scrollContainer;
     }
 
     scrollBarMove(e, container, scrollParams) {
-        if (e && e.data && e.data.originalEvent && e.data.originalEvent.movementX) {
+
+        if (
+            scrollParams.end !== undefined &&
+            scrollParams.start !== undefined &&
+            e && e.data && e.data.originalEvent &&
+            e.data.originalEvent.movementX
+        ) {
             const delta = e.data.originalEvent.movementX;
             const local = scrollParams.currentPosition + delta;
             scrollParams.currentPosition = local;
             const localBounds = this.scrollBar.getLocalBounds();
-            if (local + localBounds.width <= scrollParams.end && localBounds.x >= scrollParams.start && local >= scrollParams.start) {
+            if (
+                local + localBounds.width <= scrollParams.end &&
+                localBounds.x + localBounds.width <= scrollParams.end &&
+                localBounds.x >= scrollParams.start &&
+                local >= scrollParams.start
+            ) {
                 this.updateScrollBar(local, container);
             } else if (local < scrollParams.start) {
                 this.updateScrollBar(scrollParams.start, container);
@@ -247,5 +257,16 @@ export class ChromosomeColumnRenderer {
 
     sortHitsByLength(hits) {
         return hits.sort((hit1, hit2) => (hit2.endIndex - hit2.startIndex) - (hit1.endIndex - hit1.startIndex));
+    }
+    resizeScroll(width) {
+        this.canvasSize.width = width;
+        this.scrollBar.clear();
+        this.scrollContainer.removeAllListeners();
+        const scrollParams = {
+            start: 0,
+            currentPosition: 0,
+            end: width - config.scrollBar.slider.margin
+        };
+        this.createScrollBar(scrollParams);
     }
 }

@@ -118,7 +118,7 @@ export default class WholeGenomeRenderer {
             chromosomes: this.chromosomes,
             range: this.range,
             hits: this.hits,
-            renderer: this._pixiRenderer 
+            renderer: this._pixiRenderer
         };
     }
     get scaleRenderParams() {
@@ -149,11 +149,11 @@ export default class WholeGenomeRenderer {
     resizeRenderer() {
         if (this.renderer) {
             this.renderer.resize(this.width, this.height);
-
             Object.assign(this.renderer.view.style, {
                 width: `${this.width}px`,
                 height: `${this.height}px`
             });
+            this.chromosomeRenderer.resizeScroll(this.width - drawingConfig.axis.canvasWidth);
             this.render();
         }
     }
