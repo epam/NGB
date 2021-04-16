@@ -226,7 +226,7 @@ export default class ngbBlastSearchPanelController extends baseController {
     }
 
     async blastSearchLoadingFinished() {
-        // todo: we need to save this data and pass it to the Whole Genome View (if requested)
+        // todo: we need save this data and pass it to the Whole Genome View (if requested)
         const data = (await this.ngbBlastSearchService.getBlastSearchResults()) || [];
         this.blastSearchEmptyResult = null;
         this.gridOptions.columnDefs = this.ngbBlastSearchService.getBlastSearchGridColumns();
