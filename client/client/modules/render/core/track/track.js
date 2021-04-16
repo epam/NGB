@@ -58,6 +58,10 @@ export class Track extends BaseTrack {
             this._flags.blatRegionChanged = true;
             requestAnimationFrame(::this.tick);
         }),
+        this.viewport.blastRegionChangeSubject.subscribe(() => {
+            this._flags.blastRegionChanged = true;
+            requestAnimationFrame(::this.tick);
+        }),
         this.viewport.brushChangeSubject.subscribe(() =>
             this._flags.brushChanged = true),
         this.viewport.brushChangeSubject.subscribe((opts) => {

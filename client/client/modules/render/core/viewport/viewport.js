@@ -12,6 +12,7 @@ export class Viewport extends BaseViewport {
     element: HTMLElement;
     brushChangeSubject = new Subject();
     blatRegionChangeSubject = new Subject();
+    blastRegionChangeSubject = new Subject();
     shortenedIntronsChangeSubject = new Subject();
 
     margin = 0;
@@ -29,6 +30,7 @@ export class Viewport extends BaseViewport {
     browserId = null;
 
     _blatRegion = null;
+    _blastRegion = null;
 
     constructor(element: HTMLElement, {
         chromosomeSize,
@@ -36,7 +38,8 @@ export class Viewport extends BaseViewport {
             end: chromosomeSize,
             start: 1
         },
-        blatRegion
+        blatRegion,
+        blastRegion
     }, dispatcher, projectContext, margin = 0, browserInitialSetting, vcfDataService) {
         super({
             brush: brush,
@@ -55,6 +58,7 @@ export class Viewport extends BaseViewport {
         this.projectContext = projectContext;
         this.vcfDataService = vcfDataService;
         this.blatRegion = blatRegion;
+        this.blastRegion = blastRegion;
 
         if (browserInitialSetting && browserInitialSetting.browserId && !browserInitialSetting.silentInteractions) {
             this.browserId = browserInitialSetting.browserId;
@@ -152,6 +156,15 @@ export class Viewport extends BaseViewport {
     set blatRegion(blatRegion) {
         this._blatRegion = blatRegion;
         this.blatRegionChangeSubject.onNext(this);
+    }
+
+    get blastRegion() {
+        return this._blastRegion;
+    }
+
+    set blastRegion(blastRegion) {
+        this._blastRegion = blastRegion;
+        this.blastRegionChangeSubject.onNext(this);
     }
 
     _shortenedConvert = {

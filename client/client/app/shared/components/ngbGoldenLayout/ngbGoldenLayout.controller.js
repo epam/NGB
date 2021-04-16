@@ -58,7 +58,8 @@ export default class ngbGoldenLayoutController extends baseController {
         'read:show:mate': ::this.panelAddBrowserWithPairRead,
         'read:show:blat': ::this.panelAddBlatSearchPanel,
         'read:show:blast': :: this.panelAddBlastSearchPanel,
-        'tracks:state:change': ::this.panelRemoveBlatSearchPanel,
+        'tracks:state:change:blat': ::this.panelRemoveBlatSearchPanel,
+        'tracks:state:change:blast': ::this.panelRemoveBlastSearchPanel,
         'variant:show:pair': ::this.panelAddBrowserWithVariation
     };
 
@@ -323,6 +324,28 @@ export default class ngbGoldenLayoutController extends baseController {
         }
     }
 
+    panelRemoveBlastSearchPanel() {
+        const [blastSearchItem] = this.goldenLayout.root
+            .getItemsByFilter((obj) => obj.config && obj.config.componentState
+                && obj.config.componentState.panel === this.panels.ngbBlastSearchPanel);
+
+        if (!blastSearchItem) {
+            return;
+        }
+
+        const savedBlastRequest = JSON.parse(localStorage.getItem('blastSearchRequest')) || null;
+
+        if(!savedBlastRequest) {
+            return;
+        }
+
+        const [currentBlastSearchBamTrack] = this.projectContext.tracks.filter(t => t.format === 'BAM' && t.id === savedBlastRequest.id);
+
+        if(!currentBlastSearchBamTrack) {
+            this.panelRemove(this.appLayout.Panels.blast);
+        }
+    }
+
     blatSearchPanelDestroyedHandler(item) {
         if (item.type === 'component') {
             if (item.config.componentState.panel === this.panels.ngbBlatSearchPanel) {
@@ -334,6 +357,7 @@ export default class ngbGoldenLayoutController extends baseController {
     blastSearchPanelDestroyedHandler(item) {
         if (item.type === 'component') {
             if (item.config.componentState.panel === this.panels.ngbBlastSearchPanel) {
+                this.blastSearchPanelRemoved();
                 this.goldenLayout.off('itemDestroyed', this.blastSearchPanelDestroyedHandler, this);
             }
         }
@@ -344,6 +368,13 @@ export default class ngbGoldenLayoutController extends baseController {
         localStorage.removeItem('blatColumns');
 
         this.projectContext.changeState({ blatRegion: { forceReset: true } });
+    }
+
+    blastSearchPanelRemoved() {
+        localStorage.removeItem('blastSearchRequest');
+        localStorage.removeItem('blastColumns');
+
+        this.projectContext.changeState({ blastRegion: { forceReset: true } });
     }
 
     panelAddBlatSearchPanel(event) {
@@ -378,7 +409,7 @@ export default class ngbGoldenLayoutController extends baseController {
             }
         }
     }
-    panelAddBlastSearchPanel() {
+    panelAddBlastSearchPanel(event) {
         const layoutChange = this.appLayout.Panels.blast;
         layoutChange.displayed = true;
 
@@ -386,12 +417,25 @@ export default class ngbGoldenLayoutController extends baseController {
             .getItemsByFilter((obj) => obj.config && obj.config.componentState
                 && obj.config.componentState.panel === this.panels.ngbBlastSearchPanel);
 
-        this.goldenLayout.on('itemDestroyed', this.blatSearchPanelDestroyedHandler, this);
+        const payload = {
+            id: event.id,
+            referenceId: event.referenceId,
+            chromosomeId: event.chromosomeId,
+            startIndex: event.startIndex,
+            endIndex: event.endIndex,
+            name: event.name,
+            openByUrl: event.openByUrl,
+            file: event.file,
+            index: event.index
+        };
+        localStorage.setItem('blastSearchRequest', JSON.stringify(payload || {}));
+
+        this.goldenLayout.on('itemDestroyed', this.blastSearchPanelDestroyedHandler, this);
 
         if (!blastSearchItem) {
             this.panelAdd(layoutChange);
         } else {
-            const parent = blatSearchItem.parent;
+            const parent = blastSearchItem.parent;
             if (parent && parent.type === 'stack') {
                 parent.setActiveContentItem(blastSearchItem);
             }
