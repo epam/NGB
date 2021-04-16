@@ -14,8 +14,14 @@ export default class ngbBlastSearchPanelController extends baseController {
     isProgressShown = true;
     errorMessageList = [];
     blastSearchEmptyResult = null;
-    _sequense = '';
-    regexp = '\^[ACGTacgt]*$';
+    _sequence = '';
+    data = null;
+    dataLength;
+
+    paginationOptions = {
+        pageNumber: 1,
+        pageSize: 10,
+    };
 
     gridOptions = {
         enableFiltering: false,
@@ -27,6 +33,8 @@ export default class ngbBlastSearchPanelController extends baseController {
         headerRowHeight: 21,
         height: '100%',
         multiSelect: false,
+        paginationPageSize: 10,
+        paginationPageSizes: [10, 20, 50, 100],
         rowHeight: ROW_HEIGHT,
         saveFilter: false,
         saveFocus: false,
@@ -40,11 +48,20 @@ export default class ngbBlastSearchPanelController extends baseController {
         saveTreeView: false,
         saveVisible: true,
         saveWidths: true,
+        showColumnFooter: true,
         showHeader: true,
         treeRowHeaderAlwaysVisible: false,
+        useExternalPagination: true,
     };
 
-    constructor($scope, $timeout, blastSearchMessages, dispatcher, ngbBlastSearchService, projectContext) {
+    constructor(
+        $scope,
+        $timeout,
+        blastSearchMessages,
+        dispatcher,
+        ngbBlastSearchService,
+        projectContext
+    ) {
         super();
 
         Object.assign(this, {
@@ -72,8 +89,9 @@ export default class ngbBlastSearchPanelController extends baseController {
     }
 
     async initialize() {
-        this._sequense = '';
+        this._sequence = '';
         this.errorMessageList = [];
+        this.data = null;
         if (this.isReadSelected) {
             this.isProgressShown = true;
             this.blastSearchEmptyResult = null;
@@ -87,6 +105,7 @@ export default class ngbBlastSearchPanelController extends baseController {
                     this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
                     this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
                     this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
+                    this.gridApi.pagination.on.paginationChanged(this.$scope, ::this.paginationChanged);
                 },
             });
             await this.loadData();
@@ -96,30 +115,6 @@ export default class ngbBlastSearchPanelController extends baseController {
             this.isProgressShown = false;
             this.gridOptions.columnDefs = [];
             this.$timeout(this.$scope.$apply());
-        }
-    }
-
-    handleOpenGenomeView() {
-        const data = this.ngbBlastSearchService.generateBlastSearchResults();
-        this.dispatcher.emitSimpleEvent('blast:whole:genome:view', { data });
-    }
-
-    handleSearchGenome(sequense) {
-        if (sequense !== this.readSequence) {
-            this.blastSearchLoadingFinished();
-        }
-    }
-
-    get sequense() {
-        return this._sequense;
-    }
-
-    set sequense(sequense) {
-        if (sequense) {
-            this._sequense = sequense.toUpperCase();
-        }
-        if (sequense === '') {
-            this._sequense = sequense;
         }
     }
 
@@ -138,6 +133,25 @@ export default class ngbBlastSearchPanelController extends baseController {
         }
     }
 
+    handleOpenGenomeView() {
+        const data = this.data;
+        this.dispatcher.emitSimpleEvent('blast:whole:genome:view', { data });
+    }
+
+    handleSearchGenome(sequence) {
+        if (sequence !== this.readSequence) {
+            this.blastSearchLoadingFinished();
+        }
+    }
+
+    get sequence() {
+        return this._sequence;
+    }
+
+    set sequence(sequence) {
+        this._sequence = sequence;
+    }
+
     onError(message) {
         this.errorMessageList.push(message);
     }
@@ -154,6 +168,7 @@ export default class ngbBlastSearchPanelController extends baseController {
         } else {
             this.ngbBlastSearchService.orderBy = null;
         }
+        this.getPage();
     }
 
     saveColumnsState() {
@@ -225,23 +240,38 @@ export default class ngbBlastSearchPanelController extends baseController {
         }
     }
 
+    paginationChanged(newPage, pageSize) {
+        this.paginationOptions.pageNumber = newPage;
+        this.paginationOptions.pageSize = pageSize;
+        this.getPage();
+    }
+
+    getPage() {
+        const firstRow = (this.paginationOptions.pageNumber - 1) * this.paginationOptions.pageSize;
+        this.gridOptions.data = this.data.slice(firstRow, firstRow + this.paginationOptions.pageSize);
+    }
+
     async blastSearchLoadingFinished() {
-        // todo: we need to save this data and pass it to the Whole Genome View (if requested)
-        const data = (await this.ngbBlastSearchService.getBlastSearchResults()) || [];
         this.blastSearchEmptyResult = null;
         this.gridOptions.columnDefs = this.ngbBlastSearchService.getBlastSearchGridColumns();
-        this.gridOptions.data = data.slice(0, 50);
+        this.data = (await this.ngbBlastSearchService.getBlastSearchResults()) || [];
+        this.dataLength = this.data.length;
         this.readSequence = this.ngbBlastSearchService.readSequence;
-        if (!this._sequense) {
-            this.sequense = this.readSequence;
+
+        if (!this._sequence) {
+            this.sequence = this.readSequence;
         }
 
-        if (this.gridOptions.data && this.gridOptions.data.length) {
+        if (this.data && this.dataLength) {
+            this.gridOptions.totalItems = this.dataLength;
+            this.getPage();
+        }
+
+        if (this.data && this.data.length) {
             this.blastSearchEmptyResult = null;
         } else {
             this.blastSearchEmptyResult = this.blastSearchMessages.ErrorMessage.EmptySearchResults;
         }
-
         this.isProgressShown = false;
     }
 }
