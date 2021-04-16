@@ -262,11 +262,13 @@ export class ChromosomeColumnRenderer {
         this.canvasSize.width = width;
         this.scrollBar.clear();
         this.scrollContainer.removeAllListeners();
-        const scrollParams = {
-            start: 0,
-            currentPosition: 0,
-            end: width - config.scrollBar.slider.margin
-        };
-        this.createScrollBar(scrollParams);
+        if (this.canvasSize.width < this.actualDrawingWidth) {
+            const scrollParams = {
+                start: 0,
+                currentPosition: 0,
+                end: width - config.scrollBar.slider.margin
+            };
+            this.createScrollBar(scrollParams);
+        }
     }
 }
