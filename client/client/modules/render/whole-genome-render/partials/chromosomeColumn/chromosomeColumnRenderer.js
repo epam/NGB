@@ -1,5 +1,7 @@
 import PIXI from 'pixi.js';
-import { Subject } from 'rx';
+import {
+    Subject
+} from 'rx';
 
 import {
     drawingConfiguration
@@ -64,8 +66,8 @@ export class ChromosomeColumnRenderer {
         this.buildColumns(container);
         if (this.containerWidth < this.actualDrawingWidth) {
             this.createScrollBar();
-            container.addChild(this.scrollContainer);
         }
+        container.addChild(this.scrollContainer);
         container.x = config.axis.canvasWidth;
         container.y = config.start.topMargin;
         this.container.addChild(container);
@@ -171,7 +173,6 @@ export class ChromosomeColumnRenderer {
         return label;
     }
     createScrollBar(scrollParams = {}) {
-
         const pixiEventStream = new Subject();
         const toStream = (e) => pixiEventStream.onNext(e);
         let subscription;
@@ -262,11 +263,13 @@ export class ChromosomeColumnRenderer {
         this.canvasSize.width = width;
         this.scrollBar.clear();
         this.scrollContainer.removeAllListeners();
-        const scrollParams = {
-            start: 0,
-            currentPosition: 0,
-            end: width - config.scrollBar.slider.margin
-        };
-        this.createScrollBar(scrollParams);
+        if (this.canvasSize.width < this.actualDrawingWidth) {
+            const scrollParams = {
+                start: 0,
+                currentPosition: 0,
+                end: width - config.scrollBar.slider.margin
+            };
+            this.createScrollBar(scrollParams);
+        }
     }
 }
