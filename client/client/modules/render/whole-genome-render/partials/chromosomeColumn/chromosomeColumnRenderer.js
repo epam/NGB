@@ -67,7 +67,7 @@ export class ChromosomeColumnRenderer {
         return this.hitsLimit * config.gridSize + 2 * config.chromosomeColumn.margin + this.columnWidth;
     }
     get scrollFactor() {
-        return this.actualDrawingWidth / (this.canvasSize.width - config.scrollBar.slider.margin - this.scrollBarWidth);
+        return this.actualDrawingWidth / (this.canvasSize.width - config.scrollBar.slider.margin);
     }
 
     getPixelLength(start, end, chrSize, chrPixelValue) {
