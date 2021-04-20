@@ -16,7 +16,6 @@ export class ChromosomeColumnRenderer {
     columns = new PIXI.Graphics();
     scrollContainer = new PIXI.Container();
     mainContainer = new PIXI.Container();
-    chrScrollSubject = new Subject();
     isScrollable = false;
 
     constructor({
@@ -67,8 +66,8 @@ export class ChromosomeColumnRenderer {
     get chrBlockWidth() {
         return this.hitsLimit * config.gridSize + 2 * config.chromosomeColumn.margin + this.columnWidth;
     }
-    get maxScrollOffset() {
-        return this.actualDrawingWidth - this.canvasSize.width - config.scrollBar.slider.margin;
+    get scrollFactor() {
+        return this.actualDrawingWidth / (this.canvasSize.width - config.scrollBar.slider.margin - this.scrollBarWidth);
     }
 
     getPixelLength(start, end, chrSize, chrPixelValue) {
@@ -86,6 +85,15 @@ export class ChromosomeColumnRenderer {
     getGridEnd(nucleotide, chrSize, chrPixelValue) {
         return (Math.ceil(this.convertToPixels(nucleotide, chrSize, chrPixelValue) / config.gridSize));
     }
+    activateMask() {
+        if (this.mask) {
+            this.mask.x = 0;
+            this.mask.y = -this.topMargin;
+            this.mask.drawRect(0, 0, this.canvasSize.width - config.scrollBar.slider.margin, this.height);
+            this.mainContainer.addChild(this.mask);
+            this.mainContainer.mask = this.mask;
+        }
+    }
 
     init() {
         this.mainContainer.addChild(this.columns);
@@ -93,13 +101,7 @@ export class ChromosomeColumnRenderer {
         if (this.containerWidth < this.actualDrawingWidth) {
             this.isScrollable = true;
             this.createScrollBar();
-            if (this.mask) {
-                this.mask.x = 0;
-                this.mask.y = -this.topMargin;
-                this.mask.drawRect(0, 0, this.canvasSize.width - config.scrollBar.slider.margin, this.height);
-                this.mainContainer.addChild(this.mask);
-                this.mainContainer.mask = this.mask;
-            }
+            this.activateMask();
         } else {
             this.isScrollable = false;
         }
@@ -107,7 +109,6 @@ export class ChromosomeColumnRenderer {
         this.mainContainer.x = config.axis.canvasWidth;
         this.mainContainer.y = config.start.topMargin;
         this.container.addChild(this.mainContainer);
-        return this.mainContainer;
     }
 
     buildColumns(pos = 0) {
@@ -127,19 +128,22 @@ export class ChromosomeColumnRenderer {
         }
     }
 
-    updateColumnsByScroll(params) {
-        const {
-            start,
-            currentPosition
-        } = params;
+    updateColumnsByScroll(params, localBounds) {
         this.columns.clear();
         let startPoint;
-        if (currentPosition <= start) {
+        if (
+            params.currentPosition > 0 &&
+            localBounds.x < params.end &&
+            params.currentPosition < params.end
+        ) {
+            startPoint = localBounds.x * this.scrollFactor;
+        } else if (localBounds.x <= 0 || params.currentPosition < 0) {
             startPoint = 0;
-        } else if (currentPosition > this.maxScrollOffset) {
-            startPoint = 3 / 2 * this.maxScrollOffset;
-        } else if (currentPosition <= this.maxScrollOffset) {
-            startPoint = currentPosition;
+        } else if (
+            localBounds.x >= params.end ||
+            params.currentPosition >= params.end
+        ) {
+            startPoint = params.end * this.scrollFactor;
         }
         this.buildColumns(startPoint);
     }
@@ -229,7 +233,7 @@ export class ChromosomeColumnRenderer {
         if (!scrollParams.start && !scrollParams.end) {
             scrollParams.start = 0;
             scrollParams.currentPosition = 0;
-            scrollParams.end = this.canvasSize.width - config.scrollBar.slider.margin;
+            scrollParams.end = this.canvasSize.width - config.scrollBar.slider.margin - this.scrollBarWidth;
         }
         this.scrollContainer.on('mouseup', () => {
             if (subscription) {
@@ -254,7 +258,7 @@ export class ChromosomeColumnRenderer {
     }
 
     scrollBarMove(e, scrollParams) {
-
+        const localBounds = this.scrollBar.getLocalBounds();
         if (
             scrollParams.end !== undefined &&
             scrollParams.start !== undefined &&
@@ -262,16 +266,17 @@ export class ChromosomeColumnRenderer {
             e.data.originalEvent.movementX
         ) {
             const delta = e.data.originalEvent.movementX;
-            const local = scrollParams.currentPosition + delta;
+            const local = localBounds.x + delta;
             scrollParams.currentPosition = local;
-            this.updateScrollBar(scrollParams);
+            this.updateScrollBar(scrollParams, localBounds);
         }
     }
 
-    updateScrollBar(params) {
+    updateScrollBar(params, localBounds) {
         this.scrollBar.clear();
-        this.reDrawScrollBar(params);
-        this.updateColumnsByScroll(params);
+
+        this.reDrawScrollBar(params, localBounds);
+        this.updateColumnsByScroll(params, localBounds);
         requestAnimationFrame(() => this.renderer.render(this.container));
     }
 
@@ -280,7 +285,7 @@ export class ChromosomeColumnRenderer {
         this.scrollBar
             .beginFill(config.scrollBar.slider.fill, 0.5)
             .drawRect(
-                currentScrollPosition,
+                currentScrollPosition > 0 ? currentScrollPosition : 0,
                 0,
                 this.scrollBarWidth,
                 config.scrollBar.height
@@ -288,24 +293,21 @@ export class ChromosomeColumnRenderer {
             .endFill();
     }
 
-    reDrawScrollBar(params) {
-        const localBounds = this.scrollBar.getLocalBounds();
+    reDrawScrollBar(params, localBounds) {
         const {
             start,
             end,
             currentPosition
         } = params;
         if (
-            localBounds.x + this.scrollBarWidth <= end &&
-            currentPosition < this.maxScrollOffset &&
-            currentPosition >= start &&
-            localBounds.x >= start
+            currentPosition <= end &&
+            localBounds.x <= end
         ) {
             this.drawScrollBar(currentPosition);
-        } else if (currentPosition < start) {
+        } else if (localBounds.x <= start) {
             this.drawScrollBar(params.start);
-        } else if (currentPosition >= this.maxScrollOffset) {
-            this.drawScrollBar(end - this.scrollBarWidth);
+        } else {
+            this.drawScrollBar(end);
         }
     }
 
@@ -321,12 +323,14 @@ export class ChromosomeColumnRenderer {
             const scrollParams = {
                 start: 0,
                 currentPosition: 0,
-                end: width - config.scrollBar.slider.margin
+                end: width - config.scrollBar.slider.margin - this.scrollBarWidth
             };
-            this.mask.drawRect(0, 0, this.canvasSize.width - config.scrollBar.slider.margin, this.height);
+            this.activateMask();
             this.createScrollBar(scrollParams);
+
         } else {
             this.isScrollable = false;
+            requestAnimationFrame(() => this.renderer.render(this.container));
         }
     }
 }
