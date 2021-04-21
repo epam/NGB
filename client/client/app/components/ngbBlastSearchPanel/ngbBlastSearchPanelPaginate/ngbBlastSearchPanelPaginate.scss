@@ -1,0 +1,28 @@
+ngb-blast-search-panel-paginate {
+  font-size: 14px;
+  align-self: center;
+  height: auto;
+  .blast-pagination {
+    margin-right: 5px;
+  }
+
+  .blast-pagination-item {
+    float: left;
+    min-width: 10px;
+    min-height: 24px;
+    height: 24px;
+    padding: 0;
+    margin: 0 2px;
+    line-height: 24px;
+    ng-md-icon {
+      fill: white;
+      min-height: 24px;
+      height: 24px;
+    }
+    &.active {
+      color: white;
+      text-decoration: underline;
+      font-weight: bold;
+    }
+  }
+}

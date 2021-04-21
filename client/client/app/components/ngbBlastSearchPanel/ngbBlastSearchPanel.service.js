@@ -1,7 +1,7 @@
 import {camelPad} from '../../shared/utils/String.js';
 
 const DEFAULT_BLAST_COLUMNS = [
-    'chr', 'startIndex', 'endIndex', 'strand', 'score',
+    'numb', 'chr', 'startIndex', 'endIndex', 'strand', 'score',
     'match', 'mismatch', 'repMatch',
     'ns',
     'qGapCount', 'qGapBases',
@@ -15,7 +15,7 @@ export default class ngbBlastSearchService {
 
     _orderBy = null;
     _detailedRead = null;
-    _columnsWidth = { 'chr' : 45, 'startIndex' : 100, 'endIndex' : 100, 'strand' : 80 };
+    _columnsWidth = { 'numb': 50, 'chr' : 45, 'startIndex' : 100, 'endIndex' : 100, 'strand' : 80 };
     bamDataService;
     uiGridConstants;
 
@@ -33,6 +33,7 @@ export default class ngbBlastSearchService {
                     start + (singleSized ? 1 : Math.floor(Math.random() * chr.size / 100)),
                     chr.size,
                 );
+                const numb = i+1;
                 const chrName = `chr${chr.id}`;
                 const strand = chr.id % 2 !== 0 ? 'POSITIVE' : 'NEGATIVE';
                 const score = Math.floor(Math.random() * 100);
@@ -47,6 +48,7 @@ export default class ngbBlastSearchService {
                     score,
                     match,
                     mismatch,
+                    numb,
                 });
             }
         });

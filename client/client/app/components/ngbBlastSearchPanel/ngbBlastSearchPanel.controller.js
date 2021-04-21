@@ -1,6 +1,8 @@
 import baseController from '../../shared/baseController';
 
 const ROW_HEIGHT = 35;
+const PAGE_SIZE = 50;
+const FIRST_PAGE = 1;
 
 export default class ngbBlastSearchPanelController extends baseController {
 
@@ -17,11 +19,12 @@ export default class ngbBlastSearchPanelController extends baseController {
     _sequence = '';
     data = null;
     dataLength;
-
-    paginationOptions = {
-        pageNumber: 1,
-        pageSize: 10,
-    };
+    firstRow = 0;
+    lastRow = PAGE_SIZE;
+    blastPageSize = PAGE_SIZE;
+    currentPageBlast = FIRST_PAGE;
+    firstPageBlast = FIRST_PAGE;
+    lastPageBlast = FIRST_PAGE;
 
     gridOptions = {
         enableFiltering: false,
@@ -32,9 +35,10 @@ export default class ngbBlastSearchPanelController extends baseController {
         enableRowSelection: true,
         headerRowHeight: 21,
         height: '100%',
+        infiniteScrollDown: true,
+        infiniteScrollRowsFromEnd: 10,
+        infiniteScrollUp: true,
         multiSelect: false,
-        paginationPageSize: 10,
-        paginationPageSizes: [10, 20, 50, 100],
         rowHeight: ROW_HEIGHT,
         saveFilter: false,
         saveFocus: false,
@@ -48,10 +52,8 @@ export default class ngbBlastSearchPanelController extends baseController {
         saveTreeView: false,
         saveVisible: true,
         saveWidths: true,
-        showColumnFooter: true,
         showHeader: true,
         treeRowHeaderAlwaysVisible: false,
-        useExternalPagination: true,
     };
 
     constructor(
@@ -78,6 +80,7 @@ export default class ngbBlastSearchPanelController extends baseController {
     events = {
         'reference:change': ::this.initialize,
         'read:show:blast': ::this.initialize,
+        'pageBlast:change': ::this.getPage,
     };
 
     async $onInit() {
@@ -92,6 +95,9 @@ export default class ngbBlastSearchPanelController extends baseController {
         this._sequence = '';
         this.errorMessageList = [];
         this.data = null;
+        this.firstRow = 0;
+        this.lastRow = 0;
+        this.currentPageBlast = FIRST_PAGE;
         if (this.isReadSelected) {
             this.isProgressShown = true;
             this.blastSearchEmptyResult = null;
@@ -105,7 +111,9 @@ export default class ngbBlastSearchPanelController extends baseController {
                     this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
                     this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
                     this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
-                    this.gridApi.pagination.on.paginationChanged(this.$scope, ::this.paginationChanged);
+                    this.gridApi.infiniteScroll.on.needLoadMoreData(this.$scope, ::this.getDataDown);
+                    this.gridApi.infiniteScroll.on.needLoadMoreDataTop(this.$scope, ::this.getDataUp);
+                    this.gridApi.core.on.scrollEnd(this.$scope, ::this.changeCurrentPage);
                 },
             });
             await this.loadData();
@@ -168,7 +176,7 @@ export default class ngbBlastSearchPanelController extends baseController {
         } else {
             this.ngbBlastSearchService.orderBy = null;
         }
-        this.getPage();
+        this.getPage(FIRST_PAGE);
     }
 
     saveColumnsState() {
@@ -205,8 +213,8 @@ export default class ngbBlastSearchPanelController extends baseController {
 
     rowClick(row) {
         const entity = row.entity;
-        const chromosome = this.projectContext.currentChromosome
-            ? this.projectContext.currentChromosome.name
+        const chromosome = this.currentChromosome
+            ? this.currentChromosome.name
             : null;
 
         let chromosomeName;
@@ -240,15 +248,79 @@ export default class ngbBlastSearchPanelController extends baseController {
         }
     }
 
-    paginationChanged(newPage, pageSize) {
-        this.paginationOptions.pageNumber = newPage;
-        this.paginationOptions.pageSize = pageSize;
-        this.getPage();
+    getPage(page, concat = false) {
+        let dataUp = [];
+        let dataDown = [];
+
+        this.hasMoreBlast = page <= this.totalPagesCountBlast;
+        this.firstRow = this.blastPageSize * (page - 1);
+        this.lastRow = this.firstRow + this.blastPageSize;
+        if (this.currentPageBlast < page) {
+            if (concat) {
+                dataUp = this.gridOptions.data;
+            }
+            if (!this.hasMoreBlast) {
+                this.lastRow = this.gridOptions.totalItems;
+            }
+        }
+        if (this.currentPageBlast > page) {
+            if (concat) {
+                dataDown = this.gridOptions.data;
+            }
+            if (page === 1) {
+                this.firstRow = 0;
+            }
+        }
+        this.currentPageBlast = page;
+        this.firstPageBlast = page;
+        this.lastPageBlast = page;
+        this.gridApi.infiniteScroll.setScrollDirections(false, false);
+        const dataMiddle = this.data.slice(this.firstRow, this.lastRow);
+        this.gridOptions.data = dataUp.concat(dataMiddle.concat(dataDown));
+        this.$timeout(() => {
+            this.gridApi.infiniteScroll.resetScroll(
+                this.firstPageBlast > 1,
+                (this.totalPagesCountBlast === undefined && this.hasMoreBlast)
+                || this.lastPageBlast < this.totalPagesCountBlast);
+        });
     }
 
-    getPage() {
-        const firstRow = (this.paginationOptions.pageNumber - 1) * this.paginationOptions.pageSize;
-        this.gridOptions.data = this.data.slice(firstRow, firstRow + this.paginationOptions.pageSize);
+    getDataDown() {
+        if (this.lastPageBlast === this.totalPagesCountBlast) return;
+        this.lastPageBlast++;
+        this.blastSearchEmptyResult = null;
+        this.gridApi.infiniteScroll.saveScrollPercentage();
+        this.getPage(this.lastPageBlast, true);
+        this.gridApi.infiniteScroll.dataLoaded(
+            this.firstPageBlast > 1,
+            (this.totalPagesCountBlast === undefined && this.hasMoreBlast)
+            || this.lastPageBlast < this.totalPagesCountBlast);
+}
+
+    getDataUp() {
+        if (this.firstPageBlast === 1) return;
+        this.firstPageBlast--;
+        this.blastSearchEmptyResult = null;
+        this.gridApi.infiniteScroll.saveScrollPercentage();
+        this.getPage(this.firstPageBlast, true);
+        this.$timeout(() => {
+            this.gridApi.infiniteScroll.dataLoaded(
+                this.firstPageBlast > 1,
+                (this.totalPagesCountBlast === undefined && this.hasMoreBlast)
+                || this.lastPageBlast < this.totalPagesCountBlast);
+        });
+    }
+
+    changeCurrentPage(row) {
+        this.$timeout(() => {
+            if (row.newScrollTop) {
+                const sizePage = this.blastPageSize * ROW_HEIGHT;
+                const currentPageBlast = Math.round(this.firstPageBlast + row.newScrollTop / sizePage);
+                if (this.currentPageBlast !== currentPageBlast) {
+                    this.dispatcher.emit('pageBlast:scroll', currentPageBlast);
+                }
+            }
+        });
     }
 
     async blastSearchLoadingFinished() {
@@ -263,15 +335,16 @@ export default class ngbBlastSearchPanelController extends baseController {
         }
 
         if (this.data && this.dataLength) {
-            this.gridOptions.totalItems = this.dataLength;
-            this.getPage();
-        }
-
-        if (this.data && this.data.length) {
             this.blastSearchEmptyResult = null;
+            this.gridOptions.totalItems = this.dataLength;
+            this.totalPagesCountBlast = Math.ceil(this.dataLength/this.blastPageSize);
+            this.dispatcher.emitSimpleEvent('blast:loading:finished', [this.totalPagesCountBlast, this.currentPageBlast]);
+            this.lastRow = this.firstRow + this.blastPageSize;
+            this.getPage(this.currentPageBlast);
         } else {
             this.blastSearchEmptyResult = this.blastSearchMessages.ErrorMessage.EmptySearchResults;
         }
         this.isProgressShown = false;
+        this.$timeout(::this.$scope.$apply);
     }
 }
