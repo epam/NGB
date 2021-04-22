@@ -2,6 +2,9 @@ const formatter = new Intl.NumberFormat('en-US');
 
 export default {
     ticks: 50,
+    canvas:{
+        margin:10
+    },
     start: {
         x: 10,
         y: 30,

@@ -10,20 +10,15 @@ import config from '../../whole-genome-config';
 
 
 export class ChromosomeColumnRenderer {
-
+    
+    scrollContainer = new PIXI.Container();
+    mainContainer = new PIXI.Container();
     scrollBar = new PIXI.Graphics();
     columnsMask = new PIXI.Graphics();
     columns = new PIXI.Graphics();
-    scrollContainer = new PIXI.Container();
-    mainContainer = new PIXI.Container();
     isScrollable = false;
-    gridContent;
-    /**
-     * `scrollPosition` is a current scroll offset for the canvas in pixels,
-     * i.e. `scrollOffset` == 10px means that we scrolled canvas to the right at 10px -position
-     * @type {number}
-     */
     scrollPosition = 0;
+    gridContent;
 
     constructor({
         container,
@@ -50,7 +45,7 @@ export class ChromosomeColumnRenderer {
         return this.canvasSize ? this.canvasSize.height : 0;
     }
     get containerWidth() {
-        return this.canvasSize ? this.canvasSize.width : 0;
+        return this.canvasSize ? this.canvasSize.width - 2 * config.canvas.margin : 0;
     }
     get actualDrawingWidth() {
         return this.chromosomes.length * (config.chromosomeColumn.width + config.chromosomeColumn.spaceBetween);
@@ -58,9 +53,6 @@ export class ChromosomeColumnRenderer {
     get containerHeight() {
         return this.height - 2 * config.start.topMargin;
     }
-    // get scrollBarWidth() {
-    //     return Math.pow((this.canvasSize.width - config.scrollBar.slider.margin), 2) / this.actualDrawingWidth;
-    // }
     get topMargin() {
         return config.start.topMargin;
     }
@@ -73,9 +65,6 @@ export class ChromosomeColumnRenderer {
     get chrBlockWidth() {
         return this.hitsLimit * config.gridSize + 2 * config.chromosomeColumn.margin + this.columnWidth;
     }
-    // get scrollFactor() {
-    //     return this.actualDrawingWidth / (this.canvasSize.width - config.scrollBar.slider.margin);
-    // }
 
     getPixelLength(start, end, chrSize, chrPixelValue) {
         return Math.round(this.convertToPixels(end, chrSize, chrPixelValue) - this.convertToPixels(start, chrSize, chrPixelValue));
@@ -94,12 +83,16 @@ export class ChromosomeColumnRenderer {
     }
     activateMask() {
         if (this.mask) {
+            this.mask.clear();
             this.mask.x = 0;
             this.mask.y = -this.topMargin;
-            this.mask.drawRect(0, 0, this.canvasSize.width + 1, this.height);
+            this.mask.drawRect(0, 0, this.containerWidth, this.height);
             this.mainContainer.addChild(this.mask);
             this.mainContainer.mask = this.mask;
         }
+    }
+    isInFrame(x) {
+        return x >= (this.scrollPosition - 2 * this.columnWidth) && x <= (this.scrollPosition + this.containerWidth);
     }
 
     init() {
@@ -123,26 +116,18 @@ export class ChromosomeColumnRenderer {
      * `buildColumns` renders chromosomes graphics
      */
     buildColumns() {
-        // First, we need to clear graphics
         this.columns.clear();
-        // Then, we should translate our graphics by `this.scrollPosition` offset
-        // to the left: if we scrolled to the 100px position, then
-        // graphics "moves" to the left by 100px;
         this.columns.x = -this.scrollPosition;
         this.columns.y = 0;
-        console.log('build columns');
         for (let i = 0; i < this.chromosomes.length; i++) {
             const position = this.chrBlockWidth * i;
             const chr = this.chromosomes[i];
-            const pixelSize = this.convertToPixels(chr.size, this.maxChrSize, this.containerHeight);
-            // Moved this.updateLabel outside of this.createColumn;
-            // this.createColumn no longer accepts 4th parameter (pos)
-            console.log(
-                `we will render chromosome #${chr.id} at screen position`,
-                `${this.columns.x + position} ... ${this.columns.x + position + this.chrBlockWidth}`
-            );
-            this.createColumn(position, pixelSize, chr);
+            if (this.isInFrame(position)) {
+                const pixelSize = this.convertToPixels(chr.size, this.maxChrSize, this.containerHeight);
+                this.createColumn(position, pixelSize, chr);
+            }
             this.updateLabel(`chr ${chr.id}`, position);
+
         }
     }
 
@@ -157,7 +142,7 @@ export class ChromosomeColumnRenderer {
         for (const chrName in groupedHitsByChromosome) {
             if (groupedHitsByChromosome.hasOwnProperty(chrName)) {
                 gridContent[chrName] = [];
-                const chr = this.chromosomes.filter((chr) => chr.name === chrName)[0];
+                const [chr] = this.chromosomes.filter((chr) => chr.name === chrName);
                 const pixelSize = this.convertToPixels(chr.size, this.maxChrSize, this.containerHeight);
                 let pixelGrid = Array(Math.floor(pixelSize / config.gridSize)).fill(0);
 
@@ -181,28 +166,6 @@ export class ChromosomeColumnRenderer {
         }
         this.gridContent = gridContent;
     }
-
-    // We don't need `updateColumnsByScroll` anymore
-
-    // updateColumnsByScroll(params, localBounds) {
-    //     this.columns.clear();
-    //     let startPoint;
-    //     if (
-    //         params.currentPosition > 0 &&
-    //         localBounds.x < params.end &&
-    //         params.currentPosition < params.end
-    //     ) {
-    //         startPoint = localBounds.x * this.scrollFactor;
-    //     } else if (localBounds.x <= 0 || params.currentPosition < 0) {
-    //         startPoint = 0;
-    //     } else if (
-    //         localBounds.x >= params.end ||
-    //         params.currentPosition >= params.end
-    //     ) {
-    //         startPoint = params.end * this.scrollFactor;
-    //     }
-    //     this.buildColumns(startPoint);
-    // }
 
     createColumn(position, chrPixelValue, chromosome) {
         this.columns
@@ -264,11 +227,15 @@ export class ChromosomeColumnRenderer {
 
     updateLabel(text, position) {
         let label = this.mainContainer.getChildByName(text);
-        if (label) {
+        if (this.isInFrame(position)) {
+            if (label) {
+                this.mainContainer.removeChild(label);
+            }
+            label = this.createLabel(text, position);
+            this.mainContainer.addChild(label);
+        } else {
             this.mainContainer.removeChild(label);
         }
-        label = this.createLabel(text, position);
-        this.mainContainer.addChild(label);
     }
 
     createScrollBar() {
@@ -294,27 +261,13 @@ export class ChromosomeColumnRenderer {
             }
         });
         this.scrollContainer.on('mousedown', (event) => {
-            // `scrollingStartPosition` is a x-coordinate of the mouse `mouse down` event
             const scrollingStartPosition = event.data.global.x;
-            // We will remember scroll position at the `mouse down` event
             const currentScrollPosition = this.scrollPosition;
             subscription = pixiEvent$.subscribe((e) => {
-                // We can calculate `mouse move` delta (x coordinate)
-                // by subtracting current position (e.data.global.x) and
-                // the initial `mouse down` position (scrollingStartPosition).
-                // Moreover, we can use any position (e.data.originalEvent.clientX,
-                // e.data.originalEvent.screenX etc.) when calculating `scrollingStartPosition`
-                // and `deltaFromMouseDown`: it will result to the same delta.
                 const deltaFromMouseDown = e.data.global.x - scrollingStartPosition;
 
-                // Now, `deltaFromMouseDown` is a value of "movement" on scroller; we need
-                // to convert it to the "actual" (drawing) value in pixels
                 const delta = this.convertScrollCoordinateToDrawingCoordinate(deltaFromMouseDown);
 
-                // Now we can calculate a new scroll position by adding `delta` to
-                // the `currentScrollPosition`.
-                // We must consider scrolling bounds, i.e. we can't scroll outside of
-                // range from 0 pixels to (actualDrawingWidth - canvasWidth)
                 this.scrollPosition = Math.max(
                     0,
                     Math.min(
@@ -322,10 +275,6 @@ export class ChromosomeColumnRenderer {
                         this.actualDrawingWidth - this.containerWidth
                     )
                 );
-                // `this.scrollBarMove` call is removed since we calculate scroll position here
-                // this.scrollBarMove(e, scrollParams);
-
-                // `updateScrollBar` renamed to `rerender` since it re-renders all graphics
                 this.rerender();
             });
         });
@@ -335,23 +284,6 @@ export class ChromosomeColumnRenderer {
             }
         });
     }
-
-    // we don't need `scrollBarMove` anymore
-
-    // scrollBarMove(e, scrollParams) {
-    //     const localBounds = this.scrollBar.getLocalBounds();
-    //     if (
-    //         scrollParams.end !== undefined &&
-    //         scrollParams.start !== undefined &&
-    //         e && e.data && e.data.originalEvent &&
-    //         e.data.originalEvent.movementX
-    //     ) {
-    //         const delta = e.data.originalEvent.movementX;
-    //         const local = localBounds.x + delta;
-    //         scrollParams.currentPosition = local;
-    //         this.updateScrollBar(scrollParams, localBounds);
-    //     }
-    // }
 
     rerender() {
         this.drawScrollBar();
@@ -369,8 +301,6 @@ export class ChromosomeColumnRenderer {
         const total = this.actualDrawingWidth;
         const frame = this.containerWidth;
         if (total === 0 || frame === 0) {
-            // if nothing to draw (actualDrawingWidth == 0) or
-            // canvas is not initialized or something wrong occurred (canvas.width == 0)
             return 0;
         }
         const ratio = frame / total;
@@ -387,8 +317,6 @@ export class ChromosomeColumnRenderer {
         const total = this.actualDrawingWidth;
         const frame = this.containerWidth;
         if (total === 0 || frame === 0) {
-            // if nothing to draw (actualDrawingWidth == 0) or
-            // canvas is not initialized or something wrong occurred (canvas.width == 0)
             return 0;
         }
         const ratio = total / frame;
@@ -404,13 +332,11 @@ export class ChromosomeColumnRenderer {
         const total = this.actualDrawingWidth;
         const frame = this.containerWidth;
         if (frame >= total) {
-            // canvas size is larger then drawing area for all chromosomes;
-            // we don't need a scroll
             return;
         }
         const scrollBarWidth = this.convertDrawingCoordinateToScrollCoordinate(frame);
         const scrollBarX = this.convertDrawingCoordinateToScrollCoordinate(this.scrollPosition);
-        // Let's draw the scroll area
+
         this.scrollBar
             .beginFill(config.scrollBar.slider.fill, 0)
             .lineStyle(1, config.scrollBar.slider.fill, 0.5)
@@ -421,7 +347,7 @@ export class ChromosomeColumnRenderer {
                 config.scrollBar.height
             )
             .endFill();
-        // Let's draw the scroll bar
+
         this.scrollBar
             .beginFill(config.scrollBar.slider.fill, 0.5)
             .drawRect(
@@ -433,26 +359,6 @@ export class ChromosomeColumnRenderer {
             .endFill();
     }
 
-    // We don't need reDrawScrollBar anymore
-
-    // reDrawScrollBar(params, localBounds) {
-    //     const {
-    //         start,
-    //         end,
-    //         currentPosition
-    //     } = params;
-    //     if (
-    //         currentPosition <= end &&
-    //         localBounds.x <= end
-    //     ) {
-    //         this.drawScrollBar(currentPosition);
-    //     } else if (localBounds.x <= start) {
-    //         this.drawScrollBar(params.start);
-    //     } else {
-    //         this.drawScrollBar(end);
-    //     }
-    // }
-
     sortHitsByLength(hits) {
         return hits.sort((hit1, hit2) => (hit2.endIndex - hit2.startIndex) - (hit1.endIndex - hit1.startIndex));
     }
@@ -460,10 +366,11 @@ export class ChromosomeColumnRenderer {
         this.canvasSize.width = width;
         this.scrollBar.clear();
         this.scrollContainer.removeAllListeners();
-        if (this.canvasSize.width < this.actualDrawingWidth) {
+        if (this.containerWidth < this.actualDrawingWidth) {
             this.isScrollable = true;
             this.activateMask();
             this.createScrollBar();
+            this.buildColumns();
 
         } else {
             this.isScrollable = false;

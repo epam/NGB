@@ -25,7 +25,7 @@ export default class ngbBlastSearchService {
 
     generateBlastSearchResults() {
         const results = [];
-        this.projectContext.chromosomes.slice(0, 8).forEach(chr => {
+        this.projectContext.chromosomes.slice(0, 100).forEach(chr => {
             for (let i = 0; i < 1000; i++) {
                 const start = 1 + Math.floor(Math.random() * (chr.size - 1));
                 const singleSized = Math.random() >= 0.5;
