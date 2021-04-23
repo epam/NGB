@@ -8,6 +8,26 @@ import {
 } from '../../../core';
 import config from '../../whole-genome-config';
 
+function buildScoresConfigs() {
+    return ([
+        {
+            default: true,
+            lineColor: config.hit.color
+        },
+        ...(config.hit.scores || [])
+    ])
+        .map(score => ({
+            max: Infinity,
+            min: -Infinity,
+            test (value) {
+                if (value === undefined) {
+                    return this.default;
+                }
+                return Number(value) >= this.min && Number(value) <= this.max;
+            },
+            ...score
+        }));
+}
 
 export class ChromosomeColumnRenderer {
     
@@ -18,13 +38,15 @@ export class ChromosomeColumnRenderer {
     columns = new PIXI.Graphics();
     isScrollable = false;
     labelsMap = new Map();
-    scrollPosition = 0;
     /**
      * `scrollPosition` is a current scroll offset for the canvas in pixels,
      * i.e. `scrollOffset` == 10px means that we scrolled canvas to the right at 10px -position
      * @type {number}
      */
-    gridContent;
+    scrollPosition = 0;
+    gridContent = {};
+    gridSizes = {};
+    scoreConfigs = buildScoresConfigs();
 
     constructor({
         container,
@@ -75,17 +97,8 @@ export class ChromosomeColumnRenderer {
     getPixelLength(start, end, chrSize, chrPixelValue) {
         return Math.round(this.convertToPixels(end, chrSize, chrPixelValue) - this.convertToPixels(start, chrSize, chrPixelValue));
     }
-    getStartPx(nucleotide, chrSize, chrPixelValue) {
-        return this.getGridStart(nucleotide, chrSize, chrPixelValue) * config.gridSize;
-    }
-    getEndPx(nucleotide, chrSize, chrPixelValue) {
-        return this.getGridEnd(nucleotide, chrSize, chrPixelValue) * config.gridSize;
-    }
     getGridStart(nucleotide, chrSize, chrPixelValue) {
         return (Math.round(this.convertToPixels(nucleotide, chrSize, chrPixelValue) / config.gridSize));
-    }
-    getGridEnd(nucleotide, chrSize, chrPixelValue) {
-        return (Math.ceil(this.convertToPixels(nucleotide, chrSize, chrPixelValue) / config.gridSize));
     }
     activateMask() {
         if (this.mask) {
@@ -102,6 +115,7 @@ export class ChromosomeColumnRenderer {
     }
 
     init() {
+        this.preprocessHits();
         this.calculateGridContent();
         this.mainContainer.addChild(this.columns);
         this.buildColumns();
@@ -130,91 +144,144 @@ export class ChromosomeColumnRenderer {
             const chr = this.chromosomes[i];
             if (this.isInFrame(position)) {
                 const pixelSize = this.convertToPixels(chr.size, this.maxChrSize, this.containerHeight);
-                this.createColumn(position, pixelSize, chr);
+                this.createColumn(position, pixelSize, chr, !(i % 2));
             }
             this.updateLabel(chr.id, position);
 
         }
     }
 
+    preprocessHits() {
+        (this.hits || []).forEach(hit => {
+            const scoreConfig = this.scoreConfigs.filter(c => c.test(hit.score)).pop();
+            hit.scoreIndex = Math.max(0, this.scoreConfigs.indexOf(scoreConfig));
+        });
+    }
+
     calculateGridContent() {
-        const sortedHits = this.sortHitsByLength(this.hits);
+        const sortedHits = this.sortHits(this.hits);
         const groupedHitsByChromosome = sortedHits.reduce((acc, hit) => {
             acc[hit.chromosome] = (acc[hit.chromosome] || []).concat(hit);
             return acc;
         }, {});
         const gridContent = {};
 
+        const getFirstNotOccupiedLevel = (grid, from, to) => {
+            const occupiedLevels = new Set(
+                grid
+                    .slice(from, to)
+                    .reduce((result, currentLevels) => ([...result, ...currentLevels]), [])
+            );
+            const max = Math.max(...occupiedLevels, 0);
+            if (occupiedLevels.size === max) {
+                return max + 1;
+            }
+            const occupiedLevelsArray = [...occupiedLevels];
+            for (let idx = 0; idx < occupiedLevelsArray.length; idx++) {
+                if (occupiedLevelsArray[idx] !== idx + 1) {
+                    return idx + 1;
+                }
+            }
+            return max + 1;
+        };
+
+        const insertLevel = (level, grid, from, to) => {
+            const updateRow = row => [
+                ...new Set([...(row || []), level])
+            ].sort();
+            for (let r = from; r < to; r++) {
+                grid[r] = updateRow(grid[r]);
+            }
+        };
+
         for (const chrName in groupedHitsByChromosome) {
             if (groupedHitsByChromosome.hasOwnProperty(chrName)) {
                 gridContent[chrName] = [];
                 const [chr] = this.chromosomes.filter((chr) => chr.name === chrName);
                 const pixelSize = this.convertToPixels(chr.size, this.maxChrSize, this.containerHeight);
-                let pixelGrid = Array(Math.floor(pixelSize / config.gridSize)).fill(0);
-
+                const rowsCount = Math.ceil(pixelSize / config.gridSize);
+                const pixelGrid = Array(rowsCount).fill([]);
                 groupedHitsByChromosome[chrName].forEach((hit) => {
-                    const start = this.getGridStart(hit.startIndex, chr.size, pixelSize);
+                    let start = this.getGridStart(hit.startIndex, chr.size, pixelSize);
                     const lengthPx = this.getPixelLength(hit.startIndex, hit.endIndex, chr.size, pixelSize);
-                    const lengthInGridCells = Math.ceil(lengthPx / config.gridSize) || 1;
-                    const end = start + lengthInGridCells;
-                    const currentLevel = Math.max(...pixelGrid.slice(start, end)) + 1;
+                    const lengthInGridCells = Math.max(1, Math.ceil(lengthPx / config.gridSize));
+                    const end = Math.min(start + lengthInGridCells, rowsCount);
+                    start = end - lengthInGridCells; // end-of-chromosome correction
+                    const currentLevel = getFirstNotOccupiedLevel(pixelGrid, start, end);
+                    insertLevel(currentLevel, pixelGrid, start, end);
                     gridContent[chrName].push({
+                        ...hit,
                         start,
                         end,
-                        x: currentLevel
+                        x: currentLevel,
                     });
-                    for (let i = start; i <= end; i++) {
-                        pixelGrid[i] = currentLevel;
-                    }
                 });
-                pixelGrid = [];
             }
         }
         this.gridContent = gridContent;
+        this.gridSizes = Object
+            .entries(gridContent)
+            .map(([chromosome, hits]) => ({
+                [chromosome]: Math.max(...hits.map(hit => hit.x))
+            }))
+            .reduce((r, c) => ({...r, ...c}), {});
     }
 
-    createColumn(position, chrPixelValue, chromosome) {
+    createColumn(position, chrPixelValue, chromosome, odd) {
+        const chromosomeHeightCorrected = Math.ceil(chrPixelValue / config.gridSize) * config.gridSize;
+        if (odd) {
+            this.columns
+                .beginFill(0xfafafa, 1)
+                .drawRect(
+                    position - config.chromosomeColumn.margin / 2.0,
+                    0,
+                    this.chrBlockWidth,
+                    this.containerHeight)
+                .endFill();
+        }
         this.columns
             .beginFill(config.chromosomeColumn.fill, 1)
             .drawRect(
                 position,
                 0,
                 this.columnWidth,
-                chrPixelValue)
+                chromosomeHeightCorrected)
             .endFill()
             .lineStyle(config.chromosomeColumn.thickness, config.chromosomeColumn.lineColor, 1)
             .moveTo(position, 0)
             .lineTo(position + this.columnWidth, 0)
-            .lineTo(position + this.columnWidth, chrPixelValue)
-            .lineTo(position, chrPixelValue)
+            .lineTo(position + this.columnWidth, chromosomeHeightCorrected)
+            .lineTo(position, chromosomeHeightCorrected)
             .lineTo(position, 0);
-        this.columns
-            .lineStyle(config.chromosomeColumn.thickness, config.chromosomeColumn.lineColor, 0)
-            .beginFill(config.hit.lineColor, 1);
-        if (
-            this.gridContent &&
-            this.gridContent[chromosome.name]) {
+        if (this.gridContent && this.gridContent[chromosome.name]) {
             const initialMargin = position + this.columnWidth + config.chromosomeColumn.margin;
-            this.gridContent[chromosome.name].forEach(hit => {
-                const {
-                    start,
-                    end,
-                    x
-                } = hit;
-                if (
-                    x <= this.hitsLimit &&
-                    end * config.gridSize <= chrPixelValue) {
+            for (let c = 0; c < this.scoreConfigs.length; c++) {
+                const scoreConfig = this.scoreConfigs[c];
+                const hits = this.gridContent[chromosome.name].filter(hit => hit.scoreIndex === c);
+                if (hits.length > 0) {
                     this.columns
-                        .drawRect(
-                            initialMargin + (x - 1) * config.gridSize - 1,
-                            start * config.gridSize + 1,
-                            config.gridSize - 1,
-                            (end - start) * config.gridSize - 1
-                        );
+                        .lineStyle(config.chromosomeColumn.thickness, config.chromosomeColumn.lineColor, 0)
+                        .beginFill(scoreConfig.color, 1);
+                    hits.forEach(hit => {
+                        const {
+                            start,
+                            end,
+                            x
+                        } = hit;
+                        if (x <= this.hitsLimit) {
+                            this.columns
+                                .drawRect(
+                                    initialMargin + (x - 1) * config.gridSize,
+                                    start * config.gridSize,
+                                    config.gridSize - 1,
+                                    (end - start) * config.gridSize - 1
+                                );
+                        }
+                    });
+                    this.columns
+                        .endFill();
                 }
-            });
-            this.columns
-                .endFill();
+            }
         }
     }
 
@@ -365,8 +432,14 @@ export class ChromosomeColumnRenderer {
             .endFill();
     }
 
-    sortHitsByLength(hits) {
-        return hits.sort((hit1, hit2) => (hit2.endIndex - hit2.startIndex) - (hit1.endIndex - hit1.startIndex));
+    sortHits(hits) {
+        function lengthSorter(a, b) {
+            return (b.endIndex - b.startIndex) - (a.endIndex - b.startIndex);
+        }
+        function scoreSorter(a, b) {
+            return a.scoreIndex - b.scoreIndex;
+        }
+        return hits.sort(lengthSorter).sort(scoreSorter);
     }
     resizeScroll(width) {
         this.canvasSize.width = width;

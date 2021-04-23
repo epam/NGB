@@ -42,7 +42,22 @@ export default {
     gridSize: 5,
     hit: {
         width: 3,
-        lineColor: 0x32cd32,
+        color: 0x323232,
+        scores: [
+            {
+                color: 0x32cd32,
+                max: 50
+            },
+            {
+                color: 0xffc400,
+                max: 90,
+                min: 50
+            },
+            {
+                color: 0xcd3232,
+                min: 90
+            }
+        ],
         offset: 5,
     },
     scrollBar: {
