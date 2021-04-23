@@ -17,7 +17,13 @@ export class ChromosomeColumnRenderer {
     columnsMask = new PIXI.Graphics();
     columns = new PIXI.Graphics();
     isScrollable = false;
+    labelsMap = new Map();
     scrollPosition = 0;
+    /**
+     * `scrollPosition` is a current scroll offset for the canvas in pixels,
+     * i.e. `scrollOffset` == 10px means that we scrolled canvas to the right at 10px -position
+     * @type {number}
+     */
     gridContent;
 
     constructor({
@@ -92,7 +98,7 @@ export class ChromosomeColumnRenderer {
         }
     }
     isInFrame(x) {
-        return x >= (this.scrollPosition - 2 * this.columnWidth) && x <= (this.scrollPosition + this.containerWidth);
+        return x >= (this.scrollPosition - this.chrBlockWidth) && x <= (this.scrollPosition + this.containerWidth);
     }
 
     init() {
@@ -126,7 +132,7 @@ export class ChromosomeColumnRenderer {
                 const pixelSize = this.convertToPixels(chr.size, this.maxChrSize, this.containerHeight);
                 this.createColumn(position, pixelSize, chr);
             }
-            this.updateLabel(`chr ${chr.id}`, position);
+            this.updateLabel(chr.id, position);
 
         }
     }
@@ -149,7 +155,7 @@ export class ChromosomeColumnRenderer {
                 groupedHitsByChromosome[chrName].forEach((hit) => {
                     const start = this.getGridStart(hit.startIndex, chr.size, pixelSize);
                     const lengthPx = this.getPixelLength(hit.startIndex, hit.endIndex, chr.size, pixelSize);
-                    const lengthInGridCells = (lengthPx >= config.gridSize) ? (Math.ceil(lengthPx / config.gridSize)) : 1;
+                    const lengthInGridCells = Math.ceil(lengthPx / config.gridSize) || 1;
                     const end = start + lengthInGridCells;
                     const currentLevel = Math.max(...pixelGrid.slice(start, end)) + 1;
                     gridContent[chrName].push({
@@ -217,8 +223,8 @@ export class ChromosomeColumnRenderer {
     }
 
     createLabel(text, position) {
-        const label = new PIXI.Text(text, config.tick.label);
-        label.name = text;
+        const label = new PIXI.Text(`chr ${text}`, config.tick.label);
+        this.labelsMap.set(text, label);
         label.resolution = drawingConfiguration.resolution;
         label.y = 0 - this.topMargin / 2 - label.height / 2;
         label.x = position - this.scrollPosition;
@@ -226,9 +232,9 @@ export class ChromosomeColumnRenderer {
     }
 
     updateLabel(text, position) {
-        let label = this.mainContainer.getChildByName(text);
+        let label = this.labelsMap.get(text);
         if (this.isInFrame(position)) {
-            if (label) {
+            if (label){
                 this.mainContainer.removeChild(label);
             }
             label = this.createLabel(text, position);
