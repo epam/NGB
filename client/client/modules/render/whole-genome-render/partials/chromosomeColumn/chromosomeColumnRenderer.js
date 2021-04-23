@@ -37,6 +37,7 @@ export class ChromosomeColumnRenderer {
     columnsMask = new PIXI.Graphics();
     columns = new PIXI.Graphics();
     isScrollable = false;
+    isHover = false;
     labelsMap = new Map();
     /**
      * `scrollPosition` is a current scroll offset for the canvas in pixels,
@@ -351,6 +352,16 @@ export class ChromosomeColumnRenderer {
                 this.rerender();
             });
         });
+        const toggleHover = (isOn = true) => {
+            this.isHover = !!isOn;
+            this.drawScrollBar();
+            requestAnimationFrame(() => this.renderer.render(this.container));
+        };
+        this.scrollBar.interactive = true;
+        this.scrollBar.on('mouseover', toggleHover);
+        this.scrollBar.on('pointerover', toggleHover);
+        this.scrollBar.on('mouseout', () => toggleHover(false));
+        this.scrollBar.on('pointerout', () => toggleHover(false));
         this.scrollContainer.on('mousemove', (e) => {
             if (subscription) {
                 toStream(e);
@@ -422,7 +433,7 @@ export class ChromosomeColumnRenderer {
             .endFill();
 
         this.scrollBar
-            .beginFill(config.scrollBar.slider.fill, 0.5)
+            .beginFill(config.scrollBar.slider.fill, this.isHover ? 0.8 : 0.5)
             .drawRect(
                 scrollBarX,
                 0,
