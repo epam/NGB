@@ -147,7 +147,7 @@ export class ChromosomeColumnRenderer {
     toggleChromosomeExpand(chromosome, isExpanded) {
         const state = this.chromosomesExpandedState[chromosome.id];
         if (state) {
-            state.expanded = isExpanded;
+            state.expanded = !isExpanded;
             this.reCalculateActualDrawingWidth();
             this.rerender({reRenderChromosomes: [chromosome.id]});
         }
@@ -349,7 +349,22 @@ export class ChromosomeColumnRenderer {
         const xLimit = expandable
             ? (areaWidth - config.chromosomeArea.expand.width)
             : areaWidth;
+
+        graphics.interactive = true;
+        graphics.buttonMode = true;
+        graphics.on('mouseover', (e) => this.toggleExpendAreaHover(e, true));
+        graphics.on('mouseout', (e) => this.toggleExpendAreaHover(e, false));
+        graphics.on('mousedown', () =>  {
+            graphics.clear();
+            this.toggleChromosomeExpand(chromosome, expanded);
+        });
         if (expandable) {
+            graphics.hitArea = new PIXI.Rectangle(
+                xLimit,
+                0,
+                config.chromosomeArea.expand.width,
+                totalHeightPx);
+
             const arrowY = Math.round(totalHeightPx / 2.0);
             const arrowX = Math.round(
                 areaWidth
@@ -668,6 +683,16 @@ export class ChromosomeColumnRenderer {
         this.activateMask();
         this.createScrollBar();
         this.renderChromosomes();
+        requestAnimationFrame(() => this.renderer.render(this.container));
+    }
+    toggleExpendAreaHover(event, isHover){
+        const [,expandArea] = event.target.graphicsData.filter((area) => (
+            area.shape.width === config.chromosomeArea.expand.width &&
+            area.fill
+        ));
+        expandArea.fillAlpha = isHover 
+            ? Math.min(2 * config.chromosomeArea.expand.alpha, 1)
+            : config.chromosomeArea.expand.alpha;
         requestAnimationFrame(() => this.renderer.render(this.container));
     }
 }

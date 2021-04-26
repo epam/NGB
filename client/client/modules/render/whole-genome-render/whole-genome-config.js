@@ -32,9 +32,9 @@ export default {
     },
     chromosomeArea: {
         expand: {
-            alpha: 0.75,
+            alpha: 0.7,
             arrow: 7,
-            color: 0x888888,
+            color: 0xc9c9c9,
             fill: 0xeeeeee,
             width: 15
         },
@@ -46,8 +46,8 @@ export default {
             }
         },
         margin: 5,
-        maximum: 300,
-        minimum: 120
+        maximum:100,
+        minimum: 60
     },
     chromosomeColumn: {
         spaceBetween: 70,
