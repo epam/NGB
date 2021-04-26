@@ -1,12 +1,10 @@
 import PIXI from 'pixi.js';
-import {
-    Subject
-} from 'rx';
-
+import {PixiTextSize} from '../../../utilities';
+import {Subject} from 'rx';
+import config from '../../whole-genome-config';
 import {
     drawingConfiguration
 } from '../../../core';
-import config from '../../whole-genome-config';
 
 function buildScoresConfigs() {
     return ([
@@ -29,14 +27,20 @@ function buildScoresConfigs() {
         }));
 }
 
-export class ChromosomeColumnRenderer {
+function getChromosomeLabelText(chromosome) {
+    if (!chromosome) {
+        return '';
+    }
+    return `Chr ${chromosome.name}`;
+}
 
+export class ChromosomeColumnRenderer {
+    actualDrawingWidth = 0;
     scrollContainer = new PIXI.Container();
     mainContainer = new PIXI.Container();
     scrollBar = new PIXI.Graphics();
     columnsMask = new PIXI.Graphics();
-    columns = new PIXI.Graphics();
-    isScrollable = false;
+    chromosomesContainer = new PIXI.Container();
     isHover = false;
     labelsMap = new Map();
     /**
@@ -48,6 +52,21 @@ export class ChromosomeColumnRenderer {
     gridContent = {};
     gridSizes = {};
     scoreConfigs = buildScoresConfigs();
+    /**
+     * Stores per-chromosome graphics
+     * @type {{number: PIXI.Graphics}}
+     */
+    chromosomesGraphics = {};
+    /**
+     * Stores per-chromosome expanded/collapsed state
+     * @type {{number: {expandable: boolean, expanded: boolean, trimmedLabelText: string}}}
+     */
+    chromosomesExpandedState = {};
+    /**
+     * Stores per-chromosome label width
+     * @type {{number: number}}
+     */
+    chromosomesLabelsWidth = {};
 
     constructor({
         container,
@@ -68,16 +87,13 @@ export class ChromosomeColumnRenderer {
         });
     }
     get mask() {
-        return this.isScrollable ? this.columnsMask : null;
+        return this.columnsMask;
     }
     get height() {
         return this.canvasSize ? this.canvasSize.height : 0;
     }
     get containerWidth() {
         return this.canvasSize ? this.canvasSize.width - 2 * config.canvas.margin : 0;
-    }
-    get actualDrawingWidth() {
-        return this.chromosomes.length * (config.chromosomeColumn.width + config.chromosomeColumn.spaceBetween);
     }
     get containerHeight() {
         return this.height - 2 * config.start.topMargin;
@@ -88,13 +104,6 @@ export class ChromosomeColumnRenderer {
     get columnWidth() {
         return config.chromosomeColumn.width;
     }
-    get hitsLimit() {
-        return Math.floor((config.chromosomeColumn.spaceBetween - 2 * config.chromosomeColumn.margin) / config.gridSize);
-    }
-    get chrBlockWidth() {
-        return this.hitsLimit * config.gridSize + 2 * config.chromosomeColumn.margin + this.columnWidth;
-    }
-
     getPixelLength(start, end, chrSize, chrPixelValue) {
         return Math.round(this.convertToPixels(end, chrSize, chrPixelValue) - this.convertToPixels(start, chrSize, chrPixelValue));
     }
@@ -111,44 +120,109 @@ export class ChromosomeColumnRenderer {
             this.mainContainer.mask = this.mask;
         }
     }
-    isInFrame(x) {
-        return x >= (this.scrollPosition - this.chrBlockWidth) && x <= (this.scrollPosition + this.containerWidth);
+
+    isInFrame(x1, x2) {
+        return x2 >= this.scrollPosition && x1 <= (this.scrollPosition + this.containerWidth);
     }
 
     init() {
         this.preprocessHits();
+        this.preprocessChromosomes();
         this.calculateGridContent();
-        this.mainContainer.addChild(this.columns);
-        this.buildColumns();
-        if (this.containerWidth < this.actualDrawingWidth) {
-            this.isScrollable = true;
-            this.createScrollBar();
-            this.activateMask();
-        } else {
-            this.isScrollable = false;
-        }
+        this.reCalculateActualDrawingWidth();
+        this.mainContainer.addChild(this.chromosomesContainer);
+        this.renderChromosomes();
+        this.createScrollBar();
+        this.activateMask();
         this.mainContainer.addChild(this.scrollContainer);
         this.mainContainer.x = config.axis.canvasWidth;
         this.mainContainer.y = config.start.topMargin;
         this.container.addChild(this.mainContainer);
     }
 
-    /**
-     * `buildColumns` renders chromosomes graphics
-     */
-    buildColumns() {
-        this.columns.clear();
-        this.columns.x = -this.scrollPosition;
-        this.columns.y = 0;
-        for (let i = 0; i < this.chromosomes.length; i++) {
-            const position = this.chrBlockWidth * i;
-            const chr = this.chromosomes[i];
-            if (this.isInFrame(position)) {
-                const pixelSize = this.convertToPixels(chr.size, this.maxChrSize, this.containerHeight);
-                this.createColumn(position, pixelSize, chr, !(i % 2));
-            }
-            this.updateLabel(chr.id, position);
+    reCalculateActualDrawingWidth() {
+        this.actualDrawingWidth = this.chromosomes.reduce((r, c) => r + this.getChromosomeAreaWidth(c), 0);
+    }
 
+    toggleChromosomeExpand(chromosome, isExpanded) {
+        const state = this.chromosomesExpandedState[chromosome.id];
+        if (state) {
+            state.expanded = isExpanded;
+            this.reCalculateActualDrawingWidth();
+            this.rerender({reRenderChromosomes: [chromosome.id]});
+        }
+    }
+
+    getChromosomeAreaWidth(chromosome) {
+        if (!chromosome) {
+            return 0;
+        }
+        const expandedState = this.chromosomesExpandedState[chromosome.id];
+        const expanded = expandedState && expandedState.expanded;
+        const columns = (this.gridSizes[chromosome.id] || 0);
+        let size = columns * config.gridSize
+            + 2 * config.chromosomeArea.margin
+            + this.columnWidth;
+        if (!expanded) {
+            size = config.chromosomeArea.minimum;
+        } else {
+            const labelSize = this.chromosomesLabelsWidth[chromosome.id] || 0;
+            size = Math.max(
+                size,
+                labelSize
+            );
+        }
+        return Math.min(
+            config.chromosomeArea.maximum,
+            Math.max(
+                config.chromosomeArea.minimum,
+                size
+            )
+        );
+    }
+
+    /**
+     * Renders chromosomes graphics
+     * @param options {object}
+     * @param options.reRenderChromosomes {number[]} chromosomes identifiers to re-render
+     */
+    renderChromosomes(options = {}) {
+        const {
+            reRenderChromosomes = []
+        } = options;
+        this.chromosomesContainer.x = -this.scrollPosition;
+        this.chromosomesContainer.y = 0;
+        let incrementedPosition = 0;
+        for (let i = 0; i < this.chromosomes.length; i++) {
+            const chr = this.chromosomes[i];
+            const position = incrementedPosition;
+            const chromosomeAreaWidth = this.getChromosomeAreaWidth(chr);
+            incrementedPosition += chromosomeAreaWidth;
+            if (this.isInFrame(position, position + chromosomeAreaWidth)) {
+                let graphics = this.chromosomesGraphics[chr.id];
+                let reRender = reRenderChromosomes.indexOf(chr.id) >= 0;
+                if (!graphics) {
+                    graphics = new PIXI.Graphics();
+                    this.chromosomesGraphics[chr.id] = graphics;
+                    this.chromosomesContainer.addChild(graphics);
+                    reRender = true;
+                }
+                graphics.x = position;
+                if (reRender) {
+                    const options = {
+                        areaWidth: chromosomeAreaWidth,
+                        chromosomeHeightPx: this.convertToPixels(chr.size, this.maxChrSize, this.containerHeight),
+                        odd: i % 2,
+                        totalHeightPx: this.containerHeight
+                    };
+                    this.renderChromosome(graphics, chr, options);
+                }
+            } else if (this.chromosomesGraphics[chr.id]) {
+                const graphics = this.chromosomesGraphics[chr.id];
+                this.chromosomesContainer.removeChild(graphics);
+                delete this.chromosomesGraphics[chr.id];
+            }
+            this.renderChromosomeLabel(chr, position, chromosomeAreaWidth);
         }
     }
 
@@ -157,6 +231,16 @@ export class ChromosomeColumnRenderer {
             const scoreConfig = this.scoreConfigs.filter(c => c.test(hit.score)).pop();
             hit.scoreIndex = Math.max(0, this.scoreConfigs.indexOf(scoreConfig));
         });
+    }
+
+    preprocessChromosomes() {
+        this.chromosomesLabelsWidth = this.chromosomes
+            .map(chromosome => ({
+                [chromosome.id]: PixiTextSize
+                    .getTextSize(getChromosomeLabelText(chromosome), config.chromosomeArea.label.style)
+                    .width + config.chromosomeArea.label.margin
+            }))
+            .reduce((res, cur) => ({...res, ...cur}));
     }
 
     calculateGridContent() {
@@ -170,8 +254,8 @@ export class ChromosomeColumnRenderer {
         const getFirstNotOccupiedLevel = (grid, from, to) => {
             const occupiedLevels = new Set(
                 grid
-                .slice(from, to)
-                .reduce((result, currentLevels) => ([...result, ...currentLevels]), [])
+                    .slice(from, to)
+                    .reduce((result, currentLevels) => ([...result, ...currentLevels]), [])
             );
             const max = Math.max(...occupiedLevels, 0);
             if (occupiedLevels.size === max) {
@@ -197,8 +281,8 @@ export class ChromosomeColumnRenderer {
 
         for (const chrName in groupedHitsByChromosome) {
             if (groupedHitsByChromosome.hasOwnProperty(chrName)) {
-                gridContent[chrName] = [];
                 const [chr] = this.chromosomes.filter((chr) => chr.name === chrName);
+                gridContent[chr.id] = [];
                 const pixelSize = this.convertToPixels(chr.size, this.maxChrSize, this.containerHeight);
                 const rowsCount = Math.ceil(pixelSize / config.gridSize);
                 const pixelGrid = Array(rowsCount).fill([]);
@@ -210,7 +294,7 @@ export class ChromosomeColumnRenderer {
                     start = end - lengthInGridCells; // end-of-chromosome correction
                     const currentLevel = getFirstNotOccupiedLevel(pixelGrid, start, end);
                     insertLevel(currentLevel, pixelGrid, start, end);
-                    gridContent[chrName].push({
+                    gridContent[chr.id].push({
                         ...hit,
                         start,
                         end,
@@ -226,71 +310,179 @@ export class ChromosomeColumnRenderer {
                 [chromosome]: Math.max(...hits.map(hit => hit.x))
             }))
             .reduce((r, c) => ({...r, ...c}), {});
+        this.chromosomesExpandedState = this.chromosomes
+            .map((chromosome) => {
+                const hitsOutOfMinimumArea = (
+                    config.chromosomeColumn.width +
+                    2 * config.chromosomeArea.margin +
+                    (this.gridSizes[chromosome.id] || 0) * config.gridSize
+                ) >= config.chromosomeArea.minimum;
+                const chromosomeNameOutOfArea = this.chromosomesLabelsWidth[chromosome.id] >
+                    config.chromosomeArea.minimum;
+                const chromosomeLabelText = getChromosomeLabelText(chromosome);
+                return {
+                    [chromosome.id]: {
+                        expandable: hitsOutOfMinimumArea || chromosomeNameOutOfArea,
+                        expanded: false,
+                        trimmedLabelText: PixiTextSize.trimTextToFitWidth(
+                            chromosomeLabelText,
+                            config.chromosomeArea.minimum - config.chromosomeArea.label.margin,
+                            config.chromosomeArea.label.style
+                        )
+                    }
+                };
+            })
+            .reduce((r, c) => ({...r, ...c}), {});
     }
 
-    createColumn(position, chrPixelValue, chromosome, odd) {
-        const chromosomeHeightCorrected = Math.ceil(chrPixelValue / config.gridSize) * config.gridSize;
-        if (odd) {
-            this.columns
-                .beginFill(0xfafafa, 1)
+    renderExpandChromosomeArea(graphics, chromosome, options = {}) {
+        const {
+            areaWidth = 0,
+            totalHeightPx = 0
+        } = options;
+        if (!areaWidth || !totalHeightPx) {
+            return;
+        }
+        const expandedState = this.chromosomesExpandedState[chromosome.id];
+        const expanded = expandedState && expandedState.expanded;
+        const expandable = expandedState && expandedState.expandable;
+        const xLimit = expandable
+            ? (areaWidth - config.chromosomeArea.expand.width)
+            : areaWidth;
+        if (expandable) {
+            const arrowY = Math.round(totalHeightPx / 2.0);
+            const arrowX = Math.round(
+                areaWidth
+                - config.chromosomeArea.expand.width / 2.0
+                - config.chromosomeArea.expand.arrow / 2.0
+            );
+            graphics
+                .lineStyle(0, 0x0, 0)
+                .beginFill(
+                    config.chromosomeArea.expand.fill,
+                    config.chromosomeArea.expand.alpha
+                )
                 .drawRect(
-                    position - config.chromosomeColumn.margin / 2.0,
+                    xLimit,
                     0,
-                    this.chrBlockWidth,
+                    config.chromosomeArea.expand.width,
+                    totalHeightPx
+                )
+                .endFill();
+            if (expanded) {
+                graphics
+                    .lineStyle(1, config.chromosomeArea.expand.color, 1)
+                    .moveTo(arrowX, arrowY)
+                    .lineTo(arrowX + config.chromosomeArea.expand.arrow, arrowY)
+                    .moveTo(
+                        arrowX + config.chromosomeArea.expand.arrow / 2.0,
+                        arrowY - config.chromosomeArea.expand.arrow / 2.0
+                    )
+                    .lineTo(
+                        arrowX,
+                        arrowY
+                    )
+                    .lineTo(
+                        arrowX + config.chromosomeArea.expand.arrow / 2.0,
+                        arrowY + config.chromosomeArea.expand.arrow / 2.0
+                    );
+            } else {
+                graphics
+                    .lineStyle(1, config.chromosomeArea.expand.color, 1)
+                    .moveTo(arrowX, arrowY)
+                    .lineTo(arrowX + config.chromosomeArea.expand.arrow, arrowY)
+                    .moveTo(
+                        arrowX + config.chromosomeArea.expand.arrow / 2.0,
+                        arrowY - config.chromosomeArea.expand.arrow / 2.0
+                    )
+                    .lineTo(
+                        arrowX + config.chromosomeArea.expand.arrow,
+                        arrowY
+                    )
+                    .lineTo(
+                        arrowX + config.chromosomeArea.expand.arrow / 2.0,
+                        arrowY + config.chromosomeArea.expand.arrow / 2.0
+                    );
+            }
+        }
+    }
+
+    renderChromosome(graphics, chromosome, options = {}) {
+        const {
+            areaWidth,
+            chromosomeHeightPx,
+            odd
+        } = options;
+        const chromosomeHeightCorrected = Math.ceil(chromosomeHeightPx / config.gridSize) * config.gridSize;
+        if (odd) {
+            graphics
+                .beginFill(config.grid.oddChromosomeBackground, 1)
+                .drawRect(
+                    0,
+                    0,
+                    areaWidth - 1,
                     this.containerHeight)
                 .endFill();
         }
-        this.columns
+        graphics
             .beginFill(config.chromosomeColumn.fill, 1)
             .drawRect(
-                position,
+                0,
                 0,
                 this.columnWidth,
                 chromosomeHeightCorrected)
             .endFill()
             .lineStyle(config.chromosomeColumn.thickness, config.chromosomeColumn.lineColor, 1)
-            .moveTo(position, 0)
-            .lineTo(position + this.columnWidth, 0)
-            .lineTo(position + this.columnWidth, chromosomeHeightCorrected)
-            .lineTo(position, chromosomeHeightCorrected)
-            .lineTo(position, 0);
-        if (this.gridContent && this.gridContent[chromosome.name]) {
-            const initialMargin = position + this.columnWidth + config.chromosomeColumn.margin;
+            .moveTo(0, 0)
+            .lineTo(this.columnWidth, 0)
+            .lineTo(this.columnWidth, chromosomeHeightCorrected)
+            .lineTo(0, chromosomeHeightCorrected)
+            .lineTo(0, 0);
+        if (this.gridContent && this.gridContent[chromosome.id]) {
+            const expandedState = this.chromosomesExpandedState[chromosome.id];
+            const expanded = expandedState && expandedState.expanded;
+            const expandable = expandedState && expandedState.expandable;
+            const initialMargin = this.columnWidth + config.chromosomeArea.margin;
+            const xLimit = expandable
+                ? (areaWidth - config.chromosomeArea.expand.width)
+                : areaWidth;
+            this.renderExpandChromosomeArea(graphics, chromosome, options);
             for (let c = 0; c < this.scoreConfigs.length; c++) {
                 const scoreConfig = this.scoreConfigs[c];
-                const hits = this.gridContent[chromosome.name].filter(hit => hit.scoreIndex === c);
+                const hits = this.gridContent[chromosome.id].filter(hit => hit.scoreIndex === c);
                 if (hits.length > 0) {
-                    this.columns
+                    graphics
                         .lineStyle(config.chromosomeColumn.thickness, config.chromosomeColumn.lineColor, 0)
                         .beginFill(scoreConfig.color, 1);
-                    hits.forEach((hit, hitIndex) => {
+                    hits.forEach(hit => {
                         const {
                             start,
                             end,
                             x
                         } = hit;
-                        if (x <= this.hitsLimit) {
-                            const startDrawPosX = initialMargin + (x - 1) * config.gridSize;
-                            const startDrawPosY = start * config.gridSize;
-                            const hitLength = (end - start) * config.gridSize - 1;
-                            this.columns
+                        const x1 = initialMargin + (x - 1) * config.gridSize;
+                        const x2 = x1 + config.gridSize - 1;
+                        hit.displayed = expanded || x2 < xLimit;
+                        if (hit.displayed) {
+                            graphics
                                 .drawRect(
-                                    startDrawPosX,
-                                    startDrawPosY,
-                                    config.gridSize - 1,
-                                    hitLength
+                                    x1,
+                                    start * config.gridSize,
+                                    x2 - x1,
+                                    (end - start) * config.gridSize - 1
                                 );
-                            this.gridContent[chromosome.name][hitIndex].x_area = {
-                                from: startDrawPosX,
-                                to: startDrawPosX + config.gridSize - 1
+
+                            hit.x_area = {
+                                from: x1,
+                                to: x2
                             };
-                            this.gridContent[chromosome.name][hitIndex].y_area = {
-                                from: startDrawPosY,
-                                to: startDrawPosY + hitLength
+                            hit.y_area = {
+                                from: start * config.gridSize,
+                                to: end & config.gridSize - 1
                             };
                         }
                     });
-                    this.columns
+                    graphics
                         .endFill();
                 }
             }
@@ -301,25 +493,26 @@ export class ChromosomeColumnRenderer {
         return (size / realRange) * pixelRange;
     }
 
-    createLabel(text, position) {
-        const label = new PIXI.Text(`chr ${text}`, config.tick.label);
-        this.labelsMap.set(text, label);
-        label.resolution = drawingConfiguration.resolution;
-        label.y = 0 - this.topMargin / 2 - label.height / 2;
-        label.x = position - this.scrollPosition;
-        return label;
-    }
-
-    updateLabel(text, position) {
-        let label = this.labelsMap.get(text);
-        if (this.isInFrame(position)) {
-            if (label) {
-                this.mainContainer.removeChild(label);
+    renderChromosomeLabel(chromosome, position, width) {
+        let label = this.labelsMap.get(chromosome.id);
+        if (this.isInFrame(position, position + width)) {
+            const expandedConfig = this.chromosomesExpandedState[chromosome.id];
+            let chromosomeName = getChromosomeLabelText(chromosome);
+            if (expandedConfig && !expandedConfig.expanded && expandedConfig.trimmedLabelText) {
+                chromosomeName = expandedConfig.trimmedLabelText;
             }
-            label = this.createLabel(text, position);
-            this.mainContainer.addChild(label);
+            if (!label) {
+                label = new PIXI.Text(chromosomeName, config.chromosomeArea.label.style);
+                label.resolution = drawingConfiguration.resolution;
+                label.y = 0 - this.topMargin / 2 - label.height / 2;
+                this.labelsMap.set(chromosome.id, label);
+                this.mainContainer.addChild(label);
+            }
+            label.text = chromosomeName;
+            label.x = position - this.scrollPosition;
         } else {
             this.mainContainer.removeChild(label);
+            this.labelsMap.delete(chromosome.id);
         }
     }
 
@@ -333,7 +526,7 @@ export class ChromosomeColumnRenderer {
         this.scrollContainer.interactive = true;
         this.scrollContainer.buttonMode = true;
         this.scrollContainer.addChild(this.scrollBar);
-        this.drawScrollBar();
+        this.renderScrollBar();
 
         this.scrollContainer.on('mouseup', () => {
             if (subscription) {
@@ -365,7 +558,7 @@ export class ChromosomeColumnRenderer {
         });
         const toggleHover = (isOn = true) => {
             this.isHover = !!isOn;
-            this.drawScrollBar();
+            this.renderScrollBar();
             requestAnimationFrame(() => this.renderer.render(this.container));
         };
         this.scrollBar.interactive = true;
@@ -380,9 +573,14 @@ export class ChromosomeColumnRenderer {
         });
     }
 
-    rerender() {
-        this.drawScrollBar();
-        this.buildColumns();
+    /**
+     * Re-renders graphics
+     * @param options {object}
+     * @param options.reRenderChromosomes {number[]} chromosomes identifiers to re-render
+     */
+    rerender(options) {
+        this.renderScrollBar();
+        this.renderChromosomes(options);
         requestAnimationFrame(() => this.renderer.render(this.container));
     }
 
@@ -419,10 +617,10 @@ export class ChromosomeColumnRenderer {
     }
 
     /**
-     * `drawScrollBar` renders scroll bar based on `this.scrollPosition`, `this.actualDrawingWidth` and
+     * `renderScrollBar` renders scroll bar based on `this.scrollPosition`, `this.actualDrawingWidth` and
      * `this.containerWidth` values
      */
-    drawScrollBar() {
+    renderScrollBar() {
         this.scrollBar.clear();
         const total = this.actualDrawingWidth;
         const frame = this.containerWidth;
@@ -467,15 +665,9 @@ export class ChromosomeColumnRenderer {
         this.canvasSize.width = width;
         this.scrollBar.clear();
         this.scrollContainer.removeAllListeners();
-        if (this.containerWidth < this.actualDrawingWidth) {
-            this.isScrollable = true;
-            this.activateMask();
-            this.createScrollBar();
-            this.buildColumns();
-
-        } else {
-            this.isScrollable = false;
-            requestAnimationFrame(() => this.renderer.render(this.container));
-        }
+        this.activateMask();
+        this.createScrollBar();
+        this.renderChromosomes();
+        requestAnimationFrame(() => this.renderer.render(this.container));
     }
 }

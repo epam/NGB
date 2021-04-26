@@ -30,6 +30,25 @@ export default {
             font: 'normal 7pt arial',
         }
     },
+    chromosomeArea: {
+        expand: {
+            alpha: 0.75,
+            arrow: 7,
+            color: 0x888888,
+            fill: 0xeeeeee,
+            width: 15
+        },
+        label: {
+            margin: 10,
+            style: {
+                fill: 0x000000,
+                font: 'normal 7pt arial',
+            }
+        },
+        margin: 5,
+        maximum: 300,
+        minimum: 120
+    },
     chromosomeColumn: {
         spaceBetween: 70,
         margin:5,
@@ -40,6 +59,9 @@ export default {
         thickness: 1
     },
     gridSize: 5,
+    grid: {
+        oddChromosomeBackground: 0xfafafa,  
+    },
     hit: {
         width: 3,
         color: 0x323232,
