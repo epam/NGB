@@ -19,7 +19,7 @@ function buildScoresConfigs() {
         .map(score => ({
             max: Infinity,
             min: -Infinity,
-            test (value) {
+            test(value) {
                 if (value === undefined) {
                     return this.default;
                 }
@@ -30,7 +30,7 @@ function buildScoresConfigs() {
 }
 
 export class ChromosomeColumnRenderer {
-    
+
     scrollContainer = new PIXI.Container();
     mainContainer = new PIXI.Container();
     scrollBar = new PIXI.Graphics();
@@ -170,8 +170,8 @@ export class ChromosomeColumnRenderer {
         const getFirstNotOccupiedLevel = (grid, from, to) => {
             const occupiedLevels = new Set(
                 grid
-                    .slice(from, to)
-                    .reduce((result, currentLevels) => ([...result, ...currentLevels]), [])
+                .slice(from, to)
+                .reduce((result, currentLevels) => ([...result, ...currentLevels]), [])
             );
             const max = Math.max(...occupiedLevels, 0);
             if (occupiedLevels.size === max) {
@@ -263,20 +263,31 @@ export class ChromosomeColumnRenderer {
                     this.columns
                         .lineStyle(config.chromosomeColumn.thickness, config.chromosomeColumn.lineColor, 0)
                         .beginFill(scoreConfig.color, 1);
-                    hits.forEach(hit => {
+                    hits.forEach((hit, hitIndex) => {
                         const {
                             start,
                             end,
                             x
                         } = hit;
                         if (x <= this.hitsLimit) {
+                            const startDrawPosX = initialMargin + (x - 1) * config.gridSize;
+                            const startDrawPosY = start * config.gridSize;
+                            const hitLength = (end - start) * config.gridSize - 1;
                             this.columns
                                 .drawRect(
-                                    initialMargin + (x - 1) * config.gridSize,
-                                    start * config.gridSize,
+                                    startDrawPosX,
+                                    startDrawPosY,
                                     config.gridSize - 1,
-                                    (end - start) * config.gridSize - 1
+                                    hitLength
                                 );
+                            this.gridContent[chromosome.name][hitIndex].x_area = {
+                                from: startDrawPosX,
+                                to: startDrawPosX + config.gridSize - 1
+                            };
+                            this.gridContent[chromosome.name][hitIndex].y_area = {
+                                from: startDrawPosY,
+                                to: startDrawPosY + hitLength
+                            };
                         }
                     });
                     this.columns
@@ -302,7 +313,7 @@ export class ChromosomeColumnRenderer {
     updateLabel(text, position) {
         let label = this.labelsMap.get(text);
         if (this.isInFrame(position)) {
-            if (label){
+            if (label) {
                 this.mainContainer.removeChild(label);
             }
             label = this.createLabel(text, position);
