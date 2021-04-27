@@ -74,7 +74,8 @@ export class ChromosomeColumnRenderer {
         chromosomes,
         range: maxChrSize,
         hits,
-        renderer
+        renderer,
+        displayTooltipFn
     }) {
 
         Object.assign(this, {
@@ -83,7 +84,8 @@ export class ChromosomeColumnRenderer {
             chromosomes,
             maxChrSize,
             hits,
-            renderer
+            renderer,
+            displayTooltipFn
         });
     }
     get mask() {
@@ -350,21 +352,11 @@ export class ChromosomeColumnRenderer {
             ? (areaWidth - config.chromosomeArea.expand.width)
             : areaWidth;
 
-        graphics.interactive = true;
-        graphics.buttonMode = true;
-        graphics.on('mouseover', (e) => this.toggleExpendAreaHover(e, true));
-        graphics.on('mouseout', (e) => this.toggleExpendAreaHover(e, false));
-        graphics.on('mousedown', () =>  {
+        graphics.on('mousedown', () => {
             graphics.clear();
             this.toggleChromosomeExpand(chromosome, expanded);
         });
         if (expandable) {
-            graphics.hitArea = new PIXI.Rectangle(
-                xLimit,
-                0,
-                config.chromosomeArea.expand.width,
-                totalHeightPx);
-
             const arrowY = Math.round(totalHeightPx / 2.0);
             const arrowX = Math.round(
                 areaWidth
@@ -428,7 +420,28 @@ export class ChromosomeColumnRenderer {
             chromosomeHeightPx,
             odd
         } = options;
+        const mousemoveEvent$ = new Subject();
+        const toStream = (e) => mousemoveEvent$.onNext(e);
         const chromosomeHeightCorrected = Math.ceil(chromosomeHeightPx / config.gridSize) * config.gridSize;
+        let subscription;
+
+        graphics.interactive = true;
+        graphics.buttonMode = true;
+        graphics.on('mousemove', (e) => {
+            if (subscription) {
+                toStream(e);
+            }
+        });
+        graphics.on('mouseover', () => {
+            subscription = mousemoveEvent$.throttle(25).subscribe((e) => {
+                this.showHitInfo(e, graphics, chromosome);
+                this.toggleExpendAreaHover(e, true);
+            });
+        });
+        graphics.on('mouseout', (e) => {
+            this.hideHitInfo();
+            this.toggleExpendAreaHover(e, false);
+        });
         if (odd) {
             graphics
                 .beginFill(config.grid.oddChromosomeBackground, 1)
@@ -493,7 +506,7 @@ export class ChromosomeColumnRenderer {
                             };
                             hit.y_area = {
                                 from: start * config.gridSize,
-                                to: end & config.gridSize - 1
+                                to: end * config.gridSize - 1
                             };
                         }
                     });
@@ -589,10 +602,10 @@ export class ChromosomeColumnRenderer {
     }
 
     /**
-     * Re-renders graphics
-     * @param options {object}
-     * @param options.reRenderChromosomes {number[]} chromosomes identifiers to re-render
-     */
+        * Re-renders graphics
+        * @param options {object}
+        * @param options.reRenderChromosomes {number[]} chromosomes identifiers to re-render
+        */
     rerender(options) {
         this.renderScrollBar();
         this.renderChromosomes(options);
@@ -600,11 +613,11 @@ export class ChromosomeColumnRenderer {
     }
 
     /**
-     * Converts actual coordinate (in pixels) to the coordinate
-     * on the scroller (in pixels)
-     * @param x
-     * @returns {number}
-     */
+        * Converts actual coordinate (in pixels) to the coordinate
+        * on the scroller (in pixels)
+        * @param x
+        * @returns {number}
+        */
     convertDrawingCoordinateToScrollCoordinate(x) {
         const total = this.actualDrawingWidth;
         const frame = this.containerWidth;
@@ -616,11 +629,11 @@ export class ChromosomeColumnRenderer {
     }
 
     /**
-     * Converts coordinate on scroller (in pixels) to the actual
-     * drawing coordinate (in pixels)
-     * @param x
-     * @returns {number}
-     */
+        * Converts coordinate on scroller (in pixels) to the actual
+        * drawing coordinate (in pixels)
+        * @param x
+        * @returns {number}
+        */
     convertScrollCoordinateToDrawingCoordinate(x) {
         const total = this.actualDrawingWidth;
         const frame = this.containerWidth;
@@ -632,9 +645,9 @@ export class ChromosomeColumnRenderer {
     }
 
     /**
-     * `renderScrollBar` renders scroll bar based on `this.scrollPosition`, `this.actualDrawingWidth` and
-     * `this.containerWidth` values
-     */
+        * `renderScrollBar` renders scroll bar based on `this.scrollPosition`, `this.actualDrawingWidth` and
+        * `this.containerWidth` values
+        */
     renderScrollBar() {
         this.scrollBar.clear();
         const total = this.actualDrawingWidth;
@@ -671,6 +684,7 @@ export class ChromosomeColumnRenderer {
         function lengthSorter(a, b) {
             return (b.endIndex - b.startIndex) - (a.endIndex - b.startIndex);
         }
+
         function scoreSorter(a, b) {
             return a.scoreIndex - b.scoreIndex;
         }
@@ -685,14 +699,45 @@ export class ChromosomeColumnRenderer {
         this.renderChromosomes();
         requestAnimationFrame(() => this.renderer.render(this.container));
     }
-    toggleExpendAreaHover(event, isHover){
-        const [,expandArea] = event.target.graphicsData.filter((area) => (
+    toggleExpendAreaHover(event, isHover) {
+        const [, expandArea] = event.target.graphicsData.filter((area) => (
             area.shape.width === config.chromosomeArea.expand.width &&
             area.fill
         ));
-        expandArea.fillAlpha = isHover 
-            ? Math.min(2 * config.chromosomeArea.expand.alpha, 1)
-            : config.chromosomeArea.expand.alpha;
-        requestAnimationFrame(() => this.renderer.render(this.container));
+        if (expandArea) {
+            expandArea.fillAlpha = isHover ?
+                Math.min(2 * config.chromosomeArea.expand.alpha, 1) :
+                config.chromosomeArea.expand.alpha;
+            requestAnimationFrame(() => this.renderer.render(this.container));
+        }
+    }
+    showHitInfo(e, graphics, chromosome) {
+        const {
+            x,
+            y
+        } = graphics.toLocal(e.data.global);
+        const [currentHit] = this.gridContent[chromosome.id].filter(hit => {
+            if (hit.displayed) {
+                return ((hit.x_area.from <= x && hit.x_area.to >= x) &&
+                    (hit.y_area.from <= y && hit.y_area.to >= y));
+            } else {
+                return false;
+            }
+        });
+        if (currentHit) {
+            this.showTooltip({
+                x: e.data.global.x,
+                y: e.data.global.y
+            }, currentHit);
+        }
+
+    }
+    showTooltip(position, tooltipContent) {
+        if (tooltipContent) {
+            this.displayTooltipFn(position, tooltipContent);
+        }
+    }
+    hideHitInfo() {
+        this.displayTooltipFn(null, null);
     }
 }

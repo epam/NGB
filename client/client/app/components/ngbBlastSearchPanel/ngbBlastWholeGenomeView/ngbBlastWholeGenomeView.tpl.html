@@ -1,3 +1,12 @@
 <div layout="column">
-    <div class="whole-genome-view-container"></div>
+    <div class="whole-genome-view-container">
+        <div class="chromosome-hit-tooltip hidden" id="chrTooltip">
+            <table>
+                <tr ng-repeat="(key, value) in $ctrl._tooltipContent">
+             <td>{{key}}</td>
+             <td>{{value}}</td>
+            </tr>
+            </table>
+        </div>
+    </div>
 </div>

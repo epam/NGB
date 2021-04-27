@@ -118,7 +118,8 @@ export default class WholeGenomeRenderer {
             chromosomes: this.chromosomes,
             range: this.range,
             hits: this.hits,
-            renderer: this._pixiRenderer
+            renderer: this._pixiRenderer,
+            displayTooltipFn: this._displayTooltipFn
         };
     }
     get scaleRenderParams() {
