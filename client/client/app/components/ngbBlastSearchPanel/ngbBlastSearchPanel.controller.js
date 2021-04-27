@@ -19,10 +19,8 @@ export default class ngbBlastSearchPanelController extends baseController {
     _sequence = '';
     data = null;
     dataLength;
-    firstRow = 0;
-    lastRow = PAGE_SIZE;
     blastPageSize = PAGE_SIZE;
-    currentPageBlast = FIRST_PAGE;
+    currentPageBlast = 0;
     firstPageBlast = FIRST_PAGE;
     lastPageBlast = FIRST_PAGE;
 
@@ -95,9 +93,6 @@ export default class ngbBlastSearchPanelController extends baseController {
         this._sequence = '';
         this.errorMessageList = [];
         this.data = null;
-        this.firstRow = 0;
-        this.lastRow = 0;
-        this.currentPageBlast = FIRST_PAGE;
         if (this.isReadSelected) {
             this.isProgressShown = true;
             this.blastSearchEmptyResult = null;
@@ -249,34 +244,33 @@ export default class ngbBlastSearchPanelController extends baseController {
     }
 
     getPage(page, concat = false) {
-        let dataUp = [];
-        let dataDown = [];
+        if (this.currentPageBlast !== page) {
+            let dataUp = [];
+            let dataDown = [];
+            this.gridOptions.data = [];
 
-        this.hasMoreBlast = page <= this.totalPagesCountBlast;
-        this.firstRow = this.blastPageSize * (page - 1);
-        this.lastRow = this.firstRow + this.blastPageSize;
-        if (this.currentPageBlast < page) {
-            if (concat) {
-                dataUp = this.gridOptions.data;
+            this.hasMoreBlast = page <= this.totalPagesCountBlast;
+            const firstRow = this.blastPageSize * (page - 1);
+            let lastRow = firstRow + this.blastPageSize;
+            if (this.currentPageBlast < page) {
+                if (!this.hasMoreBlast) {
+                    lastRow = this.gridOptions.totalItems;
+                }
+                if (concat && page > 1) {
+                    dataUp = this.data.slice(firstRow - this.blastPageSize, firstRow);
+                }
             }
-            if (!this.hasMoreBlast) {
-                this.lastRow = this.gridOptions.totalItems;
+            if (this.currentPageBlast > page && concat && page < this.totalPagesCountBlast) {
+                dataDown = this.data.slice(lastRow, lastRow + this.blastPageSize);
             }
+            this.currentPageBlast = page;
+            this.firstPageBlast = page;
+            this.lastPageBlast = page;
+            this.gridApi.infiniteScroll.setScrollDirections(false, false);
+            const dataMain = this.data.slice(firstRow, lastRow);
+
+            this.gridOptions.data = dataUp.concat(dataMain.concat(dataDown));
         }
-        if (this.currentPageBlast > page) {
-            if (concat) {
-                dataDown = this.gridOptions.data;
-            }
-            if (page === 1) {
-                this.firstRow = 0;
-            }
-        }
-        this.currentPageBlast = page;
-        this.firstPageBlast = page;
-        this.lastPageBlast = page;
-        this.gridApi.infiniteScroll.setScrollDirections(false, false);
-        const dataMiddle = this.data.slice(this.firstRow, this.lastRow);
-        this.gridOptions.data = dataUp.concat(dataMiddle.concat(dataDown));
         this.$timeout(() => {
             this.gridApi.infiniteScroll.resetScroll(
                 this.firstPageBlast > 1,
@@ -339,8 +333,7 @@ export default class ngbBlastSearchPanelController extends baseController {
             this.gridOptions.totalItems = this.dataLength;
             this.totalPagesCountBlast = Math.ceil(this.dataLength/this.blastPageSize);
             this.dispatcher.emitSimpleEvent('blast:loading:finished', [this.totalPagesCountBlast, this.currentPageBlast]);
-            this.lastRow = this.firstRow + this.blastPageSize;
-            this.getPage(this.currentPageBlast);
+            this.getPage(1);
         } else {
             this.blastSearchEmptyResult = this.blastSearchMessages.ErrorMessage.EmptySearchResults;
         }

@@ -22,10 +22,7 @@
 }
 
 .content-container {
+  display: flex;
+  flex-direction: column;
   height: 100%;
-}
-
-.blast-table {
-  position: fixed;
-  width: 100%;
 }
