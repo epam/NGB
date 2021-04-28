@@ -12,7 +12,8 @@
         </md-toolbar>
 
         <md-dialog-content style="min-width:600px;max-width: 800px;max-height:80vh;">
-            <md-tabs md-center-tabs md-autoselect md-no-pagination md-dynamic-height md-border-bottom md-stretch-tabs="always">
+            <md-tabs md-center-tabs md-autoselect md-no-pagination md-dynamic-height md-border-bottom
+                     md-stretch-tabs="always">
                 <md-tab label="CLI" ng-if="ctrl.isRoleModelEnabled">
                     <md-content class="md-padding">
                         <div class="column">
@@ -50,14 +51,17 @@
                         <div class="column">
                             <div class="row"><h4>Tooltips</h4></div>
                             <div class="row">
-                                <md-checkbox flex aria-label="Display tooltips" ng-model="ctrl.settings.displayTooltips">
+                                <md-checkbox flex aria-label="Display tooltips"
+                                             ng-model="ctrl.settings.displayTooltips">
                                     <div class="hint">
                                         Display tooltips
                                     </div>
                                 </md-checkbox>
                             </div>
                             <div class="row">
-                                <md-checkbox flex aria-label="Display tooltips" ng-model="ctrl.settings.displayAlignmentsCoverageTooltips" ng-hide="ctrl.settings.displayTooltips">
+                                <md-checkbox flex aria-label="Display tooltips"
+                                             ng-model="ctrl.settings.displayAlignmentsCoverageTooltips"
+                                             ng-hide="ctrl.settings.displayTooltips">
                                     <div class="hint">
                                         Display tooltips for alignments coverage
                                     </div>
@@ -65,21 +69,25 @@
                             </div>
                             <div class="row"><h4>Tracks</h4></div>
                             <div class="row">
-                                <md-checkbox flex aria-label="Show tracks headers" ng-model="ctrl.settings.showTracksHeaders" ng-disabled="ctrl.showTrackHeadersIsDisabled">
+                                <md-checkbox flex aria-label="Show tracks headers"
+                                             ng-model="ctrl.settings.showTracksHeaders"
+                                             ng-disabled="ctrl.showTrackHeadersIsDisabled">
                                     <div class="hint">
                                         Show tracks headers
                                     </div>
                                 </md-checkbox>
                             </div>
                             <div class="row">
-                                <md-checkbox flex aria-label="Show track original name" ng-model="ctrl.settings.showTrackOriginalName">
+                                <md-checkbox flex aria-label="Show track original name"
+                                             ng-model="ctrl.settings.showTrackOriginalName">
                                     <div class="hint">
                                         Show original track name
                                     </div>
                                 </md-checkbox>
                             </div>
                             <div class="row">
-                                <md-checkbox flex aria-label="Hovering effects" ng-model="ctrl.settings.hoveringEffects">
+                                <md-checkbox flex aria-label="Hovering effects"
+                                             ng-model="ctrl.settings.hoveringEffects">
                                     <div class="hint">
                                         Hovering effects
                                     </div>
@@ -156,14 +164,16 @@
                             </div>
                             <div class="row" layout="row">
                                 <div flex="50">
-                                    <md-checkbox flex aria-label="Filter PCR/optical duplicates" ng-model="ctrl.settings.filterReads.pcrOpticalDuplicates">
+                                    <md-checkbox flex aria-label="Filter PCR/optical duplicates"
+                                                 ng-model="ctrl.settings.filterReads.pcrOpticalDuplicates">
                                         <div class="hint">
                                             Filter PCR/optical duplicates
                                         </div>
                                     </md-checkbox>
                                 </div>
                                 <div flex="50">
-                                    <md-checkbox flex aria-label="Filter supplementary alignments" ng-model="ctrl.settings.filterReads.supplementaryAlignments">
+                                    <md-checkbox flex aria-label="Filter supplementary alignments"
+                                                 ng-model="ctrl.settings.filterReads.supplementaryAlignments">
                                         <div class="hint">
                                             Filter supplementary alignments
                                         </div>
@@ -172,14 +182,16 @@
                             </div>
                             <div class="row" layout="row">
                                 <div flex="50">
-                                    <md-checkbox flex aria-label="Filter failed vendor checks" ng-model="ctrl.settings.filterReads.failedVendorChecks">
+                                    <md-checkbox flex aria-label="Filter failed vendor checks"
+                                                 ng-model="ctrl.settings.filterReads.failedVendorChecks">
                                         <div class="hint">
                                             Filter failed vendor checks
                                         </div>
                                     </md-checkbox>
                                 </div>
                                 <div flex="50">
-                                    <md-checkbox flex aria-label="Filter secondary alignments" ng-model="ctrl.settings.filterReads.secondaryAlignments">
+                                    <md-checkbox flex aria-label="Filter secondary alignments"
+                                                 ng-model="ctrl.settings.filterReads.secondaryAlignments">
                                         <div class="hint">
                                             Filter secondary alignments
                                         </div>
@@ -197,7 +209,9 @@
                                            ng-min="1000"
                                            ng-max="150000"/>
                                     <div ng-messages="settingsForm.maxRangeBpBam.$error" role="alert">
-                                        <div ng-message="required,min,max">Enter maximum alignments range (bp).<br/>Value must be greater than or equal 1000 and less than or equal 150Kbp.</div>
+                                        <div ng-message="required,min,max">Enter maximum alignments range (bp).<br/>Value
+                                            must be greater than or equal 1000 and less than or equal 150Kbp.
+                                        </div>
                                     </div>
                                 </md-input-container>
                             </div>
@@ -211,7 +225,9 @@
                                            ng-min="1000"
                                            ng-max="10000000"/>
                                     <div ng-messages="settingsForm.maxCoverageRangeBpBam.$error" role="alert">
-                                        <div ng-message="required,min,max">Enter maximum coverage range (bp).<br/>Value must be greater than or equal 1000 and less than or equal 10Mbp.</div>
+                                        <div ng-message="required,min,max">Enter maximum coverage range (bp).<br/>Value
+                                            must be greater than or equal 1000 and less than or equal 10Mbp.
+                                        </div>
                                     </div>
                                 </md-input-container>
                             </div>
@@ -234,25 +250,25 @@
                             <div class="row"><h4>Splice Junctions</h4></div>
                             <div class="row">
                                 <md-checkbox
-                                    aria-label="Enable filtering"
-                                    ng-model="ctrl.settings.spliceJunctionsFiltering"
+                                        aria-label="Enable filtering"
+                                        ng-model="ctrl.settings.spliceJunctionsFiltering"
                                 >
                                     <div class="hint">Enable filtering</div>
                                 </md-checkbox>
                                 <md-input-container>
                                     <input
-                                        name="coverageThreshold"
-                                        type="number"
-                                        placeholder="minimum threshold"
-                                        ng-disabled="!ctrl.settings.spliceJunctionsFiltering"
-                                        ng-required="ctrl.settings.spliceJunctionsFiltering"
-                                        ng-min="0"
-                                        ng-model="ctrl.settings.spliceJunctionsCoverageThreshold"
+                                            name="coverageThreshold"
+                                            type="number"
+                                            placeholder="minimum threshold"
+                                            ng-disabled="!ctrl.settings.spliceJunctionsFiltering"
+                                            ng-required="ctrl.settings.spliceJunctionsFiltering"
+                                            ng-min="0"
+                                            ng-model="ctrl.settings.spliceJunctionsCoverageThreshold"
                                     />
                                     <div ng-messages="settingsForm.coverageThreshold.$error">
                                         <div
-                                            ng-message="required"
-                                            ng-show="ctrl.settings.spliceJunctionsFiltering &&
+                                                ng-message="required"
+                                                ng-show="ctrl.settings.spliceJunctionsFiltering &&
                                                 !ctrl.settings.spliceJunctionsCoverageThreshold"
                                         >
                                             Enter minimum coverage threshold
@@ -268,14 +284,16 @@
                         <div class="column">
                             <div class="row"><h4>Track options</h4></div>
                             <div class="row">
-                                <md-checkbox flex aria-label="Display tooltips" ng-model="ctrl.settings.gffColorByFeatureType">
+                                <md-checkbox flex aria-label="Display tooltips"
+                                             ng-model="ctrl.settings.gffColorByFeatureType">
                                     <div class="hint">
                                         Color by feature type
                                     </div>
                                 </md-checkbox>
                             </div>
                             <div class="row">
-                                <md-checkbox flex aria-label="Display tooltips" ng-model="ctrl.settings.gffShowNumbersAminoacid">
+                                <md-checkbox flex aria-label="Display tooltips"
+                                             ng-model="ctrl.settings.gffShowNumbersAminoacid">
                                     <div class="hint">
                                         Show AA numbers
                                     </div>
@@ -292,7 +310,9 @@
                                            ng-min="0"
                                            ng-max="50000"/>
                                     <div ng-messages="settingsForm.shortenedIntronLength.$error" role="alert">
-                                        <div ng-message="required,min,max">Enter intron length (bp).<br/>Value must be greater than or equal 0 and less than or equal 50Kbp.</div>
+                                        <div ng-message="required,min,max">Enter intron length (bp).<br/>Value must be
+                                            greater than or equal 0 and less than or equal 50Kbp.
+                                        </div>
                                     </div>
                                 </md-input-container>
                             </div>
@@ -306,7 +326,9 @@
                                            ng-min="1000"
                                            ng-max="10000000"/>
                                     <div ng-messages="settingsForm.maxRangeBpShortenedIntrons.$error" role="alert">
-                                        <div ng-message="required,min,max">Enter maximum range (bp).<br/>Value must be greater than or equal 1000 and less than or equal 10Mbp.</div>
+                                        <div ng-message="required,min,max">Enter maximum range (bp).<br/>Value must be
+                                            greater than or equal 1000 and less than or equal 10Mbp.
+                                        </div>
                                     </div>
                                 </md-input-container>
                             </div>
@@ -325,7 +347,36 @@
                                            placeholder="maximum variants range(bp)"
                                            ng-model="ctrl.settings.variantsMaximumRange"/>
                                     <div ng-messages="settingsForm.maxRangeVcf.$error" role="alert">
-                                        <div ng-message="required,min">Enter maximum range for displaying variants(bp). Value must be greater than 0.</div>
+                                        <div ng-message="required,min">Enter maximum range for displaying variants(bp).
+                                            Value must be greater than 0.
+                                        </div>
+                                    </div>
+                                </md-input-container>
+                            </div>
+                            <div class="row"><h4>Highlight variants of interest</h4></div>
+                            <div class="row">
+                                <md-checkbox ng-change="ctrl.prepareDefaultHighlightProfile()" flex
+                                             aria-label="Display tooltips"
+                                             ng-model="ctrl.settings.isVariantsHighlighted">
+                                    <div class="hint">
+                                        Enabled
+                                    </div>
+                                </md-checkbox>
+                            </div>
+                            <div class="row" ng-if="ctrl.settings.isVariantsHighlighted">
+                                <md-input-container>
+                                    <label>Select the profile</label>
+                                    <md-select name="highlightProfile" ng-model="ctrl.settings.highlightProfile"
+                                                required>
+                                        <md-option ng-value="name"
+                                                   ng-repeat="(name, profile) in ctrl.settings.highlightProfileList">
+                                            {{ name }}
+                                        </md-option>
+                                    </md-select>
+                                    <div ng-messages="settingsForm.highlightProfile.$error" role="alert">
+                                        <div ng-message="required">Select highlight profile or disable highlight
+                                            option.
+                                        </div>
                                     </div>
                                 </md-input-container>
                             </div>
@@ -350,8 +401,11 @@
                                         <col width="20%">
                                         <col width="40%">
                                         <col width="10%">
-                                        <tr ng-repeat-start="subItem in category.subItems" ngb-customization-table-row setting-item="subItem" customize-settings="ctrl.customizeSettings"></tr>
-                                        <tr ng-repeat-end ng-repeat="item in subItem.subItems" ngb-customization-table-row setting-item="item" customize-settings="ctrl.customizeSettings" ></tr>
+                                        <tr ng-repeat-start="subItem in category.subItems" ngb-customization-table-row
+                                            setting-item="subItem" customize-settings="ctrl.customizeSettings"></tr>
+                                        <tr ng-repeat-end ng-repeat="item in subItem.subItems"
+                                            ngb-customization-table-row setting-item="item"
+                                            customize-settings="ctrl.customizeSettings"></tr>
                                     </table>
                                 </collapsible-panel-content>
                             </collapsible-panel>

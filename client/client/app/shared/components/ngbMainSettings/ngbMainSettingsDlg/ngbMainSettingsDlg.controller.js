@@ -38,6 +38,8 @@ export default class ngbMainSettingsDlgController {
             }
         });
 
+        this.prepareDefaultHighlightProfile();
+
         this.scope = $scope;
     }
 
@@ -46,6 +48,7 @@ export default class ngbMainSettingsDlgController {
     }
 
     save() {
+        this.settings = this.makeConsistent(this.settings);
         this.settingsService.updateThisLocalSettingsVar(this.settings);
         this._localDataService.updateSettings(this.settings);
         this._dispatcher.emitGlobalEvent('settings:change', this.settings);
@@ -73,5 +76,21 @@ export default class ngbMainSettingsDlgController {
     setToDefaultCustomizations() {
         this.customizeSettings = this.settingsService.getDefaultSettings();
         this.scope.$broadcast('setToDefault');
+    }
+
+    makeConsistent(settings) {
+        settings.highlightProfile = this.settings.isVariantsHighlighted
+            ? settings.highlightProfile
+            : undefined;
+        return settings;
+    }
+
+    prepareDefaultHighlightProfile() {
+        if (this.settings.isVariantsHighlighted) {
+            this.settings.highlightProfile = this.settings.highlightProfile
+                || Object.keys(this.settings.highlightProfileList).filter(
+                    name => this.settings.highlightProfileList[name].is_default
+                )[0];
+        }
     }
 }
