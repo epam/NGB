@@ -81,6 +81,10 @@ export default {
             }
         ],
         offset: 5,
+        onHover: {
+            lineColor: 0x343aeb,
+            lineAlpha: 1
+        }
     },
     scrollBar: {
         height: 15,

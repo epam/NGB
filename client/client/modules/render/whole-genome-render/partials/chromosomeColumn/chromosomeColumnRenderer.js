@@ -43,6 +43,8 @@ export class ChromosomeColumnRenderer {
     chromosomesContainer = new PIXI.Container();
     isHover = false;
     labelsMap = new Map();
+    currentHit = null;
+    currentHitView = null;
     /**
      * `scrollPosition` is a current scroll offset for the canvas in pixels,
      * i.e. `scrollOffset` == 10px means that we scrolled canvas to the right at 10px -position
@@ -433,12 +435,14 @@ export class ChromosomeColumnRenderer {
             }
         });
         graphics.on('mouseover', () => {
-            subscription = mousemoveEvent$.throttle(25).subscribe((e) => {
-                this.showHitInfo(e, graphics, chromosome);
+            this.destroyHighlightedHit();
+            subscription = mousemoveEvent$.filter((e) => this.filterMousemoveCoordinates(e, graphics, chromosome)).subscribe((e) => {
+                this.showHitInfo(e, graphics);
                 this.toggleExpendAreaHover(e, true);
             });
         });
         graphics.on('mouseout', (e) => {
+            this.destroyHighlightedHit();
             this.hideHitInfo();
             this.toggleExpendAreaHover(e, false);
         });
@@ -711,26 +715,41 @@ export class ChromosomeColumnRenderer {
             requestAnimationFrame(() => this.renderer.render(this.container));
         }
     }
-    showHitInfo(e, graphics, chromosome) {
+    showHitInfo(e, graphics) {
+        this.showTooltip({
+            x: e.data.global.x,
+            y: e.data.global.y
+        }, this.currentHit);
+        const {
+            x,
+            y
+        } = graphics.toLocal(e.data.global);
+        this.highlightHit(e, {
+            x,
+            y
+        });
+    }
+    filterMousemoveCoordinates(e, graphics, chromosome) {
         const {
             x,
             y
         } = graphics.toLocal(e.data.global);
         const [currentHit] = this.gridContent[chromosome.id].filter(hit => {
             if (hit.displayed) {
-                return ((hit.x_area.from <= x && hit.x_area.to >= x) &&
-                    (hit.y_area.from <= y && hit.y_area.to >= y));
+                return (
+                    (hit.x_area.from <= x && hit.x_area.to >= x) &&
+                    (hit.y_area.from <= y && hit.y_area.to >= y)
+                );
             } else {
                 return false;
             }
         });
         if (currentHit) {
-            this.showTooltip({
-                x: e.data.global.x,
-                y: e.data.global.y
-            }, currentHit);
+            this.currentHit = currentHit;
+            return true;
+        } else {
+            return false;
         }
-
     }
     showTooltip(position, tooltipContent) {
         if (tooltipContent) {
@@ -739,5 +758,35 @@ export class ChromosomeColumnRenderer {
     }
     hideHitInfo() {
         this.displayTooltipFn(null, null);
+    }
+    highlightHit(event, position) {
+        const {
+            x,
+            y
+        } = position;
+        this.destroyHighlightedHit();
+        const [target] = event.target.graphicsData.filter(graphicsItem => {
+            if (graphicsItem.shape.height === (config.gridSize - 1)) {
+                return (
+                    (graphicsItem.shape.x <= x) &&
+                    (x <= graphicsItem.shape.x + graphicsItem.shape.width) &&
+                    (graphicsItem.shape.y <= y) &&
+                    (y <= graphicsItem.shape.y + graphicsItem.shape.height)
+                );
+            } else {
+                return false;
+            }
+        });
+        if (target) {
+            this.currentHitView = target;
+            target.lineColor = config.hit.onHover.lineColor;
+            target.lineAlpha = config.hit.onHover.lineAlpha;
+        }
+    }
+    destroyHighlightedHit() {
+        if (this.currentHitView) {
+            this.currentHitView.lineAlpha = 0;
+            this.currentHitView = null;
+        }
     }
 }

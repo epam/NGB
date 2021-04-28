@@ -57,15 +57,12 @@ export default class ngbBlastGenomeViewController {
     }
     displayTooltip(position, content) {
         if (content) {
+            const offsetX = position.x;
+            const offsetY = config.start.topMargin + position.y;
+
             this._tooltipContent = this.formatBlastTooltipContent(content);
             this._scope.$apply();
 
-            const offsetX = position.x;
-            const offsetY = config.start.topMargin + position.y;
-            this._tooltipTarget.style.position = 'relative';
-            this._tooltipElement.style.position = 'absolute';
-            this._tooltipElement.style.left = `${offsetX}px`;
-            this._tooltipElement.style.top = `${offsetY}px`;
             if ($(this._tooltipElement).hasClass('hidden')) {
                 $(this._tooltipElement).removeClass('hidden');
             }
@@ -75,8 +72,14 @@ export default class ngbBlastGenomeViewController {
                     element: this._tooltipElement,
                     attachment: 'top left',
                     targetAttachment: 'top left',
+                    offset: `-${offsetY} -${offsetX}`,
+                    constraints: [{
+                        to: 'scrollParent',
+                        pin: true
+                    }],
                 });
             }
+            this._tetherElement.position();
 
         } else {
             this._tooltipContent = null;
