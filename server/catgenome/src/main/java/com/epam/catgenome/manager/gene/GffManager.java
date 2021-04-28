@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,45 +23,6 @@
  */
 
 package com.epam.catgenome.manager.gene;
-
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.constant.MessagesConstants.ERROR_REGISTER_FILE;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-
-import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.exception.GeneReadingException;
-import com.epam.catgenome.exception.HistogramReadingException;
-import com.epam.catgenome.exception.HistogramWritingException;
-import com.epam.catgenome.exception.RegistrationException;
-import com.epam.catgenome.manager.gene.parser.GffCodec;
-import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
-import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
-import htsjdk.tribble.AsciiFeatureCodec;
-import htsjdk.tribble.FeatureReader;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.Constants;
@@ -89,6 +50,11 @@ import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.track.Block;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.wig.Wig;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.exception.GeneReadingException;
+import com.epam.catgenome.exception.HistogramReadingException;
+import com.epam.catgenome.exception.HistogramWritingException;
+import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.DownloadFileManager;
 import com.epam.catgenome.manager.FeatureIndexManager;
@@ -104,19 +70,52 @@ import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.Segment;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.Record;
 import com.epam.catgenome.manager.externaldb.bindings.uniprot.Uniprot;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
+import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.gene.reader.AbstractGeneReader;
-import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.parallel.ParallelTaskExecutionUtils;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
+import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.NggbIntervalTreeMap;
 import com.epam.catgenome.util.Utils;
+import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
+import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.samtools.util.Interval;
 import htsjdk.samtools.util.IntervalTree;
-import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
+import htsjdk.tribble.AsciiFeatureCodec;
+import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.readers.LineIterator;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.constant.MessagesConstants.ERROR_REGISTER_FILE;
 
 /**
  * Source:      GeneManager
