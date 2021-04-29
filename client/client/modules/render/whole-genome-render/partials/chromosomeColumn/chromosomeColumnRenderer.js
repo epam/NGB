@@ -226,7 +226,6 @@ export class ChromosomeColumnRenderer {
                     }
                 };
                 const mouseoverHandler = () => {
-                    this.isExpandAreaOnHover = false;
                     this.toggleExpendAreaHover(chr, true);
                     subscription = this.mousemoveEvent$
                         .map(e => {
@@ -249,8 +248,7 @@ export class ChromosomeColumnRenderer {
                     graphics.on('mousemove', mousemoveHandler);
                 };
                 const mouseoutHandler = () => {
-                    this.destroyHighlightedHit();
-                    this.isExpandAreaOnHover = false;
+                    this.hideHitInfo();
                     this.toggleExpendAreaHover(chr, false);
                     graphics.off('mousemove', mousemoveHandler);
                 };
@@ -769,7 +767,6 @@ export class ChromosomeColumnRenderer {
         this.displayTooltipFn(null, null);
     }
     highlightHit(event, position) {
-        this.destroyHighlightedHit();
         const {
             x,
             y
@@ -792,13 +789,6 @@ export class ChromosomeColumnRenderer {
                 target.lineColor = config.hit.onHover.lineColor;
                 target.lineAlpha = config.hit.onHover.lineAlpha;
             }
-        }
-    }
-    destroyHighlightedHit() {
-        this.hideHitInfo();
-        if (this.currentHitView) {
-            this.currentHitView.lineAlpha = 0;
-            this.currentHitView = null;
         }
     }
 }
