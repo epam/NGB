@@ -119,6 +119,8 @@ dependencies {
     compile group: "com.fasterxml.jackson.core", name: "jackson-core", version: versionJackson //project.ext.versionJackson
     compile group: "com.fasterxml.jackson.core", name: "jackson-databind", version:  versionJackson //project.ext.versionJackson
     compile group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: versionJackson //project.ext.versionJackson
+    compile group: "com.squareup.retrofit2", name: "converter-jackson", version: "2.7.2"
+
     // Apache Commons
     compile group: "commons-io", name: "commons-io", version: "2.4"
     compile group: "org.apache.commons", name: "commons-lang3", version: "3.0"
