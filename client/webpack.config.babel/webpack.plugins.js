@@ -1,6 +1,7 @@
-import webpack, { optimize } from 'webpack';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
-import ExtractTextPlugin from 'extract-text-webpack-plugin';
+const  webpack =  require('webpack');
+const { optimize } = webpack;
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const DEV = global.buildOptions.dev;
 const globals = {
@@ -13,7 +14,7 @@ const globals = {
 const devPlugins = [
     new webpack.NoErrorsPlugin()
 ];
-export const extractTextPlugin = new ExtractTextPlugin('[name].css');
+const extractTextPlugin = new ExtractTextPlugin('[name].css');
 
 const prodPlugins = [
     extractTextPlugin,
@@ -25,7 +26,7 @@ const prodPlugins = [
 ];
 
 
-export default [
+module.exports = [
     new webpack.DefinePlugin(globals),
     new HtmlWebpackPlugin({
         favicon: './client/app/assets/icons/ngb-logo.png',
@@ -42,3 +43,5 @@ export default [
     },
     ...(DEV ? devPlugins : prodPlugins)
 ];
+
+module.exports.extractTextPlugin = extractTextPlugin;

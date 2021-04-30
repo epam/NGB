@@ -1,6 +1,8 @@
 import {ColorProcessor, PixiTextSize} from '../../../../../../../utilities';
 import FeatureBaseRenderer from '../../../../../../gene/internal/renderer/features/drawing/featureBaseRenderer';
 import {drawingConfiguration} from '../../../../../../../core';
+import PIXI from 'pixi.js';
+
 const Math = window.Math;
 
 export default class StatisticsFeatureRenderer extends FeatureBaseRenderer {

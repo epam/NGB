@@ -8,7 +8,7 @@ import getRulerHeight from './rulerHeightManager';
 export class RulerTrack extends Track {
 
     renderer = new RulerRenderer(this.viewport, this.trackConfig);
-    brush = new RulerBrush(::this.moveBrush, this.viewport, this.trackConfig);
+    brush = new RulerBrush(this.moveBrush.bind(this), this.viewport, this.trackConfig);
 
     static getTrackDefaultConfig() {
         return RulerConfig;
@@ -17,8 +17,8 @@ export class RulerTrack extends Track {
     constructor(opts){
         super(opts);
         this.height = this.getTotalHeight();
-        this.brush.requestRenderRefresh = ::this.requestRenderRefresh;
-        this.brush.updateScene = ::this.updateScene;
+        this.brush.requestRenderRefresh = this.requestRenderRefresh.bind(this);
+        this.brush.updateScene = this.updateScene.bind(this);
     }
 
     get trackIsResizable() {

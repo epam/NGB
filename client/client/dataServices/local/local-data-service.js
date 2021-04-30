@@ -18,7 +18,7 @@ export default class LocalDataService {
             bookmarks = [];
             this.updateBookmarks(bookmarks);
         }
-        bookmarks = bookmarks.map(::this.recoverBookmark);
+        bookmarks = bookmarks.map(this.recoverBookmark.bind(this));
         return bookmarks;
     }
 
@@ -58,7 +58,7 @@ export default class LocalDataService {
     }
 
     updateBookmarks(bookmarks) {
-        bookmarks = bookmarks.map(::this.recoverBookmark);
+        bookmarks = bookmarks.map(this.recoverBookmark.bind(this));
         this._localStorage.bookmarks = angular.toJson(bookmarks || []);
     }
 

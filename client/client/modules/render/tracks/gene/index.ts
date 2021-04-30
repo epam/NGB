@@ -62,7 +62,7 @@ export class GENETrack extends CachedTrack {
                 key: 'shorten_introns',
                 label: 'Shorten introns',
                 type: 'checkbox',
-                value: ::this.currentTrackManagesShortenedIntronsMode
+                value: this.currentTrackManagesShortenedIntronsMode.bind(this)
             }
         ];
 
@@ -91,7 +91,7 @@ export class GENETrack extends CachedTrack {
             }
         };
 
-        const _hotKeyListener = ::this.hotKeyListener;
+        const _hotKeyListener = this.hotKeyListener.bind(this);
         this.dispatcher.on('hotkeyPressed', _hotKeyListener);
         this.hotKeyListenerDestructor = function() {
             self.dispatcher.removeListener('hotkeyPressed', _hotKeyListener);
@@ -122,11 +122,11 @@ export class GENETrack extends CachedTrack {
     }
 
     get downloadHistogramFn() {
-        return ::this.dataService.loadGeneHistogramTrack;
+        return this.dataService.loadGeneHistogramTrack.bind(this.dataService);
     }
 
     get downloadDataFn() {
-        return ::this.dataService.loadGeneTrack;
+        return this.dataService.loadGeneTrack.bind(this.dataService);
     }
 
     get dataService() {

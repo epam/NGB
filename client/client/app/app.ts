@@ -1,3 +1,6 @@
+import "core-js/stable";
+import "regenerator-runtime/runtime";
+
 import browserDetect from './shared/browserDetect';
 browserDetect();
 

@@ -269,8 +269,8 @@ export class BAMTrack extends ScrollableTrack {
             }
         };
 
-        const _hotKeyListener = ::this.hotKeyListener;
-        const _showAlignmentsListener = ::this.showAlignmentsListener;
+        const _hotKeyListener = this.hotKeyListener.bind(this);
+        const _showAlignmentsListener = this.showAlignmentsListener.bind(this);
 
         const self = this;
         this._removeListener = function () {

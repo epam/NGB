@@ -94,7 +94,7 @@ export class Viewport extends BaseViewport {
                 }
             }
         };
-        const _hotKeyListener = ::this.hotKeyListener;
+        const _hotKeyListener = this.hotKeyListener.bind(this);
         this.dispatcher.on('hotkeyPressed', _hotKeyListener);
 
         this.onDestroy = () => {
@@ -121,7 +121,7 @@ export class Viewport extends BaseViewport {
         if (this.isShortenedIntronsMode && this.shortenedIntronsViewport.brush) {
             return this.canvasSize / this.shortenedIntronsViewport.brush.shortenedSize;
         }
-        return super.factor;
+        return this._getFactor();
     }
 
     get actualBrushSize() {
@@ -135,14 +135,14 @@ export class Viewport extends BaseViewport {
         if (this.isShortenedIntronsMode && this.shortenedIntronsViewport.brush) {
             return this._shortenedConvert;
         }
-        return super.convert;
+        return this._getConvert();
     }
 
     get project() {
         if (this.isShortenedIntronsMode && this.shortenedIntronsViewport.brush) {
             return this._shortenedProject;
         }
-        return super.project;
+        return this._getProject();
     }
 
     get blatRegion() {

@@ -20,11 +20,11 @@ export default class ngbVariantsFilterListController {
         this.projectContext = projectContext;
         this.input = $($element[0]).find('.ngb-filter-input')[0];
         this.listElements = new ListElements(this.list, {
-            onSearchFinishedCallback: ::this.searchFinished
+            onSearchFinishedCallback: this.searchFinished.bind(this)
         });
         this.scope.$watch('$ctrl.list', () => {
             this.listElements = new ListElements(this.list, {
-                onSearchFinishedCallback: ::this.searchFinished
+                onSearchFinishedCallback: this.searchFinished.bind(this)
             });
         });
         switch (this.field.field) {
@@ -106,7 +106,7 @@ export default class ngbVariantsFilterListController {
             clearTimeout(this.hideListTimeout);
             this.hideListTimeout = null;
         }
-        this.hideListTimeout = setTimeout(::this.hideList, 100);
+        this.hideListTimeout = setTimeout(() => this.hideList(), 100);
     }
 
     itemIsSelected(item) {

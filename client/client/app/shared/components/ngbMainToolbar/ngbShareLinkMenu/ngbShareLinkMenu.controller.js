@@ -30,14 +30,14 @@ export default class ngbShareLinkMenuController extends baseController {
 
         this.state = localDataService.getDictionary().State;
 
-        $scope.$watch('$ctrl.layoutState', ::this.generateUrl);
-        $scope.$watch('$ctrl.mainToolbarVisible', ::this.generateUrl);
-        $scope.$watch('$ctrl.mainToolbarVisibleValue', ::this.generateUrl);
-        $scope.$watch('$ctrl.rewriteLayout', ::this.generateUrl);
-        $scope.$watch('$ctrl.screenShotVisible', ::this.generateUrl);
-        $scope.$watch('$ctrl.screenShotVisibleValue', ::this.generateUrl);
-        $scope.$watch('$ctrl.panelsHeadersVisibleValue', ::this.generateUrl);
-        $scope.$watch('$ctrl.alias', ::this.generateUrl);
+        $scope.$watch('$ctrl.layoutState', this.generateUrl.bind(this));
+        $scope.$watch('$ctrl.mainToolbarVisible', this.generateUrl.bind(this));
+        $scope.$watch('$ctrl.mainToolbarVisibleValue', this.generateUrl.bind(this));
+        $scope.$watch('$ctrl.rewriteLayout', this.generateUrl.bind(this));
+        $scope.$watch('$ctrl.screenShotVisible', this.generateUrl.bind(this));
+        $scope.$watch('$ctrl.screenShotVisibleValue', this.generateUrl.bind(this));
+        $scope.$watch('$ctrl.panelsHeadersVisibleValue', this.generateUrl.bind(this));
+        $scope.$watch('$ctrl.alias', this.generateUrl.bind(this));
 
         this.generateUrl();
     }

@@ -1,4 +1,4 @@
-import {NumberFormatter} from '../../utilities';
+import {NumberFormatter} from './../../utilities/index';
 
 const formatter = new Intl.NumberFormat('en-US');
 
@@ -28,7 +28,7 @@ export default {
             width: 9
         },
         drag:{
-            formatter: ::NumberFormatter.textWithPrefix,
+            formatter: NumberFormatter.textWithPrefix.bind(NumberFormatter),
             height: 10,
             label:{
                 fill: 0x000000,
@@ -73,7 +73,7 @@ export default {
             margin:0
         },
         tick:{
-            formatter: ::NumberFormatter.textWithPrefix,
+            formatter: NumberFormatter.textWithPrefix.bind(NumberFormatter),
             height: 0,
             label: {
                 fill: 0x000000,
@@ -105,7 +105,7 @@ export default {
                     y: 1
                 }
             },
-            formatter: ::formatter.format,
+            formatter: formatter.format.bind(formatter),
             height: 5,
             label: {
                 fill: 0xffffff,
@@ -115,7 +115,7 @@ export default {
             thickness: 1
         },
         tick:{
-            formatter: ::formatter.format,
+            formatter: formatter.format.bind(formatter),
             height: 5,
             label: {
                 fill: 0x000000,

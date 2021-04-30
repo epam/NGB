@@ -29,16 +29,16 @@ export default class DragManager{
     _registerDraggableGraphics(graphics, drag){
         this._draggableElements.set(graphics, drag);
         graphics
-            .on('mousedown', ::this.onDragStart)
-            .on('touchstart', ::this.onDragStart)
+            .on('mousedown', this.onDragStart.bind(this))
+            .on('touchstart', this.onDragStart.bind(this))
             // events for drag end
-            .on('mouseup', ::this.onDragEnd)
-            .on('mouseupoutside', ::this.onDragEnd)
-            .on('touchend', ::this.onDragEnd)
-            .on('touchendoutside', ::this.onDragEnd)
+            .on('mouseup', this.onDragEnd.bind(this))
+            .on('mouseupoutside', this.onDragEnd.bind(this))
+            .on('touchend', this.onDragEnd.bind(this))
+            .on('touchendoutside', this.onDragEnd.bind(this))
             // events for drag move
-            .on('mousemove', ::this.onDragMove)
-            .on('touchmove', ::this.onDragMove);
+            .on('mousemove', this.onDragMove.bind(this))
+            .on('touchmove', this.onDragMove.bind(this));
     }
 
     onDragStart(event) {

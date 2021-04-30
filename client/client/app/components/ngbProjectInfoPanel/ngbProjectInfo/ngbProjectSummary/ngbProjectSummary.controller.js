@@ -30,7 +30,7 @@ export default class ngbProjectSummaryController {
         this.showTrackOriginalName = this.localDataService.getSettings().showTrackOriginalName;
 
         this.INIT();
-        const reloadPanel = ::this.INIT;
+        const reloadPanel = this.INIT.bind(this);
         const self = this;
         const globalSettingsChangedHandler = (state) => {
             self.showTrackOriginalName = state.showTrackOriginalName;

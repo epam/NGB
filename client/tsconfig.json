@@ -1,0 +1,40 @@
+{
+  "buildOnSave": false,
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": "./client",
+    "alwaysStrict": false,
+    "allowJs": true,
+    "experimentalDecorators": true,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": false,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "pretty": true,
+    "removeComments": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strictNullChecks": true,
+    "target": "ES2015",
+    "lib": [
+      "es2018",
+      "dom"
+    ],
+    "types": [
+    ],
+    "paths": {
+      "client/*": [
+        "./client/*"
+      ]
+    }
+  },
+  "include": ["./client/"],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

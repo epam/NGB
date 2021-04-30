@@ -60,9 +60,9 @@ export default class ngbUserFormController extends BaseController {
         });
 
         if (!this.isNewUser) {
-            this.fetchCurrentUserRolesData(::this.fetchAvailableRoles);
+            this.fetchCurrentUserRolesData(this.fetchAvailableRoles.bind(this));
         } else {
-            this.fetchDefaultRolesData(::this.fetchAvailableRoles);
+            this.fetchDefaultRolesData(this.fetchAvailableRoles.bind(this));
         }
 
     }

@@ -1,5 +1,5 @@
 import PIXI from 'pixi.js';
-import renderArea from './renderArea';
+export { default as renderArea } from './renderArea';
 import {NumberFormatter} from '../../../../../../utilities';
 import {drawingConfiguration} from '../../../../../../core/configuration';
 const Math = window.Math;

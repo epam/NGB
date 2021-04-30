@@ -56,20 +56,20 @@ export class Track extends BaseTrack {
         }),
         this.viewport.blatRegionChangeSubject.subscribe(() => {
             this._flags.blatRegionChanged = true;
-            requestAnimationFrame(::this.tick);
+            requestAnimationFrame(this.tick.bind(this));
         }),
         this.viewport.brushChangeSubject.subscribe(() =>
             this._flags.brushChanged = true),
         this.viewport.brushChangeSubject.subscribe((opts) => {
             this._flags.dragFinished = !opts || opts.reload;
-            requestAnimationFrame(::this.tick);
+            requestAnimationFrame(this.tick.bind(this));
             if (!opts || opts.reload) {
                 this.refreshDataSubject.onNext(this);
             }
         }),
         this.viewport.canvasChangeSubject.subscribe(() => {
             this._refreshPixiRenderer();
-            requestAnimationFrame(::this.tick);
+            requestAnimationFrame(this.tick.bind(this));
         }),
         this.refreshDataSubject.debounce(DEBOUNCE_TIMEOUT).subscribe(() => {
             this._refreshCache();
@@ -124,14 +124,14 @@ export class Track extends BaseTrack {
     }
 
     requestRender() {
-        requestAnimationFrame(::this.tick);
+        requestAnimationFrame(this.tick.bind(this));
     }
 
     requestAnimation() {
         if (this._animating) {
             return;
         }
-        requestAnimationFrame(::this.animationTrigger);
+        requestAnimationFrame(this.animationTrigger.bind(this));
     }
 
     animationTrigger(time) {
@@ -141,7 +141,7 @@ export class Track extends BaseTrack {
         }
         if (this._lastAnimationTime) {
             if (this.animate(time - this._lastAnimationTime)) {
-                requestAnimationFrame(::this.animationTrigger);
+                requestAnimationFrame(this.animationTrigger.bind(this));
             }
             else {
                 this._animating = false;
@@ -150,7 +150,7 @@ export class Track extends BaseTrack {
         }
         else {
             this._lastAnimationTime = time;
-            requestAnimationFrame(::this.animationTrigger);
+            requestAnimationFrame(this.animationTrigger.bind(this));
         }
     }
 
@@ -173,7 +173,7 @@ export class Track extends BaseTrack {
         this._refreshPixiRenderer();
         this._refreshCache();
         this._showCenterLine = opts.showCenterLine;
-        requestAnimationFrame(::this.tick);
+        requestAnimationFrame(this.tick.bind(this));
         this._pixiRenderer.plugins.interaction.autoPreventDefault = false;
     }
 
@@ -206,7 +206,7 @@ export class Track extends BaseTrack {
     }
 
     requestRenderRefresh() {
-        requestAnimationFrame(::this.tick);
+        requestAnimationFrame(this.tick.bind(this));
     }
 
     updateScene() {
@@ -242,7 +242,7 @@ export class Track extends BaseTrack {
         if (!this.isResizing) {
             this._resetRender();
         }
-        requestAnimationFrame(::this.tick);
+        requestAnimationFrame(this.tick.bind(this));
     }
 
     _resetRender() {
@@ -286,7 +286,7 @@ export class Track extends BaseTrack {
             .then((somethingChanged) => {
                 if (somethingChanged) {
                     this._flags.dataChanged = true;
-                    requestAnimationFrame(::this.tick);
+                    requestAnimationFrame(this.tick.bind(this));
                 }
 
             });

@@ -16,22 +16,22 @@ function wrapStateFn(fn, o) {
 
 function wrapIndeterminateStateFn(fn, o) {
     return (tracks, options) => [
-        ...(new Set(
+        ...(Array.from(new Set(
             tracks
                 .filter(getFilter(o))
                 .map(track => fn(track.state, tracks.filter(getFilter(o)), track, options))
-        ))
+        )))
     ].length > 1;
 }
 
 function wrapDisplayFn(fn, o) {
     return (tracks, options) => {
         const display = [
-            ...(new Set(
+            ...(Array.from(new Set(
                 tracks
                     .filter(getFilter(o))
                     .map(track => fn(track.state, tracks.filter(getFilter(o)), track, options))
-            ))
+            )))
         ];
         if (display.length === 1) {
             return display[0];

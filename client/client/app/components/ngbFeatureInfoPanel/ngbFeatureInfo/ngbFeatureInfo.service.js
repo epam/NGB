@@ -1,4 +1,4 @@
-import {TableInfo} from '../../../../modules/render/';
+import {TableInfo} from '../../../../modules/render';
 export default class ngbFeatureInfoService {
 
     static instance($q, externaldbDataService, ngbFeatureInfoConstant) {

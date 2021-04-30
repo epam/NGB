@@ -23,9 +23,9 @@ export default class ngbFeatureInfoController extends baseController {
     }
 
     events = {
-        'feature:info:select:ensembl': ::this.getFeatureInfo,
-        'feature:info:select:ncbi': ::this.getFeatureInfo,
-        'feature:info:select:uniprot': ::this.getFeatureInfo
+        'feature:info:select:ensembl': this.getFeatureInfo.bind(this),
+        'feature:info:select:ncbi': this.getFeatureInfo.bind(this),
+        'feature:info:select:uniprot': this.getFeatureInfo.bind(this)
     };
 
     getFeatureInfo(opts) {

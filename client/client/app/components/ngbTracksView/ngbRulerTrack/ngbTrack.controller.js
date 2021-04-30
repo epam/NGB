@@ -1,4 +1,4 @@
-import {tracks as trackConstructors} from '../../../../modules/render/';
+import {tracks as trackConstructors} from '../../../../modules/render';
 
 export default class ngbTrackController {
     static instanceCache = [];

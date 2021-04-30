@@ -22,7 +22,7 @@ export default  class eventHotkey {
     }
 
     init() {
-        this.dispatcher.on('settings:change', this.onUpdate = ::this.update);
+        this.dispatcher.on('settings:change', this.onUpdate = this.update.bind(this));
         this.dispatcher.on('settings:focusIn', this.onFocusIn = () => {
             KeyboardJS.pause();
         });
