@@ -207,14 +207,44 @@ export class ChromosomeColumnRenderer {
             const chromosomeAreaWidth = this.getChromosomeAreaWidth(chr);
             incrementedPosition += chromosomeAreaWidth;
             if (this.isInFrame(position, position + chromosomeAreaWidth)) {
-                let graphics = this.chromosomesGraphics[chr.id];
-                let reRender = reRenderChromosomes.indexOf(chr.id) >= 0;
+                let graphics = this.chromosomesGraphics[chr.id]; // todo: (1) we're trying to use cached graphics
+                let reRender = reRenderChromosomes.indexOf(chr.id) >= 0; // todo: (2) reRender indicates here if we requested re-render for chromosome directly (by calling renderChromosomes({reRenderChromosomes: [ID]}) )
                 if (!graphics) {
                     graphics = new PIXI.Graphics();
+                    // todo: (3) if it is empty (no cache available for chromosome), we create graphics
+                    // todo: (4) we must attach event handlers after creation!
+                    // todo: example of event handlers:
+                    //
+                    const mouseMoveHandler = (event) => {
+                        // remember current hovered state:
+                        // const expandButtonHovered = this.expandButtonHovered[chromosome.id];
+                        // const hoveredHit = this.hoveredHit;
+                        //
+                        // check if expand button is under the mouse position:
+                        // this.expandButtonHovered[chromosome.id] = event.x >= this.expandButton[chromosome.id].x1 && event.x <= this.expandButton[chromosome.id].x2
+                        //
+                        // reset hovered hit:
+                        // this.hoveredHit = undefined;
+                        //
+                        // check if some hit is under the mouse position:
+                        // for (let hit of chromosome-hits) {
+                        //    if (event.position in hit area) {
+                        //      this.hoveredHit = hit;
+                        //      break;
+                        //    }
+                        // }
+                        //
+                        // And we should check, if something changed:
+                        //
+                        // if (expandButtonHovered !== this.expandButtonHovered[chromosome.id]) OR (hoveredHit !== this.hoveredHit) {
+                        //  render ({reRenderChromosomes: [chromosome.id]}) // we should re-render our chromosome
+                        // }
+                    };
                     this.chromosomesGraphics[chr.id] = graphics;
                     this.chromosomesContainer.addChild(graphics);
-                    reRender = true;
+                    reRender = true; // todo: (5) BUT! if cache doesn't exist, we set reRender to true here
                 }
+                // todo: as a result, reRender == true if cache is not exists (new graphics) OR if we requested re-render (old graphics)
                 graphics.x = position;
                 graphics.interactive = true;
                 graphics.buttonMode = true;
@@ -262,6 +292,9 @@ export class ChromosomeColumnRenderer {
                     };
                     graphics.clear();
                     graphics.removeAllListeners();
+                    // todo: instead of (3), we attach event handlers at every re-render step.
+                    // todo: but we already did it if graphics was cached!!
+                    // todo: so we're attaching duplicated handlers!
                     graphics.on('mouseover', mouseoverHandler);
                     graphics.on('mouseout', mouseoutHandler);
                     this.renderChromosome(graphics, chr, options);
@@ -399,6 +432,7 @@ export class ChromosomeColumnRenderer {
             ? (areaWidth - config.chromosomeArea.expand.width)
             : areaWidth;
 
+        // todo: again, we're attaching event handler here, but we're not sure - if this graphics is new or "cached" (with attached handlers)
         graphics.on('mousedown', () => {
             graphics.clear();
             this.toggleChromosomeExpand(chromosome, expanded);

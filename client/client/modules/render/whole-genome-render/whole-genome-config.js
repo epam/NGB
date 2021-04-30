@@ -46,8 +46,8 @@ export default {
             }
         },
         margin: 5,
-        maximum:100,
-        minimum: 60
+        maximum: 300,
+        minimum: 120
     },
     chromosomeColumn: {
         spaceBetween: 70,
