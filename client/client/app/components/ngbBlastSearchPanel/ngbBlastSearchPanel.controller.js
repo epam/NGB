@@ -21,8 +21,7 @@ export default class ngbBlastSearchPanelController extends baseController {
     dataLength;
     blastPageSize = PAGE_SIZE;
     currentPageBlast = 0;
-    firstPageBlast = FIRST_PAGE;
-    lastPageBlast = FIRST_PAGE;
+    prevScrollSize = 0;
 
     gridOptions = {
         enableFiltering: false,
@@ -93,6 +92,7 @@ export default class ngbBlastSearchPanelController extends baseController {
         this._sequence = '';
         this.errorMessageList = [];
         this.data = null;
+        this.prevScrollSize = 0;
         if (this.isReadSelected) {
             this.isProgressShown = true;
             this.blastSearchEmptyResult = null;
@@ -106,8 +106,8 @@ export default class ngbBlastSearchPanelController extends baseController {
                     this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
                     this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
                     this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
-                    this.gridApi.infiniteScroll.on.needLoadMoreData(this.$scope, ::this.getDataDown);
-                    this.gridApi.infiniteScroll.on.needLoadMoreDataTop(this.$scope, ::this.getDataUp);
+                    this.gridApi.infiniteScroll.on.needLoadMoreData(this.$scope, ::this.getPage);
+                    this.gridApi.infiniteScroll.on.needLoadMoreDataTop(this.$scope, ::this.getPage);
                     this.gridApi.core.on.scrollEnd(this.$scope, ::this.changeCurrentPage);
                 },
             });
@@ -171,7 +171,7 @@ export default class ngbBlastSearchPanelController extends baseController {
         } else {
             this.ngbBlastSearchService.orderBy = null;
         }
-        this.getPage(FIRST_PAGE);
+        this.getPage([1, 0]);
     }
 
     saveColumnsState() {
@@ -243,78 +243,75 @@ export default class ngbBlastSearchPanelController extends baseController {
         }
     }
 
-    getPage(page, concat = false) {
+    getPage([page, scrollLastRow]) {
         if (this.currentPageBlast !== page) {
-            let dataUp = [];
-            let dataDown = [];
+            this.currentPageBlast = page;
             this.gridOptions.data = [];
 
-            this.hasMoreBlast = page <= this.totalPagesCountBlast;
-            const firstRow = this.blastPageSize * (page - 1);
-            let lastRow = firstRow + this.blastPageSize;
-            if (this.currentPageBlast < page) {
-                if (!this.hasMoreBlast) {
-                    lastRow = this.gridOptions.totalItems;
-                }
-                if (concat && page > 1) {
-                    dataUp = this.data.slice(firstRow - this.blastPageSize, firstRow);
-                }
-            }
-            if (this.currentPageBlast > page && concat && page < this.totalPagesCountBlast) {
-                dataDown = this.data.slice(lastRow, lastRow + this.blastPageSize);
-            }
-            this.currentPageBlast = page;
-            this.firstPageBlast = page;
-            this.lastPageBlast = page;
-            this.gridApi.infiniteScroll.setScrollDirections(false, false);
-            const dataMain = this.data.slice(firstRow, lastRow);
+            const firstRow = Math.max((this.blastPageSize * (page - 2)), 0);
+            const lastRow = Math.min((this.blastPageSize * (page + 1)), this.gridOptions.totalItems);
 
-            this.gridOptions.data = dataUp.concat(dataMain.concat(dataDown));
+            this.gridApi.infiniteScroll.setScrollDirections(false, false);
+            this.gridOptions.data = this.data.slice(firstRow, lastRow);
         }
         this.$timeout(() => {
-            this.gridApi.infiniteScroll.resetScroll(
-                this.firstPageBlast > 1,
-                (this.totalPagesCountBlast === undefined && this.hasMoreBlast)
-                || this.lastPageBlast < this.totalPagesCountBlast);
-        });
-    }
-
-    getDataDown() {
-        if (this.lastPageBlast === this.totalPagesCountBlast) return;
-        this.lastPageBlast++;
-        this.blastSearchEmptyResult = null;
-        this.gridApi.infiniteScroll.saveScrollPercentage();
-        this.getPage(this.lastPageBlast, true);
-        this.gridApi.infiniteScroll.dataLoaded(
-            this.firstPageBlast > 1,
-            (this.totalPagesCountBlast === undefined && this.hasMoreBlast)
-            || this.lastPageBlast < this.totalPagesCountBlast);
-}
-
-    getDataUp() {
-        if (this.firstPageBlast === 1) return;
-        this.firstPageBlast--;
-        this.blastSearchEmptyResult = null;
-        this.gridApi.infiniteScroll.saveScrollPercentage();
-        this.getPage(this.firstPageBlast, true);
-        this.$timeout(() => {
-            this.gridApi.infiniteScroll.dataLoaded(
-                this.firstPageBlast > 1,
-                (this.totalPagesCountBlast === undefined && this.hasMoreBlast)
-                || this.lastPageBlast < this.totalPagesCountBlast);
+            this.gridApi.infiniteScroll.resetScroll();
+            if (page !== 1) {
+                if (scrollLastRow === 0) {
+                    const gridHeight = this.gridApi.grid.gridHeight - this.gridOptions.headerRowHeight;
+                    scrollLastRow = Math.floor(gridHeight / ROW_HEIGHT + this.blastPageSize);
+                    this.$timeout(() => {this.gridApi.core.scrollTo(this.gridOptions.data[scrollLastRow], this.gridOptions.columnDefs[0]);});
+                } else {
+                    this.$timeout(() => {this.gridApi.core.scrollTo(this.gridOptions.data[scrollLastRow], this.gridOptions.columnDefs[0]);});
+                }
+            } else if (page === 1 && scrollLastRow) {
+                this.$timeout(() => {this.gridApi.core.scrollTo(this.gridOptions.data[scrollLastRow], this.gridOptions.columnDefs[0]);});
+            }
         });
     }
 
     changeCurrentPage(row) {
-        this.$timeout(() => {
-            if (row.newScrollTop) {
-                const sizePage = this.blastPageSize * ROW_HEIGHT;
-                const currentPageBlast = Math.round(this.firstPageBlast + row.newScrollTop / sizePage);
-                if (this.currentPageBlast !== currentPageBlast) {
-                    this.dispatcher.emit('pageBlast:scroll', currentPageBlast);
-                }
+        const sizePage = this.blastPageSize * ROW_HEIGHT;
+        if (row.newScrollTop) {
+            const scrollSize = row.newScrollTop / sizePage;
+            const pageEnd = this.currentPageBlast === 1 ? 1 : 2;
+            if (
+                scrollSize > pageEnd &&
+                this.currentPageBlast < this.totalPagesCountBlast
+            ) {
+                const gridHeight = this.gridApi.grid.gridHeight - this.gridOptions.headerRowHeight;
+                const firstPage = this.currentPageBlast === 1 ? 0 : this.blastPageSize;
+                const scrollLastRow = Math.floor(
+                    (row.newScrollTop + gridHeight) / ROW_HEIGHT - firstPage);
+                const newPage = scrollSize < pageEnd + 1 ? 1 : Math.floor(scrollSize);
+                this.$timeout(() => {
+                    this.dispatcher.emit('pageBlast:scroll', (this.currentPageBlast + newPage));
+                    this.getPage([this.currentPageBlast + newPage, scrollLastRow]);
+                });
+                this.prevScrollSize = row.newScrollTop;
             }
-        });
+            if (
+                this.prevScrollSize > row.newScrollTop
+                && row.newScrollTop < sizePage
+                && this.currentPageBlast > 1
+            ) {
+                const gridHeight = this.gridApi.grid.gridHeight - this.gridOptions.headerRowHeight;
+                const pageStart = this.currentPageBlast === 2 ? 0 : 1;
+                const scrollLastRow = Math.floor((sizePage  * pageStart + row.newScrollTop + gridHeight) / ROW_HEIGHT);
+                this.dispatcher.emit('pageBlast:scroll', (this.currentPageBlast - 1));
+                this.getPage([this.currentPageBlast - 1, scrollLastRow]);
+                this.prevScrollSize = row.newScrollTop;
+            }
+            this.prevScrollSize = row.newScrollTop;
+        }
+        if (row.newScrollTop === 0 && this.currentPageBlast > 2) {
+            const scrollLastRow = this.blastPageSize * (this.currentPageBlast > 3 ? 2 : 1);
+            this.dispatcher.emit('pageBlast:scroll', (this.currentPageBlast - 2));
+            this.getPage([this.currentPageBlast - 2, scrollLastRow]);
+        } else if (row.newScrollTop === 0 && this.currentPageBlast === 2) {
+            this.dispatcher.emit('pageBlast:scroll', (this.currentPageBlast - 1));
+            this.getPage([this.currentPageBlast - 1, 0]);
+        }
     }
 
     async blastSearchLoadingFinished() {
@@ -332,8 +329,8 @@ export default class ngbBlastSearchPanelController extends baseController {
             this.blastSearchEmptyResult = null;
             this.gridOptions.totalItems = this.dataLength;
             this.totalPagesCountBlast = Math.ceil(this.dataLength/this.blastPageSize);
-            this.dispatcher.emitSimpleEvent('blast:loading:finished', [this.totalPagesCountBlast, this.currentPageBlast]);
-            this.getPage(1);
+            this.dispatcher.emitSimpleEvent('blast:loading:finished', [this.totalPagesCountBlast, 1]);
+            this.getPage([1, 0]);
         } else {
             this.blastSearchEmptyResult = this.blastSearchMessages.ErrorMessage.EmptySearchResults;
         }

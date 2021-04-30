@@ -36,14 +36,13 @@ export default class ngbBlastSearchPanelPaginate extends baseController {
         this.setPage(currentPage);
     }
 
-    setPage(page, loadData)
-    {
+    setPage(page, loadData) {
         if (this.totalPages === undefined || page < 1 || page > this.totalPages) {
             return;
         }
 
         if(loadData){
-            this.dispatcher.emit('pageBlast:change', page);
+            this.dispatcher.emit('pageBlast:change', [page, 0]);
         }
         this.currentPage = page;
         this.pages = this.getPages();
