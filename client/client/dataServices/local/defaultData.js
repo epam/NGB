@@ -199,7 +199,7 @@ export default {
         showSoftClippedBase: true,
         isVariantsHighlighted: false,
         highlightProfile: undefined,
-        // TODO: remove mock
+        // TODO: remove before merge
         highlightProfileList: {
             'two_alleles_high_mapping_quality': {
                 'is_default': false,
