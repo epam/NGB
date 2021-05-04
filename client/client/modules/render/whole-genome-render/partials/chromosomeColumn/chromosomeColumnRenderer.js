@@ -43,12 +43,12 @@ export class ChromosomeColumnRenderer {
     scrollBar = new PIXI.Graphics();
     columnsMask = new PIXI.Graphics();
     chromosomesContainer = new PIXI.Container();
-    isExpandAreaOnHover = false;
     labelsMap = new Map();
-    previousEvents = new Map();
-    mousemoveEvent$ = new Subject();
-    currentHit = null;
+    expandButton = {};
+    expandButtonHovered = {};
+    hoveredHit = null;
     currentHitView = null;
+    mouseIn = {};
     /**
      * `scrollPosition` is a current scroll offset for the canvas in pixels,
      * i.e. `scrollOffset` == 10px means that we scrolled canvas to the right at 10px -position
@@ -207,82 +207,65 @@ export class ChromosomeColumnRenderer {
             const chromosomeAreaWidth = this.getChromosomeAreaWidth(chr);
             incrementedPosition += chromosomeAreaWidth;
             if (this.isInFrame(position, position + chromosomeAreaWidth)) {
-                let graphics = this.chromosomesGraphics[chr.id]; // todo: (1) we're trying to use cached graphics
-                let reRender = reRenderChromosomes.indexOf(chr.id) >= 0; // todo: (2) reRender indicates here if we requested re-render for chromosome directly (by calling renderChromosomes({reRenderChromosomes: [ID]}) )
+                let graphics = this.chromosomesGraphics[chr.id];
+                let reRender = reRenderChromosomes.indexOf(chr.id) >= 0;
                 if (!graphics) {
                     graphics = new PIXI.Graphics();
-                    // todo: (3) if it is empty (no cache available for chromosome), we create graphics
-                    // todo: (4) we must attach event handlers after creation!
-                    // todo: example of event handlers:
-                    //
-                    const mouseMoveHandler = (event) => {
-                        // remember current hovered state:
-                        // const expandButtonHovered = this.expandButtonHovered[chromosome.id];
-                        // const hoveredHit = this.hoveredHit;
-                        //
-                        // check if expand button is under the mouse position:
-                        // this.expandButtonHovered[chromosome.id] = event.x >= this.expandButton[chromosome.id].x1 && event.x <= this.expandButton[chromosome.id].x2
-                        //
-                        // reset hovered hit:
-                        // this.hoveredHit = undefined;
-                        //
-                        // check if some hit is under the mouse position:
-                        // for (let hit of chromosome-hits) {
-                        //    if (event.position in hit area) {
-                        //      this.hoveredHit = hit;
-                        //      break;
-                        //    }
-                        // }
-                        //
-                        // And we should check, if something changed:
-                        //
-                        // if (expandButtonHovered !== this.expandButtonHovered[chromosome.id]) OR (hoveredHit !== this.hoveredHit) {
-                        //  render ({reRenderChromosomes: [chromosome.id]}) // we should re-render our chromosome
-                        // }
-                    };
-                    this.chromosomesGraphics[chr.id] = graphics;
-                    this.chromosomesContainer.addChild(graphics);
-                    reRender = true; // todo: (5) BUT! if cache doesn't exist, we set reRender to true here
-                }
-                // todo: as a result, reRender == true if cache is not exists (new graphics) OR if we requested re-render (old graphics)
-                graphics.x = position;
-                graphics.interactive = true;
-                graphics.buttonMode = true;
-                let subscription;
-                const toStream = (e) => this.mousemoveEvent$.onNext(e);
-                const mousemoveHandler = (e) => {
-                    if (subscription) {
-                        toStream(e);
-                    }
-                };
-                const mouseoverHandler = () => {
-                    this.toggleExpendAreaHover(chr, true);
-                    subscription = this.mousemoveEvent$
-                        .map(e => {
-                            if (this.previousEvents.get(chr.id) &&
-                                JSON.stringify(e.data.global) !== this.previousEvents.get(chr.id)
-                            ){
-                                this.previousEvents.set(chr.id, JSON.stringify(e.data.global));
-                                return e;
-                            } else { this.previousEvents.set(chr.id, JSON.stringify(e.data.global));}
-                        })
-                        .filter((e) => e && this.filterMousemoveCoordinates(e, graphics, chr))
-                        .subscribe((e) => {
+                    const chromosomeHeightPx = this.convertToPixels(chr.size, this.maxChrSize, this.containerHeight);
+                    const onMousemove = (event, chr) => {
+                        if (this.mouseIn[chr.id]) {
                             const {
                                 x,
                                 y
-                            } = graphics.toLocal(e.data.global);
-                            this.highlightHit(e, {x,y});
-                            this.showHitInfo(e, graphics);
-                        });
-                    graphics.on('mousemove', mousemoveHandler);
-                };
-                const mouseoutHandler = () => {
-                    this.hideHitInfo();
-                    this.toggleExpendAreaHover(chr, false);
-                    graphics.off('mousemove', mousemoveHandler);
-                };
-
+                            } = event.target.toLocal(event.data.global);
+                            if ((x >= 0 && x <= graphics.width) && (y >= 0 && y <= chromosomeHeightPx)) {
+                                const expandButtonHovered = this.expandButtonHovered[chr.id];
+                                const hoveredHit = this.hoveredHit;
+                                if (this.expandButton[chr.id]) {
+                                    this.expandButtonHovered[chr.id] = x >= this.expandButton[chr.id].x1 && x <= this.expandButton[chr.id].x2;
+                                }
+                                this.hoveredHit = null;
+                                const chromosomeHits = this.gridContent[chr.id].filter(hit => hit.displayed);
+                                for (const hit of chromosomeHits) {
+                                    if (
+                                        (hit.x_area.from <= x && hit.x_area.to >= x) &&
+                                        (hit.y_area.from <= y && hit.y_area.to >= y)
+                                    ) {
+                                        this.hoveredHit = hit;
+                                        break;
+                                    }
+                                }
+                                if (expandButtonHovered !== this.expandButtonHovered[chr.id] || (hoveredHit !== this.hoveredHit)) {
+                                    this.displayTooltipFn(event.data.global, this.hoveredHit);
+                                    this.renderChromosomes({
+                                        reRenderChromosomes: [chr.id]
+                                    });
+                                    requestAnimationFrame(() => this.renderer.render(this.container));
+                                }
+                            } else {
+                                if (this.hoveredHit && this.mouseIn[chr.id]) {
+                                    this.mouseIn[chr.id] = false;
+                                    this.hideHitInfo();
+                                    this.hoveredHit = null;
+                                    this.renderChromosomes({
+                                        reRenderChromosomes: [chr.id]
+                                    });
+                                    requestAnimationFrame(() => this.renderer.render(this.container));
+                                }
+                            }
+                        }
+                    };
+                    graphics.interactive = true;
+                    graphics.buttonMode = true;
+                    graphics.on('mousemove', (e) => onMousemove(e, chr));
+                    graphics.on('mouseover', () => {
+                        this.mouseIn[chr.id] = true;
+                    });
+                    this.chromosomesGraphics[chr.id] = graphics;
+                    this.chromosomesContainer.addChild(graphics);
+                    reRender = true;
+                }
+                graphics.x = position;
                 if (reRender) {
                     const options = {
                         areaWidth: chromosomeAreaWidth,
@@ -291,16 +274,11 @@ export class ChromosomeColumnRenderer {
                         totalHeightPx: this.containerHeight
                     };
                     graphics.clear();
-                    graphics.removeAllListeners();
-                    // todo: instead of (3), we attach event handlers at every re-render step.
-                    // todo: but we already did it if graphics was cached!!
-                    // todo: so we're attaching duplicated handlers!
-                    graphics.on('mouseover', mouseoverHandler);
-                    graphics.on('mouseout', mouseoutHandler);
                     this.renderChromosome(graphics, chr, options);
                 }           
             } else if (this.chromosomesGraphics[chr.id]) {
                 const graphics = this.chromosomesGraphics[chr.id];
+                graphics.removeAllListeners();
                 this.chromosomesContainer.removeChild(graphics);
                 delete this.chromosomesGraphics[chr.id];
             }
@@ -431,13 +409,15 @@ export class ChromosomeColumnRenderer {
         const xLimit = expandable
             ? (areaWidth - config.chromosomeArea.expand.width)
             : areaWidth;
-
-        // todo: again, we're attaching event handler here, but we're not sure - if this graphics is new or "cached" (with attached handlers)
-        graphics.on('mousedown', () => {
-            graphics.clear();
-            this.toggleChromosomeExpand(chromosome, expanded);
-        });
         if (expandable) {
+            this.expandButton[chromosome.id] = {
+                x1: xLimit,
+                x2: xLimit + config.chromosomeArea.expand.width
+            };
+            graphics.on('mousedown', () => {
+                graphics.clear();
+                this.toggleChromosomeExpand(chromosome, expanded);
+            });
             const arrowY = Math.round(totalHeightPx / 2.0);
             const arrowX = Math.round(
                 areaWidth
@@ -447,7 +427,7 @@ export class ChromosomeColumnRenderer {
             graphics
                 .lineStyle(0, 0x0, 0)
                 .beginFill(
-                    this.isExpandAreaOnHover
+                    this.expandButtonHovered[chromosome.id]
                     ? ColorProcessor.darkenColor(config.chromosomeArea.expand.fill, 0.05)
                     : config.chromosomeArea.expand.fill,
                     config.chromosomeArea.expand.alpha
@@ -555,6 +535,7 @@ export class ChromosomeColumnRenderer {
                         hit.displayed = expanded || x2 < xLimit;
                         if (hit.displayed) {
                             graphics
+                                .lineStyle(1, config.hit.onHover.lineColor, hit === this.hoveredHit ? 1 : 0)
                                 .drawRect(
                                     x1,
                                     start * config.gridSize,
@@ -760,69 +741,7 @@ export class ChromosomeColumnRenderer {
         this.renderChromosomes();
         requestAnimationFrame(() => this.renderer.render(this.container));
     }
-    toggleExpendAreaHover(chr, isHover) {
-        this.isExpandAreaOnHover = isHover;
-        this.renderChromosomes({ reRenderChromosomes:[chr.id] });
-        requestAnimationFrame(() => this.renderer.render(this.container));
-    }
-    showHitInfo(e) {
-        this.showTooltip({
-            x: e.data.global.x,
-            y: e.data.global.y
-        }, this.currentHit);
-    }
-    filterMousemoveCoordinates(e, graphics, chromosome) {
-        const {
-            x,
-            y
-        } = graphics.toLocal(e.data.global);
-        const [currentHit] = this.gridContent[chromosome.id].filter(hit => {
-            if (hit.displayed) {
-                return (
-                    (hit.x_area.from <= x && hit.x_area.to >= x) &&
-                    (hit.y_area.from <= y && hit.y_area.to >= y)
-                );
-            } else {
-                return false;
-            }
-        });
-        if (currentHit) {
-            this.currentHit = currentHit;
-            return true;
-        } else {
-            this.currentHit = null;
-            return false;
-        }
-    }
-    showTooltip(position, tooltipContent) {
-        this.displayTooltipFn(position, tooltipContent);
-    }
     hideHitInfo() {
         this.displayTooltipFn(null, null);
-    }
-    highlightHit(event, position) {
-        const {
-            x,
-            y
-        } = position;
-        if (event.target.graphicsData){
-            const [target] = event.target.graphicsData.filter(graphicsItem => {
-                if (graphicsItem.shape.height === (config.gridSize - 1)) {
-                    return (
-                        (graphicsItem.shape.x <= x) &&
-                        (x <= graphicsItem.shape.x + graphicsItem.shape.width) &&
-                        (graphicsItem.shape.y <= y) &&
-                        (y <= graphicsItem.shape.y + graphicsItem.shape.height)
-                    );
-                } else {
-                    return false;
-                }
-            });
-            if (target) {
-                this.currentHitView = target;
-                target.lineColor = config.hit.onHover.lineColor;
-                target.lineAlpha = config.hit.onHover.lineAlpha;
-            }
-        }
     }
 }
