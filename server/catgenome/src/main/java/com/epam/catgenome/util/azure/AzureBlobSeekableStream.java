@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2019 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,27 +24,19 @@
 
 package com.epam.catgenome.util.azure;
 
-import htsjdk.samtools.seekablestream.SeekableStream;
+import com.epam.catgenome.util.FeatureSeekableStream;
 import htsjdk.samtools.util.RuntimeIOException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.utils.CountingInputStream;
-
 import java.io.IOException;
-import java.io.InputStream;
 
 @Slf4j
-public class SeekableAzureBlobStream extends SeekableStream {
+public class AzureBlobSeekableStream extends FeatureSeekableStream {
 
-    private final String azureBlobUri;
-    private final long contentLength;
     private final AzureBlobClient client;
-    private CountingInputStream currentDataStream;
-    private long offset;
 
-
-    public SeekableAzureBlobStream(final String azureBlobUri,
+    public AzureBlobSeekableStream(final String azureBlobUri,
                                    final AzureBlobClient client) {
-        this.azureBlobUri = azureBlobUri;
+        super(azureBlobUri);
         this.client = client;
         this.contentLength = client.getFileSize(azureBlobUri);
         recreateInnerStream();
@@ -60,18 +52,8 @@ public class SeekableAzureBlobStream extends SeekableStream {
         }
 
         this.currentDataStream = new CountingWithSkipInputStream(
-                new AzureBlobInputStream(azureBlobUri, offset, length() - 1, client));
+                new AzureBlobInputStream(cloudUri, offset, length() - 1, client));
         log.debug("A new data stream was launched on offset = {}", offset);
-    }
-
-    @Override
-    public long length() {
-        return contentLength;
-    }
-
-    @Override
-    public long position() throws IOException {
-        return offset + currentDataStream.getBytesRead();
     }
 
     /**
@@ -84,47 +66,5 @@ public class SeekableAzureBlobStream extends SeekableStream {
         log.debug("Seeking from {} to {}", position(), targetPosition);
         this.offset = targetPosition;
         recreateInnerStream();
-    }
-
-    @Override
-    public int read() throws IOException {
-        return currentDataStream.read();
-    }
-
-    @Override
-    public int read(byte[] buffer, int offset, int length) throws IOException {
-        return currentDataStream.read(buffer, offset, length);
-    }
-
-    @Override
-    public void close() throws IOException {
-        currentDataStream.close();
-    }
-
-    @Override
-    public boolean eof() throws IOException {
-        return position() == length();
-    }
-
-    @Override
-    public String getSource() {
-        return azureBlobUri;
-    }
-
-    /**
-     * We should count data skipped because we want to count all data loaded.
-     */
-    private static class CountingWithSkipInputStream extends CountingInputStream {
-        CountingWithSkipInputStream(InputStream in) {
-            super(in);
-        }
-
-        @Override
-        public long skip(long n) throws IOException {
-            long bytesSkipped = in.skip(n);
-            count(bytesSkipped);
-
-            return bytesSkipped;
-        }
     }
 }

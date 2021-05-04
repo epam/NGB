@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2019 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,30 +25,19 @@
 package com.epam.catgenome.util.azure;
 
 import com.amazonaws.util.IOUtils;
+import com.epam.catgenome.util.FeatureInputStream;
 import htsjdk.samtools.util.RuntimeIOException;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-public class AzureBlobInputStream extends InputStream {
-    private static final int CHUNK_SIZE = 64 * 1024;
-    private static final int INVERSE_MASK = 0xff;
-    private static final int EOF_BYTE = -1;
+public class AzureBlobInputStream extends FeatureInputStream {
 
-    private final String uri;
-    private long position;
-    private final long to;
     private final AzureBlobClient client;
 
-    private byte[] currentDataChunck;
-    private int chunckIndex;
-
     public AzureBlobInputStream(String uri, long from, long to, final AzureBlobClient client) {
-        this.uri = uri;
-        this.position = from;
-        this.to = to;
+        super(uri, from, to);
         this.client = client;
-        this.currentDataChunck = new byte[0];
     }
 
     @Override
@@ -58,10 +47,6 @@ public class AzureBlobInputStream extends InputStream {
             chunckIndex = 0;
         }
         return getNextByte();
-    }
-
-    private int getNextByte() {
-        return currentDataChunck[chunckIndex++] & INVERSE_MASK;
     }
 
     private byte[] getNewBuffer() {
@@ -77,24 +62,12 @@ public class AzureBlobInputStream extends InputStream {
     }
 
     private byte[] getBytes(long from, long to) {
-
         byte[] loadedDataBuffer;
         try (InputStream dataStream = client.loadFromTo(uri, from, to)) {
             loadedDataBuffer = IOUtils.toByteArray(dataStream);
         } catch (IOException e) {
             throw new RuntimeIOException(e);
         }
-
         return loadedDataBuffer;
-    }
-
-    private boolean chunckEndReached() {
-        return currentDataChunck.length == chunckIndex;
-    }
-
-
-    @Override
-    public void close() throws IOException {
-        currentDataChunck = null;
     }
 }

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2019 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,14 +30,14 @@ import htsjdk.samtools.seekablestream.SeekableStream;
 
 import java.net.URL;
 
-public class AzureSeekableStremFactory implements ISeekableStreamFactory {
+public class AzureSeekableStreamFactory implements ISeekableStreamFactory {
 
-    private static AzureSeekableStremFactory currentFactory = new AzureSeekableStremFactory();
+    private static AzureSeekableStreamFactory currentFactory = new AzureSeekableStreamFactory();
 
-    private AzureSeekableStremFactory() {
+    private AzureSeekableStreamFactory() {
     }
 
-    public static AzureSeekableStremFactory getInstance() {
+    public static AzureSeekableStreamFactory getInstance() {
         return currentFactory;
     }
 
@@ -48,7 +48,7 @@ public class AzureSeekableStremFactory implements ISeekableStreamFactory {
 
     @Override
     public SeekableStream getStreamFor(String path) {
-        return new SeekableAzureBlobStream(path, AzureBlobClient.getClient());
+        return new AzureBlobSeekableStream(path, AzureBlobClient.getClient());
     }
 
     @Override
