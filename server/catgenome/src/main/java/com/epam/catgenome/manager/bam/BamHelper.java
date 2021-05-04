@@ -55,7 +55,7 @@ import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.util.aws.S3Client;
 import com.epam.catgenome.util.aws.S3SeekableStreamFactory;
 import com.epam.catgenome.util.azure.AzureBlobClient;
-import com.epam.catgenome.util.azure.SeekableAzureBlobStream;
+import com.epam.catgenome.util.azure.AzureBlobSeekableStream;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import com.epam.catgenome.util.feature.reader.IndexCache;
 import htsjdk.samtools.SAMFileHeader;
@@ -600,7 +600,7 @@ public class BamHelper {
     }
 
     private SamInputResource getAZSamInputResource(BamFile bamFile) throws IOException {
-        return SamInputResource.of(new SeekableAzureBlobStream(bamFile.getPath(), azureBlobClient));
+        return SamInputResource.of(new AzureBlobSeekableStream(bamFile.getPath(), azureBlobClient));
     }
 
     private SamReader openSamReaderResource(final SamInputResource inputResource,

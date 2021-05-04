@@ -108,7 +108,6 @@ public enum BiologicalDataItemResourceType {
         if (id == null) {
             return null;
         }
-
         return idMap.get(id);
     }
 
@@ -125,6 +124,8 @@ public enum BiologicalDataItemResourceType {
     public static BiologicalDataItemResourceType getTypeFromPath(final String path) {
         if (path.startsWith("s3") || path.startsWith("sws")) {
             return S3;
+        } else if (path.startsWith("az")) {
+            return AZ;
         } else if (NgbFileUtils.isRemotePath(path)) {
             return URL;
         } else {
