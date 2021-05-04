@@ -171,6 +171,7 @@ export default class ngbBlastSearchPanelController extends baseController {
         } else {
             this.ngbBlastSearchService.orderBy = null;
         }
+        this.dispatcher.emit('pageBlast:scroll', 1);
         this.getPage([1, 0]);
     }
 
@@ -258,6 +259,7 @@ export default class ngbBlastSearchPanelController extends baseController {
             this.gridApi.infiniteScroll.resetScroll();
             if (page !== 1) {
                 if (scrollLastRow === 0) {
+                    this.prevScrollSize = 0;
                     const gridHeight = this.gridApi.grid.gridHeight - this.gridOptions.headerRowHeight;
                     scrollLastRow = Math.floor(gridHeight / ROW_HEIGHT + this.blastPageSize);
                     this.$timeout(() => {this.gridApi.core.scrollTo(this.gridOptions.data[scrollLastRow], this.gridOptions.columnDefs[0]);});
@@ -304,13 +306,15 @@ export default class ngbBlastSearchPanelController extends baseController {
             }
             this.prevScrollSize = row.newScrollTop;
         }
-        if (row.newScrollTop === 0 && this.currentPageBlast > 2) {
-            const scrollLastRow = this.blastPageSize * (this.currentPageBlast > 3 ? 2 : 1);
-            this.dispatcher.emit('pageBlast:scroll', (this.currentPageBlast - 2));
-            this.getPage([this.currentPageBlast - 2, scrollLastRow]);
-        } else if (row.newScrollTop === 0 && this.currentPageBlast === 2) {
-            this.dispatcher.emit('pageBlast:scroll', (this.currentPageBlast - 1));
-            this.getPage([this.currentPageBlast - 1, 0]);
+        if (row.newScrollTop === 0 && this.prevScrollSize !== 0 && this.currentPageBlast > 1) {
+            if (this.currentPageBlast > 2) {
+                const scrollLastRow = this.blastPageSize * (this.currentPageBlast > 3 ? 2 : 1);
+                this.dispatcher.emit('pageBlast:scroll', (this.currentPageBlast - 2));
+                this.getPage([this.currentPageBlast - 2, scrollLastRow]);
+            } else if (this.currentPageBlast === 2) {
+                this.dispatcher.emit('pageBlast:scroll', (this.currentPageBlast - 1));
+                this.getPage([this.currentPageBlast - 1, 0]);
+            }
         }
     }
 
@@ -330,7 +334,7 @@ export default class ngbBlastSearchPanelController extends baseController {
             this.gridOptions.totalItems = this.dataLength;
             this.totalPagesCountBlast = Math.ceil(this.dataLength/this.blastPageSize);
             this.dispatcher.emitSimpleEvent('blast:loading:finished', [this.totalPagesCountBlast, 1]);
-            this.getPage([1, 0]);
+            this.$timeout(() => this.getPage([1, 0]));
         } else {
             this.blastSearchEmptyResult = this.blastSearchMessages.ErrorMessage.EmptySearchResults;
         }
