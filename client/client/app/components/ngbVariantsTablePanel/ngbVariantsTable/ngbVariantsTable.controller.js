@@ -1,5 +1,6 @@
 import {EventVariationInfo} from '../../../shared/utils/events';
-import  baseController from '../../../shared/baseController';
+import VcfHighlightConditionService from '../../../../dataServices/utils/vcf-highlight-condition-service';
+import baseController from '../../../shared/baseController';
 
 const ROW_HEIGHT = 35;
 
@@ -16,11 +17,9 @@ export default class ngbVariantsTableController extends baseController {
     isProgressShown = true;
     errorMessageList = [];
     variantsLoadError = null;
+    highlightProfile = {};
 
     gridOptions = {
-        infiniteScrollRowsFromEnd: 10,
-        infiniteScrollUp: true,
-        infiniteScrollDown: true,
         enableFiltering: false,
         enableGridMenu: false,
         enableHorizontalScrollbar: 0,
@@ -29,25 +28,29 @@ export default class ngbVariantsTableController extends baseController {
         enableRowSelection: true,
         headerRowHeight: 20,
         height: '100%',
+        infiniteScrollDown: true,
+        infiniteScrollRowsFromEnd: 10,
+        infiniteScrollUp: true,
         multiSelect: false,
         rowHeight: ROW_HEIGHT,
-        showHeader: true,
-        treeRowHeaderAlwaysVisible: false,
-        saveWidths: true,
-        saveOrder: true,
-        saveScroll: false,
-        saveFocus: false,
-        saveVisible: true,
-        saveSort: true,
         saveFilter: false,
-        savePinning: true,
+        saveFocus: false,
         saveGrouping: false,
         saveGroupingExpandedStates: false,
+        saveOrder: true,
+        savePinning: true,
+        saveScroll: false,
+        saveSelection: false,
+        saveSort: true,
         saveTreeView: false,
-        saveSelection: false
+        saveVisible: true,
+        saveWidths: true,
+        showHeader: true,
+        treeRowHeaderAlwaysVisible: false
     };
 
-    constructor($scope, $timeout, variantsTableMessages, variantsTableService, uiGridConstants, dispatcher, projectContext) {
+    /* @ngInject */
+    constructor($scope, $timeout, variantsTableMessages, variantsTableService, uiGridConstants, dispatcher, projectContext, localDataService) {
         super();
 
         Object.assign(this, {
@@ -59,6 +62,11 @@ export default class ngbVariantsTableController extends baseController {
             variantsTableMessages,
             variantsTableService
         });
+        this._localDataService = localDataService;
+        this.highlightProfile = this._localDataService.getSettings().highlightProfile;
+        dispatcher.on('settings:change', (state) => {
+            this.highlightProfile = state.highlightProfile;
+        });
 
         this.initEvents();
     }
@@ -66,12 +74,12 @@ export default class ngbVariantsTableController extends baseController {
     //todo doesn't need events
     //variants:loading:started and variants:loading:finished - should be promise from service
     events = {
+        'activeVariants': ::this.resizeGrid,
+        'display:variants:filter': ::this.refreshScope,
+        'pageVariations:change': ::this.getDataOnPage,
         'reference:change': ::this.initialize,
         'variants:loading:finished': ::this.variantsLoadingFinished,
-        'variants:loading:started': ::this.initialize,
-        'pageVariations:change': ::this.getDataOnPage,
-        'activeVariants': ::this.resizeGrid,
-        'display:variants:filter': ::this.refreshScope
+        'variants:loading:started': ::this.initialize
     };
 
     $onInit() {
@@ -106,7 +114,8 @@ export default class ngbVariantsTableController extends baseController {
                     this.gridApi.infiniteScroll.on.needLoadMoreDataTop(this.$scope, ::this.getDataUp);
                     this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
                     this.gridApi.core.on.scrollEnd(this.$scope, ::this.changeCurrentPage);
-                }
+                },
+                rowTemplate: require('./ngbVariantsTable_row.tpl.html')
             });
             await this.loadData();
         } else {
@@ -133,8 +142,7 @@ export default class ngbVariantsTableController extends baseController {
                 this.isProgressShown = false;
                 this.variantsLoadError = null;
             }
-        }
-        catch (errorObj) {
+        } catch (errorObj) {
             this.onError(errorObj.message);
         }
         this.$timeout(::this.$scope.$apply);
@@ -205,8 +213,7 @@ export default class ngbVariantsTableController extends baseController {
                     start: entity.startIndex
                 }
             });
-        }
-        else {
+        } else {
             this.projectContext.changeState({
                 viewport: {
                     end: entity.startIndex,
@@ -223,10 +230,10 @@ export default class ngbVariantsTableController extends baseController {
                 chromosome: entity.chromosome,
                 id: entity.variantId,
                 position: entity.startIndex,
-                type: entity.variationType,
-                vcfFileId: entity.vcfFileId,
                 projectId: entity.projectId,
-                projectIdNumber: entity.projectIdNumber
+                projectIdNumber: entity.projectIdNumber,
+                type: entity.variationType,
+                vcfFileId: entity.vcfFileId
             }
         );
         this.dispatcher.emitSimpleEvent('variant:details:select', {variant: state});
@@ -248,7 +255,7 @@ export default class ngbVariantsTableController extends baseController {
         } else {
             this.variantsLoadError = null;
             this.gridOptions.columnDefs = this.variantsTableService.getVariantsGridColumns();
-            this.gridOptions.data = this.projectContext.filteredVariants;
+            this.gridOptions.data = this.highlightRows(this.projectContext.filteredVariants);
         }
         this.isProgressShown = this.projectContext.isVariantsLoading;
 
@@ -332,12 +339,10 @@ export default class ngbVariantsTableController extends baseController {
     sortChanged(grid, sortColumns) {
         this.saveColumnsState();
         if (sortColumns && sortColumns.length > 0) {
-            this.projectContext.orderByVariations = sortColumns.map(sc => {
-                return {
-                    field: this.projectContext.orderByColumnsVariations[sc.field] || sc.field,
-                    desc: sc.sort.direction === 'desc'
-                };
-            });
+            this.projectContext.orderByVariations = sortColumns.map(sc => ({
+                desc: sc.sort.direction === 'desc',
+                field: this.projectContext.orderByColumnsVariations[sc.field] || sc.field
+            }));
         } else {
             this.projectContext.orderByVariations = null;
         }
@@ -392,5 +397,36 @@ export default class ngbVariantsTableController extends baseController {
                     || self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
             });
         }
+    }
+
+    highlightRows(data) {
+        const result = [];
+        // TODO: remove after settings injection
+        this.highlightProfile = {
+            'is_default': true,
+            'conditions': [
+                {
+                    'highlight_color': 'ffbdbd',
+                    'condition': 'variationType == DEL'
+                },
+                {
+                    'highlight_color': 'ffff00',
+                    'condition': 'variationType == INS'
+                }
+            ]
+        };
+        const parsedHighlightProfile = this.highlightProfile.conditions.map(item => ({
+            highlightColor: item.highlight_color,
+            parsedCondition: VcfHighlightConditionService.parseFullCondition(item.condition)
+        }));
+        data.forEach(row => {
+            parsedHighlightProfile.forEach(item => {
+                if (VcfHighlightConditionService.isHighlighted(row, item.parsedCondition)) {
+                    row.highlightColor = `#${item.highlightColor}`;
+                }
+                result.push(row);
+            });
+        });
+        return result;
     }
 }
