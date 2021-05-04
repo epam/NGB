@@ -64,8 +64,14 @@ export default class ngbVariantsTableController extends baseController {
         });
         this._localDataService = localDataService;
         this.highlightProfile = this._localDataService.getSettings().highlightProfile;
-        dispatcher.on('settings:change', (state) => {
+
+        const globalSettingsChangedHandler = (state) => {
             this.highlightProfile = state.highlightProfile;
+        };
+
+        this.dispatcher.on('settings:change', globalSettingsChangedHandler);
+        $scope.$on('$destroy', () => {
+            this.dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
         });
 
         this.initEvents();
@@ -277,7 +283,7 @@ export default class ngbVariantsTableController extends baseController {
             } else {
                 this.variantsLoadError = null;
                 this.gridApi.infiniteScroll.saveScrollPercentage();
-                this.gridOptions.data = this.gridOptions.data.concat(data);
+                this.gridOptions.data = this.gridOptions.data.concat(this.highlightRows(data));
                 this.gridApi.infiniteScroll.dataLoaded(
                     this.projectContext.firstPageVariations > 1,
                     (this.projectContext.totalPagesCountVariations === undefined && this.projectContext.hasMoreVariations)
@@ -298,7 +304,7 @@ export default class ngbVariantsTableController extends baseController {
             } else {
                 this.variantsLoadError = null;
                 this.gridApi.infiniteScroll.saveScrollPercentage();
-                this.gridOptions.data = data.concat(this.gridOptions.data);
+                this.gridOptions.data = this.highlightRows(data).concat(this.gridOptions.data);
                 const self = this;
                 this.$timeout(function () {
                     self.gridApi.infiniteScroll.dataLoaded(
@@ -324,7 +330,7 @@ export default class ngbVariantsTableController extends baseController {
             } else {
                 this.variantsLoadError = null;
                 const self = this;
-                this.gridOptions.data = data;
+                this.gridOptions.data = this.highlightRows(data);
                 this.$timeout(function () {
                     self.gridApi.infiniteScroll.resetScroll(
                         self.projectContext.firstPageVariations > 1,
@@ -359,7 +365,7 @@ export default class ngbVariantsTableController extends baseController {
             } else {
                 this.variantsLoadError = null;
                 const self = this;
-                this.gridOptions.data = data;
+                this.gridOptions.data = this.highlightRows(data);
                 this.$timeout(function () {
                     self.gridApi.infiniteScroll.resetScroll(
                         self.projectContext.firstPageVariations > 1,
