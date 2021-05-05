@@ -4,6 +4,8 @@ const ROW_HEIGHT = 35;
 const PAGE_SIZE = 50;
 const FIRST_PAGE = 1;
 
+const DISPLAYED_PAGES_COUNT = 3;
+
 export default class ngbBlastSearchPanelController extends baseController {
 
     static get UID() {
@@ -106,9 +108,11 @@ export default class ngbBlastSearchPanelController extends baseController {
                     this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
                     this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
                     this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
-                    this.gridApi.infiniteScroll.on.needLoadMoreData(this.$scope, ::this.getPage);
-                    this.gridApi.infiniteScroll.on.needLoadMoreDataTop(this.$scope, ::this.getPage);
-                    this.gridApi.core.on.scrollEnd(this.$scope, ::this.changeCurrentPage);
+                    // this.gridApi.infiniteScroll.on.needLoadMoreData(this.$scope, ::this.getPage);
+                    // this.gridApi.infiniteScroll.on.needLoadMoreDataTop(this.$scope, ::this.getPage);
+                    // this.gridApi.core.on.scrollEnd(this.$scope, ::this.changeCurrentPage);
+                    this.gridApi.infiniteScroll.on.needLoadMoreData(this.$scope, this.loadDataDown.bind(this));
+                    this.gridApi.infiniteScroll.on.needLoadMoreDataTop(this.$scope, this.loadDataUp.bind(this));
                 },
             });
             await this.loadData();
@@ -118,6 +122,80 @@ export default class ngbBlastSearchPanelController extends baseController {
             this.isProgressShown = false;
             this.gridOptions.columnDefs = [];
             this.$timeout(this.$scope.$apply());
+        }
+    }
+
+    getDisplayedPagesRangeMiddlePage (centerPage) {
+        // correctPage(page) corrects passed `page` to be in real pages range (0 ... last page)
+        const correctPage = aPage => Math.max(
+            0,
+            Math.min(
+                aPage,
+                this.totalPagesCountBlast
+            )
+        );
+        const firstDisplayedPage = correctPage(Math.ceil(centerPage - DISPLAYED_PAGES_COUNT / 2.0));
+        const lastDisplayedPage = correctPage(Math.floor(centerPage + DISPLAYED_PAGES_COUNT / 2.0));
+        return {
+            first: firstDisplayedPage,
+            last: lastDisplayedPage
+        };
+    }
+
+    loadDataDown () {
+        const {last: lastPage} = this.getDisplayedPagesRangeMiddlePage(this.currentPageBlast);
+        const currentElementIndex = (lastPage + 1) * PAGE_SIZE - 1;
+        this.loadDataPage(
+            lastPage + 1,
+            {
+                atBottom: true,
+                currentElementIndex
+            }
+        );
+    }
+
+    loadDataUp () {
+        const {first: firstPage} = this.getDisplayedPagesRangeMiddlePage(this.currentPageBlast);
+        const currentElementIndex = firstPage * PAGE_SIZE;
+        this.loadDataPage(
+            firstPage - 1,
+            {
+                atBottom: false,
+                currentElementIndex
+            }
+        );
+    }
+
+    /**
+     * Loads data by page
+     * @param page {number}
+     * @param scrollingOptions {{atBottom: boolean, currentElementIndex: number}}
+     */
+    loadDataPage (page, scrollingOptions = {}) {
+        const {
+            first: firstDisplayedPage,
+            last: lastDisplayedPage
+        } = this.getDisplayedPagesRangeMiddlePage(page);
+        if (page !== this.currentPageBlast) {
+            // loading pages `firstDisplayedPage ... lastDisplayedPage`
+            const firstRow = firstDisplayedPage * PAGE_SIZE;
+            const lastRow = (lastDisplayedPage + 1) * PAGE_SIZE - 1;
+            const newData = this.data.slice(firstRow, lastRow + 1);
+            console.log(`load pages ${firstDisplayedPage}...${lastDisplayedPage} (items #${firstRow}...#${lastRow}):`, newData);
+            if (scrollingOptions) {
+                const {
+                    atBottom,
+                    currentElementIndex
+                } = scrollingOptions;
+                const correctIndex = aIndex => Math.max(firstRow, Math.min(lastRow, aIndex));
+                const visibleRowsCount = 0; // todo
+                const relativeIndex = correctIndex(currentElementIndex - (atBottom ? 0 : visibleRowsCount)) - firstRow;
+                const dataElement = newData[relativeIndex];
+                console.log(`scrolling element #${currentElementIndex} to be visible at ${atBottom ? 'bottom' : 'top'}`, dataElement);
+            } else {
+                // todo: scroll to first element on `page`
+            }
+            // todo: update currentPage
         }
     }
 
