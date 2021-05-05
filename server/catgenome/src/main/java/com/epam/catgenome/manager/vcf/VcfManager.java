@@ -63,6 +63,7 @@ import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import htsjdk.variant.vcf.VCFSimpleHeaderLine;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -124,6 +125,7 @@ import htsjdk.variant.variantcontext.VariantContext;
  * logic operations required to manage {@code VcfFile} and corresponded tracks, e.g. to process
  * variants uploads, position-based and/or zoom queries etc.
  */
+@Slf4j
 @Service
 public class VcfManager {
 
@@ -186,7 +188,7 @@ public class VcfManager {
         Assert.isTrue(StringUtils.isNotBlank(requestPath), getMessage(
                 MessagesConstants.ERROR_NULL_PARAM, "path"));
         Assert.notNull(request.getReferenceId(), getMessage(MessagesConstants.ERROR_NULL_PARAM, "referenceId"));
-
+        double time1 = Utils.getSystemTimeMilliseconds();
         VcfFile vcfFile;
         Reference reference = referenceGenomeManager.load(request.getReferenceId());
         Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
@@ -214,6 +216,8 @@ public class VcfManager {
                 throw new IllegalArgumentException(
                         getMessage(MessagesConstants.ERROR_INVALID_PARAM));
         }
+        double time2 = Utils.getSystemTimeMilliseconds();
+        log.debug("File registration took {} ms", time2 - time1);
         return vcfFile;
     }
 

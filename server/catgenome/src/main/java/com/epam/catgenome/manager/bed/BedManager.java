@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.manager.bed.parser.NggbBedCodec;
 import com.epam.catgenome.util.feature.reader.AbstractEnhancedFeatureReader;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -84,10 +85,9 @@ import htsjdk.tribble.readers.LineIterator;
 /**
  * Provides service for handling {@code BedFile}: CRUD operations and loading data from the files
  */
+@Slf4j
 @Service
 public class BedManager {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(BedManager.class);
 
     @Autowired
     private FileManager fileManager;
@@ -127,6 +127,7 @@ public class BedManager {
         Assert.isTrue(StringUtils.isNotBlank(requestPath), getMessage(
                 MessagesConstants.ERROR_NULL_PARAM, "path"));
         Assert.notNull(request.getReferenceId(), getMessage(MessagesConstants.ERROR_NULL_PARAM, "referenceId"));
+        double time1 = Utils.getSystemTimeMilliseconds();
         if (request.getType() == null) {
             request.setType(BiologicalDataItemResourceType.FILE);
         }
@@ -137,7 +138,8 @@ public class BedManager {
         } catch (IOException | HistogramReadingException e) {
             throw new RegistrationException(e.getMessage(), e);
         }
-
+        double time2 = Utils.getSystemTimeMilliseconds();
+        log.debug("File registration took {} ms", time2 - time1);
         return bedFile;
     }
 
@@ -337,7 +339,7 @@ public class BedManager {
                 try {
                     fileManager.deleteFeatureFileDirectory(bedFile);
                 } catch (IOException e) {
-                    LOGGER.error("Unable to delete directory for " + bedFile.getName(), e);
+                    log.error("Unable to delete directory for " + bedFile.getName(), e);
                 }
             }
         }
