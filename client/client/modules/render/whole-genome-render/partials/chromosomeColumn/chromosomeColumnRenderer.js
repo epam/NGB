@@ -48,7 +48,6 @@ export class ChromosomeColumnRenderer {
     expandButtonHovered = {};
     hoveredHit = null;
     currentHitView = null;
-    mouseIn = {};
     /**
      * `scrollPosition` is a current scroll offset for the canvas in pixels,
      * i.e. `scrollOffset` == 10px means that we scrolled canvas to the right at 10px -position
@@ -212,54 +211,65 @@ export class ChromosomeColumnRenderer {
                 if (!graphics) {
                     graphics = new PIXI.Graphics();
                     const chromosomeHeightPx = this.convertToPixels(chr.size, this.maxChrSize, this.containerHeight);
-                    const onMousemove = (event, chr) => {
-                        if (this.mouseIn[chr.id]) {
-                            const {
-                                x,
-                                y
-                            } = event.target.toLocal(event.data.global);
-                            if ((x >= 0 && x <= graphics.width) && (y >= 0 && y <= chromosomeHeightPx)) {
-                                const expandButtonHovered = this.expandButtonHovered[chr.id];
-                                const hoveredHit = this.hoveredHit;
-                                if (this.expandButton[chr.id]) {
-                                    this.expandButtonHovered[chr.id] = x >= this.expandButton[chr.id].x1 && x <= this.expandButton[chr.id].x2;
-                                }
-                                this.hoveredHit = null;
-                                const chromosomeHits = this.gridContent[chr.id].filter(hit => hit.displayed);
+                    const actualChromosomeHeight = Math.ceil(chromosomeHeightPx / config.gridSize) * config.gridSize;
+                    const onMousemove = (event) => {
+                        const { x: mouseX, y: mouseY} = graphics.toLocal(event.data.global);
+                             
+                        if (
+                            (mouseX >= 0 && mouseX <= graphics.width) &&
+                            (mouseY >= 0 && mouseY <= graphics.height)
+                        ) {
+                            const hoveredHit = this.hoveredHit;
+                            this.hoveredHit = null;
+                            const chromosomeHits = this.gridContent[chr.id].filter(hit => hit.displayed);
+                            if (mouseY <= actualChromosomeHeight) {  
                                 for (const hit of chromosomeHits) {
                                     if (
-                                        (hit.x_area.from <= x && hit.x_area.to >= x) &&
-                                        (hit.y_area.from <= y && hit.y_area.to >= y)
+                                        (hit.x_area.from <= mouseX && hit.x_area.to >= mouseX) &&
+                                        (hit.y_area.from <= mouseY && hit.y_area.to >= mouseY)
                                     ) {
                                         this.hoveredHit = hit;
                                         break;
                                     }
                                 }
-                                if (expandButtonHovered !== this.expandButtonHovered[chr.id] || (hoveredHit !== this.hoveredHit)) {
-                                    this.displayTooltipFn(event.data.global, this.hoveredHit);
-                                    this.renderChromosomes({
-                                        reRenderChromosomes: [chr.id]
-                                    });
-                                    requestAnimationFrame(() => this.renderer.render(this.container));
-                                }
-                            } else {
-                                if (this.hoveredHit && this.mouseIn[chr.id]) {
-                                    this.mouseIn[chr.id] = false;
-                                    this.hideHitInfo();
-                                    this.hoveredHit = null;
-                                    this.renderChromosomes({
-                                        reRenderChromosomes: [chr.id]
-                                    });
-                                    requestAnimationFrame(() => this.renderer.render(this.container));
-                                }
+                            } else if (this.hoveredHit) {
+                                this.clearSelection(chr);
+                            }
+                            if (hoveredHit !== this.hoveredHit) {
+                                this.displayTooltipFn(event.data.global, this.hoveredHit);
+                                this.renderChromosomes({
+                                    reRenderChromosomes: [chr.id]
+                                });
+                                requestAnimationFrame(() => this.renderer.render(this.container));
                             }
                         }
                     };
                     graphics.interactive = true;
                     graphics.buttonMode = true;
-                    graphics.on('mousemove', (e) => onMousemove(e, chr));
+                    graphics.on('mousemove', onMousemove);
+                    graphics.on('mousedown', () => {
+                        const expandedState = this.chromosomesExpandedState[chr.id];
+                        const expanded = expandedState && expandedState.expanded;
+                        const expandable = expandedState && expandedState.expandable;
+                        if (expandable) {
+                            graphics.clear();
+                            this.toggleChromosomeExpand(chr, expanded);
+                        }
+                    });
+                    graphics.on('mouseout', () => {
+                        if (this.expandButton[chr.id]) {
+                            this.expandButtonHovered[chr.id] = false;
+                        }
+                        this.clearSelection(chr);
+                    });
                     graphics.on('mouseover', () => {
-                        this.mouseIn[chr.id] = true;
+                        if (this.expandButton[chr.id]) {
+                            this.expandButtonHovered[chr.id] = true;
+                            this.renderChromosomes({
+                                reRenderChromosomes: [chr.id]
+                            });
+                            requestAnimationFrame(() => this.renderer.render(this.container));
+                        }
                     });
                     this.chromosomesGraphics[chr.id] = graphics;
                     this.chromosomesContainer.addChild(graphics);
@@ -414,10 +424,6 @@ export class ChromosomeColumnRenderer {
                 x1: xLimit,
                 x2: xLimit + config.chromosomeArea.expand.width
             };
-            graphics.on('mousedown', () => {
-                graphics.clear();
-                this.toggleChromosomeExpand(chromosome, expanded);
-            });
             const arrowY = Math.round(totalHeightPx / 2.0);
             const arrowX = Math.round(
                 areaWidth
@@ -493,6 +499,15 @@ export class ChromosomeColumnRenderer {
                     areaWidth - 1,
                     this.containerHeight)
                 .endFill();
+        } else {
+            graphics
+                .beginFill(config.grid.oddChromosomeBackground, 0)
+                .drawRect(
+                    0,
+                    0,
+                    areaWidth - 1,
+                    this.containerHeight)
+                .endFill();
         }
         graphics
             .beginFill(config.chromosomeColumn.fill, 1)
@@ -545,11 +560,11 @@ export class ChromosomeColumnRenderer {
 
                             hit.x_area = {
                                 from: x1,
-                                to: x2
+                                to: x2 + 1
                             };
                             hit.y_area = {
                                 from: start * config.gridSize,
-                                to: end * config.gridSize - 1
+                                to: end * config.gridSize
                             };
                         }
                     });
@@ -743,5 +758,17 @@ export class ChromosomeColumnRenderer {
     }
     hideHitInfo() {
         this.displayTooltipFn(null, null);
+    }
+
+    /**
+    * `clearSelection` clear all hover effects and tooltips from selected chromosome area
+    */
+    clearSelection(chr){
+        this.hideHitInfo();
+        this.hoveredHit = null;
+        this.renderChromosomes({
+            reRenderChromosomes: [chr.id]
+        });
+        requestAnimationFrame(() => this.renderer.render(this.container));
     }
 }
