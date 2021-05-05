@@ -4,6 +4,7 @@ import PIXI from 'pixi.js';
 import {VariantBaseContainer} from './baseContainer';
 import VcfAnalyzer from '../../../../../../../../dataServices/vcf/vcf-analyzer';
 import {drawingConfiguration} from '../../../../../../core';
+
 const Math = window.Math;
 
 export class VariantContainer extends VariantBaseContainer {
@@ -44,19 +45,17 @@ export class VariantContainer extends VariantBaseContainer {
                 if (endContainer.range.startIndex > viewport.brush.end || endContainer.range.endIndex
                     < viewport.brush.start) {
                     endContainer.visible = false;
-                }
-                else {
+                } else {
                     endContainer.visible = !(endContainer.position >= viewport.brush.start &&
-                    endContainer.position <= viewport.brush.end);
+                        endContainer.position <= viewport.brush.end);
                 }
-            }
-            else {
+            } else {
                 endContainer.visible = !(endContainer.position <= viewport.brush.start &&
-                endContainer.position >= viewport.brush.end);
+                    endContainer.position >= viewport.brush.end);
             }
             if (endContainer.visible) {
                 const xPosition = Math.max(0, Math.min(viewport.canvasSize,
-                        viewport.project.brushBP2pixel(endContainer.position))) - this.container.x;
+                    viewport.project.brushBP2pixel(endContainer.position))) - this.container.x;
                 let containerArea = {
                     global: {
                         x: this.container.x,
@@ -74,8 +73,7 @@ export class VariantContainer extends VariantBaseContainer {
                         {translateX: endContainer.alignmentDirection, translateY: 0});
                 if (containerArea.conflicts) {
                     endContainer.visible = false;
-                }
-                else {
+                } else {
                     endContainer.container.x =
                         Math.round((containerArea.rect.x1 + containerArea.rect.x2) / 2 - endContainer.alignmentDirection
                             * endContainer.size.width / 2);
@@ -87,8 +85,7 @@ export class VariantContainer extends VariantBaseContainer {
                 endContainer.intersects = intersects.conflicts;
                 if (endContainer.intersects) {
                     endContainer.container.alpha = 0.1;
-                }
-                else {
+                } else {
                     endContainer.container.alpha = 1;
                 }
             }
@@ -100,12 +97,16 @@ export class VariantContainer extends VariantBaseContainer {
         this.buildVariantTypeLabel(manager);
         this.buildVariantAlternativeAlleles(viewport, manager);
         const barConfig = drawZygosityBar(this._variant.zygosity, this._graphics, this._config.variant, this._bpLength);
+        if (this._variant.highlightColor) {
+            this.drawHighlightArea(viewport, this.container.height);
+        }
         const globalConfig = {
             global: {
                 x: this.container.x,
                 y: this.container.y
             }
         };
+
         manager.submitArea('default', Object.assign(barConfig, globalConfig));
         if (this._hasTooltip && this._tooltipParentContainer) {
             this._tooltipParentContainer.addChild(this._tooltipContainer);
@@ -154,9 +155,9 @@ export class VariantContainer extends VariantBaseContainer {
             },
             rect: {
                 x1: -this._variant.allelesDescriptionsWidth / 2
-                - this._config.variant.allele.intersection.horizontalMargin,
+                    - this._config.variant.allele.intersection.horizontalMargin,
                 x2: this._variant.allelesDescriptionsWidth / 2
-                + this._config.variant.allele.intersection.horizontalMargin,
+                    + this._config.variant.allele.intersection.horizontalMargin,
                 y1: -this._config.variant.height - this._variant.allelesDescriptionsHeight,
                 y2: -this._config.variant.height
             }
@@ -164,8 +165,7 @@ export class VariantContainer extends VariantBaseContainer {
         const allelesArea = manager.checkArea('default', alternativeAllelesLabelsRect, {translateX: 0, translateY: -1});
         if (!allelesArea.conflicts) {
             manager.submitArea('default', allelesArea);
-        }
-        else {
+        } else {
             const white = 0xFFFFFF;
             this._hasTooltip = true;
             const tooltipGraphics = new PIXI.Graphics();
@@ -259,8 +259,7 @@ export class VariantContainer extends VariantBaseContainer {
     buildMultipleNucleotideRegions(viewport, manager) {
         if (this._variant.isDefaultPositioning) {
             this.buildMultipleNucleotideRegion(viewport, manager, this._variant.positioningInfos[0], null);
-        }
-        else {
+        } else {
             for (let i = 0; i < this._variant.alternativeAllelesInfo.length; i++) {
                 const alternativeAlleleInfo = this._variant.alternativeAllelesInfo[i];
                 if (
@@ -334,8 +333,7 @@ export class VariantContainer extends VariantBaseContainer {
                 range: region,
                 symbol: this._variant.symbol || this._variant.structuralSymbol
             });
-        }
-        else {
+        } else {
             this.buildVariantEndLabel({
                 alignment: 'right',
                 behaviour: 'start',
@@ -371,14 +369,12 @@ export class VariantContainer extends VariantBaseContainer {
             let extraSequence = VcfAnalyzer.concatenateAlternativeAlleleDescription(sequence);
             if (type.toLowerCase() === 'ins') {
                 extraSequence = `+${extraSequence}`;
-            }
-            else if (type.toLowerCase() === 'del') {
+            } else if (type.toLowerCase() === 'del') {
                 extraSequence = `${'\u2014'}${extraSequence}`;
             }
             if (attachedAt === 'right') {
                 prefix = extraSequence;
-            }
-            else {
+            } else {
                 postfix = extraSequence;
             }
         }
@@ -400,6 +396,28 @@ export class VariantContainer extends VariantBaseContainer {
             prefix: prefix,
             symbol: null
         });
+    }
+
+    drawHighlightArea(viewport, containerHeight) {
+        const white = 0xFFFFFF;
+        const region = this._variant.positioningInfos[0];
+        const x1 = viewport.project.brushBP2pixel(region.startIndex)
+            - viewport.project.brushBP2pixel(this._variant.startIndex);
+        const x2 = viewport.project.brushBP2pixel(region.endIndex)
+            - viewport.project.brushBP2pixel(this._variant.startIndex);
+        let length, start;
+        if (x1 <= x2) {
+            start = Math.floor(x1 - this._bpLength);
+            length = x2 + this._bpLength * 2;
+        } else {
+            start = x2;
+            length = x1 + this._bpLength * 2;
+        }
+        this._highlightGraphics.lineStyle(0, white, 0);
+        this._highlightGraphics
+            .beginFill(this._variant.highlightColor, 1)
+            .drawRect(start, Math.floor(-containerHeight), length,
+                containerHeight);
     }
 
     buildVariantEndLabel(info) {

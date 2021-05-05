@@ -1,3 +1,5 @@
+import PIXI from 'pixi.js';
+
 const Math = window.Math;
 
 export class VariantBaseContainer {
@@ -30,8 +32,12 @@ export class VariantBaseContainer {
         this._variant = variant;
 
         this._graphics = new PIXI.Graphics();
+        this._highlightGraphics = new PIXI.Graphics();
         this._linesGraphics = new PIXI.Graphics();
+
+        this._container.addChild(this._highlightGraphics);
         this._container.addChild(this._graphics);
+        // this._container.addChild(this._linesGraphics);
     }
 
     buildComponent() {

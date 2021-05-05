@@ -427,7 +427,7 @@ export default class ngbVariantsTableController extends baseController {
         }));
         data.forEach(row => {
             parsedHighlightProfile.forEach(item => {
-                if (VcfHighlightConditionService.isHighlighted(row, item.parsedCondition)) {
+                if (!row.highlightColor && VcfHighlightConditionService.isHighlighted(row, item.parsedCondition)) {
                     row.highlightColor = `#${item.highlightColor}`;
                 }
                 result.push(row);

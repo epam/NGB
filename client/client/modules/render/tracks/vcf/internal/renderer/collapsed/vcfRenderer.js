@@ -20,11 +20,12 @@ export default class VcfRenderer extends CachedTrackRenderer {
         this._tooltipArea = new PIXI.Container();
         this._bubblesArea = new PIXI.Container();
 
-        this.container.addChild(this._linesArea);
         this.container.addChild(this._chromosomeLine);
         this.container.addChild(this._variantsArea);
+        this.container.addChild(this._linesArea);
         this.container.addChild(this._bubblesArea);
         this.container.addChild(this._tooltipArea);
+        this.initializeCentralLine();
     }
 
     get height() {

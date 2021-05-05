@@ -18,17 +18,20 @@ export default class CachedTrackRenderer{
     constructor(){
         this.container.addChild(this._backgroundContainer);
         this.container.addChild(this.dataContainer);
-        this.container.addChild(this._centerLineGraphics);
     }
 
     get viewport() { return this._viewport; }
 
-    render(viewport, cache, forseRedraw = false, _gffShowNumbersAminoacid, _showCenterLine){
+    initializeCentralLine() {
+        this.container.addChild(this._centerLineGraphics);
+    }
+
+    render(viewport, cache, forceRedraw = false, _gffShowNumbersAminoacid, _showCenterLine){
         if (cache === null || cache === undefined || cache.viewport === undefined)
             return;
         const factor = viewport.factor / cache.viewport.factor;
         const factorMaximumDelta = 0.1;
-        if (!forseRedraw && this.containerIsReady && viewport && cache && cache.viewport &&
+        if (!forceRedraw && this.containerIsReady && viewport && cache && cache.viewport &&
             Math.abs(factor - 1) < factorMaximumDelta && !cache.isNew){
             this.translateContainer(viewport, cache);
         }

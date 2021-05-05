@@ -40,6 +40,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
         this.container.addChild(this._attachedElementsContainer);
         this.container.addChild(this._dockableElementsContainer);
         this.container.addChild(this._labelsContainer);
+        this.initializeCentralLine();
     }
 
     get config() {

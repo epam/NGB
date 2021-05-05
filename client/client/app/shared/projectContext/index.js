@@ -383,12 +383,8 @@ export default class projectContext {
 
     set vcfColumns(columns) {
         localStorage.setItem('vcfColumns', JSON.stringify(columns || []));
-        const oldColumns = this.vcfColumns.sort().reduce((names, name) => {
-            return `${names}|${name}`;
-        }, '');
-        const newColumns = columns.sort().reduce((names, name) => {
-            return `${names}|${name}`;
-        }, '');
+        const oldColumns = this.vcfColumns.sort().reduce((names, name) => `${names}|${name}`, '');
+        const newColumns = columns.sort().reduce((names, name) => `${names}|${name}`, '');
         if (newColumns !== oldColumns) {
             this._isVariantsInitialized = false;
         }
@@ -595,8 +591,8 @@ export default class projectContext {
     }
 
     get browserHomePageUrl() {
-        if (this.ngbDefaultSettings && this.ngbDefaultSettings['home'] && this.ngbDefaultSettings['home'].url) {
-            return this.ngbDefaultSettings['home'].url;
+        if (this.ngbDefaultSettings && this.ngbDefaultSettings.home && this.ngbDefaultSettings.home.url) {
+            return this.ngbDefaultSettings.home.url;
         }
         return null;
     }
@@ -793,7 +789,7 @@ export default class projectContext {
     }
 
     addLastLocalTrack(track) {
-        if (this.lastLocalTracks.filter(t => t.name.toLowerCase() == track.name.toLowerCase()).length === 0) {
+        if (this.lastLocalTracks.filter(t => t.name.toLowerCase() === track.name.toLowerCase()).length === 0) {
             this.lastLocalTracks.push(track);
             this._lastLocalTracksUpdated = true;
         }
@@ -1372,19 +1368,17 @@ export default class projectContext {
                 this._tracks = tracks;
             } else if (tracksState) {
                 await this.refreshReferences();
-                const mapOpenByUrlTracksFn = (trackState) => {
-                    return {
-                        id: decodeURIComponent(trackState.bioDataItemId),
-                        indexPath: decodeURIComponent(trackState.index),
-                        bioDataItemId: decodeURIComponent(trackState.bioDataItemId),
-                        projectId: trackState.projectId,
-                        projectIdNumber: trackState.projectIdNumber,
-                        name: decodeURIComponent(trackState.bioDataItemId),
-                        isLocal: trackState.isLocal,
-                        format: trackState.format,
-                        openByUrl: true
-                    };
-                };
+                const mapOpenByUrlTracksFn = (trackState) => ({
+                    id: decodeURIComponent(trackState.bioDataItemId),
+                    indexPath: decodeURIComponent(trackState.index),
+                    bioDataItemId: decodeURIComponent(trackState.bioDataItemId),
+                    projectId: trackState.projectId,
+                    projectIdNumber: trackState.projectIdNumber,
+                    name: decodeURIComponent(trackState.bioDataItemId),
+                    isLocal: trackState.isLocal,
+                    format: trackState.format,
+                    openByUrl: true
+                });
                 const __tracks = tracksState.filter(ts => ts.isLocal).map(mapOpenByUrlTracksFn);
                 __tracks.forEach(t => {
                     const [__reference] = this._references.filter(r => r.name.toLowerCase() === t.projectId.toLowerCase());
@@ -1421,13 +1415,11 @@ export default class projectContext {
                             const [trackState] = tracksState.filter(ts => ts.projectId === projectsIds[i]);
                             const index = tracksState.indexOf(trackState);
                             if (index >= 0) {
-                                const fn = (item) => {
-                                    return {
-                                        bioDataItemId: item.name,
-                                        projectId: _project.name,
-                                        projectIdNumber: _project.id
-                                    };
-                                };
+                                const fn = (item) => ({
+                                    bioDataItemId: item.name,
+                                    projectId: _project.name,
+                                    projectIdNumber: _project.id
+                                });
                                 tracksState.splice(index, 1, ...items.filter(item => item.format !== 'REFERENCE').map(fn));
                             }
                         }
@@ -1435,14 +1427,12 @@ export default class projectContext {
                             const [trackState] = tracksState.filter(ts => ts.projectId === projectsIds[i]);
                             const index = tracksState.indexOf(trackState);
                             if (index >= 0) {
-                                const fn = (item) => {
-                                    return {
-                                        bioDataItemId: item.name,
-                                        projectId: _project.name,
-                                        projectIdNumber: _project.id
-                                    };
-                                };
-                                let predefinedTracks = [];
+                                const fn = (item) => ({
+                                    bioDataItemId: item.name,
+                                    projectId: _project.name,
+                                    projectIdNumber: _project.id
+                                });
+                                const predefinedTracks = [];
                                 switch (trackState.bioDataItemId.toLowerCase()) {
                                     case REFERENCE_TRACK_SELECTOR: {
                                         const [__ref] = items.filter(r => r.format === 'REFERENCE');
@@ -1964,6 +1954,9 @@ export default class projectContext {
         };
         const additionalFilters = this._vcfFilter ? this._vcfFilter.additionalFilters : {};
         const infoFields = this._infoFields || [];
+        infoFields.push('AC');
+        infoFields.push('AF');
+        infoFields.push('AN');
 
         const pageSize = PAGE_SIZE;
         const orderBy = this._orderByVariations;
