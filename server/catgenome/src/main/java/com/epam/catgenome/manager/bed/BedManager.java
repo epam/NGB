@@ -50,6 +50,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import htsjdk.samtools.util.Tuple;
 import htsjdk.tribble.AsciiFeatureCodec;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -99,10 +100,10 @@ import javax.annotation.PostConstruct;
 /**
  * Provides service for handling {@code BedFile}: CRUD operations and loading data from the files
  */
+@Slf4j
 @Service
 public class BedManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BedManager.class);
     private static final String BED = "bed";
 
     @Autowired
@@ -167,6 +168,7 @@ public class BedManager {
         Assert.isTrue(StringUtils.isNotBlank(requestPath), getMessage(
                 MessagesConstants.ERROR_NULL_PARAM, "path"));
         Assert.notNull(request.getReferenceId(), getMessage(MessagesConstants.ERROR_NULL_PARAM, "referenceId"));
+        double time1 = Utils.getSystemTimeMilliseconds();
         if (request.getType() == null) {
             request.setType(BiologicalDataItemResourceType.FILE);
         }
@@ -177,7 +179,8 @@ public class BedManager {
         } catch (IOException | HistogramReadingException e) {
             throw new RegistrationException(e.getMessage(), e);
         }
-
+        double time2 = Utils.getSystemTimeMilliseconds();
+        log.debug("File registration took {} ms", time2 - time1);
         return bedFile;
     }
 
@@ -189,15 +192,17 @@ public class BedManager {
      * @throws IOException
      */
     public Track<BedRecord> loadFeatures(final Track<BedRecord> track) throws FeatureFileReadingException {
+        double time1 = Utils.getSystemTimeMilliseconds();
         final Chromosome chromosome = trackHelper.validateTrack(track);
-
         final BedFile bedFile = bedFileManager.load(track.getId());
-
+        double time2 = Utils.getSystemTimeMilliseconds();
+        log.debug("Track request took {} ms", time2 - time1);
         return loadTrackFromFile(track, bedFile, chromosome);
     }
 
     public Track<BedRecord> loadFeatures(final Track<BedRecord> track, String fileUrl, String indexUrl)
         throws FeatureFileReadingException {
+        double time1 = Utils.getSystemTimeMilliseconds();
         final Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
 
         BedFile nonRegisteredFile;
@@ -207,6 +212,8 @@ public class BedManager {
             throw new FeatureFileReadingException(fileUrl, e);
         }
 
+        double time2 = Utils.getSystemTimeMilliseconds();
+        log.debug("Track request took {} ms", time2 - time1);
         return loadTrackFromFile(track, nonRegisteredFile, chromosome);
     }
 
@@ -291,6 +298,7 @@ public class BedManager {
             case URL:
             case FILE:
             case S3:
+            case AZ:
                 bedFile = registerBedFileFromFile(request);
                 break;
             case DOWNLOAD:
@@ -377,7 +385,7 @@ public class BedManager {
                 try {
                     fileManager.deleteFeatureFileDirectory(bedFile);
                 } catch (IOException e) {
-                    LOGGER.error("Unable to delete directory for " + bedFile.getName(), e);
+                    log.error("Unable to delete directory for " + bedFile.getName(), e);
                 }
             }
         }
