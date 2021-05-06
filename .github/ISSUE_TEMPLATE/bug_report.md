@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help improve the Cloud Pipeline
+about: Create a report to help improve the NGB
 title: ''
 labels: kind/bug
 assignees: ''
@@ -24,8 +24,8 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Environment:**
- - Cloud Provider: [e.g. AWS]
- - Version [e.g. 0.16.12345]
+ - Environment/Cloud Provider: [e.g. AWS]
+ - Version: [e.g. 2.6.1.12345]
  - Browser: [e.g. chrome, safari]
 
 **Additional context**
