@@ -160,10 +160,13 @@ public class BamManager {
      */
     public void sendBamTrackToEmitter(final Track<Read> track, BamQueryOption option, ResponseBodyEmitter emitter)
             throws IOException {
+        double time1 = Utils.getSystemTimeMilliseconds();
         final Chromosome chromosome = trackHelper.validateTrack(track);
         BamQueryOption currentOptions = option == null ? new BamQueryOption() : option;
         BamUtil.validateOptions(currentOptions, chromosome);
         fillEmitterByBamTrack(track, currentOptions, emitter);
+        double time2 = Utils.getSystemTimeMilliseconds();
+        log.debug("Track request took {} ms", time2 - time1);
     }
 
     /**
@@ -178,10 +181,13 @@ public class BamManager {
     public void sendBamTrackToEmitterFromUrl(final Track<Read> track, BamQueryOption option, String bamUrl,
                                                        String indexUrl, ResponseBodyEmitter emitter)
             throws IOException {
+        double time1 = Utils.getSystemTimeMilliseconds();
         final Chromosome chromosome = trackHelper.validateUrlTrack(track, bamUrl, indexUrl);
         BamQueryOption currentOptions = option == null ? new BamQueryOption() : option;
         BamUtil.validateOptions(currentOptions, chromosome);
         fillEmitterByBamTrackFromURL(track, bamUrl, indexUrl, currentOptions, emitter);
+        double time2 = Utils.getSystemTimeMilliseconds();
+        log.debug("Track request took {} ms", time2 - time1);
     }
 
     /**

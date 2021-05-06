@@ -151,15 +151,17 @@ public class BedManager {
      * @throws IOException
      */
     public Track<BedRecord> loadFeatures(final Track<BedRecord> track) throws FeatureFileReadingException {
+        double time1 = Utils.getSystemTimeMilliseconds();
         final Chromosome chromosome = trackHelper.validateTrack(track);
-
         final BedFile bedFile = bedFileManager.load(track.getId());
-
+        double time2 = Utils.getSystemTimeMilliseconds();
+        log.debug("Track request took {} ms", time2 - time1);
         return loadTrackFromFile(track, bedFile, chromosome);
     }
 
     public Track<BedRecord> loadFeatures(final Track<BedRecord> track, String fileUrl, String indexUrl)
         throws FeatureFileReadingException {
+        double time1 = Utils.getSystemTimeMilliseconds();
         final Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
 
         BedFile nonRegisteredFile;
@@ -169,6 +171,8 @@ public class BedManager {
             throw new FeatureFileReadingException(fileUrl, e);
         }
 
+        double time2 = Utils.getSystemTimeMilliseconds();
+        log.debug("Track request took {} ms", time2 - time1);
         return loadTrackFromFile(track, nonRegisteredFile, chromosome);
     }
 
