@@ -7,6 +7,7 @@ export class VariantBaseContainer {
     _variant = null;
     _container = null;
     _graphics = null;
+    _highlightGraphics = null;
     _linesGraphics = null;
     _componentIsBuilt = false;
     _isFaded = false;
@@ -37,7 +38,6 @@ export class VariantBaseContainer {
 
         this._container.addChild(this._highlightGraphics);
         this._container.addChild(this._graphics);
-        // this._container.addChild(this._linesGraphics);
     }
 
     buildComponent() {

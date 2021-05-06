@@ -1,5 +1,4 @@
 import {EventVariationInfo} from '../../../shared/utils/events';
-import VcfHighlightConditionService from '../../../../dataServices/utils/vcf-highlight-condition-service';
 import baseController from '../../../shared/baseController';
 
 const ROW_HEIGHT = 35;
@@ -17,7 +16,6 @@ export default class ngbVariantsTableController extends baseController {
     isProgressShown = true;
     errorMessageList = [];
     variantsLoadError = null;
-    highlightProfile = {};
 
     gridOptions = {
         enableFiltering: false,
@@ -63,16 +61,6 @@ export default class ngbVariantsTableController extends baseController {
             variantsTableService
         });
         this._localDataService = localDataService;
-        this.highlightProfile = this._localDataService.getSettings().highlightProfile;
-
-        const globalSettingsChangedHandler = (state) => {
-            this.highlightProfile = state.highlightProfile;
-        };
-
-        this.dispatcher.on('settings:change', globalSettingsChangedHandler);
-        $scope.$on('$destroy', () => {
-            this.dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
-        });
 
         this.initEvents();
     }
@@ -261,7 +249,7 @@ export default class ngbVariantsTableController extends baseController {
         } else {
             this.variantsLoadError = null;
             this.gridOptions.columnDefs = this.variantsTableService.getVariantsGridColumns();
-            this.gridOptions.data = this.highlightRows(this.projectContext.filteredVariants);
+            this.gridOptions.data = this.projectContext.filteredVariants;
         }
         this.isProgressShown = this.projectContext.isVariantsLoading;
 
@@ -283,7 +271,7 @@ export default class ngbVariantsTableController extends baseController {
             } else {
                 this.variantsLoadError = null;
                 this.gridApi.infiniteScroll.saveScrollPercentage();
-                this.gridOptions.data = this.gridOptions.data.concat(this.highlightRows(data));
+                this.gridOptions.data = this.gridOptions.data.concat(data);
                 this.gridApi.infiniteScroll.dataLoaded(
                     this.projectContext.firstPageVariations > 1,
                     (this.projectContext.totalPagesCountVariations === undefined && this.projectContext.hasMoreVariations)
@@ -304,7 +292,7 @@ export default class ngbVariantsTableController extends baseController {
             } else {
                 this.variantsLoadError = null;
                 this.gridApi.infiniteScroll.saveScrollPercentage();
-                this.gridOptions.data = this.highlightRows(data).concat(this.gridOptions.data);
+                this.gridOptions.data = data.concat(this.gridOptions.data);
                 const self = this;
                 this.$timeout(function () {
                     self.gridApi.infiniteScroll.dataLoaded(
@@ -330,7 +318,7 @@ export default class ngbVariantsTableController extends baseController {
             } else {
                 this.variantsLoadError = null;
                 const self = this;
-                this.gridOptions.data = this.highlightRows(data);
+                this.gridOptions.data = data;
                 this.$timeout(function () {
                     self.gridApi.infiniteScroll.resetScroll(
                         self.projectContext.firstPageVariations > 1,
@@ -365,7 +353,7 @@ export default class ngbVariantsTableController extends baseController {
             } else {
                 this.variantsLoadError = null;
                 const self = this;
-                this.gridOptions.data = this.highlightRows(data);
+                this.gridOptions.data = data;
                 this.$timeout(function () {
                     self.gridApi.infiniteScroll.resetScroll(
                         self.projectContext.firstPageVariations > 1,
@@ -403,36 +391,5 @@ export default class ngbVariantsTableController extends baseController {
                     || self.projectContext.lastPageVariations < self.projectContext.totalPagesCountVariations);
             });
         }
-    }
-
-    highlightRows(data) {
-        const result = [];
-        // TODO: remove after settings injection
-        this.highlightProfile = {
-            'is_default': true,
-            'conditions': [
-                {
-                    'highlight_color': 'ffbdbd',
-                    'condition': 'variationType == DEL'
-                },
-                {
-                    'highlight_color': 'ffff00',
-                    'condition': 'variationType == INS'
-                }
-            ]
-        };
-        const parsedHighlightProfile = this.highlightProfile.conditions.map(item => ({
-            highlightColor: item.highlight_color,
-            parsedCondition: VcfHighlightConditionService.parseFullCondition(item.condition)
-        }));
-        data.forEach(row => {
-            parsedHighlightProfile.forEach(item => {
-                if (!row.highlightColor && VcfHighlightConditionService.isHighlighted(row, item.parsedCondition)) {
-                    row.highlightColor = `#${item.highlightColor}`;
-                }
-                result.push(row);
-            });
-        });
-        return result;
     }
 }

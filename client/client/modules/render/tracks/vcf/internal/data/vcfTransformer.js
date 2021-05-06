@@ -19,6 +19,10 @@ export class VcfTransformer extends GeneTransformer {
             {
                 'highlight_color': 'ffff00',
                 'condition': 'type == INS'
+            },
+            {
+                'highlight_color': 'add8e6',
+                'condition': 'type == SNV'
             }
         ]
     };

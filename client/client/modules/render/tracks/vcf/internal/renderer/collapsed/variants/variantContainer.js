@@ -407,11 +407,11 @@ export class VariantContainer extends VariantBaseContainer {
             - viewport.project.brushBP2pixel(this._variant.startIndex);
         let length, start;
         if (x1 <= x2) {
-            start = Math.floor(x1 - this._bpLength);
-            length = x2 + this._bpLength * 2;
+            start = Math.floor(x1 - this._bpLength/2);
+            length = x2 + this._bpLength;
         } else {
             start = x2;
-            length = x1 + this._bpLength * 2;
+            length = x1 + this._bpLength;
         }
         this._highlightGraphics.lineStyle(0, white, 0);
         this._highlightGraphics

@@ -25,8 +25,13 @@ export default class VcfHighlightConditionService {
         const operator = rawParsedExpression[1];
         let value = rawParsedExpression[2];
 
-        if(!operator) {
+        if (!operator) {
             throw new Error(`Invalid expression ${expression}`);
+        }
+        if ([VcfHighlightConditionService.expressionOperationList.EQ,
+            VcfHighlightConditionService.expressionOperationList.NE].includes(operator)) {
+            value = VcfHighlightConditionService._removeExtraQuotes(value);
+            value = VcfHighlightConditionService._regularizeString(value);
         }
         if ([VcfHighlightConditionService.expressionOperationList.GE,
             VcfHighlightConditionService.expressionOperationList.GT,
@@ -40,7 +45,7 @@ export default class VcfHighlightConditionService {
             value = VcfHighlightConditionService._prepareArray(value);
         }
         return {
-            field: rawParsedExpression[0],
+            field: VcfHighlightConditionService._removeExtraQuotes(rawParsedExpression[0]),
             operator: operator,
             type: VcfHighlightConditionService.conditionTypeList.EXPRESSION,
             value: value
@@ -147,11 +152,11 @@ export default class VcfHighlightConditionService {
         switch (condition.operator) {
             case VcfHighlightConditionService.conditionOperationList.AND: {
                 result = true;
-                condition.conditions.forEach(c => result = result && VcfHighlightConditionService.isHighlighted(c, variant));
+                condition.conditions.forEach(c => result = result && VcfHighlightConditionService.isHighlighted(variant, c));
                 break;
             }
             case VcfHighlightConditionService.conditionOperationList.OR: {
-                condition.conditions.forEach(c => result = result || VcfHighlightConditionService.isHighlighted(c, variant));
+                condition.conditions.forEach(c => result = result || VcfHighlightConditionService.isHighlighted(variant, c));
                 break;
             }
         }
@@ -166,11 +171,11 @@ export default class VcfHighlightConditionService {
         let result;
         switch (expression.operator) {
             case VcfHighlightConditionService.expressionOperationList.EQ: {
-                result = variant[expression.field].toString() === expression.value;
+                result = expression.value === VcfHighlightConditionService._regularizeString(variant[expression.field]);
                 break;
             }
             case VcfHighlightConditionService.expressionOperationList.NE: {
-                result = variant[expression.field].toString() !== expression.value;
+                result = expression.value === VcfHighlightConditionService._regularizeString(variant[expression.field]);
                 break;
             }
             case VcfHighlightConditionService.expressionOperationList.GE: {
@@ -201,8 +206,41 @@ export default class VcfHighlightConditionService {
                 result = false;
             }
         }
-        // TODO: remove before merge
-        // console.log(`${JSON.stringify(expression)} result: ${result}`);
         return result;
+    }
+
+    static getFieldSet(parsedHighlightProfile) {
+        const result = parsedHighlightProfile.reduce(
+            (acc, profile) =>
+                new Set([...acc, ...VcfHighlightConditionService._getFieldsFromCondition(profile.parsedCondition)]),
+            new Set()
+        );
+        return Array.from(result);
+    }
+
+    static _getFieldsFromCondition(condition) {
+        let result = new Set();
+        if (condition.type === VcfHighlightConditionService.conditionTypeList.GROUP) {
+            result = new Set([
+                ...result,
+                ...condition.conditions.reduce(
+                    (acc, condition) =>
+                        new Set([...acc, ...VcfHighlightConditionService._getFieldsFromCondition(condition)]),
+                    result
+                )
+            ]);
+        } else {
+            result.add(condition.field);
+        }
+        return result;
+    }
+
+    static _regularizeString(value) {
+        if (!isNaN(parseFloat(value))) {
+            return parseFloat(value).toString();
+        } else if (!isNaN(parseInt(value))) {
+            return parseInt(value).toString();
+        }
+        return value.toLowerCase();
     }
 }

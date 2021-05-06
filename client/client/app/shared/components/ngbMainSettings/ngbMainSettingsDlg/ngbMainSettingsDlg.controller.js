@@ -1,6 +1,7 @@
 const DEFAULT_CONFIG = 7000;
 export default class ngbMainSettingsDlgController {
     settings = null;
+    highlightProfileList = [];
 
     accessToken = '';
     tokenValidDate;
@@ -28,6 +29,7 @@ export default class ngbMainSettingsDlgController {
         this.moment = moment;
 
         this.tokenValidDate = this.moment().add(1, 'month').toDate();
+        this.highlightProfileList = projectContext.getTrackDefaultSettings('interest_profiles');
 
         utilsDataService.isRoleModelEnabled().then(res => {
             this.isRoleModelEnabled = res;
@@ -88,8 +90,8 @@ export default class ngbMainSettingsDlgController {
     prepareDefaultHighlightProfile() {
         if (this.settings.isVariantsHighlighted) {
             this.settings.highlightProfile = this.settings.highlightProfile
-                || Object.keys(this.settings.highlightProfileList).filter(
-                    name => this.settings.highlightProfileList[name].is_default
+                || Object.keys(this.highlightProfileList).filter(
+                    name => this.highlightProfileList[name].is_default
                 )[0];
         }
     }

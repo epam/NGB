@@ -1,4 +1,5 @@
 import {utilities} from '../../../app/components/ngbDataSets/internal';
+import VcfHighlightConditionService from '../../../dataServices/utils/vcf-highlight-condition-service';
 
 const Math = window.Math;
 
@@ -18,14 +19,15 @@ const PREDEFINED_TRACKS_SELECTORS = [REFERENCE_TRACK_SELECTOR, GENOME_TRACKS_SEL
 
 export default class projectContext {
 
-    static instance(dispatcher, genomeDataService, projectDataService, utilsDataService) {
-        return new projectContext(dispatcher, genomeDataService, projectDataService, utilsDataService);
+    static instance(dispatcher, genomeDataService, projectDataService, utilsDataService, localDataService) {
+        return new projectContext(dispatcher, genomeDataService, projectDataService, utilsDataService, localDataService);
     }
 
     dispatcher;
     genomeDataService;
     projectDataService;
     utilsDataService;
+    localDataService;
 
     _tracksStateMinificationRules = {
         bioDataItemId: 'b',
@@ -96,6 +98,7 @@ export default class projectContext {
     _variantsGroupByTypeError = null;
     _variantsGroupByQualityError = null;
     _containsVcfFiles = true;
+    _highlightProfileConditions = [];
 
     _bookmarkVisibility = true;
     _rewriteLayout = true;
@@ -658,11 +661,12 @@ export default class projectContext {
         }
     }
 
-    constructor(dispatcher, genomeDataService, projectDataService, utilsDataService) {
+    constructor(dispatcher, genomeDataService, projectDataService, utilsDataService, localDataService) {
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
         this.projectDataService = projectDataService;
         this.utilsDataService = utilsDataService;
+        this.localDataService = localDataService;
         for (const attr in this._tracksStateMinificationRules) {
             if (this._tracksStateMinificationRules.hasOwnProperty(attr)) {
                 this._tracksStateRevertRules[this._tracksStateMinificationRules[attr]] = attr;
@@ -672,6 +676,8 @@ export default class projectContext {
             await this.refreshBrowsingAllowedStatus();
             await this.getDefaultTrackSettings();
             await this.refreshReferences();
+            // TODO: change to localStorage if needed
+            this.setHighlightProfileConditions(this.localDataService.getSettings().highlightProfile);
         })();
         this.initEvents();
     }
@@ -681,6 +687,7 @@ export default class projectContext {
         const hotkeyPressedFn = ::this.hotkeyPressed;
         this.dispatcher.on('variants:reset:filter', resetVariantsFilterFn);
         this.dispatcher.on('hotkeyPressed', hotkeyPressedFn);
+        this.dispatcher.on('settings:change', ::this.globalSettingsChangedHandler);
     }
 
     hotkeyPressed(event) {
@@ -724,6 +731,22 @@ export default class projectContext {
             }
         }
         return settings;
+    }
+
+    setHighlightProfileConditions(highlightProfile) {
+        const highlightProfileList = this.getTrackDefaultSettings('interest_profiles');
+        if(highlightProfileList && highlightProfileList[highlightProfile]) {
+            this._highlightProfileConditions = highlightProfileList[highlightProfile].conditions.map(item => ({
+                highlightColor: item.highlight_color,
+                parsedCondition: VcfHighlightConditionService.parseFullCondition(item.condition)
+            }));
+        } else {
+            this._highlightProfileConditions = [];
+        }
+    }
+
+    globalSettingsChangedHandler(state) {
+        this.setHighlightProfileConditions(state.highlightProfile);
     }
 
     _getVcfCallbacks() {
@@ -1953,10 +1976,8 @@ export default class projectContext {
             field: this._vcfFilter ? this._vcfFilter.selectedVcfTypes : []
         };
         const additionalFilters = this._vcfFilter ? this._vcfFilter.additionalFilters : {};
-        const infoFields = this._infoFields || [];
-        infoFields.push('AC');
-        infoFields.push('AF');
-        infoFields.push('AN');
+        let infoFields = this._infoFields || [];
+        infoFields = infoFields.concat(VcfHighlightConditionService.getFieldSet(this._highlightProfileConditions));
 
         const pageSize = PAGE_SIZE;
         const orderBy = this._orderByVariations;
@@ -2060,8 +2081,13 @@ export default class projectContext {
         this._variantsPageLoading = false;
         this.dispatcher.emit('variants:page:loading:finished');
 
-        return entries.map(item =>
-            Object.assign({},
+        return entries.map(item => {
+            this._highlightProfileConditions.forEach(profile => {
+                if (!item.highlightColor && VcfHighlightConditionService.isHighlighted(item.info, profile.parsedCondition)) {
+                    item.highlightColor = `#${profile.highlightColor}`;
+                }
+            });
+            return Object.assign({},
                 {
                     chrId: item.chromosome.id,
                     chrName: item.chromosome.name,
@@ -2071,17 +2097,18 @@ export default class projectContext {
                     },
                     endIndex: item.endIndex,
                     geneNames: item.geneNames,
+                    highlightColor: item.highlightColor,
+                    projectId: vcfTrackToProjectId[`${item.featureFileId}`].name,
+                    projectIdNumber: vcfTrackToProjectId[`${item.featureFileId}`].projectIdNumber,
                     quality: item.quality,
                     startIndex: item.startIndex,
                     variantId: item.featureId,
                     variationType: item.variationType,
-                    vcfFileId: item.featureFileId,
-                    projectId: vcfTrackToProjectId[`${item.featureFileId}`].name,
-                    projectIdNumber: vcfTrackToProjectId[`${item.featureFileId}`].projectIdNumber
+                    vcfFileId: item.featureFileId
                 },
-                {...infoFieldsObj, ...item.info}
-            )
-        );
+                {...infoFieldsObj, ...item.info},
+            );
+        });
     }
 
     get layoutPanels() {

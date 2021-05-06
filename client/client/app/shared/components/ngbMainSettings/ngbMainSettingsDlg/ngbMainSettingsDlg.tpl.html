@@ -369,7 +369,7 @@
                                     <md-select name="highlightProfile" ng-model="ctrl.settings.highlightProfile"
                                                 required>
                                         <md-option ng-value="name"
-                                                   ng-repeat="(name, profile) in ctrl.settings.highlightProfileList">
+                                                   ng-repeat="(name, profile) in ctrl.highlightProfileList track by name">
                                             {{ name }}
                                         </md-option>
                                     </md-select>

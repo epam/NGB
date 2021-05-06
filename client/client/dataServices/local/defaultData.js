@@ -198,41 +198,6 @@ export default {
         showCenterLine: true,
         showSoftClippedBase: true,
         isVariantsHighlighted: false,
-        highlightProfile: undefined,
-        // TODO: remove before merge
-        highlightProfileList: {
-            'two_alleles_high_mapping_quality': {
-                'is_default': true,
-                'conditions': [
-                    {
-                        'highlight_color': 'ffbdbd',
-                        'condition': ''
-                    },
-                    {
-                        'highlight_color': 'ffff00',
-                        'condition': ''
-                    }
-                ]
-
-            },
-            'one_allele_or_low_mapping_quality': {
-                'is_default': false,
-                'highlight_color': 'eeeeee',
-                'operator': 'or',
-                'conditions': [
-                    {
-                        'id': 'ac',
-                        'operator': 'eq',
-                        'value': '1'
-                    },
-                    {
-                        'id': 'mq',
-                        'operator': 'le',
-                        'value': '60'
-                    }
-                ]
-            }
-        }
-
+        highlightProfile: undefined
     }
 };
