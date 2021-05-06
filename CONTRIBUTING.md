@@ -1,4 +1,4 @@
-# Issues lifecycle and lifecycle
+# Issues lifecycle and labels
 
 | # | State                                | Labels               |
 |---|--------------------------------------|----------------------|
