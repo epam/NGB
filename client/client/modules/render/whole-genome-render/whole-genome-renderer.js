@@ -160,6 +160,9 @@ export default class WholeGenomeRenderer {
     }
     destroy() {
         this._destroyed = true;
+        if (this._chromosomeRenderer) {
+            this._chromosomeRenderer.destroy();
+        }
         if (this.renderer && this.renderer.view) {
             this.container.removeChildren();
             this.canvasElement.removeChild(this.renderer.view);
