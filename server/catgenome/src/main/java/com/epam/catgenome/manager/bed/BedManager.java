@@ -55,8 +55,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -134,8 +132,6 @@ public class BedManager {
     private String bedMultiFormatFilePath;
 
     private final Map<String, FileExtensionMapping> extensionMappingMap = new HashMap<>();
-
-    private static final Logger LOG = LoggerFactory.getLogger(BedManager.class);
 
     @PostConstruct
     @SneakyThrows
@@ -237,7 +233,7 @@ public class BedManager {
                 bedRecords = loadStatisticRecords(track, iterator);
             }
             final double time2 = Utils.getSystemTimeMilliseconds();
-            LOG.debug("Reading records from bed file, took {} ms", time2 - time1);
+            log.debug("Reading records from bed file, took {} ms", time2 - time1);
             track.setBlocks(bedRecords);
             return track;
         } catch (IOException e) {
@@ -372,8 +368,8 @@ public class BedManager {
                 createHistogram(bedFile);
             }
             double time2 = Utils.getSystemTimeMilliseconds();
-            LOG.debug("Making BED histogram took {} ms", time2 - time1);
-            LOG.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, bedFile.getId(),
+            log.debug("Making BED histogram took {} ms", time2 - time1);
+            log.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, bedFile.getId(),
                     bedFile.getPath()));
             biologicalDataItemManager.createBiologicalDataItem(bedFile.getIndex());
             bedFileManager.create(bedFile);
@@ -486,7 +482,7 @@ public class BedManager {
         try {
             return readHistogramPortion(track, file, chromosome, portion);
         } catch (IOException e) {
-            LOG.info(String.format("Failed to read histogram for file %s", file.getName()), e);
+            log.info(String.format("Failed to read histogram for file %s", file.getName()), e);
             return Collections.emptyList();
         }
     }
