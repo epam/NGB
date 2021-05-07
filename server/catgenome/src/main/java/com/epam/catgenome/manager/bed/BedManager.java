@@ -356,7 +356,8 @@ public class BedManager {
                 bedFile.setIndex(indexItem);
             } else {
                 Assert.isTrue(resourceType == BiologicalDataItemResourceType.FILE ||
-                                resourceType == BiologicalDataItemResourceType.S3,
+                                resourceType == BiologicalDataItemResourceType.S3 ||
+                                resourceType == BiologicalDataItemResourceType.AZ,
                         "Auto indexing is supported only for FILE type requests");
                 fileManager.makeBedDir(bedFile.getId());
                 fileManager.makeBedIndex(bedFile, getCodec(bedFile));
@@ -364,7 +365,8 @@ public class BedManager {
 
             double time1 = Utils.getSystemTimeMilliseconds();
             if (resourceType == BiologicalDataItemResourceType.FILE
-                    || resourceType == BiologicalDataItemResourceType.S3) {
+                    || resourceType == BiologicalDataItemResourceType.S3
+                    || resourceType == BiologicalDataItemResourceType.AZ) {
                 createHistogram(bedFile);
             }
             double time2 = Utils.getSystemTimeMilliseconds();
