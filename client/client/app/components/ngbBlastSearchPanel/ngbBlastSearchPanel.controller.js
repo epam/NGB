@@ -79,7 +79,7 @@ export default class ngbBlastSearchPanelController extends baseController {
     events = {
         'reference:change': ::this.initialize,
         'read:show:blast': ::this.initialize,
-        'pageBlast:change': ::this.getPage,
+        'pageBlast:change': ::this.getPageByPagination,
     };
 
     async $onInit() {
@@ -108,9 +108,7 @@ export default class ngbBlastSearchPanelController extends baseController {
                     this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
                     this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
                     this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
-                    // this.gridApi.infiniteScroll.on.needLoadMoreData(this.$scope, ::this.getPage);
-                    // this.gridApi.infiniteScroll.on.needLoadMoreDataTop(this.$scope, ::this.getPage);
-                    // this.gridApi.core.on.scrollEnd(this.$scope, ::this.changeCurrentPage);
+                    this.gridApi.core.on.scrollEnd(this.$scope, ::this.changeCurrentPage);
                     this.gridApi.infiniteScroll.on.needLoadMoreData(this.$scope, this.loadDataDown.bind(this));
                     this.gridApi.infiniteScroll.on.needLoadMoreDataTop(this.$scope, this.loadDataUp.bind(this));
                 },
@@ -144,26 +142,24 @@ export default class ngbBlastSearchPanelController extends baseController {
 
     loadDataDown () {
         const {last: lastPage} = this.getDisplayedPagesRangeMiddlePage(this.currentPageBlast);
-        const currentElementIndex = (lastPage + 1) * PAGE_SIZE - 1;
-        this.loadDataPage(
-            lastPage + 1,
-            {
-                atBottom: true,
-                currentElementIndex
-            }
-        );
+        const newData = this.loadDataPage(lastPage + 1);
+        this.gridOptions.data = newData;
+        this.gridApi.infiniteScroll.dataLoaded(
+            this.currentPageBlast > 1,
+            this.currentPageBlast < this.totalPagesCountBlast);
+        const dataElement = PAGE_SIZE - Math.floor((this.gridApi.grid.gridHeight - this.gridOptions.headerRowHeight) / ROW_HEIGHT);
+        this.$timeout(() => {this.gridApi.core.scrollTo(this.gridOptions.data[dataElement], this.gridOptions.columnDefs[0]);});
     }
 
     loadDataUp () {
         const {first: firstPage} = this.getDisplayedPagesRangeMiddlePage(this.currentPageBlast);
-        const currentElementIndex = firstPage * PAGE_SIZE;
-        this.loadDataPage(
-            firstPage - 1,
-            {
-                atBottom: false,
-                currentElementIndex
-            }
-        );
+        const newData = this.loadDataPage(firstPage - 1);
+        this.gridOptions.data = newData;
+        this.gridApi.infiniteScroll.dataLoaded(
+            this.currentPageBlast > 1,
+            this.currentPageBlast < this.totalPagesCountBlast);
+        const dataElement = 2 * PAGE_SIZE + Math.floor((this.gridApi.grid.gridHeight - this.gridOptions.headerRowHeight) / ROW_HEIGHT);
+        this.$timeout(() => {this.gridApi.core.scrollTo(this.gridOptions.data[dataElement], this.gridOptions.columnDefs[0]);});
     }
 
     /**
@@ -171,7 +167,7 @@ export default class ngbBlastSearchPanelController extends baseController {
      * @param page {number}
      * @param scrollingOptions {{atBottom: boolean, currentElementIndex: number}}
      */
-    loadDataPage (page, scrollingOptions = {}) {
+    loadDataPage (page) {
         const {
             first: firstDisplayedPage,
             last: lastDisplayedPage
@@ -181,22 +177,14 @@ export default class ngbBlastSearchPanelController extends baseController {
             const firstRow = firstDisplayedPage * PAGE_SIZE;
             const lastRow = (lastDisplayedPage + 1) * PAGE_SIZE - 1;
             const newData = this.data.slice(firstRow, lastRow + 1);
-            console.log(`load pages ${firstDisplayedPage}...${lastDisplayedPage} (items #${firstRow}...#${lastRow}):`, newData);
-            if (scrollingOptions) {
-                const {
-                    atBottom,
-                    currentElementIndex
-                } = scrollingOptions;
-                const correctIndex = aIndex => Math.max(firstRow, Math.min(lastRow, aIndex));
-                const visibleRowsCount = 0; // todo
-                const relativeIndex = correctIndex(currentElementIndex - (atBottom ? 0 : visibleRowsCount)) - firstRow;
-                const dataElement = newData[relativeIndex];
-                console.log(`scrolling element #${currentElementIndex} to be visible at ${atBottom ? 'bottom' : 'top'}`, dataElement);
-            } else {
-                // todo: scroll to first element on `page`
-            }
-            // todo: update currentPage
+            this.currentPageBlast = page;
+            return newData;
         }
+    }
+
+    getPageByPagination(page) {
+        this.gridOptions.data = this.loadDataPage(page);
+        this.gridApi.infiniteScroll.resetScroll();
     }
 
     async loadData() {
@@ -250,7 +238,7 @@ export default class ngbBlastSearchPanelController extends baseController {
             this.ngbBlastSearchService.orderBy = null;
         }
         this.dispatcher.emit('pageBlast:scroll', 1);
-        this.getPage([1, 0]);
+        // this.getPage([1, 0]);
     }
 
     saveColumnsState() {
@@ -354,44 +342,8 @@ export default class ngbBlastSearchPanelController extends baseController {
         const sizePage = this.blastPageSize * ROW_HEIGHT;
         if (row.newScrollTop) {
             const scrollSize = row.newScrollTop / sizePage;
-            const pageEnd = this.currentPageBlast === 1 ? 1 : 2;
-            if (
-                scrollSize > pageEnd &&
-                this.currentPageBlast < this.totalPagesCountBlast
-            ) {
-                const gridHeight = this.gridApi.grid.gridHeight - this.gridOptions.headerRowHeight;
-                const firstPage = this.currentPageBlast === 1 ? 0 : this.blastPageSize;
-                const scrollLastRow = Math.floor(
-                    (row.newScrollTop + gridHeight) / ROW_HEIGHT - firstPage);
-                const newPage = scrollSize < pageEnd + 1 ? 1 : Math.floor(scrollSize);
-                this.$timeout(() => {
-                    this.dispatcher.emit('pageBlast:scroll', (this.currentPageBlast + newPage));
-                    this.getPage([this.currentPageBlast + newPage, scrollLastRow]);
-                });
-                this.prevScrollSize = row.newScrollTop;
-            }
-            if (
-                this.prevScrollSize > row.newScrollTop
-                && row.newScrollTop < sizePage
-                && this.currentPageBlast > 1
-            ) {
-                const gridHeight = this.gridApi.grid.gridHeight - this.gridOptions.headerRowHeight;
-                const pageStart = this.currentPageBlast === 2 ? 0 : 1;
-                const scrollLastRow = Math.floor((sizePage  * pageStart + row.newScrollTop + gridHeight) / ROW_HEIGHT);
-                this.dispatcher.emit('pageBlast:scroll', (this.currentPageBlast - 1));
-                this.getPage([this.currentPageBlast - 1, scrollLastRow]);
-                this.prevScrollSize = row.newScrollTop;
-            }
-            this.prevScrollSize = row.newScrollTop;
-        }
-        if (row.newScrollTop === 0 && this.prevScrollSize !== 0 && this.currentPageBlast > 1) {
-            if (this.currentPageBlast > 2) {
-                const scrollLastRow = this.blastPageSize * (this.currentPageBlast > 3 ? 2 : 1);
-                this.dispatcher.emit('pageBlast:scroll', (this.currentPageBlast - 2));
-                this.getPage([this.currentPageBlast - 2, scrollLastRow]);
-            } else if (this.currentPageBlast === 2) {
-                this.dispatcher.emit('pageBlast:scroll', (this.currentPageBlast - 1));
-                this.getPage([this.currentPageBlast - 1, 0]);
+            if (scrollSize > 1) {
+                this.dispatcher.emit('pageBlast:scroll', (this.currentPageBlast + 1));
             }
         }
     }
@@ -412,7 +364,7 @@ export default class ngbBlastSearchPanelController extends baseController {
             this.gridOptions.totalItems = this.dataLength;
             this.totalPagesCountBlast = Math.ceil(this.dataLength/this.blastPageSize);
             this.dispatcher.emitSimpleEvent('blast:loading:finished', [this.totalPagesCountBlast, 1]);
-            this.$timeout(() => this.getPage([1, 0]));
+            this.gridOptions.data = this.loadDataPage(1);
         } else {
             this.blastSearchEmptyResult = this.blastSearchMessages.ErrorMessage.EmptySearchResults;
         }
