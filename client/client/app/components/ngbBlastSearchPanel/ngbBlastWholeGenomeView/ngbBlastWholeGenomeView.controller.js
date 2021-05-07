@@ -19,18 +19,50 @@ export default class ngbBlastGenomeViewController {
     _tooltipContent = null;
     _tetherElement;
 
-    constructor($scope, $element, $timeout) {
+    constructor($scope, $element, $timeout, dispatcher) {
 
         this._scope = $scope;
+        this._element = $element;
         this._timeout = $timeout;
         this._genomeRenderer = null;
         this._genomeRendererDiv = null;
+        this._selectedSpecies = $scope.$parent.blastCurrentSpecies;
 
         (async () => {
             await new Promise(resolve => $timeout(resolve));
             this._genomeRendererDiv = $($element[0]).find('.whole-genome-view-container')[0];
             this._tooltipElement = $($element[0]).find('.chromosome-hit-tooltip')[0];
             this._tooltipTarget = $($element[0]).find('.whole-genome-view-container')[0];
+            this._errorElement = $($element[0]).find('.no-species-selected')[0];
+            if (this._selectedSpecies) {
+                this._genomeRenderer = new WholeGenomeRenderer(
+                    this.genomeRendererDiv,
+                    this.getMaxChromosomeSize(this.chromosomes),
+                    this.chromosomes,
+                    this.blastResult,
+                    this.displayTooltip.bind(this),
+                );
+            } else {
+                this.displayErrorMessage();
+            }
+            const onDestroy = (selectedItem) => this.setSelectedSpeciesAndRenderCanvas(selectedItem);
+            dispatcher.on('blast:select:species', onDestroy);
+            $scope.$on('$destroy', () => {
+                if (this._genomeRenderer){
+                    this._genomeRenderer.destroy();
+                }
+                dispatcher.removeListener('blast:select:species', onDestroy);
+            });
+        })()
+    }
+
+    setSelectedSpeciesAndRenderCanvas(selectedItem) {
+        $(this._errorElement).addClass('hidden');
+        if (selectedItem && selectedItem !== this._selectedSpecies) {
+            this._selectedSpecies = selectedItem;
+            if (this._genomeRenderer) {
+                this._genomeRenderer.destroy();
+            }
             this._genomeRenderer = new WholeGenomeRenderer(
                 this.genomeRendererDiv,
                 this.getMaxChromosomeSize(this.chromosomes),
@@ -38,12 +70,7 @@ export default class ngbBlastGenomeViewController {
                 this.blastResult,
                 this.displayTooltip.bind(this),
             );
-
-            $scope.$on('$destroy', () => {
-                this.genomeRenderer.destroy();
-            });
-
-        })();
+        }
     }
 
     get genomeRenderer() {
@@ -92,6 +119,9 @@ export default class ngbBlastGenomeViewController {
                 this._tetherElement = null;
             }
         }
+    }
+    displayErrorMessage(){
+        $(this._errorElement).removeClass('hidden');
     }
     formatBlastTooltipContent(content) {
         const blastResultsProps = ['score', 'strand', 'match', 'chromosome'];
