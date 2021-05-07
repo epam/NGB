@@ -6,10 +6,10 @@ export function helper($mdDialog, dispatcher, projectContext, { data, speciesLis
     return function ($scope) {
         $scope.chromosomes = currentChromosomes;
         $scope.species = speciesList;
-        $scope.blastCurrentSpecies = speciesList[0].id;
+        $scope.blastCurrentSpecies = projectContext.reference.id;
         $scope.result = data;
         $scope.close = () => $mdDialog.hide();
-        $scope.selectReference = (selectedItemId) => {
+        $scope.selectSpecies = (selectedItemId) => {
             $scope.blastCurrentSpecies = selectedItemId;
             dispatcher.emitSimpleEvent('blast:select:species', selectedItemId);
         }

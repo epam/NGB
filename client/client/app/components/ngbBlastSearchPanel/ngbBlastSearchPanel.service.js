@@ -24,6 +24,7 @@ export default class ngbBlastSearchService {
     }
     generateSpeciesList() {
         return [
+            this.projectContext.reference,
             {id:'1eds52', name:'GRCh38'},
             {id:'1adc47', name:'Bacteria Escherichia coli'},
             {id:'4etr89', name:'Clostridium botulinum'},
