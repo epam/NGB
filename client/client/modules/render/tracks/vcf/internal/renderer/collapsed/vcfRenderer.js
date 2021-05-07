@@ -16,11 +16,13 @@ export default class VcfRenderer extends CachedTrackRenderer {
         this._manager = new ZonesManager();
         this._chromosomeLine = new PIXI.Graphics();
         this._linesArea = new PIXI.Container();
+        this._highlihgtArea = new PIXI.Container();
         this._variantsArea = new PIXI.Container();
         this._tooltipArea = new PIXI.Container();
         this._bubblesArea = new PIXI.Container();
 
         this.container.addChild(this._chromosomeLine);
+        this.container.addChild(this._highlihgtArea);
         this.container.addChild(this._variantsArea);
         this.container.addChild(this._linesArea);
         this.container.addChild(this._bubblesArea);
@@ -81,6 +83,7 @@ export default class VcfRenderer extends CachedTrackRenderer {
     _drawVariants(viewport, data) {
         if (data === null || data === undefined)
             return;
+        this._highlihgtArea.removeChildren();
         this._linesArea.removeChildren();
         this._variantsArea.removeChildren();
         this._tooltipArea.removeChildren();
@@ -91,11 +94,12 @@ export default class VcfRenderer extends CachedTrackRenderer {
             const variant = data.variants[i];
             const variantContainer = initializeContainer(variant, this._config, this._tooltipArea);
             variantContainer.container.y = this.height - this._config.chromosomeLine.thickness;
-            variantContainer.render(viewport, this._manager);
+            variantContainer.render(viewport, this._manager, this.container.width);
             if (variantContainer instanceof StatisticsContainer) {
                 this._bubblesArea.addChild(variantContainer.container);
             }
             else {
+                this._highlihgtArea.addChild(variantContainer.highlightGraphics);
                 this._variantsArea.addChild(variantContainer.container);
             }
             this._linesArea.addChild(variantContainer.linesGraphics);

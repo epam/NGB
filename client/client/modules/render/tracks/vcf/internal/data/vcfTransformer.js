@@ -8,28 +8,11 @@ const Math = window.Math;
 export class VcfTransformer extends GeneTransformer {
 
     _collapsed = false;
-    // TODO: remove before merge
-    highlightProfile = {
-        'is_default': true,
-        'conditions': [
-            {
-                'highlight_color': 'ffbdbd',
-                'condition': 'type == DEL'
-            },
-            {
-                'highlight_color': 'ffff00',
-                'condition': 'type == INS'
-            },
-            {
-                'highlight_color': 'add8e6',
-                'condition': 'type == SNV'
-            }
-        ]
-    };
 
-    constructor(config, chromosome) {
+    constructor(config, chromosome, highlightProfileConditions = []) {
         super(config);
         this._chromosome = chromosome;
+        this._highlightProfileConditions = highlightProfileConditions;
     }
 
     get collapsed() {
@@ -103,12 +86,8 @@ export class VcfTransformer extends GeneTransformer {
             }
         }
 
-        const parsedHighlightProfile = this.highlightProfile.conditions.map(item => ({
-            highlightColor: item.highlight_color,
-            parsedCondition: VcfHighlightConditionService.parseFullCondition(item.condition)
-        }));
         variants.forEach(variant => this.addAllelesDescriptions(variant));
-        variants.forEach(variant => this.addHighlight(parsedHighlightProfile, variant));
+        variants.forEach(variant => this.addHighlight(this._highlightProfileConditions, variant));
         variants = this.combineBubbles(variants, viewport);
         const hoverData = this.addVariantsLayerIndices(variants);
         return {
@@ -177,12 +156,7 @@ export class VcfTransformer extends GeneTransformer {
             }
         }
         variants.forEach(variant => this.addAllelesDescriptions(variant));
-
-        const parsedHighlightProfile = this.highlightProfile.conditions.map(item => ({
-            highlightColor: item.highlight_color,
-            parsedCondition: VcfHighlightConditionService.parseFullCondition(item.condition)
-        }));
-        variants.forEach(variant => this.addHighlight(parsedHighlightProfile, variant));
+        variants.forEach(variant => this.addHighlight(this._highlightProfileConditions, variant));
         variants = this.expandBubbles(this.combineBubbles(variants, viewport));
         data = null;
         return variants;
@@ -204,9 +178,15 @@ export class VcfTransformer extends GeneTransformer {
         }
     }
 
-    addHighlight(parsedHighlightProfile, variant) {
-        parsedHighlightProfile.forEach(item => {
-            if (!variant.highlightColor && VcfHighlightConditionService.isHighlighted(variant, item.parsedCondition)) {
+    addHighlight(highlightProfileConditions, variant) {
+        const linearizedInfo = {
+            // TODO: remove before merge
+            quality: '1',
+            svtype: variant.type
+        };
+        Object.keys(variant.info).forEach(name => linearizedInfo[name] = variant.info[name].value);
+        highlightProfileConditions.forEach(item => {
+            if (!variant.highlightColor && VcfHighlightConditionService.isHighlighted(linearizedInfo, item.parsedCondition)) {
                 variant.highlightColor = `0x${item.highlightColor.toUpperCase()}`;
             }
         });

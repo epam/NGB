@@ -45,7 +45,7 @@ export default class VcfHighlightConditionService {
             value = VcfHighlightConditionService._prepareArray(value);
         }
         return {
-            field: VcfHighlightConditionService._removeExtraQuotes(rawParsedExpression[0]),
+            field: VcfHighlightConditionService._removeExtraQuotes(rawParsedExpression[0]).toLowerCase(),
             operator: operator,
             type: VcfHighlightConditionService.conditionTypeList.EXPRESSION,
             value: value
@@ -128,6 +128,13 @@ export default class VcfHighlightConditionService {
     }
 
     static isHighlighted(variant, condition) {
+        return VcfHighlightConditionService.calculateHighlighted(
+            VcfHighlightConditionService._prepareVariant(variant),
+            condition
+        );
+    }
+
+    static calculateHighlighted(variant, condition) {
         if (!variant || !condition || !condition.type) {
             return false;
         }
@@ -152,11 +159,11 @@ export default class VcfHighlightConditionService {
         switch (condition.operator) {
             case VcfHighlightConditionService.conditionOperationList.AND: {
                 result = true;
-                condition.conditions.forEach(c => result = result && VcfHighlightConditionService.isHighlighted(variant, c));
+                condition.conditions.forEach(c => result = result && VcfHighlightConditionService.calculateHighlighted(variant, c));
                 break;
             }
             case VcfHighlightConditionService.conditionOperationList.OR: {
-                condition.conditions.forEach(c => result = result || VcfHighlightConditionService.isHighlighted(variant, c));
+                condition.conditions.forEach(c => result = result || VcfHighlightConditionService.calculateHighlighted(variant, c));
                 break;
             }
         }
@@ -242,5 +249,13 @@ export default class VcfHighlightConditionService {
             return parseInt(value).toString();
         }
         return value.toLowerCase();
+    }
+
+    static _prepareVariant(value) {
+        const result = {};
+        Object.keys(value).forEach(key => {
+            result[key.toLowerCase()] = value[key];
+        });
+        return result;
     }
 }

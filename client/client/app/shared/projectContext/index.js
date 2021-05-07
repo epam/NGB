@@ -419,6 +419,10 @@ export default class projectContext {
         }
     }
 
+    get highlightProfileConditions() {
+        return this._highlightProfileConditions;
+    }
+
     convertTracksStateToJson(tracksState) {
         const self = this;
         const mapFn = function(ts) {
@@ -734,7 +738,32 @@ export default class projectContext {
     }
 
     setHighlightProfileConditions(highlightProfile) {
-        const highlightProfileList = this.getTrackDefaultSettings('interest_profiles');
+        let highlightProfileList = this.getTrackDefaultSettings('interest_profiles');
+
+        // TODO: remove before merge
+        highlightProfileList = {
+            'SV': {
+                'is_default': true,
+                'conditions': [
+                    {
+                        'highlight_color': 'ffbdbd',
+                        'condition': 'svtype == DEL'
+                    },
+                    {
+                        'highlight_color': 'ffff00',
+                        'condition': 'svtype == INS'
+                    },
+                    {
+                        'highlight_color': 'add8e6',
+                        'condition': 'svtype == SNV'
+                    },
+                    {
+                        'highlight_color': 'dddddd',
+                        'condition': 'svtype == BND'
+                    }
+                ]
+            }
+        };
         if(highlightProfileList && highlightProfileList[highlightProfile]) {
             this._highlightProfileConditions = highlightProfileList[highlightProfile].conditions.map(item => ({
                 highlightColor: item.highlight_color,
@@ -1977,7 +2006,7 @@ export default class projectContext {
         };
         const additionalFilters = this._vcfFilter ? this._vcfFilter.additionalFilters : {};
         let infoFields = this._infoFields || [];
-        infoFields = infoFields.concat(VcfHighlightConditionService.getFieldSet(this._highlightProfileConditions));
+        infoFields = infoFields.concat(VcfHighlightConditionService.getFieldSet(this.highlightProfileConditions));
 
         const pageSize = PAGE_SIZE;
         const orderBy = this._orderByVariations;
@@ -2082,7 +2111,8 @@ export default class projectContext {
         this.dispatcher.emit('variants:page:loading:finished');
 
         return entries.map(item => {
-            this._highlightProfileConditions.forEach(profile => {
+            item.info.type = item.variationType;
+            this.highlightProfileConditions.forEach(profile => {
                 if (!item.highlightColor && VcfHighlightConditionService.isHighlighted(item.info, profile.parsedCondition)) {
                     item.highlightColor = `#${profile.highlightColor}`;
                 }

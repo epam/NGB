@@ -26,6 +26,9 @@ export class VariantBaseContainer {
     get linesGraphics(): PIXI.Graphics {
         return this._linesGraphics;
     }
+    get highlightGraphics(): PIXI.Graphics {
+        return this._highlightGraphics;
+    }
 
     constructor(variant, config) {
         this._container = new PIXI.Container();
@@ -36,7 +39,6 @@ export class VariantBaseContainer {
         this._highlightGraphics = new PIXI.Graphics();
         this._linesGraphics = new PIXI.Graphics();
 
-        this._container.addChild(this._highlightGraphics);
         this._container.addChild(this._graphics);
     }
 
@@ -85,6 +87,7 @@ export class VariantBaseContainer {
                     Math.min(1, this._fadeFactor + (this._isFaded ? -fadeDelta : fadeDelta)));
             this.container.alpha = this._fadeFactor;
             this.linesGraphics.alpha = this._fadeFactor;
+            this.highlightGraphics.alpha = this._fadeFactor;
         }
         return needAnimateFade;
     }

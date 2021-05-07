@@ -72,6 +72,7 @@ export default class ngbVariantsTableController extends baseController {
         'display:variants:filter': ::this.refreshScope,
         'pageVariations:change': ::this.getDataOnPage,
         'reference:change': ::this.initialize,
+        'settings:change': ::this.globalSettingsChangedHandler,
         'variants:loading:finished': ::this.variantsLoadingFinished,
         'variants:loading:started': ::this.initialize
     };
@@ -84,6 +85,10 @@ export default class ngbVariantsTableController extends baseController {
         if (needRefresh) {
             this.$scope.$apply();
         }
+    }
+
+    globalSettingsChangedHandler() {
+        this.getDataOnPage(this.projectContext.currentPageVariations);
     }
 
     get isProjectSelected() {

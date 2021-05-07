@@ -23,15 +23,17 @@ export class VariantContainer extends VariantBaseContainer {
         this._tooltipParentContainer = tooltipContainer;
     }
 
-    render(viewport, manager) {
+    render(viewport, manager, renderContainerWidth) {
         super.render(viewport, manager);
         this.container.x = Math.round(viewport.project.brushBP2pixel(this._variant.startIndex));
         if (!this._componentIsBuilt) {
-            this.buildComponent(viewport, manager);
+            this.buildComponent(viewport, manager, renderContainerWidth);
         }
         this.manageEndLabels(viewport, manager);
         this.linesGraphics.x = this.container.x;
         this.linesGraphics.y = this.container.y;
+        this.highlightGraphics.x = this.container.x;
+        this.highlightGraphics.y = this.container.y;
         if (this._hasTooltip && this._tooltipPosition) {
             this._tooltipContainer.x = this._tooltipPosition.x + this.container.x;
             this._tooltipContainer.y = this._tooltipPosition.y + this.container.y;
@@ -93,12 +95,12 @@ export class VariantContainer extends VariantBaseContainer {
         }
     }
 
-    buildComponent(viewport, manager) {
+    buildComponent(viewport, manager, renderContainerWidth) {
         this.buildVariantTypeLabel(manager);
         this.buildVariantAlternativeAlleles(viewport, manager);
         const barConfig = drawZygosityBar(this._variant.zygosity, this._graphics, this._config.variant, this._bpLength);
         if (this._variant.highlightColor) {
-            this.drawHighlightArea(viewport, this.container.height);
+            this.drawHighlightArea(viewport, this.container.height, renderContainerWidth);
         }
         const globalConfig = {
             global: {
@@ -321,7 +323,8 @@ export class VariantContainer extends VariantBaseContainer {
                 layer: y,
                 position: alternativeAllele.mate.position,
                 range: region,
-                symbol: null
+                symbol: null,
+                color: this._variant.highlightColor
             });
             this.buildVariantEndLabel({
                 alignment: startAlignment,
@@ -331,7 +334,8 @@ export class VariantContainer extends VariantBaseContainer {
                 layer: y,
                 position: startPosition,
                 range: region,
-                symbol: this._variant.symbol || this._variant.structuralSymbol
+                symbol: this._variant.symbol || this._variant.structuralSymbol,
+                color: this._variant.highlightColor
             });
         } else {
             this.buildVariantEndLabel({
@@ -342,7 +346,8 @@ export class VariantContainer extends VariantBaseContainer {
                 layer: y,
                 position: region.startIndex,
                 range: {endIndex: region.endIndex, startIndex: region.startIndex},
-                symbol: this._variant.symbol || this._variant.structuralSymbol
+                symbol: this._variant.symbol || this._variant.structuralSymbol,
+                color: this._variant.highlightColor
             });
             this.buildVariantEndLabel({
                 alignment: 'left',
@@ -352,7 +357,8 @@ export class VariantContainer extends VariantBaseContainer {
                 layer: y,
                 position: region.endIndex,
                 range: {endIndex: region.endIndex, startIndex: region.startIndex},
-                symbol: null
+                symbol: null,
+                color: this._variant.highlightColor
             });
         }
     }
@@ -394,11 +400,12 @@ export class VariantContainer extends VariantBaseContainer {
             position: this._variant.startIndex,
             postfix: postfix,
             prefix: prefix,
-            symbol: null
+            symbol: null,
+            color: this._variant.highlightColor
         });
     }
 
-    drawHighlightArea(viewport, containerHeight) {
+    drawHighlightArea(viewport, containerHeight, renderContainerWidth) {
         const white = 0xFFFFFF;
         const region = this._variant.positioningInfos[0];
         const x1 = viewport.project.brushBP2pixel(region.startIndex)
@@ -407,11 +414,11 @@ export class VariantContainer extends VariantBaseContainer {
             - viewport.project.brushBP2pixel(this._variant.startIndex);
         let length, start;
         if (x1 <= x2) {
-            start = Math.floor(x1 - this._bpLength/2);
-            length = x2 + this._bpLength;
+            start = Math.floor(Math.max(x1, -renderContainerWidth) - this._bpLength/2);
+            length = Math.min(x2, renderContainerWidth) - start + this._bpLength/2;
         } else {
-            start = x2;
-            length = x1 + this._bpLength;
+            start = Math.floor(Math.max(x2, -renderContainerWidth) + this._bpLength/2);
+            length = Math.min(x1, renderContainerWidth) - start + this._bpLength/2;
         }
         this._highlightGraphics.lineStyle(0, white, 0);
         this._highlightGraphics
@@ -421,7 +428,7 @@ export class VariantContainer extends VariantBaseContainer {
     }
 
     buildVariantEndLabel(info) {
-        const {layer, alignment, chromosome, position, symbol, displayPosition, prefix, postfix} = info;
+        const {layer, alignment, chromosome, position, symbol, displayPosition, prefix, postfix, color} = info;
         const container = new PIXI.Container();
 
         const positionText = (displayPosition !== null && displayPosition !== undefined)
@@ -442,7 +449,7 @@ export class VariantContainer extends VariantBaseContainer {
         const background = new PIXI.Graphics();
         const margin = 1;
         background
-            .beginFill(variantStyle.fill, 1)
+            .beginFill(color, !!color)
             .drawRoundedRect(dX, -label.height / 2, label.width + 2 * margin, label.height + 2 * margin,
                 (label.height + 2 * margin) / 2)
             .endFill();
