@@ -223,6 +223,10 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     }
 
     public Map<Long, List<NgbSecurityGroup>> loadGroupsByUsersIds(List<Long> userIds) {
+        if (CollectionUtils.isEmpty(userIds)) {
+            return Collections.emptyMap();
+        }
+
         String query = DaoHelper.replaceInClause(loadGroupsByUserIdsQuery, userIds.size());
         return getJdbcTemplate().query(query, GroupParameters.getGroupByUserExtractor(), userIds.toArray());
     }
@@ -242,6 +246,10 @@ public class UserDao extends NamedParameterJdbcDaoSupport {
     }
 
     public List<NgbSecurityGroup> loadExistingGroupsFromList(List<String> groups) {
+        if (CollectionUtils.isEmpty(groups)) {
+            return Collections.emptyList();
+        }
+
         String query = DaoHelper.replaceInClause(loadExistingGroupsFromListQuery, groups.size());
         return getJdbcTemplate().query(query, GroupParameters.getGroupRowMapper(), groups.toArray());
     }

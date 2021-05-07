@@ -119,7 +119,12 @@ public class RoleDao extends NamedParameterJdbcDaoSupport {
     public List<Role> loadAllRoles() {
         return getJdbcTemplate().query(loadAllRolesQuery, RoleParameters.getRowMapper());
     }
+
     public Map<Long, List<Role>> loadRolesByUserIds(List<Long> userIds) {
+        if (CollectionUtils.isEmpty(userIds)) {
+            return Collections.emptyMap();
+        }
+
         String query = DaoHelper.replaceInClause(loadRolesByUserIdsQuery, userIds.size());
         Map<Long, List<Role>> result = new HashMap<>();
 

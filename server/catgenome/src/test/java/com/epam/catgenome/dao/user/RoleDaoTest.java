@@ -46,6 +46,8 @@ import com.epam.catgenome.dao.AbstractDaoTest;
 import com.epam.catgenome.entity.security.NgbUser;
 import com.epam.catgenome.entity.user.DefaultRoles;
 import com.epam.catgenome.entity.user.Role;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
@@ -71,6 +73,7 @@ public class RoleDaoTest extends AbstractDaoTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadRolesWithUsers() {
         roleDao.createRole(TEST_ROLE);
         Collection<Role> roles = roleDao.loadAllRoles();
@@ -79,6 +82,7 @@ public class RoleDaoTest extends AbstractDaoTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testRoleCRUD() {
         Role testRole = roleDao.createRole(TEST_ROLE);
         assertNotNull(testRole);
@@ -118,6 +122,7 @@ public class RoleDaoTest extends AbstractDaoTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testLoadRolesByUserIds() {
         Map<Long, List<Role>> roles = roleDao.loadRolesByUserIds(Collections.singletonList(user.getId()));
         assertEquals(3, roles.get(user.getId()).size());

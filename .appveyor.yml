@@ -12,8 +12,13 @@ stack: jdk 8, python 3
 
 build_script:
   - python3 -m pip install mkdocs mkdocs-material
-  - ./gradlew buildJar buildCli buildDoc buildDocker -PbuildNumber=${APPVEYOR_BUILD_NUMBER} -PnoTest
-  - ./gradlew jacocoTestReport
+  # Run NGB tests on H2
+  - ./gradlew :server:catgenome:check
+  # Run NGB tests on Postgres
+  - ./gradlew clean :server:catgenome:test :server:catgenome:jacocoTestReport -Pdatabase=postgres
+  # Publish coverage
   - bash <(curl -s https://codecov.io/bash)
+  # Build everything with no tests
+  - ./gradlew buildJar buildCli buildDoc buildDocker -PbuildNumber=${APPVEYOR_BUILD_NUMBER} -PnoTest
   - ./publish.sh
 test: off

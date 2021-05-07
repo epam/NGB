@@ -31,7 +31,10 @@ if [ $? -ne 0 ]; then
     exit 0
 fi
 
-if [[ "$APPVEYOR_REPO_BRANCH" == "develop" ]] || [[ "$APPVEYOR_REPO_BRANCH" == "release/"* ]]; then
+echo "branch: $APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH"
+
+if [[ "$APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" == "develop" ]] || [[ "$APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" == "release/"* ]]; then
+  echo "Publishing into Docker repository: $DOCKER_USER"
   docker login -u $DOCKER_USER -p $DOCKER_PSWD
   docker tag ngb:latest $DOCKER_USER/ngb:$NGB_VERSION
   docker push $DOCKER_USER/ngb:$NGB_VERSION

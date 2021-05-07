@@ -15,6 +15,11 @@ $ cd NGB
 ```
 $ ./gradlew server:catgenome:clean server:catgenome:build 
 ```
+
+*To build NGB server with Postgres database support, execute
+```
+$ ./gradlew server:catgenome:clean server:catgenome:build -Pdatabase=postgres
+``` 
 Several profiles are available for NGB server build:
     
   * **dev** - builds NGB server with a default configuration, in this case server's files and the database are stored in the root directory of the project

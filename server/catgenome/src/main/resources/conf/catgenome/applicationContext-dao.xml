@@ -1,0 +1,36 @@
+<beans xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/tx
+                           http://www.springframework.org/schema/tx/spring-tx.xsd
+                           http://www.springframework.org/schema/aop
+                           http://www.springframework.org/schema/aop/spring-aop.xsd"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop">
+
+    <!-- Registers JdbcTemplate bean to use it among all DAO instances -->
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!-- Imports definitions for all DAOs -->
+    <import resource="classpath:conf/catgenome/dao/dao-helper.xml"/>
+    <import resource="classpath:conf/catgenome/dao/reference-genome-dao.xml"/>
+    <import resource="classpath:conf/catgenome/dao/vcf-file-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/bam-file-dao.xml"/>
+    <import resource="classpath:conf/catgenome/dao/gene-file-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/biological-data-item-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/project-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/bed-graph-file-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/person-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/bookmark-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/bucket-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/bed-file-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/seg-file-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/maf-file-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/url-shorter-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/species-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/user-dao.xml" />
+    <import resource="classpath:conf/catgenome/dao/role-dao.xml" />
+
+</beans>
