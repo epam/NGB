@@ -2,6 +2,7 @@ import PIXI from 'pixi.js';
 import {PixiTextSize} from '../../../utilities';
 import  {Subject} from 'rx';
 
+import ExpandedState from './expandedState';
 import config from '../../whole-genome-config';
 import {ColorProcessor} from '../../../utilities';
 import {
@@ -64,7 +65,7 @@ export class ChromosomeColumnRenderer {
     chromosomesGraphics = {};
     /**
      * Stores per-chromosome expanded/collapsed state
-     * @type {{number: {expandable: boolean, expanded: boolean, trimmedLabelText: string}}}
+     * @type {{number: ExpandedState}}
      */
     chromosomesExpandedState = {};
     /**
@@ -93,6 +94,12 @@ export class ChromosomeColumnRenderer {
             displayTooltipFn
         });
     }
+
+    destroy () {
+        Object.values(this.chromosomesExpandedState || {})
+            .forEach(state => state.destroyAnimation());
+    }
+
     get mask() {
         return this.columnsMask;
     }
@@ -151,13 +158,20 @@ export class ChromosomeColumnRenderer {
         this.actualDrawingWidth = this.chromosomes.reduce((r, c) => r + this.getChromosomeAreaWidth(c), 0);
     }
 
-    toggleChromosomeExpand(chromosome, isExpanded) {
+    /**
+     * Changes chromosome expanded state
+     * @param chromosome
+     * @return {boolean} true if state was changed, false otherwise
+     */
+    toggleChromosomeExpand(chromosome) {
         const state = this.chromosomesExpandedState[chromosome.id];
-        if (state) {
-            state.expanded = !isExpanded;
+        if (state && state.expandable) {
+            state.setExpandedAnimated(!state.expanded);
             this.reCalculateActualDrawingWidth();
             this.rerender({reRenderChromosomes: [chromosome.id]});
+            return true;
         }
+        return false;
     }
 
     getChromosomeAreaWidth(chromosome) {
@@ -165,28 +179,22 @@ export class ChromosomeColumnRenderer {
             return 0;
         }
         const expandedState = this.chromosomesExpandedState[chromosome.id];
-        const expanded = expandedState && expandedState.expanded;
+        const expandFactor = expandedState && expandedState.expandFactor;
         const columns = (this.gridSizes[chromosome.id] || 0);
-        let size = columns * config.gridSize
+        const hitsSizeWithChromosome = columns * config.gridSize
             + 2 * config.chromosomeArea.margin
             + this.columnWidth;
-        if (!expanded) {
-            size = config.chromosomeArea.minimum;
-            return Math.min(
-                config.chromosomeArea.maximum,
-                Math.max(
-                    config.chromosomeArea.minimum,
-                    size
-                )
-            );
-        } else {
-            const labelSize = this.chromosomesLabelsWidth[chromosome.id] || 0;
-            size = Math.max(
-                size,
-                labelSize
-            );
-            return Math.max(size, config.chromosomeArea.maximum) + config.chromosomeArea.expand.width;
-        }
+        const minimumSize = config.chromosomeArea.minimum;
+        const labelSize = this.chromosomesLabelsWidth[chromosome.id] || 0;
+        const maximumSize = Math.min(
+            config.chromosomeArea.maximum,
+            Math.max(
+                hitsSizeWithChromosome,
+                labelSize,
+                config.chromosomeArea.minimum
+            )
+        ) + config.chromosomeArea.expand.width;
+        return minimumSize + expandFactor * (maximumSize - minimumSize);
     }
     /**
      * Renders chromosomes graphics
@@ -248,13 +256,7 @@ export class ChromosomeColumnRenderer {
                     graphics.buttonMode = true;
                     graphics.on('mousemove', onMousemove);
                     graphics.on('mousedown', () => {
-                        const expandedState = this.chromosomesExpandedState[chr.id];
-                        const expanded = expandedState && expandedState.expanded;
-                        const expandable = expandedState && expandedState.expandable;
-                        if (expandable) {
-                            graphics.clear();
-                            this.toggleChromosomeExpand(chr, expanded);
-                        }
+                        this.toggleChromosomeExpand(chr);
                     });
                     graphics.on('mouseout', () => {
                         if (this.expandButton[chr.id]) {
@@ -265,10 +267,9 @@ export class ChromosomeColumnRenderer {
                     graphics.on('mouseover', () => {
                         if (this.expandButton[chr.id]) {
                             this.expandButtonHovered[chr.id] = true;
-                            this.renderChromosomes({
+                            this.rerender({
                                 reRenderChromosomes: [chr.id]
                             });
-                            requestAnimationFrame(() => this.renderer.render(this.container));
                         }
                     });
                     this.chromosomesGraphics[chr.id] = graphics;
@@ -391,15 +392,19 @@ export class ChromosomeColumnRenderer {
                     config.chromosomeArea.minimum;
                 const chromosomeLabelText = getChromosomeLabelText(chromosome);
                 return {
-                    [chromosome.id]: {
-                        expandable: hitsOutOfMinimumArea || chromosomeNameOutOfArea,
-                        expanded: false,
-                        trimmedLabelText: PixiTextSize.trimTextToFitWidth(
+                    [chromosome.id]: new ExpandedState(
+                        hitsOutOfMinimumArea || chromosomeNameOutOfArea,
+                        PixiTextSize.trimTextToFitWidth(
                             chromosomeLabelText,
                             config.chromosomeArea.minimum - config.chromosomeArea.label.margin,
                             config.chromosomeArea.label.style
-                        )
-                    }
+                        ),
+                        () => {
+                            this.rerender({
+                                reRenderChromosomes: [chromosome.id]
+                            });
+                        }
+                    )
                 };
             })
             .reduce((r, c) => ({...r, ...c}), {});
@@ -525,7 +530,6 @@ export class ChromosomeColumnRenderer {
             .lineTo(0, 0);
         if (this.gridContent && this.gridContent[chromosome.id]) {
             const expandedState = this.chromosomesExpandedState[chromosome.id];
-            const expanded = expandedState && expandedState.expanded;
             const expandable = expandedState && expandedState.expandable;
             const initialMargin = this.columnWidth + config.chromosomeArea.margin;
             const xLimit = expandable
@@ -547,7 +551,7 @@ export class ChromosomeColumnRenderer {
                         } = hit;
                         const x1 = initialMargin + (x - 1) * config.gridSize;
                         const x2 = x1 + config.gridSize - 1;
-                        hit.displayed = expanded || x2 < xLimit;
+                        hit.displayed = x2 < xLimit;
                         if (hit.displayed) {
                             graphics
                                 .lineStyle(1, config.hit.onHover.lineColor, hit === this.hoveredHit ? 1 : 0)
@@ -625,10 +629,27 @@ export class ChromosomeColumnRenderer {
             }
         });
         this.scrollContainer.on('mousedown', (event) => {
-            const scrollingStartPosition = event.data.global.x;
+            const scrollingStartPosition = event.data.getLocalPosition(event.target).x;
+            const scrollerX1 = this.convertDrawingCoordinateToScrollCoordinate(this.scrollPosition);
+            const scrollerX2 = this.convertDrawingCoordinateToScrollCoordinate(this.scrollPosition + this.containerWidth);
+            if (scrollingStartPosition < scrollerX1 || scrollingStartPosition > scrollerX2) {
+                // user clicked outside of scroller;
+                // we should scroll to clicked position
+                const newScrollPosition = this.convertScrollCoordinateToDrawingCoordinate(
+                    scrollingStartPosition - (scrollerX2 - scrollerX1) / 2.0
+                );
+                this.scrollPosition = Math.max(
+                    0,
+                    Math.min(
+                        newScrollPosition,
+                        this.actualDrawingWidth - this.containerWidth
+                    )
+                );
+                this.rerender();
+            }
             const currentScrollPosition = this.scrollPosition;
             subscription = pixiEvent$.subscribe((e) => {
-                const deltaFromMouseDown = e.data.global.x - scrollingStartPosition;
+                const deltaFromMouseDown = e.data.getLocalPosition(event.target).x - scrollingStartPosition;
 
                 const delta = this.convertScrollCoordinateToDrawingCoordinate(deltaFromMouseDown);
 
@@ -753,8 +774,7 @@ export class ChromosomeColumnRenderer {
         this.scrollContainer.removeAllListeners();
         this.activateMask();
         this.createScrollBar();
-        this.renderChromosomes();
-        requestAnimationFrame(() => this.renderer.render(this.container));
+        this.rerender();
     }
     hideHitInfo() {
         this.displayTooltipFn(null, null);
