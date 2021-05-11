@@ -74,7 +74,12 @@ public enum BiologicalDataItemResourceType {
     /**
      * Indicates that item was downloaded by NGB and is located in it's download directory
      */
-    DOWNLOAD(7);
+    DOWNLOAD(7),
+
+    /**
+     * Azure blobs
+     */
+    AZ(8);
 
 
     private long id;
@@ -88,6 +93,7 @@ public enum BiologicalDataItemResourceType {
         idMap.put(HDFS.id, HDFS);
         idMap.put(GA4GH.id, GA4GH);
         idMap.put(DOWNLOAD.id, DOWNLOAD);
+        idMap.put(AZ.id, AZ);
     }
 
     BiologicalDataItemResourceType(long id) {
@@ -102,7 +108,6 @@ public enum BiologicalDataItemResourceType {
         if (id == null) {
             return null;
         }
-
         return idMap.get(id);
     }
 
@@ -119,6 +124,8 @@ public enum BiologicalDataItemResourceType {
     public static BiologicalDataItemResourceType getTypeFromPath(final String path) {
         if (path.startsWith("s3") || path.startsWith("sws")) {
             return S3;
+        } else if (path.startsWith("az")) {
+            return AZ;
         } else if (NgbFileUtils.isRemotePath(path)) {
             return URL;
         } else {
