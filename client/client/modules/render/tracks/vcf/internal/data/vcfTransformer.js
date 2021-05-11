@@ -47,7 +47,7 @@ export class VcfTransformer extends GeneTransformer {
 
         data.forEach(variant => VcfAnalyzer.analyzeVariant(variant, this._chromosome.name));
         for (let i = 0; i < data.length; i++) {
-            const variant = data[i];
+            const variant = this.addHighlight(this._highlightProfileConditions, data[i]);
             variant.variationsCount = variant.variationsCount || 1;
             if (viewport.isShortenedIntronsMode && viewport.shortenedIntronsViewport.shouldSkipFeature(variant))
                 continue;
@@ -63,6 +63,16 @@ export class VcfTransformer extends GeneTransformer {
                         (previousItem.endIndex + previousItem.startIndex) / 2
                         + viewport.convert.pixel2brushBP(previousItem.bubble.radius)) {
 
+                        if (!previousItem.variants) {
+                            previousItem.variants = [Object.assign({}, {
+                                highlightColor: previousItem.highlightColor,
+                                variationsCount: previousItem.variationsCount
+                            })];
+                        }
+                        previousItem.variants.push({
+                            highlightColor: variant.highlightColor,
+                            variationsCount: variant.variationsCount
+                        });
                         previousItem.isStatistics = true;
                         previousItem.variationsCount += variant.variationsCount;
                         previousItem.endIndex = variant.endIndex;
@@ -71,6 +81,10 @@ export class VcfTransformer extends GeneTransformer {
                             + this.config.statistics.bubble.padding;
                         continue;
                     }
+                }
+                if (variant.type.toLowerCase() === 'statistic') {
+                    // process server bubbles color
+                    variant.variants = [];
                 }
                 const item = Object.assign({}, variant, {
                     bubble: {
@@ -87,7 +101,6 @@ export class VcfTransformer extends GeneTransformer {
         }
 
         variants.forEach(variant => this.addAllelesDescriptions(variant));
-        variants.forEach(variant => this.addHighlight(this._highlightProfileConditions, variant));
         variants = this.combineBubbles(variants, viewport);
         const hoverData = this.addVariantsLayerIndices(variants);
         return {
@@ -113,7 +126,7 @@ export class VcfTransformer extends GeneTransformer {
         let previousItem = null;
         const labelStyle = this.config.statistics.label;
         for (let i = 0; i < data.length; i++) {
-            const variant = data[i];
+            const variant = this.addHighlight(this._highlightProfileConditions, data[i]);
             variant.variationsCount = variant.variationsCount || 1;
             if (viewport.isShortenedIntronsMode && viewport.shortenedIntronsViewport.shouldSkipFeature(variant))
                 continue;
@@ -156,7 +169,6 @@ export class VcfTransformer extends GeneTransformer {
             }
         }
         variants.forEach(variant => this.addAllelesDescriptions(variant));
-        variants.forEach(variant => this.addHighlight(this._highlightProfileConditions, variant));
         variants = this.expandBubbles(this.combineBubbles(variants, viewport));
         data = null;
         return variants;
@@ -179,17 +191,14 @@ export class VcfTransformer extends GeneTransformer {
     }
 
     addHighlight(highlightProfileConditions, variant) {
-        const linearizedInfo = {
-            // TODO: remove before merge
-            quality: '1',
-            svtype: variant.type
-        };
+        const linearizedInfo = {};
         Object.keys(variant.info).forEach(name => linearizedInfo[name] = variant.info[name].value);
         highlightProfileConditions.forEach(item => {
             if (!variant.highlightColor && VcfHighlightConditionService.isHighlighted(linearizedInfo, item.parsedCondition)) {
                 variant.highlightColor = `0x${item.highlightColor.toUpperCase()}`;
             }
         });
+        return variant;
     }
 
     combineBubbles(items, viewport) {

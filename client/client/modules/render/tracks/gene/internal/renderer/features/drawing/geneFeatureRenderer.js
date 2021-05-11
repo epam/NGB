@@ -72,14 +72,14 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
     static getFeatureFillColor(featureName, opts, config) {
         if (featureName !== 'gene' && opts && opts.gffColorByFeatureType) {
             const colorMask = 0x00FFFFFF;
-            return GeneFeatureRenderer.hashCode(featureName) & colorMask
+            return GeneFeatureRenderer.hashCode(featureName) & colorMask;
         }
         return config.gene.bar.fill;
     }
 
-    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
-        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
-        const featurePxStart = Math.max(viewport.project.brushBP2pixel(feature.startIndex), - viewport.canvasSize);
+    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+        const featurePxStart = Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize);
         const featurePxEnd = Math.min(viewport.project.brushBP2pixel(feature.endIndex + 1), 2 * viewport.canvasSize);
         const width = featurePxEnd - featurePxStart;
         if (width < 0) {
@@ -116,7 +116,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
             if (startX > endX) {
                 return;
             }
-            graphics
+            graphics.graphics
                 .beginFill(fillColor, 1)
                 .drawRect(
                     startX,
@@ -125,7 +125,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                     Math.round(geneBar.height)
                 )
                 .endFill();
-            hoveredGraphics
+            graphics.hoveredGraphics
                 .beginFill(ColorProcessor.darkenColor(fillColor), 1)
                 .drawRect(
                     startX,
@@ -152,7 +152,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                             - Math.max(project.brushBP2pixel(feature.startIndex), -viewport.canvasSize), maxViewportsOnScreen * viewport.canvasSize),
                         x: Math.max(project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2, -viewport.canvasSize)
                     },
-                    graphics,
+                    graphics.graphics,
                     white,
                     gene.strand.arrow,
                     1,
@@ -167,7 +167,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                             - Math.max(project.brushBP2pixel(feature.startIndex), -viewport.canvasSize), maxViewportsOnScreen * viewport.canvasSize),
                         x: Math.max(project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2, -viewport.canvasSize)
                     },
-                    hoveredGraphics,
+                    graphics.hoveredGraphics,
                     white,
                     gene.strand.arrow,
                     1,
@@ -180,8 +180,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                 y1: position.y + geneNameLabelHeight,
                 y2: position.y + geneNameLabelHeight + geneBar.height
             });
-        }
-        else {
+        } else {
             const dockableGraphics = new PIXI.Graphics();
             dockableGraphics
                 .lineStyle(1, geneBar.callout, 1)
@@ -200,7 +199,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
             const transcript = this.config.transcript;
 
             for (let i = 0; i < transcriptLength; i++) {
-                this._transcriptFeatureRenderer.render(transcripts[i], viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, {
+                this._transcriptFeatureRenderer.render(transcripts[i], viewport, graphics.graphics, graphics.hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, {
                     x: position.x,
                     y: transcriptY
                 });
@@ -210,8 +209,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
                 if (transcripts[i].name !== null) {
                     const labelSize = PixiTextSize.getTextSize(transcripts[i].name, transcript.label);
                     transcriptY += labelSize.height + transcript.label.marginTop + transcript.height + transcript.marginTop + (transcriptAminoacidsFitsViewport ? this._transcriptFeatureRenderer._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
-                }
-                else {
+                } else {
                     transcriptY += transcript.height + transcript.marginTop + (transcriptAminoacidsFitsViewport ? this._transcriptFeatureRenderer._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
                 }
             }

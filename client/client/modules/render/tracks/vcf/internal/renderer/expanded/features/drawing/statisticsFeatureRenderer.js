@@ -34,8 +34,8 @@ export default class StatisticsFeatureRenderer extends FeatureBaseRenderer {
         };
     }
 
-    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position) {
-        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position) {
+        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
         const pixelsInBp = viewport.factor;
         const labelStyle = this.config.variant.allele.label;
         const symbol =  StatisticsFeatureRenderer.getStatisticsText(feature);
@@ -63,13 +63,13 @@ export default class StatisticsFeatureRenderer extends FeatureBaseRenderer {
             false,
             true);
         const white = 0xFFFFFF;
-        graphics.lineStyle(0, white, 0);
-        graphics
+        graphics.graphics.lineStyle(0, white, 0);
+        graphics.graphics
             .beginFill(this.config.variant.zygosity.unknownColor, 1)
             .drawRect(cX - width / 2, cY - height / 2, width, height)
             .endFill();
-        hoveredGraphics.lineStyle(0, white, 0);
-        hoveredGraphics
+        graphics.hoveredGraphics.lineStyle(0, white, 0);
+        graphics.hoveredGraphics
             .beginFill(ColorProcessor.darkenColor(this.config.variant.zygosity.unknownColor), 1)
             .drawRect(cX - width / 2, cY - height / 2, width, height)
             .endFill();

@@ -1,6 +1,7 @@
 import {ColorProcessor, PixiTextSize} from '../../../../../../../utilities';
 import FeatureBaseRenderer from '../../../../../../gene/internal/renderer/features/drawing/featureBaseRenderer';
 import {drawingConfiguration} from '../../../../../../../core';
+
 const Math = window.Math;
 
 export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
@@ -16,7 +17,7 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
         const textX1 = Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize) - pixelsInBp / 2 - textSize.width / 2;
         const textX2 = textX1 + textSize.width;
         return {
-            margin:{
+            margin: {
                 marginX: 2,
                 marginY: 2
             },
@@ -46,7 +47,7 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
         dockableContainer.addChild(element);
         const background = new PIXI.Graphics();
         background
-            .beginFill(style.fill, 1)
+            .beginFill(attachmentInfo.color || style.fill, 1)
             .drawRoundedRect(0, 0, label.width + 2 * margin, label.height + 2 * margin,
                 (label.height + 2 * margin) / 2)
             .endFill();
@@ -59,11 +60,38 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
         return feature.symbol || feature.type;
     }
 
-    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position) {
-        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+    calculateHighlightArea(feature, viewport, opts) {
+        let startIndex = feature.startIndex,
+            endIndex = feature.endIndex;
+        const [alternativeAlleleInfo] = feature.alternativeAllelesInfo.filter(x => x.mate);
+        if (alternativeAlleleInfo && !feature.interChromosome) {
+            startIndex = Math.min(feature.startIndex, alternativeAlleleInfo.mate.position);
+            endIndex = Math.max(feature.startIndex, alternativeAlleleInfo.mate.position);
+        }
+        const x1 = Math.round(Math.max(viewport.project.brushBP2pixel(startIndex), -viewport.canvasSize));
+        const x2 = Math.round(Math.max(viewport.project.brushBP2pixel(endIndex), -viewport.canvasSize));
+        let length, start;
+        if (x1 <= x2) {
+            start = Math.floor(Math.max(x1, -opts.renderContainerWidth) - opts.pixelsInBp / 2);
+            length = Math.min(x2, opts.renderContainerWidth) - start + opts.pixelsInBp / 2;
+        } else {
+            start = Math.floor(Math.max(x2, -opts.renderContainerWidth) + opts.pixelsInBp / 2);
+            length = Math.min(x1, opts.renderContainerWidth) - start + opts.pixelsInBp / 2;
+        }
+        return {
+            start, length,
+            y: opts.cY - opts.height,
+            height: opts.height
+        };
+    }
+
+
+    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+        const white = 0xFFFFFF;
         const pixelsInBp = viewport.factor;
         const labelStyle = this.config.variant.allele.label;
-        const symbol =  this.getFeatureDisplayText(feature);
+        const symbol = this.getFeatureDisplayText(feature);
         const label = new PIXI.Text(symbol, labelStyle);
         const width = Math.max(pixelsInBp, 3);
         const height = this.config.variant.height;
@@ -77,6 +105,22 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
         label.resolution = drawingConfiguration.resolution;
         label.x = Math.round(labelPosition.x);
         label.y = Math.round(labelPosition.y);
+        if (feature.highlightColor) {
+            const highlightArea = this.calculateHighlightArea(feature, viewport, {
+                cY: Math.floor(cY + height/2),
+                height: position.height,
+                pixelsInBp: pixelsInBp,
+                renderContainerWidth: viewport.canvasSize
+            });
+            graphics.highlightGraphics
+                .lineStyle(0, white, 0)
+                .beginFill(feature.highlightColor, 1)
+                .drawRect(highlightArea.start, highlightArea.y, highlightArea.length, highlightArea.height);
+            graphics.hoveredHighlightGraphics
+                .beginFill(ColorProcessor.darkenColor(feature.highlightColor), 1)
+                .drawRect(highlightArea.start, highlightArea.y, highlightArea.length, highlightArea.height)
+                .endFill();
+        }
         labelContainer.addChild(label);
         this.registerLabel(
             label,
@@ -87,18 +131,17 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
             },
             false,
             true);
-        const white = 0xFFFFFF;
-        graphics.lineStyle(0, white, 0);
-        hoveredGraphics.lineStyle(0, white, 0);
+        graphics.graphics.lineStyle(0, white, 0);
+        graphics.hoveredGraphics.lineStyle(0, white, 0);
         const zygosity = feature.zygosity;
         switch (zygosity) {
             case 1: {
                 // homozygous
-                graphics
+                graphics.graphics
                     .beginFill(this.config.variant.zygosity.homozygousColor, 1)
                     .drawRect(Math.floor(cX - width / 2), Math.floor(cY - height / 2), width, height)
                     .endFill();
-                hoveredGraphics
+                graphics.hoveredGraphics
                     .beginFill(ColorProcessor.darkenColor(this.config.variant.zygosity.homozygousColor), 1)
                     .drawRect(Math.floor(cX - width / 2), Math.floor(cY - height / 2), width, height)
                     .endFill();
@@ -106,31 +149,31 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
                 break;
             case 2: {
                 // heterozygous
-                graphics
+                graphics.graphics
                     .beginFill(this.config.variant.zygosity.homozygousColor, 1)
                     .drawRect(Math.floor(cX - width / 2), Math.floor(cY - height / 2), width, height / 2)
                     .endFill();
-                graphics
+                graphics.graphics
                     .beginFill(this.config.variant.zygosity.heterozygousColor, 1)
                     .drawRect(Math.floor(cX - width / 2), Math.floor(cY), width, height / 2)
                     .endFill();
 
-                hoveredGraphics
+                graphics.hoveredGraphics
                     .beginFill(ColorProcessor.darkenColor(this.config.variant.zygosity.homozygousColor), 1)
                     .drawRect(Math.floor(cX - width / 2), Math.floor(cY - height / 2), width, height / 2)
                     .endFill();
-                hoveredGraphics
+                graphics.hoveredGraphics
                     .beginFill(ColorProcessor.darkenColor(this.config.variant.zygosity.heterozygousColor), 1)
                     .drawRect(Math.floor(cX - width / 2), Math.floor(cY), width, height / 2)
                     .endFill();
             }
                 break;
             default: {
-                graphics
+                graphics.graphics
                     .beginFill(this.config.variant.zygosity.unknownColor, 1)
                     .drawRect(Math.floor(cX - width / 2), Math.floor(cY - height / 2), width, height)
                     .endFill();
-                hoveredGraphics
+                graphics.hoveredGraphics
                     .beginFill(ColorProcessor.darkenColor(this.config.variant.zygosity.unknownColor), 1)
                     .drawRect(Math.floor(cX - width / 2), Math.floor(cY - height / 2), width, height)
                     .endFill();

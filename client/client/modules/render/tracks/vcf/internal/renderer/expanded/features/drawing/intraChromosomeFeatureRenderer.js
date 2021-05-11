@@ -21,7 +21,7 @@ export default class IntraChromosomeFeatureRenderer extends SVFeatureRenderer {
         return boundaries;
     }
 
-    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
         let startIndex = feature.startIndex;
         let endIndex = feature.endIndex;
         const [alternativeAlleleInfo] = feature.alternativeAllelesInfo.filter(x => x.mate);
@@ -34,24 +34,24 @@ export default class IntraChromosomeFeatureRenderer extends SVFeatureRenderer {
             const cX1 = Math.round(Math.max(viewport.project.brushBP2pixel(startIndex), -viewport.canvasSize) - viewport.factor / 2);
             const cX2 = Math.round(Math.min(viewport.project.brushBP2pixel(endIndex), 2 * viewport.canvasSize) + viewport.factor / 2);
             const cY = Math.round(position.y + position.height - height / 2);
-            graphics
+            graphics.graphics
                 .lineStyle(this.config.variant.multipleNucleotideVariant.thickness,
                     this.config.variant.multipleNucleotideVariant.color,
                     this.config.variant.multipleNucleotideVariant.alpha);
-            hoveredGraphics
+            graphics.hoveredGraphics
                 .lineStyle(this.config.variant.multipleNucleotideVariant.thickness,
                     ColorProcessor.darkenColor(this.config.variant.multipleNucleotideVariant.color),
                     this.config.variant.multipleNucleotideVariant.alpha);
             if (feature.startIndex !== startIndex) {
-                graphics
+                graphics.graphics
                     .moveTo(cX1 - this.config.variant.multipleNucleotideVariant.thickness / 2, cY - height / 3)
                     .lineTo(cX1 - this.config.variant.multipleNucleotideVariant.thickness / 2, cY + height / 3);
             }
-            graphics
+            graphics.graphics
                 .moveTo(cX1, cY - this.config.variant.multipleNucleotideVariant.thickness / 2)
                 .lineTo(cX2, cY - this.config.variant.multipleNucleotideVariant.thickness / 2);
             if (feature.startIndex !== endIndex) {
-                graphics
+                graphics.graphics
                     .moveTo(cX2 - this.config.variant.multipleNucleotideVariant.thickness / 2, cY - height / 3)
                     .lineTo(cX2 - this.config.variant.multipleNucleotideVariant.thickness / 2, cY + height / 3);
             }
@@ -63,6 +63,7 @@ export default class IntraChromosomeFeatureRenderer extends SVFeatureRenderer {
                 attachedAt: 'right',
                 hideOnVisible: true,
                 position: position.y + position.height - height / 2,
+                color: feature.highlightColor,
                 range: {
                     start: startIndex,
                     end: endIndex
@@ -71,6 +72,7 @@ export default class IntraChromosomeFeatureRenderer extends SVFeatureRenderer {
             this.generateAttachedElement({
                 attachedAt: 'left',
                 hideOnVisible: true,
+                color: feature.highlightColor,
                 position: position.y + position.height - height / 2,
                 range: {
                     start: startIndex,
@@ -82,7 +84,7 @@ export default class IntraChromosomeFeatureRenderer extends SVFeatureRenderer {
                 y: cY - height / 3
             });
         }
-        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
     }
 
     registerFeature(feature, viewport, position) {

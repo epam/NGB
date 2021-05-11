@@ -738,32 +738,7 @@ export default class projectContext {
     }
 
     setHighlightProfileConditions(highlightProfile) {
-        let highlightProfileList = this.getTrackDefaultSettings('interest_profiles');
-
-        // TODO: remove before merge
-        highlightProfileList = {
-            'SV': {
-                'is_default': true,
-                'conditions': [
-                    {
-                        'highlight_color': 'ffbdbd',
-                        'condition': 'svtype == DEL'
-                    },
-                    {
-                        'highlight_color': 'ffff00',
-                        'condition': 'svtype == INS'
-                    },
-                    {
-                        'highlight_color': 'add8e6',
-                        'condition': 'svtype == SNV'
-                    },
-                    {
-                        'highlight_color': 'dddddd',
-                        'condition': 'svtype == BND'
-                    }
-                ]
-            }
-        };
+        const highlightProfileList = this.getTrackDefaultSettings('interest_profiles');
         if(highlightProfileList && highlightProfileList[highlightProfile]) {
             this._highlightProfileConditions = highlightProfileList[highlightProfile].conditions.map(item => ({
                 highlightColor: item.highlight_color,

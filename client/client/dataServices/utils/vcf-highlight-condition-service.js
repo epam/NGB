@@ -45,7 +45,7 @@ export default class VcfHighlightConditionService {
             value = VcfHighlightConditionService._prepareArray(value);
         }
         return {
-            field: VcfHighlightConditionService._removeExtraQuotes(rawParsedExpression[0]).toLowerCase(),
+            field: VcfHighlightConditionService._removeExtraQuotes(rawParsedExpression[0]),
             operator: operator,
             type: VcfHighlightConditionService.conditionTypeList.EXPRESSION,
             value: value
@@ -128,10 +128,7 @@ export default class VcfHighlightConditionService {
     }
 
     static isHighlighted(variant, condition) {
-        return VcfHighlightConditionService.calculateHighlighted(
-            VcfHighlightConditionService._prepareVariant(variant),
-            condition
-        );
+        return VcfHighlightConditionService.calculateHighlighted(variant, condition);
     }
 
     static calculateHighlighted(variant, condition) {
@@ -249,13 +246,5 @@ export default class VcfHighlightConditionService {
             return parseInt(value).toString();
         }
         return value.toLowerCase();
-    }
-
-    static _prepareVariant(value) {
-        const result = {};
-        Object.keys(value).forEach(key => {
-            result[key.toLowerCase()] = value[key];
-        });
-        return result;
     }
 }
