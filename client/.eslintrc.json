@@ -26,6 +26,7 @@
   "rules": {
     "indent": ["error", 4, { "SwitchCase": 1 }],
     "linebreak-style": 0,
+    "eol-last": "error",
     "quotes": ["error", "single"],
     "semi": ["error", "always"],
     "accessor-pairs": 1,

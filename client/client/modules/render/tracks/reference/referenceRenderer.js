@@ -1,4 +1,3 @@
-import {BP_OFFSET} from '../bam/internal/renderer/features';
 import * as modes from './reference.modes';
 import {aminoAcidsConst, CachedTrackRenderer, drawingConfiguration} from '../../core';
 
@@ -15,6 +14,7 @@ export default class ReferenceRenderer extends CachedTrackRenderer {
         this._config = config;
         this._height = config.height;
         this.initializeLettersTextures(renderer);
+        this.initializeCentralLine();
     }
 
     initializeLettersTextures(renderer) {

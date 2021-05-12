@@ -3,13 +3,11 @@ export default class VcfAnalyzer{
     static getVariantTranslation(variant){
         if (variant.type === null || variant.type === undefined)
             return 0;
-        if (variant.type.toLowerCase() === 'ins'){
+        if (variant.type.toLowerCase() === 'ins') {
             return +1;
-        }
-        else if (variant.type.toLowerCase() === 'del'){
+        } else if (variant.type.toLowerCase() === 'del' && !variant.structural) {
             return +1;
-        }
-        else if (variant.type.toLowerCase() === 'snv'){
+        } else if (variant.type.toLowerCase() === 'snv') {
             return 0;
         }
         else {

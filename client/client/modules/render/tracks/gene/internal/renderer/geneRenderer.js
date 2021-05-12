@@ -40,6 +40,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
         this.container.addChild(this._attachedElementsContainer);
         this.container.addChild(this._dockableElementsContainer);
         this.container.addChild(this._labelsContainer);
+        this.initializeCentralLine();
     }
 
     get config() {
@@ -117,10 +118,11 @@ export default class GeneRenderer extends CachedTrackRenderer {
                 collapsedMode: this._collapsedMode
             };
             this.featureRenderer.prepare();
-            const {graphics, hoveredGraphics} = this.featureRenderer.render(cache.data, viewport, this._labelsContainer, this._dockableElementsContainer, this._attachedElementsContainer);
+            const {graphics, hoveredGraphics, highlightGraphics, hoveredHighlightGraphics} = this.featureRenderer.render(cache.data, viewport, this._labelsContainer, this._dockableElementsContainer, this._attachedElementsContainer);
             if (graphics !== null) {
                 if (this.needConvertGraphicsToTexture) {
                     let temporaryContainer = new PIXI.Container();
+                    temporaryContainer.addChild(highlightGraphics);
                     temporaryContainer.addChild(graphics);
                     const coordinates = this.featureRenderer.textureCoordinates;
                     const texture = temporaryContainer.generateTexture(this._pixiRenderer, drawingConfiguration.resolution, drawingConfiguration.scale);
@@ -131,6 +133,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
                     graphics.clear();
                     temporaryContainer = null;
                 } else {
+                    this.dataContainer.addChild(highlightGraphics);
                     this.dataContainer.addChild(graphics);
                 }
             }
@@ -138,6 +141,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
                 this._hoveredItemContainer.removeChildren();
                 if (this.needConvertGraphicsToTexture) {
                     let temporaryContainer = new PIXI.Container();
+                    temporaryContainer.addChild(hoveredHighlightGraphics);
                     temporaryContainer.addChild(hoveredGraphics);
                     const coordinates = this.featureRenderer.textureCoordinates;
                     const texture = temporaryContainer.generateTexture(this._pixiRenderer, drawingConfiguration.resolution, drawingConfiguration.scale);
@@ -148,6 +152,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
                     hoveredGraphics.clear();
                     temporaryContainer = null;
                 } else {
+                    this._hoveredItemContainer.addChild(hoveredHighlightGraphics);
                     this._hoveredItemContainer.addChild(hoveredGraphics);
                 }
                 this.hoverItem(null, viewport, false);

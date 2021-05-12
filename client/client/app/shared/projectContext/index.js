@@ -1,4 +1,5 @@
 import {utilities} from '../../../app/components/ngbDataSets/internal';
+import * as vcfHighlightCondition from '../../../dataServices/utils/vcf-highlight-condition-service';
 
 const Math = window.Math;
 
@@ -18,14 +19,15 @@ const PREDEFINED_TRACKS_SELECTORS = [REFERENCE_TRACK_SELECTOR, GENOME_TRACKS_SEL
 
 export default class projectContext {
 
-    static instance(dispatcher, genomeDataService, projectDataService, utilsDataService) {
-        return new projectContext(dispatcher, genomeDataService, projectDataService, utilsDataService);
+    static instance(dispatcher, genomeDataService, projectDataService, utilsDataService, localDataService) {
+        return new projectContext(dispatcher, genomeDataService, projectDataService, utilsDataService, localDataService);
     }
 
     dispatcher;
     genomeDataService;
     projectDataService;
     utilsDataService;
+    localDataService;
 
     _tracksStateMinificationRules = {
         bioDataItemId: 'b',
@@ -96,6 +98,7 @@ export default class projectContext {
     _variantsGroupByTypeError = null;
     _variantsGroupByQualityError = null;
     _containsVcfFiles = true;
+    _highlightProfileConditions = [];
 
     _bookmarkVisibility = true;
     _rewriteLayout = true;
@@ -383,12 +386,8 @@ export default class projectContext {
 
     set vcfColumns(columns) {
         localStorage.setItem('vcfColumns', JSON.stringify(columns || []));
-        const oldColumns = this.vcfColumns.sort().reduce((names, name) => {
-            return `${names}|${name}`;
-        }, '');
-        const newColumns = columns.sort().reduce((names, name) => {
-            return `${names}|${name}`;
-        }, '');
+        const oldColumns = this.vcfColumns.sort().reduce((names, name) => `${names}|${name}`, '');
+        const newColumns = columns.sort().reduce((names, name) => `${names}|${name}`, '');
         if (newColumns !== oldColumns) {
             this._isVariantsInitialized = false;
         }
@@ -418,6 +417,10 @@ export default class projectContext {
         } else {
             this._tracksState = [];
         }
+    }
+
+    get highlightProfileConditions() {
+        return this._highlightProfileConditions;
     }
 
     convertTracksStateToJson(tracksState) {
@@ -595,8 +598,8 @@ export default class projectContext {
     }
 
     get browserHomePageUrl() {
-        if (this.ngbDefaultSettings && this.ngbDefaultSettings['home'] && this.ngbDefaultSettings['home'].url) {
-            return this.ngbDefaultSettings['home'].url;
+        if (this.ngbDefaultSettings && this.ngbDefaultSettings.home && this.ngbDefaultSettings.home.url) {
+            return this.ngbDefaultSettings.home.url;
         }
         return null;
     }
@@ -662,11 +665,12 @@ export default class projectContext {
         }
     }
 
-    constructor(dispatcher, genomeDataService, projectDataService, utilsDataService) {
+    constructor(dispatcher, genomeDataService, projectDataService, utilsDataService, localDataService) {
         this.dispatcher = dispatcher;
         this.genomeDataService = genomeDataService;
         this.projectDataService = projectDataService;
         this.utilsDataService = utilsDataService;
+        this.localDataService = localDataService;
         for (const attr in this._tracksStateMinificationRules) {
             if (this._tracksStateMinificationRules.hasOwnProperty(attr)) {
                 this._tracksStateRevertRules[this._tracksStateMinificationRules[attr]] = attr;
@@ -676,6 +680,8 @@ export default class projectContext {
             await this.refreshBrowsingAllowedStatus();
             await this.getDefaultTrackSettings();
             await this.refreshReferences();
+            // TODO: change to localStorage if needed
+            this.setHighlightProfileConditions(this.localDataService.getSettings().highlightProfile);
         })();
         this.initEvents();
     }
@@ -685,6 +691,7 @@ export default class projectContext {
         const hotkeyPressedFn = ::this.hotkeyPressed;
         this.dispatcher.on('variants:reset:filter', resetVariantsFilterFn);
         this.dispatcher.on('hotkeyPressed', hotkeyPressedFn);
+        this.dispatcher.on('settings:change', ::this.globalSettingsChangedHandler);
     }
 
     hotkeyPressed(event) {
@@ -728,6 +735,22 @@ export default class projectContext {
             }
         }
         return settings;
+    }
+
+    setHighlightProfileConditions(highlightProfile) {
+        const highlightProfileList = this.getTrackDefaultSettings('interest_profiles');
+        if(highlightProfileList && highlightProfileList[highlightProfile]) {
+            this._highlightProfileConditions = highlightProfileList[highlightProfile].conditions.map(item => ({
+                highlightColor: item.highlight_color,
+                parsedCondition: vcfHighlightCondition.parseFullCondition(item.condition)
+            }));
+        } else {
+            this._highlightProfileConditions = [];
+        }
+    }
+
+    globalSettingsChangedHandler(state) {
+        this.setHighlightProfileConditions(state.highlightProfile);
     }
 
     _getVcfCallbacks() {
@@ -793,7 +816,7 @@ export default class projectContext {
     }
 
     addLastLocalTrack(track) {
-        if (this.lastLocalTracks.filter(t => t.name.toLowerCase() == track.name.toLowerCase()).length === 0) {
+        if (this.lastLocalTracks.filter(t => t.name.toLowerCase() === track.name.toLowerCase()).length === 0) {
             this.lastLocalTracks.push(track);
             this._lastLocalTracksUpdated = true;
         }
@@ -1372,19 +1395,17 @@ export default class projectContext {
                 this._tracks = tracks;
             } else if (tracksState) {
                 await this.refreshReferences();
-                const mapOpenByUrlTracksFn = (trackState) => {
-                    return {
-                        id: decodeURIComponent(trackState.bioDataItemId),
-                        indexPath: decodeURIComponent(trackState.index),
-                        bioDataItemId: decodeURIComponent(trackState.bioDataItemId),
-                        projectId: trackState.projectId,
-                        projectIdNumber: trackState.projectIdNumber,
-                        name: decodeURIComponent(trackState.bioDataItemId),
-                        isLocal: trackState.isLocal,
-                        format: trackState.format,
-                        openByUrl: true
-                    };
-                };
+                const mapOpenByUrlTracksFn = (trackState) => ({
+                    id: decodeURIComponent(trackState.bioDataItemId),
+                    indexPath: decodeURIComponent(trackState.index),
+                    bioDataItemId: decodeURIComponent(trackState.bioDataItemId),
+                    projectId: trackState.projectId,
+                    projectIdNumber: trackState.projectIdNumber,
+                    name: decodeURIComponent(trackState.bioDataItemId),
+                    isLocal: trackState.isLocal,
+                    format: trackState.format,
+                    openByUrl: true
+                });
                 const __tracks = tracksState.filter(ts => ts.isLocal).map(mapOpenByUrlTracksFn);
                 __tracks.forEach(t => {
                     const [__reference] = this._references.filter(r => r.name.toLowerCase() === t.projectId.toLowerCase());
@@ -1421,13 +1442,11 @@ export default class projectContext {
                             const [trackState] = tracksState.filter(ts => ts.projectId === projectsIds[i]);
                             const index = tracksState.indexOf(trackState);
                             if (index >= 0) {
-                                const fn = (item) => {
-                                    return {
-                                        bioDataItemId: item.name,
-                                        projectId: _project.name,
-                                        projectIdNumber: _project.id
-                                    };
-                                };
+                                const fn = (item) => ({
+                                    bioDataItemId: item.name,
+                                    projectId: _project.name,
+                                    projectIdNumber: _project.id
+                                });
                                 tracksState.splice(index, 1, ...items.filter(item => item.format !== 'REFERENCE').map(fn));
                             }
                         }
@@ -1435,14 +1454,12 @@ export default class projectContext {
                             const [trackState] = tracksState.filter(ts => ts.projectId === projectsIds[i]);
                             const index = tracksState.indexOf(trackState);
                             if (index >= 0) {
-                                const fn = (item) => {
-                                    return {
-                                        bioDataItemId: item.name,
-                                        projectId: _project.name,
-                                        projectIdNumber: _project.id
-                                    };
-                                };
-                                let predefinedTracks = [];
+                                const fn = (item) => ({
+                                    bioDataItemId: item.name,
+                                    projectId: _project.name,
+                                    projectIdNumber: _project.id
+                                });
+                                const predefinedTracks = [];
                                 switch (trackState.bioDataItemId.toLowerCase()) {
                                     case REFERENCE_TRACK_SELECTOR: {
                                         const [__ref] = items.filter(r => r.format === 'REFERENCE');
@@ -1963,7 +1980,8 @@ export default class projectContext {
             field: this._vcfFilter ? this._vcfFilter.selectedVcfTypes : []
         };
         const additionalFilters = this._vcfFilter ? this._vcfFilter.additionalFilters : {};
-        const infoFields = this._infoFields || [];
+        let infoFields = this._infoFields || [];
+        infoFields = infoFields.concat(vcfHighlightCondition.getFieldSet(this.highlightProfileConditions));
 
         const pageSize = PAGE_SIZE;
         const orderBy = this._orderByVariations;
@@ -2067,8 +2085,14 @@ export default class projectContext {
         this._variantsPageLoading = false;
         this.dispatcher.emit('variants:page:loading:finished');
 
-        return entries.map(item =>
-            Object.assign({},
+        return entries.map(item => {
+            item.info.type = item.variationType;
+            this.highlightProfileConditions.forEach(profile => {
+                if (!item.highlightColor && vcfHighlightCondition.isHighlighted(item.info, profile.parsedCondition)) {
+                    item.highlightColor = `#${profile.highlightColor}`;
+                }
+            });
+            return Object.assign({},
                 {
                     chrId: item.chromosome.id,
                     chrName: item.chromosome.name,
@@ -2078,17 +2102,18 @@ export default class projectContext {
                     },
                     endIndex: item.endIndex,
                     geneNames: item.geneNames,
+                    highlightColor: item.highlightColor,
+                    projectId: vcfTrackToProjectId[`${item.featureFileId}`].name,
+                    projectIdNumber: vcfTrackToProjectId[`${item.featureFileId}`].projectIdNumber,
                     quality: item.quality,
                     startIndex: item.startIndex,
                     variantId: item.featureId,
                     variationType: item.variationType,
-                    vcfFileId: item.featureFileId,
-                    projectId: vcfTrackToProjectId[`${item.featureFileId}`].name,
-                    projectIdNumber: vcfTrackToProjectId[`${item.featureFileId}`].projectIdNumber
+                    vcfFileId: item.featureFileId
                 },
-                {...infoFieldsObj, ...item.info}
-            )
-        );
+                {...infoFieldsObj, ...item.info},
+            );
+        });
     }
 
     get layoutPanels() {
