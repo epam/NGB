@@ -10,11 +10,12 @@ import service from './ngbBlastSearchPanel.service';
 import messages from './ngbBlastSearchPanel.messages.js';
 
 // Import components
+import ngbBlastSearchForm from './ngbBlastSearchFormPanel';
 import ngbBlastWholeGenomeView from './ngbBlastWholeGenomeView';
 
 // Import external modules
 export default angular
-    .module('ngbBlastSearchPanel', [ngbBlastWholeGenomeView])
+    .module('ngbBlastSearchPanel', [ngbBlastWholeGenomeView, ngbBlastSearchForm])
     .constant('blastSearchMessages', messages)
     .service('ngbBlastSearchService', service.instance)
     .component('ngbBlastSearchPanel', ngbBlastSearchPanel)
