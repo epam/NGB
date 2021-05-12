@@ -1,5 +1,5 @@
 import {utilities} from '../../../app/components/ngbDataSets/internal';
-import VcfHighlightConditionService from '../../../dataServices/utils/vcf-highlight-condition-service';
+import * as vcfHighlightCondition from '../../../dataServices/utils/vcf-highlight-condition-service';
 
 const Math = window.Math;
 
@@ -742,7 +742,7 @@ export default class projectContext {
         if(highlightProfileList && highlightProfileList[highlightProfile]) {
             this._highlightProfileConditions = highlightProfileList[highlightProfile].conditions.map(item => ({
                 highlightColor: item.highlight_color,
-                parsedCondition: VcfHighlightConditionService.parseFullCondition(item.condition)
+                parsedCondition: vcfHighlightCondition.parseFullCondition(item.condition)
             }));
         } else {
             this._highlightProfileConditions = [];
@@ -1981,7 +1981,7 @@ export default class projectContext {
         };
         const additionalFilters = this._vcfFilter ? this._vcfFilter.additionalFilters : {};
         let infoFields = this._infoFields || [];
-        infoFields = infoFields.concat(VcfHighlightConditionService.getFieldSet(this.highlightProfileConditions));
+        infoFields = infoFields.concat(vcfHighlightCondition.getFieldSet(this.highlightProfileConditions));
 
         const pageSize = PAGE_SIZE;
         const orderBy = this._orderByVariations;
@@ -2088,7 +2088,7 @@ export default class projectContext {
         return entries.map(item => {
             item.info.type = item.variationType;
             this.highlightProfileConditions.forEach(profile => {
-                if (!item.highlightColor && VcfHighlightConditionService.isHighlighted(item.info, profile.parsedCondition)) {
+                if (!item.highlightColor && vcfHighlightCondition.isHighlighted(item.info, profile.parsedCondition)) {
                     item.highlightColor = `#${profile.highlightColor}`;
                 }
             });

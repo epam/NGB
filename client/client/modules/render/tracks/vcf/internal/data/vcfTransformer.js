@@ -1,4 +1,4 @@
-import VcfHighlightConditionService from '../../../../../../dataServices/utils/vcf-highlight-condition-service';
+import * as vcfHighlightCondition from '../../../../../../dataServices/utils/vcf-highlight-condition-service';
 import {NumberFormatter, PixiTextSize, Sorting} from '../../../../utilities';
 import {GeneTransformer} from '../../../gene/internal';
 import VcfAnalyzer from '../../../../../../dataServices/vcf/vcf-analyzer';
@@ -198,7 +198,7 @@ export class VcfTransformer extends GeneTransformer {
         const linearizedInfo = {};
         Object.keys(variant.info).forEach(name => linearizedInfo[name] = variant.info[name].value);
         highlightProfileConditions.forEach(item => {
-            if (!variant.highlightColor && VcfHighlightConditionService.isHighlighted(linearizedInfo, item.parsedCondition)) {
+            if (!variant.highlightColor && vcfHighlightCondition.isHighlighted(linearizedInfo, item.parsedCondition)) {
                 variant.highlightColor = `0x${item.highlightColor.toUpperCase()}`;
             }
         });

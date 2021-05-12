@@ -66,7 +66,7 @@ export class StatisticsContainer extends VariantBaseContainer {
             .lineTo(-this._config.statistics.bubble.stroke.thickness / 2, -this._config.statistics.height)
             .lineStyle(0, this._config.statistics.bubble.stroke.color, 0);
         for (const color in colorStructure.colors) {
-            if(colorStructure.colors.hasOwnProperty(color)) {
+            if (colorStructure.colors.hasOwnProperty(color)) {
                 this._graphics
                     .beginFill(color)
                     .moveTo(cx, cy)
@@ -139,5 +139,4 @@ export class StatisticsContainer extends VariantBaseContainer {
         });
         return colorStructure;
     }
-
 }
