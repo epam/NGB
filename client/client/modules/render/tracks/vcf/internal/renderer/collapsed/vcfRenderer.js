@@ -23,8 +23,8 @@ export default class VcfRenderer extends CachedTrackRenderer {
 
         this.container.addChild(this._chromosomeLine);
         this.container.addChild(this._highlihgtArea);
-        this.container.addChild(this._variantsArea);
         this.container.addChild(this._linesArea);
+        this.container.addChild(this._variantsArea);
         this.container.addChild(this._bubblesArea);
         this.container.addChild(this._tooltipArea);
         this.initializeCentralLine();

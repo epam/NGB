@@ -40,6 +40,7 @@ export default class StatisticsFeatureRenderer extends FeatureBaseRenderer {
         const labelStyle = this.config.variant.allele.label;
         const symbol =  StatisticsFeatureRenderer.getStatisticsText(feature);
         const label = new PIXI.Text(symbol, labelStyle);
+        label.resolution = drawingConfiguration.resolution;
         const width = Math.max(pixelsInBp, 3);
         const height = this.config.variant.height;
         const cX = Math.round(Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize));
@@ -49,7 +50,6 @@ export default class StatisticsFeatureRenderer extends FeatureBaseRenderer {
             x: Math.round(textX1),
             y: Math.round(position.y + position.height - height - this.config.variant.allele.height / 2 - label.height / 2)
         };
-        label.resolution = drawingConfiguration.resolution;
         label.x = Math.round(labelPosition.x);
         label.y = Math.round(labelPosition.y);
         labelContainer.addChild(label);

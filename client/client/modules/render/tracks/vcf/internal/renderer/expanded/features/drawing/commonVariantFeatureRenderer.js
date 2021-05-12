@@ -93,6 +93,7 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
         const labelStyle = this.config.variant.allele.label;
         const symbol = this.getFeatureDisplayText(feature);
         const label = new PIXI.Text(symbol, labelStyle);
+        label.resolution = drawingConfiguration.resolution;
         const width = Math.max(pixelsInBp, 3);
         const height = this.config.variant.height;
         const cX = Math.round(Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize));
@@ -102,7 +103,6 @@ export class CommonVariantFeatureRenderer extends FeatureBaseRenderer {
             x: Math.round(textX1),
             y: Math.round(position.y + position.height - height - label.height)
         };
-        label.resolution = drawingConfiguration.resolution;
         label.x = Math.round(labelPosition.x);
         label.y = Math.round(labelPosition.y);
         if (feature.highlightColor) {

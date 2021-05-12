@@ -35,6 +35,7 @@ export default class InterChromosomeFeatureRenderer extends SVFeatureRenderer {
         }
         const margin = 0;
         const label = new PIXI.Text(displayText, Object.assign({}, style.font));
+        label.resolution = drawingConfiguration.resolution;
         const textSize = {
             width: label.width,
             height: label.height
@@ -85,7 +86,6 @@ export default class InterChromosomeFeatureRenderer extends SVFeatureRenderer {
             x: cX1 + margin,
             y: cY - label.height / 2
         };
-        label.resolution = drawingConfiguration.resolution;
         label.x = Math.round(labelPosition.x);
         label.y = Math.round(labelPosition.y);
         labelContainer.addChild(label);
