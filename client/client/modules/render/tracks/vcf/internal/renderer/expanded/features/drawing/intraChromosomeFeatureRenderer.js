@@ -61,18 +61,18 @@ export default class IntraChromosomeFeatureRenderer extends SVFeatureRenderer {
             }
             this.generateAttachedElement({
                 attachedAt: 'right',
+                color: feature.highlightColor,
                 hideOnVisible: true,
                 position: position.y + position.height - height / 2,
-                color: feature.highlightColor,
                 range: {
                     start: startIndex,
                     end: endIndex
                 }
             }, `${this.getFeatureDisplayText(feature)} ${NumberFormatter.formattedText(startIndex)}`, style, attachedElementsContainer);
-            this.generateAttachedElement({
+            this.generateAttachedElement    ({
                 attachedAt: 'left',
-                hideOnVisible: true,
                 color: feature.highlightColor,
+                hideOnVisible: true,
                 position: position.y + position.height - height / 2,
                 range: {
                     start: startIndex,

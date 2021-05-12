@@ -22,6 +22,7 @@ export class VCFTrack extends GENETrack {
     _lastHovered = null;
     _variantsMaximumRange;
     _zoomInRenderer: PlaceholderRenderer = new PlaceholderRenderer();
+    _highlightProfile = null;
     _highlightProfileConditions = [];
 
     projectContext;
@@ -101,12 +102,15 @@ export class VCFTrack extends GENETrack {
     }
 
     globalSettingsChanged(state) {
-        const changed = this._variantsMaximumRange !== state.variantsMaximumRange;
+        const changed = this._variantsMaximumRange !== state.variantsMaximumRange
+            || this._highlightProfile !== state.highlightProfile;
         this._variantsMaximumRange = state.variantsMaximumRange;
+        this._highlightProfile = state.highlightProfile;
         this._highlightProfileConditions = this.projectContext.highlightProfileConditions;
         super.globalSettingsChanged(state);
         Promise.resolve().then(async () => {
             if (changed && this._variantsMaximumRange > this.viewport.actualBrushSize) {
+                this.transformer.highlightProfileConditions = this._highlightProfileConditions;
                 await this.updateCache();
             }
             if (changed) {

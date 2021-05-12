@@ -23,11 +23,11 @@ export class VariantContainer extends VariantBaseContainer {
         this._tooltipParentContainer = tooltipContainer;
     }
 
-    render(viewport, manager, renderContainerWidth) {
+    render(viewport, manager) {
         super.render(viewport, manager);
         this.container.x = Math.round(viewport.project.brushBP2pixel(this._variant.startIndex));
         if (!this._componentIsBuilt) {
-            this.buildComponent(viewport, manager, renderContainerWidth);
+            this.buildComponent(viewport, manager);
         }
         this.manageEndLabels(viewport, manager);
         this.linesGraphics.x = this.container.x;
@@ -95,12 +95,12 @@ export class VariantContainer extends VariantBaseContainer {
         }
     }
 
-    buildComponent(viewport, manager, renderContainerWidth) {
+    buildComponent(viewport, manager) {
         this.buildVariantTypeLabel(manager);
         this.buildVariantAlternativeAlleles(viewport, manager);
         const barConfig = drawZygosityBar(this._variant.zygosity, this._graphics, this._config.variant, this._bpLength);
         if (this._variant.highlightColor) {
-            this.drawHighlightArea(viewport, this.container.height, renderContainerWidth);
+            this.drawHighlightArea(viewport, this.container.height);
         }
         const globalConfig = {
             global: {
@@ -319,46 +319,46 @@ export class VariantContainer extends VariantBaseContainer {
                 alignment: alignment,
                 behaviour: 'end',
                 chromosome: null,
+                color: this._variant.highlightColor,
                 isIntraChromosome: true,
                 layer: y,
                 position: alternativeAllele.mate.position,
                 range: region,
-                symbol: null,
-                color: this._variant.highlightColor
+                symbol: null
             });
             this.buildVariantEndLabel({
                 alignment: startAlignment,
                 behaviour: 'start',
                 chromosome: null,
+                color: this._variant.highlightColor,
                 isIntraChromosome: true,
                 layer: y,
                 position: startPosition,
                 range: region,
-                symbol: this._variant.symbol || this._variant.structuralSymbol,
-                color: this._variant.highlightColor
+                symbol: this._variant.symbol || this._variant.structuralSymbol
             });
         } else {
             this.buildVariantEndLabel({
                 alignment: 'right',
                 behaviour: 'start',
                 chromosome: null,
+                color: this._variant.highlightColor,
                 isIntraChromosome: true,
                 layer: y,
                 position: region.startIndex,
                 range: {endIndex: region.endIndex, startIndex: region.startIndex},
-                symbol: this._variant.symbol || this._variant.structuralSymbol,
-                color: this._variant.highlightColor
+                symbol: this._variant.symbol || this._variant.structuralSymbol
             });
             this.buildVariantEndLabel({
                 alignment: 'left',
                 behaviour: 'end',
                 chromosome: null,
+                color: this._variant.highlightColor,
                 isIntraChromosome: true,
                 layer: y,
                 position: region.endIndex,
                 range: {endIndex: region.endIndex, startIndex: region.startIndex},
-                symbol: null,
-                color: this._variant.highlightColor
+                symbol: null
             });
         }
     }
@@ -394,18 +394,18 @@ export class VariantContainer extends VariantBaseContainer {
             alignment: attachedAt,
             behaviour: 'end',
             chromosome: chromosome,
+            color: this._variant.highlightColor,
             displayPosition: position,
             isIntraChromosome: false,
             layer: y,
             position: this._variant.startIndex,
             postfix: postfix,
             prefix: prefix,
-            symbol: null,
-            color: this._variant.highlightColor
+            symbol: null
         });
     }
 
-    drawHighlightArea(viewport, containerHeight, renderContainerWidth) {
+    drawHighlightArea(viewport, containerHeight) {
         const white = 0xFFFFFF;
         const region = this._variant.positioningInfos[0];
         const x1 = viewport.project.brushBP2pixel(region.startIndex)
@@ -414,11 +414,11 @@ export class VariantContainer extends VariantBaseContainer {
             - viewport.project.brushBP2pixel(this._variant.startIndex);
         let length, start;
         if (x1 <= x2) {
-            start = Math.floor(Math.max(x1, -renderContainerWidth) - this._bpLength/2);
-            length = Math.min(x2, renderContainerWidth) - start + this._bpLength/2;
+            start = Math.floor(Math.max(x1, -viewport.canvasSize) - this._bpLength/2);
+            length = Math.min(x2, viewport.canvasSize) - start + this._bpLength/2;
         } else {
-            start = Math.floor(Math.max(x2, -renderContainerWidth) + this._bpLength/2);
-            length = Math.min(x1, renderContainerWidth) - start + this._bpLength/2;
+            start = Math.floor(Math.max(x2, -viewport.canvasSize) + this._bpLength/2);
+            length = Math.min(x1, viewport.canvasSize) - start + this._bpLength/2;
         }
         this._highlightGraphics.lineStyle(0, white, 0);
         this._highlightGraphics
@@ -443,11 +443,11 @@ export class VariantContainer extends VariantBaseContainer {
         const label = new PIXI.Text(text, variantStyle.font);
         label.resolution = drawingConfiguration.resolution;
         let dX = 0;
+        const margin = 1;
         if (alignment === 'left') {
             dX = -label.width;
         }
         const background = new PIXI.Graphics();
-        const margin = 1;
         background
             .beginFill(color, !!color)
             .drawRoundedRect(dX, -label.height / 2, label.width + 2 * margin, label.height + 2 * margin,

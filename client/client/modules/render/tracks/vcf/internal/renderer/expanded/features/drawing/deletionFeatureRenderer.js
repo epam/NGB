@@ -43,6 +43,7 @@ export default class DeletionFeatureRenderer extends VariantAltFeatureRenderer {
                 .lineTo(cX2 - this.config.variant.multipleNucleotideVariant.thickness / 2, cY + height / 3);
             this.generateAttachedElement({
                 attachedAt: 'right',
+                color: feature.highlightColor,
                 hideOnVisible: true,
                 position: position.y + position.height - height / 2,
                 range: {
@@ -52,6 +53,7 @@ export default class DeletionFeatureRenderer extends VariantAltFeatureRenderer {
             }, `${this.getFeatureDisplayText(feature)} ${NumberFormatter.formattedText(feature.startIndex)}`, this.config.variant.multipleNucleotideVariant.label.del, attachedElementsContainer);
             this.generateAttachedElement({
                 attachedAt: 'left',
+                color: feature.highlightColor,
                 hideOnVisible: true,
                 position: position.y + position.height - height / 2,
                 range: {

@@ -94,7 +94,7 @@ export default class VcfRenderer extends CachedTrackRenderer {
             const variant = data.variants[i];
             const variantContainer = initializeContainer(variant, this._config, this._tooltipArea);
             variantContainer.container.y = this.height - this._config.chromosomeLine.thickness;
-            variantContainer.render(viewport, this._manager, this.container.width);
+            variantContainer.render(viewport, this._manager);
             if (variantContainer instanceof StatisticsContainer) {
                 this._bubblesArea.addChild(variantContainer.container);
             }

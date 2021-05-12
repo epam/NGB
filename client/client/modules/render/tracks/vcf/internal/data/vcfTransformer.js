@@ -23,6 +23,10 @@ export class VcfTransformer extends GeneTransformer {
         this._collapsed = value;
     }
 
+    set highlightProfileConditions(highlightProfileConditions) {
+        this._highlightProfileConditions = highlightProfileConditions;
+    }
+
     isHistogramDrawingModeForViewport() {
         return false;
     }
