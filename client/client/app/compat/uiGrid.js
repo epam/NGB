@@ -15,7 +15,8 @@ const deps = [
     'ui.grid.grouping',
     'ui.grid.pinning',
     'ui.grid.saveState',
-    'ui.grid.infiniteScroll'
+    'ui.grid.infiniteScroll',
+    'ui.grid.pagination'
 ];
 
 export default angular.module('uiGrid', deps).name;

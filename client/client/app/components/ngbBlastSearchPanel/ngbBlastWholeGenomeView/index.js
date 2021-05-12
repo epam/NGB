@@ -13,4 +13,5 @@ export default angular
     .module('ngbBlastWholeGenomeView', [])
     .controller(controller.UID, controller)
     .component('ngbBlastWholeGenomeView', component)
-    .run(run).name;
+    .run(run)
+    .name;

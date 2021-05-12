@@ -43,12 +43,14 @@ export default class ngbTracksSelectionController extends baseController {
         const globalSettingsChangedHandler = (state) => {
             this.showTrackOriginalName = state.showTrackOriginalName;
         };
-        this.dispatcher.on('tracks:state:change', reloadTracks);
+        this.dispatcher.on('tracks:state:change:blat', reloadTracks);
+        this.dispatcher.on('tracks:state:change:blast', reloadTracks);
         this.dispatcher.on(SelectionEvents.changed, reloadTracks);
         this.dispatcher.on('settings:change', globalSettingsChangedHandler);
         // We must remove event listener when component is destroyed.
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('tracks:state:change', reloadTracks);
+            dispatcher.removeListener('tracks:state:change:blat', reloadTracks);
+            dispatcher.removeListener('tracks:state:change:blast', reloadTracks);
             dispatcher.removeListener(SelectionEvents.changed, reloadTracks);
             dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
         });

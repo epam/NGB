@@ -1,12 +1,74 @@
 <div layout="row" class="u-height__full">
     <div layout="column" flex>
         <md-content flex>
-            <md-button
-                class="md-accent md-raised"
-                ng-click="$ctrl.handleOpenGenomeView($event)"
-            >
-                Browse genome view
-            </md-button>
+            <div ng-if="$ctrl.isProgressShown">
+                <div class="progress" layout-align="center center">
+                    <span>Loading BLAST Search results...</span>
+                </div>
+                <md-progress-linear md-mode="query"></md-progress-linear>
+            </div>
+            <div ng-if="!$ctrl.isProgressShown">
+                <div
+                    ng-if="!$ctrl.isProgressShown && !$ctrl.errorMessageList.length"
+                    class="ui-grid-container"
+                >
+                    <div
+                        ng-if="$ctrl.readSequence"
+                        layout="column"
+                        class="blast-search-header"
+                    >
+                        <h5>BLAST result for query sequence:</h5>
+                        <textarea
+                            flex
+                            class="sequence-area"
+                            name="sequence"
+                            ng-model="$ctrl._sequence"
+                            ng-change="$ctrl.sequence"
+                        >
+                        </textarea>
+                    </div>
+                    <div class="btn-container">
+                        <md-button
+                            class="md-accent md-raised"
+                            ng-click="$ctrl.handleOpenGenomeView($event)"
+                            ng-disabled="!$ctrl._sequence"
+                        >
+                            Browse genome view
+                        </md-button>
+                        <md-button
+                            class="md-accent md-raised"
+                            ng-click="$ctrl.handleSearchGenome($ctrl.sequence)"
+                            ng-disabled="!$ctrl._sequence"
+                        >
+                            Search
+                        </md-button>
+                    </div>
+                    <div
+                        ng-if="$ctrl.blastSearchEmptyResult"
+                        class="blast-search-load-error-container"
+                    >
+                        <small>{{$ctrl.blastSearchEmptyResult}}</small>
+                    </div>
+                    <div
+                        ng-if="!$ctrl.blastSearchEmptyResult"
+                        ui-grid="$ctrl.gridOptions"
+                        ui-grid-save-state
+                        ui-grid-selection
+                        ui-grid-resize-columns
+                        ui-grid-auto-resize
+                        ui-grid-move-columns
+                        ui-grid-pinning
+                        ui-grid-pagination>
+                    </div>
+                </div>
+                <div
+                    ng-if="$ctrl.errorMessageList.length"
+                    class="md-padding"
+                >
+                    <ngb-panel-error-list message-list="$ctrl.errorMessageList">
+                    </ngb-panel-error-list>
+                </div>
+            </div>
         </md-content>
     </div>
 </div>
