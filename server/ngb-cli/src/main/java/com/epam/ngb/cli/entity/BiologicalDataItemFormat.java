@@ -159,7 +159,7 @@ public enum BiologicalDataItemFormat {
                     + "index for %s format.", this.name()));
             return false;
         }
-       final String indexExtension = FilenameUtils.getExtension(indexPath);
+        final String indexExtension = FilenameUtils.getExtension(indexPath);
         if (!expectedIndexFormat.contains(indexExtension)) {
             throw new IllegalArgumentException(getMessage(ERROR_INDEX_FORMAT_DOES_NOT_MATCH,
                     indexPath, this.name()));

@@ -47,7 +47,7 @@ public class FileExtensionMapping {
     }
 
     @Getter
-    static public class ColumnMapping {
+    public static class ColumnMapping {
 
         private final int index;
         private final String column;

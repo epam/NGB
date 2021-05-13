@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 EPAM Systems
+ * Copyright (c) 2017-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -434,7 +434,8 @@ public class SAMRecordHandler implements Handler<SAMRecord> {
 
         private void processMatch(List<BasePosition> basePositions, int cigarLength) {
             for (int j = 0; j < cigarLength; j++) {
-                if (checkIfBiasOutOfBound() && bufferBase != null && bufferBase.charAt(bias) != upperReadString.charAt(position)) {
+                if (checkIfBiasOutOfBound() && bufferBase != null &&
+                        bufferBase.charAt(bias) != upperReadString.charAt(position)) {
                     basePositions.add(
                             new BasePosition(position + corrector, upperReadString.charAt(position))
                     );

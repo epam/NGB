@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -97,12 +97,16 @@ public class Application {
             + "url\t\t: generate url for displaying required files. "
                                        + "{url my_dataset}\n\n"
             + "SECURITY commands:\n"
-            + "ru\treg_user\t: registers user (roles can be specified by -gr (--groups) option) {ru example@example.com -gr Developers,OA}\n"
+            + "ru\treg_user\t: registers user (roles can be specified by -gr (--groups) option) " +
+              "{ru example@example.com -gr Developers,OA}\n"
             + "du\tdel_user\t: deletes existing user by id or name {du example@example.com}\n"
-            + "rgrp\treg_group\t: registers new group (option -u (--users) can be used to assign the group on list of users) {rgrp example_group -u example@example.com,example2@example.com}\n"
+            + "rgrp\treg_group\t: registers new group (option -u (--users) can be used to assign the " +
+              "group on list of users) {rgrp example_group -u example@example.com,example2@example.com}\n"
             + "dgrp\tdel_group\t: deletes existing user group by id or name {dgrp group_name}\n"
-            + "agrp\tadd_group\t: adds existing users to an existing group (users can be specified with option -u (--users) by names or ids) {agrp group_name -u example@example.com,example2@example.com}\n"
-            + "chmod\t\t: command to be used for granting permission {chmod rw+ --files <filename> --users <username>}\n"
+            + "agrp\tadd_group\t: adds existing users to an existing group (users can be specified with option " +
+              "-u (--users) by names or ids) {agrp group_name -u example@example.com,example2@example.com}\n"
+            + "chmod\t\t: command to be used for granting permission {chmod rw+ --files <filename> " +
+              "--users <username>}\n"
             + "TOOLS commands:\n"
             + "sort\t\t: sorts given feature file. If target path is not specified, sorted file will be stored in the "
             + "same folder as the original one with the `.sorted.` suffix in the name.\n"

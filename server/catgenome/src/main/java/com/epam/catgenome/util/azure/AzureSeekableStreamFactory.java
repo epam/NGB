@@ -30,7 +30,7 @@ import htsjdk.samtools.seekablestream.SeekableStream;
 
 import java.net.URL;
 
-public class AzureSeekableStreamFactory implements ISeekableStreamFactory {
+public final class AzureSeekableStreamFactory implements ISeekableStreamFactory {
 
     private static AzureSeekableStreamFactory currentFactory = new AzureSeekableStreamFactory();
 
