@@ -65,7 +65,6 @@ Test verifies
 | 12| Go steps 8-12 for every variation's position shown in the table below |   | 
  
 
-
 | Steps | Condition | Position | Expected results |
 | :---: | --- | --- | --- | 
 | 1 | BaseQRank Sum == **- 0.058** | 12585001| <li> 'DEL' variation is highlighted by **'bc32d0'** color in variants panel and browser<li> BaseQRankSum = - 0.058 value | 
