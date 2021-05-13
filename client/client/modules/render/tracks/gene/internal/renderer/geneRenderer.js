@@ -122,7 +122,9 @@ export default class GeneRenderer extends CachedTrackRenderer {
             if (graphics !== null) {
                 if (this.needConvertGraphicsToTexture) {
                     let temporaryContainer = new PIXI.Container();
-                    temporaryContainer.addChild(highlightGraphics);
+                    if (highlightGraphics.children.length > 0) {
+                        temporaryContainer.addChild(highlightGraphics);
+                    }
                     temporaryContainer.addChild(graphics);
                     const coordinates = this.featureRenderer.textureCoordinates;
                     const texture = temporaryContainer.generateTexture(this._pixiRenderer, drawingConfiguration.resolution, drawingConfiguration.scale);
@@ -141,7 +143,9 @@ export default class GeneRenderer extends CachedTrackRenderer {
                 this._hoveredItemContainer.removeChildren();
                 if (this.needConvertGraphicsToTexture) {
                     let temporaryContainer = new PIXI.Container();
-                    temporaryContainer.addChild(hoveredHighlightGraphics);
+                    if (hoveredHighlightGraphics.children.length > 0) {
+                        temporaryContainer.addChild(hoveredHighlightGraphics);
+                    }
                     temporaryContainer.addChild(hoveredGraphics);
                     const coordinates = this.featureRenderer.textureCoordinates;
                     const texture = temporaryContainer.generateTexture(this._pixiRenderer, drawingConfiguration.resolution, drawingConfiguration.scale);
