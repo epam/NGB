@@ -191,7 +191,7 @@ export default class ngbBlastSearchPanelController extends baseController {
         this.currentPageBlast = page;
         this.gridApi.infiniteScroll.setScrollDirections(false, false);
         this.gridOptions.data = [];
-        
+
         const newData = this.loadDataPage(page);
         this.$timeout(() => {
             this.gridOptions.data = newData;
