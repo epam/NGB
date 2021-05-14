@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,13 +44,6 @@ import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 
-/** *
- * {@code UserController} represents an implementation of MVC controller which handles
- * requests to manage browser users.
- * <p>
- * It's designed to communicate with corresponding managers that provide all required
- * calls and manage all operations concerned with users.
- */
 @RestController
 @ConditionalOnProperty(value = "security.acl.enable", havingValue = "true")
 @Api(value = "user", description = "User Management")

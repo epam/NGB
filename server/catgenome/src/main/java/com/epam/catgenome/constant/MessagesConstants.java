@@ -255,6 +255,9 @@ public final class MessagesConstants {
     public static final String ERROR_ROLE_ALREADY_EXIST = "error.role.already.exists";
     public static final String ERROR_NO_GROUP_WAS_FOUND = "error.no.group.was.found";
 
+//    TASK
+    public static final String ERROR_TASK_NOT_FOUND = "error.task.not.found";
+
     private MessagesConstants() {
         // No-op
     }
