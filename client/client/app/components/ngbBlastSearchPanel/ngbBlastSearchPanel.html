@@ -12,15 +12,9 @@
                     ng-if="!$ctrl.isProgressShown && !$ctrl.errorMessageList.length"
                     class="ui-grid-container"
                 >
-                    <div
-                        ng-if="$ctrl.readSequence"
-                        layout="column"
-                        class="blast-search-header"
-                    >
                         <ngb-blast-search-form
                             sequence="$ctrl.readSequence"
                         ></ngb-blast-search-form>
-                    </div>
                     <div class="btn-container">
                         <md-button
                             class="md-accent md-raised"

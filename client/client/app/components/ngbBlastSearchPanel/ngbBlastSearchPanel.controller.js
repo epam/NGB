@@ -114,7 +114,7 @@ export default class ngbBlastSearchPanelController extends baseController {
             this.blastSearchEmptyResult = null;
             this.isProgressShown = false;
             this.gridOptions.columnDefs = [];
-            this.$timeout(this.$scope.$apply());
+            //this.$timeout(this.$scope.$apply());
         }
     }
 

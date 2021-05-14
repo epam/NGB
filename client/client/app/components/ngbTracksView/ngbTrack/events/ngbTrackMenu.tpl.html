@@ -2,12 +2,14 @@
     <md-menu-content width="4">
         <md-menu-item ng-repeat="entry in $ctrl.menuData">
             <md-menu ng-if="entry.submenu" md-position-mode="cascade">
-                <md-button     aria-label="entry.title" ng-click="$ctrl.closeOthers();$mdOpenMenu();">
+                <md-button aria-label="entry.title" ng-click="$ctrl.closeOthers();$mdOpenMenu();">
                     {{entry.title}}
+                    <span flex></span>
+                    &#9658;
                 </md-button>
                 <md-menu-content>
                     <md-menu-item ng-repeat="submenuitem in entry.submenu">
-                        <md-button ng-clo>
+                        <md-button ng-click="$ctrl.clickItem($event,submenuitem)">
                             {{submenuitem.title}}
                         </md-button>
                     </md-menu-item>

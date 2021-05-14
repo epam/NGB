@@ -55,12 +55,11 @@ export default {
             name: 'layout>blat'
         },
         blast: {
-            isHidden: true,
             displayed: false,
-            icon: '',
+            icon: 'search',
             panel: 'ngbBlastSearchPanel',
             position: 'right',
-            title: 'Blast',
+            title: 'Blast search',
             name: 'layout>blast'
         },
         ...(() => {
