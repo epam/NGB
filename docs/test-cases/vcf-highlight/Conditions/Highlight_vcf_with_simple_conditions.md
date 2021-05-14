@@ -60,15 +60,15 @@ Test verifies
 | 8 | Go to **Variants** panel | |
 | 9 | Find Variation on Position **chr X:12586950**| Background of variation highlight in **'"ff0000'(red)** color |
 | 10| Click on variation with position chr X:12586950 |Browser window is opened with vcf track|
-| 11| Look at variation on vcf track in Browser| Variation is highlighted in color  = **'"ff0000'(red)** along all its length
+| 11| Look at variation on vcf track in Browser| Variation is highlighted in color  = **'"ff0000'(red)** along all its length in expanded and collapsed view
 | 12| Repeat steps 8-12 for every variation's position shown in the table below |   | 
  
 
 | Steps | Condition | Position chr X| Expected results |
 | :---: | --- | --- | --- | 
-| 1 | "DP == 384" | 12586950| <li> 'DEL' variation is highlighted in **'ff0000' (red)** color in variants panel and browser<li> "DP = 384" value | 
-| 2 | "AC != 1" | 12586560 | <li>'DEL' variation is highlighted by **'ffff00'(yellow)** color in Variants Panel and VCF tracker in Browser <li>"AC = 2" |
-| 3 | "FS >450" | 12586790 | <li>'DEL' variation is highlighted in **'008000'(green)** color in Variants Panel and  VCF tracker in Browser <li>"FS =453.737"|
+| 1 | "DP == 384" | 12586950| <li> 'DEL' variation is highlighted in **'ff0000' (red)**  <li> "DP = 384" value | 
+| 2 | "AC != 1" | 12586560 | <li>'DEL' variation is highlighted in **'ffff00'(yellow)**  <li>"AC = 2" |
+| 3 | "FS >450" | 12586790 | <li>'DEL' variation is highlighted in **'008000'(green)** <li>"FS =453.737"|
 | 4 | Mq >= 91.95 | <li>12585943 <li>12587867 | <li> 'INS' variation is highlighted in **'add8e6'(lightblue)**, MQ = 91.95 <li> 'DEL' variation is highlighted by **'add8e6'(lightblue)**, MQ = 92.2
 | 5 | "ReadPosRankSum < -1.600"| 12589324 | <li>'SNV' variation is highlighted in **'0000ff'(blue)** <li>"ReadPosRankSum = -1.651"|
 | 6 | Qd <= 0.32| <li> 12589261 <li>12591635 | <li> 'DEL' variation is highlighted in **'ffc0cb'(pink)**, Qd = 0.32 <li>'DEL' variation is highlighted in **'ffc0cb'(pink)**, Qd=0.26 |
