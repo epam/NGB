@@ -310,6 +310,9 @@ export default class ngbVariantsTableController extends baseController {
     }
 
     getDataOnPage(page) {
+        if (!this.gridApi) {
+            return;
+        }
         this.projectContext.firstPageVariations = page;
         this.projectContext.lastPageVariations = page;
         this.projectContext.currentPageVariations = page;
@@ -336,6 +339,9 @@ export default class ngbVariantsTableController extends baseController {
 
 
     sortChanged(grid, sortColumns) {
+        if (!this.gridApi) {
+            return;
+        }
         this.saveColumnsState();
         if (sortColumns && sortColumns.length > 0) {
             this.projectContext.orderByVariations = sortColumns.map(sc => ({
