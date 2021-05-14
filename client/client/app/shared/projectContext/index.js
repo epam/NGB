@@ -2086,7 +2086,6 @@ export default class projectContext {
         this.dispatcher.emit('variants:page:loading:finished');
 
         return entries.map(item => {
-            item.info.type = item.variationType;
             this.highlightProfileConditions.forEach(profile => {
                 if (!item.highlightColor && vcfHighlightCondition.isHighlighted(item.info, profile.parsedCondition)) {
                     item.highlightColor = `#${profile.highlightColor}`;

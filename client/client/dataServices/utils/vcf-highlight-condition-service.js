@@ -6,7 +6,7 @@ const expressionOperationList = {
     LE: '<=',
     LT: '<',
     NE: '!=',
-    NI: 'not in'
+    NI: 'notin'
 };
 const conditionOperationList = {
     AND: 'and',
@@ -25,7 +25,8 @@ function _parseExpression(expression) {
     let value = rawParsedExpression[2];
 
     if (!operator) {
-        throw new Error(`Invalid expression ${expression}`);
+        console.warn(`Invalid expression ${expression}`);
+        return null;
     }
     if ([expressionOperationList.EQ,
         expressionOperationList.NE].includes(operator)) {
@@ -78,7 +79,8 @@ function _validateFullCondition(condition) {
         if (condition[i] === '(') depth++;
         if (condition[i] === ')') depth--;
         if (depth < 0) {
-            throw new Error(`Invalid condition ${condition} at position ${i}`);
+            console.warn(`Invalid condition ${condition} at position ${i}`);
+            return false;
         }
     }
     return true;
@@ -132,7 +134,7 @@ export function isHighlighted(variant, condition) {
 
 function _calculateHighlighted(variant, condition) {
     if (!variant || !condition || !condition.type) {
-        return false;
+        return null;
     }
     switch (condition.type) {
         case conditionTypeList.GROUP: {
@@ -152,14 +154,29 @@ function _calculateCondition(condition, variant) {
         return false;
     }
     let result = false;
+    let calculated = null;
     switch (condition.operator) {
         case conditionOperationList.AND: {
             result = true;
-            condition.conditions.forEach(c => result = result && _calculateHighlighted(variant, c));
+            for (const c of condition.conditions) {
+                calculated = _calculateHighlighted(variant, c);
+                if (calculated === null) {
+                    result = false;
+                    break;
+                }
+                result = result && calculated;
+            }
             break;
         }
         case conditionOperationList.OR: {
-            condition.conditions.forEach(c => result = result || _calculateHighlighted(variant, c));
+            for (const c of condition.conditions) {
+                calculated = _calculateHighlighted(variant, c);
+                if (calculated === null) {
+                    result = false;
+                    break;
+                }
+                result = result || calculated;
+            }
             break;
         }
     }
@@ -223,6 +240,9 @@ export function getFieldSet(parsedHighlightProfile) {
 
 function _getFieldsFromCondition(condition) {
     let result = new Set();
+    if (!condition) {
+        return result;
+    }
     if (condition.type === conditionTypeList.GROUP) {
         result = new Set([
             ...result,
