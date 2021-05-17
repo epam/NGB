@@ -2,6 +2,9 @@ const formatter = new Intl.NumberFormat('en-US');
 
 export default {
     ticks: 50,
+    canvas:{
+        margin:10
+    },
     start: {
         x: 10,
         y: 30,
@@ -27,6 +30,25 @@ export default {
             font: 'normal 7pt arial',
         }
     },
+    chromosomeArea: {
+        expand: {
+            alpha: 0.7,
+            arrow: 7,
+            color: 0xc9c9c9,
+            fill: 0xeeeeee,
+            width: 15
+        },
+        label: {
+            margin: 10,
+            style: {
+                fill: 0x000000,
+                font: 'normal 7pt arial',
+            }
+        },
+        margin: 5,
+        maximum: 300,
+        minimum: 120
+    },
     chromosomeColumn: {
         spaceBetween: 70,
         margin:5,
@@ -37,10 +59,32 @@ export default {
         thickness: 1
     },
     gridSize: 5,
+    grid: {
+        oddChromosomeBackground: 0xfafafa,  
+    },
     hit: {
         width: 3,
-        lineColor: 0x32cd32,
+        color: 0x323232,
+        scores: [
+            {
+                color: 0x32cd32,
+                max: 50
+            },
+            {
+                color: 0xffc400,
+                max: 90,
+                min: 50
+            },
+            {
+                color: 0xcd3232,
+                min: 90
+            }
+        ],
         offset: 5,
+        onHover: {
+            lineColor: 0x343aeb,
+            lineAlpha: 1
+        }
     },
     scrollBar: {
         height: 15,

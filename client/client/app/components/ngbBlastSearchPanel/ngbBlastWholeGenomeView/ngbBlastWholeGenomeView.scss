@@ -10,6 +10,41 @@
   height: calc(80vh - 64px);
 }
 
+.chromosome-hit-tooltip {
+  z-index: 100000;
+  background-color: #ffffff;
+  color: #000000;
+  border-radius: 3px;
+  box-shadow: 0.5px 0.5px 0.5px #000000;
+}
+.select-container{
+  width:50%;
+  display: flex;
+  align-items: center;
+}
+.select-label{
+  margin: auto 10px;
+}
+.select-species{
+  width: 50%;
+  z-index: 100000;
+  color:#ffffff;
+  margin-right: 20px;
+  background-color: rgba(217, 217, 228, 0.3);
+  border-radius: 4px;
+}
+.no-species-selected {
+  display: block;
+  margin:  calc((80vh - 64px)/2 - 60px) auto;
+  padding: 30px;
+  color:darkred;
+  text-align: center;
+  text-transform: uppercase;
+  &.hidden {
+    display: none;
+  }
+}
+
 canvas {
   width: 100%;
   height:100%;

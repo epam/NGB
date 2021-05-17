@@ -1,11 +1,11 @@
-.blast-sequence-area {
+.sequence-area {
   border: 1px #000000 solid;
   margin: 1px;
   text-align: left;
   min-height: 80px !important;
 }
 
-.blast-btn-container {
+.btn-container {
   display: flex;
   justify-content: space-between;
 }
@@ -19,13 +19,4 @@
   width: 100%;
   padding: 5px;
   text-align: center;
-}
-
-.content-container {
-  height: 100%;
-}
-
-.blast-table {
-  position: fixed;
-  width: 100%;
 }

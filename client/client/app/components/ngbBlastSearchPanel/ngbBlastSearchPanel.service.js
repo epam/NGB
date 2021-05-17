@@ -22,11 +22,19 @@ export default class ngbBlastSearchService {
     constructor(projectContext, bamDataService, uiGridConstants){
         Object.assign(this, { projectContext, bamDataService, uiGridConstants });
     }
+    generateSpeciesList() {
+        return [
+            this.projectContext.reference,
+            {id:'1eds52', name:'GRCh38'},
+            {id:'1adc47', name:'Bacteria Escherichia coli'},
+            {id:'4etr89', name:'Clostridium botulinum'},
+        ];
+    }
 
     generateBlastSearchResults() {
         const results = [];
-        this.projectContext.chromosomes.slice(0, 8).forEach(chr => {
-            for (let i = 0; i < 1000; i++) {
+        this.projectContext.chromosomes.slice(0, 100).forEach(chr => {
+            for (let i = 0; i < chr.size / 100; i++) {
                 const start = 1 + Math.floor(Math.random() * (chr.size - 1));
                 const singleSized = Math.random() >= 0.5;
                 const end = Math.min(

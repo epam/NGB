@@ -141,9 +141,10 @@ export default class ngbBlastSearchPanelController extends baseController {
         }
     }
 
-    handleOpenGenomeView() {
+    async handleOpenGenomeView() {
         const data = this.data;
-        this.dispatcher.emitSimpleEvent('blast:whole:genome:view', { data });
+        const speciesList = (await this.ngbBlastSearchService.generateSpeciesList());
+        this.dispatcher.emitSimpleEvent('blast:whole:genome:view', { data, speciesList });
     }
 
     handleSearchGenome(sequence) {

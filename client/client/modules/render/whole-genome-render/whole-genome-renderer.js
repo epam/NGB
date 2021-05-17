@@ -23,7 +23,7 @@ export default class WholeGenomeRenderer {
         this._range = maxChromosomeSize;
         this._chromosomes = chromosomes;
         this._blastResult = blastResult;
-
+       
         this._canvas = canvas;
         this._width = canvas.clientWidth;
         this._height = canvas.clientHeight;
@@ -118,7 +118,8 @@ export default class WholeGenomeRenderer {
             chromosomes: this.chromosomes,
             range: this.range,
             hits: this.hits,
-            renderer: this._pixiRenderer
+            renderer: this._pixiRenderer,
+            displayTooltipFn: this._displayTooltipFn
         };
     }
     get scaleRenderParams() {
@@ -158,7 +159,9 @@ export default class WholeGenomeRenderer {
         }
     }
     destroy() {
-        this._destroyed = true;
+        if (this._chromosomeRenderer) {
+            this._chromosomeRenderer.destroy();
+        }
         if (this.renderer && this.renderer.view) {
             this.container.removeChildren();
             this.canvasElement.removeChild(this.renderer.view);
