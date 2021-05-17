@@ -24,10 +24,10 @@ export default class ngbBlastSearchService {
     }
     generateSpeciesList() {
         return [
-            this.projectContext.reference,
-            {id:'1eds52', name:'GRCh38'},
-            {id:'1adc47', name:'Bacteria Escherichia coli'},
-            {id:'4etr89', name:'Clostridium botulinum'},
+            {...this.projectContext.reference, taxid: 1},
+            {id:'1eds52', name:'GRCh38', taxid: 2},
+            {id:'1adc47', name:'Bacteria Escherichia coli', taxid: 3},
+            {id:'4etr89', name:'Clostridium botulinum', taxid: 4},
         ];
     }
 
@@ -47,6 +47,7 @@ export default class ngbBlastSearchService {
                 const score = Math.floor(Math.random() * 100);
                 const mismatch = Math.floor(Math.random() * 8);
                 const match = 100 - mismatch;
+                const taxid = Math.ceil(Math.random() * 4);
                 results.push({
                     startIndex: start,
                     endIndex: end,
@@ -57,6 +58,7 @@ export default class ngbBlastSearchService {
                     match,
                     mismatch,
                     numb,
+                    taxid,
                 });
             }
         });

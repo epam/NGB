@@ -229,7 +229,7 @@ export class ChromosomeColumnRenderer {
                         ) {
                             const hoveredHit = this.hoveredHit;
                             this.hoveredHit = null;
-                            const chromosomeHits = this.gridContent[chr.id].filter(hit => hit.displayed);
+                            const chromosomeHits = this.gridContent[chr.id].filter(hit => hit.displayed) || [];
                             if (mouseY <= actualChromosomeHeight) {  
                                 for (const hit of chromosomeHits) {
                                     if (

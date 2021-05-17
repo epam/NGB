@@ -63,6 +63,7 @@ export default class ngbBlastGenomeViewController {
             if (this._genomeRenderer) {
                 this._genomeRenderer.destroy();
             }
+            this.blastResult = this._scope.$parent.result;
             this._genomeRenderer = new WholeGenomeRenderer(
                 this.genomeRendererDiv,
                 this.getMaxChromosomeSize(this.chromosomes),

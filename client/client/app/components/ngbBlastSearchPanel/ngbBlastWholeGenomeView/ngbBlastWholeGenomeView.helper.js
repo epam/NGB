@@ -6,11 +6,11 @@ export function helper($mdDialog, dispatcher, projectContext, { data, speciesLis
     return function ($scope) {
         $scope.chromosomes = currentChromosomes;
         $scope.species = speciesList;
-        $scope.blastCurrentSpecies = projectContext.reference.id;
-        $scope.result = data;
+        $scope.blastCurrentSpecies = speciesList[0].taxid;
+        $scope.result = data.filter(item => item.taxid === speciesList[0].taxid);
         $scope.close = () => $mdDialog.hide();
         $scope.selectSpecies = (selectedItemId) => {
-            $scope.blastCurrentSpecies = selectedItemId;
+            $scope.result = data.filter(item => item.taxid === selectedItemId);
             dispatcher.emitSimpleEvent('blast:select:species', selectedItemId);
         }
     };
