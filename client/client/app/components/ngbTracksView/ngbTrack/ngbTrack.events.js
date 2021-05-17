@@ -61,6 +61,7 @@ export default class ngbTrackEvents {
                     title: 'Show Info'
                 });
                 const blastSearchParams = {
+                    geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
                     id: track.id,
                     chromosomeId: track.instance.config.chromosomeId,
                     referenceId: track.referenceId,
@@ -163,6 +164,7 @@ export default class ngbTrackEvents {
                 );
                 childScope.$apply();
                 ngbTrackEvents.configureCopyToClipboardElements();
+                html.find('#hiddenMenuButton').triggerHandler('click');
             })();
         }
     }
@@ -356,6 +358,7 @@ export default class ngbTrackEvents {
             }
         };
         const readInfo = {
+            geneId:null,
             id: track.id,
             referenceId: track.referenceId,
             chromosomeId: data.chromosome.id,
@@ -413,6 +416,7 @@ export default class ngbTrackEvents {
         );
         childScope.$apply();
         ngbTrackEvents.configureCopyToClipboardElements();
+        html.find('#hiddenMenuButton').triggerHandler('click');
     }
 
     static configureCopyToClipboardElements() {
