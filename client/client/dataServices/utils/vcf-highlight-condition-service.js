@@ -18,49 +18,44 @@ const conditionTypeList = {
 };
 
 function _parseExpression(expression) {
-    const rawParsedExpression = expression
-        .split(new RegExp(`(${Object.values(expressionOperationList).join('|')})`))
-        .map(e => e.trim());
-    const operator = rawParsedExpression[1];
-    let value = rawParsedExpression[2];
-
-    if (!operator) {
-        console.warn(`Invalid expression ${expression}`);
+    try {
+        const exec = /^[ ]*([^'" >=<!]+|'[^']*'|"[^"]*")[ ]*(==|!=|>=|<=|>|<|in|notin)[ ]*(.*)$/i.exec(expression);
+        if (!exec || exec.length < 4) {
+            throw new Error('Unknown format');
+        }
+        const name = parseQuotedString(exec[1]);
+        const operator = exec[2];
+        if (!name) {
+            throw new Error('Unknown name format');
+        }
+        let value = exec[3];
+        if (/^(in|notin)$/i.test(operator)) {
+            value = extractAsArray(value);
+        } else {
+            value = _regularizeString(parseQuotedString(value));
+        }
+        if (/^(>=|<=|>|<)$/.test(operator)) {
+            const number = Number(value);
+            if (Number.isNaN(number)) {
+                throw new Error(`wrong value: ${value}. Correct number formats: "1" "-3" "-0.32" `);
+            } else {
+                value = number;
+            }
+        }
+        if (value === null || value === undefined) {
+            throw new Error('empty value');
+        }
+        return {
+            field: name,
+            operator,
+            type: conditionTypeList.EXPRESSION,
+            value
+        };
+    } catch (e) {
+        // eslint-disable-next-line
+        console.warn(`Wrong expression: ${expression}. Error: ${e.message}`);
         return null;
     }
-    if ([expressionOperationList.EQ,
-        expressionOperationList.NE].includes(operator)) {
-        value = _removeExtraQuotes(value);
-        value = _regularizeString(value);
-    }
-    if ([expressionOperationList.GE,
-        expressionOperationList.GT,
-        expressionOperationList.LE,
-        expressionOperationList.LT].includes(operator)) {
-        value = _removeExtraQuotes(value);
-        value = value.includes('.') ? parseFloat(value) : parseInt(value);
-    }
-    if ([expressionOperationList.IN,
-        expressionOperationList.NI].includes(operator)) {
-        value = _prepareArray(value);
-    }
-    return {
-        field: _removeExtraQuotes(rawParsedExpression[0]),
-        operator: operator,
-        type: conditionTypeList.EXPRESSION,
-        value: value
-    };
-}
-
-function _prepareArray(stringed) {
-    const rawArray = stringed.replace(/(^\s*\[)|(]\s*$)/g, '').split(',');
-    const result = [];
-    rawArray.forEach(item => result.push(_removeExtraQuotes(item.trim())));
-    return result;
-}
-
-function _removeExtraQuotes(str) {
-    return str.replace(/(^('|"|\\"|\\')|('|"|\\"|\\')$)/g, '');
 }
 
 function _prepareCondition(condition) {
@@ -79,6 +74,7 @@ function _validateFullCondition(condition) {
         if (condition[i] === '(') depth++;
         if (condition[i] === ')') depth--;
         if (depth < 0) {
+            // eslint-disable-next-line
             console.warn(`Invalid condition ${condition} at position ${i}`);
             return false;
         }
@@ -199,27 +195,27 @@ function _calculateExpression(expression, variant) {
             break;
         }
         case expressionOperationList.GE: {
-            result = variant[expression.field] >= expression.value;
+            result = Number(variant[expression.field]) >= Number(expression.value);
             break;
         }
         case expressionOperationList.GT: {
-            result = variant[expression.field] > expression.value;
+            result = Number(variant[expression.field]) > Number(expression.value);
             break;
         }
         case expressionOperationList.LE: {
-            result = variant[expression.field] <= expression.value;
+            result = Number(variant[expression.field]) <= Number(expression.value);
             break;
         }
         case expressionOperationList.LT: {
-            result = variant[expression.field] < expression.value;
+            result = Number(variant[expression.field]) < Number(expression.value);
             break;
         }
         case expressionOperationList.IN: {
-            result = Array.isArray(expression.value) && expression.value.includes(variant[expression.field]);
+            result = Array.isArray(expression.value) && expression.value.includes(_regularizeString(variant[expression.field]));
             break;
         }
         case expressionOperationList.NI: {
-            result = Array.isArray(expression.value) && !expression.value.includes(variant[expression.field]);
+            result = Array.isArray(expression.value) && !expression.value.includes(_regularizeString(variant[expression.field]));
             break;
         }
         default: {
@@ -259,10 +255,78 @@ function _getFieldsFromCondition(condition) {
 }
 
 function _regularizeString(value) {
-    if (!isNaN(parseFloat(value))) {
+    if (Array.isArray(value)) {
+        return `[${value.join(', ')}]`;
+    }
+    if (typeof value === 'string' && (new RegExp('-?[^0-9\\.\\s]')).test(value)) {
+        return (value || '').toLowerCase();
+    } else if (!isNaN(parseFloat(value))) {
         return parseFloat(value).toString();
     } else if (!isNaN(parseInt(value))) {
         return parseInt(value).toString();
     }
-    return value.toLowerCase();
+    return value;
+}
+
+function removeQuotas (test, quotas) {
+    if (!test || !test.startsWith(quotas) || !test.endsWith(quotas)) {
+        return null;
+    }
+    test = test.slice(1, -1);
+    if (test.includes(quotas)) {
+        return null;
+    }
+    return test;
+}
+
+function parseQuotedString (value) {
+    if (!value) {
+        throw new Error('empty value');
+    }
+    const initialValue = value;
+    value = value.trim();
+    if (value.startsWith('\'')) {
+        value = removeQuotas(value, '\'');
+        if (value === null) {
+            throw new Error(`wrong string: ${initialValue}`);
+        }
+        return value;
+    }
+    if (value.startsWith('"')) {
+        value = removeQuotas(value, '"');
+        if (value === null) {
+            throw new Error(`wrong string: ${initialValue}`);
+        }
+        return value;
+    }
+    if (/['"]/.test(value)) {
+        throw new Error(`wrong string: ${initialValue}`);
+    }
+    return value;
+}
+
+function split (value) {
+    const regExp = /[ ]*('[^']*?'|"[^"]*?"|[^'"]*?)(,|$)/;
+    const result = [];
+    let exec = regExp.exec(value);
+    while (value.length && exec && exec.length > 1) {
+        result.push(exec[1]);
+        value = value.slice(exec[0].length);
+        exec = regExp.exec(value);
+    }
+    return result;
+}
+
+function extractAsArray (value) {
+    if (!value) {
+        return null;
+    }
+    const exec = /^[ ]*\[(.*)\][ ]*$/i.exec(value);
+    if (exec && exec.length === 2) {
+        return split((exec[1] || ''))
+            .map(o => o.trim())
+            .map(parseQuotedString)
+            .map(_regularizeString);
+    }
+    return null;
 }
