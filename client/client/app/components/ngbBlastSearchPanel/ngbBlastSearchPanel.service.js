@@ -8,26 +8,91 @@ const DEFAULT_BLAST_COLUMNS = [
     'tGapCount', 'tGapBases',
 ];
 
+const blastSearchState = {
+    DONE: 'DONE',
+    FAILURE: 'FAILURE',
+    SEARCHING: 'SEARCHING'
+};
+const FIRST_PAGE = 1;
+const PAGE_SIZE_HISTORY = 25;
+
 export default class ngbBlastSearchService {
-    static instance(projectContext, bamDataService, uiGridConstants){
-        return new ngbBlastSearchService(projectContext, bamDataService, uiGridConstants);
+    static instance(dispatcher, projectContext, bamDataService, uiGridConstants) {
+        return new ngbBlastSearchService(dispatcher, projectContext, bamDataService, uiGridConstants);
     }
 
     _orderBy = null;
     _detailedRead = null;
-    _columnsWidth = { 'chr' : 45, 'startIndex' : 100, 'endIndex' : 100, 'strand' : 80 };
+    _columnsWidth = {'chr': 45, 'startIndex': 100, 'endIndex': 100, 'strand': 80};
     bamDataService;
     uiGridConstants;
+    _blastHistory = [];
+    _firstPageHistory = FIRST_PAGE;
+    _lastPageHistory = FIRST_PAGE;
+    _currentPageHistory = FIRST_PAGE;
+    _totalPagesCountHistory = 0;
+    _historyPageError = null;
+    _currentResultId = null;
+    _currentSearchId = null;
 
-    constructor(projectContext, bamDataService, uiGridConstants){
-        Object.assign(this, { projectContext, bamDataService, uiGridConstants });
+    get blastHistory() {
+        return this._blastHistory;
     }
+
+    get firstPageHistory() {
+        return this._firstPageHistory;
+    }
+
+    set firstPageHistory(value) {
+        this._firstPageHistory = value;
+    }
+
+    get lastPageHistory() {
+        return this._lastPageHistory;
+    }
+
+    set lastPageHistory(value) {
+        this._lastPageHistory = value;
+    }
+
+    get currentPageHistory() {
+        return this._currentPageHistory;
+    }
+
+    set currentPageHistory(value) {
+        this._currentPageHistory = value;
+    }
+
+    get historyPageSize() {
+        return PAGE_SIZE_HISTORY;
+    }
+
+    get totalPagesCountHistory() {
+        return this._totalPagesCountHistory;
+    }
+
+    set totalPagesCountHistory(value) {
+        this._totalPagesCountHistory = value;
+    }
+
+    get historyPageError() {
+        return this._historyPageError;
+    }
+
+
+    constructor(dispatcher, projectContext, bamDataService, uiGridConstants) {
+        Object.assign(this, {dispatcher, projectContext, bamDataService, uiGridConstants});
+        (async () => {
+            this._blastHistory = await this.loadBlastHistory();
+        })();
+    }
+
     generateSpeciesList() {
         return [
             this.projectContext.reference,
-            {id:'1eds52', name:'GRCh38'},
-            {id:'1adc47', name:'Bacteria Escherichia coli'},
-            {id:'4etr89', name:'Clostridium botulinum'},
+            {id: '1eds52', name: 'GRCh38'},
+            {id: '1adc47', name: 'Bacteria Escherichia coli'},
+            {id: '4etr89', name: 'Clostridium botulinum'},
         ];
     }
 
@@ -77,10 +142,10 @@ export default class ngbBlastSearchService {
         return this._detailedRead;
     }
 
-    async getBlastSearchResults(){
+    async getBlastSearchResults() {
         const payload = this.blastRequest;
 
-        if(!payload) return;
+        if (!payload) return;
 
         await this.getDetailedRead(payload);
 
@@ -112,6 +177,28 @@ export default class ngbBlastSearchService {
         localStorage.setItem('blastColumns', JSON.stringify(columns || []));
     }
 
+    async loadBlastHistory() {
+        let data = this._getRandomHistory(100);
+        if (data.error) {
+            this._totalPagesCountHistory = 0;
+            this._currentPageHistory = FIRST_PAGE;
+            this._lastPageHistory = FIRST_PAGE;
+            this._firstPageHistory = FIRST_PAGE;
+            this._hasMoreHistory = true;
+            this._historyPageLoading = false;
+            this._historyPageError = data.message;
+            this.dispatcher.emit('blast:history:page:loading:finished');
+            return [];
+        } else {
+            this._variantsPageError = null;
+        }
+        if (data.totalPagesCount === 0) {
+            data.totalPagesCount = undefined;
+        }
+        data.forEach(item => item.isInProcess = item.currentState === blastSearchState.SEARCHING);
+        return data;
+    }
+
     get orderBy() {
         return this._orderBy;
     }
@@ -128,6 +215,22 @@ export default class ngbBlastSearchService {
         this._columnsWidth = columnsWidth;
     }
 
+    get currentSearch() {
+        const blastHistory = this.blastHistory;
+        if (blastHistory) {
+            return blastHistory.filter(item => item.id === this._currentSearchId)[0];
+        }
+        return undefined;
+    }
+
+    set currentSearchId(currentSearchId) {
+        this._currentSearchId = currentSearchId;
+    }
+
+    set currentResultId(currentResultId) {
+        this._currentResultId = currentResultId;
+    }
+
     getBlastSearchGridColumns() {
 
         const headerCells = require('./ngbBlastSearchPanel_header.tpl.html');
@@ -139,7 +242,7 @@ export default class ngbBlastSearchService {
             const column = columnsList[i];
 
             let sortDirection = 0;
-            if(this.orderBy) {
+            if (this.orderBy) {
                 const currentOrderByField = this.orderBy[0].field;
                 const currentOrderByDirection = this.orderBy[0].desc ?
                     this.uiGridConstants.DESC : this.uiGridConstants.ASC;
@@ -159,6 +262,33 @@ export default class ngbBlastSearchService {
             });
         }
 
+        return result;
+    }
+
+    async deleteBlastHistory(id) {
+        this._blastHistory = await this.loadBlastHistory();
+    }
+
+    async cancelBlastSearch(id) {
+        this._blastHistory = await this.loadBlastHistory();
+    }
+
+    async clearSearchHistory() {
+        this._blastHistory = await this.loadBlastHistory();
+    }
+
+    // TODO: remove before merge;
+    _getRandomHistory(length) {
+        const result = [];
+        for (let i = 0; i < length; i++) {
+            result.push({
+                currentState: Object.keys(blastSearchState)[Math.floor(Math.random()*3)],
+                duration: Math.round(Math.random()*1000 + 20),
+                id: i+1,
+                submitted: Date.now()+i*100000,
+                title: Math.random() > 0.2 ? `History #${i+1}` : ''
+            });
+        }
         return result;
     }
 }

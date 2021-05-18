@@ -97,43 +97,4 @@
   [ui-grid-filter].enabled-filter {
     min-height: 38px;
   }
-
-  .ui-grid-footer-panel {
-    height: 70px !important;
-  }
-
-  .ui-grid-footer-cell-wrapper {
-    display: none;
-  }
-
-  .ui-grid-pager-panel {
-    height: 60px;
-    font-size: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    box-sizing: content-box;
-  }
-
-  .ui-grid-pager-control {
-    min-width: 260px;
-  }
-
-  .ui-grid-pager-control-input {
-    height: 16px;
-  }
-
-  .ui-grid-pager-control .ui-grid-pager-max-pages-number {
-    vertical-align: middle;
-  }
-
-  .ui-grid-viewport {
-    height: auto !important;
-  }
 }

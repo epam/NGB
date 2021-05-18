@@ -1,53 +1,36 @@
 <div layout="row" class="u-height__full">
     <div layout="column" flex>
         <md-content flex>
+            <!--
             <div ng-if="$ctrl.isProgressShown">
                 <div class="progress" layout-align="center center">
                     <span>Loading BLAST Search results...</span>
                 </div>
                 <md-progress-linear md-mode="query"></md-progress-linear>
             </div>
-            <div ng-if="!$ctrl.isProgressShown">
-                <div
-                    ng-if="!$ctrl.isProgressShown && !$ctrl.errorMessageList.length"
-                    class="ui-grid-container"
-                >
-                        <ngb-blast-search-form
-                            sequence="$ctrl.readSequence"
-                        ></ngb-blast-search-form>
-                    <div class="btn-container">
-                        <md-button
-                            class="md-accent md-raised"
-                            ng-click="$ctrl.handleOpenGenomeView($event)"
-                            ng-disabled="!$ctrl._sequence"
-                        >
-                            Browse genome view
-                        </md-button>
-                    </div>
-                    <div
-                        ng-if="$ctrl.blastSearchEmptyResult"
-                        class="blast-search-load-error-container"
-                    >
-                        <small>{{$ctrl.blastSearchEmptyResult}}</small>
-                    </div>
-                    <div
-                        ng-if="!$ctrl.blastSearchEmptyResult"
-                        ui-grid="$ctrl.gridOptions"
-                        ui-grid-save-state
-                        ui-grid-selection
-                        ui-grid-resize-columns
-                        ui-grid-auto-resize
-                        ui-grid-move-columns
-                        ui-grid-pinning
-                        ui-grid-pagination>
-                    </div>
-                </div>
-                <div
-                    ng-if="$ctrl.errorMessageList.length"
-                    class="md-padding"
-                >
-                    <ngb-panel-error-list message-list="$ctrl.errorMessageList">
-                    </ngb-panel-error-list>
+            -->
+            <div>
+                <div class="ui-grid-container">
+                    <md-tabs md-autoselect md-no-pagination md-dynamic-height md-border-bottom
+                    md-selected="$ctrl.tabSelectedIndex">
+                        <md-tab label="SEARCH">
+                            <div layout="column" class="blast-search-header">
+                                <ngb-blast-search-form
+                                        sequence="$ctrl.readSequence"
+                                ></ngb-blast-search-form>
+                            </div>
+                        </md-tab>
+                        <md-tab label="HISTORY">
+                            <div layout="column" class="blast-search-header">
+                                <ngb-blast-history change-tab="$ctrl.changeTab(tab)"></ngb-blast-history>
+                            </div>
+                        </md-tab>
+                        <md-tab label="RESULT">
+                            <div layout="column" class="blast-search-header">
+                                Result
+                            </div>
+                        </md-tab>
+                    </md-tabs>
                 </div>
             </div>
         </md-content>
