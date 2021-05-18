@@ -196,7 +196,7 @@ export class VcfTransformer extends GeneTransformer {
 
     addHighlight(highlightProfileConditions, variant) {
         const linearizedInfo = {};
-        Object.keys(variant.info).forEach(name => linearizedInfo[name] = variant.info[name].value);
+        Object.keys(variant.info || {}).forEach(name => linearizedInfo[name] = variant.info[name].value);
         highlightProfileConditions.forEach(item => {
             if (!variant.highlightColor && vcfHighlightCondition.isHighlighted(linearizedInfo, item.parsedCondition)) {
                 variant.highlightColor = `0x${item.highlightColor.toUpperCase()}`;
