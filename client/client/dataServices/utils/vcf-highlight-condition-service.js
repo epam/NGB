@@ -255,17 +255,19 @@ function _getFieldsFromCondition(condition) {
 }
 
 function _regularizeString(value) {
+    if (value === null || value === undefined) {
+        return '';
+    }
     if (Array.isArray(value)) {
         return `[${value.join(', ')}]`;
     }
-    if (typeof value === 'string' && (new RegExp('-?[^0-9\\.\\s]')).test(value)) {
-        return (value || '').toLowerCase();
-    } else if (!isNaN(parseFloat(value))) {
-        return parseFloat(value).toString();
-    } else if (!isNaN(parseInt(value))) {
-        return parseInt(value).toString();
+    if (Number.isNaN(Number(value))) {
+        if (typeof value === 'string') {
+            return (value || '').toLowerCase();
+        }
+        return `${value}`;
     }
-    return value;
+    return Number(value).toString();
 }
 
 function removeQuotas (test, quotas) {

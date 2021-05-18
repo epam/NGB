@@ -680,7 +680,6 @@ export default class projectContext {
             await this.refreshBrowsingAllowedStatus();
             await this.getDefaultTrackSettings();
             await this.refreshReferences();
-            // TODO: change to localStorage if needed
             this.setHighlightProfileConditions(this.localDataService.getSettings().highlightProfile);
         })();
         this.initEvents();
