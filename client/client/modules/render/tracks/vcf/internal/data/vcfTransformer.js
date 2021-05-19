@@ -52,8 +52,10 @@ export class VcfTransformer extends GeneTransformer {
         data.forEach(variant => VcfAnalyzer.analyzeVariant(variant, this._chromosome.name));
         for (let i = 0; i < data.length; i++) {
             const variant = data[i];
-            this.addHighlight(this._highlightProfileConditions, variant);
             variant.variationsCount = variant.variationsCount || 1;
+            if (variant.variationsCount <= 1) {
+                this.addHighlight(this._highlightProfileConditions, variant);
+            }
             if (viewport.isShortenedIntronsMode && viewport.shortenedIntronsViewport.shouldSkipFeature(variant))
                 continue;
             if (variant.structural && !variant.interChromosome && viewport.convert.brushBP2pixel(variant.length) > 1) {
@@ -138,8 +140,10 @@ export class VcfTransformer extends GeneTransformer {
         const labelStyle = this.config.statistics.label;
         for (let i = 0; i < data.length; i++) {
             const variant = data[i];
-            this.addHighlight(this._highlightProfileConditions, variant);
             variant.variationsCount = variant.variationsCount || 1;
+            if (variant.variationsCount <= 1) {
+                this.addHighlight(this._highlightProfileConditions, variant);
+            }
             if (viewport.isShortenedIntronsMode && viewport.shortenedIntronsViewport.shouldSkipFeature(variant))
                 continue;
             if (variant.structural && !variant.interChromosome && viewport.convert.brushBP2pixel(variant.length) > 1) {

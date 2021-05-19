@@ -120,27 +120,18 @@ export class StatisticsContainer extends VariantBaseContainer {
     }
 
     _getColorStructure(variant) {
-        const {variants = [], variationsCount} = variant || {};
-        const colorStructure = {
-            colors: {},
-            total: variationsCount || 1,
-            transparent: 0
+        const {variants = []} = variant || {};
+        const transparentCount = variants
+            .filter(variant => !variant.highlightColor)
+            .length > 0
+            ? 1
+            : 0;
+        const uniqueColors = [...(new Set(variants.map(variant => variant.highlightColor)))]
+            .filter(Boolean);
+        return {
+            colors: uniqueColors.reduce((colors, color) => ({...colors, [color]: 1}), {}),
+            total: transparentCount + uniqueColors.length,
+            transparent: transparentCount
         };
-        variants.forEach(variant => {
-            if (variant.highlightColor) {
-                if (!colorStructure.colors[variant.highlightColor]) {
-                    colorStructure.colors[variant.highlightColor] = 1;
-                } else {
-                    colorStructure.colors[variant.highlightColor] += variant.variationsCount || 1;
-                }
-            } else {
-                colorStructure.transparent += variant.variationsCount || 1;
-            }
-            colorStructure.total = Math.max(
-                variant.variationsCount || 1,
-                colorStructure.total
-            );
-        });
-        return colorStructure;
     }
 }
