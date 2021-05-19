@@ -9,7 +9,6 @@ export default class ngbBlastHistoryController extends baseController {
 
     dispatcher;
     projectContext;
-    variantsTableMessages;
 
     isProgressShown = true;
     errorMessageList = [];
@@ -60,14 +59,6 @@ export default class ngbBlastHistoryController extends baseController {
         this.initEvents();
     }
 
-    events = {
-        'variants:loading:finished': ::this.historyLoadingFinished,
-        'variants:loading:started': ::this.initialize,
-        // 'pageVariations:change': ::this.getDataOnPage,
-        // 'activeVariants': ::this.resizeGrid,
-        // 'display:variants:filter': ::this.refreshScope
-    };
-
     $onInit() {
         this.initialize();
     }
@@ -91,9 +82,7 @@ export default class ngbBlastHistoryController extends baseController {
                 this.gridApi.core.handleWindowResize();
                 // this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
                 // this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
-                this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
                 this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
-                this.gridApi.pagination.on.paginationChanged(this.$scope, ::this.getDataOnPage);
             }
         });
         await this.loadData();
@@ -101,6 +90,7 @@ export default class ngbBlastHistoryController extends baseController {
 
     async loadData() {
         try {
+            await this.ngbBlastSearchService.updateSearchHistory();
             if (this.ngbBlastSearchService.blastHistory.length || this.ngbBlastSearchService.variantsPageError) {
                 this.historyLoadingFinished();
             }
@@ -160,36 +150,6 @@ export default class ngbBlastHistoryController extends baseController {
             this.projectContext.vcfColumns = result;
         }
     */
-    rowClick(row) {
-        const entity = row.entity;
-        const chromosomeName = `${entity.chrName}`.toLowerCase();
-        const chromosome = this.projectContext.currentChromosome ?
-            this.projectContext.currentChromosome.name : null;
-
-        if (chromosome !== chromosomeName) {
-            this.projectContext.changeState({
-                chromosome: {
-                    name: chromosomeName
-                },
-                viewport: {
-                    end: entity.startIndex,
-                    start: entity.startIndex
-                }
-            });
-        } else {
-            this.projectContext.changeState({
-                viewport: {
-                    end: entity.startIndex,
-                    start: entity.startIndex
-                }
-            });
-        }
-    }
-
-    variantsLoadingStarted() {
-
-    }
-
     historyLoadingFinished() {
         this.historyLoadError = null;
         this.gridOptions.columnDefs = this.ngbBlastHistoryTableService.getBlastHistoryGridColumns();
@@ -225,8 +185,8 @@ export default class ngbBlastHistoryController extends baseController {
         // this.saveColumnsState();
         if (sortColumns && sortColumns.length > 0) {
             this.projectContext.orderByVariations = sortColumns.map(sc => ({
-                field: this.projectContext.orderByColumnsVariations[sc.field] || sc.field,
-                desc: sc.sort.direction === 'desc'
+                desc: sc.sort.direction === 'desc',
+                field: this.projectContext.orderByColumnsVariations[sc.field] || sc.field
             }));
         } else {
             this.projectContext.orderByVariations = null;

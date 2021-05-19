@@ -14,7 +14,7 @@ const blastSearchState = {
     SEARCHING: 'SEARCHING'
 };
 const FIRST_PAGE = 1;
-const PAGE_SIZE_HISTORY = 25;
+const PAGE_SIZE_HISTORY = 12;
 
 export default class ngbBlastSearchService {
     static instance(dispatcher, projectContext, bamDataService, uiGridConstants) {
@@ -82,9 +82,6 @@ export default class ngbBlastSearchService {
 
     constructor(dispatcher, projectContext, bamDataService, uiGridConstants) {
         Object.assign(this, {dispatcher, projectContext, bamDataService, uiGridConstants});
-        (async () => {
-            this._blastHistory = await this.loadBlastHistory();
-        })();
     }
 
     generateSpeciesList() {
@@ -106,7 +103,7 @@ export default class ngbBlastSearchService {
                     start + (singleSized ? 1 : Math.floor(Math.random() * chr.size / 100)),
                     chr.size,
                 );
-                const numb = i+1;
+                const numb = i + 1;
                 const chrName = `chr${chr.id}`;
                 const strand = chr.id % 2 !== 0 ? 'POSITIVE' : 'NEGATIVE';
                 const score = Math.floor(Math.random() * 100);
@@ -181,6 +178,10 @@ export default class ngbBlastSearchService {
         localStorage.setItem('blastColumns', JSON.stringify(columns || []));
     }
 
+    async updateSearchHistory() {
+        this._blastHistory = await this.loadBlastHistory();
+    }
+
     async loadBlastHistory() {
         let data = this._getRandomHistory(100);
         if (data.error) {
@@ -191,10 +192,10 @@ export default class ngbBlastSearchService {
             this._hasMoreHistory = true;
             this._historyPageLoading = false;
             this._historyPageError = data.message;
-            this.dispatcher.emit('blast:history:page:loading:finished');
+            // this.dispatcher.emit('blast:history:page:loading:finished');
             return [];
         } else {
-            this._variantsPageError = null;
+            this._historyPageError = null;
         }
         if (data.totalPagesCount === 0) {
             data.totalPagesCount = undefined;
@@ -219,21 +220,34 @@ export default class ngbBlastSearchService {
         this._columnsWidth = columnsWidth;
     }
 
-    get currentSearch() {
-        const blastHistory = this.blastHistory;
-        if (blastHistory) {
-            return blastHistory.filter(item => item.id === this._currentSearchId)[0];
-        }
-        return undefined;
-    }
-
     set currentSearchId(currentSearchId) {
         this._currentSearchId = currentSearchId;
+    }
+
+    get currentResultId() {
+        return this._currentResultId;
     }
 
     set currentResultId(currentResultId) {
         this._currentResultId = currentResultId;
     }
+
+    get currentSearch() {
+        return this.getHistoryEntryById(this._currentSearchId);
+    }
+
+    get currentSearchResult() {
+        return this.getHistoryEntryById(this._currentResultId);
+    }
+
+    getHistoryEntryById(id) {
+        const blastHistory = this.blastHistory;
+        if (blastHistory) {
+            return blastHistory.filter(item => item.id === id)[0];
+        }
+        return undefined;
+    }
+
 
     getBlastSearchGridColumns() {
 
@@ -283,14 +297,31 @@ export default class ngbBlastSearchService {
 
     // TODO: remove before merge;
     _getRandomHistory(length) {
+        const genSequence = length => {
+            const c = 'ACGT';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += c[Math.round(Math.random() * 3)];
+            }
+            return result;
+        };
         const result = [];
         for (let i = 0; i < length; i++) {
             result.push({
-                currentState: Object.keys(blastSearchState)[Math.floor(Math.random()*3)],
-                duration: Math.round(Math.random()*1000 + 20),
-                id: i+1,
-                submitted: Date.now()+i*100000,
-                title: Math.random() > 0.2 ? `History #${i+1}` : ''
+                currentState: Object.keys(blastSearchState)[Math.floor(Math.random() * 3)],
+                duration: Math.round(Math.random() * 1000 + 20),
+                id: i + 1,
+                submitted: Date.now() + i * 100000,
+                title: Math.random() > 0.2 ? `History #${i + 1}` : '',
+                algorithm: 'megablast',
+                organisms: [1, 2, 3],
+                db: 'nr/nt',
+                tool: ['blastn',
+                    'blastp',
+                    'blastx',
+                    'tblastn',
+                    'tblastx'][Math.round(Math.random() * 4)],
+                readSequence: genSequence(Math.round(Math.random() * 90) + 10)
             });
         }
         return result;

@@ -1,0 +1,55 @@
+.blast-search-result {
+  .query-label {
+    font-weight: bold;
+    margin-bottom: 2px;
+  }
+  .query-sequence {
+    height: 60px;
+    width: 100%;
+    background: #f7f4f4;
+    border: 1px solid dimgray;
+    border-radius: 5px;
+  }
+  .query-sequence-length {
+    margin: 4px 0;
+    font-size: 12px;
+    font-style: italic;
+    text-align: right;
+    span {
+      font-style: normal;
+      font-weight: bold;
+    }
+  }
+  .field-name {
+    font-weight: bold;
+    display: inline-block;
+    width: 120px;
+    margin: 4px 0;
+  }
+  .field-value {
+    display: inline-block;
+  }
+  .expandable-panel {
+    border: 1px dashed dimgray;
+    padding: 5px;
+    margin: 10px 0;
+    border-radius: 5px;
+    .expandable-panel-title span:before {
+      content: '\25B2';
+      transform:rotate(90deg);
+      display: inline-block;
+    }
+    .expandable-panel-title span.toggled:before {
+      //content: '\25BE';
+      transform:rotate(180deg);
+      //transform-origin: 50% 40%;
+    }
+  }
+  .left-button {
+    margin: 10px 0 0;
+  }
+  .right-button {
+    margin: 10px 0 0 10px;
+    float: right
+  }
+}

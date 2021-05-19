@@ -10,12 +10,6 @@ export default class ngbBlastHistoryTableService {
         return new ngbBlastHistoryTableService();
     }
 
-    columnTypes = {
-        flag: 'Flag',
-        integer: 'Integer',
-        string: 'String'
-    };
-
     constructor() {
     }
 
@@ -93,13 +87,10 @@ export default class ngbBlastHistoryTableService {
                         name: camelPad(column),
                         width: '*'
                     });
-
                     break;
                 }
             }
         }
-
         return result;
-
     }
 }

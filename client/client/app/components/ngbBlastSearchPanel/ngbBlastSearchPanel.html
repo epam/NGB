@@ -1,46 +1,23 @@
-<div layout="row" class="u-height__full">
-    <div layout="column" flex>
-        <md-content flex>
-            <!--
-            <div ng-if="$ctrl.isProgressShown">
-                <div class="progress" layout-align="center center">
-                    <span>Loading BLAST Search results...</span>
-                </div>
-                <md-progress-linear md-mode="query"></md-progress-linear>
-            </div>
-            -->
-            <div>
-                <div class="ui-grid-container">
-                    <md-tabs md-autoselect md-no-pagination md-dynamic-height md-border-bottom
-                    md-selected="$ctrl.tabSelectedIndex">
-                        <md-tab label="SEARCH">
-                            <div layout="column" class="blast-search-header">
-                                <ngb-blast-search-form
-                                        sequence="$ctrl.readSequence"
-                                ></ngb-blast-search-form>
-                            </div>
-                        </md-tab>
-                        <md-tab label="HISTORY">
-                            <div layout="column" class="blast-search-header">
-                                <ngb-blast-history change-tab="$ctrl.changeTab(tab)"></ngb-blast-history>
-                            </div>
-                        </md-tab>
-                        <md-tab label="RESULT">
-                            <div layout="column" class="blast-search-header">
-                                Result
-                            </div>
-                        </md-tab>
-                    </md-tabs>
-                </div>
-            </div>
-            <div
-                ng-if="$ctrl.errorMessageList.length"
-                class="md-padding"
-            >
-                <ngb-panel-error-list message-list="$ctrl.errorMessageList">
-                </ngb-panel-error-list>
-            </div>
-            </div>
-        </md-content>
-    </div>
-  </div>
+<md-tabs md-autoselect md-no-pagination md-border-bottom
+         flex layout="column" layout-fill
+         md-selected="$ctrl.tabSelectedIndex">
+    <md-tab label="SEARCH">
+        <div layout="column">
+            <ngb-blast-search-form
+                    sequence="$ctrl.readSequence"
+            ></ngb-blast-search-form>
+        </div>
+    </md-tab>
+    <md-tab label="HISTORY" layout-fill>
+        <md-tab-content flex layout-fill>
+            <ngb-blast-history change-tab="$ctrl.changeTab(tab)"></ngb-blast-history>
+        </md-tab-content>
+    </md-tab>
+    <md-tab label="RESULT" ng-disabled="$ctrl.resultDisabled">
+        <div layout="column">
+            <ngb-blast-search-result change-tab="$ctrl.changeTab(tab)"
+                                     ng-if="$ctrl.tabSelectedIndex === $ctrl.tabs.RESULT">
+            </ngb-blast-search-result>
+        </div>
+    </md-tab>
+</md-tabs>

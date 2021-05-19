@@ -6,5 +6,5 @@ export default {
     },
     controller: controller.UID,
     restrict: 'E',
-    template: require('./ngbBlastHistory.html'),
+    template: require('./ngbBlastHistory.tpl.html'),
 };

@@ -1,5 +1,4 @@
 <div layout="row" class="golden-layout-content-0" layout-fill>
-
     <div ng-if="!$ctrl.isProgressShown" class="ui-grid-container" ng-hide="$ctrl.errorMessageList.length">
         <div ng-if="$ctrl.historyLoadError" class="variants-load-error-container">
             <small>{{$ctrl.historyLoadError}}</small>
@@ -8,14 +7,15 @@
             class="md-accent md-raised clear-all-blast-history"
             type="button"
             ng-click="$ctrl.clearHistory($event)"
-        >Clear history</md-button>
+        >Clear history
+        </md-button>
         <div ui-grid="$ctrl.gridOptions"
              ui-grid-save-state
              ui-grid-selection
              ui-grid-resize-columns
              ui-grid-move-columns
              ui-grid-pinning
-             ui-grid-pagination
+             ui-grid-auto-resize
              class="blast-history-table"
         ></div>
     </div>
