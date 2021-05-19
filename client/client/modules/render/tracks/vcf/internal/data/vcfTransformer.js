@@ -51,7 +51,8 @@ export class VcfTransformer extends GeneTransformer {
 
         data.forEach(variant => VcfAnalyzer.analyzeVariant(variant, this._chromosome.name));
         for (let i = 0; i < data.length; i++) {
-            const variant = this.addHighlight(this._highlightProfileConditions, data[i]);
+            const variant = data[i];
+            this.addHighlight(this._highlightProfileConditions, variant);
             variant.variationsCount = variant.variationsCount || 1;
             if (viewport.isShortenedIntronsMode && viewport.shortenedIntronsViewport.shouldSkipFeature(variant))
                 continue;
@@ -87,8 +88,14 @@ export class VcfTransformer extends GeneTransformer {
                     }
                 }
                 if (variant.type.toLowerCase() === 'statistic') {
-                    // process server bubbles color
-                    variant.variants = [];
+                    // Process server bubbles color.
+                    // We intentionally set variationsCount to "1" instead of "variant.variantsColor"
+                    // because for server- bubbles we have INFO field for some single variation
+                    // "inside" bubble
+                    variant.variants = [Object.assign({}, {
+                        highlightColor: variant.highlightColor,
+                        variationsCount: 1
+                    })];
                 }
                 const item = Object.assign({}, variant, {
                     bubble: {
@@ -130,7 +137,8 @@ export class VcfTransformer extends GeneTransformer {
         let previousItem = null;
         const labelStyle = this.config.statistics.label;
         for (let i = 0; i < data.length; i++) {
-            const variant = this.addHighlight(this._highlightProfileConditions, data[i]);
+            const variant = data[i];
+            this.addHighlight(this._highlightProfileConditions, variant);
             variant.variationsCount = variant.variationsCount || 1;
             if (viewport.isShortenedIntronsMode && viewport.shortenedIntronsViewport.shouldSkipFeature(variant))
                 continue;
@@ -166,6 +174,9 @@ export class VcfTransformer extends GeneTransformer {
                     },
                     isStatistics: variant.type.toLowerCase() === 'statistic',
                     startIndex: variant.startIndex + VcfAnalyzer.getVariantTranslation(variant),
+                    variants: variant.type.toLowerCase() === 'statistic'
+                        ? [Object.assign({}, variant)]
+                        : undefined,
                     variationsCount: variant.variationsCount
                 });
                 variants.push(item);
@@ -202,7 +213,6 @@ export class VcfTransformer extends GeneTransformer {
                 variant.highlightColor = `0x${item.highlightColor.toUpperCase()}`;
             }
         });
-        return variant;
     }
 
     combineBubbles(items, viewport) {

@@ -27,7 +27,7 @@ export class StatisticsContainer extends VariantBaseContainer {
     }
 
     buildBubble(manager) {
-        this.drawBubble(this._getColorStructure(this._variant.variants), 0);
+        this.drawBubble(this._getColorStructure(this._variant), 0);
         const label = new PIXI.Text(NumberFormatter.textWithPrefix(this._variant.variationsCount, false),
             this._config.statistics.label);
         label.resolution = drawingConfiguration.resolution;
@@ -114,15 +114,16 @@ export class StatisticsContainer extends VariantBaseContainer {
             const hoverDelta = 1 / this._config.animation.hover.bubble.duration * timeDelta;
             this._hoverFactor =
                 Math.max(0, Math.min(1, this._hoverFactor + (this._isHovered ? hoverDelta : -hoverDelta)));
-            this.drawBubble(this._getColorStructure(this._variant.variants), this._hoverFactor * this._config.animation.hover.bubble.extraRadius);
+            this.drawBubble(this._getColorStructure(this._variant), this._hoverFactor * this._config.animation.hover.bubble.extraRadius);
         }
         return needAnimateBubbleHover || needAnimateFade;
     }
 
-    _getColorStructure(variants) {
+    _getColorStructure(variant) {
+        const {variants = [], variationsCount} = variant || {};
         const colorStructure = {
             colors: {},
-            total: 0,
+            total: variationsCount || 1,
             transparent: 0
         };
         variants.forEach(variant => {
@@ -135,7 +136,10 @@ export class StatisticsContainer extends VariantBaseContainer {
             } else {
                 colorStructure.transparent += variant.variationsCount || 1;
             }
-            colorStructure.total += variant.variationsCount || 1;
+            colorStructure.total = Math.max(
+                variant.variationsCount || 1,
+                colorStructure.total
+            );
         });
         return colorStructure;
     }
