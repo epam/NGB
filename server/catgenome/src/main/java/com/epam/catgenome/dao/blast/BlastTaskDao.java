@@ -22,17 +22,15 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.dao.task;
+package com.epam.catgenome.dao.blast;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.entity.task.Organism;
-import com.epam.catgenome.entity.task.Task;
-import com.epam.catgenome.entity.task.TaskParameter;
-import com.epam.catgenome.entity.task.TaskStatus;
+import com.epam.catgenome.entity.blast.*;
+import com.epam.catgenome.util.db.Filter;
+import com.epam.catgenome.util.db.QueryParameters;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
@@ -41,18 +39,26 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-public class TaskDao extends NamedParameterJdbcDaoSupport {
-    private String taskSequenceName;
+import static com.epam.catgenome.util.Utils.*;
+
+@Slf4j
+public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     private String insertTaskQuery;
-    private String updateTaskQuery;
+    private String updateTaskStatusQuery;
     private String deleteTaskQuery;
     private String loadTaskByIdQuery;
     private String loadAllTasksQuery;
+    private String getTaskCountQuery;
 
     private String organismSequenceName;
     private String insertTaskOrganismsQuery;
     private String deleteTaskOrganismsQuery;
     private String loadTaskOrganismsQuery;
+
+    private String exclOrganismSequenceName;
+    private String insertTaskExclOrganismsQuery;
+    private String deleteTaskExclOrganismsQuery;
+    private String loadTaskExclOrganismsQuery;
 
     private String taskParameterSequenceName;
     private String insertTaskParametersQuery;
@@ -68,12 +74,12 @@ public class TaskDao extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public void saveTask(final Task task) {
-        if(task.getId() == null) {
-            task.setId(daoHelper.createId(taskSequenceName));
             getNamedParameterJdbcTemplate().update(insertTaskQuery, TaskParameters.getParameters(task));
-        } else {
-            getNamedParameterJdbcTemplate().update(updateTaskQuery, TaskParameters.getParameters(task));
-        }
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updateTaskStatus(Task task) {
+        getNamedParameterJdbcTemplate().update(updateTaskStatusQuery, TaskParameters.getParameters(task));
     }
 
     /**
@@ -89,8 +95,15 @@ public class TaskDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Task> loadAllTasks() {
-        return getJdbcTemplate().query(loadAllTasksQuery, TaskParameters.getRowMapper());
+    public List<Task> loadAllTasks(QueryParameters queryParameters) {
+        String query = addParametersToQuery(loadAllTasksQuery, queryParameters);
+        return getJdbcTemplate().query(query, TaskParameters.getRowMapper());
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public long getTasksCount(List<Filter> filters) {
+        String query = addFiltersToQuery(getTaskCountQuery, filters);
+        return getJdbcTemplate().queryForObject(query, Long.class);
     }
 
     /**
@@ -120,6 +133,16 @@ public class TaskDao extends NamedParameterJdbcDaoSupport {
     }
 
     /**
+     * Loads {@code Organisms} from the database by Task Id
+     * @param taskId id of the task
+     * @return a loaded {@code List<Organism>}
+     */
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public List<Organism> loadExclOrganisms(long taskId) {
+        return getJdbcTemplate().query(loadTaskExclOrganismsQuery, OrganismParameters.getRowMapper(), taskId);
+    }
+
+    /**
      * Deletes {@code Organisms}  from database.
      *
      * @param id of the task
@@ -127,6 +150,16 @@ public class TaskDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public void deleteOrganisms(final Long id) {
         getJdbcTemplate().update(deleteTaskOrganismsQuery, id);
+    }
+
+    /**
+     * Deletes {@code Organisms}  from database.
+     *
+     * @param id of the task
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void deleteExclOrganisms(final Long id) {
+        getJdbcTemplate().update(deleteTaskExclOrganismsQuery, id);
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -160,7 +193,9 @@ public class TaskDao extends NamedParameterJdbcDaoSupport {
         QUERY,
         DATABASE,
         EXECUTABLE,
-        ALGORITHM;
+        ALGORITHM,
+        OPTIONS,
+        OWNER;
 
         static MapSqlParameterSource getParameters(Task task) {
             MapSqlParameterSource params = new MapSqlParameterSource();
@@ -175,6 +210,8 @@ public class TaskDao extends NamedParameterJdbcDaoSupport {
             params.addValue(DATABASE.name(), task.getDatabase());
             params.addValue(EXECUTABLE.name(), task.getExecutable());
             params.addValue(ALGORITHM.name(), task.getAlgorithm());
+            params.addValue(OPTIONS.name(), task.getOptions());
+            params.addValue(OWNER.name(), task.getOwner());
 
             return params;
         }
@@ -192,6 +229,8 @@ public class TaskDao extends NamedParameterJdbcDaoSupport {
                 task.setDatabase(rs.getString(DATABASE.name()));
                 task.setExecutable(rs.getString(EXECUTABLE.name()));
                 task.setAlgorithm(rs.getString(ALGORITHM.name()));
+                task.setOptions(rs.getString(OPTIONS.name()));
+                task.setOwner(rs.getString(OWNER.name()));
 
                 long longVal = rs.getLong(STATUS.name());
                 if (!rs.wasNull()) {
@@ -224,7 +263,7 @@ public class TaskDao extends NamedParameterJdbcDaoSupport {
 
                 organism.setId(rs.getLong(ORGANISM_ID.name()));
                 organism.setTaskId(rs.getLong(TASK_ID.name()));
-                organism.setOrganism(rs.getString(ORGANISM.name()));
+                organism.setOrganism(rs.getLong(ORGANISM.name()));
 
                 return organism;
             };
@@ -263,7 +302,7 @@ public class TaskDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void saveOrganisms(long taskId, List<String> organisms) {
+    public void saveOrganisms(long taskId, List<Long> organisms) {
         List<Long> newIds = daoHelper.createIds(organismSequenceName, organisms.size());
 
         ArrayList<MapSqlParameterSource> params = new ArrayList<>(organisms.size());
@@ -280,6 +319,26 @@ public class TaskDao extends NamedParameterJdbcDaoSupport {
 
         getNamedParameterJdbcTemplate().batchUpdate(insertTaskOrganismsQuery,
                 params.toArray(new MapSqlParameterSource[organisms.size()]));
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void saveExclOrganisms(long taskId, List<Long> exclOrganisms) {
+        List<Long> newIds = daoHelper.createIds(exclOrganismSequenceName, exclOrganisms.size());
+
+        ArrayList<MapSqlParameterSource> params = new ArrayList<>(exclOrganisms.size());
+        for (int i = 0; i < exclOrganisms.size(); i++) {
+            MapSqlParameterSource param = new MapSqlParameterSource();
+
+            param.addValue(OrganismParameters.ORGANISM_ID.name(), newIds.get(i));
+            param.addValue(OrganismParameters.TASK_ID.name(), taskId);
+            param.addValue(OrganismParameters.ORGANISM.name(),
+                    exclOrganisms.get(i));
+
+            params.add(param);
+        }
+
+        getNamedParameterJdbcTemplate().batchUpdate(insertTaskExclOrganismsQuery,
+                params.toArray(new MapSqlParameterSource[exclOrganisms.size()]));
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -305,17 +364,17 @@ public class TaskDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Required
-    public void setTaskSequenceName(String taskSequenceName) {
-        this.taskSequenceName = taskSequenceName;
-    }
-
-    @Required
     public void setOrganismSequenceName(String organismSequenceName) {
         this.organismSequenceName = organismSequenceName;
     }
 
     @Required
-    public void setParameterSequenceName(String taskParameterSequenceName) {
+    public void setExclOrganismSequenceName(String exclOrganismSequenceName) {
+        this.exclOrganismSequenceName = exclOrganismSequenceName;
+    }
+
+    @Required
+    public void setTaskParameterSequenceName(String taskParameterSequenceName) {
         this.taskParameterSequenceName = taskParameterSequenceName;
     }
 
@@ -335,8 +394,8 @@ public class TaskDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Required
-    public void setUpdateTaskQuery(String updateTaskQuery) {
-        this.updateTaskQuery = updateTaskQuery;
+    public void setUpdateTaskStatusQuery(String updateTaskStatusQuery) {
+        this.updateTaskStatusQuery = updateTaskStatusQuery;
     }
 
     @Required
@@ -360,6 +419,21 @@ public class TaskDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Required
+    public void setInsertTaskExclOrganismsQuery(String insertTaskExclOrganismsQuery) {
+        this.insertTaskExclOrganismsQuery = insertTaskExclOrganismsQuery;
+    }
+
+    @Required
+    public void setDeleteTaskExclOrganismsQuery(String deleteTaskExclOrganismsQuery) {
+        this.deleteTaskExclOrganismsQuery = deleteTaskExclOrganismsQuery;
+    }
+
+    @Required
+    public void setLoadTaskExclOrganismsQuery(String loadTaskExclOrganismsQuery) {
+        this.loadTaskExclOrganismsQuery = loadTaskExclOrganismsQuery;
+    }
+
+    @Required
     public void setInsertTaskParametersQuery(String insertTaskParametersQuery) {
         this.insertTaskParametersQuery = insertTaskParametersQuery;
     }
@@ -372,5 +446,10 @@ public class TaskDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadTaskParametersQuery(String loadTaskParametersQuery) {
         this.loadTaskParametersQuery = loadTaskParametersQuery;
+    }
+
+    @Required
+    public void setGetTaskCountQuery(String getTaskCountQuery) {
+        this.getTaskCountQuery = getTaskCountQuery;
     }
 }

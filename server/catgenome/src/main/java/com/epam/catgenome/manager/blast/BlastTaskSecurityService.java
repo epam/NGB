@@ -24,11 +24,16 @@
  *
  */
 
-package com.epam.catgenome.manager.task;
+package com.epam.catgenome.manager.blast;
 
 import com.epam.catgenome.controller.vo.TaskVO;
-import com.epam.catgenome.entity.task.Task;
-import com.epam.catgenome.entity.task.TaskStatus;
+import com.epam.catgenome.entity.blast.Task;
+import com.epam.catgenome.manager.blast.dto.TaskPage;
+import com.epam.catgenome.manager.blast.dto.TaskResult;
+import com.epam.catgenome.exception.BlastRequestException;
+import com.epam.catgenome.util.db.Filter;
+import com.epam.catgenome.util.db.QueryParameters;
+import com.epam.catgenome.entity.blast.TaskStatus;
 import com.epam.catgenome.security.acl.aspect.AclMask;
 import com.epam.catgenome.security.acl.aspect.AclTree;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,48 +47,59 @@ import java.util.List;
 import static com.epam.catgenome.security.acl.SecurityExpressions.*;
 
 @Service
-public class TaskSecurityService {
+public class BlastTaskSecurityService {
 
     @Autowired
-    private TaskManager taskManager;
+    private BlastTaskManager blastTaskManager;
 
     @AclTree
     @AclMask
     @PreAuthorize(ROLE_USER)
     public Task load(Long taskId) {
-        return taskManager.load(taskId);
+        return blastTaskManager.load(taskId);
     }
 
     @PreAuthorize(ROLE_USER)
-    public Task create(TaskVO taskVO) {
+    public Task create(TaskVO taskVO) throws BlastRequestException {
         Task task = new Task();
         task.setId(taskVO.getId());
         task.setTitle(taskVO.getTitle());
-        task.setCreatedDate(taskVO.getId() == null ? new Date(): taskVO.getCreatedDate());
+        task.setCreatedDate(taskVO.getCreatedDate() == null ? new Date(): taskVO.getCreatedDate());
         task.setStatus(TaskStatus.getById(taskVO.getStatus()));
         task.setEndDate(taskVO.getEndDate());
         task.setStatusReason(taskVO.getStatusReason());
         task.setQuery(taskVO.getQuery());
         task.setDatabase(taskVO.getDatabase());
         task.setOrganisms(taskVO.getOrganisms());
+        task.setExcludedOrganisms(taskVO.getExcludedOrganisms());
         task.setExecutable(taskVO.getExecutable());
         task.setAlgorithm(taskVO.getAlgorithm());
         task.setParameters(taskVO.getParameters());
-        return taskManager.create(task);
+        return blastTaskManager.create(task);
     }
 
     @PreAuthorize(ROLE_USER)
     public void deleteTask(long taskId) throws IOException {
-        taskManager.deleteTask(taskId);
+        blastTaskManager.deleteTask(taskId);
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<Task> loadAllTasks() {
-        return taskManager.loadAllTasks();
+    public TaskPage loadAllTasks(QueryParameters queryParameters) {
+        return blastTaskManager.loadAllTasks(queryParameters);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public long getTasksCount(List<Filter> filters) {
+        return blastTaskManager.getTasksCount(filters);
     }
 
     @PreAuthorize(ROLE_USER)
     public void cancel(long taskId) {
-        taskManager.cancelTask(taskId);
+        blastTaskManager.updateTaskStatus(TaskStatus.CANCELED, "", taskId);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public TaskResult getResult(long taskId) throws BlastRequestException {
+        return blastTaskManager.getResult(taskId);
     }
 }

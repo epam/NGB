@@ -2,8 +2,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-    <bean class="com.epam.catgenome.dao.task.TaskDao" autowire="byName">
-        <property name="taskSequenceName" value="catgenome.s_task" />
+    <bean class="com.epam.catgenome.dao.blast.BlastTaskDao" autowire="byName">
         <property name="insertTaskQuery">
             <value>
                 <![CDATA[
@@ -17,7 +16,9 @@
                         query,
                         database,
                         executable,
-                        algorithm
+                        algorithm,
+                        options,
+                        owner
                     ) VALUES (
                         :TASK_ID,
                         :TITLE,
@@ -28,12 +29,14 @@
                         :QUERY,
                         :DATABASE,
                         :EXECUTABLE,
-                        :ALGORITHM
+                        :ALGORITHM,
+                        :OPTIONS,
+                        :OWNER
                     )
                 ]]>
             </value>
         </property>
-        <property name="updateTaskQuery">
+        <property name="updateTaskStatusQuery">
             <value>
                 <![CDATA[
                     UPDATE catgenome.task SET
@@ -41,6 +44,13 @@
                         status_reason = :STATUS_REASON
                     WHERE
                         task_id = :TASK_ID
+                ]]>
+            </value>
+        </property>
+        <property name="getTaskCountQuery">
+            <value>
+                <![CDATA[
+                    select count(*) as count from catgenome.task
                 ]]>
             </value>
         </property>
@@ -57,7 +67,9 @@
                         query,
                         database,
                         executable,
-                        algorithm
+                        algorithm,
+                        options,
+                        owner
                     FROM catgenome.task
                     WHERE task_id = ?
                 ]]>
@@ -76,11 +88,10 @@
                         query,
                         database,
                         executable,
-                        algorithm
+                        algorithm,
+                        options,
+                        owner
                     FROM catgenome.task
-                    ORDER BY
-                        created_date,
-                        end_date
                 ]]>
             </value>
         </property>
@@ -92,7 +103,7 @@
             </value>
         </property>
 
-        <property name="parameterSequenceName" value="catgenome.s_task_parameter" />
+        <property name="taskParameterSequenceName" value="catgenome.s_task_parameter" />
         <property name="deleteTaskParametersQuery">
             <value>
                 <![CDATA[
@@ -155,6 +166,42 @@
             <value>
                 <![CDATA[
                     INSERT INTO catgenome.task_organism (
+                        organism_id,
+                        task_id,
+                        organism
+                    ) VALUES (
+                        :ORGANISM_ID,
+                        :TASK_ID,
+                        :ORGANISM
+                    )
+                ]]>
+            </value>
+        </property>
+
+        <property name="exclOrganismSequenceName" value="catgenome.s_task_excl_organism" />
+        <property name="deleteTaskExclOrganismsQuery">
+            <value>
+                <![CDATA[
+                    DELETE catgenome.task_excl_organism WHERE task_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadTaskExclOrganismsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        organism_id,
+                        task_id,
+                        organism
+                    FROM catgenome.task_excl_organism
+                    WHERE task_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="insertTaskExclOrganismsQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.task_excl_organism (
                         organism_id,
                         task_id,
                         organism

@@ -26,8 +26,7 @@ package com.epam.catgenome.util;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.constant.Constants;
@@ -40,6 +39,10 @@ import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.track.Block;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.util.aws.S3Client;
+import com.epam.catgenome.util.db.Filter;
+import com.epam.catgenome.util.db.PagingInfo;
+import com.epam.catgenome.util.db.QueryParameters;
+import com.epam.catgenome.util.db.SortInfo;
 import htsjdk.samtools.util.CloseableIterator;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.tribble.Feature;
@@ -55,6 +58,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.epam.catgenome.manager.aws.S3Manager.generateSignedUrl;
+import static org.thymeleaf.util.StringUtils.concat;
+import static org.thymeleaf.util.StringUtils.join;
 
 /**
  * Source:      Utils.java
@@ -74,6 +79,12 @@ public final class Utils {
     private static final String GZ_EXTENSION = ".gz";
 
     private static final int S3_LINK_EXPIRATION = 60;
+
+    private static final String PAGING_INFO_CLAUSE = " limit %s offset %s";
+    private static final String WHERE_CLAUSE = " where %s";
+    private static final String ORDER_BY_CLAUSE = " order by %s";
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int DEFAULT_PAGE_NUM = 0;
 
     private Utils() {
         // no operations by default
@@ -422,5 +433,36 @@ public final class Utils {
     @FunctionalInterface
     public interface MeasuredTask {
         void doWork();
+    }
+
+    public static String addParametersToQuery(String query, QueryParameters params) {
+        return addPagingInfoToQuery(addSortInfoToQuery(addFiltersToQuery(query, params.getFilters()), params.getSortInfos()), params.getPagingInfo());
+    }
+
+    public static String addFiltersToQuery(String query, List<Filter> filters) {
+        List<String> filter = new ArrayList<>(Collections.emptyList());
+        if (filters != null) {
+            for (Filter q : filters) {
+                filter.add(concat(q.getField(), "=",  q.getValue()));
+            }
+        }
+        return filters == null || filter.isEmpty() ? query : query + String.format(WHERE_CLAUSE, join(filter, ", "));
+    }
+
+    public static String addPagingInfoToQuery(String query, PagingInfo pagingInfo) {
+        return query + String.format(
+                PAGING_INFO_CLAUSE,
+                pagingInfo.getPageSize() < 1 ? DEFAULT_PAGE_SIZE : pagingInfo.getPageSize(),
+                pagingInfo.getPageNum() < 1 ? DEFAULT_PAGE_NUM : pagingInfo.getPageNum());
+    }
+
+    public static String addSortInfoToQuery(String query, List<SortInfo> sortInfos) {
+        List<String> orderBy = new LinkedList<>(Collections.emptyList());
+        if (sortInfos != null) {
+            for(SortInfo sortInfo: sortInfos) {
+                orderBy.add(sortInfo.getField() + " " + (sortInfo.isAscending() ? "ASC" : "DESC"));
+            }
+        }
+        return sortInfos == null || sortInfos.isEmpty() ? query : query + String.format(ORDER_BY_CLAUSE, join(orderBy, ", "));
     }
 }

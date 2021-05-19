@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,45 +22,22 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.entity.task;
+package com.epam.catgenome.client.blast;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.epam.catgenome.manager.blast.dto.Request;
+import com.epam.catgenome.manager.blast.dto.RequestInfo;
+import com.epam.catgenome.manager.blast.dto.TaskResult;
+import retrofit2.Call;
+import retrofit2.http.*;
 
+public interface BlastApi {
+    @Headers("Content-type: application/json")
+    @POST("restapi/blast")
+    Call<RequestInfo> createTask(@Body Request request);
 
-public enum TaskStatus {
-    CREATED(1),
-    SUBMITTED(2),
-    RUNNING(3),
-    CANCELED(4),
-    FAILED(5),
-    FINISHED(6);
+    @GET("restapi/blast/{id}")
+    Call<TaskResult> getResult(@Path(value="id", encoded=true) long id);
 
-    private long id;
-    private static Map<Long, TaskStatus> idMap = new HashMap<>((int) CREATED.getId());
-
-    static {
-        idMap.put(CREATED.id, CREATED);
-        idMap.put(SUBMITTED.id, SUBMITTED);
-        idMap.put(RUNNING.id, RUNNING);
-        idMap.put(CANCELED.id, CANCELED);
-        idMap.put(FAILED.id, FAILED);
-        idMap.put(FINISHED.id, FINISHED);
-    }
-
-    TaskStatus(long id) {
-        this.id = id;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public static TaskStatus getById(Long id) {
-        if (id == null) {
-            return null;
-        }
-
-        return idMap.get(id);
-    }
+    @GET("restapi/task/{id}")
+    Call<RequestInfo> getTask(@Path(value="id", encoded=true) long id);
 }

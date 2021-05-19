@@ -1,4 +1,4 @@
-package com.epam.catgenome.entity.task;
+package com.epam.catgenome.entity.blast;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -8,5 +8,5 @@ import lombok.Setter;
 public class Organism {
     private Long id;
     private Long taskId;
-    private String organism;
+    private Long organism;
 }

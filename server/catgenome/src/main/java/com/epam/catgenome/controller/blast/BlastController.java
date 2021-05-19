@@ -22,14 +22,19 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.controller.task;
+package com.epam.catgenome.controller.blast;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.List;
 
 import com.epam.catgenome.controller.vo.TaskVO;
-import com.epam.catgenome.entity.task.Task;
-import com.epam.catgenome.manager.task.TaskSecurityService;
+import com.epam.catgenome.entity.blast.Task;
+import com.epam.catgenome.manager.blast.dto.TaskPage;
+import com.epam.catgenome.manager.blast.dto.TaskResult;
+import com.epam.catgenome.exception.BlastRequestException;
+import com.epam.catgenome.util.db.Filter;
+import com.epam.catgenome.util.db.QueryParameters;
+import com.epam.catgenome.manager.blast.BlastTaskSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -49,10 +54,10 @@ import com.wordnik.swagger.annotations.ApiResponses;
 
 @Controller
 @Api(value = "task", description = "Task Management")
-public class TaskController extends AbstractRESTController {
+public class BlastController extends AbstractRESTController {
 
     @Autowired
-    private TaskSecurityService taskSecurityService;
+    private BlastTaskSecurityService blastTaskSecurityService;
 
     @RequestMapping(value = "/task/{taskId}", method = RequestMethod.GET)
     @ResponseBody
@@ -64,20 +69,46 @@ public class TaskController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Task> loadTask(@PathVariable long taskId) {
-        return Result.success(taskSecurityService.load(taskId));
+        return Result.success(blastTaskSecurityService.load(taskId));
     }
 
-    @RequestMapping(value = "/tasks", method = RequestMethod.GET)
+    @RequestMapping(value = "/task/result/{taskId}", method = RequestMethod.GET)
     @ResponseBody
     @ApiOperation(
-            value = "Loads all tasks.",
-            notes = "Loads all tasks",
+            value = "Returns a task result",
+            notes = "Returns a task result",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Collection<Task>> loadTasks() {
-        return Result.success(taskSecurityService.loadAllTasks());
+    public Result<TaskResult> getResult(@PathVariable long taskId) throws BlastRequestException {
+        return Result.success(blastTaskSecurityService.getResult(taskId));
+    }
+
+    @RequestMapping(value = "/tasks/count", method = RequestMethod.POST)
+    @ResponseBody
+    @ApiOperation(
+            value = "Returns tasks count",
+            notes = "Returns tasks count",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Long> getTasksCount(@RequestBody List<Filter> filters) {
+        return Result.success(blastTaskSecurityService.getTasksCount(filters));
+    }
+
+    @RequestMapping(value = "/tasks", method = RequestMethod.POST)
+    @ResponseBody
+    @ApiOperation(
+            value = "Loads all tasks.",
+            notes = "DB fields mapping: id - task_id, createdDate - created_date, endDate - end_date, statusReason - status_reason",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<TaskPage> loadTasks(@RequestBody QueryParameters queryParameters) {
+        return Result.success(blastTaskSecurityService.loadAllTasks(queryParameters));
     }
 
     @RequestMapping(value = "/task", method = RequestMethod.POST)
@@ -89,8 +120,8 @@ public class TaskController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Task> createTask(@RequestBody TaskVO taskVO) throws FeatureIndexException {
-        return Result.success(taskSecurityService.create(taskVO));
+    public Result<Task> createTask(@RequestBody TaskVO taskVO) throws FeatureIndexException, BlastRequestException {
+        return Result.success(blastTaskSecurityService.create(taskVO));
     }
 
     @RequestMapping(value = "/task/cancel/{taskId}", method = RequestMethod.GET)
@@ -103,7 +134,7 @@ public class TaskController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> cancelTask(@PathVariable long taskId) {
-        taskSecurityService.cancel(taskId);
+        blastTaskSecurityService.cancel(taskId);
         return Result.success(null);
     }
 
@@ -117,7 +148,7 @@ public class TaskController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<Boolean> deleteTask(@PathVariable final long taskId) throws IOException {
-        taskSecurityService.deleteTask(taskId);
+        blastTaskSecurityService.deleteTask(taskId);
         return Result.success(null);
     }
 }

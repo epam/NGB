@@ -21,28 +21,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.task;
 
-import lombok.Getter;
-import lombok.Setter;
+package com.epam.catgenome.entity.blast;
 
-import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
-@Getter
-@Setter
-public class Task {
-    private Long id;
-    private String title;
-    private Date createdDate;
-    private TaskStatus status;
-    private Date endDate;
-    private String statusReason;
-    private String query;
-    private String database;
-    private List<String> organisms;
-    private String executable;
-    private String algorithm;
-    private Map<String, String> parameters;
+
+public enum TaskStatus {
+    CREATED(1),
+    SUBMITTED(2),
+    RUNNING(3),
+    CANCELED(4),
+    FAILED(5),
+    FINISHED(6);
+
+    private long id;
+    private static Map<Long, TaskStatus> idMap = new HashMap<>((int) CREATED.getId());
+
+    static {
+        idMap.put(CREATED.id, CREATED);
+        idMap.put(SUBMITTED.id, SUBMITTED);
+        idMap.put(RUNNING.id, RUNNING);
+        idMap.put(CANCELED.id, CANCELED);
+        idMap.put(FAILED.id, FAILED);
+        idMap.put(FINISHED.id, FINISHED);
+    }
+
+    TaskStatus(long id) {
+        this.id = id;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public static TaskStatus getById(Long id) {
+        if (id == null) {
+            return null;
+        }
+
+        return idMap.get(id);
+    }
 }

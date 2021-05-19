@@ -1,4 +1,4 @@
-package com.epam.catgenome.entity.task;
+package com.epam.catgenome.entity.blast;
 
 import lombok.Getter;
 import lombok.Setter;
