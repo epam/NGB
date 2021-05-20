@@ -60,14 +60,17 @@ Test verifies
 | 8 | Go to **Variants** panel | |
 | 9 | Find Variation on Position **chr X:12586950**| Background of variation highlight in **'ff0000'(red)** color |
 | 10| Click on variation with Position **chr X:12586950** |Browser window is opened with vcf track|
-| 11| Look at variation on vcf track in Browser| Variation is highlighted in color  **'ff0000'(red)** along all its length in expanded and collapsed view
-| 12| Repeat steps 8-11 for every variation's position shown in the table below |   | 
+| 11| At the vcf-track, select **'Collapsed'** view (if it was not set previously)||
+| 12| Look at variation on vcf track in Browser| Variation is highlighted in color  **'ff0000'(red)** along all its length in **collapsed** view
+| 13| At the vcf-track, select **'Expanded'** view 
+| 14| Look at variation on vcf track in Browser| Variation is highlighted in color  **'ff0000'(red)** along all its length in **expanded** view
+| 14| Repeat steps 8-14 for every variation's position shown in the table below |   | 
  
 
 | Steps | Condition | Position chr X| Expected results |
 | :---: | --- | --- | --- | 
 | 1 | DP == 384 | 12586950| <li> 'DEL' variation is highlighted in **'ff0000' (red)**  <li> DP = 384 | 
-| 2 | AC != 1 | 12586560 | <li> 'DEL' variation is highlighted in **'ffff00' (yellow)**  <li> AC = 2 |
+| 2 | AC != 1 | 12586560 | <li> 'DEL' variation is highlighted in **'CE632D' (brown)**  <li> AC = 2 |
 | 3 | FS > 450 | 12586790 | <li> 'DEL' variation is highlighted in **'008000' (green)** <li> FS = 453.737|
 | 4 | MQ >= 91.95 | <li>12585943 <li>12587867 | <li> 'INS' variation is highlighted in **'add8e6' (lightblue)**, MQ = 91.95 <li> 'DEL' variation is highlighted in **'add8e6' (lightblue)**, MQ = 92.2
 | 5 | ReadPosRankSum < -1.600| 12589324 | <li> 'SNV' variation is highlighted in **'0000ff' (blue)** <li> ReadPosRankSum = -1.651|

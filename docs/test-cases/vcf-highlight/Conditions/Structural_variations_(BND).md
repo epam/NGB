@@ -56,21 +56,24 @@ Test verifies
 | 4 | Select **Structural variations** profile in dropdown list of **'Select the profile'** field|
 | 5 | Click **Save** button | <li> Changes successfully saved <li> 'Settings' window is closed | 
 | 6 | Go to **Datasets** tab | 
-| 7 | Select datasets and vcf files from **Prerequisites** | Vcf files is selected in datasets | 
+| 7 | Select datasets and vcf files from **Prerequisites** | Vcf files are selected in datasets | 
 | 8 | Go to **Variants** panel | |
-| 9 | Find Variation on Position **Chr5 :181050143**| Background of variation highlight in **'ff0000'(red)** color |
-| 10| Click on variation with Position **Chr5 :181050143** |Browser window is opened with vcf track|
-| 11| Look at variation on vcf track in Browser| Variation and it's label is highlighted in color  **'ff0000'(red)** along all its length in expanded and collapsed view
-| 12| Repeat steps 8-11 for every variation's position shown in the table below |
+| 9 | Find Variation on Position **Chr 5: 181050143**| Background of variation highlight in **'ff0000'(red)** color |
+| 10| Click on variation with Position **Chr 5: 181050143** |Browser window is opened with vcf track|
+| 11| At the vcf-track, select **'Collapsed'** view (if it was not set previously)||
+| 12| Look at variation on vcf track in Browser| Variation and it's label is highlighted in color  **'ff0000'(red)** along all its length in **collapsed** view
+| 13| At the vcf-track, select **'Expanded'** view| 
+| 14| Look at variation on vcf track in Browser| Variation and it's label is highlighted in color  **'ff0000'(red)** along all its length in **expanded** view
+| 15| Repeat steps 8-14 for every variation's position shown in the table below |
  
 
 | Steps | Condition | Position chr| Expected results |
 | :---: | --- | --- | --- | 
-| 1 | CIPOS == [-6, 2] | Chr:5 181050143| <li> 'BND' variation is highlighted in **'ff0000' (red)**  <li> CIPOS == [-6, 2] | 
-| 2 | SU  > 5 |Chr:4 25665006| <li> 'BND' variation is highlighted in  **'008000' (green)** <li>Label of variation is highlighted in  **'008000' (green)** <li> SU = 421 |
-| 3 | EVENT >= 111 |Chr:13 48459903 | <li> 'BND' variation is highlighted in **'add8e6' (lightblue)** <li> EVENT = 124|
-| 4 | EVENT < 31 | Chr:6 51295112 | <li> 'BND' variation is highlighted in **'0000ff' (blue)** <li>  EVENT = 30
-| 5 | EVENT <= 34|Chr:6 117314770 | <li> 'BND' variation is highlighted in **'ffc0cb"' (pink)** <li> EVENT = 34|
-| 6 | EVENT  in [96]| Chr:17 31200612 | <li> 'BND' variation is highlighted in **'ffa500' (orange)** <li> EVENT = 96 
-| 7 | PE != 4 |Chr:17 31226616| <li>'BND' variation is highlighted in **'ffff00' (yellow)** <li> PE = 5
-| 8 | PE notin [5] | Chr:17 31182626 | <li> 'BND' variation is highlighted in **'f5f5dc' (beige)** <li> DP = 216|
+| 1 | CIPOS == [-6, 2] | Chr 5: 181050143| <li> 'BND' variation is highlighted in **'ff0000' (red)**  <li> CIPOS == [-6, 2] | 
+| 2 | SU  > 5 |Chr 4: 25665006| <li> 'BND' variation is highlighted in  **'008000' (green)** <li>Label of variation is highlighted in  **'008000' (green)** <li> SU = 421 |
+| 3 | EVENT >= 111 |Chr 13: 48459903 | <li> 'BND' variation is highlighted in **'add8e6' (lightblue)** <li> EVENT = 124|
+| 4 | EVENT < 31 | Chr 6: 51295112 | <li> 'BND' variation is highlighted in **'0000ff' (blue)** <li>  EVENT = 30
+| 5 | EVENT <= 34|Chr 6: 117314770 | <li> 'BND' variation is highlighted in **'ffc0cb"' (pink)** <li> EVENT = 34|
+| 6 | EVENT  in [96]| Chr 17: 31200612 | <li> 'BND' variation is highlighted in **'ffa500' (orange)** <li> EVENT = 96 
+| 7 | PE != 4 |Chr 17: 31226616| <li>'BND' variation is highlighted in **'ffff00' (yellow)** <li> PE = 5
+| 8 | PE notin [5] | Chr 17: 31182626 | <li> 'BND' variation is highlighted in **'f5f5dc' (beige)** <li> DP = 216|

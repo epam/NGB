@@ -48,5 +48,8 @@ Test verifies
 | 8 | Go to **Variants** panel | |
 | 9 | Find Variation on Position **chr X:12585943**| Background of variation highlight in **'ff0000'(red)** color <li> Variation **isn't** highlighted in **'008000' (green)** color|
 | 10| Click on variation with Position **chr X:12585943** |Browser window is opened with vcf track|
-| 11| Look at variation on vcf track in Browser| <li> Variation is highlighted in color  **'ff0000'(red)** along all its length in expanded and collapsed view <li> Variation **isn't** highlighted in **'008000' (green)** color
-| 12| Repeat steps 8-11 for **"Different conditions (green highlight)"** profile | <li> Variation is highlighted in color  **'008000'(green)** on Variants panel and vcf track <li> Variation **isn't** highlighted in **'ff0000' (red)** color  on Variants panel and vcf track| 
+| 11| At the vcf-track, select **'Collapsed'** view (if it was not set previously)||
+| 12| Look at variation on vcf track in Browser| <li> Variation is highlighted in color  **'ff0000'(red)** along all its length in **collapsed** view <li> Variation **isn't** highlighted in **'008000' (green)** color
+| 13| At the vcf-track, select **'Expanded'** view| 
+| 14| Look at variation on vcf track in Browser| <li> Variation is highlighted in color  **'ff0000'(red)** along all its length in **expanded** view <li> Variation **isn't** highlighted in **'008000' (green)** color
+| 15| Repeat steps 8-14 for **"Different conditions (green highlight)"** profile | <li> Variation is highlighted in color  **'008000'(green)** on Variants panel and vcf track <li> Variation **isn't** highlighted in **'ff0000' (red)** color  on Variants panel and vcf track| 

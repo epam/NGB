@@ -36,7 +36,12 @@ Test verifies
 | 8 | Go to **Variants** panel | |
 | 9 | Find Variation on Position **chr X:12584271**| Background of variation highlight in **'ff0000'(red)** color |
 | 10| Click on variation with Position **chr X:12584271** |Browser window is opened with vcf track|
-| 11| Look at variation on vcf track in Browser| Variation is highlighted in color  **'ff0000'(red)** along all its length in expanded and collapsed view
-| 12| Repeat 2-8 steps for **Profile 2** 
-| 13| Find Variation from previous profile on Position **chr X:12584271**| Conditions are changed. Background of variation **isn't highlighted** in 'ff0000' (red) color **on Variants panel** and **vcf track in Browser**|
-| 14| Find Variation on Position **chr X:12587867**| Background of variation is highlighted  in **"fff000"(yellow)** along all its length in expanded and collapsed view on **Variants panel** and **vcf track in Browser**|
+| 11| At the vcf-track, select **'Collapsed'** view (if it was not set previously)| |
+| 12| Look at variation on vcf track in Browser| Variation is highlighted in color  **'ff0000'(red)** along all its length in **collapsed** view
+| 13| At the vcf-track, select **'Expanded'** view 
+| 14| Look at variation on vcf track in Browser| Variation is highlighted in color  **'ff0000'(red)** along all its length in **expanded** view |
+| 15| Repeat 2-8 steps for **Profile 2** 
+| 16| Find Variation on Position **chr X:12584271**| Conditions are changed. Background of variation **isn't highlighted** in 'ff0000' (red) color **on Variants panel** and **vcf track in Browser in expanded view**|
+| 17| At the vcf-track, select **'Collapsed'** view | Variation **isn't highlighted** in 'ff0000' (red) color on **vcf track in Browser** in **collapsed** view
+| 18| Find Variation on Position **chr X:12587867**| Background of variation is highlighted  in **'fff000'(yellow)** along all its length on **Variants panel** and **vcf track in Browser** in **collapsed** view|
+| 20| At the vcf-track, select **'Expanded'** view | Variation isn't highlighted in **'ff0000' (red)** color on vcf track in Browser in **expanded** view

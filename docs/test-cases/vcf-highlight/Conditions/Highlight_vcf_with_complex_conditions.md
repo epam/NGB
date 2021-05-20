@@ -49,8 +49,11 @@ Test verifies
 | 8 | Go to **Variants** panel | |
 | 9 | Find Variation on Position **chr X:12584271**| Background of variation highlight in **'0083ff'(blue)** color |
 | 10| Click on variation with Position **chr X:12584271** |Browser window is opened with vcf track|
-| 11| Look at variation on vcf track in Browser| Variation is highlighted in color  **'0083ff'(blue)** along all its length in expanded and collapsed view
-| 12| Repeat steps 8-11 for every variation's position shown in the table below |   | 
+| 11| At the vcf-track, select **'Collapsed'** view (if it was not set previously)||
+| 12| Look at variation on vcf track in Browser| Variation is highlighted in color  **'0083ff'(blue)** along all its length in **collapsed** view
+| 13| At the vcf-track, select **'Expanded'** view 
+| 14| Look at variation on vcf track in Browser| Variation is highlighted in color  **'0083ff'(blue)** along all its length in **expanded** view
+| 15| Repeat steps 8-14 for every variation's position shown in the table below |   | 
  
 
 | Steps | Condition | Position chr X| Expected results |
