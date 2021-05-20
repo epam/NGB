@@ -13,11 +13,11 @@
             <ngb-blast-history change-tab="$ctrl.changeTab(tab)"></ngb-blast-history>
         </md-tab-content>
     </md-tab>
-    <md-tab label="RESULT" ng-disabled="$ctrl.resultDisabled">
-        <div layout="column">
+    <md-tab label="RESULT" ng-disabled="$ctrl.resultDisabled" layout-fill>
+        <md-tab-content flex layout-fill>
             <ngb-blast-search-result change-tab="$ctrl.changeTab(tab)"
                                      ng-if="$ctrl.tabSelectedIndex === $ctrl.tabs.RESULT">
             </ngb-blast-search-result>
-        </div>
+        </md-tab-content>
     </md-tab>
 </md-tabs>

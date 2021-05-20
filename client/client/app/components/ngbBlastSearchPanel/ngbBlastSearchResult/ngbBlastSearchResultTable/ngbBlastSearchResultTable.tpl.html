@@ -1,0 +1,14 @@
+<div ng-if="!$ctrl.isProgressShown" class="ui-grid-container" ng-hide="$ctrl.errorMessageList.length">
+    <div ng-if="$ctrl.historyLoadError" class="variants-load-error-container">
+        <small>{{$ctrl.historyLoadError}}</small>
+    </div>
+    <div ui-grid="$ctrl.gridOptions"
+         ui-grid-save-state
+         ui-grid-selection
+         ui-grid-resize-columns
+         ui-grid-move-columns
+         ui-grid-pinning
+         ui-grid-auto-resize
+         class="blast-search-result-table"
+    ></div>
+</div>

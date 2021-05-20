@@ -1,66 +1,72 @@
-<form name="blastSearchForm" ng-submit="$ctrl.onSearch()" class="md-inline-form">
-    <div class="tools">
-        <div ng-repeat="tool in $ctrl.blastTools" class="form_radio_btn">
-            <input id="radio-{{$index}}" type="radio" name="tool" ng-value="tool" ng-model="$ctrl.tool" required="" ng-change="$ctrl.setDefaultAlgorithms()">
-            <label for="radio-{{$index}}">{{tool}}</label>
-        </div>
-        <div class="blast-form-alert" ng-show="blastSearchForm.tool.$invalid">
-            <div ng-message="required">Choose the tool for search</div>
-        </div>
-    </div>
-    <div>
-     <md-input-container class="blast-search-input">
-            <label for="sequence">Query sequence</label>
-            <textarea id="sequence" ng-model="$ctrl.readSequence" required="" class="blast-sequence-area"></textarea>
-        </md-input-container>
-    </div>
-    <md-input-container class="blast-search-input">
-        <label for="task">Task</label>
-        <input type="text" id="task" name="task" ng-model="$ctrl.task">
-    </md-input-container> 
-    <div class="radio-search-set">
-        <label for="searchSet"><b>*Search set</b></label>
-        <md-radio-group id="searchSet" ng-model="$ctrl.selectedSet" area-required="true" required="">
-            <md-radio-button ng-repeat="set in $ctrl.setVariants" ng-value="set">{{set}}</md-radio-button>
-            <div ng-if="$ctrl.selectedSet === 'db'">
-                <div>
-                    <md-input-container class="blast-search-input">
-                    <label for="db">Database</label>
-                    <md-select
-                        id="db"
-                        name="db"
-                        ng-model="$ctrl.db"
-                    >
-                        <md-option ng-repeat="db in [1,2,3]" ng-value="db">{{db}}</md-option>
-                    </md-select>
-                    </md-input-container>
-                </div>
-                <div>
-                    <md-input-container style="margin-right: 10px;" class="blast-search-input">
-                    <label for="org">Organism</label>
-                        <md-select
-                            id="org"
-                            ng-model="$ctrl.selectedOrganisms"
-                            multiple=""
-                        >
-                            <md-option ng-repeat="species in $ctrl.speciesList" value="{{species.id}}">
-                                {{species.name}}
-                            </md-option>
-                        </md-select>
-                    </md-input-container>
-                </div>
+<md-content class="md-padding _md blast-search-result" layout-fill>
+    <form name="blastSearchForm" ng-submit="$ctrl.onSearch()" class="md-inline-form">
+        <div class="tools">
+            <div ng-repeat="tool in $ctrl.blastTools" class="form_radio_btn">
+                <input id="radio-{{$index}}" type="radio" name="tool" ng-value="tool" ng-model="$ctrl.tool" required=""
+                       ng-change="$ctrl.setDefaultAlgorithms()">
+                <label for="radio-{{$index}}">{{tool}}</label>
             </div>
-        </md-radio-group>
-    </div>
-    <div ng-if="$ctrl.algorithms[$ctrl.tool]" class="blast-algorithm">
+            <div class="blast-form-alert" ng-show="blastSearchForm.tool.$invalid">
+                <div ng-message="required">Choose the tool for search</div>
+            </div>
+        </div>
+        <div>
+            <md-input-container class="blast-search-input">
+                <label for="sequence">Query sequence</label>
+                <textarea id="sequence" ng-model="$ctrl.readSequence" required=""
+                          class="blast-sequence-area"></textarea>
+            </md-input-container>
+        </div>
         <md-input-container class="blast-search-input">
-            <label>Algorithm</label>
-            <md-select ng-model="$ctrl.algorithm">
-                <md-option ng-repeat="alg in $ctrl.algorithms[$ctrl.tool]" ng-value="alg">{{alg}}</md-option>
-            </md-select>
+            <label for="task">Task</label>
+            <input type="text" id="task" name="task" ng-model="$ctrl.task">
         </md-input-container>
-    </div>
-    <div>
-      <md-button class="md-accent md-raised search-button" type="submit" ng-disabled="blastSearchForm.$invalid">Search</md-button>
-    </div>
-</form>
+        <div class="radio-search-set">
+            <label for="searchSet"><b>*Search set</b></label>
+            <md-radio-group id="searchSet" ng-model="$ctrl.selectedSet" area-required="true" required="">
+                <md-radio-button ng-repeat="set in $ctrl.setVariants" ng-value="set">{{set}}</md-radio-button>
+                <div ng-if="$ctrl.selectedSet === 'db'">
+                    <div>
+                        <md-input-container class="blast-search-input">
+                            <label for="db">Database</label>
+                            <md-select
+                                    id="db"
+                                    name="db"
+                                    ng-model="$ctrl.db"
+                            >
+                                <md-option ng-repeat="db in [1,2,3]" ng-value="db">{{db}}</md-option>
+                            </md-select>
+                        </md-input-container>
+                    </div>
+                    <div>
+                        <md-input-container style="margin-right: 10px;" class="blast-search-input">
+                            <label for="org">Organism</label>
+                            <md-select
+                                    id="org"
+                                    ng-model="$ctrl.selectedOrganisms"
+                                    multiple=""
+                            >
+                                <md-option ng-repeat="species in $ctrl.speciesList" value="{{species.id}}">
+                                    {{species.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </div>
+                </div>
+            </md-radio-group>
+        </div>
+        <div ng-if="$ctrl.algorithms[$ctrl.tool]" class="blast-algorithm">
+            <md-input-container class="blast-search-input">
+                <label>Algorithm</label>
+                <md-select ng-model="$ctrl.algorithm">
+                    <md-option ng-repeat="alg in $ctrl.algorithms[$ctrl.tool]" ng-value="alg">{{alg}}</md-option>
+                </md-select>
+            </md-input-container>
+        </div>
+        <div>
+            <md-button class="md-accent md-raised search-button" type="submit" ng-disabled="blastSearchForm.$invalid">
+                Search
+            </md-button>
+        </div>
+    </form>
+</md-content>

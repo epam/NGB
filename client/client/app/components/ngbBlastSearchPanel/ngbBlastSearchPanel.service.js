@@ -321,7 +321,10 @@ export default class ngbBlastSearchService {
                     'blastx',
                     'tblastn',
                     'tblastx'][Math.round(Math.random() * 4)],
-                readSequence: genSequence(Math.round(Math.random() * 90) + 10)
+                readSequence: genSequence(Math.round(Math.random() * 90) + 10),
+                threshold: Math.random() > 0.2 ? Math.round(Math.random()*100)*0.00001 : null,
+                sequenceLimit: Math.round(Math.random()*90) + 10,
+                options: ''
             });
         }
         return result;

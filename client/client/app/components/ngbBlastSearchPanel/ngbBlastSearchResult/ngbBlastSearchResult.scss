@@ -1,4 +1,9 @@
 .blast-search-result {
+  padding: 0 8px;
+
+  .row:first-child {
+    margin-top: 3px;
+  }
   .query-label {
     font-weight: bold;
     margin-bottom: 2px;
@@ -9,6 +14,7 @@
     background: #f7f4f4;
     border: 1px solid dimgray;
     border-radius: 5px;
+    box-sizing: border-box;
   }
   .query-sequence-length {
     margin: 4px 0;
@@ -29,6 +35,12 @@
   .field-value {
     display: inline-block;
   }
+  .area-value {
+    display: inline-block;
+    background: #f7f4f4;
+    border: 1px solid dimgray;
+    border-radius: 5px;
+  }
   .expandable-panel {
     border: 1px dashed dimgray;
     padding: 5px;
@@ -40,9 +52,7 @@
       display: inline-block;
     }
     .expandable-panel-title span.toggled:before {
-      //content: '\25BE';
       transform:rotate(180deg);
-      //transform-origin: 50% 40%;
     }
   }
   .left-button {
@@ -51,5 +61,8 @@
   .right-button {
     margin: 10px 0 0 10px;
     float: right
+  }
+  .search-result-table-row {
+    margin-top: 20px;
   }
 }

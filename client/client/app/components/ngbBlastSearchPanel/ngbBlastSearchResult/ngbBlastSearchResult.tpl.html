@@ -1,63 +1,76 @@
-<md-content class="md-padding _md blast-search-result">
-    <div class="column">
-        <div class="row">
-            <label class="uqery-label" for="query_sequence">BLAST search result for query sequence:</label>
-            <textarea class="query-sequence" name="query_sequence" id="query_sequence" disabled>{{$ctrl.searchResult.readSequence}}</textarea>
-            <p class="query-sequence-length">query length: <span>{{$ctrl.searchResult.readSequence.length}}</span></p>
+<md-content class="md-padding _md blast-search-result" layout-fill>
+    <div class="row">
+        <label class="query-label" for="query_sequence">BLAST search result for query sequence:</label>
+        <textarea class="query-sequence" name="query_sequence" id="query_sequence" disabled>{{$ctrl.searchResult.readSequence}}</textarea>
+        <p class="query-sequence-length">query length: <span>{{$ctrl.searchResult.readSequence.length}}</span></p>
+    </div>
+    <div class="row">
+        <span class="field-name">Task title:</span>
+        <span class="field-value">{{$ctrl.searchResult.title}}</span>
+    </div>
+    <div class="row">
+        <span class="field-name">Used tool:</span>
+        <span class="field-value">{{$ctrl.searchResult.tool}}</span>
+    </div>
+    <div class="row">
+        <span class="field-name">Submitted at:</span>
+        <span class="field-value">{{$ctrl.searchResult.submitted | date:"short"}}</span>
+    </div>
+    <div class="row">
+        <span class="field-name">Database:</span>
+        <span class="field-value">{{$ctrl.searchResult.db}}</span>
+    </div>
+    <div class="row">
+        <span class="field-name">Organisms:</span>
+        <span class="field-value">{{$ctrl.searchResult.organisms | json}}</span>
+    </div>
+    <div class="row">
+        <span class="field-name">Algorithm:</span>
+        <span class="field-value">{{$ctrl.searchResult.algorithm}}</span>
+    </div>
+    <div class="row expandable-panel">
+        <div class="expandable-panel-title" ng-click="toggle = !toggle">
+            <span ng-class="{'toggled': toggle}"></span> Additional parameters
         </div>
-        <div class="row">
-            <span class="field-name">Task title:</span>
-            <span class="field-value">{{$ctrl.searchResult.title}}</span>
-        </div>
-        <div class="row">
-            <span class="field-name">Used tool:</span>
-            <span class="field-value">{{$ctrl.searchResult.tool}}</span>
-        </div>
-        <div class="row">
-            <span class="field-name">Submitted at:</span>
-            <span class="field-value">{{$ctrl.searchResult.submitted | date:"short"}}</span>
-        </div>
-        <div class="row">
-            <span class="field-name">Database:</span>
-            <span class="field-value">{{$ctrl.searchResult.db}}</span>
-        </div>
-        <div class="row">
-            <span class="field-name">Organisms:</span>
-            <span class="field-value">{{$ctrl.searchResult.organisms | json}}</span>
-        </div>
-        <div class="row">
-            <span class="field-name">Algorithm:</span>
-            <span class="field-value">{{$ctrl.searchResult.algorithm}}</span>
-        </div>
-        <div class="row expandable-panel">
-            <div class="expandable-panel-title" ng-click="toggle = !toggle">
-                <span ng-class="{'toggled': toggle}"></span> Additional parameters
+        <div class="expandable-panel-content" ng-show="toggle">
+            <div class="row">
+                <span class="field-name">Max target sequences:</span>
+                <span class="field-value">{{$ctrl.searchResult.sequenceLimit}}</span>
             </div>
-            <div class="expandable-panel-content" ng-show="toggle">
-                additional parameters content
+            <div class="row">
+                <span class="field-name">Expect threshold:</span>
+                <span class="field-value">{{$ctrl.searchResult.threshold}}</span>
+            </div>
+            <div class="row">
+                <span class="field-name">Options:</span>
+                <span class="area-value">{{$ctrl.searchResult.options}}</span>
             </div>
         </div>
-        <div class="row">
-            <md-button
-                    class="md-accent md-raised left-button"
-                    type="button"
-                    ng-click="$ctrl.editSearch($event)"
-            >Edit search
-                <ng-md-icon class="icon_info_outline" icon="redo"></ng-md-icon>
-            </md-button>
-            <md-button
-                    class="md-accent md-raised right-button"
-                    type="button"
-                    ng-click="$ctrl.browseGenomeView($event)"
-                    disabled
-            >Browse genome view
-            </md-button>
-            <md-button
-                    class="md-accent md-raised right-button"
-                    type="button"
-                    ng-click="$ctrl.downloadResults($event)"
-            >Download results
-            </md-button>
-        </div>
+    </div>
+    <div class="row">
+        <md-button
+                class="md-accent md-raised left-button"
+                type="button"
+                ng-click="$ctrl.editSearch($event)"
+        >Edit search
+            <ng-md-icon class="icon_info_outline" icon="redo"></ng-md-icon>
+        </md-button>
+        <md-button
+                class="md-accent md-raised right-button"
+                type="button"
+                ng-click="$ctrl.browseGenomeView($event)"
+                disabled
+        >Browse genome view
+        </md-button>
+        <md-button
+                class="md-accent md-raised right-button"
+                type="button"
+                ng-click="$ctrl.downloadResults($event)"
+        >Download results
+        </md-button>
+    </div>
+
+    <div layout="row" class="search-result-table-row golden-layout-content-0" layout-fill>
+        <ngb-blast-search-result-table></ngb-blast-search-result-table>
     </div>
 </md-content>
