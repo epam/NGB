@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,11 +41,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NCBITaxonomyVO {
 
+    @JsonProperty(value = "taxid")
+    private String taxid;
+
     @JsonProperty(value = "scientificname")
     private String scientificname;
 
     @JsonProperty(value = "commonname")
     private String commonname;
+
+    public NCBITaxonomyVO() { };
+
+    public NCBITaxonomyVO(String taxid, String scientificname, String commonname) {
+        this.taxid = taxid;
+        this.scientificname = scientificname;
+        this.commonname = commonname;
+    }
+
+    public String getTaxid() { return taxid; }
+
+    public void setUid() { this.taxid = taxid; }
 
     public String getScientificname() {
         return scientificname;

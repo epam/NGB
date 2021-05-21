@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import com.epam.catgenome.component.MessageHelper;
@@ -51,9 +51,8 @@ import javax.annotation.PostConstruct;
  * A class that manages connections to NCBI external database
  * </p>
  */
+@Slf4j
 public class NCBIDataManager extends HttpDataManager {
-
-    private static final Logger LOGGER = Logger.getLogger(NCBIDataManager.class.getName());
 
     private static final String QUERY_KEY = "query_key";
     private static final String WEB_ENV = "WebEnv";
@@ -141,7 +140,7 @@ public class NCBIDataManager extends HttpDataManager {
 
     protected String fetchById(String op, String db, String id, String rettype, String retmode)
             throws ExternalDbUnavailableException {
-        LOGGER.info(String.format("Fetching text record by id %s from NCBI db %s", id, db));
+        log.info(String.format("Fetching text record by id %s from NCBI db %s", id, db));
 
         List<ParameterNameValue> parametersList = new ArrayList<>();
 
@@ -164,7 +163,7 @@ public class NCBIDataManager extends HttpDataManager {
 
     public JsonNode summaryEntityById(String db, String id) throws ExternalDbUnavailableException {
 
-        LOGGER.info(String.format("Fetching json record by id %s from NCBI db %s", id, db));
+        log.info(String.format("Fetching json record by id %s from NCBI db %s", id, db));
 
         final String json = fetchData(NCBI_SERVER + NCBI_SUMMARY, new ParameterNameValue[]{
             new ParameterNameValue(RETMODE_PARAM, "json"),
@@ -188,10 +187,30 @@ public class NCBIDataManager extends HttpDataManager {
 
         int uid = uids.next().asInt();
         if (uids.hasNext()) {
-            LOGGER.warning("More than 1 uid returned");
+            log.warn("More than 1 uid returned");
         }
 
         root = root.path(Integer.toString(uid));
+        return root;
+    }
+
+    public JsonNode summaryEntitiesByIds(String db, String id) throws ExternalDbUnavailableException {
+
+        log.info(String.format("Fetching json record by ids %s from NCBI db %s", id, db));
+
+        final String json = fetchData(NCBI_SERVER + NCBI_SUMMARY, new ParameterNameValue[]{
+            new ParameterNameValue(RETMODE_PARAM, "json"),
+            new ParameterNameValue("db", db),
+            new ParameterNameValue("id", id)
+        });
+
+        JsonNode root;
+        try {
+            root = mapper.readTree(json).path("result");
+        } catch (IOException e) {
+            throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants.
+                                                                                  ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+        }
         return root;
     }
 

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,6 +65,30 @@ public class NCBIAuxiliaryManager extends NCBIDataManager {
                     .ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
         }
     }
+    /**
+     * Fetches organisms info from NCBI's taxonomy database
+     * <p>
+     * Example query: http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=taxonomy&id=9606&retmode=json
+     *
+     * @param id list of taxonomy ids
+     * @return return object with result
+     * @throws ExternalDbUnavailableException
+     */
+    public List<NCBITaxonomyVO> fetchTaxonomyInfosByIds(String id)
+            throws ExternalDbUnavailableException {
+        JsonNode root = summaryEntitiesByIds("taxonomy", id);
+        JsonNode organismNode;
+        List<NCBITaxonomyVO> taxonomyVOList = new ArrayList<>();
+        for (JsonNode jsonNode : root.path("uids")) {
+            int uid = jsonNode.asInt();
+            organismNode = root.path(Integer.toString(uid));
+            taxonomyVOList.add(new NCBITaxonomyVO(
+                    organismNode.path("uid").asText(),
+                    organismNode.path("scientificname").asText(),
+                    organismNode.path("commonname").asText()));
+        }
+        return taxonomyVOList;
+    }
 
     /**
      * Search any db by term, returns first id entry
@@ -95,8 +119,27 @@ public class NCBIAuxiliaryManager extends NCBIDataManager {
             resultId = idlist.get(0).asText();
         }
 
-
         return resultId;
+    }
+
+    public List<String> searchDbForIds(String db, String term) throws ExternalDbUnavailableException {
+
+        String searchResult = searchById(db, term);
+        JsonNode idlist;
+        try {
+            JsonNode root;
+            root = mapper.readTree(searchResult).get("esearchresult");
+            idlist = root.get("idlist");
+
+        } catch (IOException e) {
+            throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants
+                    .ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+        }
+        List<String> taxIds = new ArrayList<>();
+        for (JsonNode id : idlist) {
+            taxIds.add(id.asText());
+        }
+        return taxIds;
     }
 
     /**

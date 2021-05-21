@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,9 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.controller.vo.ReadSequenceVO;
 import com.epam.catgenome.entity.bam.PSLRecord;
 import com.epam.catgenome.manager.bam.BlatSearchManager;
+import com.epam.catgenome.manager.externaldb.ncbi.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -64,11 +67,6 @@ import com.epam.catgenome.manager.externaldb.EnsemblDataManager;
 import com.epam.catgenome.manager.externaldb.UniprotDataManager;
 import com.epam.catgenome.manager.externaldb.bindings.uniprot.Entry;
 import com.epam.catgenome.manager.externaldb.bindings.uniprot.Uniprot;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIAuxiliaryManager;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIClinVarManager;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIShortVarManager;
-import com.epam.catgenome.manager.externaldb.ncbi.NCBIStructVarManager;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -313,6 +311,18 @@ public class ExternalDBController extends AbstractRESTController {
         Assert.notNull(taxId, getMessage(MessagesConstants.ERROR_VARIATIONID_NOT_SPECIFIED));
         NCBITaxonomyVO ncbiTaxonomyVO = ncbiAuxiliaryManager.fetchTaxonomyInfoById(taxId);
         return Result.success(ncbiTaxonomyVO, getMessage(SUCCESS, NCBI));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/externaldb/ncbi/taxonomy/{term}", method = RequestMethod.GET)
+    @ApiOperation(value = "NCBI: Retrieves list of organisms for search query",
+            notes = "NCBI: Retrieves list of organisms for search query",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(value = { @ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION) })
+    public Result<List<NCBITaxonomyVO>> getOrganismsByTerm(@PathVariable final String term)
+            throws ExternalDbUnavailableException, JsonProcessingException {
+        String ids = StringUtils.join(ncbiAuxiliaryManager.searchDbForIds("taxonomy", term), ",");
+        return Result.success(ncbiAuxiliaryManager.fetchTaxonomyInfosByIds(ids));
     }
 
     @ResponseBody
