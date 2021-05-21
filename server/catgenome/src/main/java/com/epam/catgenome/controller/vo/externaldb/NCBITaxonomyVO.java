@@ -26,6 +26,10 @@ package com.epam.catgenome.controller.vo.externaldb;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Source:      NCBITaxonomyVO
@@ -39,42 +43,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class NCBITaxonomyVO {
 
     @JsonProperty(value = "taxid")
-    private String taxid;
+    private String taxId;
 
     @JsonProperty(value = "scientificname")
-    private String scientificname;
+    private String scientificName;
 
     @JsonProperty(value = "commonname")
-    private String commonname;
-
-    public NCBITaxonomyVO() { };
-
-    public NCBITaxonomyVO(String taxid, String scientificname, String commonname) {
-        this.taxid = taxid;
-        this.scientificname = scientificname;
-        this.commonname = commonname;
-    }
-
-    public String getTaxid() { return taxid; }
-
-    public void setUid() { this.taxid = taxid; }
-
-    public String getScientificname() {
-        return scientificname;
-    }
-
-    public void setScientificname(String scientificname) {
-        this.scientificname = scientificname;
-    }
-
-    public String getCommonname() {
-        return commonname;
-    }
-
-    public void setCommonname(String commonname) {
-        this.commonname = commonname;
-    }
+    private String commonName;
 }

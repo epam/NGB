@@ -33,9 +33,12 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.controller.vo.ReadSequenceVO;
 import com.epam.catgenome.entity.bam.PSLRecord;
 import com.epam.catgenome.manager.bam.BlatSearchManager;
-import com.epam.catgenome.manager.externaldb.ncbi.*;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIGeneManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIShortVarManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIStructVarManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIClinVarManager;
+import com.epam.catgenome.manager.externaldb.ncbi.NCBIAuxiliaryManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -321,8 +324,7 @@ public class ExternalDBController extends AbstractRESTController {
     @ApiResponses(value = { @ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION) })
     public Result<List<NCBITaxonomyVO>> getOrganismsByTerm(@PathVariable final String term)
             throws ExternalDbUnavailableException, JsonProcessingException {
-        String ids = StringUtils.join(ncbiAuxiliaryManager.searchDbForIds("taxonomy", term), ",");
-        return Result.success(ncbiAuxiliaryManager.fetchTaxonomyInfosByIds(ids));
+        return Result.success(ncbiAuxiliaryManager.fetchTaxonomyInfosByTerm(term));
     }
 
     @ResponseBody
