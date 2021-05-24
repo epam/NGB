@@ -27,9 +27,9 @@
 package com.epam.catgenome.manager.blast;
 
 import com.epam.catgenome.controller.vo.TaskVO;
-import com.epam.catgenome.entity.blast.Task;
+import com.epam.catgenome.entity.blast.BlastTask;
+import com.epam.catgenome.entity.blast.BlastTaskResult;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
-import com.epam.catgenome.manager.blast.dto.TaskResult;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
@@ -44,7 +44,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
-import static com.epam.catgenome.security.acl.SecurityExpressions.*;
+import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
 @Service
 public class BlastTaskSecurityService {
@@ -55,51 +55,51 @@ public class BlastTaskSecurityService {
     @AclTree
     @AclMask
     @PreAuthorize(ROLE_USER)
-    public Task load(Long taskId) {
+    public BlastTask load(final Long taskId) {
         return blastTaskManager.load(taskId);
     }
 
     @PreAuthorize(ROLE_USER)
-    public Task create(TaskVO taskVO) throws BlastRequestException {
-        Task task = new Task();
-        task.setId(taskVO.getId());
-        task.setTitle(taskVO.getTitle());
-        task.setCreatedDate(taskVO.getCreatedDate() == null ? new Date(): taskVO.getCreatedDate());
-        task.setStatus(TaskStatus.getById(taskVO.getStatus()));
-        task.setEndDate(taskVO.getEndDate());
-        task.setStatusReason(taskVO.getStatusReason());
-        task.setQuery(taskVO.getQuery());
-        task.setDatabase(taskVO.getDatabase());
-        task.setOrganisms(taskVO.getOrganisms());
-        task.setExcludedOrganisms(taskVO.getExcludedOrganisms());
-        task.setExecutable(taskVO.getExecutable());
-        task.setAlgorithm(taskVO.getAlgorithm());
-        task.setParameters(taskVO.getParameters());
-        return blastTaskManager.create(task);
+    public BlastTask create(final TaskVO taskVO) throws BlastRequestException {
+        BlastTask blastTask = new BlastTask();
+        blastTask.setId(taskVO.getId());
+        blastTask.setTitle(taskVO.getTitle());
+        blastTask.setCreatedDate(taskVO.getCreatedDate() == null ? new Date(): taskVO.getCreatedDate());
+        blastTask.setStatus(TaskStatus.getById(taskVO.getStatus()));
+        blastTask.setEndDate(taskVO.getEndDate());
+        blastTask.setStatusReason(taskVO.getStatusReason());
+        blastTask.setQuery(taskVO.getQuery());
+        blastTask.setDatabase(taskVO.getDatabase());
+        blastTask.setOrganisms(taskVO.getOrganisms());
+        blastTask.setExcludedOrganisms(taskVO.getExcludedOrganisms());
+        blastTask.setExecutable(taskVO.getExecutable());
+        blastTask.setAlgorithm(taskVO.getAlgorithm());
+        blastTask.setParameters(taskVO.getParameters());
+        return blastTaskManager.create(blastTask);
     }
 
     @PreAuthorize(ROLE_USER)
-    public void deleteTask(long taskId) throws IOException {
+    public void deleteTask(final long taskId) throws IOException {
         blastTaskManager.deleteTask(taskId);
     }
 
     @PreAuthorize(ROLE_USER)
-    public TaskPage loadAllTasks(QueryParameters queryParameters) {
+    public TaskPage loadAllTasks(final QueryParameters queryParameters) {
         return blastTaskManager.loadAllTasks(queryParameters);
     }
 
     @PreAuthorize(ROLE_USER)
-    public long getTasksCount(List<Filter> filters) {
+    public long getTasksCount(final List<Filter> filters) {
         return blastTaskManager.getTasksCount(filters);
     }
 
     @PreAuthorize(ROLE_USER)
-    public void cancel(long taskId) {
-        blastTaskManager.updateTaskStatus(TaskStatus.CANCELED, "", taskId);
+    public void cancel(final long taskId) throws BlastRequestException {
+        blastTaskManager.cancelTask(taskId);
     }
 
     @PreAuthorize(ROLE_USER)
-    public TaskResult getResult(long taskId) throws BlastRequestException {
+    public BlastTaskResult getResult(final long taskId) throws BlastRequestException {
         return blastTaskManager.getResult(taskId);
     }
 }

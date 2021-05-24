@@ -14,7 +14,7 @@ public class Request {
     private List<Long> taxIds;
     private List<Long> excludedTaxIds;
     private String query;
-    private int maxTargetSequence;
-    private int expectedThreshold;
+    private long maxTargetSequence;
+    private long expectedThreshold;
     private String options;
 }

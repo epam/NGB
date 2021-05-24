@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Organism {
+public class BlastTaskOrganism {
     private Long id;
     private Long taskId;
     private Long organism;

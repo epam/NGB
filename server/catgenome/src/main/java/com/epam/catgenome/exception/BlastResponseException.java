@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,30 +22,10 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.client.blast;
+package com.epam.catgenome.exception;
 
-import com.epam.catgenome.manager.blast.dto.Request;
-import com.epam.catgenome.manager.blast.dto.RequestInfo;
-import com.epam.catgenome.manager.blast.dto.RequestResult;
-import retrofit2.Call;
-import retrofit2.http.Body;
-import retrofit2.http.GET;
-import retrofit2.http.Headers;
-import retrofit2.http.POST;
-import retrofit2.http.PUT;
-import retrofit2.http.Path;
+public class BlastResponseException extends RuntimeException{
 
-public interface BlastApi {
-    @Headers("Content-type: application/json")
-    @POST("restapi/blast")
-    Call<RequestInfo> createTask(@Body Request request);
-
-    @GET("restapi/blast/{id}")
-    Call<RequestResult> getResult(@Path(value = "id", encoded = true) long id);
-
-    @GET("restapi/task/{id}")
-    Call<RequestInfo> getTask(@Path(value = "id", encoded = true) long id);
-
-    @PUT("restapi/task/{id}/cancel")
-    Call<RequestInfo> cancelTask(@Path(value = "id", encoded = true) long id);
+    public BlastResponseException(final String message) { super(message); }
+    public BlastResponseException(final Throwable cause) { super(cause); }
 }

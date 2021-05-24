@@ -5,8 +5,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class TaskResult {
-    private TaskResultPayload payload;
+public class RequestResult {
+    private RequestResultPayload payload;
     private String status;
     private String message;
 }

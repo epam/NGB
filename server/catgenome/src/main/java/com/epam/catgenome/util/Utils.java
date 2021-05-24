@@ -26,7 +26,12 @@ package com.epam.catgenome.util;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.constant.Constants;
@@ -58,8 +63,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.epam.catgenome.manager.aws.S3Manager.generateSignedUrl;
-import static org.thymeleaf.util.StringUtils.concat;
-import static org.thymeleaf.util.StringUtils.join;
+import static org.apache.commons.lang3.StringUtils.join;
 
 /**
  * Source:      Utils.java
@@ -435,34 +439,36 @@ public final class Utils {
         void doWork();
     }
 
-    public static String addParametersToQuery(String query, QueryParameters params) {
-        return addPagingInfoToQuery(addSortInfoToQuery(addFiltersToQuery(query, params.getFilters()), params.getSortInfos()), params.getPagingInfo());
+    public static String addParametersToQuery(final String query, final QueryParameters params) {
+        return addPagingInfoToQuery(addSortInfoToQuery(addFiltersToQuery(query,
+                params.getFilters()), params.getSortInfos()), params.getPagingInfo());
     }
 
-    public static String addFiltersToQuery(String query, List<Filter> filters) {
+    public static String addFiltersToQuery(final String query, final List<Filter> filters) {
         List<String> filter = new ArrayList<>(Collections.emptyList());
         if (filters != null) {
             for (Filter q : filters) {
-                filter.add(concat(q.getField(), "=",  q.getValue()));
+                filter.add(q.getField() + q.getOperation() + q.getValue());
             }
         }
         return filters == null || filter.isEmpty() ? query : query + String.format(WHERE_CLAUSE, join(filter, ", "));
     }
 
-    public static String addPagingInfoToQuery(String query, PagingInfo pagingInfo) {
-        return query + String.format(
+    public static String addPagingInfoToQuery(final String query, final PagingInfo pagingInfo) {
+        return query + (pagingInfo == null ? "" : String.format(
                 PAGING_INFO_CLAUSE,
                 pagingInfo.getPageSize() < 1 ? DEFAULT_PAGE_SIZE : pagingInfo.getPageSize(),
-                pagingInfo.getPageNum() < 1 ? DEFAULT_PAGE_NUM : pagingInfo.getPageNum());
+                pagingInfo.getPageNum() < 1 ? DEFAULT_PAGE_NUM : pagingInfo.getPageNum()));
     }
 
-    public static String addSortInfoToQuery(String query, List<SortInfo> sortInfos) {
+    public static String addSortInfoToQuery(final String query, final List<SortInfo> sortInfos) {
         List<String> orderBy = new LinkedList<>(Collections.emptyList());
         if (sortInfos != null) {
-            for(SortInfo sortInfo: sortInfos) {
+            for (SortInfo sortInfo: sortInfos) {
                 orderBy.add(sortInfo.getField() + " " + (sortInfo.isAscending() ? "ASC" : "DESC"));
             }
         }
-        return sortInfos == null || sortInfos.isEmpty() ? query : query + String.format(ORDER_BY_CLAUSE, join(orderBy, ", "));
+        return sortInfos == null || sortInfos.isEmpty() ? query
+                : query + String.format(ORDER_BY_CLAUSE, join(orderBy, ", "));
     }
 }

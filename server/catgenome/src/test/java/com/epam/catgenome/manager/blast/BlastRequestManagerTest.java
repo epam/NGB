@@ -26,12 +26,12 @@ package com.epam.catgenome.manager.blast;
 
 import com.epam.catgenome.manager.blast.dto.Request;
 import com.epam.catgenome.manager.blast.dto.RequestInfo;
-import com.epam.catgenome.manager.blast.dto.TaskResult;
+import com.epam.catgenome.manager.blast.dto.RequestResult;
 import com.epam.catgenome.exception.BlastRequestException;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Spy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.junit.Assert.assertNotNull;
@@ -39,18 +39,27 @@ import static org.junit.Assert.assertNotNull;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class BlastRequestManagerTest {
 
-    @Spy
+    public static final long MAX_TARGET_SEQUENCE = 10L;
+    public static final long EXPECTED_THRESHOLD = 1L;
+    public static final String QUERY = "ACCCCGGGGTTTTTTAACCCTTTCTATTCTCTTCTCTAT";
+    public static final String DB_NAME = "/opt/blast-wrapper/blast-db/Homo_sapiens.GRCh38.fa";
+    public static final String BLAST_TOOL = "blastn";
+    public static final String ALGORITHM = "blastn";
+    public static final long TASK_ID = 42L;
+
+    @Autowired
     private BlastRequestManager blastRequestManager;
 
     @Test
     @Ignore
     public void testCreateTask() throws BlastRequestException {
         Request request = new Request();
-        request.setBlastTool("Blast Tool");
-        request.setAlgorithm("Algorithm");
-        request.setDbName("DB");
-        request.setQuery("Query");
-        request.setOptions("Options");
+        request.setBlastTool(BLAST_TOOL);
+        request.setAlgorithm(ALGORITHM);
+        request.setDbName(DB_NAME);
+        request.setQuery(QUERY);
+        request.setMaxTargetSequence(MAX_TARGET_SEQUENCE);
+        request.setExpectedThreshold(EXPECTED_THRESHOLD);
         RequestInfo task = blastRequestManager.createTask(request);
         assertNotNull(task);
     }
@@ -58,7 +67,7 @@ public class BlastRequestManagerTest {
     @Test
     @Ignore
     public void testGetTask() throws BlastRequestException {
-        RequestInfo task = blastRequestManager.getTaskStatus(7);
+        RequestInfo task = blastRequestManager.getTaskStatus(TASK_ID);
         System.out.println(task);
         assertNotNull(task);
     }
@@ -66,7 +75,7 @@ public class BlastRequestManagerTest {
     @Test
     @Ignore
     public void testGetTaskResult() throws BlastRequestException {
-        TaskResult result = blastRequestManager.getResult(8);
+        RequestResult result = blastRequestManager.getResult(TASK_ID);
         System.out.println(result);
         assertNotNull(result);
     }

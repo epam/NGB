@@ -24,10 +24,15 @@
 
 package com.epam.catgenome.dao.blast;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.entity.blast.*;
+import com.epam.catgenome.entity.blast.BlastTaskOrganism;
+import com.epam.catgenome.entity.blast.BlastTask;
+import com.epam.catgenome.entity.blast.TaskParameter;
+import com.epam.catgenome.entity.blast.TaskStatus;
 import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +44,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.epam.catgenome.util.Utils.*;
+import static com.epam.catgenome.util.Utils.addFiltersToQuery;
+import static com.epam.catgenome.util.Utils.addParametersToQuery;
 
 @Slf4j
 public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
@@ -70,16 +76,16 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
 
     /**
      * Saves or updates a {@code Task} instance in the database
-     * @param task to save
+     * @param blastTask to save
      */
     @Transactional(propagation = Propagation.MANDATORY)
-    public void saveTask(final Task task) {
-            getNamedParameterJdbcTemplate().update(insertTaskQuery, TaskParameters.getParameters(task));
+    public void saveTask(final BlastTask blastTask) {
+        getNamedParameterJdbcTemplate().update(insertTaskQuery, TaskParameters.getParameters(blastTask));
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void updateTaskStatus(Task task) {
-        getNamedParameterJdbcTemplate().update(updateTaskStatusQuery, TaskParameters.getParameters(task));
+    public void updateTask(final BlastTask blastTask) {
+        getNamedParameterJdbcTemplate().update(updateTaskStatusQuery, TaskParameters.getParameters(blastTask));
     }
 
     /**
@@ -89,19 +95,19 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
      *          {@code null} if task with a given ID doesn't exist
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Task loadTaskById(long id) {
-        List<Task> tasks = getJdbcTemplate().query(loadTaskByIdQuery, TaskParameters.getRowMapper(), id);
-        return tasks.isEmpty() ? null : tasks.get(0);
+    public BlastTask loadTaskById(final long id) {
+        List<BlastTask> blastTasks = getJdbcTemplate().query(loadTaskByIdQuery, TaskParameters.getRowMapper(), id);
+        return blastTasks.isEmpty() ? null : blastTasks.get(0);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Task> loadAllTasks(QueryParameters queryParameters) {
+    public List<BlastTask> loadAllTasks(final QueryParameters queryParameters) {
         String query = addParametersToQuery(loadAllTasksQuery, queryParameters);
         return getJdbcTemplate().query(query, TaskParameters.getRowMapper());
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public long getTasksCount(List<Filter> filters) {
+    public long getTasksCount(final List<Filter> filters) {
         String query = addFiltersToQuery(getTaskCountQuery, filters);
         return getJdbcTemplate().queryForObject(query, Long.class);
     }
@@ -117,9 +123,9 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void saveOrganism(final Organism organism) {
-        organism.setId(daoHelper.createId(organismSequenceName));
-        getNamedParameterJdbcTemplate().update(insertTaskOrganismsQuery, OrganismParameters.getParameters(organism));
+    public void saveOrganism(final BlastTaskOrganism blastTaskOrganism) {
+        blastTaskOrganism.setId(daoHelper.createId(organismSequenceName));
+        getNamedParameterJdbcTemplate().update(insertTaskOrganismsQuery, OrganismParameters.getParameters(blastTaskOrganism));
     }
 
     /**
@@ -128,7 +134,7 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
      * @return a loaded {@code List<Organism>}
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Organism> loadOrganisms(long taskId) {
+    public List<BlastTaskOrganism> loadOrganisms(final long taskId) {
         return getJdbcTemplate().query(loadTaskOrganismsQuery, OrganismParameters.getRowMapper(), taskId);
     }
 
@@ -138,7 +144,7 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
      * @return a loaded {@code List<Organism>}
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Organism> loadExclOrganisms(long taskId) {
+    public List<BlastTaskOrganism> loadExclOrganisms(final long taskId) {
         return getJdbcTemplate().query(loadTaskExclOrganismsQuery, OrganismParameters.getRowMapper(), taskId);
     }
 
@@ -165,11 +171,12 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public void saveTaskParameter(final TaskParameter taskParameter) {
         taskParameter.setParameterId(daoHelper.createId(taskParameterSequenceName));
-        getNamedParameterJdbcTemplate().update(insertTaskParametersQuery, TaskParameterParameters.getParameters(taskParameter));
+        getNamedParameterJdbcTemplate().update(insertTaskParametersQuery,
+                TaskParameterParameters.getParameters(taskParameter));
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<TaskParameter> loadTaskParameters(long id) {
+    public List<TaskParameter> loadTaskParameters(final long id) {
         return getJdbcTemplate().query(loadTaskParametersQuery, TaskParameterParameters.getRowMapper(), id);
     }
 
@@ -197,47 +204,47 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
         OPTIONS,
         OWNER;
 
-        static MapSqlParameterSource getParameters(Task task) {
+        static MapSqlParameterSource getParameters(final BlastTask blastTask) {
             MapSqlParameterSource params = new MapSqlParameterSource();
 
-            params.addValue(TASK_ID.name(), task.getId());
-            params.addValue(TITLE.name(), task.getTitle());
-            params.addValue(CREATED_DATE.name(), task.getCreatedDate());
-            params.addValue(STATUS.name(), task.getStatus().getId());
-            params.addValue(END_DATE.name(), task.getEndDate());
-            params.addValue(STATUS_REASON.name(), task.getStatusReason());
-            params.addValue(QUERY.name(), task.getQuery());
-            params.addValue(DATABASE.name(), task.getDatabase());
-            params.addValue(EXECUTABLE.name(), task.getExecutable());
-            params.addValue(ALGORITHM.name(), task.getAlgorithm());
-            params.addValue(OPTIONS.name(), task.getOptions());
-            params.addValue(OWNER.name(), task.getOwner());
+            params.addValue(TASK_ID.name(), blastTask.getId());
+            params.addValue(TITLE.name(), blastTask.getTitle());
+            params.addValue(CREATED_DATE.name(), blastTask.getCreatedDate());
+            params.addValue(STATUS.name(), blastTask.getStatus().getId());
+            params.addValue(END_DATE.name(), blastTask.getEndDate());
+            params.addValue(STATUS_REASON.name(), blastTask.getStatusReason());
+            params.addValue(QUERY.name(), blastTask.getQuery());
+            params.addValue(DATABASE.name(), blastTask.getDatabase());
+            params.addValue(EXECUTABLE.name(), blastTask.getExecutable());
+            params.addValue(ALGORITHM.name(), blastTask.getAlgorithm());
+            params.addValue(OPTIONS.name(), blastTask.getOptions());
+            params.addValue(OWNER.name(), blastTask.getOwner());
 
             return params;
         }
 
-        static RowMapper<Task> getRowMapper() {
+        static RowMapper<BlastTask> getRowMapper() {
             return (rs, rowNum) -> {
-                Task task = new Task();
+                BlastTask blastTask = new BlastTask();
 
-                task.setId(rs.getLong(TASK_ID.name()));
-                task.setTitle(rs.getString(TITLE.name()));
-                task.setCreatedDate(rs.getTimestamp(CREATED_DATE.name()));
-                task.setEndDate(rs.getTimestamp(END_DATE.name()));
-                task.setStatusReason(rs.getString(STATUS_REASON.name()));
-                task.setQuery(rs.getString(QUERY.name()));
-                task.setDatabase(rs.getString(DATABASE.name()));
-                task.setExecutable(rs.getString(EXECUTABLE.name()));
-                task.setAlgorithm(rs.getString(ALGORITHM.name()));
-                task.setOptions(rs.getString(OPTIONS.name()));
-                task.setOwner(rs.getString(OWNER.name()));
+                blastTask.setId(rs.getLong(TASK_ID.name()));
+                blastTask.setTitle(rs.getString(TITLE.name()));
+                blastTask.setCreatedDate(rs.getTimestamp(CREATED_DATE.name()));
+                blastTask.setEndDate(rs.getTimestamp(END_DATE.name()));
+                blastTask.setStatusReason(rs.getString(STATUS_REASON.name()));
+                blastTask.setQuery(rs.getString(QUERY.name()));
+                blastTask.setDatabase(rs.getString(DATABASE.name()));
+                blastTask.setExecutable(rs.getString(EXECUTABLE.name()));
+                blastTask.setAlgorithm(rs.getString(ALGORITHM.name()));
+                blastTask.setOptions(rs.getString(OPTIONS.name()));
+                blastTask.setOwner(rs.getString(OWNER.name()));
 
                 long longVal = rs.getLong(STATUS.name());
                 if (!rs.wasNull()) {
-                    task.setStatus(TaskStatus.getById(longVal));
+                    blastTask.setStatus(TaskStatus.getById(longVal));
                 }
 
-                return task;
+                return blastTask;
             };
         }
     }
@@ -247,25 +254,25 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
         TASK_ID,
         ORGANISM;
 
-        static MapSqlParameterSource getParameters(Organism organism) {
+        static MapSqlParameterSource getParameters(final BlastTaskOrganism blastTaskOrganism) {
             MapSqlParameterSource params = new MapSqlParameterSource();
 
-            params.addValue(ORGANISM_ID.name(), organism.getId());
-            params.addValue(TASK_ID.name(), organism.getTaskId());
-            params.addValue(ORGANISM.name(), organism.getOrganism());
+            params.addValue(ORGANISM_ID.name(), blastTaskOrganism.getId());
+            params.addValue(TASK_ID.name(), blastTaskOrganism.getTaskId());
+            params.addValue(ORGANISM.name(), blastTaskOrganism.getOrganism());
 
             return params;
         }
 
-        static RowMapper<Organism> getRowMapper() {
+        static RowMapper<BlastTaskOrganism> getRowMapper() {
             return (rs, rowNum) -> {
-                Organism organism = new Organism();
+                BlastTaskOrganism blastTaskOrganism = new BlastTaskOrganism();
 
-                organism.setId(rs.getLong(ORGANISM_ID.name()));
-                organism.setTaskId(rs.getLong(TASK_ID.name()));
-                organism.setOrganism(rs.getLong(ORGANISM.name()));
+                blastTaskOrganism.setId(rs.getLong(ORGANISM_ID.name()));
+                blastTaskOrganism.setTaskId(rs.getLong(TASK_ID.name()));
+                blastTaskOrganism.setOrganism(rs.getLong(ORGANISM.name()));
 
-                return organism;
+                return blastTaskOrganism;
             };
         }
     }
@@ -276,7 +283,7 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
         PARAMETER,
         VALUE;
 
-        static MapSqlParameterSource getParameters(TaskParameter taskParameter) {
+        static MapSqlParameterSource getParameters(final TaskParameter taskParameter) {
             MapSqlParameterSource params = new MapSqlParameterSource();
 
             params.addValue(PARAMETER_ID.name(), taskParameter.getParameterId());
@@ -302,7 +309,7 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void saveOrganisms(long taskId, List<Long> organisms) {
+    public void saveOrganisms(final long taskId, final List<Long> organisms) {
         List<Long> newIds = daoHelper.createIds(organismSequenceName, organisms.size());
 
         ArrayList<MapSqlParameterSource> params = new ArrayList<>(organisms.size());
@@ -322,7 +329,7 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void saveExclOrganisms(long taskId, List<Long> exclOrganisms) {
+    public void saveExclOrganisms(final long taskId, final List<Long> exclOrganisms) {
         List<Long> newIds = daoHelper.createIds(exclOrganismSequenceName, exclOrganisms.size());
 
         ArrayList<MapSqlParameterSource> params = new ArrayList<>(exclOrganisms.size());
@@ -342,7 +349,7 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void saveTaskParameters(long taskId, Map<String, String> parameters) {
+    public void saveTaskParameters(final long taskId, final Map<String, String> parameters) {
         List<Long> newIds = daoHelper.createIds(taskParameterSequenceName, parameters.size());
 
         ArrayList<MapSqlParameterSource> params = new ArrayList<>(parameters.size());
@@ -364,92 +371,92 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Required
-    public void setOrganismSequenceName(String organismSequenceName) {
+    public void setOrganismSequenceName(final String organismSequenceName) {
         this.organismSequenceName = organismSequenceName;
     }
 
     @Required
-    public void setExclOrganismSequenceName(String exclOrganismSequenceName) {
+    public void setExclOrganismSequenceName(final String exclOrganismSequenceName) {
         this.exclOrganismSequenceName = exclOrganismSequenceName;
     }
 
     @Required
-    public void setTaskParameterSequenceName(String taskParameterSequenceName) {
+    public void setTaskParameterSequenceName(final String taskParameterSequenceName) {
         this.taskParameterSequenceName = taskParameterSequenceName;
     }
 
     @Required
-    public void setInsertTaskQuery(String insertTaskQuery) {
+    public void setInsertTaskQuery(final String insertTaskQuery) {
         this.insertTaskQuery = insertTaskQuery;
     }
 
     @Required
-    public void setLoadTaskByIdQuery(String loadTaskByIdQuery) {
+    public void setLoadTaskByIdQuery(final String loadTaskByIdQuery) {
         this.loadTaskByIdQuery = loadTaskByIdQuery;
     }
 
     @Required
-    public void setLoadAllTasksQuery(String loadAllTasksQuery) {
+    public void setLoadAllTasksQuery(final String loadAllTasksQuery) {
         this.loadAllTasksQuery = loadAllTasksQuery;
     }
 
     @Required
-    public void setUpdateTaskStatusQuery(String updateTaskStatusQuery) {
+    public void setUpdateTaskStatusQuery(final String updateTaskStatusQuery) {
         this.updateTaskStatusQuery = updateTaskStatusQuery;
     }
 
     @Required
-    public void setDeleteTaskQuery(String deleteTaskQuery) {
+    public void setDeleteTaskQuery(final String deleteTaskQuery) {
         this.deleteTaskQuery = deleteTaskQuery;
     }
 
     @Required
-    public void setInsertTaskOrganismsQuery(String insertTaskOrganismsQuery) {
+    public void setInsertTaskOrganismsQuery(final String insertTaskOrganismsQuery) {
         this.insertTaskOrganismsQuery = insertTaskOrganismsQuery;
     }
 
     @Required
-    public void setDeleteTaskOrganismsQuery(String deleteTaskOrganismsQuery) {
+    public void setDeleteTaskOrganismsQuery(final String deleteTaskOrganismsQuery) {
         this.deleteTaskOrganismsQuery = deleteTaskOrganismsQuery;
     }
 
     @Required
-    public void setLoadTaskOrganismsQuery(String loadTaskOrganismsQuery) {
+    public void setLoadTaskOrganismsQuery(final String loadTaskOrganismsQuery) {
         this.loadTaskOrganismsQuery = loadTaskOrganismsQuery;
     }
 
     @Required
-    public void setInsertTaskExclOrganismsQuery(String insertTaskExclOrganismsQuery) {
+    public void setInsertTaskExclOrganismsQuery(final String insertTaskExclOrganismsQuery) {
         this.insertTaskExclOrganismsQuery = insertTaskExclOrganismsQuery;
     }
 
     @Required
-    public void setDeleteTaskExclOrganismsQuery(String deleteTaskExclOrganismsQuery) {
+    public void setDeleteTaskExclOrganismsQuery(final String deleteTaskExclOrganismsQuery) {
         this.deleteTaskExclOrganismsQuery = deleteTaskExclOrganismsQuery;
     }
 
     @Required
-    public void setLoadTaskExclOrganismsQuery(String loadTaskExclOrganismsQuery) {
+    public void setLoadTaskExclOrganismsQuery(final String loadTaskExclOrganismsQuery) {
         this.loadTaskExclOrganismsQuery = loadTaskExclOrganismsQuery;
     }
 
     @Required
-    public void setInsertTaskParametersQuery(String insertTaskParametersQuery) {
+    public void setInsertTaskParametersQuery(final String insertTaskParametersQuery) {
         this.insertTaskParametersQuery = insertTaskParametersQuery;
     }
 
     @Required
-    public void setDeleteTaskParametersQuery(String deleteTaskParametersQuery) {
+    public void setDeleteTaskParametersQuery(final String deleteTaskParametersQuery) {
         this.deleteTaskParametersQuery = deleteTaskParametersQuery;
     }
 
     @Required
-    public void setLoadTaskParametersQuery(String loadTaskParametersQuery) {
+    public void setLoadTaskParametersQuery(final String loadTaskParametersQuery) {
         this.loadTaskParametersQuery = loadTaskParametersQuery;
     }
 
     @Required
-    public void setGetTaskCountQuery(String getTaskCountQuery) {
+    public void setGetTaskCountQuery(final String getTaskCountQuery) {
         this.getTaskCountQuery = getTaskCountQuery;
     }
 }

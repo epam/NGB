@@ -2,10 +2,10 @@ package com.epam.catgenome.exception;
 
 public class BlastRequestException extends Exception {
 
-    public BlastRequestException(String message, Throwable cause) {
+    public BlastRequestException(final String message, final Throwable cause) {
         super(message, cause);
     }
-    public BlastRequestException(String message) {
+    public BlastRequestException(final String message) {
         super(message);
     }
 }

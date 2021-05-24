@@ -23,14 +23,18 @@
  */
 package com.epam.catgenome.manager.blast;
 
+import com.epam.catgenome.entity.blast.BlastTask;
+import com.epam.catgenome.entity.blast.BlastTaskResult;
+import com.epam.catgenome.entity.blast.BlastTaskOrganism;
+import com.epam.catgenome.entity.blast.TaskParameter;
+import com.epam.catgenome.entity.blast.TaskStatus;
 import com.epam.catgenome.manager.blast.dto.Request;
 import com.epam.catgenome.manager.blast.dto.RequestInfo;
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.blast.BlastTaskDao;
-import com.epam.catgenome.entity.blast.*;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
-import com.epam.catgenome.manager.blast.dto.TaskResult;
+import com.epam.catgenome.manager.blast.dto.RequestResult;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.util.db.Filter;
@@ -41,77 +45,80 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-
-import static java.lang.Thread.sleep;
 
 @Service
 public class BlastTaskManager {
-    private static final int CHECK_TASK_STATUS_PERIOD_MS = 10000;
+
+    public static final long MAX_TARGET_SEQUENCE = 10L;
+    public static final long EXPECTED_THRESHOLD = 1L;
+
     @Autowired
     private BlastTaskDao blastTaskDao;
+
     @Autowired
     private BlastRequestManager blastRequestManager;
+
     @Autowired
     private AuthManager authManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public Task load(Long taskId) {
-        Task task = blastTaskDao.loadTaskById(taskId);
-        Assert.notNull(task, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
+    public BlastTask load(final Long taskId) {
+        BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
+        Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
 
-        loadTaskOrganisms(task);
-        loadTaskParameters(task);
+        loadTaskOrganisms(blastTask);
+        loadTaskParameters(blastTask);
 
-        return task;
+        return blastTask;
     }
 
-    private void loadTaskOrganisms(Task task) {
-        List<Organism> organismList = blastTaskDao.loadOrganisms(task.getId());
-        List<Long> organisms = organismList.stream().map(Organism::getOrganism).collect(Collectors.toList());
-        task.setOrganisms(organisms);
+    private void loadTaskOrganisms(final BlastTask blastTask) {
+        List<BlastTaskOrganism> blastTaskOrganismList = blastTaskDao.loadOrganisms(blastTask.getId());
+        List<Long> organisms = blastTaskOrganismList.stream().map(BlastTaskOrganism::getOrganism).collect(Collectors.toList());
+        blastTask.setOrganisms(organisms);
     }
 
-    private void loadTaskParameters(Task task) {
-        List<TaskParameter> parametersList = blastTaskDao.loadTaskParameters(task.getId());
-        Map<String, String> parameters = parametersList.stream().collect(Collectors.toMap(TaskParameter::getParameter, TaskParameter::getValue));
-        task.setParameters(parameters);
+    private void loadTaskParameters(final BlastTask blastTask) {
+        List<TaskParameter> parametersList = blastTaskDao.loadTaskParameters(blastTask.getId());
+        Map<String, String> parameters = parametersList.stream().collect(Collectors.
+                toMap(TaskParameter::getParameter, TaskParameter::getValue));
+        blastTask.setParameters(parameters);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public Task create(final Task task) throws BlastRequestException {
+    public BlastTask create(final BlastTask blastTask) throws BlastRequestException {
         Request request = new Request();
-        request.setAlgorithm(task.getAlgorithm());
-        request.setBlastTool("BLAST_TOOL");
-        request.setDbName(task.getDatabase());
-        request.setQuery(task.getQuery());
-        request.setOptions(task.getOptions());
-        request.setTaxIds(task.getOrganisms());
-        request.setExcludedTaxIds(task.getExcludedOrganisms());
+        request.setAlgorithm(blastTask.getAlgorithm());
+        request.setBlastTool(blastTask.getExecutable());
+        request.setDbName(blastTask.getDatabase());
+        request.setQuery(blastTask.getQuery());
+        request.setOptions(blastTask.getOptions());
+        request.setTaxIds(blastTask.getOrganisms());
+        request.setExcludedTaxIds(blastTask.getExcludedOrganisms());
+        request.setMaxTargetSequence(MAX_TARGET_SEQUENCE);
+        request.setExpectedThreshold(EXPECTED_THRESHOLD);
         RequestInfo requestInfo = blastRequestManager.createTask(request);
-        task.setId((long) requestInfo.getPayload().getRequestId());
-        task.setStatus(TaskStatus.valueOf(requestInfo.getPayload().getStatus()));
-        task.setOwner(authManager.getAuthorizedUser());
-        blastTaskDao.saveTask(task);
-        blastTaskDao.saveOrganisms(task.getId(), task.getOrganisms());
-        blastTaskDao.saveExclOrganisms(task.getId(), task.getExcludedOrganisms());
-        blastTaskDao.saveTaskParameters(task.getId(), task.getParameters());
-        new Thread(() -> {
-            try {
-                checkTaskStatus(requestInfo.getPayload().getRequestId());
-            } catch (BlastRequestException | InterruptedException e) {
-                e.printStackTrace();
-            }
-        }).start();
-        return task;
+        if (!requestInfo.getStatus().equals("ERROR")) {
+            blastTask.setId(requestInfo.getPayload().getRequestId());
+            blastTask.setStatus(TaskStatus.valueOf(requestInfo.getPayload().getStatus()));
+            blastTask.setOwner(authManager.getAuthorizedUser());
+            blastTaskDao.saveTask(blastTask);
+            blastTaskDao.saveOrganisms(blastTask.getId(), blastTask.getOrganisms());
+            blastTaskDao.saveExclOrganisms(blastTask.getId(), blastTask.getExcludedOrganisms());
+            blastTaskDao.saveTaskParameters(blastTask.getId(), blastTask.getParameters());
+        }
+        return blastTask;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deleteTask(long taskId) {
-        Task task = blastTaskDao.loadTaskById(taskId);
-        Assert.notNull(task, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
-        Assert.isTrue(task.getStatus().equals(TaskStatus.RUNNING), MessageHelper.getMessage(MessagesConstants.ERROR_TASK_CAN_NOT_BE_DELETED, taskId));
+    public void deleteTask(final long taskId) {
+        BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
+        Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
+        Assert.isTrue(blastTask.getStatus().equals(TaskStatus.RUNNING),
+                MessageHelper.getMessage(MessagesConstants.ERROR_TASK_CAN_NOT_BE_DELETED, taskId));
         blastTaskDao.deleteOrganisms(taskId);
         blastTaskDao.deleteExclOrganisms(taskId);
         blastTaskDao.deleteParameters(taskId);
@@ -119,49 +126,46 @@ public class BlastTaskManager {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public TaskPage loadAllTasks(QueryParameters queryParameters) {
+    public TaskPage loadAllTasks(final QueryParameters queryParameters) {
         TaskPage taskPage = new TaskPage();
         long totalCount = blastTaskDao.getTasksCount(queryParameters.getFilters());
-        List<Task> tasks = blastTaskDao.loadAllTasks(queryParameters);
+        List<BlastTask> blastTasks = blastTaskDao.loadAllTasks(queryParameters);
         taskPage.setTotalCount(totalCount);
-        taskPage.setTasks(tasks);
+        taskPage.setBlastTasks(blastTasks);
         return taskPage;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void updateTaskStatus(TaskStatus status, String statusReason, long id) {
-        Task task = blastTaskDao.loadTaskById(id);
-        Assert.notNull(task, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, id));
-        task.setStatus(status);
-        task.setStatusReason(statusReason);
-        blastTaskDao.updateTaskStatus(task);
+    public void updateTask(final BlastTask blastTask) {
+        blastTaskDao.updateTask(blastTask);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public long getTasksCount(List<Filter> filters) {
+    public long getTasksCount(final List<Filter> filters) {
         return blastTaskDao.getTasksCount(filters);
     }
 
-    public RequestInfo updateTaskStatus(long id) throws BlastRequestException {
-        RequestInfo requestInfo = blastRequestManager.getTaskStatus((int) id);
-        Task task = blastTaskDao.loadTaskById(id);
-        Assert.notNull(task, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, id));
-        if (!requestInfo.getPayload().getStatus().equals(task.getStatus().name())) {
-            task.setStatus(TaskStatus.getById(Long.valueOf(requestInfo.getStatus())));
-            blastTaskDao.updateTaskStatus(task);
-        }
-        return requestInfo;
-    }
-
-    public void checkTaskStatus(long id) throws BlastRequestException, InterruptedException {
-        RequestInfo task = updateTaskStatus(id);
-        while (task.getPayload().getStatus().equals(TaskStatus.RUNNING.name())) {
-            sleep(CHECK_TASK_STATUS_PERIOD_MS);
-            task = updateTaskStatus(id);
+    public void cancelTask(final long id) throws BlastRequestException {
+        BlastTask blastTask = blastTaskDao.loadTaskById(id);
+        Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, id));
+        RequestInfo requestInfo = blastRequestManager.cancelTask(id);
+        if (requestInfo.getPayload().getStatus().equals("FAILED")) {
+            blastTask.setStatus(TaskStatus.CANCELED);
+            blastTaskDao.updateTask(blastTask);
         }
     }
 
-    public TaskResult getResult(long taskId) throws BlastRequestException {
-        return blastRequestManager.getResult(taskId);
+    public BlastTaskResult getResult(final long taskId) throws BlastRequestException {
+        return parseToTaskResult(blastRequestManager.getResult(taskId));
+    }
+
+    private BlastTaskResult parseToTaskResult(final RequestResult result) {
+        BlastTaskResult taskResult = new BlastTaskResult();
+        taskResult.setEntries(result.getPayload().getEntries());
+        taskResult.setSize(result.getPayload().getSize());
+        taskResult.setTool(result.getPayload().getTool());
+        taskResult.setStatus(result.getStatus());
+        taskResult.setMessage(result.getMessage());
+        return taskResult;
     }
 }

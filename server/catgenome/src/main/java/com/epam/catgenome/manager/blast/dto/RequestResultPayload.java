@@ -7,7 +7,8 @@ import java.util.List;
 
 @Getter
 @Setter
-public class TaskResultPayload {
+public class RequestResultPayload {
     private long size;
+    private String tool;
     private List<Entry> entries;
 }

@@ -32,7 +32,7 @@ import java.util.Map;
 
 @Getter
 @Setter
-public class Task {
+public class BlastTask {
     private Long id;
     private String title;
     private Date createdDate;
