@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,10 @@ package com.epam.catgenome.controller.vo.externaldb;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Source:      NCBITaxonomyVO
@@ -39,27 +43,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class NCBITaxonomyVO {
 
+    @JsonProperty(value = "taxid")
+    private String taxId;
+
     @JsonProperty(value = "scientificname")
-    private String scientificname;
+    private String scientificName;
 
     @JsonProperty(value = "commonname")
-    private String commonname;
-
-    public String getScientificname() {
-        return scientificname;
-    }
-
-    public void setScientificname(String scientificname) {
-        this.scientificname = scientificname;
-    }
-
-    public String getCommonname() {
-        return commonname;
-    }
-
-    public void setCommonname(String commonname) {
-        this.commonname = commonname;
-    }
+    private String commonName;
 }
