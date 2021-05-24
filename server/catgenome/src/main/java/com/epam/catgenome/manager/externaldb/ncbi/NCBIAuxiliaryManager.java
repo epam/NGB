@@ -149,7 +149,8 @@ public class NCBIAuxiliaryManager extends NCBIDataManager {
      * @return string with result
      * @throws ExternalDbUnavailableException
      */
-    public String searchWithHistory(final String db, final String term, final Integer maxResult) throws ExternalDbUnavailableException {
+    public String searchWithHistory(final String db, final String term,
+                                    final Integer maxResult) throws ExternalDbUnavailableException {
 
         List<ParameterNameValue> parametersList = new ArrayList<>();
 
@@ -185,7 +186,8 @@ public class NCBIAuxiliaryManager extends NCBIDataManager {
      * @throws ExternalDbUnavailableException
      */
     @Override
-    public String fetchWithHistory(final String queryKey, final String webEnv, final NCBIDatabase db) throws ExternalDbUnavailableException {
+    public String fetchWithHistory(final String queryKey, final String webEnv,
+                                   final NCBIDatabase db) throws ExternalDbUnavailableException {
         return fetchData(NCBI_SERVER + NCBI_FETCH, new ParameterNameValue[]{
             new ParameterNameValue(RETMODE_PARAM, "xml"),
             new ParameterNameValue("db", db.name()),

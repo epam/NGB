@@ -131,16 +131,18 @@ public class NCBIDataManager extends HttpDataManager {
         return fetchData(NCBI_SERVER + NCBI_SEARCH, parameterNameValues);
     }
 
-    public String fetchXmlById(final String db, final String id, final String rettype) throws ExternalDbUnavailableException {
+    public String fetchXmlById(final String db, final String id,
+                               final String rettype) throws ExternalDbUnavailableException {
         return fetchById(NCBI_FETCH, db, id, rettype, "xml");
     }
 
-    public String fetchTextById(final String db, final String id, final String rettype) throws ExternalDbUnavailableException {
+    public String fetchTextById(final String db, final String id,
+                                final String rettype) throws ExternalDbUnavailableException {
         return fetchById(NCBI_FETCH, db, id, rettype, "text");
     }
 
-    private String fetchById(final String op, final String db, final String id, final String rettype, final String retmode)
-            throws ExternalDbUnavailableException {
+    private String fetchById(final String op, final String db, final String id, final String rettype,
+                             final String retmode) throws ExternalDbUnavailableException {
         log.info(String.format("Fetching text record by id %s from NCBI db %s", id, db));
 
         List<ParameterNameValue> parametersList = new ArrayList<>();
@@ -213,7 +215,8 @@ public class NCBIDataManager extends HttpDataManager {
         }
     }
 
-    public JsonNode summaryWithHistory(final String queryKey, final String webEnv) throws ExternalDbUnavailableException {
+    public JsonNode summaryWithHistory(final String queryKey,
+                                       final String webEnv) throws ExternalDbUnavailableException {
 
         try {
             final String json = fetchData(NCBI_SERVER + NCBI_SUMMARY, new ParameterNameValue[]{
