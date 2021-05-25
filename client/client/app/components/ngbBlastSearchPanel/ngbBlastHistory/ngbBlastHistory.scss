@@ -1,27 +1,37 @@
+.ui-grid-container .blast-history-table .ui-grid-row.ui-grid-row-selected>[ui-grid-row]>.ui-grid-cell {
+  background-color: transparent;
+}
+
 .blast-history-table {
-    .md-button.md-icon-button {
-        margin: -3px 0;
-        padding: 4px;
-        min-width: 20px;
-    }
-    .search-result-link {
-        color: rgb(51,103,214);
-        font-weight: bold;
-        cursor: pointer;
-    }
-    .search-result-in-progress {
-        font-weight: bold;
-    }
+  .md-button.md-icon-button {
+    margin: -3px 0;
+    padding: 4px;
+    min-width: 20px;
+  }
+
+  .search-result-link {
+    color: rgb(51, 103, 214);
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .search-result-in-progress {
+    font-weight: bold;
+  }
+
+  .blast-history-table-icon {
+    fill: rgb(51, 103, 214);
+  }
 }
 
 .clear-all-blast-history {
-    min-height: 20px;
-    line-height: 20px;
-    min-width: 0;
-    white-space: normal;
-    text-transform: none;
-    margin-left: auto;
-    margin-right: 2px;
-    display: block;
-    padding: 3px 6px;
+  min-height: 20px;
+  line-height: 20px;
+  min-width: 0;
+  white-space: normal;
+  text-transform: none;
+  margin-left: auto;
+  margin-right: 2px;
+  display: block;
+  padding: 3px 6px;
 }

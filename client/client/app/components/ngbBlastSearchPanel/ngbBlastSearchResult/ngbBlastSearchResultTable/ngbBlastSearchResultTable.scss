@@ -1,7 +1,7 @@
 .blast-search-result-table {
+  display: flex;
+  flex-direction: column;
   .sequence-link {
-    color: rgb(51, 103, 214);
     text-decoration: underline;
-    cursor: pointer;
   }
 }

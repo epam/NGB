@@ -1,23 +1,40 @@
-<md-tabs md-autoselect md-no-pagination md-border-bottom
-         flex layout="column" layout-fill
-         md-selected="$ctrl.tabSelectedIndex">
-    <md-tab label="SEARCH">
-        <div layout="column">
-            <ngb-blast-search-form
-                    sequence="$ctrl.readSequence"
-            ></ngb-blast-search-form>
-        </div>
-    </md-tab>
-    <md-tab label="HISTORY" layout-fill>
-        <md-tab-content flex layout-fill>
-            <ngb-blast-history change-tab="$ctrl.changeTab(tab)"></ngb-blast-history>
-        </md-tab-content>
-    </md-tab>
-    <md-tab label="RESULT" ng-disabled="$ctrl.resultDisabled" layout-fill>
-        <md-tab-content flex layout-fill>
-            <ngb-blast-search-result change-tab="$ctrl.changeTab(tab)"
-                                     ng-if="$ctrl.tabSelectedIndex === $ctrl.tabs.RESULT">
-            </ngb-blast-search-result>
-        </md-tab-content>
-    </md-tab>
-</md-tabs>
+<div class="blast-search-flex-column">
+    <md-nav-bar md-selected-nav-item="$ctrl.tabSelected">
+        <md-nav-item md-nav-click="$ctrl.changeState($ctrl.blastStates.SEARCH)" name="SEARCH">SEARCH</md-nav-item>
+        <md-nav-item md-nav-click="$ctrl.changeState($ctrl.blastStates.HISTORY)" name="HISTORY">HISTORY</md-nav-item>
+        <span flex></span>
+        <md-button
+                class="md-accent md-raised blast-search-nav-button"
+                type="button"
+                ng-click="$ctrl.clearHistory($event)"
+                ng-if="$ctrl.currentBlastState === $ctrl.blastStates.HISTORY"
+        >Clear history
+        </md-button>
+        <md-button
+                class="md-accent md-raised blast-search-nav-button"
+                type="button"
+                ng-click="$ctrl.editSearch($event)"
+                ng-if="$ctrl.currentBlastState === $ctrl.blastStates.RESULT"
+        >
+            <ng-md-icon class="icon_info_outline" icon="redo"></ng-md-icon>
+        </md-button>
+        <md-button
+                class="md-accent md-raised blast-search-nav-button"
+                type="button"
+                ng-click="$ctrl.downloadResults($event)"
+                ng-if="$ctrl.currentBlastState === $ctrl.blastStates.RESULT"
+        >
+            <ng-md-icon class="icon_info_outline" icon="file_download"></ng-md-icon>
+        </md-button>
+    </md-nav-bar>
+
+    <md-content class="md-padding _md blast-search-result blast-search-flex-column">
+        <ngb-blast-search-form ng-if="$ctrl.currentBlastState === $ctrl.blastStates.SEARCH"></ngb-blast-search-form>
+        <ngb-blast-history class="blast-search-flex-column"
+                           change-state="$ctrl.changeState(state)"
+                           ng-if="$ctrl.currentBlastState === $ctrl.blastStates.HISTORY" flex></ngb-blast-history>
+        <ngb-blast-search-result class="blast-search-flex-column"
+                                 change-state="$ctrl.changeState(state)"
+                                 ng-if="$ctrl.currentBlastState === $ctrl.blastStates.RESULT" flex></ngb-blast-search-result>
+    </md-content>
+</div>

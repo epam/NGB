@@ -1,5 +1,5 @@
-import angular from 'angular';
 import {DataService} from '../data-service';
+
 /**
  * data service for project
  * @extends DataService
@@ -12,8 +12,7 @@ export class ProjectDataService extends DataService {
             this.get(url).catch(() => resolve([])).then(data => {
                 if (data !== null && data !== undefined) {
                     resolve(data);
-                }
-                else {
+                } else {
                     resolve([]);
                 }
             });
@@ -21,12 +20,11 @@ export class ProjectDataService extends DataService {
     }
 
     getProjectsFilterVcfInfo(vcfFileIdsByProject) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this.post('filter/info', vcfFileIdsByProject).then(data => {
                 if (data !== null && data !== undefined) {
                     resolve(data);
-                }
-                else {
+                } else {
                     resolve(null);
                 }
             });
@@ -94,27 +92,70 @@ export class ProjectDataService extends DataService {
 
     getVcfVariationLoad(filter) {
         return new Promise((resolve, reject) => {
-            this.post('filter', filter).catch((response)=>resolve({...response, error: true})).then((data) => {
+            this.post('filter', filter).catch((response) => resolve({...response, error: true})).then((data) => {
                 if (data) {
                     resolve(data);
                 } else {
                     data = [];
                     resolve(data);
                 }
-            },reject);
+            }, reject);
         });
     }
 
     getVcfGroupData(filter, groupBy) {
         return new Promise((resolve, reject) => {
-            this.post(`filter/group?groupBy=${groupBy}`, filter).catch((response)=>reject(response)).then((data) => {
+            this.post(`filter/group?groupBy=${groupBy}`, filter).catch((response) => reject(response)).then((data) => {
                 if (data) {
                     resolve(data);
                 } else {
                     data = [];
                     resolve(data);
                 }
-            },reject);
+            }, reject);
+        });
+    }
+
+    getBlastHistoryLoad() {
+        return new Promise((resolve, reject) => {
+            this.post( 'tasks')
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = [];
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
+    
+    getBlastSearch(searchId) {
+        return new Promise((resolve, reject) => {
+            this.get(`task/${searchId}`)
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = [];
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
+
+    getBlastResultLoad(searchId) {
+        return new Promise((resolve, reject) => {
+            this.get( `task/result/${searchId}`).catch((response) => resolve({...response, error: true})).then((data) => {
+                if (data) {
+                    resolve(data);
+                } else {
+                    data = [];
+                    resolve(data);
+                }
+            }, reject);
         });
     }
 }

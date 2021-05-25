@@ -1,4 +1,10 @@
-<div ng-if="!$ctrl.isProgressShown" class="ui-grid-container" ng-hide="$ctrl.errorMessageList.length">
+<div ng-if="$ctrl.isProgressShown">
+    <div class="progress" layout-align="center center">
+        <span>Loading search results...</span>
+    </div>
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div ng-if="!$ctrl.isProgressShown" class="ui-grid-container blast-search-flex-column" ng-hide="$ctrl.errorMessageList.length" flex>
     <div ng-if="$ctrl.historyLoadError" class="variants-load-error-container">
         <small>{{$ctrl.historyLoadError}}</small>
     </div>

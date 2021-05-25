@@ -116,7 +116,7 @@ function $http(method, url, data) {
     if (arguments.length < 4)
         return $http(arguments[0], arguments[1], undefined, arguments[2]);
 
-    let token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
     return new BluebirdPromise((resolve, reject, onCancel) => {
         const xhr = new XMLHttpRequest();
         if (onCancel instanceof Function)

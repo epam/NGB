@@ -2,7 +2,7 @@ import controller from './ngbBlastSearchResult.controller';
 
 export default  {
     bindings: {
-        changeTab: '&'
+        changeState: '&'
     },
     controller: controller.UID,
     template: require('./ngbBlastSearchResult.tpl.html')

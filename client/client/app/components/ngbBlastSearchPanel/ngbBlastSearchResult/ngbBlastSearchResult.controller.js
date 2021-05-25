@@ -1,13 +1,14 @@
 import baseController from '../../../shared/baseController';
 
-export default class ngbBlastSearchPanelPaginate extends baseController {
+export default class ngbBlastSearchResult extends baseController {
 
     static get UID() {
-        return 'ngbBlastSearchPanelPaginate';
+        return 'ngbBlastSearchResult';
     }
 
     readSequence = '';
     searchResult = {};
+    isProgressShown = true;
 
     constructor(dispatcher, $scope, $timeout, ngbBlastSearchService) {
         super(dispatcher);
@@ -23,24 +24,8 @@ export default class ngbBlastSearchPanelPaginate extends baseController {
         this.initialize();
     }
 
-    initialize() {
-        this.searchResult = this.ngbBlastSearchService.currentSearchResult;
-    }
-
-    editSearch(event) {
-        this.ngbBlastSearchService.currentSearchId = this.ngbBlastSearchService.currentResultId;
-        this.changeTab({tab: 'SEARCH'});
-        event.stopImmediatePropagation();
-        return false;
-    }
-
-    downloadResults(event) {
-        event.stopImmediatePropagation();
-        return false;
-    }
-
-    browseGenomeView(event) {
-        event.stopImmediatePropagation();
-        return false;
+    async initialize() {
+        this.searchResult = await this.ngbBlastSearchService.getCurrentSearchResult();
+        this.isProgressShown = false;
     }
 }

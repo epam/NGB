@@ -76,10 +76,11 @@ export default class ngbBlastHistoryController extends baseController {
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
             columnDefs: this.ngbBlastHistoryTableService.getBlastHistoryGridColumns(),
-            paginationPageSize: this.ngbBlastSearchService.historyPageSize,
+            paginationPageSize: this.ngbBlastHistoryTableService.historyPageSize,
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
+                this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
                 // this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
                 // this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
                 this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
@@ -90,8 +91,8 @@ export default class ngbBlastHistoryController extends baseController {
 
     async loadData() {
         try {
-            await this.ngbBlastSearchService.updateSearchHistory();
-            if (this.ngbBlastSearchService.blastHistory.length || this.ngbBlastSearchService.variantsPageError) {
+            await this.ngbBlastHistoryTableService.updateSearchHistory();
+            if (this.ngbBlastHistoryTableService.blastHistory.length || this.ngbBlastHistoryTableService.historyPageError) {
                 this.historyLoadingFinished();
             }
         } catch (errorObj) {
@@ -104,70 +105,81 @@ export default class ngbBlastHistoryController extends baseController {
         this.errorMessageList.push(message);
     }
 
-    /*
-        saveColumnsState() {
-            if (!this.gridApi) {
-                return;
-            }
-            const {columns} = this.gridApi.saveState.save();
-            const mapNameToField = function ({name}) {
-                switch (name) {
-                    case 'Type':
-                        return 'variationType';
-                    case 'Chr':
-                        return 'chrName';
-                    case 'Gene':
-                        return 'geneNames';
-                    case 'Position':
-                        return 'startIndex';
-                    case 'Info':
-                        return 'info';
-                    default:
-                        return name;
-                }
-            };
-            const orders = columns.map(mapNameToField);
-            const r = [];
-            const names = this.projectContext.vcfColumns;
-            for (let i = 0; i < names.length; i++) {
-                const name = names[i];
-                if (orders.indexOf(name) >= 0) {
-                    r.push(1);
-                } else {
-                    r.push(0);
-                }
-            }
-            let index = 0;
-            const result = [];
-            for (let i = 0; i < r.length; i++) {
-                if (r[i] === 1) {
-                    result.push(orders[index]);
-                    index++;
-                } else {
-                    result.push(names[i]);
-                }
-            }
-            this.projectContext.vcfColumns = result;
+    rowClick(row, event) {
+        const entity = row.entity;
+        if (entity && !entity.isInProcess) {
+            this.ngbBlastSearchService.currentResultId = row.entity.id;
+            this.changeState({state: 'RESULT'});
+        } else {
+            event.stopImmediatePropagation();
+            return false;
         }
-    */
+    }
+
+
+        /*
+            saveColumnsState() {
+                if (!this.gridApi) {
+                    return;
+                }
+                const {columns} = this.gridApi.saveState.save();
+                const mapNameToField = function ({name}) {
+                    switch (name) {
+                        case 'Type':
+                            return 'variationType';
+                        case 'Chr':
+                            return 'chrName';
+                        case 'Gene':
+                            return 'geneNames';
+                        case 'Position':
+                            return 'startIndex';
+                        case 'Info':
+                            return 'info';
+                        default:
+                            return name;
+                    }
+                };
+                const orders = columns.map(mapNameToField);
+                const r = [];
+                const names = this.projectContext.vcfColumns;
+                for (let i = 0; i < names.length; i++) {
+                    const name = names[i];
+                    if (orders.indexOf(name) >= 0) {
+                        r.push(1);
+                    } else {
+                        r.push(0);
+                    }
+                }
+                let index = 0;
+                const result = [];
+                for (let i = 0; i < r.length; i++) {
+                    if (r[i] === 1) {
+                        result.push(orders[index]);
+                        index++;
+                    } else {
+                        result.push(names[i]);
+                    }
+                }
+                this.projectContext.vcfColumns = result;
+            }
+        */
     historyLoadingFinished() {
         this.historyLoadError = null;
         this.gridOptions.columnDefs = this.ngbBlastHistoryTableService.getBlastHistoryGridColumns();
-        const data = this.ngbBlastSearchService.blastHistory;
+        const data = this.ngbBlastHistoryTableService.blastHistory;
         this.gridOptions.totalItems = data.length;
-        const firstRow = (this.ngbBlastSearchService.currentPageHistory - 1) * this.ngbBlastSearchService.historyPageSize;
-        this.gridOptions.data = data.slice(firstRow, firstRow + this.ngbBlastSearchService.historyPageSize);
+        const firstRow = (this.ngbBlastHistoryTableService.currentPageHistory - 1) * this.ngbBlastHistoryTableService.historyPageSize;
+        this.gridOptions.data = data.slice(firstRow, firstRow + this.ngbBlastHistoryTableService.historyPageSize);
         this.isProgressShown = false;
-
         this.$timeout(::this.$scope.$apply);
     }
 
     getDataOnPage(page) {
-        this.ngbBlastSearchService.firstPageHistory = page;
-        this.ngbBlastSearchService.lastPageHistory = page;
-        this.ngbBlastSearchService.currentPageHistory = page;
+        this.ngbBlastHistoryTableService.firstPageHistory = page;
+        this.ngbBlastHistoryTableService.lastPageHistory = page;
+        this.ngbBlastHistoryTableService.currentPageHistory = page;
         this.gridOptions.data = [];
-        this.ngbBlastSearchService.loadBlastHistory(page).then((data) => {
+        this.ngbBlastHistoryTableService.loadBlastHistory(page).then((data) => {
             if (this.ngbBlastHistoryTableService.historyPageError) {
                 this.historyLoadError = this.ngbBlastHistoryTableService.historyPageError;
                 this.gridOptions.totalItems = 0;
@@ -175,8 +187,8 @@ export default class ngbBlastHistoryController extends baseController {
             } else {
                 this.historyLoadError = null;
                 this.gridOptions.totalItems = 100;
-                const firstRow = (this.ngbBlastSearchService.currentPageHistory - 1) * this.ngbBlastSearchService.historyPageSize;
-                this.gridOptions.data = data.slice(firstRow, firstRow + this.ngbBlastSearchService.historyPageSize);
+                const firstRow = (this.ngbBlastHistoryTableService.currentPageHistory - 1) * this.ngbBlastHistoryTableService.historyPageSize;
+                this.gridOptions.data = data.slice(firstRow, firstRow + this.ngbBlastHistoryTableService.historyPageSize);
             }
         });
     }
@@ -192,11 +204,11 @@ export default class ngbBlastHistoryController extends baseController {
             this.projectContext.orderByVariations = null;
         }
 
-        this.ngbBlastSearchService.firstPageHistory = 1;
-        this.ngbBlastSearchService.lastPageHistory = 1;
+        this.ngbBlastHistoryTableService.firstPageHistory = 1;
+        this.ngbBlastHistoryTableService.lastPageHistory = 1;
 
         this.gridOptions.data = [];
-        this.ngbBlastSearchService.loadBlastHistory(1).then((data) => {
+        this.ngbBlastHistoryTableService.loadBlastHistory(1).then((data) => {
             if (this.ngbBlastHistoryTableService.historyPageError) {
                 this.historyLoadError = this.ngbBlastHistoryTableService.historyPageError;
                 this.gridOptions.totalItems = 0;
@@ -204,8 +216,8 @@ export default class ngbBlastHistoryController extends baseController {
             } else {
                 this.historyLoadError = null;
                 this.gridOptions.totalItems = 100;
-                const firstRow = (this.ngbBlastSearchService.currentPageHistory - 1) * this.ngbBlastSearchService.historyPageSize;
-                this.gridOptions.data = data.slice(firstRow, firstRow + this.ngbBlastSearchService.historyPageSize);
+                const firstRow = (this.ngbBlastHistoryTableService.currentPageHistory - 1) * this.ngbBlastHistoryTableService.historyPageSize;
+                this.gridOptions.data = data.slice(firstRow, firstRow + this.ngbBlastHistoryTableService.historyPageSize);
             }
         });
     }
@@ -213,11 +225,11 @@ export default class ngbBlastHistoryController extends baseController {
     changeCurrentPage(row) {
         this.$timeout(() => {
             if (row.newScrollTop) {
-                const sizePage = this.ngbBlastSearchService.historyPageSize * ROW_HEIGHT;
-                const currentPageVariations = Math.round(this.ngbBlastSearchService.firstPageHistory + row.newScrollTop / sizePage);
-                if (this.ngbBlastSearchService.currentPageHistory !== currentPageVariations) {
-                    this.ngbBlastSearchService.currentPageHistory = currentPageVariations;
-                    this.dispatcher.emit('pageVariations:scroll', this.ngbBlastSearchService.currentPageHistory);
+                const sizePage = this.ngbBlastHistoryTableService.historyPageSize * ROW_HEIGHT;
+                const currentPageVariations = Math.round(this.ngbBlastHistoryTableService.firstPageHistory + row.newScrollTop / sizePage);
+                if (this.ngbBlastHistoryTableService.currentPageHistory !== currentPageVariations) {
+                    this.ngbBlastHistoryTableService.currentPageHistory = currentPageVariations;
+                    this.dispatcher.emit('pageVariations:scroll', this.ngbBlastHistoryTableService.currentPageHistory);
                 }
             }
         });
@@ -230,7 +242,7 @@ export default class ngbBlastHistoryController extends baseController {
             .cancel('CANCEL');
 
         this.$mdDialog.show(confirm).then(async() => {
-            await this.ngbBlastSearchService.deleteBlastHistory(entity.id);
+            await this.ngbBlastHistoryTableService.deleteBlastHistory(entity.id);
             await this.loadData();
         });
         event.stopImmediatePropagation();
@@ -244,7 +256,7 @@ export default class ngbBlastHistoryController extends baseController {
             .cancel('CANCEL');
 
         this.$mdDialog.show(confirm).then(async() => {
-            await this.ngbBlastSearchService.cancelBlastSearch(entity.id);
+            await this.ngbBlastHistoryTableService.cancelBlastSearch(entity.id);
             await this.loadData();
         });
         event.stopImmediatePropagation();
@@ -253,27 +265,7 @@ export default class ngbBlastHistoryController extends baseController {
 
     onRepeat(entity, event) {
         this.ngbBlastSearchService.currentSearchId = entity.id;
-        this.changeTab({tab: 'SEARCH'});
-        event.stopImmediatePropagation();
-        return false;
-    }
-
-    clearHistory(event) {
-        const confirm = this.$mdDialog.confirm()
-            .title('Clear all history?')
-            .ok('OK')
-            .cancel('CANCEL');
-        this.$mdDialog.show(confirm).then(async() => {
-            await this.ngbBlastSearchService.clearSearchHistory();
-            await this.loadData();
-        });
-        event.stopImmediatePropagation();
-        return false;
-    }
-
-    showResult(entity, event) {
-        this.ngbBlastSearchService.currentResultId = entity.id;
-        this.changeTab({tab: 'RESULT'});
+        this.changeState({state: 'SEARCH'});
         event.stopImmediatePropagation();
         return false;
     }

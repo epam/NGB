@@ -55,7 +55,6 @@
     "flow-vars/define-flow-type": 1,
     "flow-vars/use-flow-type": 1,
     "sort-vars": ["warn", { "ignoreCase": true }],
-    "sort-keys": ["warn", "asc", {"caseSensitive": true, "natural": false}],
     "sort-imports": ["warn", {
       "ignoreCase": false,
       "ignoreMemberSort": false,

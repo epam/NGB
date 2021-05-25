@@ -4,15 +4,16 @@ const DEFAULT_COLUMNS = [
 ];
 
 export default class ngbBlastSearchResultTableService {
-    static instance() {
-        return new ngbBlastSearchResultTableService();
+    static instance(projectDataService) {
+        return new ngbBlastSearchResultTableService(projectDataService);
     }
 
     _searchResultTableError = null;
     _searchResultTableLoading = true;
     _blastSearchResult;
 
-    constructor() {
+    constructor(projectDataService) {
+        this.projectDataService = projectDataService;
     }
 
     get blastSearchResultColumns() {
@@ -35,7 +36,7 @@ export default class ngbBlastSearchResultTableService {
             switch (column) {
                 case 'id': {
                     result.push({
-                        cellTemplate: `<a class="ui-grid-cell-contents sequence-link" 
+                        cellTemplate: `<a class="ui-grid-cell-contents blast-search-result-link sequence-link" 
                                         ng-href="{{row.entity.href}}"
                                        >{{row.entity.id}}</a>`,
                         enableHiding: false,
@@ -75,8 +76,8 @@ export default class ngbBlastSearchResultTableService {
         this._blastSearchResult = await this.loadBlastSearchResult();
     }
     
-    async loadBlastSearchResult() {
-        let data = this._getRandomSearchResult(30);
+    async loadBlastSearchResult(searchId) {
+        const data = await this.projectDataService.getBlastResultLoad(searchId);
         if (data.error) {
             this._searchResultTableLoading = false;
             this._searchResultTableError = data.message;
@@ -85,24 +86,5 @@ export default class ngbBlastSearchResultTableService {
             this._searchResultTableError = null;
         }        
         return data;
-    }
-
-    // TODO: remove before merge;
-    _getRandomSearchResult(length) {
-        const result = [];
-        for (let i = 0; i < length; i++) {
-            result.push({
-                id: i + 1,
-                organism: [1, 2, 3][Math.floor(Math.random() * 2)],
-                taxId: 2*i+1,
-                maxScore: Math.round(Math.random()*90) + 10,
-                totalScore: Math.round(Math.random()*210) + 90,
-                queryCover: Math.random().toFixed(2),
-                eValue: Math.round(Math.random()*190) + 10,
-                percentIdentity: Math.random().toFixed(2),
-                matches: Math.round(Math.random()*5) + 1
-            });
-        }
-        return result;
     }
 }

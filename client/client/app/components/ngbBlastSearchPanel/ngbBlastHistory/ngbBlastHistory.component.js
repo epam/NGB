@@ -2,7 +2,7 @@ import controller from './ngbBlastHistory.controller';
 
 export default {
     bindings: {
-        changeTab: '&'
+        changeState: '&'
     },
     controller: controller.UID,
     restrict: 'E',

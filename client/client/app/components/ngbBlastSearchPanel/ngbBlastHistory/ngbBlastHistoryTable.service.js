@@ -3,20 +3,115 @@ import {camelPad} from '../../../shared/utils/String';
 const DEFAULT_BLAST_HISTORY_COLUMNS = [
     'id', 'title', 'currentState', 'submitted', 'duration', 'actions'
 ];
+const blastSearchState = {
+    DONE: 'DONE',
+    FAILURE: 'FAILURE',
+    SEARCHING: 'SEARCHING'
+};
+const FIRST_PAGE = 1;
+const PAGE_SIZE_HISTORY = 12;
+
 
 export default class ngbBlastHistoryTableService {
 
-    static instance() {
-        return new ngbBlastHistoryTableService();
+    static instance(projectDataService) {
+        return new ngbBlastHistoryTableService(projectDataService);
     }
 
-    constructor() {
+    _blastHistory;
+    _firstPageHistory = FIRST_PAGE;
+    _lastPageHistory = FIRST_PAGE;
+    _currentPageHistory = FIRST_PAGE;
+    _historyPageError = null;
+
+    constructor(projectDataService) {
+        this.projectDataService = projectDataService;
     }
 
-    get blastHistoryColumns() {
-        return DEFAULT_BLAST_HISTORY_COLUMNS;
+    get firstPageHistory() {
+        return this._firstPageHistory;
     }
 
+    set firstPageHistory(value) {
+        this._firstPageHistory = value;
+    }
+
+    get lastPageHistory() {
+        return this._lastPageHistory;
+    }
+
+    set lastPageHistory(value) {
+        this._lastPageHistory = value;
+    }
+
+    get currentPageHistory() {
+        return this._currentPageHistory;
+    }
+
+    set currentPageHistory(value) {
+        this._currentPageHistory = value;
+    }
+
+    get historyPageSize() {
+        return PAGE_SIZE_HISTORY;
+    }
+
+    get historyPageError() {
+        return this._historyPageError;
+    }
+
+    set blastHistoryColumns(columns) {
+        localStorage.setItem('blastHistoryColumns', JSON.stringify(columns || []));
+    }
+
+    get blastHistory() {
+        return this._blastHistory;
+    }
+
+    async updateSearchHistory() {
+        this._blastHistory = await this.loadBlastHistory();
+    }
+
+    async deleteBlastHistory(id) {
+        this._blastHistory = await this.loadBlastHistory();
+    }
+
+    async cancelBlastSearch(id) {
+        this._blastHistory = await this.loadBlastHistory();
+    }
+
+    async clearSearchHistory() {
+        this._blastHistory = await this.loadBlastHistory();
+    }
+
+    getHistoryEntryById(id) {
+        const blastHistory = this.blastHistory;
+        if (blastHistory) {
+            return blastHistory.filter(item => item.id === id)[0];
+        }
+        return undefined;
+    }
+
+    async loadBlastHistory() {
+        const data = await this.projectDataService.getBlastHistoryLoad();
+        if (data.error) {
+            this._totalPagesCountHistory = 0;
+            this._currentPageHistory = FIRST_PAGE;
+            this._lastPageHistory = FIRST_PAGE;
+            this._firstPageHistory = FIRST_PAGE;
+            this._hasMoreHistory = true;
+            this._historyPageError = data.message;
+            // this.dispatcher.emit('blast:history:page:loading:finished');
+            return [];
+        } else {
+            this._historyPageError = null;
+        }
+        if (data.totalPagesCount === 0) {
+            data.totalPagesCount = undefined;
+        }
+        data.forEach(item => item.isInProcess = item.currentState === blastSearchState.SEARCHING);
+        return data;
+    }
 
     getBlastHistoryGridColumns() {
         const actionsCell = require('./ngbBlastHistoryTable_actions.tpl.html');
@@ -29,12 +124,10 @@ export default class ngbBlastHistoryTableService {
             switch (column) {
                 case 'id': {
                     result.push({
-                        cellTemplate: `<div ng-if="!row.entity.isInProcess"
-                                        class="ui-grid-cell-contents search-result-link" 
-                                        ng-click="grid.appScope.$ctrl.showResult(row.entity, $event)"
-                                       >{{row.entity.id}}</div>
-                                       <div ng-if="row.entity.isInProcess" 
-                                        class="ui-grid-cell-contents search-result-in-progress"
+                        cellTemplate: `<div class="ui-grid-cell-contents"
+                                        ng-class="row.entity.isInProcess 
+                                        ? 'search-result-in-progress' 
+                                        : 'search-result-link'"
                                        >{{row.entity.id}}</div>`,
                         enableHiding: false,
                         field: 'id',
@@ -72,8 +165,8 @@ export default class ngbBlastHistoryTableService {
                         enableSorting: false,
                         field: 'id',
                         headerCellTemplate: '<span></span>',
-                        maxWidth: 96,
-                        minWidth: 64,
+                        maxWidth: 70,
+                        minWidth: 60,
                         name: ''
                     });
                     break;
@@ -92,5 +185,24 @@ export default class ngbBlastHistoryTableService {
             }
         }
         return result;
+    }
+
+    get blastHistoryColumns() {
+        if (!localStorage.getItem('blastHistoryColumns')) {
+            localStorage.setItem('blastHistoryColumns', JSON.stringify(DEFAULT_BLAST_HISTORY_COLUMNS));
+        }
+        let columns = JSON.parse(localStorage.getItem('blastHistoryColumns'));
+        let defaultColumnsExists = true;
+        for (let i = 0; i < DEFAULT_BLAST_HISTORY_COLUMNS.length; i++) {
+            if (columns.map(c => c.toLowerCase()).indexOf(DEFAULT_BLAST_HISTORY_COLUMNS[i].toLowerCase()) === -1) {
+                defaultColumnsExists = false;
+                break;
+            }
+        }
+        if (!defaultColumnsExists) {
+            columns = DEFAULT_BLAST_HISTORY_COLUMNS.map(c => c);
+            localStorage.setItem('blastHistoryColumns', JSON.stringify(columns || []));
+        }
+        return columns;
     }
 }
