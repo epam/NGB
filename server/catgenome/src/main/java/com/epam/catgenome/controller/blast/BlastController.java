@@ -29,7 +29,7 @@ import java.util.List;
 
 import com.epam.catgenome.controller.vo.TaskVO;
 import com.epam.catgenome.entity.blast.BlastTask;
-import com.epam.catgenome.entity.blast.BlastTaskResult;
+import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.util.db.Filter;
@@ -83,7 +83,7 @@ public class BlastController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<BlastTaskResult> getResult(@PathVariable final long taskId) throws BlastRequestException {
+    public Result<BlastRequestResult> getResult(@PathVariable final long taskId) throws BlastRequestException {
         return Result.success(blastTaskSecurityService.getResult(taskId));
     }
 

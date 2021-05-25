@@ -28,7 +28,7 @@ package com.epam.catgenome.manager.blast;
 
 import com.epam.catgenome.controller.vo.TaskVO;
 import com.epam.catgenome.entity.blast.BlastTask;
-import com.epam.catgenome.entity.blast.BlastTaskResult;
+import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.util.db.Filter;
@@ -99,7 +99,7 @@ public class BlastTaskSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public BlastTaskResult getResult(final long taskId) throws BlastRequestException {
+    public BlastRequestResult getResult(final long taskId) throws BlastRequestException {
         return blastTaskManager.getResult(taskId);
     }
 }

@@ -26,6 +26,10 @@ package com.epam.catgenome.exception;
 
 public class BlastResponseException extends RuntimeException{
 
-    public BlastResponseException(final String message) { super(message); }
-    public BlastResponseException(final Throwable cause) { super(cause); }
+    public BlastResponseException(final String message) {
+        super(message);
+    }
+    public BlastResponseException(final Throwable cause) {
+        super(cause);
+    }
 }

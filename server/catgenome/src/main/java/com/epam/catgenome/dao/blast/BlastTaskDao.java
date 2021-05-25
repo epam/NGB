@@ -125,7 +125,8 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public void saveOrganism(final BlastTaskOrganism blastTaskOrganism) {
         blastTaskOrganism.setId(daoHelper.createId(organismSequenceName));
-        getNamedParameterJdbcTemplate().update(insertTaskOrganismsQuery, OrganismParameters.getParameters(blastTaskOrganism));
+        getNamedParameterJdbcTemplate().update(insertTaskOrganismsQuery,
+                OrganismParameters.getParameters(blastTaskOrganism));
     }
 
     /**

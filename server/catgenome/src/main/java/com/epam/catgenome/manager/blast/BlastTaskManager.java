@@ -24,32 +24,38 @@
 package com.epam.catgenome.manager.blast;
 
 import com.epam.catgenome.entity.blast.BlastTask;
-import com.epam.catgenome.entity.blast.BlastTaskResult;
 import com.epam.catgenome.entity.blast.BlastTaskOrganism;
 import com.epam.catgenome.entity.blast.TaskParameter;
 import com.epam.catgenome.entity.blast.TaskStatus;
-import com.epam.catgenome.manager.blast.dto.Request;
-import com.epam.catgenome.manager.blast.dto.RequestInfo;
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.blast.BlastTaskDao;
-import com.epam.catgenome.manager.blast.dto.TaskPage;
-import com.epam.catgenome.manager.blast.dto.RequestResult;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.manager.AuthManager;
+import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
+import com.epam.catgenome.manager.blast.dto.Request;
+import com.epam.catgenome.manager.blast.dto.RequestInfo;
+import com.epam.catgenome.manager.blast.dto.RequestResult;
+import com.epam.catgenome.manager.blast.dto.TaskPage;
 import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class BlastTaskManager {
 
     public static final long MAX_TARGET_SEQUENCE = 10L;
@@ -58,8 +64,7 @@ public class BlastTaskManager {
     @Autowired
     private BlastTaskDao blastTaskDao;
 
-    @Autowired
-    private BlastRequestManager blastRequestManager;
+    private final BlastRequestManager blastRequestManager;
 
     @Autowired
     private AuthManager authManager;
@@ -77,7 +82,8 @@ public class BlastTaskManager {
 
     private void loadTaskOrganisms(final BlastTask blastTask) {
         List<BlastTaskOrganism> blastTaskOrganismList = blastTaskDao.loadOrganisms(blastTask.getId());
-        List<Long> organisms = blastTaskOrganismList.stream().map(BlastTaskOrganism::getOrganism).collect(Collectors.toList());
+        List<Long> organisms = blastTaskOrganismList.stream().
+                map(BlastTaskOrganism::getOrganism).collect(Collectors.toList());
         blastTask.setOrganisms(organisms);
     }
 
@@ -155,17 +161,31 @@ public class BlastTaskManager {
         }
     }
 
-    public BlastTaskResult getResult(final long taskId) throws BlastRequestException {
-        return parseToTaskResult(blastRequestManager.getResult(taskId));
+    @Scheduled(fixedRateString = "${blast.update.status.rate}")
+    public void updateTaskStatuses() {
+        Filter filter = new Filter("status", "=", String.valueOf(TaskStatus.RUNNING.getId()));
+        QueryParameters parameters = new QueryParameters();
+        parameters.setFilters(Collections.singletonList(filter));
+        List<BlastTask> tasks = blastTaskDao.loadAllTasks(parameters);
+        tasks.forEach(t -> {
+            try {
+                RequestInfo requestInfo = blastRequestManager.getTaskStatus(t.getId());
+                String status = requestInfo.getPayload().getStatus();
+                if (!status.equals(t.getStatus().name())) {
+                    t.setStatus(TaskStatus.valueOf(status));
+                    blastTaskDao.updateTask(t);
+                }
+            } catch (BlastRequestException e) {
+                log.debug(e.getMessage());
+            }
+        });
     }
 
-    private BlastTaskResult parseToTaskResult(final RequestResult result) {
-        BlastTaskResult taskResult = new BlastTaskResult();
-        taskResult.setEntries(result.getPayload().getEntries());
-        taskResult.setSize(result.getPayload().getSize());
-        taskResult.setTool(result.getPayload().getTool());
-        taskResult.setStatus(result.getStatus());
-        taskResult.setMessage(result.getMessage());
-        return taskResult;
+    public BlastRequestResult getResult(final long taskId) throws BlastRequestException {
+        return parseToRequestResult(blastRequestManager.getResult(taskId));
+    }
+
+    private BlastRequestResult parseToRequestResult(final RequestResult result) {
+        return result.getPayload();
     }
 }

@@ -11,7 +11,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Filter {
     private String field;
-    private String operation;
+    private String operator;
     private String value;
 }
-

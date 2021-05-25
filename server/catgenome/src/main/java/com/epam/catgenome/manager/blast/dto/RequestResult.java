@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class RequestResult {
-    private RequestResultPayload payload;
+    private BlastRequestResult payload;
     private String status;
     private String message;
 }

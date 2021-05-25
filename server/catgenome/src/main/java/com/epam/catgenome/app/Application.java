@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 /**
@@ -28,6 +29,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
  */
 @Import(AppConfiguration.class)
 @EnableWebSecurity
+@EnableScheduling
 @SpringBootApplication(exclude = {
         SecurityAutoConfiguration.class,
         SecurityFilterAutoConfiguration.class,

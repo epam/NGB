@@ -7,7 +7,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class RequestResultPayload {
+public class BlastRequestResult {
     private long size;
     private String tool;
     private List<Entry> entries;
