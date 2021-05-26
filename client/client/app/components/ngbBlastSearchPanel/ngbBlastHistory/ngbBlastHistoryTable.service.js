@@ -10,6 +10,7 @@ const blastSearchState = {
 };
 const FIRST_PAGE = 1;
 const PAGE_SIZE_HISTORY = 12;
+const REFRESH_INTERVAL_SEC = 10;
 
 export default class ngbBlastHistoryTableService {
 
@@ -53,6 +54,10 @@ export default class ngbBlastHistoryTableService {
 
     get historyPageSize() {
         return PAGE_SIZE_HISTORY;
+    }
+
+    get refreshInterval() {
+        return REFRESH_INTERVAL_SEC*1000;
     }
 
     get historyPageError() {
@@ -104,7 +109,7 @@ export default class ngbBlastHistoryTableService {
         if (data.totalPagesCount === 0) {
             data.totalPagesCount = undefined;
         }
-        data.forEach(item => item.isInProcess = item.currentState === blastSearchState.SEARCHING);
+        data.forEach(this._formatServerToClient);
         return data;
     }
 
@@ -199,5 +204,37 @@ export default class ngbBlastHistoryTableService {
             localStorage.setItem('blastHistoryColumns', JSON.stringify(columns || []));
         }
         return columns;
+    }
+
+    _formatServerToClient(search) {
+        let duration, state;
+        switch (search.status) {
+            case 1:
+            case 2:
+            case 3: {
+                state = blastSearchState.SEARCHING;
+                break;
+            }
+            case 5: {
+                state = blastSearchState.FAILURE;
+                break;
+            }
+            case 6: {
+                state = blastSearchState.DONE;
+            }
+        }
+        if (state === blastSearchState.SEARCHING) {
+            duration = Date.now() - search.createdDate;
+        } else {
+            duration = search.endDate - search.createdDate;
+        }
+        return {
+            id: search.id,
+            title: search.title,
+            currentState: state,
+            submitted: search.createdDate,
+            duration: duration,
+            isInProcess: state === blastSearchState.SEARCHING
+        };
     }
 }

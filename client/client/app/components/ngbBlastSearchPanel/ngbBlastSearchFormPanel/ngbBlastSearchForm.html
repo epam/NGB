@@ -32,7 +32,7 @@
             <label for="searchSet"><b>*Search set</b></label>
             <md-radio-group id="searchSet" ng-model="$ctrl.selectedSet" area-required="true" required="">
                 <md-radio-button ng-repeat="set in $ctrl.setVariants" ng-value="set">{{set}}</md-radio-button>
-                <div ng-if="$ctrl.selectedSet === 'db'">
+                <div ng-if="$ctrl.selectedSet === $ctrl.setVariants.DB" class="blast-form-db-container">
                     <div>
                         <md-input-container class="blast-search-input">
                             <label for="db">Database</label>
@@ -53,8 +53,8 @@
                                     ng-model="$ctrl.searchRequest.organisms"
                                     multiple=""
                             >
-                                <md-option ng-repeat="species in $ctrl.organismList" value="{{species.id}}">
-                                    {{species.name}}
+                                <md-option ng-repeat="species in $ctrl.organismList" value="{{species.taxid}}">
+                                    {{species.scientificname}}
                                 </md-option>l
                             </md-select>
                         </md-input-container>

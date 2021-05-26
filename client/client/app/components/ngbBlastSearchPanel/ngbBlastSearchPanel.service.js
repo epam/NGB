@@ -31,17 +31,17 @@ export default class ngbBlastSearchService {
     }
 
     async getOrganismList(term) {
-        // return await this.projectDataService.getOrganismList(term);
-        return [
-            {id: '1eds52', name: 'GRCh38'},
-            {id: '1adc47', name: 'Bacteria Escherichia coli'},
-            {id: '4etr89', name: 'Clostridium botulinum'},
-        ];
+        return await this.projectDataService.getOrganismList(term);
+        // return [
+        //     {id: '1eds52', name: 'GRCh38'},
+        //     {id: '1adc47', name: 'Bacteria Escherichia coli'},
+        //     {id: '4etr89', name: 'Clostridium botulinum'},
+        // ];
     }
 
     async getBlastDBList() {
         // return await this.projectDataService.getBlastDBList();
-        return [1,2,3, '/opt/blast-wrapper/blast-db/Homo_sapiens.GRCh38.fa'];
+        return [1, 2, 3, 'Homo_sapiens.GRCh38'];
     }
 
     async _getDetailedRead() {
@@ -69,7 +69,7 @@ export default class ngbBlastSearchService {
     async getCurrentSearch() {
         let data = {};
         if (this._currentSearchId) {
-            data = await this.projectDataService.getBlastSearch(this._currentSearchId);
+            data = this._formatServerToClient(await this.projectDataService.getBlastSearch(this._currentSearchId));
         } else {
             const newSearch = await this._getDetailedRead();
             if (newSearch) {
@@ -88,11 +88,38 @@ export default class ngbBlastSearchService {
     }
 
     createSearchRequest(searchRequest) {
-        return this.projectDataService.createBlastSearch(searchRequest).then(data => {
+        return this.projectDataService.createBlastSearch(this._formatClientToServer(searchRequest)).then(data => {
             if (data && data.id) {
                 this.currentSearchId = data.id;
             }
             this.currentSearchId = null;
         });
+    }
+
+    _formatServerToClient(search) {
+        return {
+            id: search.id,
+            title: search.title,
+            algorithm: search.algorithm,
+            organisms: search.organisms,
+            db: search.database,
+            tool: search.executable,
+            sequence: search.query
+        };
+    }
+
+    _formatClientToServer(search) {
+        const result = {
+            title: search.title || '',
+            algorithm: search.algorithm,
+            organisms: search.organisms || [],
+            database: search.db,
+            executable: search.tool,
+            query: search.sequence
+        };
+        if (search.id) {
+            result.id = search.id;
+        }
+        return result;
     }
 }

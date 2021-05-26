@@ -13,6 +13,7 @@ export default class ngbBlastHistoryController extends baseController {
     isProgressShown = true;
     errorMessageList = [];
     historyLoadError = null;
+    updateInterval = null;
 
     gridOptions = {
         enableSorting: true,
@@ -42,12 +43,15 @@ export default class ngbBlastHistoryController extends baseController {
         saveSelection: false,
     };
 
-    constructor($scope, $timeout, $mdDialog, ngbBlastHistoryTableService, ngbBlastSearchService, uiGridConstants, dispatcher, projectContext) {
+    constructor($scope, $timeout, $interval, $mdDialog,
+        ngbBlastHistoryTableService, ngbBlastSearchService, uiGridConstants,
+        dispatcher, projectContext) {
         super();
 
         Object.assign(this, {
             $scope,
             $timeout,
+            $interval,
             $mdDialog,
             dispatcher,
             ngbBlastHistoryTableService,
@@ -57,6 +61,11 @@ export default class ngbBlastHistoryController extends baseController {
         });
 
         this.initEvents();
+        this.$scope.$on('$destroy', () => {
+            if(this.updateInterval) {
+                this.$interval.cancel(this.updateInterval);
+            }
+        });
     }
 
     $onInit() {
@@ -87,6 +96,7 @@ export default class ngbBlastHistoryController extends baseController {
             }
         });
         await this.loadData();
+        this.updateInterval = this.$interval(::this.loadData, this.ngbBlastHistoryTableService.refreshInterval);
     }
 
     async loadData() {
@@ -117,52 +127,52 @@ export default class ngbBlastHistoryController extends baseController {
     }
 
 
-        /*
-            saveColumnsState() {
-                if (!this.gridApi) {
-                    return;
-                }
-                const {columns} = this.gridApi.saveState.save();
-                const mapNameToField = function ({name}) {
-                    switch (name) {
-                        case 'Type':
-                            return 'variationType';
-                        case 'Chr':
-                            return 'chrName';
-                        case 'Gene':
-                            return 'geneNames';
-                        case 'Position':
-                            return 'startIndex';
-                        case 'Info':
-                            return 'info';
-                        default:
-                            return name;
-                    }
-                };
-                const orders = columns.map(mapNameToField);
-                const r = [];
-                const names = this.projectContext.vcfColumns;
-                for (let i = 0; i < names.length; i++) {
-                    const name = names[i];
-                    if (orders.indexOf(name) >= 0) {
-                        r.push(1);
-                    } else {
-                        r.push(0);
-                    }
-                }
-                let index = 0;
-                const result = [];
-                for (let i = 0; i < r.length; i++) {
-                    if (r[i] === 1) {
-                        result.push(orders[index]);
-                        index++;
-                    } else {
-                        result.push(names[i]);
-                    }
-                }
-                this.projectContext.vcfColumns = result;
+    /*
+        saveColumnsState() {
+            if (!this.gridApi) {
+                return;
             }
-        */
+            const {columns} = this.gridApi.saveState.save();
+            const mapNameToField = function ({name}) {
+                switch (name) {
+                    case 'Type':
+                        return 'variationType';
+                    case 'Chr':
+                        return 'chrName';
+                    case 'Gene':
+                        return 'geneNames';
+                    case 'Position':
+                        return 'startIndex';
+                    case 'Info':
+                        return 'info';
+                    default:
+                        return name;
+                }
+            };
+            const orders = columns.map(mapNameToField);
+            const r = [];
+            const names = this.projectContext.vcfColumns;
+            for (let i = 0; i < names.length; i++) {
+                const name = names[i];
+                if (orders.indexOf(name) >= 0) {
+                    r.push(1);
+                } else {
+                    r.push(0);
+                }
+            }
+            let index = 0;
+            const result = [];
+            for (let i = 0; i < r.length; i++) {
+                if (r[i] === 1) {
+                    result.push(orders[index]);
+                    index++;
+                } else {
+                    result.push(names[i]);
+                }
+            }
+            this.projectContext.vcfColumns = result;
+        }
+    */
     historyLoadingFinished() {
         this.historyLoadError = null;
         this.gridOptions.columnDefs = this.ngbBlastHistoryTableService.getBlastHistoryGridColumns();
@@ -241,7 +251,7 @@ export default class ngbBlastHistoryController extends baseController {
             .ok('OK')
             .cancel('CANCEL');
 
-        this.$mdDialog.show(confirm).then(async() => {
+        this.$mdDialog.show(confirm).then(async () => {
             await this.ngbBlastHistoryTableService.deleteBlastSearch(entity.id);
             await this.loadData();
         });
@@ -255,7 +265,7 @@ export default class ngbBlastHistoryController extends baseController {
             .ok('OK')
             .cancel('CANCEL');
 
-        this.$mdDialog.show(confirm).then(async() => {
+        this.$mdDialog.show(confirm).then(async () => {
             await this.ngbBlastHistoryTableService.cancelBlastSearch(entity.id);
             await this.loadData();
         });
