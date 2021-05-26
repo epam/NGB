@@ -7,7 +7,7 @@ import java.util.Date;
 
 @Getter
 @Setter
-public class RequestInfoPayload {
+public class BlastRequestInfo {
     private long requestId;
     private String status;
     private String taskType;

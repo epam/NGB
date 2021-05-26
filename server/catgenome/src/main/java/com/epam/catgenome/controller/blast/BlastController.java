@@ -25,6 +25,7 @@
 package com.epam.catgenome.controller.blast;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import com.epam.catgenome.controller.vo.TaskVO;
@@ -53,6 +54,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @Api(value = "blast", description = "BLAST Task Management")
@@ -85,6 +88,23 @@ public class BlastController extends AbstractRESTController {
             })
     public Result<BlastRequestResult> getResult(@PathVariable final long taskId) throws BlastRequestException {
         return Result.success(blastTaskSecurityService.getResult(taskId));
+    }
+
+    @GetMapping(value = "/task/{taskId}/raw")
+    @ResponseBody
+    @ApiOperation(
+            value = "Returns a file with task result",
+            notes = "Returns a file with task result",
+            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public void getRawResult(@PathVariable final long taskId, final HttpServletResponse response)
+            throws BlastRequestException, IOException {
+        okhttp3.ResponseBody body = blastTaskSecurityService.getRawResult(taskId);
+        InputStream is = body.byteStream();
+        org.apache.commons.io.IOUtils.copy(is, response.getOutputStream());
+        response.flushBuffer();
     }
 
     @PostMapping(value = "/tasks/count")

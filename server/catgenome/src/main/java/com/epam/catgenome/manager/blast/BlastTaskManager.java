@@ -32,23 +32,20 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.blast.BlastTaskDao;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.manager.AuthManager;
+import com.epam.catgenome.manager.blast.dto.BlastRequest;
+import com.epam.catgenome.manager.blast.dto.BlastRequestInfo;
 import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
-import com.epam.catgenome.manager.blast.dto.Request;
-import com.epam.catgenome.manager.blast.dto.RequestInfo;
-import com.epam.catgenome.manager.blast.dto.RequestResult;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
 import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
+import okhttp3.ResponseBody;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -61,13 +58,11 @@ public class BlastTaskManager {
     public static final long MAX_TARGET_SEQUENCE = 10L;
     public static final long EXPECTED_THRESHOLD = 1L;
 
-    @Autowired
-    private BlastTaskDao blastTaskDao;
+    private final BlastTaskDao blastTaskDao;
 
     private final BlastRequestManager blastRequestManager;
 
-    @Autowired
-    private AuthManager authManager;
+    private final AuthManager authManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public BlastTask load(final Long taskId) {
@@ -96,20 +91,20 @@ public class BlastTaskManager {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public BlastTask create(final BlastTask blastTask) throws BlastRequestException {
-        Request request = new Request();
-        request.setAlgorithm(blastTask.getAlgorithm());
-        request.setBlastTool(blastTask.getExecutable());
-        request.setDbName(blastTask.getDatabase());
-        request.setQuery(blastTask.getQuery());
-        request.setOptions(blastTask.getOptions());
-        request.setTaxIds(blastTask.getOrganisms());
-        request.setExcludedTaxIds(blastTask.getExcludedOrganisms());
-        request.setMaxTargetSequence(MAX_TARGET_SEQUENCE);
-        request.setExpectedThreshold(EXPECTED_THRESHOLD);
-        RequestInfo requestInfo = blastRequestManager.createTask(request);
-        if (!requestInfo.getStatus().equals("ERROR")) {
-            blastTask.setId(requestInfo.getPayload().getRequestId());
-            blastTask.setStatus(TaskStatus.valueOf(requestInfo.getPayload().getStatus()));
+        BlastRequest blastRequest = new BlastRequest();
+        blastRequest.setAlgorithm(blastTask.getAlgorithm());
+        blastRequest.setBlastTool(blastTask.getExecutable());
+        blastRequest.setDbName(blastTask.getDatabase());
+        blastRequest.setQuery(blastTask.getQuery());
+        blastRequest.setOptions(blastTask.getOptions());
+        blastRequest.setTaxIds(blastTask.getOrganisms());
+        blastRequest.setExcludedTaxIds(blastTask.getExcludedOrganisms());
+        blastRequest.setMaxTargetSequence(MAX_TARGET_SEQUENCE);
+        blastRequest.setExpectedThreshold(EXPECTED_THRESHOLD);
+        BlastRequestInfo blastRequestInfo = blastRequestManager.createTask(blastRequest);
+        if (!blastRequestInfo.getStatus().equals("ERROR")) {
+            blastTask.setId(blastRequestInfo.getRequestId());
+            blastTask.setStatus(TaskStatus.valueOf(blastRequestInfo.getStatus()));
             blastTask.setOwner(authManager.getAuthorizedUser());
             blastTaskDao.saveTask(blastTask);
             blastTaskDao.saveOrganisms(blastTask.getId(), blastTask.getOrganisms());
@@ -154,38 +149,18 @@ public class BlastTaskManager {
     public void cancelTask(final long id) throws BlastRequestException {
         BlastTask blastTask = blastTaskDao.loadTaskById(id);
         Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, id));
-        RequestInfo requestInfo = blastRequestManager.cancelTask(id);
-        if (requestInfo.getPayload().getStatus().equals("FAILED")) {
+        BlastRequestInfo blastRequestInfo = blastRequestManager.cancelTask(id);
+        if (blastRequestInfo.getStatus().equals("FAILED")) {
             blastTask.setStatus(TaskStatus.CANCELED);
             blastTaskDao.updateTask(blastTask);
         }
     }
 
-    @Scheduled(fixedRateString = "${blast.update.status.rate}")
-    public void updateTaskStatuses() {
-        Filter filter = new Filter("status", "=", String.valueOf(TaskStatus.RUNNING.getId()));
-        QueryParameters parameters = new QueryParameters();
-        parameters.setFilters(Collections.singletonList(filter));
-        List<BlastTask> tasks = blastTaskDao.loadAllTasks(parameters);
-        tasks.forEach(t -> {
-            try {
-                RequestInfo requestInfo = blastRequestManager.getTaskStatus(t.getId());
-                String status = requestInfo.getPayload().getStatus();
-                if (!status.equals(t.getStatus().name())) {
-                    t.setStatus(TaskStatus.valueOf(status));
-                    blastTaskDao.updateTask(t);
-                }
-            } catch (BlastRequestException e) {
-                log.debug(e.getMessage());
-            }
-        });
-    }
-
     public BlastRequestResult getResult(final long taskId) throws BlastRequestException {
-        return parseToRequestResult(blastRequestManager.getResult(taskId));
+        return blastRequestManager.getResult(taskId);
     }
 
-    private BlastRequestResult parseToRequestResult(final RequestResult result) {
-        return result.getPayload();
+    public ResponseBody getRawResult(final long taskId) throws BlastRequestException {
+        return blastRequestManager.getRawResult(taskId);
     }
 }

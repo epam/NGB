@@ -24,9 +24,11 @@
 
 package com.epam.catgenome.client.blast;
 
-import com.epam.catgenome.manager.blast.dto.Request;
-import com.epam.catgenome.manager.blast.dto.RequestInfo;
-import com.epam.catgenome.manager.blast.dto.RequestResult;
+import com.epam.catgenome.manager.blast.dto.BlastRequest;
+import com.epam.catgenome.manager.blast.dto.BlastRequestInfo;
+import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
+import com.epam.catgenome.manager.blast.dto.Result;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -38,14 +40,17 @@ import retrofit2.http.Path;
 public interface BlastApi {
     @Headers("Content-type: application/json")
     @POST("restapi/blast")
-    Call<RequestInfo> createTask(@Body Request request);
+    Call<Result<BlastRequestInfo>> createTask(@Body BlastRequest blastRequest);
 
     @GET("restapi/blast/{id}")
-    Call<RequestResult> getResult(@Path(value = "id", encoded = true) long id);
+    Call<Result<BlastRequestResult>> getResult(@Path(value = "id", encoded = true) long id);
+
+    @GET("restapi/blast/{id}/raw")
+    Call<ResponseBody> getRawResult(@Path(value = "id", encoded = true) long id);
 
     @GET("restapi/task/{id}")
-    Call<RequestInfo> getTask(@Path(value = "id", encoded = true) long id);
+    Call<Result<BlastRequestInfo>> getTask(@Path(value = "id", encoded = true) long id);
 
     @PUT("restapi/task/{id}/cancel")
-    Call<RequestInfo> cancelTask(@Path(value = "id", encoded = true) long id);
+    Call<Result<BlastRequestInfo>> cancelTask(@Path(value = "id", encoded = true) long id);
 }

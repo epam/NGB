@@ -36,6 +36,7 @@ import com.epam.catgenome.util.db.QueryParameters;
 import com.epam.catgenome.entity.blast.TaskStatus;
 import com.epam.catgenome.security.acl.aspect.AclMask;
 import com.epam.catgenome.security.acl.aspect.AclTree;
+import okhttp3.ResponseBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -101,5 +102,10 @@ public class BlastTaskSecurityService {
     @PreAuthorize(ROLE_USER)
     public BlastRequestResult getResult(final long taskId) throws BlastRequestException {
         return blastTaskManager.getResult(taskId);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public ResponseBody getRawResult(final long taskId) throws BlastRequestException {
+        return blastTaskManager.getRawResult(taskId);
     }
 }

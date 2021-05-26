@@ -7,7 +7,7 @@ import java.util.List;
 
 @Setter
 @Getter
-public class Request {
+public class BlastRequest {
     private String blastTool;
     private String algorithm;
     private String dbName;
