@@ -36,6 +36,8 @@ import com.epam.catgenome.entity.blast.TaskStatus;
 import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.RowMapper;
@@ -311,6 +313,9 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void saveOrganisms(final long taskId, final List<Long> organisms) {
+        if (CollectionUtils.isEmpty(organisms)) {
+            return;
+        }
         List<Long> newIds = daoHelper.createIds(organismSequenceName, organisms.size());
 
         ArrayList<MapSqlParameterSource> params = new ArrayList<>(organisms.size());
@@ -331,6 +336,9 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void saveExclOrganisms(final long taskId, final List<Long> exclOrganisms) {
+        if (CollectionUtils.isEmpty(exclOrganisms)) {
+            return;
+        }
         List<Long> newIds = daoHelper.createIds(exclOrganismSequenceName, exclOrganisms.size());
 
         ArrayList<MapSqlParameterSource> params = new ArrayList<>(exclOrganisms.size());
@@ -351,6 +359,9 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void saveTaskParameters(final long taskId, final Map<String, String> parameters) {
+        if (MapUtils.isEmpty(parameters)) {
+            return;
+        }
         List<Long> newIds = daoHelper.createIds(taskParameterSequenceName, parameters.size());
 
         ArrayList<MapSqlParameterSource> params = new ArrayList<>(parameters.size());
