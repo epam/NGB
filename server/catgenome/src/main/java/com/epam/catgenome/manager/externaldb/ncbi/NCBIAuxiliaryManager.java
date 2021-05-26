@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.externaldb.ncbi;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +47,8 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 @Service
 public class NCBIAuxiliaryManager extends NCBIDataManager {
+
+    public static final long TAX_ID = 9606L;
 
     /**
      * Fetches organism info from NCBI's taxonomy database
@@ -84,11 +87,26 @@ public class NCBIAuxiliaryManager extends NCBIDataManager {
             int uid = jsonNode.asInt();
             organismNode = root.path(Integer.toString(uid));
             taxonomyVOList.add(new NCBITaxonomyVO(
-                    organismNode.path("uid").asText(),
+                    organismNode.path("uid").asLong(),
                     organismNode.path("scientificname").asText(),
                     organismNode.path("commonname").asText()));
         }
         return taxonomyVOList;
+    }
+
+    /**
+     * Fetches organisms info from NCBI's taxonomy database
+     *
+     * @param term search query
+     * @return return object with result
+     * @throws ExternalDbUnavailableException
+     */
+    public List<NCBITaxonomyVO> fetchTaxonomyInfosByTermMock(final String term)
+            throws ExternalDbUnavailableException {
+        return Collections.singletonList(new NCBITaxonomyVO(
+                TAX_ID,
+                "Homo sapiens",
+                "human"));
     }
 
     /**

@@ -50,7 +50,7 @@ import lombok.Setter;
 public class NCBITaxonomyVO {
 
     @JsonProperty(value = "taxid")
-    private String taxId;
+    private long taxId;
 
     @JsonProperty(value = "scientificname")
     private String scientificName;
