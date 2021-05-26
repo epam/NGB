@@ -242,7 +242,7 @@ export default class ngbBlastHistoryController extends baseController {
             .cancel('CANCEL');
 
         this.$mdDialog.show(confirm).then(async() => {
-            await this.ngbBlastHistoryTableService.deleteBlastHistory(entity.id);
+            await this.ngbBlastHistoryTableService.deleteBlastSearch(entity.id);
             await this.loadData();
         });
         event.stopImmediatePropagation();

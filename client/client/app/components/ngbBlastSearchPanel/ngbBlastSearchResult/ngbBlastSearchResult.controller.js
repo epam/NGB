@@ -6,7 +6,6 @@ export default class ngbBlastSearchResult extends baseController {
         return 'ngbBlastSearchResult';
     }
 
-    readSequence = '';
     searchResult = {};
     isProgressShown = true;
 
@@ -25,7 +24,7 @@ export default class ngbBlastSearchResult extends baseController {
     }
 
     async initialize() {
-        this.searchResult = await this.ngbBlastSearchService.getCurrentSearchResult();
+        this.searchResult = await this.ngbBlastSearchService.getCurrentSearch();
         this.isProgressShown = false;
     }
 }

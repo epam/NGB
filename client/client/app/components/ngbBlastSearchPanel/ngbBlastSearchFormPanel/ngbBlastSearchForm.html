@@ -1,7 +1,15 @@
+<div ng-if="$ctrl.isProgressShown">
+    <div class="progress" layout-align="center center">
+        <span>Loading history...</span>
+    </div>
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div ng-if="!$ctrl.isProgressShown">
     <form name="blastSearchForm" ng-submit="$ctrl.onSearch()" class="md-inline-form">
         <div class="tools">
-            <div ng-repeat="tool in $ctrl.blastTools" class="form_radio_btn">
-                <input id="radio-{{$index}}" type="radio" name="tool" ng-value="tool" ng-model="$ctrl.tool" required=""
+            <div ng-repeat="tool in $ctrl.ngbBlastSearchFormConstants.BLAST_TOOLS" class="form_radio_btn">
+                <input id="radio-{{$index}}" type="radio" name="tool" ng-value="tool"
+                       ng-model="$ctrl.searchRequest.tool" required=""
                        ng-change="$ctrl.setDefaultAlgorithms()">
                 <label for="radio-{{$index}}">{{tool}}</label>
             </div>
@@ -12,13 +20,13 @@
         <div>
             <md-input-container class="blast-search-input">
                 <label for="sequence">Query sequence</label>
-                <textarea id="sequence" ng-model="$ctrl.readSequence" required=""
+                <textarea id="sequence" ng-model="$ctrl.searchRequest.sequence" required=""
                           class="blast-sequence-area"></textarea>
             </md-input-container>
         </div>
         <md-input-container class="blast-search-input">
-            <label for="task">Task</label>
-            <input type="text" id="task" name="task" ng-model="$ctrl.task">
+            <label for="task">Task title:</label>
+            <input type="text" id="task" name="task" ng-model="$ctrl.searchRequest.title">
         </md-input-container>
         <div class="radio-search-set">
             <label for="searchSet"><b>*Search set</b></label>
@@ -31,9 +39,9 @@
                             <md-select
                                     id="db"
                                     name="db"
-                                    ng-model="$ctrl.db"
+                                    ng-model="$ctrl.searchRequest.db"
                             >
-                                <md-option ng-repeat="db in [1,2,3]" ng-value="db">{{db}}</md-option>
+                                <md-option ng-repeat="db in $ctrl.dbList" ng-value="db">{{db}}</md-option>
                             </md-select>
                         </md-input-container>
                     </div>
@@ -42,23 +50,23 @@
                             <label for="org">Organism</label>
                             <md-select
                                     id="org"
-                                    ng-model="$ctrl.selectedOrganisms"
+                                    ng-model="$ctrl.searchRequest.organisms"
                                     multiple=""
                             >
-                                <md-option ng-repeat="species in $ctrl.speciesList" value="{{species.id}}">
+                                <md-option ng-repeat="species in $ctrl.organismList" value="{{species.id}}">
                                     {{species.name}}
-                                </md-option>
+                                </md-option>l
                             </md-select>
                         </md-input-container>
                     </div>
                 </div>
             </md-radio-group>
         </div>
-        <div ng-if="$ctrl.algorithms[$ctrl.tool]" class="blast-algorithm">
+        <div ng-if="$ctrl.algorithmList.length" class="blast-algorithm">
             <md-input-container class="blast-search-input">
                 <label>Algorithm</label>
-                <md-select ng-model="$ctrl.algorithm">
-                    <md-option ng-repeat="alg in $ctrl.algorithms[$ctrl.tool]" ng-value="alg">{{alg}}</md-option>
+                <md-select ng-model="$ctrl.searchRequest.algorithm">
+                    <md-option ng-repeat="alg in $ctrl.algorithmList" ng-value="alg">{{alg}}</md-option>
                 </md-select>
             </md-input-container>
         </div>
@@ -68,3 +76,4 @@
             </md-button>
         </div>
     </form>
+</div>

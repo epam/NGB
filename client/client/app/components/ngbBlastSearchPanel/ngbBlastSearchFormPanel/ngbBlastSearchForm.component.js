@@ -1,9 +1,9 @@
 import controller from './ngbBlastSearchForm.controller';
 export default {
-    bindings:{
-        sequence: '=',
+    bindings: {
+        changeState: '&'
     },
     controller: controller.UID,
-    restrict:'EA',
+    restrict:'E',
     template: require('./ngbBlastSearchForm.html'),
 };

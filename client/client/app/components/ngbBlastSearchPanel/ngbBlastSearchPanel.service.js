@@ -5,12 +5,11 @@ const BLAST_STATES = {
 };
 
 export default class ngbBlastSearchService {
-    static instance(dispatcher, projectContext, bamDataService, projectDataService) {
-        return new ngbBlastSearchService(dispatcher, projectContext, bamDataService, projectDataService);
+    static instance(dispatcher, bamDataService, projectDataService) {
+        return new ngbBlastSearchService(dispatcher, bamDataService, projectDataService);
     }
 
     _detailedRead = null;
-    bamDataService;
     _totalPagesCountHistory = 0;
     _currentResultId = null;
     _currentSearchId = null;
@@ -27,34 +26,33 @@ export default class ngbBlastSearchService {
         return BLAST_STATES;
     }
 
-    constructor(dispatcher, projectContext, bamDataService, projectDataService) {
-        Object.assign(this, {dispatcher, projectContext, bamDataService, projectDataService});
+    constructor(dispatcher, bamDataService, projectDataService) {
+        Object.assign(this, {dispatcher, bamDataService, projectDataService});
     }
 
-    generateSpeciesList() {
+    async getOrganismList(term) {
+        // return await this.projectDataService.getOrganismList(term);
         return [
-            this.projectContext.reference,
             {id: '1eds52', name: 'GRCh38'},
             {id: '1adc47', name: 'Bacteria Escherichia coli'},
             {id: '4etr89', name: 'Clostridium botulinum'},
         ];
     }
 
-    get blastRequest() {
-        return JSON.parse(localStorage.getItem('blastSearchRequest')) || null;
+    async getBlastDBList() {
+        // return await this.projectDataService.getBlastDBList();
+        return [1,2,3, '/opt/blast-wrapper/blast-db/Homo_sapiens.GRCh38.fa'];
     }
 
-    get readSequence() {
-        return this._detailedRead && this._detailedRead.sequence ? this._detailedRead.sequence : null;
+    async _getDetailedRead() {
+        const searchRequest = JSON.parse(localStorage.getItem('blastSearchRequest')) || null;
+        let read = null;
+        if (searchRequest) {
+            read = await this.bamDataService.loadRead(searchRequest);
+        }
+        return read;
     }
 
-    async getDetailedRead(payload) {
-        const read = await this.bamDataService.loadRead(payload);
-
-        this._detailedRead = read ? read : null;
-
-        return this._detailedRead;
-    }
 
     set currentSearchId(currentSearchId) {
         this._currentSearchId = currentSearchId;
@@ -68,8 +66,17 @@ export default class ngbBlastSearchService {
         this._currentResultId = currentResultId;
     }
 
-    get currentSearch() {
-        return {};
+    async getCurrentSearch() {
+        let data = {};
+        if (this._currentSearchId) {
+            data = await this.projectDataService.getBlastSearch(this._currentSearchId);
+        } else {
+            const newSearch = await this._getDetailedRead();
+            if (newSearch) {
+                data.sequence = newSearch.sequence;
+            }
+        }
+        return data;
     }
 
     async getCurrentSearchResult() {
@@ -78,5 +85,14 @@ export default class ngbBlastSearchService {
             data = await this.projectDataService.getBlastSearch(this.currentResultId);
         }
         return data;
+    }
+
+    createSearchRequest(searchRequest) {
+        return this.projectDataService.createBlastSearch(searchRequest).then(data => {
+            if (data && data.id) {
+                this.currentSearchId = data.id;
+            }
+            this.currentSearchId = null;
+        });
     }
 }

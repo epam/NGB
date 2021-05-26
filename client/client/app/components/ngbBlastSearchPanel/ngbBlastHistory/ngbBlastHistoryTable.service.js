@@ -11,7 +11,6 @@ const blastSearchState = {
 const FIRST_PAGE = 1;
 const PAGE_SIZE_HISTORY = 12;
 
-
 export default class ngbBlastHistoryTableService {
 
     static instance(projectDataService) {
@@ -72,24 +71,20 @@ export default class ngbBlastHistoryTableService {
         this._blastHistory = await this.loadBlastHistory();
     }
 
-    async deleteBlastHistory(id) {
-        this._blastHistory = await this.loadBlastHistory();
+    async deleteBlastSearch(id) {
+        this.projectDataService.deleteBlastSearch(id).then(async () => {
+            this._blastHistory = await this.loadBlastHistory();
+        });
     }
 
     async cancelBlastSearch(id) {
-        this._blastHistory = await this.loadBlastHistory();
+        this.projectDataService.cancelBlastSearch(id).then(async () => {
+            this._blastHistory = await this.loadBlastHistory();
+        });
     }
 
     async clearSearchHistory() {
         this._blastHistory = await this.loadBlastHistory();
-    }
-
-    getHistoryEntryById(id) {
-        const blastHistory = this.blastHistory;
-        if (blastHistory) {
-            return blastHistory.filter(item => item.id === id)[0];
-        }
-        return undefined;
     }
 
     async loadBlastHistory() {

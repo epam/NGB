@@ -1,62 +1,70 @@
-import $ from 'jquery';
+import baseController from '../../../shared/baseController';
 
-export default class ngbBlastSearchFormController {
-    static get UID(){
+export default class ngbBlastSearchFormController extends baseController {
+    static get UID() {
         return 'ngbBlastSearchFormController';
     }
-    blastTools = [
-        'blastn',
-        'blastp',
-        'blastx',
-        'tblastn',
-        'tblastx',
-    ];
-    algorithms = {
-        blastn: ['megablast', 'discontiguous megablast','blastn'],
-        blastp:['blastp','quick BLASTP', 'PSI-BLAST', 'PHI-BLAST', 'DELTA-BLAST']
-    }
+
+    isProgressShown = true;
     setVariants = [
         'custom',
         'db'
     ];
-    readSequence = '';
-    speciesList = [];
+    organismList = [];
+    dbList = [];
     selectedSet = this.setVariants[0];
-    selectedOrganisms = [];
-    task = '';
-    tool = '';
-    algorithm = '';
-    formElement = null;
-    searchRequest = null;
+    algorithmList = [];
+    searchRequest = {
+        title: '',
+        algorithm: '',
+        organisms: [],
+        db: '',
+        tool: '',
+        sequence: '',
+        threshold: null,
+        sequenceLimit: null
+    };
 
-    constructor($element, ngbBlastSearchService){
-        this.ngbBlastSearchService = ngbBlastSearchService;
-        this.speciesList = this.ngbBlastSearchService.generateSpeciesList();
-        this.readSequence =  this.sequence;
-        this.formElement = $($element[0]).find('.md-inline-form')[0];
+    events = {
+        'read:show:blast': ::this.initialize
     }
-    setDefaultAlgorithms(){
-        this.algorithm = this.algorithms[this.tool] ? this.algorithms[this.tool][0] : '';
+
+    constructor($scope, $timeout, dispatcher, ngbBlastSearchService, ngbBlastSearchFormConstants) {
+        super();
+
+        Object.assign(this, {
+            $scope,
+            $timeout,
+            dispatcher,
+            ngbBlastSearchService,
+            ngbBlastSearchFormConstants
+        });
+
+        this.initialize({});
+        this.initEvents();
     }
-    onSearch(){
-        this.searchRequest = {
-            alg: this.algorithm,
-            sequence: this.readSequence,
-            set: this.selectedSet,
-            species: this.selectedOrganisms,
-            task: this.task,
-            tool: this.tool,  
-        };
-        this.resetForm();
+
+    async initialize(data) {
+        this.isProgressShown = true;
+        this.organismList = await this.ngbBlastSearchService.getOrganismList('human*[orgn]');
+        this.dbList = await this.ngbBlastSearchService.getBlastDBList();
+        const currentSearch = await this.ngbBlastSearchService.getCurrentSearch();
+        currentSearch.tool = currentSearch.tool || data.tool || '';
+        Object.assign(this.searchRequest, currentSearch);
+        this.setDefaultAlgorithms();
+        this.$timeout(() => this.isProgressShown = false);
     }
-    resetForm(){
-        this.speciesList = [];
-        this.selectedSet = this.setVariants[0];
-        this.selectedOrganisms = [];
-        this.tool = '';
-        this.algorithm = '';
-        if (this.formElement){
-            this.formElement.reset();
+
+    setDefaultAlgorithms() {
+        this.algorithmList = this.ngbBlastSearchFormConstants.ALGORITHMS[this.searchRequest.tool];
+        if (this.algorithmList && !this.algorithmList.includes(this.searchRequest.algorithm)) {
+            this.searchRequest.algorithm = this.algorithmList[0] || '';
         }
+    }
+
+    onSearch() {
+        this.ngbBlastSearchService.createSearchRequest(this.searchRequest);
+            // .then(() => {});
+        this.changeState({state: 'HISTORY'});
     }
 }
