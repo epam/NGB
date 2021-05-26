@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.blast.BlastDataBaseDao" id="dataBaseDao" autowire="byName">
+        <property name="dataBaseSequenceName" value="catgenome.s_blast_database" />
+        <property name="insertDataBaseQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.blast_database (
+                        database_id,
+                        name,
+                        path,
+                        type
+                    ) VALUES (
+                        :DATABASE_ID,
+                        :NAME,
+                        :PATH,
+                        :TYPE
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="updateDataBaseQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.blast_database SET
+                        name = :NAME,
+                        path = :PATH,
+                        type = :TYPE
+                    WHERE
+                        database_id = :DATABASE_ID
+                ]]>
+            </value>
+        </property>
+        <property name="deleteDataBaseQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.blast_database WHERE database_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadDataBasesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        database_id,
+                        name,
+                        path,
+                        type
+                    FROM catgenome.blast_database
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>
