@@ -324,7 +324,7 @@ public class ExternalDBController extends AbstractRESTController {
     @ApiResponses(value = { @ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION) })
     public Result<List<NCBITaxonomyVO>> getOrganismsByTerm(@PathVariable final String term)
             throws ExternalDbUnavailableException, JsonProcessingException {
-        return Result.success(ncbiAuxiliaryManager.fetchTaxonomyInfosByTerm(term));
+        return Result.success(ncbiAuxiliaryManager.fetchTaxonomyInfosByTermMock(term));
     }
 
     @ResponseBody
