@@ -34,7 +34,7 @@ public enum TaskStatus {
     RUNNING(3),
     CANCELED(4),
     FAILED(5),
-    FINISHED(6);
+    DONE(6);
 
     private long id;
     private static Map<Long, TaskStatus> idMap = new HashMap<>((int) CREATED.getId());
@@ -45,7 +45,7 @@ public enum TaskStatus {
         idMap.put(RUNNING.id, RUNNING);
         idMap.put(CANCELED.id, CANCELED);
         idMap.put(FAILED.id, FAILED);
-        idMap.put(FINISHED.id, FINISHED);
+        idMap.put(DONE.id, DONE);
     }
 
     TaskStatus(long id) {

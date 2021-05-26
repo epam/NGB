@@ -12,4 +12,5 @@ public class BlastRequestInfo {
     private String status;
     private String taskType;
     private Date createdDate;
+    private String reason;
 }
