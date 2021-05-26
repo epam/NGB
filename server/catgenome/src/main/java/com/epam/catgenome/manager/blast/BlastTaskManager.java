@@ -104,7 +104,7 @@ public class BlastTaskManager {
         BlastRequestInfo blastRequestInfo = blastRequestManager.createTask(blastRequest);
         if (!blastRequestInfo.getStatus().equals("ERROR")) {
             blastTask.setId(blastRequestInfo.getRequestId());
-            blastTask.setStatus(TaskStatus.valueOf(blastRequestInfo.getStatus()));
+            blastTask.setStatus(TaskStatus.RUNNING);
             blastTask.setOwner(authManager.getAuthorizedUser());
             blastTaskDao.saveTask(blastTask);
             blastTaskDao.saveOrganisms(blastTask.getId(), blastTask.getOrganisms());
