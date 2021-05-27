@@ -47,6 +47,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -107,7 +109,8 @@ public class BlastTaskManager {
         BlastRequestInfo blastRequestInfo = blastRequestManager.createTask(blastRequest);
         if (!blastRequestInfo.getStatus().equals("ERROR")) {
             blastTask.setId(blastRequestInfo.getRequestId());
-            blastTask.setStatus(TaskStatus.RUNNING);
+            blastTask.setStatus(TaskStatus.valueOf(blastRequestInfo.getStatus()));
+            blastTask.setCreatedDate(LocalDateTime.parse(blastRequestInfo.getCreatedDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")));
             blastTask.setOwner(authManager.getAuthorizedUser());
             blastTaskDao.saveTask(blastTask);
             blastTaskDao.saveOrganisms(blastTask.getId(), blastTask.getOrganisms());

@@ -24,8 +24,8 @@
 
 package com.epam.catgenome.dao;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import com.epam.catgenome.dao.blast.BlastTaskDao;
@@ -109,7 +109,7 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
         blastTask.setId(1L);
         blastTask.setTitle("test");
         blastTask.setStatus(TaskStatus.CREATED);
-        blastTask.setCreatedDate(new Date());
+        blastTask.setCreatedDate(LocalDateTime.now());
         return blastTask;
     }
 }

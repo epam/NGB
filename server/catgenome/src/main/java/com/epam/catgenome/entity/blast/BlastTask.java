@@ -26,7 +26,7 @@ package com.epam.catgenome.entity.blast;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -35,9 +35,9 @@ import java.util.Map;
 public class BlastTask {
     private Long id;
     private String title;
-    private Date createdDate;
+    private LocalDateTime createdDate;
     private TaskStatus status;
-    private Date endDate;
+    private LocalDateTime endDate;
     private String statusReason;
     private String query;
     private String database;
