@@ -28,10 +28,10 @@ export default class ngbBlastSearchPanelPaginate extends baseController {
 
     $onChanges(changes) {
         let needRefresh = false;
-        if (changes.totalPages.previousValue !== changes.totalPages.currentValue) {
+        if (changes.totalPages && (changes.totalPages.previousValue !== changes.totalPages.currentValue)) {
             needRefresh = true;
         }
-        if (changes.currentPage.previousValue !== changes.currentPage.currentValue) {
+        if (changes.currentPage && (changes.currentPage.previousValue !== changes.currentPage.currentValue)) {
             needRefresh = true;
         }
         if (needRefresh) {

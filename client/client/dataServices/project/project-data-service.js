@@ -133,7 +133,7 @@ export class ProjectDataService extends DataService {
 
     getBlastDBList(type) {
         return new Promise((resolve, reject) => {
-            this.get(`database/${type}`)
+            this.get(`database?type=${type}`)
                 .catch((response) => resolve({...response, error: true}))
                 .then((data) => {
                     if (data) {

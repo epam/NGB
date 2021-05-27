@@ -16,8 +16,17 @@
         <md-progress-linear md-mode="query"></md-progress-linear>
     </div>
     <div class="expandable-panel" layout="column" ng-if="!$ctrl.isProgressShown">
-        <div class="expandable-panel-title" ng-click="toggle = !toggle" layout="column">
+        <div class="expandable-panel-title" ng-click="toggle = !toggle" layout="column" flex="50">
             <span ng-class="{'toggled': toggle}">BLAST parameters</span>
+        </div>
+        <span flex></span>
+        <div ng-click="openQueryInfo()" flex>
+            <md-button
+                    class="md-accent md-raised blast-search-nav-button"
+                    type="button"
+                    ng-click="$ctrl.openQueryInfo($event)"
+            >Query Info
+            </md-button>
         </div>
         <div class="expandable-panel-content" ng-show="toggle" layout="column">
             <div layout="row">

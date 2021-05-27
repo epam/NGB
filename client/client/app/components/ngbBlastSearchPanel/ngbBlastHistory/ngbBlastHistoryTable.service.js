@@ -167,6 +167,7 @@ export default class ngbBlastHistoryTableService {
                                         {{grid.appScope.$ctrl.statusViews[row.entity.currentState]}}
                                        </div>`,
                         enableHiding: false,
+                        enableSorting: false,
                         field: 'currentState',
                         headerCellTemplate: headerCells,
                         minWidth: 40,

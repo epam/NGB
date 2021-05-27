@@ -28,32 +28,30 @@
             <label for="task">Task title</label>
             <input type="text" id="task" name="task" ng-model="$ctrl.searchRequest.title">
         </md-input-container>
-        <div>
-            <md-input-container class="blast-search-input">
-                <label for="db">Database</label>
-                <md-select
-                        id="db"
-                        name="db"
-                        ng-model="$ctrl.searchRequest.db"
-                >
-                    <md-option ng-repeat="db in $ctrl.dbList" ng-value="db">{{db}}</md-option>
-                </md-select>
-            </md-input-container>
-        </div>
-        <div>
-            <md-input-container style="margin-right: 10px;" class="blast-search-input">
-                <label for="org">Organism</label>
-                <md-select
-                        id="org"
-                        ng-model="$ctrl.searchRequest.organisms"
-                        multiple=""
-                >
-                    <md-option ng-repeat="species in $ctrl.organismList" value="{{species.taxid}}">
-                        {{species.scientificname}}
-                    </md-option>
-                </md-select>
-            </md-input-container>
-        </div>
+        <md-input-container class="blast-search-input">
+            <label for="db">Database</label>
+            <md-select
+                    id="db"
+                    name="db"
+                    ng-model="$ctrl.searchRequest.db"
+                    required
+            >
+                <md-option ng-repeat="db in $ctrl.dbList" ng-value="db.path">{{db.name}}</md-option>
+            </md-select>
+        </md-input-container>
+        <md-input-container class="blast-search-input">
+            <label for="org">Organism</label>
+            <md-select
+                    id="org"
+                    ng-model="$ctrl.searchRequest.organisms"
+                    multiple=""
+                    required
+            >
+                <md-option ng-repeat="species in $ctrl.organismList" value="{{species.taxid}}">
+                    {{species.scientificname}}
+                </md-option>
+            </md-select>
+        </md-input-container>
         <div ng-if="$ctrl.algorithmList.length" class="blast-algorithm">
             <md-input-container class="blast-search-input">
                 <label>Algorithm</label>

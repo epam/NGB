@@ -40,8 +40,8 @@ export default class ngbBlastSearchService {
     }
 
     async getBlastDBList() {
-        // return await this.projectDataService.getBlastDBList('NUCLEOTIDE');
-        return [1, 2, 3, 'Homo_sapiens.GRCh38'];
+        return await this.projectDataService.getBlastDBList('NUCLEOTIDE');
+        // return [1, 2, 3, 'Homo_sapiens.GRCh38'];
     }
 
     async _getDetailedRead() {
@@ -91,6 +91,7 @@ export default class ngbBlastSearchService {
         return this.projectDataService.createBlastSearch(this._formatClientToServer(searchRequest)).then(data => {
             if (data && data.id) {
                 this.currentSearchId = data.id;
+                localStorage.removeItem('blastSearchRequest');
             }
             this.currentSearchId = null;
         });
