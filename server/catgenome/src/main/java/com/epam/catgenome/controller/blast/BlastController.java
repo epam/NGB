@@ -179,7 +179,7 @@ public class BlastController extends AbstractRESTController {
         return Result.success(null);
     }
 
-    @GetMapping(value = {"/databases/{type}", "/database/"})
+    @GetMapping(value = {"/databases/{type}", "/database"})
     @ResponseBody
     @ApiOperation(
             value = "Returns databases by type",
