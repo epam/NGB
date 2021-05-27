@@ -14,6 +14,9 @@ export default class ngbBlastHistoryController extends baseController {
     errorMessageList = [];
     historyLoadError = null;
     updateInterval = null;
+    statusViews = [];
+    totalPages = 0;
+    currentPage = 0;
 
     gridOptions = {
         enableSorting: true,
@@ -62,7 +65,7 @@ export default class ngbBlastHistoryController extends baseController {
 
         this.initEvents();
         this.$scope.$on('$destroy', () => {
-            if(this.updateInterval) {
+            if (this.updateInterval) {
                 this.$interval.cancel(this.updateInterval);
             }
         });
@@ -82,6 +85,13 @@ export default class ngbBlastHistoryController extends baseController {
         this.errorMessageList = [];
         this.isProgressShown = true;
         this.historyLoadError = null;
+
+        const blastSearchState = this.ngbBlastHistoryTableService.blastSearchState;
+        this.statusViews = {
+            [blastSearchState.SEARCHING]: 'Searching...',
+            [blastSearchState.DONE]: 'Done',
+            [blastSearchState.FAILURE]: 'Failure'
+        };
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
             columnDefs: this.ngbBlastHistoryTableService.getBlastHistoryGridColumns(),
@@ -176,17 +186,16 @@ export default class ngbBlastHistoryController extends baseController {
     historyLoadingFinished() {
         this.historyLoadError = null;
         this.gridOptions.columnDefs = this.ngbBlastHistoryTableService.getBlastHistoryGridColumns();
-        const data = this.ngbBlastHistoryTableService.blastHistory;
-        this.gridOptions.totalItems = data.length;
-        const firstRow = (this.ngbBlastHistoryTableService.currentPageHistory - 1) * this.ngbBlastHistoryTableService.historyPageSize;
-        this.gridOptions.data = data.slice(firstRow, firstRow + this.ngbBlastHistoryTableService.historyPageSize);
+        this.gridOptions.data = this.ngbBlastHistoryTableService.blastHistory;
+        this.totalPages = this.ngbBlastHistoryTableService.totalPages;
+        this.currentPage = this.ngbBlastHistoryTableService.currentPageHistory;
+
         this.isProgressShown = false;
         this.$timeout(::this.$scope.$apply);
     }
 
     getDataOnPage(page) {
         this.ngbBlastHistoryTableService.firstPageHistory = page;
-        this.ngbBlastHistoryTableService.lastPageHistory = page;
         this.ngbBlastHistoryTableService.currentPageHistory = page;
         this.gridOptions.data = [];
         this.ngbBlastHistoryTableService.loadBlastHistory(page).then((data) => {
@@ -196,9 +205,7 @@ export default class ngbBlastHistoryController extends baseController {
                 this.gridOptions.data = [];
             } else {
                 this.historyLoadError = null;
-                this.gridOptions.totalItems = 100;
-                const firstRow = (this.ngbBlastHistoryTableService.currentPageHistory - 1) * this.ngbBlastHistoryTableService.historyPageSize;
-                this.gridOptions.data = data.slice(firstRow, firstRow + this.ngbBlastHistoryTableService.historyPageSize);
+                this.gridOptions.data = data;
             }
         });
     }
@@ -206,16 +213,15 @@ export default class ngbBlastHistoryController extends baseController {
     sortChanged(grid, sortColumns) {
         // this.saveColumnsState();
         if (sortColumns && sortColumns.length > 0) {
-            this.projectContext.orderByVariations = sortColumns.map(sc => ({
-                desc: sc.sort.direction === 'desc',
-                field: this.projectContext.orderByColumnsVariations[sc.field] || sc.field
+            this.ngbBlastHistoryTableService.orderByHistory = sortColumns.map(sc => ({
+                ascending: sc.sort.direction === 'asc',
+                field: this.ngbBlastHistoryTableService.orderByColumnsHistory[sc.field] || sc.field
             }));
         } else {
-            this.projectContext.orderByVariations = null;
+            this.ngbBlastHistoryTableService.orderByHistory = null;
         }
 
-        this.ngbBlastHistoryTableService.firstPageHistory = 1;
-        this.ngbBlastHistoryTableService.lastPageHistory = 1;
+        this.ngbBlastHistoryTableService.currentPageHistory = 1;
 
         this.gridOptions.data = [];
         this.ngbBlastHistoryTableService.loadBlastHistory(1).then((data) => {
@@ -225,24 +231,13 @@ export default class ngbBlastHistoryController extends baseController {
                 this.gridOptions.data = [];
             } else {
                 this.historyLoadError = null;
-                this.gridOptions.totalItems = 100;
-                const firstRow = (this.ngbBlastHistoryTableService.currentPageHistory - 1) * this.ngbBlastHistoryTableService.historyPageSize;
-                this.gridOptions.data = data.slice(firstRow, firstRow + this.ngbBlastHistoryTableService.historyPageSize);
+                this.gridOptions.data = data;
             }
         });
     }
 
-    changeCurrentPage(row) {
-        this.$timeout(() => {
-            if (row.newScrollTop) {
-                const sizePage = this.ngbBlastHistoryTableService.historyPageSize * ROW_HEIGHT;
-                const currentPageVariations = Math.round(this.ngbBlastHistoryTableService.firstPageHistory + row.newScrollTop / sizePage);
-                if (this.ngbBlastHistoryTableService.currentPageHistory !== currentPageVariations) {
-                    this.ngbBlastHistoryTableService.currentPageHistory = currentPageVariations;
-                    this.dispatcher.emit('pageVariations:scroll', this.ngbBlastHistoryTableService.currentPageHistory);
-                }
-            }
-        });
+    changeCurrentPage(page) {
+        this.getDataOnPage(page);
     }
 
     onRemove(entity, event) {

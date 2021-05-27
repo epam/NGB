@@ -131,9 +131,9 @@ export class ProjectDataService extends DataService {
         });
     }
 
-    getBlastDBList() {
+    getBlastDBList(type) {
         return new Promise((resolve, reject) => {
-            this.get('')
+            this.get(`database/${type}`)
                 .catch((response) => resolve({...response, error: true}))
                 .then((data) => {
                     if (data) {
@@ -146,9 +146,9 @@ export class ProjectDataService extends DataService {
         });
     }
 
-    getBlastHistoryLoad() {
+    getBlastHistoryLoad(filter) {
         return new Promise((resolve, reject) => {
-            this.post('tasks')
+            this.post('tasks', filter)
                 .catch((response) => resolve({...response, error: true}))
                 .then((data) => {
                     if (data) {
@@ -178,7 +178,7 @@ export class ProjectDataService extends DataService {
 
     getBlastResultLoad(searchId) {
         return new Promise((resolve, reject) => {
-            this.get(`task/result/${searchId}`)
+            this.get(`task/${searchId}/result`)
                 .catch((response) => resolve({...response, error: true}))
                 .then((data) => {
                     if (data) {
@@ -223,7 +223,7 @@ export class ProjectDataService extends DataService {
 
     cancelBlastSearch(blastSearchId) {
         return new Promise((resolve, reject) => {
-            this.get('cancel', `task/cancel/${blastSearchId}`)
+            this.put(`task/${blastSearchId}/cancel`)
                 .catch((response) => resolve({...response, error: true}))
                 .then((data) => {
                     if (data) {

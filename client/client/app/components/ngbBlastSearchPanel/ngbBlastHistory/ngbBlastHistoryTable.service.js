@@ -3,13 +3,18 @@ import {camelPad} from '../../../shared/utils/String';
 const DEFAULT_BLAST_HISTORY_COLUMNS = [
     'id', 'title', 'currentState', 'submitted', 'duration', 'actions'
 ];
+const DEFAULT_ORDERBY_HISTORY_COLUMNS = {
+    'submitted': 'CREATED_DATE',
+    'id': 'task_id',
+    'title': 'TITLE'
+};
 const blastSearchState = {
     DONE: 'DONE',
     FAILURE: 'FAILURE',
     SEARCHING: 'SEARCHING'
 };
 const FIRST_PAGE = 1;
-const PAGE_SIZE_HISTORY = 12;
+const PAGE_SIZE = 5;
 const REFRESH_INTERVAL_SEC = 10;
 
 export default class ngbBlastHistoryTableService {
@@ -20,9 +25,10 @@ export default class ngbBlastHistoryTableService {
 
     _blastHistory;
     _firstPageHistory = FIRST_PAGE;
-    _lastPageHistory = FIRST_PAGE;
+    _totalPages = FIRST_PAGE;
     _currentPageHistory = FIRST_PAGE;
     _historyPageError = null;
+    _orderByHistory = null;
 
     constructor(projectDataService) {
         this.projectDataService = projectDataService;
@@ -36,12 +42,12 @@ export default class ngbBlastHistoryTableService {
         this._firstPageHistory = value;
     }
 
-    get lastPageHistory() {
-        return this._lastPageHistory;
+    get totalPages() {
+        return this._totalPages;
     }
 
-    set lastPageHistory(value) {
-        this._lastPageHistory = value;
+    get blastSearchState() {
+        return blastSearchState;
     }
 
     get currentPageHistory() {
@@ -53,7 +59,7 @@ export default class ngbBlastHistoryTableService {
     }
 
     get historyPageSize() {
-        return PAGE_SIZE_HISTORY;
+        return PAGE_SIZE;
     }
 
     get refreshInterval() {
@@ -64,6 +70,19 @@ export default class ngbBlastHistoryTableService {
         return this._historyPageError;
     }
 
+    get orderByHistory() {
+        return this._orderByHistory;
+    }
+
+    set orderByHistory(orderByHistory) {
+        this._orderByHistory = orderByHistory;
+    }
+
+    get orderByColumnsHistory() {
+        return DEFAULT_ORDERBY_HISTORY_COLUMNS;
+    }
+
+
     set blastHistoryColumns(columns) {
         localStorage.setItem('blastHistoryColumns', JSON.stringify(columns || []));
     }
@@ -73,18 +92,18 @@ export default class ngbBlastHistoryTableService {
     }
 
     async updateSearchHistory() {
-        this._blastHistory = await this.loadBlastHistory();
+        this._blastHistory = await this.loadBlastHistory(this.currentPageHistory);
     }
 
     async deleteBlastSearch(id) {
         this.projectDataService.deleteBlastSearch(id).then(async () => {
-            this._blastHistory = await this.loadBlastHistory();
+            this._blastHistory = await this.loadBlastHistory(this.currentPageHistory);
         });
     }
 
     async cancelBlastSearch(id) {
         this.projectDataService.cancelBlastSearch(id).then(async () => {
-            this._blastHistory = await this.loadBlastHistory();
+            this._blastHistory = await this.loadBlastHistory(this.currentPageHistory);
         });
     }
 
@@ -92,12 +111,18 @@ export default class ngbBlastHistoryTableService {
         this._blastHistory = await this.loadBlastHistory();
     }
 
-    async loadBlastHistory() {
-        const data = await this.projectDataService.getBlastHistoryLoad();
+    async loadBlastHistory(page) {
+        const filter = {
+            pagingInfo: {
+                pageNum: page,
+                pageSize: this.historyPageSize
+            },
+            sortInfos: this.orderByHistory
+        };
+        const data = await this.projectDataService.getBlastHistoryLoad(filter);
         if (data.error) {
-            this._totalPagesCountHistory = 0;
-            this._currentPageHistory = FIRST_PAGE;
-            this._lastPageHistory = FIRST_PAGE;
+            this._totalPages = 0;
+            this.currentPageHistory = FIRST_PAGE;
             this._firstPageHistory = FIRST_PAGE;
             this._hasMoreHistory = true;
             this._historyPageError = data.message;
@@ -106,11 +131,10 @@ export default class ngbBlastHistoryTableService {
         } else {
             this._historyPageError = null;
         }
-        if (data.totalPagesCount === 0) {
-            data.totalPagesCount = undefined;
-        }
-        data.forEach(this._formatServerToClient);
-        return data;
+        this._totalPages = Math.ceil(data.totalCount/this.historyPageSize);
+        const filteredData = data.blastTasks.filter(blastSearch => blastSearch.status !== 'CANCELLED');
+        filteredData.forEach((value, key) => filteredData[key] = this._formatServerToClient(value));
+        return filteredData;
     }
 
     getBlastHistoryGridColumns() {
@@ -137,6 +161,19 @@ export default class ngbBlastHistoryTableService {
                     });
                     break;
                 }
+                case 'currentState': {
+                    result.push({
+                        cellTemplate: `<div class="ui-grid-cell-contents">
+                                        {{grid.appScope.$ctrl.statusViews[row.entity.currentState]}}
+                                       </div>`,
+                        enableHiding: false,
+                        field: 'currentState',
+                        headerCellTemplate: headerCells,
+                        minWidth: 40,
+                        name: 'currentState'
+                    });
+                    break;
+                }
                 case 'submitted': {
                     result.push({
                         cellFilter: 'date:"short"',
@@ -152,6 +189,7 @@ export default class ngbBlastHistoryTableService {
                     result.push({
                         cellFilter: 'duration:this',
                         enableHiding: false,
+                        enableSorting: false,
                         field: 'duration',
                         headerCellTemplate: headerCells,
                         minWidth: 40,
@@ -209,18 +247,19 @@ export default class ngbBlastHistoryTableService {
     _formatServerToClient(search) {
         let duration, state;
         switch (search.status) {
-            case 1:
-            case 2:
-            case 3: {
+            case 'CREATED':
+            case 'SUBMITTED':
+            case 'RUNNING': {
                 state = blastSearchState.SEARCHING;
                 break;
             }
-            case 5: {
+            case 'FAILED': {
                 state = blastSearchState.FAILURE;
                 break;
             }
-            case 6: {
+            case 'DONE': {
                 state = blastSearchState.DONE;
+                break;
             }
         }
         if (state === blastSearchState.SEARCHING) {

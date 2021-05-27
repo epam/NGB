@@ -6,13 +6,8 @@ export default class ngbBlastSearchFormController extends baseController {
     }
 
     isProgressShown = true;
-    setVariants = {
-        CUSTOM: 'custom',
-        DB: 'db'
-    };
     organismList = [];
     dbList = [];
-    selectedSet = this.setVariants[0];
     algorithmList = [];
     searchRequest = {
         title: '',

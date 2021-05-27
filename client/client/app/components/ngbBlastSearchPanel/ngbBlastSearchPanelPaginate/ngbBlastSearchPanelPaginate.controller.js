@@ -1,13 +1,10 @@
-import  baseController from '../../../shared/baseController';
+import baseController from '../../../shared/baseController';
 
 export default class ngbBlastSearchPanelPaginate extends baseController {
 
     static get UID() {
         return 'ngbBlastSearchPanelPaginate';
     }
-
-    totalPages;
-    currentPage;
 
     constructor(dispatcher, $scope, $timeout) {
         super(dispatcher);
@@ -17,8 +14,6 @@ export default class ngbBlastSearchPanelPaginate extends baseController {
             $timeout,
             dispatcher,
         });
-
-        this.pages = this.getPages();
         this.initEvents();
     }
 
@@ -31,22 +26,32 @@ export default class ngbBlastSearchPanelPaginate extends baseController {
         },
     };
 
+    $onChanges(changes) {
+        let needRefresh = false;
+        if (changes.totalPages.previousValue !== changes.totalPages.currentValue) {
+            needRefresh = true;
+        }
+        if (changes.currentPage.previousValue !== changes.currentPage.currentValue) {
+            needRefresh = true;
+        }
+        if (needRefresh) {
+            this.refresh(changes.totalPages.currentValue, this.currentPage);
+        }
+    }
+
     refresh(totalPages, currentPage) {
         this.totalPages = totalPages;
+        this.pages = this.getPages();
         this.setPage(currentPage);
     }
 
-    setPage(page, loadData)
-    {
+    setPage(page) {
         if (this.totalPages === undefined || page < 1 || page > this.totalPages) {
             return;
         }
 
-        if(loadData){
-            this.dispatcher.emit('pageBlast:change', page);
-        }
         this.currentPage = page;
-        this.pages = this.getPages();
+        this.changePage({page: this.currentPage});
     }
 
     getPages() {

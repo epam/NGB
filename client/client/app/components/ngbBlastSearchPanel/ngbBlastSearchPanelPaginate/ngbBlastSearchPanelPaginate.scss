@@ -4,6 +4,9 @@ ngb-blast-search-panel-paginate {
   height: auto;
   .blast-pagination {
     margin-right: 5px;
+    display: flex;
+    flex-direction: row;
+    align-self: center;
   }
 
   .blast-pagination-item {
@@ -15,12 +18,12 @@ ngb-blast-search-panel-paginate {
     margin: 0 2px;
     line-height: 24px;
     ng-md-icon {
-      fill: white;
+      fill: black;
       min-height: 24px;
       height: 24px;
     }
     &.active {
-      color: white;
+      color: black;
       text-decoration: underline;
       font-weight: bold;
     }

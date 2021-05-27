@@ -40,7 +40,7 @@ export default class ngbBlastSearchService {
     }
 
     async getBlastDBList() {
-        // return await this.projectDataService.getBlastDBList();
+        // return await this.projectDataService.getBlastDBList('NUCLEOTIDE');
         return [1, 2, 3, 'Homo_sapiens.GRCh38'];
     }
 
