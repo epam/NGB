@@ -47,6 +47,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
@@ -58,9 +59,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.constant.Constants.DATE_TIME_FORMAT;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
 
 @Service
 @RequiredArgsConstructor
@@ -79,7 +77,7 @@ public class BlastTaskManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public BlastTask load(final Long taskId) {
         BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
-        assertNotNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
+        Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
 
         loadTaskOrganisms(blastTask);
         loadTaskParameters(blastTask);
@@ -103,10 +101,8 @@ public class BlastTaskManager {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public BlastTask create(final TaskVO taskVO) throws BlastRequestException {
-        List<Long> organisms = taskVO.getOrganisms();
-        List<Long> exclOrganisms = taskVO.getExcludedOrganisms();
-        assertFalse((CollectionUtils.isEmpty(organisms) && CollectionUtils.isEmpty(exclOrganisms))
-                || (!CollectionUtils.isEmpty(organisms) && !CollectionUtils.isEmpty(exclOrganisms)),
+        Assert.state(!(!CollectionUtils.isEmpty(taskVO.getOrganisms())
+                        && !CollectionUtils.isEmpty(taskVO.getExcludedOrganisms())),
                 MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_ORGANISMS));
         BlastRequest blastRequest = new BlastRequest();
         blastRequest.setAlgorithm(taskVO.getAlgorithm());
@@ -114,8 +110,8 @@ public class BlastTaskManager {
         blastRequest.setDbName(taskVO.getDatabase());
         blastRequest.setQuery(taskVO.getQuery());
         blastRequest.setOptions(taskVO.getOptions());
-        blastRequest.setTaxIds(organisms);
-        blastRequest.setExcludedTaxIds(exclOrganisms);
+        blastRequest.setTaxIds(taskVO.getOrganisms());
+        blastRequest.setExcludedTaxIds(taskVO.getExcludedOrganisms());
         Map<String, String> params = MapUtils.emptyIfNull(taskVO.getParameters());
         if (params.containsKey(MAX_TARGET_SEQS)) {
             blastRequest.setMaxTargetSequence(Long.parseLong(params.get(MAX_TARGET_SEQS)));
@@ -131,8 +127,8 @@ public class BlastTaskManager {
         blastTask.setId(blastRequestInfo.getRequestId());
         blastTask.setQuery(taskVO.getQuery());
         blastTask.setDatabase(taskVO.getDatabase());
-        blastTask.setOrganisms(organisms);
-        blastTask.setExcludedOrganisms(exclOrganisms);
+        blastTask.setOrganisms(taskVO.getOrganisms());
+        blastTask.setExcludedOrganisms(taskVO.getExcludedOrganisms());
         blastTask.setExecutable(taskVO.getExecutable());
         blastTask.setAlgorithm(taskVO.getAlgorithm());
         blastTask.setParameters(taskVO.getParameters());
@@ -142,8 +138,8 @@ public class BlastTaskManager {
                 DateTimeFormatter.ofPattern(DATE_TIME_FORMAT)));
         blastTask.setOwner(authManager.getAuthorizedUser());
         blastTaskDao.saveTask(blastTask);
-        blastTaskDao.saveOrganisms(blastTask.getId(), organisms);
-        blastTaskDao.saveExclOrganisms(blastTask.getId(), exclOrganisms);
+        blastTaskDao.saveOrganisms(blastTask.getId(), taskVO.getOrganisms());
+        blastTaskDao.saveExclOrganisms(blastTask.getId(), taskVO.getExcludedOrganisms());
         blastTaskDao.saveTaskParameters(blastTask.getId(), taskVO.getParameters());
         return blastTask;
     }
@@ -151,8 +147,8 @@ public class BlastTaskManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public void deleteTask(final long taskId) {
         BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
-        assertNotNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
-        assertEquals(TaskStatus.RUNNING, blastTask.getStatus(),
+        Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
+        Assert.isTrue(TaskStatus.RUNNING.equals(blastTask.getStatus()),
                 MessageHelper.getMessage(MessagesConstants.ERROR_TASK_CAN_NOT_BE_DELETED, taskId));
         blastTaskDao.deleteOrganisms(taskId);
         blastTaskDao.deleteExclOrganisms(taskId);
@@ -182,7 +178,7 @@ public class BlastTaskManager {
 
     public void cancelTask(final long id) throws BlastRequestException {
         BlastTask blastTask = blastTaskDao.loadTaskById(id);
-        assertNotNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, id));
+        Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, id));
         BlastRequestInfo blastRequestInfo = blastRequestManager.cancelTask(id);
         if (blastRequestInfo.getStatus().equals("CANCELED")) {
             blastTask.setStatus(TaskStatus.CANCELED);
