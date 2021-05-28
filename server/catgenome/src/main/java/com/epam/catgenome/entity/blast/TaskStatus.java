@@ -29,14 +29,15 @@ import java.util.Map;
 
 
 public enum TaskStatus {
-    CREATED(1),
-    SUBMITTED(2),
-    RUNNING(3),
-    CANCELED(4),
-    FAILED(5),
-    DONE(6);
+    CREATED(1, false),
+    SUBMITTED(2, false),
+    RUNNING(3, false),
+    CANCELED(4, true),
+    FAILED(5, true),
+    DONE(6, true);
 
     private long id;
+    private boolean finalStatus;
     private static Map<Long, TaskStatus> idMap = new HashMap<>((int) CREATED.getId());
 
     static {
@@ -48,12 +49,17 @@ public enum TaskStatus {
         idMap.put(DONE.id, DONE);
     }
 
-    TaskStatus(long id) {
+    TaskStatus(long id, boolean finalStatus) {
         this.id = id;
+        this.finalStatus = finalStatus;
     }
 
     public long getId() {
         return id;
+    }
+
+    public boolean isFinal() {
+        return finalStatus;
     }
 
     public static TaskStatus getById(Long id) {

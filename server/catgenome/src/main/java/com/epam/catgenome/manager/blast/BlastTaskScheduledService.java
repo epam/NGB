@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,8 +41,12 @@ public class BlastTaskScheduledService {
                 BlastRequestInfo blastRequestInfo = blastRequestManager.getTaskStatus(t.getId());
                 String status = blastRequestInfo.getStatus();
                 if (!status.equals(t.getStatus().name())) {
-                    t.setStatus(TaskStatus.valueOf(status));
+                    final TaskStatus newStatus = TaskStatus.valueOf(status);
+                    t.setStatus(newStatus);
                     t.setStatusReason(blastRequestInfo.getReason());
+                    if (newStatus.isFinal()) {
+                        t.setEndDate(LocalDateTime.now());
+                    }
                     blastTaskManager.updateTask(t);
                 }
             } catch (BlastRequestException e) {
