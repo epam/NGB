@@ -120,7 +120,7 @@ public class BlastTaskManager {
             blastRequest.setExpectedThreshold(Long.parseLong(params.get(EVALUE)));
         }
         BlastRequestInfo blastRequestInfo = blastRequestManager.createTask(blastRequest);
-        if (blastRequestInfo.getStatus().equals("ERROR")) {
+        if (blastRequestInfo == null || blastRequestInfo.getStatus().equals("ERROR")) {
             throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_REQUEST));
         }
         BlastTask blastTask = new BlastTask();
@@ -148,7 +148,7 @@ public class BlastTaskManager {
     public void deleteTask(final long taskId) {
         BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
         Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
-        Assert.isTrue(TaskStatus.RUNNING.equals(blastTask.getStatus()),
+        Assert.isTrue(!TaskStatus.RUNNING.equals(blastTask.getStatus()),
                 MessageHelper.getMessage(MessagesConstants.ERROR_TASK_CAN_NOT_BE_DELETED, taskId));
         blastTaskDao.deleteOrganisms(taskId);
         blastTaskDao.deleteExclOrganisms(taskId);

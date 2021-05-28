@@ -41,7 +41,8 @@
                 <![CDATA[
                     UPDATE catgenome.task SET
                         status = :STATUS,
-                        status_reason = :STATUS_REASON
+                        status_reason = :STATUS_REASON,
+                        end_date = :END_DATE
                     WHERE
                         task_id = :TASK_ID
                 ]]>
