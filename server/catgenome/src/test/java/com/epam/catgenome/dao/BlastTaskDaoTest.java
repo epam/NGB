@@ -26,15 +26,14 @@ package com.epam.catgenome.dao;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.List;
 
 import com.epam.catgenome.dao.blast.BlastTaskDao;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.TaskStatus;
-import com.epam.catgenome.util.db.Filter;
+import com.epam.catgenome.manager.blast.BlastTaskManager;
+import com.epam.catgenome.manager.blast.dto.TaskPage;
 import com.epam.catgenome.util.db.PagingInfo;
 import com.epam.catgenome.util.db.QueryParameters;
-import com.epam.catgenome.util.db.SortInfo;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Test;
@@ -53,10 +52,13 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
     @Autowired
     private BlastTaskDao blastTaskDao;
 
+    @Autowired
+    private BlastTaskManager blastTaskManager;
+
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testSaveTask() {
-        BlastTask blastTask = getBlastTask();
+        BlastTask blastTask = getBlastTask(1L, "test");
         blastTaskDao.saveTask(blastTask);
 
         BlastTask loadedBlastTask = blastTaskDao.loadTaskById(blastTask.getId());
@@ -68,7 +70,7 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
 
     @Test
     public void testUpdateTask() {
-        BlastTask blastTask = getBlastTask();
+        BlastTask blastTask = getBlastTask(1L, "test");
         blastTaskDao.saveTask(blastTask);
 
         blastTask.setStatus(TaskStatus.CANCELED);
@@ -83,31 +85,38 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
 
     @Test
     public void testLoadTasks() {
-        blastTaskDao.saveTask(getBlastTask());
-        QueryParameters parameters = new QueryParameters();
-        PagingInfo pagingInfo = new PagingInfo();
-        parameters.setPagingInfo(pagingInfo);
-        Filter queryFilter = new Filter("task_id", "=", "1");
-        parameters.setFilters(Collections.singletonList(queryFilter));
-        SortInfo sortInfo = new SortInfo("task_id", true);
-        parameters.setSortInfos(Collections.singletonList(sortInfo));
+        blastTaskDao.saveTask(getBlastTask(1L, "test1"));
+        blastTaskDao.saveTask(getBlastTask(2L, "test2"));
+        blastTaskDao.saveTask(getBlastTask(3L, "test3"));
+        blastTaskDao.saveTask(getBlastTask(4L, "test4"));
+        blastTaskDao.saveTask(getBlastTask(5L, "test5"));
 
-        List<BlastTask> blastTasks = blastTaskDao.loadAllTasks(parameters);
-        Assert.assertFalse(blastTasks.isEmpty());
+        QueryParameters parameters = new QueryParameters();
+        PagingInfo pagingInfo = new PagingInfo(2, 1);
+        parameters.setPagingInfo(pagingInfo);
+//        Filter queryFilter = new Filter("task_id", ">", "3");
+//        parameters.setFilters(Collections.singletonList(queryFilter));
+//        SortInfo sortInfo = new SortInfo("task_id", false);
+//        parameters.setSortInfos(Collections.singletonList(sortInfo));
+
+        TaskPage taskPage = blastTaskManager.loadAllTasks(parameters);
+        Assert.assertNotNull(taskPage);
+        Assert.assertEquals(taskPage.getTotalCount(), 5);
+        Assert.assertEquals(taskPage.getBlastTasks().size(), 2);
     }
 
     @Test
     public void testGetTasksCount() {
-        blastTaskDao.saveTask(getBlastTask());
+        blastTaskDao.saveTask(getBlastTask(1L, "test"));
         long count = blastTaskDao.getTasksCount(Collections.emptyList());
         Assert.assertEquals(1, count);
     }
 
     @NotNull
-    private BlastTask getBlastTask() {
+    private BlastTask getBlastTask(final long id, final String title) {
         BlastTask blastTask = new BlastTask();
-        blastTask.setId(1L);
-        blastTask.setTitle("test");
+        blastTask.setId(id);
+        blastTask.setTitle(title);
         blastTask.setStatus(TaskStatus.CREATED);
         blastTask.setCreatedDate(LocalDateTime.now());
         return blastTask;

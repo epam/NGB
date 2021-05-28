@@ -25,6 +25,7 @@ package com.epam.catgenome.manager.blast;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.controller.vo.TaskVO;
 import com.epam.catgenome.dao.blast.BlastTaskDao;
 import com.epam.catgenome.entity.blast.BlastDataBase;
 import com.epam.catgenome.entity.blast.BlastTask;
@@ -60,8 +61,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BlastTaskManager {
 
-    public static final long MAX_TARGET_SEQUENCE = 10L;
-    public static final long EXPECTED_THRESHOLD = 1L;
+    public static final String MAX_TARGET_SEQUENCE = "MAX_TARGET_SEQUENCE";
+    public static final String EXPECTED_THRESHOLD = "EXPECTED_THRESHOLD";
 
     private final BlastTaskDao blastTaskDao;
 
@@ -95,29 +96,48 @@ public class BlastTaskManager {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public BlastTask create(final BlastTask blastTask) throws BlastRequestException {
+    public BlastTask create(final TaskVO taskVO) throws BlastRequestException {
+        if ((taskVO.getOrganisms() == null || taskVO.getOrganisms().isEmpty())
+            && (taskVO.getExcludedOrganisms() == null || taskVO.getExcludedOrganisms().isEmpty())) {
+            Assert.isTrue(false, MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_ORGANISMS));
+        }
         BlastRequest blastRequest = new BlastRequest();
-        blastRequest.setAlgorithm(blastTask.getAlgorithm());
-        blastRequest.setBlastTool(blastTask.getExecutable());
-        blastRequest.setDbName(blastTask.getDatabase());
-        blastRequest.setQuery(blastTask.getQuery());
-        blastRequest.setOptions(blastTask.getOptions());
-        blastRequest.setTaxIds(blastTask.getOrganisms());
-        blastRequest.setExcludedTaxIds(blastTask.getExcludedOrganisms());
-        blastRequest.setMaxTargetSequence(MAX_TARGET_SEQUENCE);
-        blastRequest.setExpectedThreshold(EXPECTED_THRESHOLD);
+        blastRequest.setAlgorithm(taskVO.getAlgorithm());
+        blastRequest.setBlastTool(taskVO.getExecutable());
+        blastRequest.setDbName(taskVO.getDatabase());
+        blastRequest.setQuery(taskVO.getQuery());
+        blastRequest.setOptions(taskVO.getOptions());
+        blastRequest.setTaxIds(taskVO.getOrganisms());
+        blastRequest.setExcludedTaxIds(taskVO.getExcludedOrganisms());
+        Assert.isTrue(taskVO.getParameters().containsKey(MAX_TARGET_SEQUENCE),
+                MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_TASK_PARAMETERS));
+        Assert.isTrue(taskVO.getParameters().containsKey(EXPECTED_THRESHOLD),
+                MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_TASK_PARAMETERS));
+        blastRequest.setMaxTargetSequence(Long.parseLong(taskVO.getParameters().get(MAX_TARGET_SEQUENCE)));
+        blastRequest.setExpectedThreshold(Long.parseLong(taskVO.getParameters().get(EXPECTED_THRESHOLD)));
         BlastRequestInfo blastRequestInfo = blastRequestManager.createTask(blastRequest);
         if (!blastRequestInfo.getStatus().equals("ERROR")) {
+            BlastTask blastTask = new BlastTask();
             blastTask.setId(blastRequestInfo.getRequestId());
+            blastTask.setQuery(taskVO.getQuery());
+            blastTask.setDatabase(taskVO.getDatabase());
+            blastTask.setOrganisms(taskVO.getOrganisms());
+            blastTask.setExcludedOrganisms(taskVO.getExcludedOrganisms());
+            blastTask.setExecutable(taskVO.getExecutable());
+            blastTask.setAlgorithm(taskVO.getAlgorithm());
+            blastTask.setParameters(taskVO.getParameters());
+            blastTask.setOptions(taskVO.getOptions());
             blastTask.setStatus(TaskStatus.valueOf(blastRequestInfo.getStatus()));
-            blastTask.setCreatedDate(LocalDateTime.parse(blastRequestInfo.getCreatedDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")));
+            blastTask.setCreatedDate(LocalDateTime.parse(blastRequestInfo.getCreatedDate(),
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")));
             blastTask.setOwner(authManager.getAuthorizedUser());
             blastTaskDao.saveTask(blastTask);
             blastTaskDao.saveOrganisms(blastTask.getId(), blastTask.getOrganisms());
             blastTaskDao.saveExclOrganisms(blastTask.getId(), blastTask.getExcludedOrganisms());
             blastTaskDao.saveTaskParameters(blastTask.getId(), blastTask.getParameters());
+            return blastTask;
         }
-        return blastTask;
+        return null;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -156,7 +176,7 @@ public class BlastTaskManager {
         BlastTask blastTask = blastTaskDao.loadTaskById(id);
         Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, id));
         BlastRequestInfo blastRequestInfo = blastRequestManager.cancelTask(id);
-        if (blastRequestInfo.getStatus().equals("FAILED")) {
+        if (blastRequestInfo.getStatus().equals("CANCELED")) {
             blastTask.setStatus(TaskStatus.CANCELED);
             blastTaskDao.updateTask(blastTask);
         }

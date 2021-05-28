@@ -62,17 +62,7 @@ public class BlastTaskSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public BlastTask create(final TaskVO taskVO) throws BlastRequestException {
-        BlastTask blastTask = new BlastTask();
-        blastTask.setTitle(taskVO.getTitle());
-        blastTask.setQuery(taskVO.getQuery());
-        blastTask.setDatabase(taskVO.getDatabase());
-        blastTask.setOrganisms(taskVO.getOrganisms());
-        blastTask.setExcludedOrganisms(taskVO.getExcludedOrganisms());
-        blastTask.setExecutable(taskVO.getExecutable());
-        blastTask.setAlgorithm(taskVO.getAlgorithm());
-        blastTask.setParameters(taskVO.getParameters());
-        blastTask.setOptions(taskVO.getOptions());
-        return blastTaskManager.create(blastTask);
+        return blastTaskManager.create(taskVO);
     }
 
     @PreAuthorize(ROLE_USER)

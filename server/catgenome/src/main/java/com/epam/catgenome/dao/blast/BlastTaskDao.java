@@ -213,9 +213,11 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
 
             params.addValue(TASK_ID.name(), blastTask.getId());
             params.addValue(TITLE.name(), blastTask.getTitle());
-            params.addValue(CREATED_DATE.name(), blastTask.getCreatedDate() == null ? null : Timestamp.valueOf(blastTask.getCreatedDate()));
+            params.addValue(CREATED_DATE.name(), blastTask.getCreatedDate() == null ? null
+                    : Timestamp.valueOf(blastTask.getCreatedDate()));
             params.addValue(STATUS.name(), blastTask.getStatus().getId());
-            params.addValue(END_DATE.name(), blastTask.getEndDate() == null ? null : Timestamp.valueOf(blastTask.getEndDate()));
+            params.addValue(END_DATE.name(), blastTask.getEndDate() == null ? null
+                    : Timestamp.valueOf(blastTask.getEndDate()));
             params.addValue(STATUS_REASON.name(), blastTask.getStatusReason());
             params.addValue(QUERY.name(), blastTask.getQuery());
             params.addValue(DATABASE.name(), blastTask.getDatabase());
@@ -234,7 +236,8 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
                 blastTask.setId(rs.getLong(TASK_ID.name()));
                 blastTask.setTitle(rs.getString(TITLE.name()));
                 blastTask.setCreatedDate(rs.getTimestamp(CREATED_DATE.name()).toLocalDateTime());
-                blastTask.setEndDate(rs.getTimestamp(END_DATE.name()) == null ? null : rs.getTimestamp(END_DATE.name()).toLocalDateTime());
+                blastTask.setEndDate(rs.getTimestamp(END_DATE.name()) == null ? null
+                        : rs.getTimestamp(END_DATE.name()).toLocalDateTime());
                 blastTask.setStatusReason(rs.getString(STATUS_REASON.name()));
                 blastTask.setQuery(rs.getString(QUERY.name()));
                 blastTask.setDatabase(rs.getString(DATABASE.name()));
