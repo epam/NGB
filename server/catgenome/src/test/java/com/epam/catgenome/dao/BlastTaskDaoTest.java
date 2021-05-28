@@ -25,13 +25,19 @@
 package com.epam.catgenome.dao;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import com.epam.catgenome.dao.blast.BlastTaskDao;
 import com.epam.catgenome.entity.blast.BlastTask;
+import com.epam.catgenome.entity.blast.BlastTaskOrganism;
+import com.epam.catgenome.entity.blast.TaskParameter;
 import com.epam.catgenome.entity.blast.TaskStatus;
 import com.epam.catgenome.manager.blast.BlastTaskManager;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
+import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.PagingInfo;
 import com.epam.catgenome.util.db.QueryParameters;
 import org.jetbrains.annotations.NotNull;
@@ -49,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTests {
 
+    public static final String TEST = "test";
     @Autowired
     private BlastTaskDao blastTaskDao;
 
@@ -58,7 +65,7 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testSaveTask() {
-        BlastTask blastTask = getBlastTask(1L, "test");
+        BlastTask blastTask = getBlastTask(1L, TEST);
         blastTaskDao.saveTask(blastTask);
 
         BlastTask loadedBlastTask = blastTaskDao.loadTaskById(blastTask.getId());
@@ -70,7 +77,7 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
 
     @Test
     public void testUpdateTask() {
-        BlastTask blastTask = getBlastTask(1L, "test");
+        BlastTask blastTask = getBlastTask(1L, TEST);
         blastTaskDao.saveTask(blastTask);
 
         blastTask.setStatus(TaskStatus.CANCELED);
@@ -107,7 +114,57 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
 
     @Test
     public void testGetTasksCount() {
-        blastTaskDao.saveTask(getBlastTask(1L, "test"));
+        blastTaskDao.saveTask(getBlastTask(1L, TEST));
+        long count = blastTaskDao.getTasksCount(Collections.emptyList());
+        Assert.assertEquals(1, count);
+    }
+
+    @Test
+    public void testDeleteOrganisms() {
+        blastTaskDao.saveTask(getBlastTask(1L, TEST));
+        blastTaskDao.saveOrganisms(1L, Arrays.asList(1L, 2L));
+        List<Filter> deleteFilters = new ArrayList<>();
+        deleteFilters.add(new Filter("organism", "=", "1"));
+        blastTaskDao.deleteOrganisms(deleteFilters);
+        List<BlastTaskOrganism> organisms = blastTaskDao.loadOrganisms(1);
+        Assert.assertNotNull(organisms);
+        Assert.assertEquals(organisms.size(), 1);
+    }
+
+    @Test
+    public void testDeleteExclOrganisms() {
+        blastTaskDao.saveTask(getBlastTask(1L, TEST));
+        blastTaskDao.saveExclOrganisms(1L, Arrays.asList(1L, 2L));
+        List<Filter> deleteFilters = new ArrayList<>();
+        deleteFilters.add(new Filter("organism", "=", "1"));
+        blastTaskDao.deleteExclOrganisms(deleteFilters);
+        List<BlastTaskOrganism> organisms = blastTaskDao.loadExclOrganisms(1);
+        Assert.assertNotNull(organisms);
+        Assert.assertEquals(organisms.size(), 1);
+    }
+
+    @Test
+    public void testDeleteParameters() {
+        blastTaskDao.saveTask(getBlastTask(1L, TEST));
+        blastTaskDao.saveTaskParameters(1L, Collections.singletonMap("key", "value"));
+        List<Filter> deleteFilters = new ArrayList<>();
+        deleteFilters.add(new Filter("parameter", "=", "'key'"));
+        blastTaskDao.deleteParameters(deleteFilters);
+        List<TaskParameter> parameters = blastTaskDao.loadTaskParameters(1);
+        Assert.assertNotNull(parameters);
+        Assert.assertEquals(parameters.size(), 0);
+    }
+
+    @Test
+    public void testDeleteTasks() {
+        blastTaskDao.saveTask(getBlastTask(1L, "test1"));
+        blastTaskDao.saveTask(getBlastTask(2L, "test2"));
+        blastTaskDao.saveTask(getBlastTask(3L, "test3"));
+        blastTaskDao.saveTask(getBlastTask(4L, "test4"));
+        blastTaskDao.saveTask(getBlastTask(5L, "test5"));
+        List<Filter> deleteFilters = new ArrayList<>();
+        deleteFilters.add(new Filter("task_id", "in", "(1,2,3,4)"));
+        blastTaskDao.deleteTasks(deleteFilters);
         long count = blastTaskDao.getTasksCount(Collections.emptyList());
         Assert.assertEquals(1, count);
     }

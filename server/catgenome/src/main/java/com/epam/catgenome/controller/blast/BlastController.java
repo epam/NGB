@@ -137,6 +137,20 @@ public class BlastController extends AbstractRESTController {
         return Result.success(blastTaskSecurityService.loadAllTasks(queryParameters));
     }
 
+    @DeleteMapping(value = "/tasks")
+    @ResponseBody
+    @ApiOperation(
+            value = "Delete all not running tasks for current user",
+            notes = "Delete all not running tasks for current user",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Boolean> deleteTasks() {
+        blastTaskSecurityService.deleteTasks();
+        return Result.success(null);
+    }
+
     @PostMapping(value = "/task")
     @ResponseBody
     @ApiOperation(
