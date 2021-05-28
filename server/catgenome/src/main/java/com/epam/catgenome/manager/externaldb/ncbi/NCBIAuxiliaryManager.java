@@ -26,7 +26,6 @@ package com.epam.catgenome.manager.externaldb.ncbi;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -48,7 +47,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 @Service
 public class NCBIAuxiliaryManager extends NCBIDataManager {
 
-    public static final long TAX_ID = 9606L;
+    public static final int TAX_ID1 = 2665953;
+    public static final int TAX_ID2 = 2665952;
+    public static final int TAX_ID3 = 1425170;
+    public static final int TAX_ID4 = 741158;
+    public static final int TAX_ID5 = 63221;
+    public static final int TAX_ID6 = 9605;
+    public static final int TAX_ID7 = 9606;
 
     /**
      * Fetches organism info from NCBI's taxonomy database
@@ -103,10 +108,15 @@ public class NCBIAuxiliaryManager extends NCBIDataManager {
      */
     public List<NCBITaxonomyVO> fetchTaxonomyInfosByTermMock(final String term)
             throws ExternalDbUnavailableException {
-        return Collections.singletonList(new NCBITaxonomyVO(
-                TAX_ID,
-                "Homo sapiens",
-                "human"));
+        List<NCBITaxonomyVO> taxes = new ArrayList<>();
+        taxes.add(new NCBITaxonomyVO(TAX_ID1, "Homo sapiens environmental sample", ""));
+        taxes.add(new NCBITaxonomyVO(TAX_ID2, "environmental samples", ""));
+        taxes.add(new NCBITaxonomyVO(TAX_ID3, "Homo heidelbergensis", "Heidelberg man"));
+        taxes.add(new NCBITaxonomyVO(TAX_ID4, "Homo sapiens subsp. 'Denisova'", "Denisova hominin"));
+        taxes.add(new NCBITaxonomyVO(TAX_ID5, "Homo sapiens neanderthalensis", "Neandertal"));
+        taxes.add(new NCBITaxonomyVO(TAX_ID6, "Homo", "humans"));
+        taxes.add(new NCBITaxonomyVO(TAX_ID7, "Homo sapiens", "human"));
+        return taxes;
     }
 
     /**

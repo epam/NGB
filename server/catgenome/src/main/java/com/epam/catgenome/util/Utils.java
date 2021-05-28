@@ -458,7 +458,8 @@ public final class Utils {
         return query + (pagingInfo == null ? "" : String.format(
                 PAGING_INFO_CLAUSE,
                 pagingInfo.getPageSize() < 1 ? DEFAULT_PAGE_SIZE : pagingInfo.getPageSize(),
-                pagingInfo.getPageNum() < 1 ? DEFAULT_PAGE_NUM : pagingInfo.getPageNum()));
+                pagingInfo.getPageNum() < 1 ? DEFAULT_PAGE_NUM
+                        : (pagingInfo.getPageNum() - 1) * pagingInfo.getPageSize()));
     }
 
     public static String addSortInfoToQuery(final String query, final List<SortInfo> sortInfos) {

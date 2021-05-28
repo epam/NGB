@@ -11,8 +11,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
 @Slf4j
@@ -24,7 +26,12 @@ public class BlastTaskScheduledService {
 
     @Scheduled(fixedRateString = "${blast.update.status.rate:60000}")
     public void updateTaskStatuses() {
-        Filter filter = new Filter("status", "=", String.valueOf(TaskStatus.RUNNING.getId()));
+        List<String> statuses = new ArrayList<>();
+        statuses.add(String.valueOf(TaskStatus.CREATED.getId()));
+        statuses.add(String.valueOf(TaskStatus.SUBMITTED.getId()));
+        statuses.add(String.valueOf(TaskStatus.RUNNING.getId()));
+
+        Filter filter = new Filter("status", "in", "(" + join(statuses, ",") + ")");
         QueryParameters parameters = new QueryParameters();
         parameters.setFilters(Collections.singletonList(filter));
         List<BlastTask> tasks = blastTaskManager.loadAllTasks(parameters).getBlastTasks();

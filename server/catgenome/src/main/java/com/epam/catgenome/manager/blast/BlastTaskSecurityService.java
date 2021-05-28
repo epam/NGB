@@ -34,7 +34,6 @@ import com.epam.catgenome.manager.blast.dto.TaskPage;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
-import com.epam.catgenome.entity.blast.TaskStatus;
 import com.epam.catgenome.security.acl.aspect.AclMask;
 import com.epam.catgenome.security.acl.aspect.AclTree;
 import okhttp3.ResponseBody;
@@ -43,7 +42,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,21 +62,7 @@ public class BlastTaskSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public BlastTask create(final TaskVO taskVO) throws BlastRequestException {
-        BlastTask blastTask = new BlastTask();
-        blastTask.setId(taskVO.getId());
-        blastTask.setTitle(taskVO.getTitle());
-        blastTask.setCreatedDate(taskVO.getCreatedDate() == null ? new Date(): taskVO.getCreatedDate());
-        blastTask.setStatus(TaskStatus.getById(taskVO.getStatus()));
-        blastTask.setEndDate(taskVO.getEndDate());
-        blastTask.setStatusReason(taskVO.getStatusReason());
-        blastTask.setQuery(taskVO.getQuery());
-        blastTask.setDatabase(taskVO.getDatabase());
-        blastTask.setOrganisms(taskVO.getOrganisms());
-        blastTask.setExcludedOrganisms(taskVO.getExcludedOrganisms());
-        blastTask.setExecutable(taskVO.getExecutable());
-        blastTask.setAlgorithm(taskVO.getAlgorithm());
-        blastTask.setParameters(taskVO.getParameters());
-        return blastTaskManager.create(blastTask);
+        return blastTaskManager.create(taskVO);
     }
 
     @PreAuthorize(ROLE_USER)
