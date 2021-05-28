@@ -176,11 +176,12 @@ public class BlastTaskManager {
         return blastTaskDao.getTasksCount(filters);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public void cancelTask(final long id) throws BlastRequestException {
         BlastTask blastTask = blastTaskDao.loadTaskById(id);
         Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, id));
         BlastRequestInfo blastRequestInfo = blastRequestManager.cancelTask(id);
-        if (blastRequestInfo.getStatus().equals("CANCELED")) {
+        if (blastRequestInfo.getStatus().equals(TaskStatus.CANCELED.name())) {
             blastTask.setStatus(TaskStatus.CANCELED);
             blastTaskDao.updateTask(blastTask);
         }
