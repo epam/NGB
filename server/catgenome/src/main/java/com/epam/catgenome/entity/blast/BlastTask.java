@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,40 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package com.epam.catgenome.entity.blast;
 
-package com.epam.catgenome.controller.vo.externaldb;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Source:      NCBITaxonomyVO
- * Created:     16.03.16, 13:52
- * Project:     CATGenome Browser
- * Make:        IntelliJ IDEA 14.0.2, JDK 1.8
- *
- * <p>
- * class for NCBI Clin-Var DB data (taxonomy)
- * </p>
- *
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class NCBITaxonomyVO {
-
-    @JsonProperty(value = "taxid")
-    private long taxId;
-
-    @JsonProperty(value = "scientificname")
-    private String scientificName;
-
-    @JsonProperty(value = "commonname")
-    private String commonName;
+public class BlastTask {
+    private Long id;
+    private String title;
+    private LocalDateTime createdDate;
+    private TaskStatus status;
+    private LocalDateTime endDate;
+    private String statusReason;
+    private String query;
+    private String database;
+    private String owner;
+    private List<Long> organisms;
+    private List<Long> excludedOrganisms;
+    private String executable;
+    private String algorithm;
+    private Map<String, String> parameters;
+    private String options;
 }

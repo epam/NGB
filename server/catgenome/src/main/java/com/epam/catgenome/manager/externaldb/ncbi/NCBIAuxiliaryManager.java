@@ -47,6 +47,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 @Service
 public class NCBIAuxiliaryManager extends NCBIDataManager {
 
+    public static final int TAX_ID1 = 2665953;
+    public static final int TAX_ID2 = 2665952;
+    public static final int TAX_ID3 = 1425170;
+    public static final int TAX_ID4 = 741158;
+    public static final int TAX_ID5 = 63221;
+    public static final int TAX_ID6 = 9605;
+    public static final int TAX_ID7 = 9606;
+
     /**
      * Fetches organism info from NCBI's taxonomy database
      * <p>
@@ -84,11 +92,31 @@ public class NCBIAuxiliaryManager extends NCBIDataManager {
             int uid = jsonNode.asInt();
             organismNode = root.path(Integer.toString(uid));
             taxonomyVOList.add(new NCBITaxonomyVO(
-                    organismNode.path("uid").asText(),
+                    organismNode.path("uid").asLong(),
                     organismNode.path("scientificname").asText(),
                     organismNode.path("commonname").asText()));
         }
         return taxonomyVOList;
+    }
+
+    /**
+     * Fetches organisms info from NCBI's taxonomy database
+     *
+     * @param term search query
+     * @return return object with result
+     * @throws ExternalDbUnavailableException
+     */
+    public List<NCBITaxonomyVO> fetchTaxonomyInfosByTermMock(final String term)
+            throws ExternalDbUnavailableException {
+        List<NCBITaxonomyVO> taxes = new ArrayList<>();
+        taxes.add(new NCBITaxonomyVO(TAX_ID1, "Homo sapiens environmental sample", ""));
+        taxes.add(new NCBITaxonomyVO(TAX_ID2, "environmental samples", ""));
+        taxes.add(new NCBITaxonomyVO(TAX_ID3, "Homo heidelbergensis", "Heidelberg man"));
+        taxes.add(new NCBITaxonomyVO(TAX_ID4, "Homo sapiens subsp. 'Denisova'", "Denisova hominin"));
+        taxes.add(new NCBITaxonomyVO(TAX_ID5, "Homo sapiens neanderthalensis", "Neandertal"));
+        taxes.add(new NCBITaxonomyVO(TAX_ID6, "Homo", "humans"));
+        taxes.add(new NCBITaxonomyVO(TAX_ID7, "Homo sapiens", "human"));
+        return taxes;
     }
 
     /**

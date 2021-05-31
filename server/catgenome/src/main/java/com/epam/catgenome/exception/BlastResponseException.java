@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,39 +22,14 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.controller.vo.externaldb;
+package com.epam.catgenome.exception;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+public class BlastResponseException extends RuntimeException{
 
-/**
- * Source:      NCBITaxonomyVO
- * Created:     16.03.16, 13:52
- * Project:     CATGenome Browser
- * Make:        IntelliJ IDEA 14.0.2, JDK 1.8
- *
- * <p>
- * class for NCBI Clin-Var DB data (taxonomy)
- * </p>
- *
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class NCBITaxonomyVO {
-
-    @JsonProperty(value = "taxid")
-    private long taxId;
-
-    @JsonProperty(value = "scientificname")
-    private String scientificName;
-
-    @JsonProperty(value = "commonname")
-    private String commonName;
+    public BlastResponseException(final String message) {
+        super(message);
+    }
+    public BlastResponseException(final Throwable cause) {
+        super(cause);
+    }
 }

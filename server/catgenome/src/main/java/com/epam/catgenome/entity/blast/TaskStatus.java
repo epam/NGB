@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016-2021 EPAM Systems
+ * Copyright (c) 2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,39 +22,51 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.controller.vo.externaldb;
+package com.epam.catgenome.entity.blast;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.util.HashMap;
+import java.util.Map;
 
-/**
- * Source:      NCBITaxonomyVO
- * Created:     16.03.16, 13:52
- * Project:     CATGenome Browser
- * Make:        IntelliJ IDEA 14.0.2, JDK 1.8
- *
- * <p>
- * class for NCBI Clin-Var DB data (taxonomy)
- * </p>
- *
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class NCBITaxonomyVO {
 
-    @JsonProperty(value = "taxid")
-    private long taxId;
+public enum TaskStatus {
+    CREATED(1, false),
+    SUBMITTED(2, false),
+    RUNNING(3, false),
+    CANCELED(4, true),
+    FAILED(5, true),
+    DONE(6, true);
 
-    @JsonProperty(value = "scientificname")
-    private String scientificName;
+    private long id;
+    private boolean finalStatus;
+    private static Map<Long, TaskStatus> idMap = new HashMap<>((int) CREATED.getId());
 
-    @JsonProperty(value = "commonname")
-    private String commonName;
+    static {
+        idMap.put(CREATED.id, CREATED);
+        idMap.put(SUBMITTED.id, SUBMITTED);
+        idMap.put(RUNNING.id, RUNNING);
+        idMap.put(CANCELED.id, CANCELED);
+        idMap.put(FAILED.id, FAILED);
+        idMap.put(DONE.id, DONE);
+    }
+
+    TaskStatus(long id, boolean finalStatus) {
+        this.id = id;
+        this.finalStatus = finalStatus;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public boolean isFinal() {
+        return finalStatus;
+    }
+
+    public static TaskStatus getById(Long id) {
+        if (id == null) {
+            return null;
+        }
+
+        return idMap.get(id);
+    }
 }
