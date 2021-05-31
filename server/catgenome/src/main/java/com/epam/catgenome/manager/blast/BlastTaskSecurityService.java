@@ -99,4 +99,9 @@ public class BlastTaskSecurityService {
     public List<BlastDataBase> loadDataBases(final Optional<Long> type) {
         return blastTaskManager.loadDataBases(type);
     }
+
+    @PreAuthorize(ROLE_USER)
+    public void deleteTasks() {
+        blastTaskManager.deleteTasks();
+    }
 }

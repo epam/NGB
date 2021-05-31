@@ -103,12 +103,26 @@
                 ]]>
             </value>
         </property>
+        <property name="deleteTasksQuery">
+            <value>
+                <![CDATA[
+                    DELETE catgenome.task
+                ]]>
+            </value>
+        </property>
 
         <property name="taskParameterSequenceName" value="catgenome.s_task_parameter" />
         <property name="deleteTaskParametersQuery">
             <value>
                 <![CDATA[
                     DELETE catgenome.task_parameter WHERE task_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteParametersQuery">
+            <value>
+                <![CDATA[
+                    DELETE catgenome.task_parameter
                 ]]>
             </value>
         </property>
@@ -151,6 +165,13 @@
                 ]]>
             </value>
         </property>
+        <property name="deleteOrganismsQuery">
+            <value>
+                <![CDATA[
+                    DELETE catgenome.task_organism
+                ]]>
+            </value>
+        </property>
         <property name="loadTaskOrganismsQuery">
             <value>
                 <![CDATA[
@@ -184,6 +205,13 @@
             <value>
                 <![CDATA[
                     DELETE catgenome.task_excl_organism WHERE task_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteExclOrganismsQuery">
+            <value>
+                <![CDATA[
+                    DELETE catgenome.task_excl_organism
                 ]]>
             </value>
         </property>

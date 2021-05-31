@@ -52,6 +52,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +60,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.constant.Constants.DATE_TIME_FORMAT;
+import static org.apache.commons.lang3.StringUtils.join;
 
 @Service
 @RequiredArgsConstructor
@@ -113,12 +115,10 @@ public class BlastTaskManager {
         blastRequest.setTaxIds(taskVO.getOrganisms());
         blastRequest.setExcludedTaxIds(taskVO.getExcludedOrganisms());
         Map<String, String> params = MapUtils.emptyIfNull(taskVO.getParameters());
-        if (params.containsKey(MAX_TARGET_SEQS)) {
-            blastRequest.setMaxTargetSequence(Long.parseLong(params.get(MAX_TARGET_SEQS)));
-        }
-        if (params.containsKey(EVALUE)) {
-            blastRequest.setExpectedThreshold(Long.parseLong(params.get(EVALUE)));
-        }
+        blastRequest.setMaxTargetSequence(params.containsKey(MAX_TARGET_SEQS)
+                ? Long.parseLong(params.get(MAX_TARGET_SEQS)) : null);
+        blastRequest.setExpectedThreshold(params.containsKey(EVALUE)
+                ? Long.parseLong(params.get(EVALUE)) : null);
         BlastRequestInfo blastRequestInfo = blastRequestManager.createTask(blastRequest);
         if (blastRequestInfo == null || blastRequestInfo.getStatus().equals("ERROR")) {
             throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_REQUEST));
@@ -154,6 +154,23 @@ public class BlastTaskManager {
         blastTaskDao.deleteExclOrganisms(taskId);
         blastTaskDao.deleteParameters(taskId);
         blastTaskDao.deleteTask(taskId);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void deleteTasks() {
+        QueryParameters params = new QueryParameters();
+        List<Filter> getFilters = new ArrayList<>();
+        getFilters.add(new Filter("status", "<>", String.valueOf(TaskStatus.RUNNING.getId())));
+        getFilters.add(new Filter("owner", "=", "'" + authManager.getAuthorizedUser() + "'"));
+        params.setFilters(getFilters);
+        List<Long> taskIdsList = blastTaskDao.loadAllTasks(params).stream().map(BlastTask::getId)
+                .collect(Collectors.toList());
+        String taskIds = "(" + join(taskIdsList, ",") + ")";
+        List<Filter> deleteFilters = Collections.singletonList(new Filter("task_id", "in", taskIds));
+        blastTaskDao.deleteOrganisms(deleteFilters);
+        blastTaskDao.deleteExclOrganisms(deleteFilters);
+        blastTaskDao.deleteParameters(deleteFilters);
+        blastTaskDao.deleteTasks(deleteFilters);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

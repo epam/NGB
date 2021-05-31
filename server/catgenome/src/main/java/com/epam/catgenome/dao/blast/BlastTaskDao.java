@@ -55,6 +55,7 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     private String insertTaskQuery;
     private String updateTaskStatusQuery;
     private String deleteTaskQuery;
+    private String deleteTasksQuery;
     private String loadTaskByIdQuery;
     private String loadAllTasksQuery;
     private String getTaskCountQuery;
@@ -62,16 +63,19 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     private String organismSequenceName;
     private String insertTaskOrganismsQuery;
     private String deleteTaskOrganismsQuery;
+    private String deleteOrganismsQuery;
     private String loadTaskOrganismsQuery;
 
     private String exclOrganismSequenceName;
     private String insertTaskExclOrganismsQuery;
     private String deleteTaskExclOrganismsQuery;
+    private String deleteExclOrganismsQuery;
     private String loadTaskExclOrganismsQuery;
 
     private String taskParameterSequenceName;
     private String insertTaskParametersQuery;
     private String deleteTaskParametersQuery;
+    private String deleteParametersQuery;
     private String loadTaskParametersQuery;
 
     @Autowired
@@ -116,13 +120,24 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     }
 
     /**
-     * Deletes {@code Task}  from database.
+     * Deletes {@code Task}  from database
      *
      * @param id of the task to remove
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public void deleteTask(final Long id) {
         getJdbcTemplate().update(deleteTaskQuery, id);
+    }
+
+    /**
+     * Deletes {@code Tasks}  from database
+     *
+     * @param filters for tasks
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void deleteTasks(final List<Filter> filters) {
+        String query = addFiltersToQuery(deleteTasksQuery, filters);
+        getJdbcTemplate().update(query);
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -163,6 +178,17 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     }
 
     /**
+     * Deletes {@code Organisms}  from database
+     *
+     * @param filters for organisms
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void deleteOrganisms(final List<Filter> filters) {
+        String query = addFiltersToQuery(deleteOrganismsQuery, filters);
+        getJdbcTemplate().update(query);
+    }
+
+    /**
      * Deletes {@code Organisms}  from database.
      *
      * @param id of the task
@@ -170,6 +196,17 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public void deleteExclOrganisms(final Long id) {
         getJdbcTemplate().update(deleteTaskExclOrganismsQuery, id);
+    }
+
+    /**
+     * Deletes {@code Excluded Organisms}  from database
+     *
+     * @param filters for organisms
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void deleteExclOrganisms(final List<Filter> filters) {
+        String query = addFiltersToQuery(deleteExclOrganismsQuery, filters);
+        getJdbcTemplate().update(query);
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -192,6 +229,17 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public void deleteParameters(final Long id) {
         getJdbcTemplate().update(deleteTaskParametersQuery, id);
+    }
+
+    /**
+     * Deletes {@code Task Parameters}  from database
+     *
+     * @param filters for parameters
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void deleteParameters(final List<Filter> filters) {
+        String query = addFiltersToQuery(deleteParametersQuery, filters);
+        getJdbcTemplate().update(query);
     }
 
     enum TaskParameters {
@@ -427,6 +475,11 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     }
 
     @Required
+    public void setDeleteTasksQuery(final String deleteTasksQuery) {
+        this.deleteTasksQuery = deleteTasksQuery;
+    }
+
+    @Required
     public void setInsertTaskOrganismsQuery(final String insertTaskOrganismsQuery) {
         this.insertTaskOrganismsQuery = insertTaskOrganismsQuery;
     }
@@ -469,6 +522,21 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
     @Required
     public void setLoadTaskParametersQuery(final String loadTaskParametersQuery) {
         this.loadTaskParametersQuery = loadTaskParametersQuery;
+    }
+
+    @Required
+    public void setDeleteOrganismsQuery(String deleteOrganismsQuery) {
+        this.deleteOrganismsQuery = deleteOrganismsQuery;
+    }
+
+    @Required
+    public void setDeleteExclOrganismsQuery(String deleteExclOrganismsQuery) {
+        this.deleteExclOrganismsQuery = deleteExclOrganismsQuery;
+    }
+
+    @Required
+    public void setDeleteParametersQuery(String deleteParametersQuery) {
+        this.deleteParametersQuery = deleteParametersQuery;
     }
 
     @Required
