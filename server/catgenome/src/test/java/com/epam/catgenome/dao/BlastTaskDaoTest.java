@@ -30,6 +30,7 @@ import java.util.Collections;
 import com.epam.catgenome.dao.blast.BlastTaskDao;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.TaskStatus;
+import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.blast.BlastTaskManager;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
 import com.epam.catgenome.util.db.PagingInfo;
@@ -54,6 +55,8 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
 
     @Autowired
     private BlastTaskManager blastTaskManager;
+    @Autowired
+    private AuthManager authManager;
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
@@ -106,6 +109,20 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
     }
 
     @Test
+    public void testLoadTasksDefault() {
+        blastTaskDao.saveTask(getBlastTask(1L, "test1"));
+        blastTaskDao.saveTask(getBlastTask(2L, "test2"));
+        blastTaskDao.saveTask(getBlastTask(3L, "test3"));
+        blastTaskDao.saveTask(getBlastTask(4L, "test4"));
+        blastTaskDao.saveTask(getBlastTask(5L, "test5"));
+
+        QueryParameters parameters = new QueryParameters();
+        TaskPage taskPage = blastTaskManager.loadAllTasks(parameters);
+        Assert.assertNotNull(taskPage);
+        Assert.assertEquals(taskPage.getTotalCount(), 5);
+    }
+
+    @Test
     public void testGetTasksCount() {
         blastTaskDao.saveTask(getBlastTask(1L, "test"));
         long count = blastTaskDao.getTasksCount(Collections.emptyList());
@@ -118,6 +135,7 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
         blastTask.setId(id);
         blastTask.setTitle(title);
         blastTask.setStatus(TaskStatus.CREATED);
+        blastTask.setOwner(authManager.getAuthorizedUser());
         blastTask.setCreatedDate(LocalDateTime.now());
         return blastTask;
     }

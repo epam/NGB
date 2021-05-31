@@ -40,9 +40,11 @@ import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
 import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
+import com.epam.catgenome.util.db.SortInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -159,7 +161,20 @@ public class BlastTaskManager {
     @Transactional(propagation = Propagation.REQUIRED)
     public TaskPage loadAllTasks(final QueryParameters queryParameters) {
         TaskPage taskPage = new TaskPage();
-        long totalCount = blastTaskDao.getTasksCount(queryParameters.getFilters());
+        List<Filter> filters = queryParameters.getFilters();
+        Filter currentUserFilter = new Filter("owner", "=",
+                "'" + authManager.getAuthorizedUser() + "'");
+        if (filters != null) {
+            filters.add(currentUserFilter);
+        } else {
+            filters = Collections.singletonList(currentUserFilter);
+        }
+        long totalCount = blastTaskDao.getTasksCount(filters);
+        SortInfo sortByCreatedDate = new SortInfo("created_date", false);
+        List<SortInfo> sortInfos = ListUtils.defaultIfNull(queryParameters.getSortInfos(),
+                Collections.singletonList(sortByCreatedDate));
+        queryParameters.setFilters(filters);
+        queryParameters.setSortInfos(sortInfos);
         List<BlastTask> blastTasks = blastTaskDao.loadAllTasks(queryParameters);
         taskPage.setTotalCount(totalCount);
         taskPage.setBlastTasks(blastTasks);

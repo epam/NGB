@@ -448,10 +448,15 @@ public final class Utils {
         List<String> filter = new ArrayList<>(Collections.emptyList());
         if (filters != null) {
             for (Filter q : filters) {
-                filter.add(q.getField() + " " + q.getOperator() + " " + q.getValue());
+                if (StringUtils.isNotBlank(q.getField())
+                        && StringUtils.isNotBlank(q.getOperator())
+                        && StringUtils.isNotBlank(q.getValue())) {
+                    filter.add(q.getField() + " " + q.getOperator() + " " + q.getValue());
+                }
             }
         }
-        return filters == null || filter.isEmpty() ? query : query + String.format(WHERE_CLAUSE, join(filter, " and "));
+        return filter.isEmpty() ? query
+                : query + String.format(WHERE_CLAUSE, join(filter, " and "));
     }
 
     public static String addPagingInfoToQuery(final String query, final PagingInfo pagingInfo) {
@@ -466,10 +471,12 @@ public final class Utils {
         List<String> orderBy = new LinkedList<>(Collections.emptyList());
         if (sortInfos != null) {
             for (SortInfo sortInfo: sortInfos) {
-                orderBy.add(sortInfo.getField() + (sortInfo.isAscending() ? " ASC" : " DESC"));
+                if (StringUtils.isNotBlank(sortInfo.getField())) {
+                    orderBy.add(sortInfo.getField() + (sortInfo.isAscending() ? " ASC" : " DESC"));
+                }
             }
         }
-        return sortInfos == null || sortInfos.isEmpty() ? query
+        return orderBy.isEmpty() ? query
                 : query + String.format(ORDER_BY_CLAUSE, join(orderBy, ", "));
     }
 }
