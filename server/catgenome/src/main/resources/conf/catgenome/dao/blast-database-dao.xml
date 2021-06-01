@@ -40,6 +40,18 @@
                 ]]>
             </value>
         </property>
+        <property name="loadDataBaseQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        database_id,
+                        name,
+                        path,
+                        type
+                    FROM catgenome.blast_database WHERE database_id = ?
+                ]]>
+            </value>
+        </property>
         <property name="loadDataBasesQuery">
             <value>
                 <![CDATA[

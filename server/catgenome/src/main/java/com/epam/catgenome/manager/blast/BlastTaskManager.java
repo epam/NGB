@@ -27,11 +27,7 @@ import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.TaskVO;
 import com.epam.catgenome.dao.blast.BlastTaskDao;
-import com.epam.catgenome.entity.blast.BlastDataBase;
-import com.epam.catgenome.entity.blast.BlastTask;
-import com.epam.catgenome.entity.blast.BlastTaskOrganism;
-import com.epam.catgenome.entity.blast.TaskParameter;
-import com.epam.catgenome.entity.blast.TaskStatus;
+import com.epam.catgenome.entity.blast.*;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.blast.dto.BlastRequest;
@@ -197,6 +193,6 @@ public class BlastTaskManager {
 
     public List<BlastDataBase> loadDataBases(final Optional<Long> type) {
         return Collections.singletonList(new BlastDataBase(1L, "Homo_sapiens.GRCh38",
-                "Homo_sapiens.GRCh38", "NUCLEOTIDE"));
+                "Homo_sapiens.GRCh38", BlastDataBaseType.NUCLEOTIDE));
     }
 }

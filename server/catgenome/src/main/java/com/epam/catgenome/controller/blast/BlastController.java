@@ -179,16 +179,16 @@ public class BlastController extends AbstractRESTController {
         return Result.success(null);
     }
 
-    @GetMapping(value = {"/databases/{type}", "/database"})
-    @ResponseBody
-    @ApiOperation(
-            value = "Returns databases by type",
-            notes = "Returns databases by type",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<List<BlastDataBase>> loadDataBases(@PathVariable final Optional<Long> type) {
-        return Result.success(blastTaskSecurityService.loadDataBases(type));
-    }
+//    @GetMapping(value = {"/databases/{type}", "/database"})
+//    @ResponseBody
+//    @ApiOperation(
+//            value = "Returns databases by type",
+//            notes = "Returns databases by type",
+//            produces = MediaType.APPLICATION_JSON_VALUE)
+//    @ApiResponses(
+//            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+//            })
+//    public Result<List<BlastDataBase>> loadDataBases(@PathVariable final Optional<Long> type) {
+//        return Result.success(blastTaskSecurityService.loadDataBases(type));
+//    }
 }

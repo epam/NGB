@@ -3,7 +3,9 @@ package com.epam.catgenome.dao.blast;
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.blast.BlastDataBase;
 import com.epam.catgenome.entity.blast.BlastDataBaseType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
@@ -13,9 +15,12 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class BlastDataBaseDao extends NamedParameterJdbcDaoSupport {
 
     @Autowired
@@ -60,7 +65,7 @@ public class BlastDataBaseDao extends NamedParameterJdbcDaoSupport {
     public List<BlastDataBase> loadDataBases(final BlastDataBaseType type) {
         String query = type == null ? loadDataBasesQuery : loadDataBasesQuery
                 + " WHERE TYPE = " + type.getTypeId();
-        return getJdbcTemplate().query(query, DataBaseParameters.getRowMapper(), type);
+        return getJdbcTemplate().query(query, DataBaseParameters.getRowMapper());
     }
 
     /**
