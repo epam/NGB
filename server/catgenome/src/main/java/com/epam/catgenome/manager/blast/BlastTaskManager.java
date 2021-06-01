@@ -187,7 +187,7 @@ public class BlastTaskManager {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public TaskPage loadAllTasks(final QueryParameters queryParameters) {
+    public TaskPage loadTasks(final QueryParameters queryParameters) {
         TaskPage taskPage = new TaskPage();
         long totalCount = blastTaskDao.getTasksCount(queryParameters.getFilters());
         List<BlastTask> blastTasks = blastTaskDao.loadAllTasks(queryParameters);
