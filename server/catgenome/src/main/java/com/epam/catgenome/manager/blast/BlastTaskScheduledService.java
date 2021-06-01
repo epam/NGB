@@ -1,5 +1,6 @@
 package com.epam.catgenome.manager.blast;
 
+import com.epam.catgenome.dao.blast.BlastTaskDao;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.TaskStatus;
 import com.epam.catgenome.exception.BlastRequestException;
@@ -22,6 +23,7 @@ import static org.apache.commons.lang3.StringUtils.join;
 @RequiredArgsConstructor
 public class BlastTaskScheduledService {
     private final BlastTaskManager blastTaskManager;
+    private final BlastTaskDao blastTaskDao;
     private final BlastRequestManager blastRequestManager;
 
 
@@ -35,7 +37,7 @@ public class BlastTaskScheduledService {
         Filter filter = new Filter("status", "in", "(" + join(statuses, ",") + ")");
         QueryParameters parameters = new QueryParameters();
         parameters.setFilters(Collections.singletonList(filter));
-        List<BlastTask> tasks = blastTaskManager.loadAllTasks(parameters).getBlastTasks();
+        List<BlastTask> tasks = blastTaskDao.loadAllTasks(parameters);
         tasks.forEach(t -> {
             try {
                 BlastRequestInfo blastRequestInfo = blastRequestManager.getTaskStatus(t.getId());

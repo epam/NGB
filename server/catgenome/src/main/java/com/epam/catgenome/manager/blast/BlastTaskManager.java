@@ -40,9 +40,11 @@ import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
 import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
+import com.epam.catgenome.util.db.SortInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -77,11 +79,12 @@ public class BlastTaskManager {
     private final AuthManager authManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public BlastTask load(final Long taskId) {
+    public BlastTask loadTask(final long taskId) {
         BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
         Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
 
         loadTaskOrganisms(blastTask);
+        loadTaskExclOrganisms(blastTask);
         loadTaskParameters(blastTask);
 
         return blastTask;
@@ -92,6 +95,13 @@ public class BlastTaskManager {
         List<Long> organisms = blastTaskOrganismList.stream().
                 map(BlastTaskOrganism::getOrganism).collect(Collectors.toList());
         blastTask.setOrganisms(organisms);
+    }
+
+    private void loadTaskExclOrganisms(final BlastTask blastTask) {
+        List<BlastTaskOrganism> blastTaskExclOrganismList = blastTaskDao.loadExclOrganisms(blastTask.getId());
+        List<Long> organisms = blastTaskExclOrganismList.stream().
+                map(BlastTaskOrganism::getOrganism).collect(Collectors.toList());
+        blastTask.setExcludedOrganisms(organisms);
     }
 
     private void loadTaskParameters(final BlastTask blastTask) {
@@ -115,16 +125,19 @@ public class BlastTaskManager {
         blastRequest.setTaxIds(taskVO.getOrganisms());
         blastRequest.setExcludedTaxIds(taskVO.getExcludedOrganisms());
         Map<String, String> params = MapUtils.emptyIfNull(taskVO.getParameters());
-        blastRequest.setMaxTargetSequence(params.containsKey(MAX_TARGET_SEQS)
-                ? Long.parseLong(params.get(MAX_TARGET_SEQS)) : null);
-        blastRequest.setExpectedThreshold(params.containsKey(EVALUE)
-                ? Long.parseLong(params.get(EVALUE)) : null);
+        if (params.containsKey(MAX_TARGET_SEQS)) {
+            blastRequest.setMaxTargetSequence(Long.parseLong(params.get(MAX_TARGET_SEQS)));
+        }
+        if (params.containsKey(EVALUE)) {
+            blastRequest.setExpectedThreshold(Double.parseDouble(params.get(EVALUE)));
+        }
         BlastRequestInfo blastRequestInfo = blastRequestManager.createTask(blastRequest);
         if (blastRequestInfo == null || blastRequestInfo.getStatus().equals("ERROR")) {
             throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_REQUEST));
         }
         BlastTask blastTask = new BlastTask();
         blastTask.setId(blastRequestInfo.getRequestId());
+        blastTask.setTitle(taskVO.getTitle());
         blastTask.setQuery(taskVO.getQuery());
         blastTask.setDatabase(taskVO.getDatabase());
         blastTask.setOrganisms(taskVO.getOrganisms());
@@ -183,12 +196,25 @@ public class BlastTaskManager {
         return taskPage;
     }
 
+    public TaskPage loadCurrentUserTasks(final QueryParameters queryParameters) {
+        List<Filter> filters = new ArrayList<>();
+        Filter currentUserFilter = new Filter("owner", "=",
+                "'" + authManager.getAuthorizedUser() + "'");
+        filters.add(currentUserFilter);
+        filters.addAll(ListUtils.emptyIfNull(queryParameters.getFilters()));
+        SortInfo sortByCreatedDate = new SortInfo("created_date", false);
+        List<SortInfo> sortInfos = ListUtils.defaultIfNull(queryParameters.getSortInfos(),
+                Collections.singletonList(sortByCreatedDate));
+        queryParameters.setFilters(filters);
+        queryParameters.setSortInfos(sortInfos);
+        return loadTasks(queryParameters);
+    }
+
     @Transactional(propagation = Propagation.REQUIRED)
     public void updateTask(final BlastTask blastTask) {
         blastTaskDao.updateTask(blastTask);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
     public long getTasksCount(final List<Filter> filters) {
         return blastTaskDao.getTasksCount(filters);
     }

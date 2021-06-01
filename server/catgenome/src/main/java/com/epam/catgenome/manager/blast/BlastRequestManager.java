@@ -9,11 +9,13 @@ import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
 import com.epam.catgenome.exception.BlastRequestException;
+import com.epam.catgenome.manager.blast.dto.Result;
 import com.epam.catgenome.util.QueryUtils;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
 
@@ -33,7 +35,9 @@ public class BlastRequestManager {
 
     public BlastRequestInfo createTask(final BlastRequest blastRequest) throws BlastRequestException {
         try {
-            return QueryUtils.execute(blastApi.createTask(blastRequest)).getPayload();
+            Result<BlastRequestInfo> result = QueryUtils.execute(blastApi.createTask(blastRequest));
+            Assert.isTrue(!result.getStatus().equals("ERROR"), result.getMessage());
+            return result.getPayload();
         } catch (BlastResponseException e) {
             throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants
                     .ERROR_BLAST_REQUEST), e);
@@ -51,7 +55,9 @@ public class BlastRequestManager {
 
     public BlastRequestInfo cancelTask(final long id) throws BlastRequestException {
         try {
-            return QueryUtils.execute(blastApi.cancelTask(id)).getPayload();
+            Result<BlastRequestInfo> result = QueryUtils.execute(blastApi.cancelTask(id));
+            Assert.isTrue(!result.getStatus().equals("ERROR"), result.getMessage());
+            return result.getPayload();
         } catch (BlastResponseException e) {
             throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants
                     .ERROR_BLAST_REQUEST), e);
