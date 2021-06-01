@@ -99,7 +99,11 @@
         </div>
     </div>
 
-    <div layout="column" class="blast-search-result-table-row" flex>
+    <div layout="column" class="blast-search-result-table-row" flex ng-if="!$ctrl.isFailure">
         <ngb-blast-search-result-table layout="column" flex></ngb-blast-search-result-table>
+    </div>
+    <div ng-if="$ctrl.isFailure" class="variants-load-error-container" layout="column" layout-align="center center">
+        <small>Search was failed.</small>
+        <small>{{$ctrl.searchResult.reason}}</small>
     </div>
 </div>

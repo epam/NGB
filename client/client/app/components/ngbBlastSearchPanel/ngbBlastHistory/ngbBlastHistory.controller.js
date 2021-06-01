@@ -145,7 +145,7 @@ export default class ngbBlastHistoryController extends baseController {
 
     rowClick(row, event) {
         const entity = row.entity;
-        if (entity && entity.isDone) {
+        if (entity && entity.isResult) {
             this.ngbBlastSearchService.currentResultId = row.entity.id;
             this.changeState({state: 'RESULT'});
         } else {
@@ -220,20 +220,6 @@ export default class ngbBlastHistoryController extends baseController {
 
         this.ngbBlastHistoryTableService.currentPageHistory = 1;
         this.loadData();
-    }
-
-    onRemove(entity, event) {
-        const confirm = this.$mdDialog.confirm()
-            .title(`Delete history entry #${entity.id}?`)
-            .ok('OK')
-            .cancel('CANCEL');
-
-        this.$mdDialog.show(confirm).then(async () => {
-            await this.ngbBlastHistoryTableService.deleteBlastSearch(entity.id);
-            await this.loadData();
-        });
-        event.stopImmediatePropagation();
-        return false;
     }
 
     onCancel(entity, event) {

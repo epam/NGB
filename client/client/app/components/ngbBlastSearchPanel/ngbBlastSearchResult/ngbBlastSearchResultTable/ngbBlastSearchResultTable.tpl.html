@@ -9,8 +9,8 @@
     <span>Try to change search parameters.</span>
 </div>
 <div ng-if="!$ctrl.isProgressShown && !$ctrl.isEmptyResults" class="ui-grid-container blast-search-flex-column" ng-hide="$ctrl.errorMessageList.length" flex>
-    <div ng-if="$ctrl.historyLoadError" class="variants-load-error-container">
-        <small>{{$ctrl.historyLoadError}}</small>
+    <div ng-if="$ctrl.searchResultTableLoadError" class="variants-load-error-container">
+        <small>{{$ctrl.searchResultTableLoadError}}</small>
     </div>
     <div ui-grid="$ctrl.gridOptions"
          ui-grid-save-state

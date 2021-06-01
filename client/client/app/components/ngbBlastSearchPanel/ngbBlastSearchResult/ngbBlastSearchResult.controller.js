@@ -9,6 +9,7 @@ export default class ngbBlastSearchResult extends baseController {
 
     searchResult = {};
     isProgressShown = true;
+    isFailure = false;
 
     constructor(dispatcher, $scope, $timeout, $mdDialog, ngbBlastSearchService) {
         super(dispatcher);
@@ -27,6 +28,7 @@ export default class ngbBlastSearchResult extends baseController {
 
     async initialize() {
         this.searchResult = await this.ngbBlastSearchService.getCurrentSearchResult();
+        this.isFailure = this.searchResult.state === 'FAILED';
         this.isProgressShown = false;
     }
 

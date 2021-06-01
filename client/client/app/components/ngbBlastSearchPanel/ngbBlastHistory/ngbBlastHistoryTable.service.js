@@ -16,7 +16,7 @@ const blastSearchState = {
 };
 const FIRST_PAGE = 1;
 const PAGE_SIZE = 10;
-const REFRESH_INTERVAL_SEC = 10;
+const REFRESH_INTERVAL_SEC = 5;
 
 export default class ngbBlastHistoryTableService {
 
@@ -163,9 +163,9 @@ export default class ngbBlastHistoryTableService {
                 case 'id': {
                     result.push({
                         cellTemplate: `<div class="ui-grid-cell-contents"
-                                        ng-class="row.entity.isDone
+                                        ng-class="row.entity.isResult
                                         ? 'search-result-link'
-                                        : 'search-result-not-done'"
+                                        : 'search-result-not-link'"
                                        >{{row.entity.id}}</div>`,
                         enableHiding: false,
                         field: 'id',
@@ -283,7 +283,7 @@ export default class ngbBlastHistoryTableService {
             }
         }
         if (state === blastSearchState.SEARCHING) {
-            duration = Date.now() - +new Date(search.createdDate);
+            duration = Date.now() - +new Date(`${search.createdDate} UTC`);
         } else {
             duration = +new Date(search.endDate) - +new Date(search.createdDate);
         }
@@ -291,9 +291,9 @@ export default class ngbBlastHistoryTableService {
             id: search.id,
             title: search.title,
             currentState: state,
-            submitted: search.createdDate,
+            submitted: new Date(`${search.createdDate} UTC`),
             duration: Math.ceil(duration/1000),
-            isDone: state === blastSearchState.DONE,
+            isResult: state === blastSearchState.DONE || state === blastSearchState.FAILURE,
             isInProgress: state === blastSearchState.SEARCHING
         };
     }
