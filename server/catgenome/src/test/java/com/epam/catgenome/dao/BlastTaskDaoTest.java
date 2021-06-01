@@ -102,7 +102,7 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
 //        SortInfo sortInfo = new SortInfo("task_id", false);
 //        parameters.setSortInfos(Collections.singletonList(sortInfo));
 
-        TaskPage taskPage = blastTaskManager.loadAllTasks(parameters);
+        TaskPage taskPage = blastTaskManager.loadTasks(parameters);
         Assert.assertNotNull(taskPage);
         Assert.assertEquals(taskPage.getTotalCount(), 5);
         Assert.assertEquals(taskPage.getBlastTasks().size(), 2);
@@ -117,7 +117,7 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
         blastTaskDao.saveTask(getBlastTask(5L, "test5"));
 
         QueryParameters parameters = new QueryParameters();
-        TaskPage taskPage = blastTaskManager.loadAllTasks(parameters);
+        TaskPage taskPage = blastTaskManager.loadTasks(parameters);
         Assert.assertNotNull(taskPage);
         Assert.assertEquals(taskPage.getTotalCount(), 5);
     }

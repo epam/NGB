@@ -54,6 +54,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -77,11 +78,12 @@ public class BlastTaskManager {
     private final AuthManager authManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public BlastTask load(final Long taskId) {
+    public BlastTask loadTask(final long taskId) {
         BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
         Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
 
         loadTaskOrganisms(blastTask);
+        loadTaskExclOrganisms(blastTask);
         loadTaskParameters(blastTask);
 
         return blastTask;
@@ -92,6 +94,13 @@ public class BlastTaskManager {
         List<Long> organisms = blastTaskOrganismList.stream().
                 map(BlastTaskOrganism::getOrganism).collect(Collectors.toList());
         blastTask.setOrganisms(organisms);
+    }
+
+    private void loadTaskExclOrganisms(final BlastTask blastTask) {
+        List<BlastTaskOrganism> blastTaskExclOrganismList = blastTaskDao.loadExclOrganisms(blastTask.getId());
+        List<Long> organisms = blastTaskExclOrganismList.stream().
+                map(BlastTaskOrganism::getOrganism).collect(Collectors.toList());
+        blastTask.setExcludedOrganisms(organisms);
     }
 
     private void loadTaskParameters(final BlastTask blastTask) {
@@ -119,7 +128,7 @@ public class BlastTaskManager {
             blastRequest.setMaxTargetSequence(Long.parseLong(params.get(MAX_TARGET_SEQS)));
         }
         if (params.containsKey(EVALUE)) {
-            blastRequest.setExpectedThreshold(Long.parseLong(params.get(EVALUE)));
+            blastRequest.setExpectedThreshold(Double.parseDouble(params.get(EVALUE)));
         }
         BlastRequestInfo blastRequestInfo = blastRequestManager.createTask(blastRequest);
         if (blastRequestInfo == null || blastRequestInfo.getStatus().equals("ERROR")) {
@@ -127,6 +136,7 @@ public class BlastTaskManager {
         }
         BlastTask blastTask = new BlastTask();
         blastTask.setId(blastRequestInfo.getRequestId());
+        blastTask.setTitle(taskVO.getTitle());
         blastTask.setQuery(taskVO.getQuery());
         blastTask.setDatabase(taskVO.getDatabase());
         blastTask.setOrganisms(taskVO.getOrganisms());
@@ -158,27 +168,27 @@ public class BlastTaskManager {
         blastTaskDao.deleteTask(taskId);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
-    public TaskPage loadAllTasks(final QueryParameters queryParameters) {
+    public TaskPage loadTasks(final QueryParameters queryParameters) {
         TaskPage taskPage = new TaskPage();
-        List<Filter> filters = queryParameters.getFilters();
+        long totalCount = blastTaskDao.getTasksCount(queryParameters.getFilters());
+        List<BlastTask> blastTasks = blastTaskDao.loadAllTasks(queryParameters);
+        taskPage.setTotalCount(totalCount);
+        taskPage.setBlastTasks(blastTasks);
+        return taskPage;
+    }
+
+    public TaskPage loadCurrentUserTasks(final QueryParameters queryParameters) {
+        List<Filter> filters = new ArrayList<>();
         Filter currentUserFilter = new Filter("owner", "=",
                 "'" + authManager.getAuthorizedUser() + "'");
-        if (filters != null) {
-            filters.add(currentUserFilter);
-        } else {
-            filters = Collections.singletonList(currentUserFilter);
-        }
-        long totalCount = blastTaskDao.getTasksCount(filters);
+        filters.add(currentUserFilter);
+        filters.addAll(ListUtils.emptyIfNull(queryParameters.getFilters()));
         SortInfo sortByCreatedDate = new SortInfo("created_date", false);
         List<SortInfo> sortInfos = ListUtils.defaultIfNull(queryParameters.getSortInfos(),
                 Collections.singletonList(sortByCreatedDate));
         queryParameters.setFilters(filters);
         queryParameters.setSortInfos(sortInfos);
-        List<BlastTask> blastTasks = blastTaskDao.loadAllTasks(queryParameters);
-        taskPage.setTotalCount(totalCount);
-        taskPage.setBlastTasks(blastTasks);
-        return taskPage;
+        return loadTasks(queryParameters);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -186,7 +196,6 @@ public class BlastTaskManager {
         blastTaskDao.updateTask(blastTask);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
     public long getTasksCount(final List<Filter> filters) {
         return blastTaskDao.getTasksCount(filters);
     }

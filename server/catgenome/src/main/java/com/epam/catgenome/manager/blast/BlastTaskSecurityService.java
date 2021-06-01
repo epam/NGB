@@ -57,7 +57,7 @@ public class BlastTaskSecurityService {
     @AclMask
     @PreAuthorize(ROLE_USER)
     public BlastTask load(final Long taskId) {
-        return blastTaskManager.load(taskId);
+        return blastTaskManager.loadTask(taskId);
     }
 
     @PreAuthorize(ROLE_USER)
@@ -72,7 +72,7 @@ public class BlastTaskSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public TaskPage loadAllTasks(final QueryParameters queryParameters) {
-        return blastTaskManager.loadAllTasks(queryParameters);
+        return blastTaskManager.loadCurrentUserTasks(queryParameters);
     }
 
     @PreAuthorize(ROLE_USER)

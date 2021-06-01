@@ -14,7 +14,7 @@ public class BlastRequest {
     private List<Long> taxIds;
     private List<Long> excludedTaxIds;
     private String query;
-    private Long maxTargetSequence;
-    private Long expectedThreshold;
+    private long maxTargetSequence;
+    private double expectedThreshold;
     private String options;
 }

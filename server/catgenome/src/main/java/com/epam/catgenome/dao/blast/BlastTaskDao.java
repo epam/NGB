@@ -97,19 +97,16 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
      * @return a loaded {@code Task} instance or
      *          {@code null} if task with a given ID doesn't exist
      */
-    @Transactional(propagation = Propagation.SUPPORTS)
     public BlastTask loadTaskById(final long id) {
         List<BlastTask> blastTasks = getJdbcTemplate().query(loadTaskByIdQuery, TaskParameters.getRowMapper(), id);
         return blastTasks.isEmpty() ? null : blastTasks.get(0);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BlastTask> loadAllTasks(final QueryParameters queryParameters) {
         String query = addParametersToQuery(loadAllTasksQuery, queryParameters);
         return getJdbcTemplate().query(query, TaskParameters.getRowMapper());
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     public long getTasksCount(final List<Filter> filters) {
         String query = addFiltersToQuery(getTaskCountQuery, filters);
         return getJdbcTemplate().queryForObject(query, Long.class);
@@ -137,7 +134,6 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
      * @param taskId id of the task
      * @return a loaded {@code List<Organism>}
      */
-    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BlastTaskOrganism> loadOrganisms(final long taskId) {
         return getJdbcTemplate().query(loadTaskOrganismsQuery, OrganismParameters.getRowMapper(), taskId);
     }
@@ -147,7 +143,6 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
      * @param taskId id of the task
      * @return a loaded {@code List<Organism>}
      */
-    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BlastTaskOrganism> loadExclOrganisms(final long taskId) {
         return getJdbcTemplate().query(loadTaskExclOrganismsQuery, OrganismParameters.getRowMapper(), taskId);
     }
@@ -179,7 +174,6 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
                 TaskParameterParameters.getParameters(taskParameter));
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     public List<TaskParameter> loadTaskParameters(final long id) {
         return getJdbcTemplate().query(loadTaskParametersQuery, TaskParameterParameters.getRowMapper(), id);
     }
