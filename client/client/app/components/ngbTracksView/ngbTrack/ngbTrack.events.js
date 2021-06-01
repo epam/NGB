@@ -1,4 +1,4 @@
-import {EventGeneInfo, EventVariationInfo, PairReadInfo} from '../../../shared/utils/events';
+import {EventGeneInfo, PairReadInfo} from '../../../shared/utils/events';
 import Clipboard from 'clipboard';
 
 export default class ngbTrackEvents {
@@ -119,7 +119,7 @@ export default class ngbTrackEvents {
                 });
                 if (geneTracks.length > 0) {
                     if (data.feature.attributes && data.feature.attributes.gene_id) {
-                        let layoutChange = this.appLayout.Panels.molecularViewer;
+                        const layoutChange = this.appLayout.Panels.molecularViewer;
                         layoutChange.displayed = true;
                         menuData.push({
                             events: [
@@ -327,9 +327,9 @@ export default class ngbTrackEvents {
                 };
                 const read = await self._bamDataService.loadRead(payload);
                 const generalInfo = data.info.map(line => line.join(' = ')).join('\r\n');
-                const tags = read.tags.map(tag => tag.tag + ' = ' + tag.value).join('\r\n');
+                const tags = read.tags.map(tag => `${tag.tag  } = ${  tag.value}`).join('\r\n');
 
-                menuItem.clipboard = generalInfo + '\r\n\r\n' + read.sequence + '\r\n\r\n' + tags;
+                menuItem.clipboard = `${generalInfo  }\r\n\r\n${  read.sequence  }\r\n\r\n${  tags}`;
                 menuItem.isLoading = false;
                 self.$scope.$apply();
             }
@@ -376,13 +376,6 @@ export default class ngbTrackEvents {
                 name: 'read:show:blat',
             }],
         };
-        const openBlastSearchMenuItem = {
-            events: [{
-                data: {...readInfo},
-                name: 'read:show:blast',
-            }],
-            title: 'BLAST Search',
-        };
         const openBlastnSearchMenuItem = {
             events: [{
                 data: {...readInfo, tool:'blastn'},
@@ -398,7 +391,6 @@ export default class ngbTrackEvents {
             menuData.push(openMateMenuItem);
         }
         menuData.push(openBlatSearchMenuItem);
-        menuData.push(openBlastSearchMenuItem);
         menuData.push(openBlastnSearchMenuItem);
         menuData.push(copyToClipboard);
         menuData.push(copySequenceToClipboard);

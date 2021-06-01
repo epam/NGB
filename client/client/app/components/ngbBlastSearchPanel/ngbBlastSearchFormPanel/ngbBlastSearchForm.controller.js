@@ -44,7 +44,7 @@ export default class ngbBlastSearchFormController extends baseController {
         this.organismList = await this.ngbBlastSearchService.getOrganismList('human*[orgn]');
         this.dbList = await this.ngbBlastSearchService.getBlastDBList();
         const currentSearch = await this.ngbBlastSearchService.getCurrentSearch();
-        currentSearch.tool = currentSearch.tool || data.tool || '';
+        currentSearch.tool = currentSearch.tool || data.tool || this.ngbBlastSearchFormConstants.BLAST_TOOLS[0];
         Object.assign(this.searchRequest, currentSearch);
         this.setDefaultAlgorithms();
         this.$timeout(() => this.isProgressShown = false);

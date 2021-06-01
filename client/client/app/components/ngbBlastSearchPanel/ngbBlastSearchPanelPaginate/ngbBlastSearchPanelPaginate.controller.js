@@ -1,56 +1,30 @@
-import baseController from '../../../shared/baseController';
-
-export default class ngbBlastSearchPanelPaginate extends baseController {
+const PAGE_DEEPNESS = 3;
+export default class ngbBlastSearchPanelPaginate {
 
     static get UID() {
         return 'ngbBlastSearchPanelPaginate';
     }
 
-    constructor(dispatcher, $scope, $timeout) {
-        super(dispatcher);
-
-        Object.assign(this, {
-            $scope,
-            $timeout,
-            dispatcher,
-        });
-        this.initEvents();
+    constructor() {
     }
-
-    events = {
-        'blast:loading:finished': ([totalPages, currentPage]) => {
-            this.refresh(totalPages, currentPage);
-        },
-        'pageBlast:scroll': (page) => {
-            this.setPage(page);
-        },
-    };
 
     $onChanges(changes) {
-        let needRefresh = false;
-        if (changes.totalPages && (changes.totalPages.previousValue !== changes.totalPages.currentValue)) {
-            needRefresh = true;
+        if (!!changes.totalPages && (changes.totalPages.previousValue !== changes.totalPages.currentValue)) {
+            this.setTotalPages(changes.totalPages.currentValue);
         }
-        if (changes.currentPage && (changes.currentPage.previousValue !== changes.currentPage.currentValue)) {
-            needRefresh = true;
-        }
-        if (needRefresh) {
-            this.refresh(changes.totalPages.currentValue, this.currentPage);
+        if (!!changes.currentPage && (changes.currentPage.previousValue !== changes.currentPage.currentValue)) {
+            this.setPage(changes.currentPage.currentValue);
         }
     }
 
-    refresh(totalPages, currentPage) {
+    setTotalPages(totalPages) {
         this.totalPages = totalPages;
         this.pages = this.getPages();
-        this.setPage(currentPage);
     }
 
     setPage(page) {
-        if (this.totalPages === undefined || page < 1 || page > this.totalPages) {
-            return;
-        }
-
         this.currentPage = page;
+        this.pages = this.getPages();
         this.changePage({page: this.currentPage});
     }
 
@@ -61,10 +35,10 @@ export default class ngbBlastSearchPanelPaginate extends baseController {
             return [];
         }
 
-        let minimumPage = Math.max(1, currentPage - 3);
-        let maximumPage = Math.min(totalPages, currentPage + 3);
-        minimumPage = Math.max(1, Math.min(minimumPage, maximumPage - 6));
-        maximumPage = Math.min(Math.max(maximumPage, minimumPage + 6), totalPages);
+        let minimumPage = Math.max(1, currentPage - PAGE_DEEPNESS);
+        let maximumPage = Math.min(totalPages, currentPage + PAGE_DEEPNESS);
+        minimumPage = Math.max(1, Math.min(minimumPage, maximumPage - PAGE_DEEPNESS*2));
+        maximumPage = Math.min(Math.max(maximumPage, minimumPage + PAGE_DEEPNESS*2), totalPages);
 
         const pages = [];
         for (let i = minimumPage; i <= maximumPage; i++) {

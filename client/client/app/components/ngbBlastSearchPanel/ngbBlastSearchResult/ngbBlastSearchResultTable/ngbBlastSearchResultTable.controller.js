@@ -42,7 +42,7 @@ export default class ngbBlastSearchResultTableController extends baseController 
         saveSelection: false,
     };
 
-    constructor($scope, $timeout, ngbBlastSearchResultTableService, uiGridConstants, dispatcher, projectContext) {
+    constructor($scope, $timeout, ngbBlastSearchResultTableService, ngbBlastSearchService, dispatcher, projectContext) {
         super();
 
         Object.assign(this, {
@@ -50,8 +50,8 @@ export default class ngbBlastSearchResultTableController extends baseController 
             $timeout,
             dispatcher,
             ngbBlastSearchResultTableService,
-            projectContext,
-            uiGridConstants,
+            ngbBlastSearchService,
+            projectContext
         });
 
         this.initEvents();
@@ -87,7 +87,7 @@ export default class ngbBlastSearchResultTableController extends baseController 
 
     async loadData() {
         try {
-            await this.ngbBlastSearchResultTableService.updateSearchResult();
+            await this.ngbBlastSearchResultTableService.updateSearchResult(this.ngbBlastSearchService.currentResultId);
             if (this.ngbBlastSearchResultTableService.blastSearchResult.length || this.ngbBlastSearchResultTableService.searchResultTableError) {
                 this.searchResultLoadingFinished();
             }

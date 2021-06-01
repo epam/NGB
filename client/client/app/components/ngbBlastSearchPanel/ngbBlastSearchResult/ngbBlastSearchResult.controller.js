@@ -26,21 +26,20 @@ export default class ngbBlastSearchResult extends baseController {
     }
 
     async initialize() {
-        this.searchResult = await this.ngbBlastSearchService.getCurrentSearch();
+        this.searchResult = await this.ngbBlastSearchService.getCurrentSearchResult();
         this.isProgressShown = false;
     }
 
     openQueryInfo() {
         this.$mdDialog.show({
             clickOutsideToClose: true,
-            controller: ['sequence', function(sequence) {
+            controller: ['sequence', '$mdDialog', function(sequence, $mdDialog) {
                 this.sequence = sequence;
+                this.close = $mdDialog.hide;
             }],
             controllerAs: 'ctrl',
             parent: angular.element(document.body),
-            template: `<div>
-                        {{ctrl.sequence}}
-                       </div>`,
+            template: require('./ngbBlastSearchQueryDlg.tpl.html'),
             locals: {
                 sequence: this.searchResult.sequence
             }

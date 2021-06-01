@@ -16,17 +16,19 @@
         <md-progress-linear md-mode="query"></md-progress-linear>
     </div>
     <div class="expandable-panel" layout="column" ng-if="!$ctrl.isProgressShown">
-        <div class="expandable-panel-title" ng-click="toggle = !toggle" layout="column" flex="50">
-            <span ng-class="{'toggled': toggle}">BLAST parameters</span>
-        </div>
-        <span flex></span>
-        <div ng-click="openQueryInfo()" flex>
-            <md-button
-                    class="md-accent md-raised blast-search-nav-button"
-                    type="button"
-                    ng-click="$ctrl.openQueryInfo($event)"
-            >Query Info
-            </md-button>
+        <div class="blast-search-result-params">
+            <div class="expandable-panel-title" ng-click="toggle = !toggle" layout="column" flex="50">
+                <span ng-class="{'toggled': toggle}">BLAST parameters</span>
+            </div>
+            <span flex></span>
+            <div ng-click="openQueryInfo()" class="blast-search-result-info" flex>
+                <md-button
+                        class="md-accent md-raised"
+                        type="button"
+                        ng-click="$ctrl.openQueryInfo($event)"
+                >Query Info
+                </md-button>
+            </div>
         </div>
         <div class="expandable-panel-content" ng-show="toggle" layout="column">
             <div layout="row">
@@ -74,8 +76,8 @@
                         <div layout="column" flex="50">
                             <div layout="row">
                                 <span class="field-name">Max target sequences:</span>
-                                <span class="field-value">{{$ctrl.searchResult.sequenceLimit}}
-                            <md-tooltip>{{$ctrl.searchResult.sequenceLimit}}</md-tooltip>
+                                <span class="field-value">{{$ctrl.searchResult.maxTargetSeqs}}
+                            <md-tooltip>{{$ctrl.searchResult.maxTargetSeqs}}</md-tooltip>
                         </span>
                             </div>
                         </div>
@@ -97,7 +99,7 @@
         </div>
     </div>
 
-    <div layout="column" class="search-result-table-row" flex>
+    <div layout="column" class="blast-search-result-table-row" flex>
         <ngb-blast-search-result-table layout="column" flex></ngb-blast-search-result-table>
     </div>
 </div>

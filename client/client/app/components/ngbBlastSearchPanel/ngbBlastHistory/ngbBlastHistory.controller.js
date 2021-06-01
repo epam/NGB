@@ -71,6 +71,10 @@ export default class ngbBlastHistoryController extends baseController {
         });
     }
 
+    events = {
+        'blast:history:page:change': ::this.getDataOnPage
+    };
+
     $onInit() {
         this.initialize();
     }
@@ -90,7 +94,8 @@ export default class ngbBlastHistoryController extends baseController {
         this.statusViews = {
             [blastSearchState.SEARCHING]: 'Searching...',
             [blastSearchState.DONE]: 'Done',
-            [blastSearchState.FAILURE]: 'Failure'
+            [blastSearchState.FAILURE]: 'Failure',
+            [blastSearchState.CANCELED]: 'Interrupted'
         };
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
@@ -127,7 +132,7 @@ export default class ngbBlastHistoryController extends baseController {
 
     rowClick(row, event) {
         const entity = row.entity;
-        if (entity && !entity.isInProcess) {
+        if (entity && entity.isDone) {
             this.ngbBlastSearchService.currentResultId = row.entity.id;
             this.changeState({state: 'RESULT'});
         } else {
@@ -196,18 +201,7 @@ export default class ngbBlastHistoryController extends baseController {
 
     getDataOnPage(page) {
         this.ngbBlastHistoryTableService.firstPageHistory = page;
-        this.ngbBlastHistoryTableService.currentPageHistory = page;
-        this.gridOptions.data = [];
-        this.ngbBlastHistoryTableService.loadBlastHistory(page).then((data) => {
-            if (this.ngbBlastHistoryTableService.historyPageError) {
-                this.historyLoadError = this.ngbBlastHistoryTableService.historyPageError;
-                this.gridOptions.totalItems = 0;
-                this.gridOptions.data = [];
-            } else {
-                this.historyLoadError = null;
-                this.gridOptions.data = data;
-            }
-        });
+        this.loadData();
     }
 
     sortChanged(grid, sortColumns) {
@@ -222,22 +216,7 @@ export default class ngbBlastHistoryController extends baseController {
         }
 
         this.ngbBlastHistoryTableService.currentPageHistory = 1;
-
-        this.gridOptions.data = [];
-        this.ngbBlastHistoryTableService.loadBlastHistory(1).then((data) => {
-            if (this.ngbBlastHistoryTableService.historyPageError) {
-                this.historyLoadError = this.ngbBlastHistoryTableService.historyPageError;
-                this.gridOptions.totalItems = 0;
-                this.gridOptions.data = [];
-            } else {
-                this.historyLoadError = null;
-                this.gridOptions.data = data;
-            }
-        });
-    }
-
-    changeCurrentPage(page) {
-        this.getDataOnPage(page);
+        this.loadData();
     }
 
     onRemove(entity, event) {

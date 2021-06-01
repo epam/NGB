@@ -11,7 +11,8 @@ const DEFAULT_ORDERBY_HISTORY_COLUMNS = {
 const blastSearchState = {
     DONE: 'DONE',
     FAILURE: 'FAILURE',
-    SEARCHING: 'SEARCHING'
+    SEARCHING: 'SEARCHING',
+    CANCELED: 'CANCELED'
 };
 const FIRST_PAGE = 1;
 const PAGE_SIZE = 5;
@@ -19,8 +20,8 @@ const REFRESH_INTERVAL_SEC = 10;
 
 export default class ngbBlastHistoryTableService {
 
-    static instance(projectDataService) {
-        return new ngbBlastHistoryTableService(projectDataService);
+    static instance(dispatcher, projectDataService) {
+        return new ngbBlastHistoryTableService(dispatcher, projectDataService);
     }
 
     _blastHistory;
@@ -30,7 +31,8 @@ export default class ngbBlastHistoryTableService {
     _historyPageError = null;
     _orderByHistory = null;
 
-    constructor(projectDataService) {
+    constructor(dispatcher, projectDataService) {
+        this.dispatcher = dispatcher;
         this.projectDataService = projectDataService;
     }
 
@@ -63,7 +65,7 @@ export default class ngbBlastHistoryTableService {
     }
 
     get refreshInterval() {
-        return REFRESH_INTERVAL_SEC*1000;
+        return REFRESH_INTERVAL_SEC * 1000;
     }
 
     get historyPageError() {
@@ -111,6 +113,11 @@ export default class ngbBlastHistoryTableService {
         this._blastHistory = await this.loadBlastHistory();
     }
 
+    changePage(page) {
+        this.currentPageHistory = page;
+        this.dispatcher.emit('blast:history:page:change', page);
+    }
+
     async loadBlastHistory(page) {
         const filter = {
             pagingInfo: {
@@ -126,14 +133,16 @@ export default class ngbBlastHistoryTableService {
             this._firstPageHistory = FIRST_PAGE;
             this._hasMoreHistory = true;
             this._historyPageError = data.message;
-            // this.dispatcher.emit('blast:history:page:loading:finished');
             return [];
         } else {
             this._historyPageError = null;
         }
-        this._totalPages = Math.ceil(data.totalCount/this.historyPageSize);
-        const filteredData = data.blastTasks.filter(blastSearch => blastSearch.status !== 'CANCELLED');
-        filteredData.forEach((value, key) => filteredData[key] = this._formatServerToClient(value));
+        this._totalPages = Math.ceil(data.totalCount / this.historyPageSize);
+        let filteredData = [];
+        if (data.blastTasks) {
+            filteredData = data.blastTasks;
+            filteredData.forEach((value, key) => filteredData[key] = this._formatServerToClient(value));
+        }
         return filteredData;
     }
 
@@ -149,14 +158,15 @@ export default class ngbBlastHistoryTableService {
                 case 'id': {
                     result.push({
                         cellTemplate: `<div class="ui-grid-cell-contents"
-                                        ng-class="row.entity.isInProcess 
-                                        ? 'search-result-in-progress' 
-                                        : 'search-result-link'"
+                                        ng-class="row.entity.isDone
+                                        ? 'search-result-link'
+                                        : 'search-result-not-done'"
                                        >{{row.entity.id}}</div>`,
                         enableHiding: false,
                         field: 'id',
                         headerCellTemplate: headerCells,
                         minWidth: 40,
+                        maxWidth: 60,
                         name: 'id'
                     });
                     break;
@@ -262,19 +272,23 @@ export default class ngbBlastHistoryTableService {
                 state = blastSearchState.DONE;
                 break;
             }
+            case 'CANCELED': {
+                state = blastSearchState.CANCELED;
+                break;
+            }
         }
         if (state === blastSearchState.SEARCHING) {
-            duration = Date.now() - search.createdDate;
+            duration = Date.now() - +new Date(search.createdDate);
         } else {
-            duration = search.endDate - search.createdDate;
+            duration = +new Date(search.endDate) - +new Date(search.createdDate);
         }
         return {
             id: search.id,
             title: search.title,
             currentState: state,
             submitted: search.createdDate,
-            duration: duration,
-            isInProcess: state === blastSearchState.SEARCHING
+            duration: Math.ceil(duration/1000),
+            isDone: state === blastSearchState.DONE
         };
     }
 }

@@ -3,6 +3,12 @@
         <md-nav-item md-nav-click="$ctrl.changeState($ctrl.blastStates.SEARCH)" name="SEARCH">SEARCH</md-nav-item>
         <md-nav-item md-nav-click="$ctrl.changeState($ctrl.blastStates.HISTORY)" name="HISTORY">HISTORY</md-nav-item>
         <span flex></span>
+        <ngb-blast-search-panel-paginate ng-if="$ctrl.currentBlastState === $ctrl.blastStates.HISTORY"
+                                         total-pages="$ctrl.ngbBlastHistoryTableService.totalPages"
+                                         current-page="$ctrl.ngbBlastHistoryTableService.currentPageHistory"
+                                         change-page="$ctrl.ngbBlastHistoryTableService.changePage(page)"
+                                         flex
+        ></ngb-blast-search-panel-paginate>
         <md-button
                 class="md-accent md-raised blast-search-nav-button"
                 type="button"

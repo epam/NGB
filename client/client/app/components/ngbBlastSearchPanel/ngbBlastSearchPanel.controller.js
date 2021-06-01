@@ -54,5 +54,4 @@ export default class ngbBlastSearchPanelController extends baseController {
         event.stopImmediatePropagation();
         return false;
     }
-
 }

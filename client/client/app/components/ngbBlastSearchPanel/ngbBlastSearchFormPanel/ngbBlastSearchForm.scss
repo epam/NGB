@@ -60,3 +60,39 @@
 .blast-form-db-container {
   margin-top: 10px;
 }
+.blast-organisms-livesearch {
+  .md-chips {
+    padding: 0 0 1px 3px;
+    width: 90%;
+    margin: 8px 0;
+    display: flex;
+    flex-wrap: wrap;
+    flex-grow: 1;
+  }
+  .md-chips .md-chip-input-container md-autocomplete, .md-chips .md-chip-input-container md-autocomplete-wrap {
+    height: 27px;
+  }
+  .md-chips .md-chip-input-container {
+    flex-grow: 1;
+    input {
+      font-size: 14px;
+      height: 27px;
+      line-height: 27px;
+    }
+  }
+  .md-chips md-chip {
+    height: 27px;
+    line-height: 27px;
+  }
+  .md-chips md-chip .md-chip-remove {
+    height: 27px;
+    line-height: 27px;
+  }
+}
+.blast-organisms-livesearch-item li {
+  height: 30px;
+  line-height: 30px;
+}
+.blast-search-input-label {
+  padding-bottom: 2px;
+}

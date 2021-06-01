@@ -1,5 +1,5 @@
 const DEFAULT_COLUMNS = [
-    'id', 'organism', 'taxId', 'maxScore', 'totalScore', 'queryCover',
+    'sequenceId', 'organism', 'taxId', 'maxScore', 'totalScore', 'queryCover',
     'eValue', 'percentIdentity', 'matches'
 ];
 
@@ -34,15 +34,15 @@ export default class ngbBlastSearchResultTableService {
         for (let i = 0; i < columnsList.length; i++) {
             const column = columnsList[i];
             switch (column) {
-                case 'id': {
+                case 'sequenceId': {
                     result.push({
                         cellTemplate: `<a class="ui-grid-cell-contents blast-search-result-link sequence-link" 
                                         ng-href="{{row.entity.href}}"
-                                       >{{row.entity.id}}</a>`,
+                                       >{{row.entity.sequenceId}}</a>`,
                         enableHiding: false,
-                        field: 'id',
+                        field: 'sequenceId',
                         minWidth: 40,
-                        name: 'id'
+                        name: 'sequenceId'
                     });
                     break;
                 }
@@ -72,8 +72,8 @@ export default class ngbBlastSearchResultTableService {
         return result;
     }
 
-    async updateSearchResult() {
-        this._blastSearchResult = await this.loadBlastSearchResult();
+    async updateSearchResult(searchId) {
+        this._blastSearchResult = await this.loadBlastSearchResult(searchId);
     }
     
     async loadBlastSearchResult(searchId) {
@@ -84,7 +84,25 @@ export default class ngbBlastSearchResultTableService {
             return [];
         } else {
             this._searchResultTableError = null;
-        }        
-        return data;
+        }
+        if (data.entries) {
+            data.entries.forEach((value, key) => data.entries[key] = this._formatServerToClient(value));
+        }
+
+        return data.entries;
+    }
+
+    _formatServerToClient(result) {
+        return {
+            sequenceId: result.seqSeqId,
+            organism: result.seqSciName,
+            taxId: result.seqTaxId,
+            maxScore: result.bitScore,
+            totalScore: result.score,
+            queryCover: result.percentPos/100,
+            eValue: result.expValue,
+            percentIdentity: result.percentIdent/100,
+            matches: result.mismatch
+        };
     }
 }

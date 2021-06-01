@@ -37,24 +37,6 @@
     border: 1px solid dimgray;
     border-radius: 5px;
   }
-  .expandable-panel {
-    border: 1px dashed dimgray;
-    padding: 5px;
-    margin: 10px 0;
-    border-radius: 5px;
-    .expandable-panel-title {
-      font-size: 16px;
-      font-weight: bold;
-    }
-    .expandable-panel-title span:before {
-      content: '\25B2';
-      transform:rotate(90deg);
-      display: inline-block;
-    }
-    .expandable-panel-title span.toggled:before {
-      transform:rotate(180deg);
-    }
-  }
   .blast-search-result-link {
     color: rgb(51, 103, 214);
     cursor: pointer;
@@ -65,12 +47,43 @@
     min-width: 0;
     min-height: 16px;
   }
-  .search-result-table-row {
+  .blast-search-result-info {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .blast-search-result-info button {
+    fill: rgb(255, 255, 255);
+    line-height: 16px;
+    min-width: 0;
+    min-height: 16px;
+    margin: 0;
+    text-transform: none;
+  }
+  .blast-search-result-table-row {
     -ms-flex: 1 1 auto;
     -webkit-flex: 1 1 auto;
     flex: 1 1 auto;
     overflow: auto;
     height:0;
     min-height: 0;
+  }
+  .blast-search-result-params {
+    display: flex;
+    flex-direction: row;
+  }
+}
+.sequence-dlb-content {
+  min-width:600px;
+  max-width: 800px;
+  max-height:80vh;
+  margin: 10px 30px;
+  .sequence-dlb-content-title {
+    font-weight: bold;
+    line-height: 28px;
+    font-size: 14px;
+  }
+  .sequence-dlb-content-value {
+    margin-top: 10px;
+    word-break: break-all;
   }
 }

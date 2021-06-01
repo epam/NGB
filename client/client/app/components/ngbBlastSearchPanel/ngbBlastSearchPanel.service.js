@@ -30,13 +30,15 @@ export default class ngbBlastSearchService {
         Object.assign(this, {dispatcher, bamDataService, projectDataService});
     }
 
-    async getOrganismList(term) {
-        return await this.projectDataService.getOrganismList(term);
-        // return [
-        //     {id: '1eds52', name: 'GRCh38'},
-        //     {id: '1adc47', name: 'Bacteria Escherichia coli'},
-        //     {id: '4etr89', name: 'Clostridium botulinum'},
+    async getOrganismList(term, selectedOrganisms = []) {
+        const selectedIds = selectedOrganisms.map(value => value.taxid);
+        const organismList = await this.projectDataService.getOrganismList(term);
+        // const organismList = [
+        //     {taxid: '1eds52', scientificname: 'GRCh38', commonname: 'GR'},
+        //     {taxid: '1adc47', scientificname: 'Bacteria Escherichia coli', commonname: 'Escherichia'},
+        //     {taxid: '4etr89', scientificname: 'Clostridium botulinum', commonname: 'Botulinum'},
         // ];
+        return organismList.filter(value => !selectedIds.includes(value.taxid));
     }
 
     async getBlastDBList() {
@@ -82,12 +84,13 @@ export default class ngbBlastSearchService {
     async getCurrentSearchResult() {
         let data = {};
         if (this.currentResultId) {
-            data = await this.projectDataService.getBlastSearch(this.currentResultId);
+            data = this._formatServerToClient(await this.projectDataService.getBlastSearch(this.currentResultId));
         }
         return data;
     }
 
     createSearchRequest(searchRequest) {
+        searchRequest.organisms = searchRequest.organisms.map(o => o.taxid);
         return this.projectDataService.createBlastSearch(this._formatClientToServer(searchRequest)).then(data => {
             if (data && data.id) {
                 this.currentSearchId = data.id;
@@ -98,15 +101,22 @@ export default class ngbBlastSearchService {
     }
 
     _formatServerToClient(search) {
-        return {
+        const result = {
             id: search.id,
             title: search.title,
             algorithm: search.algorithm,
             organisms: search.organisms,
             db: search.database,
             tool: search.executable,
-            sequence: search.query
+            sequence: search.query,
+            options: search.options,
+            submitted: search.createdDate
         };
+        if (search.parameters) {
+            result.maxTargetSeqs = search.parameters.max_target_seqs;
+            result.threshold = search.parameters.evalue;
+        }
+        return result;
     }
 
     _formatClientToServer(search) {
@@ -116,7 +126,11 @@ export default class ngbBlastSearchService {
             organisms: search.organisms || [],
             database: search.db,
             executable: search.tool,
-            query: search.sequence
+            query: search.sequence,
+            parameters: {
+                max_target_seqs: search.maxTargetSeqs,
+                evalue: search.threshold
+            }
         };
         if (search.id) {
             result.id = search.id;

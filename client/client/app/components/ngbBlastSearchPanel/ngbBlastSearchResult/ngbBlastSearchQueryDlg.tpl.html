@@ -1,0 +1,22 @@
+<md-dialog aria-label="Settings">
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Search query info</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="ctrl.close()" aria-label="Close">
+          <ng-md-icon style="fill: #fff;" icon="clear"></ng-md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <md-dialog-content class="sequence-dlb-content">
+        <div layout="row" flex class="sequence-dlb-content-title">
+            <span>Sequence:</span>
+            <span flex></span>
+            <span>Length: {{ctrl.sequence.length}}</span>
+        </div>
+        <div layout="row" flex class="sequence-dlb-content-value">
+            {{ctrl.sequence}}
+        </div>
+    </md-dialog-content>
+</md-dialog>
