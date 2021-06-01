@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Getter
 @Setter
@@ -25,7 +24,6 @@ public class BlastDataBaseDao extends NamedParameterJdbcDaoSupport {
 
     @Autowired
     private DaoHelper daoHelper;
-
     private String dataBaseSequenceName;
     private String insertDataBaseQuery;
     private String updateDataBaseQuery;
@@ -58,22 +56,20 @@ public class BlastDataBaseDao extends NamedParameterJdbcDaoSupport {
 
     /**
      * Loads {@code Blast Data Bases} from a database by type.
-     * @param type {@code Long} a type of Data Bases
+     * @param type {@code BlastDataBaseType} a type of Data Bases
      * @return a {@code List<BlastDataBase>} from the database
      */
-    @Transactional(propagation = Propagation.SUPPORTS)
     public List<BlastDataBase> loadDataBases(final BlastDataBaseType type) {
         String query = type == null ? loadDataBasesQuery : loadDataBasesQuery
-                + " WHERE TYPE = " + type.getTypeId();
+                + " WHERE type = " + type.getTypeId();
         return getJdbcTemplate().query(query, DataBaseParameters.getRowMapper());
     }
 
     /**
-     * Loads a {@code Project} instance from a database by it's ID.
-     * @param id {@code Long} an ID of a Data Base
-     * @return a {@code Project} instance from the database
+     * Loads a {@code Blast Data Base} instance from a database by it's ID.
+     * @param id {@code long} an ID of a Data Base
+     * @return a {@code BlastDataBase} instance from the database
      */
-    @Transactional(propagation = Propagation.SUPPORTS)
     public BlastDataBase loadDataBase(final long id) {
         List<BlastDataBase> blastDataBases = getJdbcTemplate().query(loadDataBaseQuery, DataBaseParameters.getRowMapper(), id);
         return blastDataBases.isEmpty() ? null : blastDataBases.get(0);

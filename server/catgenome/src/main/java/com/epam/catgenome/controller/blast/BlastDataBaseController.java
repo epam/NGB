@@ -2,10 +2,8 @@ package com.epam.catgenome.controller.blast;
 
 import com.epam.catgenome.controller.AbstractRESTController;
 import com.epam.catgenome.controller.Result;
-import com.epam.catgenome.controller.vo.BlastDataBaseVO;
 import com.epam.catgenome.entity.blast.BlastDataBase;
 import com.epam.catgenome.entity.blast.BlastDataBaseType;
-import com.epam.catgenome.entity.vcf.Filter;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.blast.BlastDataBaseSecurityService;
 import com.wordnik.swagger.annotations.Api;
@@ -14,10 +12,15 @@ import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @Api(value = "blast-database", description = "BLAST Data Bases Management")
@@ -35,8 +38,8 @@ public class BlastDataBaseController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> saveDataBase(@RequestBody final BlastDataBaseVO dataBaseVO) throws FeatureIndexException {
-        blastDataBaseSecurityService.save(dataBaseVO);
+    public Result<Boolean> saveDataBase(@RequestBody final BlastDataBase blastDataBase) throws FeatureIndexException {
+        blastDataBaseSecurityService.save(blastDataBase);
         return Result.success(null);
     }
 
@@ -53,7 +56,7 @@ public class BlastDataBaseController extends AbstractRESTController {
         return Result.success(blastDataBaseSecurityService.loadById(id));
     }
 
-    @GetMapping(value = "/databases/{type}")
+    @GetMapping(value = {"/databases/{type}", "/databases/"})
     @ResponseBody
     @ApiOperation(
             value = "Gets Data Bases",
