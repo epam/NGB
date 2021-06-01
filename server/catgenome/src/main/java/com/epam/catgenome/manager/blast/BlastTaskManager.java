@@ -27,7 +27,10 @@ import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.TaskVO;
 import com.epam.catgenome.dao.blast.BlastTaskDao;
-import com.epam.catgenome.entity.blast.*;
+import com.epam.catgenome.entity.blast.BlastTask;
+import com.epam.catgenome.entity.blast.BlastTaskOrganism;
+import com.epam.catgenome.entity.blast.TaskParameter;
+import com.epam.catgenome.entity.blast.TaskStatus;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.blast.dto.BlastRequest;
@@ -48,10 +51,8 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.constant.Constants.DATE_TIME_FORMAT;
@@ -189,10 +190,5 @@ public class BlastTaskManager {
 
     public ResponseBody getRawResult(final long taskId) throws BlastRequestException {
         return blastRequestManager.getRawResult(taskId);
-    }
-
-    public List<BlastDataBase> loadDataBases(final Optional<Long> type) {
-        return Collections.singletonList(new BlastDataBase(1L, "Homo_sapiens.GRCh38",
-                "Homo_sapiens.GRCh38", BlastDataBaseType.NUCLEOTIDE));
     }
 }

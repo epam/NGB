@@ -51,7 +51,7 @@ public class BlastDataBaseDao extends NamedParameterJdbcDaoSupport {
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public void deleteDataBase(final long id) {
-       getJdbcTemplate().update(deleteDataBaseQuery, id);
+        getJdbcTemplate().update(deleteDataBaseQuery, id);
     }
 
     /**
@@ -71,7 +71,8 @@ public class BlastDataBaseDao extends NamedParameterJdbcDaoSupport {
      * @return a {@code BlastDataBase} instance from the database
      */
     public BlastDataBase loadDataBase(final long id) {
-        List<BlastDataBase> blastDataBases = getJdbcTemplate().query(loadDataBaseQuery, DataBaseParameters.getRowMapper(), id);
+        List<BlastDataBase> blastDataBases = getJdbcTemplate().query(loadDataBaseQuery,
+                DataBaseParameters.getRowMapper(), id);
         return blastDataBases.isEmpty() ? null : blastDataBases.get(0);
     }
 

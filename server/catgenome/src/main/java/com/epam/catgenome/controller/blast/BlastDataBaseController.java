@@ -65,7 +65,8 @@ public class BlastDataBaseController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<BlastDataBase>> loadDataBases(@PathVariable(required = false) final BlastDataBaseType type) throws FeatureIndexException {
+    public Result<List<BlastDataBase>> loadDataBases(
+            @PathVariable(required = false) final BlastDataBaseType type) throws FeatureIndexException {
         return Result.success(blastDataBaseSecurityService.load(type));
     }
 
