@@ -49,7 +49,7 @@ export default class ngbBlastSearchResultTableService {
                 case 'queryCover':
                 case 'percentIdentity': {
                     result.push({
-                        cellFilter: 'percentage:this:0',
+                        cellFilter: 'percentage:this:2',
                         enableHiding: false,
                         field: column,
                         minWidth: 40,
@@ -88,7 +88,6 @@ export default class ngbBlastSearchResultTableService {
         if (data.entries) {
             data.entries.forEach((value, key) => data.entries[key] = this._formatServerToClient(value));
         }
-
         return data.entries;
     }
 

@@ -15,7 +15,7 @@ const blastSearchState = {
     CANCELED: 'CANCELED'
 };
 const FIRST_PAGE = 1;
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 const REFRESH_INTERVAL_SEC = 10;
 
 export default class ngbBlastHistoryTableService {
@@ -28,6 +28,7 @@ export default class ngbBlastHistoryTableService {
     _firstPageHistory = FIRST_PAGE;
     _totalPages = FIRST_PAGE;
     _currentPageHistory = FIRST_PAGE;
+    _historyPageSize = PAGE_SIZE;
     _historyPageError = null;
     _orderByHistory = null;
 
@@ -61,7 +62,11 @@ export default class ngbBlastHistoryTableService {
     }
 
     get historyPageSize() {
-        return PAGE_SIZE;
+        return this._historyPageSize;
+    }
+
+    set historyPageSize(value) {
+        this._historyPageSize = value;
     }
 
     get refreshInterval() {
@@ -288,7 +293,8 @@ export default class ngbBlastHistoryTableService {
             currentState: state,
             submitted: search.createdDate,
             duration: Math.ceil(duration/1000),
-            isDone: state === blastSearchState.DONE
+            isDone: state === blastSearchState.DONE,
+            isInProgress: state === blastSearchState.SEARCHING
         };
     }
 }

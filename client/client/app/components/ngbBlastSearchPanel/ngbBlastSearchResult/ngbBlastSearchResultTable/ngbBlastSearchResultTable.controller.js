@@ -11,6 +11,7 @@ export default class ngbBlastSearchResultTableController extends baseController 
     projectContext;
 
     isProgressShown = true;
+    isEmptyResults = false;
     errorMessageList = [];
     searchResultTableLoadError = null;
 
@@ -61,12 +62,6 @@ export default class ngbBlastSearchResultTableController extends baseController 
         this.initialize();
     }
 
-    // refreshScope(needRefresh) {
-    //     if (needRefresh) {
-    //         this.$scope.$apply();
-    //     }
-    // }
-
     async initialize() {
         this.errorMessageList = [];
         this.isProgressShown = true;
@@ -88,9 +83,18 @@ export default class ngbBlastSearchResultTableController extends baseController 
     async loadData() {
         try {
             await this.ngbBlastSearchResultTableService.updateSearchResult(this.ngbBlastSearchService.currentResultId);
-            if (this.ngbBlastSearchResultTableService.blastSearchResult.length || this.ngbBlastSearchResultTableService.searchResultTableError) {
-                this.searchResultLoadingFinished();
+            if (this.ngbBlastSearchResultTableService.searchResultTableError) {
+                this.searchResultTableLoadError = this.ngbBlastSearchResultTableService.searchResultTableError;
+                this.gridOptions.data = [];
+                this.isEmptyResults = false;
+            } else if (this.ngbBlastSearchResultTableService.blastSearchResult.length) {
+                this.searchResultTableLoadError = null;
+                this.gridOptions.columnDefs = this.ngbBlastSearchResultTableService.getBlastSearchResultGridColumns();
+                this.gridOptions.data = this.ngbBlastSearchResultTableService.blastSearchResult;
+            } else {
+                this.isEmptyResults = true;
             }
+            this.isProgressShown = false;
         } catch (errorObj) {
             this.onError(errorObj.message);
         }
@@ -147,12 +151,4 @@ export default class ngbBlastSearchResultTableController extends baseController 
             this.projectContext.vcfColumns = result;
         }
     */
-    searchResultLoadingFinished() {
-        this.searchResultTableLoadError = null;
-        this.gridOptions.columnDefs = this.ngbBlastSearchResultTableService.getBlastSearchResultGridColumns();
-        this.gridOptions.data = this.ngbBlastSearchResultTableService.blastSearchResult;
-        this.isProgressShown = false;
-
-        this.$timeout(::this.$scope.$apply);
-    }
 }

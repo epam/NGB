@@ -33,3 +33,11 @@
   height: 100%;
   margin: 0;
 }
+.empty-results {
+  display: flex;
+  width: 100%;
+  padding: 30px;
+  margin-top: 5px;
+  border: 1px solid dimgray;
+  border-radius: 5px;
+}

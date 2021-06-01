@@ -11,6 +11,7 @@ export default class ngbBlastHistoryController extends baseController {
     projectContext;
 
     isProgressShown = true;
+    isEmptyResult = false;
     errorMessageList = [];
     historyLoadError = null;
     updateInterval = null;
@@ -108,6 +109,7 @@ export default class ngbBlastHistoryController extends baseController {
                 // this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
                 // this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
                 this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
+                this.gridApi.core.on.gridDimensionChanged(this.$scope, ::this.onResize);
             }
         });
         await this.loadData();
@@ -117,9 +119,20 @@ export default class ngbBlastHistoryController extends baseController {
     async loadData() {
         try {
             await this.ngbBlastHistoryTableService.updateSearchHistory();
-            if (this.ngbBlastHistoryTableService.blastHistory.length || this.ngbBlastHistoryTableService.historyPageError) {
-                this.historyLoadingFinished();
+            if (this.ngbBlastHistoryTableService.historyPageError) {
+                this.historyLoadError = this.ngbBlastHistoryTableService.historyPageError;
+                this.gridOptions.data = [];
+                this.isEmptyResults = false;
+            } else if (this.ngbBlastHistoryTableService.blastHistory.length) {
+                this.historyLoadError = null;
+                this.gridOptions.columnDefs = this.ngbBlastHistoryTableService.getBlastHistoryGridColumns();
+                this.gridOptions.data = this.ngbBlastHistoryTableService.blastHistory;
+                this.totalPages = this.ngbBlastHistoryTableService.totalPages;
+                this.currentPage = this.ngbBlastHistoryTableService.currentPageHistory;
+            } else {
+                this.isEmptyResults = true;
             }
+            this.isProgressShown = false;
         } catch (errorObj) {
             this.onError(errorObj.message);
         }
@@ -188,16 +201,6 @@ export default class ngbBlastHistoryController extends baseController {
             this.projectContext.vcfColumns = result;
         }
     */
-    historyLoadingFinished() {
-        this.historyLoadError = null;
-        this.gridOptions.columnDefs = this.ngbBlastHistoryTableService.getBlastHistoryGridColumns();
-        this.gridOptions.data = this.ngbBlastHistoryTableService.blastHistory;
-        this.totalPages = this.ngbBlastHistoryTableService.totalPages;
-        this.currentPage = this.ngbBlastHistoryTableService.currentPageHistory;
-
-        this.isProgressShown = false;
-        this.$timeout(::this.$scope.$apply);
-    }
 
     getDataOnPage(page) {
         this.ngbBlastHistoryTableService.firstPageHistory = page;
@@ -254,11 +257,9 @@ export default class ngbBlastHistoryController extends baseController {
         return false;
     }
 
-    /*
-            resizeGrid() {
-                if (this.gridApi) {
-                    this.gridApi.core.handleWindowResize();
-                }
-            }
-        */
+
+    onResize(oldGridHeight, oldGridWidth, newGridHeight) {
+        this.ngbBlastHistoryTableService.historyPageSize = Math.floor(newGridHeight / ROW_HEIGHT) - 1;
+    }
+
 }
