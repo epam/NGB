@@ -32,11 +32,13 @@ import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.BlastTaskOrganism;
 import com.epam.catgenome.entity.blast.TaskParameter;
 import com.epam.catgenome.entity.blast.TaskStatus;
+import com.epam.catgenome.entity.blast.result.BlastSequence;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.blast.dto.BlastRequest;
 import com.epam.catgenome.manager.blast.dto.BlastRequestInfo;
 import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
+import com.epam.catgenome.manager.blast.dto.Entry;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
 import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
@@ -55,7 +57,9 @@ import org.springframework.util.CollectionUtils;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -234,6 +238,10 @@ public class BlastTaskManager {
         return blastRequestManager.getResult(taskId);
     }
 
+    public Collection<BlastSequence> getGroupedResult(final long taskId) throws BlastRequestException {
+        return groupResult(blastRequestManager.getResult(taskId));
+    }
+
     public ResponseBody getRawResult(final long taskId) throws BlastRequestException {
         return blastRequestManager.getRawResult(taskId);
     }
@@ -241,5 +249,19 @@ public class BlastTaskManager {
     public List<BlastDataBase> loadDataBases(final Optional<Long> type) {
         return Collections.singletonList(new BlastDataBase(1L, "Homo_sapiens.GRCh38",
                 "Homo_sapiens.GRCh38", "NUCLEOTIDE"));
+    }
+
+    private Collection<BlastSequence> groupResult(final BlastRequestResult result) {
+        if (CollectionUtils.isEmpty(result.getEntries())) {
+            return Collections.emptyList();
+        }
+        return result.getEntries()
+                .stream()
+                .collect(Collectors.groupingBy(Entry::getSeqSeqId))
+                .values()
+                .stream()
+                .map(BlastSequence::fromEntries)
+                .sorted(Comparator.comparing(BlastSequence::getEValue))
+                .collect(Collectors.toList());
     }
 }

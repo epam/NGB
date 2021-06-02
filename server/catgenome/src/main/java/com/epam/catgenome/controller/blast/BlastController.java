@@ -26,12 +26,14 @@ package com.epam.catgenome.controller.blast;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 import com.epam.catgenome.controller.vo.TaskVO;
 import com.epam.catgenome.entity.blast.BlastDataBase;
 import com.epam.catgenome.entity.blast.BlastTask;
+import com.epam.catgenome.entity.blast.result.BlastSequence;
 import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
 import com.epam.catgenome.exception.BlastRequestException;
@@ -54,7 +56,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
@@ -67,7 +68,6 @@ public class BlastController extends AbstractRESTController {
     private final BlastTaskSecurityService blastTaskSecurityService;
 
     @GetMapping(value = "/task/{taskId}")
-    @ResponseBody
     @ApiOperation(
             value = "Returns a task by given id",
             notes = "Returns a task by given id",
@@ -80,7 +80,6 @@ public class BlastController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/task/{taskId}/result")
-    @ResponseBody
     @ApiOperation(
             value = "Returns a task result",
             notes = "Returns a task result",
@@ -93,7 +92,6 @@ public class BlastController extends AbstractRESTController {
     }
 
     @GetMapping(value = "/task/{taskId}/raw")
-    @ResponseBody
     @ApiOperation(
             value = "Returns a file with task result",
             notes = "Returns a file with task result",
@@ -109,8 +107,20 @@ public class BlastController extends AbstractRESTController {
         response.flushBuffer();
     }
 
+    @GetMapping(value = "/task/{taskId}/group")
+    @ApiOperation(
+            value = "Returns BLAST tasks results grouped by sequence",
+            notes = "Returns BLAST tasks results grouped by sequence",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Collection<BlastSequence>> getGroupedResult(@PathVariable final long taskId)
+            throws BlastRequestException {
+        return Result.success(blastTaskSecurityService.getGroupedResult(taskId));
+    }
+
     @PostMapping(value = "/tasks/count")
-    @ResponseBody
     @ApiOperation(
             value = "Returns tasks count",
             notes = "Returns tasks count",
@@ -123,7 +133,6 @@ public class BlastController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/tasks")
-    @ResponseBody
     @ApiOperation(
             value = "Loads all tasks",
             notes = "DB fields mapping: id - task_id, "
@@ -138,7 +147,6 @@ public class BlastController extends AbstractRESTController {
     }
 
     @DeleteMapping(value = "/tasks")
-    @ResponseBody
     @ApiOperation(
             value = "Delete all not running tasks for current user",
             notes = "Delete all not running tasks for current user",
@@ -152,7 +160,6 @@ public class BlastController extends AbstractRESTController {
     }
 
     @PostMapping(value = "/task")
-    @ResponseBody
     @ApiOperation(
             value = "Creates new task or updates existing one",
             notes = "Creates new task or updates existing one",
@@ -166,7 +173,6 @@ public class BlastController extends AbstractRESTController {
     }
 
     @PutMapping(value = "/task/{taskId}/cancel")
-    @ResponseBody
     @ApiOperation(
             value = "Cancels a task with given id",
             notes = "Cancels a task with given id",
@@ -180,7 +186,6 @@ public class BlastController extends AbstractRESTController {
     }
 
     @DeleteMapping(value = "/task/{taskId}")
-    @ResponseBody
     @ApiOperation(
             value = "Deletes a task, specified by task ID",
             notes = "Deletes a task, specified by task ID",
@@ -194,7 +199,6 @@ public class BlastController extends AbstractRESTController {
     }
 
     @GetMapping(value = {"/databases/{type}", "/database"})
-    @ResponseBody
     @ApiOperation(
             value = "Returns databases by type",
             notes = "Returns databases by type",
