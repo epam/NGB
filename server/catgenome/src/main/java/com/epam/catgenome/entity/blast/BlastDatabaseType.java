@@ -21,17 +21,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.blast.dto;
+package com.epam.catgenome.entity.blast;
 
-import lombok.Getter;
-import lombok.Setter;
+public enum BlastDatabaseType {
+    PROTEIN(1),
+    NUCLEOTIDE(2);
 
-import java.util.List;
+    private Long typeId;
 
-@Getter
-@Setter
-public class BlastRequestResult {
-    private long size;
-    private String tool;
-    private List<Entry> entries;
+    BlastDatabaseType(final long typeId) {
+        this.typeId = typeId;
+    }
+
+    public Long getTypeId() {
+        return typeId;
+    }
+
+    /**
+     * @param typeId
+     * @return a {@code BlastDatabaseType} instance corresponding to the input ID
+     */
+    public static BlastDatabaseType getTypeById(final Long typeId) {
+        for (BlastDatabaseType type : BlastDatabaseType.values()) {
+            if (type.getTypeId().equals(typeId)) {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("Invalid Blast database type ID");
+    }
 }

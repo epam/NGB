@@ -23,7 +23,6 @@
  *  * SOFTWARE.
  *
  */
-
 package com.epam.catgenome.manager.blast;
 
 import com.epam.catgenome.controller.vo.TaskVO;

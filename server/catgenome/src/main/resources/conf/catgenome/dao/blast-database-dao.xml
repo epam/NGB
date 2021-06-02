@@ -2,9 +2,9 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-    <bean class="com.epam.catgenome.dao.blast.BlastDataBaseDao" id="dataBaseDao" autowire="byName">
-        <property name="dataBaseSequenceName" value="catgenome.s_blast_database" />
-        <property name="insertDataBaseQuery">
+    <bean class="com.epam.catgenome.dao.blast.BlastDatabaseDao" id="databaseDao" autowire="byName">
+        <property name="databaseSequenceName" value="catgenome.s_blast_database" />
+        <property name="insertDatabaseQuery">
             <value>
                 <![CDATA[
                     INSERT INTO catgenome.blast_database (
@@ -21,7 +21,7 @@
                 ]]>
             </value>
         </property>
-        <property name="updateDataBaseQuery">
+        <property name="updateDatabaseQuery">
             <value>
                 <![CDATA[
                     UPDATE catgenome.blast_database SET
@@ -33,14 +33,14 @@
                 ]]>
             </value>
         </property>
-        <property name="deleteDataBaseQuery">
+        <property name="deleteDatabaseQuery">
             <value>
                 <![CDATA[
                     DELETE FROM catgenome.blast_database WHERE database_id = ?
                 ]]>
             </value>
         </property>
-        <property name="loadDataBaseQuery">
+        <property name="loadDatabaseQuery">
             <value>
                 <![CDATA[
                     SELECT
@@ -52,7 +52,7 @@
                 ]]>
             </value>
         </property>
-        <property name="loadDataBasesQuery">
+        <property name="loadDatabasesQuery">
             <value>
                 <![CDATA[
                     SELECT
