@@ -29,6 +29,7 @@ package com.epam.catgenome.manager.blast;
 import com.epam.catgenome.controller.vo.TaskVO;
 import com.epam.catgenome.entity.blast.BlastDataBase;
 import com.epam.catgenome.entity.blast.BlastTask;
+import com.epam.catgenome.entity.blast.result.BlastSequence;
 import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
 import com.epam.catgenome.exception.BlastRequestException;
@@ -42,6 +43,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -91,6 +93,11 @@ public class BlastTaskSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
+    public Collection<BlastSequence> getGroupedResult(final long taskId) throws BlastRequestException {
+        return blastTaskManager.getGroupedResult(taskId);
+    }
+
+    @PreAuthorize(ROLE_USER)
     public ResponseBody getRawResult(final long taskId) throws BlastRequestException {
         return blastTaskManager.getRawResult(taskId);
     }
@@ -104,4 +111,5 @@ public class BlastTaskSecurityService {
     public void deleteTasks() {
         blastTaskManager.deleteTasks();
     }
+
 }
