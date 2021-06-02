@@ -61,9 +61,11 @@
   margin-top: 10px;
 }
 .blast-organisms-livesearch {
+  display: flex;
+  flex-direction: row;
+  width: 90%;
   .md-chips {
     padding: 0 0 1px 3px;
-    width: 90%;
     margin: 8px 0;
     display: flex;
     flex-wrap: wrap;
@@ -87,6 +89,10 @@
   .md-chips md-chip .md-chip-remove {
     height: 27px;
     line-height: 27px;
+  }
+  md-checkbox {
+    text-align: right;
+    margin-left: 10px;
   }
 }
 .blast-organisms-livesearch-item li {

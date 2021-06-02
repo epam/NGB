@@ -6,7 +6,6 @@ export default class ngbBlastSearchFormController extends baseController {
     }
 
     isProgressShown = true;
-    organismList = [];
     dbList = [];
     algorithmList = [];
     searchRequest = {
@@ -41,7 +40,6 @@ export default class ngbBlastSearchFormController extends baseController {
 
     async initialize(data) {
         this.isProgressShown = true;
-        this.organismList = await this.ngbBlastSearchService.getOrganismList('human*[orgn]');
         this.dbList = await this.ngbBlastSearchService.getBlastDBList();
         const currentSearch = await this.ngbBlastSearchService.getCurrentSearch();
         currentSearch.tool = currentSearch.tool || data.tool || this.ngbBlastSearchFormConstants.BLAST_TOOLS[0];

@@ -15,7 +15,7 @@ const blastSearchState = {
     CANCELED: 'CANCELED'
 };
 const FIRST_PAGE = 1;
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 15;
 const REFRESH_INTERVAL_SEC = 5;
 
 export default class ngbBlastHistoryTableService {
@@ -89,11 +89,6 @@ export default class ngbBlastHistoryTableService {
         return DEFAULT_ORDERBY_HISTORY_COLUMNS;
     }
 
-
-    set blastHistoryColumns(columns) {
-        localStorage.setItem('blastHistoryColumns', JSON.stringify(columns || []));
-    }
-
     get blastHistory() {
         return this._blastHistory;
     }
@@ -115,7 +110,9 @@ export default class ngbBlastHistoryTableService {
     }
 
     async clearSearchHistory() {
-        this._blastHistory = await this.loadBlastHistory();
+        this.projectDataService.deleteBlastSearchHistory().then(async () => {
+            this._blastHistory = await this.loadBlastHistory();
+        });
     }
 
     changePage(page) {
@@ -245,19 +242,11 @@ export default class ngbBlastHistoryTableService {
         if (!localStorage.getItem('blastHistoryColumns')) {
             localStorage.setItem('blastHistoryColumns', JSON.stringify(DEFAULT_BLAST_HISTORY_COLUMNS));
         }
-        let columns = JSON.parse(localStorage.getItem('blastHistoryColumns'));
-        let defaultColumnsExists = true;
-        for (let i = 0; i < DEFAULT_BLAST_HISTORY_COLUMNS.length; i++) {
-            if (columns.map(c => c.toLowerCase()).indexOf(DEFAULT_BLAST_HISTORY_COLUMNS[i].toLowerCase()) === -1) {
-                defaultColumnsExists = false;
-                break;
-            }
-        }
-        if (!defaultColumnsExists) {
-            columns = DEFAULT_BLAST_HISTORY_COLUMNS.map(c => c);
-            localStorage.setItem('blastHistoryColumns', JSON.stringify(columns || []));
-        }
-        return columns;
+        return JSON.parse(localStorage.getItem('blastHistoryColumns'));
+    }
+
+    set blastHistoryColumns(columns) {
+        localStorage.setItem('blastHistoryColumns', JSON.stringify(columns || []));
     }
 
     _formatServerToClient(search) {
@@ -292,7 +281,7 @@ export default class ngbBlastHistoryTableService {
             title: search.title,
             currentState: state,
             submitted: new Date(`${search.createdDate} UTC`),
-            duration: Math.ceil(duration/1000),
+            duration: Math.ceil(duration / 1000),
             isResult: state === blastSearchState.DONE || state === blastSearchState.FAILURE,
             isInProgress: state === blastSearchState.SEARCHING
         };

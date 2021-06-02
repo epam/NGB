@@ -8,7 +8,6 @@ export default class ngbBlastSearchResultTableController extends baseController 
     }
 
     dispatcher;
-    projectContext;
 
     isProgressShown = true;
     isEmptyResults = false;
@@ -43,7 +42,7 @@ export default class ngbBlastSearchResultTableController extends baseController 
         saveSelection: false,
     };
 
-    constructor($scope, $timeout, ngbBlastSearchResultTableService, ngbBlastSearchService, dispatcher, projectContext) {
+    constructor($scope, $timeout, ngbBlastSearchResultTableService, ngbBlastSearchService, dispatcher) {
         super();
 
         Object.assign(this, {
@@ -51,8 +50,7 @@ export default class ngbBlastSearchResultTableController extends baseController 
             $timeout,
             dispatcher,
             ngbBlastSearchResultTableService,
-            ngbBlastSearchService,
-            projectContext
+            ngbBlastSearchService
         });
 
         this.initEvents();
@@ -72,9 +70,8 @@ export default class ngbBlastSearchResultTableController extends baseController 
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
-                // this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
-                // this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
-                // this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
+                this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
+                this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
             }
         });
         await this.loadData();
@@ -105,50 +102,27 @@ export default class ngbBlastSearchResultTableController extends baseController 
         this.errorMessageList.push(message);
     }
 
-    /*
-        saveColumnsState() {
-            if (!this.gridApi) {
-                return;
-            }
-            const {columns} = this.gridApi.saveState.save();
-            const mapNameToField = function ({name}) {
-                switch (name) {
-                    case 'Type':
-                        return 'variationType';
-                    case 'Chr':
-                        return 'chrName';
-                    case 'Gene':
-                        return 'geneNames';
-                    case 'Position':
-                        return 'startIndex';
-                    case 'Info':
-                        return 'info';
-                    default:
-                        return name;
-                }
-            };
-            const orders = columns.map(mapNameToField);
-            const r = [];
-            const names = this.projectContext.vcfColumns;
-            for (let i = 0; i < names.length; i++) {
-                const name = names[i];
-                if (orders.indexOf(name) >= 0) {
-                    r.push(1);
-                } else {
-                    r.push(0);
-                }
-            }
-            let index = 0;
-            const result = [];
-            for (let i = 0; i < r.length; i++) {
-                if (r[i] === 1) {
-                    result.push(orders[index]);
-                    index++;
-                } else {
-                    result.push(names[i]);
-                }
-            }
-            this.projectContext.vcfColumns = result;
+    saveColumnsState() {
+        if (!this.gridApi) {
+            return;
         }
-    */
+        const {columns} = this.gridApi.saveState.save();
+        const orders = columns.map(c => c.name);
+        const r = [];
+        const names = this.ngbBlastSearchResultTableService.blastSearchResultColumns;
+        for (const name of names) {
+            r.push(orders.indexOf(name) >= 0);
+        }
+        let index = 0;
+        const result = [];
+        for (let i = 0; i < r.length; i++) {
+            if (r[i]) {
+                result.push(orders[index]);
+                index++;
+            } else {
+                result.push(names[i]);
+            }
+        }
+        this.ngbBlastSearchResultTableService.blastSearchResultColumns = result;
+    }
 }

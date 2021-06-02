@@ -206,9 +206,9 @@ export class ProjectDataService extends DataService {
         });
     }
 
-    deleteBlastSearch(blastSearchId) {
+    deleteBlastSearchHistory() {
         return new Promise((resolve, reject) => {
-            this.delete(`task/${blastSearchId}`)
+            this.delete('tasks')
                 .catch((response) => resolve({...response, error: true}))
                 .then((data) => {
                     if (data) {

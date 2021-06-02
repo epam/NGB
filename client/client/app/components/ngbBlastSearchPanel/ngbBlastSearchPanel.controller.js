@@ -10,11 +10,12 @@ export default class ngbBlastSearchPanelController extends baseController {
         return 'ngbBlastSearchPanelController';
     }
 
-    constructor(ngbBlastSearchService, ngbBlastHistoryTableService) {
+    constructor(ngbBlastSearchService, ngbBlastHistoryTableService, $mdDialog) {
         super();
         Object.assign(this, {
             ngbBlastHistoryTableService,
-            ngbBlastSearchService
+            ngbBlastSearchService,
+            $mdDialog
         });
         this.blastStates = ngbBlastSearchService.blastStates;
         this.currentBlastState = this.blastStates.SEARCH;
@@ -37,7 +38,6 @@ export default class ngbBlastSearchPanelController extends baseController {
             .cancel('CANCEL');
         this.$mdDialog.show(confirm).then(async () => {
             await this.ngbBlastHistoryTableService.clearSearchHistory();
-            await this.loadData();
         });
         event.stopImmediatePropagation();
         return false;

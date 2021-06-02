@@ -8,7 +8,6 @@ export default class ngbBlastHistoryController extends baseController {
     }
 
     dispatcher;
-    projectContext;
 
     isProgressShown = true;
     isEmptyResult = false;
@@ -49,7 +48,7 @@ export default class ngbBlastHistoryController extends baseController {
 
     constructor($scope, $timeout, $interval, $mdDialog,
         ngbBlastHistoryTableService, ngbBlastSearchService, uiGridConstants,
-        dispatcher, projectContext) {
+        dispatcher) {
         super();
 
         Object.assign(this, {
@@ -60,7 +59,6 @@ export default class ngbBlastHistoryController extends baseController {
             dispatcher,
             ngbBlastHistoryTableService,
             ngbBlastSearchService,
-            projectContext,
             uiGridConstants,
         });
 
@@ -79,12 +77,6 @@ export default class ngbBlastHistoryController extends baseController {
     $onInit() {
         this.initialize();
     }
-
-    // refreshScope(needRefresh) {
-    //     if (needRefresh) {
-    //         this.$scope.$apply();
-    //     }
-    // }
 
     async initialize() {
         this.errorMessageList = [];
@@ -106,8 +98,8 @@ export default class ngbBlastHistoryController extends baseController {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
                 this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
-                // this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
-                // this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
+                this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
+                this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
                 this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
                 this.gridApi.core.on.gridDimensionChanged(this.$scope, ::this.onResize);
             }
@@ -154,53 +146,39 @@ export default class ngbBlastHistoryController extends baseController {
         }
     }
 
-
-    /*
-        saveColumnsState() {
-            if (!this.gridApi) {
-                return;
-            }
-            const {columns} = this.gridApi.saveState.save();
-            const mapNameToField = function ({name}) {
-                switch (name) {
-                    case 'Type':
-                        return 'variationType';
-                    case 'Chr':
-                        return 'chrName';
-                    case 'Gene':
-                        return 'geneNames';
-                    case 'Position':
-                        return 'startIndex';
-                    case 'Info':
-                        return 'info';
-                    default:
-                        return name;
-                }
-            };
-            const orders = columns.map(mapNameToField);
-            const r = [];
-            const names = this.projectContext.vcfColumns;
-            for (let i = 0; i < names.length; i++) {
-                const name = names[i];
-                if (orders.indexOf(name) >= 0) {
-                    r.push(1);
-                } else {
-                    r.push(0);
-                }
-            }
-            let index = 0;
-            const result = [];
-            for (let i = 0; i < r.length; i++) {
-                if (r[i] === 1) {
-                    result.push(orders[index]);
-                    index++;
-                } else {
-                    result.push(names[i]);
-                }
-            }
-            this.projectContext.vcfColumns = result;
+    saveColumnsState() {
+        if (!this.gridApi) {
+            return;
         }
-    */
+        const {columns} = this.gridApi.saveState.save();
+        const mapNameToField = function ({name}) {
+            switch (name) {
+                case 'Title':
+                    return 'title';
+                case '':
+                    return 'actions';
+                default:
+                    return name;
+            }
+        };
+        const orders = columns.map(mapNameToField);
+        const r = [];
+        const names = this.ngbBlastHistoryTableService.blastHistoryColumns;
+        for (const name of names) {
+            r.push(orders.indexOf(name) >= 0);
+        }
+        let index = 0;
+        const result = [];
+        for (let i = 0; i < r.length; i++) {
+            if (r[i]) {
+                result.push(orders[index]);
+                index++;
+            } else {
+                result.push(names[i]);
+            }
+        }
+        this.ngbBlastHistoryTableService.blastHistoryColumns = result;
+    }
 
     getDataOnPage(page) {
         this.ngbBlastHistoryTableService.firstPageHistory = page;
@@ -208,7 +186,7 @@ export default class ngbBlastHistoryController extends baseController {
     }
 
     sortChanged(grid, sortColumns) {
-        // this.saveColumnsState();
+        this.saveColumnsState();
         if (sortColumns && sortColumns.length > 0) {
             this.ngbBlastHistoryTableService.orderByHistory = sortColumns.map(sc => ({
                 ascending: sc.sort.direction === 'asc',

@@ -17,7 +17,14 @@ export default class ngbBlastSearchResultTableService {
     }
 
     get blastSearchResultColumns() {
-        return DEFAULT_COLUMNS;
+        if (localStorage.getItem('blastSearchResultColumns') === null || localStorage.getItem('blastSearchResultColumns') === undefined) {
+            localStorage.setItem('blastSearchResultColumns', JSON.stringify(DEFAULT_COLUMNS));
+        }
+        return JSON.parse(localStorage.getItem('blastSearchResultColumns'));
+    }
+
+    set blastSearchResultColumns(columns) {
+        localStorage.setItem('blastSearchResultColumns', JSON.stringify(columns || []));
     }
 
     get searchResultTableError() {
@@ -75,7 +82,7 @@ export default class ngbBlastSearchResultTableService {
     async updateSearchResult(searchId) {
         this._blastSearchResult = await this.loadBlastSearchResult(searchId);
     }
-    
+
     async loadBlastSearchResult(searchId) {
         const data = await this.projectDataService.getBlastResultLoad(searchId);
         if (data.error) {
@@ -98,9 +105,9 @@ export default class ngbBlastSearchResultTableService {
             taxId: result.seqTaxId,
             maxScore: result.bitScore,
             totalScore: result.score,
-            queryCover: result.percentPos/100,
+            queryCover: result.percentPos / 100,
             eValue: result.expValue,
-            percentIdentity: result.percentIdent/100,
+            percentIdentity: result.percentIdent / 100,
             matches: result.mismatch
         };
     }

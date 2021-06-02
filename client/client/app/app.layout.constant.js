@@ -59,7 +59,7 @@ export default {
             icon: 'search',
             panel: 'ngbBlastSearchPanel',
             position: 'right',
-            title: 'Blast search',
+            title: 'Blast',
             name: 'layout>blast'
         },
         ...(() => {
