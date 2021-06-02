@@ -205,7 +205,7 @@ export class GENETrack extends CachedTrack {
         if (!isHistogram && checkPositionResult && checkPositionResult.length > 0) {
             if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
                 let feature = checkPositionResult[0].feature;
-                if (feature.feature === 'aminoacid') {
+                if (feature.feature === 'aminoacid' || feature.feature === 'exon') {
                     [feature] = checkPositionResult.filter(x => x.feature.feature === 'transcript').map(x => x.feature);
                     if (!feature) {
                         return;
