@@ -11,6 +11,7 @@ import messages from './ngbBlastSearchPanel.messages.js';
 import {dispatcher} from '../../shared/dispatcher';
 import durationFilter from './ngbBlastSearch.duration.filter';
 import percentageFilter from './ngbBlastSearch.percentage.filter';
+import naFilter from './ngbBlastSearch.na.filter';
 
 
 // Import components
@@ -29,4 +30,5 @@ export default angular
     .controller(controller.UID, controller)
     .filter('duration', durationFilter)
     .filter('percentage', percentageFilter)
+    .filter('na', naFilter)
     .name;

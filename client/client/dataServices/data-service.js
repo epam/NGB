@@ -86,6 +86,17 @@ export class DataService {
             });
     }
 
+    downloadFile(url, ...rest) {
+        return $http('get', this._serverUrl + url, undefined, ...rest)
+            .then((xhr) => {
+                if (xhr.status === AUTH_ERROR_CODE) {
+                    this.handleAuthenticationError();
+                    return Promise.reject(xhr.response);
+                }
+                return xhr.response;
+            });
+    }
+
     handleAuthenticationError() {
         const behavior = localStorage.getItem(SessionExpirationBehaviorStorageKey);
         if (behavior) {
@@ -112,7 +123,7 @@ export class DataService {
 }
 
 
-function $http(method, url, data) {
+function $http(method, url, data, config) {
     if (arguments.length < 4)
         return $http(arguments[0], arguments[1], undefined, arguments[2]);
 
@@ -125,7 +136,7 @@ function $http(method, url, data) {
         xhr.addEventListener('load', () => resolve(xhr));
         xhr.addEventListener('error', reject);
         xhr.addEventListener('abort', reject);
-        xhr.responseType = 'json';
+        xhr.responseType = (config && config.customResponseType) || 'json';
         xhr.open(method, url);
         switch (true) {
             case data === undefined:

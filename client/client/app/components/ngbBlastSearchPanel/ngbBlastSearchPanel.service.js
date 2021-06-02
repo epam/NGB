@@ -62,6 +62,14 @@ export default class ngbBlastSearchService {
         this._currentResultId = currentResultId;
     }
 
+    get currentTool() {
+        return this._currentSearchTool;
+    }
+
+    set currentTool(tool) {
+        this._currentSearchTool = tool;
+    }
+
     async getCurrentSearch() {
         let data = {};
         if (this._currentSearchId) {
@@ -70,6 +78,9 @@ export default class ngbBlastSearchService {
             const newSearch = await this._getDetailedRead();
             if (newSearch) {
                 data.sequence = newSearch.sequence;
+            }
+            if (this.currentTool) {
+                data.tool = this.currentTool;
             }
         }
         return data;
@@ -91,6 +102,7 @@ export default class ngbBlastSearchService {
                 localStorage.removeItem('blastSearchRequest');
             }
             this.currentSearchId = null;
+            this.currentTool = null;
         });
     }
 
@@ -106,7 +118,7 @@ export default class ngbBlastSearchService {
             state: search.status,
             reason: search.statusReason,
             options: search.options,
-            submitted: search.createdDate
+            submitted: new Date(`${search.createdDate} UTC`)
         };
         if (search.excludedOrganisms) {
             result.organisms = search.excludedOrganisms.map(oId => ({taxid: oId}));

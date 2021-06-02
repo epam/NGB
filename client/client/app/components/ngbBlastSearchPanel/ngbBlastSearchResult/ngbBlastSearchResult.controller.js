@@ -11,23 +11,19 @@ export default class ngbBlastSearchResult extends baseController {
     isProgressShown = true;
     isFailure = false;
 
-    constructor(dispatcher, $scope, $timeout, $mdDialog, ngbBlastSearchService) {
-        super(dispatcher);
+    constructor($mdDialog, ngbBlastSearchService) {
+        super();
 
         Object.assign(this, {
-            $scope,
-            $timeout,
             $mdDialog,
-            dispatcher,
             ngbBlastSearchService
         });
-
-        this.initEvents();
         this.initialize();
     }
 
     async initialize() {
         this.searchResult = await this.ngbBlastSearchService.getCurrentSearchResult();
+        this.searchResult.organisms = this.searchResult.organisms.map(o => o.commonname);
         this.isFailure = this.searchResult.state === 'FAILED';
         this.isProgressShown = false;
     }

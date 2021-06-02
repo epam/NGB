@@ -7,7 +7,7 @@
         >
             <ng-md-icon class="icon_info_outline" icon="keyboard_backspace" size="16"></ng-md-icon>&nbsp;Back
         </md-button>
-        <span class="blast-search-result-title">{{$ctrl.searchResult.title || $ctrl.searchResult.id}}</span>
+        <span class="blast-search-result-title">{{$ctrl.searchResult.title}}</span>
     </div>
     <div ng-if="$ctrl.isProgressShown">
         <div class="progress" layout-align="center center">
@@ -63,8 +63,8 @@
             </div>
             <div layout="row">
                 <span class="field-name">Organisms:</span>
-                <span class="field-value field-max-width">{{$ctrl.searchResult.organisms.join(', ')}}
-                    <md-tooltip>{{$ctrl.searchResult.organisms.join(', ')}}</md-tooltip>
+                <span class="field-value field-max-width">{{$ctrl.searchResult.organisms.join(', ') | na}}
+                    <md-tooltip>{{$ctrl.searchResult.organisms}}</md-tooltip>
                 </span>
             </div>
             <div class="expandable-panel" layout="column">
@@ -76,7 +76,7 @@
                         <div layout="column" flex="50">
                             <div layout="row">
                                 <span class="field-name">Max target sequences:</span>
-                                <span class="field-value">{{$ctrl.searchResult.maxTargetSeqs}}
+                                <span class="field-value">{{$ctrl.searchResult.maxTargetSeqs | na}}
                             <md-tooltip>{{$ctrl.searchResult.maxTargetSeqs}}</md-tooltip>
                         </span>
                             </div>
@@ -84,7 +84,7 @@
                         <div layout="column" flex="50">
                             <div layout="row">
                                 <span class="field-name">Expect threshold:</span>
-                                <span class="field-value">{{$ctrl.searchResult.threshold}}
+                                <span class="field-value">{{$ctrl.searchResult.threshold | na}}
                             <md-tooltip>{{$ctrl.searchResult.threshold}}</md-tooltip>
                         </span>
                             </div>

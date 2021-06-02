@@ -178,7 +178,7 @@ export class ProjectDataService extends DataService {
 
     getBlastResultLoad(searchId) {
         return new Promise((resolve, reject) => {
-            this.get(`task/${searchId}/result`)
+            this.get(`task/${searchId}/group`)
                 .catch((response) => resolve({...response, error: true}))
                 .then((data) => {
                     if (data) {
@@ -224,6 +224,21 @@ export class ProjectDataService extends DataService {
     cancelBlastSearch(blastSearchId) {
         return new Promise((resolve, reject) => {
             this.put(`task/${blastSearchId}/cancel`)
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = [];
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
+
+    downloadBlastResults(blastSearchId) {
+        return new Promise((resolve, reject) => {
+            this.downloadFile(`task/${blastSearchId}/raw`, { customResponseType: 'arraybuffer'})
                 .catch((response) => resolve({...response, error: true}))
                 .then((data) => {
                     if (data) {

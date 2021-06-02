@@ -109,10 +109,14 @@ export default class ngbBlastHistoryTableService {
         });
     }
 
-    async clearSearchHistory() {
+    clearSearchHistory() {
         this.projectDataService.deleteBlastSearchHistory().then(async () => {
             this._blastHistory = await this.loadBlastHistory();
         });
+    }
+
+    downloadResults(id) {
+        return this.projectDataService.downloadBlastResults(id);
     }
 
     changePage(page) {

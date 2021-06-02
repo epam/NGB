@@ -221,9 +221,7 @@ export default class ngbBlastHistoryController extends baseController {
         return false;
     }
 
-
     onResize(oldGridHeight, oldGridWidth, newGridHeight) {
         this.ngbBlastHistoryTableService.historyPageSize = Math.floor(newGridHeight / ROW_HEIGHT) - 1;
     }
-
 }

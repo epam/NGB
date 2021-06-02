@@ -20,7 +20,7 @@ export default class ngbBlastSearchFormController extends baseController {
     };
 
     events = {
-        'read:show:blast': ::this.initialize
+        'read:show:blast': ::this.onExternalChange
     }
 
     constructor($scope, $timeout, dispatcher, ngbBlastSearchService, ngbBlastSearchFormConstants) {
@@ -34,16 +34,25 @@ export default class ngbBlastSearchFormController extends baseController {
             ngbBlastSearchFormConstants
         });
 
-        this.initialize({});
+        this.initialize();
         this.initEvents();
     }
 
-    async initialize(data) {
+    async initialize() {
         this.isProgressShown = true;
         this.dbList = await this.ngbBlastSearchService.getBlastDBList();
-        const currentSearch = await this.ngbBlastSearchService.getCurrentSearch();
-        currentSearch.tool = currentSearch.tool || data.tool || this.ngbBlastSearchFormConstants.BLAST_TOOLS[0];
-        Object.assign(this.searchRequest, currentSearch);
+        await this.setSearchRequest();
+    }
+
+    onExternalChange(data) {
+        this.ngbBlastSearchService.currentSearchId = null;
+        this.ngbBlastSearchService.currentTool = data.tool;
+        this.setSearchRequest();
+    }
+
+    async setSearchRequest() {
+        this.isProgressShown = true;
+        this.searchRequest = await this.ngbBlastSearchService.getCurrentSearch();
         this.setDefaultAlgorithms();
         this.$timeout(() => this.isProgressShown = false);
     }

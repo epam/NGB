@@ -10,9 +10,11 @@ export default class ngbBlastSearchPanelController extends baseController {
         return 'ngbBlastSearchPanelController';
     }
 
-    constructor(ngbBlastSearchService, ngbBlastHistoryTableService, $mdDialog) {
-        super();
+    constructor(dispatcher, $scope, ngbBlastSearchService, ngbBlastHistoryTableService, $mdDialog) {
+        super(dispatcher);
         Object.assign(this, {
+            dispatcher,
+            $scope,
             ngbBlastHistoryTableService,
             ngbBlastSearchService,
             $mdDialog
@@ -20,11 +22,16 @@ export default class ngbBlastSearchPanelController extends baseController {
         this.blastStates = ngbBlastSearchService.blastStates;
         this.currentBlastState = this.blastStates.SEARCH;
         this.tabSelected = this.blastStates.SEARCH;
+        this.initEvents();
     }
+
+    events = {
+        'read:show:blast': ::this.onExternalChange
+    };
 
     changeState(state) {
         if (this.blastStates.hasOwnProperty(state)) {
-            this.currentBlastState = state;
+            this.currentBlastState = this.blastStates[state];
             this.tabSelected = state === this.blastStates.SEARCH
                 ? this.blastStates.SEARCH
                 : this.blastStates.HISTORY;
@@ -36,9 +43,7 @@ export default class ngbBlastSearchPanelController extends baseController {
             .title('Clear all history?')
             .ok('OK')
             .cancel('CANCEL');
-        this.$mdDialog.show(confirm).then(async () => {
-            await this.ngbBlastHistoryTableService.clearSearchHistory();
-        });
+        this.$mdDialog.show(confirm).then(this.ngbBlastHistoryTableService.clearSearchHistory);
         event.stopImmediatePropagation();
         return false;
     }
@@ -51,7 +56,36 @@ export default class ngbBlastSearchPanelController extends baseController {
     }
 
     downloadResults(event) {
+        const id = this.ngbBlastSearchService.currentResultId;
+        this.ngbBlastHistoryTableService.downloadResults(id).then(data => {
+            const linkElement = document.createElement('a');
+            try {
+                const blob = new Blob([data], {type: 'application/csv'});
+                const url = window.URL.createObjectURL(blob);
+
+                linkElement.setAttribute('href', url);
+                linkElement.setAttribute('download', `blast-result-${id}.csv`);
+
+                const clickEvent = new MouseEvent('click', {
+                    'view': window,
+                    'bubbles': true,
+                    'cancelable': false
+                });
+                linkElement.dispatchEvent(clickEvent);
+            } catch (ex) {
+                // eslint-disable-next-line no-console
+                console.error(ex);
+            }
+        });
         event.stopImmediatePropagation();
         return false;
+    }
+
+    onExternalChange(data) {
+        if (this.currentBlastState !== this.blastStates.SEARCH) {
+            this.ngbBlastSearchService.currentSearchId = null;
+            this.ngbBlastSearchService.currentTool = data.tool;
+            this.changeState('SEARCH');
+        }
     }
 }

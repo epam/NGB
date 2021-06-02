@@ -56,7 +56,7 @@ export default class ngbBlastSearchResultTableService {
                 case 'queryCover':
                 case 'percentIdentity': {
                     result.push({
-                        cellFilter: 'percentage:this:2',
+                        cellFilter: 'percentage:2:this',
                         enableHiding: false,
                         field: column,
                         minWidth: 40,
@@ -92,23 +92,23 @@ export default class ngbBlastSearchResultTableService {
         } else {
             this._searchResultTableError = null;
         }
-        if (data.entries) {
-            data.entries.forEach((value, key) => data.entries[key] = this._formatServerToClient(value));
+        if (data) {
+            data.forEach((value, key) => data[key] = this._formatServerToClient(value));
         }
-        return data.entries;
+        return data || [];
     }
 
     _formatServerToClient(result) {
         return {
-            sequenceId: result.seqSeqId,
-            organism: result.seqSciName,
-            taxId: result.seqTaxId,
-            maxScore: result.bitScore,
-            totalScore: result.score,
-            queryCover: result.percentPos / 100,
-            eValue: result.expValue,
-            percentIdentity: result.percentIdent / 100,
-            matches: result.mismatch
+            sequenceId: result.sequenceId,
+            organism: result.organism,
+            taxId: result.taxId,
+            maxScore: result.maxScore,
+            totalScore: result.totalScore,
+            queryCover: result.queryCoverage / 100,
+            eValue: result.evalue,
+            percentIdentity: result.percentIdentity / 100,
+            matches: result.matches
         };
     }
 }
