@@ -16,7 +16,8 @@ export default class ngbGoldenLayoutController extends baseController {
         ngbVariations: 'ngbVariantsTablePanel',
         ngbDataSets: 'ngbDataSets',
         ngbLog: 'ngbLog',
-        ngbBlatSearchPanel: 'ngbBlatSearchPanel'
+        ngbBlatSearchPanel: 'ngbBlatSearchPanel',
+        ngbBlastSearchPanel: 'ngbBlastSearchPanel',
     };
     eventsNotForShareFromParent = ['layout:panels:displayed', 'layout:restore:default', 'layout:load',
         'layout:item:change', 'ngbFilter:setDefault'];
@@ -56,7 +57,9 @@ export default class ngbGoldenLayoutController extends baseController {
         'reference:change': ::this.panelRemoveExtraWindows,
         'read:show:mate': ::this.panelAddBrowserWithPairRead,
         'read:show:blat': ::this.panelAddBlatSearchPanel,
-        'tracks:state:change': ::this.panelRemoveBlatSearchPanel,
+        'read:show:blast': :: this.panelAddBlastSearchPanel,
+        'tracks:state:change:blat': ::this.panelRemoveBlatSearchPanel,
+        'tracks:state:change:blast': ::this.panelRemoveBlastSearchPanel,
         'variant:show:pair': ::this.panelAddBrowserWithVariation
     };
 
@@ -321,11 +324,41 @@ export default class ngbGoldenLayoutController extends baseController {
         }
     }
 
+    panelRemoveBlastSearchPanel() {
+        const [blastSearchItem] = this.goldenLayout.root
+            .getItemsByFilter((obj) => obj.config && obj.config.componentState
+                && obj.config.componentState.panel === this.panels.ngbBlastSearchPanel);
+
+        if (!blastSearchItem) {
+            return;
+        }
+
+        const savedBlastRequest = JSON.parse(localStorage.getItem('blastSearchRequest')) || null;
+
+        if(!savedBlastRequest) {
+            return;
+        }
+
+        const [currentBlastSearchBamTrack] = this.projectContext.tracks.filter(t => t.format === 'BAM' && t.id === savedBlastRequest.id);
+
+        if(!currentBlastSearchBamTrack) {
+            this.panelRemove(this.appLayout.Panels.blast);
+        }
+    }
+
     blatSearchPanelDestroyedHandler(item) {
         if (item.type === 'component') {
             if (item.config.componentState.panel === this.panels.ngbBlatSearchPanel) {
                 this.blatSearchPanelRemoved();
                 this.goldenLayout.off('itemDestroyed', this.blatSearchPanelDestroyedHandler, this);
+            }
+        }
+    }
+    blastSearchPanelDestroyedHandler(item) {
+        if (item.type === 'component') {
+            if (item.config.componentState.panel === this.panels.ngbBlastSearchPanel) {
+                this.blastSearchPanelRemoved();
+                this.goldenLayout.off('itemDestroyed', this.blastSearchPanelDestroyedHandler, this);
             }
         }
     }
@@ -335,6 +368,13 @@ export default class ngbGoldenLayoutController extends baseController {
         localStorage.removeItem('blatColumns');
 
         this.projectContext.changeState({ blatRegion: { forceReset: true } });
+    }
+
+    blastSearchPanelRemoved() {
+        localStorage.removeItem('blastSearchRequest');
+        localStorage.removeItem('blastColumns');
+
+        this.projectContext.changeState({ blastRegion: { forceReset: true } });
     }
 
     panelAddBlatSearchPanel(event) {
@@ -366,6 +406,38 @@ export default class ngbGoldenLayoutController extends baseController {
             const parent = blatSearchItem.parent;
             if (parent && parent.type === 'stack') {
                 parent.setActiveContentItem(blatSearchItem);
+            }
+        }
+    }
+    panelAddBlastSearchPanel(event) {
+        const layoutChange = this.appLayout.Panels.blast;
+        layoutChange.displayed = true;
+
+        const [blastSearchItem] = this.goldenLayout.root
+            .getItemsByFilter((obj) => obj.config && obj.config.componentState
+                && obj.config.componentState.panel === this.panels.ngbBlastSearchPanel);
+
+        const payload = {
+            id: event.id,
+            referenceId: event.referenceId,
+            chromosomeId: event.chromosomeId,
+            startIndex: event.startIndex,
+            endIndex: event.endIndex,
+            name: event.name,
+            openByUrl: event.openByUrl,
+            file: event.file,
+            index: event.index
+        };
+        localStorage.setItem('blastSearchRequest', JSON.stringify(payload || {}));
+
+        this.goldenLayout.on('itemDestroyed', this.blastSearchPanelDestroyedHandler, this);
+
+        if (!blastSearchItem) {
+            this.panelAdd(layoutChange);
+        } else {
+            const parent = blastSearchItem.parent;
+            if (parent && parent.type === 'stack') {
+                parent.setActiveContentItem(blastSearchItem);
             }
         }
     }

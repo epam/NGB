@@ -19,4 +19,15 @@ export default class PixiTextSize {
             width: PixiTextSize.label.width
         };
     }
+
+    static trimTextToFitWidth(text, width, _config) {
+        if (!text || PixiTextSize.getTextSize(text, _config).width <= width) {
+            return text;
+        }
+        let result = text.substr(0, text.length - 3);
+        while (result.length && PixiTextSize.getTextSize(`${result}...`, _config).width > width) {
+            result = result.substr(0, result.length - 1);
+        }
+        return `${result}...`;
+    }
 }

@@ -1,4 +1,4 @@
-import {EventGeneInfo, EventVariationInfo, PairReadInfo} from '../../../shared/utils/events';
+import {EventGeneInfo, PairReadInfo} from '../../../shared/utils/events';
 import Clipboard from 'clipboard';
 
 export default class ngbTrackEvents {
@@ -20,7 +20,9 @@ export default class ngbTrackEvents {
     }
 
     _getGeneTracks() {
-        return (this.projectContext.reference && this.projectContext.reference.geneFile) ? [this.projectContext.reference.geneFile] : this.projectContext.geneTracks;
+        return (this.projectContext.reference && this.projectContext.reference.geneFile)
+        ? [this.projectContext.reference.geneFile]
+        : this.projectContext.geneTracks;
     }
 
     featureClick(trackInstance, data, track, event) {
@@ -58,14 +60,71 @@ export default class ngbTrackEvents {
                     }],
                     title: 'Show Info'
                 });
+                const blastSearchParams = {
+                    geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
+                    id: track.id,
+                    chromosomeId: track.instance.config.chromosomeId,
+                    referenceId: track.referenceId,
+                    index: track.openByUrl ? track.indexPath : null,
+                    startIndex: data.feature.startIndex,
+                    endIndex: data.feature.endIndex,
+                    name: data.feature.name,
+                    file: track.openByUrl ? track.id : null,
+                    openByUrl: track.openByUrl,
+                };
+                menuData.push({
+                    title: 'BLASTn search',
+                    submenu: [{
+                        title:'Exon only',
+                        events: [{
+                            data: {
+                                ...blastSearchParams,
+                                tool:'blastn'
+                            },
+                            name: 'read:show:blast',
+                        }]},
+                    {
+                        title: 'All transcript info',
+                        events: [{
+                            data: {
+                                ...blastSearchParams,
+                                tool:'blastn'
+                            },
+                            name: 'read:show:blast',
+                        }]
+                    }]
+                });
+                menuData.push({
+                    submenu: [{
+                        events: [{
+                            data: {
+                                ...blastSearchParams,
+                                tool:'blastp'
+                            },
+                            name: 'read:show:blast',
+                        }],
+                        title:'Exon only',
+                    },
+                    {
+                        events: [{
+                            data: {
+                                ...blastSearchParams,
+                                tool:'blastp'
+                            },
+                            name: 'read:show:blast',
+                        }],
+                        title: 'All transcript info',
+                    }],
+                    title: 'BLASTp search',
+                });
                 if (geneTracks.length > 0) {
                     if (data.feature.attributes && data.feature.attributes.gene_id) {
-                        let layoutChange = this.appLayout.Panels.molecularViewer;
+                        const layoutChange = this.appLayout.Panels.molecularViewer;
                         layoutChange.displayed = true;
                         menuData.push({
                             events: [
                                 {
-                                    data: {layoutChange: layoutChange},
+                                    data: { layoutChange },
                                     name: 'layout:item:change'
                                 },
                                 {
@@ -105,6 +164,7 @@ export default class ngbTrackEvents {
                 );
                 childScope.$apply();
                 ngbTrackEvents.configureCopyToClipboardElements();
+                html.find('#hiddenMenuButton').triggerHandler('click');
             })();
         }
     }
@@ -267,9 +327,9 @@ export default class ngbTrackEvents {
                 };
                 const read = await self._bamDataService.loadRead(payload);
                 const generalInfo = data.info.map(line => line.join(' = ')).join('\r\n');
-                const tags = read.tags.map(tag => tag.tag + ' = ' + tag.value).join('\r\n');
+                const tags = read.tags.map(tag => `${tag.tag  } = ${  tag.value}`).join('\r\n');
 
-                menuItem.clipboard = generalInfo + '\r\n\r\n' + read.sequence + '\r\n\r\n' + tags;
+                menuItem.clipboard = `${generalInfo  }\r\n\r\n${  read.sequence  }\r\n\r\n${  tags}`;
                 menuItem.isLoading = false;
                 self.$scope.$apply();
             }
@@ -297,23 +357,31 @@ export default class ngbTrackEvents {
                 self.$scope.$apply();
             }
         };
-
+        const readInfo = {
+            geneId:null,
+            id: track.id,
+            referenceId: track.referenceId,
+            chromosomeId: data.chromosome.id,
+            startIndex: data.read.startIndex,
+            endIndex: data.read.endIndex,
+            name: data.read.name,
+            openByUrl: track.openByUrl,
+            file: track.openByUrl ? track.id : null,
+            index: track.openByUrl ? track.indexPath : null
+        };
         const openBlatSearchMenuItem = {
             title: 'BLAT Search',
             events: [{
-                data: {
-                    id: track.id,
-                    referenceId: track.referenceId,
-                    chromosomeId: data.chromosome.id,
-                    startIndex: data.read.startIndex,
-                    endIndex: data.read.endIndex,
-                    name: data.read.name,
-                    openByUrl: track.openByUrl,
-                    file: track.openByUrl ? track.id : null,
-                    index: track.openByUrl ? track.indexPath : null
-                },
+                data: {...readInfo},
                 name: 'read:show:blat',
             }],
+        };
+        const openBlastnSearchMenuItem = {
+            events: [{
+                data: {...readInfo, tool:'blastn'},
+                name: 'read:show:blast',
+            }],
+            title: 'BLASTn Search',
         };
 
         const menuData = [];
@@ -323,6 +391,7 @@ export default class ngbTrackEvents {
             menuData.push(openMateMenuItem);
         }
         menuData.push(openBlatSearchMenuItem);
+        menuData.push(openBlastnSearchMenuItem);
         menuData.push(copyToClipboard);
         menuData.push(copySequenceToClipboard);
         if (chromosomeNotFoundError) {
@@ -339,6 +408,7 @@ export default class ngbTrackEvents {
         );
         childScope.$apply();
         ngbTrackEvents.configureCopyToClipboardElements();
+        html.find('#hiddenMenuButton').triggerHandler('click');
     }
 
     static configureCopyToClipboardElements() {

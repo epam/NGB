@@ -1,0 +1,47 @@
+<md-dialog
+    class="whole-genome-md-dialog"
+    aria-label="whole genome view"
+    style="width: 66%"
+>
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h3>BLAST results: whole genome view</h3>
+            <span flex></span>
+            <div class="select-container">
+                <label class="select-label">Species:</label>
+                <md-input-container
+                    class="select-species"
+                >
+                    <md-select
+                        ng-model="blastCurrentSpecies"
+                        ng-change="selectSpecies(blastCurrentSpecies)"
+                        placeholder="select species"
+                    >
+                        <md-option
+                            ng-repeat="option in species"
+                            ng-value="option.taxid"
+                        >
+                            <em>{{option.name}}</em>
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+            <span flex></span>
+            <md-button
+                class="md-icon-button"
+                ng-click="close()"
+            >
+                <ng-md-icon
+                    style="fill: #ffffff;"
+                    icon="clear"
+                    aria-label="Close dialog"
+                ></ng-md-icon>
+            </md-button>
+        </div>
+    </md-toolbar>
+    <ngb-blast-whole-genome-view
+        chromosomes = "chromosomes"
+        blast-result = "result"
+    >
+    </ngb-blast-whole-genome-view>
+</md-dialog>

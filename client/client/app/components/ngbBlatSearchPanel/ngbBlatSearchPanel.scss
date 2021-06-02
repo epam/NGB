@@ -15,3 +15,26 @@
     min-width: 24px;
   }
 }
+
+.expandable-panel {
+  border: 1px dashed dimgray;
+  padding: 5px;
+  margin: 10px 0;
+  border-radius: 5px;
+  .expandable-panel-title {
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .expandable-panel-title span:before {
+    content: '\25B2';
+    transform:rotate(90deg);
+    display: inline-block;
+  }
+  .expandable-panel-title span.toggled:before {
+    transform:rotate(180deg);
+  }
+  .expandable-panel-content {
+    margin-top: 10px;
+  }
+}

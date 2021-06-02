@@ -314,13 +314,15 @@ export default class ngbTrackController {
     }
 
     get trackHeaderStyle() {
-        const styles = {
-            ...this.trackInstance.config.header,
-            ...this.trackInstance.state.header,
-        };
-        return {
-            'font-size': styles.fontSize || '12px',
-        };
+        if (this.trackInstance) {
+            const styles = {
+                ...this.trackInstance.config.header,
+                ...this.trackInstance.state.header,
+            };
+            return {
+                'font-size': styles.fontSize || '12px',
+            };
+        }
     }
 
     changeTrackVisibility(visible) {

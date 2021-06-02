@@ -1,0 +1,16 @@
+<div layout="column">
+    <div class="whole-genome-view-container">
+        <div class="chromosome-hit-tooltip hidden" id="chrTooltip">
+            <table>
+                <tr ng-repeat="(key, value) in $ctrl._tooltipContent">
+                    <td>{{key}}</td>
+                    <td>{{value}}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="no-species-selected hidden padded" md-whiteframe="2" flex-sm="45" flex-gt-sm="35" flex-gt-md="25" layout=""
+            layout-align="center center">
+            Please, select current species
+        </div>
+    </div>
+</div>

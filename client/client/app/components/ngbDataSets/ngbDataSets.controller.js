@@ -44,21 +44,27 @@ export default class ngbDataSetsController extends baseController {
         this.showTrackOriginalName = this.localDataService.getSettings().showTrackOriginalName;
 
         const self = this;
-        this.tracksStateChangeListener = async () => {
+        this.tracksStateChangeBlatListener = async () => {
             await self.service.updateSelectionFromState(self.datasets);
         };
-        const tracksStateChangeListener = ::this.tracksStateChangeListener;
+        this.tracksStateChangeBlastListener = async () => {
+            await self.service.updateSelectionFromState(self.datasets);
+        };
+        const tracksStateChangeBlatListener = ::this.tracksStateChangeBlatListener;
+        const tracksStateChangeBlastListener = ::this.tracksStateChangeBlastListener;
         const globalSettingsChangedHandler = (state) => {
             self.showTrackOriginalName = state.showTrackOriginalName;
         };
         const trackNameChanged = () => {
             $timeout(::$scope.$apply);
         };
-        dispatcher.on('tracks:state:change', tracksStateChangeListener);
+        dispatcher.on('tracks:state:change:blat', tracksStateChangeBlatListener);
+        dispatcher.on('tracks:state:change:blast', tracksStateChangeBlastListener);
         dispatcher.on('settings:change', globalSettingsChangedHandler);
         dispatcher.on('track:custom:name', trackNameChanged);
         $scope.$on('$destroy', () => {
-            dispatcher.removeListener('tracks:state:change', tracksStateChangeListener);
+            dispatcher.removeListener('tracks:state:change:blat', tracksStateChangeBlatListener);
+            dispatcher.removeListener('tracks:state:change:blast', tracksStateChangeBlastListener);
             dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
             dispatcher.removeListener('track:custom:name', trackNameChanged);
         });

@@ -1,0 +1,109 @@
+<div class="blast-search-result blast-search-flex-column">
+    <div layout="row">
+        <md-button
+                class="md-accent md-raised blast-search-result-back"
+                type="button"
+                ng-click="$ctrl.changeState({state: 'HISTORY'})"
+        >
+            <ng-md-icon class="icon_info_outline" icon="keyboard_backspace" size="16"></ng-md-icon>&nbsp;Back
+        </md-button>
+        <span class="blast-search-result-title">{{$ctrl.searchResult.title}}</span>
+    </div>
+    <div ng-if="$ctrl.isProgressShown">
+        <div class="progress" layout-align="center center">
+            <span>Loading parameters...</span>
+        </div>
+        <md-progress-linear md-mode="query"></md-progress-linear>
+    </div>
+    <div class="expandable-panel" layout="column" ng-if="!$ctrl.isProgressShown">
+        <div class="blast-search-result-params">
+            <div class="expandable-panel-title" ng-click="toggle = !toggle" layout="column" flex="50">
+                <span ng-class="{'toggled': toggle}">BLAST parameters</span>
+            </div>
+            <span flex></span>
+            <div ng-click="openQueryInfo()" class="blast-search-result-info" flex>
+                <md-button
+                        class="md-accent md-raised"
+                        type="button"
+                        ng-click="$ctrl.openQueryInfo($event)"
+                >Query Info
+                </md-button>
+            </div>
+        </div>
+        <div class="expandable-panel-content" ng-show="toggle" layout="column">
+            <div layout="row">
+                <div layout="column" flex="50">
+                    <div layout="row">
+                        <span class="field-name">Used tool:</span>
+                        <span class="field-value">{{$ctrl.searchResult.tool}}
+                            <md-tooltip>{{$ctrl.searchResult.tool}}</md-tooltip>
+                        </span>
+                    </div>
+                    <div layout="row">
+                        <span class="field-name">Submitted at:</span>
+                        <span class="field-value">{{$ctrl.searchResult.submitted | date:"short"}}
+                            <md-tooltip>{{$ctrl.searchResult.submitted | date:"short"}}</md-tooltip>
+                        </span>
+                    </div>
+                </div>
+                <div layout="column" flex="50">
+                    <div layout="row">
+                        <span class="field-name">Database:</span>
+                        <span class="field-value">{{$ctrl.searchResult.db}}
+                            <md-tooltip>{{$ctrl.searchResult.db}}</md-tooltip>
+                        </span>
+                    </div>
+                    <div layout="row">
+                        <span class="field-name">Algorithm:</span>
+                        <span class="field-value">{{$ctrl.searchResult.algorithm}}
+                            <md-tooltip>{{$ctrl.searchResult.algorithm}}</md-tooltip>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div layout="row">
+                <span class="field-name">Organisms:</span>
+                <span class="field-value field-max-width">{{$ctrl.searchResult.organisms.join(', ') | na}}
+                    <md-tooltip>{{$ctrl.searchResult.organisms}}</md-tooltip>
+                </span>
+            </div>
+            <div class="expandable-panel" layout="column">
+                <div class="expandable-panel-title" ng-click="toggle2 = !toggle2" layout="column">
+                    <span ng-class="{'toggled': toggle2}">Additional parameters</span>
+                </div>
+                <div class="expandable-panel-content" ng-show="toggle2" layout="column">
+                    <div layout="row">
+                        <div layout="column" flex="50">
+                            <div layout="row">
+                                <span class="field-name">Max target sequences:</span>
+                                <span class="field-value">{{$ctrl.searchResult.maxTargetSeqs | na}}
+                            <md-tooltip>{{$ctrl.searchResult.maxTargetSeqs}}</md-tooltip>
+                        </span>
+                            </div>
+                        </div>
+                        <div layout="column" flex="50">
+                            <div layout="row">
+                                <span class="field-name">Expect threshold:</span>
+                                <span class="field-value">{{$ctrl.searchResult.threshold | na}}
+                            <md-tooltip>{{$ctrl.searchResult.threshold}}</md-tooltip>
+                        </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div layout="row" ng-if="$ctrl.searchResult.options">
+                        <span class="field-name">Options:</span>
+                        <span class="area-value">{{$ctrl.searchResult.options}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div layout="column" class="blast-search-result-table-row" flex ng-if="!$ctrl.isFailure">
+        <ngb-blast-search-result-table layout="column" flex></ngb-blast-search-result-table>
+    </div>
+    <div ng-if="$ctrl.isFailure" class="variants-load-error-container" layout="column" layout-align="center center">
+        <small>Search was failed.</small>
+        <small>{{$ctrl.searchResult.reason}}</small>
+    </div>
+</div>
