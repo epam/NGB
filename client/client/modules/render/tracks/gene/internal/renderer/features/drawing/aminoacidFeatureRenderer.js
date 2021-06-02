@@ -136,8 +136,12 @@ export default class AminoacidFeatureRenderer extends FeatureBaseRenderer {
         return boundaries;
     }
 
-    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
-        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+    render(feature, viewport, graphicsObj, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+        super.render(feature, viewport, graphicsObj, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+        const {
+            graphics,
+            hoveredGraphics
+        } = graphicsObj || {};
         feature.aminoacidSequence = feature.aminoacidSequence || [];
 
         const minStartIndex = viewport.project.pixel2brushBP(-viewport.canvasSize);

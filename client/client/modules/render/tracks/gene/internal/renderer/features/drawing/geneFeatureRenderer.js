@@ -199,7 +199,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
             const transcript = this.config.transcript;
 
             for (let i = 0; i < transcriptLength; i++) {
-                this._transcriptFeatureRenderer.render(transcripts[i], viewport, graphics.graphics, graphics.hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, {
+                this._transcriptFeatureRenderer.render(transcripts[i], viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, {
                     x: position.x,
                     y: transcriptY
                 });

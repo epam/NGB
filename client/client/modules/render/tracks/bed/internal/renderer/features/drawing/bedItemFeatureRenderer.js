@@ -44,8 +44,12 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
         return color;
     }
 
-    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer,  position) {
-        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+    render(feature, viewport, graphicsObj, labelContainer, dockableElementsContainer, attachedElementsContainer,  position) {
+        super.render(feature, viewport, graphicsObj, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+        const {
+            graphics,
+            hoveredGraphics
+        } = graphicsObj || {};
         const pixelsInBp = viewport.factor;
         const yStart = position.y;
         let labelHeight = 0;
@@ -78,7 +82,7 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
                 position.y += descriptionLabel.height;
             }
         }
-        
+
         position.y += labelHeight;
 
         this.registerFeaturePosition(feature, {
