@@ -1,5 +1,5 @@
 <div class="blast-search-flex-column">
-    <md-nav-bar md-selected-nav-item="$ctrl.tabSelected">
+    <md-nav-bar class="blast-search-nav-bar" md-selected-nav-item="$ctrl.tabSelected">
         <md-nav-item md-nav-click="$ctrl.changeState($ctrl.blastStates.SEARCH)" name="SEARCH">SEARCH</md-nav-item>
         <md-nav-item md-nav-click="$ctrl.changeState($ctrl.blastStates.HISTORY)" name="HISTORY">HISTORY</md-nav-item>
         <span flex></span>
@@ -10,27 +10,31 @@
                                          flex
         ></ngb-blast-search-panel-paginate>
         <md-button
-                class="md-accent md-raised blast-search-nav-button"
+                class="md-accent md-flat blast-search-nav-button"
                 type="button"
+                aria-label="Clear history"
                 ng-click="$ctrl.clearHistory($event)"
                 ng-if="$ctrl.currentBlastState === $ctrl.blastStates.HISTORY"
-        >Clear history
+        >
+            <ng-md-icon icon="delete" style="fill: currentColor"></ng-md-icon>
         </md-button>
         <md-button
-                class="md-accent md-raised blast-search-nav-button"
+                class="md-accent md-flat blast-search-nav-button"
                 type="button"
                 ng-click="$ctrl.editSearch($event)"
                 ng-if="$ctrl.currentBlastState === $ctrl.blastStates.RESULT"
+                aria-label="rerun"
         >
-            <ng-md-icon class="icon_info_outline" icon="redo"></ng-md-icon>
+            <ng-md-icon class="icon_info_outline" icon="redo" style="fill: currentColor"></ng-md-icon>
         </md-button>
         <md-button
-                class="md-accent md-raised blast-search-nav-button"
+                class="md-accent md-flat blast-search-nav-button"
                 type="button"
                 ng-click="$ctrl.downloadResults($event)"
                 ng-if="$ctrl.currentBlastState === $ctrl.blastStates.RESULT"
+                aria-label="download"
         >
-            <ng-md-icon class="icon_info_outline" icon="file_download"></ng-md-icon>
+            <ng-md-icon class="icon_info_outline" icon="file_download" style="fill: currentColor"></ng-md-icon>
         </md-button>
     </md-nav-bar>
 

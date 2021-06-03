@@ -1,36 +1,28 @@
+$ngb-color-blue: #4285F4;
+
 .tools{
-  margin: 20px auto;
+  margin: 5px 0 10px;
 }
 .form_radio_btn {
   display: inline-block;
-  margin-right: 10px;
+  margin: 0 10px 5px 0;
 }
 .form_radio_btn input[type=radio] {
   display: none;
 }
 .form_radio_btn label {
-  display: inline-block;
-  cursor: pointer;
-  padding: 0 15px;
-  line-height: 34px;
-  background-color: #ebe6e6;
-  border-radius: 4px;
-  user-select: none;
-}
-/* Checked */
-.form_radio_btn input[type=radio]:checked + label {
-  background: #4285f4;
-  color: #ffff;
-}
-/* Hover */
-.form_radio_btn label:hover {
-  color: #ffff;
-  background: #2265cf;
+  min-height: unset;
+  min-width: unset;
+  line-height: 30px;
+  margin: 0;
 }
 .blast-search-input {
   font-size: 14px;
-  margin-top: 8px;
-  width:90%;
+  margin: 5px 0 10px;
+  width:100%;
+}
+.blast-search-input .md-errors-spacer {
+  min-height: 0;
 }
 .blast-sequence-area {
   resize:none;
@@ -41,18 +33,18 @@
 .radio-search-set {
   padding: 10px 15px;
   background-color: #f7f4f4;
-  width:90%;
+  width:100%;
   md-radio-group {
       display:flex;
       flex-direction: column;
   }
 }
 .blast-form-alert {
-  width:90%;
+  width:100%;
   color: #da2c2c;
   font-size: 10px;
-  margin:10px 0;
-  text-align:left;
+  margin: 0 0 10px;
+  text-align: left;
 }
 .search-button{
   margin-left: 0;
@@ -63,10 +55,10 @@
 .blast-organisms-livesearch {
   display: flex;
   flex-direction: row;
-  width: 90%;
+  width: 100%;
   .md-chips {
     padding: 0 0 1px 3px;
-    margin: 8px 0;
+    margin: 0;
     display: flex;
     flex-wrap: wrap;
     flex-grow: 1;
@@ -85,14 +77,33 @@
   .md-chips md-chip {
     height: 27px;
     line-height: 27px;
+    margin: 5px 5px 0 0;
+    display: flex;
+    align-items: center;
+    border-radius: 5px;
+    background-color: #eee;
+
+    &.md-focused {
+      background-color: $ngb-color-blue;
+      color: #fafafa;
+    }
   }
-  .md-chips md-chip .md-chip-remove {
-    height: 27px;
-    line-height: 27px;
+  .md-chips md-chip .remove-organism-button {
+    fill: #666;
+    cursor: pointer;
+    margin: 0 3px;
+
+    &:hover {
+      fill: #333;
+    }
   }
   md-checkbox {
     text-align: right;
-    margin-left: 10px;
+    margin: 0 0 0 5px;
+    .md-label {
+      top: 50%;
+      transform: translateY(-50%);
+    }
   }
 }
 .blast-organisms-livesearch-item li {
@@ -101,4 +112,11 @@
 }
 .blast-search-input-label {
   padding-bottom: 2px;
+}
+
+.blast-search-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
 }

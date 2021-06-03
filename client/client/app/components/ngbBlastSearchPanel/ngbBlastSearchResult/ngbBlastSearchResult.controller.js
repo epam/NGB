@@ -23,7 +23,7 @@ export default class ngbBlastSearchResult extends baseController {
 
     async initialize() {
         this.searchResult = await this.ngbBlastSearchService.getCurrentSearchResult();
-        this.searchResult.organisms = this.searchResult.organisms.map(o => o.commonname);
+        this.searchResult.organisms = (this.searchResult.organisms || []).map(o => o.commonname);
         this.isFailure = this.searchResult.state === 'FAILED';
         this.isProgressShown = false;
     }

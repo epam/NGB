@@ -1,5 +1,7 @@
+$ngb-color-blue: #4285F4;
+
 .blast-search-result {
-  padding: 0 8px;
+  padding: 0 2px;
   flex: 1 1 auto;
   overflow: auto;
   height: 0;
@@ -13,39 +15,59 @@
     line-height: 28px;
     font-size: 18px;
   }
-  .field-name {
-    font-weight: bold;
-    display: inline-block;
-    width: 120px;
-    line-height: 28px;
+  .field {
+    line-height: 20px;
     font-size: 14px;
-  }
-  .field-value {
-    display: inline-block;
-    max-width: 300px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    line-height: 28px;
-    font-size: 14px;
-  }
-  .field-max-width {
-    max-width: 100%;
+
+    .field-name {
+      font-weight: bold;
+      display: inline-block;
+      width: 120px;
+    }
+    .field-value {
+      display: inline-block;
+      max-width: 300px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .field-max-width {
+      max-width: 100%;
+    }
+    .blast-search-result-query-button {
+      cursor: pointer;
+      svg {
+        fill: $ngb-color-blue;
+      }
+      &:hover {
+        svg {
+          fill: darken($ngb-color-blue, 20%)
+        }
+      }
+    }
   }
   .area-value {
     display: inline-block;
-    background: #f7f4f4;
-    border: 1px solid dimgray;
-    border-radius: 5px;
   }
   .blast-search-result-link {
     color: rgb(51, 103, 214);
     cursor: pointer;
   }
   .blast-search-result-back {
-    fill: rgb(255, 255, 255);
-    line-height: 16px;
     min-width: 0;
     min-height: 16px;
+    width: 40px;
+    line-height: 28px;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+  }
+  .expandable-panel-title {
+    span {
+      margin-left: 15px;
+    }
+    .expandable-panel-icon {
+      fill: #666;
+    }
   }
   .blast-search-result-info {
     display: flex;
@@ -58,6 +80,9 @@
     min-height: 16px;
     margin: 0;
     text-transform: none;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
   }
   .blast-search-result-table-row {
     -ms-flex: 1 1 auto;

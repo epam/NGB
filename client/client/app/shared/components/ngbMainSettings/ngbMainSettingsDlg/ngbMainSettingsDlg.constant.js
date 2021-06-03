@@ -52,7 +52,7 @@ export default [
             {
                 type: 'item',
                 name: 'layout>blastSearch',
-                label: 'Blast',
+                label: 'BLAST',
                 hotkey: ''
             }
         ],

@@ -11,7 +11,12 @@
                 <input id="radio-{{$index}}" type="radio" name="tool" ng-value="tool"
                        ng-model="$ctrl.searchRequest.tool" required=""
                        ng-change="$ctrl.setDefaultAlgorithms()">
-                <label for="radio-{{$index}}">{{tool}}</label>
+                <label for="radio-{{$index}}"
+                       class="md-button md-raised"
+                       ng-class="{'md-primary': $ctrl.searchRequest.tool === tool}"
+                >
+                    {{tool}}
+                </label>
             </div>
             <div class="blast-form-alert" ng-show="blastSearchForm.tool.$invalid">
                 <div ng-message="required">Choose the tool for search</div>
@@ -39,6 +44,7 @@
         </md-input-container>
         <div class="blast-organisms-livesearch">
             <md-chips ng-model="$ctrl.searchRequest.organisms"
+                      class="blast-organisms-chips"
                       md-autocomplete-snap="width"
                       md-require-match="true" flex>
                 <md-autocomplete
@@ -51,14 +57,19 @@
                         md-delay="300"
                         placeholder="Organisms">
                     <md-item-template>
-                        <span md-highlight-text="$ctrl.searchText">{{item.commonname}} :: {{item.scientificname}}</span>
+                        <span md-highlight-text="$ctrl.searchText">{{item.scientificname}} (taxid: {{item.taxid}})</span>
                     </md-item-template>
                 </md-autocomplete>
                 <md-chip-template>
                         <span>
-                          <strong>{{$chip.scientificname}}</strong>
+                          <strong>{{$chip.scientificname}} (taxid: {{$chip.taxid}})</strong>
                         </span>
                 </md-chip-template>
+                <ng-md-icon icon="close"
+                            md-chip-remove=""
+                            class="remove-organism-button"
+                            size="18"
+                ></ng-md-icon>
             </md-chips>
             <md-checkbox ng-model="$ctrl.searchRequest.isExcluded">Excluded</md-checkbox>
         </div>
@@ -71,8 +82,9 @@
             </md-input-container>
         </div>
         <div class="expandable-panel" layout="column">
-            <div class="expandable-panel-title" ng-click="toggle = !toggle" layout="column">
-                <span ng-class="{'toggled': toggle}">Additional parameters</span>
+            <div class="expandable-panel-title" ng-class="{'toggled': toggle}" ng-click="toggle = !toggle" layout="column">
+                <ng-md-icon icon="expand_less" class="expandable-panel-icon"></ng-md-icon>
+                <span>Additional parameters</span>
             </div>
             <div class="expandable-panel-content" ng-show="toggle" layout="column">
                 <md-input-container class="blast-search-input">
@@ -90,8 +102,11 @@
                 </md-input-container>
             </div>
         </div>
-        <div>
-            <md-button class="md-accent md-raised search-button" type="submit" ng-disabled="blastSearchForm.$invalid">
+        <div class="blast-search-actions">
+            <md-button class="md-accent md-raised search-button"
+                       type="submit"
+                       ng-disabled="blastSearchForm.$invalid"
+                       aria-label="submit">
                 Search
             </md-button>
         </div>

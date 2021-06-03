@@ -24,6 +24,8 @@
 .blast-search-nav-button {
   min-width: 0;
   fill: rgb(255, 255, 255);
+  margin: 0 5px 0 0;
+  padding: 0 2px;
 }
 
 .blast-search-flex-column {
@@ -40,4 +42,18 @@
   margin-top: 5px;
   border: 1px solid dimgray;
   border-radius: 5px;
+}
+
+.blast-search-nav-bar .md-nav-bar {
+  height: 36px;
+  line-height: 36px;
+  .md-nav-item {
+    height: 36px;
+    line-height: 36px;
+    margin: 0;
+    .md-button {
+      padding: 0 6px;
+      margin: 0 2px;
+    }
+  }
 }

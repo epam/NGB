@@ -83,6 +83,9 @@ export default class ngbBlastSearchService {
                 data.tool = this.currentTool;
             }
         }
+        if (!data.organisms) {
+            data.organisms = [];
+        }
         return data;
     }
 
