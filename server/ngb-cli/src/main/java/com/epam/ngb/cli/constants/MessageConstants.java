@@ -33,6 +33,8 @@ public final class MessageConstants {
     private static final String ILLEGAL_ARGUMENTS = "Wrong number of arguments for a [%s] command.";
     public static final String ILLEGAL_COMMAND_ARGUMENTS = ILLEGAL_ARGUMENTS
             + " Expected [%d] argument(s), received [%d] argument(s).";
+    public static final String ILLEGAL_DATABASE_TYPE = "BLAST Data Base type should be 'PROTEIN' or 'NUCLEOTIDE'" +
+            ", received [%s].";
     public static final String MINIMUM_COMMAND_ARGUMENTS = ILLEGAL_ARGUMENTS
             + " Expected at least [%d] argument(s), received [%d] argument(s).";
     public static final String NOT_ALPHANUMERIC_ARGUMENTS = "Arguments for a [%s] command should be alphanumeric.";
