@@ -16,13 +16,16 @@ import naFilter from './ngbBlastSearch.na.filter';
 
 // Import components
 import ngbBlastHistory from './ngbBlastHistory';
+import ngbBlastSearchAlignment from './ngbBlastSearchAlignmentList';
 import ngbBlastSearchForm from './ngbBlastSearchFormPanel';
 import ngbBlastSearchResult from './ngbBlastSearchResult';
 import ngbBlastWholeGenomeView from './ngbBlastWholeGenomeView';
 
 // Import external modules
 export default angular
-    .module('ngbBlastSearchPanel', [ngbBlastWholeGenomeView, ngbBlastSearchForm, ngbBlastSearchResult, ngbBlastHistory])
+    .module('ngbBlastSearchPanel',
+        [ngbBlastWholeGenomeView, ngbBlastSearchForm, ngbBlastSearchResult, ngbBlastHistory, ngbBlastSearchAlignment]
+    )
     .constant('blastSearchMessages', messages)
     .service('dispatcher', dispatcher.instance)
     .service('ngbBlastSearchService', service.instance)

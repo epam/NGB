@@ -47,5 +47,8 @@
         <ngb-blast-search-result class="blast-search-flex-column"
                                  change-state="$ctrl.changeState(state)"
                                  ng-if="$ctrl.currentBlastState === $ctrl.blastStates.RESULT" flex></ngb-blast-search-result>
+        <ngb-blast-search-alignment-list class="blast-search-flex-column"
+                                 change-state="$ctrl.changeState(state)"
+                                 ng-if="$ctrl.currentBlastState === $ctrl.blastStates.ALIGNMENT" flex></ngb-blast-search-alignment-list>
     </md-content>
 </div>

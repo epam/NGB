@@ -107,7 +107,7 @@
     </div>
 
     <div layout="column" class="blast-search-result-table-row" flex ng-if="!$ctrl.isFailure">
-        <ngb-blast-search-result-table layout="column" flex></ngb-blast-search-result-table>
+        <ngb-blast-search-result-table change-state="$ctrl.changeState" layout="column" flex></ngb-blast-search-result-table>
     </div>
     <div ng-if="$ctrl.isFailure" class="variants-load-error-container" layout="column" layout-align="center center">
         <small>Search failed.</small>

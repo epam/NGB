@@ -1,0 +1,72 @@
+<div layout="column" class="blast-search-alignment-row">
+    <div layout="row" class="blast-search-alignment-params">
+        <div layout="row">
+            <span class="alignment-field-name">Range {{$ctrl.index}}:</span>
+            <span class="alignment-field-value">{{$ctrl.alignment.sequenceStart}} to {{$ctrl.alignment.sequenceEnd}}</span>
+        </div>
+        <div flex="10"></div>
+        <div layout="row">
+            <a class="blast-search-result-link blast-search-alignment-link" ng-href="">View at track</a>
+        </div>
+        <div flex></div>
+    </div>
+    <div layout="row" class="blast-search-alignment-params">
+        <div layout="row">
+            <span class="alignment-field-name">Score:</span>
+            <span class="alignment-field-value">{{$ctrl.alignment.bitScore}} bits ({{$ctrl.alignment.length}})</span>
+        </div>
+        <div layout="row">
+            <span class="alignment-field-name">Expect:</span>
+            <span class="alignment-field-value">{{$ctrl.alignment.evalue}}</span>
+        </div>
+        <div layout="row">
+            <span class="alignment-field-name">Identities:</span>
+            <span class="alignment-field-value">{{$ctrl.alignment.numIdentity}}/{{$ctrl.alignment.length}}
+                ({{$ctrl.alignment.numIdentity / $ctrl.alignment.length | percentage:0}})</span>
+        </div>
+        <div layout="row">
+            <span class="alignment-field-name">Gaps:</span>
+            <span class="alignment-field-value">{{$ctrl.alignment.gaps}}/{{$ctrl.alignment.length}}
+                ({{$ctrl.alignment.gaps / $ctrl.alignment.length | percentage:0}})</span>
+        </div>
+    </div>
+    <div class="blast-search-alignment-query-container" layout="row">
+        <div layout="column">
+            <span></span>
+            <span class="alignment-field-name">Query</span>
+            <span></span>
+            <span class="alignment-field-name">Subject seq</span>
+            <span></span>
+        </div>
+        <div layout="row">
+            <div class="right" layout="column">
+                <span>{{$ctrl.alignment.queryStart}}</span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span>{{$ctrl.alignment.sequenceStart}}</span>
+            </div>
+            <div class="mono" layout="column">
+                <span></span>
+                <span>{{$ctrl.alignment.querySequence}}</span>
+                <span>{{$ctrl.calculateDiff($ctrl.alignment.btop)}}</span>
+                <span>{{$ctrl.alignment.sequence}}</span>
+                <span></span>
+            </div>
+            <div class="left" layout="column">
+                <span>{{$ctrl.alignment.queryEnd}}</span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span>{{$ctrl.alignment.sequenceEnd}}</span>
+            </div>
+        </div>
+        <div class="center" layout="column">
+            <span class="alignment-field-name">Strand</span>
+            <span>+</span>
+            <span></span>
+            <span>{{$ctrl.alignment.sequenceStrandView}}</span>
+            <span></span>
+        </div>
+    </div>
+</div>

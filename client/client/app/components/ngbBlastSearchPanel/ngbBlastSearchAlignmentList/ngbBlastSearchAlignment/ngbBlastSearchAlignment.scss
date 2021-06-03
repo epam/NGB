@@ -1,0 +1,54 @@
+.blast-search-alignment-row {
+  margin: 10px 0;
+  border-bottom: 1px solid dimgray;
+  .blast-search-alignment-query-container {
+    margin-top: 5px;
+    display: flex;
+    justify-content: space-between;
+    div > span {
+      line-height: 20px;
+      height: 20px;
+      min-height: 20px;
+      white-space: pre;
+    }
+
+    div.left > span {
+      text-align: left;
+      margin-right: 10px;
+    }
+
+    div.right > span {
+      text-align: right;
+      margin-left: 10px;
+    }
+
+    div.center > span {
+      text-align: center;
+    }
+
+    div.mono > span {
+      font-family: monospace;
+      font-size: 18px;
+    }
+  }
+
+  .alignment-field-name {
+    font-weight: bold;
+    display: inline-block;
+    line-height: 20px;
+    font-size: 14px;
+  }
+
+  .alignment-field-value {
+    display: inline-block;
+    line-height: 20px;
+    font-size: 14px;
+    margin-left: 5px;
+  }
+  .blast-search-alignment-params {
+    justify-content: space-between;
+  }
+}
+.blast-search-alignment-link {
+  text-decoration: underline;
+}

@@ -100,6 +100,7 @@ export default class ngbBlastSearchResultTableService {
 
     _formatServerToClient(result) {
         return {
+            alignments: result.alignments,
             sequenceId: result.sequenceId,
             organism: result.organism,
             taxId: result.taxId,
