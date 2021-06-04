@@ -3,7 +3,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     <bean class="com.epam.catgenome.dao.blast.BlastDatabaseDao" id="databaseDao" autowire="byName">
-        <property name="databaseSequenceName" value="catgenome.s_blast_database" />
+        <property name="databaseSequenceName" value="catgenome.s_blast_database"/>
         <property name="insertDatabaseQuery">
             <value>
                 <![CDATA[
@@ -11,12 +11,14 @@
                         database_id,
                         name,
                         path,
-                        type
+                        type,
+                        source
                     ) VALUES (
                         :DATABASE_ID,
                         :NAME,
                         :PATH,
-                        :TYPE
+                        :TYPE,
+                        :SOURCE
                     )
                 ]]>
             </value>
@@ -28,6 +30,7 @@
                         name = :NAME,
                         path = :PATH,
                         type = :TYPE
+                        source = :SOURCE
                     WHERE
                         database_id = :DATABASE_ID
                 ]]>
@@ -47,7 +50,8 @@
                         database_id,
                         name,
                         path,
-                        type
+                        type,
+                        source
                     FROM catgenome.blast_database WHERE database_id = ?
                 ]]>
             </value>
@@ -59,7 +63,8 @@
                         database_id,
                         name,
                         path,
-                        type
+                        type,
+                        source
                     FROM catgenome.blast_database
                 ]]>
             </value>

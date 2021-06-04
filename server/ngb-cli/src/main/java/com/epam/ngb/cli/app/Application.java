@@ -74,7 +74,7 @@ public class Application {
             + "remove_spec\t: removes a species from the reference\t{remove_spec grch38}\n"
             + "list_spec\t: lists all species, registered on the server\t{list_spec}\n\n"
             + "BLAST DATABASE commands:\n"
-            + "rbd\treg_blast_db\t: registers a database\t{rbd \"name\" \"path\" \"type\"}\n"
+            + "rbd\treg_blast_db\t: registers a database\t{rbd \"name\" \"path\" \"type\" \"source\"}\n"
             + "dbd\tdel_blast_db\t: deletes a database \t{dbd 2}\n"
             + "lbd\tlist_blast_db\t: lists all databases, registered on the server\t{lbd \"type\"}\n\n"
             + "FILE commands:\n"

@@ -34,8 +34,7 @@ import org.apache.http.client.methods.HttpPost;
 
 import java.util.List;
 
-import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
-import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_DATABASE_TYPE;
+import static com.epam.ngb.cli.constants.MessageConstants.*;
 
 @Command(type = Command.Type.REQUEST, command = {"reg_blast_db"})
 public class CreateBlastDatabaseHandler extends AbstractHTTPCommandHandler {
@@ -49,16 +48,21 @@ public class CreateBlastDatabaseHandler extends AbstractHTTPCommandHandler {
       */
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
-        if (arguments.size() != 3) {
+        if (arguments.size() != 4) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 3, arguments.size()));
         }
         String type = arguments.get(2);
+        String source = arguments.get(3);
         if (!BlastDatabaseVO.BLAST_DATABASE_TYPES.contains(type)) {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ILLEGAL_DATABASE_TYPE, type));
         }
-        database = new BlastDatabaseVO(arguments.get(0), arguments.get(1), type);
+        if (!BlastDatabaseVO.BLAST_DATABASE_SOURCES.contains(source)) {
+            throw new IllegalArgumentException(MessageConstants.getMessage(
+                    ILLEGAL_DATABASE_SOURCE, source));
+        }
+        database = new BlastDatabaseVO(arguments.get(0), arguments.get(1), type ,source);
     }
 
     @Override public int runCommand() {

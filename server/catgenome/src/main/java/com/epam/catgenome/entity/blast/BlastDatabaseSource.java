@@ -23,19 +23,30 @@
  */
 package com.epam.catgenome.entity.blast;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+public enum BlastDatabaseSource {
+    CUSTOM(1),
+    NCBI(2);
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class BlastDatabase {
-    private Long id;
-    private String name;
-    private String path;
-    private BlastDatabaseType type;
-    private BlastDatabaseSource source;
+    private Long sourceId;
+
+    BlastDatabaseSource(final long sourceId) {
+        this.sourceId = sourceId;
+    }
+
+    public Long getSourceId() {
+        return sourceId;
+    }
+
+    /**
+     * @param sourceId
+     * @return a {@code BlastDatabaseSource} instance corresponding to the input ID
+     */
+    public static BlastDatabaseSource getSourceById(final Long sourceId) {
+        for (BlastDatabaseSource source : BlastDatabaseSource.values()) {
+            if (source.getSourceId().equals(sourceId)) {
+                return source;
+            }
+        }
+        throw new IllegalArgumentException("Invalid Blast database source ID");
+    }
 }

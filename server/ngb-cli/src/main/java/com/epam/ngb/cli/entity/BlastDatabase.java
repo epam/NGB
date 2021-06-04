@@ -44,6 +44,7 @@ public class BlastDatabase implements Printable<BlastDatabase> {
     private String name;
     private String path;
     private String type;
+    private String source;
 
     /**
      * Calculates a formatting string for a {@code List} of {@code BlastDatabase} objects
@@ -86,6 +87,7 @@ public class BlastDatabase implements Printable<BlastDatabase> {
             calculateFieldWidth(formatMap, FieldFormat.NAME, dbs.getName());
             calculateFieldWidth(formatMap, FieldFormat.PATH, dbs.getPath());
             calculateFieldWidth(formatMap, FieldFormat.TYPE, dbs.getType());
+            calculateFieldWidth(formatMap, FieldFormat.SOURCE, dbs.getSource());
         }
     }
 
@@ -105,6 +107,7 @@ public class BlastDatabase implements Printable<BlastDatabase> {
         ID,
         NAME,
         PATH,
-        TYPE
+        TYPE,
+        SOURCE
     }
 }

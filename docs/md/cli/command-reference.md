@@ -614,21 +614,22 @@ $ ngb del_spec "hg19"
 ## Blast database commands
 ### Register database
 ```
-ngb reg_blast_db|rbd [<NAME>] [<PATH>] [<TYPE>]
+ngb reg_blast_db|rbd [<NAME>] [<PATH>] [<TYPE>] [<SOURCE>]
 ```
 *Description*
 
-Registers a database. Three arguments have to be specified:
+Registers a database. Four arguments have to be specified:
 * Database name
 * Database path
 * Database type
+* Database source
 
-> **Note**: type should be "PROTEIN" or "NUCLEOTIDE".
+> **Note**: type should be "PROTEIN" or "NUCLEOTIDE". Source should be "NCBI" or "CUSTOM".
 
 *Example*
 ```bash
-# Create new database with name "Homo_sapiens", path "Homo_sapiens.GRCh38" and type "NUCLEOTIDE"
-$ ngb reg_blast_db "Homo_sapiens" "Homo_sapiens.GRCh38" "NUCLEOTIDE"
+# Create new database with name "Homo_sapiens", path "Homo_sapiens.GRCh38", type "NUCLEOTIDE" and "CUSTOM" source
+$ ngb reg_blast_db "Homo_sapiens" "Homo_sapiens.GRCh38" "NUCLEOTIDE" "CUSTOM"
 ```
 
 ### List databases

@@ -25,6 +25,7 @@ package com.epam.catgenome.dao.blast;
 
 import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.blast.BlastDatabase;
+import com.epam.catgenome.entity.blast.BlastDatabaseSource;
 import com.epam.catgenome.entity.blast.BlastDatabaseType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -103,7 +104,8 @@ public class BlastDatabaseDao extends NamedParameterJdbcDaoSupport {
         DATABASE_ID,
         NAME,
         PATH,
-        TYPE;
+        TYPE,
+        SOURCE;
 
         static MapSqlParameterSource getParameters(final BlastDatabase database) {
             MapSqlParameterSource params = new MapSqlParameterSource();
@@ -112,6 +114,7 @@ public class BlastDatabaseDao extends NamedParameterJdbcDaoSupport {
             params.addValue(NAME.name(), database.getName());
             params.addValue(PATH.name(), database.getPath());
             params.addValue(TYPE.name(), database.getType().getTypeId());
+            params.addValue(SOURCE.name(), database.getSource().getSourceId());
 
             return params;
         }
@@ -123,9 +126,13 @@ public class BlastDatabaseDao extends NamedParameterJdbcDaoSupport {
                 database.setId(rs.getLong(DATABASE_ID.name()));
                 database.setName(rs.getString(NAME.name()));
                 database.setPath(rs.getString(PATH.name()));
-                long longVal = rs.getLong(TYPE.name());
+                long typeVal = rs.getLong(TYPE.name());
                 if (!rs.wasNull()) {
-                    database.setType(BlastDatabaseType.getTypeById(longVal));
+                    database.setType(BlastDatabaseType.getTypeById(typeVal));
+                }
+                long sourceVal = rs.getLong(SOURCE.name());
+                if (!rs.wasNull()) {
+                    database.setSource(BlastDatabaseSource.getSourceById(sourceVal));
                 }
                 return database;
             };

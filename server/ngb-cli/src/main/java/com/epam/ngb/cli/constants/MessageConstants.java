@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,8 @@ public final class MessageConstants {
     public static final String ILLEGAL_COMMAND_ARGUMENTS = ILLEGAL_ARGUMENTS
             + " Expected [%d] argument(s), received [%d] argument(s).";
     public static final String ILLEGAL_DATABASE_TYPE = "BLAST Data Base type should be 'PROTEIN' or 'NUCLEOTIDE'" +
+            ", received [%s].";
+    public static final String ILLEGAL_DATABASE_SOURCE = "BLAST Data Base source should be 'NCBI' or 'CUSTOM'" +
             ", received [%s].";
     public static final String MINIMUM_COMMAND_ARGUMENTS = ILLEGAL_ARGUMENTS
             + " Expected at least [%d] argument(s), received [%d] argument(s).";
