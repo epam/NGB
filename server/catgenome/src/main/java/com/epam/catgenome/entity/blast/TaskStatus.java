@@ -21,12 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package com.epam.catgenome.entity.blast;
 
 import java.util.HashMap;
 import java.util.Map;
-
 
 public enum TaskStatus {
     CREATED(1, false),

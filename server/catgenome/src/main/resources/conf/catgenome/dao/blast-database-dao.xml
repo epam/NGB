@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.blast.BlastDatabaseDao" id="databaseDao" autowire="byName">
+        <property name="databaseSequenceName" value="catgenome.s_blast_database"/>
+        <property name="insertDatabaseQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.blast_database (
+                        database_id,
+                        name,
+                        path,
+                        type,
+                        source
+                    ) VALUES (
+                        :DATABASE_ID,
+                        :NAME,
+                        :PATH,
+                        :TYPE,
+                        :SOURCE
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="updateDatabaseQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.blast_database SET
+                        name = :NAME,
+                        path = :PATH,
+                        type = :TYPE
+                        source = :SOURCE
+                    WHERE
+                        database_id = :DATABASE_ID
+                ]]>
+            </value>
+        </property>
+        <property name="deleteDatabaseQuery">
+            <value>
+                <![CDATA[
+                    DELETE FROM catgenome.blast_database WHERE database_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadDatabaseQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        database_id,
+                        name,
+                        path,
+                        type,
+                        source
+                    FROM catgenome.blast_database WHERE database_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadDatabasesQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        database_id,
+                        name,
+                        path,
+                        type,
+                        source
+                    FROM catgenome.blast_database
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

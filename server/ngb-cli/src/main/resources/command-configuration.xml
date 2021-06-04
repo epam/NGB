@@ -190,4 +190,19 @@
         <type>DELETE</type>
         <url>/restapi/role/%d/remove?userIds=%s</url>
     </rem_group>
+    <reg_blast_db>
+        <name>reg_blast_db</name>
+        <type>POST</type>
+        <url>/restapi/blast/database</url>
+    </reg_blast_db>
+    <del_blast_db>
+        <name>del_blast_db</name>
+        <type>DELETE</type>
+        <url>/restapi/blast/database/%d</url>
+    </del_blast_db>
+    <list_blast_db>
+        <name>list_blast_db</name>
+        <type>GET</type>
+        <url>/restapi/blast/databases</url>
+    </list_blast_db>
 </config>
