@@ -34,7 +34,9 @@ import org.apache.http.client.methods.HttpPost;
 
 import java.util.List;
 
-import static com.epam.ngb.cli.constants.MessageConstants.*;
+import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
+import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_DATABASE_SOURCE;
+import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_DATABASE_TYPE;
 
 @Command(type = Command.Type.REQUEST, command = {"reg_blast_db"})
 public class CreateBlastDatabaseHandler extends AbstractHTTPCommandHandler {
@@ -62,7 +64,7 @@ public class CreateBlastDatabaseHandler extends AbstractHTTPCommandHandler {
             throw new IllegalArgumentException(MessageConstants.getMessage(
                     ILLEGAL_DATABASE_SOURCE, source));
         }
-        database = new BlastDatabaseVO(arguments.get(0), arguments.get(1), type ,source);
+        database = new BlastDatabaseVO(arguments.get(0), arguments.get(1), type, source);
     }
 
     @Override public int runCommand() {
