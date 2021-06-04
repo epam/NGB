@@ -47,6 +47,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_ADMIN;
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
 @Service
@@ -112,4 +113,8 @@ public class BlastTaskSecurityService {
         blastTaskManager.deleteTasks();
     }
 
+    @PreAuthorize(ROLE_ADMIN)
+    public void uploadOrganismsDatabase(String path) {
+        blastTaskManager.uploadOrganismsDatabase(path);
+    }
 }

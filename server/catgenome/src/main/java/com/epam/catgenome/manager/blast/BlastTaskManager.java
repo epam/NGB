@@ -264,4 +264,7 @@ public class BlastTaskManager {
                 .sorted(Comparator.comparing(BlastSequence::getEValue))
                 .collect(Collectors.toList());
     }
+
+    public void uploadOrganismsDatabase(String path) {
+    }
 }
