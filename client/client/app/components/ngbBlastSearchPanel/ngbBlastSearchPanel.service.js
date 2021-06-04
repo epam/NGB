@@ -5,14 +5,15 @@ const BLAST_STATES = {
 };
 
 export default class ngbBlastSearchService {
-    static instance(dispatcher, bamDataService, projectDataService) {
-        return new ngbBlastSearchService(dispatcher, bamDataService, projectDataService);
+    static instance(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants) {
+        return new ngbBlastSearchService(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants);
     }
 
     _detailedRead = null;
     _totalPagesCountHistory = 0;
     _currentResultId = null;
     _currentSearchId = null;
+    _currentTool = null;
 
     get totalPagesCountHistory() {
         return this._totalPagesCountHistory;
@@ -26,8 +27,9 @@ export default class ngbBlastSearchService {
         return BLAST_STATES;
     }
 
-    constructor(dispatcher, bamDataService, projectDataService) {
-        Object.assign(this, {dispatcher, bamDataService, projectDataService});
+    constructor(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants) {
+        Object.assign(this, {dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants});
+        this.currentTool = this.ngbBlastSearchFormConstants.BLAST_TOOLS[0];
     }
 
     async getOrganismList(term, selectedOrganisms = []) {
@@ -44,7 +46,16 @@ export default class ngbBlastSearchService {
         const searchRequest = JSON.parse(localStorage.getItem('blastSearchRequest')) || null;
         let read = null;
         if (searchRequest) {
-            read = await this.bamDataService.loadRead(searchRequest);
+            switch (searchRequest.source) {
+                case 'bam': {
+                    read = await this.bamDataService.loadRead(searchRequest);
+                    break;
+                }
+                case 'gene': {
+                    read = {};
+                    break;
+                }
+            }
         }
         return read;
     }
@@ -63,11 +74,11 @@ export default class ngbBlastSearchService {
     }
 
     get currentTool() {
-        return this._currentSearchTool;
+        return this._currentTool;
     }
 
     set currentTool(tool) {
-        this._currentSearchTool = tool;
+        this._currentTool = tool;
     }
 
     async getCurrentSearch() {
@@ -105,7 +116,8 @@ export default class ngbBlastSearchService {
                 localStorage.removeItem('blastSearchRequest');
             }
             this.currentSearchId = null;
-            this.currentTool = null;
+            this.currentTool = this.ngbBlastSearchFormConstants[0];
+            return data;
         });
     }
 

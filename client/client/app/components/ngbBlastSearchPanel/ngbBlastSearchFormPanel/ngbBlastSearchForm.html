@@ -31,6 +31,9 @@
             <label for="task" class="blast-search-input-label">Task title</label>
             <input type="text" id="task" name="task" ng-model="$ctrl.searchRequest.title">
         </md-input-container>
+        <md-input-container class="blast-search-set">
+            <span>Search set</span>
+        </md-input-container>
         <md-input-container class="blast-search-input">
             <label for="db">Database</label>
             <md-select
@@ -55,7 +58,7 @@
                         md-items="item in $ctrl.ngbBlastSearchService.getOrganismList($ctrl.searchText, $ctrl.searchRequest.organisms)"
                         md-item-text="item.taxid"
                         md-delay="300"
-                        placeholder="Organisms">
+                        placeholder="Organism">
                     <md-item-template>
                         <span md-highlight-text="$ctrl.searchText">{{item.scientificname}} (taxid: {{item.taxid}})</span>
                     </md-item-template>
@@ -71,7 +74,7 @@
                             size="18"
                 ></ng-md-icon>
             </md-chips>
-            <md-checkbox ng-model="$ctrl.searchRequest.isExcluded">Excluded</md-checkbox>
+            <md-checkbox ng-model="$ctrl.searchRequest.isExcluded">Exclude</md-checkbox>
         </div>
         <div ng-if="$ctrl.algorithmList.length" class="blast-algorithm">
             <md-input-container class="blast-search-input">
@@ -101,6 +104,9 @@
                               class="blast-options-area"></textarea>
                 </md-input-container>
             </div>
+        </div>
+        <div ng-if="$ctrl.errorMessageList.length" class="md-padding">
+            <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
         </div>
         <div class="blast-search-actions">
             <md-button class="md-accent md-raised search-button"

@@ -151,15 +151,13 @@ export default class ngbBlastHistoryController extends baseController {
             return;
         }
         const {columns} = this.gridApi.saveState.save();
+        const fieldTitleMap = (
+            o => Object.keys(o).reduce(
+                (r, k) => Object.assign(r, { [o[k]]: k }), {}
+            )
+        )(this.ngbBlastHistoryTableService.historyColumnTitleMap);
         const mapNameToField = function ({name}) {
-            switch (name) {
-                case 'Title':
-                    return 'title';
-                case '':
-                    return 'actions';
-                default:
-                    return name;
-            }
+            return fieldTitleMap[name];
         };
         const orders = columns.map(mapNameToField);
         const r = [];
@@ -197,6 +195,7 @@ export default class ngbBlastHistoryController extends baseController {
         }
 
         this.ngbBlastHistoryTableService.currentPageHistory = 1;
+        this.gridOptions.data = [];
         this.loadData();
     }
 

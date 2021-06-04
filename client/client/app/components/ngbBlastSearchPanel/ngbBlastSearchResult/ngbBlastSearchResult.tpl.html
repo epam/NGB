@@ -23,7 +23,7 @@
                 <span>BLAST parameters</span>
             </div>
             <span flex></span>
-            <div ng-click="openQueryInfo()" class="blast-search-result-info" flex>
+            <div ng-show="toggle" ng-click="openQueryInfo()" class="blast-search-result-info" flex>
                 <md-button
                         class="md-flat md-accent"
                         md-no-ink
@@ -32,7 +32,7 @@
                         ng-click="$ctrl.openQueryInfo($event)"
                 >
                     <ng-md-icon icon="info" size="20" style="fill: currentColor"></ng-md-icon>
-                    Query
+                    Query info
                 </md-button>
             </div>
         </div>

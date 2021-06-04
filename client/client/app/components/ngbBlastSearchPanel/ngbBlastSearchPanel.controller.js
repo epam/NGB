@@ -10,11 +10,12 @@ export default class ngbBlastSearchPanelController extends baseController {
         return 'ngbBlastSearchPanelController';
     }
 
-    constructor(dispatcher, $scope, ngbBlastSearchService, ngbBlastHistoryTableService, $mdDialog) {
+    constructor(dispatcher, $scope, $timeout, ngbBlastSearchService, ngbBlastHistoryTableService, $mdDialog) {
         super(dispatcher);
         Object.assign(this, {
             dispatcher,
             $scope,
+            $timeout,
             ngbBlastHistoryTableService,
             ngbBlastSearchService,
             $mdDialog
@@ -36,6 +37,7 @@ export default class ngbBlastSearchPanelController extends baseController {
                 ? this.blastStates.SEARCH
                 : this.blastStates.HISTORY;
         }
+        this.$timeout(::this.$scope.$apply);
     }
 
     clearHistory(event) {
@@ -43,7 +45,7 @@ export default class ngbBlastSearchPanelController extends baseController {
             .title('Clear all history?')
             .ok('OK')
             .cancel('CANCEL');
-        this.$mdDialog.show(confirm).then(this.ngbBlastHistoryTableService.clearSearchHistory);
+        this.$mdDialog.show(confirm).then(::this.ngbBlastHistoryTableService.clearSearchHistory);
         event.stopImmediatePropagation();
         return false;
     }

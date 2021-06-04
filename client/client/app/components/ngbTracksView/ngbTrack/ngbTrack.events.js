@@ -79,7 +79,8 @@ export default class ngbTrackEvents {
                         events: [{
                             data: {
                                 ...blastSearchParams,
-                                tool:'blastn'
+                                tool:'blastn',
+                                source: 'gene'
                             },
                             name: 'read:show:blast',
                         }]},
@@ -88,7 +89,8 @@ export default class ngbTrackEvents {
                         events: [{
                             data: {
                                 ...blastSearchParams,
-                                tool:'blastn'
+                                tool:'blastn',
+                                source: 'gene'
                             },
                             name: 'read:show:blast',
                         }]
@@ -99,7 +101,8 @@ export default class ngbTrackEvents {
                         events: [{
                             data: {
                                 ...blastSearchParams,
-                                tool:'blastp'
+                                tool:'blastp',
+                                source: 'gene'
                             },
                             name: 'read:show:blast',
                         }],
@@ -109,9 +112,10 @@ export default class ngbTrackEvents {
                         events: [{
                             data: {
                                 ...blastSearchParams,
-                                tool:'blastp'
+                                tool:'blastp',
+                                source: 'gene'
                             },
-                            name: 'read:show:blast',
+                            name: 'read:show:blast'
                         }],
                         title: 'All transcript info',
                     }],
@@ -378,7 +382,11 @@ export default class ngbTrackEvents {
         };
         const openBlastnSearchMenuItem = {
             events: [{
-                data: {...readInfo, tool:'blastn'},
+                data: {
+                    ...readInfo,
+                    tool:'blastn',
+                    source: 'bam'
+                },
                 name: 'read:show:blast',
             }],
             title: 'BLASTn Search',
