@@ -16,7 +16,7 @@ apply plugin: "pmd"
 apply plugin: "jacoco"
 
 repositories  {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
