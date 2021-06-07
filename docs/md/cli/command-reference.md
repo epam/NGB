@@ -634,12 +634,16 @@ $ ngb reg_blast_db "Homo_sapiens" "Homo_sapiens.GRCh38" "NUCLEOTIDE" "CUSTOM"
 
 ### List databases
 ```
-ngb list_blast_db|lbd [TYPE] [options]
+ngb list_blast_db|lbd [options]
 
 //Options:
+//-dt (--db-type)       Show databases with specified type
+//-dp (--db-path)       Show databases with specified path
 //-t (--table)          Print result as a human-readable table
 //-j (--json)           Print result as a JSON string
 ```
+> **Note**: type should be "PROTEIN" or "NUCLEOTIDE".
+
 *Description*
 
 List all databases registered on NGB server.
@@ -649,7 +653,7 @@ One argument can be specified:
 *Example*
 ```bash
 # List all "PROTEIN" databases registered on NGB server
-$ ngb list_blast_db "PROTEIN"
+$ ngb list_blast_db -dt "PROTEIN"
 ```
 
 ### Delete database

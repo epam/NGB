@@ -28,12 +28,15 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.blast.BlastDatabaseDao;
 import com.epam.catgenome.entity.blast.BlastDatabase;
 import com.epam.catgenome.entity.blast.BlastDatabaseType;
+import com.epam.catgenome.util.db.Filter;
+import com.epam.catgenome.util.db.QueryParameters;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -60,7 +63,16 @@ public class BlastDatabaseManager {
         return database;
     }
 
-    public List<BlastDatabase> load(final BlastDatabaseType type) {
-        return databaseDao.loadDatabases(type);
+    public List<BlastDatabase> load(final BlastDatabaseType type, String path) {
+        List<Filter> filters = new ArrayList<>();
+        if (type != null) {
+            filters.add(new Filter("type", "=", "'" + type.getTypeId().toString() + "'"));
+        }
+        if (path != null) {
+            filters.add(new Filter("path", "=", "'" + path + "'"));
+        }
+        QueryParameters queryParameters = new QueryParameters();
+        queryParameters.setFilters(filters);
+        return databaseDao.loadDatabases(queryParameters);
     }
 }

@@ -102,6 +102,10 @@ public class ApplicationOptions {
 
     private boolean showPermissions;
 
+    private String databaseType;
+
+    private String databasePath;
+
     /**
      * Creates object with default option's values
      */
@@ -259,5 +263,21 @@ public class ApplicationOptions {
 
     public void setShowPermissions(boolean showPermissions) {
         this.showPermissions = showPermissions;
+    }
+
+    public String getDatabaseType() {
+        return databaseType;
+    }
+
+    public void setDatabaseType(final String databaseType) {
+        this.databaseType = databaseType;
+    }
+
+    public String getDatabasePath() {
+        return databasePath;
+    }
+
+    public void setDatabasePath(final String databasePath) {
+        this.databasePath = databasePath;
     }
 }

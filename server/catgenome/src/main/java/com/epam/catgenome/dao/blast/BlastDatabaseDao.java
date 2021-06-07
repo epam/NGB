@@ -27,6 +27,7 @@ import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.blast.BlastDatabase;
 import com.epam.catgenome.entity.blast.BlastDatabaseSource;
 import com.epam.catgenome.entity.blast.BlastDatabaseType;
+import com.epam.catgenome.util.db.QueryParameters;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,6 +40,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.epam.catgenome.util.Utils.addParametersToQuery;
 
 @Getter
 @Setter
@@ -80,12 +83,11 @@ public class BlastDatabaseDao extends NamedParameterJdbcDaoSupport {
 
     /**
      * Loads {@code Blast databases} from a database by type.
-     * @param type {@code BlastDatabaseType} a type of databases
+     * @param queryParameters {@code QueryParameters} query parameters
      * @return a {@code List<BlastDatabase>} from the database
      */
-    public List<BlastDatabase> loadDatabases(final BlastDatabaseType type) {
-        String query = type == null ? loadDatabasesQuery : loadDatabasesQuery
-                + " WHERE type = " + type.getTypeId();
+    public List<BlastDatabase> loadDatabases(final QueryParameters queryParameters) {
+        String query = addParametersToQuery(loadDatabasesQuery, queryParameters);
         return getJdbcTemplate().query(query, DatabaseParameters.getRowMapper());
     }
 

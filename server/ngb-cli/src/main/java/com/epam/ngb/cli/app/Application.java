@@ -76,7 +76,7 @@ public class Application {
             + "BLAST DATABASE commands:\n"
             + "rbd\treg_blast_db\t: registers a database\t{rbd \"name\" \"path\" \"type\" \"source\"}\n"
             + "dbd\tdel_blast_db\t: deletes a database \t{dbd 2}\n"
-            + "lbd\tlist_blast_db\t: lists all databases, registered on the server\t{lbd \"type\"}\n\n"
+            + "lbd\tlist_blast_db\t: lists all databases, registered on the server\t{lbd -dt \"type\" -dp \"path\"}\n\n"
             + "FILE commands:\n"
             + "rf\treg_file\t: registers a feature file for a specified reference\t"
             + "{rf grch38 \\path\\to\\file.bam?\\path\\to\\file.bam.bai -n my_vcf}\n"
@@ -196,6 +196,12 @@ public class Application {
     @Option(name = "-perm", usage = "shows permissions", aliases = {"--permissions"})
     private boolean showPermissions = false;
 
+    @Option(name = "-dt", usage = "database type", aliases = {"--db-type"})
+    private String databaseType;
+
+    @Option(name = "-dp", usage = "database path", aliases = {"--db-path"})
+    private String databasePath;
+
     @Argument
     private List<String> arguments;
 
@@ -293,6 +299,8 @@ public class Application {
         }
         options.setMaxMemory(maxMemory);
         options.setShowPermissions(showPermissions);
+        options.setDatabaseType(databaseType);
+        options.setDatabasePath(databasePath);
         return options;
     }
 
