@@ -97,12 +97,7 @@ export default class ngbTracksViewController extends baseController {
     }
 
     events = {
-        'tracks:state:change:blat': () => {
-            Promise.delay(0)
-                .then(::this.manageTracks)
-                .then(::this.refreshTracksScope);
-        },
-        'tracks:state:change:blast': () => {
+        'tracks:state:change': () => {
             Promise.delay(0)
                 .then(::this.manageTracks)
                 .then(::this.refreshTracksScope);

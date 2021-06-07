@@ -35,13 +35,11 @@ export default class ngbProjectSummaryController {
         const globalSettingsChangedHandler = (state) => {
             self.showTrackOriginalName = state.showTrackOriginalName;
         };
-        this._dispatcher.on('tracks:state:change:blat', reloadPanel);
-        this._dispatcher.on('tracks:state:change:blast', reloadPanel);
+        this._dispatcher.on('tracks:state:change', reloadPanel);
         this._dispatcher.on('settings:change', globalSettingsChangedHandler);
         // We must remove event listener when component is destroyed.
         $scope.$on('$destroy', () => {
-            __dispatcher.removeListener('tracks:state:change:blat', reloadPanel);
-            __dispatcher.removeListener('tracks:state:change:blast', reloadPanel);
+            __dispatcher.removeListener('tracks:state:change', reloadPanel);
             __dispatcher.removeListener('settings:change', globalSettingsChangedHandler);
         });
     }
