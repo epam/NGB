@@ -54,6 +54,9 @@ export default class ngbBlastSearchResultTableController extends baseController 
         });
 
         this.initEvents();
+        this.$scope.$on('$destroy', () => {
+            this.ngbBlastSearchService.isEmptyResults = true;
+        });
     }
 
     $onInit() {
@@ -88,10 +91,12 @@ export default class ngbBlastSearchResultTableController extends baseController 
                 this.searchResultTableLoadError = null;
                 this.gridOptions.columnDefs = this.ngbBlastSearchResultTableService.getBlastSearchResultGridColumns();
                 this.gridOptions.data = this.ngbBlastSearchResultTableService.blastSearchResult;
+                this.isEmptyResults = false;
             } else {
                 this.isEmptyResults = true;
             }
             this.isProgressShown = false;
+            this.ngbBlastSearchService.isEmptyResults = this.isEmptyResults;
         } catch (errorObj) {
             this.onError(errorObj.message);
         }

@@ -121,6 +121,7 @@ export default class ngbBlastHistoryController extends baseController {
                 this.gridOptions.data = this.ngbBlastHistoryTableService.blastHistory;
                 this.totalPages = this.ngbBlastHistoryTableService.totalPages;
                 this.currentPage = this.ngbBlastHistoryTableService.currentPageHistory;
+                this.isEmptyResults = false;
             } else {
                 this.isEmptyResults = true;
             }

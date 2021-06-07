@@ -58,15 +58,19 @@ export default class ngbBlastSearchPanelController extends baseController {
     }
 
     downloadResults(event) {
-        const id = this.ngbBlastSearchService.currentResultId;
-        this.ngbBlastHistoryTableService.downloadResults(id).then(data => {
+        const result = this.ngbBlastSearchService.cutCurrentResult;
+        if (!result) {
+            return;
+        }
+        this.ngbBlastHistoryTableService.downloadResults(result.id).then(data => {
             const linkElement = document.createElement('a');
             try {
                 const blob = new Blob([data], {type: 'application/csv'});
                 const url = window.URL.createObjectURL(blob);
 
                 linkElement.setAttribute('href', url);
-                linkElement.setAttribute('download', `blast-result-${id}.csv`);
+                linkElement.setAttribute('download',
+                    `BLAST-${result.tool}-${result.db}-${result.title || result.id}.csv`);
 
                 const clickEvent = new MouseEvent('click', {
                     'view': window,

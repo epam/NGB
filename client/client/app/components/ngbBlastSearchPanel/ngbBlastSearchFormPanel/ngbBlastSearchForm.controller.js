@@ -65,6 +65,10 @@ export default class ngbBlastSearchFormController extends baseController {
         }
     }
 
+    clearOrganisms() {
+        this.searchRequest.organisms = [];
+    }
+
     onSearch() {
         this.ngbBlastSearchService.createSearchRequest(this.searchRequest)
             .then(data => {

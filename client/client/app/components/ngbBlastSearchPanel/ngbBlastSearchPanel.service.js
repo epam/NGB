@@ -14,6 +14,9 @@ export default class ngbBlastSearchService {
     _currentResultId = null;
     _currentSearchId = null;
     _currentTool = null;
+    _isFailureResults = true;
+    _isEmptyResults = true;
+    _cutCurrentResult = null;
 
     get totalPagesCountHistory() {
         return this._totalPagesCountHistory;
@@ -81,6 +84,18 @@ export default class ngbBlastSearchService {
         this._currentTool = tool;
     }
 
+    set isEmptyResults(value) {
+        this._isEmptyResults = value;
+    }
+
+    get canDownload() {
+        return !this._isEmptyResults && !this._isFailureResults;
+    }
+
+    get cutCurrentResult() {
+        return this._cutCurrentResult;
+    }
+
     async getCurrentSearch() {
         let data = {};
         if (this._currentSearchId) {
@@ -104,6 +119,18 @@ export default class ngbBlastSearchService {
         let data = {};
         if (this.currentResultId) {
             data = this._formatServerToClient(await this.projectDataService.getBlastSearch(this.currentResultId));
+        }
+        if (data) {
+            this._isFailureResults = data.isFailure = data.state === 'FAILED';
+            this._cutCurrentResult = {
+                id: data.id,
+                tool: data.tool,
+                db: data.db,
+                title: data.title
+            };
+        } else {
+            this._isFailureResults = true;
+            this._cutCurrentResult = null;
         }
         return data;
     }
