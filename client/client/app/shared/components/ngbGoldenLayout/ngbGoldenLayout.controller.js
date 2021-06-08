@@ -58,6 +58,7 @@ export default class ngbGoldenLayoutController extends baseController {
         'read:show:mate': ::this.panelAddBrowserWithPairRead,
         'read:show:blat': ::this.panelAddBlatSearchPanel,
         'read:show:blast': :: this.panelAddBlastSearchPanel,
+        'tracks:state:change': ::this.panelRemoveBlatSearchPanel,
         'tracks:state:change:blat': ::this.panelRemoveBlatSearchPanel,
         'tracks:state:change:blast': ::this.panelRemoveBlastSearchPanel,
         'variant:show:pair': ::this.panelAddBrowserWithVariation
@@ -372,7 +373,8 @@ export default class ngbGoldenLayoutController extends baseController {
 
     blastSearchPanelRemoved() {
         localStorage.removeItem('blastSearchRequest');
-        localStorage.removeItem('blastColumns');
+        localStorage.removeItem('blastSearchResultColumns');
+        localStorage.removeItem('blastHistoryColumns');
 
         this.projectContext.changeState({ blastRegion: { forceReset: true } });
     }
@@ -426,7 +428,8 @@ export default class ngbGoldenLayoutController extends baseController {
             name: event.name,
             openByUrl: event.openByUrl,
             file: event.file,
-            index: event.index
+            index: event.index,
+            source: event.source
         };
         localStorage.setItem('blastSearchRequest', JSON.stringify(payload || {}));
 

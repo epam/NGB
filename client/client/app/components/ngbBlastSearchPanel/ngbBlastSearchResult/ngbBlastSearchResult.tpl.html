@@ -23,7 +23,7 @@
                 <span>BLAST parameters</span>
             </div>
             <span flex></span>
-            <div ng-click="openQueryInfo()" class="blast-search-result-info" flex>
+            <div ng-show="toggle" ng-click="openQueryInfo()" class="blast-search-result-info" flex>
                 <md-button
                         class="md-flat md-accent"
                         md-no-ink
@@ -31,8 +31,8 @@
                         aria-label="query"
                         ng-click="$ctrl.openQueryInfo($event)"
                 >
-                    <ng-md-icon icon="info" size="20" style="fill: currentColor"></ng-md-icon>
-                    Query
+                    <ng-md-icon icon="info" size="20"></ng-md-icon>
+                    Query info
                 </md-button>
             </div>
         </div>
@@ -54,7 +54,7 @@
                     <div layout="row" class="field">
                         <span class="field-name">Organisms:</span>
                         <span class="field-value field-max-width">{{$ctrl.searchResult.organisms.join(', ') | na}}
-                            <md-tooltip>{{$ctrl.searchResult.organisms}}</md-tooltip>
+                            <md-tooltip>{{$ctrl.searchResult.organisms.join(', ')}}</md-tooltip>
                         </span>
                     </div>
                 </div>
@@ -106,10 +106,10 @@
         </div>
     </div>
 
-    <div layout="column" class="blast-search-result-table-row" flex ng-if="!$ctrl.isFailure">
+    <div layout="column" class="blast-search-result-table-row" flex ng-if="!$ctrl.searchResult.isFailure">
         <ngb-blast-search-result-table change-state="$ctrl.changeState" layout="column" flex></ngb-blast-search-result-table>
     </div>
-    <div ng-if="$ctrl.isFailure" class="variants-load-error-container" layout="column" layout-align="center center">
+    <div ng-if="$ctrl.searchResult.isFailure" class="variants-load-error-container" layout="column" layout-align="center center">
         <small>Search failed.</small>
         <small>{{$ctrl.searchResult.reason}}</small>
     </div>

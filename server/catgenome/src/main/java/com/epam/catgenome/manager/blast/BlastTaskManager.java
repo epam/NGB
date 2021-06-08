@@ -27,7 +27,6 @@ import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.TaskVO;
 import com.epam.catgenome.dao.blast.BlastTaskDao;
-import com.epam.catgenome.entity.blast.BlastDataBase;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.BlastTaskOrganism;
 import com.epam.catgenome.entity.blast.TaskParameter;
@@ -62,7 +61,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.constant.Constants.DATE_TIME_FORMAT;
@@ -244,11 +242,6 @@ public class BlastTaskManager {
 
     public ResponseBody getRawResult(final long taskId) throws BlastRequestException {
         return blastRequestManager.getRawResult(taskId);
-    }
-
-    public List<BlastDataBase> loadDataBases(final Optional<Long> type) {
-        return Collections.singletonList(new BlastDataBase(1L, "Homo_sapiens.GRCh38",
-                "Homo_sapiens.GRCh38", "NUCLEOTIDE"));
     }
 
     private Collection<BlastSequence> groupResult(final BlastRequestResult result) {

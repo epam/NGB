@@ -1,12 +1,19 @@
-import {camelPad} from '../../../shared/utils/String';
-
 const DEFAULT_BLAST_HISTORY_COLUMNS = [
     'id', 'title', 'currentState', 'submitted', 'duration', 'actions'
 ];
 const DEFAULT_ORDERBY_HISTORY_COLUMNS = {
-    'submitted': 'CREATED_DATE',
+    'submitted': 'created_date',
     'id': 'task_id',
-    'title': 'TITLE'
+    'title': 'title',
+    'currentState': 'status'
+};
+const HISTORY_COLUMN_TITLES = {
+    id: 'Task Id',
+    title: 'Task Title',
+    currentState: 'Current State',
+    submitted: 'Submitted At',
+    duration: 'Duration',
+    actions: ''
 };
 const blastSearchState = {
     DONE: 'DONE',
@@ -51,6 +58,10 @@ export default class ngbBlastHistoryTableService {
 
     get blastSearchState() {
         return blastSearchState;
+    }
+    
+    get historyColumnTitleMap() {
+        return HISTORY_COLUMN_TITLES;
     }
 
     get currentPageHistory() {
@@ -171,9 +182,9 @@ export default class ngbBlastHistoryTableService {
                         enableHiding: false,
                         field: 'id',
                         headerCellTemplate: headerCells,
-                        minWidth: 40,
-                        maxWidth: 60,
-                        name: 'id'
+                        minWidth: 60,
+                        maxWidth: 80,
+                        name: this.historyColumnTitleMap[column]
                     });
                     break;
                 }
@@ -183,11 +194,10 @@ export default class ngbBlastHistoryTableService {
                                         {{grid.appScope.$ctrl.statusViews[row.entity.currentState]}}
                                        </div>`,
                         enableHiding: false,
-                        enableSorting: false,
                         field: 'currentState',
                         headerCellTemplate: headerCells,
                         minWidth: 40,
-                        name: 'currentState'
+                        name: this.historyColumnTitleMap[column]
                     });
                     break;
                 }
@@ -198,7 +208,7 @@ export default class ngbBlastHistoryTableService {
                         field: 'submitted',
                         headerCellTemplate: headerCells,
                         minWidth: 40,
-                        name: 'submitted'
+                        name: this.historyColumnTitleMap[column]
                     });
                     break;
                 }
@@ -207,10 +217,11 @@ export default class ngbBlastHistoryTableService {
                         cellFilter: 'duration:this',
                         enableHiding: false,
                         enableSorting: false,
+                        enableColumnMenu: false,
                         field: 'duration',
                         headerCellTemplate: headerCells,
                         minWidth: 40,
-                        name: 'duration'
+                        name: this.historyColumnTitleMap[column]
                     });
                     break;
                 }
@@ -222,7 +233,7 @@ export default class ngbBlastHistoryTableService {
                         headerCellTemplate: '<span></span>',
                         maxWidth: 70,
                         minWidth: 60,
-                        name: ''
+                        name: this.historyColumnTitleMap[column]
                     });
                     break;
                 }
@@ -232,7 +243,7 @@ export default class ngbBlastHistoryTableService {
                         field: column,
                         headerCellTemplate: headerCells,
                         minWidth: 40,
-                        name: camelPad(column),
+                        name: this.historyColumnTitleMap[column],
                         width: '*'
                     });
                     break;

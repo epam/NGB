@@ -23,11 +23,9 @@
  *  * SOFTWARE.
  *
  */
-
 package com.epam.catgenome.manager.blast;
 
 import com.epam.catgenome.controller.vo.TaskVO;
-import com.epam.catgenome.entity.blast.BlastDataBase;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.result.BlastSequence;
 import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
@@ -45,7 +43,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
 
@@ -100,11 +97,6 @@ public class BlastTaskSecurityService {
     @PreAuthorize(ROLE_USER)
     public ResponseBody getRawResult(final long taskId) throws BlastRequestException {
         return blastTaskManager.getRawResult(taskId);
-    }
-
-    @PreAuthorize(ROLE_USER)
-    public List<BlastDataBase> loadDataBases(final Optional<Long> type) {
-        return blastTaskManager.loadDataBases(type);
     }
 
     @PreAuthorize(ROLE_USER)

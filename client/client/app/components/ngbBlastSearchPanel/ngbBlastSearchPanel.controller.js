@@ -10,11 +10,12 @@ export default class ngbBlastSearchPanelController extends baseController {
         return 'ngbBlastSearchPanelController';
     }
 
-    constructor(dispatcher, $scope, ngbBlastSearchService, ngbBlastHistoryTableService, $mdDialog) {
+    constructor(dispatcher, $scope, $timeout, ngbBlastSearchService, ngbBlastHistoryTableService, $mdDialog) {
         super(dispatcher);
         Object.assign(this, {
             dispatcher,
             $scope,
+            $timeout,
             ngbBlastHistoryTableService,
             ngbBlastSearchService,
             $mdDialog
@@ -36,6 +37,7 @@ export default class ngbBlastSearchPanelController extends baseController {
                 ? this.blastStates.SEARCH
                 : this.blastStates.HISTORY;
         }
+        this.$timeout(::this.$scope.$apply);
     }
 
     clearHistory(event) {
@@ -43,7 +45,7 @@ export default class ngbBlastSearchPanelController extends baseController {
             .title('Clear all history?')
             .ok('OK')
             .cancel('CANCEL');
-        this.$mdDialog.show(confirm).then(this.ngbBlastHistoryTableService.clearSearchHistory);
+        this.$mdDialog.show(confirm).then(::this.ngbBlastHistoryTableService.clearSearchHistory);
         event.stopImmediatePropagation();
         return false;
     }
@@ -56,15 +58,19 @@ export default class ngbBlastSearchPanelController extends baseController {
     }
 
     downloadResults(event) {
-        const id = this.ngbBlastSearchService.currentResultId;
-        this.ngbBlastHistoryTableService.downloadResults(id).then(data => {
+        const result = this.ngbBlastSearchService.cutCurrentResult;
+        if (!result) {
+            return;
+        }
+        this.ngbBlastHistoryTableService.downloadResults(result.id).then(data => {
             const linkElement = document.createElement('a');
             try {
                 const blob = new Blob([data], {type: 'application/csv'});
                 const url = window.URL.createObjectURL(blob);
 
                 linkElement.setAttribute('href', url);
-                linkElement.setAttribute('download', `blast-result-${id}.csv`);
+                linkElement.setAttribute('download',
+                    `BLAST-${result.tool}-${result.db}-${result.title || result.id}.csv`);
 
                 const clickEvent = new MouseEvent('click', {
                     'view': window,

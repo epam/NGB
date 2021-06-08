@@ -3,7 +3,7 @@ $ngb-color-blue: #4285F4;
 .blast-search-result {
   padding: 0 2px;
   flex: 1 1 auto;
-  overflow: auto;
+  overflow: hidden auto;
   height: 0;
   min-height: 0;
   .blast-search-result-title {
@@ -71,7 +71,7 @@ $ngb-color-blue: #4285F4;
     justify-content: flex-end;
   }
   .blast-search-result-info button {
-    fill: rgb(255, 255, 255);
+    fill: currentColor;
     line-height: 16px;
     min-width: 0;
     min-height: 16px;

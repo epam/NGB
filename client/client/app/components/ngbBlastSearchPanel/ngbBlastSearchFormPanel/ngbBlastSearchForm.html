@@ -22,14 +22,18 @@
                 <div ng-message="required">Choose the tool for search</div>
             </div>
         </div>
-        <md-input-container class="blast-search-input">
+        <md-input-container class="blast-search-input blast-sequence-area">
             <label for="sequence" class="blast-search-input-label">Query sequence</label>
             <textarea id="sequence" ng-model="$ctrl.searchRequest.sequence" required=""
-                      class="blast-sequence-area"></textarea>
+                      class=""></textarea>
+            <ng-md-icon class="icon_info_outline blast-sequence-clear" icon="clear" ng-click="$ctrl.searchRequest.sequence = ''"></ng-md-icon>
         </md-input-container>
         <md-input-container class="blast-search-input">
             <label for="task" class="blast-search-input-label">Task title</label>
             <input type="text" id="task" name="task" ng-model="$ctrl.searchRequest.title">
+        </md-input-container>
+        <md-input-container class="blast-search-set">
+            <span>Search set</span>
         </md-input-container>
         <md-input-container class="blast-search-input">
             <label for="db">Database</label>
@@ -50,12 +54,13 @@
                 <md-autocomplete
                         md-selected-item="$ctrl.selectedItem"
                         md-search-text="$ctrl.searchText"
+                        md-clear-button="true"
                         md-menu-class="blast-organisms-livesearch-item"
                         md-no-cache="true"
                         md-items="item in $ctrl.ngbBlastSearchService.getOrganismList($ctrl.searchText, $ctrl.searchRequest.organisms)"
                         md-item-text="item.taxid"
                         md-delay="300"
-                        placeholder="Organisms">
+                        placeholder="Organism">
                     <md-item-template>
                         <span md-highlight-text="$ctrl.searchText">{{item.scientificname}} (taxid: {{item.taxid}})</span>
                     </md-item-template>
@@ -71,7 +76,12 @@
                             size="18"
                 ></ng-md-icon>
             </md-chips>
-            <md-checkbox ng-model="$ctrl.searchRequest.isExcluded">Excluded</md-checkbox>
+            <ng-md-icon ng-show="$ctrl.searchRequest.organisms.length"
+                        class="icon_info_outline clear-all-chips"
+                        icon="delete_forever"
+                        ng-click="$ctrl.clearOrganisms()"
+            ></ng-md-icon>
+            <md-checkbox ng-model="$ctrl.searchRequest.isExcluded">Exclude</md-checkbox>
         </div>
         <div ng-if="$ctrl.algorithmList.length" class="blast-algorithm">
             <md-input-container class="blast-search-input">
@@ -101,6 +111,9 @@
                               class="blast-options-area"></textarea>
                 </md-input-container>
             </div>
+        </div>
+        <div ng-if="$ctrl.errorMessageList.length" class="md-padding">
+            <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
         </div>
         <div class="blast-search-actions">
             <md-button class="md-accent md-raised search-button"

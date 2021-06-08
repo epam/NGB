@@ -28,10 +28,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 import com.epam.catgenome.controller.vo.TaskVO;
-import com.epam.catgenome.entity.blast.BlastDataBase;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.result.BlastSequence;
 import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
@@ -196,17 +194,5 @@ public class BlastController extends AbstractRESTController {
     public Result<Boolean> deleteTask(@PathVariable final long taskId) throws IOException {
         blastTaskSecurityService.deleteTask(taskId);
         return Result.success(null);
-    }
-
-    @GetMapping(value = {"/databases/{type}", "/database"})
-    @ApiOperation(
-            value = "Returns databases by type",
-            notes = "Returns databases by type",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<List<BlastDataBase>> loadDataBases(@PathVariable final Optional<Long> type) {
-        return Result.success(blastTaskSecurityService.loadDataBases(type));
     }
 }

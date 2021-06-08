@@ -16,7 +16,7 @@
                 ng-click="$ctrl.clearHistory($event)"
                 ng-if="$ctrl.currentBlastState === $ctrl.blastStates.HISTORY"
         >
-            <ng-md-icon icon="delete" style="fill: currentColor"></ng-md-icon>
+            <ng-md-icon icon="delete"></ng-md-icon>
         </md-button>
         <md-button
                 class="md-accent md-flat blast-search-nav-button"
@@ -25,16 +25,16 @@
                 ng-if="$ctrl.currentBlastState === $ctrl.blastStates.RESULT"
                 aria-label="rerun"
         >
-            <ng-md-icon class="icon_info_outline" icon="redo" style="fill: currentColor"></ng-md-icon>
+            <ng-md-icon class="icon_info_outline" icon="redo"></ng-md-icon>
         </md-button>
         <md-button
                 class="md-accent md-flat blast-search-nav-button"
                 type="button"
                 ng-click="$ctrl.downloadResults($event)"
-                ng-if="$ctrl.currentBlastState === $ctrl.blastStates.RESULT"
+                ng-if="$ctrl.currentBlastState === $ctrl.blastStates.RESULT && $ctrl.ngbBlastSearchService.canDownload"
                 aria-label="download"
         >
-            <ng-md-icon class="icon_info_outline" icon="file_download" style="fill: currentColor"></ng-md-icon>
+            <ng-md-icon class="icon_info_outline" icon="file_download"></ng-md-icon>
         </md-button>
     </md-nav-bar>
 

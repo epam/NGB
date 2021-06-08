@@ -21,17 +21,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.blast.dto;
+package com.epam.catgenome.entity.blast;
 
-import lombok.Getter;
-import lombok.Setter;
+public enum BlastDatabaseSource {
+    CUSTOM(1),
+    NCBI(2);
 
-import java.util.List;
+    private Long sourceId;
 
-@Getter
-@Setter
-public class BlastRequestResult {
-    private long size;
-    private String tool;
-    private List<Entry> entries;
+    BlastDatabaseSource(final long sourceId) {
+        this.sourceId = sourceId;
+    }
+
+    public Long getSourceId() {
+        return sourceId;
+    }
+
+    /**
+     * @param sourceId
+     * @return a {@code BlastDatabaseSource} instance corresponding to the input ID
+     */
+    public static BlastDatabaseSource getSourceById(final Long sourceId) {
+        for (BlastDatabaseSource source : BlastDatabaseSource.values()) {
+            if (source.getSourceId().equals(sourceId)) {
+                return source;
+            }
+        }
+        throw new IllegalArgumentException("Invalid Blast database source ID");
+    }
 }

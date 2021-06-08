@@ -23,7 +23,7 @@
 
 .blast-search-nav-button {
   min-width: 0;
-  fill: rgb(255, 255, 255);
+  fill: currentColor;
   margin: 0 5px 0 0;
   padding: 0 2px;
 }
@@ -52,8 +52,11 @@
     line-height: 36px;
     margin: 0;
     .md-button {
-      padding: 0 6px;
-      margin: 0 2px;
+      padding: 0 10px;
+      margin: 0;
+      min-width: 0;
+      font-weight: normal;
+      color: rgb(51, 51, 51);
     }
   }
 }

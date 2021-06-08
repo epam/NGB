@@ -611,6 +611,61 @@ Deletes a specified species from NGB server. Species is be addressed by version.
 $ ngb del_spec "hg19"
 ```
 
+## Blast database commands
+### Register database
+```
+ngb reg_blast_db|rbd [<NAME>] [<PATH>] [<TYPE>] [<SOURCE>]
+```
+*Description*
+
+Registers a database. Four arguments have to be specified:
+* Database name
+* Database path
+* Database type
+* Database source
+
+> **Note**: type should be "PROTEIN" or "NUCLEOTIDE". Source should be "NCBI" or "CUSTOM".
+
+*Example*
+```bash
+# Create new database with name "Homo_sapiens", path "Homo_sapiens.GRCh38", type "NUCLEOTIDE" and "CUSTOM" source
+$ ngb reg_blast_db "Homo_sapiens" "Homo_sapiens.GRCh38" "NUCLEOTIDE" "CUSTOM"
+```
+
+### List databases
+```
+ngb list_blast_db|lbd [TYPE] [options]
+
+//Options:
+//-t (--table)          Print result as a human-readable table
+//-j (--json)           Print result as a JSON string
+```
+*Description*
+
+List all databases registered on NGB server.
+One argument can be specified:
+* Database type
+
+*Example*
+```bash
+# List all "PROTEIN" databases registered on NGB server
+$ ngb list_blast_db "PROTEIN"
+```
+
+### Delete database
+```
+ngb del_blast_db|dbd [<ID>]
+```
+*Description*
+
+Deletes a specified database from NGB server.
+
+*Example*
+```bash
+# Delete database with id 2
+$ ngb del_blast_db 2
+```
+
 ## Utility commands
 ### Sort feature file
 ```
