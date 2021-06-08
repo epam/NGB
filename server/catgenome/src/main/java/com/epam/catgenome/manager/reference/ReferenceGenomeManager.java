@@ -412,6 +412,13 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         return speciesDao.saveSpecies(species);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Species updateSpecies(final Species species) {
+        Assert.notNull(speciesDao.loadSpeciesByVersion(species.getVersion()),
+                getMessage(MessagesConstants.ERROR_NO_SUCH_SPECIES, species.getVersion()));
+        return speciesDao.updateSpecies(species);
+    }
+
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<Species> loadAllSpecies() {
         return speciesDao.loadAllSpecies();

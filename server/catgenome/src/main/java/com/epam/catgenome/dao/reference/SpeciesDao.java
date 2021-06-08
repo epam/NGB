@@ -42,6 +42,7 @@ import org.springframework.util.Assert;
 public class SpeciesDao extends NamedParameterJdbcDaoSupport {
 
     private String saveSpeciesQuery;
+    private String updateSpeciesQuery;
     private String loadSpeciesByVersionQuery;
     private String loadAllSpeciesQuery;
     private String deleteSpeciesQuery;
@@ -54,6 +55,12 @@ public class SpeciesDao extends NamedParameterJdbcDaoSupport {
     @Transactional(propagation = Propagation.MANDATORY)
     public Species saveSpecies(Species species) {
         getNamedParameterJdbcTemplate().update(saveSpeciesQuery, SpeciesParameters.getParameters(species));
+        return species;
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Species updateSpecies(Species species) {
+        getNamedParameterJdbcTemplate().update(updateSpeciesQuery, SpeciesParameters.getParameters(species));
         return species;
     }
 
@@ -112,15 +119,22 @@ public class SpeciesDao extends NamedParameterJdbcDaoSupport {
         this.deleteSpeciesQuery = deleteSpeciesQuery;
     }
 
+    @Required
+    public void setUpdateSpeciesQuery(final String updateSpeciesQuery) {
+        this.updateSpeciesQuery = updateSpeciesQuery;
+    }
+
     enum SpeciesParameters {
         SPECIES_NAME,
-        SPECIES_VERSION;
+        SPECIES_VERSION,
+        TAX_ID;
 
         static MapSqlParameterSource getParameters(Species species) {
             MapSqlParameterSource params = new MapSqlParameterSource();
 
             params.addValue(SPECIES_NAME.name(), species.getName());
             params.addValue(SPECIES_VERSION.name(), species.getVersion());
+            params.addValue(TAX_ID.name(), species.getTaxId());
 
             return params;
         }
@@ -131,6 +145,7 @@ public class SpeciesDao extends NamedParameterJdbcDaoSupport {
 
                 species.setName(rs.getString(SPECIES_NAME.name()));
                 species.setVersion(rs.getString(SPECIES_VERSION.name()));
+                species.setTaxId(rs.getLong(TAX_ID.name()));
 
                 return species;
             };
