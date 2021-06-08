@@ -1,0 +1,198 @@
+<!--
+  ~ /*
+  ~  * MIT License
+  ~  *
+  ~  * Copyright (c) 2021 EPAM Systems
+  ~  *
+  ~  * Permission is hereby granted, free of charge, to any person obtaining a copy
+  ~  * of this software and associated documentation files (the "Software"), to deal
+  ~  * in the Software without restriction, including without limitation the rights
+  ~  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~  * copies of the Software, and to permit persons to whom the Software is
+  ~  * furnished to do so, subject to the following conditions:
+  ~  *
+  ~  * The above copyright notice and this permission notice shall be included in all
+  ~  * copies or substantial portions of the Software.
+  ~  *
+  ~  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  ~  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  ~  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  ~  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  ~  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  ~  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  ~  * SOFTWARE.
+  ~  */
+-->
+<html><head><style>body {
+   color: black;
+}
+</style></head><body><h1 id="tblastn">TBLASTN</h1>
+<p>An option of type <code>Flag</code> takes no argument, but if present the argument is true.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Type</th>
+<th>Description and notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Input query options</strong></td>
+</tr>
+<tr>
+<td><strong><code>-query_loc</code></strong></td>
+<td>String</td>
+<td>Location on the query sequence in 1-based offsets (Format: start-stop)</td>
+</tr>
+<tr>
+<td><strong>General search options</strong></td>
+</tr>
+<tr>
+<td><strong><code>-word_size</code></strong></td>
+<td>Integer, &gt;= 2</td>
+<td>Word size for wordfinder algorithm</td>
+</tr>
+<tr>
+<td><strong><code>-gapopen</code></strong></td>
+<td>Integer</td>
+<td>Cost to open a gap</td>
+</tr>
+<tr>
+<td><strong><code>-gapextend</code></strong></td>
+<td>Integer</td>
+<td>Cost to extend a gap</td>
+</tr>
+<tr>
+<td><strong><code>-db_gencode</code></strong></td>
+<td>Integer, values between: 1-6, 9-16, 21-31, 33</td>
+<td>Genetic code to use to translate subject sequences (see <a href="https://www.ncbi.nlm.nih.gov/Taxonomy/taxonomyhome.html/index.cgi?chapter=cgencodes">here</a> for details). Default = <code>1</code></td>
+</tr>
+<tr>
+<td><strong><code>-max_intron_length</code></strong></td>
+<td>Integer, &gt;= 0</td>
+<td>Length of the largest intron allowed in a translated nucleotide sequence when linking multiple distinct alignments. Default = <code>0</code></td>
+</tr>
+<tr>
+<td><strong><code>-matrix</code></strong></td>
+<td>String</td>
+<td>Scoring matrix name (normally <code>BLOSUM62</code>)</td>
+</tr>
+<tr>
+<td><strong><code>-threshold</code></strong></td>
+<td>Real, &gt;= 0</td>
+<td>Minimum word score such that the word is added to the BLAST lookup table</td>
+</tr>
+<tr>
+<td><strong><code>-comp_based_stats</code></strong></td>
+<td>String</td>
+<td>Use composition-based statistics:<br/><code>D</code> or <code>d</code>: default (equivalent to <code>2</code>)<br/><code>0</code> or <code>F</code> or <code>f</code>: No composition-based statistics<br/><code>1</code>: Composition-based statistics as in NAR 29:2994-3005, 2001<br/><code>2</code> or <code>T</code> or <code>t</code>: Composition-based score adjustment as in Bioinformatics 21:902-911, 2005, conditioned on sequence properties<br/><code>3</code>: Composition-based score adjustment as in Bioinformatics 21:902-911, 2005, unconditionally.<br/>Default = <code>2</code></td>
+</tr>
+<tr>
+<td><strong>Query filtering options</strong></td>
+</tr>
+<tr>
+<td><strong><code>-seg</code></strong></td>
+<td>String</td>
+<td>Filter query sequence with SEG (Format: <code>yes</code>, <code>window locut hicut</code>, or <code>no</code> to disable). Default = <code>12 2.2 2.5</code></td>
+</tr>
+<tr>
+<td><strong><code>-soft_masking</code></strong></td>
+<td>Boolean</td>
+<td>Apply filtering locations as soft masks. Default = <code>false</code></td>
+</tr>
+<tr>
+<td><strong><code>-lcase_masking</code></strong></td>
+<td>Flag</td>
+<td>Use lower case filtering in query and subject sequence(s)?</td>
+</tr>
+<tr>
+<td><strong>Restrict search or results</strong></td>
+</tr>
+<tr>
+<td><strong><code>-qcov_hsp_perc</code></strong></td>
+<td>Real, 0..100</td>
+<td>Percent query coverage per hsp</td>
+</tr>
+<tr>
+<td><strong><code>-max_hsps</code></strong></td>
+<td>Integer, &gt;= 1</td>
+<td>Set maximum number of HSPs per subject sequence to save for each query</td>
+</tr>
+<tr>
+<td><strong><code>-culling_limit</code></strong></td>
+<td>Integer, &gt;= 0</td>
+<td>If the query range of a hit is enveloped by that of at least this many higher-scoring hits, delete the hit. Incompatible with: <strong><code>-best_hit_overhang</code></strong>, <strong><code>-best_hit_score_edge</code></strong></td>
+</tr>
+<tr>
+<td><strong><code>-best_hit_overhang</code></strong></td>
+<td>Real, (&gt; 0 and &lt; 0.5)</td>
+<td>Best Hit algorithm overhang value (recommended value: <code>0.1</code>). Incompatible with: <strong><code>-culling_limit</code></strong></td>
+</tr>
+<tr>
+<td><strong><code>-best_hit_score_edge</code></strong></td>
+<td>Real, (&gt; 0 and &lt; 0.5)</td>
+<td>Best Hit algorithm score edge value (recommended value: <code>0.1</code>). Incompatible with: <strong><code>-culling_limit</code></strong></td>
+</tr>
+<tr>
+<td><strong><code>-subject_besthit</code></strong></td>
+<td>Flag</td>
+<td>Turn on best hit per subject sequence</td>
+</tr>
+<tr>
+<td><strong>Statistical options</strong></td>
+</tr>
+<tr>
+<td><strong><code>-dbsize</code></strong></td>
+<td>Integer</td>
+<td>Effective length of the database</td>
+</tr>
+<tr>
+<td><strong><code>-searchsp</code></strong></td>
+<td>Integer, &gt;= 0</td>
+<td>Effective length of the search space</td>
+</tr>
+<tr>
+<td><strong><code>-sum_stats</code></strong></td>
+<td>Boolean</td>
+<td>Use sum statistics</td>
+</tr>
+<tr>
+<td><strong>Extension options</strong></td>
+</tr>
+<tr>
+<td><strong><code>-xdrop_ungap</code></strong></td>
+<td>Real</td>
+<td>X-dropoff value (in bits) for ungapped extensions</td>
+</tr>
+<tr>
+<td><strong><code>-xdrop_gap</code></strong></td>
+<td>Real</td>
+<td>X-dropoff value (in bits) for preliminary gapped extensions</td>
+</tr>
+<tr>
+<td><strong><code>-xdrop_gap_final</code></strong></td>
+<td>Real</td>
+<td>X-dropoff value (in bits) for final gapped alignment</td>
+</tr>
+<tr>
+<td><strong><code>-ungapped</code></strong></td>
+<td>Flag</td>
+<td>Perform ungapped alignment only?</td>
+</tr>
+<tr>
+<td><strong><code>-window_size</code></strong></td>
+<td>Integer, &gt;= 0</td>
+<td>Multiple hits window size, use <code>0</code> to specify 1-hit algorithm</td>
+</tr>
+<tr>
+<td><strong>Miscellaneous options</strong></td>
+</tr>
+<tr>
+<td><strong><code>-use_sw_tback</code></strong></td>
+<td>Flag</td>
+<td>Compute locally optimal Smith-Waterman alignments?</td>
+</tr>
+</tbody>
+</table>
+</body></html>
