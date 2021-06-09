@@ -73,6 +73,7 @@ export default class ngbBlastSearchResultTableController extends baseController 
             onRegisterApi: (gridApi) => {
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
+                this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
                 this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
                 this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
             }
@@ -129,5 +130,10 @@ export default class ngbBlastSearchResultTableController extends baseController 
             }
         }
         this.ngbBlastSearchResultTableService.blastSearchResultColumns = result;
+    }
+
+    rowClick(row) {
+        this.ngbBlastSearchService.setCurrentAlignmentObject(row.entity);
+        this.changeState({state: 'ALIGNMENT'});
     }
 }

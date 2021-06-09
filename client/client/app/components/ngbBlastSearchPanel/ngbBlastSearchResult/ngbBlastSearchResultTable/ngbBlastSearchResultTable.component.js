@@ -1,7 +1,9 @@
 import controller from './ngbBlastSearchResultTable.controller';
 
 export default {
-    bindings: {},
+    bindings: {
+        changeState: '<'
+    },
     controller: controller.UID,
     restrict: 'E',
     template: require('./ngbBlastSearchResultTable.tpl.html'),

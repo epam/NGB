@@ -1,7 +1,8 @@
 const BLAST_STATES = {
     HISTORY: 'HISTORY',
     RESULT: 'RESULT',
-    SEARCH: 'SEARCH'
+    SEARCH: 'SEARCH',
+    ALIGNMENT: 'ALIGNMENT'
 };
 
 export default class ngbBlastSearchService {
@@ -17,6 +18,7 @@ export default class ngbBlastSearchService {
     _isFailureResults = true;
     _isEmptyResults = true;
     _cutCurrentResult = null;
+    _currentAlignmentObject = {}
 
     get totalPagesCountHistory() {
         return this._totalPagesCountHistory;
@@ -113,6 +115,16 @@ export default class ngbBlastSearchService {
             data.organisms = [];
         }
         return data;
+    }
+
+    popCurrentAlignmentObject() {
+        const result = {...this._currentAlignmentObject};
+        this._currentAlignmentObject = {};
+        return result;
+    }
+
+    setCurrentAlignmentObject(alignment) {
+        this._currentAlignmentObject = alignment;
     }
 
     async getCurrentSearchResult() {

@@ -1,0 +1,28 @@
+<div class="blast-search-flex-column">
+    <div layout="row">
+        <md-button
+                class="md-flat blast-search-result-back"
+                type="button"
+                ng-click="$ctrl.changeState({state: 'RESULT'})"
+                aria-label="back"
+        >
+            <ng-md-icon class="icon_info_outline" icon="chevron_left" size="24"></ng-md-icon>
+        </md-button>
+        <div class="blast-search-alignment-title">
+            <span class="blast-search-alignment-title-bold">Sequence ID:</span>
+            <a class="blast-search-result-link" ng-href="https://www.ncbi.nlm.nih.gov/nucleotide/{{$ctrl.searchResult.sequenceId}}">{{$ctrl.searchResult.sequenceId}}</a>
+            <span>({{$ctrl.searchResult.sequenceScientificName | na}})</span>
+        </div>
+    </div>
+
+    <div layout="column" flex class="blast-search-alignment-container">
+        <ngb-blast-search-alignment
+                ng-repeat="alignment in $ctrl.searchResult.alignments track by $index"
+                alignment="alignment"
+                search-result="$ctrl.searchResult"
+                search="$ctrl.search"
+                index="$index+1"
+                layout="column"
+        ></ngb-blast-search-alignment>
+    </div>
+</div>
