@@ -27,6 +27,7 @@ import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.vo.TaskVO;
 import com.epam.catgenome.dao.blast.BlastTaskDao;
+import com.epam.catgenome.entity.blast.BlastDatabase;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.BlastTaskOrganism;
 import com.epam.catgenome.entity.blast.TaskParameter;
@@ -47,6 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.ResponseBody;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,10 +77,9 @@ public class BlastTaskManager {
     public static final String EVALUE = "evalue";
 
     private final BlastTaskDao blastTaskDao;
-
     private final BlastRequestManager blastRequestManager;
-
     private final AuthManager authManager;
+    private final BlastDatabaseManager databaseManager;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public BlastTask loadTask(final long taskId) {
@@ -118,40 +119,13 @@ public class BlastTaskManager {
         Assert.state(!(!CollectionUtils.isEmpty(taskVO.getOrganisms())
                         && !CollectionUtils.isEmpty(taskVO.getExcludedOrganisms())),
                 MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_ORGANISMS));
-        BlastRequest blastRequest = new BlastRequest();
-        blastRequest.setAlgorithm(taskVO.getAlgorithm());
-        blastRequest.setBlastTool(taskVO.getExecutable());
-        blastRequest.setDbName(taskVO.getDatabase());
-        blastRequest.setQuery(taskVO.getQuery());
-        blastRequest.setOptions(taskVO.getOptions());
-        blastRequest.setTaxIds(taskVO.getOrganisms());
-        blastRequest.setExcludedTaxIds(taskVO.getExcludedOrganisms());
-        Map<String, String> params = MapUtils.emptyIfNull(taskVO.getParameters());
-        if (params.containsKey(MAX_TARGET_SEQS)) {
-            blastRequest.setMaxTargetSequence(Long.parseLong(params.get(MAX_TARGET_SEQS)));
-        }
-        if (params.containsKey(EVALUE)) {
-            blastRequest.setExpectedThreshold(Double.parseDouble(params.get(EVALUE)));
-        }
+        final BlastDatabase blastDatabase = databaseManager.loadById(taskVO.getDatabaseId());
+        final BlastRequest blastRequest = buildBlastRequest(taskVO, blastDatabase);
         BlastRequestInfo blastRequestInfo = blastRequestManager.createTask(blastRequest);
         if (blastRequestInfo == null || blastRequestInfo.getStatus().equals("ERROR")) {
             throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_REQUEST));
         }
-        BlastTask blastTask = new BlastTask();
-        blastTask.setId(blastRequestInfo.getRequestId());
-        blastTask.setTitle(taskVO.getTitle());
-        blastTask.setQuery(taskVO.getQuery());
-        blastTask.setDatabase(taskVO.getDatabase());
-        blastTask.setOrganisms(taskVO.getOrganisms());
-        blastTask.setExcludedOrganisms(taskVO.getExcludedOrganisms());
-        blastTask.setExecutable(taskVO.getExecutable());
-        blastTask.setAlgorithm(taskVO.getAlgorithm());
-        blastTask.setParameters(taskVO.getParameters());
-        blastTask.setOptions(taskVO.getOptions());
-        blastTask.setStatus(TaskStatus.valueOf(blastRequestInfo.getStatus()));
-        blastTask.setCreatedDate(LocalDateTime.parse(blastRequestInfo.getCreatedDate(),
-                DateTimeFormatter.ofPattern(DATE_TIME_FORMAT)));
-        blastTask.setOwner(authManager.getAuthorizedUser());
+        final BlastTask blastTask = buildBlastTask(taskVO, blastDatabase, blastRequestInfo);
         blastTaskDao.saveTask(blastTask);
         blastTaskDao.saveOrganisms(blastTask.getId(), taskVO.getOrganisms());
         blastTaskDao.saveExclOrganisms(blastTask.getId(), taskVO.getExcludedOrganisms());
@@ -256,5 +230,47 @@ public class BlastTaskManager {
                 .map(BlastSequence::fromEntries)
                 .sorted(Comparator.comparing(BlastSequence::getEValue))
                 .collect(Collectors.toList());
+    }
+
+    @NotNull
+    private BlastTask buildBlastTask(final TaskVO taskVO,
+                                     final BlastDatabase blastDatabase,
+                                     final BlastRequestInfo blastRequestInfo) {
+        final BlastTask blastTask = new BlastTask();
+        blastTask.setId(blastRequestInfo.getRequestId());
+        blastTask.setTitle(taskVO.getTitle());
+        blastTask.setQuery(taskVO.getQuery());
+        blastTask.setDatabase(blastDatabase);
+        blastTask.setOrganisms(taskVO.getOrganisms());
+        blastTask.setExcludedOrganisms(taskVO.getExcludedOrganisms());
+        blastTask.setExecutable(taskVO.getExecutable());
+        blastTask.setAlgorithm(taskVO.getAlgorithm());
+        blastTask.setParameters(taskVO.getParameters());
+        blastTask.setOptions(taskVO.getOptions());
+        blastTask.setStatus(TaskStatus.valueOf(blastRequestInfo.getStatus()));
+        blastTask.setCreatedDate(LocalDateTime.parse(blastRequestInfo.getCreatedDate(),
+                DateTimeFormatter.ofPattern(DATE_TIME_FORMAT)));
+        blastTask.setOwner(authManager.getAuthorizedUser());
+        return blastTask;
+    }
+
+    @NotNull
+    private BlastRequest buildBlastRequest(final TaskVO taskVO, final BlastDatabase blastDatabase) {
+        final BlastRequest blastRequest = new BlastRequest();
+        blastRequest.setAlgorithm(taskVO.getAlgorithm());
+        blastRequest.setBlastTool(taskVO.getExecutable());
+        blastRequest.setDbName(blastDatabase.getPath());
+        blastRequest.setQuery(taskVO.getQuery());
+        blastRequest.setOptions(taskVO.getOptions());
+        blastRequest.setTaxIds(taskVO.getOrganisms());
+        blastRequest.setExcludedTaxIds(taskVO.getExcludedOrganisms());
+        Map<String, String> params = MapUtils.emptyIfNull(taskVO.getParameters());
+        if (params.containsKey(MAX_TARGET_SEQS)) {
+            blastRequest.setMaxTargetSequence(Long.parseLong(params.get(MAX_TARGET_SEQS)));
+        }
+        if (params.containsKey(EVALUE)) {
+            blastRequest.setExpectedThreshold(Double.parseDouble(params.get(EVALUE)));
+        }
+        return blastRequest;
     }
 }

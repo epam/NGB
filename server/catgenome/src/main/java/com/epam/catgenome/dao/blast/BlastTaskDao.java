@@ -47,6 +47,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.epam.catgenome.dao.blast.BlastDatabaseDao.DatabaseParameters.parseDatabase;
 import static com.epam.catgenome.util.Utils.addFiltersToQuery;
 import static com.epam.catgenome.util.Utils.addParametersToQuery;
 
@@ -244,7 +245,11 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
         END_DATE,
         STATUS_REASON,
         QUERY,
-        DATABASE,
+        DATABASE_ID,
+        DATABASE_NAME,
+        DATABASE_TYPE,
+        DATABASE_PATH,
+        DATABASE_SOURCE,
         EXECUTABLE,
         ALGORITHM,
         OPTIONS,
@@ -262,7 +267,7 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
                     : Timestamp.valueOf(blastTask.getEndDate()));
             params.addValue(STATUS_REASON.name(), blastTask.getStatusReason());
             params.addValue(QUERY.name(), blastTask.getQuery());
-            params.addValue(DATABASE.name(), blastTask.getDatabase());
+            params.addValue(DATABASE_ID.name(), blastTask.getDatabase().getId());
             params.addValue(EXECUTABLE.name(), blastTask.getExecutable());
             params.addValue(ALGORITHM.name(), blastTask.getAlgorithm());
             params.addValue(OPTIONS.name(), blastTask.getOptions());
@@ -282,7 +287,7 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
                         : rs.getTimestamp(END_DATE.name()).toLocalDateTime());
                 blastTask.setStatusReason(rs.getString(STATUS_REASON.name()));
                 blastTask.setQuery(rs.getString(QUERY.name()));
-                blastTask.setDatabase(rs.getString(DATABASE.name()));
+                blastTask.setDatabase(parseDatabase(rs));
                 blastTask.setExecutable(rs.getString(EXECUTABLE.name()));
                 blastTask.setAlgorithm(rs.getString(ALGORITHM.name()));
                 blastTask.setOptions(rs.getString(OPTIONS.name()));
@@ -296,6 +301,7 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
                 return blastTask;
             };
         }
+
     }
 
     enum OrganismParameters {
