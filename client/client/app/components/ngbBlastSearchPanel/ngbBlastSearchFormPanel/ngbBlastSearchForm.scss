@@ -39,6 +39,18 @@ $ngb-color-blue: #4285F4;
   fill: $ngb-color-blue;
   cursor: pointer;
 }
+.blast-search-info {
+  fill: $ngb-color-blue;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  .blast-search-info-icon {
+    align-self: center;
+    margin: 5px 10px 10px;
+    line-height: 30px;
+    cursor: pointer;
+  }
+}
 .blast-algorithm {
   margin-top:15px;
 }
@@ -140,4 +152,7 @@ $ngb-color-blue: #4285F4;
 }
 .blast-search-set {
   margin-left: 3px
+}
+.tooltip-header {
+  font-size: 12px;
 }

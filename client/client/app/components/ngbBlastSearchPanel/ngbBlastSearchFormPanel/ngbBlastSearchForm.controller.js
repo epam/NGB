@@ -4,7 +4,42 @@ export default class ngbBlastSearchFormController extends baseController {
     static get UID() {
         return 'ngbBlastSearchFormController';
     }
+    blastToolDescription = {
+        blastn: {
+            description: 'Four different algorithms are supported:',
+            algorithms: {
+                'megablast': 'for very similar sequences (e.g., sequencing errors)',
+                'discontiguous megablast': 'for more dissimilar sequences, typically used for inter-species comparisons',
+                'blastn': 'the traditional program used for inter-species comparisons',
+                'blastn-short': 'optimized for sequences less than 30 nucleotides'
+            }
+        },
+        blastp: {
+            description: 'Three different algorithms are supported:',
+            algorithms: {
+                'blastp': 'for standard protein-protein comparisons',
+                'blastp-short': 'optimized for query sequences shorter than 30 residues',
+                'blastp-fast': 'a faster version that uses a larger word-size'
+            },
+        },
+        blastx: {
+            description: 'Two different algorithms are supported:',
+            algorithms: {
+                'blastx': 'for standard translated nucleotide-protein comparison',
+                'blastx-fast': 'a faster version that uses a larger word-size'
+            },
+        },
+        tblastn: {
+            description: 'Two different algorithms are supported:',
+            algorithms: {
+                'tblastn': 'for a standard protein-translated nucleotide comparison',
+                'tblastn-fast': 'for a faster version with a larger word-size'
+            },
+        }
+    }
+    blastHelpPath = '/server/catgenome/src/main/resources/static/'
 
+    toolTooltip = {};
     isProgressShown = true;
     dbList = [];
     algorithmList = [];
@@ -66,6 +101,7 @@ export default class ngbBlastSearchFormController extends baseController {
         } else {
             this.searchRequest.algorithm = '';
         }
+        this.toolTooltip = this.blastToolDescription[this.searchRequest.tool];
     }
 
     clearOrganisms() {

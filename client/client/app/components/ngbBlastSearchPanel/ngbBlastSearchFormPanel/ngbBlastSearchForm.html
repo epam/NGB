@@ -86,13 +86,24 @@
             ></ng-md-icon>
             <md-checkbox ng-model="$ctrl.searchRequest.isExcluded">Exclude</md-checkbox>
         </div>
-        <div ng-if="$ctrl.algorithmList.length" class="blast-algorithm">
+        <div ng-if="$ctrl.algorithmList.length" class="blast-algorithm blast-search-info">
             <md-input-container class="blast-search-input">
                 <label>Algorithm</label>
                 <md-select ng-model="$ctrl.searchRequest.algorithm">
                     <md-option ng-repeat="alg in $ctrl.algorithmList" ng-value="alg">{{alg}}</md-option>
                 </md-select>
             </md-input-container>
+            <div class="blast-search-info-icon">
+                <ng-md-icon icon="info" size="20"></ng-md-icon>
+                <md-tooltip class="md-tooltip__full-height">
+                    <div class="tooltip-header">{{$ctrl.toolTooltip.description}}</div>
+                    <ul>
+                        <li ng-repeat="(alg, desc) in $ctrl.toolTooltip.algorithms">
+                            <b>{{alg}}</b> - {{desc}}
+                        </li>
+                    </ul>
+                </md-tooltip>
+            </div>
         </div>
         <div class="expandable-panel" layout="column">
             <div class="expandable-panel-title" ng-class="{'toggled': toggle}" ng-click="toggle = !toggle" layout="column">
@@ -108,11 +119,17 @@
                     <label for="threshold" class="blast-search-input-label">Expect threshold</label>
                     <input type="text" id="threshold" name="threshold" ng-model="$ctrl.searchRequest.threshold">
                 </md-input-container>
-                <md-input-container class="blast-search-input">
-                    <label for="options" class="blast-search-input-label">Options</label>
-                    <textarea id="options" ng-model="$ctrl.searchRequest.options"
-                              class="blast-options-area"></textarea>
-                </md-input-container>
+                <div class="blast-search-info">
+                    <md-input-container class="blast-search-input">
+                        <label for="options" class="blast-search-input-label">Options</label>
+                        <textarea id="options" ng-model="$ctrl.searchRequest.options"
+                                  class="blast-options-area"></textarea>
+                    </md-input-container>
+                    <a target="_blank" ng-href="{{$ctrl.blastHelpPath}}{{$ctrl.searchRequest.tool}}.html">
+                        <ng-md-icon class="blast-search-info-icon" icon="info" size="20"></ng-md-icon>
+                        <md-tooltip>Click to show possible options help</md-tooltip>
+                    </a>
+                </div>
             </div>
         </div>
         <div ng-if="$ctrl.errorMessageList.length" class="md-padding">
