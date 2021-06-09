@@ -10,7 +10,7 @@
             <div ng-repeat="tool in $ctrl.ngbBlastSearchFormConstants.BLAST_TOOLS" class="form_radio_btn">
                 <input id="radio-{{$index}}" type="radio" name="tool" ng-value="tool"
                        ng-model="$ctrl.searchRequest.tool" required=""
-                       ng-change="$ctrl.setDefaultAlgorithms()">
+                       ng-change="$ctrl.onSearchToolChange()">
                 <label for="radio-{{$index}}"
                        class="md-button md-raised"
                        ng-class="{'md-primary': $ctrl.searchRequest.tool === tool}"
@@ -60,7 +60,7 @@
                         md-items="item in $ctrl.ngbBlastSearchService.getOrganismList($ctrl.searchText, $ctrl.searchRequest.organisms)"
                         md-item-text="item.taxid"
                         md-delay="300"
-                        placeholder="Organism">
+                        placeholder="{{$ctrl.searchRequest.organisms.length ? '' : 'Organism'}}">
                     <md-item-template>
                         <span md-highlight-text="$ctrl.searchText">{{item.scientificname}} (taxid: {{item.taxid}})</span>
                     </md-item-template>

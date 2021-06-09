@@ -25,7 +25,10 @@ $ngb-color-blue: #4285F4;
   min-height: 0;
 }
 .blast-sequence-area {
-  resize:none;
+  textarea {
+    resize:none;
+    padding-right: 20px;
+  }
 }
 .blast-sequence-clear {
   position: absolute;

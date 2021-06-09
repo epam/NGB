@@ -43,8 +43,8 @@ export default class ngbBlastSearchService {
         return organismList.filter(value => !selectedIds.includes(value.taxid));
     }
 
-    async getBlastDBList() {
-        return await this.projectDataService.getBlastDBList('NUCLEOTIDE');
+    async getBlastDBList(type) {
+        return await this.projectDataService.getBlastDBList(type);
     }
 
     async _getDetailedRead() {

@@ -11,3 +11,10 @@ export const ALGORITHMS = {
     blastx: ['blastx', 'blastx-fast'],
     tblastn: ['tblastn', 'tblastn-fast']
 };
+export const BLAST_TOOL_DB = {
+    blastn: 'NUCLEOTIDE',
+    blastp: 'PROTEIN',
+    blastx: 'PROTEIN',
+    tblastn: 'NUCLEOTIDE',
+    tblastx: 'NUCLEOTIDE'
+};

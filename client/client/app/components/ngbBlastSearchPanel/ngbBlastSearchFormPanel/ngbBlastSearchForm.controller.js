@@ -22,7 +22,7 @@ export default class ngbBlastSearchFormController extends baseController {
 
     events = {
         'read:show:blast': ::this.onExternalChange
-    }
+    };
 
     constructor($scope, $timeout, dispatcher, ngbBlastSearchService, ngbBlastSearchFormConstants) {
         super();
@@ -41,8 +41,8 @@ export default class ngbBlastSearchFormController extends baseController {
 
     async initialize() {
         this.isProgressShown = true;
-        this.dbList = await this.ngbBlastSearchService.getBlastDBList();
         await this.setSearchRequest();
+        this.getDBList();
     }
 
     onExternalChange(data) {
@@ -62,11 +62,33 @@ export default class ngbBlastSearchFormController extends baseController {
         this.algorithmList = this.ngbBlastSearchFormConstants.ALGORITHMS[this.searchRequest.tool];
         if (this.algorithmList && !this.algorithmList.includes(this.searchRequest.algorithm)) {
             this.searchRequest.algorithm = this.algorithmList[0] || '';
+        } else {
+            this.searchRequest.algorithm = '';
         }
     }
 
     clearOrganisms() {
         this.searchRequest.organisms = [];
+    }
+
+    onSearchToolChange() {
+        this.setDefaultAlgorithms();
+        this.getDBList();
+    }
+
+    getDBList() {
+        this.ngbBlastSearchService.getBlastDBList(this.ngbBlastSearchFormConstants.BLAST_TOOL_DB[this.searchRequest.tool]).then(data => {
+            if (data.error) {
+                this.errorMessageList.push(data.message);
+            } else {
+                this.errorMessageList = [];
+                this.dbList = data;
+                if (!~this.dbList.indexOf(this.searchRequest.db)) {
+                    this.searchRequest.db = null;
+                }
+            }
+            this.$timeout(::this.$scope.$apply);
+        });
     }
 
     onSearch() {
