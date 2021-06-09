@@ -1,4 +1,10 @@
-<div class="blast-search-flex-column">
+<div ng-if="$ctrl.isProgressShown">
+    <div class="progress" layout-align="center center">
+        <span>Loading alignments...</span>
+    </div>
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div class="blast-search-flex-column" ng-class="{'alignment-hidden': $ctrl.isProgressShown}">
     <div layout="row">
         <md-button
                 class="md-flat blast-search-result-back"

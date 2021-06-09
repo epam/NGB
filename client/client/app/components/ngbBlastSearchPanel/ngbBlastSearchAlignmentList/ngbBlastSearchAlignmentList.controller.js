@@ -7,9 +7,9 @@ export default class ngbBlastSearchAlignmentList {
     searchResult = {};
     isProgressShown = true;
 
-    constructor(ngbBlastSearchService) {
+    constructor(ngbBlastSearchService, $timeout) {
         Object.assign(this, {
-            ngbBlastSearchService
+            ngbBlastSearchService, $timeout
         });
         this.initialize();
     }
@@ -17,6 +17,6 @@ export default class ngbBlastSearchAlignmentList {
     initialize() {
         this.searchResult = this.ngbBlastSearchService.popCurrentAlignmentObject();
         this.search = this.ngbBlastSearchService.cutCurrentResult;
-        this.isProgressShown = false;
+        this.$timeout(() => this.isProgressShown = false, 1000);
     }
 }

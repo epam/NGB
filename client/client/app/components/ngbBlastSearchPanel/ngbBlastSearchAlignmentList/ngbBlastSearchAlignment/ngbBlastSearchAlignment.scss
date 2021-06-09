@@ -45,11 +45,19 @@
     margin-left: 5px;
   }
   .blast-search-alignment-params {
-    justify-content: space-between;
+    justify-content: flex-start;
+    flex-flow: wrap;
+    margin-left: -5px;
+    margin-right: -5px;
+    .layout-row {
+      margin: 0 5px
+    }
   }
 }
 .blast-search-alignment-link {
   text-decoration: underline;
+  font-size: 14px;
+  line-height: 20px;
   &.disabled {
     display: none;
   }

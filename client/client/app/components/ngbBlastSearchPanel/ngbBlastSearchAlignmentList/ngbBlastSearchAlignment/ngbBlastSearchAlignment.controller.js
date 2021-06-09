@@ -3,6 +3,7 @@ import angular from 'angular';
 const MONOSPACE_RATIO = 1.75;
 const DEFAULT_SYMBOL_WIDTH = 11;
 const MIN_SEQ_PART_LENGTH = 10;
+const SEQUENCE_RIGHT_MARGIN = 20;
 
 export default class ngbBlastSearchAlignment {
     navigationAvailable = false;
@@ -25,7 +26,6 @@ export default class ngbBlastSearchAlignment {
         });
         this.navigationAvailable = false;
         this.initialize();
-        this.alignment.diff = this.calculateDiff(this.alignment.btop);
         this.windowElm = angular.element($window);
         const updateNavigationStateFn = this.updateNavigationState.bind(this);
         this.dispatcher.on('tracks:state:change', updateNavigationStateFn);
@@ -62,6 +62,7 @@ export default class ngbBlastSearchAlignment {
                 break;
             }
         }
+        this.alignment.diff = this.calculateDiff(this.alignment.btop);
         this.updateNavigationState();
     }
 
@@ -125,6 +126,7 @@ export default class ngbBlastSearchAlignment {
             - this.elements.queryTitle.width()
             - this.elements.startPos.width()
             - this.elements.endPos.width()
+            - SEQUENCE_RIGHT_MARGIN
         ) || (element.width() - this.alignment.sequenceEnd.toString().length * 2 * DEFAULT_SYMBOL_WIDTH) / 2;
         const symbolWidth = Math.ceil(
             parseInt(this.elements.sequence.css('font-size'), 10) / MONOSPACE_RATIO
