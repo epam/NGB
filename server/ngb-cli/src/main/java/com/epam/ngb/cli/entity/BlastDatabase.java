@@ -72,7 +72,7 @@ public class BlastDatabase implements Printable<BlastDatabase> {
      */
     @Override
     public String formatItem(String formatString) {
-        return String.format(formatString, id, name, path, type);
+        return String.format(formatString, id, name, path, type, source);
     }
 
     @Override

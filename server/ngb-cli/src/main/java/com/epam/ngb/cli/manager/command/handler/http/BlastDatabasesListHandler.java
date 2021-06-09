@@ -39,9 +39,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.methods.HttpRequestBase;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_DATABASE_TYPE;
+import static org.apache.commons.lang3.StringUtils.join;
 
 /**
  *{@code {@link BlastDatabasesListHandler }} represents a tool for handling 'list_blast_db' command and
@@ -51,7 +54,8 @@ import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_DATABASE_TYPE;
 @Slf4j
 public class BlastDatabasesListHandler extends AbstractHTTPCommandHandler {
 
-    public static final String TYPE_PARAM = "?type=%s";
+    public static final String TYPE_PARAM = "type=%s";
+    public static final String PATH_PARAM = "path=%s";
     /**
      * If true command will output registered databases in a table format, otherwise
      * json format will be used
@@ -59,22 +63,34 @@ public class BlastDatabasesListHandler extends AbstractHTTPCommandHandler {
     private boolean printTable;
 
     private String type;
+    private String path;
 
     @Override
     public void parseAndVerifyArguments(List<String> arguments, ApplicationOptions options) {
         if (arguments.size() > 0) {
-            this.type = arguments.get(0);
-            if (!BlastDatabaseVO.BLAST_DATABASE_TYPES.contains(type)) {
-                throw new IllegalArgumentException(MessageConstants.getMessage(
-                        ILLEGAL_DATABASE_TYPE, type));
-            }
+            throw new IllegalArgumentException(MessageConstants.getMessage(
+                    ILLEGAL_COMMAND_ARGUMENTS, getCommand(), 0, arguments.size()));
         }
+        this.type = options.getDatabaseType();
+        if (type != null && !BlastDatabaseVO.BLAST_DATABASE_TYPES.contains(type)) {
+            throw new IllegalArgumentException(MessageConstants.getMessage(
+                    ILLEGAL_DATABASE_TYPE, type));
+        }
+        this.path = options.getDatabasePath();
         this.printTable = options.isPrintTable();
     }
 
     @Override
     public int runCommand() {
-        HttpRequestBase request = getRequest(getRequestUrl() + (type == null ? "" : String.format(TYPE_PARAM, type)));
+        List<String> options = new ArrayList<>();
+        if (type != null) {
+            options.add(String.format(TYPE_PARAM, type));
+        }
+        if (path != null) {
+            options.add(String.format(PATH_PARAM, path));
+        }
+        HttpRequestBase request = getRequest(getRequestUrl()
+                + (options.isEmpty() ? "" : "?") + join(options, "&"));
         String result = RequestManager.executeRequest(request);
         ResponseResult<List<BlastDatabase>> responseResult;
         try {

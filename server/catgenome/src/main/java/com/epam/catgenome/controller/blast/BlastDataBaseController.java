@@ -84,8 +84,9 @@ public class BlastDataBaseController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<List<BlastDatabase>> loadDatabases(@RequestParam(required = false) final BlastDatabaseType type) {
-        return Result.success(blastDatabaseSecurityService.load(type));
+    public Result<List<BlastDatabase>> loadDatabases(@RequestParam(required = false) final BlastDatabaseType type,
+                                                     @RequestParam(required = false) final String path) {
+        return Result.success(blastDatabaseSecurityService.load(type, path));
     }
 
     @DeleteMapping(value = "/blast/database/{id}")

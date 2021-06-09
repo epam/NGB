@@ -58,7 +58,7 @@ public class BlastDatabaseSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public List<BlastDatabase> load(final BlastDatabaseType type) {
-        return blastDatabaseManager.load(type);
+    public List<BlastDatabase> load(final BlastDatabaseType type, final String path) {
+        return blastDatabaseManager.load(type, path);
     }
 }
