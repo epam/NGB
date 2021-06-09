@@ -155,7 +155,7 @@ export default class ngbBlastSearchService {
                 localStorage.removeItem('blastSearchRequest');
             }
             this.currentSearchId = null;
-            this.currentTool = this.ngbBlastSearchFormConstants[0];
+            this.currentTool = this.ngbBlastSearchFormConstants.BLAST_TOOLS[0];
             return data;
         });
     }

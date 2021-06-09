@@ -1,6 +1,8 @@
+import * as Utilities from './../ngbBlastSearch.utilities';
 import baseController from '../../../shared/baseController';
 
 const ROW_HEIGHT = 35;
+const RESIZE_DELAY = 300;
 
 export default class ngbBlastHistoryController extends baseController {
     static get UID() {
@@ -15,8 +17,6 @@ export default class ngbBlastHistoryController extends baseController {
     historyLoadError = null;
     updateInterval = null;
     statusViews = [];
-    totalPages = 0;
-    currentPage = 0;
 
     gridOptions = {
         enableSorting: true,
@@ -101,7 +101,7 @@ export default class ngbBlastHistoryController extends baseController {
                 this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
                 this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
                 this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
-                this.gridApi.core.on.gridDimensionChanged(this.$scope, ::this.onResize);
+                this.gridApi.core.on.gridDimensionChanged(this.$scope, ::Utilities.debounce(::this.onResize, RESIZE_DELAY));
             }
         });
         await this.loadData();
@@ -119,9 +119,9 @@ export default class ngbBlastHistoryController extends baseController {
                 this.historyLoadError = null;
                 this.gridOptions.columnDefs = this.ngbBlastHistoryTableService.getBlastHistoryGridColumns();
                 this.gridOptions.data = this.ngbBlastHistoryTableService.blastHistory;
-                this.totalPages = this.ngbBlastHistoryTableService.totalPages;
-                this.currentPage = this.ngbBlastHistoryTableService.currentPageHistory;
                 this.isEmptyResults = false;
+            } else if (this.ngbBlastHistoryTableService.currentPageHistory > 1) {
+                this.ngbBlastHistoryTableService.changePage(1);
             } else {
                 this.isEmptyResults = true;
             }
@@ -223,5 +223,6 @@ export default class ngbBlastHistoryController extends baseController {
 
     onResize(oldGridHeight, oldGridWidth, newGridHeight) {
         this.ngbBlastHistoryTableService.historyPageSize = Math.floor(newGridHeight / ROW_HEIGHT) - 1;
+        this.loadData();
     }
 }
