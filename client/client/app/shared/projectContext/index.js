@@ -1162,7 +1162,8 @@ export default class projectContext {
             tracksReordering,
             filterDatasets,
             shouldAddAnnotationTracks,
-            blatRegion
+            blatRegion,
+            keepBLASTTrack
         } = state;
         if (reference && !this._reference) {
             this._referenceIsPromised = true;
@@ -1184,6 +1185,12 @@ export default class projectContext {
         const {referenceDidChange, vcfFilesChanged, recoveredTracksState} = await this._changeProject(reference, tracks, tracksState, tracksReordering, shouldAddAnnotationTracks);
         const tracksStateDidChange = await this._changeTracksState(recoveredTracksState || tracksState);
         const chromosomeDidChange = this._changeChromosome(chromosome);
+        if (chromosomeDidChange && !keepBLASTTrack) {
+            this.tracksState = (this.tracksState || [])
+                .filter(track => track.format !== 'BLAST');
+            this._tracks = (this.tracks || [])
+                .filter(track => track.format !== 'BLAST');
+        }
         let positionDidChange = false;
         let viewportDidChange = false;
         let blatRegionDidChange = false;

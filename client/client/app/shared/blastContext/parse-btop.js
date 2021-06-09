@@ -44,15 +44,21 @@ export default function parseBtop (btop) {
                 length: 1
             });
         } else if (deletion.test(part)) {
-            result.push({
-                type: BTOPPartType.deletion,
-                length: 1
-            });
-        } else if (insertion.test(part)) {
+            if (result.length > 0 && result[result.length - 1].type === BTOPPartType.deletion) {
+                result[result.length - 1].length += 1;
+            } else {
+                result.push({
+                    type: BTOPPartType.deletion,
+                    length: 1
+                });
+            }
+        } else if (
+            insertion.test(part) &&
+            (result.length === 0 || result[result.length - 1].type !== BTOPPartType.insertion)
+        ) {
             result.push({
                 type: BTOPPartType.insertion,
-                length: 0,
-                alt: part[0]
+                length: 0
             });
         }
         exec = BTOP.exec(btop);

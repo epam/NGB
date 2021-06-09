@@ -164,7 +164,7 @@ class BLASTAlignmentRenderer {
         if (x1 < minimum || x1 > maximum) {
             return;
         }
-        x1 = Math.min(maximum, Math.max(minimum, x1));
+        x1 = Math.min(maximum, Math.max(minimum, x1)) - 0.5;
         const colorCode = (alt || '').toUpperCase();
         const color = this.config.colors && this.config.colors.hasOwnProperty(colorCode)
             ? this.config.colors[colorCode]
@@ -173,27 +173,27 @@ class BLASTAlignmentRenderer {
             .lineStyle(1, color, 1)
             .moveTo(
                 x1,
-                -Math.round(height / 2.0)
+                -Math.ceil(height / 2.0) - 0.5
             )
             .lineTo(
                 x1,
-                Math.round(height / 2.0)
+                Math.floor(height / 2.0) + 0.5
             )
             .moveTo(
                 x1 - bpWidth / 3.0,
-                -Math.round(height / 2.0)
+                -Math.ceil(height / 2.0) - 0.5
             )
             .lineTo(
                 x1 + bpWidth / 3.0,
-                -Math.round(height / 2.0)
+                -Math.ceil(height / 2.0) - 0.5
             )
             .moveTo(
                 x1 - bpWidth / 3.0,
-                Math.round(height / 2.0)
+                Math.floor(height / 2.0) + 0.5
             )
             .lineTo(
                 x1 + bpWidth / 3.0,
-                Math.round(height / 2.0)
+                Math.floor(height / 2.0) + 0.5
             );
     }
 
@@ -207,36 +207,36 @@ class BLASTAlignmentRenderer {
         if (x2 < minimum || x1 > maximum) {
             return;
         }
-        x1 = Math.min(maximum, Math.max(minimum, x1));
-        x2 = Math.min(maximum, Math.max(minimum, x2));
+        x1 = Math.min(maximum, Math.max(minimum, x1)) + 0.5;
+        x2 = Math.min(maximum, Math.max(minimum, x2)) - 0.5;
         const color = this.config.colors && this.config.colors.del
             ? this.config.colors.del
             : ColorProcessor.darkenColor(baseColor);
         graphics
-            .lineStyle(1, color, 0)
+            .lineStyle(1, color, 1)
             .moveTo(
                 x1,
-                -Math.round(height / 2.0)
+                -Math.ceil(height / 2.0)
             )
             .lineTo(
                 x1,
-                Math.round(height / 2.0)
+                Math.floor(height / 2.0)
             )
             .moveTo(
                 x1,
-                0
+                -0.5
             )
             .lineTo(
                 x2,
-                0
+                -0.5
             )
             .moveTo(
                 x2,
-                -Math.round(height / 2.0)
+                -Math.ceil(height / 2.0)
             )
             .lineTo(
                 x2,
-                Math.round(height / 2.0)
+                Math.floor(height / 2.0)
             );
     }
 
@@ -315,8 +315,8 @@ class BLASTAlignmentRenderer {
         const baseColor = this.config.colors && this.config.colors.base
             ? this.config.colors.base
             : this.config.sequence.color;
-        const minimum = -this.viewport.canvasSize;
-        const maximum = 2 * this.viewport.canvasSize;
+        const minimum = -this.viewport.canvasSize - startOffset;
+        const maximum = 2 * this.viewport.canvasSize - startOffset;
         const options = {
             height,
             minimum,

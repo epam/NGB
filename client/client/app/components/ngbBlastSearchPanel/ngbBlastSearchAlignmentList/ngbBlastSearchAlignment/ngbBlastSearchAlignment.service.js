@@ -139,6 +139,7 @@ export default class ngbBlastSearchAlignmentService {
                 chromosome: {
                     name: chromosomeName
                 },
+                keepBLASTTrack: true,
                 ...tracksOptions
             }, false, () => {
                 this.blastContext.setAlignment(alignment, search);
