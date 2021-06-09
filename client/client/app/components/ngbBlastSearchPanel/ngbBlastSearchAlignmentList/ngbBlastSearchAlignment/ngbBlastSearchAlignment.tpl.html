@@ -29,44 +29,43 @@
             <span class="alignment-field-value">{{$ctrl.alignment.gaps}}/{{$ctrl.alignment.length}}
                 ({{$ctrl.alignment.gaps / $ctrl.alignment.length | percentage:0}})</span>
         </div>
-    </div>
-    <div class="blast-search-alignment-query-container" layout="row">
-        <div layout="column">
-            <span></span>
-            <span class="alignment-field-name">Query</span>
-            <span></span>
-            <span class="alignment-field-name">Subject seq</span>
-            <span></span>
-        </div>
         <div layout="row">
-            <div class="right" layout="column">
-                <span>{{$ctrl.alignment.queryStart}}</span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span>{{$ctrl.alignment.sequenceStart}}</span>
-            </div>
-            <div class="mono" layout="column">
-                <span></span>
-                <span>{{$ctrl.alignment.querySequence}}</span>
-                <span>{{$ctrl.calculateDiff($ctrl.alignment.btop)}}</span>
-                <span>{{$ctrl.alignment.sequence}}</span>
-                <span></span>
-            </div>
-            <div class="left" layout="column">
-                <span>{{$ctrl.alignment.queryEnd}}</span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span>{{$ctrl.alignment.sequenceEnd}}</span>
-            </div>
+            <span class="alignment-field-name">Strand:</span>
+            <span class="alignment-field-value">+/{{$ctrl.alignment.sequenceStrandView}}</span>
         </div>
-        <div class="center" layout="column">
-            <span class="alignment-field-name">Strand</span>
-            <span>+</span>
-            <span></span>
-            <span>{{$ctrl.alignment.sequenceStrandView}}</span>
-            <span></span>
+    </div>
+    <div class="blast-search-alignment-query-container" layout="column">
+        <div layout="row" ng-repeat="alignment in $ctrl.partedAlignment" onresize="$ctrl.onResize($index, $event)">
+            <div layout="column" class="alignment_query_title">
+                <span></span>
+                <span class="alignment-field-name">Query</span>
+                <span></span>
+                <span class="alignment-field-name">Subject seq</span>
+                <span></span>
+            </div>
+            <div layout="row" flex>
+                <div class="right alignment_start_pos" layout="column">
+                    <span>{{alignment.queryStart}}</span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span>{{alignment.sequenceStart}}</span>
+                </div>
+                <div class="mono alignment_sequence" layout="column">
+                    <span></span>
+                    <span>{{alignment.querySequence}}</span>
+                    <span>{{alignment.diff}}</span>
+                    <span>{{alignment.sequence}}</span>
+                    <span></span>
+                </div>
+                <div class="left alignment_end_pos" layout="column">
+                    <span>{{alignment.queryEnd}}</span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span>{{alignment.sequenceEnd}}</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>

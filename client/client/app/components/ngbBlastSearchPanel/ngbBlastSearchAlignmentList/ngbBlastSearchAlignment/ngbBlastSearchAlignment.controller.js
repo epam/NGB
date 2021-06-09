@@ -1,15 +1,40 @@
+import angular from 'angular';
+
+const MONOSPACE_RATIO = 1.75;
+const DEFAULT_SYMBOL_WIDTH = 11;
+const MIN_SEQ_PART_LENGTH = 10;
+
 export default class ngbBlastSearchAlignment {
 
     static get UID() {
         return 'ngbBlastSearchAlignment';
     }
 
-    constructor() {
+    maxSeqLength = null;
+    partedAlignment = [];
+    windowElm = {};
+
+    constructor($scope, $element, $window) {
+        Object.assign(this, {
+            $scope, $element
+        });
         this.initialize();
+        this.alignment.diff = this.calculateDiff(this.alignment.btop);
+        this.windowElm = angular.element($window);
+        this.$scope.$on('$destroy', () => {
+            this.windowElm.off('resize', ::this.onResize);
+        });
+    }
+
+    $onInit() {
+        this.windowElm.on('resize', ::this.onResize);
+        setTimeout(() => {
+            this.windowElm.resize();
+        }, 0);
     }
 
     initialize() {
-        switch(this.alignment.sequenceStrand) {
+        switch (this.alignment.sequenceStrand) {
             case 'plus': {
                 this.alignment.sequenceStrandView = '+';
                 break;
@@ -24,14 +49,71 @@ export default class ngbBlastSearchAlignment {
     calculateDiff(btop) {
         const splittedBtop = btop.match(/[\d]+|[^\d]+/g);
         let parsedItem, result = '';
-        for(let i=0; i<splittedBtop.length; i++) {
+        for (let i = 0; i < splittedBtop.length; i++) {
             parsedItem = parseInt(splittedBtop[i]);
-            if(isNaN(parsedItem)) {
-                result += new Array(Math.ceil(splittedBtop[i].length/2) + 1).join(' ');
+            if (isNaN(parsedItem)) {
+                result += new Array(Math.ceil(splittedBtop[i].length / 2) + 1).join(' ');
             } else {
                 result += new Array(parsedItem + 1).join('|');
             }
         }
         return result;
+    }
+
+    splitAlignment(alignment) {
+        const result = [];
+        if (alignment.sequence.length > this.maxSeqLength) {
+            const size = Math.ceil(alignment.sequence.length / this.maxSeqLength);
+            const inv = alignment.sequenceStart > alignment.sequenceEnd;
+            for (let i = 0; i < size; i++) {
+                result.push({
+                    querySequence: alignment.querySequence.substring(i * this.maxSeqLength, (i + 1) * this.maxSeqLength),
+                    diff: alignment.diff.substring(i * this.maxSeqLength, (i + 1) * this.maxSeqLength),
+                    sequence: alignment.sequence.substring(i * this.maxSeqLength, (i + 1) * this.maxSeqLength),
+                    queryStart: alignment.queryStart + i * this.maxSeqLength,
+                    queryEnd: Math.min(alignment.queryEnd, alignment.queryStart + (i + 1) * this.maxSeqLength - 1),
+                    sequenceStart: inv ? alignment.sequenceStart - i * this.maxSeqLength : alignment.sequenceStart + i * this.maxSeqLength,
+                    sequenceEnd: inv
+                        ? Math.max(alignment.sequenceEnd, alignment.sequenceStart - (i + 1) * this.maxSeqLength + 1)
+                        : Math.min(alignment.sequenceEnd, alignment.sequenceStart + (i + 1) * this.maxSeqLength - 1)
+                });
+            }
+            setTimeout(() => this.windowElm.resize());
+        } else {
+            result.push({
+                querySequence: alignment.querySequence,
+                diff: alignment.diff,
+                sequence: alignment.sequence,
+                queryStart: alignment.queryStart,
+                queryEnd: alignment.queryEnd,
+                sequenceStart: alignment.sequenceStart,
+                sequenceEnd: alignment.sequenceEnd
+            });
+
+        }
+        return result;
+    }
+
+    onResize() {
+        const element = angular.element(this.$element);
+        this.elements = {
+            queryTitle: element.find('.alignment_query_title'),
+            startPos: element.find('.alignment_start_pos'),
+            sequence: element.find('.alignment_sequence'),
+            endPos: element.find('.alignment_end_pos')
+        };
+        const newWidth = (element.width()
+            - this.elements.queryTitle.width()
+            - this.elements.startPos.width()
+            - this.elements.endPos.width()
+        ) || (element.width() - this.alignment.sequenceEnd.toString().length * 2 * DEFAULT_SYMBOL_WIDTH) / 2;
+        const symbolWidth = Math.ceil(
+            parseInt(this.elements.sequence.css('font-size'), 10) / MONOSPACE_RATIO
+        ) || DEFAULT_SYMBOL_WIDTH;
+        const newMaxSeqLength = Math.max(Math.ceil(newWidth / symbolWidth), MIN_SEQ_PART_LENGTH);
+        if (this.maxSeqLength !== newMaxSeqLength) {
+            this.maxSeqLength = newMaxSeqLength;
+            this.partedAlignment = this.splitAlignment(this.alignment);
+        }
     }
 }
