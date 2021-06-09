@@ -40,7 +40,7 @@ public class BlastTask {
     private LocalDateTime endDate;
     private String statusReason;
     private String query;
-    private String database;
+    private BlastDatabase database;
     private String owner;
     private List<Long> organisms;
     private List<Long> excludedOrganisms;

@@ -24,12 +24,17 @@
 
 package com.epam.catgenome.dao.blast;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import com.epam.catgenome.dao.DaoHelper;
+import com.epam.catgenome.entity.blast.BlastDatabase;
+import com.epam.catgenome.entity.blast.BlastDatabaseSource;
+import com.epam.catgenome.entity.blast.BlastDatabaseType;
 import com.epam.catgenome.entity.blast.BlastTaskOrganism;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.TaskParameter;
@@ -244,7 +249,11 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
         END_DATE,
         STATUS_REASON,
         QUERY,
-        DATABASE,
+        DATABASE_ID,
+        DATABASE_NAME,
+        DATABASE_TYPE,
+        DATABASE_PATH,
+        DATABASE_SOURCE,
         EXECUTABLE,
         ALGORITHM,
         OPTIONS,
@@ -262,7 +271,7 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
                     : Timestamp.valueOf(blastTask.getEndDate()));
             params.addValue(STATUS_REASON.name(), blastTask.getStatusReason());
             params.addValue(QUERY.name(), blastTask.getQuery());
-            params.addValue(DATABASE.name(), blastTask.getDatabase());
+            params.addValue(DATABASE_ID.name(), blastTask.getDatabase().getId());
             params.addValue(EXECUTABLE.name(), blastTask.getExecutable());
             params.addValue(ALGORITHM.name(), blastTask.getAlgorithm());
             params.addValue(OPTIONS.name(), blastTask.getOptions());
@@ -282,7 +291,7 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
                         : rs.getTimestamp(END_DATE.name()).toLocalDateTime());
                 blastTask.setStatusReason(rs.getString(STATUS_REASON.name()));
                 blastTask.setQuery(rs.getString(QUERY.name()));
-                blastTask.setDatabase(rs.getString(DATABASE.name()));
+                parseDatabase(blastTask, rs);
                 blastTask.setExecutable(rs.getString(EXECUTABLE.name()));
                 blastTask.setAlgorithm(rs.getString(ALGORITHM.name()));
                 blastTask.setOptions(rs.getString(OPTIONS.name()));
@@ -295,6 +304,22 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
 
                 return blastTask;
             };
+        }
+
+        private static void parseDatabase(final BlastTask blastTask, final ResultSet rs) throws SQLException {
+            final BlastDatabase database = new BlastDatabase();
+            database.setId(rs.getLong(DATABASE_ID.name()));
+            database.setName(rs.getString(DATABASE_NAME.name()));
+            database.setPath(rs.getString(DATABASE_PATH.name()));
+            long typeVal = rs.getLong(DATABASE_TYPE.name());
+            if (!rs.wasNull()) {
+                database.setType(BlastDatabaseType.getTypeById(typeVal));
+            }
+            long sourceVal = rs.getLong(DATABASE_SOURCE.name());
+            if (!rs.wasNull()) {
+                database.setSource(BlastDatabaseSource.getSourceById(sourceVal));
+            }
+            blastTask.setDatabase(database);
         }
     }
 

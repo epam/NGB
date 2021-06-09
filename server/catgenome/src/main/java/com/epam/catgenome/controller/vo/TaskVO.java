@@ -14,7 +14,7 @@ public class TaskVO {
     private String title;
     private String statusReason;
     private String query;
-    private String database;
+    private Long databaseId;
     private List<Long> organisms;
     private List<Long> excludedOrganisms;
     private String executable;

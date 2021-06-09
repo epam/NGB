@@ -30,7 +30,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.epam.catgenome.dao.blast.BlastDatabaseDao;
 import com.epam.catgenome.dao.blast.BlastTaskDao;
+import com.epam.catgenome.entity.blast.BlastDatabase;
+import com.epam.catgenome.entity.blast.BlastDatabaseSource;
+import com.epam.catgenome.entity.blast.BlastDatabaseType;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.BlastTaskOrganism;
 import com.epam.catgenome.entity.blast.TaskParameter;
@@ -43,30 +47,44 @@ import com.epam.catgenome.util.db.PagingInfo;
 import com.epam.catgenome.util.db.QueryParameters;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
+@Transactional
 public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTests {
 
     public static final String TEST = "test";
     @Autowired
     private BlastTaskDao blastTaskDao;
-
+    @Autowired
+    private BlastDatabaseDao  blastDatabaseDao;
     @Autowired
     private BlastTaskManager blastTaskManager;
     @Autowired
     private AuthManager authManager;
 
+    private BlastDatabase blastDatabase;
+
+    @Before
+    public void setUp() {
+        final BlastDatabase database = new BlastDatabase();
+        database.setName("Human");
+        database.setPath("Human");
+        database.setSource(BlastDatabaseSource.CUSTOM);
+        database.setType(BlastDatabaseType.NUCLEOTIDE);
+        blastDatabaseDao.saveDatabase(database);
+        blastDatabase = database;
+    }
+
     @Test
-    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void testSaveTask() {
         BlastTask blastTask = getBlastTask(1L, TEST);
         blastTaskDao.saveTask(blastTask);
@@ -104,10 +122,6 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
         QueryParameters parameters = new QueryParameters();
         PagingInfo pagingInfo = new PagingInfo(2, 1);
         parameters.setPagingInfo(pagingInfo);
-//        Filter queryFilter = new Filter("task_id", ">", "3");
-//        parameters.setFilters(Collections.singletonList(queryFilter));
-//        SortInfo sortInfo = new SortInfo("task_id", false);
-//        parameters.setSortInfos(Collections.singletonList(sortInfo));
 
         TaskPage taskPage = blastTaskManager.loadTasks(parameters);
         Assert.assertNotNull(taskPage);
@@ -194,6 +208,7 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
         blastTask.setStatus(TaskStatus.CREATED);
         blastTask.setOwner(authManager.getAuthorizedUser());
         blastTask.setCreatedDate(LocalDateTime.now());
+        blastTask.setDatabase(blastDatabase);
         return blastTask;
     }
 }
