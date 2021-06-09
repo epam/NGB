@@ -168,6 +168,7 @@ export class BEDTransformer extends GeneTransformer {
     }
 
     analyzeBedItem(bedItem) {
+        bedItem.grouping = /^[\d]+ feature[s]?$/i.test(bedItem.name);
         if (bedItem.additional) {
             const keys = Object.keys(bedItem.additional);
             for (let i = 0; i < keys.length; i++) {

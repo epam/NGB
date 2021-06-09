@@ -10,7 +10,15 @@
         </md-button>
         <div class="blast-search-alignment-title">
             <span class="blast-search-alignment-title-bold">Sequence ID:</span>
-            <a class="blast-search-result-link" ng-href="https://www.ncbi.nlm.nih.gov/nucleotide/{{$ctrl.searchResult.sequenceId}}">{{$ctrl.searchResult.sequenceId}}</a>
+            <a class="blast-search-result-link"
+               ng-if="$ctrl.search.dbSource === 'NCBI'"
+               ng-href="https://www.ncbi.nlm.nih.gov/nucleotide/{{$ctrl.searchResult.sequenceId}}"
+               target="_blank">
+                {{$ctrl.searchResult.sequenceId}}
+            </a>
+            <span ng-if="$ctrl.search.dbSource !== 'NCBI'">
+                {{$ctrl.searchResult.sequenceId}}
+            </span>
             <span>({{$ctrl.searchResult.sequenceScientificName | na}})</span>
         </div>
     </div>

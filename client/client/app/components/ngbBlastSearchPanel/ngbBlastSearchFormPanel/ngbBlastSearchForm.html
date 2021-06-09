@@ -43,7 +43,10 @@
                     ng-model="$ctrl.searchRequest.db"
                     required
             >
-                <md-option ng-repeat="db in $ctrl.dbList" ng-value="db.path">{{db.name}}</md-option>
+                <md-option ng-repeat="db in $ctrl.dbList track by db.id"
+                           ng-value="db.id">
+                    {{db.name}}
+                </md-option>
             </md-select>
         </md-input-container>
         <div class="blast-organisms-livesearch">

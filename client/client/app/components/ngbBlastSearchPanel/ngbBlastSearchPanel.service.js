@@ -6,8 +6,8 @@ const BLAST_STATES = {
 };
 
 export default class ngbBlastSearchService {
-    static instance(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants) {
-        return new ngbBlastSearchService(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants);
+    static instance(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService) {
+        return new ngbBlastSearchService(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService);
     }
 
     _detailedRead = null;
@@ -32,8 +32,17 @@ export default class ngbBlastSearchService {
         return BLAST_STATES;
     }
 
-    constructor(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants) {
-        Object.assign(this, {dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants});
+    constructor(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService) {
+        Object.assign(
+            this,
+            {
+                dispatcher,
+                bamDataService,
+                projectDataService,
+                ngbBlastSearchFormConstants,
+                genomeDataService
+            }
+        );
         this.currentTool = this.ngbBlastSearchFormConstants.BLAST_TOOLS[0];
     }
 
@@ -47,7 +56,7 @@ export default class ngbBlastSearchService {
         return await this.projectDataService.getBlastDBList(type);
     }
 
-    async _getDetailedRead() {
+    async getSequence() {
         const searchRequest = JSON.parse(localStorage.getItem('blastSearchRequest')) || null;
         let read = null;
         if (searchRequest) {
@@ -56,8 +65,54 @@ export default class ngbBlastSearchService {
                     read = await this.bamDataService.loadRead(searchRequest);
                     break;
                 }
+                default:
                 case 'gene': {
-                    read = {};
+                    const {
+                        startIndex,
+                        endIndex,
+                        chromosomeId,
+                        referenceId: id
+                    } = searchRequest;
+                    if (
+                        startIndex &&
+                        endIndex &&
+                        chromosomeId &&
+                        id
+                    ) {
+                        const size = endIndex - startIndex;
+                        const MAX_SIZE = 100 * 1000;
+                        if (size > MAX_SIZE) {
+                            return {};
+                        }
+                        const blockSize = 10 * 1024; // 10kb;
+                        const count = Math.ceil(size / blockSize);
+                        const payloads = [];
+                        for (let p = 0; p < count; p++) {
+                            const start = startIndex + blockSize * p;
+                            const end = Math.min(endIndex, startIndex + blockSize * (p + 1) - 1);
+                            payloads.push({
+                                startIndex: start,
+                                endIndex: end,
+                                scaleFactor: 1,
+                                chromosomeId,
+                                id
+                            });
+                        }
+                        try {
+                            const result = await this.genomeDataService.loadReferenceTrack(payloads);
+                            if (result && result.blocks && result.blocks.length) {
+                                return {
+                                    sequence: result.blocks.map(block => block.text).join('')
+                                };
+                            }
+                        } catch (e) {
+                            // eslint-disable-next-line
+                            console.warn('Error fetching sequence', e.message);
+                        }
+                        return {};
+                    } else {
+                        read = {};
+                    }
                     break;
                 }
             }
@@ -103,7 +158,7 @@ export default class ngbBlastSearchService {
         if (this._currentSearchId) {
             data = this._formatServerToClient(await this.projectDataService.getBlastSearch(this._currentSearchId));
         } else {
-            const newSearch = await this._getDetailedRead();
+            const newSearch = await this.getSequence();
             if (newSearch) {
                 data.sequence = newSearch.sequence;
             }
@@ -138,6 +193,9 @@ export default class ngbBlastSearchService {
                 id: data.id,
                 tool: data.tool,
                 db: data.db,
+                dbName: data.dbName,
+                dbSource: data.dbSource,
+                dbType: data.dbType,
                 title: data.title
             };
         } else {
@@ -166,7 +224,10 @@ export default class ngbBlastSearchService {
             title: search.title,
             algorithm: search.algorithm,
             organisms: search.organisms,
-            db: search.database,
+            db: search.database ? search.database.id : undefined,
+            dbName: search.database ? search.database.name : '',
+            dbSource: search.database ? search.database.source : undefined,
+            dbType: search.database ? search.database.type : undefined,
             tool: search.executable,
             sequence: search.query,
             state: search.status,
@@ -192,7 +253,7 @@ export default class ngbBlastSearchService {
         const result = {
             title: search.title || '',
             algorithm: search.algorithm,
-            database: search.db,
+            databaseId: search.db,
             executable: search.tool,
             query: search.sequence,
             parameters: {}

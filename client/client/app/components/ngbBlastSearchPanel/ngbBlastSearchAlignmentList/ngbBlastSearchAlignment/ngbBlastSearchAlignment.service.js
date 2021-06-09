@@ -12,8 +12,8 @@ export default class ngbBlastSearchAlignmentService {
         if (!alignment || !search) {
             return null;
         }
-        const {tool} = search;
-        if (/^(blastp|blastx)$/i.test(tool)) {
+        const {dbType} = search;
+        if (/^protein$/i.test(dbType)) {
             return null;
         }
         const {

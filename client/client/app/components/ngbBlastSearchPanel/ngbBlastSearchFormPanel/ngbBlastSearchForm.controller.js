@@ -13,7 +13,8 @@ export default class ngbBlastSearchFormController extends baseController {
         title: '',
         algorithm: '',
         organisms: [],
-        db: '',
+        db: 0,
+        dbName: '',
         tool: '',
         sequence: '',
         threshold: null,
@@ -83,7 +84,7 @@ export default class ngbBlastSearchFormController extends baseController {
             } else {
                 this.errorMessageList = [];
                 this.dbList = data;
-                if (!~this.dbList.indexOf(this.searchRequest.db)) {
+                if (this.dbList.filter(db => db.id === this.searchRequest.db).length === 0) {
                     this.searchRequest.db = null;
                 }
             }

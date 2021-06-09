@@ -1,6 +1,8 @@
 import {EventGeneInfo, PairReadInfo} from '../../../shared/utils/events';
 import Clipboard from 'clipboard';
 
+const BLAST_MAX_SEQUENCE_SIZE = 100 * 1000;
+
 export default class ngbTrackEvents {
 
     _genomeDataService = null;
@@ -28,6 +30,7 @@ export default class ngbTrackEvents {
     featureClick(trackInstance, data, track, event) {
         const isGeneTrack = track.format.toLowerCase() === 'gene';
         if (data.feature) {
+            const featureSize = Math.abs((data.feature.startIndex || 0) - (data.feature.endIndex || 0));
             (async() => {
                 let geneTracks = [];
                 if (!isGeneTrack) {
@@ -43,84 +46,108 @@ export default class ngbTrackEvents {
                     });
                 }
                 const menuData = [];
-                menuData.push({
-                    events: [{
-                        data: {
-                            chromosomeId: track.instance.config.chromosomeId,
-                            endIndex: data.feature.endIndex,
-                            name: data.feature.name,
-                            properties: data.info,
-                            projectId: track.projectIdNumber || undefined,
-                            referenceId: track.instance.config.referenceId,
-                            startIndex: data.feature.startIndex,
-                            geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
-                            title: 'FEATURE'
-                        },
-                        name: 'feature:info:select'
-                    }],
-                    title: 'Show Info'
-                });
-                const blastSearchParams = {
-                    geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
-                    id: track.id,
-                    chromosomeId: track.instance.config.chromosomeId,
-                    referenceId: track.referenceId,
-                    index: track.openByUrl ? track.indexPath : null,
-                    startIndex: data.feature.startIndex,
-                    endIndex: data.feature.endIndex,
-                    name: data.feature.name,
-                    file: track.openByUrl ? track.id : null,
-                    openByUrl: track.openByUrl,
-                };
-                menuData.push({
-                    title: 'BLASTn search',
-                    submenu: [{
-                        title:'Exon only',
+                if (!data.feature.grouping) {
+                    menuData.push({
                         events: [{
                             data: {
-                                ...blastSearchParams,
-                                tool:'blastn',
-                                source: 'gene'
+                                chromosomeId: track.instance.config.chromosomeId,
+                                endIndex: data.feature.endIndex,
+                                name: data.feature.name,
+                                properties: data.info,
+                                projectId: track.projectIdNumber || undefined,
+                                referenceId: track.instance.config.referenceId,
+                                startIndex: data.feature.startIndex,
+                                geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
+                                title: 'FEATURE'
                             },
-                            name: 'read:show:blast',
-                        }]},
-                    {
-                        title: 'All transcript info',
-                        events: [{
-                            data: {
-                                ...blastSearchParams,
-                                tool:'blastn',
-                                source: 'gene'
-                            },
-                            name: 'read:show:blast',
-                        }]
-                    }]
-                });
-                menuData.push({
-                    submenu: [{
-                        events: [{
-                            data: {
-                                ...blastSearchParams,
-                                tool:'blastp',
-                                source: 'gene'
-                            },
-                            name: 'read:show:blast',
+                            name: 'feature:info:select'
                         }],
-                        title:'Exon only',
-                    },
-                    {
+                        title: 'Show Info'
+                    });
+                }
+                if (/^(gene|transcript)$/i.test(data.feature.feature)) {
+                    const blastSearchParams = {
+                        geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
+                        id: track.id,
+                        chromosomeId: track.instance.config.chromosomeId,
+                        referenceId: track.referenceId,
+                        index: track.openByUrl ? track.indexPath : null,
+                        startIndex: data.feature.startIndex,
+                        endIndex: data.feature.endIndex,
+                        name: data.feature.name,
+                        file: track.openByUrl ? track.id : null,
+                        openByUrl: track.openByUrl,
+                        feature: data.feature.feature
+                    };
+                    menuData.push({
+                        title: 'BLASTn search',
+                        submenu: [
+                            {
+                                title: 'Exon only',
+                                events: [{
+                                    data: {
+                                        ...blastSearchParams,
+                                        tool: 'blastn',
+                                        source: 'gene'
+                                    },
+                                    name: 'read:show:blast',
+                                }]
+                            },
+                            {
+                                title: 'All transcript info',
+                                disabled: BLAST_MAX_SEQUENCE_SIZE < featureSize,
+                                events: [{
+                                    data: {
+                                        ...blastSearchParams,
+                                        tool: 'blastn',
+                                        source: 'gene'
+                                    },
+                                    name: 'read:show:blast',
+                                }]
+                            }]
+                    });
+                    menuData.push({
                         events: [{
                             data: {
                                 ...blastSearchParams,
-                                tool:'blastp',
+                                tool: 'blastp',
                                 source: 'gene'
                             },
                             name: 'read:show:blast'
                         }],
-                        title: 'All transcript info',
-                    }],
-                    title: 'BLASTp search',
-                });
+                        disabled: true,
+                        title: 'BLASTp search',
+                    });
+                } else if (
+                    !data.feature.grouping &&
+                    data.feature.startIndex &&
+                    data.feature.endIndex
+                ) {
+                    const blastSearchParams = {
+                        id: track.id,
+                        chromosomeId: track.instance.config.chromosomeId,
+                        referenceId: track.referenceId,
+                        index: track.openByUrl ? track.indexPath : null,
+                        startIndex: data.feature.startIndex,
+                        endIndex: data.feature.endIndex,
+                        name: data.feature.name,
+                        file: track.openByUrl ? track.id : null,
+                        openByUrl: track.openByUrl,
+                        feature: data.feature.feature
+                    };
+                    menuData.push({
+                        title: 'BLASTn search',
+                        disabled: BLAST_MAX_SEQUENCE_SIZE < featureSize,
+                        events: [{
+                            data: {
+                                ...blastSearchParams,
+                                tool: 'blastn',
+                                source: track.format
+                            },
+                            name: 'read:show:blast',
+                        }]
+                    });
+                }
                 if (geneTracks.length > 0) {
                     if (data.feature.attributes && data.feature.attributes.gene_id) {
                         const layoutChange = this.appLayout.Panels.molecularViewer;
@@ -145,30 +172,18 @@ export default class ngbTrackEvents {
                             title: 'Show 3D structure'
                         });
                     }
-                    // else {
-                    //     menuData.push({
-                    //         title: 'Highlight region on 3D structure',
-                    //         events: [{
-                    //             name: 'miew:highlight:region',
-                    //             data: {
-                    //                 geneTracks,
-                    //                 startIndex: data.feature.startIndex,
-                    //                 endIndex: data.feature.endIndex,
-                    //                 highlight: true
-                    //             }
-                    //         }]
-                    //     });
-                    // }
                 }
-                const childScope = this.$scope.$new(false);
-                childScope.menuData = menuData;
-                const html = this.$compile('<ngb-track-menu menu-data="menuData"></ngb-track-menu>')(childScope);
-                trackInstance.menuElement.show(
-                    event.position, html
-                );
-                childScope.$apply();
-                ngbTrackEvents.configureCopyToClipboardElements();
-                html.find('#hiddenMenuButton').triggerHandler('click');
+                if (menuData.length > 0) {
+                    const childScope = this.$scope.$new(false);
+                    childScope.menuData = menuData;
+                    const html = this.$compile('<ngb-track-menu menu-data="menuData"></ngb-track-menu>')(childScope);
+                    trackInstance.menuElement.show(
+                        event.position, html
+                    );
+                    childScope.$apply();
+                    ngbTrackEvents.configureCopyToClipboardElements();
+                    html.find('#hiddenMenuButton').triggerHandler('click');
+                }
             })();
         }
     }

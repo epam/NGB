@@ -8,21 +8,34 @@
     <md-menu-content width="4">
         <md-menu-item ng-repeat="entry in $ctrl.menuData" md-position-mode="cascade" style="height:50px;">
             <md-menu ng-if="entry.submenu">
-                <md-button aria-label="entry.title" ng-click="$mdOpenMenu()" style="height:50px;line-height: 50px;">
+                <md-button aria-label="entry.title"
+                           ng-click="$mdOpenMenu()"
+                           ng-disabled="entry.disabled"
+                           style="height:50px;line-height: 50px;">
                     {{entry.title}}
                 </md-button>
                 <md-menu-content>
                     <md-menu-item ng-repeat="submenuitem in entry.submenu" style="height:50px;">
-                        <md-button ng-click="$ctrl.clickItem($event,submenuitem)" style="height:50px;">
+                        <md-button ng-click="$ctrl.clickItem($event,submenuitem)"
+                                   ng-disabled="submenuitem.disabled"
+                                   style="height:50px;">
                             {{submenuitem.title}}
                         </md-button>
                     </md-menu-item>
                 </md-menu-content>
             </md-menu>
-            <md-button ng-if="!entry.clipboard && !entry.submenu" ng-click="$ctrl.clickItem($event,entry)" style="height:50px;">
+            <md-button ng-if="!entry.clipboard && !entry.submenu"
+                       ng-click="$ctrl.clickItem($event,entry)"
+                       ng-disabled="entry.disabled"
+                       style="height:50px;">
                 {{entry.title}}
             </md-button>
-            <md-button style="height:50px;" class="copy-to-clipboard-button" ng-disabled="entry.isLoading" ng-if="entry.clipboard" data-clipboard-text="{{entry.clipboard}}" ng-click="$ctrl.closeItem()">
+            <md-button style="height:50px;"
+                       class="copy-to-clipboard-button"
+                       ng-disabled="entry.isLoading || entry.disabled"
+                       ng-if="entry.clipboard"
+                       data-clipboard-text="{{entry.clipboard}}"
+                       ng-click="$ctrl.closeItem()">
                 {{entry.title}}
                 <md-progress-linear ng-show="entry.isLoading" md-mode="indeterminate"></md-progress-linear>
             </md-button>

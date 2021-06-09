@@ -27,13 +27,15 @@ $ngb-color-blue: #4285F4;
 .blast-sequence-area {
   textarea {
     resize:none;
-    padding-right: 20px;
+    padding-right: 25px;
+    max-height: 90px;
+    overflow: auto;
   }
 }
 .blast-sequence-clear {
   position: absolute;
   bottom: 5px;
-  right: 4px;
+  right: 10px;
   fill: $ngb-color-blue;
   cursor: pointer;
 }

@@ -70,7 +70,7 @@ export default class ngbBlastSearchPanelController extends baseController {
 
                 linkElement.setAttribute('href', url);
                 linkElement.setAttribute('download',
-                    `BLAST-${result.tool}-${result.db}-${result.title || result.id}.csv`);
+                    `BLAST-${result.tool}-${result.dbName}-${result.title || result.id}.csv`);
 
                 const clickEvent = new MouseEvent('click', {
                     'view': window,

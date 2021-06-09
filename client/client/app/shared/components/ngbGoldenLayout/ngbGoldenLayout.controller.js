@@ -420,6 +420,7 @@ export default class ngbGoldenLayoutController extends baseController {
                 && obj.config.componentState.panel === this.panels.ngbBlastSearchPanel);
 
         const payload = {
+            ...event,
             id: event.id,
             referenceId: event.referenceId,
             chromosomeId: event.chromosomeId,
