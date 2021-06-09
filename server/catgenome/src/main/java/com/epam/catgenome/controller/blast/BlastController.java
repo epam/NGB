@@ -31,8 +31,6 @@ import java.util.List;
 import java.util.Optional;
 
 import com.epam.catgenome.controller.vo.TaskVO;
-import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
-import com.epam.catgenome.entity.bam.BamFile;
 import com.epam.catgenome.entity.blast.BlastDataBase;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.result.BlastSequence;
@@ -52,7 +50,13 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -204,25 +208,5 @@ public class BlastController extends AbstractRESTController {
             })
     public Result<List<BlastDataBase>> loadDataBases(@PathVariable final Optional<Long> type) {
         return Result.success(blastTaskSecurityService.loadDataBases(type));
-    }
-
-    @GetMapping(value = "/organisms/upload/{path}")
-    @ApiOperation(
-            value = "Registers a BAM file in the system.",
-            notes = "Registers a file, stored in a file system (for now). Registration request has the following " +
-                    "properties: <br/>" +
-                    "1) referenceId - a reference, for which file is being registered <br/>" +
-                    "2) path - a path to file </br>" +
-                    "3) type - resource type of file: FILE / URL / S3<br/>" +
-                    "4) indexPath - <i>optional</i> a path to an index file (.bai)<br/>" +
-                    "5) name - <i>optional</i> a name for BAM track<br/>" +
-                    "6) s3BucketId - <i>optional</i> necessarily for cases when type is S3",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @ApiResponses(
-            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-            })
-    public Result<Boolean> uploadOrganismsDatabase(@PathVariable String path) throws IOException {
-        blastTaskSecurityService.uploadOrganismsDatabase(path);
-        return Result.success(null);
     }
 }
