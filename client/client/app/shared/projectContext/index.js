@@ -519,7 +519,7 @@ export default class projectContext {
     }
 
     applyAnnotationTracksState() {
-        if (this.reference === null) {
+        if (this.reference === null || this.reference === undefined) {
             return;
         }
         const stateStr = localStorage[`${this.reference.name.toLowerCase()}-annotations`];

@@ -16,6 +16,7 @@ export default class ngbBlastSearchAlignmentList {
 
     initialize() {
         this.searchResult = this.ngbBlastSearchService.popCurrentAlignmentObject();
+        this.search = this.ngbBlastSearchService.cutCurrentResult;
         this.isProgressShown = false;
     }
 }

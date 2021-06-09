@@ -50,4 +50,7 @@
 }
 .blast-search-alignment-link {
   text-decoration: underline;
+  &.disabled {
+    display: none;
+  }
 }

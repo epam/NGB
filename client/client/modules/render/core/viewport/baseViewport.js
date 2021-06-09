@@ -75,6 +75,10 @@ export default class BaseViewport {
     };
 
     constructor({chromosome, brush, canvas, factor}) {
+        this.initialize({chromosome, brush, canvas, factor});
+    }
+
+    initialize({chromosome, brush, canvas, factor}) {
         if (!chromosome) {
             throw new Error('Viewport instance should be initialized at least with `chromosomeSize`');
         }

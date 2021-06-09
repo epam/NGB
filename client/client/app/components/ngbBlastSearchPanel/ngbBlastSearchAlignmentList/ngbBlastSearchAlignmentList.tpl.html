@@ -19,6 +19,8 @@
         <ngb-blast-search-alignment
                 ng-repeat="alignment in $ctrl.searchResult.alignments track by $index"
                 alignment="alignment"
+                search-result="$ctrl.searchResult"
+                search="$ctrl.search"
                 index="$index+1"
                 layout="column"
         ></ngb-blast-search-alignment>

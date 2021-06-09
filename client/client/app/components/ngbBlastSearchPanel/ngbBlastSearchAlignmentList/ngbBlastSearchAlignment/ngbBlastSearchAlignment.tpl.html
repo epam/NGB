@@ -6,7 +6,9 @@
         </div>
         <div flex="10"></div>
         <div layout="row">
-            <a class="blast-search-result-link blast-search-alignment-link" ng-href="">View at track</a>
+            <a class="blast-search-result-link blast-search-alignment-link"
+               ng-class="{'disabled': !$ctrl.navigationAvailable}"
+               ng-click="$ctrl.navigateToTracks()">View at track</a>
         </div>
         <div flex></div>
     </div>

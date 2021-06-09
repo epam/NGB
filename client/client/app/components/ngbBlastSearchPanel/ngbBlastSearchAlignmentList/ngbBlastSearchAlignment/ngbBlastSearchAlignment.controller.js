@@ -5,6 +5,7 @@ const DEFAULT_SYMBOL_WIDTH = 11;
 const MIN_SEQ_PART_LENGTH = 10;
 
 export default class ngbBlastSearchAlignment {
+    navigationAvailable = false;
 
     static get UID() {
         return 'ngbBlastSearchAlignment';
@@ -14,16 +15,33 @@ export default class ngbBlastSearchAlignment {
     partedAlignment = [];
     windowElm = {};
 
-    constructor($scope, $element, $window) {
+    constructor($scope, $element, $window, ngbBlastSearchAlignmentService, projectContext, dispatcher) {
         Object.assign(this, {
-            $scope, $element
+            $scope,
+            $element,
+            projectContext,
+            dispatcher,
+            ngbBlastSearchAlignmentService
         });
+        this.navigationAvailable = false;
         this.initialize();
         this.alignment.diff = this.calculateDiff(this.alignment.btop);
         this.windowElm = angular.element($window);
+        const updateNavigationStateFn = this.updateNavigationState.bind(this);
+        this.dispatcher.on('tracks:state:change', updateNavigationStateFn);
         this.$scope.$on('$destroy', () => {
             this.windowElm.off('resize', ::this.onResize);
+            this.dispatcher.removeListener('tracks:state:change', updateNavigationStateFn);
         });
+        this.$scope.$watch('$ctrl.projectContext.references', updateNavigationStateFn);
+    }
+
+    updateNavigationState () {
+        this.navigationAvailable = this.ngbBlastSearchAlignmentService.navigationAvailable(this.alignment, this.search);
+    }
+
+    navigateToTracks () {
+        this.ngbBlastSearchAlignmentService.navigateToTracks(this.alignment, this.search);
     }
 
     $onInit() {
@@ -44,6 +62,7 @@ export default class ngbBlastSearchAlignment {
                 break;
             }
         }
+        this.updateNavigationState();
     }
 
     calculateDiff(btop) {
