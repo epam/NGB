@@ -38,6 +38,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 @Getter
@@ -102,40 +104,41 @@ public class BlastDatabaseDao extends NamedParameterJdbcDaoSupport {
 
     enum DatabaseParameters {
         DATABASE_ID,
-        NAME,
-        PATH,
-        TYPE,
-        SOURCE;
+        DATABASE_NAME,
+        DATABASE_PATH,
+        DATABASE_TYPE,
+        DATABASE_SOURCE;
 
         static MapSqlParameterSource getParameters(final BlastDatabase database) {
             MapSqlParameterSource params = new MapSqlParameterSource();
 
             params.addValue(DATABASE_ID.name(), database.getId());
-            params.addValue(NAME.name(), database.getName());
-            params.addValue(PATH.name(), database.getPath());
-            params.addValue(TYPE.name(), database.getType().getTypeId());
-            params.addValue(SOURCE.name(), database.getSource().getSourceId());
+            params.addValue(DATABASE_NAME.name(), database.getName());
+            params.addValue(DATABASE_PATH.name(), database.getPath());
+            params.addValue(DATABASE_TYPE.name(), database.getType().getTypeId());
+            params.addValue(DATABASE_SOURCE.name(), database.getSource().getSourceId());
 
             return params;
         }
 
         static RowMapper<BlastDatabase> getRowMapper() {
-            return (rs, rowNum) -> {
-                BlastDatabase database = new BlastDatabase();
+            return (rs, rowNum) -> parseDatabase(rs);
+        }
 
-                database.setId(rs.getLong(DATABASE_ID.name()));
-                database.setName(rs.getString(NAME.name()));
-                database.setPath(rs.getString(PATH.name()));
-                long typeVal = rs.getLong(TYPE.name());
-                if (!rs.wasNull()) {
-                    database.setType(BlastDatabaseType.getTypeById(typeVal));
-                }
-                long sourceVal = rs.getLong(SOURCE.name());
-                if (!rs.wasNull()) {
-                    database.setSource(BlastDatabaseSource.getSourceById(sourceVal));
-                }
-                return database;
-            };
+        static BlastDatabase parseDatabase(final ResultSet rs) throws SQLException {
+            final BlastDatabase database = new BlastDatabase();
+            database.setId(rs.getLong(DATABASE_ID.name()));
+            database.setName(rs.getString(DATABASE_NAME.name()));
+            database.setPath(rs.getString(DATABASE_PATH.name()));
+            final long typeVal = rs.getLong(DATABASE_TYPE.name());
+            if (!rs.wasNull()) {
+                database.setType(BlastDatabaseType.getTypeById(typeVal));
+            }
+            final long sourceVal = rs.getLong(DATABASE_SOURCE.name());
+            if (!rs.wasNull()) {
+                database.setSource(BlastDatabaseSource.getSourceById(sourceVal));
+            }
+            return database;
         }
     }
 }

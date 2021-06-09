@@ -15,10 +15,10 @@
                         source
                     ) VALUES (
                         :DATABASE_ID,
-                        :NAME,
-                        :PATH,
-                        :TYPE,
-                        :SOURCE
+                        :DATABASE_NAME,
+                        :DATABASE_PATH,
+                        :DATABASE_TYPE,
+                        :DATABASE_SOURCE
                     )
                 ]]>
             </value>
@@ -27,10 +27,10 @@
             <value>
                 <![CDATA[
                     UPDATE catgenome.blast_database SET
-                        name = :NAME,
-                        path = :PATH,
-                        type = :TYPE
-                        source = :SOURCE
+                        name = :DATABASE_NAME,
+                        path = :DATABASE_PATH,
+                        type = :DATABASE_TYPE
+                        source = :DATABASE_SOURCE
                     WHERE
                         database_id = :DATABASE_ID
                 ]]>
@@ -48,10 +48,10 @@
                 <![CDATA[
                     SELECT
                         database_id,
-                        name,
-                        path,
-                        type,
-                        source
+                        name as database_name,
+                        path as database_path,
+                        type as database_type,
+                        source as database_source
                     FROM catgenome.blast_database WHERE database_id = ?
                 ]]>
             </value>
@@ -61,10 +61,10 @@
                 <![CDATA[
                     SELECT
                         database_id,
-                        name,
-                        path,
-                        type,
-                        source
+                        name as database_name,
+                        path as database_path,
+                        type as database_type,
+                        source as database_source
                     FROM catgenome.blast_database
                 ]]>
             </value>

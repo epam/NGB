@@ -24,17 +24,12 @@
 
 package com.epam.catgenome.dao.blast;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import com.epam.catgenome.dao.DaoHelper;
-import com.epam.catgenome.entity.blast.BlastDatabase;
-import com.epam.catgenome.entity.blast.BlastDatabaseSource;
-import com.epam.catgenome.entity.blast.BlastDatabaseType;
 import com.epam.catgenome.entity.blast.BlastTaskOrganism;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.TaskParameter;
@@ -52,6 +47,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.epam.catgenome.dao.blast.BlastDatabaseDao.DatabaseParameters.parseDatabase;
 import static com.epam.catgenome.util.Utils.addFiltersToQuery;
 import static com.epam.catgenome.util.Utils.addParametersToQuery;
 
@@ -291,7 +287,7 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
                         : rs.getTimestamp(END_DATE.name()).toLocalDateTime());
                 blastTask.setStatusReason(rs.getString(STATUS_REASON.name()));
                 blastTask.setQuery(rs.getString(QUERY.name()));
-                parseDatabase(blastTask, rs);
+                blastTask.setDatabase(parseDatabase(rs));
                 blastTask.setExecutable(rs.getString(EXECUTABLE.name()));
                 blastTask.setAlgorithm(rs.getString(ALGORITHM.name()));
                 blastTask.setOptions(rs.getString(OPTIONS.name()));
@@ -306,21 +302,6 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
             };
         }
 
-        private static void parseDatabase(final BlastTask blastTask, final ResultSet rs) throws SQLException {
-            final BlastDatabase database = new BlastDatabase();
-            database.setId(rs.getLong(DATABASE_ID.name()));
-            database.setName(rs.getString(DATABASE_NAME.name()));
-            database.setPath(rs.getString(DATABASE_PATH.name()));
-            long typeVal = rs.getLong(DATABASE_TYPE.name());
-            if (!rs.wasNull()) {
-                database.setType(BlastDatabaseType.getTypeById(typeVal));
-            }
-            long sourceVal = rs.getLong(DATABASE_SOURCE.name());
-            if (!rs.wasNull()) {
-                database.setSource(BlastDatabaseSource.getSourceById(sourceVal));
-            }
-            blastTask.setDatabase(database);
-        }
     }
 
     enum OrganismParameters {
