@@ -37,7 +37,7 @@ task ui(type: Copy) {
     dependsOn ':client:buildUI'
     doFirst {
         delete fileTree(uiFilesDestination) {
-            exclude 'swagger-ui/**'
+            exclude ('swagger-ui/**', 'blast**', 'tblast**')
         }
     }
     from "$rootDir/client/dist"
