@@ -35,8 +35,8 @@ export default class ngbBlastSearchAlignment {
         });
     }
 
-    updateNavigationState () {
-        this.navigationAvailable = this.ngbBlastSearchAlignmentService.navigationAvailable(this.alignment, this.search);
+    async updateNavigationState () {
+        this.navigationAvailable = await this.ngbBlastSearchAlignmentService.navigationAvailable(this.alignment, this.search);
     }
 
     navigateToTracks () {
