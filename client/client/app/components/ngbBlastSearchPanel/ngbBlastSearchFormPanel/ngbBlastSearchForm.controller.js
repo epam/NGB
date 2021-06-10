@@ -96,8 +96,10 @@ export default class ngbBlastSearchFormController extends baseController {
 
     setDefaultAlgorithms() {
         this.algorithmList = this.ngbBlastSearchFormConstants.ALGORITHMS[this.searchRequest.tool];
-        if (this.algorithmList && !this.algorithmList.includes(this.searchRequest.algorithm)) {
-            this.searchRequest.algorithm = this.algorithmList[0] || '';
+        if (this.algorithmList) {
+            if (!this.algorithmList.includes(this.searchRequest.algorithm)) {
+                this.searchRequest.algorithm = this.algorithmList[0] || '';
+            }
         } else {
             this.searchRequest.algorithm = '';
         }

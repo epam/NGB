@@ -206,14 +206,14 @@ export default class ngbBlastSearchService {
     }
 
     createSearchRequest(searchRequest) {
-        searchRequest.organisms = searchRequest.organisms ? searchRequest.organisms.map(o => o.taxid) : [];
+        searchRequest.organismsArray = searchRequest.organisms ? searchRequest.organisms.map(o => o.taxid) : [];
         return this.projectDataService.createBlastSearch(this._formatClientToServer(searchRequest)).then(data => {
             if (data && data.id) {
                 this.currentSearchId = data.id;
                 localStorage.removeItem('blastSearchRequest');
+                this.currentSearchId = null;
+                this.currentTool = this.ngbBlastSearchFormConstants.BLAST_TOOLS[0];
             }
-            this.currentSearchId = null;
-            this.currentTool = this.ngbBlastSearchFormConstants.BLAST_TOOLS[0];
             return data;
         });
     }
@@ -259,9 +259,9 @@ export default class ngbBlastSearchService {
             parameters: {}
         };
         if (search.isExcluded) {
-            result.excludedOrganisms = search.organisms || [];
+            result.excludedOrganisms = search.organismsArray || [];
         } else {
-            result.organisms = search.organisms || [];
+            result.organisms = search.organismsArray || [];
         }
         if (search.maxTargetSeqs) {
             result.parameters.max_target_seqs = search.maxTargetSeqs;
