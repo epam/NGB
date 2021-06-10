@@ -1,8 +1,6 @@
 import {EventGeneInfo, PairReadInfo} from '../../../shared/utils/events';
 import Clipboard from 'clipboard';
 
-const BLAST_MAX_SEQUENCE_SIZE = 100 * 1000;
-
 export default class ngbTrackEvents {
 
     _genomeDataService = null;
@@ -29,6 +27,13 @@ export default class ngbTrackEvents {
 
     featureClick(trackInstance, data, track, event) {
         const isGeneTrack = track.format.toLowerCase() === 'gene';
+        const blastSettings = this.projectContext.getTrackDefaultSettings('blast_settings');
+        const maxQueryLengthProperty = 'query_max_length';
+        const maxSequenceLength = blastSettings &&
+            blastSettings.hasOwnProperty(maxQueryLengthProperty) &&
+            !Number.isNaN(Number(blastSettings[maxQueryLengthProperty]))
+            ? Number(blastSettings[maxQueryLengthProperty])
+            : Infinity;
         if (data.feature) {
             const featureSize = Math.abs((data.feature.startIndex || 0) - (data.feature.endIndex || 0));
             (async() => {
@@ -95,7 +100,10 @@ export default class ngbTrackEvents {
                             },
                             {
                                 title: 'All transcript info',
-                                disabled: BLAST_MAX_SEQUENCE_SIZE < featureSize,
+                                disabled: maxSequenceLength < featureSize,
+                                warning: maxSequenceLength < featureSize
+                                    ? `Query maximum length (${maxSequenceLength}bp) exceeded`
+                                    : undefined,
                                 events: [{
                                     data: {
                                         ...blastSearchParams,
@@ -137,7 +145,10 @@ export default class ngbTrackEvents {
                     };
                     menuData.push({
                         title: 'BLASTn search',
-                        disabled: BLAST_MAX_SEQUENCE_SIZE < featureSize,
+                        disabled: maxSequenceLength < featureSize,
+                        warning: maxSequenceLength < featureSize
+                            ? `Query maximum length (${maxSequenceLength}bp) exceeded`
+                            : undefined,
                         events: [{
                             data: {
                                 ...blastSearchParams,

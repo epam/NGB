@@ -4,42 +4,57 @@
             id="hiddenMenuButton"
             ng-click="$mdOpenMenu()"
         >
-    </md-button>
-    <md-menu-content width="4">
-        <md-menu-item ng-repeat="entry in $ctrl.menuData" md-position-mode="cascade" style="height:50px;">
-            <md-menu ng-if="entry.submenu">
-                <md-button aria-label="entry.title"
-                           ng-click="$mdOpenMenu()"
-                           ng-disabled="entry.disabled"
-                           style="height:50px;line-height: 50px;">
+        </md-button>
+        <md-menu-content width="4" class="ngb-track-events">
+            <md-menu-item ng-repeat="entry in $ctrl.menuData"
+                          md-position-mode="cascade"
+                          class="ngb-track-event-menu-item">
+                <md-menu ng-if="entry.submenu">
+                    <md-button aria-label="entry.title"
+                               ng-click="$mdOpenMenu()"
+                               ng-disabled="entry.disabled"
+                               class="ngb-track-event-button">
+                        {{entry.title}}
+                    </md-button>
+                    <md-menu-content class="ngb-track-events">
+                        <md-menu-item ng-repeat="submenuitem in entry.submenu"
+                                      class="ngb-track-event-menu-item">
+                            <md-button ng-click="$ctrl.clickItem($event,submenuitem)"
+                                       ng-disabled="submenuitem.disabled">
+                                {{submenuitem.title}}
+                            </md-button>
+                            <span ng-if="submenuitem.warning"
+                                  class="ngb-track-event-warning">
+                                <ng-md-icon icon="warning"
+                                            class="ngb-track-event-warning-icon"
+                                            size="15"></ng-md-icon>
+                                {{submenuitem.warning}}
+                            </span>
+                        </md-menu-item>
+                    </md-menu-content>
+                </md-menu>
+                <md-button ng-if="!entry.clipboard && !entry.submenu"
+                           ng-click="$ctrl.clickItem($event,entry)"
+                           class="ngb-track-event-button"
+                           ng-disabled="entry.disabled">
                     {{entry.title}}
                 </md-button>
-                <md-menu-content>
-                    <md-menu-item ng-repeat="submenuitem in entry.submenu" style="height:50px;">
-                        <md-button ng-click="$ctrl.clickItem($event,submenuitem)"
-                                   ng-disabled="submenuitem.disabled"
-                                   style="height:50px;">
-                            {{submenuitem.title}}
-                        </md-button>
-                    </md-menu-item>
-                </md-menu-content>
-            </md-menu>
-            <md-button ng-if="!entry.clipboard && !entry.submenu"
-                       ng-click="$ctrl.clickItem($event,entry)"
-                       ng-disabled="entry.disabled"
-                       style="height:50px;">
-                {{entry.title}}
-            </md-button>
-            <md-button style="height:50px;"
-                       class="copy-to-clipboard-button"
-                       ng-disabled="entry.isLoading || entry.disabled"
-                       ng-if="entry.clipboard"
-                       data-clipboard-text="{{entry.clipboard}}"
-                       ng-click="$ctrl.closeItem()">
-                {{entry.title}}
-                <md-progress-linear ng-show="entry.isLoading" md-mode="indeterminate"></md-progress-linear>
-            </md-button>
-        </md-menu-item>
-    </md-menu-content>
-</md-menu>
+                <md-button class="copy-to-clipboard-button ngb-track-event-button"
+                           ng-disabled="entry.isLoading || entry.disabled"
+                           ng-if="entry.clipboard"
+                           data-clipboard-text="{{entry.clipboard}}"
+                           ng-click="$ctrl.closeItem()">
+                    {{entry.title}}
+                    <md-progress-linear ng-show="entry.isLoading" md-mode="indeterminate"></md-progress-linear>
+                </md-button>
+                <span ng-if="entry.warning"
+                      class="ngb-track-event-warning">
+                    <ng-md-icon icon="warning"
+                                class="ngb-track-event-warning-icon"
+                                size="15"></ng-md-icon>
+                    {{entry.warning}}
+                </span>
+            </md-menu-item>
+        </md-menu-content>
+    </md-menu>
 </md-menu-bar>
