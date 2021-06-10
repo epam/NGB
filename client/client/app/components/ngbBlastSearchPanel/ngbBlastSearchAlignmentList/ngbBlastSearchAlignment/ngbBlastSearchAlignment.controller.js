@@ -33,7 +33,6 @@ export default class ngbBlastSearchAlignment {
             this.windowElm.off('resize', ::this.onResize);
             this.dispatcher.removeListener('tracks:state:change', updateNavigationStateFn);
         });
-        this.$scope.$watch('$ctrl.projectContext.references', updateNavigationStateFn);
     }
 
     updateNavigationState () {
@@ -128,6 +127,9 @@ export default class ngbBlastSearchAlignment {
             - this.elements.endPos.width()
             - SEQUENCE_RIGHT_MARGIN
         ) || (element.width() - this.alignment.sequenceEnd.toString().length * 2 * DEFAULT_SYMBOL_WIDTH) / 2;
+        if (newWidth < 0) {
+            return;
+        }
         const symbolWidth = Math.ceil(
             parseInt(this.elements.sequence.css('font-size'), 10) / MONOSPACE_RATIO
         ) || DEFAULT_SYMBOL_WIDTH;

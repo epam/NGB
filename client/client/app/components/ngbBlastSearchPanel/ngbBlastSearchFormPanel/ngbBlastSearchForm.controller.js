@@ -1,9 +1,11 @@
 import baseController from '../../../shared/baseController';
+import ngbConstants from '../../../../constants';
 
 export default class ngbBlastSearchFormController extends baseController {
     static get UID() {
         return 'ngbBlastSearchFormController';
     }
+
     blastToolDescription = {
         blastn: {
             description: 'Four different algorithms are supported:',
@@ -36,8 +38,9 @@ export default class ngbBlastSearchFormController extends baseController {
                 'tblastn-fast': 'for a faster version with a larger word-size'
             },
         }
-    }
-    blastHelpPath = '/server/catgenome/src/main/resources/static/'
+    };
+
+    blastHelpPath = '';
 
     toolTooltip = {};
     isProgressShown = true;
@@ -76,6 +79,10 @@ export default class ngbBlastSearchFormController extends baseController {
     }
 
     async initialize() {
+        this.blastHelpPath = ngbConstants.urlPrefix;
+        if (this.blastHelpPath[this.blastHelpPath.length - 1] !== '/') {
+            this.blastHelpPath += '/';
+        }
         this.isProgressShown = true;
         await this.setSearchRequest();
         this.getDBList();
