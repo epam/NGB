@@ -40,11 +40,11 @@ $ngb-color-blue: #4285F4;
   cursor: pointer;
 }
 .blast-search-info {
-  fill: $ngb-color-blue;
   display: flex;
   flex-direction: row;
   width: 100%;
   .blast-search-info-icon {
+    fill: $ngb-color-blue;
     align-self: center;
     margin: 5px 10px 10px;
     line-height: 30px;
