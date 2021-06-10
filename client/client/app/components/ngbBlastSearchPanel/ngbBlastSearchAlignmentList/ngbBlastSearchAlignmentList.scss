@@ -11,4 +11,7 @@
 }
 .alignment-hidden {
   visibility: hidden;
+  .blast-search-alignment-container {
+    margin-right: -10px;
+  }
 }
