@@ -47,6 +47,7 @@ export default class ngbBlastSearchFormController extends baseController {
     dbList = [];
     algorithmList = [];
     errorMessageList = [];
+    defaultParams = {};
     searchRequest = {
         title: '',
         algorithm: '',
@@ -60,10 +61,11 @@ export default class ngbBlastSearchFormController extends baseController {
     };
 
     events = {
-        'read:show:blast': ::this.onExternalChange
+        'read:show:blast': ::this.onExternalChange,
+        'defaultSettings:change': ::this.setDefaultParams
     };
 
-    constructor($scope, $timeout, dispatcher, ngbBlastSearchService, ngbBlastSearchFormConstants) {
+    constructor($scope, $timeout, dispatcher, ngbBlastSearchService, ngbBlastSearchFormConstants, projectContext) {
         super();
 
         Object.assign(this, {
@@ -71,7 +73,8 @@ export default class ngbBlastSearchFormController extends baseController {
             $timeout,
             dispatcher,
             ngbBlastSearchService,
-            ngbBlastSearchFormConstants
+            ngbBlastSearchFormConstants,
+            projectContext
         });
 
         this.initialize();
@@ -85,6 +88,7 @@ export default class ngbBlastSearchFormController extends baseController {
         }
         this.isProgressShown = true;
         await this.setSearchRequest();
+        this.setDefaultParams();
         this.getDBList();
     }
 
@@ -120,6 +124,13 @@ export default class ngbBlastSearchFormController extends baseController {
     onSearchToolChange() {
         this.setDefaultAlgorithms();
         this.getDBList();
+    }
+
+    setDefaultParams() {
+        this.defaultParams = this.projectContext.getTrackDefaultSettings('blast_settings') || {};
+        this.defaultParams.query_max_length = 100;
+        this.searchRequest.maxTargetSeqs = this.searchRequest.maxTargetSeqs || this.defaultParams.max_target_seqs;
+        this.searchRequest.threshold = this.searchRequest.threshold || this.defaultParams.evalue;
     }
 
     getDBList() {

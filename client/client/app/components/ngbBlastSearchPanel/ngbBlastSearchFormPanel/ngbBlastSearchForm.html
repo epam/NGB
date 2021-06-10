@@ -22,11 +22,19 @@
                 <div ng-message="required">Choose the tool for search</div>
             </div>
         </div>
-        <md-input-container class="blast-search-input blast-sequence-area">
+        <md-input-container class="blast-search-input">
             <label for="sequence" class="blast-search-input-label">Query sequence</label>
-            <textarea id="sequence" ng-model="$ctrl.searchRequest.sequence" required=""
-                      class=""></textarea>
-            <ng-md-icon class="icon_info_outline blast-sequence-clear" icon="clear" ng-click="$ctrl.searchRequest.sequence = ''"></ng-md-icon>
+            <div class="blast-sequence-area">
+                <textarea id="sequence" name="sequence" ng-model="$ctrl.searchRequest.sequence"
+                          required="" rows="2"></textarea>
+                <ng-md-icon class="icon_info_outline blast-sequence-clear" icon="clear" ng-click="$ctrl.searchRequest.sequence = ''"></ng-md-icon>
+            </div>
+            <div class="blast-form-alert" ng-messages="blastSearchForm.sequence.$error" role="alert">
+                <div class="md-input-message-animation"
+                     ng-show="$ctrl.searchRequest.sequence.length > $ctrl.defaultParams.query_max_length">Sequence length should be less than or equal to {{$ctrl.defaultParams.query_max_length}}</div>
+                <div class="md-input-message-animation"
+                     ng-show="blastSearchForm.sequence.$error.required">Enter sequence</div>
+            </div>
         </md-input-container>
         <md-input-container class="blast-search-input">
             <label for="task" class="blast-search-input-label">Task title</label>
