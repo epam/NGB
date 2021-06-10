@@ -25,19 +25,22 @@ $ngb-color-blue: #4285F4;
   min-height: 0;
 }
 .blast-sequence-area {
+  position: relative;
+  display: block;
   textarea {
     resize:none;
     padding-right: 25px;
     max-height: 90px;
     overflow: auto;
   }
-}
-.blast-sequence-clear {
-  position: absolute;
-  bottom: 5px;
-  right: 10px;
-  fill: $ngb-color-blue;
-  cursor: pointer;
+  .blast-sequence-clear {
+    position: absolute;
+    bottom: 5px;
+    right: 10px;
+    fill: $ngb-color-blue;
+    cursor: pointer;
+  }
+
 }
 .blast-search-info {
   display: flex;
@@ -69,6 +72,7 @@ $ngb-color-blue: #4285F4;
   font-size: 10px;
   margin: 0 0 10px;
   text-align: left;
+  display: block;
 }
 .search-button{
   margin-left: 0;

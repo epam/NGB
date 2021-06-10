@@ -711,6 +711,7 @@ export default class projectContext {
 
     async getDefaultTrackSettings() {
         this._ngbDefaultSettings = projectContext.analyzeTrackSettings(await this.utilsDataService.getDefaultTrackSettings());
+        this.dispatcher.emit('defaultSettings:change');
     }
 
     getTrackDefaultSettings(format) {
