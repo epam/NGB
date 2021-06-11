@@ -52,7 +52,7 @@
                         </span>
                     </div>
                     <div layout="row" class="field">
-                        <span class="field-name">Organisms:</span>
+                        <span class="field-name">{{$ctrl.searchResult.isExcluded ? 'Excluded organisms' : 'Organisms'}}:</span>
                         <span class="field-value field-max-width">{{$ctrl.searchResult.organisms.join(', ') | na}}
                             <md-tooltip>{{$ctrl.searchResult.organisms.join(', ')}}</md-tooltip>
                         </span>
