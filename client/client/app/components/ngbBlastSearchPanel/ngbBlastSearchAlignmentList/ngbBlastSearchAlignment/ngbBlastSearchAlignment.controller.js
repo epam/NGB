@@ -12,11 +12,11 @@ export default class ngbBlastSearchAlignment {
         return 'ngbBlastSearchAlignment';
     }
 
-    maxSeqLength = null;
+    maxSeqLength = MIN_SEQ_PART_LENGTH;
     partedAlignment = [];
     windowElm = {};
 
-    constructor($scope, $element, $window, ngbBlastSearchAlignmentService, projectContext, dispatcher) {
+    constructor($scope, $element, $window, $timeout, ngbBlastSearchAlignmentService, projectContext, dispatcher) {
         Object.assign(this, {
             $scope,
             $element,
@@ -45,9 +45,6 @@ export default class ngbBlastSearchAlignment {
 
     $onInit() {
         this.windowElm.on('resize', ::this.onResize);
-        setTimeout(() => {
-            this.windowElm.resize();
-        }, 0);
     }
 
     initialize() {
@@ -83,12 +80,16 @@ export default class ngbBlastSearchAlignment {
         const result = [];
         if (alignment.sequence.length > this.maxSeqLength) {
             const size = Math.ceil(alignment.sequence.length / this.maxSeqLength);
+            const splitRegExp = new RegExp(`.{1,${this.maxSeqLength}}`, 'g');
+            const splitQuerySequence = alignment.querySequence.match(splitRegExp);
+            const splitDiff = alignment.diff.match(splitRegExp);
+            const splitSequence = alignment.sequence.match(splitRegExp);
             const inv = alignment.sequenceStart > alignment.sequenceEnd;
             for (let i = 0; i < size; i++) {
                 result.push({
-                    querySequence: alignment.querySequence.substring(i * this.maxSeqLength, (i + 1) * this.maxSeqLength),
-                    diff: alignment.diff.substring(i * this.maxSeqLength, (i + 1) * this.maxSeqLength),
-                    sequence: alignment.sequence.substring(i * this.maxSeqLength, (i + 1) * this.maxSeqLength),
+                    querySequence: splitQuerySequence[i],
+                    diff: splitDiff[i],
+                    sequence: splitSequence[i],
                     queryStart: alignment.queryStart + i * this.maxSeqLength,
                     queryEnd: Math.min(alignment.queryEnd, alignment.queryStart + (i + 1) * this.maxSeqLength - 1),
                     sequenceStart: inv ? alignment.sequenceStart - i * this.maxSeqLength : alignment.sequenceStart + i * this.maxSeqLength,
@@ -97,7 +98,6 @@ export default class ngbBlastSearchAlignment {
                         : Math.min(alignment.sequenceEnd, alignment.sequenceStart + (i + 1) * this.maxSeqLength - 1)
                 });
             }
-            setTimeout(() => this.windowElm.resize());
         } else {
             result.push({
                 querySequence: alignment.querySequence,
@@ -108,7 +108,6 @@ export default class ngbBlastSearchAlignment {
                 sequenceStart: alignment.sequenceStart,
                 sequenceEnd: alignment.sequenceEnd
             });
-
         }
         return result;
     }
