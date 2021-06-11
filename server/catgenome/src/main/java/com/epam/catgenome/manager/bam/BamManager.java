@@ -44,6 +44,7 @@ import com.epam.catgenome.util.Utils;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SamReader;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -72,6 +73,7 @@ import static com.epam.catgenome.manager.parallel.TaskExecutorService.ExecutionM
  * {@code BamManager} represents a service class to handling BAM files and getting track results for BAM data.
  * <p>
  */
+@Slf4j
 @Service
 public class BamManager {
 
@@ -110,6 +112,7 @@ public class BamManager {
         Assert.notNull(request.getPath(), getMessage(MessagesConstants.ERROR_NULL_PARAM));
         Assert.notNull(request.getReferenceId(), getMessage(NO_SUCH_REFERENCE));
         Assert.notNull(request.getIndexPath(), getMessage(MessagesConstants.WRONG_BAM_INDEX_FILE));
+        double time1 = Utils.getSystemTimeMilliseconds();
         if (request.getType() == null) {
             request.setType(BiologicalDataItemResourceType.FILE);
         }
@@ -131,7 +134,8 @@ public class BamManager {
                 biologicalDataItemManager.deleteBiologicalDataItem(newBamFile.getId());
             }
         }
-
+        double time2 = Utils.getSystemTimeMilliseconds();
+        log.debug("File registration took {} ms", time2 - time1);
         return newBamFile;
     }
 
@@ -156,10 +160,13 @@ public class BamManager {
      */
     public void sendBamTrackToEmitter(final Track<Read> track, BamQueryOption option, ResponseBodyEmitter emitter)
             throws IOException {
+        double time1 = Utils.getSystemTimeMilliseconds();
         final Chromosome chromosome = trackHelper.validateTrack(track);
         BamQueryOption currentOptions = option == null ? new BamQueryOption() : option;
         BamUtil.validateOptions(currentOptions, chromosome);
         fillEmitterByBamTrack(track, currentOptions, emitter);
+        double time2 = Utils.getSystemTimeMilliseconds();
+        log.debug("Track request took {} ms", time2 - time1);
     }
 
     /**
@@ -174,10 +181,13 @@ public class BamManager {
     public void sendBamTrackToEmitterFromUrl(final Track<Read> track, BamQueryOption option, String bamUrl,
                                                        String indexUrl, ResponseBodyEmitter emitter)
             throws IOException {
+        double time1 = Utils.getSystemTimeMilliseconds();
         final Chromosome chromosome = trackHelper.validateUrlTrack(track, bamUrl, indexUrl);
         BamQueryOption currentOptions = option == null ? new BamQueryOption() : option;
         BamUtil.validateOptions(currentOptions, chromosome);
         fillEmitterByBamTrackFromURL(track, bamUrl, indexUrl, currentOptions, emitter);
+        double time2 = Utils.getSystemTimeMilliseconds();
+        log.debug("Track request took {} ms", time2 - time1);
     }
 
     /**

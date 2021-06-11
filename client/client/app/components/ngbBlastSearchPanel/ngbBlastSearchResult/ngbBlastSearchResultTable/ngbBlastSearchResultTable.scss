@@ -1,0 +1,7 @@
+.blast-search-result-table {
+  display: flex;
+  flex-direction: column;
+  .sequence-link {
+    text-decoration: underline;
+  }
+}

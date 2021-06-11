@@ -1,5 +1,5 @@
-import angular from 'angular';
 import {DataService} from '../data-service';
+
 /**
  * data service for project
  * @extends DataService
@@ -12,8 +12,7 @@ export class ProjectDataService extends DataService {
             this.get(url).catch(() => resolve([])).then(data => {
                 if (data !== null && data !== undefined) {
                     resolve(data);
-                }
-                else {
+                } else {
                     resolve([]);
                 }
             });
@@ -21,12 +20,11 @@ export class ProjectDataService extends DataService {
     }
 
     getProjectsFilterVcfInfo(vcfFileIdsByProject) {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this.post('filter/info', vcfFileIdsByProject).then(data => {
                 if (data !== null && data !== undefined) {
                     resolve(data);
-                }
-                else {
+                } else {
                     resolve(null);
                 }
             });
@@ -94,27 +92,163 @@ export class ProjectDataService extends DataService {
 
     getVcfVariationLoad(filter) {
         return new Promise((resolve, reject) => {
-            this.post('filter', filter).catch((response)=>resolve({...response, error: true})).then((data) => {
+            this.post('filter', filter).catch((response) => resolve({...response, error: true})).then((data) => {
                 if (data) {
                     resolve(data);
                 } else {
                     data = [];
                     resolve(data);
                 }
-            },reject);
+            }, reject);
         });
     }
 
     getVcfGroupData(filter, groupBy) {
         return new Promise((resolve, reject) => {
-            this.post(`filter/group?groupBy=${groupBy}`, filter).catch((response)=>reject(response)).then((data) => {
+            this.post(`filter/group?groupBy=${groupBy}`, filter).catch((response) => reject(response)).then((data) => {
                 if (data) {
                     resolve(data);
                 } else {
                     data = [];
                     resolve(data);
                 }
-            },reject);
+            }, reject);
         });
     }
+
+    getOrganismList(term) {
+        return new Promise((resolve, reject) => {
+            this.get(`externaldb/ncbi/taxonomy/${term}`)
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = [];
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
+
+    getBlastDBList(type) {
+        return new Promise((resolve, reject) => {
+            this.get(`blast/databases?type=${type}`)
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = [];
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
+
+    getBlastHistoryLoad(filter) {
+        return new Promise((resolve, reject) => {
+            this.post('tasks', filter)
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = [];
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
+
+    getBlastSearch(searchId) {
+        return new Promise((resolve, reject) => {
+            this.get(`task/${searchId}`)
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = [];
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
+
+    getBlastResultLoad(searchId) {
+        return new Promise((resolve, reject) => {
+            this.get(`task/${searchId}/group`)
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = [];
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
+
+    createBlastSearch(blastSearch) {
+        return new Promise((resolve, reject) => {
+            this.post('task', blastSearch)
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = [];
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
+
+    deleteBlastSearchHistory() {
+        return new Promise((resolve, reject) => {
+            this.delete('tasks')
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = [];
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
+
+    cancelBlastSearch(blastSearchId) {
+        return new Promise((resolve, reject) => {
+            this.put(`task/${blastSearchId}/cancel`)
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = [];
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
+
+    downloadBlastResults(blastSearchId) {
+        return new Promise((resolve, reject) => {
+            this.downloadFile(`task/${blastSearchId}/raw`, { customResponseType: 'arraybuffer'})
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = [];
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
+
 }

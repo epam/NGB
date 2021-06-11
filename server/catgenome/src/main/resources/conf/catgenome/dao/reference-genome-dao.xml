@@ -61,7 +61,8 @@
                         i.owner as index_owner,
 
                         s.species_name,
-                        s.species_version
+                        s.species_version,
+                        s.tax_id
 
                     FROM catgenome.reference_genome r
                         JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
@@ -102,7 +103,8 @@
                         i.owner as index_owner,
 
                         s.species_name,
-                        s.species_version
+                        s.species_version,
+                        s.tax_id
 
                     FROM catgenome.reference_genome r
                         JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
@@ -143,7 +145,8 @@
                         i.owner as index_owner,
 
                         s.species_name,
-                        s.species_version
+                        s.species_version,
+                        s.tax_id
 
                     FROM catgenome.reference_genome r
                         JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
@@ -182,7 +185,8 @@
                         i.owner as index_owner,
 
                         s.species_name,
-                        s.species_version
+                        s.species_version,
+                        s.tax_id
 
                     FROM catgenome.reference_genome r
                         JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id

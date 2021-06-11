@@ -1,0 +1,42 @@
+<div ng-if="$ctrl.isProgressShown">
+    <div class="progress" layout-align="center center">
+        <span>Loading alignments...</span>
+    </div>
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div class="blast-search-flex-column" ng-class="{'alignment-hidden': $ctrl.isProgressShown}">
+    <div layout="row">
+        <md-button
+                class="md-flat blast-search-result-back"
+                type="button"
+                ng-click="$ctrl.changeState({state: 'RESULT'})"
+                aria-label="back"
+        >
+            <ng-md-icon class="icon_info_outline" icon="chevron_left" size="24"></ng-md-icon>
+        </md-button>
+        <div class="blast-search-alignment-title">
+            <span class="blast-search-alignment-title-bold">Sequence ID:</span>
+            <a class="blast-search-result-link"
+               ng-if="$ctrl.search.dbSource === 'NCBI'"
+               ng-href="https://www.ncbi.nlm.nih.gov/nucleotide/{{$ctrl.searchResult.sequenceId}}"
+               target="_blank">
+                {{$ctrl.searchResult.sequenceId}}
+            </a>
+            <span ng-if="$ctrl.search.dbSource !== 'NCBI'">
+                {{$ctrl.searchResult.sequenceId}}
+            </span>
+            <span>({{$ctrl.searchResult.sequenceScientificName | na}})</span>
+        </div>
+    </div>
+
+    <div layout="column" flex class="blast-search-alignment-container">
+        <ngb-blast-search-alignment
+                ng-repeat="alignment in $ctrl.searchResult.alignments track by $index"
+                alignment="alignment"
+                search-result="$ctrl.searchResult"
+                search="$ctrl.search"
+                index="$index+1"
+                layout="column"
+        ></ngb-blast-search-alignment>
+    </div>
+</div>

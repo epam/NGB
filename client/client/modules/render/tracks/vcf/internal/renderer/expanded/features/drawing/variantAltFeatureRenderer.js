@@ -1,5 +1,5 @@
 import {CommonVariantFeatureRenderer} from './commonVariantFeatureRenderer';
-import {ColorProcessor, PixiTextSize} from '../../../../../../../utilities';
+import {PixiTextSize} from '../../../../../../../utilities';
 import {drawingConfiguration} from '../../../../../../../core';
 const Math = window.Math;
 
@@ -40,14 +40,14 @@ export class VariantAltFeatureRenderer extends CommonVariantFeatureRenderer {
         return boundaries;
     }
 
-    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
         for (let i = 0; i < feature.alternativeAllelesInfo.length; i++) {
             const label = new PIXI.Text(feature.alternativeAllelesInfo[i].displayText || '', this.config.variant.allele.label);
+            label.resolution = drawingConfiguration.resolution;
             const labelPosition = {
                 x: Math.round(position.x),
                 y: Math.round(position.y + i * this._alleleLabelHeight)
             };
-            label.resolution = drawingConfiguration.resolution;
             label.x = Math.round(labelPosition.x);
             label.y = Math.round(labelPosition.y);
             labelContainer.addChild(label);
@@ -61,7 +61,7 @@ export class VariantAltFeatureRenderer extends CommonVariantFeatureRenderer {
                 false,
                 true);
         }
-        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
     }
 
     registerFeature(feature, viewport, position) {

@@ -1,7 +1,7 @@
-import * as  geneTypes  from '../../modules/render/tracks/gene/geneTypes';
+import * as  geneTypes from '../../modules/render/tracks/gene/geneTypes';
 import {colorModes, groupModes, readsViewTypes} from '../../modules/render/tracks/bam/modes';
 import {variantsView} from '../../modules/render/tracks/vcf/modes';
-import {scaleModes, displayModes} from '../../modules/render/tracks/wig/modes';
+import {displayModes, scaleModes} from '../../modules/render/tracks/wig/modes';
 
 export default {
     defaultSettings: {
@@ -38,7 +38,7 @@ export default {
             colorMode: colorModes.noColor,
             coverage: true,
             diffBase: true,
-            geneTranscript:geneTypes.transcriptViewTypes.collapsed,
+            geneTranscript: geneTypes.transcriptViewTypes.collapsed,
             groupMode: groupModes.defaultGroupingMode,
             ins_del: true,
             mismatches: true,
@@ -92,19 +92,19 @@ export default {
             'bam>color>shadeByQuality': {
                 hotkey: ''
             },
-            'bam>group>chromosomeOfMate' : {
+            'bam>group>chromosomeOfMate': {
                 hotkey: 'SHIFT + F'
             },
-            'bam>group>default' : {
+            'bam>group>default': {
                 hotkey: 'SHIFT + A'
             },
-            'bam>group>firstInPairStrand' : {
+            'bam>group>firstInPairStrand': {
                 hotkey: 'SHIFT + S'
             },
-            'bam>group>pairOrientation' : {
+            'bam>group>pairOrientation': {
                 hotkey: 'SHIFT + D'
             },
-            'bam>group>readStrand' : {
+            'bam>group>readStrand': {
                 hotkey: 'SHIFT + G'
             },
             'bam>readsView>automatic': {
@@ -152,34 +152,34 @@ export default {
             'general>repeatLastOperation': {
                 hotkey: 'ALT + R'
             },
-            'layout>bookmark':{
+            'layout>bookmark': {
                 hotkey: 'ALT + B'
             },
-            'layout>browser':{
+            'layout>browser': {
                 hotkey: ''
             },
-            'layout>dataSets':{
+            'layout>dataSets': {
                 hotkey: 'ALT + T'
             },
-            'layout>filter':{
+            'layout>filter': {
                 hotkey: 'ALT + I'
             },
-            'layout>molecularViewer':{
+            'layout>molecularViewer': {
                 hotkey: 'ALT + M'
             },
-            'layout>variants':{
+            'layout>variants': {
                 hotkey: 'ALT + V'
             },
-            'vcf>nextVariation':{
+            'vcf>nextVariation': {
                 hotkey: 'SHIFT + ARROWRIGHT'
             },
-            'vcf>previousVariation':{
+            'vcf>previousVariation': {
                 hotkey: 'SHIFT + ARROWLEFT'
             },
-            'vcf>variantsView>collapsed':{
+            'vcf>variantsView>collapsed': {
                 hotkey: 'SHIFT + ]'
             },
-            'vcf>variantsView>expanded':{
+            'vcf>variantsView>expanded': {
                 hotkey: 'SHIFT + ['
             }
         },
@@ -196,6 +196,8 @@ export default {
         shortenedIntronsMaximumRange: 500000,
         variantsMaximumRange: 500000,
         showCenterLine: true,
-        showSoftClippedBase: true
+        showSoftClippedBase: true,
+        isVariantsHighlighted: false,
+        highlightProfile: undefined
     }
 };

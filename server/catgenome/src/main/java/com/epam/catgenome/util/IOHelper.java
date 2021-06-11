@@ -26,6 +26,7 @@ package com.epam.catgenome.util;
 
 
 import com.epam.catgenome.util.aws.S3Client;
+import com.epam.catgenome.util.azure.AzureBlobClient;
 import htsjdk.tribble.util.ParsingUtils;
 
 import java.io.File;
@@ -93,6 +94,8 @@ public final class IOHelper {
     public static boolean resourceExists(String resource) throws IOException {
         if(S3Client.isS3Source(resource)) {
             return S3Client.getInstance().isFileExisting(resource);
+        } else if (AzureBlobClient.isAzSource(resource)) {
+            return AzureBlobClient.getClient().blobExists(resource);
         } else {
             return ParsingUtils.resourceExists(resource);
         }
@@ -101,6 +104,8 @@ public final class IOHelper {
     public static InputStream openStream(String path) throws IOException {
         if (S3Client.isS3Source(path)) {
             return S3Client.getInstance().loadFully(path);
+        } else if (AzureBlobClient.isAzSource(path)) {
+            return AzureBlobClient.getClient().loadFully(path);
         } else {
             return ParsingUtils.openInputStream(path);
         }

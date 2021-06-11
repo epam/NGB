@@ -255,8 +255,14 @@ public final class MessagesConstants {
     public static final String ERROR_ROLE_ALREADY_EXIST = "error.role.already.exists";
     public static final String ERROR_NO_GROUP_WAS_FOUND = "error.no.group.was.found";
 
+    // BLAST TASK
+    public static final String ERROR_TASK_NOT_FOUND = "error.blast.task.not.found";
+    public static final String ERROR_TASK_CAN_NOT_BE_DELETED = "error.blast.task.cant.be.deleted";
+    public static final String ERROR_BLAST_REQUEST = "error.blast.request.unexpected";
+    public static final String ERROR_BLAST_ORGANISMS = "error.blast.organisms";
+    public static final String ERROR_DATABASE_NOT_FOUND = "error.blast.database.not.found";
+
     private MessagesConstants() {
         // No-op
     }
-
 }

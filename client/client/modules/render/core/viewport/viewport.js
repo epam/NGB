@@ -12,6 +12,7 @@ export class Viewport extends BaseViewport {
     element: HTMLElement;
     brushChangeSubject = new Subject();
     blatRegionChangeSubject = new Subject();
+    blastRegionChangeSubject = new Subject();
     shortenedIntronsChangeSubject = new Subject();
 
     margin = 0;
@@ -29,6 +30,7 @@ export class Viewport extends BaseViewport {
     browserId = null;
 
     _blatRegion = null;
+    _blastRegion = null;
 
     constructor(element: HTMLElement, {
         chromosomeSize,
@@ -36,7 +38,8 @@ export class Viewport extends BaseViewport {
             end: chromosomeSize,
             start: 1
         },
-        blatRegion
+        blatRegion,
+        blastRegion
     }, dispatcher, projectContext, margin = 0, browserInitialSetting, vcfDataService) {
         super({
             brush: brush,
@@ -55,6 +58,7 @@ export class Viewport extends BaseViewport {
         this.projectContext = projectContext;
         this.vcfDataService = vcfDataService;
         this.blatRegion = blatRegion;
+        this.blastRegion = blastRegion;
 
         if (browserInitialSetting && browserInitialSetting.browserId && !browserInitialSetting.silentInteractions) {
             this.browserId = browserInitialSetting.browserId;
@@ -63,51 +67,53 @@ export class Viewport extends BaseViewport {
         if (browserInitialSetting && browserInitialSetting.silentInteractions) {
             this.silentInteractions = true;
         }
-
-        this.hotKeyListener = (event) => {
-            if (event && !this.silentInteractions) {
-                const path = event.split('>');
-                if (path && path[0] === 'vcf') {
-                    const tracksVCF = this.projectContext.getActiveTracks().filter(track => track.format === 'VCF');
-                    if(tracksVCF.length !== 0) {
-                        const position = Math.floor((this.brush.end + this.brush.start) / 2);
-                        if (path[1] === 'nextVariation') {
-                            this.vcfDataService.getNextVariations(tracksVCF, this.projectContext.currentChromosome.id, position + 1).then(
-                                (data) => {
-                                    const minStartIndex = Math.min.apply(Math, data.map(function (d) {
-                                        return d.startIndex;
-                                    }));
-                                    this.selectPosition(minStartIndex);
-                                }
-                            );
-                        } else {
-                            this.vcfDataService.getPreviousVariations(tracksVCF, this.projectContext.currentChromosome.id, position - 1).then(
-                                (data) => {
-                                    const maxStartIndex = Math.max.apply(Math, data.map(function (d) {
-                                        return d.startIndex;
-                                    }));
-                                    this.selectPosition(maxStartIndex);
-                                }
-                            );
-                        }
-                    }
-                }
-            }
-        };
-        const _hotKeyListener = ::this.hotKeyListener;
-        this.dispatcher.on('hotkeyPressed', _hotKeyListener);
-
-        this.onDestroy = () => {
-            if (this.browserId && !this.silentInteractions) {
-                this.projectContext.changeViewportState(this.browserId, undefined);
-            }
-            this.dispatcher.removeListener('hotkeyPressed', _hotKeyListener);
-        };
         this._initSubscriptions();
         this._shortenedIntronsViewport = new ShortenedIntronsViewport(this);
         this.transform(brush);
         this.initialized = true;
     }
+
+    reInitialize(element: HTMLElement, {
+        chromosomeSize,
+        brush = {
+            end: chromosomeSize,
+            start: 1
+        },
+        blatRegion,
+        blastRegion
+    }, dispatcher, projectContext, margin = 0, browserInitialSetting, vcfDataService) {
+        this.initialize({
+            brush: brush,
+            canvas: {
+                end: element.clientWidth - 2 * margin,
+                start: 0
+            },
+            chromosome: {
+                end: chromosomeSize,
+                start: 1
+            }
+        });
+        this.margin = margin;
+        this.element = element;
+        this.dispatcher = dispatcher;
+        this.projectContext = projectContext;
+        this.vcfDataService = vcfDataService;
+        this.blatRegion = blatRegion;
+        this.blastRegion = blastRegion;
+
+        if (browserInitialSetting && browserInitialSetting.browserId && !browserInitialSetting.silentInteractions) {
+            this.browserId = browserInitialSetting.browserId;
+            this.projectContext.changeViewportState(this.browserId, this.brush, true);
+        }
+        if (browserInitialSetting && browserInitialSetting.silentInteractions) {
+            this.silentInteractions = true;
+        }
+        this._initSubscriptions();
+        this._shortenedIntronsViewport = new ShortenedIntronsViewport(this);
+        this.transform(brush);
+        this.initialized = true;
+    }
+
 
     get isShortenedIntronsMode() {
         return this._shortenedIntronsViewport.shortenedIntronsMode && this.shortenedIntronsViewport.brush;
@@ -154,6 +160,15 @@ export class Viewport extends BaseViewport {
         this.blatRegionChangeSubject.onNext(this);
     }
 
+    get blastRegion() {
+        return this._blastRegion;
+    }
+
+    set blastRegion(blastRegion) {
+        this._blastRegion = blastRegion;
+        this.blastRegionChangeSubject.onNext(this);
+    }
+
     _shortenedConvert = {
         brushBP2pixel: bp => bp * this.factor,
         chromoBP2pixel: this.types.convert.bind(this, this.types.chromoBP, this.types.pixel),
@@ -174,35 +189,93 @@ export class Viewport extends BaseViewport {
     };
 
     _initSubscriptions() {
-        angular.element(window).on('resize', () => {
+        if (this._clearSubscriptions) {
+            this._clearSubscriptions();
+        }
+        const resize = () => {
             this.resize(this.element.clientWidth - 2 * this.margin);
-        });
+        };
+        angular.element(window).on('resize', resize);
 
-        let mouseIn = false;
+        const mouseInCb = () => this.mouseIn = true;
+        const mouseOutCb = () => this.mouseIn = true;
 
-        angular.element(this.element).on('mouseover.renderContainer', () => mouseIn = true);
-        angular.element(this.element).on('mouseout.renderContainer', () => mouseIn = false);
+        angular.element(this.element).on('mouseover.renderContainer', mouseInCb);
+        angular.element(this.element).on('mouseout.renderContainer', mouseOutCb);
 
         const zoomStepFactor = 10;
 
-        KeyboardJS.on('ctrl + shift + =', () => {
-            if (!mouseIn)
+        const zoomInCb = () => {
+            if (!this.mouseIn)
                 return;
             const step = -this.brushSize / zoomStepFactor;
             this.transform({
                 end: this.brush.end + step,
                 start: this.brush.start - step
             });
-        });
-        KeyboardJS.on('ctrl + shift + -', () => {
-            if (!mouseIn)
+        };
+
+        const zoomOutCb = () => {
+            if (!this.mouseIn)
                 return;
             const step = this.brushSize / zoomStepFactor;
             this.transform({
                 end: this.brush.end + step,
                 start: this.brush.start - step
             });
-        });
+        };
+        KeyboardJS.on('ctrl + shift + =', zoomInCb);
+        KeyboardJS.on('ctrl + shift + -', zoomOutCb);
+
+        const hotKeyListener = (event) => {
+            if (event && !this.silentInteractions) {
+                const path = event.split('>');
+                if (path && path[0] === 'vcf') {
+                    const tracksVCF = this.projectContext.getActiveTracks().filter(track => track.format === 'VCF');
+                    if(tracksVCF.length !== 0) {
+                        const position = Math.floor((this.brush.end + this.brush.start) / 2);
+                        if (path[1] === 'nextVariation') {
+                            this.vcfDataService.getNextVariations(tracksVCF, this.projectContext.currentChromosome.id, position + 1).then(
+                                (data) => {
+                                    const minStartIndex = Math.min.apply(Math, data.map(function (d) {
+                                        return d.startIndex;
+                                    }));
+                                    this.selectPosition(minStartIndex);
+                                }
+                            );
+                        } else {
+                            this.vcfDataService.getPreviousVariations(tracksVCF, this.projectContext.currentChromosome.id, position - 1).then(
+                                (data) => {
+                                    const maxStartIndex = Math.max.apply(Math, data.map(function (d) {
+                                        return d.startIndex;
+                                    }));
+                                    this.selectPosition(maxStartIndex);
+                                }
+                            );
+                        }
+                    }
+                }
+            }
+        };
+        this.dispatcher.on('hotkeyPressed', hotKeyListener);
+        this._clearSubscriptions = () => {
+            angular.element(window).off('resize', resize);
+            angular.element(this.element).off('mouseover.renderContainer', mouseInCb);
+            angular.element(this.element).off('mouseout.renderContainer', mouseOutCb);
+            KeyboardJS.off('ctrl + shift + =', zoomInCb);
+            KeyboardJS.off('ctrl + shift + -', zoomOutCb);
+            this.dispatcher.removeListener('hotkeyPressed', hotKeyListener);
+            this._clearSubscriptions = undefined;
+        };
+
+        this.onDestroy = () => {
+            if (this.browserId && !this.silentInteractions) {
+                this.projectContext.changeViewportState(this.browserId, undefined);
+            }
+            if (this._clearSubscriptions) {
+                this._clearSubscriptions();
+            }
+        };
     }
 
     get canTransform() {

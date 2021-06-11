@@ -26,6 +26,7 @@
   "rules": {
     "indent": ["error", 4, { "SwitchCase": 1 }],
     "linebreak-style": 0,
+    "eol-last": "error",
     "quotes": ["error", "single"],
     "semi": ["error", "always"],
     "accessor-pairs": 1,
@@ -55,7 +56,6 @@
     "flow-vars/define-flow-type": 1,
     "flow-vars/use-flow-type": 1,
     "sort-vars": ["warn", { "ignoreCase": true }],
-    "sort-keys": ["warn", "asc", {"caseSensitive": true, "natural": false}],
     "sort-imports": ["warn", {
       "ignoreCase": false,
       "ignoreMemberSort": false,

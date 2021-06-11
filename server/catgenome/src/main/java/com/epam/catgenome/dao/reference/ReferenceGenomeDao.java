@@ -495,7 +495,8 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         CHROMOSOME_ID,
 
         SPECIES_NAME,
-        SPECIES_VERSION;
+        SPECIES_VERSION,
+        TAX_ID;
 
         private static final RowMapper<Long> ID_MAPPER = (rs, rowNum) -> rs.getLong(1);
 
@@ -520,16 +521,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
                     reference.setGeneFile(geneFile);
                 }
 
-                String speciesVersion = rs.getString(SPECIES_VERSION.name());
-                if (!rs.wasNull()) {
-                    String speciesName = rs.getString(SPECIES_NAME.name());
-                    if (!rs.wasNull()) {
-                        Species species = new Species();
-                        species.setName(speciesName);
-                        species.setVersion(speciesVersion);
-                        reference.setSpecies(species);
-                    }
-                }
+                parseSpecies(rs, reference);
 
                 return reference;
             };
@@ -571,6 +563,12 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
                 reference.setIndex(index);
             }
 
+            parseSpecies(rs, reference);
+
+            return reference;
+        }
+
+        private static void parseSpecies(final ResultSet rs, final Reference reference) throws SQLException {
             String speciesVersion = rs.getString(SPECIES_VERSION.name());
             if (!rs.wasNull()) {
                 String speciesName = rs.getString(SPECIES_NAME.name());
@@ -578,11 +576,10 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
                     Species species = new Species();
                     species.setName(speciesName);
                     species.setVersion(speciesVersion);
+                    species.setTaxId(rs.getLong(TAX_ID.name()));
                     reference.setSpecies(species);
                 }
             }
-
-            return reference;
         }
 
         static RowMapper<Chromosome> getChromosomeMapper() {

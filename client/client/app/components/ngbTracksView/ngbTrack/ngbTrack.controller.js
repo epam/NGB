@@ -1,5 +1,6 @@
 import ngbTrackEvents from './ngbTrack.events';
 import SelectionContext, {SelectionEvents} from '../../../shared/selectionContext';
+import BLASTContext from '../../../shared/blastContext';
 import {tracks as trackConstructors} from '../../../../modules/render/';
 
 const DEFAULT_HEIGHT = 40;
@@ -14,6 +15,7 @@ export default class ngbTrackController {
     projectContext;
     groupAutoScaleManager;
     selectionContext: SelectionContext;
+    blastContext: BLASTContext;
 
     static get UID() {
         return 'ngbTrackController';
@@ -58,13 +60,15 @@ export default class ngbTrackController {
         appLayout,
         selectionContext,
         trackNamingService,
-        groupAutoScaleManager
+        groupAutoScaleManager,
+        blastContext
     ) {
         this.trackNamingService = trackNamingService;
         this.scope = $scope;
         this.dispatcher = dispatcher;
         this.projectContext = projectContext;
         this.selectionContext = selectionContext;
+        this.blastContext = blastContext;
         this.groupAutoScaleManager = groupAutoScaleManager;
         this.domElement = $element[0];
         this._localDataService = localDataService;
@@ -314,13 +318,15 @@ export default class ngbTrackController {
     }
 
     get trackHeaderStyle() {
-        const styles = {
-            ...this.trackInstance.config.header,
-            ...this.trackInstance.state.header,
-        };
-        return {
-            'font-size': styles.fontSize || '12px',
-        };
+        if (this.trackInstance) {
+            const styles = {
+                ...this.trackInstance.config.header,
+                ...this.trackInstance.state.header,
+            };
+            return {
+                'font-size': styles.fontSize || '12px',
+            };
+        }
     }
 
     changeTrackVisibility(visible) {
@@ -371,6 +377,7 @@ export default class ngbTrackController {
             dispatcher: this.dispatcher,
             groupAutoScaleManager: this.groupAutoScaleManager,
             projectContext: this.projectContext,
+            blastContext: this.blastContext,
             reloadScope: () => this.scope.$apply(),
             restoredHeight: height,
             silentInteractions: this.silentInteractions,

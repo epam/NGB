@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2019 EPAM Systems
+ * Copyright (c) 2019-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -152,7 +152,8 @@ public class AclSecurityConfiguration extends GlobalMethodSecurityConfiguration 
 
     @Bean
     public EhCacheFactoryBean ehCacheFactoryBean() {
-        int aclSecurityCachePeriodInSeconds = context.getEnvironment().getProperty("security.acl.cache.period", Integer.class, -1);
+        int aclSecurityCachePeriodInSeconds = context.getEnvironment()
+                .getProperty("security.acl.cache.period", Integer.class, -1);
         EhCacheFactoryBean factoryBean = new EhCacheFactoryBean();
         factoryBean.setCacheManager(ehCacheManagerFactoryBean().getObject());
         factoryBean.setCacheName("aclCache");

@@ -120,6 +120,11 @@ public class ReferenceSecurityService {
     }
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_REFERENCE_MANAGER)
+    public Species updateSpecies(Species species) {
+        return referenceGenomeManager.updateSpecies(species);
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_REFERENCE_MANAGER)
     public Species unregisterSpecies(String speciesVersion) {
         return referenceGenomeManager.unregisterSpecies(speciesVersion);
     }

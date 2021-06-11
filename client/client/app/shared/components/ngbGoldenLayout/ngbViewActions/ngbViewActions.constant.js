@@ -70,6 +70,14 @@ const tracksSelectionAction = {
     name: 'tracksSelection'
 };
 
+const blastSearchPanelPaginationAction = {
+    name: 'blastSearchPanelPagination',
+    liStyle: {
+        width: 'auto'
+    },
+    isDefault: false
+};
+
 export default {
     actions: {
         closeAllTracks: closeAllTracksAction,
@@ -80,10 +88,12 @@ export default {
         variantsLoadingIndicator: variantsLoadingIndicatorAction,
         variantsResetFilter: variantsResetFilterActions,
         variantsTableColumn: variantsTableColumnAction,
-        variantsTablePagination: variantsTablePaginationAction
+        variantsTablePagination: variantsTablePaginationAction,
+        blastSearchPanelPagination: blastSearchPanelPaginationAction
     },
     viewActions: {
         ngbBrowser: [genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
-        ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsResetFilterActions, variantsTableColumnAction]
+        ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsResetFilterActions, variantsTableColumnAction],
+        ngbBlastSearchPanel: [blastSearchPanelPaginationAction]
     }
 };

@@ -64,7 +64,7 @@ export default class FeatureRenderer {
             x: null,
             y: null
         };
-        const updateCoordinates = function(newCoordinates) {
+        const updateCoordinates = function (newCoordinates) {
             if (!newCoordinates) {
                 return;
             }
@@ -105,11 +105,12 @@ export default class FeatureRenderer {
     }
 
     render(features,
-           viewport: Viewport,
-           labelContainer: PIXI.Container,
-           dockableElementsContainer: PIXI.Container,
-           attachedElementsContainer: PIXI.Container,
-           graphics: PIXI.Graphics = null, hoveredGraphics: PIXI.Graphics): PIXI.Graphics {
+        viewport: Viewport,
+        labelContainer: PIXI.Container,
+        dockableElementsContainer: PIXI.Container,
+        attachedElementsContainer: PIXI.Container,
+        graphics: PIXI.Graphics = null, hoveredGraphics: PIXI.Graphics,
+        highlightGraphics: PIXI.Graphics = null, hoveredHighlightGraphics: PIXI.Graphics) {
         if (features === null || features === undefined)
             return null;
         this.prepareRenderers();
@@ -129,6 +130,20 @@ export default class FeatureRenderer {
         if (hoveredFeatureGraphics === null || hoveredFeatureGraphics === undefined) {
             hoveredFeatureGraphics = new PIXI.Graphics();
         }
+        let featureHighlightGraphics = highlightGraphics;
+        if (featureHighlightGraphics === null || featureHighlightGraphics === undefined) {
+            featureHighlightGraphics = new PIXI.Graphics();
+        }
+        let hoveredFeatureHighlightGraphics = hoveredHighlightGraphics;
+        if (hoveredFeatureHighlightGraphics === null || hoveredFeatureHighlightGraphics === undefined) {
+            hoveredFeatureHighlightGraphics = new PIXI.Graphics();
+        }
+        const graphicsObj = {
+            graphics: featureGraphics,
+            highlightGraphics: featureHighlightGraphics,
+            hoveredGraphics: hoveredFeatureGraphics,
+            hoveredHighlightGraphics: hoveredFeatureHighlightGraphics
+        };
         this._geneFeatureRenderer._opts = this._opts;
         const maxIterations = 10000000;
         for (let i = 0; i < features.length; i++) {
@@ -155,7 +170,7 @@ export default class FeatureRenderer {
                 maxIterations);
             if (!boundaries.conflicts) {
                 this._zonesManager.submitArea(ZONES_MANAGER_DEFAULT_ZONE_NAME, boundaries);
-                renderer.render(item, viewport, featureGraphics, hoveredFeatureGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, {
+                renderer.render(item, viewport, graphicsObj, labelContainer, dockableElementsContainer, attachedElementsContainer, {
                     height: boundaries.rect.y2 - boundaries.rect.y1,
                     width: boundaries.rect.x2 - boundaries.rect.x1,
                     x: boundaries.rect.x1,
@@ -163,7 +178,7 @@ export default class FeatureRenderer {
                 });
             }
         }
-        return {graphics: featureGraphics, hoveredGraphics: hoveredFeatureGraphics};
+        return graphicsObj;
     }
 
     manageLabels(viewport) {
@@ -178,16 +193,14 @@ export default class FeatureRenderer {
             } else if (labelData.range.shift) {
                 labelData.label.x = Math.round(viewport.project.brushBP2pixel(labelData.range.start) +
                     labelData.range.shift + labelData.label.width * labelData.range.shiftDirection);
-            }
-            else {
+            } else {
                 const startPx = viewport.project.brushBP2pixel(labelData.range.start) +
                     (labelData.range.offset ? labelData.range.offset.left : 0);
                 const endPx = Math.max(viewport.project.brushBP2pixel(labelData.range.end) -
                     labelData.label.width, startPx);
                 if (startPx > viewport.canvasSize || endPx < -labelData.label.width) {
                     labelData.label.visible = false;
-                }
-                else {
+                } else {
                     labelData.label.visible = true;
                     labelData.label.x = Math.round(Math.max(startPx, Math.min(endPx, 0))) - labelData.label.parent.x;
                 }
@@ -209,7 +222,7 @@ export default class FeatureRenderer {
             const relativeYStartPosition = dockableElementData.element.parent.y + dockableElementData.range.y1;
             const relativeYEndPosition = dockableElementData.element.parent.y + dockableElementData.range.y2;
             dockableElementData.element.y = Math.round(Math.max(relativeYStartPosition,
-                    Math.min(relativeYEndPosition, dockableElementData.range.topMargin))) -
+                Math.min(relativeYEndPosition, dockableElementData.range.topMargin))) -
                 dockableElementData.element.parent.y;
         }
     }
@@ -266,7 +279,7 @@ export default class FeatureRenderer {
         const rects = [];
         const labels = this._dockableLabels;
         for (let i = 0; i < labels.length; i++) {
-            const element:PIXI.Text = labels[i].label;
+            const element: PIXI.Text = labels[i].label;
             if (element.parent === null || element.parent === undefined) {
                 continue;
             }
@@ -400,10 +413,10 @@ export default class FeatureRenderer {
         if (hoveredItem && hoveredItem.length) {
             const [exon] = hoveredItem.filter(i => i.feature && i.feature.feature === 'exon');
             const item = exon || hoveredItem[hoveredItem.length - 1];
-            const x1 = Math.max(- viewport.canvasSize, item.graphicsBoundaries.x1) - 1;
+            const x1 = Math.max(-viewport.canvasSize, item.graphicsBoundaries.x1) - 1;
             const x2 = Math.min(2 * viewport.canvasSize, item.graphicsBoundaries.x2) + 2;
-            let y1 = item.graphicsBoundaries.y1 - 1;
-            let y2 = item.graphicsBoundaries.y2 + 1;
+            const y1 = item.graphicsBoundaries.y1 - 1;
+            const y2 = item.graphicsBoundaries.y2 + 1;
             if (item.graphicsBoundaries.ignore) {
                 return true;
             }

@@ -1,6 +1,6 @@
-import * as  geneTypes  from '../../../../../modules/render/tracks/gene/geneTypes';
-import {colorModes, groupModes, readsViewTypes} from '../../../../../modules/render/tracks/bam/modes/';
-import {variantsView} from '../../../../../modules/render/tracks/vcf/modes/';
+import * as geneTypes from '../../../../../modules/render/tracks/gene/geneTypes';
+import { colorModes, groupModes, readsViewTypes } from '../../../../../modules/render/tracks/bam/modes/';
+import { variantsView } from '../../../../../modules/render/tracks/vcf/modes/';
 
 export default [
     {
@@ -47,6 +47,12 @@ export default [
                 type: 'item',
                 name: 'layout>blatSearch',
                 label: 'Blat',
+                hotkey: ''
+            },
+            {
+                type: 'item',
+                name: 'layout>blastSearch',
+                label: 'BLAST',
                 hotkey: ''
             }
         ],

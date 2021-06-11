@@ -22,6 +22,8 @@ export class VCFTrack extends GENETrack {
     _lastHovered = null;
     _variantsMaximumRange;
     _zoomInRenderer: PlaceholderRenderer = new PlaceholderRenderer();
+    _highlightProfile = null;
+    _highlightProfileConditions = [];
 
     projectContext;
 
@@ -46,7 +48,7 @@ export class VCFTrack extends GENETrack {
         }
         track.updateAndRefresh();
         track.reportTrackState();
-    }
+    };
 
     static Menu = Menu(
         menu,
@@ -59,6 +61,7 @@ export class VCFTrack extends GENETrack {
     constructor(opts) {
         super(opts);
         this._variantsMaximumRange = opts.variantsMaximumRange;
+        this._highlightProfileConditions = this.projectContext.highlightProfileConditions;
         this.transformer.collapsed = this.state.variantsView === variantsView.variantsViewCollapsed;
 
         this._actions = [
@@ -99,11 +102,15 @@ export class VCFTrack extends GENETrack {
     }
 
     globalSettingsChanged(state) {
-        const changed = this._variantsMaximumRange !== state.variantsMaximumRange;
+        const changed = this._variantsMaximumRange !== state.variantsMaximumRange
+            || this._highlightProfile !== state.highlightProfile;
         this._variantsMaximumRange = state.variantsMaximumRange;
+        this._highlightProfile = state.highlightProfile;
+        this._highlightProfileConditions = this.projectContext.highlightProfileConditions;
         super.globalSettingsChanged(state);
         Promise.resolve().then(async () => {
             if (changed && this._variantsMaximumRange > this.viewport.actualBrushSize) {
+                this.transformer.highlightProfileConditions = this._highlightProfileConditions;
                 await this.updateCache();
             }
             if (changed) {
@@ -147,7 +154,7 @@ export class VCFTrack extends GENETrack {
 
     get transformer() {
         if (!this._transformer) {
-            this._transformer = new VcfTransformer(this.trackConfig, this.config.chromosome);
+            this._transformer = new VcfTransformer(this.trackConfig, this.config.chromosome, this._highlightProfileConditions);
         }
         return this._transformer;
     }

@@ -1,0 +1,228 @@
+<!--
+  ~ /*
+  ~  * MIT License
+  ~  *
+  ~  * Copyright (c) 2021 EPAM Systems
+  ~  *
+  ~  * Permission is hereby granted, free of charge, to any person obtaining a copy
+  ~  * of this software and associated documentation files (the "Software"), to deal
+  ~  * in the Software without restriction, including without limitation the rights
+  ~  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~  * copies of the Software, and to permit persons to whom the Software is
+  ~  * furnished to do so, subject to the following conditions:
+  ~  *
+  ~  * The above copyright notice and this permission notice shall be included in all
+  ~  * copies or substantial portions of the Software.
+  ~  *
+  ~  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  ~  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  ~  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  ~  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  ~  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  ~  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  ~  * SOFTWARE.
+  ~  */
+-->
+<html><head><style>body {
+   color: black;
+}
+</style></head><body><h1 id="blastn">BLASTN</h1>
+<p>An option of type <code>Flag</code> takes no argument, but if present the argument is true.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Type</th>
+<th>Description and notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Input query options</strong></td>
+</tr>
+<tr>
+<td><strong><code>-query_loc</code></strong></td>
+<td>String</td>
+<td>Location on the query sequence in 1-based offsets (Format: start-stop)</td>
+</tr>
+<tr>
+<td><strong><code>-strand</code></strong></td>
+<td>String</td>
+<td>Query strand(s) to search against database. Permissible values: <code>both</code>, <code>minus</code>, <code>plus</code>. Default: <code>both</code></td>
+</tr>
+<tr>
+<td><strong>General search options</strong></td>
+</tr>
+<tr>
+<td><strong><code>-word_size</code></strong></td>
+<td>Integer, &gt;= 4</td>
+<td>Word size for wordfinder algorithm (length of best perfect match)</td>
+</tr>
+<tr>
+<td><strong><code>-gapopen</code></strong></td>
+<td>Integer</td>
+<td>Cost to open a gap</td>
+</tr>
+<tr>
+<td><strong><code>-gapextend</code></strong></td>
+<td>Integer</td>
+<td>Cost to extend a gap</td>
+</tr>
+<tr>
+<td><strong><code>-penalty</code></strong></td>
+<td>Integer, &lt;= 0</td>
+<td>Penalty for a nucleotide mismatch</td>
+</tr>
+<tr>
+<td><strong><code>-reward</code></strong></td>
+<td>Integer, &gt;= 0</td>
+<td>Reward for a nucleotide match</td>
+</tr>
+<tr>
+<td><strong>Query filtering options</strong></td>
+</tr>
+<tr>
+<td><strong><code>-dust</code></strong></td>
+<td>String</td>
+<td>Filter query sequence with DUST (Format: <code>yes</code>, <code>level window linker</code>, or <code>no</code> to disable). Default = <code>20 64 1</code></td>
+</tr>
+<tr>
+<td><strong><code>-window_masker_taxid</code></strong></td>
+<td>Integer</td>
+<td>Enable WindowMasker filtering using a Taxonomic ID</td>
+</tr>
+<tr>
+<td><strong><code>soft_masking</code></strong></td>
+<td>Boolean</td>
+<td>Apply filtering locations as soft masks. Default = <code>true</code></td>
+</tr>
+<tr>
+<td><strong><code>lcase_masking</code></strong></td>
+<td>Flag</td>
+<td>Use lower case filtering in query and subject sequence(s)?</td>
+</tr>
+<tr>
+<td><strong>Restrict search or results</strong></td>
+</tr>
+<tr>
+<td><strong><code>-db_soft_mask</code></strong></td>
+<td>String</td>
+<td>Filtering algorithm ID to apply to the BLAST database as soft masking. Incompatible with: <strong><code>-db_hard_mask</code></strong></td>
+</tr>
+<tr>
+<td><strong><code>-db_hard_mask</code></strong></td>
+<td>String</td>
+<td>Filtering algorithm ID to apply to the BLAST database as hard masking. Incompatible with: <strong><code>-db_soft_mask</code></strong></td>
+</tr>
+<tr>
+<td><strong><code>-perc_identity</code></strong></td>
+<td>Real, 0..100</td>
+<td>Percent identity</td>
+</tr>
+<tr>
+<td><strong><code>-qcov_hsp_perc</code></strong></td>
+<td>Real, 0..100</td>
+<td>Percent query coverage per hsp</td>
+</tr>
+<tr>
+<td><strong><code>-max_hsps</code></strong></td>
+<td>Integer, &gt;= 1</td>
+<td>Set maximum number of HSPs per subject sequence to save for each query</td>
+</tr>
+<tr>
+<td><strong><code>-culling_limit</code></strong></td>
+<td>Integer, &gt;= 0</td>
+<td>If the query range of a hit is enveloped by that of at least this many higher-scoring hits, delete the hit. Incompatible with: <strong><code>-best_hit_overhang</code></strong>, <strong><code>-best_hit_score_edge</code></strong></td>
+</tr>
+<tr>
+<td><strong><code>-best_hit_overhang</code></strong></td>
+<td>Real, (&gt; 0 and &lt; 0.5)</td>
+<td>Best Hit algorithm overhang value (recommended value: <code>0.1</code>). Incompatible with: <strong><code>-culling_limit</code></strong></td>
+</tr>
+<tr>
+<td><strong><code>-best_hit_score_edge</code></strong></td>
+<td>Real, (&gt; 0 and &lt; 0.5)</td>
+<td>Best Hit algorithm score edge value (recommended value: <code>0.1</code>). Incompatible with: <strong><code>-culling_limit</code></strong></td>
+</tr>
+<tr>
+<td><strong><code>-subject_besthit</code></strong></td>
+<td>Flag</td>
+<td>Turn on best hit per subject sequence</td>
+</tr>
+<tr>
+<td><strong>Discontiguous MegaBLAST options</strong></td>
+</tr>
+<tr>
+<td><strong><code>-template_type</code></strong></td>
+<td>String</td>
+<td>Discontiguous MegaBLAST template type. Permissible values: <code>coding</code>, <code>coding_and_optimal</code>, <code>optimal</code>. Requires: <strong><code>-template_length</code></strong></td>
+</tr>
+<tr>
+<td><strong><code>-template_length</code></strong></td>
+<td>Integer</td>
+<td>Discontiguous MegaBLAST template length. Permissible values: <code>16</code>, <code>18</code>, <code>21</code>. Requires: <strong><code>-template_type</code></strong></td>
+</tr>
+<tr>
+<td><strong>Statistical options</strong></td>
+</tr>
+<tr>
+<td><strong><code>-dbsize</code></strong></td>
+<td>Integer</td>
+<td>Effective length of the database</td>
+</tr>
+<tr>
+<td><strong><code>-searchsp</code></strong></td>
+<td>Integer, &gt;= 0</td>
+<td>Effective length of the search space</td>
+</tr>
+<tr>
+<td><strong><code>-sum_stats</code></strong></td>
+<td>Boolean</td>
+<td>Use sum statistics</td>
+</tr>
+<tr>
+<td><strong>Extension options</strong></td>
+</tr>
+<tr>
+<td><strong><code>-xdrop_ungap</code></strong></td>
+<td>Real</td>
+<td>X-dropoff value (in bits) for ungapped extensions</td>
+</tr>
+<tr>
+<td><strong><code>-xdrop_gap</code></strong></td>
+<td>Real</td>
+<td>X-dropoff value (in bits) for preliminary gapped extensions</td>
+</tr>
+<tr>
+<td><strong><code>-xdrop_gap_final</code></strong></td>
+<td>Real</td>
+<td>X-dropoff value (in bits) for final gapped alignment</td>
+</tr>
+<tr>
+<td><strong><code>-no_greedy</code></strong></td>
+<td>Flag</td>
+<td>Use non-greedy dynamic programming extension</td>
+</tr>
+<tr>
+<td><strong><code>-min_raw_gapped_score</code></strong></td>
+<td>Integer</td>
+<td>Minimum raw gapped score to keep an alignment in the preliminary gapped and traceback stages</td>
+</tr>
+<tr>
+<td><strong><code>-ungapped</code></strong></td>
+<td>Flag</td>
+<td>Perform ungapped alignment only?</td>
+</tr>
+<tr>
+<td><strong><code>-window_size</code></strong></td>
+<td>Integer, &gt;= 0</td>
+<td>Multiple hits window size, use <code>0</code> to specify 1-hit algorithm</td>
+</tr>
+<tr>
+<td><strong><code>-off_diagonal_range</code></strong></td>
+<td>Integer, &gt;= 0</td>
+<td>Number of off-diagonals to search for the 2nd hit, use <code>0</code> to turn off. Default = <code>0</code></td>
+</tr>
+</tbody>
+</table>
+</body></html>

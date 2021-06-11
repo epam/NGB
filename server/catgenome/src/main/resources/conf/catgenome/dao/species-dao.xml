@@ -8,10 +8,22 @@
 				<![CDATA[
                     INSERT INTO catgenome.genome_species (
                         species_name,
-                        species_version)
+                        species_version,
+                        tax_id)
                     VALUES (
                         :SPECIES_NAME,
-                        :SPECIES_VERSION)
+                        :SPECIES_VERSION,
+                        :TAX_ID)
+                ]]>
+			</value>
+		</property>
+
+		<property name="updateSpeciesQuery">
+			<value>
+				<![CDATA[
+                    UPDATE catgenome.genome_species
+                    SET tax_id = :TAX_ID
+                    WHERE species_version = :SPECIES_VERSION
                 ]]>
 			</value>
 		</property>
@@ -20,7 +32,8 @@
 			<value>
 				<![CDATA[
 				    SELECT species_name,
-				           species_version
+				           species_version,
+				           tax_id
 				    FROM catgenome.genome_species
 				    WHERE species_version = :SPECIES_VERSION
                 ]]>
@@ -31,7 +44,8 @@
 			<value>
 				<![CDATA[
 				    SELECT species_name,
-				           species_version
+				           species_version,
+				           tax_id
 				    FROM catgenome.genome_species
 				    ORDER BY species_name ASC
                 ]]>

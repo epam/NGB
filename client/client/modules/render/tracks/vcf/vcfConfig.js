@@ -32,7 +32,7 @@ export default {
         },
         height: 7,
         label: {
-            fill: 0xFFFFFF,
+            fill: 0x000000,
             font: 'bold 10pt arial'
         }
     },

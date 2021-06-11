@@ -1,0 +1,147 @@
+<div ng-if="$ctrl.isProgressShown">
+    <div class="progress" layout-align="center center">
+        <span>Loading history...</span>
+    </div>
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div ng-if="!$ctrl.isProgressShown">
+    <form name="blastSearchForm" ng-submit="$ctrl.onSearch()" class="md-inline-form">
+        <div class="tools">
+            <div ng-repeat="tool in $ctrl.ngbBlastSearchFormConstants.BLAST_TOOLS" class="form_radio_btn">
+                <input id="radio-{{$index}}" type="radio" name="tool" ng-value="tool"
+                       ng-model="$ctrl.searchRequest.tool" required=""
+                       ng-change="$ctrl.onSearchToolChange()">
+                <label for="radio-{{$index}}"
+                       class="md-button md-raised"
+                       ng-class="{'md-primary': $ctrl.searchRequest.tool === tool}"
+                >
+                    {{tool}}
+                </label>
+            </div>
+            <div class="blast-form-alert" ng-show="blastSearchForm.tool.$invalid">
+                <div ng-message="required">Choose the tool for search</div>
+            </div>
+        </div>
+        <md-input-container class="blast-search-input blast-sequence-area">
+            <label for="sequence" class="blast-search-input-label">Query sequence</label>
+            <textarea id="sequence" ng-model="$ctrl.searchRequest.sequence" required=""
+                      class=""></textarea>
+            <ng-md-icon class="icon_info_outline blast-sequence-clear" icon="clear" ng-click="$ctrl.searchRequest.sequence = ''"></ng-md-icon>
+        </md-input-container>
+        <md-input-container class="blast-search-input">
+            <label for="task" class="blast-search-input-label">Task title</label>
+            <input type="text" id="task" name="task" ng-model="$ctrl.searchRequest.title">
+        </md-input-container>
+        <md-input-container class="blast-search-set">
+            <span>Search set</span>
+        </md-input-container>
+        <md-input-container class="blast-search-input">
+            <label for="db">Database</label>
+            <md-select
+                    id="db"
+                    name="db"
+                    ng-model="$ctrl.searchRequest.db"
+                    required
+            >
+                <md-option ng-repeat="db in $ctrl.dbList track by db.id"
+                           ng-value="db.id">
+                    {{db.name}}
+                </md-option>
+            </md-select>
+        </md-input-container>
+        <div class="blast-organisms-livesearch">
+            <md-chips ng-model="$ctrl.searchRequest.organisms"
+                      class="blast-organisms-chips"
+                      md-autocomplete-snap="width"
+                      md-require-match="true" flex>
+                <md-autocomplete
+                        md-selected-item="$ctrl.selectedItem"
+                        md-search-text="$ctrl.searchText"
+                        md-clear-button="true"
+                        md-menu-class="blast-organisms-livesearch-item"
+                        md-no-cache="true"
+                        md-items="item in $ctrl.ngbBlastSearchService.getOrganismList($ctrl.searchText, $ctrl.searchRequest.organisms)"
+                        md-item-text="item.taxid"
+                        md-delay="300"
+                        placeholder="{{$ctrl.searchRequest.organisms.length ? '' : 'Organism'}}">
+                    <md-item-template>
+                        <span md-highlight-text="$ctrl.searchText">{{item.scientificname}} (taxid: {{item.taxid}})</span>
+                    </md-item-template>
+                </md-autocomplete>
+                <md-chip-template>
+                        <span>
+                          <strong>{{$chip.scientificname}} (taxid: {{$chip.taxid}})</strong>
+                        </span>
+                </md-chip-template>
+                <ng-md-icon icon="close"
+                            md-chip-remove=""
+                            class="remove-organism-button"
+                            size="18"
+                ></ng-md-icon>
+            </md-chips>
+            <ng-md-icon ng-show="$ctrl.searchRequest.organisms.length"
+                        class="icon_info_outline clear-all-chips"
+                        icon="delete_forever"
+                        ng-click="$ctrl.clearOrganisms()"
+            ></ng-md-icon>
+            <md-checkbox ng-model="$ctrl.searchRequest.isExcluded">Exclude</md-checkbox>
+        </div>
+        <div ng-if="$ctrl.algorithmList.length" class="blast-algorithm blast-search-info">
+            <md-input-container class="blast-search-input">
+                <label>Algorithm</label>
+                <md-select ng-model="$ctrl.searchRequest.algorithm">
+                    <md-option ng-repeat="alg in $ctrl.algorithmList" ng-value="alg">{{alg}}</md-option>
+                </md-select>
+            </md-input-container>
+            <div class="blast-search-info-icon">
+                <ng-md-icon icon="info" size="20"></ng-md-icon>
+                <md-tooltip class="md-tooltip__full-height">
+                    <div class="tooltip-header">{{$ctrl.toolTooltip.description}}</div>
+                    <ul>
+                        <li ng-repeat="(alg, desc) in $ctrl.toolTooltip.algorithms">
+                            <b>{{alg}}</b> - {{desc}}
+                        </li>
+                    </ul>
+                </md-tooltip>
+            </div>
+        </div>
+        <div class="expandable-panel" layout="column">
+            <div class="expandable-panel-title" ng-class="{'toggled': toggle}" ng-click="toggle = !toggle" layout="column">
+                <ng-md-icon icon="expand_less" class="expandable-panel-icon"></ng-md-icon>
+                <span>Additional parameters</span>
+            </div>
+            <div class="expandable-panel-content" ng-show="toggle" layout="column">
+                <md-input-container class="blast-search-input">
+                    <label for="max_seq" class="blast-search-input-label">Max target sequences</label>
+                    <input type="text" id="max_seq" name="max_seq" ng-model="$ctrl.searchRequest.maxTargetSeqs">
+                </md-input-container>
+                <md-input-container class="blast-search-input">
+                    <label for="threshold" class="blast-search-input-label">Expect threshold</label>
+                    <input type="text" id="threshold" name="threshold" ng-model="$ctrl.searchRequest.threshold">
+                </md-input-container>
+                <div class="blast-search-info">
+                    <md-input-container class="blast-search-input">
+                        <label for="options" class="blast-search-input-label">Options</label>
+                        <textarea id="options" ng-model="$ctrl.searchRequest.options"
+                                  class="blast-options-area"></textarea>
+                    </md-input-container>
+                    <a target="_blank" ng-href="{{$ctrl.blastHelpPath}}{{$ctrl.searchRequest.tool}}.html">
+                        <ng-md-icon class="blast-search-info-icon" icon="info" size="20"></ng-md-icon>
+                        <md-tooltip>Click to show possible options help</md-tooltip>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div ng-if="$ctrl.errorMessageList.length" class="md-padding">
+            <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+        </div>
+        <div class="blast-search-actions">
+            <md-button class="md-accent md-raised search-button"
+                       type="submit"
+                       ng-disabled="blastSearchForm.$invalid"
+                       aria-label="submit">
+                Search
+            </md-button>
+        </div>
+    </form>
+</div>

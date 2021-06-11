@@ -17,14 +17,14 @@ export default class DeletionFeatureRenderer extends VariantAltFeatureRenderer {
         return boundaries;
     }
 
-    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+    render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
         if (feature.startIndex < feature.endIndex) {
             const alternativeAlleleLabelsHeight = feature.alternativeAllelesInfo.length * this.alleleLabelHeight;
             const height = this.config.variant.height;
             const cX1 = Math.round(Math.max(viewport.project.brushBP2pixel(feature.startIndex), -viewport.canvasSize));
             const cX2 = Math.round(Math.min(viewport.project.brushBP2pixel(feature.endIndex), 2 * viewport.canvasSize) + viewport.factor / 2);
             const cY = Math.round(position.y + alternativeAlleleLabelsHeight + this.config.variant.allele.height + height / 2);
-            graphics
+            graphics.graphics
                 .lineStyle(this.config.variant.multipleNucleotideVariant.thickness,
                     this.config.variant.multipleNucleotideVariant.color,
                     this.config.variant.multipleNucleotideVariant.alpha)
@@ -33,7 +33,7 @@ export default class DeletionFeatureRenderer extends VariantAltFeatureRenderer {
                 .moveTo(cX2 - this.config.variant.multipleNucleotideVariant.thickness / 2, cY - height / 3)
                 .lineTo(cX2 - this.config.variant.multipleNucleotideVariant.thickness / 2, cY + height / 3);
 
-            hoveredGraphics
+            graphics.hoveredGraphics
                 .lineStyle(this.config.variant.multipleNucleotideVariant.thickness,
                     ColorProcessor.darkenColor(this.config.variant.multipleNucleotideVariant.color),
                     this.config.variant.multipleNucleotideVariant.alpha)
@@ -43,6 +43,7 @@ export default class DeletionFeatureRenderer extends VariantAltFeatureRenderer {
                 .lineTo(cX2 - this.config.variant.multipleNucleotideVariant.thickness / 2, cY + height / 3);
             this.generateAttachedElement({
                 attachedAt: 'right',
+                color: feature.highlightColor,
                 hideOnVisible: true,
                 position: position.y + position.height - height / 2,
                 range: {
@@ -52,6 +53,7 @@ export default class DeletionFeatureRenderer extends VariantAltFeatureRenderer {
             }, `${this.getFeatureDisplayText(feature)} ${NumberFormatter.formattedText(feature.startIndex)}`, this.config.variant.multipleNucleotideVariant.label.del, attachedElementsContainer);
             this.generateAttachedElement({
                 attachedAt: 'left',
+                color: feature.highlightColor,
                 hideOnVisible: true,
                 position: position.y + position.height - height / 2,
                 range: {
@@ -64,6 +66,6 @@ export default class DeletionFeatureRenderer extends VariantAltFeatureRenderer {
                 y: cY - height / 3
             });
         }
-        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+        super.render(feature, viewport, graphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
     }
 }

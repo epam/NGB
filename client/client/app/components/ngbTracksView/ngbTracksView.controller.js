@@ -82,7 +82,8 @@ export default class ngbTracksViewController extends baseController {
                     },
                     'position:select': ::this.selectPosition,
                     'viewport:position': ::this.setViewport,
-                    'blatRegion:change': ::this.setBlatRegion
+                    'blatRegion:change': ::this.setBlatRegion,
+                    'blastRegion:change': ::this.setBlastRegion
                 });
             }
 
@@ -177,15 +178,31 @@ export default class ngbTracksViewController extends baseController {
             blatRegion = null;
         }
 
+        let blastRegion = undefined;
+        if (this.projectContext.blastRegion) {
+            blastRegion = this.projectContext.blastRegion;
+        } else {
+            blastRegion = null;
+        }
+
         const viewportPxMargin = 6;
-        this.viewport = new Viewport(scrollPanel,
-            {brush, chromosomeSize: this.chromosome.size, blatRegion},
-            this.dispatcher,
-            this.projectContext,
-            viewportPxMargin,
-            browserInitialSetting,
-            this.vcfDataService);
-        this.tracks = tracks;
+        if (this.viewport) {
+            this.viewport.reInitialize(scrollPanel,
+                {brush, chromosomeSize: this.chromosome.size, blatRegion, blastRegion},
+                this.dispatcher,
+                this.projectContext,
+                viewportPxMargin,
+                browserInitialSetting,
+                this.vcfDataService);
+        } else {
+            this.viewport = new Viewport(scrollPanel,
+                {brush, chromosomeSize: this.chromosome.size, blatRegion, blastRegion},
+                this.dispatcher,
+                this.projectContext,
+                viewportPxMargin,
+                browserInitialSetting,
+                this.vcfDataService);
+        }
 
         if (this.brushStart && this.brushEnd) {
             this.viewport.transform({end: this.brushEnd, start: this.brushStart});
@@ -198,6 +215,8 @@ export default class ngbTracksViewController extends baseController {
         this.zoomManager = new ngbTracksViewZoomManager(this.viewport);
 
         const reference = this.projectContext.reference;
+
+        this.tracks = tracks;
 
         this.bookmarkCamera =
             new ngbTracksViewCameraManager(
@@ -264,11 +283,11 @@ export default class ngbTracksViewController extends baseController {
         this.projectContext.submitTracksStates();
     }
 
-    async manageTracks() {
+    manageTracks() {
         const oldTracks = this.tracks && this.tracks.length ? this.tracks.reduce((acc, track) => ({
-                ...acc,
-                [this.trackHash(track)]: track
-            })) : [];
+            ...acc,
+            [this.trackHash(track)]: track
+        })) : [];
         this.tracks = (this.projectContext.getActiveTracks())
         //adding old props to new data
             .map(track => ({
@@ -292,6 +311,12 @@ export default class ngbTracksViewController extends baseController {
     setBlatRegion() {
         if (this.renderable) {
             this.viewport.blatRegion = this.projectContext.blatRegion;
+        }
+    }
+
+    setBlastRegion() {
+        if (this.renderable) {
+            this.viewport.blastRegion = this.projectContext.blastRegion;
         }
     }
 

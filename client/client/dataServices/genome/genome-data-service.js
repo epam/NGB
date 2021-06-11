@@ -26,31 +26,39 @@ export class GenomeDataService extends DataService {
             const promises = [];
             for (let i = 0; i < reference.length; i++) {
                 const promise = new Promise((resolve, reject) => {
-                    this.post('reference/track/get', reference[i]).then((data)=> {
-                        if (data) {
-                            resolve(data);
-                        } else {
-                            const code = 'Genome Data Service', message = 'Genome Data Service: error loading reference track';
-                            reject({code, message});
-                        }
-                    });
+                    this.post('reference/track/get', reference[i])
+                        .then((data)=> {
+                            if (data) {
+                                resolve(data);
+                            } else {
+                                const code = 'Genome Data Service', message = 'Genome Data Service: error loading reference track';
+                                reject({code, message});
+                            }
+                        })
+                        .catch(error => reject({message: error.message, code: 'Genome Data Service'}));
                 });
                 promises.push(promise);
             }
             return new Promise((resolve) => {
-                Promise.all(promises).then(values => {
-                    let data = null;
-                    for (let i = 0; i < values.length; i++) {
-                        if (!data) {
-                            data = values[i];
-                        } else {
-                            for (let j = 0; j < values[i].blocks.length; j++) {
-                                data.blocks.push(values[i].blocks[j]);
+                Promise.all(promises)
+                    .then(values => {
+                        let data = null;
+                        for (let i = 0; i < values.length; i++) {
+                            if (!data) {
+                                data = values[i];
+                            } else {
+                                for (let j = 0; j < values[i].blocks.length; j++) {
+                                    data.blocks.push(values[i].blocks[j]);
+                                }
                             }
                         }
-                    }
-                    resolve(data);
-                });
+                        resolve(data);
+                    })
+                    .catch((e) => {
+                        // eslint-disable-next-line
+                        console.warn(e);
+                        resolve([]);
+                    });
             });
         }
         return new Promise((resolve, reject) => {
