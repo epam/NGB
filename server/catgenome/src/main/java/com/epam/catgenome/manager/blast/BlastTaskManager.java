@@ -31,15 +31,11 @@ import com.epam.catgenome.entity.blast.BlastDatabase;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.BlastTaskOrganism;
 import com.epam.catgenome.entity.blast.TaskParameter;
-import com.epam.catgenome.entity.blast.TaskStatus;
+import com.epam.catgenome.entity.blast.BlastTaskStatus;
 import com.epam.catgenome.entity.blast.result.BlastSequence;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.manager.AuthManager;
-import com.epam.catgenome.manager.blast.dto.BlastRequest;
-import com.epam.catgenome.manager.blast.dto.BlastRequestInfo;
-import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
-import com.epam.catgenome.manager.blast.dto.Entry;
-import com.epam.catgenome.manager.blast.dto.TaskPage;
+import com.epam.catgenome.manager.blast.dto.*;
 import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
 import com.epam.catgenome.util.db.SortInfo;
@@ -137,7 +133,7 @@ public class BlastTaskManager {
     public void deleteTask(final long taskId) {
         BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
         Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
-        Assert.isTrue(!TaskStatus.RUNNING.equals(blastTask.getStatus()),
+        Assert.isTrue(!BlastTaskStatus.RUNNING.equals(blastTask.getStatus()),
                 MessageHelper.getMessage(MessagesConstants.ERROR_TASK_CAN_NOT_BE_DELETED, taskId));
         blastTaskDao.deleteOrganisms(taskId);
         blastTaskDao.deleteExclOrganisms(taskId);
@@ -149,7 +145,7 @@ public class BlastTaskManager {
     public void deleteTasks() {
         QueryParameters params = new QueryParameters();
         List<Filter> getFilters = new ArrayList<>();
-        getFilters.add(new Filter("status", "<>", String.valueOf(TaskStatus.RUNNING.getId())));
+        getFilters.add(new Filter("status", "<>", String.valueOf(BlastTaskStatus.RUNNING.getId())));
         getFilters.add(new Filter("owner", "=", "'" + authManager.getAuthorizedUser() + "'"));
         params.setFilters(getFilters);
         List<Long> taskIdsList = blastTaskDao.loadAllTasks(params).stream().map(BlastTask::getId)
@@ -199,10 +195,27 @@ public class BlastTaskManager {
     public void cancelTask(final long id) throws BlastRequestException {
         BlastTask blastTask = blastTaskDao.loadTaskById(id);
         Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, id));
-        BlastRequestInfo blastRequestInfo = blastRequestManager.cancelTask(id);
-        if (blastRequestInfo.getStatus().equals(TaskStatus.CANCELED.name())) {
-            blastTask.setStatus(TaskStatus.CANCELED);
+        Result<BlastRequestInfo> result = blastRequestManager.cancelTask(id);
+        BlastTaskStatus status = getStatus(result);
+        if (status != null && !blastTask.getStatus().equals(status)) {
+            blastTask.setStatus(status);
             blastTaskDao.updateTask(blastTask);
+        }
+    }
+
+    private BlastTaskStatus getStatus(final Result<BlastRequestInfo> result) {
+        if ("ERROR".equals(result.getStatus())) {
+            String message = result.getMessage();
+            BlastTaskStatus status = null;
+            for (BlastTaskStatus taskStatus: BlastTaskStatus.values()) {
+                if (message.contains(taskStatus.name())) {
+                    status = taskStatus;
+                    break;
+                }
+            }
+            return status;
+        } else {
+            return BlastTaskStatus.CANCELED;
         }
     }
 
@@ -247,7 +260,7 @@ public class BlastTaskManager {
         blastTask.setAlgorithm(taskVO.getAlgorithm());
         blastTask.setParameters(taskVO.getParameters());
         blastTask.setOptions(taskVO.getOptions());
-        blastTask.setStatus(TaskStatus.valueOf(blastRequestInfo.getStatus()));
+        blastTask.setStatus(BlastTaskStatus.valueOf(blastRequestInfo.getStatus()));
         blastTask.setCreatedDate(LocalDateTime.parse(blastRequestInfo.getCreatedDate(),
                 DateTimeFormatter.ofPattern(DATE_TIME_FORMAT)));
         blastTask.setOwner(authManager.getAuthorizedUser());

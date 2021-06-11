@@ -26,7 +26,7 @@ package com.epam.catgenome.entity.blast;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum TaskStatus {
+public enum BlastTaskStatus {
     CREATED(1, false),
     SUBMITTED(2, false),
     RUNNING(3, false),
@@ -36,7 +36,7 @@ public enum TaskStatus {
 
     private long id;
     private boolean finalStatus;
-    private static Map<Long, TaskStatus> idMap = new HashMap<>((int) CREATED.getId());
+    private static Map<Long, BlastTaskStatus> idMap = new HashMap<>((int) CREATED.getId());
 
     static {
         idMap.put(CREATED.id, CREATED);
@@ -47,7 +47,7 @@ public enum TaskStatus {
         idMap.put(DONE.id, DONE);
     }
 
-    TaskStatus(long id, boolean finalStatus) {
+    BlastTaskStatus(long id, boolean finalStatus) {
         this.id = id;
         this.finalStatus = finalStatus;
     }
@@ -60,7 +60,7 @@ public enum TaskStatus {
         return finalStatus;
     }
 
-    public static TaskStatus getById(Long id) {
+    public static BlastTaskStatus getById(Long id) {
         if (id == null) {
             return null;
         }

@@ -47,7 +47,7 @@ import java.util.List;
 @RestController
 @Api(value = "blast-database", description = "BLAST Databases Management")
 @RequiredArgsConstructor
-public class BlastDataBaseController extends AbstractRESTController {
+public class BlastDatabaseController extends AbstractRESTController {
 
     private final BlastDatabaseSecurityService blastDatabaseSecurityService;
 
