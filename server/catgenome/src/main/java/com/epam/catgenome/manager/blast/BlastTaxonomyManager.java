@@ -76,10 +76,8 @@ public class BlastTaxonomyManager {
     @Value("${taxonomy.index.directory}")
     private String taxonomyIndexDirectory;
 
-    @Value("${taxonomy.filename}")
-    private String taxonomyFilename;
-
-    public List<BlastTaxonomy> searchOrganisms(final String term) throws IOException, ParseException {
+    public List<BlastTaxonomy> searchOrganisms(final String term, final String taxonomyIndexDirectory)
+            throws IOException, ParseException {
         StandardAnalyzer analyzer = new StandardAnalyzer();
         String[] fields = new String[] {TaxonomyIndexFields.COMMON_NAME.getFieldName(),
                 TaxonomyIndexFields.SCIENTIFIC_NAME.getFieldName(),
@@ -102,7 +100,8 @@ public class BlastTaxonomyManager {
         return organisms;
     }
 
-    public BlastTaxonomy searchOrganismById(final long taxId) throws IOException, ParseException {
+    public BlastTaxonomy searchOrganismById(final long taxId, final String taxonomyIndexDirectory)
+            throws IOException, ParseException {
         StandardAnalyzer analyzer = new StandardAnalyzer();
         Query query = new QueryParser(TaxonomyIndexFields.TAX_ID.getFieldName(), analyzer)
                 .parse(String.valueOf(taxId));
@@ -143,8 +142,9 @@ public class BlastTaxonomyManager {
         return Long.parseLong(doc.getField(TaxonomyIndexFields.TAX_ID.getFieldName()).stringValue());
     }
 
-    public void writeLuceneTaxonomyIndex() throws IOException, ParseException {
-        List<BlastTaxonomy> organisms = readTaxonomy();
+    public void writeLuceneTaxonomyIndex(final String filename, final String taxonomyIndexDirectory)
+            throws IOException, ParseException {
+        List<BlastTaxonomy> organisms = readTaxonomy(filename);
         StandardAnalyzer analyzer = new StandardAnalyzer();
         try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
              IndexWriter writer = new IndexWriter(index,
@@ -180,10 +180,10 @@ public class BlastTaxonomyManager {
         }
     }
 
-    public List<BlastTaxonomy> readTaxonomy() {
+    public List<BlastTaxonomy> readTaxonomy(final String filename) {
         List<BlastTaxonomy> organisms = new ArrayList<>();
         List<TaxonomyRecord> taxonomyRecords = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(taxonomyFilename))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
             String line;
             long taxId;
             while ((line = reader.readLine()) != null) {

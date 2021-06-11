@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.blast;
 import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -40,19 +41,22 @@ public class BlastTaxonomySecurityService {
     @Autowired
     private BlastTaxonomyManager blastTaxonomyManager;
 
+    @Value("${taxonomy.index.directory}")
+    private String taxonomyIndexDirectory;
+
     @PreAuthorize(ROLE_USER)
     public List<BlastTaxonomy> searchOrganisms(final String term)
             throws IOException, ParseException {
-        return blastTaxonomyManager.searchOrganisms(term);
+        return blastTaxonomyManager.searchOrganisms(term, taxonomyIndexDirectory);
     }
 
     @PreAuthorize(ROLE_USER)
     public BlastTaxonomy searchOrganismById(final long taxId) throws IOException, ParseException {
-        return blastTaxonomyManager.searchOrganismById(taxId);
+        return blastTaxonomyManager.searchOrganismById(taxId, taxonomyIndexDirectory);
     }
 
     @PreAuthorize(ROLE_USER)
-    public void writeLuceneTaxonomyIndex() throws IOException, ParseException {
-        blastTaxonomyManager.writeLuceneTaxonomyIndex();
+    public void writeLuceneTaxonomyIndex(final String filename) throws IOException, ParseException {
+        blastTaxonomyManager.writeLuceneTaxonomyIndex(filename, taxonomyIndexDirectory);
     }
 }
