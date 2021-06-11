@@ -79,7 +79,6 @@ public class BlastRequestManager {
     public Result<BlastRequestInfo> cancelTask(final long id) throws BlastRequestException {
         try {
             Result<BlastRequestInfo> result = QueryUtils.execute(blastApi.cancelTask(id));
-            Assert.isTrue(!result.getStatus().equals("ERROR"), result.getMessage());
             return result;
         } catch (BlastResponseException e) {
             throw new BlastRequestException(MessageHelper.getMessage(MessagesConstants
