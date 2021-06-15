@@ -70,6 +70,9 @@
                     <md-item-template>
                         <span md-highlight-text="$ctrl.searchText">{{item.scientificname}} (taxid: {{item.taxid}})</span>
                     </md-item-template>
+                    <md-not-found>
+                        No organisms found.
+                    </md-not-found>
                 </md-autocomplete>
                 <md-chip-template>
                         <span>

@@ -79,6 +79,7 @@ $ngb-color-blue: #4285F4;
 .blast-organisms-livesearch {
   display: flex;
   flex-direction: row;
+  flex-flow: wrap;
   width: 100%;
   .md-chips {
     padding: 0 0 1px 3px;
@@ -129,7 +130,7 @@ $ngb-color-blue: #4285F4;
   }
   md-checkbox {
     text-align: right;
-    margin: 0 0 0 5px;
+    margin: 10px 0 10px 5px;
     .md-label {
       top: 50%;
       transform: translateY(-50%);
