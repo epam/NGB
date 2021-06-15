@@ -13,6 +13,7 @@ import angularAnimate from 'angular-animate';
 import angularAria from 'angular-aria';
 import angularMaterial from './compat/angularMaterial';
 import angularMaterialIcons from 'angular-material-icons';
+import angularMessages from 'angular-messages';
 import angularNvd3 from 'angular-nvd3';
 import angularUiRouter from 'angular-ui-router';
 
@@ -47,6 +48,7 @@ export default angular.module('NGB', [
     angularMaterialIcons,
     angularNvd3,
     angularUiRouter,
+    angularMessages,
 
     appConstants,
     appServices,
