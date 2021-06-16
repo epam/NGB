@@ -212,10 +212,6 @@ export default class InteractiveTrack extends Track {
         return true;
     }
 
-    onMouseOut() {
-
-    }
-
     onClick() {
         this.tooltip.hide();
     }

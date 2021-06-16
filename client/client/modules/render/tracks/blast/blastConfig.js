@@ -23,7 +23,9 @@ export default {
         width: 13
     },
     sequence: {
+        collapsedColor: 0x273F70,
         detailsThreshold: 0.5,
+        markersThresholdWidth: 2,
         height: 15,
         margin: 5,
         color: 0xCCD8DD,
@@ -36,7 +38,7 @@ export default {
         },
         notAligned: {
             color: 0xFF0000,
-            width: 20,
+            width: 10,
             margin: 5,
             label: {
                 fill: 0xFF0000,

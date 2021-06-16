@@ -132,7 +132,8 @@ export class BLASTTrack extends CachedTrack {
                 mismatch,
                 queryStart,
                 queryEnd,
-                queryLength
+                queryLength,
+                queryCoverageSubject
             } = blastAlignment.alignment;
             const notDefined = o => o === undefined;
             if (!notDefined(bitScore) && !notDefined(length)) {
@@ -150,6 +151,12 @@ export class BLASTTrack extends CachedTrack {
                     `${numIdentity}/${length} (${percent(numIdentity / length)})`
                 ]);
             }
+            if (!notDefined(queryCoverageSubject)) {
+                info.push([
+                    'Coverage',
+                    `${queryCoverageSubject}%`
+                ]);
+            }
             if (!notDefined(gaps) && !notDefined(length)) {
                 info.push([
                     'Gaps',
@@ -160,30 +167,16 @@ export class BLASTTrack extends CachedTrack {
                 info.push(['Mismatches', `${mismatch}`]);
             }
             if (!notDefined(queryStart) && queryStart > 1) {
-                if (queryStart > 2) {
-                    info.push([
-                        'Unaligned region 5\'',
-                        `(1..${queryStart - 1}) ${queryStart - 1}`
-                    ]);
-                } else {
-                    info.push([
-                        'Unaligned region 5\'',
-                        `(1) ${queryStart - 1}`
-                    ]);
-                }
+                info.push([
+                    'Unaligned 5\'',
+                    `(1..${queryStart - 1}) ${queryStart - 1}`
+                ]);
             }
             if (!notDefined(queryEnd) && queryEnd < queryLength) {
-                if (queryEnd < queryLength - 1) {
-                    info.push([
-                        'Unaligned region 3\'',
-                        `(${queryEnd + 1}..${queryLength}) ${queryLength - queryEnd}`
-                    ]);
-                } else {
-                    info.push([
-                        'Unaligned region 3\'',
-                        `(${queryLength}) 1`
-                    ]);
-                }
+                info.push([
+                    'Unaligned 3\'',
+                    `(${queryEnd + 1}..${queryLength}) ${queryLength - queryEnd}`
+                ]);
             }
         }
         return info;

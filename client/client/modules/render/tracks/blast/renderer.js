@@ -232,6 +232,8 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
                 } else {
                     startPx -= this.config.strandMarker.width;
                 }
+                startPx -= this.config.sequence.margin;
+                endPx += this.config.sequence.margin;
                 const size = endPx - startPx;
                 const intersections = levels.filter(level => {
                     const {
@@ -241,7 +243,7 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
                     const levelSize = levelEnd - levelStart;
                     const s = Math.min(levelStart, startPx);
                     const e = Math.max(levelEnd, endPx);
-                    return (e - s) < levelSize + size + this.config.sequence.margin;
+                    return (e - s) < levelSize + size;
                 });
                 const minimumLevel = Math.min(
                     ...intersections.map(intersection => intersection.level),
@@ -542,9 +544,13 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
         const startPx = viewport.project.brushBP2pixel(start);
         const width = viewport.project.brushBP2pixel(end) - startPx;
         const bpWidth = viewport.factor;
-        const baseColor = this.config.colors && this.config.colors.base
+        let baseColor = this.config.colors && this.config.colors.base
             ? this.config.colors.base
             : this.config.sequence.color;
+        const renderMarkers = this.config.sequence.markersThresholdWidth < width;
+        if (!renderMarkers && this.config.sequence.collapsedColor) {
+            baseColor = this.config.sequence.collapsedColor;
+        }
         const minimum = -viewport.canvasSize;
         const maximum = 2 * viewport.canvasSize;
         return {
@@ -557,7 +563,7 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
             baseColor,
             start,
             startPx,
-            width,
+            width: Math.max(width, 1),
             queryStart,
             queryEnd,
             btop,
@@ -565,7 +571,8 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
             sequenceEnd,
             queryLength,
             sequenceStrandView,
-            positiveStrand
+            positiveStrand,
+            renderMarkers
         };
     }
 
@@ -583,18 +590,21 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
             queryEnd,
             btop,
             queryLength,
-            positiveStrand
+            positiveStrand,
+            renderMarkers
         } = options;
         const graphics = new PIXI.Graphics();
         this.dataContainer.addChild(graphics);
-        this.renderStrandMarker(
-            graphics,
-            positiveStrand
-                ? (startPx + width + bpWidth / 2.0)
-                : (startPx - bpWidth / 2.0),
-            positiveStrand ? 1 : -1,
-            options
-        );
+        if (renderMarkers) {
+            this.renderStrandMarker(
+                graphics,
+                positiveStrand
+                    ? (startPx + width + bpWidth / 2.0)
+                    : (startPx - bpWidth / 2.0),
+                positiveStrand ? 1 : -1,
+                options
+            );
+        }
         if (bpWidth < this.config.sequence.detailsThreshold || isProtein) {
             this.renderMatch(graphics, startPx, startPx + width, options);
         } else {
@@ -625,20 +635,22 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
                 relativePosition += (part.length || 0);
             }
         }
-        this.renderNotAlignedMarker(
-            graphics,
-            queryStart - 1,
-            startPx - bpWidth / 2.0,
-            -1,
-            options
-        );
-        this.renderNotAlignedMarker(
-            graphics,
-            queryLength - queryEnd,
-            startPx + width + bpWidth / 2.0,
-            1,
-            options
-        );
+        if (renderMarkers) {
+            this.renderNotAlignedMarker(
+                graphics,
+                queryStart - 1,
+                startPx - bpWidth / 2.0,
+                -1,
+                options
+            );
+            this.renderNotAlignedMarker(
+                graphics,
+                queryLength - queryEnd,
+                startPx + width + bpWidth / 2.0,
+                1,
+                options
+            );
+        }
         return true;
     }
 
@@ -653,18 +665,21 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
             startPx,
             width,
             btop,
-            positiveStrand
+            positiveStrand,
+            renderMarkers
         } = options;
         options.highlighted = true;
         this._hoveringGraphics.clear();
-        this.renderStrandMarker(
-            this._hoveringGraphics,
-            positiveStrand
-                ? (startPx + width + bpWidth / 2.0)
-                : (startPx - bpWidth / 2.0),
-            positiveStrand ? 1 : -1,
-            options
-        );
+        if (renderMarkers) {
+            this.renderStrandMarker(
+                this._hoveringGraphics,
+                positiveStrand
+                    ? (startPx + width + bpWidth / 2.0)
+                    : (startPx - bpWidth / 2.0),
+                positiveStrand ? 1 : -1,
+                options
+            );
+        }
         if (bpWidth < this.config.sequence.detailsThreshold || isProtein) {
             this.renderMatch(this._hoveringGraphics, startPx, startPx + width, options);
         } else {
