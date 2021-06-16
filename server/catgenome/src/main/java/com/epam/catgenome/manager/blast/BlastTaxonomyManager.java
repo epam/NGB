@@ -56,8 +56,9 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.join;
@@ -78,32 +79,36 @@ public class BlastTaxonomyManager {
 
     public List<BlastTaxonomy> searchOrganisms(final String term, final String taxonomyIndexDirectory)
             throws IOException, ParseException {
-        StandardAnalyzer analyzer = new StandardAnalyzer();
-        String[] fields = new String[] {TaxonomyIndexFields.COMMON_NAME.getFieldName(),
+        final StandardAnalyzer analyzer = new StandardAnalyzer();
+        final String[] fields = new String[] {
+                TaxonomyIndexFields.COMMON_NAME.getFieldName(),
                 TaxonomyIndexFields.SCIENTIFIC_NAME.getFieldName(),
                 TaxonomyIndexFields.SYNONYMS.getFieldName()
         };
-        Query query = new MultiFieldQueryParser(fields, analyzer).parse(term);
-        List<BlastTaxonomy> organisms = new ArrayList<>();
+        final Query query = new MultiFieldQueryParser(fields, analyzer).parse(term);
+        final List<BlastTaxonomy> organisms = new ArrayList<>();
         try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
-            IndexSearcher searcher = new IndexSearcher(indexReader);
-            TopDocs topDocs = searcher.search(query, TOP_HITS);
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document doc = searcher.doc(scoreDoc.doc);
-                organisms.add(new BlastTaxonomy(getTaxId(doc),
-                        getScientificName(doc),
-                        getCommonName(doc),
-                        getSynonyms(doc)));
-            }
+             IndexSearcher searcher = new IndexSearcher(indexReader);
+             TopDocs topDocs = searcher.search(query, TOP_HITS);
+             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                 Document doc = searcher.doc(scoreDoc.doc);
+                 organisms.add(
+                         BlastTaxonomy.builder().taxId(getTaxId(doc))
+                             .scientificName(getScientificName(doc))
+                             .commonName(getCommonName(doc))
+                             .synonyms(getSynonyms(doc))
+                             .build()
+                 );
+             }
         }
         return organisms;
     }
 
     public BlastTaxonomy searchOrganismById(final long taxId, final String taxonomyIndexDirectory)
             throws IOException, ParseException {
-        StandardAnalyzer analyzer = new StandardAnalyzer();
-        Query query = new QueryParser(TaxonomyIndexFields.TAX_ID.getFieldName(), analyzer)
+        final StandardAnalyzer analyzer = new StandardAnalyzer();
+        final Query query = new QueryParser(TaxonomyIndexFields.TAX_ID.getFieldName(), analyzer)
                 .parse(String.valueOf(taxId));
         BlastTaxonomy blastTaxonomy;
         try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
@@ -112,10 +117,12 @@ public class BlastTaxonomyManager {
             TopDocs topDocs = searcher.search(query, 1);
             ScoreDoc scoreDoc = topDocs.scoreDocs.length > 0 ? topDocs.scoreDocs[0] : null;
             Document doc = scoreDoc != null ? searcher.doc(scoreDoc.doc) : null;
-            blastTaxonomy = doc == null ? null : new BlastTaxonomy(getTaxId(doc),
-                    getCommonName(doc),
-                    getScientificName(doc),
-                    getSynonyms(doc));
+            blastTaxonomy = doc == null ? null
+                    :  BlastTaxonomy.builder().taxId(getTaxId(doc))
+                            .scientificName(getScientificName(doc))
+                            .commonName(getCommonName(doc))
+                            .synonyms(getSynonyms(doc))
+                            .build();
         }
         return blastTaxonomy;
     }
@@ -144,14 +151,12 @@ public class BlastTaxonomyManager {
 
     public void writeLuceneTaxonomyIndex(final String filename, final String taxonomyIndexDirectory)
             throws IOException, ParseException {
-        List<BlastTaxonomy> organisms = readTaxonomy(filename);
-        StandardAnalyzer analyzer = new StandardAnalyzer();
         try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
-             IndexWriter writer = new IndexWriter(index,
-                     new IndexWriterConfig(analyzer).setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
+             final IndexWriter writer = new IndexWriter(index,
+                     new IndexWriterConfig(new StandardAnalyzer()).setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND))) {
             writer.deleteAll();
-            for (BlastTaxonomy o : organisms) {
-                addDoc(writer, o);
+            for (BlastTaxonomy taxonomyEntry: readTaxonomy(filename)) {
+                addDoc(writer, taxonomyEntry);
             }
         }
     }
@@ -181,57 +186,52 @@ public class BlastTaxonomyManager {
     }
 
     public List<BlastTaxonomy> readTaxonomy(final String filename) {
-        List<BlastTaxonomy> organisms = new ArrayList<>();
-        List<TaxonomyRecord> taxonomyRecords = new ArrayList<>();
+        return readTaxonomyLines(filename).stream().collect(Collectors.groupingBy(TaxonomyRecord::getTaxId))
+                .entrySet().stream()
+                .map(entry -> processTaxonomyId(entry.getKey(), entry.getValue()))
+                .filter(Objects::nonNull)
+                .filter(this::taxonomyIdIsComplete)
+                .collect(Collectors.toList());
+    }
+
+    private boolean taxonomyIdIsComplete(final BlastTaxonomy blastTaxonomy) {
+        return (blastTaxonomy.getCommonName() != null || blastTaxonomy.getScientificName() != null);
+    }
+
+    private BlastTaxonomy processTaxonomyId(final Long taxId, final List<TaxonomyRecord> records) {
+        final List<String> synonyms = new ArrayList<>();
+        final BlastTaxonomy.BlastTaxonomyBuilder blastTaxonomy = BlastTaxonomy.builder()
+                .taxId(taxId).synonyms(synonyms);
+        boolean hasAuthority = false;
+        for (final TaxonomyRecord record : records) {
+            final String name = record.line.split(TAXONOMY_DELIMITER)[1].trim();
+            if (record.line.contains(COMMON_NAME)) {
+                blastTaxonomy.commonName(name);
+            } else if (record.line.contains(SCIENTIFIC_NAME)) {
+                blastTaxonomy.scientificName(name);
+            } else if (record.line.contains(AUTHORITY)) {
+                hasAuthority = true;
+                synonyms.add(name);
+            } else if (!excludeLine(record.line)) {
+                synonyms.add(name);
+            }
+        }
+        return hasAuthority ? blastTaxonomy.build() : null;
+    }
+
+    private List<TaxonomyRecord> readTaxonomyLines(final String filename) {
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
-            String line;
-            long taxId;
-            while ((line = reader.readLine()) != null) {
-                String[] fields = line.split(TAXONOMY_DELIMITER);
-                taxId = Long.parseLong(fields[0].trim());
-                taxonomyRecords.add(new TaxonomyRecord(taxId, line));
-            }
-        }
-        catch (IOException|NumberFormatException e) {
+            return reader.lines()
+                    .map(tl -> new TaxonomyRecord(Long.parseLong(tl.split(TAXONOMY_DELIMITER)[0].trim()), tl))
+                    .collect(Collectors.toList());
+        } catch (IOException | NumberFormatException e) {
             log.error(e.getMessage());
+            return Collections.emptyList();
         }
-        Map<Long, List<TaxonomyRecord>> taxMap = taxonomyRecords
-                .stream()
-                .collect(Collectors.groupingBy(TaxonomyRecord::getTaxId));
-        long taxId;
-        String name;
-        String commonName = null;
-        String scientificName = null;
-        String authority = null;
-        for (Map.Entry<Long, List<TaxonomyRecord>> entry : taxMap.entrySet()) {
-            List<String> synonyms = new ArrayList<>();
-            taxId = entry.getKey();
-            List<String> lines = entry.getValue().stream().map(TaxonomyRecord::getLine).collect(Collectors.toList());
-            for (String line: lines) {
-                name = line.split(TAXONOMY_DELIMITER)[1].trim();
-                if (commonName == null && line.contains(COMMON_NAME)) {
-                    commonName = name;
-                } else if (scientificName == null && line.contains(SCIENTIFIC_NAME)) {
-                    scientificName = name;
-                } else if (line.contains(AUTHORITY)) {
-                    authority = name;
-                    synonyms.add(name);
-                } else if (!excludeLine(line)) {
-                    synonyms.add(name);
-                }
-            }
-            if (authority != null && (commonName != null || scientificName != null)) {
-                organisms.add(new BlastTaxonomy(taxId, commonName, scientificName, synonyms));
-            }
-            commonName = null;
-            scientificName = null;
-            authority = null;
-        }
-        return organisms;
     }
 
     private static void addDoc(final IndexWriter w, final BlastTaxonomy taxonomy) throws IOException {
-        Document doc = new Document();
+        final Document doc = new Document();
         doc.add(new StringField(TaxonomyIndexFields.TAX_ID.getFieldName(),
                 String.valueOf(taxonomy.getTaxId()), Field.Store.YES));
         if (taxonomy.getCommonName() != null) {

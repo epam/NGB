@@ -23,18 +23,16 @@
  */
 package com.epam.catgenome.manager.blast.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Builder;
+import lombok.Value;
 
 import java.util.List;
 
-@Getter
-@Setter
-@AllArgsConstructor
+@Value
+@Builder
 public class BlastTaxonomy {
-    private Long taxId;
-    private String commonName;
-    private String scientificName;
-    private List<String> synonyms;
+    Long taxId;
+    String commonName;
+    String scientificName;
+    List<String> synonyms;
 }

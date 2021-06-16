@@ -4,7 +4,6 @@ import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
 import junit.framework.TestCase;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,25 +39,30 @@ public class BlastTaxonomyManagerTest extends TestCase {
     }
 
     @Test
-    @Ignore
     public void searchOrganismsTest() throws IOException, ParseException {
         List<BlastTaxonomy> organisms =  blastTaxonomyManager.searchOrganisms("Azorhizobium", indexDirectory);
         assertNotNull(organisms);
-        assertEquals(organisms.size(), 2);
+        assertEquals(2, organisms.size());
     }
 
     @Test
-    @Ignore
+    public void searchOrganismsAfterReIndexingTest() throws IOException, ParseException {
+        blastTaxonomyManager.writeLuceneTaxonomyIndex(fileName, indexDirectory);
+        List<BlastTaxonomy> organisms =  blastTaxonomyManager.searchOrganisms("Azorhizobium", indexDirectory);
+        assertNotNull(organisms);
+        assertEquals(2, organisms.size());
+    }
+
+    @Test
     public void searchOrganismsByIdTest() throws IOException, ParseException {
-        BlastTaxonomy organism =  blastTaxonomyManager.searchOrganismById(6L, indexDirectory);
+        BlastTaxonomy organism = blastTaxonomyManager.searchOrganismById(6L, indexDirectory);
         assertNotNull(organism);
     }
 
     @Test
-    @Ignore
     public void readTaxonomyTest() {
         List<BlastTaxonomy> organisms =  blastTaxonomyManager.readTaxonomy(fileName);
         assertNotNull(organisms);
-        assertEquals(organisms.size(), ORGANISMS_COUNT);
+        assertEquals(ORGANISMS_COUNT, organisms.size());
     }
 }
