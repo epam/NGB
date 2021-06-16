@@ -512,6 +512,7 @@ public class ProjectManager implements SecuredEntityManager {
         return project;
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public InputStream loadProjectDescription(final Long projectId) {
         load(projectId);
         return projectDao.loadProjectDescription(projectId);
