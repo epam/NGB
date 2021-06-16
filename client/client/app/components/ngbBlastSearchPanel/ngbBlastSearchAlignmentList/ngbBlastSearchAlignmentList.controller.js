@@ -21,6 +21,8 @@ export default class ngbBlastSearchAlignmentList {
     initialize() {
         this.searchResult = this.ngbBlastSearchService.popCurrentAlignmentObject();
         this.search = this.ngbBlastSearchService.cutCurrentResult;
+        // Todo: this is workaround for alignment rendering optimization.
+        // We should check this and refactor
         this.$timeout(() => {
             this.windowElm.resize();
             this.$timeout(() => {
