@@ -35,8 +35,10 @@ import com.epam.catgenome.security.acl.aspect.AclFilterAndTree;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import static com.epam.catgenome.security.acl.SecurityExpressions.*;
@@ -108,5 +110,20 @@ public class ProjectSecurityService {
     @PreAuthorize(ROLE_ADMIN + OR + "projectCanBeDeleted(#projectId, #force)")
     public Project deleteProject(long projectId, Boolean force) throws IOException {
         return projectManager.deleteProject(projectId, force);
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER)
+    public Project uploadProjectDescription(final Long projectId, final MultipartFile file) throws IOException {
+        return projectManager.saveProjectDescription(projectId, file);
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER)
+    public InputStream loadProjectDescription(final Long projectId) {
+        return projectManager.loadProjectDescription(projectId);
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + ROLE_PROJECT_MANAGER)
+    public Project deleteProjectDescription(final Long projectId) {
+        return projectManager.deleteProjectDescription(projectId);
     }
 }

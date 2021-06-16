@@ -544,5 +544,27 @@
                 ]]>
             </value>
         </property>
+        <property name="saveProjectDescriptionQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.project SET
+                        description = :DESCRIPTION
+                    WHERE
+                        project_id = :PROJECT_ID
+                ]]>
+            </value>
+        </property>
+        <property name="loadProjectDescriptionQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        description
+                    FROM
+                        catgenome.project
+                    WHERE
+                        project_id = ?
+                ]]>
+            </value>
+        </property>
     </bean>
 </beans>
