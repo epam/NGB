@@ -10,6 +10,10 @@ export default class ngbBlastSearchAlignmentService {
         this.chromosomesCache = new Map();
     }
 
+    setAlignments (searchResult, search) {
+        this.blastContext.setAlignments((searchResult || {}).alignments || [], search);
+    }
+
     async fetchChromosomes (referenceId) {
         if (!this.chromosomesCache.has(+referenceId)) {
             const promise = new Promise((resolve) => {
@@ -36,10 +40,6 @@ export default class ngbBlastSearchAlignmentService {
 
     async getNavigationInfo (alignment, search) {
         if (!alignment || !search) {
-            return null;
-        }
-        const {dbType, tool} = search;
-        if (/^protein$/i.test(dbType) || !/^blastn$/i.test(tool)) {
             return null;
         }
         const {
@@ -78,7 +78,7 @@ export default class ngbBlastSearchAlignmentService {
         return !!info;
     }
 
-    async navigateToTracks (alignment, search) {
+    async navigateToTracks (alignment, searchResult, search) {
         const navigationInfo = await this.getNavigationInfo(alignment, search);
         if (navigationInfo) {
             const {
@@ -174,7 +174,7 @@ export default class ngbBlastSearchAlignmentService {
                 keepBLASTTrack: true,
                 ...tracksOptions
             }, false, () => {
-                this.blastContext.setAlignment(alignment, search);
+                this.setAlignments(searchResult, search);
             });
         }
     }

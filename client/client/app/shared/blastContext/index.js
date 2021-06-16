@@ -13,44 +13,47 @@ export default class BLASTContext {
 
     dispatcher;
 
-    _searchResults;
+    _search;
 
-    _alignment;
+    _alignments;
 
-    get searchResults () {
-        return this._searchResults;
+    get search () {
+        return this._search;
     }
 
-    get alignment () {
-        return this._alignment;
+    get alignments () {
+        return this._alignments;
     }
 
     constructor (dispatcher) {
         this.dispatcher = dispatcher;
+        this._alignments = [];
         const clear = this.clear.bind(this);
         this.dispatcher.on('reference:change', () => clear(true));
         this.dispatcher.on('chromosome:change', () => clear(true));
     }
 
-    setAlignment (alignment, searchResults) {
-        const changed = alignment !== this._alignment || searchResults !== this._searchResults;
-        if (alignment && searchResults) {
-            this._alignment = alignment;
-            this._searchResults = searchResults;
+    setAlignments (alignments, search) {
+        console.log('set alignments', alignments, search);
+        const changed = alignments !== this._alignments || search !== this._search;
+        if (alignments && search) {
+            this._alignments = alignments;
+            this._search = search;
         } else {
-            this._alignment = undefined;
-            this._searchResults = undefined;
+            this._alignments = undefined;
+            this._search = undefined;
         }
         if (changed) {
-            this.dispatcher.emitSimpleEvent(BLASTResultEvents.changed, this.alignment);
+            this.dispatcher.emitSimpleEvent(BLASTResultEvents.changed, this.alignments);
         }
     }
 
     clear (silent = false) {
-        this._alignment = undefined;
-        this._searchResults = undefined;
+        console.log('clear alignments');
+        this._alignments = [];
+        this._search = undefined;
         if (!silent) {
-            this.dispatcher.emitSimpleEvent(BLASTResultEvents.changed, undefined);
+            this.dispatcher.emitSimpleEvent(BLASTResultEvents.changed, []);
         }
     }
 }

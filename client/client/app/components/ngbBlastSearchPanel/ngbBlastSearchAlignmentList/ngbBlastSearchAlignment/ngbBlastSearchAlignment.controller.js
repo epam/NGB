@@ -40,7 +40,7 @@ export default class ngbBlastSearchAlignment {
     }
 
     navigateToTracks () {
-        this.ngbBlastSearchAlignmentService.navigateToTracks(this.alignment, this.search);
+        this.ngbBlastSearchAlignmentService.navigateToTracks(this.alignment, this.searchResult, this.search);
     }
 
     $onInit() {

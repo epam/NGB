@@ -80,6 +80,8 @@ export default class InteractiveTrack extends Track {
             });
         } else if (event.target === angular.element(this.domElement).find('canvas')[0] && !InteractiveTrack.lockMoveEvent) {
             this.onHover({x: event.offsetX, y: event.offsetY});
+        } else {
+            this.onMouseOut();
         }
         this._lastPosition = {x: event.screenX, y: event.screenY};
     }
@@ -208,6 +210,10 @@ export default class InteractiveTrack extends Track {
 
     onHover() {
         return true;
+    }
+
+    onMouseOut() {
+
     }
 
     onClick() {

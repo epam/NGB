@@ -15,8 +15,17 @@ export default {
     strandMarker: {
         width: 10,
     },
+    scroll: {
+        alpha: 0.5,
+        fill: 0x92AEE7,
+        hoveredAlpha: 1,
+        margin: 2,
+        width: 13
+    },
     sequence: {
+        detailsThreshold: 0.5,
         height: 15,
+        margin: 5,
         color: 0xCCD8DD,
         mismatch: {
             label: {
