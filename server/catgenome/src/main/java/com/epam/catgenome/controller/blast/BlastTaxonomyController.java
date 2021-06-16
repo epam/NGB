@@ -77,15 +77,15 @@ public class BlastTaxonomyController extends AbstractRESTController {
 
     @PutMapping(value = "/taxonomy/upload")
     @ApiOperation(
-            value = "Creates Taxonomy Lucene Index from Taxonomy names.dmp file",
-            notes = "Creates Taxonomy Lucene Index from Taxonomy names.dmp file",
+            value = "Creates Taxonomy Lucene Index from Taxonomy file",
+            notes = "Creates Taxonomy Lucene Index from Taxonomy file",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public Result<Boolean> uploadTaxonomyDatabase(@RequestParam final String filename)
+    public Result<Boolean> uploadTaxonomyDatabase(@RequestParam final String taxonomyFilePath)
             throws IOException, ParseException {
-        blastTaxonomySecurityService.writeLuceneTaxonomyIndex(filename);
+        blastTaxonomySecurityService.writeLuceneTaxonomyIndex(taxonomyFilePath);
         return Result.success(null);
     }
 }
