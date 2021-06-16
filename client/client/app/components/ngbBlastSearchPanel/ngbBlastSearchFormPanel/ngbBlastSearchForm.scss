@@ -1,51 +1,59 @@
 $ngb-color-blue: #4285F4;
 
-.tools{
+.tools {
   margin: 5px 0 10px;
 }
+
 .form_radio_btn {
   display: inline-block;
   margin: 0 10px 5px 0;
 }
+
 .form_radio_btn input[type=radio] {
   display: none;
 }
+
 .form_radio_btn label {
   min-height: unset;
   min-width: unset;
   line-height: 30px;
   margin: 0;
 }
+
 .blast-search-input {
   font-size: 14px;
   margin: 5px 0 10px;
-  width:100%;
+  width: 100%;
 }
+
 .blast-search-input .md-errors-spacer {
   min-height: 0;
 }
+
 .blast-sequence-area {
   position: relative;
-  display: block;
+
   textarea {
-    resize:none;
+    resize: none;
     padding-right: 25px;
     max-height: 90px;
     overflow: auto;
   }
-  .blast-sequence-clear {
-    position: absolute;
-    bottom: 5px;
-    right: 10px;
-    fill: $ngb-color-blue;
-    cursor: pointer;
-  }
-
 }
+
+.blast-sequence-clear {
+  position: absolute;
+  top: 0;
+  right: 10px;
+  fill: $ngb-color-blue;
+  cursor: pointer;
+}
+
 .blast-search-info {
   display: flex;
   flex-direction: row;
   width: 100%;
+
   .blast-search-info-icon {
     fill: $ngb-color-blue;
     align-self: center;
@@ -54,37 +62,45 @@ $ngb-color-blue: #4285F4;
     cursor: pointer;
   }
 }
+
 .blast-algorithm {
-  margin-top:15px;
+  margin-top: 15px;
 }
+
 .radio-search-set {
   padding: 10px 15px;
   background-color: #f7f4f4;
-  width:100%;
+  width: 100%;
+
   md-radio-group {
-      display:flex;
-      flex-direction: column;
+    display: flex;
+    flex-direction: column;
   }
 }
+
 .blast-form-alert {
-  width:100%;
+  width: 100%;
   color: #da2c2c;
   font-size: 10px;
   margin: 0 0 10px;
   text-align: left;
   display: block;
 }
-.search-button{
+
+.search-button {
   margin-left: 0;
 }
+
 .blast-form-db-container {
   margin-top: 10px;
 }
+
 .blast-organisms-livesearch {
   display: flex;
   flex-direction: row;
   flex-flow: wrap;
   width: 100%;
+
   .md-chips {
     padding: 0 0 1px 3px;
     margin: 0;
@@ -92,17 +108,21 @@ $ngb-color-blue: #4285F4;
     flex-wrap: wrap;
     flex-grow: 1;
   }
+
   .md-chips .md-chip-input-container md-autocomplete, .md-chips .md-chip-input-container md-autocomplete-wrap {
     height: 27px;
   }
+
   .md-chips .md-chip-input-container {
     flex-grow: 1;
+
     input {
       font-size: 14px;
       height: 27px;
       line-height: 27px;
     }
   }
+
   .md-chips md-chip {
     height: 27px;
     line-height: 27px;
@@ -118,6 +138,7 @@ $ngb-color-blue: #4285F4;
       color: #fafafa;
     }
   }
+
   .md-chips md-chip .remove-organism-button {
     fill: #666;
     cursor: pointer;
@@ -127,24 +148,29 @@ $ngb-color-blue: #4285F4;
       fill: #333;
     }
   }
+
   .clear-all-chips {
     fill: $ngb-color-blue;
     cursor: pointer;
     align-self: center;
   }
+
   md-checkbox {
     text-align: right;
     margin: 10px 0 10px 5px;
+
     .md-label {
       top: 50%;
       transform: translateY(-50%);
     }
   }
 }
+
 .blast-organisms-livesearch-item li {
   height: 30px;
   line-height: 30px;
 }
+
 .blast-search-input-label {
   padding-bottom: 2px;
 }
@@ -155,9 +181,11 @@ $ngb-color-blue: #4285F4;
   align-items: center;
   justify-content: flex-end;
 }
+
 .blast-search-set {
   margin-left: 3px
 }
+
 .tooltip-header {
   font-size: 12px;
 }
