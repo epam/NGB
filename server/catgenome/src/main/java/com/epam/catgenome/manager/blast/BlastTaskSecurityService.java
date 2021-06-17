@@ -111,4 +111,5 @@ public class BlastTaskSecurityService {
     public void deleteTasks() {
         blastTaskManager.deleteTasks();
     }
+
 }

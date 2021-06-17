@@ -55,4 +55,5 @@ public class BlastTaxonomySecurityService {
     public void writeLuceneTaxonomyIndex(final String taxonomyFilePath) throws IOException, ParseException {
         blastTaxonomyManager.writeLuceneTaxonomyIndex(taxonomyFilePath);
     }
+
 }
