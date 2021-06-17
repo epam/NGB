@@ -260,6 +260,7 @@ public final class MessagesConstants {
     public static final String ERROR_TASK_CAN_NOT_BE_DELETED = "error.blast.task.cant.be.deleted";
     public static final String ERROR_BLAST_REQUEST = "error.blast.request.unexpected";
     public static final String ERROR_BLAST_ORGANISMS = "error.blast.organisms";
+    public static final String ERROR_BLAST_ORGANISMS_MAPPING = "error.blast.organisms.mapping";
     public static final String ERROR_DATABASE_NOT_FOUND = "error.blast.database.not.found";
 
     private MessagesConstants() {
