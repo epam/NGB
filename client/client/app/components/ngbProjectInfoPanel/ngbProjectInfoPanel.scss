@@ -1,7 +1,15 @@
-ngb-project-info-panel{
-
+ngb-project-info-panel {
+  .description-container {
+    width: 100%;
+    height: 100%;
+  }
 }
 
 .selected-files-summary {
   margin-top: 20px;
+}
+
+#description_file {
+  width: 100%;
+  height: 100%;
 }
