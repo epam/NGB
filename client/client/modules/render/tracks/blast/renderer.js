@@ -604,7 +604,12 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
             options
         );
         if (bpWidth < this.config.sequence.detailsThreshold || isProtein) {
-            this.renderMatch(graphics, startPx, startPx + width, options);
+            this.renderMatch(
+                graphics,
+                startPx - bpWidth / 2.0,
+                startPx + width + bpWidth / 2.0,
+                options
+            );
         } else {
             const btopParsed = parseBtop(btop);
             let relativePosition = start;
@@ -676,7 +681,12 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
             options
         );
         if (bpWidth < this.config.sequence.detailsThreshold || isProtein) {
-            this.renderMatch(this._hoveringGraphics, startPx, startPx + width, options);
+            this.renderMatch(
+                this._hoveringGraphics,
+                startPx - bpWidth / 2.0,
+                startPx + width + bpWidth / 2.0,
+                options
+            );
         } else {
             const btopParsed = parseBtop(btop);
             let relativePosition = start;
