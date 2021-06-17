@@ -595,16 +595,14 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
         } = options;
         const graphics = new PIXI.Graphics();
         this.dataContainer.addChild(graphics);
-        if (renderMarkers) {
-            this.renderStrandMarker(
-                graphics,
-                positiveStrand
-                    ? (startPx + width + bpWidth / 2.0)
-                    : (startPx - bpWidth / 2.0),
-                positiveStrand ? 1 : -1,
-                options
-            );
-        }
+        this.renderStrandMarker(
+            graphics,
+            positiveStrand
+                ? (startPx + width + bpWidth / 2.0)
+                : (startPx - bpWidth / 2.0),
+            positiveStrand ? 1 : -1,
+            options
+        );
         if (bpWidth < this.config.sequence.detailsThreshold || isProtein) {
             this.renderMatch(graphics, startPx, startPx + width, options);
         } else {
@@ -665,21 +663,18 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
             startPx,
             width,
             btop,
-            positiveStrand,
-            renderMarkers
+            positiveStrand
         } = options;
         options.highlighted = true;
         this._hoveringGraphics.clear();
-        if (renderMarkers) {
-            this.renderStrandMarker(
-                this._hoveringGraphics,
-                positiveStrand
-                    ? (startPx + width + bpWidth / 2.0)
-                    : (startPx - bpWidth / 2.0),
-                positiveStrand ? 1 : -1,
-                options
-            );
-        }
+        this.renderStrandMarker(
+            this._hoveringGraphics,
+            positiveStrand
+                ? (startPx + width + bpWidth / 2.0)
+                : (startPx - bpWidth / 2.0),
+            positiveStrand ? 1 : -1,
+            options
+        );
         if (bpWidth < this.config.sequence.detailsThreshold || isProtein) {
             this.renderMatch(this._hoveringGraphics, startPx, startPx + width, options);
         } else {
