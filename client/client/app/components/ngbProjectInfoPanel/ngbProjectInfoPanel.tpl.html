@@ -1,22 +1,31 @@
-<iframe frameborder="0" id="description_file" ng-if="$ctrl.isDescriptionFile"></iframe>
-<div ng-if="!$ctrl.isDescriptionFile">
-    <ngb-variant-density-diagram ng-show="$ctrl.containsVcfFiles"></ngb-variant-density-diagram>
-    <div class="u-column-padding u-padding_t-0" flex layout="row" ng-style="{'height' : $ctrl.containsVcfFiles ? '66%' : '100%'}">
-        <div class="selected-files-summary" flex="100" ng-hide="$ctrl.containsVcfFiles">
-            <ngb-project-summary flex></ngb-project-summary>
-        </div>
-        <div flex="50" ng-show="$ctrl.containsVcfFiles">
-            <ngb-project-summary flex></ngb-project-summary>
-        </div>
-        <div flex="50" ng-show="$ctrl.containsVcfFiles">
-            <div class="u-height__50 u-padding_b-sm" flex layout="row">
-                <div flex="100">
-                    <ngb-variant-type-diagram></ngb-variant-type-diagram>
-                </div>
+<div ng-show="$ctrl.isProgressShown">
+    <div class="progress" layout-align="center center">
+        <span>Loading description...</span>
+    </div>
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div class="description-container" ng-hide="$ctrl.isProgressShown">
+    <iframe frameborder="0" id="description_file" ng-if="$ctrl.isDescriptionFile"></iframe>
+    <div ng-if="!$ctrl.isDescriptionFile">
+        <ngb-variant-density-diagram ng-show="$ctrl.containsVcfFiles"></ngb-variant-density-diagram>
+        <div class="u-column-padding u-padding_t-0" flex layout="row"
+             ng-style="{'height' : $ctrl.containsVcfFiles ? '66%' : '100%'}">
+            <div class="selected-files-summary" flex="100" ng-hide="$ctrl.containsVcfFiles">
+                <ngb-project-summary flex></ngb-project-summary>
             </div>
-            <div class="u-height__50 u-padding_t-sm" flex layout="row">
-                <div flex="100">
-                    <ngb-variant-quality-diagram></ngb-variant-quality-diagram>
+            <div flex="50" ng-show="$ctrl.containsVcfFiles">
+                <ngb-project-summary flex></ngb-project-summary>
+            </div>
+            <div flex="50" ng-show="$ctrl.containsVcfFiles">
+                <div class="u-height__50 u-padding_b-sm" flex layout="row">
+                    <div flex="100">
+                        <ngb-variant-type-diagram></ngb-variant-type-diagram>
+                    </div>
+                </div>
+                <div class="u-height__50 u-padding_t-sm" flex layout="row">
+                    <div flex="100">
+                        <ngb-variant-quality-diagram></ngb-variant-quality-diagram>
+                    </div>
                 </div>
             </div>
         </div>

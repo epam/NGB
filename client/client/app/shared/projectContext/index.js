@@ -814,6 +814,10 @@ export default class projectContext {
         return this.refreshDatasetsPromise;
     }
 
+    loadDatasetDescription(id) {
+        return this.projectDataService.getProjectIdDescription(id);
+    }
+
     addLastLocalTrack(track) {
         if (this.lastLocalTracks.filter(t => t.name.toLowerCase() === track.name.toLowerCase()).length === 0) {
             this.lastLocalTracks.push(track);
