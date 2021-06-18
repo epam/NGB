@@ -18,7 +18,7 @@ export default class ngbBlastSearchService {
     _isFailureResults = true;
     _isEmptyResults = true;
     _cutCurrentResult = null;
-    _currentAlignmentObject = {}
+    _currentAlignmentObject = {};
 
     get totalPagesCountHistory() {
         return this._totalPagesCountHistory;
@@ -223,7 +223,6 @@ export default class ngbBlastSearchService {
             id: search.id,
             title: search.title,
             algorithm: search.algorithm,
-            organisms: search.organisms,
             db: search.database ? search.database.id : undefined,
             dbName: search.database ? search.database.name : '',
             dbSource: search.database ? search.database.source : undefined,
@@ -236,10 +235,10 @@ export default class ngbBlastSearchService {
             submitted: new Date(`${search.createdDate} UTC`)
         };
         if (search.excludedOrganisms) {
-            result.organisms = search.excludedOrganisms.map(oId => ({taxid: oId}));
+            result.organisms = search.excludedOrganisms.map(oId => ({taxid: oId.taxId, scientificname: oId.scientificName}));
             result.isExcluded = true;
         } else {
-            result.organisms = search.organisms ? search.organisms.map(oId => ({taxid: oId})) : [];
+            result.organisms = search.organisms ? search.organisms.map(oId => ({taxid: oId.taxId, scientificname: oId.scientificName})) : [];
             result.isExcluded = false;
         }
         if (search.parameters) {
