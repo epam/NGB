@@ -27,3 +27,12 @@
 .ngb-context-menu-opened {
     background-color: #efefef!important;
 }
+.download-link {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+
+    span {
+        text-transform: none;
+    }
+}

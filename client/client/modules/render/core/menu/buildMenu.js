@@ -96,6 +96,10 @@ function wrapPerformFn(fn, key, preFn, postFn, beforeFn, afterFn, o) {
     };
 }
 
+function wrapGetFn(fn, o) {
+    return (tracks, options) => fn(tracks.filter(getFilter(o)), options);
+}
+
 function processMenuEntry(menuEntry, options) {
     const result = {};
     const {
@@ -133,6 +137,13 @@ function processMenuEntry(menuEntry, options) {
                             result
                         );
                         break;
+                    case key === 'get': {
+                        result[key] = wrapGetFn(
+                            menuEntry[key],
+                            result
+                        );
+                        break;
+                    }
                     default:
                         result[key] = wrapStateMutatorFn(
                             menuEntry[key],
