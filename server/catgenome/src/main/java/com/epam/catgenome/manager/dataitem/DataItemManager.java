@@ -29,12 +29,16 @@ import static com.epam.catgenome.constant.MessagesConstants.ERROR_BIO_ID_NOT_FOU
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_UNSUPPORTED_FILE_FORMAT;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.manager.wig.FacadeWigManager;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -166,5 +170,13 @@ public class DataItemManager {
         return bedManager.getFormats().stream()
                 .map(e -> Pair.of(e, BiologicalDataItemFormat.BED))
                 .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+    }
+
+    public InputStream loadFileContent(final BiologicalDataItem biologicalDataItem) throws IOException {
+        final String dataItemPath = biologicalDataItem.getPath();
+        if (BiologicalDataItemResourceType.FILE.equals(biologicalDataItem.getType())) {
+            return Files.newInputStream(Paths.get(dataItemPath));
+        }
+        throw new UnsupportedOperationException("Download available for local data only");
     }
 }

@@ -37,6 +37,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -74,5 +75,10 @@ public class DataItemSecurityService {
     @PreAuthorize(ROLE_USER)
     public Map<String, BiologicalDataItemFormat> getFormats() {
         return dataItemManager.getFormats();
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public InputStream loadFileContent(final BiologicalDataItem biologicalDataItem) throws IOException {
+        return dataItemManager.loadFileContent(biologicalDataItem);
     }
 }
