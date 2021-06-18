@@ -23,6 +23,7 @@
  */
 package com.epam.catgenome.entity.blast;
 
+import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -42,8 +43,8 @@ public class BlastTask {
     private String query;
     private BlastDatabase database;
     private String owner;
-    private List<Long> organisms;
-    private List<Long> excludedOrganisms;
+    private List<BlastTaxonomy> organisms;
+    private List<BlastTaxonomy> excludedOrganisms;
     private String executable;
     private String algorithm;
     private Map<String, String> parameters;

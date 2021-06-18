@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.blast;
 import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -104,25 +105,24 @@ public class BlastTaxonomyManager {
         return organisms;
     }
 
-    public BlastTaxonomy searchOrganismById(final long taxId) throws IOException, ParseException {
+    @SneakyThrows
+    public BlastTaxonomy searchOrganismById(final long taxId) {
         final StandardAnalyzer analyzer = new StandardAnalyzer();
         final Query query = new QueryParser(TaxonomyIndexFields.TAX_ID.getFieldName(), analyzer)
                 .parse(String.valueOf(taxId));
-        BlastTaxonomy blastTaxonomy;
         try (Directory index = new SimpleFSDirectory(Paths.get(taxonomyIndexDirectory));
              IndexReader indexReader = DirectoryReader.open(index)) {
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(query, 1);
             ScoreDoc scoreDoc = topDocs.scoreDocs.length > 0 ? topDocs.scoreDocs[0] : null;
             Document doc = scoreDoc != null ? searcher.doc(scoreDoc.doc) : null;
-            blastTaxonomy = doc == null ? null
+            return doc == null ? null
                     :  BlastTaxonomy.builder().taxId(getTaxId(doc))
                             .scientificName(getScientificName(doc))
                             .commonName(getCommonName(doc))
                             .synonyms(getSynonyms(doc))
                             .build();
         }
-        return blastTaxonomy;
     }
 
     public void writeLuceneTaxonomyIndex(final String taxonomyFilePath) throws IOException, ParseException {

@@ -38,6 +38,7 @@ import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.blast.dto.BlastRequest;
 import com.epam.catgenome.manager.blast.dto.BlastRequestInfo;
 import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
+import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
 import com.epam.catgenome.manager.blast.dto.Entry;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
 import com.epam.catgenome.util.db.Filter;
@@ -63,6 +64,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.constant.Constants.DATE_TIME_FORMAT;
@@ -81,44 +83,21 @@ public class BlastTaskManager {
     private final AuthManager authManager;
     private final BlastDatabaseManager databaseManager;
 
+    private final BlastTaxonomyManager blastTaxonomyManager;
+
     @Transactional(propagation = Propagation.REQUIRED)
     public BlastTask loadTask(final long taskId) {
-        BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
+        final BlastTask blastTask = blastTaskDao.loadTaskById(taskId);
         Assert.notNull(blastTask, MessageHelper.getMessage(MessagesConstants.ERROR_TASK_NOT_FOUND, taskId));
-
-        loadTaskOrganisms(blastTask);
-        loadTaskExclOrganisms(blastTask);
-        loadTaskParameters(blastTask);
-
+        blastTask.setOrganisms(loadTaskOrganisms(taskId));
+        blastTask.setExcludedOrganisms(loadTaskExclOrganisms(taskId));
+        blastTask.setParameters(loadTaskParameters(taskId));
         return blastTask;
-    }
-
-    private void loadTaskOrganisms(final BlastTask blastTask) {
-        List<BlastTaskOrganism> blastTaskOrganismList = blastTaskDao.loadOrganisms(blastTask.getId());
-        List<Long> organisms = blastTaskOrganismList.stream().
-                map(BlastTaskOrganism::getOrganism).collect(Collectors.toList());
-        blastTask.setOrganisms(organisms);
-    }
-
-    private void loadTaskExclOrganisms(final BlastTask blastTask) {
-        List<BlastTaskOrganism> blastTaskExclOrganismList = blastTaskDao.loadExclOrganisms(blastTask.getId());
-        List<Long> organisms = blastTaskExclOrganismList.stream().
-                map(BlastTaskOrganism::getOrganism).collect(Collectors.toList());
-        blastTask.setExcludedOrganisms(organisms);
-    }
-
-    private void loadTaskParameters(final BlastTask blastTask) {
-        List<TaskParameter> parametersList = blastTaskDao.loadTaskParameters(blastTask.getId());
-        Map<String, String> parameters = parametersList.stream().collect(Collectors.
-                toMap(TaskParameter::getParameter, TaskParameter::getValue));
-        blastTask.setParameters(parameters);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public BlastTask create(final TaskVO taskVO) throws BlastRequestException {
-        Assert.state(!(!CollectionUtils.isEmpty(taskVO.getOrganisms())
-                        && !CollectionUtils.isEmpty(taskVO.getExcludedOrganisms())),
-                MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_ORGANISMS));
+        validateOrganisms(taskVO);
         final BlastDatabase blastDatabase = databaseManager.loadById(taskVO.getDatabaseId());
         final BlastRequest blastRequest = buildBlastRequest(taskVO, blastDatabase);
         BlastRequestInfo blastRequestInfo = blastRequestManager.createTask(blastRequest);
@@ -218,6 +197,43 @@ public class BlastTaskManager {
         return blastRequestManager.getRawResult(taskId);
     }
 
+    private void validateOrganisms(final TaskVO taskVO) {
+        Assert.state(!(!CollectionUtils.isEmpty(taskVO.getOrganisms())
+                        && !CollectionUtils.isEmpty(taskVO.getExcludedOrganisms())),
+                MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_ORGANISMS));
+        Assert.state(mapTaxonomyIds(taskVO.getOrganisms()).size() == taskVO.getOrganisms().size(),
+                MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_ORGANISMS_MAPPING));
+        Assert.state(mapTaxonomyIds(taskVO.getOrganisms()).size() == taskVO.getOrganisms().size(),
+                MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_ORGANISMS_MAPPING));
+    }
+
+    private List<BlastTaxonomy> loadTaskOrganisms(final long taskId) {
+        return mapTaxonomyIds(
+                blastTaskDao.loadOrganisms(taskId)
+                        .stream().map(BlastTaskOrganism::getOrganism)
+                        .collect(Collectors.toList()));
+    }
+
+    private List<BlastTaxonomy> loadTaskExclOrganisms(final long taskId) {
+        return mapTaxonomyIds(
+                blastTaskDao.loadExclOrganisms(taskId)
+                        .stream().map(BlastTaskOrganism::getOrganism)
+                        .collect(Collectors.toList()));
+    }
+
+    private Map<String, String> loadTaskParameters(final long taskId) {
+        return blastTaskDao.loadTaskParameters(taskId).stream().collect(Collectors.
+                toMap(TaskParameter::getParameter, TaskParameter::getValue));
+    }
+
+    @NotNull
+    private List<BlastTaxonomy> mapTaxonomyIds(final List<Long> organisms) {
+        return ListUtils.emptyIfNull(organisms).stream()
+                .map(blastTaxonomyManager::searchOrganismById)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
     private Collection<BlastSequence> groupResult(final BlastRequestResult result) {
         if (CollectionUtils.isEmpty(result.getEntries())) {
             return Collections.emptyList();
@@ -241,8 +257,8 @@ public class BlastTaskManager {
         blastTask.setTitle(taskVO.getTitle());
         blastTask.setQuery(taskVO.getQuery());
         blastTask.setDatabase(blastDatabase);
-        blastTask.setOrganisms(taskVO.getOrganisms());
-        blastTask.setExcludedOrganisms(taskVO.getExcludedOrganisms());
+        blastTask.setOrganisms(mapTaxonomyIds(taskVO.getOrganisms()));
+        blastTask.setExcludedOrganisms(mapTaxonomyIds(taskVO.getExcludedOrganisms()));
         blastTask.setExecutable(taskVO.getExecutable());
         blastTask.setAlgorithm(taskVO.getAlgorithm());
         blastTask.setParameters(taskVO.getParameters());
