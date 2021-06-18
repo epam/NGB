@@ -198,12 +198,13 @@ public class BlastTaskManager {
     }
 
     private void validateOrganisms(final TaskVO taskVO) {
-        Assert.state(!(!CollectionUtils.isEmpty(taskVO.getOrganisms())
-                        && !CollectionUtils.isEmpty(taskVO.getExcludedOrganisms())),
+        final List<Long> organisms = ListUtils.emptyIfNull(taskVO.getOrganisms());
+        final List<Long> excludedOrganisms = ListUtils.emptyIfNull(taskVO.getExcludedOrganisms());
+        Assert.state(!(!CollectionUtils.isEmpty(organisms) && !CollectionUtils.isEmpty(excludedOrganisms)),
                 MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_ORGANISMS));
-        Assert.state(mapTaxonomyIds(taskVO.getOrganisms()).size() == taskVO.getOrganisms().size(),
+        Assert.state(mapTaxonomyIds(organisms).size() == organisms.size(),
                 MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_ORGANISMS_MAPPING));
-        Assert.state(mapTaxonomyIds(taskVO.getOrganisms()).size() == taskVO.getOrganisms().size(),
+        Assert.state(mapTaxonomyIds(excludedOrganisms).size() == excludedOrganisms.size(),
                 MessageHelper.getMessage(MessagesConstants.ERROR_BLAST_ORGANISMS_MAPPING));
     }
 
