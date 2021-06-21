@@ -88,7 +88,6 @@ export default class ngbBlastSearchFormController extends baseController {
         }
         this.isProgressShown = true;
         await this.setSearchRequest();
-        this.setDefaultParams();
         this.getDBList();
     }
 
@@ -102,6 +101,7 @@ export default class ngbBlastSearchFormController extends baseController {
         this.isProgressShown = true;
         this.searchRequest = await this.ngbBlastSearchService.getCurrentSearch();
         this.setDefaultAlgorithms();
+        this.setDefaultParams();
         this.$timeout(() => this.isProgressShown = false);
     }
 
