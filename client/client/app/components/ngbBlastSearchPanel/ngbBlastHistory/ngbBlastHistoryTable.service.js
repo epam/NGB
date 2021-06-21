@@ -170,8 +170,10 @@ export default class ngbBlastHistoryTableService {
         const result = [];
         const columnsList = this.blastHistoryColumns;
         let sortDirection = 0;
+        let columnSettings = null;
         for (let i = 0; i < columnsList.length; i++) {
             const column = columnsList[i];
+            columnSettings = null;
             if (this.orderByHistory) {
                 const currentOrderByFieldVariations = this.orderByHistory[0].field;
                 const currentOrderByDirectionVariations = this.orderByHistory[0].desc ? 'desc' : 'asc';
@@ -181,7 +183,7 @@ export default class ngbBlastHistoryTableService {
             }
             switch (column) {
                 case 'id': {
-                    result.push({
+                    columnSettings = {
                         cellTemplate: `<div class="ui-grid-cell-contents"
                                         ng-class="row.entity.isResult
                                         ? 'search-result-link'
@@ -192,15 +194,12 @@ export default class ngbBlastHistoryTableService {
                         headerCellTemplate: headerCells,
                         minWidth: 60,
                         maxWidth: 80,
-                        sort: {
-                            direction: sortDirection
-                        },
                         name: this.historyColumnTitleMap[column]
-                    });
+                    };
                     break;
                 }
                 case 'currentState': {
-                    result.push({
+                    columnSettings = {
                         cellTemplate: `<div class="ui-grid-cell-contents">
                                         {{grid.appScope.$ctrl.statusViews[row.entity.currentState]}}
                                        </div>`,
@@ -208,29 +207,23 @@ export default class ngbBlastHistoryTableService {
                         field: 'currentState',
                         headerCellTemplate: headerCells,
                         minWidth: 40,
-                        sort: {
-                            direction: sortDirection
-                        },
                         name: this.historyColumnTitleMap[column]
-                    });
+                    };
                     break;
                 }
                 case 'submitted': {
-                    result.push({
+                    columnSettings = {
                         cellFilter: 'date:"short"',
                         enableHiding: false,
                         field: 'submitted',
                         headerCellTemplate: headerCells,
                         minWidth: 40,
-                        sort: {
-                            direction: sortDirection
-                        },
                         name: this.historyColumnTitleMap[column]
-                    });
+                    };
                     break;
                 }
                 case 'duration': {
-                    result.push({
+                    columnSettings = {
                         cellFilter: 'duration:this',
                         enableHiding: false,
                         enableSorting: false,
@@ -238,42 +231,41 @@ export default class ngbBlastHistoryTableService {
                         field: 'duration',
                         headerCellTemplate: headerCells,
                         minWidth: 40,
-                        sort: {
-                            direction: sortDirection
-                        },
                         name: this.historyColumnTitleMap[column]
-                    });
+                    };
                     break;
                 }
                 case 'actions': {
-                    result.push({
+                    columnSettings = {
                         cellTemplate: actionsCell,
                         enableSorting: false,
                         field: 'id',
                         headerCellTemplate: '<span></span>',
                         maxWidth: 70,
                         minWidth: 60,
-                        sort: {
-                            direction: sortDirection
-                        },
                         name: this.historyColumnTitleMap[column]
-                    });
+                    };
                     break;
                 }
                 default: {
-                    result.push({
+                    columnSettings = {
                         enableHiding: false,
                         field: column,
                         headerCellTemplate: headerCells,
                         minWidth: 40,
-                        sort: {
-                            direction: sortDirection
-                        },
                         name: this.historyColumnTitleMap[column],
                         width: '*'
-                    });
+                    };
                     break;
                 }
+            }
+            if (columnSettings) {
+                if (sortDirection) {
+                    columnSettings.sort = {
+                        direction: sortDirection
+                    };
+                }
+                result.push(columnSettings);
             }
         }
         return result;
