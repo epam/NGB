@@ -59,7 +59,7 @@ export default class ngbBlastHistoryTableService {
     get blastSearchState() {
         return blastSearchState;
     }
-    
+
     get historyColumnTitleMap() {
         return HISTORY_COLUMN_TITLES;
     }
@@ -169,8 +169,16 @@ export default class ngbBlastHistoryTableService {
 
         const result = [];
         const columnsList = this.blastHistoryColumns;
+        let sortDirection = 0;
         for (let i = 0; i < columnsList.length; i++) {
             const column = columnsList[i];
+            if (this.orderByHistory) {
+                const currentOrderByFieldVariations = this.orderByHistory[0].field;
+                const currentOrderByDirectionVariations = this.orderByHistory[0].desc ? 'desc' : 'asc';
+                sortDirection = currentOrderByFieldVariations === (DEFAULT_ORDERBY_HISTORY_COLUMNS[column] || column)
+                    ? currentOrderByDirectionVariations
+                    : 0;
+            }
             switch (column) {
                 case 'id': {
                     result.push({
@@ -184,6 +192,9 @@ export default class ngbBlastHistoryTableService {
                         headerCellTemplate: headerCells,
                         minWidth: 60,
                         maxWidth: 80,
+                        sort: {
+                            direction: sortDirection
+                        },
                         name: this.historyColumnTitleMap[column]
                     });
                     break;
@@ -197,6 +208,9 @@ export default class ngbBlastHistoryTableService {
                         field: 'currentState',
                         headerCellTemplate: headerCells,
                         minWidth: 40,
+                        sort: {
+                            direction: sortDirection
+                        },
                         name: this.historyColumnTitleMap[column]
                     });
                     break;
@@ -208,6 +222,9 @@ export default class ngbBlastHistoryTableService {
                         field: 'submitted',
                         headerCellTemplate: headerCells,
                         minWidth: 40,
+                        sort: {
+                            direction: sortDirection
+                        },
                         name: this.historyColumnTitleMap[column]
                     });
                     break;
@@ -221,6 +238,9 @@ export default class ngbBlastHistoryTableService {
                         field: 'duration',
                         headerCellTemplate: headerCells,
                         minWidth: 40,
+                        sort: {
+                            direction: sortDirection
+                        },
                         name: this.historyColumnTitleMap[column]
                     });
                     break;
@@ -233,6 +253,9 @@ export default class ngbBlastHistoryTableService {
                         headerCellTemplate: '<span></span>',
                         maxWidth: 70,
                         minWidth: 60,
+                        sort: {
+                            direction: sortDirection
+                        },
                         name: this.historyColumnTitleMap[column]
                     });
                     break;
@@ -243,6 +266,9 @@ export default class ngbBlastHistoryTableService {
                         field: column,
                         headerCellTemplate: headerCells,
                         minWidth: 40,
+                        sort: {
+                            direction: sortDirection
+                        },
                         name: this.historyColumnTitleMap[column],
                         width: '*'
                     });
