@@ -175,6 +175,8 @@ public class DataItemManager {
     public InputStream loadFileContent(final BiologicalDataItem biologicalDataItem) throws IOException {
         final String dataItemPath = biologicalDataItem.getPath();
         if (BiologicalDataItemResourceType.FILE.equals(biologicalDataItem.getType())) {
+            Assert.state(Files.exists(Paths.get(dataItemPath)),
+                    getMessage(ERROR_BIO_ID_NOT_FOUND, biologicalDataItem.getId()));
             return Files.newInputStream(Paths.get(dataItemPath));
         }
         throw new UnsupportedOperationException("Download available for local data only");
