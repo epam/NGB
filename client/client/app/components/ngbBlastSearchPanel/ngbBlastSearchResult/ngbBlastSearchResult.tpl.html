@@ -51,12 +51,6 @@
                             <md-tooltip>{{$ctrl.searchResult.submitted | date:"short"}}</md-tooltip>
                         </span>
                     </div>
-                    <div layout="row" class="field">
-                        <span class="field-name">{{$ctrl.searchResult.isExcluded ? 'Excluded organisms' : 'Organisms'}}:</span>
-                        <span class="field-value field-max-width">{{$ctrl.searchResult.organisms.join('; ') | na}}
-                            <md-tooltip>{{$ctrl.searchResult.organisms.join('; ')}}</md-tooltip>
-                        </span>
-                    </div>
                 </div>
                 <div layout="column" flex="50">
                     <div layout="row" class="field">
@@ -72,6 +66,12 @@
                         </span>
                     </div>
                 </div>
+            </div>
+            <div layout="row" class="field">
+                <span class="field-name">{{$ctrl.searchResult.isExcluded ? 'Excluded organisms' : 'Organisms'}}:</span>
+                <span class="field-value field-max-width">{{$ctrl.searchResult.organisms.join('; ') | na}}
+                            <md-tooltip>{{$ctrl.searchResult.organisms.join('; ')}}</md-tooltip>
+                        </span>
             </div>
             <div class="expandable-panel" layout="column">
                 <div class="expandable-panel-title" ng-class="{'toggled': toggle2}" ng-click="toggle2 = !toggle2" layout="column">
