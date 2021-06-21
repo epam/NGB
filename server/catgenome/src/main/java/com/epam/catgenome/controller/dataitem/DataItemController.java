@@ -27,13 +27,12 @@ package com.epam.catgenome.controller.dataitem;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
+import com.epam.catgenome.entity.BiologicalDataItemFile;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.manager.dataitem.DataItemSecurityService;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -138,8 +137,7 @@ public class DataItemController extends AbstractRESTController {
     public void downloadFileByBiologicalItemId(@PathVariable(value = "id") final Long id,
                                                final HttpServletResponse response) throws IOException {
         final BiologicalDataItem biologicalDataItem = dataItemSecurityService.findFileByBioItemId(id);
-        final InputStream content = dataItemSecurityService.loadFileContent(biologicalDataItem);
-        final String name = FilenameUtils.getName(biologicalDataItem.getPath());
-        writeStreamToResponse(response, content, name);
+        final BiologicalDataItemFile biologicalDataItemFile = dataItemSecurityService.loadItemFile(biologicalDataItem);
+        writeStreamToResponse(response, biologicalDataItemFile.getContent(), biologicalDataItemFile.getFileName());
     }
 }
