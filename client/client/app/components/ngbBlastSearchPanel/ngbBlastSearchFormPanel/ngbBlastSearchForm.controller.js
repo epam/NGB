@@ -46,7 +46,7 @@ export default class ngbBlastSearchFormController extends baseController {
     isProgressShown = true;
     dbList = [];
     algorithmList = [];
-    errorMessageList = [];
+    errorMessage = null;
     defaultParams = {};
     searchRequest = {
         title: '',
@@ -135,9 +135,9 @@ export default class ngbBlastSearchFormController extends baseController {
     getDBList() {
         this.ngbBlastSearchService.getBlastDBList(this.ngbBlastSearchFormConstants.BLAST_TOOL_DB[this.searchRequest.tool]).then(data => {
             if (data.error) {
-                this.errorMessageList.push(data.message);
+                this.errorMessage = data.message;
             } else {
-                this.errorMessageList = [];
+                this.errorMessage = null;
                 this.dbList = data;
                 if (this.dbList.filter(db => db.id === this.searchRequest.db).length === 0) {
                     this.searchRequest.db = null;
@@ -151,10 +151,10 @@ export default class ngbBlastSearchFormController extends baseController {
         this.ngbBlastSearchService.createSearchRequest(this.searchRequest)
             .then(data => {
                 if (data.error) {
-                    this.errorMessageList.push(data.message);
+                    this.errorMessage = data.message;
                     this.$timeout(::this.$scope.$apply);
                 } else {
-                    this.errorMessageList = [];
+                    this.errorMessage = null;
                     this.changeState({state: 'HISTORY'});
                 }
             });

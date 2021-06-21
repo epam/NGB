@@ -138,8 +138,8 @@
                 </div>
             </div>
         </div>
-        <div ng-if="$ctrl.errorMessageList.length" class="md-padding">
-            <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+        <div class="md-padding" ng-if="$ctrl.errorMessage">
+            <ngb-panel-error-list message-list="[$ctrl.errorMessage]"></ngb-panel-error-list>
         </div>
         <div class="blast-search-actions">
             <md-button class="md-accent md-raised search-button"
