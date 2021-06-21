@@ -252,6 +252,6 @@ export class ProjectDataService extends DataService {
     }
 
     getDatasetFileLink(bioDataItemId) {
-        return this.getFullUrl(`dataitem/${bioDataItemId}/dowload`);
+        return this.getFullUrl(`dataitem/${bioDataItemId}/download`);
     }
 }

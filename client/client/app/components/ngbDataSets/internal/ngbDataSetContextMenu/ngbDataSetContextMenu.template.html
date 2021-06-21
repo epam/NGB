@@ -8,12 +8,20 @@
         <md-divider ng-if="ctrl.hasRole"></md-divider>
         <md-list-item ng-if="!ctrl.node.isProject">
             <md-button>
-                <a class="download-link" ng-href="{{ctrl.getFileLink(ctrl.node.bioDataItemId)}}">Download file</a>
+                <a class="download-link"
+                   target="_blank"
+                   ng-href="{{ctrl.getFileLink(ctrl.node.bioDataItemId)}}">
+                    Download file
+                </a>
             </md-button>
         </md-list-item>
         <md-list-item ng-if="ctrl.node.isProject" ng-repeat="item in ctrl.projectElements">
             <md-button>
-                <a class="download-link" ng-href="{{ctrl.getFileLink(item.bioDataItemId)}}">{{item.format}}: <span>{{item.filename}}</span></a>
+                <a class="download-link"
+                   target="_blank"
+                   ng-href="{{ctrl.getFileLink(item.bioDataItemId)}}">
+                    {{item.format}}: <span>{{item.filename}}</span>
+                </a>
             </md-button>
         </md-list-item>
     </md-list>
