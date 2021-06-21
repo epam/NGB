@@ -197,6 +197,23 @@ export default class ngbBlastHistoryController extends baseController {
 
         this.ngbBlastHistoryTableService.currentPageHistory = 1;
         this.gridOptions.data = [];
+        const sortingConfiguration = sortColumns
+            .filter(column => !!column.sort)
+            .map((column, priority) => ({
+                field: column.field,
+                sort: ({
+                    ...column.sort,
+                    priority
+                })
+            }));
+        const {columns = []} = grid || {};
+        columns.forEach(columnDef => {
+            const [sortingConfig] = sortingConfiguration
+                .filter(c => c.field === columnDef.field);
+            if (sortingConfig) {
+                columnDef.sort = sortingConfig.sort;
+            }
+        });
         this.loadData();
     }
 
