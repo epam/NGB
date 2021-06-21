@@ -28,8 +28,10 @@ package com.epam.catgenome.manager.dataitem;
 
 
 import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.BiologicalDataItemDownloadUrl;
 import com.epam.catgenome.entity.BiologicalDataItemFile;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.ContentDisposition;
 import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -80,5 +82,12 @@ public class DataItemSecurityService {
     @PreAuthorize(ROLE_USER)
     public BiologicalDataItemFile loadItemFile(final BiologicalDataItem biologicalDataItem) throws IOException {
         return dataItemManager.loadItemFile(biologicalDataItem);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public BiologicalDataItemDownloadUrl generateDownloadUrl(final Long generateDownloadUrl,
+                                                             final BiologicalDataItem biologicalDataItem,
+                                                             final ContentDisposition contentDisposition) {
+        return dataItemManager.generateDownloadUrl(generateDownloadUrl, biologicalDataItem, contentDisposition);
     }
 }

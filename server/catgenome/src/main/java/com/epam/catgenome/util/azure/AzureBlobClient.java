@@ -24,9 +24,15 @@
 
 package com.epam.catgenome.util.azure;
 
+import com.epam.catgenome.entity.BiologicalDataItemDownloadUrl;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.microsoft.azure.storage.blob.BlobRange;
+import com.microsoft.azure.storage.blob.BlobSASPermission;
 import com.microsoft.azure.storage.blob.BlockBlobURL;
 import com.microsoft.azure.storage.blob.PipelineOptions;
+import com.microsoft.azure.storage.blob.SASProtocol;
+import com.microsoft.azure.storage.blob.SASQueryParameters;
+import com.microsoft.azure.storage.blob.ServiceSASSignatureValues;
 import com.microsoft.azure.storage.blob.ServiceURL;
 import com.microsoft.azure.storage.blob.SharedKeyCredentials;
 import com.microsoft.azure.storage.blob.StorageException;
@@ -45,15 +51,22 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
+import java.time.Duration;
+import java.time.OffsetDateTime;
+import java.util.Date;
 
 public class AzureBlobClient {
 
     private static final String BLOB_URL_FORMAT = "https://%s.blob.core.windows.net";
+    private static final String BLOB_CONTENT_TYPE = "blob";
     private static final String AZ_SCHEME = "az://";
     private static final String AZ_BLOB_DELIMITER = "/";
     private static final int NOT_FOUND_ERROR_CODE = 404;
+    private static final Long URL_EXPIRATION = 24 * 60 * 60 * 1000L;
 
     private ServiceURL blobService;
+    private SharedKeyCredentials credentials;
+
     private static AzureBlobClient instance;
 
     public AzureBlobClient() {
@@ -63,10 +76,11 @@ public class AzureBlobClient {
     public AzureBlobClient(final String storageAccount,
                            final String storageKey) {
         try {
-            SharedKeyCredentials credentials = new SharedKeyCredentials(storageAccount, storageKey);
+            final SharedKeyCredentials credentials = new SharedKeyCredentials(storageAccount, storageKey);
             this.blobService = new ServiceURL(
                     url(String.format(BLOB_URL_FORMAT, storageAccount)),
                     StorageURL.createPipeline(credentials, new PipelineOptions()));
+            this.credentials = credentials;
         } catch (InvalidKeyException e) {
             throw new IllegalArgumentException("Invalid credentials for Azure storage account: " + storageAccount);
         }
@@ -164,9 +178,46 @@ public class AzureBlobClient {
         return instance;
     }
 
+    public BiologicalDataItemDownloadUrl generatePresignedUrl(final String path) {
+        final Date expires = new Date((new Date()).getTime() + URL_EXPIRATION);
+        final String downloadUrl = buildBlobDownloadUrl(path);
+        return BiologicalDataItemDownloadUrl.builder()
+                .url(downloadUrl)
+                .expires(expires)
+                .type(BiologicalDataItemResourceType.AZ)
+                .build();
+    }
+
     @Data
     private static final class AzureBlobItem {
         private final String container;
         private final String blobPath;
+    }
+
+    private String buildBlobDownloadUrl(final String blobPath) {
+        final AzureBlobItem azureBlobItem = parseUri(blobPath);
+        final String sasToken = generateSASToken(azureBlobItem.getContainer(), azureBlobItem.getBlobPath());
+        return String.format(BLOB_URL_FORMAT + "/%s/%s%s", credentials.getAccountName(),
+                azureBlobItem.getContainer(), azureBlobItem.getBlobPath(), sasToken);
+    }
+
+    private String generateSASToken(final String containerName,
+                                    final String blobName) {
+        final ServiceSASSignatureValues values = new ServiceSASSignatureValues()
+                .withProtocol(SASProtocol.HTTPS_ONLY)
+                .withExpiryTime(OffsetDateTime.now().plus(Duration.ofDays(1)))
+                .withContainerName(containerName)
+                .withBlobName(blobName)
+                .withContentType(BLOB_CONTENT_TYPE)
+                .withPermissions(buildPermissions().toString());
+        final SASQueryParameters params = values.generateSASQueryParameters(credentials);
+        return params.encode();
+    }
+
+    private BlobSASPermission buildPermissions() {
+        return new BlobSASPermission()
+                .withRead(true)
+                .withAdd(false)
+                .withWrite(false);
     }
 }
