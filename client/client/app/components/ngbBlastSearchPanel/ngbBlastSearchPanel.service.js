@@ -5,6 +5,18 @@ const BLAST_STATES = {
     ALIGNMENT: 'ALIGNMENT'
 };
 
+function scientificNameSorter(a, b) {
+    const aName = (a.scientificname || '').toLowerCase();
+    const bName = (b.scientificname || '').toLowerCase();
+    if (aName < bName) {
+        return -1;
+    }
+    if (aName > bName) {
+        return 1;
+    }
+    return 0;
+}
+
 export default class ngbBlastSearchService {
     static instance(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService) {
         return new ngbBlastSearchService(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService);
@@ -55,7 +67,8 @@ export default class ngbBlastSearchService {
                 commonname: o.commonName,
                 taxid: o.taxId
             }))
-            .filter(value => !selectedIds.includes(value.taxid));
+            .filter(value => !selectedIds.includes(value.taxid))
+            .sort(scientificNameSorter);
     }
 
     async getBlastDBList(type) {
