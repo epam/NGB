@@ -62,6 +62,15 @@ const genomeAnnotationsAction = {
     }
 };
 
+const projectInfoSectionsAction = {
+    name: 'projectInfoSections',
+    isDefault: false,
+    liStyle: {
+        width: 'auto'
+    },
+    isVisible: context => context.tracks && context.tracks.length && !context.currentChromosome,
+};
+
 const tracksSelectionAction = {
     isVisible: (context) => context.tracks && context.tracks.length && context.currentChromosome,
     liStyle: {
@@ -83,6 +92,7 @@ export default {
         closeAllTracks: closeAllTracksAction,
         fitAllTracks: fitAllTracksAction,
         genomeAnnotations: genomeAnnotationsAction,
+        projectInfoSections: projectInfoSectionsAction,
         organizeTracks: organizeTracksAction,
         tracksSelection: tracksSelectionAction,
         variantsLoadingIndicator: variantsLoadingIndicatorAction,
@@ -92,7 +102,7 @@ export default {
         blastSearchPanelPagination: blastSearchPanelPaginationAction
     },
     viewActions: {
-        ngbBrowser: [genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
+        ngbBrowser: [projectInfoSectionsAction, genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
         ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsResetFilterActions, variantsTableColumnAction],
         ngbBlastSearchPanel: [blastSearchPanelPaginationAction]
     }
