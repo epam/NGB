@@ -31,6 +31,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +51,7 @@ import com.epam.ngb.cli.entity.Role;
 import com.epam.ngb.cli.entity.SpeciesEntity;
 import com.epam.ngb.cli.entity.UserContext;
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -58,7 +61,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -197,6 +203,22 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         HttpRequestBase result = selectRequestType(requestType, url);
         setDefaultHeader(result);
         return result;
+    }
+
+    protected HttpPost buildMultipartRequest(final String url, final String filePath) throws IOException {
+        final HttpPost request = new HttpPost(url);
+        final MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
+        multipartEntityBuilder.addBinaryBody("file", Files.newInputStream(Paths.get(filePath)),
+                ContentType.DEFAULT_BINARY, FilenameUtils.getName(filePath));
+        multipartEntityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+        request.setEntity(multipartEntityBuilder.build());
+
+        request.setHeader(CACHE_CONTROL, CACHE_CONTROL_NO_CACHE);
+        if (!serverParameters.getJwtAuthenticationToken().isEmpty()) {
+            request.setHeader(AUTHORIZATION, BEARER + serverParameters.getJwtAuthenticationToken());
+        }
+
+        return request;
     }
 
     private HttpRequestBase selectRequestType(String requestType, String url) {
