@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import com.epam.catgenome.entity.protein.ProteinSequence;
+import com.epam.catgenome.entity.protein.ProteinSequenceConstructRequest;
 import com.epam.catgenome.manager.gene.GeneSecurityService;
 import com.epam.catgenome.manager.protein.ProteinSequenceSecurityService;
 import org.slf4j.Logger;
@@ -277,6 +279,20 @@ public class GeneController extends AbstractRESTController {
                       @PathVariable(value = REFERENCE_ID_FIELD) final Long referenceId) throws GeneReadingException {
         return Result.success(proteinSecurityService.loadProteinSequence(Query2TrackConverter.convertToTrack(
             trackQuery), referenceId));
+    }
+
+    @RequestMapping(value = "/gene/protein/seq", method = RequestMethod.POST)
+    @ResponseBody
+    @ApiOperation(
+            value = "Generate protein sequence for the given feature ID, case-insensitive",
+            notes = "Generate protein sequence for the given feature ID, case-insensitive",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<ProteinSequence> constructAminoAcidSequence(
+            @RequestBody ProteinSequenceConstructRequest request) throws IOException {
+        return Result.success(geneSecurityService.loadProteinSequenceForFeature(request));
     }
 
 

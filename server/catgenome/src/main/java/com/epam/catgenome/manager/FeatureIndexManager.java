@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.controller.vo.Query2TrackConverter;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.indexer.BigVcfFeatureIndexBuilder;
 import com.epam.catgenome.dao.index.searcher.LuceneIndexSearcher;
@@ -44,6 +45,9 @@ import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.gene.GeneFileType;
 import com.epam.catgenome.entity.index.*;
 import com.epam.catgenome.entity.project.Project;
+import com.epam.catgenome.entity.protein.ProteinSequence;
+import com.epam.catgenome.entity.protein.ProteinSequenceConstructRequest;
+import com.epam.catgenome.entity.protein.ProteinSequenceEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.track.Track;
@@ -61,6 +65,7 @@ import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.reader.AbstractGeneReader;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.project.ProjectManager;
+import com.epam.catgenome.manager.protein.ProteinSequenceManager;
 import com.epam.catgenome.manager.reference.BookmarkManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.vcf.VcfFileManager;
@@ -131,6 +136,9 @@ public class FeatureIndexManager {
 
     @Autowired
     private TaskExecutorService taskExecutorService;
+
+    @Autowired
+    private ProteinSequenceManager proteinSequenceManager;
 
     @Value("#{catgenome['search.features.max.results'] ?: 100}")
     private Integer maxFeatureSearchResultsCount;
@@ -374,7 +382,8 @@ public class FeatureIndexManager {
         return bookmarkSearchRes;
     }
 
-    public IndexSearchResult searchFeaturesByReference(String featureId, long referenceId) throws IOException {
+    public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(String featureId, long referenceId)
+            throws IOException {
         if (featureId == null || featureId.length() < 2) {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
@@ -697,4 +706,5 @@ public class FeatureIndexManager {
             masterEntry.setFeatureName(featureName);
         }
     }
+
 }

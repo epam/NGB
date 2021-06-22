@@ -143,6 +143,9 @@ public final class MessagesConstants {
     public static final String ERROR_UNSUPPORTED_GENE_FILE_TYPE = "error.unsupported.genefiletype";
     public static final String ERROR_HELPER_FILE_DOES_NOT_EXIST = "error.helper.file.does.not.exist";
     public static final String ERROR_INVALID_NUCLEOTIDE = "error.invalid.nucleotide";
+    public static final String ERROR_WRONG_FEATURE_TYPE_FOR_PROTEIN_SEQ = "error.protein.seq.wrong.feature.type";
+    public static final String ERROR_CANT_FIND_TRANSCRIPT = "error.protein.cant.find.transcript";
+    public static final String ERROR_GENE_FILE_NOT_FOUND = "error.reference.gene.file.not.found";
 
     //VCF
     public static final String ERROR_UNSUPPORTED_VCF_FILE_EXTESION = "error.unsupported.vcf.file.extension";

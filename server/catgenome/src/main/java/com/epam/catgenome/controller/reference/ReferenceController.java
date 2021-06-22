@@ -28,6 +28,8 @@ import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
 
 import com.epam.catgenome.controller.vo.SpeciesVO;
+import com.epam.catgenome.entity.protein.ProteinSequence;
+import com.epam.catgenome.entity.protein.ProteinSequenceConstructRequest;
 import com.epam.catgenome.entity.reference.Species;
 import java.io.IOException;
 import java.util.List;

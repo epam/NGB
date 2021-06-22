@@ -32,10 +32,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.index.FeatureType;
+import com.epam.catgenome.entity.protein.ProteinSequenceConstructRequest;
+import com.epam.catgenome.manager.FeatureIndexManager;
+import com.epam.catgenome.manager.gene.GeneUtils;
+import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,6 +92,9 @@ public class ProteinSequenceManager {
 
     @Autowired
     private ProteinSequenceReconstructionManager psReconstructionManager;
+
+    @Autowired
+    private FeatureIndexManager featureIndexManager;
 
     /**
      * Load protein sequence for specified track (start and end indexes, gene item id, reference genome).
@@ -197,6 +207,66 @@ public class ProteinSequenceManager {
                 .singletonList(new MrnaProteinSequenceVariants(track.getStartIndex(), track.getEndIndex(), blocks)));
 
         return result;
+    }
+
+    @SneakyThrows
+    @Transactional
+    public ProteinSequence loadProteinSequence(final ProteinSequenceConstructRequest request) {
+        final Track<Gene> geneTrack = Query2TrackConverter.convertToTrack(request.getTrackQuery());
+        final Track<Gene> genes = gffManager.loadGenes(geneTrack, false);
+
+        final Optional<ProteinSequenceEntry> selfTranslation = Optional.ofNullable(
+                        lookForGene(genes.getBlocks(), request.getFeatureId(), request.getFeatureType().name())
+                ).flatMap(gene -> Optional.ofNullable(gene.getAttributes()))
+                .map(a -> a.get("translation"))
+                .map(t -> new ProteinSequenceEntry(t, 0L,  0L, t.length() - 1L,
+                        (long) request.getTrackQuery().getStartIndex(), (long) request.getTrackQuery().getEndIndex()));
+        if (selfTranslation.isPresent()) {
+            return GeneUtils.constructProteinString(Collections.singletonList(selfTranslation.get()));
+        }
+
+        final String transcript;
+        if (request.getFeatureType() == FeatureType.GENE) {
+            transcript = gffManager.loadGenesTranscript(geneTrack, null, null)
+                    .getBlocks()
+                    .stream()
+                    .filter(geneTranscript -> geneTranscript.getFeatureName().equalsIgnoreCase(request.getFeatureId()))
+                    .findFirst()
+                    .map(GeneUtils::getCanonical)
+                    .map(Gene::getFeatureName)
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            MessageHelper.getMessage(
+                                    MessagesConstants.ERROR_CANT_FIND_TRANSCRIPT, request.getFeatureId(),
+                                    request.getFeatureType())
+                    ));
+
+        } else if (request.getFeatureType() == FeatureType.MRNA) {
+            transcript = request.getFeatureId();
+        } else {
+            throw new IllegalArgumentException(
+                    MessageHelper.getMessage(MessagesConstants.ERROR_WRONG_FEATURE_TYPE_FOR_PROTEIN_SEQ));
+        }
+
+        final List<ProteinSequenceEntry> entries =
+                loadProteinSequenceWithoutGrouping(genes, request.getReferenceId(), false)
+                .entrySet().stream()
+                .filter(e -> e.getKey().getFeatureName().equalsIgnoreCase(transcript))
+                .findFirst().map(Map.Entry::getValue)
+                .orElseThrow(() -> new IllegalArgumentException(MessageHelper.getMessage(
+                        MessagesConstants.ERROR_CANT_FIND_TRANSCRIPT, request.getFeatureId(),
+                        request.getFeatureType())));
+
+        return GeneUtils.constructProteinString(entries);
+    }
+
+    private Gene lookForGene(final List<Gene> genes, final String geneName, final String featureType) {
+        for (Gene gene : ListUtils.emptyIfNull(genes)) {
+            if (featureType.equalsIgnoreCase(gene.getFeature()) && geneName.equals(gene.getFeatureName())) {
+                return gene;
+            }
+            return lookForGene(gene.getItems(), geneName, featureType);
+        }
+        return null;
     }
 
     private Map<Gene, List<List<ProteinSequenceEntry>>> loadProteinSequencesByVarCds(
