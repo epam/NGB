@@ -11,7 +11,8 @@
                 <a class="download-link"
                    target="_blank"
                    ng-href="{{ctrl.getFileLink(ctrl.node.bioDataItemId)}}">
-                    Download file
+                    <ng-md-icon icon="file_download"></ng-md-icon>
+                    <span>Download file</span>
                 </a>
             </md-button>
         </md-list-item>
@@ -20,7 +21,8 @@
                 <a class="download-link"
                    target="_blank"
                    ng-href="{{ctrl.getFileLink(item.bioDataItemId)}}">
-                    {{item.format}}: <span>{{item.filename}}</span>
+                    <ng-md-icon icon="file_download"></ng-md-icon>
+                    <span>{{item.filename}} ({{item.format}})</span>
                 </a>
             </md-button>
         </md-list-item>

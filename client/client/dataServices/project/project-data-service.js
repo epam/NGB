@@ -122,7 +122,7 @@ export class ProjectDataService extends DataService {
 
     getOrganismList(term) {
         return new Promise((resolve, reject) => {
-            this.get(`externaldb/ncbi/taxonomy/${term}`)
+            this.get(`taxonomies/${term}`)
                 .catch((response) => resolve({...response, error: true}))
                 .then((data) => {
                     if (data) {

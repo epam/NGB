@@ -49,7 +49,13 @@ export default class ngbBlastSearchService {
     async getOrganismList(term, selectedOrganisms = []) {
         const selectedIds = selectedOrganisms.map(value => value.taxid);
         const organismList = await this.projectDataService.getOrganismList(term);
-        return organismList.filter(value => !selectedIds.includes(value.taxid));
+        return organismList
+            .map(o => ({
+                scientificname: o.scientificName,
+                commonname: o.commonName,
+                taxid: o.taxId
+            }))
+            .filter(value => !selectedIds.includes(value.taxid));
     }
 
     async getBlastDBList(type) {
