@@ -34,7 +34,6 @@ import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemDownloadUrl;
 import com.epam.catgenome.entity.BiologicalDataItemFile;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
-import com.epam.catgenome.entity.ContentDisposition;
 import com.epam.catgenome.manager.dataitem.DataItemSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -152,9 +151,8 @@ public class DataItemController extends AbstractRESTController {
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
-    public final Result<BiologicalDataItemDownloadUrl> generateDownloadUrl(@PathVariable(value = "id") final Long id,
-             @RequestParam(required = false) final ContentDisposition contentDisposition) {
+    public final Result<BiologicalDataItemDownloadUrl> generateDownloadUrl(@PathVariable(value = "id") final Long id) {
         final BiologicalDataItem biologicalDataItem = dataItemSecurityService.findFileByBioItemId(id);
-        return Result.success(dataItemSecurityService.generateDownloadUrl(id, biologicalDataItem, contentDisposition));
+        return Result.success(dataItemSecurityService.generateDownloadUrl(id, biologicalDataItem));
     }
 }

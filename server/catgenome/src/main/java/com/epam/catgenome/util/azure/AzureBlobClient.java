@@ -55,6 +55,8 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Date;
 
+import static com.epam.catgenome.util.QueryUtils.buildContentDispositionHeader;
+
 public class AzureBlobClient {
 
     private static final String BLOB_URL_FORMAT = "https://%s.blob.core.windows.net";
@@ -209,6 +211,7 @@ public class AzureBlobClient {
                 .withContainerName(containerName)
                 .withBlobName(blobName)
                 .withContentType(BLOB_CONTENT_TYPE)
+                .withContentDisposition(buildContentDispositionHeader(blobName))
                 .withPermissions(buildPermissions().toString());
         final SASQueryParameters params = values.generateSASQueryParameters(credentials);
         return params.encode();

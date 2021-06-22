@@ -41,13 +41,14 @@ import com.epam.catgenome.entity.BiologicalDataItemDownloadUrl;
 import com.epam.catgenome.entity.BiologicalDataItemFile;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.ContentDisposition;
 import com.epam.catgenome.manager.wig.FacadeWigManager;
 import com.epam.catgenome.util.aws.S3Client;
 import com.epam.catgenome.util.azure.AzureBlobClient;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,7 +68,7 @@ import com.epam.catgenome.manager.vcf.VcfManager;
  */
 @Service
 public class DataItemManager {
-    private static final String DOWNLOAD_LOCAL_FILE_URL_FORMAT = "/catgenome/restapi/dataitem/%d/download";
+    private static final String DOWNLOAD_LOCAL_FILE_URL_FORMAT = "%s/restapi/dataitem/%d/download";
 
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
@@ -95,6 +96,9 @@ public class DataItemManager {
 
     @Autowired
     private AzureBlobClient azureBlobClient;
+
+    @Value("${base.external.url:}")
+    private String baseExternalUrl;
 
     /**
      * Method finds all files registered in the system by an input search query
@@ -199,16 +203,17 @@ public class DataItemManager {
                 .build();
     }
 
-    public BiologicalDataItemDownloadUrl generateDownloadUrl(final Long id, final BiologicalDataItem biologicalDataItem,
-                                                             final ContentDisposition contentDisposition) {
+    public BiologicalDataItemDownloadUrl generateDownloadUrl(final Long id,
+                                                             final BiologicalDataItem biologicalDataItem) {
         switch (biologicalDataItem.getType()) {
             case FILE:
                 return BiologicalDataItemDownloadUrl.builder()
-                        .url(String.format(DOWNLOAD_LOCAL_FILE_URL_FORMAT, id))
+                        .url(String.format(DOWNLOAD_LOCAL_FILE_URL_FORMAT,
+                                StringUtils.removeEnd(baseExternalUrl, "/"), id))
                         .type(BiologicalDataItemResourceType.FILE)
                         .build();
             case S3:
-                return S3Client.getInstance().generatePresignedUrl(biologicalDataItem.getPath(), contentDisposition);
+                return S3Client.getInstance().generatePresignedUrl(biologicalDataItem.getPath());
             case AZ:
                 return azureBlobClient.generatePresignedUrl(biologicalDataItem.getPath());
             default:

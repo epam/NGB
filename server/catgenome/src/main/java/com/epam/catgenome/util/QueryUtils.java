@@ -25,6 +25,7 @@
 package com.epam.catgenome.util;
 
 import com.epam.catgenome.exception.RSCBResponseException;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
 import retrofit2.Call;
@@ -55,5 +56,9 @@ public interface QueryUtils {
             throw new RSCBResponseException(String.format("Unexpected status code: %d, %s", response.code(),
                     response.errorBody() != null ? response.errorBody().string() : ""));
         }
+    }
+
+    static String buildContentDispositionHeader(final String filePath) {
+        return String.format("attachment; filename=%s", FilenameUtils.getName(filePath));
     }
 }

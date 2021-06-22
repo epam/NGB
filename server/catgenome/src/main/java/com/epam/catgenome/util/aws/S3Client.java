@@ -16,11 +16,9 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.epam.catgenome.entity.BiologicalDataItemDownloadUrl;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
-import com.epam.catgenome.entity.ContentDisposition;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +28,9 @@ import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Date;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+
+import static com.epam.catgenome.util.QueryUtils.buildContentDispositionHeader;
 
 /**
  * Class provides configuration of AWS client and utility methods for S3
@@ -192,10 +191,9 @@ public final class S3Client {
         return loadFrom(obj, 0);
     }
 
-    public BiologicalDataItemDownloadUrl generatePresignedUrl(final String url,
-                                                              final ContentDisposition contentDisposition) {
+    public BiologicalDataItemDownloadUrl generatePresignedUrl(final String url) {
         final Date expires = new Date((new Date()).getTime() + URL_EXPIRATION);
-        final GeneratePresignedUrlRequest request = generatePresignedUrlRequest(url, expires, contentDisposition);
+        final GeneratePresignedUrlRequest request = generatePresignedUrlRequest(url, expires);
         final URL generatedUrl = getAws(getCloudType(url)).generatePresignedUrl(request);
         return BiologicalDataItemDownloadUrl.builder()
                 .type(BiologicalDataItemResourceType.S3)
@@ -225,16 +223,13 @@ public final class S3Client {
         private String protocol;
     }
 
-    private GeneratePresignedUrlRequest generatePresignedUrlRequest(final String url, final Date expires,
-                                                                    final ContentDisposition contentDisposition) {
+    private GeneratePresignedUrlRequest generatePresignedUrlRequest(final String url, final Date expires) {
         final AmazonS3URI s3URI = new AmazonS3URI(replaceSchema(url));
         final String filePath = s3URI.getKey();
         final GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(s3URI.getBucket(), filePath);
         request.setExpiration(expires);
-        if (Objects.nonNull(contentDisposition)) {
-            request.setResponseHeaders(new ResponseHeaderOverrides()
-                    .withContentDisposition(contentDisposition.getHeader(FilenameUtils.getName(filePath))));
-        }
+        request.setResponseHeaders(new ResponseHeaderOverrides()
+                .withContentDisposition(buildContentDispositionHeader(filePath)));
         return request;
     }
 }
