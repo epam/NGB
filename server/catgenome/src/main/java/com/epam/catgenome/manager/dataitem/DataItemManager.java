@@ -233,7 +233,7 @@ public class DataItemManager {
                     .size(Files.size(dataItemPath))
                     .build();
         } catch (IOException e) {
-            throw new IllegalStateException(getMessage(ERROR_FILE_LOCAL_DOWNLOAD), e);
+            throw new IllegalStateException(getMessage(ERROR_FILE_LOCAL_DOWNLOAD, id), e);
         }
     }
 }
