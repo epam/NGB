@@ -28,6 +28,7 @@ package com.epam.catgenome.manager.dataitem;
 
 
 import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.BiologicalDataItemDownloadUrl;
 import com.epam.catgenome.entity.BiologicalDataItemFile;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.security.acl.aspect.AclMaskList;
@@ -80,5 +81,11 @@ public class DataItemSecurityService {
     @PreAuthorize(ROLE_USER)
     public BiologicalDataItemFile loadItemFile(final BiologicalDataItem biologicalDataItem) throws IOException {
         return dataItemManager.loadItemFile(biologicalDataItem);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public BiologicalDataItemDownloadUrl generateDownloadUrl(final Long generateDownloadUrl,
+                                                             final BiologicalDataItem biologicalDataItem) {
+        return dataItemManager.generateDownloadUrl(generateDownloadUrl, biologicalDataItem);
     }
 }
