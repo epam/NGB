@@ -251,7 +251,7 @@ export default class ngbBlastSearchService {
             state: search.status,
             reason: search.statusReason,
             options: search.options,
-            submitted: new Date(`${search.createdDate} UTC`)
+            submitted: search.createdDate
         };
         if (search.excludedOrganisms) {
             result.organisms = search.excludedOrganisms.map(oId => ({taxid: oId.taxId, scientificname: oId.scientificName}));

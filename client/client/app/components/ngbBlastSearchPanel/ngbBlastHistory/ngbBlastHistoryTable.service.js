@@ -1,3 +1,7 @@
+import utcDateFactory from '../ngbBlastSearch.date.filter';
+
+const utcDateFormatter = utcDateFactory();
+
 const DEFAULT_BLAST_HISTORY_COLUMNS = [
     'id', 'title', 'currentState', 'submitted', 'duration', 'actions'
 ];
@@ -307,7 +311,7 @@ export default class ngbBlastHistoryTableService {
             }
         }
         if (state === blastSearchState.SEARCHING) {
-            duration = Date.now() - +new Date(`${search.createdDate} UTC`);
+            duration = Date.now() - +(utcDateFormatter(search.createdDate));
         } else {
             duration = +new Date(search.endDate) - +new Date(search.createdDate);
         }
@@ -315,7 +319,7 @@ export default class ngbBlastHistoryTableService {
             id: search.id,
             title: search.title,
             currentState: state,
-            submitted: new Date(`${search.createdDate} UTC`),
+            submitted: utcDateFormatter(search.createdDate),
             duration: Math.ceil(duration / 1000),
             isResult: state === blastSearchState.DONE || state === blastSearchState.FAILURE,
             isInProgress: state === blastSearchState.SEARCHING

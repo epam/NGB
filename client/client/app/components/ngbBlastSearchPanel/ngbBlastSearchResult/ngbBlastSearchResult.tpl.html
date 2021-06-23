@@ -47,8 +47,8 @@
                     </div>
                     <div layout="row" class="field">
                         <span class="field-name">Submitted at:</span>
-                        <span class="field-value">{{$ctrl.searchResult.submitted | date:"short"}}
-                            <md-tooltip>{{$ctrl.searchResult.submitted | date:"short"}}</md-tooltip>
+                        <span class="field-value">{{$ctrl.searchResult.submitted | utcDate | date:"short"}}
+                            <md-tooltip>{{$ctrl.searchResult.submitted | utcDate | date:"short"}}</md-tooltip>
                         </span>
                     </div>
                 </div>
