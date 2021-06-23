@@ -51,17 +51,17 @@ public class BlastSequence {
     public static BlastSequence fromEntries(final List<Entry> entries) {
         Assert.state(!CollectionUtils.isEmpty(entries), "Entries shall be provided");
         final Entry maxScoringEntry = entries.stream()
-                .max(Comparator.comparing(Entry::getScore)).get();
+                .max(Comparator.comparing(Entry::getBitScore)).orElse(entries.get(0));
         return BlastSequence.builder()
                 .sequenceId(maxScoringEntry.getSeqSeqId())
                 .organism(maxScoringEntry.getSeqSciName())
                 .taxId(maxScoringEntry.getSeqTaxId())
                 .matches(entries.size())
-                .maxScore(maxScoringEntry.getScore())
+                .maxScore(maxScoringEntry.getBitScore())
                 .eValue(maxScoringEntry.getExpValue())
                 .queryCoverage(maxScoringEntry.getQueryCovS())
                 .percentIdentity(maxScoringEntry.getPercentIdent())
-                .totalScore(entries.stream().mapToDouble(Entry::getScore).sum())
+                .totalScore(entries.stream().mapToDouble(Entry::getBitScore).sum())
                 .alignments(entries.stream()
                         .map(Alignment::fromEntry)
                         .sorted(Comparator.comparing(Alignment::getEValue))
