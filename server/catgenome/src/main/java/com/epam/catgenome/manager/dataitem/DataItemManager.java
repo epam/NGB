@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.dataitem;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_BIO_ID_NOT_FOUND;
+import static com.epam.catgenome.constant.MessagesConstants.ERROR_FILE_LOCAL_DOWNLOAD;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_UNSUPPORTED_FILE_FORMAT;
 
 import java.io.IOException;
@@ -232,7 +233,7 @@ public class DataItemManager {
                     .size(Files.size(dataItemPath))
                     .build();
         } catch (IOException e) {
-            throw new IllegalStateException("Cannot generate download url for local file", e);
+            throw new IllegalStateException(getMessage(ERROR_FILE_LOCAL_DOWNLOAD), e);
         }
     }
 }

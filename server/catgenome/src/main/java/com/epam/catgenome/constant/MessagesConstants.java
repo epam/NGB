@@ -201,6 +201,7 @@ public final class MessagesConstants {
     public static final String ERROR_UNSUPPORTED_FILE_FORMAT = "error.unsupported.file.format";
     public static final String ERROR_FILE_CORRUPTED_OR_EMPTY = "error.file.corrupted.or.empty";
     public static final String ERROR_DIRECTORY_NOT_FOUND = "error.directory.not.found";
+    public static final String ERROR_FILE_LOCAL_DOWNLOAD = "error.file.local.download";
 
     //PROJECT
     public static final String INFO_PROJECT_DELETED = "info.project.deleted";
