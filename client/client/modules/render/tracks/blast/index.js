@@ -125,6 +125,7 @@ export class BLASTTrack extends CachedTrack {
         if (blastAlignment && blastAlignment.alignment) {
             const {
                 bitScore,
+                score,
                 length,
                 evalue,
                 numIdentity,
@@ -136,8 +137,8 @@ export class BLASTTrack extends CachedTrack {
                 queryCoverageSubject
             } = blastAlignment.alignment;
             const notDefined = o => o === undefined;
-            if (!notDefined(bitScore) && !notDefined(length)) {
-                info.push(['Score', `${bitScore} bits (${length})`]);
+            if (!notDefined(bitScore) && !notDefined(score)) {
+                info.push(['Score', `${bitScore} bits (${score})`]);
             } else if (!notDefined(bitScore)) {
                 info.push(['Score', `${bitScore} bits`]);
             }
