@@ -129,5 +129,6 @@ export default {
             length: 5,
             thickness: 1
         }
-    }
+    },
+    renderStrandIndicatorOnLargeScale: true
 };

@@ -18,6 +18,12 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         this._aminoacidFeatureRenderer = aminoacidFeatureRenderer;
     }
 
+    get strandIndicatorConfig(): undefined {
+        return this.config && this.config.transcript && this.config.transcript.strand
+            ? this.config.transcript.strand
+            : super.strandIndicatorConfig;
+    }
+
     analyzeBoundaries(feature, viewport) {
         const boundaries = super.analyzeBoundaries(feature, viewport);
         const rectBoundaries = boundaries.rect;
