@@ -186,6 +186,7 @@ public class AzureBlobClient {
                 .url(downloadUrl)
                 .expires(expires)
                 .type(BiologicalDataItemResourceType.AZ)
+                .size(getFileSize(path))
                 .build();
     }
 

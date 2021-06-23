@@ -199,6 +199,7 @@ public final class S3Client {
                 .type(BiologicalDataItemResourceType.S3)
                 .url(generatedUrl.toExternalForm())
                 .expires(expires)
+                .size(getFileSize(url))
                 .build();
     }
 

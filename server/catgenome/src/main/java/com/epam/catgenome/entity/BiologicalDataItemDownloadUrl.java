@@ -35,4 +35,5 @@ public class BiologicalDataItemDownloadUrl {
     private final String url;
     private final BiologicalDataItemResourceType type;
     private final Date expires;
+    private final Long size;
 }
