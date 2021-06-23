@@ -83,6 +83,7 @@ import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 public class ProteinSequenceManager {
 
     private static final String TRANSCRIPT_ID_FILED = "transcript_id";
+    private static final String TRANSLATION_ATTRIBUTE_TAG = "translation_seq";
 
     @Autowired
     private GffManager gffManager;
@@ -151,6 +152,15 @@ public class ProteinSequenceManager {
         return psReconstructionManager.reconstructProteinSequence(geneTrack, chromosome, referenceId, collapsedTrack);
     }
 
+    public List<ProteinSequenceEntry> loadCdsProteinSequence(final Track<Gene> geneTrack,
+                                                             final Gene cds,
+                                                             final Long referenceId) {
+        Assert.notNull(referenceId, MessageHelper.getMessage(MessagesConstants.ERROR_REFERENCE_ID_NULL));
+        Chromosome chromosome = trackHelper.validateTrack(geneTrack);
+
+        return psReconstructionManager.reconstructCdsProteinSequence(geneTrack, cds, chromosome, referenceId);
+    }
+
     /**
      * Load protein sequence for gene track, taking into account variations.
      *
@@ -215,16 +225,47 @@ public class ProteinSequenceManager {
         final Track<Gene> geneTrack = Query2TrackConverter.convertToTrack(request.getTrackQuery());
         final Track<Gene> genes = gffManager.loadGenes(geneTrack, false);
 
-        final Optional<ProteinSequenceEntry> selfTranslation = Optional.ofNullable(
-                        lookForGene(genes.getBlocks(), request.getFeatureId(), request.getFeatureType().name())
-                ).flatMap(gene -> Optional.ofNullable(gene.getAttributes()))
-                .map(a -> a.get("translation"))
+        final Optional<Gene> geneToTranslate = Optional.ofNullable(
+                lookForGene(genes.getBlocks(), request.getFeatureId(), request.getFeatureType().name())
+        );
+        final Optional<ProteinSequenceEntry> selfTranslation = geneToTranslate
+                .flatMap(gene -> Optional.ofNullable(gene.getAttributes()))
+                .map(a -> a.get(TRANSLATION_ATTRIBUTE_TAG))
                 .map(t -> new ProteinSequenceEntry(t, 0L,  0L, t.length() - 1L,
                         (long) request.getTrackQuery().getStartIndex(), (long) request.getTrackQuery().getEndIndex()));
         if (selfTranslation.isPresent()) {
             return GeneUtils.constructProteinString(Collections.singletonList(selfTranslation.get()));
         }
 
+        if (request.getFeatureType() == FeatureType.CDS) {
+            if (geneToTranslate.isPresent()) {
+                return GeneUtils.constructProteinString(
+                        loadCdsProteinSequence(geneTrack, geneToTranslate.get(), request.getReferenceId())
+                );
+            } else {
+                throw new IllegalArgumentException(MessageHelper.getMessage(
+                        MessagesConstants.ERROR_CANT_FIND_TRANSCRIPT, request.getFeatureId(),
+                        request.getFeatureType()));
+            }
+        }
+
+        final String transcript = resolveFeatureNameForTranslation(request, geneTrack);
+        final List<ProteinSequenceEntry> entries =
+                loadProteinSequenceWithoutGrouping(genes, request.getReferenceId(), false)
+                .entrySet().stream()
+                .filter(e -> e.getKey().getFeatureName().equalsIgnoreCase(transcript))
+                .findFirst().map(Map.Entry::getValue)
+                .orElseThrow(() -> new IllegalArgumentException(MessageHelper.getMessage(
+                        MessagesConstants.ERROR_CANT_FIND_TRANSCRIPT, request.getFeatureId(),
+                        request.getFeatureType())));
+
+        return GeneUtils.constructProteinString(entries);
+    }
+
+    // If we got MRNA -> we just take featureId form request, or else if we gote GENE feature, we need to choose
+    // canonical transcript, for any other types we can't build any aminoacid sequence
+    private String resolveFeatureNameForTranslation(final ProteinSequenceConstructRequest request,
+                                                    final Track<Gene> geneTrack) throws GeneReadingException {
         final String transcript;
         if (request.getFeatureType() == FeatureType.GENE) {
             transcript = gffManager.loadGenesTranscript(geneTrack, null, null)
@@ -246,17 +287,7 @@ public class ProteinSequenceManager {
             throw new IllegalArgumentException(
                     MessageHelper.getMessage(MessagesConstants.ERROR_WRONG_FEATURE_TYPE_FOR_PROTEIN_SEQ));
         }
-
-        final List<ProteinSequenceEntry> entries =
-                loadProteinSequenceWithoutGrouping(genes, request.getReferenceId(), false)
-                .entrySet().stream()
-                .filter(e -> e.getKey().getFeatureName().equalsIgnoreCase(transcript))
-                .findFirst().map(Map.Entry::getValue)
-                .orElseThrow(() -> new IllegalArgumentException(MessageHelper.getMessage(
-                        MessagesConstants.ERROR_CANT_FIND_TRANSCRIPT, request.getFeatureId(),
-                        request.getFeatureType())));
-
-        return GeneUtils.constructProteinString(entries);
+        return transcript;
     }
 
     private Gene lookForGene(final List<Gene> genes, final String geneName, final String featureType) {
