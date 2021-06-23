@@ -4,7 +4,7 @@ Test verifies
  - that it is possible to download the search results to the local workstation as CSV file
  
 **Prerequisites**:
- - dataset = **dm6_data**, .vcf = **[agnts3.09-28.trim.dm606.realign.bam](https://ngb-oss-builds.s3.amazonaws.com/public/data/demo/ngb_demo_data/agnts3.09-28.trim.dm606.realign.bam.bai)**
+ - dataset = **dm6_data**
  - Sequence for search: 
  ```GAAATTGTCCAAAGATAGTTACCTCTCATAGGACCCCTCACTGACAGCATCCCCTAGCCGCACGTGACTAGTTAACTTAATTGAAAGTAAACGTTTAAAATTCTGTTCTTGAGTCGCGCTTCCCCCGTTTCAAATGCTTCATGTGGCTAGTGGCGACTCCGTTGGACAGCACAAACACGGAACGCTCCCATCCTCGCAGTGAGTTCAGCTACCGTCCCAAAAGATA```
  - Go to NGB
