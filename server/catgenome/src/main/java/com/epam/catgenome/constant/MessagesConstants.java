@@ -68,6 +68,7 @@ public final class MessagesConstants {
     public static final String ERROR_FILE_IN_LINK = "error.files.in.link";
     public static final String ERROR_EMPTY_FOLDER= "error.empty.folder";
     public static final String ERROR_FEATURE_FILE_READING = "error.feature.file.reading";
+    public static final String ERROR_GENBANK_FILE_READING = "error.genbank.file.reading";
     public static final String ERROR_FILE_NAME_EXISTS = "error.file.name.already.exists";
 
     public static final String ERROR_GENEID_NOT_SPECIFIED = "error.no.geneid";
