@@ -1,7 +1,7 @@
 import FeatureBaseRenderer from '../../../../../gene/internal/renderer/features/drawing/featureBaseRenderer';
 import PIXI from 'pixi.js';
 import {ColorProcessor, PixiTextSize} from '../../../../../../utilities';
-import drawStrandDirection from '../../../../../gene/internal/renderer/features/drawing/strandDrawing';
+import drawStrandDirection, {getStrandArrowSize} from '../../../../../gene/internal/renderer/features/drawing/strandDrawing';
 import {drawingConfiguration} from '../../../../../../core';
 
 const Math = window.Math;
@@ -10,6 +10,12 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
     constructor(track, config, registerLabel, registerDockableElement, registerFeaturePosition, registerAttachedElement) {
         super(config, registerLabel, registerDockableElement, registerFeaturePosition, registerAttachedElement);
         this.track = track;
+    }
+
+    get strandIndicatorConfig(): undefined {
+        return this.config && this.config.bed && this.config.bed.strand
+            ? this.config.bed.strand
+            : super.strandIndicatorConfig;
     }
 
     analyzeBoundaries(feature, viewport) {
@@ -44,7 +50,7 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
         return color;
     }
 
-    render(feature, viewport, graphicsObj, labelContainer, dockableElementsContainer, attachedElementsContainer,  position) {
+    render(feature, viewport, graphicsObj, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
         super.render(feature, viewport, graphicsObj, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
         const {
             graphics,
@@ -103,133 +109,181 @@ export default class BedItemFeatureRenderer extends FeatureBaseRenderer {
             }
         }
 
-        if (!structureToDisplay) {
-            structureToDisplay = feature.structures[feature.structures.length - 1].structure; // minimized mode
-        }
-
-        const maxViewportsOnScreen = 3;
-
-        for (let i = 0; i < structureToDisplay.length; i++) {
-            const block = structureToDisplay[i];
-            if (block.isEmpty) {
-                graphics.beginFill(color, 0);
-                graphics.lineStyle(1, color, 1);
-                const x1 = Math.min(
-                    Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2, -viewport.canvasSize),
-                    2.0 * viewport.canvasSize
-                );
-                const x2 = Math.max(
-                    Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2, 2 * viewport.canvasSize),
-                    -viewport.canvasSize
-                );
-                graphics.moveTo(x1, position.y + this.config.bed.margin + this.config.bed.height / 2);
-                graphics.lineTo(x2, position.y + this.config.bed.margin + this.config.bed.height / 2);
-                graphics.endFill();
-
-                hoveredGraphics.beginFill(ColorProcessor.darkenColor(color), 0);
-                hoveredGraphics.lineStyle(1, ColorProcessor.darkenColor(color), 1);
-                hoveredGraphics.moveTo(x1, position.y + this.config.bed.margin + this.config.bed.height / 2);
-                hoveredGraphics.lineTo(x2, position.y + this.config.bed.margin + this.config.bed.height / 2);
-                hoveredGraphics.endFill();
-                this.updateTextureCoordinates(
-                    {
-                        x: x1,
-                        y: position.y + this.config.bed.margin + this.config.bed.height / 2
-                    });
-                if (block.hasOwnProperty('strand')) {
-                    drawStrandDirection(
-                        block.strand,
-                        {
-                            centerY: position.y + this.config.bed.margin + this.config.bed.height / 2,
-                            height: this.config.bed.height,
-                            width: Math.min(x2 - x1, maxViewportsOnScreen * viewport.canvasSize),
-                            x: x1
-                        },
-                        graphics,
-                        color,
-                        this.config.bed.strand.arrow,
-                        1,
-                        ::this.updateTextureCoordinates
-                    );
-                    drawStrandDirection(
-                        block.strand,
-                        {
-                            centerY: position.y + this.config.bed.margin + this.config.bed.height / 2,
-                            height: this.config.bed.height,
-                            width: Math.min(x2 - x1, maxViewportsOnScreen * viewport.canvasSize),
-                            x: x1
-                        },
-                        hoveredGraphics,
-                        ColorProcessor.darkenColor(color),
-                        this.config.bed.strand.arrow,
-                        1,
-                        ::this.updateTextureCoordinates
-                    );
-                }
+        const startX = viewport.project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2;
+        let endX = viewport.project.brushBP2pixel(feature.endIndex) + pixelsInBp / 2;
+        if (
+            feature.hasOwnProperty('strand') &&
+            this.shouldRenderStrandIndicatorInsteadOfGraphics(startX, endX)
+        ) {
+            endX = startX +
+                getStrandArrowSize(this.config.bed.strand.arrow.height).width +
+                this.config.bed.strand.arrow.margin * 4;
+            const arrowConfig = {
+                ...this.config.bed.strand.arrow,
+                mode: 'fill',
+                height: this.config.bed.strand.arrow.height + 2 * this.config.bed.strand.arrow.margin
+            };
+            this.updateTextureCoordinates(
+                {
+                    x: startX,
+                    y: position.y + this.config.bed.margin
+                });
+            drawStrandDirection(
+                feature.strand,
+                {
+                    centerY: position.y + this.config.bed.margin + this.config.bed.height / 2,
+                    height: this.config.bed.height,
+                    width: endX - startX,
+                    x: startX
+                },
+                graphics,
+                color,
+                arrowConfig,
+                1,
+                ::this.updateTextureCoordinates
+            );
+            drawStrandDirection(
+                feature.strand,
+                {
+                    centerY: position.y + this.config.bed.margin + this.config.bed.height / 2,
+                    height: this.config.bed.height,
+                    width: endX - startX,
+                    x: startX
+                },
+                hoveredGraphics,
+                ColorProcessor.darkenColor(color),
+                arrowConfig,
+                1,
+                ::this.updateTextureCoordinates
+            );
+        } else {
+            if (!structureToDisplay) {
+                structureToDisplay = feature.structures[feature.structures.length - 1].structure; // minimized mode
             }
-            else {
-                graphics.beginFill(color, 1);
-                graphics.lineStyle(0, color, 0);
-                const start = Math.min(
-                    Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2, -viewport.canvasSize),
-                    2.0 * viewport.canvasSize
-                );
-                const end = Math.max(
-                    Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2, 2 * viewport.canvasSize),
-                    -viewport.canvasSize
-                );
-                graphics.drawRect(
-                    start,
-                    position.y + this.config.bed.margin,
-                    Math.max(1, end - start),
-                    this.config.bed.height
-                );
-                graphics.endFill();
 
-                hoveredGraphics.beginFill(ColorProcessor.darkenColor(color), 1);
-                hoveredGraphics.lineStyle(0, ColorProcessor.darkenColor(color), 0);
-                hoveredGraphics.drawRect(
-                    start,
-                    position.y + this.config.bed.margin,
-                    Math.max(1, end - start),
-                    this.config.bed.height
-                );
-                hoveredGraphics.endFill();
-                this.updateTextureCoordinates(
-                    {
-                        x: start,
-                        y: position.y + this.config.bed.margin
-                    });
-                if (block.hasOwnProperty('strand')) {
-                    const white = 0xFFFFFF;
-                    drawStrandDirection(
-                        block.strand,
-                        {
-                            centerY: position.y + this.config.bed.margin + this.config.bed.height / 2,
-                            height: this.config.bed.height,
-                            width: Math.min(end - start, maxViewportsOnScreen * viewport.canvasSize),
-                            x: start
-                        },
-                        graphics,
-                        white,
-                        this.config.bed.strand.arrow,
-                        1,
-                        ::this.updateTextureCoordinates
+            const maxViewportsOnScreen = 3;
+
+            for (let i = 0; i < structureToDisplay.length; i++) {
+                const block = structureToDisplay[i];
+                if (block.isEmpty) {
+                    graphics.beginFill(color, 0);
+                    graphics.lineStyle(1, color, 1);
+                    const x1 = Math.min(
+                        Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2, -viewport.canvasSize),
+                        2.0 * viewport.canvasSize
                     );
-                    drawStrandDirection(
-                        block.strand,
-                        {
-                            centerY: position.y + this.config.bed.margin + this.config.bed.height / 2,
-                            height: this.config.bed.height,
-                            width: Math.min(end - start, maxViewportsOnScreen * viewport.canvasSize),
-                            x: start
-                        },
-                        hoveredGraphics,
-                        white,
-                        this.config.bed.strand.arrow,
-                        1,
-                        ::this.updateTextureCoordinates
+                    const x2 = Math.max(
+                        Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2, 2 * viewport.canvasSize),
+                        -viewport.canvasSize
                     );
+                    graphics.moveTo(x1, position.y + this.config.bed.margin + this.config.bed.height / 2);
+                    graphics.lineTo(x2, position.y + this.config.bed.margin + this.config.bed.height / 2);
+                    graphics.endFill();
+
+                    hoveredGraphics.beginFill(ColorProcessor.darkenColor(color), 0);
+                    hoveredGraphics.lineStyle(1, ColorProcessor.darkenColor(color), 1);
+                    hoveredGraphics.moveTo(x1, position.y + this.config.bed.margin + this.config.bed.height / 2);
+                    hoveredGraphics.lineTo(x2, position.y + this.config.bed.margin + this.config.bed.height / 2);
+                    hoveredGraphics.endFill();
+                    this.updateTextureCoordinates(
+                        {
+                            x: x1,
+                            y: position.y + this.config.bed.margin + this.config.bed.height / 2
+                        });
+                    if (block.hasOwnProperty('strand')) {
+                        drawStrandDirection(
+                            block.strand,
+                            {
+                                centerY: position.y + this.config.bed.margin + this.config.bed.height / 2,
+                                height: this.config.bed.height,
+                                width: Math.min(x2 - x1, maxViewportsOnScreen * viewport.canvasSize),
+                                x: x1
+                            },
+                            graphics,
+                            color,
+                            this.config.bed.strand.arrow,
+                            1,
+                            ::this.updateTextureCoordinates
+                        );
+                        drawStrandDirection(
+                            block.strand,
+                            {
+                                centerY: position.y + this.config.bed.margin + this.config.bed.height / 2,
+                                height: this.config.bed.height,
+                                width: Math.min(x2 - x1, maxViewportsOnScreen * viewport.canvasSize),
+                                x: x1
+                            },
+                            hoveredGraphics,
+                            ColorProcessor.darkenColor(color),
+                            this.config.bed.strand.arrow,
+                            1,
+                            ::this.updateTextureCoordinates
+                        );
+                    }
+                } else {
+                    graphics.beginFill(color, 1);
+                    graphics.lineStyle(0, color, 0);
+                    const start = Math.min(
+                        Math.max(viewport.project.brushBP2pixel(block.startIndex) - pixelsInBp / 2, -viewport.canvasSize),
+                        2.0 * viewport.canvasSize
+                    );
+                    const end = Math.max(
+                        Math.min(viewport.project.brushBP2pixel(block.endIndex) + pixelsInBp / 2, 2 * viewport.canvasSize),
+                        -viewport.canvasSize
+                    );
+                    graphics.drawRect(
+                        start,
+                        position.y + this.config.bed.margin,
+                        Math.max(1, end - start),
+                        this.config.bed.height
+                    );
+                    graphics.endFill();
+
+                    hoveredGraphics.beginFill(ColorProcessor.darkenColor(color), 1);
+                    hoveredGraphics.lineStyle(0, ColorProcessor.darkenColor(color), 0);
+                    hoveredGraphics.drawRect(
+                        start,
+                        position.y + this.config.bed.margin,
+                        Math.max(1, end - start),
+                        this.config.bed.height
+                    );
+                    hoveredGraphics.endFill();
+                    this.updateTextureCoordinates(
+                        {
+                            x: start,
+                            y: position.y + this.config.bed.margin
+                        });
+                    if (block.hasOwnProperty('strand')) {
+                        const white = 0xFFFFFF;
+                        drawStrandDirection(
+                            block.strand,
+                            {
+                                centerY: position.y + this.config.bed.margin + this.config.bed.height / 2,
+                                height: this.config.bed.height,
+                                width: Math.min(end - start, maxViewportsOnScreen * viewport.canvasSize),
+                                x: start
+                            },
+                            graphics,
+                            white,
+                            this.config.bed.strand.arrow,
+                            1,
+                            ::this.updateTextureCoordinates
+                        );
+                        drawStrandDirection(
+                            block.strand,
+                            {
+                                centerY: position.y + this.config.bed.margin + this.config.bed.height / 2,
+                                height: this.config.bed.height,
+                                width: Math.min(end - start, maxViewportsOnScreen * viewport.canvasSize),
+                                x: start
+                            },
+                            hoveredGraphics,
+                            white,
+                            this.config.bed.strand.arrow,
+                            1,
+                            ::this.updateTextureCoordinates
+                        );
+                    }
                 }
             }
         }
