@@ -78,11 +78,10 @@ public class AzureBlobClient {
     public AzureBlobClient(final String storageAccount,
                            final String storageKey) {
         try {
-            final SharedKeyCredentials credentials = new SharedKeyCredentials(storageAccount, storageKey);
+            this.credentials = new SharedKeyCredentials(storageAccount, storageKey);
             this.blobService = new ServiceURL(
                     url(String.format(BLOB_URL_FORMAT, storageAccount)),
                     StorageURL.createPipeline(credentials, new PipelineOptions()));
-            this.credentials = credentials;
         } catch (InvalidKeyException e) {
             throw new IllegalArgumentException("Invalid credentials for Azure storage account: " + storageAccount);
         }

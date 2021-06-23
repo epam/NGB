@@ -25,14 +25,14 @@
 package com.epam.catgenome.entity;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 
 import java.util.Date;
 
-@Data
+@Value
 @Builder
 public class BiologicalDataItemDownloadUrl {
-    private String url;
-    private BiologicalDataItemResourceType type;
-    private Date expires;
+    private final String url;
+    private final BiologicalDataItemResourceType type;
+    private final Date expires;
 }
