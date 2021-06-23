@@ -37,9 +37,12 @@ import java.util.List;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
+/**
+ * This class represents a tool that provides an ability to remove description for dataset
+ */
 @Command(type = Command.Type.REQUEST, command = {"remove_description"})
 @Slf4j
-public class DatasetDescriptionRemovingHandler extends AbstractHTTPCommandHandler {
+public class DatasetDescriptionDeletionHandler extends AbstractHTTPCommandHandler {
 
     private Long projectId;
 

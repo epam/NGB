@@ -205,6 +205,12 @@ public abstract class AbstractHTTPCommandHandler extends AbstractSimpleCommandHa
         return result;
     }
 
+    /**
+     * Prepares {@link HttpPost} multipart request
+     * @param url the request URL
+     * @param filePath the path to local description file that shall be uploaded to project
+     * @return {@link HttpPost} with specified file and URL
+     */
     protected HttpPost buildMultipartRequest(final String url, final String filePath) throws IOException {
         final HttpPost request = new HttpPost(url);
         final MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();

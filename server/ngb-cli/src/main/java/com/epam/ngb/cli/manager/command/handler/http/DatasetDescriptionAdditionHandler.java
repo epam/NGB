@@ -41,9 +41,12 @@ import java.util.List;
 
 import static com.epam.ngb.cli.constants.MessageConstants.ILLEGAL_COMMAND_ARGUMENTS;
 
+/**
+ * This class represents a tool that provides an ability to add description file to a dataset
+ */
 @Command(type = Command.Type.REQUEST, command = {"add_description"})
 @Slf4j
-public class DatasetDescriptionAddingHandler extends AbstractHTTPCommandHandler {
+public class DatasetDescriptionAdditionHandler extends AbstractHTTPCommandHandler {
 
     private Long projectId;
     private String path;
