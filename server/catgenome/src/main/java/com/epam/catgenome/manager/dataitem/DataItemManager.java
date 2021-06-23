@@ -30,6 +30,7 @@ import static com.epam.catgenome.constant.MessagesConstants.ERROR_UNSUPPORTED_FI
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
@@ -207,11 +208,7 @@ public class DataItemManager {
                                                              final BiologicalDataItem biologicalDataItem) {
         switch (biologicalDataItem.getType()) {
             case FILE:
-                return BiologicalDataItemDownloadUrl.builder()
-                        .url(String.format(DOWNLOAD_LOCAL_FILE_URL_FORMAT,
-                                StringUtils.removeEnd(baseExternalUrl, "/"), id))
-                        .type(BiologicalDataItemResourceType.FILE)
-                        .build();
+                return generateDownloadUrlForLocalFile(id, biologicalDataItem);
             case S3:
                 return S3Client.getInstance().generatePresignedUrl(biologicalDataItem.getPath());
             case AZ:
@@ -219,6 +216,23 @@ public class DataItemManager {
             default:
                 throw new UnsupportedOperationException(String.format(
                         "Cannot generate download url for data type '%s'", biologicalDataItem.getType()));
+        }
+    }
+
+    private BiologicalDataItemDownloadUrl generateDownloadUrlForLocalFile(final Long id,
+                                                                          final BiologicalDataItem biologicalDataItem) {
+        final Path dataItemPath = Paths.get(biologicalDataItem.getPath());
+        try {
+            Assert.state(Files.exists(dataItemPath),
+                    getMessage(ERROR_BIO_ID_NOT_FOUND, biologicalDataItem.getId()));
+            return BiologicalDataItemDownloadUrl.builder()
+                    .url(String.format(DOWNLOAD_LOCAL_FILE_URL_FORMAT,
+                            StringUtils.removeEnd(baseExternalUrl, "/"), id))
+                    .type(BiologicalDataItemResourceType.FILE)
+                    .size(Files.size(dataItemPath))
+                    .build();
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot generate download url for local file", e);
         }
     }
 }
