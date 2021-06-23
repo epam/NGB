@@ -7,10 +7,9 @@
     <span ng-if="$ctrl.name">{{$ctrl.name}}</span>
     <span ng-if="$ctrl.format || $ctrl.size > 0"
           class="dataset-item-download-details">
-        (
         <span ng-if="$ctrl.format">{{$ctrl.format}}</span>
         <span ng-if="$ctrl.size > 0">{{$ctrl.size | filesize}}</span>
-        )</span>
+    </span>
 </a>
 <i class="dataset-item-download-loading"
    ng-if="$ctrl.fetching">
