@@ -1,14 +1,11 @@
 function getLink (tracks) {
-    const [{projectDataService, bioDataItemId}] = (tracks || [])
+    const [{bioDataItemId}] = (tracks || [])
         .map(track => ({
             projectDataService: track.projectContext.projectDataService,
             bioDataItemId: track.config.bioDataItemId
         }))
         .filter(Boolean);
-    if (projectDataService && bioDataItemId) {
-        return projectDataService.getDatasetFileLink(bioDataItemId);
-    }
-    return null;
+    return bioDataItemId;
 }
 
 export default {

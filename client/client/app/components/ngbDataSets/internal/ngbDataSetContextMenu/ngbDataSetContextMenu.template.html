@@ -8,22 +8,18 @@
         <md-divider ng-if="ctrl.hasRole"></md-divider>
         <md-list-item ng-if="!ctrl.node.isProject">
             <md-button>
-                <a class="download-link"
-                   target="_blank"
-                   ng-href="{{ctrl.getFileLink(ctrl.node.bioDataItemId)}}">
-                    <ng-md-icon icon="file_download"></ng-md-icon>
-                    <span>Download file</span>
-                </a>
+                <ngb-dataset-item-download-url id="ctrl.node.bioDataItemId"
+                                               show-icon="true">
+                </ngb-dataset-item-download-url>
             </md-button>
         </md-list-item>
         <md-list-item ng-if="ctrl.node.isProject" ng-repeat="item in ctrl.projectElements">
             <md-button>
-                <a class="download-link"
-                   target="_blank"
-                   ng-href="{{ctrl.getFileLink(item.bioDataItemId)}}">
-                    <ng-md-icon icon="file_download"></ng-md-icon>
-                    <span>{{item.filename}} ({{item.format}})</span>
-                </a>
+                <ngb-dataset-item-download-url id="item.bioDataItemId"
+                                               name="item.filename"
+                                               format="item.format"
+                                               show-icon="true">
+                </ngb-dataset-item-download-url>
             </md-button>
         </md-list-item>
     </md-list>

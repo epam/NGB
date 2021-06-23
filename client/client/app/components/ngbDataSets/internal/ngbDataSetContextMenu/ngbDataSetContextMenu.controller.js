@@ -61,8 +61,8 @@ export default class NgbDataSetContextMenuController {
             .filter(r => +r.bioDataItemId === +this.node.reference.bioDataItemId);
         if (referenceList.length) {
             this.projectElements = [
-                ...referenceList[0].annotationFiles,
-                ...this.node.items.filter(node => node.format === 'REFERENCE')
+                referenceList[0],
+                ...referenceList[0].annotationFiles
             ];
             this.projectElements.forEach(e => {
                 const splitPath = e.path.split('/');

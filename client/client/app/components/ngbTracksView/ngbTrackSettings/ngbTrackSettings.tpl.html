@@ -59,7 +59,9 @@
                         aria-label="button"
                         class="track-menu-button"
                 >
-                    <a class="download-link" href="{{::subfield.get()}}">{{subfield.label}}</a>
+                    <ngb-dataset-item-download-url id="subfield.get()"
+                                                   show-icon="false">
+                    </ngb-dataset-item-download-url>
                 </md-button>
             </md-menu-item>
         </div>
