@@ -216,10 +216,41 @@ export default class ZonesManager {
             (boundaries.y2 === null || boundaries.y2 === undefined || rect.y2 <= boundaries.y2);
     }
 
+    static _linearDimensionsConflict(prop1, prop2, o1, o2, margin = 0) {
+        if (
+            !o1 ||
+            !o2 ||
+            !o1.hasOwnProperty(prop1) || !o1.hasOwnProperty(prop2) ||
+            !o2.hasOwnProperty(prop1) || !o2.hasOwnProperty(prop2)
+        ) {
+            return false;
+        }
+        const o1p1 = o1[prop1];
+        const o1p2 = o1[prop2];
+        const o2p1 = o2[prop1];
+        const o2p2 = o2[prop2];
+        const o1size = Math.abs(o1p2 - o1p1);
+        const o2size = Math.abs(o2p2 - o2p1);
+        const oSize = Math.max(o1p1, o1p2, o2p1, o2p2) - Math.min(o1p1, o1p2, o2p1, o2p2);
+        return o1size + o2size > oSize + margin;
+    }
+
     static _rectanglesConflict(rect1, rect2, margin = {marginX: 0, marginY: 0}) {
-        return !(rect1.x2 + margin.marginX <= rect2.x1 ||
-        rect2.x2 + margin.marginX <= rect1.x1 ||
-        rect1.y2 + margin.marginY <= rect2.y1 ||
-        rect2.y2 + margin.marginY <= rect1.y1);
+        const {marginX, marginY} = margin;
+        const xConflicts = this._linearDimensionsConflict(
+            'x1',
+            'x2',
+            rect1,
+            rect2,
+            marginX
+        );
+        const yConflicts = this._linearDimensionsConflict(
+            'y1',
+            'y2',
+            rect1,
+            rect2,
+            marginY
+        );
+        return xConflicts && yConflicts;
     }
 }

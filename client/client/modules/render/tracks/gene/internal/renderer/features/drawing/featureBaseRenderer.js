@@ -65,7 +65,7 @@ export default class FeatureBaseRenderer{
                 -viewport.canvasSize
             ) + pixelsInBp / 2;
             if (this.shouldRenderStrandIndicatorInsteadOfGraphics(x1, x2)) {
-                x2 = x1 + getStrandArrowSize(this.strandIndicatorConfig.height).width;
+                x2 = x1 + getStrandArrowSize(this.strandIndicatorConfig.arrow.height).width;
             }
             return {
                 margin:{
