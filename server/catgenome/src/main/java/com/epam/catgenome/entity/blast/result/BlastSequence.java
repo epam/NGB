@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 @Builder
 public class BlastSequence {
     private String sequenceId;
+    private String sequenceAccessionVersion;
     private String organism;
     private Long taxId;
     private Double maxScore;
@@ -54,6 +55,7 @@ public class BlastSequence {
                 .max(Comparator.comparing(Entry::getBitScore)).orElse(entries.get(0));
         return BlastSequence.builder()
                 .sequenceId(maxScoringEntry.getSeqSeqId())
+                .sequenceAccessionVersion(maxScoringEntry.getSeqAccVersion())
                 .organism(maxScoringEntry.getSeqSciName())
                 .taxId(maxScoringEntry.getSeqTaxId())
                 .matches(entries.size())
