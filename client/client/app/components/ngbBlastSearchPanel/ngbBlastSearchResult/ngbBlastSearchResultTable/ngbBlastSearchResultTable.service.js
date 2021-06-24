@@ -102,6 +102,7 @@ export default class ngbBlastSearchResultTableService {
         return {
             alignments: result.alignments,
             sequenceId: result.sequenceId,
+            sequenceAccessionVersion: result.sequenceAccessionVersion,
             organism: result.organism,
             taxId: result.taxId,
             maxScore: result.maxScore,
