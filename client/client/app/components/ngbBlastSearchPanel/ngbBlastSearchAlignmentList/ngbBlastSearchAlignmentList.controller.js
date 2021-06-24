@@ -18,6 +18,14 @@ export default class ngbBlastSearchAlignmentList {
         this.initialize();
     }
 
+    get ncbiUrl () {
+        if (this.searchResult) {
+            const id = this.searchResult.sequenceAccessionVersion || this.searchResult.sequenceId;
+            return `https://www.ncbi.nlm.nih.gov/nucleotide/${id}`;
+        }
+        return undefined;
+    }
+
     initialize() {
         this.searchResult = this.ngbBlastSearchService.popCurrentAlignmentObject();
         this.search = this.ngbBlastSearchService.cutCurrentResult;
