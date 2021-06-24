@@ -34,25 +34,25 @@ public enum BlastTaskStatus {
     FAILED(5, true),
     DONE(6, true);
 
-    private long id;
-    private boolean finalStatus;
-    private static Map<Long, BlastTaskStatus> idMap = new HashMap<>((int) CREATED.getId());
+    private final int id;
+    private final boolean finalStatus;
+    private static final Map<Integer, BlastTaskStatus> ID_MAP = new HashMap<>(DONE.getId());
 
     static {
-        idMap.put(CREATED.id, CREATED);
-        idMap.put(SUBMITTED.id, SUBMITTED);
-        idMap.put(RUNNING.id, RUNNING);
-        idMap.put(CANCELED.id, CANCELED);
-        idMap.put(FAILED.id, FAILED);
-        idMap.put(DONE.id, DONE);
+        ID_MAP.put(CREATED.id, CREATED);
+        ID_MAP.put(SUBMITTED.id, SUBMITTED);
+        ID_MAP.put(RUNNING.id, RUNNING);
+        ID_MAP.put(CANCELED.id, CANCELED);
+        ID_MAP.put(FAILED.id, FAILED);
+        ID_MAP.put(DONE.id, DONE);
     }
 
-    BlastTaskStatus(long id, boolean finalStatus) {
+    BlastTaskStatus(int id, boolean finalStatus) {
         this.id = id;
         this.finalStatus = finalStatus;
     }
 
-    public long getId() {
+    public int getId() {
         return id;
     }
 
@@ -60,11 +60,7 @@ public enum BlastTaskStatus {
         return finalStatus;
     }
 
-    public static BlastTaskStatus getById(Long id) {
-        if (id == null) {
-            return null;
-        }
-
-        return idMap.get(id);
+    public static BlastTaskStatus getById(int id) {
+        return ID_MAP.get(id);
     }
 }

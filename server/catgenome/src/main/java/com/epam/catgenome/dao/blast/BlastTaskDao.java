@@ -293,9 +293,9 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
                 blastTask.setOptions(rs.getString(OPTIONS.name()));
                 blastTask.setOwner(rs.getString(OWNER.name()));
 
-                long longVal = rs.getLong(STATUS.name());
+                int intVal = rs.getInt(STATUS.name());
                 if (!rs.wasNull()) {
-                    blastTask.setStatus(BlastTaskStatus.getById(longVal));
+                    blastTask.setStatus(BlastTaskStatus.getById(intVal));
                 }
 
                 return blastTask;
