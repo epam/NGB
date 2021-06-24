@@ -66,7 +66,7 @@ public class CommandManager {
     public static final String SERVER_VERSION_PROPERTY = "version";
     private static final String HANDLER_PACKAGE = "com.epam.ngb.cli.manager.command.handler";
     public static final String GET_EXISTING_INDEX_URL_PROPERTY = "get_existing_index_url";
-
+    private static final String PROJECT_DESCRIPTION_URL_PROPERTY = "project_description_url";
 
     /**
      * Creates {@code CommandManager} for an input {@param command}, loads it's configuration and
@@ -154,6 +154,7 @@ public class CommandManager {
         parameters.setFindUsersUrl(serverProperties.getProperty(FIND_USERS_URL_PROPERTY));
         parameters.setExistingIndexSearchUrl(serverProperties.getProperty(GET_EXISTING_INDEX_URL_PROPERTY));
         parameters.setFormatsUrl(serverProperties.getProperty(FORMAT_URL_PROPERTY));
+        parameters.setProjectDescriptionUrl(serverProperties.getProperty(PROJECT_DESCRIPTION_URL_PROPERTY));
         return parameters;
     }
 

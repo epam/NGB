@@ -32,6 +32,7 @@ dependencies {
 
     //HTTP handling
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
+    compile group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.5.2'
     compile group: 'com.google.http-client', name: 'google-http-client-jackson2', version: '1.22.0'
 
     // Jackson
