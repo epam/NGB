@@ -45,6 +45,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -82,7 +83,6 @@ import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 public class ProteinSequenceManager {
 
     private static final String TRANSCRIPT_ID_FILED = "transcript_id";
-    private static final String TRANSLATION_ATTRIBUTE_TAG = "translation_seq";
 
     @Autowired
     private GffManager gffManager;
@@ -92,6 +92,9 @@ public class ProteinSequenceManager {
 
     @Autowired
     private ProteinSequenceReconstructionManager psReconstructionManager;
+
+    @Value("${gene.translation.seq.tags:translation_seq}")
+    private List<String> translationAttrTags;
 
     /**
      * Load protein sequence for specified track (start and end indexes, gene item id, reference genome).
@@ -226,7 +229,11 @@ public class ProteinSequenceManager {
         );
         final Optional<ProteinSequenceEntry> selfTranslation = geneToTranslate
                 .flatMap(gene -> Optional.ofNullable(gene.getAttributes()))
-                .map(a -> a.get(TRANSLATION_ATTRIBUTE_TAG))
+                .flatMap(a ->
+                        CollectionUtils.intersection(a.keySet(), translationAttrTags)
+                                .stream()
+                                .findFirst()
+                                .map(a::get))
                 .map(t -> new ProteinSequenceEntry(t, 0L,  0L, t.length() - 1L,
                         (long) request.getTrackQuery().getStartIndex(), (long) request.getTrackQuery().getEndIndex()));
         if (selfTranslation.isPresent()) {

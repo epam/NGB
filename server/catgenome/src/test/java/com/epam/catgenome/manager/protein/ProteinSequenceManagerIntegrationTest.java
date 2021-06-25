@@ -24,6 +24,7 @@
 
 package com.epam.catgenome.manager.protein;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
@@ -31,6 +32,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 
+import com.epam.catgenome.entity.index.FeatureType;
+import com.epam.catgenome.entity.protein.ProteinSequence;
+import com.epam.catgenome.entity.protein.ProteinSequenceConstructRequest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +80,9 @@ public class ProteinSequenceManagerIntegrationTest extends AbstractManagerTest {
     private static final int TRACK_END_INDEX = 50;
     private static final int TRACK_START_INDEX = 1;
     private static final double TRACK_SCALE_FACTOR = 23.94927536183396;
+    public static final String GENE_ATTR_AMINOACID_SEQ = "AAAAA";
+    public static final String CALCULATED_AMINO_ACID_SEQ = "QQRRTQNP";
+    public static final String CDS_CALCULATED_SEQ = "FG";
     @Autowired
     private GffManager gffManager;
 
@@ -108,6 +115,78 @@ public class ProteinSequenceManagerIntegrationTest extends AbstractManagerTest {
 
         Track<ProteinSequenceInfo> psTrack = proteinSequenceManager.loadProteinSequence(track, reference.getId());
         assertNotNull(psTrack);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testLoadProteinSequence() throws IOException, InterruptedException, FeatureIndexException,
+            NoSuchAlgorithmException {
+        // Add reference genome.
+        Reference reference = prepareReference("classpath:templates/protein/reference.fa");
+
+        // Add gene file.
+        GeneFile geneFile = prepareGene(reference, "classpath:templates/protein/genes.gff");
+
+        // Load protein sequence.
+        TrackQuery track = new TrackQuery();
+        track.setId(geneFile.getId());
+        track.setStartIndex(2);
+        track.setEndIndex(30);
+        track.setChromosomeId(reference.getChromosomes().get(0).getId());
+        track.setScaleFactor(1D);
+
+        ProteinSequence seq = proteinSequenceManager.loadProteinSequence(
+                ProteinSequenceConstructRequest.builder()
+                        .trackQuery(track)
+                        .referenceId(reference.getId())
+                        .featureType(FeatureType.MRNA)
+                        .featureId("PGLYRP4-201").build());
+        assertNotNull(seq);
+        assertEquals(CALCULATED_AMINO_ACID_SEQ, seq.getText());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void testLoadProteinSequenceFromGeneAttr() throws IOException, InterruptedException, FeatureIndexException,
+            NoSuchAlgorithmException {
+        // Add reference genome.
+        Reference reference = prepareReference("classpath:templates/protein/reference.fa");
+
+        // Add gene file.
+        GeneFile geneFile = prepareGene(reference, "classpath:templates/protein/genes_with_translation.gff");
+
+        // Load protein sequence.
+        TrackQuery track = new TrackQuery();
+        track.setId(geneFile.getId());
+        track.setStartIndex(2);
+        track.setEndIndex(10);
+        track.setChromosomeId(reference.getChromosomes().get(0).getId());
+        track.setScaleFactor(1D);
+
+        ProteinSequence seq = proteinSequenceManager.loadProteinSequence(
+                ProteinSequenceConstructRequest.builder()
+                        .trackQuery(track)
+                        .referenceId(reference.getId())
+                        .featureType(FeatureType.CDS)
+                        .featureId("PGLYRP4").build());
+        assertNotNull(seq);
+        assertEquals(GENE_ATTR_AMINOACID_SEQ, seq.getText());
+
+        track = new TrackQuery();
+        track.setId(geneFile.getId());
+        track.setStartIndex(7);
+        track.setEndIndex(15);
+        track.setChromosomeId(reference.getChromosomes().get(0).getId());
+        track.setScaleFactor(1D);
+
+        seq = proteinSequenceManager.loadProteinSequence(
+                ProteinSequenceConstructRequest.builder()
+                        .trackQuery(track)
+                        .referenceId(reference.getId())
+                        .featureType(FeatureType.CDS)
+                        .featureId("PGLYRP2").build());
+        assertNotNull(seq);
+        assertEquals(CDS_CALCULATED_SEQ, seq.getText());
     }
 
     @Test
