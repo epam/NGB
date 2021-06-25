@@ -376,7 +376,10 @@ public class FileManager {
         Assert.notNull(reference.getId(), getMessage(MessageCode.UNKNOWN_REFERENCE_ID));
 
         if (reference.getType() != BiologicalDataItemResourceType.GA4GH) {
-            deleteDir(getReferenceDir(reference));
+            final Map<String, Object> params = new HashMap<>();
+            final Long dirId = reference.getId();
+            params.put(DIR_ID.name(), dirId);
+            deleteDir(substitute(REFERENCE_DIR, params));
         }
     }
 

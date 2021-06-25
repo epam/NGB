@@ -62,6 +62,7 @@ import com.epam.catgenome.helper.EntityHelper;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class SegDaoTest extends AbstractDaoTest {
+    public static final String PATH = "///";
     @Autowired
     private SegFileDao segFileDao;
 
@@ -82,8 +83,8 @@ public class SegDaoTest extends AbstractDaoTest {
         segFile.setId(segFileDao.createSegFileId());
         segFile.setName("testFile");
         segFile.setType(BiologicalDataItemResourceType.FILE);
-        segFile.setPath("///");
-        segFile.setSource("///");
+        segFile.setPath(PATH);
+        segFile.setSource(PATH);
         segFile.setCreatedDate(new Date());
         segFile.setReferenceId(reference.getId());
         segFile.setOwner(EntityHelper.TEST_OWNER);
@@ -95,6 +96,7 @@ public class SegDaoTest extends AbstractDaoTest {
         biologicalDataItemDao.createBiologicalDataItem(index);
         final Long realId = segFile.getId();
         biologicalDataItemDao.createBiologicalDataItem(segFile);
+
         segFileDao.createSegFile(segFile, realId);
 
         SegFile loadedFile = segFileDao.loadSegFile(segFile.getId());
@@ -122,8 +124,8 @@ public class SegDaoTest extends AbstractDaoTest {
         segFile.setId(segFileDao.createSegFileId());
         segFile.setName("testFile");
         segFile.setType(BiologicalDataItemResourceType.FILE);
-        segFile.setPath("///");
-        segFile.setSource("///");
+        segFile.setPath(PATH);
+        segFile.setSource(PATH);
         segFile.setCreatedDate(new Date());
         segFile.setReferenceId(reference.getId());
         segFile.setOwner(EntityHelper.TEST_OWNER);
