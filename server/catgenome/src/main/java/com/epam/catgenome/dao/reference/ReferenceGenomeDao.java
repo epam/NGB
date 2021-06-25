@@ -85,6 +85,12 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
 
     /**
      * {@code String} specifies parametrized SELECT statement used to all reference
+     * genomes that are available in the system at the moment and have specific taxId.
+     */
+    private String loadReferenceGenomesByTaxIdQuery;
+
+    /**
+     * {@code String} specifies parametrized SELECT statement used to all reference
      * genomes that are available in the system at the moment.
      */
     private String loadAllReferenceGenomesQuery;
@@ -112,6 +118,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
      * are available in the system for reference genomes identified by the given ID.
      */
     private String loadAllChromosomesByReferenceIdQuery;
+
 
     /**
      * {@code String} delete reference by specified id
@@ -250,6 +257,12 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
                 GenomeParameters.getReferenceGenomeMetaDataMapper());
     }
 
+    public List<Reference> loadReferenceGenomesByTaxId(final Long taxId) {
+        return getNamedParameterJdbcTemplate().query(loadReferenceGenomesByTaxIdQuery,
+                new MapSqlParameterSource(GenomeParameters.TAX_ID.name(), taxId),
+                GenomeParameters.getReferenceGenomeMapper());
+    }
+
     /**
      * Saves {@code List} of {@code Chromosome} entities with a specified ID in the database
      * as one reference
@@ -290,7 +303,6 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
                 GenomeParameters.getChromosomeMapper());
         return CollectionUtils.isNotEmpty(list) ? list.get(0) : null;
     }
-
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<Chromosome> loadAllChromosomesByReferenceId(final Long referenceId) {
@@ -464,8 +476,14 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         this.loadReferenceGenomeByNameQuery = loadReferenceGenomeByNameQuery;
     }
 
+    @Required
     public void setUpdateSpeciesQuery(String updateSpeciesQuery) {
         this.updateSpeciesQuery = updateSpeciesQuery;
+    }
+
+    @Required
+    public void setLoadReferenceGenomesByTaxIdQuery(String loadReferenceGenomesByTaxIdQuery) {
+        this.loadReferenceGenomesByTaxIdQuery = loadReferenceGenomesByTaxIdQuery;
     }
 
     enum GenomeParameters {

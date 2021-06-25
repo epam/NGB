@@ -49,6 +49,8 @@ import javax.annotation.PostConstruct;
 /**
  * <p>
  * A class that manages connections to NCBI external database
+ * NOTE: very useful information about possible arguments for different DBs
+ * https://www.ncbi.nlm.nih.gov/books/NBK25499/table/chapter4.T._valid_values_of__retmode_and/
  * </p>
  */
 @Slf4j
