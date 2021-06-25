@@ -19,13 +19,18 @@ $ngb-color-blue: #4285F4;
     .field-name {
       font-weight: bold;
       display: inline-block;
-      width: 120px;
+      width: 100px;
+    }
+    &.additional {
+      .field-name {
+        width: 120px;
+      }
     }
     .field-value {
       display: inline-block;
       max-width: 300px;
-      white-space: nowrap;
       text-overflow: ellipsis;
+      margin-left: 5px;
     }
     .field-max-width {
       max-width: 100%;

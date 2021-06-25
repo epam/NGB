@@ -1,0 +1,34 @@
+ngb-project-info-sections {
+  .md-button.md-icon-button {
+    border-radius: unset;
+    text-transform: none;
+    ng-md-icon {
+      fill: #FFF;
+      padding-top: 2px;
+    }
+  }
+  position: relative;
+}
+
+.ngb-project-info-sections-divider {
+  position: absolute;
+  right: 0;
+  top: -2px;
+  bottom: -5px;
+  width: 1px;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.ngb-project-info-sections-menu {
+  position: absolute;
+  top: 20px;
+  padding: 4px;
+  md-checkbox {
+    margin: 8px;
+    .md-label {
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: row;
+    }
+  }
+}

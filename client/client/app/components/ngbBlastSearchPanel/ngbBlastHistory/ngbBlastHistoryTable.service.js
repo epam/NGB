@@ -1,3 +1,7 @@
+import utcDateFactory from '../ngbBlastSearch.date.filter';
+
+const utcDateFormatter = utcDateFactory();
+
 const DEFAULT_BLAST_HISTORY_COLUMNS = [
     'id', 'title', 'currentState', 'submitted', 'duration', 'actions'
 ];
@@ -59,7 +63,7 @@ export default class ngbBlastHistoryTableService {
     get blastSearchState() {
         return blastSearchState;
     }
-    
+
     get historyColumnTitleMap() {
         return HISTORY_COLUMN_TITLES;
     }
@@ -170,10 +174,21 @@ export default class ngbBlastHistoryTableService {
         const result = [];
         const columnsList = this.blastHistoryColumns;
         for (let i = 0; i < columnsList.length; i++) {
+            let sortDirection = 0;
+            let sortingPriority = 0;
+            let columnSettings = null;
             const column = columnsList[i];
+            if (this.orderByHistory) {
+                const fieldName = (DEFAULT_ORDERBY_HISTORY_COLUMNS[column] || column);
+                const [columnSortingConfiguration] = this.orderByHistory.filter(o => o.field === fieldName);
+                if (columnSortingConfiguration) {
+                    sortingPriority = this.orderByHistory.indexOf(columnSortingConfiguration);
+                    sortDirection = columnSortingConfiguration.ascending ? 'asc' : 'desc';
+                }
+            }
             switch (column) {
                 case 'id': {
-                    result.push({
+                    columnSettings = {
                         cellTemplate: `<div class="ui-grid-cell-contents"
                                         ng-class="row.entity.isResult
                                         ? 'search-result-link'
@@ -185,11 +200,11 @@ export default class ngbBlastHistoryTableService {
                         minWidth: 60,
                         maxWidth: 80,
                         name: this.historyColumnTitleMap[column]
-                    });
+                    };
                     break;
                 }
                 case 'currentState': {
-                    result.push({
+                    columnSettings = {
                         cellTemplate: `<div class="ui-grid-cell-contents">
                                         {{grid.appScope.$ctrl.statusViews[row.entity.currentState]}}
                                        </div>`,
@@ -198,22 +213,22 @@ export default class ngbBlastHistoryTableService {
                         headerCellTemplate: headerCells,
                         minWidth: 40,
                         name: this.historyColumnTitleMap[column]
-                    });
+                    };
                     break;
                 }
                 case 'submitted': {
-                    result.push({
+                    columnSettings = {
                         cellFilter: 'date:"short"',
                         enableHiding: false,
                         field: 'submitted',
                         headerCellTemplate: headerCells,
                         minWidth: 40,
                         name: this.historyColumnTitleMap[column]
-                    });
+                    };
                     break;
                 }
                 case 'duration': {
-                    result.push({
+                    columnSettings = {
                         cellFilter: 'duration:this',
                         enableHiding: false,
                         enableSorting: false,
@@ -222,11 +237,11 @@ export default class ngbBlastHistoryTableService {
                         headerCellTemplate: headerCells,
                         minWidth: 40,
                         name: this.historyColumnTitleMap[column]
-                    });
+                    };
                     break;
                 }
                 case 'actions': {
-                    result.push({
+                    columnSettings = {
                         cellTemplate: actionsCell,
                         enableSorting: false,
                         field: 'id',
@@ -234,20 +249,29 @@ export default class ngbBlastHistoryTableService {
                         maxWidth: 70,
                         minWidth: 60,
                         name: this.historyColumnTitleMap[column]
-                    });
+                    };
                     break;
                 }
                 default: {
-                    result.push({
+                    columnSettings = {
                         enableHiding: false,
                         field: column,
                         headerCellTemplate: headerCells,
                         minWidth: 40,
                         name: this.historyColumnTitleMap[column],
                         width: '*'
-                    });
+                    };
                     break;
                 }
+            }
+            if (columnSettings) {
+                if (sortDirection) {
+                    columnSettings.sort = {
+                        direction: sortDirection,
+                        priority: sortingPriority
+                    };
+                }
+                result.push(columnSettings);
             }
         }
         return result;
@@ -287,7 +311,7 @@ export default class ngbBlastHistoryTableService {
             }
         }
         if (state === blastSearchState.SEARCHING) {
-            duration = Date.now() - +new Date(`${search.createdDate} UTC`);
+            duration = Date.now() - +(utcDateFormatter(search.createdDate));
         } else {
             duration = +new Date(search.endDate) - +new Date(search.createdDate);
         }
@@ -295,7 +319,7 @@ export default class ngbBlastHistoryTableService {
             id: search.id,
             title: search.title,
             currentState: state,
-            submitted: new Date(`${search.createdDate} UTC`),
+            submitted: utcDateFormatter(search.createdDate),
             duration: Math.ceil(duration / 1000),
             isResult: state === blastSearchState.DONE || state === blastSearchState.FAILURE,
             isInProgress: state === blastSearchState.SEARCHING

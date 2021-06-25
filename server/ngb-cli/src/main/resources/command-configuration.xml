@@ -205,4 +205,14 @@
         <type>GET</type>
         <url>/restapi/blast/databases</url>
     </list_blast_db>
+    <add_description>
+        <name>add_description</name>
+        <type>POST</type>
+        <url>/restapi/project/%d/description</url>
+    </add_description>
+    <remove_description>
+        <name>remove_description</name>
+        <type>DELETE</type>
+        <url>/restapi/project/%d/description</url>
+    </remove_description>
 </config>

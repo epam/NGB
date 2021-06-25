@@ -7,6 +7,7 @@ import angular from 'angular';
 import controller from './ngbProjectInfoPanel.controller';
 import component from './ngbProjectInfoPanel.component';
 import run from './ngbProjectInfoPanel.run';
+import ngbProjectInfoSections from './ngbProjectInfoSections';
 
 // Import external modules
 
@@ -14,7 +15,7 @@ import run from './ngbProjectInfoPanel.run';
 import dataServices from '../../../dataServices/angular-module';
 import ngbProjectInfo from './ngbProjectInfo';
 
-export default angular.module('ngbProjectInfoPanel', [dataServices, ngbProjectInfo])
+export default angular.module('ngbProjectInfoPanel', [dataServices, ngbProjectInfo, ngbProjectInfoSections])
     .controller(controller.UID, controller)
     .component('ngbProjectInfoPanel', component)
     .run(run)

@@ -34,7 +34,6 @@ export default class BLASTContext {
     }
 
     setAlignments (alignments, search) {
-        console.log('set alignments', alignments, search);
         const changed = alignments !== this._alignments || search !== this._search;
         if (alignments && search) {
             this._alignments = alignments;
@@ -49,7 +48,6 @@ export default class BLASTContext {
     }
 
     clear (silent = false) {
-        console.log('clear alignments');
         this._alignments = [];
         this._search = undefined;
         if (!silent) {

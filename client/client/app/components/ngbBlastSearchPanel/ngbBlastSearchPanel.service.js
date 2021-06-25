@@ -5,6 +5,18 @@ const BLAST_STATES = {
     ALIGNMENT: 'ALIGNMENT'
 };
 
+function scientificNameSorter(a, b) {
+    const aName = (a.scientificname || '').toLowerCase();
+    const bName = (b.scientificname || '').toLowerCase();
+    if (aName < bName) {
+        return -1;
+    }
+    if (aName > bName) {
+        return 1;
+    }
+    return 0;
+}
+
 export default class ngbBlastSearchService {
     static instance(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService) {
         return new ngbBlastSearchService(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService);
@@ -49,7 +61,14 @@ export default class ngbBlastSearchService {
     async getOrganismList(term, selectedOrganisms = []) {
         const selectedIds = selectedOrganisms.map(value => value.taxid);
         const organismList = await this.projectDataService.getOrganismList(term);
-        return organismList.filter(value => !selectedIds.includes(value.taxid));
+        return organismList
+            .map(o => ({
+                scientificname: o.scientificName,
+                commonname: o.commonName,
+                taxid: o.taxId
+            }))
+            .filter(value => !selectedIds.includes(value.taxid))
+            .sort(scientificNameSorter);
     }
 
     async getBlastDBList(type) {
@@ -232,7 +251,7 @@ export default class ngbBlastSearchService {
             state: search.status,
             reason: search.statusReason,
             options: search.options,
-            submitted: new Date(`${search.createdDate} UTC`)
+            submitted: search.createdDate
         };
         if (search.excludedOrganisms) {
             result.organisms = search.excludedOrganisms.map(oId => ({taxid: oId.taxId, scientificname: oId.scientificName}));

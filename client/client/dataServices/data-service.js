@@ -6,6 +6,7 @@ import BluebirdPromise from 'bluebird';
 import ngbConstants from '../constants';
 
 const AUTH_ERROR_CODE = 401;
+const ERROR_CODE_RANGE_START = 400;
 
 /**
  * Data Service class
@@ -93,8 +94,15 @@ export class DataService {
                     this.handleAuthenticationError();
                     return Promise.reject(xhr.response);
                 }
+                if (xhr.status >= ERROR_CODE_RANGE_START) {
+                    return Promise.reject(xhr.response);
+                }
                 return xhr.response;
             });
+    }
+
+    getFullUrl(url) {
+        return this._serverUrl + url;
     }
 
     handleAuthenticationError() {

@@ -25,7 +25,7 @@ package com.epam.catgenome.manager.blast;
 
 import com.epam.catgenome.dao.blast.BlastTaskDao;
 import com.epam.catgenome.entity.blast.BlastTask;
-import com.epam.catgenome.entity.blast.TaskStatus;
+import com.epam.catgenome.entity.blast.BlastTaskStatus;
 import com.epam.catgenome.exception.BlastRequestException;
 import com.epam.catgenome.manager.blast.dto.BlastRequestInfo;
 import com.epam.catgenome.util.db.Filter;
@@ -53,9 +53,9 @@ public class BlastTaskScheduledService {
     @Scheduled(fixedRateString = "${blast.update.status.rate:60000}")
     public void updateTaskStatuses() {
         List<String> statuses = new ArrayList<>();
-        statuses.add(String.valueOf(TaskStatus.CREATED.getId()));
-        statuses.add(String.valueOf(TaskStatus.SUBMITTED.getId()));
-        statuses.add(String.valueOf(TaskStatus.RUNNING.getId()));
+        statuses.add(String.valueOf(BlastTaskStatus.CREATED.getId()));
+        statuses.add(String.valueOf(BlastTaskStatus.SUBMITTED.getId()));
+        statuses.add(String.valueOf(BlastTaskStatus.RUNNING.getId()));
 
         Filter filter = new Filter("status", "in", "(" + join(statuses, ",") + ")");
         QueryParameters parameters = new QueryParameters();
@@ -66,7 +66,7 @@ public class BlastTaskScheduledService {
                 BlastRequestInfo blastRequestInfo = blastRequestManager.getTaskStatus(t.getId());
                 String status = blastRequestInfo.getStatus();
                 if (!status.equals(t.getStatus().name())) {
-                    final TaskStatus newStatus = TaskStatus.valueOf(status);
+                    final BlastTaskStatus newStatus = BlastTaskStatus.valueOf(status);
                     t.setStatus(newStatus);
                     t.setStatusReason(blastRequestInfo.getReason());
                     if (newStatus.isFinal()) {

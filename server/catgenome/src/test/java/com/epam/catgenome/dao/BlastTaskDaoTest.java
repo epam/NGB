@@ -38,7 +38,7 @@ import com.epam.catgenome.entity.blast.BlastDatabaseType;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.BlastTaskOrganism;
 import com.epam.catgenome.entity.blast.TaskParameter;
-import com.epam.catgenome.entity.blast.TaskStatus;
+import com.epam.catgenome.entity.blast.BlastTaskStatus;
 import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.blast.BlastTaskManager;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
@@ -101,7 +101,7 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
         BlastTask blastTask = getBlastTask(1L, TEST);
         blastTaskDao.saveTask(blastTask);
 
-        blastTask.setStatus(TaskStatus.CANCELED);
+        blastTask.setStatus(BlastTaskStatus.CANCELED);
         blastTaskDao.updateTask(blastTask);
 
         BlastTask loadedBlastTask = blastTaskDao.loadTaskById(blastTask.getId());
@@ -205,7 +205,7 @@ public class BlastTaskDaoTest extends AbstractTransactionalJUnit4SpringContextTe
         BlastTask blastTask = new BlastTask();
         blastTask.setId(id);
         blastTask.setTitle(title);
-        blastTask.setStatus(TaskStatus.CREATED);
+        blastTask.setStatus(BlastTaskStatus.CREATED);
         blastTask.setOwner(authManager.getAuthorizedUser());
         blastTask.setCreatedDate(LocalDateTime.now());
         blastTask.setDatabase(blastDatabase);

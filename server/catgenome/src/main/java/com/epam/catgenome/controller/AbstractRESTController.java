@@ -34,13 +34,18 @@ import java.util.Objects;
 import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.epam.catgenome.manager.FileManager;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Source:      AbstractRESTController.java
@@ -128,5 +133,26 @@ public abstract class AbstractRESTController {
         }
 
         return dst;
+    }
+
+    /**
+     * Writes passed content to {@code HttpServletResponse} to allow it's downloading from
+     * the client
+     * @param response to write data
+     * @param stream content to download
+     * @param fileName file name
+     */
+    protected void writeStreamToResponse(final HttpServletResponse response,
+                                         final InputStream stream,
+                                         final String fileName) throws IOException {
+        try (InputStream inputStream = stream) {
+            // Set the content type and attachment header.
+            response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName);
+            response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+
+            // Copy the stream to the response's output stream.
+            IOUtils.copy(inputStream, response.getOutputStream());
+            response.flushBuffer();
+        }
     }
 }

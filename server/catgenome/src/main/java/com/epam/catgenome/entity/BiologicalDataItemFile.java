@@ -21,50 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.blast;
 
-import java.util.HashMap;
-import java.util.Map;
+package com.epam.catgenome.entity;
 
-public enum TaskStatus {
-    CREATED(1, false),
-    SUBMITTED(2, false),
-    RUNNING(3, false),
-    CANCELED(4, true),
-    FAILED(5, true),
-    DONE(6, true);
+import lombok.Builder;
+import lombok.Data;
 
-    private long id;
-    private boolean finalStatus;
-    private static Map<Long, TaskStatus> idMap = new HashMap<>((int) CREATED.getId());
+import java.io.InputStream;
 
-    static {
-        idMap.put(CREATED.id, CREATED);
-        idMap.put(SUBMITTED.id, SUBMITTED);
-        idMap.put(RUNNING.id, RUNNING);
-        idMap.put(CANCELED.id, CANCELED);
-        idMap.put(FAILED.id, FAILED);
-        idMap.put(DONE.id, DONE);
-    }
-
-    TaskStatus(long id, boolean finalStatus) {
-        this.id = id;
-        this.finalStatus = finalStatus;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public boolean isFinal() {
-        return finalStatus;
-    }
-
-    public static TaskStatus getById(Long id) {
-        if (id == null) {
-            return null;
-        }
-
-        return idMap.get(id);
-    }
+@Builder
+@Data
+public class BiologicalDataItemFile {
+    private InputStream content;
+    private String fileName;
 }

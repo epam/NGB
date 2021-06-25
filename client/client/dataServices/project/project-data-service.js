@@ -122,7 +122,7 @@ export class ProjectDataService extends DataService {
 
     getOrganismList(term) {
         return new Promise((resolve, reject) => {
-            this.get(`externaldb/ncbi/taxonomy/${term}`)
+            this.get(`taxonomies/${term}`)
                 .catch((response) => resolve({...response, error: true}))
                 .then((data) => {
                     if (data) {
@@ -255,4 +255,22 @@ export class ProjectDataService extends DataService {
         });
     }
 
+    getDatasetFileLink(bioDataItemId) {
+        return this.getFullUrl(`dataitem/${bioDataItemId}/download`);
+    }
+
+    getDatasetFileInfo(bioDataItemId) {
+        return new Promise((resolve, reject) => {
+            this.get(`dataitem/${bioDataItemId}/downloadUrl`)
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = {};
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
 }

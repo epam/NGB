@@ -26,19 +26,21 @@ export default class ngbVariantsTableService {
         const result = [];
 
         const self = this;
+        let columnSettings = null;
+        let sortDirection = 0;
 
         for (let i = 0; i < columnsList.length; i++) {
             const column = columnsList[i];
-            const nameOrderByColumn = this.projectContext.orderByColumnsVariations[column] ? this.projectContext.orderByColumnsVariations[column]:column;
-            let sortDirection = 0;
-            if(this.projectContext.orderByVariations) {
+            columnSettings = null;
+            const nameOrderByColumn = this.projectContext.orderByColumnsVariations[column] ? this.projectContext.orderByColumnsVariations[column] : column;
+            if (this.projectContext.orderByVariations) {
                 const currentOrderByFieldVariations = this.projectContext.orderByVariations[0].field;
                 const currentOrderByDirectionVariations = this.projectContext.orderByVariations[0].desc ? 'desc' : 'asc';
                 sortDirection = currentOrderByFieldVariations === nameOrderByColumn ? currentOrderByDirectionVariations : 0;
             }
             switch (column) {
                 case 'variationType': {
-                    result.push({
+                    columnSettings = {
                         cellTemplate: `<div class="md-label variation-type" 
                                     md-colors="{background: 'accent-{{COL_FIELD CUSTOM_FILTERS}}',color:'background-900'}" 
                                     ng-class="COL_FIELD CUSTOM_FILTERS" >{{COL_FIELD CUSTOM_FILTERS}}</div>`,
@@ -61,9 +63,6 @@ export default class ngbVariantsTableService {
                         maxWidth: 104,
                         minWidth: 104,
                         name: 'Type',
-                        sort: {
-                            direction: sortDirection
-                        },
                         filterApplied: () => {
                             return this.projectContext.variantsFieldIsFiltered(column);
                         },
@@ -74,20 +73,17 @@ export default class ngbVariantsTableService {
                                 shown: () => this.projectContext.variantsFieldIsFiltered(column)
                             }
                         ]
-                    });
+                    };
                 }
                     break;
                 case 'chrName': {
-                    result.push({
+                    columnSettings = {
                         enableHiding: false,
                         field: 'chrName',
                         headerCellTemplate: headerCells,
                         minWidth: 50,
                         name: 'Chr',
                         width: '*',
-                        sort: {
-                            direction: sortDirection
-                        },
                         filterApplied: () => {
                             return this.projectContext.variantsFieldIsFiltered(column);
                         },
@@ -98,20 +94,17 @@ export default class ngbVariantsTableService {
                                 shown: () => this.projectContext.variantsFieldIsFiltered(column)
                             }
                         ]
-                    });
+                    };
                 }
                     break;
                 case 'geneNames': {
-                    result.push({
+                    columnSettings = {
                         enableHiding: false,
                         field: 'geneNames',
                         headerCellTemplate: headerCells,
                         minWidth: 50,
                         name: 'Gene',
                         width: '*',
-                        sort: {
-                            direction: sortDirection
-                        },
                         filterApplied: () => {
                             return this.projectContext.variantsFieldIsFiltered(column);
                         },
@@ -122,11 +115,11 @@ export default class ngbVariantsTableService {
                                 shown: () => this.projectContext.variantsFieldIsFiltered(column)
                             }
                         ]
-                    });
+                    };
                 }
                     break;
                 case 'startIndex': {
-                    result.push({
+                    columnSettings = {
                         enableHiding: false,
                         field: 'startIndex',
                         filters: [
@@ -143,9 +136,6 @@ export default class ngbVariantsTableService {
                         minWidth: 50,
                         name: 'Position',
                         width: '*',
-                        sort: {
-                            direction: sortDirection
-                        },
                         filterApplied: () => {
                             return this.projectContext.variantsFieldIsFiltered(column);
                         },
@@ -156,11 +146,11 @@ export default class ngbVariantsTableService {
                                 shown: () => this.projectContext.variantsFieldIsFiltered(column)
                             }
                         ]
-                    });
+                    };
                 }
                     break;
                 case 'info': {
-                    result.push({
+                    columnSettings = {
                         cellTemplate: infoCells,
                         enableColumnMenu: false,
                         enableSorting: false,
@@ -170,13 +160,13 @@ export default class ngbVariantsTableService {
                         maxWidth: 60,
                         minWidth: 60,
                         name: 'Info'
-                    });
+                    };
                 }
                     break;
                 default: {
                     const [infoColumn] = this.projectContext.vcfInfo.filter(c => c.name === column);
                     if (infoColumn) {
-                        result.push({
+                        columnSettings = {
                             field: infoColumn.name,
                             filters: (() => {
                                 if (infoColumn.type === this.columnTypes.integer) {
@@ -199,9 +189,6 @@ export default class ngbVariantsTableService {
                             visible: (() => {
                                 return visibleColumns.indexOf(infoColumn.name) !== -1;
                             })(),
-                            sort: {
-                                direction: sortDirection
-                            },
                             filterApplied: () => {
                                 return this.projectContext.variantsFieldIsFiltered(column);
                             },
@@ -212,10 +199,18 @@ export default class ngbVariantsTableService {
                                     shown: () => this.projectContext.variantsFieldIsFiltered(column)
                                 }
                             ]
-                        });
+                        };
                     }
                 }
                     break;
+            }
+            if (columnSettings) {
+                if (sortDirection) {
+                    columnSettings.sort = {
+                        direction: sortDirection
+                    };
+                }
+                result.push(columnSettings);
             }
         }
 

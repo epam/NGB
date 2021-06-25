@@ -47,14 +47,8 @@
                     </div>
                     <div layout="row" class="field">
                         <span class="field-name">Submitted at:</span>
-                        <span class="field-value">{{$ctrl.searchResult.submitted | date:"short"}}
-                            <md-tooltip>{{$ctrl.searchResult.submitted | date:"short"}}</md-tooltip>
-                        </span>
-                    </div>
-                    <div layout="row" class="field">
-                        <span class="field-name">{{$ctrl.searchResult.isExcluded ? 'Excluded organisms' : 'Organisms'}}:</span>
-                        <span class="field-value field-max-width">{{$ctrl.searchResult.organisms.join('; ') | na}}
-                            <md-tooltip>{{$ctrl.searchResult.organisms.join('; ')}}</md-tooltip>
+                        <span class="field-value">{{$ctrl.searchResult.submitted | utcDate | date:"short"}}
+                            <md-tooltip>{{$ctrl.searchResult.submitted | utcDate | date:"short"}}</md-tooltip>
                         </span>
                     </div>
                 </div>
@@ -73,6 +67,12 @@
                     </div>
                 </div>
             </div>
+            <div layout="row" class="field">
+                <span class="field-name">{{$ctrl.searchResult.isExcluded ? 'Excluded organisms' : 'Organisms'}}:</span>
+                <span class="field-value field-max-width">{{$ctrl.searchResult.organisms.join('; ') | na}}
+                            <md-tooltip>{{$ctrl.searchResult.organisms.join('; ')}}</md-tooltip>
+                        </span>
+            </div>
             <div class="expandable-panel" layout="column">
                 <div class="expandable-panel-title" ng-class="{'toggled': toggle2}" ng-click="toggle2 = !toggle2" layout="column">
                     <ng-md-icon icon="expand_less" class="expandable-panel-icon"></ng-md-icon>
@@ -81,7 +81,7 @@
                 <div class="expandable-panel-content" ng-show="toggle2" layout="column">
                     <div layout="row">
                         <div layout="column" flex="50">
-                            <div layout="row" class="field">
+                            <div layout="row" class="field additional">
                                 <span class="field-name">Max target sequences:</span>
                                 <span class="field-value">{{$ctrl.searchResult.maxTargetSeqs | na}}
                             <md-tooltip>{{$ctrl.searchResult.maxTargetSeqs}}</md-tooltip>
@@ -89,7 +89,7 @@
                             </div>
                         </div>
                         <div layout="column" flex="50">
-                            <div layout="row" class="field">
+                            <div layout="row" class="field additional">
                                 <span class="field-name">Expect threshold:</span>
                                 <span class="field-value">{{$ctrl.searchResult.threshold | na}}
                             <md-tooltip>{{$ctrl.searchResult.threshold}}</md-tooltip>
@@ -97,7 +97,7 @@
                             </div>
                         </div>
                     </div>
-                    <div layout="row" class="field" ng-if="$ctrl.searchResult.options">
+                    <div layout="row" class="field additional" ng-if="$ctrl.searchResult.options">
                         <span class="field-name">Options:</span>
                         <span class="area-value">{{$ctrl.searchResult.options}}</span>
                     </div>

@@ -374,8 +374,8 @@ public class FeatureIndexManager {
         return bookmarkSearchRes;
     }
 
-    public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(String featureId, long referenceId)
-            throws IOException {
+    public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(final String featureId,
+                                                                          final long referenceId) throws IOException {
         if (featureId == null || featureId.length() < 2) {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }

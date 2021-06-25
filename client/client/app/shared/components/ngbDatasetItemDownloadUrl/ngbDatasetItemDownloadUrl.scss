@@ -1,0 +1,27 @@
+.dataset-item-download-details {
+  margin-left: 5px;
+
+  span:first-child:before {
+    content: '(';
+  }
+
+  span:last-child:after {
+    content: ')';
+  }
+
+  span:not(:last-child):after {
+    content: ', ';
+  }
+}
+
+.dataset-item-download-error {
+  text-transform: none;
+  font-size: small;
+  color: red;
+}
+
+.dataset-item-download-loading {
+  text-transform: none;
+  font-size: small;
+  color: #999999;
+}

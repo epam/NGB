@@ -26,25 +26,37 @@ package com.epam.catgenome.manager.dataitem;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_BIO_ID_NOT_FOUND;
+import static com.epam.catgenome.constant.MessagesConstants.ERROR_FILE_LOCAL_DOWNLOAD;
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_UNSUPPORTED_FILE_FORMAT;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.BiologicalDataItemDownloadUrl;
+import com.epam.catgenome.entity.BiologicalDataItemFile;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.manager.wig.FacadeWigManager;
+import com.epam.catgenome.util.aws.S3Client;
+import com.epam.catgenome.util.azure.AzureBlobClient;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import com.epam.catgenome.dao.BiologicalDataItemDao;
-import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.manager.bam.BamManager;
 import com.epam.catgenome.manager.bed.BedManager;
 import com.epam.catgenome.manager.gene.GffManager;
@@ -58,6 +70,7 @@ import com.epam.catgenome.manager.vcf.VcfManager;
  */
 @Service
 public class DataItemManager {
+    private static final String DOWNLOAD_LOCAL_FILE_URL_FORMAT = "%s/restapi/dataitem/%d/download";
 
     @Autowired
     private BiologicalDataItemDao biologicalDataItemDao;
@@ -82,6 +95,12 @@ public class DataItemManager {
 
     @Autowired
     private GffManager geneManager;
+
+    @Autowired
+    private AzureBlobClient azureBlobClient;
+
+    @Value("${base.external.url:}")
+    private String baseExternalUrl;
 
     /**
      * Method finds all files registered in the system by an input search query
@@ -166,5 +185,55 @@ public class DataItemManager {
         return bedManager.getFormats().stream()
                 .map(e -> Pair.of(e, BiologicalDataItemFormat.BED))
                 .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+    }
+
+    public BiologicalDataItemFile loadItemFile(final BiologicalDataItem biologicalDataItem) throws IOException {
+        final String dataItemPath = biologicalDataItem.getPath();
+        if (BiologicalDataItemResourceType.FILE.equals(biologicalDataItem.getType())) {
+            return loadLocalFileItem(biologicalDataItem, dataItemPath);
+        }
+        throw new UnsupportedOperationException("Download available for local data only");
+    }
+
+    private BiologicalDataItemFile loadLocalFileItem(final BiologicalDataItem biologicalDataItem,
+                                                     final String dataItemPath) throws IOException {
+        Assert.state(Files.exists(Paths.get(dataItemPath)),
+                getMessage(ERROR_BIO_ID_NOT_FOUND, biologicalDataItem.getId()));
+        return BiologicalDataItemFile.builder()
+                .content(Files.newInputStream(Paths.get(dataItemPath)))
+                .fileName(FilenameUtils.getName(dataItemPath))
+                .build();
+    }
+
+    public BiologicalDataItemDownloadUrl generateDownloadUrl(final Long id,
+                                                             final BiologicalDataItem biologicalDataItem) {
+        switch (biologicalDataItem.getType()) {
+            case FILE:
+                return generateDownloadUrlForLocalFile(id, biologicalDataItem);
+            case S3:
+                return S3Client.getInstance().generatePresignedUrl(biologicalDataItem.getPath());
+            case AZ:
+                return azureBlobClient.generatePresignedUrl(biologicalDataItem.getPath());
+            default:
+                throw new UnsupportedOperationException(String.format(
+                        "Cannot generate download url for data type '%s'", biologicalDataItem.getType()));
+        }
+    }
+
+    private BiologicalDataItemDownloadUrl generateDownloadUrlForLocalFile(final Long id,
+                                                                          final BiologicalDataItem biologicalDataItem) {
+        final Path dataItemPath = Paths.get(biologicalDataItem.getPath());
+        try {
+            Assert.state(Files.exists(dataItemPath),
+                    getMessage(ERROR_BIO_ID_NOT_FOUND, biologicalDataItem.getId()));
+            return BiologicalDataItemDownloadUrl.builder()
+                    .url(String.format(DOWNLOAD_LOCAL_FILE_URL_FORMAT,
+                            StringUtils.removeEnd(baseExternalUrl, "/"), id))
+                    .type(BiologicalDataItemResourceType.FILE)
+                    .size(Files.size(dataItemPath))
+                    .build();
+        } catch (IOException e) {
+            throw new IllegalStateException(getMessage(ERROR_FILE_LOCAL_DOWNLOAD, id), e);
+        }
     }
 }

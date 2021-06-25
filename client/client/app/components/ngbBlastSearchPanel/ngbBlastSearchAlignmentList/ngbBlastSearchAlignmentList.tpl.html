@@ -17,8 +17,8 @@
         <div class="blast-search-alignment-title">
             <span class="blast-search-alignment-title-bold">Sequence ID:</span>
             <a class="blast-search-result-link"
-               ng-if="$ctrl.search.dbSource === 'NCBI'"
-               ng-href="https://www.ncbi.nlm.nih.gov/nucleotide/{{$ctrl.searchResult.sequenceId}}"
+               ng-if="$ctrl.search.dbSource === 'NCBI' && $ctrl.ncbiUrl"
+               ng-href="{{$ctrl.ncbiUrl}}"
                target="_blank">
                 {{$ctrl.searchResult.sequenceId}}
             </a>

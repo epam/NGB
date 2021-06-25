@@ -43,7 +43,7 @@ export default class ngbTrackEvents {
                 }
                 else {
                     geneTracks.push({
-                        chromosomeId: track.instance.config.chromosomeId,
+                        chromosomeId: trackInstance.config.chromosomeId,
                         id: track.id,
                         name: track.name,
                         projectId: track.projectIdNumber || undefined,
@@ -55,12 +55,12 @@ export default class ngbTrackEvents {
                     menuData.push({
                         events: [{
                             data: {
-                                chromosomeId: track.instance.config.chromosomeId,
+                                chromosomeId: trackInstance.config.chromosomeId,
                                 endIndex: data.feature.endIndex,
                                 name: data.feature.name,
                                 properties: data.info,
                                 projectId: track.projectIdNumber || undefined,
-                                referenceId: track.instance.config.referenceId,
+                                referenceId: trackInstance.config.referenceId,
                                 startIndex: data.feature.startIndex,
                                 geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
                                 title: 'FEATURE'
@@ -74,7 +74,7 @@ export default class ngbTrackEvents {
                     const blastSearchParams = {
                         geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
                         id: track.id,
-                        chromosomeId: track.instance.config.chromosomeId,
+                        chromosomeId: trackInstance.config.chromosomeId,
                         referenceId: track.referenceId,
                         index: track.openByUrl ? track.indexPath : null,
                         startIndex: data.feature.startIndex,
@@ -85,34 +85,19 @@ export default class ngbTrackEvents {
                         feature: data.feature.feature
                     };
                     menuData.push({
-                        title: 'BLASTn search',
-                        submenu: [
-                            {
-                                title: 'Exon only',
-                                events: [{
-                                    data: {
-                                        ...blastSearchParams,
-                                        tool: 'blastn',
-                                        source: 'gene'
-                                    },
-                                    name: 'read:show:blast',
-                                }]
+                        events: [{
+                            data: {
+                                ...blastSearchParams,
+                                tool: 'blastn',
+                                source: 'gene'
                             },
-                            {
-                                title: 'All transcript info',
-                                disabled: maxSequenceLength < featureSize,
-                                warning: maxSequenceLength < featureSize
-                                    ? `Query maximum length (${maxSequenceLength}bp) exceeded`
-                                    : undefined,
-                                events: [{
-                                    data: {
-                                        ...blastSearchParams,
-                                        tool: 'blastn',
-                                        source: 'gene'
-                                    },
-                                    name: 'read:show:blast',
-                                }]
-                            }]
+                            name: 'read:show:blast'
+                        }],
+                        disabled: maxSequenceLength < featureSize,
+                        warning: maxSequenceLength < featureSize
+                            ? `Query maximum length (${maxSequenceLength}bp) exceeded`
+                            : undefined,
+                        title: 'BLASTn search',
                     });
                     menuData.push({
                         events: [{
@@ -133,7 +118,7 @@ export default class ngbTrackEvents {
                 ) {
                     const blastSearchParams = {
                         id: track.id,
-                        chromosomeId: track.instance.config.chromosomeId,
+                        chromosomeId: trackInstance.config.chromosomeId,
                         referenceId: track.referenceId,
                         index: track.openByUrl ? track.indexPath : null,
                         startIndex: data.feature.startIndex,
@@ -227,28 +212,6 @@ export default class ngbTrackEvents {
                         title: 'Show pair in split screen'
                     });
                 }
-                // let geneTracks = ((await this._projectDataService.getProject(track.instance.config.projectId)).items || [])
-                // .filter(item => item.format.toLowerCase() === 'gene').map((item) => {
-                //     return {
-                //         id: item.id,
-                //         name: item.name,
-                //         referenceId: item.referenceId,
-                //         chromosomeId: track.instance.config.chromosomeId
-                //     };
-                // });
-                // if (geneTracks.length > 0) {
-                //     menuData.push({
-                //         title: 'Highlight region on 3D structure',
-                //         events: [{
-                //             name: 'miew:highlight:region',
-                //             data: {
-                //                 geneTracks,
-                //                 startIndex: data.startIndex,
-                //                 endIndex: data.endIndex
-                //             }
-                //         }]
-                //     });
-                // }
                 const childScope = this.$scope.$new(false);
                 childScope.menuData = menuData;
                 const html = this.$compile('<ngb-track-menu menu-data="menuData"></ngb-track-menu>')(childScope);

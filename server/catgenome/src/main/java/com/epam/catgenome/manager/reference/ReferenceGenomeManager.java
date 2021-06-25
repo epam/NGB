@@ -45,6 +45,7 @@ import com.epam.catgenome.manager.SecuredEntityManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
 import com.epam.catgenome.util.ListMapCollector;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -269,6 +270,18 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         }
 
         return result;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public List<Reference> loadAllReferenceGenomesByTaxId(final Long taxId) {
+        return ListUtils.emptyIfNull(referenceGenomeDao.loadReferenceGenomesByTaxId(taxId))
+                .stream().peek(ref -> {
+                    if (ref.getGeneFile() != null && ref.getGeneFile().getId() != null) {
+                        GeneFile geneFile = geneFileDao.loadGeneFile(ref.getGeneFile().getId());
+                        ref.setGeneFile(geneFile);
+                        ref.setAnnotationFiles(getAnnotationFilesByReferenceId(ref.getId()));
+                    }
+                }).collect(Collectors.toList());
     }
 
     /**
