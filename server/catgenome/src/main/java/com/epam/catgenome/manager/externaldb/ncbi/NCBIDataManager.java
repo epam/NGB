@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import com.epam.catgenome.component.MessageHelper;
@@ -49,11 +49,12 @@ import javax.annotation.PostConstruct;
 /**
  * <p>
  * A class that manages connections to NCBI external database
+ * NOTE: very useful information about possible arguments for different DBs
+ * https://www.ncbi.nlm.nih.gov/books/NBK25499/table/chapter4.T._valid_values_of__retmode_and/
  * </p>
  */
+@Slf4j
 public class NCBIDataManager extends HttpDataManager {
-
-    private static final Logger LOGGER = Logger.getLogger(NCBIDataManager.class.getName());
 
     private static final String QUERY_KEY = "query_key";
     private static final String WEB_ENV = "WebEnv";
@@ -64,6 +65,7 @@ public class NCBIDataManager extends HttpDataManager {
     protected static final String NCBI_SEARCH = "entrez/eutils/esearch.fcgi?";
     protected static final String NCBI_LINK = "entrez/eutils/elink.fcgi?";
     protected static final String RETMODE_PARAM = "retmode";
+    protected static final String JSON = "json";
 
     // entrez/eutils/esummary can return maximum 500 results. If we need to fetch more, we'll have to do pagination.
     // But perhaps it doesn't make sense to fetch more...
@@ -94,7 +96,7 @@ public class NCBIDataManager extends HttpDataManager {
      * @return String result from query
      * @throws ExternalDbUnavailableException
      */
-    public String link(String id, String dbfrom, String targetdb, String linkname)
+    public String link(final String id, final String dbfrom, final String targetdb, final String linkname)
             throws ExternalDbUnavailableException {
 
         List<ParameterNameValue> parametersList = new ArrayList<>();
@@ -117,13 +119,13 @@ public class NCBIDataManager extends HttpDataManager {
      * @return string with data
      * @throws ExternalDbUnavailableException
      */
-    public String searchById(String db, String term) throws ExternalDbUnavailableException {
+    public String searchById(final String db, final String term) throws ExternalDbUnavailableException {
 
         List<ParameterNameValue> parametersList = new ArrayList<>();
 
         parametersList.add(new ParameterNameValue("db", db));
         parametersList.add(new ParameterNameValue("term", term));
-        parametersList.add(new ParameterNameValue(RETMODE_PARAM, "json"));
+        parametersList.add(new ParameterNameValue(RETMODE_PARAM, JSON));
 
         ParameterNameValue[] parameterNameValues = parametersList.toArray(
                 new ParameterNameValue[parametersList.size()]);
@@ -131,17 +133,19 @@ public class NCBIDataManager extends HttpDataManager {
         return fetchData(NCBI_SERVER + NCBI_SEARCH, parameterNameValues);
     }
 
-    public String fetchXmlById(String db, String id, String rettype) throws ExternalDbUnavailableException {
+    public String fetchXmlById(final String db, final String id,
+                               final String rettype) throws ExternalDbUnavailableException {
         return fetchById(NCBI_FETCH, db, id, rettype, "xml");
     }
 
-    public String fetchTextById(String db, String id, String rettype) throws ExternalDbUnavailableException {
+    public String fetchTextById(final String db, final String id,
+                                final String rettype) throws ExternalDbUnavailableException {
         return fetchById(NCBI_FETCH, db, id, rettype, "text");
     }
 
-    protected String fetchById(String op, String db, String id, String rettype, String retmode)
-            throws ExternalDbUnavailableException {
-        LOGGER.info(String.format("Fetching text record by id %s from NCBI db %s", id, db));
+    private String fetchById(final String op, final String db, final String id, final String rettype,
+                             final String retmode) throws ExternalDbUnavailableException {
+        log.info(String.format("Fetching text record by id %s from NCBI db %s", id, db));
 
         List<ParameterNameValue> parametersList = new ArrayList<>();
 
@@ -162,12 +166,12 @@ public class NCBIDataManager extends HttpDataManager {
         return fetchData(NCBI_SERVER + op, parameterNameValues);
     }
 
-    public JsonNode summaryEntityById(String db, String id) throws ExternalDbUnavailableException {
+    public JsonNode summaryEntityById(final String db, final String id) throws ExternalDbUnavailableException {
 
-        LOGGER.info(String.format("Fetching json record by id %s from NCBI db %s", id, db));
+        log.info(String.format("Fetching json record by id %s from NCBI db %s", id, db));
 
         final String json = fetchData(NCBI_SERVER + NCBI_SUMMARY, new ParameterNameValue[]{
-            new ParameterNameValue(RETMODE_PARAM, "json"),
+            new ParameterNameValue(RETMODE_PARAM, JSON),
             new ParameterNameValue("db", db),
             new ParameterNameValue("id", id)
         });
@@ -188,18 +192,37 @@ public class NCBIDataManager extends HttpDataManager {
 
         int uid = uids.next().asInt();
         if (uids.hasNext()) {
-            LOGGER.warning("More than 1 uid returned");
+            log.warn("More than 1 uid returned");
         }
 
         root = root.path(Integer.toString(uid));
         return root;
     }
 
-    public JsonNode summaryWithHistory(String queryKey, String webEnv) throws ExternalDbUnavailableException {
+    public JsonNode summaryEntitiesByIds(final String db, final String id) throws ExternalDbUnavailableException {
+
+        log.info(String.format("Fetching json record by ids %s from NCBI db %s", id, db));
+
+        final String json = fetchData(NCBI_SERVER + NCBI_SUMMARY, new ParameterNameValue[]{
+            new ParameterNameValue(RETMODE_PARAM, JSON),
+            new ParameterNameValue("db", db),
+            new ParameterNameValue("id", id)
+        });
+
+        try {
+            return mapper.readTree(json).path("result");
+        } catch (IOException e) {
+            throw new ExternalDbUnavailableException(MessageHelper.getMessage(MessagesConstants.
+                                                                                  ERROR_NO_RESULT_BY_EXTERNAL_DB), e);
+        }
+    }
+
+    public JsonNode summaryWithHistory(final String queryKey,
+                                       final String webEnv) throws ExternalDbUnavailableException {
 
         try {
             final String json = fetchData(NCBI_SERVER + NCBI_SUMMARY, new ParameterNameValue[]{
-                new ParameterNameValue(RETMODE_PARAM, "json"),
+                new ParameterNameValue(RETMODE_PARAM, JSON),
                 new ParameterNameValue(QUERY_KEY, queryKey),
                 new ParameterNameValue(WEB_ENV, webEnv),
                 new ParameterNameValue(MAX_RESULTS_PARAM, ncbiMaxResultsParamValue.toString())
@@ -211,7 +234,7 @@ public class NCBIDataManager extends HttpDataManager {
         }
     }
 
-    public String fetchWithHistory(String queryKey, String webEnv, NCBIDatabase db)
+    public String fetchWithHistory(final String queryKey, final String webEnv, final NCBIDatabase db)
             throws ExternalDbUnavailableException {
 
         return fetchData(NCBI_SERVER + NCBI_FETCH, new ParameterNameValue[]{
@@ -226,8 +249,7 @@ public class NCBIDataManager extends HttpDataManager {
         return mapper;
     }
 
-    public void setMapper(JsonMapper mapper) {
+    public void setMapper(final JsonMapper mapper) {
         this.mapper = mapper;
     }
 }
-

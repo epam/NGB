@@ -483,6 +483,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                     graphics: this._spliceJunctionsGraphics,
                     labelsContainer: this._sashimiLabelsContainer,
                     shouldRender: this._viewport.actualBrushSize <= this.maximumAlignmentsRange,
+                    spliceJunctionsFiltering: features.spliceJunctionsFiltering,
                     y: this.spliceJunctionsTopMargin
                 }
             );
@@ -497,6 +498,7 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                     graphics: this._spliceJunctionsGraphics,
                     sashimi: features.sashimi,
                     shouldRender: features.spliceJunctions && this._viewport.actualBrushSize <= this.maximumAlignmentsRange,
+                    spliceJunctionsFiltering: features.spliceJunctionsFiltering,
                     y: this.spliceJunctionsTopMargin
                 });
         }
@@ -533,17 +535,22 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
 
     _checkSpliceJunction({x, y}) {
         const xBp = (this._viewport.project.pixel2brushBP(x) + BP_OFFSET) >> 0;
+        const filter = this._state.spliceJunctionsFiltering || 0;
         if (y >= this.spliceJunctionsTopMargin && y <= this.downsampleIndicatorsTopMargin) {
             let spliceJunctionItem = null;
             const centerLine = this.spliceJunctionsTopMargin + this._config.spliceJunctions.height / 2;
             for (let i = 0; i < this._cacheService.cache.spliceJunctions.length; i++) {
-                if (this._cacheService.cache.spliceJunctions[i].start <= xBp &&
-                    this._cacheService.cache.spliceJunctions[i].end >= xBp) {
-                    if ((!this._cacheService.cache.spliceJunctions[i].strand && y > centerLine) ||
-                        (this._cacheService.cache.spliceJunctions[i].strand && y <= centerLine)) {
-                        spliceJunctionItem = this._cacheService.cache.spliceJunctions[i];
-                        break;
-                    }
+                if (
+                    this._cacheService.cache.spliceJunctions[i].start <= xBp &&
+                    this._cacheService.cache.spliceJunctions[i].end >= xBp &&
+                    this._cacheService.cache.spliceJunctions[i].count >= filter &&
+                    (
+                        (!this._cacheService.cache.spliceJunctions[i].strand && y > centerLine) ||
+                        (this._cacheService.cache.spliceJunctions[i].strand && y <= centerLine)
+                    )
+                ) {
+                    spliceJunctionItem = this._cacheService.cache.spliceJunctions[i];
+                    break;
                 }
             }
             if (spliceJunctionItem) {
@@ -625,10 +632,11 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
                                 colors: this._settings.colors,
                                 config: this._config.spliceJunctions,
                                 graphics: graphics,
+                                hovered: feature.item,
                                 sashimi: this._state.sashimi,
                                 shouldRender: this._state.spliceJunctions && this._viewport.actualBrushSize <= this.maximumAlignmentsRange,
-                                y: this.spliceJunctionsTopMargin,
-                                hovered: feature.item
+                                spliceJunctionsFiltering: this._state.spliceJunctionsFiltering,
+                                y: this.spliceJunctionsTopMargin
                             });
                         this._hoveredItemContainer.addChild(graphics);
                     }

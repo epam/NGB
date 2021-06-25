@@ -436,10 +436,11 @@ export default class BamCache {
     }
 
     _appendSpliceJunctions(data, cachePosition) {
+        data.spliceJunctions = data.spliceJunctions || [];
         if (cachePosition === cachePositions.cachePositionMiddle) {
-            this.spliceJunctions = data.spliceJunctions || [];
+            this.spliceJunctions = data.spliceJunctions;
         } else {
-            for (let i = 0; i < (data.spliceJunctions || []).length; i++) {
+            for (let i = 0; i < data.spliceJunctions.length; i++) {
 
                 let exists = false;
                 for (let j = 0; j < this.spliceJunctions.length; j++) {

@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean class="com.epam.catgenome.dao.blast.BlastTaskDao" autowire="byName">
+        <property name="insertTaskQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.task (
+                        task_id,
+                        title,
+                        created_date,
+                        status,
+                        end_date,
+                        status_reason,
+                        query,
+                        database_id,
+                        executable,
+                        algorithm,
+                        options,
+                        owner
+                    ) VALUES (
+                        :TASK_ID,
+                        :TITLE,
+                        :CREATED_DATE,
+                        :STATUS,
+                        :END_DATE,
+                        :STATUS_REASON,
+                        :QUERY,
+                        :DATABASE_ID,
+                        :EXECUTABLE,
+                        :ALGORITHM,
+                        :OPTIONS,
+                        :OWNER
+                    )
+                ]]>
+            </value>
+        </property>
+        <property name="updateTaskStatusQuery">
+            <value>
+                <![CDATA[
+                    UPDATE catgenome.task SET
+                        status = :STATUS,
+                        status_reason = :STATUS_REASON,
+                        end_date = :END_DATE
+                    WHERE
+                        task_id = :TASK_ID
+                ]]>
+            </value>
+        </property>
+        <property name="getTaskCountQuery">
+            <value>
+                <![CDATA[
+                    select count(*) as count from catgenome.task
+                ]]>
+            </value>
+        </property>
+        <property name="loadTaskByIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        task_id,
+                        title,
+                        created_date,
+                        status,
+                        end_date,
+                        status_reason,
+                        query,
+                        executable,
+                        algorithm,
+                        options,
+                        owner,
+                        d.database_id,
+                        d.name as database_name,
+                        d.path as database_path,
+                        d.type as database_type,
+                        d.source as database_source
+                    FROM catgenome.task t
+                    LEFT JOIN catgenome.blast_database d ON
+                        d.database_id = t.database_id
+                    WHERE task_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="loadAllTasksQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        task_id,
+                        title,
+                        created_date,
+                        status,
+                        end_date,
+                        status_reason,
+                        query,
+                        executable,
+                        algorithm,
+                        options,
+                        owner,
+                        d.database_id,
+                        d.name as database_name,
+                        d.path as database_path,
+                        d.type as database_type,
+                        d.source as database_source
+                    FROM catgenome.task t
+                    LEFT JOIN catgenome.blast_database d ON
+                        d.database_id = t.database_id
+                ]]>
+            </value>
+        </property>
+        <property name="deleteTaskQuery">
+            <value>
+                <![CDATA[
+                    DELETE catgenome.task WHERE task_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteTasksQuery">
+            <value>
+                <![CDATA[
+                    DELETE catgenome.task
+                ]]>
+            </value>
+        </property>
+
+        <property name="taskParameterSequenceName" value="catgenome.s_task_parameter" />
+        <property name="deleteTaskParametersQuery">
+            <value>
+                <![CDATA[
+                    DELETE catgenome.task_parameter WHERE task_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteParametersQuery">
+            <value>
+                <![CDATA[
+                    DELETE catgenome.task_parameter
+                ]]>
+            </value>
+        </property>
+        <property name="loadTaskParametersQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        parameter_id,
+                        task_id,
+                        parameter,
+                        value
+                    FROM catgenome.task_parameter
+                    WHERE task_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="insertTaskParametersQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.task_parameter (
+                        parameter_id,
+                        task_id,
+                        parameter,
+                        value
+                    ) VALUES (
+                        :PARAMETER_ID,
+                        :TASK_ID,
+                        :PARAMETER,
+                        :VALUE
+                    )
+                ]]>
+            </value>
+        </property>
+
+        <property name="organismSequenceName" value="catgenome.s_task_organism" />
+        <property name="deleteTaskOrganismsQuery">
+            <value>
+                <![CDATA[
+                    DELETE catgenome.task_organism WHERE task_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteOrganismsQuery">
+            <value>
+                <![CDATA[
+                    DELETE catgenome.task_organism
+                ]]>
+            </value>
+        </property>
+        <property name="loadTaskOrganismsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        organism_id,
+                        task_id,
+                        organism
+                    FROM catgenome.task_organism
+                    WHERE task_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="insertTaskOrganismsQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.task_organism (
+                        organism_id,
+                        task_id,
+                        organism
+                    ) VALUES (
+                        :ORGANISM_ID,
+                        :TASK_ID,
+                        :ORGANISM
+                    )
+                ]]>
+            </value>
+        </property>
+
+        <property name="exclOrganismSequenceName" value="catgenome.s_task_excl_organism" />
+        <property name="deleteTaskExclOrganismsQuery">
+            <value>
+                <![CDATA[
+                    DELETE catgenome.task_excl_organism WHERE task_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="deleteExclOrganismsQuery">
+            <value>
+                <![CDATA[
+                    DELETE catgenome.task_excl_organism
+                ]]>
+            </value>
+        </property>
+        <property name="loadTaskExclOrganismsQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        organism_id,
+                        task_id,
+                        organism
+                    FROM catgenome.task_excl_organism
+                    WHERE task_id = ?
+                ]]>
+            </value>
+        </property>
+        <property name="insertTaskExclOrganismsQuery">
+            <value>
+                <![CDATA[
+                    INSERT INTO catgenome.task_excl_organism (
+                        organism_id,
+                        task_id,
+                        organism
+                    ) VALUES (
+                        :ORGANISM_ID,
+                        :TASK_ID,
+                        :ORGANISM
+                    )
+                ]]>
+            </value>
+        </property>
+    </bean>
+</beans>

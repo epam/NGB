@@ -23,5 +23,6 @@ export default {
             },
             margin: 10
         }
-    }
+    },
+    renderStrandIndicatorOnLargeScale: true
 };

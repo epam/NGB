@@ -18,6 +18,12 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         this._aminoacidFeatureRenderer = aminoacidFeatureRenderer;
     }
 
+    get strandIndicatorConfig(): undefined {
+        return this.config && this.config.transcript && this.config.transcript.strand
+            ? this.config.transcript.strand
+            : super.strandIndicatorConfig;
+    }
+
     analyzeBoundaries(feature, viewport) {
         const boundaries = super.analyzeBoundaries(feature, viewport);
         const rectBoundaries = boundaries.rect;
@@ -271,8 +277,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
                         this._aminoacidFeatureRenderer.render(
                             blockItem,
                             viewport,
-                            graphics,
-                            hoveredGraphics,
+                            {graphics, hoveredGraphics},
                             labelContainer,
                             dockableElementsContainer,
                             attachedElementsContainer,
@@ -286,8 +291,12 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         }
     }
 
-    render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
-        super.render(feature, viewport, graphics, hoveredGraphics, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+    render(feature, viewport, graphicsObj, labelContainer, dockableElementsContainer, attachedElementsContainer, position) {
+        super.render(feature, viewport, graphicsObj, labelContainer, dockableElementsContainer, attachedElementsContainer, position);
+        const {
+            graphics,
+            hoveredGraphics
+        } = graphicsObj;
         const pixelsInBp = viewport.factor;
         const transcriptConfig = this.config.transcript;
         const aminoacidsFitsViewport = this._aminoacidFeatureRenderer.aminoacidsFitsViewport(feature, viewport);

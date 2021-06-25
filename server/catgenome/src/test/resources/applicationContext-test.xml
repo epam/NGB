@@ -35,7 +35,9 @@
     <context:component-scan base-package="com.epam.catgenome.constant"/>
     <context:component-scan base-package="com.epam.catgenome.entity"/>
     <context:component-scan base-package="com.epam.catgenome.exception"/>
-    <context:component-scan base-package="com.epam.catgenome.manager"/>
+    <context:component-scan base-package="com.epam.catgenome.manager">
+        <context:exclude-filter type="assignable" expression="com.epam.catgenome.manager.blast.BlastTaskScheduledService"/>
+    </context:component-scan>
     <context:component-scan base-package="com.epam.catgenome.util"/>
     <context:component-scan base-package="com.epam.catgenome.dao"/>
     <context:component-scan base-package="com.epam.catgenome.security.jwt"/>
@@ -50,4 +52,5 @@
 
     <bean id="s3Manager" class="com.epam.catgenome.manager.aws.S3Manager" factory-method="singleton"/>
 
+    <bean id="azureBlobClient" class="com.epam.catgenome.util.azure.AzureBlobClient"/>
 </beans>

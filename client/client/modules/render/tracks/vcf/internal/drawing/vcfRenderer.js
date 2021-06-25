@@ -28,6 +28,7 @@ export default class VcfRenderer extends CachedTrackRenderer {
         this.container.addChild(this._variantsArea);
         this.container.addChild(this._bubblesArea);
         this.container.addChild(this._tooltipArea);
+        this.initializeCentralLine();
     }
 
     get height() {

@@ -1,7 +1,14 @@
 import {renderArea} from './spliceJunctions';
 
 export function renderSpliceJunctions(spliceJunctions, viewport, drawingConfig) {
-    const {colors, config, graphics, shouldRender, hovered} = drawingConfig;
+    const {
+        colors,
+        config,
+        graphics,
+        shouldRender,
+        hovered,
+        spliceJunctionsFiltering
+    } = drawingConfig;
     graphics.clear();
     const {centerLine, height} = renderArea(viewport, drawingConfig);
     if (shouldRender) {
@@ -9,7 +16,11 @@ export function renderSpliceJunctions(spliceJunctions, viewport, drawingConfig) 
         let maxValue = 0;
         for (let i = 0; i < spliceJunctions.length; i++) {
             const spliceJunctionItem = spliceJunctions[i];
-            if (spliceJunctionItem.end < viewport.brush.start || spliceJunctionItem.start > viewport.brush.end)
+            if (
+                spliceJunctionItem.end < viewport.brush.start ||
+                spliceJunctionItem.start > viewport.brush.end ||
+                spliceJunctionItem.count < (spliceJunctionsFiltering || 0)
+            )
                 continue;
             maxValue = Math.max(maxValue, Math.abs(spliceJunctionItem.count));
         }
@@ -52,7 +63,11 @@ export function renderSpliceJunctions(spliceJunctions, viewport, drawingConfig) 
         const array = hovered ? [hovered] : spliceJunctions;
         for (let i = 0; i < array.length; i++) {
             const spliceJunctionItem = array[i];
-            if (spliceJunctionItem.end < viewport.brush.start || spliceJunctionItem.start > viewport.brush.end)
+            if (
+                spliceJunctionItem.end < viewport.brush.start ||
+                spliceJunctionItem.start > viewport.brush.end ||
+                spliceJunctionItem.count < (spliceJunctionsFiltering || 0)
+            )
                 continue;
             const value = spliceJunctionItem.count / maxValue;
             renderArc(

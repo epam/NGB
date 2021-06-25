@@ -1,4 +1,4 @@
-import {EventGeneInfo, EventVariationInfo, PairReadInfo} from '../../../shared/utils/events';
+import {EventGeneInfo, PairReadInfo} from '../../../shared/utils/events';
 import Clipboard from 'clipboard';
 
 export default class ngbTrackEvents {
@@ -20,12 +20,22 @@ export default class ngbTrackEvents {
     }
 
     _getGeneTracks() {
-        return (this.projectContext.reference && this.projectContext.reference.geneFile) ? [this.projectContext.reference.geneFile] : this.projectContext.geneTracks;
+        return (this.projectContext.reference && this.projectContext.reference.geneFile)
+        ? [this.projectContext.reference.geneFile]
+        : this.projectContext.geneTracks;
     }
 
     featureClick(trackInstance, data, track, event) {
         const isGeneTrack = track.format.toLowerCase() === 'gene';
+        const blastSettings = this.projectContext.getTrackDefaultSettings('blast_settings');
+        const maxQueryLengthProperty = 'query_max_length';
+        const maxSequenceLength = blastSettings &&
+            blastSettings.hasOwnProperty(maxQueryLengthProperty) &&
+            !Number.isNaN(Number(blastSettings[maxQueryLengthProperty]))
+            ? Number(blastSettings[maxQueryLengthProperty])
+            : Infinity;
         if (data.feature) {
+            const featureSize = Math.abs((data.feature.startIndex || 0) - (data.feature.endIndex || 0));
             (async() => {
                 let geneTracks = [];
                 if (!isGeneTrack) {
@@ -33,7 +43,7 @@ export default class ngbTrackEvents {
                 }
                 else {
                     geneTracks.push({
-                        chromosomeId: track.instance.config.chromosomeId,
+                        chromosomeId: trackInstance.config.chromosomeId,
                         id: track.id,
                         name: track.name,
                         projectId: track.projectIdNumber || undefined,
@@ -41,31 +51,107 @@ export default class ngbTrackEvents {
                     });
                 }
                 const menuData = [];
-                menuData.push({
-                    events: [{
-                        data: {
-                            chromosomeId: track.instance.config.chromosomeId,
-                            endIndex: data.feature.endIndex,
-                            name: data.feature.name,
-                            properties: data.info,
-                            projectId: track.projectIdNumber || undefined,
-                            referenceId: track.instance.config.referenceId,
-                            startIndex: data.feature.startIndex,
-                            geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
-                            title: 'FEATURE'
-                        },
-                        name: 'feature:info:select'
-                    }],
-                    title: 'Show Info'
-                });
+                if (!data.feature.grouping) {
+                    menuData.push({
+                        events: [{
+                            data: {
+                                chromosomeId: trackInstance.config.chromosomeId,
+                                endIndex: data.feature.endIndex,
+                                name: data.feature.name,
+                                properties: data.info,
+                                projectId: track.projectIdNumber || undefined,
+                                referenceId: trackInstance.config.referenceId,
+                                startIndex: data.feature.startIndex,
+                                geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
+                                title: 'FEATURE'
+                            },
+                            name: 'feature:info:select'
+                        }],
+                        title: 'Show Info'
+                    });
+                }
+                if (/^(gene|transcript)$/i.test(data.feature.feature)) {
+                    const blastSearchParams = {
+                        geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
+                        id: track.id,
+                        chromosomeId: trackInstance.config.chromosomeId,
+                        referenceId: track.referenceId,
+                        index: track.openByUrl ? track.indexPath : null,
+                        startIndex: data.feature.startIndex,
+                        endIndex: data.feature.endIndex,
+                        name: data.feature.name,
+                        file: track.openByUrl ? track.id : null,
+                        openByUrl: track.openByUrl,
+                        feature: data.feature.feature
+                    };
+                    menuData.push({
+                        events: [{
+                            data: {
+                                ...blastSearchParams,
+                                tool: 'blastn',
+                                source: 'gene'
+                            },
+                            name: 'read:show:blast'
+                        }],
+                        disabled: maxSequenceLength < featureSize,
+                        warning: maxSequenceLength < featureSize
+                            ? `Query maximum length (${maxSequenceLength}bp) exceeded`
+                            : undefined,
+                        title: 'BLASTn search',
+                    });
+                    menuData.push({
+                        events: [{
+                            data: {
+                                ...blastSearchParams,
+                                tool: 'blastp',
+                                source: 'gene'
+                            },
+                            name: 'read:show:blast'
+                        }],
+                        disabled: true,
+                        title: 'BLASTp search',
+                    });
+                } else if (
+                    !data.feature.grouping &&
+                    data.feature.startIndex &&
+                    data.feature.endIndex
+                ) {
+                    const blastSearchParams = {
+                        id: track.id,
+                        chromosomeId: trackInstance.config.chromosomeId,
+                        referenceId: track.referenceId,
+                        index: track.openByUrl ? track.indexPath : null,
+                        startIndex: data.feature.startIndex,
+                        endIndex: data.feature.endIndex,
+                        name: data.feature.name,
+                        file: track.openByUrl ? track.id : null,
+                        openByUrl: track.openByUrl,
+                        feature: data.feature.feature
+                    };
+                    menuData.push({
+                        title: 'BLASTn search',
+                        disabled: maxSequenceLength < featureSize,
+                        warning: maxSequenceLength < featureSize
+                            ? `Query maximum length (${maxSequenceLength}bp) exceeded`
+                            : undefined,
+                        events: [{
+                            data: {
+                                ...blastSearchParams,
+                                tool: 'blastn',
+                                source: track.format
+                            },
+                            name: 'read:show:blast',
+                        }]
+                    });
+                }
                 if (geneTracks.length > 0) {
                     if (data.feature.attributes && data.feature.attributes.gene_id) {
-                        let layoutChange = this.appLayout.Panels.molecularViewer;
+                        const layoutChange = this.appLayout.Panels.molecularViewer;
                         layoutChange.displayed = true;
                         menuData.push({
                             events: [
                                 {
-                                    data: {layoutChange: layoutChange},
+                                    data: { layoutChange },
                                     name: 'layout:item:change'
                                 },
                                 {
@@ -82,29 +168,18 @@ export default class ngbTrackEvents {
                             title: 'Show 3D structure'
                         });
                     }
-                    // else {
-                    //     menuData.push({
-                    //         title: 'Highlight region on 3D structure',
-                    //         events: [{
-                    //             name: 'miew:highlight:region',
-                    //             data: {
-                    //                 geneTracks,
-                    //                 startIndex: data.feature.startIndex,
-                    //                 endIndex: data.feature.endIndex,
-                    //                 highlight: true
-                    //             }
-                    //         }]
-                    //     });
-                    // }
                 }
-                const childScope = this.$scope.$new(false);
-                childScope.menuData = menuData;
-                const html = this.$compile('<ngb-track-menu menu-data="menuData"></ngb-track-menu>')(childScope);
-                trackInstance.menuElement.show(
-                    event.position, html
-                );
-                childScope.$apply();
-                ngbTrackEvents.configureCopyToClipboardElements();
+                if (menuData.length > 0) {
+                    const childScope = this.$scope.$new(false);
+                    childScope.menuData = menuData;
+                    const html = this.$compile('<ngb-track-menu menu-data="menuData"></ngb-track-menu>')(childScope);
+                    trackInstance.menuElement.show(
+                        event.position, html
+                    );
+                    childScope.$apply();
+                    ngbTrackEvents.configureCopyToClipboardElements();
+                    html.find('#hiddenMenuButton').triggerHandler('click');
+                }
             })();
         }
     }
@@ -137,28 +212,6 @@ export default class ngbTrackEvents {
                         title: 'Show pair in split screen'
                     });
                 }
-                // let geneTracks = ((await this._projectDataService.getProject(track.instance.config.projectId)).items || [])
-                // .filter(item => item.format.toLowerCase() === 'gene').map((item) => {
-                //     return {
-                //         id: item.id,
-                //         name: item.name,
-                //         referenceId: item.referenceId,
-                //         chromosomeId: track.instance.config.chromosomeId
-                //     };
-                // });
-                // if (geneTracks.length > 0) {
-                //     menuData.push({
-                //         title: 'Highlight region on 3D structure',
-                //         events: [{
-                //             name: 'miew:highlight:region',
-                //             data: {
-                //                 geneTracks,
-                //                 startIndex: data.startIndex,
-                //                 endIndex: data.endIndex
-                //             }
-                //         }]
-                //     });
-                // }
                 const childScope = this.$scope.$new(false);
                 childScope.menuData = menuData;
                 const html = this.$compile('<ngb-track-menu menu-data="menuData"></ngb-track-menu>')(childScope);
@@ -267,9 +320,9 @@ export default class ngbTrackEvents {
                 };
                 const read = await self._bamDataService.loadRead(payload);
                 const generalInfo = data.info.map(line => line.join(' = ')).join('\r\n');
-                const tags = read.tags.map(tag => tag.tag + ' = ' + tag.value).join('\r\n');
+                const tags = read.tags.map(tag => `${tag.tag  } = ${  tag.value}`).join('\r\n');
 
-                menuItem.clipboard = generalInfo + '\r\n\r\n' + read.sequence + '\r\n\r\n' + tags;
+                menuItem.clipboard = `${generalInfo  }\r\n\r\n${  read.sequence  }\r\n\r\n${  tags}`;
                 menuItem.isLoading = false;
                 self.$scope.$apply();
             }
@@ -297,23 +350,35 @@ export default class ngbTrackEvents {
                 self.$scope.$apply();
             }
         };
-
+        const readInfo = {
+            geneId:null,
+            id: track.id,
+            referenceId: track.referenceId,
+            chromosomeId: data.chromosome.id,
+            startIndex: data.read.startIndex,
+            endIndex: data.read.endIndex,
+            name: data.read.name,
+            openByUrl: track.openByUrl,
+            file: track.openByUrl ? track.id : null,
+            index: track.openByUrl ? track.indexPath : null
+        };
         const openBlatSearchMenuItem = {
             title: 'BLAT Search',
             events: [{
-                data: {
-                    id: track.id,
-                    referenceId: track.referenceId,
-                    chromosomeId: data.chromosome.id,
-                    startIndex: data.read.startIndex,
-                    endIndex: data.read.endIndex,
-                    name: data.read.name,
-                    openByUrl: track.openByUrl,
-                    file: track.openByUrl ? track.id : null,
-                    index: track.openByUrl ? track.indexPath : null
-                },
+                data: {...readInfo},
                 name: 'read:show:blat',
             }],
+        };
+        const openBlastnSearchMenuItem = {
+            events: [{
+                data: {
+                    ...readInfo,
+                    tool:'blastn',
+                    source: 'bam'
+                },
+                name: 'read:show:blast',
+            }],
+            title: 'BLASTn Search',
         };
 
         const menuData = [];
@@ -323,6 +388,7 @@ export default class ngbTrackEvents {
             menuData.push(openMateMenuItem);
         }
         menuData.push(openBlatSearchMenuItem);
+        menuData.push(openBlastnSearchMenuItem);
         menuData.push(copyToClipboard);
         menuData.push(copySequenceToClipboard);
         if (chromosomeNotFoundError) {
@@ -339,6 +405,7 @@ export default class ngbTrackEvents {
         );
         childScope.$apply();
         ngbTrackEvents.configureCopyToClipboardElements();
+        html.find('#hiddenMenuButton').triggerHandler('click');
     }
 
     static configureCopyToClipboardElements() {

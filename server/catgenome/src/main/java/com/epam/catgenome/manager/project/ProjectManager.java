@@ -25,6 +25,7 @@
 package com.epam.catgenome.manager.project;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -61,6 +62,7 @@ import com.epam.catgenome.entity.vcf.VcfSample;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.FileManager;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Source:      ProjectManager
@@ -501,6 +503,26 @@ public class ProjectManager implements SecuredEntityManager {
     public void hideProjectItem(long projectId, long biologicalItemId) {
         Boolean isHidden = projectDao.isProjectItemHidden(projectId, biologicalItemId);
         projectDao.hideProjectItem(projectId, biologicalItemId, !isHidden);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Project saveProjectDescription(final Long projectId, final MultipartFile file) throws IOException {
+        final Project project = load(projectId);
+        projectDao.saveProjectDescription(projectId, file.getBytes());
+        return project;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public InputStream loadProjectDescription(final Long projectId) {
+        load(projectId);
+        return projectDao.loadProjectDescription(projectId);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Project deleteProjectDescription(final Long projectId) {
+        final Project project = load(projectId);
+        projectDao.saveProjectDescription(projectId, null);
+        return project;
     }
 
     private void countProjectItem(ProjectItem projectItem, List<ProjectItem> referenceItems,

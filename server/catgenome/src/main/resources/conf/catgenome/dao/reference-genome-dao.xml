@@ -61,7 +61,8 @@
                         i.owner as index_owner,
 
                         s.species_name,
-                        s.species_version
+                        s.species_version,
+                        s.tax_id
 
                     FROM catgenome.reference_genome r
                         JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
@@ -102,13 +103,56 @@
                         i.owner as index_owner,
 
                         s.species_name,
-                        s.species_version
+                        s.species_version,
+                        s.tax_id
 
                     FROM catgenome.reference_genome r
                         JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
                         JOIN catgenome.biological_data_item i ON i.bio_data_item_id = r.index_id
                         LEFT JOIN catgenome.genome_species s ON r.species_version = s.species_version
                     WHERE LOWER(b.name) = :NAME
+                ]]>
+            </value>
+        </property>
+
+        <property name="loadReferenceGenomesByTaxIdQuery">
+            <value>
+                <![CDATA[
+                    SELECT
+                        b.bio_data_item_id,
+                        b.name,
+                        b.type,
+                        b.path,
+                        b.format,
+                        b.created_date,
+                        b.bucket_id,
+                        b.pretty_name,
+                        b.owner,
+
+                        r.reference_genome_id,
+                        r.bio_data_item_id,
+                        r.reference_genome_size,
+                        null as compressed,
+                        r.gene_item_id,
+
+                        i.bio_data_item_id as index_id,
+                        i.name as index_name,
+                        i.type as index_type,
+                        i.path as index_path,
+                        i.format as index_format,
+                        i.bucket_id as index_bucket_id,
+                        i.created_date as index_created_date,
+                        i.owner as index_owner,
+
+                        s.species_name,
+                        s.species_version,
+                        s.tax_id
+
+                    FROM catgenome.reference_genome r
+                        JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
+                        JOIN catgenome.biological_data_item i ON i.bio_data_item_id = r.index_id
+                        LEFT JOIN catgenome.genome_species s ON r.species_version = s.species_version
+                    WHERE LOWER(s.tax_id) = :TAX_ID
                 ]]>
             </value>
         </property>
@@ -143,7 +187,8 @@
                         i.owner as index_owner,
 
                         s.species_name,
-                        s.species_version
+                        s.species_version,
+                        s.tax_id
 
                     FROM catgenome.reference_genome r
                         JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id
@@ -182,7 +227,8 @@
                         i.owner as index_owner,
 
                         s.species_name,
-                        s.species_version
+                        s.species_version,
+                        s.tax_id
 
                     FROM catgenome.reference_genome r
                         JOIN catgenome.biological_data_item b ON r.bio_data_item_id = b.bio_data_item_id

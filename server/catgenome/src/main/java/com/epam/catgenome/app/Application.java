@@ -4,6 +4,7 @@ import java.io.PrintStream;
 
 import com.epam.catgenome.util.NgbSeekableStreamFactory;
 import com.epam.catgenome.util.aws.S3Client;
+import com.epam.catgenome.util.azure.AzureBlobClient;
 import htsjdk.samtools.seekablestream.ISeekableStreamFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +21,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 /**
@@ -27,6 +29,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
  */
 @Import(AppConfiguration.class)
 @EnableWebSecurity
+@EnableScheduling
 @SpringBootApplication(exclude = {
         SecurityAutoConfiguration.class,
         SecurityFilterAutoConfiguration.class,
@@ -72,5 +75,11 @@ public class Application extends SpringBootServletInitializer {
     @Bean
     S3Client s3Client() {
         return S3Client.configure(swsEndpoint, swsRegion, isPathStyleAccess);
+    }
+
+    @Bean
+    public AzureBlobClient azureBlobClient(@Value("${azure.storage.account}") final String storageAccount,
+                                           @Value("${azure.storage.key}") final String storageKey) {
+        return new AzureBlobClient(storageAccount, storageKey);
     }
 }

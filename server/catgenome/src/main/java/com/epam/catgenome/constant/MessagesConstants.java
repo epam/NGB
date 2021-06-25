@@ -110,6 +110,7 @@ public final class MessagesConstants {
     public static final String ERROR_REFERENCE_REGISTRATION_PARAMS = "error.reference.registration.params.ambiguous";
     public static final String ERROR_DURING_SORTING = "error.file.sorting";
     public static final String INFO_SORT_SUCCESS = "info.file.sorting";
+    public static final String ERROR_REFERENCE_NOT_FOUND_BY_TAX_ID = "error.reference.not.found.by.tax.id";
     public static final String ERROR_ILLEGAL_FEATURE_FILE_FORMAT = "error.file.feature.illegal.file.format";
     public static final String ERROR_ANNOTATION_FILE_ALREADY_EXIST = "error.annotation.file.feature.already.exist";
     public static final String ERROR_ANNOTATION_FILE_NOT_EXIST = "error.annotation.file.feature.not.exist";
@@ -130,6 +131,7 @@ public final class MessagesConstants {
     public static final String DEBUG_FEATURE_INDEX_QUERY_TIME = "debug.feature.index.query.time";
     public static final String ERROR_FEATURE_INDEX_SEARCH_FAILED = "error.feature.index.search.failed";
     public static final String ERROR_FEATURE_INDEX_INVALID_NUMBER_FORMAT = "error.feature.index.invalid.number.format";
+    public static final String ERROR_FEATURE_INDEX_ENTRY_NOT_FOUND = "error.feature.index.entry.not.found";
 
     public static final String INFO_UNREGISTER = "info.unregister.done";
     //Genes
@@ -143,6 +145,9 @@ public final class MessagesConstants {
     public static final String ERROR_UNSUPPORTED_GENE_FILE_TYPE = "error.unsupported.genefiletype";
     public static final String ERROR_HELPER_FILE_DOES_NOT_EXIST = "error.helper.file.does.not.exist";
     public static final String ERROR_INVALID_NUCLEOTIDE = "error.invalid.nucleotide";
+    public static final String ERROR_WRONG_FEATURE_TYPE_FOR_PROTEIN_SEQ = "error.protein.seq.wrong.feature.type";
+    public static final String ERROR_CANT_FIND_TRANSCRIPT = "error.protein.cant.find.transcript";
+    public static final String ERROR_GENE_FILE_NOT_FOUND = "error.reference.gene.file.not.found";
 
     //VCF
     public static final String ERROR_UNSUPPORTED_VCF_FILE_EXTESION = "error.unsupported.vcf.file.extension";
@@ -201,6 +206,7 @@ public final class MessagesConstants {
     public static final String ERROR_UNSUPPORTED_FILE_FORMAT = "error.unsupported.file.format";
     public static final String ERROR_FILE_CORRUPTED_OR_EMPTY = "error.file.corrupted.or.empty";
     public static final String ERROR_DIRECTORY_NOT_FOUND = "error.directory.not.found";
+    public static final String ERROR_FILE_LOCAL_DOWNLOAD = "error.file.local.download";
 
     //PROJECT
     public static final String INFO_PROJECT_DELETED = "info.project.deleted";
@@ -223,6 +229,8 @@ public final class MessagesConstants {
     public static final String ERROR_NO_DATA_FOR_URL = "error.no.data.for.url";
     public static final String ERROR_UNEXPECTED_FORMAT = "error.error.unexpected.format";
     public static final String ERROR_NO_RESULT_BY_EXTERNAL_DB = "error.no.result.by.external.db";
+    public static final String ERROR_NCBI_CANT_LOAD_FEATURE_INFO = "error.ncbi.cant.load.feature.info";
+
 
     //BED
     public static final String ERROR_BED_PARSING = "error.bed.parsing.exception";
@@ -255,8 +263,15 @@ public final class MessagesConstants {
     public static final String ERROR_ROLE_ALREADY_EXIST = "error.role.already.exists";
     public static final String ERROR_NO_GROUP_WAS_FOUND = "error.no.group.was.found";
 
+    // BLAST TASK
+    public static final String ERROR_TASK_NOT_FOUND = "error.blast.task.not.found";
+    public static final String ERROR_TASK_CAN_NOT_BE_DELETED = "error.blast.task.cant.be.deleted";
+    public static final String ERROR_BLAST_REQUEST = "error.blast.request.unexpected";
+    public static final String ERROR_BLAST_ORGANISMS = "error.blast.organisms";
+    public static final String ERROR_BLAST_ORGANISMS_MAPPING = "error.blast.organisms.mapping";
+    public static final String ERROR_DATABASE_NOT_FOUND = "error.blast.database.not.found";
+
     private MessagesConstants() {
         // No-op
     }
-
 }

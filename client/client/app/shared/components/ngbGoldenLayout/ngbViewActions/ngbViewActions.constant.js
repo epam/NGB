@@ -62,6 +62,15 @@ const genomeAnnotationsAction = {
     }
 };
 
+const projectInfoSectionsAction = {
+    name: 'projectInfoSections',
+    isDefault: false,
+    liStyle: {
+        width: 'auto'
+    },
+    isVisible: context => context.tracks && context.tracks.length && !context.currentChromosome,
+};
+
 const tracksSelectionAction = {
     isVisible: (context) => context.tracks && context.tracks.length && context.currentChromosome,
     liStyle: {
@@ -70,20 +79,31 @@ const tracksSelectionAction = {
     name: 'tracksSelection'
 };
 
+const blastSearchPanelPaginationAction = {
+    name: 'blastSearchPanelPagination',
+    liStyle: {
+        width: 'auto'
+    },
+    isDefault: false
+};
+
 export default {
     actions: {
         closeAllTracks: closeAllTracksAction,
         fitAllTracks: fitAllTracksAction,
         genomeAnnotations: genomeAnnotationsAction,
+        projectInfoSections: projectInfoSectionsAction,
         organizeTracks: organizeTracksAction,
         tracksSelection: tracksSelectionAction,
         variantsLoadingIndicator: variantsLoadingIndicatorAction,
         variantsResetFilter: variantsResetFilterActions,
         variantsTableColumn: variantsTableColumnAction,
-        variantsTablePagination: variantsTablePaginationAction
+        variantsTablePagination: variantsTablePaginationAction,
+        blastSearchPanelPagination: blastSearchPanelPaginationAction
     },
     viewActions: {
-        ngbBrowser: [genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
-        ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsResetFilterActions, variantsTableColumnAction]
+        ngbBrowser: [projectInfoSectionsAction, genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
+        ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsResetFilterActions, variantsTableColumnAction],
+        ngbBlastSearchPanel: [blastSearchPanelPaginationAction]
     }
 };

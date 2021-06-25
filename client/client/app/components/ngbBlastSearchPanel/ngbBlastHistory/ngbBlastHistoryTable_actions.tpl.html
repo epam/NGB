@@ -1,0 +1,6 @@
+<md-button ng-if="row.entity.id && row.entity.isInProgress" class="md-icon-button" aria-label="Table View" ng-click="grid.appScope.$ctrl.onCancel(row.entity, $event)">
+    <ng-md-icon class="icon_info_outline blast-history-table-icon" size="20" icon="cancel"></ng-md-icon>
+</md-button>
+<md-button ng-if="row.entity.id" class="md-icon-button" aria-label="Table View" ng-click="grid.appScope.$ctrl.onRepeat(row.entity, $event)">
+    <ng-md-icon class="icon_info_outline blast-history-table-icon" size="20" icon="redo"></ng-md-icon>
+</md-button>

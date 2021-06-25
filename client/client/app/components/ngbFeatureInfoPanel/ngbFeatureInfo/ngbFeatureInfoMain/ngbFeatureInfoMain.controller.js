@@ -47,16 +47,20 @@ export default class ngbFeatureInfoMainController {
         }
         const refresh = (result) => {
             this.sequence = result;
-            if (!result) {
+            if (!result || !result.length) {
                 this.error = 'Error loading sequence for feature';
-            }
-            else {
+            } else {
                 this.error = null;
             }
             this.isSequenceLoading = false;
             this.$scope.$apply();
         };
-        this.getReference(parts, '', 0, refresh);
+        if (parts.length > 0) {
+            this.getReference(parts, '', 0, refresh);
+        } else {
+            this.isSequenceLoading = false;
+            this.error = 'Error loading sequence for feature';
+        }
     }
 
     loadRead() {

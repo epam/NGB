@@ -2,16 +2,20 @@ package com.epam.catgenome.util.aws;
 
 
 import com.amazonaws.SdkClientException;
-import com.amazonaws.auth.*;
+import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ResponseHeaderOverrides;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.epam.catgenome.entity.BiologicalDataItemDownloadUrl;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -22,7 +26,11 @@ import org.springframework.util.StringUtils;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
+import java.net.URL;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
+
+import static com.epam.catgenome.util.QueryUtils.buildContentDispositionHeader;
 
 /**
  * Class provides configuration of AWS client and utility methods for S3
@@ -30,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 public final class S3Client {
 
     private static final int CACHE_SIZE = 1000;
+    private static final Long URL_EXPIRATION = 24 * 60 * 60 * 1000L;
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Client.class);
 
 
@@ -182,6 +191,18 @@ public final class S3Client {
         return loadFrom(obj, 0);
     }
 
+    public BiologicalDataItemDownloadUrl generatePresignedUrl(final String url) {
+        final Date expires = new Date((new Date()).getTime() + URL_EXPIRATION);
+        final GeneratePresignedUrlRequest request = generatePresignedUrlRequest(url, expires);
+        final URL generatedUrl = getAws(getCloudType(url)).generatePresignedUrl(request);
+        return BiologicalDataItemDownloadUrl.builder()
+                .type(BiologicalDataItemResourceType.S3)
+                .url(generatedUrl.toExternalForm())
+                .expires(expires)
+                .size(getFileSize(url))
+                .build();
+    }
+
     private String replaceSchema(String url) {
         url = url.replace(CloudType.SWS.protocol, CloudType.S3.protocol);
         return url;
@@ -201,5 +222,15 @@ public final class S3Client {
         }
 
         private String protocol;
+    }
+
+    private GeneratePresignedUrlRequest generatePresignedUrlRequest(final String url, final Date expires) {
+        final AmazonS3URI s3URI = new AmazonS3URI(replaceSchema(url));
+        final String filePath = s3URI.getKey();
+        final GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(s3URI.getBucket(), filePath);
+        request.setExpiration(expires);
+        request.setResponseHeaders(new ResponseHeaderOverrides()
+                .withContentDisposition(buildContentDispositionHeader(filePath)));
+        return request;
     }
 }

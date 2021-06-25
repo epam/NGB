@@ -13,6 +13,7 @@ export default class WIGRenderer extends CachedTrackRenderer {
         this._config = config;
         this._height = config.height;
         this.trackState = trackState || {};
+        this.initializeCentralLine();
     }
 
     get height() {

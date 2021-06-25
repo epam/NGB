@@ -55,6 +55,8 @@ import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.FeatureFileReadingException;
 import com.epam.catgenome.util.aws.S3Client;
 import com.epam.catgenome.util.aws.S3SeekableStreamFactory;
+import com.epam.catgenome.util.azure.AzureBlobClient;
+import com.epam.catgenome.util.azure.AzureBlobSeekableStream;
 import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import com.epam.catgenome.util.feature.reader.IndexCache;
 import htsjdk.samtools.SAMFileHeader;
@@ -146,6 +148,9 @@ public class BamHelper {
 
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
+
+    @Autowired
+    private AzureBlobClient azureBlobClient;
 
     /**
      * Calculates the consensus sequence from the reads from a {@code BamFile}
@@ -485,6 +490,9 @@ public class BamHelper {
             case HDFS:
                 resource = getHDFSIndex(samInputResource, indexFile);
                 break;
+            case AZ:
+                resource = getAzIndex(samInputResource, indexFile);
+                break;
             default:
                 throw new IllegalArgumentException(getMessage(MessagesConstants.ERROR_INVALID_PARAM));
         }
@@ -499,6 +507,35 @@ public class BamHelper {
         FSDataInputStream indexStream = fileBam.open(new Path(uriIndex));
         return samInputResource.index(new HdfsSeekableInputStream(indexStream));
     }
+
+    private SamInputResource getAzIndex(SamInputResource samInputResource,
+                                        BiologicalDataItem indexFile) throws IOException {
+        byte[] indexBuffer = fetchAZBamIndex(indexFile);
+        return samInputResource.index(new SeekableMemoryStream(indexBuffer, indexFile.getPath()));
+    }
+
+    private byte[] fetchAZBamIndex(BiologicalDataItem indexFile) throws IOException {
+        String indexPath = indexFile.getPath();
+        byte[] indexBuffer;
+        if (indexCache != null) {
+            if (indexCache.contains(indexPath)) {
+                LOG.debug("get from cache index: " + indexPath);
+                indexBuffer = ((BamIndex) indexCache.getFromCache(indexPath)).content;
+
+            } else {
+                long start = System.currentTimeMillis();
+                indexBuffer = IOUtils.toByteArray(azureBlobClient.loadFully(indexPath));
+                LOG.debug("put in cache index: " + indexPath);
+                indexCache.putInCache(new BamIndex(indexPath, indexBuffer), indexPath);
+                LOG.debug("download BAM index time: " + (System.currentTimeMillis() - start));
+            }
+        } else {
+            LOG.info("index cache isn't initialized");
+            indexBuffer = IOUtils.toByteArray(S3Client.getInstance().loadFully(indexPath));
+        }
+        return indexBuffer;
+    }
+
 
     private SamInputResource getS3Index(SamInputResource samInputResource,
                                         BiologicalDataItem indexFile) throws IOException {
@@ -539,6 +576,9 @@ public class BamHelper {
             case S3:
                 resource = getS3SamInputResource(bamFile);
                 break;
+            case AZ:
+                resource = getAZSamInputResource(bamFile);
+                break;
             case HDFS:
                 resource= getHDFSSamInputResource(bamFile);
                 break;
@@ -556,8 +596,12 @@ public class BamHelper {
         return SamInputResource.of(new HdfsSeekableInputStream(inBam));
     }
 
-    @NotNull private SamInputResource getS3SamInputResource(BamFile bamFile) throws IOException {
+    private SamInputResource getS3SamInputResource(BamFile bamFile) throws IOException {
         return SamInputResource.of(S3SeekableStreamFactory.getInstance().getStreamFor(bamFile.getPath()));
+    }
+
+    private SamInputResource getAZSamInputResource(BamFile bamFile) throws IOException {
+        return SamInputResource.of(new AzureBlobSeekableStream(bamFile.getPath(), azureBlobClient));
     }
 
     private SamReader openSamReaderResource(final SamInputResource inputResource,

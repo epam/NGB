@@ -27,7 +27,7 @@ export class StatisticsContainer extends VariantBaseContainer {
     }
 
     buildBubble(manager) {
-        this.drawBubble(0);
+        this.drawBubble(this._getColorStructure(this._variant), 0);
         const label = new PIXI.Text(NumberFormatter.textWithPrefix(this._variant.variationsCount, false),
             this._config.statistics.label);
         label.resolution = drawingConfiguration.resolution;
@@ -53,18 +53,40 @@ export class StatisticsContainer extends VariantBaseContainer {
         };
     }
 
-    drawBubble(extraSize) {
+    drawBubble(colorStructure, extraSize) {
+        const white = 0xFFFFFF,
+            cx = 0,
+            cy = Math.floor(-this._config.statistics.height - this._variant.bubble.radius),
+            r = Math.round(this._variant.bubble.radius + extraSize);
+        let arcStart = -Math.PI / 2;
         this._graphics.clear();
         this._graphics
             .lineStyle(this._config.statistics.bubble.stroke.thickness, this._config.statistics.bubble.stroke.color, 1)
             .moveTo(-this._config.statistics.bubble.stroke.thickness / 2, 0)
             .lineTo(-this._config.statistics.bubble.stroke.thickness / 2, -this._config.statistics.height)
             .lineStyle(0, this._config.statistics.bubble.stroke.color, 0);
+        for (const color in colorStructure.colors) {
+            if (colorStructure.colors.hasOwnProperty(color)) {
+                this._graphics
+                    .beginFill(color)
+                    .moveTo(cx, cy)
+                    .arc(cx, cy, r, arcStart, arcStart = arcStart + 2 * Math.PI * colorStructure.colors[color] / colorStructure.total)
+                    .lineTo(cx, cy)
+                    .endFill();
+            }
+        }
+        if (colorStructure.transparent) {
+            this._graphics
+                .beginFill(white, 0)
+                .moveTo(cx, cy)
+                .arc(cx, cy, r, arcStart, arcStart + 2 * Math.PI * colorStructure.transparent / colorStructure.total)
+                .lineTo(cx, cy)
+                .endFill();
+        }
         this._graphics
-            .beginFill(this._config.statistics.bubble.fill, 1)
+            .lineStyle(1, this._config.statistics.bubble.stroke.color, 1)
             .drawCircle(0, Math.floor(-this._config.statistics.height - this._variant.bubble.radius),
-                Math.round(this._variant.bubble.radius + extraSize))
-            .endFill();
+                Math.round(this._variant.bubble.radius + extraSize));
     }
 
 
@@ -92,9 +114,24 @@ export class StatisticsContainer extends VariantBaseContainer {
             const hoverDelta = 1 / this._config.animation.hover.bubble.duration * timeDelta;
             this._hoverFactor =
                 Math.max(0, Math.min(1, this._hoverFactor + (this._isHovered ? hoverDelta : -hoverDelta)));
-            this.drawBubble(this._hoverFactor * this._config.animation.hover.bubble.extraRadius);
+            this.drawBubble(this._getColorStructure(this._variant), this._hoverFactor * this._config.animation.hover.bubble.extraRadius);
         }
         return needAnimateBubbleHover || needAnimateFade;
     }
 
+    _getColorStructure(variant) {
+        const {variants = []} = variant || {};
+        const transparentCount = variants
+            .filter(variant => !variant.highlightColor)
+            .length > 0
+            ? 1
+            : 0;
+        const uniqueColors = [...(new Set(variants.map(variant => variant.highlightColor)))]
+            .filter(Boolean);
+        return {
+            colors: uniqueColors.reduce((colors, color) => ({...colors, [color]: 1}), {}),
+            total: transparentCount + uniqueColors.length,
+            transparent: transparentCount
+        };
+    }
 }

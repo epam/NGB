@@ -2,7 +2,9 @@
     <ngb-variants-table-column ng-if="action === actions.variantsTableColumn"></ngb-variants-table-column>
     <ngb-variants-table-paginate ng-if="action === actions.variantsTablePagination"></ngb-variants-table-paginate>
     <ngb-variants-loading-indicator ng-if="action === actions.variantsLoadingIndicator"></ngb-variants-loading-indicator>
+    <ngb-blast-search-panel-paginate ng-if="action === actions.blastSearchPanelPagination"></ngb-blast-search-panel-paginate>
     <ngb-close-all-tracks ng-if="action === actions.closeAllTracks && tracksAreSelected()"></ngb-close-all-tracks>
+    <ngb-project-info-sections ng-if="action === actions.projectInfoSections && tracksAreSelected() && (action.isVisible === undefined || action.isVisible(projectContext))"></ngb-project-info-sections>
     <ngb-genome-annotations ng-if="action === actions.genomeAnnotations && tracksAreSelected() && (action.isVisible === undefined || action.isVisible(projectContext))"></ngb-genome-annotations>
     <ngb-view-action ng-if="action.isDefault && (action.isVisible === undefined || action.isVisible(projectContext))" event="action.event" label="action.label" icon="action.icon"></ngb-view-action>
     <ngb-tracks-selection ng-if="action === actions.tracksSelection && tracksAreSelected() && (action.isVisible === undefined || action.isVisible(projectContext))"></ngb-tracks-selection>

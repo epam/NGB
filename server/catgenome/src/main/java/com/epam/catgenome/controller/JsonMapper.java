@@ -25,11 +25,17 @@
 package com.epam.catgenome.controller;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
+import com.epam.catgenome.constant.Constants;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 
 /**
  * Source:      JsonMapper.java
@@ -52,6 +58,8 @@ public class JsonMapper extends ObjectMapper {
 
     private static final long serialVersionUID = -1414537788709027470L;
     private static final JsonMapper INSTANCE = new JsonMapper();
+    private static final DateTimeFormatter FORMATTER =
+            DateTimeFormatter.ofPattern(Constants.DATE_TIME_FORMAT);
 
     /**
      * {@code String} specifies date format without offset used to serialize
@@ -62,6 +70,13 @@ public class JsonMapper extends ObjectMapper {
     public JsonMapper() {
         // calls the default constructor
         super();
+
+        JavaTimeModule javaTimeModule = new JavaTimeModule();
+
+        javaTimeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(FORMATTER));
+        javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(FORMATTER));
+
+        super.registerModule(javaTimeModule);
 
         // configures ISO8601 formatter for date without time zone
         // the used format is 'yyyy-MM-dd'

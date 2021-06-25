@@ -66,6 +66,7 @@ export default class SegRenderer extends CachedTrackRenderer {
     constructor(config) {
         super();
         this._config = config;
+        this.initializeCentralLine();
     }
 
     render(viewport, cache, heightChanged, _gffColorByFeatureType = false, _gffShowNumbersAminoacid, _showCenterLine) {

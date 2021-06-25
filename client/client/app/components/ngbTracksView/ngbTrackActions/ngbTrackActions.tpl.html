@@ -1,6 +1,12 @@
 <div class="ngb-track-header-action-buttons" layout="row" layout-align="start center">
     <div class="ngb-track-header-action-button" ng-repeat="action in ctrl.actions">
         <div ng-if="action.enabled()">
+            <div ng-if="action.type === 'text'"
+                 class="ngb-track-header-action-text"
+                 layout="row"
+                 layout-align="start center">
+                {{action.label}}{{action.value()}}
+            </div>
             <div ng-if="action.type === 'checkbox'"
                  layout="row"
                  layout-align="start center">

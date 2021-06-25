@@ -63,6 +63,7 @@ import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import htsjdk.variant.vcf.VCFSimpleHeaderLine;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -124,6 +125,7 @@ import htsjdk.variant.variantcontext.VariantContext;
  * logic operations required to manage {@code VcfFile} and corresponded tracks, e.g. to process
  * variants uploads, position-based and/or zoom queries etc.
  */
+@Slf4j
 @Service
 public class VcfManager {
 
@@ -186,7 +188,7 @@ public class VcfManager {
         Assert.isTrue(StringUtils.isNotBlank(requestPath), getMessage(
                 MessagesConstants.ERROR_NULL_PARAM, "path"));
         Assert.notNull(request.getReferenceId(), getMessage(MessagesConstants.ERROR_NULL_PARAM, "referenceId"));
-
+        double time1 = Utils.getSystemTimeMilliseconds();
         VcfFile vcfFile;
         Reference reference = referenceGenomeManager.load(request.getReferenceId());
         Map<String, Chromosome> chromosomeMap = reference.getChromosomes().stream().collect(
@@ -200,6 +202,7 @@ public class VcfManager {
                 break;
             case FILE:
             case S3:
+            case AZ:
                 vcfFile = createVcfFromFile(request, chromosomeMap, reference, request.isDoIndex());
                 break;
             case DOWNLOAD:
@@ -213,6 +216,8 @@ public class VcfManager {
                 throw new IllegalArgumentException(
                         getMessage(MessagesConstants.ERROR_INVALID_PARAM));
         }
+        double time2 = Utils.getSystemTimeMilliseconds();
+        log.debug("File registration took {} ms", time2 - time1);
         return vcfFile;
     }
 
@@ -249,6 +254,7 @@ public class VcfManager {
     public Track<Variation> loadVariations(final Track<Variation> track, final Long sampleId, boolean loadInfo,
                                            final boolean collapse)
             throws VcfReadingException {
+        double time1 = Utils.getSystemTimeMilliseconds();
         Chromosome chromosome = trackHelper.validateTrack(track);
 
         final VcfFile vcfFile = vcfFileManager.load(track.getId());
@@ -263,6 +269,8 @@ public class VcfManager {
                 referenceGenomeManager).readVariations(vcfFile, track, chromosome, sampleIndex,
                 loadInfo, collapse, indexCache);
 
+        double time2 = Utils.getSystemTimeMilliseconds();
+        log.debug("Track request took {} ms", time2 - time1);
         return track;
     }
 
@@ -280,6 +288,7 @@ public class VcfManager {
     public Track<Variation> loadVariations(final Track<Variation> track, String fileUrl, String indexUrl,
                                            final Integer sampleIndex, final boolean loadInfo, final boolean collapse)
         throws VcfReadingException {
+        double time1 = Utils.getSystemTimeMilliseconds();
         Chromosome chromosome = trackHelper.validateUrlTrack(track, fileUrl, indexUrl);
 
         VcfFile notRegisteredFile = makeTemporaryVcfFileFromUrl(fileUrl, indexUrl, chromosome);
@@ -292,6 +301,8 @@ public class VcfManager {
                                           referenceGenomeManager).readVariations(notRegisteredFile, track, chromosome,
                                                                                  sampleIndex != null ? sampleIndex : 0,
                                                                                     loadInfo, collapse, indexCache);
+        double time2 = Utils.getSystemTimeMilliseconds();
+        log.debug("Track request took {} ms", time2 - time1);
         return track;
     }
 

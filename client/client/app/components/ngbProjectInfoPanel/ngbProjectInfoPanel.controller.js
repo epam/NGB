@@ -1,4 +1,6 @@
-export default class ngbProjectInfoPanelController {
+import BaseController from '../../shared/baseController';
+
+export default class ngbProjectInfoPanelController extends BaseController {
     /**
      * @returns {string}
      */
@@ -7,13 +9,32 @@ export default class ngbProjectInfoPanelController {
     }
 
     projectContext;
+    events = {
+        'project:description:url': this.refreshProjectInfo.bind(this),
+    };
 
     /**
      * @constructor
      */
     /** @ngInject */
-    constructor(projectContext) {
-        this.projectContext = projectContext;
+    constructor(projectContext, $scope, $element, $timeout, dispatcher, ngbProjectInfoService) {
+        super();
+        Object.assign(this, {
+            projectContext, $scope, $element, $timeout, dispatcher, ngbProjectInfoService
+        });
+        this.initEvents();
+    }
+
+    get isProgressShown () {
+        return this.ngbProjectInfoService.descriptionIsLoading;
+    }
+
+    get showDescription () {
+        return this.ngbProjectInfoService.showDescription;
+    }
+
+    refreshProjectInfo() {
+        this.$scope.$apply();
     }
 
     get containsVcfFiles() {

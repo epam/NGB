@@ -1,0 +1,25 @@
+<md-menu ng-if="$ctrl.ngbProjectInfoService.summaryAvailable && $ctrl.ngbProjectInfoService.descriptionAvailable">
+  <md-button aria-label="Project info"
+             class="md-icon-button project-info-button"
+             style="width: auto; padding-left: 7px"
+             ng-click="$ctrl.openMenu($mdOpenMenu, $event);"
+  >
+    {{$ctrl.ngbProjectInfoService.showDescription ? 'Description' : 'Summary'}}
+    <ng-md-icon icon="keyboard_arrow_down"
+                size="20"></ng-md-icon>
+  </md-button>
+  <md-menu-content width="4" class="ngb-project-info-sections-menu" md-whiteframe="4">
+    <md-checkbox aria-label="Description"
+                 ng-model="$ctrl.ngbProjectInfoService.showDescription">
+      <span>Description</span>
+    </md-checkbox>
+    <md-checkbox aria-label="Summary"
+                 ng-model="$ctrl.ngbProjectInfoService.showSummary">
+      <span>Summary</span>
+    </md-checkbox>
+  </md-menu-content>
+</md-menu>
+<div class="ngb-project-info-sections-divider"
+     ng-if="$ctrl.ngbProjectInfoService.summaryAvailable && $ctrl.ngbProjectInfoService.descriptionAvailable">
+  &nbsp
+</div>

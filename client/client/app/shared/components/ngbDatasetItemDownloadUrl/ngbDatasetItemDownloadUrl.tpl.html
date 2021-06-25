@@ -1,0 +1,21 @@
+<a class="download-link"
+   target="_blank"
+   ng-if="$ctrl.url"
+   ng-href="{{$ctrl.url}}">
+    <ng-md-icon icon="file_download" ng-if="$ctrl.showIcon"></ng-md-icon>
+    <span ng-if="!$ctrl.name">Download file</span>
+    <span ng-if="$ctrl.name">{{$ctrl.name}}</span>
+    <span ng-if="$ctrl.format || $ctrl.size > 0"
+          class="dataset-item-download-details">
+        <span ng-if="$ctrl.format">{{$ctrl.format}}</span>
+        <span ng-if="$ctrl.size > 0">{{$ctrl.size | filesize}}</span>
+    </span>
+</a>
+<i class="dataset-item-download-loading"
+   ng-if="$ctrl.fetching">
+    Loading...
+</i>
+<span ng-if="$ctrl.error"
+      class="dataset-item-download-error">
+    {{$ctrl.error}}
+</span>

@@ -1,0 +1,27 @@
+<div ng-if="$ctrl.isProgressShown">
+    <div class="progress" layout-align="center center">
+        <span>Loading history...</span>
+    </div>
+    <md-progress-linear md-mode="query"></md-progress-linear>
+</div>
+<div ng-if="$ctrl.isEmptyResults" class="empty-results" layout="column" layout-align="center center">
+    <strong>No records found.</strong>
+</div>
+<div ng-if="!$ctrl.isProgressShown && !$ctrl.isEmptyResults" class="ui-grid-container" ng-hide="$ctrl.errorMessageList.length">
+    <div ng-if="$ctrl.historyLoadError" class="variants-load-error-container">
+        <small>{{$ctrl.historyLoadError}}</small>
+    </div>
+    <div ui-grid="$ctrl.gridOptions"
+         ui-grid-save-state
+         ui-grid-selection
+         ui-grid-resize-columns
+         ui-grid-move-columns
+         ui-grid-pinning
+         ui-grid-auto-resize
+         class="blast-history-table"
+    ></div>
+</div>
+
+<div ng-if="$ctrl.errorMessageList.length" class="md-padding">
+    <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+</div>

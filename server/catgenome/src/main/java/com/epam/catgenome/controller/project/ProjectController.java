@@ -25,7 +25,9 @@
 package com.epam.catgenome.controller.project;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
@@ -33,15 +35,10 @@ import java.util.stream.Collectors;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.manager.FeatureIndexSecurityService;
 import com.epam.catgenome.manager.project.ProjectSecurityService;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.epam.catgenome.component.MessageHelper;
 import com.epam.catgenome.constant.MessagesConstants;
@@ -61,6 +58,18 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Source:      ProjectController
@@ -477,5 +486,52 @@ public class ProjectController extends AbstractRESTController {
         Project deletedProject = projectSecurityService.deleteProject(projectId, force);
         return Result.success(true, MessageHelper.getMessage(MessagesConstants.INFO_PROJECT_DELETED,
                 deletedProject.getId(), deletedProject.getName()));
+    }
+
+    @PostMapping("/project/{projectId}/description")
+    @ResponseBody
+    @ApiOperation(
+            value = "Uploads project description file",
+            notes = "Uploads project description file",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Project> uploadProjectDescription(@PathVariable final Long projectId,
+                                                    @RequestParam("file") final MultipartFile multipart)
+            throws IOException {
+        return Result.success(projectSecurityService.uploadProjectDescription(projectId, multipart));
+    }
+
+    @GetMapping("/project/{projectId}/description")
+    @ResponseBody
+    @ApiOperation(
+            value = "Downloads project description file",
+            notes = "Downloads project description file",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public void downloadProjectDescription(@PathVariable final Long projectId, final HttpServletResponse response)
+            throws IOException {
+        final InputStream projectDescriptionContent = projectSecurityService.loadProjectDescription(projectId);
+        if (Objects.isNull(projectDescriptionContent)) {
+            return;
+        }
+        IOUtils.copy(projectDescriptionContent, response.getOutputStream());
+        response.flushBuffer();
+    }
+
+    @DeleteMapping("/project/{projectId}/description")
+    @ResponseBody
+    @ApiOperation(
+            value = "Deletes project description file",
+            notes = "Deletes project description file",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Project> deleteProjectDescription(@PathVariable final Long projectId) {
+        return Result.success(projectSecurityService.deleteProjectDescription(projectId));
     }
 }

@@ -18,7 +18,7 @@ export class GeneTransformer {
 
     isHistogramDrawingModeForViewport(viewport: Viewport, data) {
         let count = 0, left = 0, right = 0;
-        if(!data || !data.histogramData )
+        if (!data || !data.histogramData)
             return false;
         while (left < data.histogramData.length && data.histogramData[left].startIndex < viewport.brush.end) {
             if (data.histogramData[right].startIndex < viewport.brush.start) {
@@ -32,13 +32,12 @@ export class GeneTransformer {
         if (right < data.histogramData.length && left < data.histogramData.length) {
             if (right < left) {
                 count = data.histogramData[left].totalValue - data.histogramData[right].totalValue;
-            }
-            else {
+            } else {
                 count = data.histogramData[left].totalValue;
             }
         }
         return (count > this.config.histogram.thresholdGenes &&
-        viewport.canvasSize / (left - right) <= this.config.histogram.thresholdWidth);
+            viewport.canvasSize / (left - right) <= this.config.histogram.thresholdWidth);
     }
 
     static transformFullHistogramData(data) {
@@ -88,8 +87,7 @@ export class GeneTransformer {
         for (let i = 0; i < data.length; i++) {
             if (data[i].mapped !== undefined && data[i].mapped !== null && !data[i].mapped) {
                 unmappedFeatures.push(data[i]);
-            }
-            else if (data[i].feature !== null && data[i].feature !== undefined && data[i].feature.toLowerCase() === 'gene') {
+            } else if (data[i].feature !== null && data[i].feature !== undefined && data[i].feature.toLowerCase() === 'gene') {
                 const item = GeneTransformer.analyzeGene(data[i], viewport);
                 if (item !== null) {
                     genes.push(item);
@@ -108,7 +106,7 @@ export class GeneTransformer {
 
     static analyzeGene(gene) {
         if (gene.items !== null && gene.items !== undefined && gene.items.length > 0) {
-            let transcripts = [];
+            const transcripts = [];
             for (let i = 0; i < gene.items.length; i++) {
                 if (gene.items[i].feature !== null && gene.items[i].feature !== undefined) {
                     const transcript = GeneTransformer.analyzeTranscript(gene.items[i]);
@@ -119,20 +117,16 @@ export class GeneTransformer {
             }
             gene.items = [];
             gene.transcripts = transcripts;
-        }
-        else {
+        } else {
             gene.transcripts = [];
         }
         if (gene.attributes.hasOwnProperty('gene_name')) {
             gene.name = gene.attributes.gene_name;
-        }
-        else if (gene.attributes.hasOwnProperty('gene_symbol')) {
+        } else if (gene.attributes.hasOwnProperty('gene_symbol')) {
             gene.name = gene.attributes.gene_symbol;
-        }
-        else if (gene.attributes.hasOwnProperty('gene_id')) {
+        } else if (gene.attributes.hasOwnProperty('gene_id')) {
             gene.name = gene.attributes.gene_id;
-        }
-        else {
+        } else {
             gene.name = null;
         }
         return gene;
@@ -141,11 +135,9 @@ export class GeneTransformer {
     static analyzeTranscript(transcript) {
         if (transcript.attributes.hasOwnProperty('transcript_name')) {
             transcript.name = transcript.attributes.transcript_name;
-        }
-        else if (transcript.attributes.hasOwnProperty('transcript_symbol')) {
+        } else if (transcript.attributes.hasOwnProperty('transcript_symbol')) {
             transcript.name = transcript.attributes.transcript_symbol;
-        }
-        else {
+        } else {
             transcript.name = null;
         }
         if (transcript.items === null || transcript.items === undefined) {
@@ -157,6 +149,7 @@ export class GeneTransformer {
         return transcript;
     }
 
+    // eslint-disable-next-line complexity
     static analyzeTranscriptExonStructure(transcript) {
         const structure = [];
         const correctedItems = [];
@@ -205,8 +198,7 @@ export class GeneTransformer {
             if (current.index === next.index) {
                 current.endIndex = next.endIndex;
                 correctedItems.splice(i + 1, 1);
-            }
-            else {
+            } else {
                 i++;
             }
         }
@@ -227,8 +219,7 @@ export class GeneTransformer {
             if (item.isEmpty === block.isEmpty) {
                 block.items.push(item);
                 block.endIndex = item.endIndex;
-            }
-            else {
+            } else {
                 structure.push(block);
                 block = {
                     endIndex: item.endIndex,

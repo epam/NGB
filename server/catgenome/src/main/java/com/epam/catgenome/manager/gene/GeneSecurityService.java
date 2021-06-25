@@ -32,6 +32,8 @@ import com.epam.catgenome.entity.gene.Gene;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.gene.GeneHighLevel;
 import com.epam.catgenome.entity.gene.GeneTranscript;
+import com.epam.catgenome.entity.protein.ProteinSequence;
+import com.epam.catgenome.entity.protein.ProteinSequenceConstructRequest;
 import com.epam.catgenome.entity.protein.ProteinSequenceEntry;
 import com.epam.catgenome.entity.track.Block;
 import com.epam.catgenome.entity.track.Track;
@@ -39,6 +41,7 @@ import com.epam.catgenome.entity.wig.Wig;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.exception.GeneReadingException;
 import com.epam.catgenome.exception.HistogramReadingException;
+import com.epam.catgenome.manager.protein.ProteinSequenceManager;
 import com.epam.catgenome.security.acl.aspect.AclMask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -59,6 +62,9 @@ public class GeneSecurityService {
 
     @Autowired
     private GffManager gffManager;
+
+    @Autowired
+    private ProteinSequenceManager proteinSequenceManager;
 
 
     @PreAuthorize(ROLE_ADMIN + OR + ROLE_GENE_MANAGER)
@@ -128,5 +134,10 @@ public class GeneSecurityService {
                                         Integer endIndex, Integer intronLength,
                                         Long projectId) throws IOException {
         return gffManager.loadExonsInTrack(geneFileId, chromosomeId, startIndex, endIndex, intronLength);
+    }
+
+    @PreAuthorize(ROLE_ADMIN + OR + READ_ON_FILE_BY_ID)
+    public ProteinSequence loadProteinSequenceForFeature(final ProteinSequenceConstructRequest request) {
+        return proteinSequenceManager.loadProteinSequence(request);
     }
 }

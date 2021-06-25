@@ -1,0 +1,29 @@
+$menu-item-height: 50px;
+
+.ngb-track-event-button {
+  height: $menu-item-height;
+  line-height: $menu-item-height;;
+}
+
+md-menu-content.ngb-track-events {
+
+  .ngb-track-event-menu-item {
+    height: $menu-item-height;
+    display: flex;
+    flex-direction: column;
+
+    .md-button {
+      @extend .ngb-track-event-button;
+    }
+
+    .ngb-track-event-warning {
+      font-size: small;
+      color: rgba(0, 0, 0, 0.25);
+      width: auto;
+
+      .ngb-track-event-warning-icon {
+        fill: currentColor;
+      }
+    }
+  }
+}

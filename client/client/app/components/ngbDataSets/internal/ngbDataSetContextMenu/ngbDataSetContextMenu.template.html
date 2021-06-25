@@ -1,8 +1,25 @@
 <div class="ngb-data-set-context-menu">
     <md-list class="md-dense">
-        <md-list-item>
+        <md-list-item ng-if="ctrl.hasRole">
             <md-button ng-click="ctrl.openPermissions($event)">
                 Manage permissions
+            </md-button>
+        </md-list-item>
+        <md-divider ng-if="ctrl.hasRole"></md-divider>
+        <md-list-item ng-if="!ctrl.node.isProject">
+            <md-button>
+                <ngb-dataset-item-download-url id="ctrl.node.bioDataItemId"
+                                               show-icon="true">
+                </ngb-dataset-item-download-url>
+            </md-button>
+        </md-list-item>
+        <md-list-item ng-if="ctrl.node.isProject" ng-repeat="item in ctrl.projectElements">
+            <md-button>
+                <ngb-dataset-item-download-url id="item.bioDataItemId"
+                                               name="item.filename"
+                                               format="item.format"
+                                               show-icon="true">
+                </ngb-dataset-item-download-url>
             </md-button>
         </md-list-item>
     </md-list>

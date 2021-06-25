@@ -4,28 +4,36 @@ import ngbPermissionsFormController from '../ngbPermissionsForm/ngbPermissionsFo
 export default class NgbDataSetContextMenuController {
 
     node;
+    projectElements = [];
+    hasRole = false;
 
-    constructor($scope, $mdDialog, ngbDataSetContextMenu, utilsDataService, userDataService) {
+    constructor($scope, $mdDialog, ngbDataSetContextMenu, utilsDataService, userDataService, projectDataService, projectContext) {
         this.$scope = $scope;
         this.node = $scope.node;
         this.$mdDialog = $mdDialog;
         this.ngbDataSetContextMenu = ngbDataSetContextMenu;
         this.utilsDataService = utilsDataService;
         this.userDataService = userDataService;
+        this.projectDataService = projectDataService;
+        this.projectContext = projectContext;
+        this.checkUserRole();
+        if (this.node.isProject) {
+            this.configureProjectElements();
+        }
     }
 
-    shouldOpenMenuPromise () {
-        return this.utilsDataService.isRoleModelEnabled().then(utilsDataService => {
+    checkUserRole() {
+        this.utilsDataService.isRoleModelEnabled().then(utilsDataService => {
             if (utilsDataService) {
-                return this.userDataService.getCurrentUser()
-                    .then(user => user.hasRoles(this.node.roles || []));
+                this.userDataService.getCurrentUser()
+                    .then(user => this.hasRole = user.hasRoles(this.node.roles || []));
             } else {
-                return false;
+                this.hasRole = false;
             }
         });
     }
 
-    openPermissions (event) {
+    openPermissions(event) {
         event.preventDefault();
         event.stopPropagation();
         if (this.ngbDataSetContextMenu.visible()) {
@@ -42,5 +50,24 @@ export default class NgbDataSetContextMenuController {
             skipHide: true,
             template: require('../ngbPermissionsForm/ngbPermissionsForm.template.html'),
         });
+    }
+
+    getFileLink(id) {
+        return this.projectDataService.getDatasetFileLink(id);
+    }
+
+    configureProjectElements() {
+        const referenceList = this.projectContext.references
+            .filter(r => +r.bioDataItemId === +this.node.reference.bioDataItemId);
+        if (referenceList.length) {
+            this.projectElements = [
+                referenceList[0],
+                ...referenceList[0].annotationFiles
+            ];
+            this.projectElements.forEach(e => {
+                const splitPath = e.path.split('/');
+                e.filename = splitPath[splitPath.length - 1];
+            });
+        }
     }
 }

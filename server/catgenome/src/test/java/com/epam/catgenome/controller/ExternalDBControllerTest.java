@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,30 +40,22 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.epam.catgenome.common.AbstractControllerTest;
 import com.epam.catgenome.common.ResponseResult;
-import com.epam.catgenome.controller.externaldb.ExternalDBController;
 import com.epam.catgenome.controller.vo.externaldb.UniprotEntryVO;
 import com.epam.catgenome.controller.vo.externaldb.ensemblevo.EnsemblEntryVO;
-import com.epam.catgenome.manager.externaldb.EnsemblDataManager;
 import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.externaldb.ParameterNameValue;
-import com.epam.catgenome.manager.externaldb.UniprotDataManager;
 
 /**
  * Source:      ExternalDBControllerTest
@@ -84,33 +76,15 @@ public class ExternalDBControllerTest extends AbstractControllerTest {
     private static final long GENE_START = 74082933L;
     private static final long END = 74122525L;
 
-    @Mock
+    @MockBean(name = "httpDataManager")
     private HttpDataManager httpDataManager;
-
-    @InjectMocks
-    @Spy
-    private EnsemblDataManager ensemblDataManager;
-
-    @InjectMocks
-    @Spy
-    private UniprotDataManager uniprotDataManager;
-
-    @InjectMocks
-    @Spy
-    private ExternalDBController dbControllerMock;
 
     @Autowired
     private ApplicationContext context;
 
-    private MockMvc mvc;
-
     @Before
     public void setup() throws Exception {
         super.setup();
-        MockitoAnnotations.initMocks(this);
-        mvc = MockMvcBuilders.standaloneSetup(dbControllerMock).build();
-        Assert.assertNotNull(ensemblDataManager);
-        Assert.assertNotNull(uniprotDataManager);
     }
 
     @Test
@@ -123,7 +97,7 @@ public class ExternalDBControllerTest extends AbstractControllerTest {
         ).thenReturn(fetchRes);
 
         // act
-        ResultActions actions = mvc
+        ResultActions actions = mvc()
                 .perform(get(String.format(URL_FETCH_ENSEMBL_DATA, "rs7412"))
                         .contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(status().isOk())
@@ -157,7 +131,7 @@ public class ExternalDBControllerTest extends AbstractControllerTest {
         ).thenReturn(fetchRes);
 
         // act
-        ResultActions actions = mvc
+        ResultActions actions = mvc()
                 .perform(get(String.format(URL_FETCH_UNIPROT_DATA, "ENSG00000106683"))
                         .contentType(EXPECTED_CONTENT_TYPE))
                 .andExpect(status().isOk())

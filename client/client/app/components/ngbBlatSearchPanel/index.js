@@ -8,11 +8,10 @@ import ngbBlatSearchPanel from './ngbBlatSearchPanel.component';
 import controller from './ngbBlatSearchPanel.controller';
 
 // Import components
-import  ngbBlatSearch from './ngbBlatSearch';
-
+import ngbBlatSearch from './ngbBlatSearch';
 
 // Import external modules
-export default angular.module('ngbBlatSearchPanel', [ngbBlatSearch])
+export default angular
+    .module('ngbBlatSearchPanel', [ngbBlatSearch])
     .component('ngbBlatSearchPanel', ngbBlatSearchPanel)
-    .controller(controller.UID, controller)
-    .name;
+    .controller(controller.UID, controller).name;

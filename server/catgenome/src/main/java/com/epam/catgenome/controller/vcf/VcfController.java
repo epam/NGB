@@ -34,6 +34,7 @@ import java.util.concurrent.Callable;
 
 import com.epam.catgenome.manager.vcf.VcfSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -80,6 +81,9 @@ public class VcfController extends AbstractRESTController {
 
     @Autowired
     private VcfSecurityService vcfSecurityService;
+
+    @Value("${vcf.load.info.for.track:false}")
+    private boolean loadInfoForTrack;
 
     @ResponseBody
     @RequestMapping(value = "/vcf/register", method = RequestMethod.POST)
@@ -152,12 +156,12 @@ public class VcfController extends AbstractRESTController {
 
             if (fileUrl == null) {
                 return Result.success(vcfSecurityService
-                        .loadVariations(variationTrack, trackQuery.getSampleId(), false, collapsed));
+                        .loadVariations(variationTrack, trackQuery.getSampleId(), loadInfoForTrack, collapsed));
             } else {
                 return Result.success(vcfSecurityService.loadVariations(variationTrack, fileUrl, indexUrl,
                         trackQuery.getSampleId() != null ?
                                 trackQuery.getSampleId().intValue() :
-                                null, false, collapsed));
+                                null, loadInfoForTrack, collapsed));
             }
         };
     }

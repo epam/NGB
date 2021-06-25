@@ -15,3 +15,23 @@
     min-width: 24px;
   }
 }
+
+.expandable-panel {
+  margin: 5px 0;
+  .expandable-panel-title {
+    padding: 5px 0;
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+  .expandable-panel-title .expandable-panel-icon {
+    transition: transform 500ms;
+  }
+  .expandable-panel-title.toggled .expandable-panel-icon {
+    transform: rotate(180deg);
+  }
+  .expandable-panel-content {
+    margin-top: 5px;
+  }
+}

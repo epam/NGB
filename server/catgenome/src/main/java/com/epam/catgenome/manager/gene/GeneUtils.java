@@ -25,9 +25,17 @@
 package com.epam.catgenome.manager.gene;
 
 import com.epam.catgenome.entity.gene.Gene;
+import com.epam.catgenome.entity.gene.GeneTranscript;
+import com.epam.catgenome.entity.protein.ProteinSequence;
+import com.epam.catgenome.entity.protein.ProteinSequenceEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.util.Utils;
+import org.apache.commons.collections4.ListUtils;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Source:      GeneUtils
@@ -47,6 +55,9 @@ public final class GeneUtils {
     public static final String TRANSCRIPT_ID_FILED = "transcript_id"; // mRNA_id??
     public static final String TRANSCRIPT_NAME_FILED = "transcript_name";
     public static final String NAME_FIELD = "Name";
+    public static final String PROTEIN_CODING = "protein_coding";
+    public static final ProteinSequence EMPTY_PROTEIN_SEQUENCE = new ProteinSequence(0, 0, "", 0);
+    public static final String GENE_BIOTYPE = "gene_biotype";
 
     private GeneUtils() {
         // no-op
@@ -189,6 +200,53 @@ public final class GeneUtils {
     public static boolean belongsToChromosome(Gene gene, Chromosome chromosome) {
         return gene.getSeqName().equalsIgnoreCase(chromosome.getName()) ||
                 gene.getSeqName().equalsIgnoreCase(Utils.changeChromosomeName(chromosome.getName()));
+    }
+
+    /**
+     *  Construct protein string from list of ProteinSequenceEntry
+     * @return ProteinSequence
+     */
+    public static ProteinSequence constructProteinString(List<ProteinSequenceEntry> proteinSequenceEntries) {
+        if (ListUtils.emptyIfNull(proteinSequenceEntries).isEmpty()) {
+            return EMPTY_PROTEIN_SEQUENCE;
+        }
+        proteinSequenceEntries.sort(Comparator.comparing(ProteinSequenceEntry::getTripleStartIndex));
+        return new ProteinSequence(
+                proteinSequenceEntries.get(0).getCdsStartIndex().intValue(),
+                proteinSequenceEntries.get(proteinSequenceEntries.size() - 1).getCdsEndIndex().intValue(),
+                ListUtils.emptyIfNull(proteinSequenceEntries).stream()
+                        .map(ProteinSequenceEntry::getText)
+                        .filter(s -> !s.equalsIgnoreCase("stop") && !s.equalsIgnoreCase("start"))
+                        .collect(Collectors.joining()),
+                proteinSequenceEntries.stream().findFirst()
+                        .map(ProteinSequenceEntry::getIndex).orElse(0L)
+        );
+    }
+
+    /**
+     * Returns canonical transcript for gene
+     * */
+    public static Gene getCanonical(final GeneTranscript gene) {
+        return ListUtils.emptyIfNull(gene.getItems())
+                .stream().max(canonicalTranscriptComparator()).orElse(null);
+    }
+
+    private static Comparator<Gene> canonicalTranscriptComparator() {
+        return (left, right) -> {
+            if (PROTEIN_CODING.equals(left.getAttributes().get(GENE_BIOTYPE)) &&
+                    !PROTEIN_CODING.equals(right.getAttributes().get(GENE_BIOTYPE))) {
+                return 1;
+            } else if (!PROTEIN_CODING.equals(left.getAttributes().get(GENE_BIOTYPE)) &&
+                    PROTEIN_CODING.equals(right.getAttributes().get(GENE_BIOTYPE))) {
+                return -1;
+            } else {
+                long leftLen = left.getItems().stream().filter(GeneUtils::isExon)
+                        .map(exon -> Math.abs(exon.getEndIndex() - exon.getStartIndex())).mapToLong(v -> v).sum();
+                long rightLen = right.getItems().stream().filter(GeneUtils::isExon)
+                        .map(exon -> Math.abs(exon.getEndIndex() - exon.getStartIndex())).mapToLong(v -> v).sum();
+                return leftLen - rightLen >= 0 ? 1 : -1;
+            }
+        };
     }
 
     private static boolean isType(GeneFeatureType type, Gene gene) {

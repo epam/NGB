@@ -15,7 +15,7 @@
             ng-class="{'collapsed': !ctrl.showTracksHeaders }"
     >
         <input
-                ng-if="ctrl.selectable && ctrl.track.format !== 'REFERENCE'"
+                ng-if="ctrl.selectable"
                 type="checkbox"
                 ng-model="ctrl.trackIsSelected"
                 dnd-nodrag
@@ -93,7 +93,7 @@
                 style="cursor: move;"
         />
         <input
-                ng-if="ctrl.selectable && ctrl.track.format !== 'REFERENCE'"
+                ng-if="ctrl.selectable"
                 type="checkbox"
                 ng-model="ctrl.trackIsSelected"
                 dnd-nodrag

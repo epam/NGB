@@ -171,8 +171,9 @@ public final class Constants {
      */
     public static final int KILO_BYTE_SIZE = 1024;
 
+    public static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
+
     private Constants() {
         //No-op
     }
-
 }

@@ -12,7 +12,7 @@ def buildNumber = hasProperty("buildNumber") ? buildNumber : ""
 def profile = hasProperty("profile") ? profile : "release"
 
 allprojects {
-    version = new Version(major: 2, minor: 6, patch: 0, build: buildNumber)    
+    version = new Version(major: 2, minor: 6, patch: 1, build: buildNumber)    
     task printVersion {
         doFirst {
             println "Project version is $version"
@@ -37,7 +37,7 @@ task ui(type: Copy) {
     dependsOn ':client:buildUI'
     doFirst {
         delete fileTree(uiFilesDestination) {
-            exclude 'swagger-ui/**'
+            exclude ('swagger-ui/**', 'blast**', 'tblast**')
         }
     }
     from "$rootDir/client/dist"
@@ -248,8 +248,3 @@ task buildAll(type: GradleBuild) {
                                             noTest: '']
     }
 }
-
-
-
-
-

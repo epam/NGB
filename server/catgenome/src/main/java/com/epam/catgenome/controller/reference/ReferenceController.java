@@ -276,6 +276,19 @@ public class ReferenceController extends AbstractRESTController {
     }
 
     @ResponseBody
+    @RequestMapping(value = "/secure/reference/register/species", method = RequestMethod.PUT)
+    @ApiOperation(
+            value = "Updates an existing species object",
+            notes = "Updates an existing species object",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Species> updatedSpecies(@RequestBody SpeciesVO request) {
+        return Result.success(referenceSecurityService.updateSpecies(request.getSpecies()));
+    }
+
+    @ResponseBody
     @RequestMapping(value = "/secure/reference/register/species", method = RequestMethod.DELETE)
     @ApiOperation(
             value = "Unregister a species in the system.",

@@ -287,6 +287,9 @@ export class BAMTrack extends ScrollableTrack {
         super(opts);
         const cacheServiceInitialized = !!opts.cacheService;
         this.state.readsViewMode = parseInt(this.state.readsViewMode);
+        this.state.spliceJunctionsFiltering = opts.spliceJunctionsFiltering
+            ? opts.spliceJunctionsCoverageThreshold
+            : 0;
         this.cacheService = opts.cacheService || new BamCacheService(this, Object.assign({}, this.trackConfig, this.config));
         this._bamRenderer = new BamRenderer(this.viewport, Object.assign({}, this.trackConfig, this.config), this._pixiRenderer, this.cacheService, opts);
 
@@ -346,6 +349,16 @@ export class BAMTrack extends ScrollableTrack {
             };
         }
         this.cacheService.cache.groupMode = this.state.groupMode;
+
+        this._actions = [
+            {
+                enabled: () => (this.state.spliceJunctions || this.state.sashimi) &&
+                    this.state.spliceJunctionsFiltering > 0,
+                label: 'Splice junctions minimum coverage: ',
+                type: 'text',
+                value: () => this.state.spliceJunctionsFiltering,
+            }
+        ];
     }
 
     trackSettingsChanged(params) {
@@ -433,7 +446,15 @@ export class BAMTrack extends ScrollableTrack {
 
         this.shouldDisplayCenterLine = state.showCenterLine;
 
-        this.state = Object.assign(this.state, {softClip: bamRenderSettings.isSoftClipping});
+        this.state = Object.assign(
+            this.state,
+            {
+                softClip: bamRenderSettings.isSoftClipping,
+                spliceJunctionsFiltering: state.spliceJunctionsFiltering
+                    ? state.spliceJunctionsCoverageThreshold
+                    : 0
+            }
+        );
         this.bamRequestSettings = bamSettings;
         this.bamRenderSettings = bamRenderSettings;
 

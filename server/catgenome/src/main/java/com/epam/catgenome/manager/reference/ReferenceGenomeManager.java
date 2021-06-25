@@ -45,6 +45,7 @@ import com.epam.catgenome.manager.SecuredEntityManager;
 import com.epam.catgenome.security.acl.aspect.AclSync;
 import com.epam.catgenome.util.ListMapCollector;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -271,6 +272,18 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         return result;
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
+    public List<Reference> loadAllReferenceGenomesByTaxId(final Long taxId) {
+        return ListUtils.emptyIfNull(referenceGenomeDao.loadReferenceGenomesByTaxId(taxId))
+                .stream().peek(ref -> {
+                    if (ref.getGeneFile() != null && ref.getGeneFile().getId() != null) {
+                        GeneFile geneFile = geneFileDao.loadGeneFile(ref.getGeneFile().getId());
+                        ref.setGeneFile(geneFile);
+                        ref.setAnnotationFiles(getAnnotationFilesByReferenceId(ref.getId()));
+                    }
+                }).collect(Collectors.toList());
+    }
+
     /**
      * Returns {@code Chromosome} entity that includes major meta information about a single chromosome
      * associated with the given ID.
@@ -410,6 +423,13 @@ public class ReferenceGenomeManager implements SecuredEntityManager {
         Assert.isNull(registeredSpecies,
                 getMessage(MessagesConstants.ERROR_SPECIES_EXISTS, species.getVersion()));
         return speciesDao.saveSpecies(species);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Species updateSpecies(final Species species) {
+        Assert.notNull(speciesDao.loadSpeciesByVersion(species.getVersion()),
+                getMessage(MessagesConstants.ERROR_NO_SUCH_SPECIES, species.getVersion()));
+        return speciesDao.updateSpecies(species);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)

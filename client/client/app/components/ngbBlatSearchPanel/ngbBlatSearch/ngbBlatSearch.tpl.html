@@ -1,25 +1,37 @@
 <div layout="row" class="golden-layout-content-0" layout-fill>
-
-    <div ng-if="!$ctrl.isProgressShown && !$ctrl.errorMessageList.length" class="ui-grid-container">
-        <div ng-if="$ctrl.readSequence" layout="column" class="blat-search-header">
+    <div
+        ng-if="!$ctrl.isProgressShown && !$ctrl.errorMessageList.length"
+        class="ui-grid-container"
+    >
+        <div
+            ng-if="$ctrl.readSequence"
+            layout="column"
+            class="blat-search-header"
+        >
             <h5>BLAT result for query sequence:</h5>
             <p class="u-break-word">{{$ctrl.readSequence}}</p>
         </div>
-        <div ng-if="$ctrl.blatSearchEmptyResult" class="blat-search-load-error-container">
-            <small>{{$ctrl.blatSearchEmptyResult}}</small>
-        </div>
-        <div ng-if="!$ctrl.blatSearchEmptyResult"
-             ui-grid="$ctrl.gridOptions"
-             ui-grid-save-state
-             ui-grid-selection
-             ui-grid-resize-columns
-             ui-grid-auto-resize
-             ui-grid-move-columns
-             ui-grid-pinning>
-        </div>
+    <div 
+        ng-if="$ctrl.blatSearchEmptyResult"
+        class="blat-search-load-error-container"
+    >
+        <small>{{$ctrl.blatSearchEmptyResult}}</small>
     </div>
-
-    <div ng-if="$ctrl.errorMessageList.length" class="md-padding">
+    <div
+        ng-if="!$ctrl.blatSearchEmptyResult"
+        ui-grid="$ctrl.gridOptions"
+        ui-grid-save-state ui-grid-selection
+        ui-grid-resize-columns
+        ui-grid-auto-resize
+        ui-grid-move-columns
+        ui-grid-pinning>
+    </div>
+    </div>
+    <div
+        ng-if="$ctrl.errorMessageList.length"
+        class="md-padding"
+    >
         <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+    </div>
     </div>
 </div>

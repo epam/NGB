@@ -29,11 +29,12 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 
 /**
  * Source:      NCBITaxonomyVO
@@ -48,6 +49,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@Setter
 public class NCBIVariationVO {
 
     public static final String PATHOGENIC = "Pathogenic";
@@ -61,37 +64,13 @@ public class NCBIVariationVO {
     @JsonProperty(value = "taxonomy")
     private NCBITaxonomyVO ncbiTaxonomy;
 
-    public NCBIShortVarVO getNcbiShortVar() {
-        return ncbiShortVar;
-    }
-
-    public void setNcbiShortVar(NCBIShortVarVO ncbiShortVar) {
-        this.ncbiShortVar = ncbiShortVar;
-    }
-
-    public NCBIClinVarVO getNcbiClinVar() {
-        return ncbiClinVar;
-    }
-
-    public void setNcbiClinVar(NCBIClinVarVO ncbiClinVar) {
-        this.ncbiClinVar = ncbiClinVar;
-    }
-
-    public NCBITaxonomyVO getNcbiTaxonomy() {
-        return ncbiTaxonomy;
-    }
-
-    public void setNcbiTaxonomy(NCBITaxonomyVO ncbiTaxonomy) {
-        this.ncbiTaxonomy = ncbiTaxonomy;
-    }
-
     public boolean isPathogenic() {
         return StringUtils.equals(ncbiShortVar.getClinicalSignificance(), PATHOGENIC);
     }
 
     @JsonProperty(value = "organism_summary")
     public String getOrganism() {
-        return ncbiTaxonomy.getCommonname() + " (" + ncbiTaxonomy.getScientificname() + ")";
+        return ncbiTaxonomy.getCommonName() + " (" + ncbiTaxonomy.getScientificName() + ")";
     }
 
     @JsonProperty(value = "gene_summary")
@@ -197,4 +176,3 @@ public class NCBIVariationVO {
         }
     }
 }
-

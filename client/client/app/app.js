@@ -13,12 +13,14 @@ import angularAnimate from 'angular-animate';
 import angularAria from 'angular-aria';
 import angularMaterial from './compat/angularMaterial';
 import angularMaterialIcons from 'angular-material-icons';
+import angularMessages from 'angular-messages';
 import angularNvd3 from 'angular-nvd3';
 import angularUiRouter from 'angular-ui-router';
 
 // Import internal modules
 import projectContext from './shared/projectContext';
 import SelectionContext from './shared/selectionContext';
+import BLASTContext from './shared/blastContext';
 import config from './app.config';
 import controller from './app.controller';
 import {dispatcher} from './shared/dispatcher';
@@ -46,6 +48,7 @@ export default angular.module('NGB', [
     angularMaterialIcons,
     angularNvd3,
     angularUiRouter,
+    angularMessages,
 
     appConstants,
     appServices,
@@ -60,6 +63,7 @@ export default angular.module('NGB', [
     .service('dispatcher', dispatcher.instance)
     .service('projectContext', projectContext.instance)
     .service('selectionContext', SelectionContext.instance)
+    .service('blastContext', BLASTContext.instance)
     .service('eventHotkey', eventHotkey.instance)
     .service('lastActionRepeater', lastActionRepeater.instance)
     .constant('appLayout', layoutConstant)

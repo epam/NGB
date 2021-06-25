@@ -2,7 +2,7 @@
  *
  *  * MIT License
  *  *
- *  * Copyright (c) 2018 EPAM Systems
+ *  * Copyright (c) 2021 EPAM Systems
  *  *
  *  * Permission is hereby granted, free of charge, to any person obtaining a copy
  *  * of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ public final class S3SeekableStreamFactory implements ISeekableStreamFactory {
 
     @Override
     public SeekableStream getStreamFor(String path) {
-        return new SeekableS3Stream(path);
+        return new S3SeekableStream(path);
     }
 
     @Override

@@ -36,8 +36,11 @@
             <collapsible-panel-content>
                 <div flex="100" layout="row" layout-wrap class="property-row">
                     <div flex="100" class="property property-value">
-                        <div layout="row" ng-hide="$ctrl.isSequenceLoading" layout-align="stretch middle">
+                        <div layout="row" ng-hide="$ctrl.isSequenceLoading || $ctrl.error" layout-align="stretch middle">
                             <textarea wrap="hard" flex class="sequence-area">{{$ctrl.sequence}}</textarea>
+                        </div>
+                        <div layout="row" ng-show="$ctrl.error">
+                            <span class="sequence-loading-error">{{$ctrl.error}}</span>
                         </div>
                         <md-progress-linear ng-show="$ctrl.isSequenceLoading" md-mode="determinate"
                                             value="{{$ctrl.sequenceProgress}}"
