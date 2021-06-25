@@ -37,7 +37,7 @@ public class BlastTask {
     private Long id;
     private String title;
     private LocalDateTime createdDate;
-    private TaskStatus status;
+    private BlastTaskStatus status;
     private LocalDateTime endDate;
     private String statusReason;
     private String query;

@@ -33,7 +33,7 @@ import com.epam.catgenome.dao.DaoHelper;
 import com.epam.catgenome.entity.blast.BlastTaskOrganism;
 import com.epam.catgenome.entity.blast.BlastTask;
 import com.epam.catgenome.entity.blast.TaskParameter;
-import com.epam.catgenome.entity.blast.TaskStatus;
+import com.epam.catgenome.entity.blast.BlastTaskStatus;
 import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
 import lombok.extern.slf4j.Slf4j;
@@ -293,9 +293,9 @@ public class BlastTaskDao extends NamedParameterJdbcDaoSupport {
                 blastTask.setOptions(rs.getString(OPTIONS.name()));
                 blastTask.setOwner(rs.getString(OWNER.name()));
 
-                long longVal = rs.getLong(STATUS.name());
+                int intVal = rs.getInt(STATUS.name());
                 if (!rs.wasNull()) {
-                    blastTask.setStatus(TaskStatus.getById(longVal));
+                    blastTask.setStatus(BlastTaskStatus.getById(intVal));
                 }
 
                 return blastTask;
