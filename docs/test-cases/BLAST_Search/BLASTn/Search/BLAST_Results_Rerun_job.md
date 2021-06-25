@@ -3,7 +3,6 @@ Test verifies
  - that user has the ability to "rerun" any BLAST search task from History tab.
 
 **Prerequisites**:
- - dataset = **dm6_data**
  - Sequence for search:
  `MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRD`
  - Go to NGB

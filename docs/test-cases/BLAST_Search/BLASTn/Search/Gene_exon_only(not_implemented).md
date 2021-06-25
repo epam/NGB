@@ -1,4 +1,4 @@
-# BLASTn search from Gene (exon only)
+# BLASTn search from Gene (exon only) - not implemented
 
 Test verifies
  - BLASTn search from GENE (exon only) track 

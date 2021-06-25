@@ -1,4 +1,4 @@
-# BLASTn search from file 
+# BLASTn search from file - not implemented
 
 Test verifies
  - BLASTn search from file
