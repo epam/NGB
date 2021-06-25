@@ -110,6 +110,7 @@ public final class MessagesConstants {
     public static final String ERROR_REFERENCE_REGISTRATION_PARAMS = "error.reference.registration.params.ambiguous";
     public static final String ERROR_DURING_SORTING = "error.file.sorting";
     public static final String INFO_SORT_SUCCESS = "info.file.sorting";
+    public static final String ERROR_REFERENCE_NOT_FOUND_BY_TAX_ID = "error.reference.not.found.by.tax.id";
     public static final String ERROR_ILLEGAL_FEATURE_FILE_FORMAT = "error.file.feature.illegal.file.format";
     public static final String ERROR_ANNOTATION_FILE_ALREADY_EXIST = "error.annotation.file.feature.already.exist";
     public static final String ERROR_ANNOTATION_FILE_NOT_EXIST = "error.annotation.file.feature.not.exist";
@@ -130,6 +131,7 @@ public final class MessagesConstants {
     public static final String DEBUG_FEATURE_INDEX_QUERY_TIME = "debug.feature.index.query.time";
     public static final String ERROR_FEATURE_INDEX_SEARCH_FAILED = "error.feature.index.search.failed";
     public static final String ERROR_FEATURE_INDEX_INVALID_NUMBER_FORMAT = "error.feature.index.invalid.number.format";
+    public static final String ERROR_FEATURE_INDEX_ENTRY_NOT_FOUND = "error.feature.index.entry.not.found";
 
     public static final String INFO_UNREGISTER = "info.unregister.done";
     //Genes
@@ -224,6 +226,8 @@ public final class MessagesConstants {
     public static final String ERROR_NO_DATA_FOR_URL = "error.no.data.for.url";
     public static final String ERROR_UNEXPECTED_FORMAT = "error.error.unexpected.format";
     public static final String ERROR_NO_RESULT_BY_EXTERNAL_DB = "error.no.result.by.external.db";
+    public static final String ERROR_NCBI_CANT_LOAD_FEATURE_INFO = "error.ncbi.cant.load.feature.info";
+
 
     //BED
     public static final String ERROR_BED_PARSING = "error.bed.parsing.exception";

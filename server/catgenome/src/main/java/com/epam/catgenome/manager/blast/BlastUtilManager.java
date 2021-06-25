@@ -24,15 +24,18 @@
 
 package com.epam.catgenome.manager.blast;
 
+import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.entity.blast.BlastDatabaseType;
 import com.epam.catgenome.entity.blast.result.BlastFeatureLocatable;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
+import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.exception.ExternalDbUnavailableException;
 import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.externaldb.ncbi.NCBIDataManager;
+import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -41,6 +44,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.epam.catgenome.component.MessageHelper.*;
 
 @Service
 @RequiredArgsConstructor
@@ -58,31 +63,43 @@ public class BlastUtilManager {
 
     private final NCBIDataManager ncbiDataManager;
     private final FeatureIndexManager featureIndexManager;
+    private final ReferenceGenomeManager genomeManager;
 
     @SneakyThrows
     public BlastFeatureLocatable fetchCoordinates(final String sequenceId, final BlastDatabaseType type,
-                                                  final Long referenceId) {
-        final String featureName = fetchFeatureNameFromNcbi(sequenceId, type);
-        Assert.notNull(featureName, "Can't load feature name from NCBI for sequence: " + sequenceId);
-        final Optional<FeatureIndexEntry> featureSearchResult =
-                featureIndexManager.searchFeaturesByReference(featureName, referenceId)
-                        .getEntries().stream()
-                        .filter(f -> f.getFeatureName().equalsIgnoreCase(featureName))
-                        .findFirst();
-        return featureSearchResult.map(feature -> BlastFeatureLocatable.builder()
-                .referenceId(referenceId)
-                .blastSeqId(sequenceId)
-                .type(type)
-                .featureName(feature.getFeatureName())
-                .chromosomeId(feature.getChromosome().getId())
-                .start(feature.getStartIndex())
-                .end(feature.getEndIndex())
-                .build())
-                .orElseThrow(
-                        () -> new IllegalStateException(
-                                "Can't find information about a feature by name: " + featureName
-                        )
-                );
+                                                  final Long taxId) {
+        try {
+            final String featureName = fetchFeatureNameFromNcbi(sequenceId, type);
+            Assert.notNull(featureName,
+                    getMessage(MessagesConstants.ERROR_NCBI_CANT_LOAD_FEATURE_INFO, sequenceId, getNcbiDbType(type)));
+            final Reference reference = ListUtils.emptyIfNull(genomeManager.loadAllReferenceGenomesByTaxId(taxId))
+                    .stream().findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            getMessage(MessagesConstants.ERROR_REFERENCE_NOT_FOUND_BY_TAX_ID, taxId)));
+            final Optional<FeatureIndexEntry> featureSearchResult =
+                    featureIndexManager.searchFeaturesByReference(featureName, reference.getId())
+                            .getEntries().stream()
+                            .filter(f -> f.getFeatureName().equalsIgnoreCase(featureName))
+                            .findFirst();
+            return featureSearchResult.map(feature -> BlastFeatureLocatable.builder()
+                    .referenceId(reference.getId())
+                    .blastSeqId(sequenceId)
+                    .type(type)
+                    .featureName(feature.getFeatureName())
+                    .chromosomeId(feature.getChromosome().getId())
+                    .start(feature.getStartIndex())
+                    .end(feature.getEndIndex())
+                    .build())
+                    .orElseThrow(
+                            () -> new IllegalStateException(
+                                    getMessage(MessagesConstants.ERROR_FEATURE_INDEX_ENTRY_NOT_FOUND, featureName)
+                            )
+                    );
+        } catch (ExternalDbUnavailableException e) {
+            throw new IllegalArgumentException(
+                    getMessage(MessagesConstants.ERROR_NCBI_CANT_LOAD_FEATURE_INFO, sequenceId, getNcbiDbType(type)), e
+            );
+        }
     }
 
     private String fetchFeatureNameFromNcbi(final String sequenceId, 

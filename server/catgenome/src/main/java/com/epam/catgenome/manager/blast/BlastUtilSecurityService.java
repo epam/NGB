@@ -41,7 +41,7 @@ public class BlastUtilSecurityService {
 
     @PreAuthorize(ROLE_USER)
     public BlastFeatureLocatable fetchCoordinates(final String sequenceId, final BlastDatabaseType type,
-                                                  final Long referenceId) {
-        return blastUtilManager.fetchCoordinates(sequenceId, type, referenceId);
+                                                  final Long taxId) {
+        return blastUtilManager.fetchCoordinates(sequenceId, type, taxId);
     }
 }

@@ -56,8 +56,8 @@ public class BlastUtilController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<BlastFeatureLocatable> fetchCoordinates(@RequestParam final String sequenceId,
-                                                          @RequestParam final Long referenceId,
-                                                          @RequestParam final BlastDatabaseType type) {
-        return Result.success(blastUtilSecurityService.fetchCoordinates(sequenceId, type, referenceId));
+                                                          @RequestParam final BlastDatabaseType type,
+                                                          @RequestParam final Long taxId) {
+        return Result.success(blastUtilSecurityService.fetchCoordinates(sequenceId, type, taxId));
     }
 }
