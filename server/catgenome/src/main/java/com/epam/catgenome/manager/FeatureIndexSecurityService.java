@@ -103,5 +103,4 @@ public class FeatureIndexSecurityService {
     public VcfFilterInfo loadVcfFilterInfoForProject(Long projectId) throws IOException {
         return featureIndexManager.loadVcfFilterInfoForProject(projectId);
     }
-
 }

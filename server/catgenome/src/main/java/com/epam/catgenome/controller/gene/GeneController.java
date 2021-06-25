@@ -281,11 +281,11 @@ public class GeneController extends AbstractRESTController {
             trackQuery), referenceId));
     }
 
-    @RequestMapping(value = "/gene/protein/seq", method = RequestMethod.POST)
+    @RequestMapping(value = "/gene/aminoacids", method = RequestMethod.POST)
     @ResponseBody
     @ApiOperation(
-            value = "Generate protein sequence for the given feature ID, case-insensitive",
-            notes = "Generate protein sequence for the given feature ID, case-insensitive",
+            value = "Generate amino acids sequence for the given feature ID, case-insensitive",
+            notes = "Generate amino acids sequence for the given feature ID, case-insensitive",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)

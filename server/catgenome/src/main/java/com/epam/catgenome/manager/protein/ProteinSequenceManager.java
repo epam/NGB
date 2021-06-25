@@ -38,7 +38,6 @@ import java.util.stream.Collectors;
 
 import com.epam.catgenome.entity.index.FeatureType;
 import com.epam.catgenome.entity.protein.ProteinSequenceConstructRequest;
-import com.epam.catgenome.manager.FeatureIndexManager;
 import com.epam.catgenome.manager.gene.GeneUtils;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.CollectionUtils;
@@ -93,9 +92,6 @@ public class ProteinSequenceManager {
 
     @Autowired
     private ProteinSequenceReconstructionManager psReconstructionManager;
-
-    @Autowired
-    private FeatureIndexManager featureIndexManager;
 
     /**
      * Load protein sequence for specified track (start and end indexes, gene item id, reference genome).
@@ -226,7 +222,7 @@ public class ProteinSequenceManager {
         final Track<Gene> genes = gffManager.loadGenes(geneTrack, false);
 
         final Optional<Gene> geneToTranslate = Optional.ofNullable(
-                lookForGene(genes.getBlocks(), request.getFeatureId(), request.getFeatureType().name())
+                lookForGene(genes.getBlocks(), request.getFeatureId(), request.getFeatureType())
         );
         final Optional<ProteinSequenceEntry> selfTranslation = geneToTranslate
                 .flatMap(gene -> Optional.ofNullable(gene.getAttributes()))
@@ -290,12 +286,16 @@ public class ProteinSequenceManager {
         return transcript;
     }
 
-    private Gene lookForGene(final List<Gene> genes, final String geneName, final String featureType) {
+    private Gene lookForGene(final List<Gene> genes, final String geneName, final FeatureType featureType) {
         for (Gene gene : ListUtils.emptyIfNull(genes)) {
-            if (featureType.equalsIgnoreCase(gene.getFeature()) && geneName.equals(gene.getFeatureName())) {
+            if (featureType.name().equalsIgnoreCase(gene.getFeature()) && geneName.equals(gene.getFeatureName())) {
                 return gene;
+            } else if (CollectionUtils.isNotEmpty(gene.getItems())) {
+                final Gene childGene = lookForGene(gene.getItems(), geneName, featureType);
+                if (childGene != null) {
+                    return childGene;
+                }
             }
-            return lookForGene(gene.getItems(), geneName, featureType);
         }
         return null;
     }
