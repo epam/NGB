@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -357,6 +357,13 @@ public class FileManager {
         }
     }
 
+    public String getReferenceDir(final Reference reference) {
+        final Map<String, Object> params = new HashMap<>();
+        final Long dirId = reference.getId();
+        params.put(DIR_ID.name(), dirId);
+        return toRealPath(substitute(REFERENCE_DIR, params));
+    }
+
     /**
      * Delete full catalogue structure used to manage all information associated
      * with the provided reference.
@@ -369,10 +376,7 @@ public class FileManager {
         Assert.notNull(reference.getId(), getMessage(MessageCode.UNKNOWN_REFERENCE_ID));
 
         if (reference.getType() != BiologicalDataItemResourceType.GA4GH) {
-            final Map<String, Object> params = new HashMap<>();
-            final Long dirId = reference.getId();
-            params.put(DIR_ID.name(), dirId);
-            deleteDir(substitute(REFERENCE_DIR, params));
+            deleteDir(getReferenceDir(reference));
         }
     }
 

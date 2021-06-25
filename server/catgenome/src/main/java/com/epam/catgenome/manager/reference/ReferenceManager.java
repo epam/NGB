@@ -57,6 +57,7 @@ import com.epam.catgenome.util.BlockCompressedDataInputStream;
 import com.epam.catgenome.util.BlockCompressedDataOutputStream;
 import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.Utils;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -557,25 +558,10 @@ public class ReferenceManager {
     private long registerReference(Long referenceId, Reference reference, boolean createGC)
             throws IOException {
         String path = reference.getPath();
+        reference.setSource(path);
         if (GenbankUtils.isGenbank(path)) {
-            File dnaFile = new File(path);
-            LinkedHashMap<String, DNASequence> dnaSequences = new LinkedHashMap<>();
-            try {
-                dnaSequences = GenbankReaderHelper.readGenbankDNASequence(dnaFile);
-            } catch (Exception e) {
-                log.info(e.getMessage());
-            }
-            if (!dnaSequences.isEmpty()) {
-                File tempDir = fileManager.getTempDir();
-                File dnaFileFasta = new File(tempDir, reference.getName() + "_" + referenceId + ".fa");
-                try {
-                    FastaWriterHelper.writeNucleotideSequence(dnaFileFasta, dnaSequences.values());
-                    path = dnaFileFasta.getPath();
-                    reference.setPath(path);
-                } catch (Exception e) {
-                    log.info(e.getMessage());
-                }
-            }
+            String fastaFilePath = genbankToFasta(reference);
+            reference.setPath(fastaFilePath);
         }
         setIndex(reference);
         long lengthOfGenome = 0;
@@ -603,6 +589,20 @@ public class ReferenceManager {
         return lengthOfGenome;
     }
 
+    @SneakyThrows
+    private String genbankToFasta(Reference reference) {
+        String genbankFilePath = reference.getPath();
+        Assert.notNull(genbankFilePath, getMessage(MessageCode.RESOURCE_NOT_FOUND));
+        File genbankFile = new File(genbankFilePath);
+        LinkedHashMap<String, DNASequence> dnaSequences = GenbankReaderHelper.readGenbankDNASequence(genbankFile);
+        Assert.isTrue(!dnaSequences.isEmpty(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
+        String referenceDir = fileManager.getReferenceDir(reference);
+        Assert.notNull(referenceDir, getMessage(MessageCode.RESOURCE_NOT_FOUND));
+        File dnaFileFasta = new File(referenceDir, reference.getName() + ".fa");
+        FastaWriterHelper.writeNucleotideSequence(dnaFileFasta, dnaSequences.values());
+        return dnaFileFasta.getPath();
+    }
+
     private void setIndex(Reference reference) {
         String path = reference.getPath();
         String indexPath;
@@ -614,6 +614,7 @@ public class ReferenceManager {
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(indexPath);
+        indexItem.setSource(indexPath);
         indexItem.setFormat(BiologicalDataItemFormat.REFERENCE_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
@@ -640,6 +641,7 @@ public class ReferenceManager {
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(request.getPath());
+        indexItem.setSource(request.getPath());
         indexItem.setFormat(BiologicalDataItemFormat.REFERENCE_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.GA4GH);
         indexItem.setName("");

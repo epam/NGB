@@ -228,6 +228,7 @@ public class MafManager {
             mergeMaf(file, mafFile);
         } else {
             mafFile.setPath(request.getPath());
+            mafFile.setSource(request.getPath());
             createMafBioItem(mafFile);
             fileManager.makeMafIndex(mafFile);
         }

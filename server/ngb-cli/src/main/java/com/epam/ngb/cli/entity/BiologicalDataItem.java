@@ -58,6 +58,8 @@ public class BiologicalDataItem extends BaseEntity implements Printable<Biologic
      */
     private String path;
 
+    private String source;
+
     /**
      * Format of the item, supported by the server and CLI
      */
@@ -92,6 +94,14 @@ public class BiologicalDataItem extends BaseEntity implements Printable<Biologic
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 
     public BiologicalDataItemFormat getFormat() {
@@ -143,6 +153,7 @@ public class BiologicalDataItem extends BaseEntity implements Printable<Biologic
             calculateFieldWidth(formatMap, FieldFormat.NAME, item.getName());
             calculateFieldWidth(formatMap, FieldFormat.TYPE, item.getType());
             calculateFieldWidth(formatMap, FieldFormat.PATH, item.getPath());
+            calculateFieldWidth(formatMap, FieldFormat.SOURCE, item.getSource());
             calculateFieldWidth(formatMap, FieldFormat.FORMAT, item.getFormat().name());
             calculateFieldWidth(formatMap, FieldFormat.CREATED_DATE, DATE_FORMAT.format(item.getCreatedDate()));
             calculateFieldWidth(formatMap, FieldFormat.SPECIES_VERSION,
@@ -159,7 +170,7 @@ public class BiologicalDataItem extends BaseEntity implements Printable<Biologic
     public String formatItem(String formatString) {
         String idStr = String.valueOf(bioDataItemId == null ? getId() : bioDataItemId);
         return String.format(formatString, idStr, String.valueOf(getId()), getName(), type,
-                path, format.name(),
+                path, source, format.name(),
                 DATE_FORMAT.format(createdDate),
                 species == null ? "" : species.getVersion());
     }
@@ -193,6 +204,7 @@ public class BiologicalDataItem extends BaseEntity implements Printable<Biologic
         NAME,
         TYPE,
         PATH,
+        SOURCE,
         FORMAT,
         CREATED_DATE,
         SPECIES_VERSION
