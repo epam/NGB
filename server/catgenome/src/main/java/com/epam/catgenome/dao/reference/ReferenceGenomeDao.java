@@ -472,6 +472,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
         NAME,
         SIZE,
         PATH,
+        SOURCE,
         FORMAT,
         TYPE,
 
@@ -507,6 +508,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
                 reference.setSize(rs.getLong(REFERENCE_GENOME_SIZE.name()));
                 reference.setName(rs.getString(NAME.name()));
                 reference.setPath(rs.getString(PATH.name()));
+                reference.setSource(rs.getString(SOURCE.name()));
                 reference.setId(rs.getLong(REFERENCE_GENOME_ID.name()));
                 reference.setCreatedDate(new Date(rs.getTimestamp(CREATED_DATE.name()).getTime()));
 
@@ -536,6 +538,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
             reference.setSize(rs.getLong(REFERENCE_GENOME_SIZE.name()));
             reference.setName(rs.getString(NAME.name()));
             reference.setPath(rs.getString(PATH.name()));
+            reference.setSource(rs.getString(SOURCE.name()));
             reference.setId(rs.getLong(REFERENCE_GENOME_ID.name()));
             reference.setCreatedDate(rs.getDate(CREATED_DATE.name()));
             reference.setBioDataItemId(rs.getLong(BIO_DATA_ITEM_ID.name()));
@@ -557,6 +560,7 @@ public class ReferenceGenomeDao extends NamedParameterJdbcDaoSupport {
                 index.setName(rs.getString(INDEX_NAME.name()));
                 index.setType(BiologicalDataItemResourceType.getById(rs.getLong(INDEX_TYPE.name())));
                 index.setPath(rs.getString(INDEX_PATH.name()));
+                index.setSource(rs.getString(INDEX_PATH.name()));
                 index.setFormat(BiologicalDataItemFormat.getById(rs.getLong(INDEX_FORMAT.name())));
                 index.setCreatedDate(new Date(rs.getTimestamp(INDEX_CREATED_DATE.name()).getTime()));
                 index.setOwner(rs.getString(INDEX_OWNER.name()));

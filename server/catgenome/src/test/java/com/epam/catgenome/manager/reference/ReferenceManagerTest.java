@@ -224,7 +224,7 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
             assertNotNull(unregisterRef);
             assertFalse(Files.exists(metaDataRefDir));
             Reference refDeleted = referenceGenomeDao.loadReferenceGenome(reference.getId());
-            assertTrue("removed fail", refDeleted == null);
+            assertNull("removed fail", refDeleted);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
