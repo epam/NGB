@@ -40,6 +40,7 @@ import java.util.List;
 
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.entity.reference.Species;
+import com.epam.catgenome.manager.reference.io.FastaUtils;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -91,6 +92,7 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
     private static final String NEW_NAME = "hiMom";
     private static final String A3_FA_PATH = "classpath:templates/A3.fa";
     private static final String GENBANK_PATH = "classpath:templates/KU131557.gbk";
+    private static final String GENBANK_FILE_EXTENSION = ".gbk";
     public static final String PRETTY_NAME = "pretty";
 
     @Value("${ga4gh.google.referenceSetId}") private String referenseSetID;
@@ -438,7 +440,9 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
         request.setPath(resource.getFile().getPath());
         request.setType(BiologicalDataItemResourceType.FILE);
 
-        Reference testRef = referenceManager.registerGenome(request);
-        assertNotNull(testRef);
+        Reference reference = referenceManager.registerGenome(request);
+        assertNotNull(reference);
+        assertTrue(reference.getPath().endsWith(FastaUtils.DEFAULT_FASTA_EXTENSION));
+        assertTrue(reference.getSource().endsWith(GENBANK_FILE_EXTENSION));
     }
 }

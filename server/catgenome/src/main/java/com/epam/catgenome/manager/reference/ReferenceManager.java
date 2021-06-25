@@ -36,8 +36,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
@@ -169,6 +169,7 @@ public class ReferenceManager {
         final Long referenceId = referenceGenomeManager.createReferenceId();
         final Reference reference = new Reference(referenceId, name);
         reference.setPath(request.getPath());
+        reference.setSource(request.getPath());
         reference.setPrettyName(request.getPrettyName());
         if (!request.isNoGCContent()) {
             fileManager.makeReferenceDir(reference);
@@ -512,9 +513,8 @@ public class ReferenceManager {
         Assert.notNull(fileName, getMessage(MessageCode.MANDATORY_FILE_NAME));
         // checks that file is in one of supported formats
         boolean supported = false;
-        final Collection<String> fastaFormats = FastaUtils.getFastaExtensions();
-        final Collection<String> genbankFormats = GenbankUtils.getGenbankExtensions();
-        final Collection<String> formats = CollectionUtils.union(fastaFormats, genbankFormats);
+        final Collection<String> formats = CollectionUtils.union(FastaUtils.getFastaExtensions(),
+                GenbankUtils.getGenbankExtensions());
 
         for (final String ext : formats) {
             if (fileName.endsWith(ext)) {
@@ -558,10 +558,9 @@ public class ReferenceManager {
     private long registerReference(Long referenceId, Reference reference, boolean createGC)
             throws IOException {
         String path = reference.getPath();
-        reference.setSource(path);
         if (GenbankUtils.isGenbank(path)) {
-            String fastaFilePath = genbankToFasta(reference);
-            reference.setPath(fastaFilePath);
+            path = genbankToFasta(reference);
+            reference.setPath(path);
         }
         setIndex(reference);
         long lengthOfGenome = 0;
@@ -594,11 +593,11 @@ public class ReferenceManager {
         String genbankFilePath = reference.getPath();
         Assert.notNull(genbankFilePath, getMessage(MessageCode.RESOURCE_NOT_FOUND));
         File genbankFile = new File(genbankFilePath);
-        LinkedHashMap<String, DNASequence> dnaSequences = GenbankReaderHelper.readGenbankDNASequence(genbankFile);
+        Map<String, DNASequence> dnaSequences = GenbankReaderHelper.readGenbankDNASequence(genbankFile);
         Assert.isTrue(!dnaSequences.isEmpty(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
         String referenceDir = fileManager.getReferenceDir(reference);
         Assert.notNull(referenceDir, getMessage(MessageCode.RESOURCE_NOT_FOUND));
-        File dnaFileFasta = new File(referenceDir, reference.getName() + ".fa");
+        File dnaFileFasta = new File(referenceDir, reference.getName() + FastaUtils.DEFAULT_FASTA_EXTENSION);
         FastaWriterHelper.writeNucleotideSequence(dnaFileFasta, dnaSequences.values());
         return dnaFileFasta.getPath();
     }

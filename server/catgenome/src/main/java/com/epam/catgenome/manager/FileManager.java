@@ -740,6 +740,7 @@ public class FileManager {
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setSource(indexFile.getAbsolutePath());
         indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
@@ -1582,6 +1583,7 @@ public class FileManager {
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setSource(indexFile.getAbsolutePath());
         indexItem.setFormat(BiologicalDataItemFormat.BED_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
@@ -1624,6 +1626,7 @@ public class FileManager {
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setSource(indexFile.getAbsolutePath());
         indexItem.setFormat(BiologicalDataItemFormat.SEG_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
@@ -1660,6 +1663,7 @@ public class FileManager {
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setSource(indexFile.getAbsolutePath());
         indexItem.setFormat(BiologicalDataItemFormat.BED_GRAPH_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
@@ -1786,6 +1790,7 @@ public class FileManager {
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setSource(indexFile.getAbsolutePath());
         indexItem.setFormat(BiologicalDataItemFormat.MAF_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");

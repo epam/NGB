@@ -114,6 +114,7 @@ public class BookmarkDaoTest extends AbstractDaoTest {
         vcfFile.setName(TEST_PATH);
         vcfFile.setType(BiologicalDataItemResourceType.FILE);
         vcfFile.setPath(TEST_FILE_NAME);
+        vcfFile.setSource(TEST_FILE_NAME);
         vcfFile.setCreatedDate(new Date());
         vcfFile.setReferenceId(reference.getId());
         vcfFile.setOwner(EntityHelper.TEST_OWNER);
@@ -183,6 +184,7 @@ public class BookmarkDaoTest extends AbstractDaoTest {
         vcfFile.setName(TEST_FILE_NAME + BiologicalDataItemFormat.VCF.name());
         vcfFile.setType(BiologicalDataItemResourceType.FILE);
         vcfFile.setPath(TEST_PATH);
+        vcfFile.setSource(TEST_PATH);
         vcfFile.setCreatedDate(new Date());
         vcfFile.setReferenceId(reference.getId());
         vcfFile.setOwner(EntityHelper.TEST_OWNER);
@@ -204,6 +206,7 @@ public class BookmarkDaoTest extends AbstractDaoTest {
         bedFile.setName(TEST_FILE_NAME + BiologicalDataItemFormat.BED.name());
         bedFile.setType(BiologicalDataItemResourceType.FILE);
         bedFile.setPath(TEST_PATH);
+        bedFile.setSource(TEST_PATH);
         bedFile.setCreatedDate(new Date());
         bedFile.setReferenceId(reference.getId());
         bedFile.setOwner(EntityHelper.TEST_OWNER);
@@ -225,6 +228,7 @@ public class BookmarkDaoTest extends AbstractDaoTest {
         segFile.setName(TEST_FILE_NAME + BiologicalDataItemFormat.SEG.name());
         segFile.setType(BiologicalDataItemResourceType.FILE);
         segFile.setPath(TEST_PATH);
+        segFile.setSource(TEST_PATH);
         segFile.setCreatedDate(new Date());
         segFile.setReferenceId(reference.getId());
         segFile.setOwner(EntityHelper.TEST_OWNER);

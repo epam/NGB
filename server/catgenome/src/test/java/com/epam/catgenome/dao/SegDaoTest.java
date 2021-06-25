@@ -83,6 +83,7 @@ public class SegDaoTest extends AbstractDaoTest {
         segFile.setName("testFile");
         segFile.setType(BiologicalDataItemResourceType.FILE);
         segFile.setPath("///");
+        segFile.setSource("///");
         segFile.setCreatedDate(new Date());
         segFile.setReferenceId(reference.getId());
         segFile.setOwner(EntityHelper.TEST_OWNER);
@@ -103,6 +104,7 @@ public class SegDaoTest extends AbstractDaoTest {
         assertEquals(segFile.getType(), loadedFile.getType());
         assertEquals(segFile.getFormat(), loadedFile.getFormat());
         assertEquals(segFile.getPath(), loadedFile.getPath());
+        assertEquals(segFile.getSource(), loadedFile.getPath());
         assertEquals(segFile.getIndex().getPath(), loadedFile.getIndex().getPath());
         assertEquals(segFile.getCreatedDate(), loadedFile.getCreatedDate());
         assertEquals(segFile.getReferenceId(), loadedFile.getReferenceId());
@@ -121,6 +123,7 @@ public class SegDaoTest extends AbstractDaoTest {
         segFile.setName("testFile");
         segFile.setType(BiologicalDataItemResourceType.FILE);
         segFile.setPath("///");
+        segFile.setSource("///");
         segFile.setCreatedDate(new Date());
         segFile.setReferenceId(reference.getId());
         segFile.setOwner(EntityHelper.TEST_OWNER);

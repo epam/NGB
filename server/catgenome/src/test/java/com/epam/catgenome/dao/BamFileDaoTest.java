@@ -91,6 +91,7 @@ public class BamFileDaoTest extends AbstractDaoTest  {
         bamFile.setType(BiologicalDataItemResourceType.FILE);
         bamFile.setFormat(BiologicalDataItemFormat.BAM);
         bamFile.setPath(BAM_PATH);
+        bamFile.setSource(BAM_PATH);
         bamFile.setCreatedDate(new Date());
         bamFile.setReferenceId(reference.getId());
         bamFile.setOwner(EntityHelper.TEST_OWNER);
@@ -110,6 +111,7 @@ public class BamFileDaoTest extends AbstractDaoTest  {
         assertEquals(bamFile.getType(), loadedFile.getType());
         assertEquals(bamFile.getFormat(), loadedFile.getFormat());
         assertEquals(bamFile.getPath(), loadedFile.getPath());
+        assertEquals(bamFile.getSource(), loadedFile.getPath());
         assertEquals(bamFile.getIndex().getPath(), loadedFile.getIndex().getPath());
         assertEquals(bamFile.getCreatedDate(), loadedFile.getCreatedDate());
         assertEquals(bamFile.getReferenceId(), loadedFile.getReferenceId());

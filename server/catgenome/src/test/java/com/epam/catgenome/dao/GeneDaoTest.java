@@ -82,6 +82,7 @@ public class GeneDaoTest extends AbstractDaoTest {
         geneFile.setType(BiologicalDataItemResourceType.FILE);
         geneFile.setFormat(BiologicalDataItemFormat.GENE);
         geneFile.setPath("///");
+        geneFile.setSource("///");
         geneFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.GENE_INDEX,
@@ -112,6 +113,7 @@ public class GeneDaoTest extends AbstractDaoTest {
         geneFile.setType(BiologicalDataItemResourceType.FILE);
         geneFile.setFormat(BiologicalDataItemFormat.GENE);
         geneFile.setPath("///");
+        geneFile.setSource("///");
         geneFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.GENE_INDEX,
