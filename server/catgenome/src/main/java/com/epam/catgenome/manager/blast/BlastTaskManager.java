@@ -40,6 +40,7 @@ import com.epam.catgenome.manager.blast.dto.BlastRequestInfo;
 import com.epam.catgenome.manager.blast.dto.BlastRequestResult;
 import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
 import com.epam.catgenome.manager.blast.dto.Entry;
+import com.epam.catgenome.manager.blast.dto.Result;
 import com.epam.catgenome.manager.blast.dto.TaskPage;
 import com.epam.catgenome.util.db.Filter;
 import com.epam.catgenome.util.db.QueryParameters;
