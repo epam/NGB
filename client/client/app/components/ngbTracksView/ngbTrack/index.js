@@ -1,9 +1,11 @@
-// Import Style
-import './ngbTrack.scss';
 
 import angular from 'angular';
 import dndLists from '../../../shared/dnd';
 // Import internal modules
+
+// Import Style
+import './ngbTrack.scss';
+import './events/ngbTrackMenu.scss';
 
 import ngbAutofocus from '../../../shared/directives/autofocus.directive';
 import controller from './ngbTrack.controller';
@@ -19,4 +21,3 @@ export default angular.module('ngbTrack' , [dndLists, dataServices, menu, ngbAut
     .component('ngbTrackMenu', ngbTrackMenu)
     .directive('ngbResizePanel', ngbResizePanelDirective)
     .name;
-    

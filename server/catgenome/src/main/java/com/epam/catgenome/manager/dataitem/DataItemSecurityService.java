@@ -28,6 +28,7 @@ package com.epam.catgenome.manager.dataitem;
 
 
 import com.epam.catgenome.entity.BiologicalDataItem;
+import com.epam.catgenome.entity.BiologicalDataItemFile;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.security.acl.aspect.AclMaskList;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,5 +75,10 @@ public class DataItemSecurityService {
     @PreAuthorize(ROLE_USER)
     public Map<String, BiologicalDataItemFormat> getFormats() {
         return dataItemManager.getFormats();
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public BiologicalDataItemFile loadItemFile(final BiologicalDataItem biologicalDataItem) throws IOException {
+        return dataItemManager.loadItemFile(biologicalDataItem);
     }
 }

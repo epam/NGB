@@ -109,6 +109,7 @@ export default class ngbDataSetsService {
         for (let i = 0; i < datasets.length; i++) {
             datasets[i].isTrack ?  this.updateTerminalNodeStateFn(datasets[i]) :  this.updateParentNodeStateFn(datasets[i]);
         }
+        this.dispatcher.emitSimpleEvent('dataset:selection:change');
     }
 
     updateTerminalNodeStateFn(item: Node) {
@@ -239,6 +240,7 @@ export default class ngbDataSetsService {
             tracks.forEach(t => t.__selected = false);
         }
         this.navigateToTracks(datasets, forceReference);
+        this.dispatcher.emitSimpleEvent('dataset:selection:change');
     }
 
     updateTracksState(datasets, forceReference) {

@@ -15,8 +15,19 @@ export default {
     strandMarker: {
         width: 10,
     },
+    scroll: {
+        alpha: 0.5,
+        fill: 0x92AEE7,
+        hoveredAlpha: 1,
+        margin: 2,
+        width: 13
+    },
     sequence: {
+        collapsedColor: 0x273F70,
+        detailsThreshold: 0.5,
+        markersThresholdWidth: 2,
         height: 15,
+        margin: 5,
         color: 0xCCD8DD,
         mismatch: {
             label: {
@@ -27,7 +38,7 @@ export default {
         },
         notAligned: {
             color: 0xFF0000,
-            width: 20,
+            width: 10,
             margin: 5,
             label: {
                 fill: 0xFF0000,

@@ -21,32 +21,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.blast;
+package com.epam.catgenome.manager.blast;
 
 import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
-import lombok.Getter;
-import lombok.Setter;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
-@Getter
-@Setter
-public class BlastTask {
-    private Long id;
-    private String title;
-    private LocalDateTime createdDate;
-    private BlastTaskStatus status;
-    private LocalDateTime endDate;
-    private String statusReason;
-    private String query;
-    private BlastDatabase database;
-    private String owner;
-    private List<BlastTaxonomy> organisms;
-    private List<BlastTaxonomy> excludedOrganisms;
-    private String executable;
-    private String algorithm;
-    private Map<String, String> parameters;
-    private String options;
+import static com.epam.catgenome.security.acl.SecurityExpressions.ROLE_USER;
+
+@Service
+public class BlastTaxonomySecurityService {
+
+    @Autowired
+    private BlastTaxonomyManager blastTaxonomyManager;
+
+    @PreAuthorize(ROLE_USER)
+    public List<BlastTaxonomy> searchOrganisms(final String term)
+            throws IOException, ParseException {
+        return blastTaxonomyManager.searchOrganisms(term);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public BlastTaxonomy searchOrganismById(final long taxId) throws IOException, ParseException {
+        return blastTaxonomyManager.searchOrganismById(taxId);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public void writeLuceneTaxonomyIndex(final String taxonomyFilePath) throws IOException, ParseException {
+        blastTaxonomyManager.writeLuceneTaxonomyIndex(taxonomyFilePath);
+    }
+
 }

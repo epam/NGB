@@ -1,9 +1,11 @@
 import baseController from '../../../shared/baseController';
+import ngbConstants from '../../../../constants';
 
 export default class ngbBlastSearchFormController extends baseController {
     static get UID() {
         return 'ngbBlastSearchFormController';
     }
+
     blastToolDescription = {
         blastn: {
             description: 'Four different algorithms are supported:',
@@ -36,14 +38,16 @@ export default class ngbBlastSearchFormController extends baseController {
                 'tblastn-fast': 'for a faster version with a larger word-size'
             },
         }
-    }
-    blastHelpPath = '/server/catgenome/src/main/resources/static/'
+    };
+
+    blastHelpPath = '';
 
     toolTooltip = {};
     isProgressShown = true;
     dbList = [];
     algorithmList = [];
-    errorMessageList = [];
+    errorMessage = null;
+    defaultParams = {};
     searchRequest = {
         title: '',
         algorithm: '',
@@ -57,10 +61,11 @@ export default class ngbBlastSearchFormController extends baseController {
     };
 
     events = {
-        'read:show:blast': ::this.onExternalChange
+        'read:show:blast': ::this.onExternalChange,
+        'defaultSettings:change': ::this.setDefaultParams
     };
 
-    constructor($scope, $timeout, dispatcher, ngbBlastSearchService, ngbBlastSearchFormConstants) {
+    constructor($scope, $timeout, dispatcher, ngbBlastSearchService, ngbBlastSearchFormConstants, projectContext) {
         super();
 
         Object.assign(this, {
@@ -68,7 +73,8 @@ export default class ngbBlastSearchFormController extends baseController {
             $timeout,
             dispatcher,
             ngbBlastSearchService,
-            ngbBlastSearchFormConstants
+            ngbBlastSearchFormConstants,
+            projectContext
         });
 
         this.initialize();
@@ -76,6 +82,10 @@ export default class ngbBlastSearchFormController extends baseController {
     }
 
     async initialize() {
+        this.blastHelpPath = ngbConstants.urlPrefix;
+        if (this.blastHelpPath[this.blastHelpPath.length - 1] !== '/') {
+            this.blastHelpPath += '/';
+        }
         this.isProgressShown = true;
         await this.setSearchRequest();
         this.getDBList();
@@ -91,6 +101,7 @@ export default class ngbBlastSearchFormController extends baseController {
         this.isProgressShown = true;
         this.searchRequest = await this.ngbBlastSearchService.getCurrentSearch();
         this.setDefaultAlgorithms();
+        this.setDefaultParams();
         this.$timeout(() => this.isProgressShown = false);
     }
 
@@ -115,12 +126,18 @@ export default class ngbBlastSearchFormController extends baseController {
         this.getDBList();
     }
 
+    setDefaultParams() {
+        this.defaultParams = this.projectContext.getTrackDefaultSettings('blast_settings') || {};
+        this.searchRequest.maxTargetSeqs = this.searchRequest.maxTargetSeqs || this.defaultParams.max_target_seqs;
+        this.searchRequest.threshold = this.searchRequest.threshold || this.defaultParams.evalue;
+    }
+
     getDBList() {
         this.ngbBlastSearchService.getBlastDBList(this.ngbBlastSearchFormConstants.BLAST_TOOL_DB[this.searchRequest.tool]).then(data => {
             if (data.error) {
-                this.errorMessageList.push(data.message);
+                this.errorMessage = data.message;
             } else {
-                this.errorMessageList = [];
+                this.errorMessage = null;
                 this.dbList = data;
                 if (this.dbList.filter(db => db.id === this.searchRequest.db).length === 0) {
                     this.searchRequest.db = null;
@@ -134,10 +151,10 @@ export default class ngbBlastSearchFormController extends baseController {
         this.ngbBlastSearchService.createSearchRequest(this.searchRequest)
             .then(data => {
                 if (data.error) {
-                    this.errorMessageList.push(data.message);
+                    this.errorMessage = data.message;
                     this.$timeout(::this.$scope.$apply);
                 } else {
-                    this.errorMessageList = [];
+                    this.errorMessage = null;
                     this.changeState({state: 'HISTORY'});
                 }
             });

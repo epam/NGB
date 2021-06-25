@@ -1,6 +1,6 @@
 <div ng-if="$ctrl.isProgressShown">
     <div class="progress" layout-align="center center">
-        <span>Loading history...</span>
+        <span>Loading search form...</span>
     </div>
     <md-progress-linear md-mode="query"></md-progress-linear>
 </div>
@@ -18,15 +18,18 @@
                     {{tool}}
                 </label>
             </div>
-            <div class="blast-form-alert" ng-show="blastSearchForm.tool.$invalid">
-                <div ng-message="required">Choose the tool for search</div>
-            </div>
         </div>
-        <md-input-container class="blast-search-input blast-sequence-area">
+        <md-input-container class="blast-search-input">
             <label for="sequence" class="blast-search-input-label">Query sequence</label>
-            <textarea id="sequence" ng-model="$ctrl.searchRequest.sequence" required=""
-                      class=""></textarea>
-            <ng-md-icon class="icon_info_outline blast-sequence-clear" icon="clear" ng-click="$ctrl.searchRequest.sequence = ''"></ng-md-icon>
+            <div class="blast-sequence-area">
+                <textarea id="sequence" name="sequence" ng-model="$ctrl.searchRequest.sequence"
+                          custom-max-length="$ctrl.defaultParams.query_max_length" required="" rows="2"></textarea>
+                <ng-md-icon class="icon_info_outline blast-sequence-clear" icon="clear" ng-click="$ctrl.searchRequest.sequence = ''"></ng-md-icon>
+            </div>
+            <div class="blast-form-alert" ng-messages="blastSearchForm.sequence.$error" role="alert">
+                <div ng-message="customMaxLength">Sequence length should be less than or equal to {{$ctrl.defaultParams.query_max_length}}</div>
+                <div ng-message="required">Enter sequence</div>
+            </div>
         </md-input-container>
         <md-input-container class="blast-search-input">
             <label for="task" class="blast-search-input-label">Task title</label>
@@ -67,6 +70,9 @@
                     <md-item-template>
                         <span md-highlight-text="$ctrl.searchText">{{item.scientificname}} (taxid: {{item.taxid}})</span>
                     </md-item-template>
+                    <md-not-found>
+                        No organisms found.
+                    </md-not-found>
                 </md-autocomplete>
                 <md-chip-template>
                         <span>
@@ -132,8 +138,8 @@
                 </div>
             </div>
         </div>
-        <div ng-if="$ctrl.errorMessageList.length" class="md-padding">
-            <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+        <div class="md-padding" ng-if="$ctrl.errorMessage">
+            <ngb-panel-error-list message-list="[$ctrl.errorMessage]"></ngb-panel-error-list>
         </div>
         <div class="blast-search-actions">
             <md-button class="md-accent md-raised search-button"

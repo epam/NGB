@@ -30,15 +30,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import com.epam.catgenome.entity.BiologicalDataItemFile;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.manager.dataitem.DataItemSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.AbstractRESTController;
@@ -48,6 +45,14 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *  <p>
@@ -122,5 +127,17 @@ public class DataItemController extends AbstractRESTController {
     public final Result<BiologicalDataItem> findFileBiBioItemId(@RequestParam(value = "id") final Long id)
             throws IOException {
         return Result.success(dataItemSecurityService.findFileByBioItemId(id));
+    }
+
+    @GetMapping("/dataitem/{id}/download")
+    @ApiOperation(
+            value = "Downloads a file specified by biological item id",
+            notes = "Downloads a file specified by biological item id",
+            produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public void downloadFileByBiologicalItemId(@PathVariable(value = "id") final Long id,
+                                               final HttpServletResponse response) throws IOException {
+        final BiologicalDataItem biologicalDataItem = dataItemSecurityService.findFileByBioItemId(id);
+        final BiologicalDataItemFile biologicalDataItemFile = dataItemSecurityService.loadItemFile(biologicalDataItem);
+        writeStreamToResponse(response, biologicalDataItemFile.getContent(), biologicalDataItemFile.getFileName());
     }
 }

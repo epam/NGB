@@ -711,6 +711,7 @@ export default class projectContext {
 
     async getDefaultTrackSettings() {
         this._ngbDefaultSettings = projectContext.analyzeTrackSettings(await this.utilsDataService.getDefaultTrackSettings());
+        this.dispatcher.emit('defaultSettings:change');
     }
 
     getTrackDefaultSettings(format) {
@@ -812,6 +813,10 @@ export default class projectContext {
             });
         });
         return this.refreshDatasetsPromise;
+    }
+
+    loadDatasetDescription(id) {
+        return this.projectDataService.getProjectIdDescription(id);
     }
 
     addLastLocalTrack(track) {

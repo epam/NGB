@@ -43,6 +43,10 @@ export class ProjectDataService extends DataService {
         return this.get(`project/${+projectId}/load`);
     }
 
+    getProjectIdDescription(projectId) {
+        return this.downloadFile(`project/${+projectId}/description`, { customResponseType: 'arraybuffer'});
+    }
+
     /**
      *
      * @param {number} referenceId
@@ -251,4 +255,7 @@ export class ProjectDataService extends DataService {
         });
     }
 
+    getDatasetFileLink(bioDataItemId) {
+        return this.getFullUrl(`dataitem/${bioDataItemId}/download`);
+    }
 }

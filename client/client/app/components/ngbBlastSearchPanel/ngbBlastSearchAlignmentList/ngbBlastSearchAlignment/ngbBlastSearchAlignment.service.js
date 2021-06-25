@@ -1,19 +1,45 @@
 export default class ngbBlastSearchAlignmentService {
-    static instance(blastContext, projectContext, dispatcher) {
-        return new ngbBlastSearchAlignmentService(blastContext, projectContext, dispatcher);
+    static instance(blastContext, projectContext, genomeDataService, dispatcher) {
+        return new ngbBlastSearchAlignmentService(blastContext, projectContext, genomeDataService, dispatcher);
     }
-    constructor(blastContext, projectContext, dispatcher) {
+    constructor(blastContext, projectContext, genomeDataService, dispatcher) {
         this.blastContext = blastContext;
         this.projectContext = projectContext;
+        this.genomeDataService = genomeDataService;
         this.dispatcher = dispatcher;
+        this.chromosomesCache = new Map();
     }
 
-    getNavigationInfo (alignment, search) {
-        if (!alignment || !search) {
-            return null;
+    setAlignments (searchResult, search) {
+        this.blastContext.setAlignments((searchResult || {}).alignments || [], search);
+    }
+
+    async fetchChromosomes (referenceId) {
+        if (!this.chromosomesCache.has(+referenceId)) {
+            const promise = new Promise((resolve) => {
+                this.genomeDataService.loadAllChromosomes(referenceId)
+                    .then(chromosomes => {
+                        if (chromosomes && chromosomes.length) {
+                            resolve(
+                                chromosomes.map(chromosome => (chromosome.name || '').toLowerCase())
+                            );
+                        } else {
+                            resolve([]);
+                        }
+                    })
+                    .catch((e) => {
+                        // eslint-disable-next-line
+                        console.warn('Error fetching chromosomes:', e.message);
+                        resolve([]);
+                    });
+            });
+            this.chromosomesCache.set(+referenceId, promise);
         }
-        const {dbType} = search;
-        if (/^protein$/i.test(dbType)) {
+        return await this.chromosomesCache.get(+referenceId);
+    }
+
+    async getNavigationInfo (alignment, search) {
+        if (!alignment || !search) {
             return null;
         }
         const {
@@ -34,6 +60,11 @@ export default class ngbBlastSearchAlignmentService {
         ) {
             return null;
         }
+        const chromosomes = await this.fetchChromosomes(referenceId);
+        const [chromosome] = chromosomes.filter(chr => chr === `${sequenceId}`.toLowerCase());
+        if (!chromosome) {
+            return null;
+        }
         return {
             start: sequenceStart,
             end: sequenceEnd,
@@ -42,12 +73,13 @@ export default class ngbBlastSearchAlignmentService {
         };
     }
 
-    navigationAvailable (alignment, search) {
-        return !!this.getNavigationInfo(alignment, search);
+    async navigationAvailable (alignment, search) {
+        const info = await this.getNavigationInfo(alignment, search);
+        return !!info;
     }
 
-    navigateToTracks (alignment, search) {
-        const navigationInfo = this.getNavigationInfo(alignment, search);
+    async navigateToTracks (alignment, searchResult, search) {
+        const navigationInfo = await this.getNavigationInfo(alignment, search);
         if (navigationInfo) {
             const {
                 start,
@@ -142,7 +174,7 @@ export default class ngbBlastSearchAlignmentService {
                 keepBLASTTrack: true,
                 ...tracksOptions
             }, false, () => {
-                this.blastContext.setAlignment(alignment, search);
+                this.setAlignments(searchResult, search);
             });
         }
     }

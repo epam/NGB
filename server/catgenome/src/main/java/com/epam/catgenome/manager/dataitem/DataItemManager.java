@@ -29,13 +29,18 @@ import static com.epam.catgenome.constant.MessagesConstants.ERROR_BIO_ID_NOT_FOU
 import static com.epam.catgenome.constant.MessagesConstants.ERROR_UNSUPPORTED_FILE_FORMAT;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.epam.catgenome.entity.BiologicalDataItemFile;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
+import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.manager.wig.FacadeWigManager;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -166,5 +171,23 @@ public class DataItemManager {
         return bedManager.getFormats().stream()
                 .map(e -> Pair.of(e, BiologicalDataItemFormat.BED))
                 .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+    }
+
+    public BiologicalDataItemFile loadItemFile(final BiologicalDataItem biologicalDataItem) throws IOException {
+        final String dataItemPath = biologicalDataItem.getPath();
+        if (BiologicalDataItemResourceType.FILE.equals(biologicalDataItem.getType())) {
+            return loadLocalFileItem(biologicalDataItem, dataItemPath);
+        }
+        throw new UnsupportedOperationException("Download available for local data only");
+    }
+
+    private BiologicalDataItemFile loadLocalFileItem(final BiologicalDataItem biologicalDataItem,
+                                                     final String dataItemPath) throws IOException {
+        Assert.state(Files.exists(Paths.get(dataItemPath)),
+                getMessage(ERROR_BIO_ID_NOT_FOUND, biologicalDataItem.getId()));
+        return BiologicalDataItemFile.builder()
+                .content(Files.newInputStream(Paths.get(dataItemPath)))
+                .fileName(FilenameUtils.getName(dataItemPath))
+                .build();
     }
 }

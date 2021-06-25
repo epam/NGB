@@ -21,32 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.entity.blast;
 
-import com.epam.catgenome.manager.blast.dto.BlastTaxonomy;
-import lombok.Getter;
-import lombok.Setter;
+package com.epam.catgenome.entity;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
+import lombok.Builder;
+import lombok.Data;
 
-@Getter
-@Setter
-public class BlastTask {
-    private Long id;
-    private String title;
-    private LocalDateTime createdDate;
-    private BlastTaskStatus status;
-    private LocalDateTime endDate;
-    private String statusReason;
-    private String query;
-    private BlastDatabase database;
-    private String owner;
-    private List<BlastTaxonomy> organisms;
-    private List<BlastTaxonomy> excludedOrganisms;
-    private String executable;
-    private String algorithm;
-    private Map<String, String> parameters;
-    private String options;
+import java.io.InputStream;
+
+@Builder
+@Data
+public class BiologicalDataItemFile {
+    private InputStream content;
+    private String fileName;
 }
