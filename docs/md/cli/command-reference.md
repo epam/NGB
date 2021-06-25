@@ -89,7 +89,7 @@ ngb reg_ref|rr [<PATH_TO_GENOME_FASTA>] [options]
 ```
 *Description*
 
-Registers a specified reference sequence file. FASTA, FA, FNA files are accepted. Compressed files are not supported.
+Registers a specified reference sequence file. FASTA, FA, FNA, GENBANK, GBK, GB files are accepted. Compressed files are not supported.
 Path to local file and remote URL are accepted as a path to the reference. For local files, NGB will try to find a matching "fai" index 
 in the folder with the reference, if index isn't found it will be created. For remote references, "fai" index must be present on the
 remote source. NGB assumes that reference index will have the same name as reference with "fai" extension added. If reference path is
