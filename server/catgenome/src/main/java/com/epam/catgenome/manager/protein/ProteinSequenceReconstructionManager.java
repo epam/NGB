@@ -27,6 +27,7 @@ package com.epam.catgenome.manager.protein;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -133,6 +134,17 @@ public class ProteinSequenceReconstructionManager {
         LOGGER.info("protein sequence reconstruction took {} ms", time2 - time1);
 
         return mrnaToAminoAcidsMap;
+    }
+
+    public List<ProteinSequenceEntry> reconstructCdsProteinSequence(final Track<Gene> geneTrack, final Gene cds,
+                                                                    final Chromosome chromosome,
+                                                                    final Long referenceId) {
+        final List<Gene> cdsList = Collections.singletonList(cds);
+        final List<Integer> frames = cdsList.stream().map(Gene::getFrame).collect(Collectors.toList());
+        final List<List<Sequence>> cdsNucleotides = loadCdsNucleatides(cdsList, referenceId, chromosome);
+        return getAminoAcids(geneTrack, cdsList, cdsNucleotides, frames)
+                .values().stream().flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 
     /**
