@@ -590,7 +590,7 @@ public class ReferenceManager {
     }
 
     @SneakyThrows
-    private String genbankToFasta(Reference reference) {
+    private String genbankToFasta(final Reference reference) {
         String genbankFilePath = reference.getPath();
         Assert.notNull(genbankFilePath, getMessage(MessageCode.RESOURCE_NOT_FOUND));
         File genbankFile = new File(genbankFilePath);
