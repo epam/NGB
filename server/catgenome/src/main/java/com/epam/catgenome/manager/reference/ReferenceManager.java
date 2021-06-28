@@ -57,6 +57,8 @@ import com.epam.catgenome.util.BlockCompressedDataInputStream;
 import com.epam.catgenome.util.BlockCompressedDataOutputStream;
 import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.Utils;
+import htsjdk.samtools.seekablestream.SeekableStream;
+import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -179,6 +181,7 @@ public class ReferenceManager {
         if (GenbankUtils.isGenbank(path)) {
             path = genbankToFasta(reference);
             reference.setPath(path);
+            reference.setType(BiologicalDataItemResourceType.FILE);
         }
         // processes data for a genome and generates all required resources: meta-information,
         // files with NT-sequence and GC-content per each chromosome etc.
@@ -594,8 +597,8 @@ public class ReferenceManager {
     private String genbankToFasta(final Reference reference) {
         String genbankFilePath = reference.getPath();
         Assert.notNull(genbankFilePath, getMessage(MessageCode.RESOURCE_NOT_FOUND));
-        File genbankFile = new File(genbankFilePath);
-        Map<String, DNASequence> dnaSequences = GenbankReaderHelper.readGenbankDNASequence(genbankFile);
+        SeekableStream ss = SeekableStreamFactory.getInstance().getStreamFor(genbankFilePath);
+        Map<String, DNASequence> dnaSequences = GenbankReaderHelper.readGenbankDNASequence(ss);
         Assert.isTrue(!dnaSequences.isEmpty(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
         String referenceDir = fileManager.getReferenceDir(reference);
         Assert.notNull(referenceDir, getMessage(MessageCode.RESOURCE_NOT_FOUND));
