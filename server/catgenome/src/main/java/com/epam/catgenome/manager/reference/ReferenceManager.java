@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,9 @@ package com.epam.catgenome.manager.reference;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 import com.epam.catgenome.entity.reference.Species;
+
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -35,19 +37,36 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.track.ReferenceTrackMode;
+import com.epam.catgenome.exception.ExternalDbUnavailableException;
+import com.epam.catgenome.exception.Ga4ghResourceUnavailableException;
+import com.epam.catgenome.exception.ReferenceReadingException;
+import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
 import com.epam.catgenome.manager.reference.io.FastaSequenceFile;
 import com.epam.catgenome.manager.reference.io.FastaUtils;
-import com.epam.catgenome.util.*;
+import com.epam.catgenome.manager.reference.io.GenbankUtils;
+import com.epam.catgenome.manager.reference.io.NibDataReader;
+import com.epam.catgenome.manager.reference.io.NibDataWriter;
+import com.epam.catgenome.util.BlockCompressedDataInputStream;
+import com.epam.catgenome.util.BlockCompressedDataOutputStream;
+import com.epam.catgenome.util.NgbFileUtils;
+import com.epam.catgenome.util.Utils;
+import htsjdk.samtools.seekablestream.SeekableStream;
+import htsjdk.samtools.seekablestream.SeekableStreamFactory;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.biojava.nbio.core.sequence.DNASequence;
+import org.biojava.nbio.core.sequence.io.FastaWriterHelper;
+import org.biojava.nbio.core.sequence.io.GenbankReaderHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -68,18 +87,12 @@ import com.epam.catgenome.entity.reference.Reference;
 import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.track.Track;
 import com.epam.catgenome.entity.track.TrackType;
-import com.epam.catgenome.exception.ExternalDbUnavailableException;
-import com.epam.catgenome.exception.Ga4ghResourceUnavailableException;
-import com.epam.catgenome.exception.ReferenceReadingException;
-import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.TrackHelper;
 import com.epam.catgenome.manager.externaldb.HttpDataManager;
 import com.epam.catgenome.manager.externaldb.ParameterNameValue;
 import com.epam.catgenome.manager.gene.GeneFileManager;
 import com.epam.catgenome.manager.gene.GffManager;
-import com.epam.catgenome.manager.reference.io.NibDataReader;
-import com.epam.catgenome.manager.reference.io.NibDataWriter;
 
 /**
  * Source:      ReferenceManager.java
@@ -90,7 +103,9 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
  * logic operations required to manage references and corresponded tracks, e.g. to process
  * reference uploads, position-based and/or zoom queries etc.
  */
-@Service public class ReferenceManager {
+@Service
+@Slf4j
+public class ReferenceManager {
 
     private JsonMapper objectMapper = new JsonMapper();
 
@@ -115,8 +130,6 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
     @Autowired
     private AuthManager authManager;
 
-    private static final Logger LOG = LoggerFactory.getLogger(ReferenceManager.class);
-
     /**
      * @param track {@code Track} Track with information about query
      *              (the most important: chromosome name, Id, start index, end index and scaleFactor)
@@ -128,7 +141,7 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
         try {
             return getNucleotidesTrackFromNib(track);
         } catch (Ga4ghResourceUnavailableException | IOException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             throw new ReferenceReadingException(String.valueOf(track.getId()), e);
         }
     }
@@ -145,24 +158,31 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
     public Reference registerGenome(final ReferenceRegistrationRequest request) throws IOException {
 
         final String name;
+        String path = request.getPath();
         if (request.getType() == null) {
             request.setType(BiologicalDataItemResourceType.FILE);
         }
         if (request.getType() == BiologicalDataItemResourceType.GA4GH) {
             name = request.getName();
         } else {
-            name = parse(request.getPath(), request.getName());
+            name = parse(path, request.getName());
         }
         // prepares to start processing of a reference genome: generates ID, creates a directory
         // to store data for a genome
         final Long referenceId = referenceGenomeManager.createReferenceId();
         final Reference reference = new Reference(referenceId, name);
-        reference.setPath(request.getPath());
+        reference.setPath(path);
+        reference.setSource(path);
         reference.setPrettyName(request.getPrettyName());
         if (!request.isNoGCContent()) {
             fileManager.makeReferenceDir(reference);
         }
         reference.setType(request.getType());
+        if (GenbankUtils.isGenbank(path)) {
+            path = genbankToFasta(reference);
+            reference.setPath(path);
+            reference.setType(BiologicalDataItemResourceType.FILE);
+        }
         // processes data for a genome and generates all required resources: meta-information,
         // files with NT-sequence and GC-content per each chromosome etc.
         boolean succeeded = false;
@@ -179,6 +199,7 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
 
             long lengthOfGenome;
             if (request.getType() == BiologicalDataItemResourceType.GA4GH) {
+//              doesn't work for Genbank format
                 lengthOfGenome = registerGA4GH(request, referenceId, reference);
             } else {
                 lengthOfGenome =
@@ -206,7 +227,7 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
             // rollback for applied changes are required
             succeeded = true;
         } catch (InterruptedException | ExternalDbUnavailableException e) {
-            LOG.info(String.format("Failed to register reference %s.", request.getName()), e);
+            log.info(String.format("Failed to register reference %s.", request.getName()), e);
         } finally {
             // reverts all changes that have been made in the file system, if something was going wrong
             // and we cannot create a genome in the system)
@@ -439,7 +460,7 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
             int chromosomeSize, String chromosomeName, Reference reference) throws IOException {
         if (scaleFactor <= (1.0 / Constants.GC_CONTENT_STEP)
                 && chromosomeSize > Constants.GC_CONTENT_MIN_LENGTH) {
-            LOG.debug(getMessage(MessagesConstants.DEBUG_FILE_READING));
+            log.debug(getMessage(MessagesConstants.DEBUG_FILE_READING));
             try (BlockCompressedDataInputStream strm = fileManager
                     .makeGCInputStream(trackID, chromosomeName);
                     DataInputStream indexStrm = fileManager
@@ -447,13 +468,13 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
                 return getGCFromGCFile(startIndex, endIndex, scaleFactor, strm, indexStrm);
             } catch (IllegalArgumentException e) {
                 //gc content may be disabled
-                LOG.debug(e.getMessage(), e);
+                log.debug(e.getMessage(), e);
                 return Collections.emptyList();
             }
 
         } else {
             if (isNibReference(reference.getPath())) {
-                LOG.debug(getMessage(MessagesConstants.DEBUG_FILE_READING));
+                log.debug(getMessage(MessagesConstants.DEBUG_FILE_READING));
                 try (BlockCompressedDataInputStream strm = fileManager
                         .makeRefInputStream(trackID, chromosomeName);
                         DataInputStream indexStrm = fileManager
@@ -461,7 +482,7 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
                     return getGCFromNibFile(startIndex, endIndex, scaleFactor, strm, indexStrm);
                 }
             } else {
-                LOG.debug(getMessage(MessagesConstants.DEBUG_FILE_READING));
+                log.debug(getMessage(MessagesConstants.DEBUG_FILE_READING));
                 String sequence =
                         getSequenceString(startIndex, endIndex, reference.getId(), chromosomeName);
                 return nibDataReader
@@ -474,7 +495,7 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
     private List<Sequence> getReferenceSequenceWithoutGC(Chromosome chr, long trackID, String cName,
             Reference reference, int startIndex, int endIndex)
             throws Ga4ghResourceUnavailableException, IOException {
-        LOG.debug(getMessage(MessagesConstants.DEBUG_FILE_READING));
+        log.debug(getMessage(MessagesConstants.DEBUG_FILE_READING));
         if (reference.getType() == BiologicalDataItemResourceType.GA4GH) {
             return nibDataReader.getNucleotidesFromNibGA4GH(startIndex, endIndex, chr.getPath());
         } else {
@@ -501,7 +522,9 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
         Assert.notNull(fileName, getMessage(MessageCode.MANDATORY_FILE_NAME));
         // checks that file is in one of supported formats
         boolean supported = false;
-        final Collection<String> formats = FastaUtils.getFastaExtensions();
+        final Collection<String> formats = CollectionUtils.union(FastaUtils.getFastaExtensions(),
+                GenbankUtils.getGenbankExtensions());
+
         for (final String ext : formats) {
             if (fileName.endsWith(ext)) {
                 supported = true;
@@ -543,7 +566,7 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
 
     private long registerReference(Long referenceId, Reference reference, boolean createGC)
             throws IOException {
-        String path = reference.getPath();
+        final String path = reference.getPath();
         setIndex(reference);
         long lengthOfGenome = 0;
         FastaSequenceFile referenceReader = new FastaSequenceFile(path, reference.getIndex().getPath());
@@ -554,7 +577,7 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
             chromosome.setName(chr);
             chromosome.setSize(referenceReader.getSequenceSize(chr));
             chromosome.setReferenceId(referenceId);
-            chromosome.setPath(reference.getPath());
+            chromosome.setPath(path);
             reference.getChromosomes().add(chromosome);
 
             //work with GC
@@ -570,6 +593,22 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
         return lengthOfGenome;
     }
 
+    @SneakyThrows
+    private String genbankToFasta(final Reference reference) {
+        String genbankFilePath = reference.getPath();
+        Assert.notNull(genbankFilePath, getMessage(MessageCode.RESOURCE_NOT_FOUND));
+        Map<String, DNASequence> dnaSequences;
+        try (final SeekableStream genBankStream = SeekableStreamFactory.getInstance().getStreamFor(genbankFilePath)) {
+            dnaSequences = GenbankReaderHelper.readGenbankDNASequence(genBankStream);
+        }
+        Assert.isTrue(!dnaSequences.isEmpty(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
+        String referenceDir = fileManager.getReferenceDir(reference);
+        Assert.notNull(referenceDir, getMessage(MessageCode.RESOURCE_NOT_FOUND));
+        File dnaFileFasta = new File(referenceDir, reference.getName() + FastaUtils.DEFAULT_FASTA_EXTENSION);
+        FastaWriterHelper.writeNucleotideSequence(dnaFileFasta, dnaSequences.values());
+        return dnaFileFasta.getPath();
+    }
+
     private void setIndex(Reference reference) {
         String path = reference.getPath();
         String indexPath;
@@ -581,6 +620,7 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(indexPath);
+        indexItem.setSource(indexPath);
         indexItem.setFormat(BiologicalDataItemFormat.REFERENCE_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
@@ -607,6 +647,7 @@ import com.epam.catgenome.manager.reference.io.NibDataWriter;
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(request.getPath());
+        indexItem.setSource(request.getPath());
         indexItem.setFormat(BiologicalDataItemFormat.REFERENCE_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.GA4GH);
         indexItem.setName("");

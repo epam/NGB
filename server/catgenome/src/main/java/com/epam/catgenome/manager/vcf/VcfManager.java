@@ -676,6 +676,7 @@ public class VcfManager {
         vcfFile.setId(vcfFileManager.createVcfFileId());
         vcfFile.setCompressed(true);
         vcfFile.setPath(request.getPath());
+        vcfFile.setSource(request.getPath());
         vcfFile.setName(request.getName() != null ? request.getName() : request.getPath());
         vcfFile.setPrettyName(request.getPrettyName());
         vcfFile.setType(BiologicalDataItemResourceType.GA4GH); // For now we're working only with files
@@ -698,6 +699,7 @@ public class VcfManager {
             BiologicalDataItem indexItem = new BiologicalDataItem();
             indexItem.setCreatedDate(new Date());
             indexItem.setPath(request.getIndexPath());
+            indexItem.setSource(request.getIndexPath());
             indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
             indexItem.setType(BiologicalDataItemResourceType.GA4GH);
             indexItem.setName("");
@@ -750,6 +752,7 @@ public class VcfManager {
         vcfFile.setPrettyName(request.getPrettyName());
         vcfFile.setId(vcfFileManager.createVcfFileId());
         vcfFile.setPath(request.getPath());
+        vcfFile.setSource(request.getPath());
         vcfFile.setType(resourceType);
         vcfFile.setCreatedDate(new Date());
         vcfFile.setReferenceId(request.getReferenceId());
@@ -758,6 +761,7 @@ public class VcfManager {
             BiologicalDataItem indexItem = new BiologicalDataItem();
             indexItem.setCreatedDate(new Date());
             indexItem.setPath(request.getIndexPath());
+            indexItem.setSource(request.getIndexPath());
             indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
             indexItem.setType(BiologicalDataItemResourceType.translateRequestType(request.getIndexType()));
             indexItem.setName(vcfFile.getName() + "_index");
@@ -780,6 +784,7 @@ public class VcfManager {
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(requestPath);
+        indexItem.setSource(requestPath);
         indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.GA4GH);
         indexItem.setName("");

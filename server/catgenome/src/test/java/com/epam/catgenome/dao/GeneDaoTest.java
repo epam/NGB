@@ -58,6 +58,7 @@ import com.epam.catgenome.helper.EntityHelper;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class GeneDaoTest extends AbstractDaoTest {
+    public static final String PATH = "///";
     @Autowired
     private GeneFileDao geneFileDao;
 
@@ -81,7 +82,8 @@ public class GeneDaoTest extends AbstractDaoTest {
         geneFile.setReferenceId(reference.getId());
         geneFile.setType(BiologicalDataItemResourceType.FILE);
         geneFile.setFormat(BiologicalDataItemFormat.GENE);
-        geneFile.setPath("///");
+        geneFile.setPath(PATH);
+        geneFile.setSource(PATH);
         geneFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.GENE_INDEX,
@@ -111,7 +113,8 @@ public class GeneDaoTest extends AbstractDaoTest {
         geneFile.setReferenceId(reference.getId());
         geneFile.setType(BiologicalDataItemResourceType.FILE);
         geneFile.setFormat(BiologicalDataItemFormat.GENE);
-        geneFile.setPath("///");
+        geneFile.setPath(PATH);
+        geneFile.setSource(PATH);
         geneFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.GENE_INDEX,

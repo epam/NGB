@@ -82,6 +82,7 @@ public class VcfFileDaoTest extends AbstractDaoTest {
         vcfFile.setName("testFile");
         vcfFile.setType(BiologicalDataItemResourceType.FILE);
         vcfFile.setPath("///");
+        vcfFile.setSource("///");
         vcfFile.setCreatedDate(new Date());
         vcfFile.setReferenceId(reference.getId());
         vcfFile.setOwner(EntityHelper.TEST_OWNER);
@@ -102,6 +103,7 @@ public class VcfFileDaoTest extends AbstractDaoTest {
         assertEquals(vcfFile.getType(), loadedFile.getType());
         assertEquals(vcfFile.getFormat(), loadedFile.getFormat());
         assertEquals(vcfFile.getPath(), loadedFile.getPath());
+        assertEquals(vcfFile.getSource(), loadedFile.getPath());
         assertEquals(vcfFile.getIndex().getPath(), loadedFile.getIndex().getPath());
         assertEquals(vcfFile.getCreatedDate(), loadedFile.getCreatedDate());
         assertEquals(vcfFile.getReferenceId(), loadedFile.getReferenceId());
@@ -122,6 +124,7 @@ public class VcfFileDaoTest extends AbstractDaoTest {
         vcfFile.setType(BiologicalDataItemResourceType.FILE);
         vcfFile.setFormat(BiologicalDataItemFormat.VCF);
         vcfFile.setPath("testPath");
+        vcfFile.setSource("testPath");
         vcfFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.VCF_INDEX,

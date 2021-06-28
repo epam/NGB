@@ -163,6 +163,7 @@
                         b.name,
                         b.type,
                         b.path,
+                        b.source,
                         b.format,
                         b.created_date,
                         b.pretty_name,

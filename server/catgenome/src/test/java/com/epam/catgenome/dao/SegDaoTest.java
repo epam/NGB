@@ -62,6 +62,7 @@ import com.epam.catgenome.helper.EntityHelper;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"classpath:applicationContext-test.xml"})
 public class SegDaoTest extends AbstractDaoTest {
+    public static final String PATH = "///";
     @Autowired
     private SegFileDao segFileDao;
 
@@ -82,7 +83,8 @@ public class SegDaoTest extends AbstractDaoTest {
         segFile.setId(segFileDao.createSegFileId());
         segFile.setName("testFile");
         segFile.setType(BiologicalDataItemResourceType.FILE);
-        segFile.setPath("///");
+        segFile.setPath(PATH);
+        segFile.setSource(PATH);
         segFile.setCreatedDate(new Date());
         segFile.setReferenceId(reference.getId());
         segFile.setOwner(EntityHelper.TEST_OWNER);
@@ -94,6 +96,7 @@ public class SegDaoTest extends AbstractDaoTest {
         biologicalDataItemDao.createBiologicalDataItem(index);
         final Long realId = segFile.getId();
         biologicalDataItemDao.createBiologicalDataItem(segFile);
+
         segFileDao.createSegFile(segFile, realId);
 
         SegFile loadedFile = segFileDao.loadSegFile(segFile.getId());
@@ -103,6 +106,7 @@ public class SegDaoTest extends AbstractDaoTest {
         assertEquals(segFile.getType(), loadedFile.getType());
         assertEquals(segFile.getFormat(), loadedFile.getFormat());
         assertEquals(segFile.getPath(), loadedFile.getPath());
+        assertEquals(segFile.getSource(), loadedFile.getPath());
         assertEquals(segFile.getIndex().getPath(), loadedFile.getIndex().getPath());
         assertEquals(segFile.getCreatedDate(), loadedFile.getCreatedDate());
         assertEquals(segFile.getReferenceId(), loadedFile.getReferenceId());
@@ -120,7 +124,8 @@ public class SegDaoTest extends AbstractDaoTest {
         segFile.setId(segFileDao.createSegFileId());
         segFile.setName("testFile");
         segFile.setType(BiologicalDataItemResourceType.FILE);
-        segFile.setPath("///");
+        segFile.setPath(PATH);
+        segFile.setSource(PATH);
         segFile.setCreatedDate(new Date());
         segFile.setReferenceId(reference.getId());
         segFile.setOwner(EntityHelper.TEST_OWNER);

@@ -74,7 +74,6 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.search.Sort;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,7 +94,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.dao.index.searcher.AbstractIndexSearcher.getIndexSearcher;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Source:      VcfIndexManager
@@ -176,14 +174,14 @@ public class FeatureIndexManager {
         List<VcfFile> vcfFiles = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
-            .collect(toList());
+            .collect(Collectors.toList());
 
         List<VcfFile> selectedVcfFiles;
         if (CollectionUtils.isEmpty(vcfFileIds)) {
             selectedVcfFiles = vcfFiles;
         } else {
             selectedVcfFiles = vcfFiles.stream().filter(f -> vcfFileIds.contains(f.getId()))
-                .collect(toList());
+                .collect(Collectors.toList());
         }
 
         return featureIndexDao.searchGenesInVcfFiles(gene, selectedVcfFiles);
@@ -217,7 +215,7 @@ public class FeatureIndexManager {
         List<VcfFile> vcfFiles = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
-            .collect(toList());
+            .collect(Collectors.toList());
 
         List<Chromosome> chromosomes = referenceGenomeManager.loadChromosomes(vcfFiles.get(0).getReferenceId());
         Map<Long, Chromosome> chromosomeMap = chromosomes.parallelStream()
@@ -226,7 +224,7 @@ public class FeatureIndexManager {
         List<Long> chromosomeIds = featureIndexDao.getChromosomeIdsWhereVariationsPresentFacet(vcfFiles, filterForm
                 .computeQuery(FeatureType.VARIATION));
 
-        return chromosomeIds.stream().map(chromosomeMap::get).collect(toList());
+        return chromosomeIds.stream().map(chromosomeMap::get).collect(Collectors.toList());
     }
 
     /**
@@ -248,7 +246,7 @@ public class FeatureIndexManager {
         List<Long> chromosomeIds = featureIndexDao.getChromosomeIdsWhereVariationsPresentFacet(vcfFiles, filterForm
                                                                                 .computeQuery(FeatureType.VARIATION));
 
-        return chromosomeIds.stream().map(chromosomeMap::get).collect(toList());
+        return chromosomeIds.stream().map(chromosomeMap::get).collect(Collectors.toList());
     }
 
     /**
@@ -265,7 +263,7 @@ public class FeatureIndexManager {
         List<VcfFile> files = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
-            .collect(toList());
+            .collect(Collectors.toList());
         return getVcfSearchResult(filterForm, files);
     }
 
@@ -289,7 +287,7 @@ public class FeatureIndexManager {
         List<VcfFile> files = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
-            .collect(toList());
+            .collect(Collectors.toList());
         int totalCount = featureIndexDao.getTotalVariationsCountFacet(files, filterForm.computeQuery(
             FeatureType.VARIATION));
         return (int) Math.ceil(totalCount / filterForm.getPageSize().doubleValue());
@@ -309,7 +307,7 @@ public class FeatureIndexManager {
         List<VcfFile> files = project.getItems().stream()
             .filter(i -> i.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
             .map(i -> (VcfFile) i.getBioDataItem())
-            .collect(toList());
+            .collect(Collectors.toList());
         return featureIndexDao.groupVariations(files, filterForm.computeQuery(FeatureType.VARIATION), groupByField);
     }
 
@@ -338,7 +336,7 @@ public class FeatureIndexManager {
         return getVcfSearchResult(filterForm, files);
     }
 
-    @NotNull private IndexSearchResult<VcfIndexEntry> getVcfSearchResult(final VcfFilterForm filterForm,
+    private IndexSearchResult<VcfIndexEntry> getVcfSearchResult(final VcfFilterForm filterForm,
             final List<VcfFile> vcfFiles) throws IOException {
         if (filterForm.getPage() != null && filterForm.getPageSize() != null) {
             final LuceneIndexSearcher<VcfIndexEntry> indexSearcher =
@@ -409,14 +407,15 @@ public class FeatureIndexManager {
         return bookmarkSearchRes;
     }
 
-    public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(final GeneFilterForm filterForm,
-                                                                          final long referenceId) throws IOException {
+    public IndexSearchResult<FeatureIndexEntry> searchGenesByReference(final GeneFilterForm filterForm,
+                                                                       final long referenceId) throws IOException {
         final String featureId = filterForm.getFeatureId();
         if (featureId == null || featureId.length() < 2) {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
 
-        return getGeneSearchResult(filterForm, getFeatureFiles(referenceId));
+        return getGeneSearchResult(filterForm, Optional.ofNullable(getGeneFile(referenceId))
+                .map(Collections::singletonList).orElse(Collections.emptyList()));
     }
 
     public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(final String featureId,
@@ -448,7 +447,7 @@ public class FeatureIndexManager {
                 .filter(item -> item.getBioDataItem() != null
                         && item.getBioDataItem().getFormat() == BiologicalDataItemFormat.VCF)
                 .map(item -> (item.getBioDataItem()).getId())
-                .collect(toList());
+                .collect(Collectors.toList());
 
         return vcfManager.getFiltersInfo(vcfIds);
     }
@@ -516,7 +515,7 @@ public class FeatureIndexManager {
             geneIds.addAll(genes.stream()
                     .filter(GeneUtils::isGene)
                     .map(Gene::getGroupId)
-                    .collect(toList()));
+                    .collect(Collectors.toList()));
         }
 
         return geneIds;
@@ -647,13 +646,17 @@ public class FeatureIndexManager {
         final List<FeatureFile> annotationFiles = referenceGenomeManager.getReferenceAnnotationFiles(referenceId)
                 .stream()
                 .map(biologicalDataItem -> (FeatureFile) biologicalDataItem)
-                .collect(toList());
+                .collect(Collectors.toList());
         final GeneFile geneFile = reference.getGeneFile();
         if (geneFile != null) {
             final Long geneFileId = geneFile.getId();
             annotationFiles.add(geneFileManager.load(geneFileId));
         }
         return annotationFiles;
+    }
+
+    private FeatureFile getGeneFile(final long referenceId) {
+        return referenceGenomeManager.load(referenceId).getGeneFile();
     }
 
     private void addFeaturesFromUsualGeneFileToIndex(GeneFile geneFile, Map<String, Chromosome> chromosomeMap,

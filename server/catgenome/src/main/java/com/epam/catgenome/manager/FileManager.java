@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -355,6 +355,13 @@ public class FileManager {
             // makes a directory to manage chromosomes
             makeDir(substitute(REF_CHROMOSOMES_DIR, params));
         }
+    }
+
+    public String getReferenceDir(final Reference reference) {
+        final Map<String, Object> params = new HashMap<>();
+        final Long dirId = reference.getId();
+        params.put(DIR_ID.name(), dirId);
+        return toRealPath(substitute(REFERENCE_DIR, params));
     }
 
     /**
@@ -736,6 +743,7 @@ public class FileManager {
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setSource(indexFile.getAbsolutePath());
         indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
@@ -1578,6 +1586,7 @@ public class FileManager {
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setSource(indexFile.getAbsolutePath());
         indexItem.setFormat(BiologicalDataItemFormat.BED_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
@@ -1620,6 +1629,7 @@ public class FileManager {
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setSource(indexFile.getAbsolutePath());
         indexItem.setFormat(BiologicalDataItemFormat.SEG_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
@@ -1656,6 +1666,7 @@ public class FileManager {
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setSource(indexFile.getAbsolutePath());
         indexItem.setFormat(BiologicalDataItemFormat.BED_GRAPH_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
@@ -1782,6 +1793,7 @@ public class FileManager {
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(indexFile.getAbsolutePath());
+        indexItem.setSource(indexFile.getAbsolutePath());
         indexItem.setFormat(BiologicalDataItemFormat.MAF_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");

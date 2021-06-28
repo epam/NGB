@@ -1201,7 +1201,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     public void searchGenesByFilterWithFeatureName() throws IOException {
         final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
 
-        assertEquals(TEST_AMOUNT, featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId)
+        assertEquals(TEST_AMOUNT, featureIndexManager.searchGenesByReference(geneFilterForm, referenceId)
                 .getEntries().size());
     }
 
@@ -1213,7 +1213,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
                 testChromosome.getId(), testChromosome.getId() + 1, testChromosome.getId() + 1));
 
         //We have only 1 chromosome A1 at the test data, other names are artificial:)
-        assertEquals(TEST_AMOUNT, featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId)
+        assertEquals(TEST_AMOUNT, featureIndexManager.searchGenesByReference(geneFilterForm, referenceId)
                 .getEntries().size());
     }
 
@@ -1224,7 +1224,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         geneFilterForm.setFeatureTypes(Arrays.asList(FeatureType.MRNA, FeatureType.GENE));
 
         assertEquals(TEST_AMOUNT_OF_GENE + TEST_AMOUNT_OF_MRNA,
-                featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId).getEntries().size());
+                featureIndexManager.searchGenesByReference(geneFilterForm, referenceId).getEntries().size());
     }
 
     @Test
@@ -1235,7 +1235,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         geneFilterForm.setEndIndex(TEST_END_INDEX);
 
         assertEquals(TEST_AMOUNT_POSITION,
-                featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId).getEntries().size());
+                featureIndexManager.searchGenesByReference(geneFilterForm, referenceId).getEntries().size());
     }
 
     @Test
@@ -1245,7 +1245,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         geneFilterForm.setFeatureTypes(Collections.singletonList(FeatureType.GENE));
         geneFilterForm.setOrderBy(Collections.singletonList(new OrderBy("START_INDEX", true)));
 
-        final IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchFeaturesByReference(
+        final IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchGenesByReference(
                 geneFilterForm, referenceId);
 
         assertEquals(TEST_AMOUNT_OF_GENE, result.getEntries().size());
@@ -1264,7 +1264,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
         geneFilterForm.setOrderBy(Collections.singletonList(new OrderBy("TEST_TEST", true)));
 
-        final IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchFeaturesByReference(
+        final IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchGenesByReference(
                 geneFilterForm, referenceId);
 
         assertEquals(TEST_AMOUNT, result.getEntries().size());
@@ -1277,7 +1277,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         geneFilterForm.setOrderBy(Collections.singletonList(new OrderBy("TEST_TEST", true)));
         geneFilterForm.setPageSize((int) TEST_AMOUNT);
 
-        final IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchFeaturesByReference(
+        final IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchGenesByReference(
                 geneFilterForm, referenceId);
 
         assertEquals(TEST_AMOUNT, result.getEntries().size());
@@ -1289,7 +1289,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
         geneFilterForm.setPageSize((int) TEST_PAGE_SIZE);
 
-        assertEquals(TEST_PAGE_SIZE, featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId)
+        assertEquals(TEST_PAGE_SIZE, featureIndexManager.searchGenesByReference(geneFilterForm, referenceId)
                 .getEntries().size());
     }
 
@@ -1306,7 +1306,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         geneFilterForm.setPointer(pointer);
 
         assertEquals(TEST_AMOUNT - TEST_PAGE_SIZE,
-                featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId).getEntries().size());
+                featureIndexManager.searchGenesByReference(geneFilterForm, referenceId).getEntries().size());
     }
 
     private GeneFilterForm getSimpleGeneFilter() {

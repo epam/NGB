@@ -197,7 +197,7 @@ public class ReferenceController extends AbstractRESTController {
     @RequestMapping(value = "/reference/{referenceId}/filter/gene", method = RequestMethod.POST)
     @ResponseBody
     @ApiOperation(
-        value = "Searches for given filter parameters in a reference gene file, case-sensitive",
+        value = "Searches for given filter parameters in a reference gene file, case-insensitive",
         notes = "Searches an index of a gene file, associated with a given reference's ID for filter parameters",
         produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
@@ -215,7 +215,7 @@ public class ReferenceController extends AbstractRESTController {
     @ApiOperation(
             value = "Handles FASTA register and parse a new genome in the system.",
             notes = "The following genome file types are supported: *.fasta, *.fasta.gz, *.fa, *.fa.gz, *.fna, " +
-                    "*.fna.gz, *.txt, *.txt.gz.<br/>" +
+                    "*.fna.gz, *.txt, *.txt.gz, *.genbank, *.gbk, *.gb.<br/>" +
                     "Optionally you can specify a user-friendly name for an uploaded genome through request " +
                     "parameter <b>name</b>, by default the original file name with omitted extension is used.<br/>" +
                     "It results in a payload that provides detailed information about a genome, including all " +

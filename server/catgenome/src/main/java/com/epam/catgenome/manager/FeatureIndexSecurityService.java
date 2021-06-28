@@ -65,7 +65,7 @@ public class FeatureIndexSecurityService {
     @PreAuthorize(ROLE_USER)
     public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(final GeneFilterForm filterForm,
                                                                           final Long referenceId) throws IOException {
-        return featureIndexManager.searchFeaturesByReference(filterForm, referenceId);
+        return featureIndexManager.searchGenesByReference(filterForm, referenceId);
     }
 
     @AclMapFilter

@@ -37,7 +37,7 @@
                 <div flex="100" layout="row" layout-wrap class="property-row">
                     <div flex="100" class="property property-value">
                         <div layout="row" ng-hide="$ctrl.isSequenceLoading || $ctrl.error" layout-align="stretch middle">
-                            <textarea wrap="hard" flex class="sequence-area">{{$ctrl.sequence}}</textarea>
+                            <textarea class="sequence-area" flex wrap="hard">{{$ctrl.sequence}}</textarea>
                         </div>
                         <div layout="row" ng-show="$ctrl.error">
                             <span class="sequence-loading-error">{{$ctrl.error}}</span>

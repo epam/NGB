@@ -383,6 +383,7 @@ public class GeneRegisterer {
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(indexPath);
+        indexItem.setSource(indexPath);
         indexItem.setFormat(BiologicalDataItemFormat.GENE_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");

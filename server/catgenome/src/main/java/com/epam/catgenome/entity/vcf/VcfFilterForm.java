@@ -60,6 +60,7 @@ public class VcfFilterForm extends AbstractFilterForm {
     private Boolean isExon;
     private Integer startIndex;
     private Integer endIndex;
+
     private Integer page;
     /**
      * Additional fields to show in Variations table
@@ -71,7 +72,6 @@ public class VcfFilterForm extends AbstractFilterForm {
 
     /**
      * Creates a {@code BooleanQuery} for loading all types of features ()
-     *
      * @return a {@code BooleanQuery} to a lucene index without filtering by a{@code FeatureType}
      */
     public BooleanQuery computeQuery() {
@@ -80,7 +80,6 @@ public class VcfFilterForm extends AbstractFilterForm {
 
     /**
      * Creates a {@code BooleanQuery} for loading variations from a lucene index with specified filters
-     *
      * @param featureType type of features to find
      * @return a {@code BooleanQuery} to a lucene with specified filters
      */
@@ -121,7 +120,6 @@ public class VcfFilterForm extends AbstractFilterForm {
 
     /**
      * Filter variations by positions, using only variation's start index
-     *
      * @param builder
      */
     private void addPositionFilter(BooleanQuery.Builder builder) {
@@ -140,7 +138,7 @@ public class VcfFilterForm extends AbstractFilterForm {
     }
 
     private void addAdditionalFilter(BooleanQuery.Builder builder,
-                                     Map.Entry<String, Object> entry) {
+            Map.Entry<String, Object> entry) {
         String key = entry.getKey().toLowerCase();
         if (entry.getValue() instanceof List) {
             addFiltersFromList(builder, entry, key);
@@ -158,7 +156,7 @@ public class VcfFilterForm extends AbstractFilterForm {
         if (quality != null && !quality.isEmpty()) {
             if (quality.size() < 2) {
                 builder.add(FloatPoint.newExactQuery(FeatureIndexFields.QUALITY.getFieldName(),
-                        quality.get(0)), BooleanClause.Occur.MUST);
+                                                     quality.get(0)), BooleanClause.Occur.MUST);
             } else {
                 Assert.isTrue(quality.get(0) != null || quality.get(1) != null, "Incorrect filter parameter:" +
                         " quality:[null, null]");
@@ -173,7 +171,7 @@ public class VcfFilterForm extends AbstractFilterForm {
     private void addFailedFilter(BooleanQuery.Builder builder) {
         if (StringUtils.isNotBlank(failedFilter)) {
             builder.add(new TermQuery(new Term(FeatureIndexFields.FAILED_FILTER.getFieldName(), failedFilter)),
-                    BooleanClause.Occur.MUST);
+                        BooleanClause.Occur.MUST);
         }
     }
 
@@ -194,7 +192,7 @@ public class VcfFilterForm extends AbstractFilterForm {
     private void addExonFilter(BooleanQuery.Builder builder) {
         if (isExon != null && isExon) {
             builder.add(new TermQuery(new Term(FeatureIndexFields.IS_EXON.getFieldName(), isExon.toString())),
-                    BooleanClause.Occur.MUST);
+                        BooleanClause.Occur.MUST);
         }
     }
 
@@ -205,7 +203,7 @@ public class VcfFilterForm extends AbstractFilterForm {
                 PrefixQuery geneIdPrefixQuery = new PrefixQuery(new Term(FeatureIndexFields.GENE_ID.getFieldName(),
                         genes.field.get(i).toLowerCase()));
                 PrefixQuery geneNamePrefixQuery = new PrefixQuery(
-                        new Term(FeatureIndexFields.GENE_NAME.getFieldName(), genes.field.get(i).toLowerCase()));
+                    new Term(FeatureIndexFields.GENE_NAME.getFieldName(), genes.field.get(i).toLowerCase()));
                 BooleanQuery.Builder geneIdOrNameQuery = new BooleanQuery.Builder();
                 geneIdOrNameQuery.add(geneIdPrefixQuery, BooleanClause.Occur.SHOULD);
                 geneIdOrNameQuery.add(geneNamePrefixQuery, BooleanClause.Occur.SHOULD);
@@ -221,7 +219,7 @@ public class VcfFilterForm extends AbstractFilterForm {
     private void addChromosomeFilter(BooleanQuery.Builder builder) {
         if (CollectionUtils.isNotEmpty(chromosomeIds)) {
             List<Term> chromosomeTerms = chromosomeIds.stream().map(id -> new Term(FeatureIndexFields.CHROMOSOME_ID
-                    .getFieldName(), id.toString())).collect(Collectors.toList());
+                            .getFieldName(), id.toString())).collect(Collectors.toList());
             builder.add(new TermsQuery(chromosomeTerms), BooleanClause.Occur.MUST);
         }
     }
@@ -239,13 +237,13 @@ public class VcfFilterForm extends AbstractFilterForm {
     private void addFeatureTypeFilter(FeatureType featureType, BooleanQuery.Builder builder) {
         if (featureType != null) {
             builder.add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                            featureType.getFileValue())),
+                                               featureType.getFileValue())),
                     BooleanClause.Occur.MUST);
         }
     }
 
     private void addFiltersFromList(BooleanQuery.Builder builder, Map.Entry<String, Object> entry,
-                                    String key) {
+            String key) {
         List list = (List) entry.getValue();
         if (list.isEmpty()) {
             return;
@@ -263,7 +261,7 @@ public class VcfFilterForm extends AbstractFilterForm {
     }
 
     private void tryAddFloatingKeyFalueFilter(BooleanQuery.Builder builder,
-                                              Map.Entry<String, Object> entry, String key, List list, Object val) {
+            Map.Entry<String, Object> entry, String key, List list, Object val) {
         if (val instanceof Float || entry.getValue() instanceof Double) {
             builder.add(FloatPoint.newRangeQuery(key,
                     list.get(0) != null ? (Float) list.get(0) : Float.MIN_VALUE,
@@ -273,7 +271,7 @@ public class VcfFilterForm extends AbstractFilterForm {
     }
 
     private void tryAddIntegralKeyValueFilter(BooleanQuery.Builder builder,
-                                              Map.Entry<String, Object> entry, String key, List list, Object val) {
+            Map.Entry<String, Object> entry, String key, List list, Object val) {
         if (val instanceof Integer || entry.getValue() instanceof Long) {
             builder.add(IntPoint.newRangeQuery(key,
                     list.get(0) != null ? (Integer) list.get(0) : Integer.MIN_VALUE,
@@ -283,7 +281,7 @@ public class VcfFilterForm extends AbstractFilterForm {
     }
 
     private void tryAddFloatingFilter(BooleanQuery.Builder builder, Map.Entry<String, Object> entry,
-                                      String key, Object val) {
+            String key, Object val) {
         if (val instanceof Float || entry.getValue() instanceof Double) {
             builder.add(FloatPoint.newExactQuery(key, (Float) entry.getValue()),
                     BooleanClause.Occur.MUST);
@@ -291,55 +289,11 @@ public class VcfFilterForm extends AbstractFilterForm {
     }
 
     private void tryAddIntegeralFilter(BooleanQuery.Builder builder, Map.Entry<String, Object> entry,
-                                       String key, Object val) {
+            String key, Object val) {
         if (val instanceof Integer || entry.getValue() instanceof Long) {
             builder.add(IntPoint.newExactQuery(key, (Integer) entry.getValue()),
                     BooleanClause.Occur.MUST);
         }
-    }
-
-    public static class FilterSection<T> {
-
-        private T field;
-        private boolean conjunction = false;
-
-        public FilterSection(T field, boolean conjunction) {
-            this.field = field;
-            this.conjunction = conjunction;
-        }
-
-        public FilterSection(T field) {
-            this.field = field;
-        }
-
-        public FilterSection() {
-            // no-op
-        }
-
-        public T getField() {
-            return field;
-        }
-
-        public boolean isConjunction() {
-            return conjunction;
-        }
-
-        public void setField(T field) {
-            this.field = field;
-        }
-
-        public void setConjunction(boolean conjunction) {
-            this.conjunction = conjunction;
-        }
-
-    }
-
-    public Integer getPage() {
-        return this.page;
-    }
-
-    public void setPage(Integer page) {
-        this.page = page;
     }
 
     public void setVariationTypes(FilterSection<List<VariationType>> variationTypes) {
@@ -430,6 +384,14 @@ public class VcfFilterForm extends AbstractFilterForm {
         isExon = exon;
     }
 
+    public Integer getPage() {
+        return page;
+    }
+
+    public void setPage(Integer page) {
+        this.page = page;
+    }
+
     public Integer getStartIndex() {
         return startIndex;
     }
@@ -446,6 +408,40 @@ public class VcfFilterForm extends AbstractFilterForm {
         this.endIndex = endIndex;
     }
 
+    public static class FilterSection<T> {
+
+        private T field;
+        private boolean conjunction = false;
+        public FilterSection(T field, boolean conjunction) {
+            this.field = field;
+            this.conjunction = conjunction;
+        }
+
+        public FilterSection(T field) {
+            this.field = field;
+        }
+
+        public FilterSection() {
+            // no-op
+        }
+
+        public T getField() {
+            return field;
+        }
+
+        public boolean isConjunction() {
+            return conjunction;
+        }
+
+        public void setField(T field) {
+            this.field = field;
+        }
+
+        public void setConjunction(boolean conjunction) {
+            this.conjunction = conjunction;
+        }
+
+    }
 
     public List<Long> getVcfFileIds() {
         return vcfFileIdsByProject.values().stream().flatMap(List::stream).collect(Collectors.toList());

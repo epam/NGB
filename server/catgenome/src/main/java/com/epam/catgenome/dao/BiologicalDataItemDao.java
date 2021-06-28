@@ -111,6 +111,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         params.addValue(BiologicalDataItemParameters.NAME.name(), item.getName());
         params.addValue(BiologicalDataItemParameters.TYPE.name(), item.getType().getId());
         params.addValue(BiologicalDataItemParameters.PATH.name(), item.getPath());
+        params.addValue(BiologicalDataItemParameters.SOURCE.name(), item.getSource());
         params.addValue(BiologicalDataItemParameters.FORMAT.name(), item.getFormat().getId());
         params.addValue(BiologicalDataItemParameters.CREATED_DATE.name(), item.getCreatedDate());
         params.addValue(BiologicalDataItemParameters.BUCKET_ID.name(), item.getBucketId());
@@ -217,6 +218,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         NAME,
         TYPE,
         PATH,
+        SOURCE,
         FORMAT,
         CREATED_DATE,
         BUCKET_ID,
@@ -320,6 +322,7 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
             dataItem.setType(rs.wasNull() ? null : BiologicalDataItemResourceType.getById(longVal));
 
             dataItem.setPath(rs.getString(PATH.name()));
+            dataItem.setSource(rs.getString(SOURCE.name()));
             dataItem.setFormat(format);
             dataItem.setCreatedDate(new Date(rs.getTimestamp(CREATED_DATE.name()).getTime()));
             dataItem.setPrettyName(rs.getString(PRETTY_NAME.name()));

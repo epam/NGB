@@ -28,7 +28,6 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.index.field.GeneIndexSortField;
 import com.epam.catgenome.dao.index.field.VcfIndexSortField;
 import com.epam.catgenome.dao.index.indexer.AbstractDocumentBuilder;
-import com.epam.catgenome.entity.AbstractFilterForm;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
@@ -208,17 +207,17 @@ public class FeatureIndexDao {
      * Sample query: featureId:rs44022* AND (variationType:del OR variationType:ins)
      *
      * @param featureFile a FeatureFile, for which features to save
-     * @param entries     a list of FeatureIndexEntry to write to index
+     * @param entries a list of FeatureIndexEntry to write to index
      * @throws IOException
      */
     public void writeLuceneIndexForFile(final FeatureFile featureFile,
                                         final List<? extends FeatureIndexEntry> entries,
                                         VcfFilterInfo vcfFilterInfo) throws IOException {
         try (
-                StandardAnalyzer analyzer = new StandardAnalyzer();
-                Directory index = fileManager.createIndexForFile(featureFile);
-                IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
-                        IndexWriterConfig.OpenMode.CREATE_OR_APPEND))
+            StandardAnalyzer analyzer = new StandardAnalyzer();
+            Directory index = fileManager.createIndexForFile(featureFile);
+            IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
+                IndexWriterConfig.OpenMode.CREATE_OR_APPEND))
         ) {
             AbstractDocumentBuilder creator = AbstractDocumentBuilder.createDocumentCreator(
                     entries.isEmpty() ? new FeatureIndexEntry() : entries.get(0));
@@ -232,15 +231,17 @@ public class FeatureIndexDao {
         }
     }
 
-    public IndexSearchResult<FeatureIndexEntry> searchFeatures(final String featureId, final FeatureFile featureFile,
-                                                               final Integer maxResultsCount) throws IOException {
+    public IndexSearchResult<FeatureIndexEntry> searchFeatures(String featureId,
+            FeatureFile featureFile,
+            Integer maxResultsCount)
+            throws IOException {
         return searchFeatures(featureId, Collections.singletonList(featureFile), maxResultsCount);
     }
 
     /**
      * Searches genes by it's ID in project's gene files. Minimum featureId prefix length == 2
      *
-     * @param featureId    a feature ID prefix to search for
+     * @param featureId a feature ID prefix to search for
      * @param featureFiles a gene file ,from which to search
      * @return a {@code List} of {@code FeatureIndexEntry}
      * @throws IOException
@@ -273,12 +274,12 @@ public class FeatureIndexDao {
         mainBuilder.add(featureTypeBuilder.build(), BooleanClause.Occur.MUST);
 
         return searchFileIndexes(featureFiles, mainBuilder.build(), null,
-                maxResultsCount, new Sort(new SortField(FeatureIndexFields.FEATURE_NAME.getFieldName(),
-                        SortField.Type.STRING)));
+                                 maxResultsCount, new Sort(new SortField(FeatureIndexFields.FEATURE_NAME.getFieldName(),
+                                                                         SortField.Type.STRING)));
     }
 
     public IndexSearchResult<FeatureIndexEntry> searchFeaturesInInterval(List<? extends FeatureFile> files, int start,
-                                                                         int end, Chromosome chromosome)
+            int end, Chromosome chromosome)
             throws IOException {
 
         List<? extends FeatureFile> indexedFiles =
@@ -344,16 +345,16 @@ public class FeatureIndexDao {
     /**
      * Queries a feature index of a project, specified by ID
      *
-     * @param projectId     ID of a project, which index to work with
-     * @param query         a query string
+     * @param projectId ID of a project, which index to work with
+     * @param query a query string
      * @param vcfInfoFields list of info fields to retrieve
-     * @return a {List} of {@code FeatureIndexEntry} objects that satisfy index query
-     * @throws FeatureIndexException if something goes wrong
+     * @return  a {List} of {@code FeatureIndexEntry} objects that satisfy index query
      * @deprecated
+     * @throws FeatureIndexException if something goes wrong
      */
     @Deprecated
     public IndexSearchResult searchLuceneIndexForProject(final long projectId, String query,
-                                                         List<String> vcfInfoFields) throws FeatureIndexException {
+                                                     List<String> vcfInfoFields) throws FeatureIndexException {
         try (Analyzer analyzer = new StandardAnalyzer()) {
             QueryParser queryParser = new QueryParser(FeatureIndexFields.FEATURE_ID.getFieldName(), analyzer);
             return searchLuceneIndexForProject(projectId, queryParser.parse(query), vcfInfoFields);
@@ -365,16 +366,16 @@ public class FeatureIndexDao {
     /**
      * Queries a feature index of a project, specified by ID
      *
-     * @param projectId     ID of a project, which index to work with
-     * @param query         a query to search in index
+     * @param projectId ID of a project, which index to work with
+     * @param query a query to search in index
      * @param vcfInfoFields list of info fields to retrieve
      * @return a {List} of {@code FeatureIndexEntry} objects that satisfy index query
-     * @throws IOException
      * @deprecated
+     * @throws IOException
      */
     @Deprecated
     public IndexSearchResult searchLuceneIndexForProject(final long projectId, Query query,
-                                                         List<String> vcfInfoFields) throws IOException {
+                                                                     List<String> vcfInfoFields) throws IOException {
         return searchLuceneIndexForProject(projectId, query, vcfInfoFields, null, null);
     }
 
@@ -382,21 +383,21 @@ public class FeatureIndexDao {
      * Queries a feature index of a project, specified by ID
      *
      * @param projectId ID of a project, which index to work with
-     * @param query     a query to search in index
+     * @param query a query to search in index
      * @return a {List} of {@code FeatureIndexEntry} objects that satisfy index query
-     * @throws IOException
      * @deprecated
+     * @throws IOException
      */
     @Deprecated
     private IndexSearchResult searchLuceneIndexForProject(final long projectId, Query query,
-                                                          List<String> vcfInfoFields, Integer maxResultsCount,
-                                                          Sort sort) throws IOException {
+                                             List<String> vcfInfoFields, Integer maxResultsCount, Sort sort) throws
+            IOException {
         Map<Integer, FeatureIndexEntry> entryMap = new LinkedHashMap<>();
 
         int totalHits = 0;
         try (
-                Directory index = fileManager.getIndexForProject(projectId);
-                IndexReader reader = DirectoryReader.open(index)
+            Directory index = fileManager.getIndexForProject(projectId);
+            IndexReader reader = DirectoryReader.open(index)
         ) {
             if (reader.numDocs() == 0) {
                 return new IndexSearchResult(Collections.emptyList(), false, 0);
@@ -431,69 +432,68 @@ public class FeatureIndexDao {
     /**
      * Queries a feature index of a list of files. A default index order sorting is being used.
      *
-     * @param files         a {@link List} of {@link FeatureFile}, which indexes to search
-     * @param query         a query string to search in index
+     * @param files a {@link List} of {@link FeatureFile}, which indexes to search
+     * @param query a query string to search in index
      * @param vcfInfoFields list of info fields to retrieve
      * @return a {List} of {@code FeatureIndexEntry} objects that satisfy index query
      * @throws FeatureIndexException if something is wrong in the filesystem or query syntax is wrong
      */
-    public IndexSearchResult<FeatureIndexEntry> searchFileIndexes(List<? extends FeatureFile> files, String query,
-                                               List<String> vcfInfoFields) throws FeatureIndexException {
+    public IndexSearchResult searchFileIndexes(List<? extends FeatureFile> files, String query,
+                                                         List<String> vcfInfoFields) throws FeatureIndexException {
         try (Analyzer analyzer = new StandardAnalyzer()) {
             QueryParser queryParser = new QueryParser(FeatureIndexFields.FEATURE_ID.getFieldName(), analyzer);
             return searchFileIndexes(files, queryParser.parse(query), vcfInfoFields, null, null);
         } catch (IOException | ParseException e) {
             throw new FeatureIndexException("Failed to perform index search for files " +
-                    files.stream().map(BaseEntity::getName).collect(Collectors.joining(", ")), e);
+                                        files.stream().map(BaseEntity::getName).collect(Collectors.joining(", ")), e);
         }
     }
 
     /**
      * Queries a feature index of a list of files
      *
-     * @param files           a {@link List} of {@link FeatureFile}, which indexes to search
-     * @param query           a query to search in index
-     * @param vcfInfoFields   list of info fields to retrieve
+     * @param files a {@link List} of {@link FeatureFile}, which indexes to search
+     * @param query a query to search in index
+     * @param vcfInfoFields list of info fields to retrieve
      * @param maxResultsCount specifies a maximum number of search results to get
-     * @param sort            specifies sorting
+     * @param sort specifies sorting
      * @return a {List} of {@code FeatureIndexEntry} objects that satisfy index query
      * @throws IOException if something is wrong in the filesystem
      */
-    public <T extends FeatureIndexEntry> IndexSearchResult<T> searchFileIndexes(final List<? extends FeatureFile> files,
-                                                                                final Query query,
-                                                                                final List<String> vcfInfoFields,
-                                                                                final Integer maxResultsCount,
-                                                                                final Sort sort) throws IOException {
+    public <T extends FeatureIndexEntry> IndexSearchResult<T> searchFileIndexes(List<? extends FeatureFile> files,
+                                                                                Query query, List<String> vcfInfoFields,
+                                                                                Integer maxResultsCount, Sort sort)
+        throws IOException {
         if (CollectionUtils.isEmpty(files)) {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
 
-        final Map<Integer, FeatureIndexEntry> entryMap = new LinkedHashMap<>();
+        Map<Integer, FeatureIndexEntry> entryMap = new LinkedHashMap<>();
 
-        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
+        SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(files);
 
         try (MultiReader reader = openMultiReader(indexes)) {
             if (reader.numDocs() == 0) {
                 return new IndexSearchResult<>(Collections.emptyList(), false, 0);
             }
 
-            final IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
+            IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
             final TopDocs docs = performSearch(searcher, query, reader, maxResultsCount, sort);
 
             int totalHits = docs.totalHits;
             final ScoreDoc[] hits = docs.scoreDocs;
 
-            final Map<Long, BookmarkIndexEntry> foundBookmarkEntries = new HashMap<>(); // for batch bookmarks loading
-            final AbstractDocumentBuilder documentCreator = AbstractDocumentBuilder.createDocumentCreator(
+            Map<Long, BookmarkIndexEntry> foundBookmarkEntries = new HashMap<>(); // for batch bookmarks loading
+            AbstractDocumentBuilder documentCreator = AbstractDocumentBuilder.createDocumentCreator(
                     files.get(0).getFormat(), vcfInfoFields);
             createIndexEntries(hits, entryMap, searcher, documentCreator);
             setBookmarks(foundBookmarkEntries);
 
             return new IndexSearchResult<>(new ArrayList<T>((Collection<? extends T>) entryMap.values()),
-                    maxResultsCount != null &&
-                            totalHits > maxResultsCount, totalHits);
+                                           maxResultsCount != null &&
+                                           totalHits > maxResultsCount, totalHits);
         } finally {
-            for (final SimpleFSDirectory index : indexes) {
+            for (SimpleFSDirectory index : indexes) {
                 IOUtils.closeQuietly(index);
             }
         }
@@ -520,7 +520,7 @@ public class FeatureIndexDao {
             searcher.search(query, facetsCollector);
 
             Facets facets = new SortedSetDocValuesFacetCounts(new DefaultSortedSetDocValuesReaderState(reader,
-                    FeatureIndexFields.FACET_UID.fieldName), facetsCollector);
+                                                           FeatureIndexFields.FACET_UID.fieldName), facetsCollector);
             FacetResult res = facets.getTopChildren(reader.numDocs(), FeatureIndexFields.F_UID.getFieldName());
             if (res == null) {
                 return 0;
@@ -577,7 +577,7 @@ public class FeatureIndexDao {
     public Sort createGeneSorting(final List<GeneFilterForm.OrderBy> orderBy, final List<FeatureFile> featureFiles) {
         if (CollectionUtils.isNotEmpty(orderBy)) {
             final ArrayList<SortField> sortFields = new ArrayList<>();
-            for (AbstractFilterForm.OrderBy o : orderBy) {
+            for (GeneFilterForm.OrderBy o : orderBy) {
                 final GeneIndexSortField sortField = GeneIndexSortField.getByName(o.getField());
                 if (sortField != null) {
                     final SortField sf;
@@ -632,9 +632,8 @@ public class FeatureIndexDao {
 
     /**
      * Groups variations from specified {@link List} of {@link VcfFile}s by specified field
-     *
-     * @param files   a {@link List} of {@link FeatureFile}, which indexes to search
-     * @param query   a query to search in index
+     * @param files a {@link List} of {@link FeatureFile}, which indexes to search
+     * @param query a query to search in index
      * @param groupBy a field to perform grouping
      * @return a {@link List} of {@link Group}s, mapping field value to number of variations, having this value
      * @throws IOException if something goes wrong with the file system
@@ -736,7 +735,7 @@ public class FeatureIndexDao {
 
 
     public TopDocs performSearch(IndexSearcher searcher, Query query, IndexReader reader,
-                                 Integer maxResultsCount, Sort sort) throws IOException {
+            Integer maxResultsCount, Sort sort) throws IOException {
         final TopDocs docs;
         int resultsCount = maxResultsCount == null ? reader.numDocs() : maxResultsCount;
         Query constantQuery = new ConstantScoreQuery(query);
@@ -762,18 +761,18 @@ public class FeatureIndexDao {
      * specified query
      *
      * @param files a list of {@link FeatureFile}s to search chromosomes
-     * @param query a query to filter variations
+     * @param query     a query to filter variations
      * @return a {@code List} of chromosome IDs
      * @throws IOException
      */
     public List<Long> getChromosomeIdsWhereVariationsPresentFacet(List<? extends FeatureFile> files, String query)
-            throws FeatureIndexException {
+        throws FeatureIndexException {
         try (Analyzer analyzer = new StandardAnalyzer()) {
             QueryParser queryParser = new QueryParser(FeatureIndexFields.FEATURE_ID.getFieldName(), analyzer);
             return getChromosomeIdsWhereVariationsPresentFacet(files, queryParser.parse(query));
         } catch (IOException | ParseException e) {
             throw new FeatureIndexException("Failed to perform facet index search for files " + files.stream()
-                    .map(BaseEntity::getName).collect(Collectors.joining(", ")), e);
+                .map(BaseEntity::getName).collect(Collectors.joining(", ")), e);
         }
     }
 
@@ -782,12 +781,12 @@ public class FeatureIndexDao {
      * specified query
      *
      * @param files a list of {@link FeatureFile}s to search chromosomes
-     * @param query a query to filter variations
+     * @param query     a query to filter variations
      * @return a {@code List} of chromosome IDs
      * @throws IOException
      */
     public List<Long> getChromosomeIdsWhereVariationsPresentFacet(List<? extends FeatureFile> files, Query query)
-            throws IOException {
+        throws IOException {
         if (CollectionUtils.isEmpty(files)) {
             return Collections.emptyList();
         }
@@ -806,7 +805,7 @@ public class FeatureIndexDao {
             searcher.search(query, facetsCollector);
 
             Facets facets = new SortedSetDocValuesFacetCounts(new DefaultSortedSetDocValuesReaderState(reader,
-                    FeatureIndexFields.FACET_CHR_ID.getFieldName()), facetsCollector);
+                                                   FeatureIndexFields.FACET_CHR_ID.getFieldName()), facetsCollector);
             FacetResult res = facets.getTopChildren(FACET_LIMIT, FeatureIndexFields.CHR_ID.getFieldName());
             if (res == null) {
                 return Collections.emptyList();
@@ -840,15 +839,15 @@ public class FeatureIndexDao {
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
 
         PrefixQuery geneIdPrefixQuery = new PrefixQuery(new Term(FeatureIndexFields.GENE_ID.getFieldName(),
-                gene.toLowerCase()));
+                                                                 gene.toLowerCase()));
         PrefixQuery geneNamePrefixQuery = new PrefixQuery(new Term(FeatureIndexFields.GENE_NAME.getFieldName(),
-                gene.toLowerCase()));
+                                                                   gene.toLowerCase()));
         BooleanQuery.Builder geneIdOrNameQuery = new BooleanQuery.Builder();
         geneIdOrNameQuery.add(geneIdPrefixQuery, BooleanClause.Occur.SHOULD);
         geneIdOrNameQuery.add(geneNamePrefixQuery, BooleanClause.Occur.SHOULD);
 
         builder.add(geneIdOrNameQuery.build(), BooleanClause.Occur.MUST);
-        BooleanQuery query = builder.build();
+        BooleanQuery query =  builder.build();
 
         Set<String> geneIds = new HashSet<>();
 
@@ -893,8 +892,8 @@ public class FeatureIndexDao {
      * Deletes features from specified feature files from project's index
      *
      * @param projectId a project to delete index entries
-     * @param fileIds   a list of Pair of feature types to file Ids, which entries to delete. To delete gene file
-     *                  entries, pass FeatureType.GENE
+     * @param fileIds a list of Pair of feature types to file Ids, which entries to delete. To delete gene file
+     *                entries, pass FeatureType.GENE
      */
     public void deleteFromIndexByFileId(final long projectId, List<Pair<FeatureType, Long>> fileIds) {
         if (fileIds == null || fileIds.isEmpty() || !fileManager.indexForProjectExists(projectId)) {
@@ -902,10 +901,10 @@ public class FeatureIndexDao {
         }
 
         try (
-                StandardAnalyzer analyzer = new StandardAnalyzer();
-                Directory index = fileManager.getIndexForProject(projectId);
-                IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
-                        IndexWriterConfig.OpenMode.CREATE_OR_APPEND))
+            StandardAnalyzer analyzer = new StandardAnalyzer();
+            Directory index = fileManager.getIndexForProject(projectId);
+            IndexWriter writer = new IndexWriter(index, new IndexWriterConfig(analyzer).setOpenMode(
+                                                                        IndexWriterConfig.OpenMode.CREATE_OR_APPEND))
         ) {
             if (fileManager.indexForProjectExists(projectId)) {
                 for (Pair<FeatureType, Long> id : fileIds) {
@@ -920,32 +919,31 @@ public class FeatureIndexDao {
     private void deleteDocumentByTypeAndId(FeatureType type, Long id, IndexWriter writer) throws IOException {
         BooleanQuery.Builder deleteQueryBuilder = new BooleanQuery.Builder();
         TermQuery idQuery = new TermQuery(new Term(FeatureIndexFields.FILE_ID.getFieldName(),
-                id.toString()));
+                                                   id.toString()));
         deleteQueryBuilder.add(idQuery, BooleanClause.Occur.MUST);
 
         if (type != FeatureType.GENE) {
             TermQuery typeQuery = new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                    type.getFileValue()));
+                                                         type.getFileValue()));
             deleteQueryBuilder.add(typeQuery, BooleanClause.Occur.MUST);
         } else {
             deleteQueryBuilder.add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                    FeatureType.BOOKMARK.getFileValue())), BooleanClause.Occur.MUST_NOT);
+                                                  FeatureType.BOOKMARK.getFileValue())), BooleanClause.Occur.MUST_NOT);
             deleteQueryBuilder.add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                    FeatureType.VARIATION.getFileValue())), BooleanClause.Occur.MUST_NOT);
+                                                FeatureType.VARIATION.getFileValue())), BooleanClause.Occur.MUST_NOT);
         }
 
         writer.deleteDocuments(deleteQueryBuilder.build());
     }
 
     private void createIndexEntries(final ScoreDoc[] hits, Map<Integer, FeatureIndexEntry> entryMap,
-                                    IndexSearcher searcher, AbstractDocumentBuilder documentCreator)
-            throws IOException {
+            IndexSearcher searcher, AbstractDocumentBuilder documentCreator) throws IOException {
         createIndexEntries(hits, entryMap, searcher, documentCreator, null, null);
     }
 
     private ScoreDoc createIndexEntries(final ScoreDoc[] hits, Map<Integer, FeatureIndexEntry> entryMap,
-                                        IndexSearcher searcher, AbstractDocumentBuilder documentCreator, Integer page,
-                                        Integer pageSize) throws IOException {
+            IndexSearcher searcher, AbstractDocumentBuilder documentCreator, Integer page,
+            Integer pageSize) throws IOException {
         int from = page != null ? (page - 1) * pageSize : 0;
         int to = page != null ? Math.min(from + pageSize, hits.length) : hits.length;
         if (from > hits.length) {
@@ -963,7 +961,7 @@ public class FeatureIndexDao {
         if (hits.length == 0) {
             return null;
         } else {
-            return hits[min - 1];
+            return hits[min-1];
         }
 
     }

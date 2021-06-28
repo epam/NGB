@@ -98,6 +98,7 @@ public final class EntityHelper {
         reference.setSize(REF_BASES_COUNT);
         reference.setName("Test.Reference.0.0.1");
         reference.setPath("/contents/tests/references/" + reference.getId());
+        reference.setSource("/contents/tests/references/" + reference.getId());
         reference.setCreatedDate(DateUtils.truncate(new Date(), Calendar.DAY_OF_MONTH));
         reference.setType(BiologicalDataItemResourceType.FILE);
         reference.setIndex(createIndex(BiologicalDataItemFormat.REFERENCE_INDEX,
@@ -137,6 +138,7 @@ public final class EntityHelper {
         reference.setName("testReference " + referenceId);
         reference.setSize(0L);
         reference.setPath("");
+        reference.setSource("");
         reference.setCreatedDate(new Date());
         reference.setChromosomes(Collections.singletonList(chromosome));
         reference.setIndex(createIndex(BiologicalDataItemFormat.REFERENCE_INDEX,
@@ -151,6 +153,7 @@ public final class EntityHelper {
         reference.setName("testReference " + referenceId);
         reference.setSize(0L);
         reference.setPath("");
+        reference.setSource("");
         reference.setCreatedDate(new Date());
         reference.setChromosomes(chromosomes);
         reference.setIndex(createIndex(BiologicalDataItemFormat.REFERENCE_INDEX,
@@ -181,6 +184,7 @@ public final class EntityHelper {
         index.setType(type);
         index.setFormat(format);
         index.setPath(path);
+        index.setSource(path);
         index.setCreatedDate(new Date());
         index.setOwner(TEST_OWNER);
 
