@@ -597,9 +597,10 @@ public class ReferenceManager {
     private String genbankToFasta(final Reference reference) {
         String genbankFilePath = reference.getPath();
         Assert.notNull(genbankFilePath, getMessage(MessageCode.RESOURCE_NOT_FOUND));
-        SeekableStream ss = SeekableStreamFactory.getInstance().getStreamFor(genbankFilePath);
-        Map<String, DNASequence> dnaSequences = GenbankReaderHelper.readGenbankDNASequence(ss);
-        ss.close();
+        Map<String, DNASequence> dnaSequences;
+        try (final SeekableStream genBankStream = SeekableStreamFactory.getInstance().getStreamFor(genbankFilePath)) {
+            dnaSequences = GenbankReaderHelper.readGenbankDNASequence(genBankStream);
+        }
         Assert.isTrue(!dnaSequences.isEmpty(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
         String referenceDir = fileManager.getReferenceDir(reference);
         Assert.notNull(referenceDir, getMessage(MessageCode.RESOURCE_NOT_FOUND));
