@@ -13,5 +13,6 @@ export default {
     label: 'Download file',
     name: 'general>downloadFile',
     get: getLink,
-    type: 'link'
+    type: 'link',
+    isVisible: (state, tracks) => tracks.length === 1
 };
