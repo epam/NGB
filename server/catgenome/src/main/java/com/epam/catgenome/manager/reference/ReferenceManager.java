@@ -191,6 +191,7 @@ public class ReferenceManager {
 
             long lengthOfGenome;
             if (request.getType() == BiologicalDataItemResourceType.GA4GH) {
+//              doesn't work for Genbank format
                 lengthOfGenome = registerGA4GH(request, referenceId, reference);
             } else {
                 lengthOfGenome =
