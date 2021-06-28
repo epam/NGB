@@ -224,6 +224,7 @@ public class MafManager {
             throws IOException {
         LOGGER.debug("Registering MAF file " + mafFile.getRealPath());
         fileManager.makeMafDir(mafFile.getId());
+        mafFile.setSource(request.getPath());
         if (file.isDirectory()) {
             mergeMaf(file, mafFile);
         } else {

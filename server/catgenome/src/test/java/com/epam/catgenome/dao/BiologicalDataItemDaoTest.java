@@ -93,6 +93,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         BiologicalDataItem item = new BiologicalDataItem();
         item.setName(TEST_NAME);
         item.setPath(TEST_PATH);
+        item.setSource(TEST_PATH);
         item.setFormat(BiologicalDataItemFormat.REFERENCE);
         item.setType(BiologicalDataItemResourceType.FILE);
         item.setCreatedDate(new Date());
@@ -113,6 +114,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         Assert.assertEquals(item.getId(), BiologicalDataItem.getBioDataItemId(loadedItem));
         Assert.assertEquals(item.getName(), loadedItem.getName());
         Assert.assertEquals(item.getPath(), loadedItem.getPath());
+        Assert.assertEquals(item.getSource(), loadedItem.getPath());
         Assert.assertEquals(item.getCreatedDate(), loadedItem.getCreatedDate());
         Assert.assertEquals(item.getType(), loadedItem.getType());
         Assert.assertEquals(item.getFormat(), loadedItem.getFormat());
@@ -125,6 +127,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         BiologicalDataItem item = new BiologicalDataItem();
         item.setName(TEST_NAME);
         item.setPath(TEST_PATH);
+        item.setSource(TEST_PATH);
         item.setFormat(BiologicalDataItemFormat.REFERENCE);
         item.setType(BiologicalDataItemResourceType.FILE);
         item.setCreatedDate(new Date());
@@ -144,6 +147,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         Assert.assertEquals(item.getId(), BiologicalDataItem.getBioDataItemId(loadedItem));
         Assert.assertEquals(item.getName(), loadedItem.getName());
         Assert.assertEquals(item.getPath(), loadedItem.getPath());
+        Assert.assertEquals(item.getSource(), loadedItem.getPath());
         Assert.assertEquals(item.getCreatedDate(), loadedItem.getCreatedDate());
         Assert.assertEquals(item.getType(), loadedItem.getType());
         Assert.assertEquals(item.getFormat(), loadedItem.getFormat());
@@ -158,6 +162,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         BiologicalDataItem item = new BiologicalDataItem();
         item.setName(TEST_NAME);
         item.setPath(TEST_PATH);
+        item.setSource(TEST_PATH);
         item.setFormat(BiologicalDataItemFormat.REFERENCE);
         item.setType(BiologicalDataItemResourceType.FILE);
         item.setCreatedDate(new Date());
@@ -186,6 +191,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         reference.setSize(1L);
         reference.setName("testReference");
         reference.setPath(TEST_PATH);
+        reference.setSource(TEST_PATH);
         reference.setType(BiologicalDataItemResourceType.FILE);
         reference.setId(item.getId());
 
@@ -202,6 +208,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         BiologicalDataItem indexItem = new BiologicalDataItem();
         indexItem.setCreatedDate(new Date());
         indexItem.setPath(TEST_PATH);
+        indexItem.setSource(TEST_PATH);
         indexItem.setFormat(BiologicalDataItemFormat.GENE_INDEX);
         indexItem.setType(BiologicalDataItemResourceType.FILE);
         indexItem.setName("");
@@ -214,6 +221,7 @@ public class BiologicalDataItemDaoTest extends AbstractTransactionalJUnit4Spring
         geneFile.setName("testGeneFile");
         geneFile.setCompressed(false);
         geneFile.setPath(TEST_PATH);
+        geneFile.setSource(TEST_PATH);
         geneFile.setType(BiologicalDataItemResourceType.FILE); // For now we're working only with files
         geneFile.setCreatedDate(new Date());
         geneFile.setReferenceId(reference.getId());

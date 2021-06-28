@@ -227,10 +227,12 @@ public class FacadeWigManager {
         wigFile.setReferenceId(request.getReferenceId());
         wigFile.setCreatedDate(new Date());
         wigFile.setPath(request.getPath());
+        wigFile.setSource(request.getPath());
         if (StringUtils.isNotBlank(request.getIndexPath())) {
             BiologicalDataItem indexItem = new BiologicalDataItem();
             indexItem.setCreatedDate(new Date());
             indexItem.setPath(request.getIndexPath());
+            indexItem.setSource(request.getIndexPath());
             indexItem.setFormat(BiologicalDataItemFormat.VCF_INDEX);
             indexItem.setType(BiologicalDataItemResourceType.translateRequestType(request.getIndexType()));
             indexItem.setName(request.getName() + "_index");

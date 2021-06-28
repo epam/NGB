@@ -50,8 +50,9 @@ public enum MessageCode {
 
     UNSORTED_BAM("error.unsorted.bam"),
     WRONG_BAM_INDEX_FILE("error.bam.index.file"),
-    WRONG_NAME("name.already.exists");
+    WRONG_NAME("name.already.exists"),
 
+    ERROR_GENBANK_FILE_READING("error.genbank.file.reading");
 
     private final String code;
 

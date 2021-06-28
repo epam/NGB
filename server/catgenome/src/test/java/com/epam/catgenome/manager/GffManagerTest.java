@@ -488,7 +488,7 @@ public class GffManagerTest extends AbstractManagerTest {
             Assert.assertFalse(testGene.getTranscripts().isEmpty());
             Transcript testTranscript = testGene.getTranscripts().get(1);
 
-            Assert.assertTrue(testTranscript.getBioType().equals(PROTEIN_CODING));
+            Assert.assertEquals(PROTEIN_CODING, testTranscript.getBioType());
 
             Assert.assertFalse(testTranscript.getDomain().isEmpty());
             Assert.assertFalse(testTranscript.getExon().isEmpty());

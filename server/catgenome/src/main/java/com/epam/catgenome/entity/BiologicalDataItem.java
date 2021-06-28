@@ -46,6 +46,7 @@ public class BiologicalDataItem extends AbstractSecuredEntity {
 
     private BiologicalDataItemResourceType type;
     private String path;
+    private String source;
     private BiologicalDataItemFormat format;
     private Date createdDate;
     private Long bucketId;
@@ -82,6 +83,14 @@ public class BiologicalDataItem extends AbstractSecuredEntity {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 
     public BiologicalDataItemFormat getFormat() {

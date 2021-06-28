@@ -258,6 +258,7 @@ public class GffManager {
         geneFile.setId(geneFileManager.createGeneFileId());
         geneFile.setCompressed(IOHelper.isGZIPFile(file.getName()));
         geneFile.setPath(request.getPath());
+        geneFile.setSource(request.getPath());
         geneFile.setName(request.getName() != null ? request.getName() : file.getName());
         geneFile.setType(request.getType());
         geneFile.setCreatedDate(new Date());
@@ -268,6 +269,7 @@ public class GffManager {
             BiologicalDataItem indexItem = new BiologicalDataItem();
             indexItem.setCreatedDate(new Date());
             indexItem.setPath(request.getIndexPath());
+            indexItem.setSource(request.getIndexPath());
             indexItem.setFormat(BiologicalDataItemFormat.GENE_INDEX);
             indexItem.setType(request.getIndexType());
             indexItem.setName("");

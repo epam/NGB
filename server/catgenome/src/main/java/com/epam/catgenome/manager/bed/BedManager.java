@@ -331,6 +331,7 @@ public class BedManager {
         bedFile.setId(bedFileManager.createBedFileId());
         bedFile.setCompressed(resourceType == BiologicalDataItemResourceType.FILE && IOHelper.isGZIPFile(fileName));
         bedFile.setPath(request.getPath());
+        bedFile.setSource(request.getPath());
         bedFile.setName(request.getName() != null ? request.getName() : fileName);
         bedFile.setType(resourceType); // For now we're working only with files
         bedFile.setCreatedDate(new Date());
@@ -348,6 +349,7 @@ public class BedManager {
                 final BiologicalDataItem indexItem = new BiologicalDataItem();
                 indexItem.setCreatedDate(new Date());
                 indexItem.setPath(request.getIndexPath());
+                indexItem.setSource(request.getIndexPath());
                 indexItem.setFormat(BiologicalDataItemFormat.BED_INDEX);
                 indexItem.setType(BiologicalDataItemResourceType
                         .translateRequestType(request.getIndexType()));

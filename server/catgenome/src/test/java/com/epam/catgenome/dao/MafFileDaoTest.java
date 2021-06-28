@@ -77,6 +77,7 @@ public class MafFileDaoTest extends AbstractDaoTest {
         mafFile.setName("testFile");
         mafFile.setType(BiologicalDataItemResourceType.FILE);
         mafFile.setPath("///");
+        mafFile.setSource("///");
         mafFile.setCreatedDate(new Date());
         mafFile.setReferenceId(reference.getId());
         mafFile.setOwner(EntityHelper.TEST_OWNER);
@@ -97,6 +98,7 @@ public class MafFileDaoTest extends AbstractDaoTest {
         assertEquals(mafFile.getType(), loadedFile.getType());
         assertEquals(mafFile.getFormat(), loadedFile.getFormat());
         assertEquals(mafFile.getPath(), loadedFile.getPath());
+        assertEquals(mafFile.getSource(), loadedFile.getPath());
         assertEquals(mafFile.getIndex().getPath(), loadedFile.getIndex().getPath());
         assertEquals(mafFile.getCreatedDate(), loadedFile.getCreatedDate());
         assertEquals(mafFile.getReferenceId(), loadedFile.getReferenceId());

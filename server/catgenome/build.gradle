@@ -176,6 +176,10 @@ dependencies {
         exclude group: "com.github.samtools", module: "htsjdk"
     }
 
+//    biojava
+    compile group: "org.biojava", name:"biojava-genome", version: "4.2.0"
+    compile group: "org.biojava", name:"biojava-structure", version: "4.2.0"
+
     // >>>>> dependencies used to compile tests; in fact no need to include them into artifact
     testCompile("org.springframework.boot:spring-boot-starter-test")
     testCompile group: "org.unitils", name: "unitils-core", version: project.ext.versionUnitils

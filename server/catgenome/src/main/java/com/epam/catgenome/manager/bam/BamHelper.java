@@ -281,6 +281,7 @@ public class BamHelper {
         newBamFile.setReferenceId(request.getReferenceId());
         newBamFile.setCreatedDate(new Date());
         newBamFile.setPath(request.getPath());
+        newBamFile.setSource(request.getPath());
         newBamFile.setBucketId(request.getS3BucketId());
         newBamFile.setPrettyName(request.getPrettyName());
 
@@ -291,6 +292,7 @@ public class BamHelper {
         indexItem.setBucketId(request.getIndexS3BucketId() == null ? request.getS3BucketId() : request.
                 getIndexS3BucketId());
         indexItem.setPath(request.getIndexPath());
+        indexItem.setSource(request.getIndexPath());
         newBamFile.setIndex(indexItem);
 
         return newBamFile;

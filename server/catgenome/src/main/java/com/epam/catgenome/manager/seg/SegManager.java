@@ -211,6 +211,7 @@ public class SegManager {
         segFile.setId(segFileManager.createSegFileId());
         segFile.setCompressed(IOHelper.isGZIPFile(file.getName()));
         segFile.setPath(request.getPath());
+        segFile.setSource(request.getPath());
         segFile.setName(request.getName() != null ? request.getName() : file.getName());
         segFile.setType(BiologicalDataItemResourceType.FILE); // For now we're working only with files
         segFile.setCreatedDate(new Date());

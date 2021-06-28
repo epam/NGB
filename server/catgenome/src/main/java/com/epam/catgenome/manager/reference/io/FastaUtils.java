@@ -25,6 +25,7 @@ public final class FastaUtils {
     }
     private static final int TIMEOUT = 3000;
     public static final String FASTA_INDEX = ".fai";
+    public static final String DEFAULT_FASTA_EXTENSION = ".fa";
     private static final Pattern WHITE_SPACE = Pattern.compile("\\s+");
     public static final Pattern SEQUENCE_NAME_SPLITTER = Pattern.compile("\\s+");
 

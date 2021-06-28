@@ -210,6 +210,7 @@ public class ReferenceGenomeDaoTest extends AbstractDaoTest {
         geneFile.setType(BiologicalDataItemResourceType.FILE);
         geneFile.setFormat(BiologicalDataItemFormat.GENE);
         geneFile.setPath("///");
+        geneFile.setSource("///");
         geneFile.setOwner(EntityHelper.TEST_OWNER);
 
         BiologicalDataItem index = EntityHelper.createIndex(BiologicalDataItemFormat.GENE_INDEX,
@@ -273,6 +274,7 @@ public class ReferenceGenomeDaoTest extends AbstractDaoTest {
         newReference.setSize(reference.getSize());
         newReference.setName(reference.getName());
         newReference.setPath(reference.getPath());
+        newReference.setSource(reference.getPath());
         newReference.setType(BiologicalDataItemResourceType.FILE);
         newReference.setId(referenceGenomeDao.createReferenceGenomeId());
 

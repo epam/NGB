@@ -80,6 +80,7 @@ public class NGBRegistrationUtils {
 
         BiologicalDataItem index = new BiologicalDataItem();
         index.setPath(filename + "fai");
+        index.setSource(filename + "fai");
         index.setType(BiologicalDataItemResourceType.FILE);
         index.setFormat(BiologicalDataItemFormat.REFERENCE_INDEX);
         index.setCreatedDate(new Date());
@@ -89,6 +90,7 @@ public class NGBRegistrationUtils {
         Reference reference = new Reference();
         reference.setName(name);
         reference.setPath(fastaFile.getPath());
+        reference.setSource(fastaFile.getPath());
         reference.setCreatedDate(new Date());
         reference.setOwner(owner);
         reference.setIndex(index);
@@ -110,6 +112,7 @@ public class NGBRegistrationUtils {
         final String path = resolveFilePath(name);
         BiologicalDataItem index = new BiologicalDataItem();
         index.setPath(path + BAI_EXTENSION);
+        index.setSource(path + BAI_EXTENSION);
         index.setType(BiologicalDataItemResourceType.FILE);
         index.setFormat(BiologicalDataItemFormat.BAM_INDEX);
         index.setOwner(owner);
@@ -118,6 +121,7 @@ public class NGBRegistrationUtils {
 
         BamFile file = new BamFile();
         file.setPath(path);
+        file.setSource(path);
         file.setIndex(index);
         file.setName(entityName);
         file.setOwner(owner);
