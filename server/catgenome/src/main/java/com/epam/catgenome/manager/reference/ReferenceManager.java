@@ -156,25 +156,30 @@ public class ReferenceManager {
     public Reference registerGenome(final ReferenceRegistrationRequest request) throws IOException {
 
         final String name;
+        String path = request.getPath();
         if (request.getType() == null) {
             request.setType(BiologicalDataItemResourceType.FILE);
         }
         if (request.getType() == BiologicalDataItemResourceType.GA4GH) {
             name = request.getName();
         } else {
-            name = parse(request.getPath(), request.getName());
+            name = parse(path, request.getName());
         }
         // prepares to start processing of a reference genome: generates ID, creates a directory
         // to store data for a genome
         final Long referenceId = referenceGenomeManager.createReferenceId();
         final Reference reference = new Reference(referenceId, name);
-        reference.setPath(request.getPath());
-        reference.setSource(request.getPath());
+        reference.setPath(path);
+        reference.setSource(path);
         reference.setPrettyName(request.getPrettyName());
         if (!request.isNoGCContent()) {
             fileManager.makeReferenceDir(reference);
         }
         reference.setType(request.getType());
+        if (GenbankUtils.isGenbank(path)) {
+            path = genbankToFasta(reference);
+            reference.setPath(path);
+        }
         // processes data for a genome and generates all required resources: meta-information,
         // files with NT-sequence and GC-content per each chromosome etc.
         boolean succeeded = false;
@@ -558,11 +563,7 @@ public class ReferenceManager {
 
     private long registerReference(Long referenceId, Reference reference, boolean createGC)
             throws IOException {
-        String path = reference.getPath();
-        if (GenbankUtils.isGenbank(path)) {
-            path = genbankToFasta(reference);
-            reference.setPath(path);
-        }
+        final String path = reference.getPath();
         setIndex(reference);
         long lengthOfGenome = 0;
         FastaSequenceFile referenceReader = new FastaSequenceFile(path, reference.getIndex().getPath());
@@ -573,7 +574,7 @@ public class ReferenceManager {
             chromosome.setName(chr);
             chromosome.setSize(referenceReader.getSequenceSize(chr));
             chromosome.setReferenceId(referenceId);
-            chromosome.setPath(reference.getPath());
+            chromosome.setPath(path);
             reference.getChromosomes().add(chromosome);
 
             //work with GC
