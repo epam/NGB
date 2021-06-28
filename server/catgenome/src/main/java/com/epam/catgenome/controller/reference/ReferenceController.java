@@ -24,28 +24,20 @@
 
 package com.epam.catgenome.controller.reference;
 
-import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.controller.AbstractRESTController;
-import com.epam.catgenome.controller.Result;
+import static com.epam.catgenome.component.MessageHelper.getMessage;
+import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
+
 import com.epam.catgenome.controller.vo.SpeciesVO;
-import com.epam.catgenome.controller.vo.TrackQuery;
-import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
 import com.epam.catgenome.entity.gene.GeneFilterForm;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
-import com.epam.catgenome.entity.index.IndexSearchResult;
-import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.reference.Reference;
-import com.epam.catgenome.entity.reference.Sequence;
 import com.epam.catgenome.entity.reference.Species;
-import com.epam.catgenome.entity.track.Track;
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.Callable;
+
 import com.epam.catgenome.exception.FeatureIndexException;
-import com.epam.catgenome.exception.ReferenceReadingException;
 import com.epam.catgenome.manager.FeatureIndexSecurityService;
 import com.epam.catgenome.manager.reference.ReferenceSecurityService;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -56,12 +48,21 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.Callable;
-
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
+import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.controller.AbstractRESTController;
+import com.epam.catgenome.controller.Result;
+import com.epam.catgenome.controller.vo.TrackQuery;
+import com.epam.catgenome.controller.vo.registration.ReferenceRegistrationRequest;
+import com.epam.catgenome.entity.index.IndexSearchResult;
+import com.epam.catgenome.entity.reference.Chromosome;
+import com.epam.catgenome.entity.reference.Reference;
+import com.epam.catgenome.entity.reference.Sequence;
+import com.epam.catgenome.entity.track.Track;
+import com.epam.catgenome.exception.ReferenceReadingException;
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
+import com.wordnik.swagger.annotations.ApiResponse;
+import com.wordnik.swagger.annotations.ApiResponses;
 
 /**
  * <p>

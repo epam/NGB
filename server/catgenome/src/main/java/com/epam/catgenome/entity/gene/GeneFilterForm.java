@@ -51,7 +51,7 @@ import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 public class GeneFilterForm extends AbstractFilterForm {
     private Integer startIndex;
     private Integer endIndex;
-    private List<String> chromosomes;
+    private List<Long> chromosomeIds;
     private String featureId;
     private List<FeatureType> featureTypes;
 
@@ -126,11 +126,12 @@ public class GeneFilterForm extends AbstractFilterForm {
      * @param builder
      */
     private void addChromosomeFilter(final BooleanQuery.Builder builder) {
-        if (isNotEmpty(chromosomes)) {
+        if (isNotEmpty(chromosomeIds)) {
             final BooleanQuery.Builder chromosomeBuilder = new BooleanQuery.Builder();
-            for (String chromosome : chromosomes) {
+            for (Long chromosomeId : chromosomeIds) {
                 chromosomeBuilder.add(new TermQuery(new Term(
-                                FeatureIndexDao.FeatureIndexFields.CHROMOSOME_NAME.getFieldName(), chromosome)),
+                                FeatureIndexDao.FeatureIndexFields.CHROMOSOME_ID.getFieldName(),
+                                chromosomeId.toString())),
                         BooleanClause.Occur.SHOULD);
             }
             builder.add(chromosomeBuilder.build(), BooleanClause.Occur.MUST);

@@ -24,13 +24,44 @@
 
 package com.epam.catgenome.manager;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
+
+import com.epam.catgenome.entity.bed.BedFile;
+import com.epam.catgenome.manager.bed.BedManager;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.Resource;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.field.IndexSortField;
 import com.epam.catgenome.entity.AbstractFilterForm.OrderBy;
 import com.epam.catgenome.entity.BiologicalDataItem;
-import com.epam.catgenome.entity.bed.BedFile;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.gene.GeneFilterForm;
 import com.epam.catgenome.entity.index.BookmarkIndexEntry;
@@ -55,7 +86,6 @@ import com.epam.catgenome.entity.vcf.VcfFilterForm.FilterSection;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.helper.EntityHelper;
-import com.epam.catgenome.manager.bed.BedManager;
 import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.manager.project.ProjectManager;
 import com.epam.catgenome.manager.reference.BookmarkManager;
@@ -63,35 +93,6 @@ import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
 import com.epam.catgenome.util.TestUtils;
 import com.epam.catgenome.util.Utils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.Resource;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
@@ -1208,7 +1209,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void searchGenesByFilterWithChromosome() throws IOException {
         final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
-        geneFilterForm.setChromosomes(Arrays.asList("A1", "B1", "C1"));
+        geneFilterForm.setChromosomeIds(Arrays.asList(1L, 2L, 3L));
 
         //We have only 1 chromosome A1 at the test data, other names are artificial:)
         assertEquals(TEST_AMOUNT, featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId)
