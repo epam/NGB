@@ -106,4 +106,18 @@ export class GenomeDataService extends DataService {
             });
         });
     }
+
+    loadGenes(reference, filter) {
+        return new Promise((resolve, reject) => {
+            this.post(`reference/${reference}/filter/gene`, filter)
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        reject(new Error('No genes received'));
+                    }
+                })
+                .catch(reject);
+        });
+    }
 }

@@ -9,15 +9,14 @@ export default class ngbVariantTableColumnController extends baseController {
     projectContext;
     displayVariantsFilter;
 
-    constructor(dispatcher, projectContext, $scope, $timeout, projectDataService) {
+    constructor(dispatcher, projectContext, $scope, $timeout) {
         super(dispatcher);
 
         Object.assign(this, {
             $scope,
             $timeout,
             dispatcher,
-            projectContext,
-            projectDataService
+            projectContext
         });
 
         this.displayVariantsFilter = this.projectContext.displayVariantsFilter;

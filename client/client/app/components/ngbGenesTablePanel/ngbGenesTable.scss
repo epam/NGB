@@ -1,0 +1,11 @@
+.filters-not-displayed {
+  .gene-column-filtered {
+    background-color: #dcffe7;
+  }
+}
+
+.genes-loading {
+  position: absolute;
+  top: 0;
+  z-index: 1;
+}

@@ -1,0 +1,17 @@
+ngb-genes-table-column {
+  display: block;
+  md-menu {
+    padding: 0;
+    .md-button.md-icon-button {
+      padding: 0;
+      margin: 0;
+      width: 24px;
+      min-width: 24px;
+      height: 24px;
+      min-height: 24px;
+      ng-md-icon {
+        fill: #FFF;
+      }
+    }
+  }
+}

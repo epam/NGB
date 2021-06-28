@@ -15,6 +15,7 @@ import ngbOrganizeTracks from './ngbOrganizeTracks';
 import ngbGenomeAnnotations from './ngbGenomeAnnotations';
 import ngbBlatSearchPanel from './ngbBlatSearchPanel';
 import ngbBlastSearchPanel from './ngbBlastSearchPanel';
+import ngbGenesTablePanel from './ngbGenesTablePanel';
 
 export default angular.module('NGB_Panels', [
     ngbBookmarksPanel,
@@ -32,5 +33,6 @@ export default angular.module('NGB_Panels', [
     ngbOrganizeTracks,
     ngbGenomeAnnotations,
     ngbBlatSearchPanel,
-    ngbBlastSearchPanel
+    ngbBlastSearchPanel,
+    ngbGenesTablePanel
 ]).name;

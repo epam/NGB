@@ -104,6 +104,9 @@ export default class projectContext {
     _variantsGroupByTypeError = null;
     _variantsGroupByQualityError = null;
     _containsVcfFiles = true;
+
+    _genesFilterIsDefault = true;
+
     _highlightProfileConditions = [];
 
     _bookmarkVisibility = true;
@@ -274,6 +277,14 @@ export default class projectContext {
 
     get vcfFilterIsDefault() {
         return this._vcfFilterIsDefault;
+    }
+
+    get genesFilterIsDefault() {
+        return this._genesFilterIsDefault;
+    }
+
+    set genesFilterIsDefault(value) {
+        this._genesFilterIsDefault = value;
     }
 
     get vcfFilter() {

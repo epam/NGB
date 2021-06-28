@@ -1,0 +1,36 @@
+<div class="md-padding"
+     ng-if="!$ctrl.projectContext.reference">
+    <md-content flex
+                layout-padding
+                class="md-whiteframe-8dp md-primary">
+        <span>Select a dataset to browse genes</span>
+    </md-content>
+</div>
+<div class="empty-results" layout="column" layout-align="center center" ng-if="$ctrl.isEmptyResults">
+    <strong>No records found.</strong>
+</div>
+<div class="ui-grid-container"
+     ng-hide="$ctrl.errorMessageList.length"
+     ng-if="!$ctrl.isEmptyResults && $ctrl.projectContext.reference">
+    <div class="variants-load-error-container" ng-if="$ctrl.geneLoadError">
+        <small>{{$ctrl.geneLoadError}}</small>
+    </div>
+    <md-progress-linear md-mode="query"
+                        class="genes-loading"
+                        ng-if="$ctrl.isProgressShown"
+    ></md-progress-linear>
+    <div ng-class="{'filters-not-displayed': !$ctrl.ngbGenesTableService.displayGenesFilter}"
+         ui-grid="$ctrl.gridOptions"
+         ui-grid-auto-resize
+         ui-grid-infinite-scroll
+         ui-grid-move-columns
+         ui-grid-pinning
+         ui-grid-resize-columns
+         ui-grid-save-state
+         ui-grid-selection
+    ></div>
+</div>
+
+<div class="md-padding" ng-if="$ctrl.errorMessageList.length">
+    <ngb-panel-error-list message-list="$ctrl.errorMessageList"></ngb-panel-error-list>
+</div>
