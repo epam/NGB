@@ -25,12 +25,14 @@
 package com.epam.catgenome.dao.index;
 
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.dao.index.field.IndexSortField;
+import com.epam.catgenome.dao.index.field.GeneIndexSortField;
+import com.epam.catgenome.dao.index.field.VcfIndexSortField;
 import com.epam.catgenome.dao.index.indexer.AbstractDocumentBuilder;
 import com.epam.catgenome.entity.AbstractFilterForm;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.gene.GeneFilterForm;
 import com.epam.catgenome.entity.index.BookmarkIndexEntry;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.FeatureType;
@@ -40,6 +42,7 @@ import com.epam.catgenome.entity.reference.Bookmark;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.vcf.InfoItem;
 import com.epam.catgenome.entity.vcf.VcfFile;
+import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.FileManager;
@@ -112,7 +115,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 /**
  * Source:      FeatureIndexDao
@@ -532,29 +534,52 @@ public class FeatureIndexDao {
         }
     }
 
-    public Sort createSorting(final List<AbstractFilterForm.OrderBy> orderBy,
-                              final List<? extends FeatureFile> files) throws IOException {
-        if (isNotEmpty(orderBy)) {
+    public Sort createVcfSorting(final List<VcfFilterForm.OrderBy> orderBy,
+                                 final List<? extends FeatureFile> files) throws IOException {
+        if (CollectionUtils.isNotEmpty(orderBy)) {
+            ArrayList<SortField> sortFields = new ArrayList<>();
+            for (VcfFilterForm.OrderBy o : orderBy) {
+                VcfIndexSortField sortField = VcfIndexSortField.getByName(o.getField());
+                if (sortField == null) {
+                    VcfFilterInfo info = vcfManager.getFiltersInfo(
+                            files.stream().map(BaseEntity::getId).collect(Collectors.toList()));
+
+                    InfoItem infoItem = info.getInfoItemMap().get(o.getField());
+                    Assert.notNull(infoItem, "Unknown sort field: " + o.getField());
+
+                    SortField.Type type = determineSortType(infoItem);
+                    SortField sf =
+                            new SortedSetSortField(infoItem.getName().toLowerCase(), o.isDesc());
+
+                    setMissingValuesOrder(sf, type, o.isDesc());
+
+                    sortFields.add(sf);
+                } else {
+                    SortField sf;
+                    if (sortField.getType() == SortField.Type.STRING) {
+                        sf = new SortedSetSortField(sortField.getField().getFieldName(), o.isDesc());
+                    } else {
+                        sf = new SortField(sortField.getField().getFieldName(), sortField.getType(),
+                                o.isDesc());
+                    }
+                    setMissingValuesOrder(sf, sortField.getType(), o.isDesc());
+
+                    sortFields.add(sf);
+                }
+            }
+
+            return new Sort(sortFields.toArray(new SortField[sortFields.size()]));
+        }
+
+        return null;
+    }
+
+    public Sort createGeneSorting(final List<GeneFilterForm.OrderBy> orderBy, final List<FeatureFile> featureFiles) {
+        if (CollectionUtils.isNotEmpty(orderBy)) {
             final ArrayList<SortField> sortFields = new ArrayList<>();
             for (AbstractFilterForm.OrderBy o : orderBy) {
-                final IndexSortField sortField = IndexSortField.getByName(o.getField());
-                if (sortField == null) {
-                    if (!files.isEmpty() && files.get(0) instanceof VcfFile) {
-                        final VcfFilterInfo info = vcfManager.getFiltersInfo(
-                                files.stream().map(BaseEntity::getId).collect(Collectors.toList()));
-
-                        final InfoItem infoItem = info.getInfoItemMap().get(o.getField());
-                        Assert.notNull(infoItem, "Unknown sort field: " + o.getField());
-
-                        final SortField.Type type = determineSortType(infoItem);
-                        final SortField sf =
-                                new SortedSetSortField(infoItem.getName().toLowerCase(), o.isDesc());
-
-                        setMissingValuesOrder(sf, type, o.isDesc());
-
-                        sortFields.add(sf);
-                    }
-                } else {
+                final GeneIndexSortField sortField = GeneIndexSortField.getByName(o.getField());
+                if (sortField != null) {
                     final SortField sf;
                     if (sortField.getType() == SortField.Type.STRING) {
                         sf = new SortedSetSortField(sortField.getField().getFieldName(), o.isDesc());
@@ -573,6 +598,7 @@ public class FeatureIndexDao {
 
         return null;
     }
+
     private void setMissingValuesOrder(final SortField sf, final SortField.Type type, final boolean desc) {
         if (sf instanceof SortedSetSortField) {
             sf.setMissingValue(desc ? SortField.STRING_FIRST : SortField.STRING_LAST);
@@ -675,7 +701,7 @@ public class FeatureIndexDao {
     }
 
     private String getGroupByField(List<VcfFile> files, String groupBy) throws IOException {
-        IndexSortField sortField = IndexSortField.getByName(groupBy);
+        VcfIndexSortField sortField = VcfIndexSortField.getByName(groupBy);
         if (sortField == null) {
             VcfFilterInfo info = vcfManager.getFiltersInfo(
                     files.stream().map(BaseEntity::getId).collect(Collectors.toList()));

@@ -59,7 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.epam.catgenome.common.AbstractManagerTest;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
-import com.epam.catgenome.dao.index.field.IndexSortField;
+import com.epam.catgenome.dao.index.field.VcfIndexSortField;
 import com.epam.catgenome.entity.AbstractFilterForm.OrderBy;
 import com.epam.catgenome.entity.BiologicalDataItem;
 import com.epam.catgenome.entity.gene.GeneFile;
@@ -1057,7 +1057,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         vcfFilterForm.setPage(1);
         vcfFilterForm.setPageSize(10);
 
-        for (final IndexSortField sortField : IndexSortField.values()) {
+        for (final VcfIndexSortField sortField : VcfIndexSortField.values()) {
             vcfFilterForm.setOrderBy(Collections.singletonList(new OrderBy(sortField.name(), false)));
 
             final IndexSearchResult<VcfIndexEntry> entryList = featureIndexManager.filterVariations(vcfFilterForm,
@@ -1067,56 +1067,56 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         }
 
         // check sorting by various fields
-        checkSorted(IndexSortField.START_INDEX.name(), false,
+        checkSorted(VcfIndexSortField.START_INDEX.name(), false,
             (page, seenEntries) -> page.stream().anyMatch(
                 p -> seenEntries.stream().anyMatch(e -> e.getStartIndex() > p.getStartIndex())),
                     testProject.getId());
 
-        checkSorted(IndexSortField.END_INDEX.name(), false,
+        checkSorted(VcfIndexSortField.END_INDEX.name(), false,
             (page, seenEntries) -> page.stream().anyMatch(
                 p -> seenEntries.stream().anyMatch(e -> e.getEndIndex() > p.getEndIndex())),
                     testProject.getId());
 
-        checkSorted(IndexSortField.CHROMOSOME_NAME.name(), false,
+        checkSorted(VcfIndexSortField.CHROMOSOME_NAME.name(), false,
             (page, seenEntries) -> page.stream().anyMatch(p -> seenEntries.stream().anyMatch(
                 e -> e.getChromosome().getName().compareTo(p.getChromosome().getName()) > 0)),
                     testProject.getId());
 
-        checkSorted(IndexSortField.GENE_NAME.name(), false,
+        checkSorted(VcfIndexSortField.GENE_NAME.name(), false,
             (page, seenEntries) -> page.stream().anyMatch(
                 p -> seenEntries.stream().anyMatch(e -> StringUtils.isNotBlank(e.getGeneName()) &&
                                                         StringUtils.isNotBlank(p.getGeneName()) &&
                                                         e.getGeneName().compareTo(p.getGeneName()) > 0)),
                     testProject.getId());
 
-        checkSorted(IndexSortField.GENE_NAME.name(), false,
+        checkSorted(VcfIndexSortField.GENE_NAME.name(), false,
             (page, seenEntries) -> page.stream().anyMatch(
                 p -> seenEntries.stream().anyMatch(e -> StringUtils.isNotBlank(e.getGeneNames()) &&
                                                         StringUtils.isNotBlank(p.getGeneNames()) &&
                                                         e.getGeneNames().compareTo(p.getGeneNames()) > 0)),
                     testProject.getId());
 
-        checkSorted(IndexSortField.GENE_ID.name(), false,
+        checkSorted(VcfIndexSortField.GENE_ID.name(), false,
             (page, seenEntries) -> page.stream().anyMatch(
                 p -> seenEntries.stream().anyMatch(e -> StringUtils.isNotBlank(e.getGene()) &&
                                                         StringUtils.isNotBlank(p.getGene()) &&
                                                         e.getGene().compareTo(p.getGene()) > 0)),
                     testProject.getId());
 
-        checkSorted(IndexSortField.GENE_ID.name(), false,
+        checkSorted(VcfIndexSortField.GENE_ID.name(), false,
             (page, seenEntries) -> page.stream().anyMatch(
                 p -> seenEntries.stream().anyMatch(e -> StringUtils.isNotBlank(e.getGeneIds()) &&
                                                         StringUtils.isNotBlank(p.getGeneIds()) &&
                                                         e.getGeneIds().compareTo(p.getGeneIds()) > 0)),
                     testProject.getId());
 
-        checkSorted(IndexSortField.VARIATION_TYPE.name(), false,
+        checkSorted(VcfIndexSortField.VARIATION_TYPE.name(), false,
             (page, seenEntries) -> page.stream().anyMatch(
                 p -> seenEntries.stream().anyMatch(e -> e.getVariationType().name().compareTo(
                                 p.getVariationType().name()) > 0)),
                     testProject.getId());
 
-        checkSorted(IndexSortField.FILTER.name(), false,
+        checkSorted(VcfIndexSortField.FILTER.name(), false,
             (page, seenEntries) -> page.stream().anyMatch(
                 p -> seenEntries.stream().anyMatch(e -> (e.getFailedFilter() != null ? e.getFailedFilter() : "")
                                             .compareTo(p.getFailedFilter() != null ? p.getFailedFilter() : "") > 0)),
@@ -1149,7 +1149,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         }
 
         // Test sort desc
-        checkSorted(IndexSortField.START_INDEX.name(), true,
+        checkSorted(VcfIndexSortField.START_INDEX.name(), true,
             (page, seenEntries) -> page.stream().anyMatch(
                 p -> seenEntries.stream()
                         .anyMatch(e -> e.getStartIndex() < p.getStartIndex())),
@@ -1166,8 +1166,8 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         final VcfFilterForm filterForm = new VcfFilterForm();
         filterForm.setPageSize(10);
-        filterForm.setOrderBy(Arrays.asList(new OrderBy(IndexSortField.START_INDEX.name(), false),
-                                        new OrderBy(IndexSortField.VARIATION_TYPE.name(), false)));
+        filterForm.setOrderBy(Arrays.asList(new OrderBy(VcfIndexSortField.START_INDEX.name(), false),
+                                        new OrderBy(VcfIndexSortField.VARIATION_TYPE.name(), false)));
 
         for (int i = 1; i < (referentList.getEntries().size() / 10) + 2; i++) {
             filterForm.setPage(i);
@@ -1209,7 +1209,8 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void searchGenesByFilterWithChromosome() throws IOException {
         final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
-        geneFilterForm.setChromosomeIds(Arrays.asList(1L, 2L, 3L));
+        geneFilterForm.setChromosomeIds(Arrays.asList(
+                testChromosome.getId(), testChromosome.getId() + 1, testChromosome.getId() + 1));
 
         //We have only 1 chromosome A1 at the test data, other names are artificial:)
         assertEquals(TEST_AMOUNT, featureIndexManager.searchFeaturesByReference(geneFilterForm, referenceId)
@@ -1366,8 +1367,8 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
                 testProject.getId());
         assertFalse(entryList1.getEntries().isEmpty());
 
-        testGroupingBy(IndexSortField.CHROMOSOME_NAME);
-        testGroupingBy(IndexSortField.QUALITY);
+        testGroupingBy(VcfIndexSortField.CHROMOSOME_NAME);
+        testGroupingBy(VcfIndexSortField.QUALITY);
 
         // test load additional info and group by it
         final VcfFilterInfo info = vcfManager.getFiltersInfo(Collections.singletonList(testVcf.getId()));
@@ -1396,12 +1397,12 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testGroupingForPlots() throws IOException {
-        testGroupingBy(IndexSortField.CHROMOSOME_NAME);
-        testGroupingBy(IndexSortField.VARIATION_TYPE);
-        testGroupingBy(IndexSortField.QUALITY);
+        testGroupingBy(VcfIndexSortField.CHROMOSOME_NAME);
+        testGroupingBy(VcfIndexSortField.VARIATION_TYPE);
+        testGroupingBy(VcfIndexSortField.QUALITY);
     }
 
-    private void testGroupingBy(final IndexSortField field) throws IOException {
+    private void testGroupingBy(final VcfIndexSortField field) throws IOException {
         final List<Group> counts = featureIndexManager.groupVariations(new VcfFilterForm(), testProject.getId(),
                 field.name());
         assertFalse(counts.isEmpty());

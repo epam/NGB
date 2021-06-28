@@ -73,8 +73,8 @@ public abstract class AbstractIndexSearcher<T extends FeatureIndexEntry, R exten
     }
 
     @Override
-    public IndexSearchResult<T> getSearchResults(final List<? extends FeatureFile> files, final Query query)
-            throws IOException {
+    public IndexSearchResult<T> getSearchResults(final List<? extends FeatureFile> files, final Query query,
+                                                 Sort sort) throws IOException {
         if (CollectionUtils.isEmpty(files)) {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
@@ -92,7 +92,6 @@ public abstract class AbstractIndexSearcher<T extends FeatureIndexEntry, R exten
             final IndexSearcher searcher = new IndexSearcher(reader, executorService);
             final AbstractDocumentBuilder<T> documentCreator = AbstractDocumentBuilder
                     .createDocumentCreator(files.get(0).getFormat(), filterForm.getInfoFields());
-            final Sort sort = featureIndexDao.createSorting(filterForm.getOrderBy(), files);
             final IndexSearchResult<T> searchResults = performSearch(searcher, reader, query,
                     sort, documentCreator);
             //return 0 to prevent random access in UI

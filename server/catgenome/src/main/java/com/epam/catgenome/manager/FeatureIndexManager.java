@@ -73,6 +73,7 @@ import htsjdk.tribble.readers.LineIterator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.lucene.search.Sort;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -338,17 +339,18 @@ public class FeatureIndexManager {
     }
 
     @NotNull private IndexSearchResult<VcfIndexEntry> getVcfSearchResult(final VcfFilterForm filterForm,
-            final List<VcfFile> files) throws IOException {
+            final List<VcfFile> vcfFiles) throws IOException {
         if (filterForm.getPage() != null && filterForm.getPageSize() != null) {
             final LuceneIndexSearcher<VcfIndexEntry> indexSearcher =
                     getIndexSearcher(filterForm, featureIndexDao, fileManager, taskExecutorService.getSearchExecutor());
+            final Sort sort = featureIndexDao.createVcfSorting(filterForm.getOrderBy(), vcfFiles);
             final IndexSearchResult<VcfIndexEntry> res =
-                    indexSearcher.getSearchResults(files, filterForm.computeQuery(FeatureType.VARIATION));
+                    indexSearcher.getSearchResults(vcfFiles, filterForm.computeQuery(FeatureType.VARIATION), sort);
             res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount()
                     / filterForm.getPageSize().doubleValue()));
             return res;
         } else {
-            final IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexes(files,
+            final IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexes(vcfFiles,
                                filterForm.computeQuery(FeatureType.VARIATION), filterForm.getInfoFields(),
                                                                            null, null);
             res.setExceedsLimit(false);
@@ -362,8 +364,9 @@ public class FeatureIndexManager {
         if (filterForm.getPageSize() != null) {
             final LuceneIndexSearcher<FeatureIndexEntry> indexSearcher =
                     getIndexSearcher(filterForm, featureIndexDao, fileManager, taskExecutorService.getSearchExecutor());
+            final Sort sort = featureIndexDao.createGeneSorting(filterForm.getOrderBy(), featureFiles);
             final IndexSearchResult<FeatureIndexEntry> res =
-                    indexSearcher.getSearchResults(featureFiles, filterForm.computeQuery());
+                    indexSearcher.getSearchResults(featureFiles, filterForm.computeQuery(), sort);
 
             res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount()
                     / filterForm.getPageSize().doubleValue()));

@@ -30,34 +30,28 @@ import org.apache.lucene.search.SortField;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum IndexSortField {
+public enum GeneIndexSortField {
     CHROMOSOME_NAME(FeatureIndexFields.CHROMOSOME_NAME, SortField.Type.STRING),
     FEATURE_NAME(FeatureIndexFields.FEATURE_NAME, SortField.Type.STRING),
+    FEATURE_ID(FeatureIndexFields.GENE_IDS, SortField.Type.STRING),
+    FEATURE_TYPE(FeatureIndexFields.FEATURE_TYPE, SortField.Type.STRING),
     START_INDEX(FeatureIndexFields.START_INDEX, SortField.Type.INT),
-    END_INDEX(FeatureIndexFields.END_INDEX, SortField.Type.INT),
-    FILTER(FeatureIndexFields.FAILED_FILTER, SortField.Type.STRING),
-    VARIATION_TYPE(FeatureIndexFields.VARIATION_TYPE, SortField.Type.STRING),
-    QUALITY(FeatureIndexFields.QUALITY, SortField.Type.STRING),
-    GENE_ID(FeatureIndexFields.GENE_IDS, SortField.Type.STRING),
-    GENE_NAME(FeatureIndexFields.GENE_NAMES, SortField.Type.STRING);
+    END_INDEX(FeatureIndexFields.END_INDEX, SortField.Type.INT);
 
-    private static Map<String, IndexSortField> fieldMap = new HashMap<>();
+    private static Map<String, GeneIndexSortField> fieldMap = new HashMap<>();
     static {
         fieldMap.put(CHROMOSOME_NAME.name(), CHROMOSOME_NAME);
         fieldMap.put(FEATURE_NAME.name(), FEATURE_NAME);
+        fieldMap.put(FEATURE_TYPE.name(), FEATURE_TYPE);
         fieldMap.put(START_INDEX.name(), START_INDEX);
         fieldMap.put(END_INDEX.name(), END_INDEX);
-        fieldMap.put(FILTER.name(), FILTER);
-        fieldMap.put(QUALITY.name(), QUALITY);
-        fieldMap.put(GENE_ID.name(), GENE_ID);
-        fieldMap.put(GENE_NAME.name(), GENE_NAME);
-        fieldMap.put(VARIATION_TYPE.name(), VARIATION_TYPE);
+        fieldMap.put(FEATURE_ID.name(), FEATURE_ID);
     }
 
     private SortField.Type type;
     private FeatureIndexFields field;
 
-    IndexSortField(FeatureIndexFields field, SortField.Type type) {
+    GeneIndexSortField(FeatureIndexFields field, SortField.Type type) {
         this.type = type;
         this.field = field;
     }
@@ -74,7 +68,7 @@ public enum IndexSortField {
         return field.getFieldName();
     }
 
-    public static IndexSortField getByName(String name) {
+    public static GeneIndexSortField getByName(String name) {
         return fieldMap.get(name);
     }
 }

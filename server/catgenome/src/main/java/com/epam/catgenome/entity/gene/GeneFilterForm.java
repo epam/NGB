@@ -25,7 +25,7 @@
 package com.epam.catgenome.entity.gene;
 
 import com.epam.catgenome.dao.index.FeatureIndexDao;
-import com.epam.catgenome.dao.index.field.IndexSortField;
+import com.epam.catgenome.dao.index.field.GeneIndexSortField;
 import com.epam.catgenome.entity.AbstractFilterForm;
 import com.epam.catgenome.entity.index.FeatureType;
 import lombok.Getter;
@@ -66,7 +66,7 @@ public class GeneFilterForm extends AbstractFilterForm {
         }
         final List<SortField> sortFields = new ArrayList<>();
         for (OrderBy order : orderBy) {
-            final IndexSortField indexSortField = IndexSortField.getByName(order.getField());
+            final GeneIndexSortField indexSortField = GeneIndexSortField.getByName(order.getField());
             if (indexSortField != null) {
                 sortFields.add(new SortField(indexSortField.getFieldName(), indexSortField.getType(), order.isDesc()));
             }

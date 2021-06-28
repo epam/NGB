@@ -29,11 +29,12 @@ import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Sort;
 
 import java.io.IOException;
 import java.util.List;
 
 public interface LuceneIndexSearcher<T extends FeatureIndexEntry> {
 
-    IndexSearchResult<T> getSearchResults(List<? extends FeatureFile> files, Query query) throws IOException;
+    IndexSearchResult<T> getSearchResults(List<? extends FeatureFile> files, Query query, Sort sort) throws IOException;
 }
