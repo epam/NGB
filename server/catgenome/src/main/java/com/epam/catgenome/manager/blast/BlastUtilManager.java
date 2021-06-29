@@ -91,9 +91,9 @@ public class BlastUtilManager {
                     .end(feature.getEndIndex())
                     .build())
                     .orElseThrow(
-                            () -> new IllegalStateException(
-                                    getMessage(MessagesConstants.ERROR_FEATURE_INDEX_ENTRY_NOT_FOUND, featureName)
-                            )
+                        () -> new IllegalStateException(
+                                getMessage(MessagesConstants.ERROR_FEATURE_INDEX_ENTRY_NOT_FOUND, featureName)
+                        )
                     );
         } catch (ExternalDbUnavailableException e) {
             throw new IllegalArgumentException(
@@ -127,6 +127,6 @@ public class BlastUtilManager {
     }
 
     private String getNcbiDbType(final BlastDatabaseType type) {
-       return  type == BlastDatabaseType.PROTEIN ? PROTEIN_DB : NUCLEOTIDE_DB;
+        return  type == BlastDatabaseType.PROTEIN ? PROTEIN_DB : NUCLEOTIDE_DB;
     }
 }

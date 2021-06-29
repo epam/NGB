@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,22 +24,25 @@
 
 package com.epam.catgenome.dao.index;
 
-import static com.epam.catgenome.component.MessageHelper.getMessage;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.dao.index.field.IndexSortField;
+import com.epam.catgenome.dao.index.field.GeneIndexSortField;
+import com.epam.catgenome.dao.index.field.VcfIndexSortField;
 import com.epam.catgenome.dao.index.indexer.AbstractDocumentBuilder;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
-import com.epam.catgenome.entity.index.*;
+import com.epam.catgenome.entity.gene.GeneFilterForm;
+import com.epam.catgenome.entity.index.BookmarkIndexEntry;
+import com.epam.catgenome.entity.index.FeatureIndexEntry;
+import com.epam.catgenome.entity.index.FeatureType;
+import com.epam.catgenome.entity.index.Group;
+import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.reference.Bookmark;
 import com.epam.catgenome.entity.reference.Chromosome;
-import com.epam.catgenome.entity.vcf.*;
+import com.epam.catgenome.entity.vcf.InfoItem;
+import com.epam.catgenome.entity.vcf.VcfFile;
+import com.epam.catgenome.entity.vcf.VcfFilterForm;
+import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.FileManager;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
@@ -54,14 +57,38 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.IntPoint;
-import org.apache.lucene.facet.*;
+import org.apache.lucene.facet.FacetResult;
+import org.apache.lucene.facet.Facets;
+import org.apache.lucene.facet.FacetsCollector;
+import org.apache.lucene.facet.FacetsConfig;
+import org.apache.lucene.facet.LabelAndValue;
 import org.apache.lucene.facet.sortedset.DefaultSortedSetDocValuesReaderState;
 import org.apache.lucene.facet.sortedset.SortedSetDocValuesFacetCounts;
 import org.apache.lucene.facet.sortedset.SortedSetDocValuesReaderState;
-import org.apache.lucene.index.*;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.Fields;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.MultiFields;
+import org.apache.lucene.index.MultiReader;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.ConstantScoreQuery;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.PrefixQuery;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.SortedSetSortField;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
@@ -72,6 +99,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.epam.catgenome.component.MessageHelper.getMessage;
 
 /**
  * Source:      FeatureIndexDao
@@ -204,33 +246,30 @@ public class FeatureIndexDao {
      * @return a {@code List} of {@code FeatureIndexEntry}
      * @throws IOException
      */
-    public IndexSearchResult<FeatureIndexEntry> searchFeatures(String featureId,
-            List<? extends FeatureFile> featureFiles,
-            Integer maxResultsCount)
-            throws IOException {
+    public IndexSearchResult<FeatureIndexEntry> searchFeatures(final String featureId,
+                                                               final List<? extends FeatureFile> featureFiles,
+                                                               final Integer maxResultsCount) throws IOException {
         if (featureId == null || featureId.length() < 2) {
             return new IndexSearchResult<>(Collections.emptyList(), false, 0);
         }
+        final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
 
-        BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-
-        PrefixQuery prefixQuery = new PrefixQuery(new Term(FeatureIndexFields.FEATURE_ID.getFieldName(),
-                featureId.toLowerCase()));
-        BooleanQuery.Builder prefixQueryBuilder = new BooleanQuery.Builder();
-        prefixQueryBuilder.add(prefixQuery, BooleanClause.Occur.SHOULD);
-        prefixQueryBuilder.add(new PrefixQuery(new Term(FeatureIndexFields.FEATURE_NAME.getFieldName(), featureId
-                .toLowerCase())), BooleanClause.Occur.SHOULD);
+        final BooleanQuery.Builder prefixQueryBuilder = new BooleanQuery.Builder()
+                .add(new PrefixQuery(new Term(FeatureIndexFields.FEATURE_ID.getFieldName(),
+                featureId.toLowerCase())), BooleanClause.Occur.SHOULD)
+                .add(new PrefixQuery(new Term(FeatureIndexFields.FEATURE_NAME.getFieldName(),
+                featureId.toLowerCase())), BooleanClause.Occur.SHOULD);
 
         mainBuilder.add(prefixQueryBuilder.build(), BooleanClause.Occur.MUST);
 
-        BooleanQuery.Builder featureTypeBuilder = new BooleanQuery.Builder();
-        featureTypeBuilder.add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                FeatureType.GENE.getFileValue())), BooleanClause.Occur.SHOULD);
-        featureTypeBuilder.add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                FeatureType.MRNA.getFileValue())), BooleanClause.Occur.SHOULD);
-        featureTypeBuilder.add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                FeatureType.BOOKMARK.getFileValue())), BooleanClause.Occur.SHOULD);
-        featureTypeBuilder.add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
+        final BooleanQuery.Builder featureTypeBuilder = new BooleanQuery.Builder()
+                .add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
+                FeatureType.GENE.getFileValue())), BooleanClause.Occur.SHOULD)
+                .add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
+                FeatureType.MRNA.getFileValue())), BooleanClause.Occur.SHOULD)
+                .add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
+                FeatureType.BOOKMARK.getFileValue())), BooleanClause.Occur.SHOULD)
+                .add(new TermQuery(new Term(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
                 FeatureType.BED_FEATURE.getFileValue())), BooleanClause.Occur.SHOULD);
         mainBuilder.add(featureTypeBuilder.build(), BooleanClause.Occur.MUST);
 
@@ -495,6 +534,102 @@ public class FeatureIndexDao {
         }
     }
 
+    public Sort createVcfSorting(final List<VcfFilterForm.OrderBy> orderBy,
+                                 final List<? extends FeatureFile> files) throws IOException {
+        if (CollectionUtils.isNotEmpty(orderBy)) {
+            ArrayList<SortField> sortFields = new ArrayList<>();
+            for (VcfFilterForm.OrderBy o : orderBy) {
+                VcfIndexSortField sortField = VcfIndexSortField.getByName(o.getField());
+                if (sortField == null) {
+                    VcfFilterInfo info = vcfManager.getFiltersInfo(
+                            files.stream().map(BaseEntity::getId).collect(Collectors.toList()));
+
+                    InfoItem infoItem = info.getInfoItemMap().get(o.getField());
+                    Assert.notNull(infoItem, "Unknown sort field: " + o.getField());
+
+                    SortField.Type type = determineSortType(infoItem);
+                    SortField sf =
+                            new SortedSetSortField(infoItem.getName().toLowerCase(), o.isDesc());
+
+                    setMissingValuesOrder(sf, type, o.isDesc());
+
+                    sortFields.add(sf);
+                } else {
+                    SortField sf;
+                    if (sortField.getType() == SortField.Type.STRING) {
+                        sf = new SortedSetSortField(sortField.getField().getFieldName(), o.isDesc());
+                    } else {
+                        sf = new SortField(sortField.getField().getFieldName(), sortField.getType(),
+                                o.isDesc());
+                    }
+                    setMissingValuesOrder(sf, sortField.getType(), o.isDesc());
+
+                    sortFields.add(sf);
+                }
+            }
+
+            return new Sort(sortFields.toArray(new SortField[sortFields.size()]));
+        }
+
+        return null;
+    }
+
+    public Sort createGeneSorting(final List<GeneFilterForm.OrderBy> orderBy, final List<FeatureFile> featureFiles) {
+        if (CollectionUtils.isNotEmpty(orderBy)) {
+            final ArrayList<SortField> sortFields = new ArrayList<>();
+            for (GeneFilterForm.OrderBy o : orderBy) {
+                final GeneIndexSortField sortField = GeneIndexSortField.getByName(o.getField());
+                if (sortField != null) {
+                    final SortField sf;
+                    if (sortField.getType() == SortField.Type.STRING) {
+                        sf = new SortedSetSortField(sortField.getField().getFieldName(), o.isDesc());
+                    } else {
+                        sf = new SortField(sortField.getField().getFieldName(), sortField.getType(),
+                                o.isDesc());
+                    }
+                    setMissingValuesOrder(sf, sortField.getType(), o.isDesc());
+
+                    sortFields.add(sf);
+                }
+            }
+
+            return sortFields.isEmpty() ? new Sort() : new Sort(sortFields.toArray(new SortField[sortFields.size()]));
+        }
+
+        return null;
+    }
+
+    private void setMissingValuesOrder(final SortField sf, final SortField.Type type, final boolean desc) {
+        if (sf instanceof SortedSetSortField) {
+            sf.setMissingValue(desc ? SortField.STRING_FIRST : SortField.STRING_LAST);
+        } else {
+            switch (type) {
+                case STRING:
+                    sf.setMissingValue(desc ? SortField.STRING_FIRST : SortField.STRING_LAST);
+                    break;
+                case FLOAT:
+                    sf.setMissingValue(Float.MIN_VALUE);
+                    break;
+                case INT:
+                    sf.setMissingValue(Integer.MIN_VALUE);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unexpected sort type: " + type);
+            }
+        }
+    }
+
+    private SortField.Type determineSortType(final InfoItem item) {
+        switch (item.getType()) {
+            case Integer:
+                return SortField.Type.INT;
+            case Float:
+                return SortField.Type.FLOAT;
+            default:
+                return SortField.Type.STRING;
+        }
+    }
+
     /**
      * Groups variations from specified {@link List} of {@link VcfFile}s by specified field
      * @param files a {@link List} of {@link FeatureFile}, which indexes to search
@@ -565,7 +700,7 @@ public class FeatureIndexDao {
     }
 
     private String getGroupByField(List<VcfFile> files, String groupBy) throws IOException {
-        IndexSortField sortField = IndexSortField.getByName(groupBy);
+        VcfIndexSortField sortField = VcfIndexSortField.getByName(groupBy);
         if (sortField == null) {
             VcfFilterInfo info = vcfManager.getFiltersInfo(
                     files.stream().map(BaseEntity::getId).collect(Collectors.toList()));
