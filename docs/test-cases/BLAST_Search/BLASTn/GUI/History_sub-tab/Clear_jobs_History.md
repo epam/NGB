@@ -23,4 +23,4 @@ Test verifies that
 | 9 | Click **Rerun** button for the last task | **Search** sub-tab is opened with the parameters of certain existing search task |
 | 10 | Click **Search** button| <li> Search is started <li> **History** sub-tab is opened automatically <li> A new search task is created with auto-generated ID |
 | 11 | Click ***Clear History*** button in the right corner of **History** sub-tab | Confirmation dialog with message ***Clear all history?*** appears| |
-| 12 | Confirm clearing | <li>All history of BLAST searches is removed<li>search performing at the moment is also canceled  and removed from the history list too |
+| 12 | Confirm clearing | <li>All history of BLAST searches is removed<li> Search performing at the moment is also canceled  and removed from the history list too |

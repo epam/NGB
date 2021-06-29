@@ -21,5 +21,5 @@ Test verifies
 | 6 | Go to Coordinates and search input control at right of tab's header|  | 
 | 7 | Enter **A1: 11534536 - 11650701** in the **TYPE COORDINATES** and click **Enter**| **BRCA2** gene displays in the Browser|
 | 8 | At the gene-track, select **'Expanded'** view| | 
-| 9 | Click on **BRCA2-201** transcript of **BRCA2** gene | <li> Context menu is displayed <li> **BLASTn Search** and **BLASTp Search** display between **BLAT Search** and **Copy info to clipboard** |
-| 10 | Click on **BLASTn Search** in the context menu | <li> The corresponding error message is displaed, e.g. "Selected feature is too large to be used as a query sequence." <li> The BLAST panel is not opened|
+| 9 | Click on **BRCA2-201** transcript of **BRCA2** gene | <li> Context menu is displayed <li> **BLASTn Search** and **BLASTp Search** display between **Show Info** and **Show 3D Structure** <li> **BLASTn Search** and **BLASTp Search** are disabled <li> **Query maximum lenght (50000bp) exceeded** displays below **BLASTn search**|
+| 10 | Click on **BLASTn Search** in the context menu | The BLAST panel is not opened|

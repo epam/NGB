@@ -19,11 +19,10 @@ Test verifies
 | 6 | Select **Homo_sapiens.GRCh38** database from the dropdown in the **Database** field||
 | 7 | Select **blastn** value in the **Algorithm** dropdown field| |
 | 8 | Click **Search** button and wait until status changed to **Done**| <li> **History** sub-tab is opened automatically <li> A new search task created with auto-generated ID |
-| 9 | Click on last search ID in the **Task ID** column |The corresponding search results are displayed in the **Sequence table** of **History** sub-tab below **Blast parameters** section and contains the following columns: <li> *Sequence ID* <li> *Organism* <li> *TaxID* <li> *Max score* <li> *Total score* <li> *Query cover* <li> *E value* <li> *Percent identity* <li> *Matches* <br> Table is sorted by E value column (ascending) by default|
+| 9 | Click on last search ID in the **Task ID** column |The corresponding search results are displayed in the **Sequence table** of **History** sub-tab below **Blast parameters** section and contains the following columns: <li> ***Sequence ID*** *(hyperlink)* - *IDs of the sequences in which hits were found* <li> ***Organism*** -  *organism specified in the sequence* <li> ***TaxID*** -*taxonomy ID specified in the sequence* <li> ***Max score*** - *the **highest** alignment score in bits (**bitscore**) from all matches of the search query to the certain sequence* <li> ***Total score*** - ***sum** of alignment scores in bits (**bitscore**) from all matches of the search query on the certain sequence* <li> ***Query cover***  - *the percent of the query length that is included in the aligned segments* <li> ***E value*** - *the number of alignments expected by chance with the calculated score or better* <li> ***Percent identity*** - *the highest percent identity for a set of aligned segments to the same subject sequence* <li> ***Matches*** - *number of matches of the search query to the certain sequence* <br> Table is sorted by E value column (ascending) by default|
 | 10 | Change the columns order | |
 | 11 | Check that table can be sorted by any column | The table is sortable by any column |
-| 12 | Sort the table by any column | |
-| 13 | Close BLAST tab | |
-| 14 | Go to  **Views** menu on the main toolbar | |
-| 15 | Select **BLAST** panel | |
-| 16 | Click on last search ID in the **Task ID** column | The corresponding search results are displayed in the **Sequence table** of **History** sub-tab below **Blast parameters** section <li> Table is sorted by E value column (ascending) <li> Column order specified at step 10 is kept |
+| 12 | Close BLAST tab | |
+| 13 | Go to  **Views** menu on the main toolbar | |
+| 14 | Select **BLAST** panel | |
+| 15 | Click on last search ID in the **Task ID** column | The corresponding search results are displayed in the **Sequence table** of **History** sub-tab below **Blast parameters** section <li> Table is sorted by E value column (ascending) <li> Column order specified at step 10 is kept |
