@@ -252,6 +252,7 @@ export default class ngbDataSetsService {
 
     navigateToTracks(datasets, forceReference) {
         const {tracks} = this.getSelectedTracks(datasets, forceReference);
+        const currentTracks = (this.projectContext.tracks || []).slice();
         this.__lockStatesUpdate = true;
         let [reference] = tracks.filter(t => t.format === 'REFERENCE');
         if (!reference) {
@@ -263,11 +264,22 @@ export default class ngbDataSetsService {
                 tracks.push(reference);
             }
         }
+        if (reference) {
+            const [currentReference] = currentTracks.filter(track => track.format === 'REFERENCE');
+            if (!currentReference) {
+                currentTracks.push(reference);
+            } else if (`${currentReference.bioDataItemId || ''}`.toLowerCase() !==
+                `${reference.bioDataItemId || ''}`.toLowerCase()
+            ) {
+                currentTracks.splice(currentTracks.indexOf(currentReference), 1, reference);
+            }
+        }
         if (reference && tracks.filter(t => t.format !== 'REFERENCE').length > 0) {
             const tracksState = this.projectContext.tracksState || [];
             if (tracksState.length === 0) {
                 tracksState.push({
                     bioDataItemId: reference.name,
+                    duplicateId: reference.duplicateId,
                     projectId: reference.projectId,
                     format: 'REFERENCE'
                 });
@@ -284,14 +296,26 @@ export default class ngbDataSetsService {
                 return utilities.mapTrackFn(track);
             };
             const addedTracks = tracks
-                .filter(track => tracksStateIds.indexOf(`[${track.name.toLowerCase()}][${track.projectId.toLowerCase()}]`) === -1 && track.format !== 'REFERENCE')
-                .map(mapTrackFn);
+                .filter(track => tracksStateIds.indexOf(`[${track.name.toLowerCase()}][${track.projectId.toLowerCase()}]`) === -1 &&
+                    track.format !== 'REFERENCE'
+                );
+            const addedTrackStates = addedTracks.map(mapTrackFn);
             let existedTracks = tracksState.filter(track => tracksIds.indexOf(`[${track.bioDataItemId.toLowerCase()}][${track.projectId.toLowerCase()}]`) >= 0);
             if (!existedTracks.filter(t => t.bioDataItemId.toString().toLowerCase() === reference.name.toLowerCase()).length) {
                 existedTracks = [mapTrackFn(reference), ...existedTracks];
             }
-            const newTracksState = [...existedTracks, ...addedTracks];
-            this.projectContext.changeState({reference: reference, tracks, tracksState: newTracksState, shouldAddAnnotationTracks});
+            const newTracksState = [...existedTracks, ...addedTrackStates];
+            const newTracks = currentTracks
+                .filter(track => track.format === 'REFERENCE' ||
+                    tracksIds.indexOf(`[${track.name.toLowerCase()}][${track.projectId.toLowerCase()}]`) >= 0
+                )
+                .concat(addedTracks);
+            this.projectContext.changeState({
+                reference: reference,
+                tracks: newTracks,
+                tracksState: newTracksState,
+                shouldAddAnnotationTracks
+            });
         } else {
             this.projectContext.changeState({reference: null, tracks: null, tracksState: null});
         }

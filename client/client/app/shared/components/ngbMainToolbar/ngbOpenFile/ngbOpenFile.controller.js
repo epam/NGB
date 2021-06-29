@@ -62,31 +62,29 @@ export default class ngbOpenFileController {
     }
 
     loadTracks(selectedFiles) {
-        const mapFn = (selectedFile) => {
-            return {
-                openByUrl: true,
-                isLocal: true,
-                format: selectedFile.format,
-                id: selectedFile.path,
-                bioDataItemId: selectedFile.path,
-                referenceId: selectedFile.reference.id,
-                reference: selectedFile.reference,
-                name: selectedFile.path,
-                indexPath: selectedFile.index,
-                projectId: selectedFile.reference.name
-            };
-        };
-        const mapTrackStateFn = (t) => {
-            return {
-                bioDataItemId: t.name,
-                name: t.name,
-                index: t.indexPath,
-                isLocal: true,
-                format: t.format,
-                projectId: t.projectId
-            };
-        };
-        let tracks = selectedFiles.map(mapFn).filter(
+        const mapFn = (selectedFile) => ({
+            openByUrl: true,
+            isLocal: true,
+            format: selectedFile.format,
+            id: selectedFile.path,
+            bioDataItemId: selectedFile.path,
+            duplicateId: selectedFile.duplicateId,
+            referenceId: selectedFile.reference.id,
+            reference: selectedFile.reference,
+            name: selectedFile.path,
+            indexPath: selectedFile.index,
+            projectId: selectedFile.reference.name
+        });
+        const mapTrackStateFn = (t) => ({
+            bioDataItemId: t.name,
+            duplicateId: t.duplicateId,
+            name: t.name,
+            index: t.indexPath,
+            isLocal: true,
+            format: t.format,
+            projectId: t.projectId
+        });
+        const tracks = selectedFiles.map(mapFn).filter(
             track => this.projectContext.tracks.filter(t => t.isLocal && t.name.toLowerCase() === track.name.toLowerCase()).length === 0);
 
         if (tracks.length === 0) {

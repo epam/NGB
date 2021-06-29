@@ -371,6 +371,7 @@ export default class ngbApiService {
     _loadTracks(selectedFiles) {
         const mapFn = (selectedFile) => ({
             bioDataItemId: selectedFile.path,
+            duplicateId: selectedFile.duplicateId,
             format: selectedFile.format,
             id: selectedFile.path,
             indexPath: selectedFile.index,
@@ -383,6 +384,7 @@ export default class ngbApiService {
         });
         const mapTrackStateFn = (t) => ({
             bioDataItemId: t.name,
+            duplicateId: t.duplicateId,
             format: t.format,
             index: t.indexPath,
             isLocal: true,

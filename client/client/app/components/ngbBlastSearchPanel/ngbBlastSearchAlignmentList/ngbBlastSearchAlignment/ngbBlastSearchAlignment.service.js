@@ -126,6 +126,7 @@ export default class ngbBlastSearchAlignmentService {
                     blastTrack
                 ].map(track => ({
                     bioDataItemId: track.name,
+                    duplicateId: track.duplicateId,
                     projectId: '',
                     format: track.format,
                     isLocal: true,
@@ -150,6 +151,7 @@ export default class ngbBlastSearchAlignmentService {
                 tracksOptions.tracks.push(blastTrack);
                 tracksOptions.tracksState.splice(referenceTrackStateIndex + 1, 0, {
                     bioDataItemId: blastTrack.name,
+                    duplicateId: blastTrack.duplicateId,
                     projectId: blastTrack.projectId,
                     isLocal: true,
                     format: blastTrack.format

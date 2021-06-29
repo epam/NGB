@@ -4,6 +4,10 @@ const SelectionEvents = {
 
 export {SelectionEvents};
 
+function getIdentifier (track) {
+    return `${track.bioDataItemId}-${track.duplicateId || ''}`;
+}
+
 export default class SelectionContext {
     static instance(dispatcher, projectContext) {
         return new SelectionContext(dispatcher, projectContext);
@@ -32,17 +36,17 @@ export default class SelectionContext {
     }
 
     getTracks(browserId) {
-        const set = new Set(this.getSelected(browserId).map(id => `${id}`));
+        const set = new Set(this.getSelected(browserId).map(getIdentifier));
         return (this.projectContext.getTrackInstances(browserId) || [])
-            .filter(track => set.has(`${track.config.bioDataItemId}`));
+            .filter(track => set.has(getIdentifier(track.config)));
     }
 
     allSelected(browserId) {
-        const selected = new Set(this.getSelected(browserId).map(id => `${id}`));
+        const selected = new Set(this.getSelected(browserId).map(getIdentifier));
         const tracks = (this.projectContext.getTrackInstances(browserId) || [])
             .filter(track => track.config.format !== 'REFERENCE');
         for (let idx = 0; idx < tracks.length; idx++) {
-            if (!selected.has(`${tracks[idx].config.bioDataItemId}`)) {
+            if (!selected.has(getIdentifier(tracks[idx].config))) {
                 return false;
             }
         }
@@ -52,7 +56,7 @@ export default class SelectionContext {
     selectAll(browserId) {
         const selected = (this.projectContext.getTrackInstances(browserId) || [])
             .filter(track => track.config.format !== 'REFERENCE')
-            .map(t => t.config.bioDataItemId);
+            .map(track => track.config);
         this.setSelected(browserId, selected);
         this.dispatcher.emitSimpleEvent(SelectionEvents.changed, selected);
     }
@@ -68,29 +72,29 @@ export default class SelectionContext {
     }
 
     onTracksStateChangedForBrowser(browserId) {
-        const actualBioDataItemIds = new Set(
+        const actualIds = new Set(
             (this.projectContext.getTrackInstances(browserId) || [])
                 .filter(track => track.config.format !== 'REFERENCE')
-                .map(t => `${t.config.bioDataItemId}`)
+                .map(track => getIdentifier(track.config))
         );
-        const selected = this.getSelected(browserId).filter(t => actualBioDataItemIds.has(`${t}`));
+        const selected = this.getSelected(browserId).filter(t => actualIds.has(getIdentifier(t)));
         this.setSelected(browserId, selected);
         this.dispatcher.emitSimpleEvent(SelectionEvents.changed, selected);
     }
 
-    setTrackIsSelected(bioDataItemId, browserId, selected) {
-        if (!bioDataItemId) {
+    setTrackIsSelected(track, browserId, selected) {
+        if (!track) {
             return;
         }
-        const isSelected = this.getTrackIsSelected(bioDataItemId, browserId);
+        const isSelected = this.getTrackIsSelected(track, browserId);
         const modified = isSelected !== selected;
         const selectedArray = this.getSelected(browserId);
         if (isSelected && !selected) {
-            const index = selectedArray.findIndex(t => `${t}` === `${bioDataItemId}`);
+            const index = selectedArray.findIndex(t => getIdentifier(t) === getIdentifier(track));
             selectedArray.splice(index, 1);
             this.setSelected(browserId, selectedArray);
         } else if (!isSelected && selected) {
-            selectedArray.push(bioDataItemId);
+            selectedArray.push({...track});
             this.setSelected(browserId, selectedArray);
         }
         if (modified) {
@@ -98,10 +102,10 @@ export default class SelectionContext {
         }
     }
 
-    getTrackIsSelected(bioDataItemId, browserId) {
-        if (!bioDataItemId) {
+    getTrackIsSelected(track, browserId) {
+        if (!track) {
             return false;
         }
-        return this.getSelected(browserId).findIndex(t => `${t}` === `${bioDataItemId}`) >= 0;
+        return this.getSelected(browserId).findIndex(t => getIdentifier(t) === getIdentifier(track)) >= 0;
     }
 }

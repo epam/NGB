@@ -177,6 +177,7 @@ export function selectRecursively(item: Node, isSelected) {
 export function mapTrackFn(track: Node) {
     return {
         bioDataItemId: track.name,
+        duplicateId: track.duplicateId,
         projectId: track.projectId,
         isLocal: track.isLocal,
         format: track.format

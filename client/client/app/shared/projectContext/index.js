@@ -31,6 +31,7 @@ export default class projectContext {
 
     _tracksStateMinificationRules = {
         bioDataItemId: 'b',
+        duplicateId: 'dup',
         name: 'n',
         projectId: 'p',
         height: 'h',
@@ -44,6 +45,7 @@ export default class projectContext {
         coverage: 'c1',
         diffBase: 'd',
         geneTranscript: 'g',
+        geneFeatures: 'gf',
         groupAutoScale: 'gas',
         groupMode: 'g1',
         ins_del: 'i',
@@ -65,6 +67,10 @@ export default class projectContext {
         header: 'he',
         color: 'co'
     };
+
+    _tracksStateMinificationIgnoreRules = [
+        'availableFeatures'
+    ];
 
     _tracksStateRevertRules = {};
 
@@ -426,18 +432,22 @@ export default class projectContext {
     convertTracksStateToJson(tracksState) {
         const self = this;
         const mapFn = function(ts) {
+            const convertValue = o => {
+                if (Array.isArray(o)) {
+                    return (o || []).map(convertValue);
+                } else if (o instanceof Object) {
+                    return mapFn(o);
+                }
+                return o;
+            };
             const converted = {};
             for (const attr in ts) {
-                if (ts.hasOwnProperty(attr)) {
+                if (ts.hasOwnProperty(attr) && self._tracksStateMinificationIgnoreRules.indexOf(attr) === -1) {
                     let convertedAttr = attr;
                     if (self._tracksStateMinificationRules.hasOwnProperty(attr)) {
                         convertedAttr = self._tracksStateMinificationRules[attr];
                     }
-                    if (ts[attr] instanceof Object) {
-                        converted[convertedAttr] = mapFn(ts[attr]);
-                    } else {
-                        converted[convertedAttr] = ts[attr];
-                    }
+                    converted[convertedAttr] = convertValue(ts[attr]);
                 }
             }
             return converted;
@@ -449,6 +459,14 @@ export default class projectContext {
     convertTracksStateFromJson(tracksState) {
         const self = this;
         const mapFn = function(ts) {
+            const convertValue = o => {
+                if (Array.isArray(o)) {
+                    return (o || []).map(convertValue);
+                } else if (o instanceof Object) {
+                    return mapFn(o);
+                }
+                return o;
+            };
             const converted = {};
             for (const attr in ts) {
                 if (ts.hasOwnProperty(attr)) {
@@ -456,11 +474,7 @@ export default class projectContext {
                     if (self._tracksStateRevertRules.hasOwnProperty(attr)) {
                         convertedAttr = self._tracksStateRevertRules[attr];
                     }
-                    if (ts[attr] instanceof Object) {
-                        converted[convertedAttr] = mapFn(ts[attr]);
-                    } else {
-                        converted[convertedAttr] = ts[attr];
-                    }
+                    converted[convertedAttr] = convertValue(ts[attr]);
                 }
             }
             return converted;
@@ -477,7 +491,12 @@ export default class projectContext {
     }
 
     setTrackState(track) {
-        const name = track.name ? track.name.toLowerCase() : track.bioDataItemId.toString().toLowerCase();
+        if (track.duplicateId) {
+            return;
+        }
+        const name = track.name
+            ? track.name.toLowerCase()
+            : track.bioDataItemId.toString().toLowerCase();
         const key = `track[${name}][${track.projectId.toLowerCase()}]`;
         const state = {
             bioDataItemId: name,
@@ -494,7 +513,8 @@ export default class projectContext {
         const [existingTrack] = this._trackInstances
             .filter(t =>
                 t.config.bioDataItemId === track.config.bioDataItemId &&
-                t.config.browserId === track.config.browserId
+                t.config.browserId === track.config.browserId &&
+                `${t.config.duplicateId || ''}` === `${track.config.duplicateId || ''}`
             );
         if (existingTrack) {
             const index = this._trackInstances.indexOf(existingTrack);
@@ -509,7 +529,8 @@ export default class projectContext {
         const [existingTrack] = this._trackInstances
             .filter(t =>
                 t.config.bioDataItemId === track.config.bioDataItemId &&
-                t.config.browserId === track.config.browserId
+                t.config.browserId === track.config.browserId &&
+                `${t.config.duplicateId || ''}` === `${track.config.duplicateId || ''}`
             );
         if (existingTrack) {
             const index = this._trackInstances.indexOf(existingTrack);
@@ -691,6 +712,53 @@ export default class projectContext {
         this.dispatcher.on('variants:reset:filter', resetVariantsFilterFn);
         this.dispatcher.on('hotkeyPressed', hotkeyPressedFn);
         this.dispatcher.on('settings:change', ::this.globalSettingsChangedHandler);
+        this.dispatcher.on('track:duplicate', this.duplicateTrack.bind(this));
+    }
+
+    duplicateTrack(options) {
+        const {
+            track: originalTrack,
+            config,
+            state
+        } = options;
+        const {height} = originalTrack;
+        const currentTracks = (this.tracks || []).slice();
+        const currentTrackStates = (this.tracksState || []).slice();
+        const {
+            bioDataItemId,
+            name,
+            project,
+            projectId,
+            projectIdNumber,
+            format
+        } = config;
+        const duplicates = currentTracks
+            .filter(track => `${track.bioDataItemId || ''}`.toLowerCase() === `${bioDataItemId}`.toLowerCase() &&
+                `${track.projectId || ''}`.toLowerCase() === `${projectId}`.toLowerCase()
+            );
+        const duplicateId = Math.max(
+            0,
+            ...duplicates
+                .filter(track => !Number.isNaN(Number(track.duplicateId)))
+                .map(track => +track.duplicateId)
+        ) + 1;
+        const duplicate = {
+            ...config,
+            duplicateId,
+        };
+        const duplicateState = {
+            projectId,
+            bioDataItemId: name,
+            duplicateId,
+            projectIdNumber: projectIdNumber || (project ? project.id : undefined),
+            format,
+            height,
+            state
+        };
+        this.changeState({
+            tracks: currentTracks.concat(duplicate),
+            tracksState: currentTrackStates.concat(duplicateState)
+        });
     }
 
     hotkeyPressed(event) {
@@ -1011,22 +1079,27 @@ export default class projectContext {
 
     applyTrackState(track, silent = false) {
         const {
-          bioDataItemId,
-          index,
-          isLocal,
-          format,
-          height,
-          projectId,
-          projectIdNumber,
-          state,
+            bioDataItemId,
+            duplicateId = '',
+            index,
+            isLocal,
+            format,
+            height,
+            projectId,
+            projectIdNumber,
+            state,
         } = track;
         const __tracksState = this.tracksState || [];
-        let [existedState] = __tracksState.filter(t => t.bioDataItemId.toString().toLowerCase() === bioDataItemId.toString().toLowerCase() &&
-        t.projectId.toLowerCase() === projectId.toLowerCase());
+        let [existedState] = __tracksState
+            .filter(t => t.bioDataItemId.toString().toLowerCase() === bioDataItemId.toString().toLowerCase() &&
+                t.projectId.toLowerCase() === projectId.toLowerCase() &&
+                `${t.duplicateId || ''}` === `${duplicateId}`
+            );
         let elementIndex = -1;
         if (!existedState) {
             existedState = {
                 bioDataItemId,
+                duplicateId,
                 format,
                 height,
                 index,
@@ -1296,16 +1369,14 @@ export default class projectContext {
                     for (let j = 0; j < items.length; j++) {
                         const track = items[j];
                         if (track.name && track.format) {
-                            const [state] = tracksState.filter(t =>
+                            const existingTrackStates = tracksState.filter(t =>
                             (t.bioDataItemId.toString().toLowerCase() === track.name.toLowerCase() ||
                             t.bioDataItemId.toString().toLowerCase() === track.bioDataItemId.toString().toLowerCase()) &&
                             (t.projectId.toString().toLowerCase() === _projectName ||
                             t.projectId.toString().toLowerCase() === _projectId));
-                            if (state) {
-                                const index = tracksState.indexOf(state);
+                            existingTrackStates.forEach(state => {
                                 state.bioDataItemId = track.name;
-                                tracksState.splice(index, 1, state);
-                            }
+                            });
                         }
                     }
                     tracksState.forEach(ts => {
@@ -1374,9 +1445,14 @@ export default class projectContext {
                             }
                             const savedState = this.getTrackState((annotationFile.name || '').toLowerCase(), '');
                             if (savedState) {
-                                return Object.assign({instance: t.instance}, savedState, annotationFile);
+                                return Object.assign(
+                                    {instance: t.instance},
+                                    savedState,
+                                    annotationFile,
+                                    {duplicateId: t.duplicateId}
+                                );
                             }
-                            return {...annotationFile, instance: t.instance};
+                            return {...annotationFile, instance: t.instance, duplicateId: t.duplicateId};
                         }
                         return t;
                     });
@@ -1410,6 +1486,7 @@ export default class projectContext {
                     id: decodeURIComponent(trackState.bioDataItemId),
                     indexPath: decodeURIComponent(trackState.index),
                     bioDataItemId: decodeURIComponent(trackState.bioDataItemId),
+                    duplicateId: decodeURIComponent(`${trackState.duplicateId || ''}`),
                     projectId: trackState.projectId,
                     projectIdNumber: trackState.projectIdNumber,
                     name: decodeURIComponent(trackState.bioDataItemId),
@@ -1455,6 +1532,7 @@ export default class projectContext {
                             if (index >= 0) {
                                 const fn = (item) => ({
                                     bioDataItemId: item.name,
+                                    duplicateId: item.duplicateId,
                                     projectId: _project.name,
                                     projectIdNumber: _project.id
                                 });
@@ -1467,6 +1545,7 @@ export default class projectContext {
                             if (index >= 0) {
                                 const fn = (item) => ({
                                     bioDataItemId: item.name,
+                                    duplicateId: item.duplicateId,
                                     projectId: _project.name,
                                     projectIdNumber: _project.id
                                 });
@@ -1504,18 +1583,18 @@ export default class projectContext {
                                 tracksState.splice(index, 1, ...predefinedTracks.map(fn));
                             }
                         }
-                        for (let j = 0; j < items.length; j++) {
-                            const track = items[j];
-                            if (track.name && track.format && tracksState.filter(t =>
+                        tracksState.forEach(t => {
+                            const [track] = items.filter(track => track.name &&
+                                track.format &&
                                 t.bioDataItemId !== undefined &&
                                 (t.bioDataItemId.toString().toLowerCase() === track.name.toLowerCase() ||
-                                t.bioDataItemId.toString().toLowerCase() === track.bioDataItemId.toString().toLowerCase())
-                                && t.projectId.toString().toLowerCase() === projectsIds[i].toString().toLowerCase()).length === 1) {
-                                track.projectId = _project.name;
-                                track.projectIdNumber = _project.id;
-                                __tracks.push(track);
+                                    t.bioDataItemId.toString().toLowerCase() === track.bioDataItemId.toString().toLowerCase())
+                                && t.projectId.toString().toLowerCase() === projectsIds[i].toString().toLowerCase()
+                            );
+                            if (track) {
+                                __tracks.push({...track, duplicateId: t.duplicateId});
                             }
-                        }
+                        });
                     } else {
                         const wrongStates = tracksState.filter(ts => !ts.isLocal && ts.projectId === projectsIds[i]);
                         for (let i = 0; i < wrongStates.length; i++) {
@@ -1531,6 +1610,7 @@ export default class projectContext {
                         __tracks.push(trackWithReference.reference);
                         tracksState.splice(0, 0, {
                             bioDataItemId: trackWithReference.reference.name,
+                            duplicateId: trackWithReference.reference.duplicateId,
                             projectId: trackWithReference.projectId,
                             projectIdNumber: trackWithReference.projectIdNumber,
                         });
@@ -1565,6 +1645,7 @@ export default class projectContext {
                         const savedState = this.getTrackState((annotationFile.name || '').toLowerCase(), '');
                         tracksState.splice(index + 1, 0, Object.assign(savedState || {}, {
                             bioDataItemId: annotationFile.name,
+                            duplicateId: annotationFile.duplicateId,
                             projectId: '',
                             isLocal: true,
                             format: annotationFile.format
@@ -1611,7 +1692,9 @@ export default class projectContext {
             if (!vcfFileIdsByProject[t.project.id]) {
                 vcfFileIdsByProject[t.project.id] = [];
             }
-            vcfFileIdsByProject[t.project.id].push(t.id);
+            if (vcfFileIdsByProject[t.project.id].indexOf(t.id) === -1) {
+                vcfFileIdsByProject[t.project.id].push(t.id);
+            }
         });
         return vcfFileIdsByProject;
     }
@@ -1741,23 +1824,23 @@ export default class projectContext {
                 }
                 return 0;
             }
-            const index1 = tracksSettings.findIndex(findIndex(file1.name.toLowerCase(), file1.projectId.toLowerCase()));
-            const index2 = tracksSettings.findIndex(findIndex(file2.name.toLowerCase(), file2.projectId.toLowerCase()));
-
-            if (index1 === index2) return 0;
-            return index1 > index2 ? 1 : -1;
-
-            function findIndex(bioDataItemId, projectId) {
+            function findIndex(bioDataItemId, projectId, duplicateId = '') {
                 return (element) => element.bioDataItemId.toString().toLowerCase() === bioDataItemId.toString().toLowerCase() &&
-                element.projectId.toLowerCase() === projectId.toLowerCase();
+                    element.projectId.toLowerCase() === projectId.toLowerCase() &&
+                    `${element.duplicateId || ''}` === `${duplicateId}`;
             }
+            const index1 = tracksSettings.findIndex(findIndex(file1.name.toLowerCase(), file1.projectId.toLowerCase(), file1.duplicateId));
+            const index2 = tracksSettings.findIndex(findIndex(file2.name.toLowerCase(), file2.projectId.toLowerCase(), file2.duplicateId));
+            return index1 - index2;
         }
         function filterItems(projectFiles) {
             if (!tracksSettings) return projectFiles;
             return projectFiles.filter(file => {
                 const [fileSettings]= tracksSettings.filter(m =>
-                m.bioDataItemId.toLowerCase() === file.name.toString().toLowerCase() &&
-                m.projectId.toLowerCase() === file.projectId.toLowerCase());
+                    m.bioDataItemId.toLowerCase() === file.name.toString().toLowerCase() &&
+                    m.projectId.toLowerCase() === file.projectId.toLowerCase() &&
+                    `${m.duplicateId || ''}` === `${file.duplicateId || ''}`
+                );
                 return fileSettings !== undefined && fileSettings !== null;
             });
         }

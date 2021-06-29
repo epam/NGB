@@ -16,7 +16,9 @@ export default function run($mdDialog, dispatcher) {
                     const organizeTracks = [];
 
                     $scope.organizeTracks.forEach(function(val) {
-                        const track = tracksState.filter(t => t.bioDataItemId === val.name && t.projectId === val.projectId);
+                        const track = tracksState.filter(t => t.bioDataItemId === val.name &&
+                            t.projectId === val.projectId &&
+                            `${t.duplicateId || ''}` === `${val.duplicateId || ''}`);
                         if(track && track.length > 0) {
                             organizeTracks.push(track[0]);
                         }

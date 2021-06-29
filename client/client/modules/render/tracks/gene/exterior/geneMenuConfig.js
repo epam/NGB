@@ -1,5 +1,7 @@
 import * as geneTypes from '../geneTypes';
 import commonMenu from '../../common/menu';
+import duplicateMenu from './duplicateMenu';
+import featuresMenu from './featuresMenu';
 
 export default [
     {
@@ -33,5 +35,7 @@ export default [
         label: 'Transcript View',
         name: 'gene>view',
         type: 'submenu'
-    }
+    },
+    featuresMenu,
+    duplicateMenu
 ];

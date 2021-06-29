@@ -40,6 +40,13 @@ function wrapDisplayFn(fn, o) {
     };
 }
 
+function wrapDynamicFields(fn, o) {
+    return (tracks, options) => tracks
+        .filter(getFilter(o))
+        .map(track => fn(track.state, tracks.filter(getFilter(o)), track, options))
+        .reduce((r, c) => ([...r, ...c]), []);
+}
+
 // beforeFn(tracks) - called before all tracks state mutation
 // preFn(track) - called before each track's state mutation
 // postFn(track) - called after each track's state mutation
@@ -125,6 +132,9 @@ function processMenuEntry(menuEntry, options) {
                         break;
                     case key.startsWith('display'):
                         result[key] = wrapDisplayFn(menuEntry[key], result);
+                        break;
+                    case key === 'dynamicFields':
+                        result[key] = wrapDynamicFields(menuEntry[key], result);
                         break;
                     case key === 'perform':
                         result[key] = wrapPerformFn(

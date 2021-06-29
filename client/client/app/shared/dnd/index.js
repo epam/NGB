@@ -160,10 +160,14 @@ export default angular.module('dndLists', [])
 
                 const tracksState = [
                     ...dndList.map(file => {
-                        const [fileSettings]= tracksSettings.filter(m => m.bioDataItemId.toString().toLowerCase() === file.name.toString().toLowerCase());
+                        const [fileSettings]= tracksSettings
+                            .filter(m => m.bioDataItemId.toString().toLowerCase() === file.name.toString().toLowerCase() &&
+                                `${m.duplicateId || ''}` === `${file.duplicateId || ''}`
+                            );
                         if (!fileSettings) {
                             return {
                                 bioDataItemId: file.name,
+                                duplicateId: file.duplicateId,
                                 isLocal: file.isLocal,
                                 projectId: file.projectId,
                             };
@@ -175,6 +179,7 @@ export default angular.module('dndLists', [])
                             const isLocal = fileSettings.isLocal;
                             return {
                                 bioDataItemId: file.name,
+                                duplicateId: file.duplicateId,
                                 format,
                                 height,
                                 index,

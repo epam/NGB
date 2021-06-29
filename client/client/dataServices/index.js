@@ -5,6 +5,7 @@ export * from './genome/genome-data-service';
 export * from './vcf/vcf-data-service';
 export * from './wig/wig-data-service';
 export * from './gene/gene-data-service';
+export * from './gene/cached-gene-data-service';
 export * from './bed/bed-data-service';
 export * from './seg/seg-data-service';
 export * from './others/others-data-service';

@@ -114,14 +114,15 @@ export default class ngbTracksSelectionController extends baseController {
 
     getTrackIsSelected(track) {
         return this.selectionContext
-            .getTrackIsSelected(track ? track.bioDataItemId : undefined, this.browserId);
+            .getTrackIsSelected(track, this.browserId);
     }
 
     setTrackIsSelected(track) {
-        const [t] = this.tracks.filter(o => o.track.bioDataItemId === track.bioDataItemId);
+        const [t] = this.tracks
+            .filter(o => o.track.bioDataItemId === track.bioDataItemId && o.track.duplicateId === track.duplicateId);
         if (t) {
             this.selectionContext
-                .setTrackIsSelected(track ? track.bioDataItemId : undefined, this.browserId, t.selected);
+                .setTrackIsSelected(track, this.browserId, t.selected);
         }
     }
 
@@ -130,7 +131,7 @@ export default class ngbTracksSelectionController extends baseController {
     }
 
     trackHash(track) {
-        return `[${track.bioDataItemId}][${track.projectId}]`;
+        return `[${track.bioDataItemId}][${track.projectId}][${track.duplicateId || ''}]`;
     }
 
     sortTracksWithCustomName(tracks = []) {

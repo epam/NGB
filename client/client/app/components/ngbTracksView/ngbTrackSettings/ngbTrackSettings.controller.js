@@ -33,11 +33,11 @@ export default class ngbTrackMenuController {
 
         const hotkeyPressedFn = () => $scope.$apply();
         const globalSettingsChanged = () => {
-            let hotkeys = this.projectContext.hotkeys || localDataService.getSettings().hotkeys;
+            const hotkeys = this.projectContext.hotkeys || localDataService.getSettings().hotkeys;
             if(self.settings) {
                 self.settings.forEach(menuEntry => {
                     menuEntry.fields.forEach(field => {
-                        let objHotkey = hotkeys[field.name];
+                        const objHotkey = hotkeys[field.name];
                         if (objHotkey && objHotkey.hotkey) {
                             field.hotkey = objHotkey.hotkey;
                         }

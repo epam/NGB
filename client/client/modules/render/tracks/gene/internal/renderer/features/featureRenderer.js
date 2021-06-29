@@ -146,8 +146,18 @@ export default class FeatureRenderer {
         };
         this._geneFeatureRenderer._opts = this._opts;
         const maxIterations = 10000000;
+        const {
+            geneFeatures
+        } = this._opts || {};
         for (let i = 0; i < features.length; i++) {
             const item = features[i];
+            if (
+                geneFeatures &&
+                !/^statistic$/i.test(item.feature) &&
+                geneFeatures.indexOf(item.feature) === -1
+            ) {
+                continue;
+            }
             const renderer = this.getRendererForFeature(item);
             if (!renderer) {
                 continue;
