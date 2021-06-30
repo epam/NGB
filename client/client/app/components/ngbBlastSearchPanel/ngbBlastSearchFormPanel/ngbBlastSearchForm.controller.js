@@ -99,7 +99,9 @@ export default class ngbBlastSearchFormController extends baseController {
 
     async setSearchRequest() {
         this.isProgressShown = true;
-        this.searchRequest = await this.ngbBlastSearchService.getCurrentSearch();
+        const {request, error} = await this.ngbBlastSearchService.getCurrentSearch();
+        this.searchRequest = request;
+        this.errorMessage = error;
         this.setDefaultAlgorithms();
         this.setDefaultParams();
         this.$timeout(() => this.isProgressShown = false);

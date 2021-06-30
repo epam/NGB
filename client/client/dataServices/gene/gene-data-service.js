@@ -157,4 +157,18 @@ export class GeneDataService extends DataService {
         });
     }
 
+    getAminoAcids(request) {
+        return new Promise((resolve, reject) => {
+            this.post('gene/aminoacids', request)
+                .then((data) => {
+                    if (data && data.text) {
+                        resolve(data.text);
+                    } else {
+                        resolve(undefined);
+                    }
+                })
+                .catch(reject);
+        });
+    }
+
 }
