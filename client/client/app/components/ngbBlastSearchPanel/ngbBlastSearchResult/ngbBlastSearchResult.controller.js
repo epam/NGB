@@ -10,12 +10,12 @@ export default class ngbBlastSearchResult extends baseController {
     searchResult = {};
     isProgressShown = true;
 
-    constructor($mdDialog, ngbBlastSearchService) {
+    constructor($mdDialog, ngbBlastSearchService, ngbBlastSearchFormConstants) {
         super();
-
         Object.assign(this, {
             $mdDialog,
-            ngbBlastSearchService
+            ngbBlastSearchService,
+            ngbBlastSearchFormConstants
         });
         this.initialize();
     }

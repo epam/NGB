@@ -96,7 +96,9 @@
             <md-input-container class="blast-search-input">
                 <label>Algorithm</label>
                 <md-select ng-model="$ctrl.searchRequest.algorithm">
-                    <md-option ng-repeat="alg in $ctrl.algorithmList" ng-value="alg">{{alg}}</md-option>
+                    <md-option ng-repeat="alg in $ctrl.algorithmList" ng-value="alg">
+                        {{$ctrl.ngbBlastSearchFormConstants.ALGORITHM_NAME[alg] || alg}}
+                    </md-option>
                 </md-select>
             </md-input-container>
             <div class="blast-search-info-icon">
@@ -105,7 +107,7 @@
                     <div class="tooltip-header">{{$ctrl.toolTooltip.description}}</div>
                     <ul>
                         <li ng-repeat="(alg, desc) in $ctrl.toolTooltip.algorithms">
-                            <b>{{alg}}</b> - {{desc}}
+                            <b>{{$ctrl.ngbBlastSearchFormConstants.ALGORITHM_NAME[alg] || alg}}</b> - {{desc}}
                         </li>
                     </ul>
                 </md-tooltip>
