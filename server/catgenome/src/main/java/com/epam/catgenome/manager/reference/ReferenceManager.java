@@ -57,8 +57,6 @@ import com.epam.catgenome.util.BlockCompressedDataInputStream;
 import com.epam.catgenome.util.BlockCompressedDataOutputStream;
 import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.Utils;
-import htsjdk.samtools.seekablestream.SeekableStream;
-import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -66,7 +64,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.biojava.nbio.core.sequence.DNASequence;
 import org.biojava.nbio.core.sequence.io.FastaWriterHelper;
-import org.biojava.nbio.core.sequence.io.GenbankReaderHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -596,11 +593,7 @@ public class ReferenceManager {
     @SneakyThrows
     private String genbankToFasta(final Reference reference) {
         String genbankFilePath = reference.getPath();
-        Assert.notNull(genbankFilePath, getMessage(MessageCode.RESOURCE_NOT_FOUND));
-        Map<String, DNASequence> dnaSequences;
-        try (final SeekableStream genBankStream = SeekableStreamFactory.getInstance().getStreamFor(genbankFilePath)) {
-            dnaSequences = GenbankReaderHelper.readGenbankDNASequence(genBankStream);
-        }
+        Map<String, DNASequence> dnaSequences = fileManager.readGenbankFile(genbankFilePath);
         Assert.isTrue(!dnaSequences.isEmpty(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
         String referenceDir = fileManager.getReferenceDir(reference);
         Assert.notNull(referenceDir, getMessage(MessageCode.RESOURCE_NOT_FOUND));
