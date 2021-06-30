@@ -42,4 +42,14 @@ export default class ngbBlastSearchAlignmentList {
             }, 0);
         }, 0);
     }
+
+    navigationToChromosomeAvailable() {
+        return this.ngbBlastSearchService.navigationToChromosomeAvailable(this.searchResult);
+    }
+
+    async navigateToChromosome () {
+        if (this.searchResult) {
+            this.ngbBlastSearchService.navigateToChromosome(this.searchResult);
+        }
+    }
 }
