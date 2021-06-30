@@ -103,9 +103,9 @@ export default class ngbGenesTableController extends baseController {
                 this.gridApi.colResizable.on.columnSizeChanged(this.$scope, this.saveColumnsState.bind(this));
                 this.gridApi.core.on.sortChanged(this.$scope, this.sortChanged.bind(this));
                 this.gridApi.infiniteScroll.on.needLoadMoreData(this.$scope, this.appendData.bind(this));
+                return this.reloadGenes();
             }
         });
-        return this.reloadGenes();
     }
 
     reloadGenes() {
@@ -122,8 +122,8 @@ export default class ngbGenesTableController extends baseController {
     }
 
     async appendData() {
-        if (!this.projectContext.reference) {
-            return [];
+        if (!this.projectContext.reference || !this.gridApi) {
+            return;
         }
         this.isProgressShown = true;
         try {

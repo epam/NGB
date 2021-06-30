@@ -1,13 +1,16 @@
 <div class="md-padding"
      ng-if="!$ctrl.projectContext.reference">
     <md-content flex
-                layout-padding
-                class="md-whiteframe-8dp md-primary">
+                class="select-reference-warning">
         <span>Select a dataset to browse genes</span>
     </md-content>
 </div>
-<div class="empty-results" layout="column" layout-align="center center" ng-if="$ctrl.isEmptyResults">
-    <strong>No records found.</strong>
+<div class="md-padding"
+     ng-if="$ctrl.isEmptyResults">
+    <md-content flex
+                class="no-records-warning">
+        <span>No records found.</span>
+    </md-content>
 </div>
 <div class="ui-grid-container"
      ng-hide="$ctrl.errorMessageList.length"
