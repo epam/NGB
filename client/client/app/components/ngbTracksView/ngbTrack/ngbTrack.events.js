@@ -229,6 +229,7 @@ export default class ngbTrackEvents {
                     event.position, html
                 );
                 childScope.$apply();
+                html.find('#hiddenMenuButton').triggerHandler('click');
             }
         })();
     }

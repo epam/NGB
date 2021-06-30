@@ -208,14 +208,19 @@ export class GENETrack extends CachedTrack {
     onClick({x, y}) {
         super.onClick({x, y});
         const isHistogram = this.transformer.isHistogramDrawingModeForViewport(this.viewport, this.cache);
-        const checkPositionResult = this.renderer.checkPosition(this.viewport, this.cache,
-            {x, y}, isHistogram);
+        const checkPositionResult = this.renderer.checkPosition(
+            this.viewport,
+            this.cache,
+            {x, y},
+            isHistogram,
+            this.state.geneTranscript === GeneTypes.transcriptViewTypes.collapsed
+        );
 
         if (!isHistogram && checkPositionResult && checkPositionResult.length > 0) {
             if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
                 let feature = checkPositionResult[0].feature;
                 if (feature.feature === 'aminoacid' || feature.feature === 'exon') {
-                    [feature] = checkPositionResult.filter(x => x.feature.feature === 'transcript').map(x => x.feature);
+                    [feature] = checkPositionResult.filter(x => /^(transcript|mrna)$/i.test(x.feature.feature)).map(x => x.feature);
                     if (!feature) {
                         return;
                     }

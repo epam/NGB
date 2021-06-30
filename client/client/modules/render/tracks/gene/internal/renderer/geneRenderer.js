@@ -296,7 +296,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
         this._labelsContainer.mask = this._mask;
     }
 
-    checkPosition(viewport, cache, position, isHistogram) {
+    checkPosition(viewport, cache, position, isHistogram, isCollapsedMode = false) {
         if (isHistogram) {
             if (this.dataContainer !== null && this.dataContainer !== undefined)
                 return this._geneHistogram.checkPosition(position, GeneTransformer
@@ -305,7 +305,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
         }
         else {
             if (this.dataContainer !== null && this.dataContainer !== undefined)
-                return this.featureRenderer.checkPosition(position, this.dataContainer);
+                return this.featureRenderer.checkPosition(position, this.dataContainer, isCollapsedMode);
         }
         return null;
     }
