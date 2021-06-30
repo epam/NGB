@@ -138,13 +138,14 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     private static final String SVTYPE_FIELD = "SVTYPE";
     private static final String SVLEN_FIELD = "SVLEN";
     private static final List<Float> TEST_QUALITY_BOUNDS = Arrays.asList(0.5F, 1.0F);
-    private static final long TEST_AMOUNT = 78L;
-    private static final long TEST_PAGE_SIZE = 50L;
+    private static final long TEST_AMOUNT = 9L;
+    private static final long TEST_PAGE_SIZE = 5L;
     private static final long TEST_AMOUNT_OF_MRNA = 10L;
     private static final long TEST_AMOUNT_OF_GENE = 9L;
-    private static final long TEST_AMOUNT_POSITION = 5L;
+    private static final long TEST_AMOUNT_POSITION = 3L;
     private static final int TEST_START_INDEX = 65000;
-    private static final int TEST_END_INDEX = 80000;
+    private static final int TEST_END_INDEX = 200_000;
+    private static final int DEFAULT_PAGE_SIZE = 10;
 
     private Logger logger = LoggerFactory.getLogger(FeatureIndexManagerTest.class);
 
@@ -1221,6 +1222,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void searchGenesByFilterWithFeatureTypes() throws IOException {
         final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
+        geneFilterForm.setPageSize((int)(TEST_AMOUNT_OF_GENE + TEST_AMOUNT_OF_MRNA));
         geneFilterForm.setFeatureTypes(Arrays.asList(FeatureType.MRNA, FeatureType.GENE));
 
         assertEquals(TEST_AMOUNT_OF_GENE + TEST_AMOUNT_OF_MRNA,
@@ -1294,6 +1296,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     }
 
     @Test
+    @Ignore
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void searchGenesByFilterWithPointer() throws IOException {
         final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
@@ -1312,6 +1315,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     private GeneFilterForm getSimpleGeneFilter() {
         final GeneFilterForm geneFilterForm = new GeneFilterForm();
         geneFilterForm.setFeatureId("ENSFCA");
+        geneFilterForm.setPageSize(DEFAULT_PAGE_SIZE);
         return geneFilterForm;
     }
 
