@@ -183,6 +183,9 @@ public class BlastTaskManager {
         BlastTaskStatus status = getStatus(result);
         if (status != null && !blastTask.getStatus().equals(status)) {
             blastTask.setStatus(status);
+            if (status.isFinal()) {
+                blastTask.setEndDate(LocalDateTime.now());
+            }
             blastTaskDao.updateTask(blastTask);
         }
     }
