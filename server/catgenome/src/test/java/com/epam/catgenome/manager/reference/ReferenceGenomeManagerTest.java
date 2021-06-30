@@ -41,6 +41,7 @@ public class ReferenceGenomeManagerTest extends AbstractManagerTest {
     private static final int TEST_CHROMOSOME_SIZE = 239107476;
     private static final String SPECIES_NAME = "human";
     private static final String SPECIES_VERSION = "hg19";
+    public static final long HOMO_TAX_ID = 9606L;
 
     @Autowired
     private ReferenceGenomeManager referenceGenomeManager;
@@ -70,6 +71,28 @@ public class ReferenceGenomeManagerTest extends AbstractManagerTest {
         Assert.assertEquals(1, loaded.stream().filter(r -> r.getGeneFile() != null &&
                 r.getGeneFile().getId() != null &&
                 r.getGeneFile().getName() != null).count());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testLoadAllReferenceGenomeByTaxId() throws IOException {
+        registerTestReference();
+        Species testSpecies = new Species();
+        testSpecies.setName(SPECIES_NAME);
+        testSpecies.setVersion(SPECIES_VERSION);
+        testSpecies.setTaxId(HOMO_TAX_ID);
+
+        referenceGenomeManager.registerSpecies(testSpecies);
+
+
+        Reference g38 = EntityHelper.createG38Reference(referenceGenomeManager.createReferenceId());
+        referenceGenomeManager.create(g38);
+        referenceGenomeManager.updateSpecies(g38.getId(), testSpecies.getVersion());
+
+        List<Reference> loaded = referenceGenomeManager.loadAllReferenceGenomesByTaxId(HOMO_TAX_ID);
+        Assert.assertFalse(loaded.isEmpty());
+        Assert.assertEquals(1, loaded.stream()
+                .filter(reference -> reference.getSpecies().getTaxId() == HOMO_TAX_ID).count());
     }
 
     @Test
