@@ -48,8 +48,8 @@ export default class ngbBlastSearchAlignmentList {
     }
 
     async navigateToChromosome () {
-        if (this.searchResult) {
-            this.ngbBlastSearchAlignmentService.navigateToChromosome(this.searchResult);
+        if (this.searchResult && this.search) {
+            this.ngbBlastSearchAlignmentService.navigateToChromosome(this.searchResult, this.search);
         }
     }
 }

@@ -764,7 +764,8 @@ export default class projectContext {
             projectIdNumber: projectIdNumber || (project ? project.id : undefined),
             format,
             height,
-            state
+            state,
+            isLocal: config.isLocal
         };
         this.changeState({
             tracks: currentTracks.concat(duplicate),
