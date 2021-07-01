@@ -216,7 +216,7 @@ export default class ngbBlastSearchAlignmentService {
         return Boolean(info);
     }
 
-    async navigateToChromosome (searchResult) {
+    async navigateToChromosome (searchResult, search) {
         const navigationInfo = await this.getNavigationToChromosomeInfo(searchResult);
         if (navigationInfo) {
             const {
@@ -304,7 +304,9 @@ export default class ngbBlastSearchAlignmentService {
                 },
                 keepBLASTTrack: true,
                 ...tracksOptions
-            }, false);
+            }, false, () => {
+                this.setAlignments(searchResult, search);
+            });
         }
     }
 }
