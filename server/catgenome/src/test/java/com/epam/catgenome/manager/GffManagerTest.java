@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -120,6 +120,8 @@ public class GffManagerTest extends AbstractManagerTest {
     private static final int TEST_FEATURE_COUNT = 58;
 
     private static final String GENES_SORTED_GTF_PATH = "classpath:templates/genes_sorted.gtf";
+    private static final String GENBANK_PATH = "classpath:templates/KU131557.gbk";
+    private static final String GFF_PATH = "classpath:templates";
     private static final int TEST_END_INDEX = 239107476;
     private static final Double FULL_QUERY_SCALE_FACTOR = 1D;
     private static final Double SMALL_SCALE_FACTOR = 0.0009;
@@ -608,6 +610,13 @@ public class GffManagerTest extends AbstractManagerTest {
         Assert.assertTrue(testCollapsed("classpath:templates/genes_sorted.gff3"));
     }
 
+    @Test
+    public void testGenbankRegister() throws IOException {
+        String genbankFilePath = context.getResource(GENBANK_PATH).getFile().getPath();
+        String gffFilePath = context.getResource(GFF_PATH).getFile().getPath() + "\\KU131557.gff";
+        gffManager.genbankToGff(genbankFilePath, gffFilePath);
+    }
+
     private boolean testCollapsed(String path) throws IOException, FeatureIndexException, InterruptedException,
                                                    NoSuchAlgorithmException, GeneReadingException {
         Resource resource = context.getResource(path);
@@ -771,11 +780,9 @@ public class GffManagerTest extends AbstractManagerTest {
             i -> CollectionUtils.isNotEmpty(i.getItems()))));
     }
 
-
     private String readFile(String filename) throws IOException {
         Resource resource = context.getResource("classpath:externaldb//data//" + filename);
         String pathStr = resource.getFile().getPath();
         return new String(Files.readAllBytes(Paths.get(pathStr)), Charset.defaultCharset());
     }
-
 }
