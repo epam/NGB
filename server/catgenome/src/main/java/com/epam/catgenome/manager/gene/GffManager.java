@@ -71,7 +71,10 @@ import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.Record;
 import com.epam.catgenome.manager.externaldb.bindings.uniprot.Uniprot;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
+import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.manager.gene.reader.AbstractGeneReader;
+import com.epam.catgenome.manager.gene.writer.Gff3FeatureImpl;
+import com.epam.catgenome.manager.gene.writer.Gff3Writer;
 import com.epam.catgenome.manager.parallel.ParallelTaskExecutionUtils;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
@@ -88,13 +91,16 @@ import htsjdk.samtools.util.IntervalTree;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.readers.LineIterator;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.biojava.nbio.core.sequence.AccessionID;
+import org.biojava.nbio.core.sequence.DNASequence;
+import org.biojava.nbio.core.sequence.features.Qualifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -102,10 +108,12 @@ import org.springframework.util.Assert;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -129,6 +137,7 @@ import static com.epam.catgenome.constant.MessagesConstants.ERROR_REGISTER_FILE;
  *
  */
 @Service
+@Slf4j
 public class GffManager {
 
     @Autowired
@@ -172,7 +181,6 @@ public class GffManager {
     private static final String PROTEIN_CODING = "protein_coding";
 
     private static final int EXON_SEARCH_CHUNK_SIZE = 100001;
-    private static final  Logger LOGGER = LoggerFactory.getLogger(GffManager.class);
 
     /**
      * Registers a gene file (GFF/GTF) in the system to make it available to browse. Creates Tabix index if absent
@@ -282,7 +290,7 @@ public class GffManager {
         geneFile.setBioDataItemId(geneFile.getId());
         geneFile.setId(geneId);
 
-        LOGGER.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, geneFile.getId(), geneFile.getPath()));
+        log.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, geneFile.getId(), geneFile.getPath()));
         GeneRegisterer geneRegisterer = new GeneRegisterer(referenceGenomeManager, fileManager, featureIndexManager,
                                                            geneFile);
         try {
@@ -297,7 +305,7 @@ public class GffManager {
                 try {
                     fileManager.deleteFeatureFileDirectory(geneFile);
                 } catch (IOException e) {
-                    LOGGER.error("Unable to delete directory for " + geneFile.getName(), e);
+                    log.error("Unable to delete directory for " + geneFile.getName(), e);
                 }
             }
         }
@@ -494,7 +502,7 @@ public class GffManager {
     public NggbIntervalTreeMap<Gene> loadGenesIntervalMap(GeneFile geneFile, int startIndex, int endIndex,
                                                           Chromosome chromosome) throws GeneReadingException {
         double time1 = Utils.getSystemTimeMilliseconds();
-        int numOfSubIntervals = ParallelTaskExecutionUtils.splitFileReadingInterval(startIndex, endIndex, LOGGER,
+        int numOfSubIntervals = ParallelTaskExecutionUtils.splitFileReadingInterval(startIndex, endIndex, log,
                 taskExecutorService.getTaskNumberOfThreads());
         final List<Callable<Boolean>> callables = new ArrayList<>(numOfSubIntervals);
         final NggbIntervalTreeMap<Gene> genesRangeMap = new NggbIntervalTreeMap<>();
@@ -517,7 +525,7 @@ public class GffManager {
             try {
                 return future != null ? future.get() : null;
             } catch (InterruptedException | ExecutionException e) {
-                LOGGER.error(getMessage(MessagesConstants.ERROR_GENE_BATCH_LOAD, geneFile.getId(), chromosome.getId(),
+                log.error(getMessage(MessagesConstants.ERROR_GENE_BATCH_LOAD, geneFile.getId(), chromosome.getId(),
                                         e));
             }
             return null;
@@ -526,7 +534,7 @@ public class GffManager {
         genesRangeMap.setMaxEndIndex(endIndex);
         genesRangeMap.setMinStartIndex(startIndex);
         double time2 = Utils.getSystemTimeMilliseconds();
-        LOGGER.debug(getMessage(MessagesConstants.DEBUG_GENE_BATCH_LOAD, geneFile.getName(), chromosome.getName(),
+        log.debug(getMessage(MessagesConstants.DEBUG_GENE_BATCH_LOAD, geneFile.getName(), chromosome.getName(),
                                 startIndex, endIndex, time2 - time1));
 
         return genesRangeMap;
@@ -537,10 +545,10 @@ public class GffManager {
         double time0 = Utils.getSystemTimeMilliseconds();
         try (AbstractFeatureReader<GeneFeature, LineIterator> featureReader = fileManager.makeGeneReader(
             geneFile, GeneFileType.ORIGINAL)) {
-            LOGGER.debug(getMessage(MessagesConstants.DEBUG_THREAD_STARTS,
+            log.debug(getMessage(MessagesConstants.DEBUG_THREAD_STARTS,
                                     Thread.currentThread().getName()));
             double time11 = Utils.getSystemTimeMilliseconds();
-            LOGGER.debug(getMessage(MessagesConstants.DEBUG_THREAD_READER_CREATED,
+            log.debug(getMessage(MessagesConstants.DEBUG_THREAD_READER_CREATED,
                                     Thread.currentThread().getName(), time11 - time0));
 
             int start = startIndex + factor * ParallelTaskExecutionUtils.MAX_BLOCK_SIZE;
@@ -550,11 +558,11 @@ public class GffManager {
             } else {
                 end = endIndex;
             }
-            LOGGER.debug(getMessage(MessagesConstants.DEBUG_THREAD_INTERVAL),
+            log.debug(getMessage(MessagesConstants.DEBUG_THREAD_INTERVAL),
                          Thread.currentThread().getName(), start, end);
             CloseableIterator<GeneFeature> iterator = Utils.query(featureReader, chromosome, start, end);
             double time21 = Utils.getSystemTimeMilliseconds();
-            LOGGER.debug(getMessage(MessagesConstants.DEBUG_THREAD_QUERY_TIME,
+            log.debug(getMessage(MessagesConstants.DEBUG_THREAD_QUERY_TIME,
                                     Thread.currentThread().getName(), time21 - time11));
 
             time11 = Utils.getSystemTimeMilliseconds();
@@ -570,10 +578,10 @@ public class GffManager {
             });
 
             time21 = Utils.getSystemTimeMilliseconds();
-            LOGGER.debug(getMessage(MessagesConstants.DEBUG_THREAD_WALKTHROUGH_TIME,
+            log.debug(getMessage(MessagesConstants.DEBUG_THREAD_WALKTHROUGH_TIME,
                                     Thread.currentThread().getName(), time21 - time11));
 
-            LOGGER.debug(getMessage(MessagesConstants.DEBUG_THREAD_ENDS, Thread.currentThread().getName()));
+            log.debug(getMessage(MessagesConstants.DEBUG_THREAD_ENDS, Thread.currentThread().getName()));
             return true;
         }
     }
@@ -602,7 +610,7 @@ public class GffManager {
                 gene.setTranscripts(getTranscriptFromDB(gene.getGroupId()));
                 geneTranscriptList.add(new GeneTranscript(gene));
             } catch (ExternalDbUnavailableException e) {
-                LOGGER.info("External DB Exception", e);
+                log.info("External DB Exception", e);
                 geneTranscriptList.add(new GeneTranscript(gene, e.getMessage()));
             }
         }
@@ -749,7 +757,7 @@ public class GffManager {
         final List<Wig> newHistogram =
                 HistogramUtils.executeHistogramCreation(taskExecutorService.getExecutorService(), callables);
         final double time2 = Utils.getSystemTimeMilliseconds();
-        LOGGER.debug("Reading histogram, took {} ms", time2 - time1);
+        log.debug("Reading histogram, took {} ms", time2 - time1);
 
         writeHistogram(newHistogram, geneFile, chromosome);
 
@@ -793,7 +801,7 @@ public class GffManager {
         try (AbstractFeatureReader<GeneFeature, LineIterator> featureReader =
                      fileManager.makeGeneReader(geneFile, GeneFileType.ORIGINAL)) {
             double time2 = Utils.getSystemTimeMilliseconds();
-            LOGGER.debug("Reader creation {} ms", Thread.currentThread().getName(), time2 - time1);
+            log.debug("Reader creation {} ms", Thread.currentThread().getName(), time2 - time1);
 
             if (forward) {
                 return getNextGeneFeature(featureReader, chromosome, fromPosition, end);
@@ -814,7 +822,7 @@ public class GffManager {
                                                               end);
 
         double time2 = Utils.getSystemTimeMilliseconds();
-        LOGGER.debug(getMessage(MessagesConstants.DEBUG_QUERY_TIME, time2 - time1));
+        log.debug(getMessage(MessagesConstants.DEBUG_QUERY_TIME, time2 - time1));
 
         time1 = Utils.getSystemTimeMilliseconds();
 
@@ -826,7 +834,7 @@ public class GffManager {
         }
 
         time2 = Utils.getSystemTimeMilliseconds();
-        LOGGER.debug(getMessage(MessagesConstants.DEBUG_WALKTHROUGH_TIME, time2 - time1));
+        log.debug(getMessage(MessagesConstants.DEBUG_WALKTHROUGH_TIME, time2 - time1));
 
         return null;
     }
@@ -859,7 +867,7 @@ public class GffManager {
             // long. Hopefully, the desired feature will be in first/second chunk
 
             double time2 = Utils.getSystemTimeMilliseconds();
-            LOGGER.debug(getMessage(MessagesConstants.DEBUG_QUERY_TIME, time2 - time1));
+            log.debug(getMessage(MessagesConstants.DEBUG_QUERY_TIME, time2 - time1));
 
             time1 = Utils.getSystemTimeMilliseconds();
             while (iterator.hasNext()) {
@@ -869,7 +877,7 @@ public class GffManager {
                 }
             }
             time2 = Utils.getSystemTimeMilliseconds();
-            LOGGER.debug(getMessage(MessagesConstants.DEBUG_WALKTHROUGH_TIME, time2 - time1));
+            log.debug(getMessage(MessagesConstants.DEBUG_WALKTHROUGH_TIME, time2 - time1));
 
             i++;
         }
@@ -920,7 +928,7 @@ public class GffManager {
             exons.add(node.getValue());
         }
         double time2 = Utils.getSystemTimeMilliseconds();
-        LOGGER.info(getMessage(MessagesConstants.DEBUG_GENE_EXONS_LOAD, time2 - time1));
+        log.info(getMessage(MessagesConstants.DEBUG_GENE_EXONS_LOAD, time2 - time1));
         return exons;
     }
 
@@ -963,7 +971,7 @@ public class GffManager {
         }
 
         double time2 = Utils.getSystemTimeMilliseconds();
-        LOGGER.info(getMessage(MessagesConstants.DEBUG_GENE_EXONS_LOAD, time2 - time1));
+        log.info(getMessage(MessagesConstants.DEBUG_GENE_EXONS_LOAD, time2 - time1));
         return exons;
     }
 
@@ -1049,14 +1057,14 @@ public class GffManager {
         double time0 = Utils.getSystemTimeMilliseconds();
         try (AbstractFeatureReader<GeneFeature, LineIterator> featureReader = fileManager.makeGeneReader(
                 geneFile, type)) {
-            LOGGER.debug("Thread {} starts", Thread.currentThread().getName());
+            log.debug("Thread {} starts", Thread.currentThread().getName());
             double time11 = Utils.getSystemTimeMilliseconds();
-            LOGGER.debug("Thread {} Reader creation {} ms", Thread.currentThread().getName(), time11 - time0);
+            log.debug("Thread {} Reader creation {} ms", Thread.currentThread().getName(), time11 - time0);
 
             List<Wig> wigs = new ArrayList<>(portion.size());
             for (Pair<Integer, Integer> interval : portion) {
                 if (interval.getRight() > track.getStartIndex() && interval.getLeft() < track.getEndIndex()) {
-                    LOGGER.debug("Thread {} Interval: {} - {}", Thread.currentThread().getName(),
+                    log.debug("Thread {} Interval: {} - {}", Thread.currentThread().getName(),
                             interval.getLeft(), interval.getRight());
 
                     CloseableIterator<GeneFeature> iterator = Utils.query(featureReader, chromosome.getName(),
@@ -1064,17 +1072,17 @@ public class GffManager {
                                 Math.min(interval.getRight(), track.getEndIndex()));
 
                     double time21 = Utils.getSystemTimeMilliseconds();
-                    LOGGER.debug("Thread {} Query took {} ms", Thread.currentThread().getName(), time21 - time11);
+                    log.debug("Thread {} Query took {} ms", Thread.currentThread().getName(), time21 - time11);
 
                     time11 = Utils.getSystemTimeMilliseconds();
 
                     int genesCount = iterator.toList().size();
 
                     time21 = Utils.getSystemTimeMilliseconds();
-                    LOGGER.debug("Thread {} Walkthrough took {} ms",
+                    log.debug("Thread {} Walkthrough took {} ms",
                             Thread.currentThread().getName(), time21 - time11);
 
-                    LOGGER.debug("Thread {} ends", Thread.currentThread().getName());
+                    log.debug("Thread {} ends", Thread.currentThread().getName());
                     HistogramUtils.addToHistogramPortion(wigs, genesCount, interval);
                 }
             }
@@ -1095,7 +1103,7 @@ public class GffManager {
                     ExtenalDBUtils.fillPBP(un, transcript);
                     ExtenalDBUtils.fillSecondaryStructure(un, transcript);
                 } catch (ExternalDbUnavailableException e) {
-                    LOGGER.debug(e.getMessage(), e);
+                    log.debug(e.getMessage(), e);
                 }
             }
         }
@@ -1244,6 +1252,65 @@ public class GffManager {
         while (iterator.hasNext() && totalLength < viewPortSize / 2) {
             GeneFeature feature = iterator.next();
             totalLength = processExon(intervalTree, totalLength, feature, intronLength, centerPosition, true);
+        }
+    }
+
+    private Map<String, List<String>> qualifiersToAttr(Map<String, List<Qualifier>> qualifiers, String type) {
+        final Map<String, List<String>> attributes = new LinkedHashMap<>();
+        for (Map.Entry<String, List<Qualifier>> qualifier : qualifiers.entrySet()) {
+            List<String> values = qualifier.getValue().stream().map(Qualifier::getValue).collect(Collectors.toList());
+            switch (qualifier.getKey()) {
+                case "db_xref":
+                    attributes.put("Dbxref", values);
+                    break;
+                case "gene":
+                    attributes.put("Name", values);
+                    break;
+                case "note":
+                    attributes.put("Note", values);
+                    break;
+                case "operon":
+                    attributes.put("ID", type.equals("operon") ? values : null);
+                    break;
+                case "locus_tag":
+                    attributes.put("Name", values);
+                    attributes.put("ID", type.equals("gene") ? values : null);
+                    break;
+                default:
+                    attributes.put(qualifier.getKey(), values);
+            }
+        }
+        return attributes;
+    }
+
+    @SneakyThrows
+    public void genbankToGff(final String genbankFilePath, final String gffFilePath) {
+        Map<String, DNASequence> dnaSequences = fileManager.readGenbankFile(genbankFilePath);
+        Assert.isTrue(!dnaSequences.isEmpty(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
+        Assert.notNull(gffFilePath, getMessage(MessageCode.RESOURCE_NOT_FOUND));
+        try (Gff3Writer gff3Writer = new Gff3Writer(Paths.get(gffFilePath))) {
+            for (Map.Entry<String, DNASequence> sequence : dnaSequences.entrySet()) {
+                AccessionID accession = sequence.getValue().getAccession();
+                sequence.getValue().getFeatures().forEach(f -> {
+                    Map<String, List<String>> attributes = qualifiersToAttr(f.getQualifiers(), f.getType());
+                    Gff3FeatureImpl feature = new Gff3FeatureImpl(
+                            accession.getID(),
+                            "GenBank",
+                            f.getType(),
+                            f.getLocations().getStart().getPosition(),
+                            f.getLocations().getEnd().getPosition(),
+                            ".",
+                            StrandSerializable.forValue(f.getLocations().getStrand().getStringRepresentation()),
+                            attributes.containsKey("codon_start") ? "</codon-start value decreased by 1>" : ".",
+                            attributes
+                    );
+                    try {
+                        gff3Writer.addFeature(feature);
+                    } catch (IOException e) {
+                        log.debug(e.getMessage());
+                    }
+                });
+            }
         }
     }
 }

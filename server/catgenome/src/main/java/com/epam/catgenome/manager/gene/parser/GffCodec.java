@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,7 @@ public class GffCodec extends AsciiFeatureCodec<GeneFeature> {
     private static final String GTF_GZ_EXTENSION = ".gtf.gz";
     private static final String GTF_EXTENSION = ".gtf";
     private static final String GFF_EXTENSION = ".gff";
-    private static final String GFF3_EXTENSION = ".gff3";
+    public static final String GFF3_EXTENSION = ".gff3";
 
     private static final List<String> HEADER_MARKERS = Arrays.asList("#", "track", "browser", ">");
 
@@ -160,5 +160,4 @@ public class GffCodec extends AsciiFeatureCodec<GeneFeature> {
     public boolean canDecode(String path) {
         return path.endsWith(".gff") || path.endsWith(".gtf");
     }
-
 }

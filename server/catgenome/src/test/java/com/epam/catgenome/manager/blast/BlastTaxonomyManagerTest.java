@@ -50,7 +50,7 @@ public class BlastTaxonomyManagerTest extends TestCase {
     }
 
     @Test
-    public void searchOrganismsByIdTest() throws IOException, ParseException {
+    public void searchOrganismsByIdTest() {
         BlastTaxonomy organism = blastTaxonomyManager.searchOrganismById(6L);
         assertNotNull(organism);
     }
