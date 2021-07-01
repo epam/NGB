@@ -1,5 +1,6 @@
 /*
  * Originated from https://github.com/samtools/htsjdk/blob/master/src/main/java/htsjdk/tribble/gff/Gff3Feature.java
+ * License info https://github.com/samtools/htsjdk/tree/master#licensing-information
  */
 package com.epam.catgenome.manager.gene.writer;
 

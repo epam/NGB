@@ -1,5 +1,6 @@
 /*
  * Originated from https://github.com/samtools/htsjdk/blob/master/src/main/java/htsjdk/tribble/gff/Gff3Writer.java
+ * License info https://github.com/samtools/htsjdk/tree/master#licensing-information
  */
 package com.epam.catgenome.manager.gene.writer;
 
@@ -94,7 +95,7 @@ public class Gff3Writer implements Closeable {
         }
     }
 
-    private <T> void writeJoinedByDelimiter(final char delimiter, final Consumer<T> consumer, final Collection<T> fields) throws IOException {
+    private <T> void     writeJoinedByDelimiter(final char delimiter, final Consumer<T> consumer, final Collection<T> fields) throws IOException {
         boolean isNotFirstField = false;
         for (final T field : fields) {
             if (isNotFirstField) {

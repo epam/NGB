@@ -1,5 +1,6 @@
 /*
 * Originated from https://github.com/samtools/htsjdk/blob/master/src/main/java/htsjdk/tribble/gff/Gff3BaseData.java
+* License info https://github.com/samtools/htsjdk/tree/master#licensing-information
 */
 package com.epam.catgenome.manager.gene.writer;
 
@@ -17,7 +18,7 @@ public class Gff3BaseData {
     private static final String ID_ATTRIBUTE_KEY = "ID";
     private static final String NAME_ATTRIBUTE_KEY = "Name";
     private static final String ALIAS_ATTRIBUTE_KEY = "Alias";
-    public static final int INT_31 = 31;
+    private static final int INT_31 = 31;
     private final String contig;
     private final String source;
     private final String type;
@@ -30,7 +31,6 @@ public class Gff3BaseData {
     private final String id;
     private final String name;
     private final List<String> aliases;
-//    private final int hashCode;
 
     public Gff3BaseData(final String contig, final String source, final String type,
                         final int start, final int end, final String score,
@@ -48,7 +48,6 @@ public class Gff3BaseData {
         this.id = Gff3Codec.extractSingleAttribute(attributes.get(ID_ATTRIBUTE_KEY));
         this.name = Gff3Codec.extractSingleAttribute(attributes.get(NAME_ATTRIBUTE_KEY));
         this.aliases = attributes.getOrDefault(ALIAS_ATTRIBUTE_KEY, Collections.emptyList());
-//        this.hashCode = computeHashCode();
     }
 
     private static Map<String, List<String>> copyAttributesSafely(final Map<String, List<String>> attributes) {
