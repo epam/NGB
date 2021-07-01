@@ -120,4 +120,18 @@ export class GenomeDataService extends DataService {
                 .catch(reject);
         });
     }
+
+    getGenesInfo(reference) {
+        return new Promise((resolve, reject) => {
+            this.post(`reference/${reference}/filter/gene/info`)
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        reject(new Error('No gene info received'));
+                    }
+                })
+                .catch(reject);
+        });
+    }
 }

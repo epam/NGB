@@ -5,6 +5,7 @@ export default class ngbGenesTableColumnController extends baseController {
     displayGenesFilter;
     events = {
         'ngbColumns:genes:change': ::this.onColumnChange,
+        'genes:info:loaded': ::this.onColumnChange,
         'reference:change': ::this.loadColumns,
         'display:genes:filter' : ::this.updateDisplayGenesFilterValue
     };

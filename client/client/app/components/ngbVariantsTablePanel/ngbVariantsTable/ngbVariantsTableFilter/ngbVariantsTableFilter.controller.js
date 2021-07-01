@@ -33,7 +33,7 @@ export default class ngbVariantsTableFilterController {
                             resolve([]);
                         });
                     }
-                    return await projectDataService.searchGeneNames(this.projectContext.referenceId, searchText);
+                    return await projectDataService.searchGeneNames(this.projectContext.referenceId, searchText, 'featureName');
                 };
             } break;
             case 'chrName': {
