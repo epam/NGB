@@ -24,8 +24,7 @@
             </a>
             <a class="blast-search-result-link"
                ng-if="$ctrl.search.dbSource !== 'NCBI' && !!$ctrl.navigationToChromosomeAvailable"
-               ng-click="$ctrl.navigateToChromosome()"
-               target="_blank">
+               ng-click="$ctrl.navigateToChromosome()">
                 {{$ctrl.searchResult.sequenceId}}
             </a>
             <span ng-if="$ctrl.search.dbSource !== 'NCBI' && !$ctrl.navigationToChromosomeAvailable">

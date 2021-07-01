@@ -18,8 +18,8 @@ function scientificNameSorter(a, b) {
 }
 
 export default class ngbBlastSearchService {
-    static instance(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService, geneDataService, projectContext) {
-        return new ngbBlastSearchService(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService, geneDataService, projectContext);
+    static instance(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService, geneDataService) {
+        return new ngbBlastSearchService(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService, geneDataService);
     }
 
     _detailedRead = null;
@@ -44,7 +44,7 @@ export default class ngbBlastSearchService {
         return BLAST_STATES;
     }
 
-    constructor(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService, geneDataService, projectContext) {
+    constructor(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService, geneDataService) {
         Object.assign(
             this,
             {
@@ -53,12 +53,10 @@ export default class ngbBlastSearchService {
                 projectDataService,
                 ngbBlastSearchFormConstants,
                 genomeDataService,
-                geneDataService,
-                projectContext
+                geneDataService
             }
         );
         this.currentTool = this.ngbBlastSearchFormConstants.BLAST_TOOLS[0];
-        this.chromosomesCache = new Map();
     }
 
     async getOrganismList(term, selectedOrganisms = []) {
@@ -351,156 +349,5 @@ export default class ngbBlastSearchService {
             result.options = search.options;
         }
         return result;
-    }
-
-    async fetchChromosomes (referenceId) {
-        if (!this.chromosomesCache.has(Number(referenceId))) {
-            const promise = new Promise((resolve) => {
-                this.genomeDataService.loadAllChromosomes(referenceId)
-                    .then(chromosomes => {
-                        if (chromosomes && chromosomes.length) {
-                            resolve(
-                                chromosomes.map(chromosome => (chromosome.name || '').toLowerCase())
-                            );
-                        } else {
-                            resolve([]);
-                        }
-                    })
-                    .catch((e) => {
-                        // eslint-disable-next-line
-                        console.warn('Error fetching chromosomes:', e.message);
-                        resolve([]);
-                    });
-            });
-            this.chromosomesCache.set(Number(referenceId), promise);
-        }
-        return await this.chromosomesCache.get(Number(referenceId));
-    }
-
-    async getNavigationToChromosomeInfo(searchResult) {
-        const {taxId, sequenceId} = searchResult;
-        if (!taxId) {
-            return null;
-        }
-
-        const [reference] = (this.projectContext.references || [])
-            .filter(reference => reference.species &&
-                Number(reference.species.taxId) === Number(taxId));
-        if (!reference) {
-            return null;
-        }
-
-        const referenceId = reference ? reference.id : undefined;
-        if (!referenceId) {
-            return null;
-        }
-
-        const chromosomes = await this.fetchChromosomes(referenceId);
-        const [chromosome] = chromosomes.filter(chr => chr === `${sequenceId}`.toLowerCase());
-        if (!chromosome) {
-            return null;
-        }
-
-        return {
-            chromosome: sequenceId,
-            referenceId
-        };
-    }
-
-    async navigationToChromosomeAvailable (searchResult) {
-        const info = await this.getNavigationToChromosomeInfo(searchResult);
-        return Boolean(info);
-    }
-
-    async navigateToChromosome (searchResult) {
-        const navigationInfo = await this.getNavigationToChromosomeInfo(searchResult);
-        if (navigationInfo) {
-            const {
-                chromosome: chromosomeName,
-                referenceId
-            } = navigationInfo;
-            const tracksOptions = {};
-            const [reference] = (this.projectContext.references || [])
-                .filter(r => r.id === referenceId);
-            if (!reference) {
-                // eslint-disable-next-line no-console
-                console.warn(`Reference ${referenceId} not found`);
-                return;
-            }
-            const blastTrack = {
-                name: 'Search results',
-                format: 'BLAST',
-                isLocal: true,
-                projectId: '',
-                bioDataItemId: 'Search results',
-                id: 0,
-                reference,
-                referenceId,
-            };
-            const referenceTrackState = {
-                referenceShowForwardStrand: true,
-                referenceShowReverseStrand: true,
-                referenceShowTranslation: false
-            };
-            if (referenceId !== this.projectContext.referenceId || !this.projectContext.reference) {
-                tracksOptions.reference = reference;
-                tracksOptions.shouldAddAnnotationTracks = true;
-                tracksOptions.tracks = [reference, blastTrack].map(track => ({
-                    ...track,
-                    projectId: '',
-                    isLocal: true
-                }));
-                tracksOptions.tracksState = [
-                    {...reference, state: referenceTrackState},
-                    blastTrack
-                ].map(track => ({
-                    bioDataItemId: track.name,
-                    duplicateId: track.duplicateId,
-                    projectId: '',
-                    format: track.format,
-                    isLocal: true,
-                    state: track.state
-                }));
-            } else if (
-                (this.projectContext.tracks || [])
-                    .filter(track => track.format === 'BLAST').length === 0
-            ) {
-                tracksOptions.tracks = (this.projectContext.tracks || []);
-                tracksOptions.tracksState = (this.projectContext.tracksState || []);
-                const [existingReferenceTrackState] = tracksOptions.tracksState
-                    .filter(track => track.format === 'REFERENCE');
-                if (existingReferenceTrackState) {
-                    existingReferenceTrackState.state = {
-                        ...(existingReferenceTrackState.state || {}),
-                        ...referenceTrackState
-                    };
-                }
-                const referenceTrackStateIndex = tracksOptions
-                    .tracksState.indexOf(existingReferenceTrackState);
-                tracksOptions.tracks.push(blastTrack);
-                tracksOptions.tracksState.splice(referenceTrackStateIndex + 1, 0, {
-                    bioDataItemId: blastTrack.name,
-                    duplicateId: blastTrack.duplicateId,
-                    projectId: blastTrack.projectId,
-                    isLocal: true,
-                    format: blastTrack.format
-                });
-            }
-            const [currentReferenceTrack] = this.projectContext.getActiveTracks()
-                .filter(track => track.format === 'REFERENCE');
-            if (currentReferenceTrack && currentReferenceTrack.instance) {
-                currentReferenceTrack.instance.state.referenceShowForwardStrand = true;
-                currentReferenceTrack.instance.state.referenceShowReverseStrand = true;
-                currentReferenceTrack.instance.reportTrackState(true);
-                currentReferenceTrack.instance.requestRender();
-            }
-            this.projectContext.changeState({
-                chromosome: {
-                    name: chromosomeName
-                },
-                keepBLASTTrack: true,
-                ...tracksOptions
-            }, false);
-        }
     }
 }
