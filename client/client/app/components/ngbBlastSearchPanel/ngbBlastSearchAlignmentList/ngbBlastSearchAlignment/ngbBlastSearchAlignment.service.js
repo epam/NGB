@@ -183,6 +183,14 @@ export default class ngbBlastSearchAlignmentService {
 
     async getNavigationToChromosomeInfo(searchResult) {
         const {taxId, sequenceId} = searchResult;
+        if (
+            !searchResult.alignments ||
+            !searchResult.alignments.length ||
+            !searchResult.alignments[0].sequenceLength
+        ) {
+            return null;
+        }
+        const end = searchResult.alignments[0].sequenceLength;
         if (!taxId) {
             return null;
         }
@@ -206,6 +214,8 @@ export default class ngbBlastSearchAlignmentService {
         }
 
         return {
+            start: 1,
+            end,
             chromosome: sequenceId,
             referenceId
         };
@@ -220,6 +230,8 @@ export default class ngbBlastSearchAlignmentService {
         const navigationInfo = await this.getNavigationToChromosomeInfo(searchResult);
         if (navigationInfo) {
             const {
+                start,
+                end,
                 chromosome: chromosomeName,
                 referenceId
             } = navigationInfo;
@@ -299,6 +311,10 @@ export default class ngbBlastSearchAlignmentService {
                 currentReferenceTrack.instance.requestRender();
             }
             this.projectContext.changeState({
+                viewport: {
+                    start,
+                    end
+                },
                 chromosome: {
                     name: chromosomeName
                 },
