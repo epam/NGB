@@ -25,4 +25,4 @@ Test verifies
 | 10 | Click on **BLASTn Search** in the context menu | The BLAST panel is not opened|
 | 11 | Go to **Views** ||
 | 12 | Click on **BLAST** | **BLAST** panel is opened| 
-| 13 | Set sequence from **Preconditions** (Sequence of BRCA2-201 transcript for BRCA2 gene) in the **Query sequence** field | <li> Error message is displayed under Query sequense line: **Sequence length should be less than or equal to 50000** <li> **Search** button is disabled|
+| 13 | Set query from **Preconditions** (Sequence of BRCA2-201 transcript for BRCA2 gene) in the **Query sequence** field | <li> Error message is displayed under Query sequense line: **Sequence length should be less than or equal to 50000** <li> **Search** button is disabled|

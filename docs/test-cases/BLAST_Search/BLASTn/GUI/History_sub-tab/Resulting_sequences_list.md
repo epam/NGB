@@ -26,3 +26,4 @@ Test verifies
 | 13 | Go to  **Views** menu on the main toolbar | |
 | 14 | Select **BLAST** panel | |
 | 15 | Click on last search ID in the **Task ID** column | The corresponding search results are displayed in the **Sequence table** of **History** sub-tab below **Blast parameters** section <li> Table is sorted by E value column (ascending) <li> Column order specified at step 10 is kept |
+| 16 | Hover over to any row in **Sequence table**| The field the mouse is hovering over is highlighted in light blue| 

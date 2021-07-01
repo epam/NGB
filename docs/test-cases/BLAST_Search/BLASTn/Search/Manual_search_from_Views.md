@@ -27,5 +27,5 @@ Test verifies
 | 14| Click on **Query info** | **Search query info** pop-up is displayed with with the corresponding sequence and label with its length|
 | 15| Go back to **Sequence table** ||
 | 16| Click on the **13** value in the **Sequence ID** column  | <li> The form with details about all matches (alignments) of the search query to the certain sequence is opened in "Alignments" form in the same History sub-tab <li> "Alignments" form contains **2** (positions) of the current sequence where the match is defined <li> First alignment maximally corresponds to the coordinates corresponding to the human gene|
-| 17| Click on **View at track** button for the first alignment on the Alignments form| An alignment of the nucleotide sequence is appered in the **Browser** panel| 
-
+| 17| Click on the **13** value in the **Sequence ID** field | <li> **Corresponding reference and its chromosome** (to which this sequence belongs) displays in the "Browser" panel <li> The following values are displayed in the upper left corner of the browser: CHR:13 13: 1-114364328 <li> All the sequences display in the **BLAST Search result** track|
+| 17| Click on **View at track** button for the first alignment on the Alignments form| An alignment of the nucleotide sequence is appered in the **Browser** panel|

@@ -27,3 +27,4 @@ Test verifies
 | 14 | Go to  **Views** menu on the main toolbar | |
 | 15 | Select **BLAST** panel | |
 | 16 | Go to **History** sub-tab | The corresponding search history are displayed in the table of **History** sub-tab <li> Table is sorted by **Submitted At** column (from the newer tasks to older ones) <li> Column order specified at step 11 is kept |
+| 17 | Hover over to any row in the table| The field the mouse is hovering over is highlighted in light blue|
