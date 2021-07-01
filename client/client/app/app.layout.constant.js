@@ -45,6 +45,13 @@ export default {
             title: 'Variants',
             name: 'layout>variants'
         },
+        genes: {
+            icon: 'format_list_numbered',
+            panel: 'ngbGenesTablePanel',
+            position: 'right',
+            title: 'Genes',
+            name: 'layout>genes'
+        },
         blat: {
             isHidden: true,
             displayed: false,

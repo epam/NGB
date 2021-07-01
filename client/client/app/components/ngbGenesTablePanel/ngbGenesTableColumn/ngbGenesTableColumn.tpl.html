@@ -1,0 +1,31 @@
+<md-menu md-position-mode="target-right target" >
+    <md-button aria-label="Open demo menu" class="md-icon-button" ng-click="$mdOpenMenu($event)">
+        <ng-md-icon icon="menu"></ng-md-icon>
+    </md-button>
+    <md-menu-content width="4" >
+        <md-menu-item>
+            <div class="for-md-tooltip-work">
+                <md-checkbox class="text__sm" flex layout="row"
+                             ng-change="$ctrl.onDisplayGenesFilterChange()"
+                             ng-model="$ctrl.displayGenesFilter">
+                    Show filters
+                </md-checkbox>
+            </div>
+        </md-menu-item>
+        <md-divider></md-divider>
+        <md-menu-item ng-repeat="column in $ctrl.columnsList | orderBy: 'name' track by $index">
+            <div class="for-md-tooltip-work">
+                <md-checkbox class="text__sm" flex layout="row"
+                             ng-change="$ctrl.addColumnToTable(column)"
+                             ng-model="column.selection">
+                    {{ column.name }}
+                    <md-tooltip class="z-index-more" md-direction="top">
+                        {{ column.description }}
+                    </md-tooltip>
+                </md-checkbox>
+
+            </div>
+        </md-menu-item>
+
+    </md-menu-content>
+</md-menu>

@@ -359,22 +359,18 @@ public class FeatureIndexManager {
     private IndexSearchResult<FeatureIndexEntry> getGeneSearchResult(final GeneFilterForm filterForm,
                                                                      final List<FeatureFile> featureFiles)
             throws IOException {
-        if (filterForm.getPageSize() != null) {
-            final LuceneIndexSearcher<FeatureIndexEntry> indexSearcher =
-                    getIndexSearcher(filterForm, featureIndexDao, fileManager, taskExecutorService.getSearchExecutor());
-            final Sort sort = featureIndexDao.createGeneSorting(filterForm.getOrderBy(), featureFiles);
-            final IndexSearchResult<FeatureIndexEntry> res =
-                    indexSearcher.getSearchResults(featureFiles, filterForm.computeQuery(), sort);
+        Assert.notNull(filterForm.getPageSize(), "Page size shall be specified");
+        final LuceneIndexSearcher<FeatureIndexEntry> indexSearcher =
+                getIndexSearcher(filterForm, featureIndexDao, fileManager, taskExecutorService.getSearchExecutor());
+        final Sort sort = Optional.ofNullable(
+                featureIndexDao.createGeneSorting(filterForm.getOrderBy(), featureFiles))
+                .orElseGet(filterForm::defaultSort);
+        final IndexSearchResult<FeatureIndexEntry> res =
+                indexSearcher.getSearchResults(featureFiles, filterForm.computeQuery(), sort);
 
-            res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount()
-                    / filterForm.getPageSize().doubleValue()));
-            return res;
-        } else {
-            final IndexSearchResult<FeatureIndexEntry> res = featureIndexDao.searchFileIndexes(featureFiles,
-                    filterForm.computeQuery(), null, null, filterForm.createSorting());
-            res.setExceedsLimit(false);
-            return res;
-        }
+        res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount()
+                / filterForm.getPageSize().doubleValue()));
+        return res;
     }
 
     /**
@@ -409,11 +405,6 @@ public class FeatureIndexManager {
 
     public IndexSearchResult<FeatureIndexEntry> searchGenesByReference(final GeneFilterForm filterForm,
                                                                        final long referenceId) throws IOException {
-        final String featureId = filterForm.getFeatureId();
-        if (featureId == null || featureId.length() < 2) {
-            return new IndexSearchResult<>(Collections.emptyList(), false, 0);
-        }
-
         return getGeneSearchResult(filterForm, Optional.ofNullable(getGeneFile(referenceId))
                 .map(Collections::singletonList).orElse(Collections.emptyList()));
     }

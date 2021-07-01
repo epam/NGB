@@ -44,7 +44,7 @@ export class ProjectDataService extends DataService {
     }
 
     getProjectIdDescription(projectId) {
-        return this.downloadFile(`project/${+projectId}/description`, { customResponseType: 'arraybuffer'});
+        return this.downloadFile(`project/${+projectId}/description`, {customResponseType: 'arraybuffer'});
     }
 
     /**
@@ -242,7 +242,7 @@ export class ProjectDataService extends DataService {
 
     downloadBlastResults(blastSearchId) {
         return new Promise((resolve, reject) => {
-            this.downloadFile(`task/${blastSearchId}/raw`, { customResponseType: 'arraybuffer'})
+            this.downloadFile(`task/${blastSearchId}/raw`, {customResponseType: 'arraybuffer'})
                 .catch((response) => resolve({...response, error: true}))
                 .then((data) => {
                     if (data) {

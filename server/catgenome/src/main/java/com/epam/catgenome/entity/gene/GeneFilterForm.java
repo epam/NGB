@@ -30,21 +30,22 @@ import com.epam.catgenome.entity.AbstractFilterForm;
 import com.epam.catgenome.entity.index.FeatureType;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.PrefixQuery;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import static java.util.Collections.emptyList;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 @Getter
 @Setter
@@ -55,23 +56,11 @@ public class GeneFilterForm extends AbstractFilterForm {
     private String featureId;
     private List<FeatureType> featureTypes;
 
-    /**
-     * Create sorting from orderBy params
-     *
-     * @return sorting
-     */
-    public Sort createSorting() {
-        if (isEmpty(orderBy)) {
-            return new Sort();
-        }
+    public Sort defaultSort() {
         final List<SortField> sortFields = new ArrayList<>();
-        for (OrderBy order : orderBy) {
-            final GeneIndexSortField indexSortField = GeneIndexSortField.getByName(order.getField());
-            if (indexSortField != null) {
-                sortFields.add(new SortField(indexSortField.getFieldName(), indexSortField.getType(), order.isDesc()));
-            }
-        }
-        return sortFields.isEmpty() ? new Sort() : new Sort(sortFields.toArray(new SortField[sortFields.size()]));
+        sortFields.add(new SortField(GeneIndexSortField.CHROMOSOME_NAME.getFieldName(),
+                GeneIndexSortField.CHROMOSOME_NAME.getType(), false));
+        return new Sort(sortFields.toArray(new SortField[0]));
     }
 
     /**
@@ -79,10 +68,10 @@ public class GeneFilterForm extends AbstractFilterForm {
      *
      * @return a {@code BooleanQuery} to a lucene index without filtering by a{@code FeatureType}
      */
-    public BooleanQuery computeQuery() {
+    public Query computeQuery() {
         final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
-        addFeatureNameFilter(mainBuilder);
         addFeatureTypesFilter(mainBuilder);
+        addFeatureNameFilter(mainBuilder);
         addChromosomeFilter(mainBuilder);
         addPositionFilter(mainBuilder);
         return mainBuilder.build();
@@ -94,6 +83,9 @@ public class GeneFilterForm extends AbstractFilterForm {
      * @param builder
      */
     private void addFeatureNameFilter(final BooleanQuery.Builder builder) {
+        if (StringUtils.isBlank(featureId)) {
+            return;
+        }
         final BooleanQuery.Builder prefixQueryBuilder = new BooleanQuery.Builder()
                 .add(new PrefixQuery(new Term(FeatureIndexDao.FeatureIndexFields.FEATURE_ID.getFieldName(),
                 featureId.toLowerCase())), BooleanClause.Occur.SHOULD)
@@ -109,13 +101,18 @@ public class GeneFilterForm extends AbstractFilterForm {
      * @param builder
      */
     private void addFeatureTypesFilter(final BooleanQuery.Builder builder) {
-        if (isNotEmpty(featureTypes)) {
+        if (CollectionUtils.isNotEmpty(featureTypes)) {
             final BooleanQuery.Builder featureTypeBuilder = new BooleanQuery.Builder();
             for (FeatureType type : featureTypes) {
                 featureTypeBuilder.add(new TermQuery(new Term(
                                 FeatureIndexDao.FeatureIndexFields.FEATURE_TYPE.getFieldName(), type.getFileValue())),
                         BooleanClause.Occur.SHOULD);
             }
+            builder.add(featureTypeBuilder.build(), BooleanClause.Occur.MUST);
+        } else {
+            final BooleanQuery.Builder featureTypeBuilder = new BooleanQuery.Builder()
+                    .add(new TermQuery(new Term(FeatureIndexDao.FeatureIndexFields.FEATURE_TYPE.getFieldName(),
+                            FeatureType.GENE.getFileValue())), BooleanClause.Occur.SHOULD);
             builder.add(featureTypeBuilder.build(), BooleanClause.Occur.MUST);
         }
     }
@@ -126,7 +123,7 @@ public class GeneFilterForm extends AbstractFilterForm {
      * @param builder
      */
     private void addChromosomeFilter(final BooleanQuery.Builder builder) {
-        if (isNotEmpty(chromosomeIds)) {
+        if (CollectionUtils.isNotEmpty(chromosomeIds)) {
             final BooleanQuery.Builder chromosomeBuilder = new BooleanQuery.Builder();
             for (Long chromosomeId : chromosomeIds) {
                 chromosomeBuilder.add(new TermQuery(new Term(
@@ -172,7 +169,7 @@ public class GeneFilterForm extends AbstractFilterForm {
 
     @Override
     public List<String> getInfoFields() {
-        return emptyList();
+        return Collections.emptyList();
     }
 
     @Override

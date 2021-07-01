@@ -1,0 +1,8 @@
+<div flex>
+    <div flex ng-if="$ctrl.isRange">
+        <ngb-genes-filter-range field="$ctrl.column"></ngb-genes-filter-range>
+    </div>
+    <div flex ng-if="$ctrl.isString">
+        <ngb-genes-filter-input field="$ctrl.column"></ngb-genes-filter-input>
+    </div>
+</div>

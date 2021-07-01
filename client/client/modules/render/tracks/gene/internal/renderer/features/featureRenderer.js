@@ -153,6 +153,7 @@ export default class FeatureRenderer {
             const item = features[i];
             if (
                 geneFeatures &&
+                geneFeatures.length > 0 &&
                 !/^statistic$/i.test(item.feature) &&
                 geneFeatures.indexOf(item.feature) === -1
             ) {
@@ -397,7 +398,7 @@ export default class FeatureRenderer {
         });
     }
 
-    checkPosition(position, relativeContainer) {
+    checkPosition(position, relativeContainer, isCollapsedMode = false) {
         const result = [];
         if (this._featuresPositions === null)
             return result;
@@ -409,7 +410,11 @@ export default class FeatureRenderer {
                 const featureName = this._featuresPositions[i].feature.feature ?
                     this._featuresPositions[i].feature.feature.toLowerCase() : null;
                 result.push(this._featuresPositions[i]);
-                if (featureName && (featureName === 'mrna' || featureName === 'transcript')) {
+                if (
+                    featureName &&
+                    (featureName === 'mrna' || featureName === 'transcript') &&
+                    !isCollapsedMode
+                ) {
                     break;
                 }
             }

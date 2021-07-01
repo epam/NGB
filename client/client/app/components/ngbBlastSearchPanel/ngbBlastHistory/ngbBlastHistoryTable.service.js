@@ -152,7 +152,6 @@ export default class ngbBlastHistoryTableService {
             this._totalPages = 0;
             this.currentPageHistory = FIRST_PAGE;
             this._firstPageHistory = FIRST_PAGE;
-            this._hasMoreHistory = true;
             this._historyPageError = data.message;
             return [];
         } else {
