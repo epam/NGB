@@ -45,7 +45,7 @@ export default class ngbBlastSearchAlignmentService {
         const {
             sequenceStart,
             sequenceEnd,
-            sequenceId,
+            sequenceAccessionVersion: sequenceId,
             sequenceTaxId
         } = alignment;
         const [reference] = (this.projectContext.references || [])
@@ -182,7 +182,10 @@ export default class ngbBlastSearchAlignmentService {
     }
 
     async getNavigationToChromosomeInfo(searchResult) {
-        const {taxId, sequenceId} = searchResult;
+        const {
+            taxId,
+            sequenceAccessionVersion: sequenceId
+        } = searchResult;
         if (
             !searchResult.alignments ||
             !searchResult.alignments.length ||
