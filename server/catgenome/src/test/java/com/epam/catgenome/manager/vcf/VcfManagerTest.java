@@ -185,7 +185,7 @@ public class VcfManagerTest extends AbstractManagerTest {
     private static final int GENE_POSTION = 35471;
     private static final String SAMPLE_NAME = "HG00702";
     private static final int NUMBER_OF_FILTERS = 2;
-    private static final int NUMBER_OF_TRIVIAL_INFO = 18;
+    private static final int NUMBER_OF_TRIVIAL_INFO = 19;
     private static final int INDEX_BUFFER_SIZE = 32;
     @Value("${ga4gh.google.variantSetId}")
     private String varSet;
