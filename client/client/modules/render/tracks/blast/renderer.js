@@ -176,6 +176,7 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
             cache.data.length > 0
         ) {
             const alignments = cache.data;
+            const featureCoords = this.blastContext.featureCoords;
             const levels = [];
             let maxLevels = 0;
             const height = this.config.sequence.height;
@@ -183,12 +184,12 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
             for (let i = 0; i < alignments.length; i++) {
                 const alignment = alignments[i];
                 const {
-                    sequenceStart,
-                    sequenceEnd,
                     queryLength,
                     sequenceStrandView
                 } = alignment;
                 let {
+                    sequenceStart,
+                    sequenceEnd,
                     queryStart,
                     queryEnd,
                 } = alignment;
@@ -203,6 +204,10 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
                 }
                 queryStart = queryStart - 1;
                 queryEnd = queryLength - queryEnd;
+                if (featureCoords){
+                    sequenceStart += featureCoords.start;
+                    sequenceEnd =  sequenceStart + queryEnd;
+                }
                 const start = Math.min(sequenceStart, sequenceEnd);
                 const end = Math.max(sequenceStart, sequenceEnd);
                 let startPx = viewport.project.brushBP2pixel(start);
@@ -518,15 +523,20 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
         }
         const {
             btop,
-            sequenceStart,
-            sequenceEnd,
             queryLength,
             sequenceStrandView
         } = alignment;
+        const featureCoords = this.blastContext.featureCoords;
         let {
+            sequenceStart,
+            sequenceEnd,
             queryStart,
             queryEnd,
         } = alignment;
+        if (featureCoords){
+            sequenceStart += featureCoords.start;
+            sequenceEnd = sequenceStart + queryEnd;
+        }
         if (!sequenceStart || !sequenceEnd) {
             return undefined;
         }

@@ -25,6 +25,10 @@ export default class BLASTContext {
         return this._alignments;
     }
 
+    get featureCoords() {
+        return this._featureCoords;
+    }
+
     constructor (dispatcher) {
         this.dispatcher = dispatcher;
         this._alignments = [];
@@ -33,14 +37,17 @@ export default class BLASTContext {
         this.dispatcher.on('chromosome:change', () => clear(true));
     }
 
-    setAlignments (alignments, search) {
+    setAlignments (alignments, search, featureCoords) {
         const changed = alignments !== this._alignments || search !== this._search;
         if (alignments && search) {
             this._alignments = alignments;
             this._search = search;
+            this._featureCoords = featureCoords;
+
         } else {
             this._alignments = undefined;
             this._search = undefined;
+            this._featureCoords = undefined;
         }
         if (changed) {
             this.dispatcher.emitSimpleEvent(BLASTResultEvents.changed, this.alignments);
@@ -50,6 +57,7 @@ export default class BLASTContext {
     clear (silent = false) {
         this._alignments = [];
         this._search = undefined;
+        this._featureCoords = undefined;
         if (!silent) {
             this.dispatcher.emitSimpleEvent(BLASTResultEvents.changed, []);
         }

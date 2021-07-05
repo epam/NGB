@@ -29,9 +29,25 @@ export default class ngbBlastSearchAlignmentList {
         return undefined;
     }
 
-    initialize() {
+    get fetchCoordsUrl() {
+        if (this.searchResult) {
+            const id = this.searchResult.sequenceAccessionVersion || this.searchResult.sequenceId;
+            const taxId = this.searchResult.taxId;
+            const dbType = this.search && /^protein$/i.test(this.search.dbType)
+                ? 'PROTEIN'
+                : 'NUCLEOTIDE';
+            return `blast/coordinate?sequenceId=${id}&type=${dbType}&taxId=${taxId}`;
+        }
+        return undefined;
+    }
+
+    async initialize() {
         this.searchResult = this.ngbBlastSearchService.popCurrentAlignmentObject();
         this.search = this.ngbBlastSearchService.cutCurrentResult;
+        if (this.fetchCoordsUrl) {
+            const result = await this.ngbBlastSearchService.fetchFeatureCoords(this.fetchCoordsUrl);
+            this.featureCoords = result.error ? null : result
+        }
         // Todo: this is workaround for alignment rendering optimization.
         // We should check this and refactor
         this.$timeout(() => {

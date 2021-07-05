@@ -295,6 +295,10 @@ export default class ngbBlastSearchService {
         });
     }
 
+    fetchFeatureCoords(requestUrl) {
+       return this.projectDataService.getNCBIFeatureCoordinates(requestUrl);
+    }
+
     _formatServerToClient(search) {
         const result = {
             id: search.id,

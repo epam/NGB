@@ -10,8 +10,8 @@ export default class ngbBlastSearchAlignmentService {
         this.chromosomesCache = new Map();
     }
 
-    setAlignments (searchResult, search) {
-        this.blastContext.setAlignments((searchResult || {}).alignments || [], search);
+    setAlignments (searchResult, search, featureCoords) {
+        this.blastContext.setAlignments((searchResult || {}).alignments || [], search, featureCoords);
     }
 
     async fetchChromosomes (referenceId) {
@@ -20,9 +20,7 @@ export default class ngbBlastSearchAlignmentService {
                 this.genomeDataService.loadAllChromosomes(referenceId)
                     .then(chromosomes => {
                         if (chromosomes && chromosomes.length) {
-                            resolve(
-                                chromosomes.map(chromosome => (chromosome.name || '').toLowerCase())
-                            );
+                            resolve(chromosomes);
                         } else {
                             resolve([]);
                         }
@@ -38,7 +36,7 @@ export default class ngbBlastSearchAlignmentService {
         return await this.chromosomesCache.get(+referenceId);
     }
 
-    async getNavigationInfo (alignment, search) {
+    async getNavigationInfo (alignment, search, featureCoords) {
         if (!alignment || !search) {
             return null;
         }
@@ -46,40 +44,61 @@ export default class ngbBlastSearchAlignmentService {
             sequenceStart,
             sequenceEnd,
             sequenceAccessionVersion: sequenceId,
+            sequenceId,
+            queryEnd,
             sequenceTaxId
         } = alignment;
-        const [reference] = (this.projectContext.references || [])
-            .filter(reference => reference.species && +(reference.species.taxId) === +sequenceTaxId);
-        const referenceId = reference ? reference.id : undefined;
-        if (
-            !sequenceStart ||
-            !sequenceEnd ||
-            !sequenceTaxId ||
-            !referenceId ||
-            !sequenceId
-        ) {
-            return null;
+        if (featureCoords) {
+            const {
+                start,
+                referenceId,
+                chromosomeId,
+            } = featureCoords;
+            const chromosomes = await this.fetchChromosomes(referenceId);
+            const [chromosome] = chromosomes.filter(chr => chr.id === chromosomeId);
+            if (!chromosome) {
+                return null;
+            }
+            return {
+                start: start + sequenceStart,
+                end: start + sequenceStart + queryEnd,
+                chromosome: chromosome.name,
+                referenceId: referenceId,
+            };
+        } else {
+            const [reference] = (this.projectContext.references || [])
+                .filter(reference => reference.species && +(reference.species.taxId) === +sequenceTaxId);
+            const referenceId = reference ? reference.id : undefined;
+            if (
+                !sequenceStart ||
+                !sequenceEnd ||
+                !sequenceTaxId ||
+                !referenceId ||
+                !sequenceId
+            ) {
+                return null;
+            }
+            const chromosomes = await this.fetchChromosomes(referenceId);
+            const [chromosome] = chromosomes.filter(chr => chr.name.toLowerCase() === `${sequenceId}`.toLowerCase());
+            if (!chromosome) {
+                return null;
+            }
+            return {
+                start: sequenceStart,
+                end: sequenceEnd,
+                chromosome: sequenceId,
+                referenceId,
+            };
         }
-        const chromosomes = await this.fetchChromosomes(referenceId);
-        const [chromosome] = chromosomes.filter(chr => chr === `${sequenceId}`.toLowerCase());
-        if (!chromosome) {
-            return null;
-        }
-        return {
-            start: sequenceStart,
-            end: sequenceEnd,
-            chromosome: sequenceId,
-            referenceId
-        };
     }
 
-    async navigationAvailable (alignment, search) {
-        const info = await this.getNavigationInfo(alignment, search);
+    async navigationAvailable (alignment, search, featureCoords) {
+        const info = await this.getNavigationInfo(alignment, search, featureCoords);
         return !!info;
     }
 
-    async navigateToTracks (alignment, searchResult, search) {
-        const navigationInfo = await this.getNavigationInfo(alignment, search);
+    async navigateToTracks (alignment, searchResult, search, featureCoords) {
+        const navigationInfo = await this.getNavigationInfo(alignment, search, featureCoords);
         if (navigationInfo) {
             const {
                 start,
@@ -176,7 +195,7 @@ export default class ngbBlastSearchAlignmentService {
                 keepBLASTTrack: true,
                 ...tracksOptions
             }, false, () => {
-                this.setAlignments(searchResult, search);
+                this.setAlignments(searchResult, search, featureCoords);
             });
         }
     }
