@@ -224,7 +224,7 @@ def excludePattern = 'VgPb'
 def excludePatternAntStyle = '**/' + excludePattern + '*'
 
 tasks.withType(Checkstyle) {
-    exclude excludePatternAntStyle, '**/manager/gene/writer/*'
+    exclude excludePatternAntStyle
 }
 tasks.withType(Pmd) {
     exclude excludePatternAntStyle
