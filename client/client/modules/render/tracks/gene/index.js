@@ -2,7 +2,7 @@ import * as GeneTypes from './geneTypes';
 import {GeneRenderer, GeneTransformer} from './internal';
 import {CachedTrack} from '../../core';
 import GeneConfig from './geneConfig';
-import {GeneDataService} from '../../../../dataServices';
+import {CachedGeneDataService} from '../../../../dataServices';
 import geneMenuConfig from './exterior/geneMenuConfig';
 import Menu from '../../core/menu';
 import {menu as menuUtilities} from '../../utilities';
@@ -21,7 +21,7 @@ export class GENETrack extends CachedTrack {
     }
 
     get stateKeys() {
-        return ['geneTranscript', 'header'];
+        return ['geneTranscript', 'header', 'geneFeatures'];
     }
 
     static postStateMutatorFn = (track) => {
@@ -103,6 +103,13 @@ export class GENETrack extends CachedTrack {
         super.clearData();
     }
 
+    updateAvailableFeatures(features) {
+        const availableFeatures = (this.state.availableFeatures || []).concat(features || []);
+        this.state.availableFeatures = [...(new Set(availableFeatures))]
+            .filter(Boolean)
+            .sort();
+    }
+
     currentTrackManagesShortenedIntronsMode() {
         return this.viewport.shortenedIntronsViewport.shortenedIntronsTrackId === this.config.id;
     }
@@ -131,7 +138,7 @@ export class GENETrack extends CachedTrack {
 
     get dataService() {
         if (!this._dataService) {
-            this._dataService = new GeneDataService(this.dispatcher);
+            this._dataService = new CachedGeneDataService(this.dispatcher);
         }
         return this._dataService;
     }
@@ -190,7 +197,9 @@ export class GENETrack extends CachedTrack {
                 this._gffColorByFeatureType,
                 this._gffShowNumbersAminoacid,
                 this._showCenterLine,
-                this.state.geneTranscript === GeneTypes.transcriptViewTypes.collapsed);
+                this.state.geneTranscript === GeneTypes.transcriptViewTypes.collapsed,
+                this.state.geneFeatures || this.state.availableFeatures
+            );
             somethingChanged = true;
         }
         return somethingChanged;
@@ -199,14 +208,19 @@ export class GENETrack extends CachedTrack {
     onClick({x, y}) {
         super.onClick({x, y});
         const isHistogram = this.transformer.isHistogramDrawingModeForViewport(this.viewport, this.cache);
-        const checkPositionResult = this.renderer.checkPosition(this.viewport, this.cache,
-            {x, y}, isHistogram);
+        const checkPositionResult = this.renderer.checkPosition(
+            this.viewport,
+            this.cache,
+            {x, y},
+            isHistogram,
+            this.state.geneTranscript === GeneTypes.transcriptViewTypes.collapsed
+        );
 
         if (!isHistogram && checkPositionResult && checkPositionResult.length > 0) {
             if (this.dataItemClicked !== null && this.dataItemClicked !== undefined) {
                 let feature = checkPositionResult[0].feature;
                 if (feature.feature === 'aminoacid' || feature.feature === 'exon') {
-                    [feature] = checkPositionResult.filter(x => x.feature.feature === 'transcript').map(x => x.feature);
+                    [feature] = checkPositionResult.filter(x => /^(transcript|mrna)$/i.test(x.feature.feature)).map(x => x.feature);
                     if (!feature) {
                         return;
                     }
@@ -351,6 +365,7 @@ export class GENETrack extends CachedTrack {
                 this.trackDataLoadingStatusChanged(false);
             }
             if (reqToken === this.__currentDataUpdateReq) {
+                this.updateAvailableFeatures(this.transformer.getFeatures(data));
                 const downloadedData = this.transformer.transformData(data, this.viewport);
                 if (!this.cache) {
                     return false;

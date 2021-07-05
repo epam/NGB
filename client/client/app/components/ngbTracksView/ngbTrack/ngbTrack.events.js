@@ -70,9 +70,15 @@ export default class ngbTrackEvents {
                         title: 'Show Info'
                     });
                 }
-                if (/^(gene|transcript)$/i.test(data.feature.feature)) {
+                if (/^(gene|transcript|mrna|cds)$/i.test(data.feature.feature)) {
+                    let featureType = data.feature.feature;
+                    if (/^(transcript)$/i.test(featureType)) {
+                        featureType = 'mRNA';
+                    }
                     const blastSearchParams = {
-                        geneId: (data.feature.attributes && data.feature.attributes.gene_id) ? data.feature.attributes.gene_id : null,
+                        geneId: (data.feature.attributes && data.feature.attributes.gene_id)
+                            ? data.feature.attributes.gene_id
+                            : null,
                         id: track.id,
                         chromosomeId: trackInstance.config.chromosomeId,
                         referenceId: track.referenceId,
@@ -82,7 +88,7 @@ export default class ngbTrackEvents {
                         name: data.feature.name,
                         file: track.openByUrl ? track.id : null,
                         openByUrl: track.openByUrl,
-                        feature: data.feature.feature
+                        feature: featureType
                     };
                     menuData.push({
                         events: [{
@@ -104,11 +110,15 @@ export default class ngbTrackEvents {
                             data: {
                                 ...blastSearchParams,
                                 tool: 'blastp',
+                                aminoAcid: true,
                                 source: 'gene'
                             },
                             name: 'read:show:blast'
                         }],
-                        disabled: true,
+                        disabled: !blastSearchParams.name,
+                        warning: !blastSearchParams.name
+                            ? 'Feature name is missing'
+                            : undefined,
                         title: 'BLASTp search',
                     });
                 } else if (
@@ -219,6 +229,7 @@ export default class ngbTrackEvents {
                     event.position, html
                 );
                 childScope.$apply();
+                html.find('#hiddenMenuButton').triggerHandler('click');
             }
         })();
     }

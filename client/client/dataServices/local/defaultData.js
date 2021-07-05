@@ -1,7 +1,7 @@
 import * as  geneTypes from '../../modules/render/tracks/gene/geneTypes';
 import {colorModes, groupModes, readsViewTypes} from '../../modules/render/tracks/bam/modes';
-import {variantsView} from '../../modules/render/tracks/vcf/modes';
 import {displayModes, scaleModes} from '../../modules/render/tracks/wig/modes';
+import {variantsView} from '../../modules/render/tracks/vcf/modes';
 
 export default {
     defaultSettings: {
@@ -166,6 +166,9 @@ export default {
             },
             'layout>molecularViewer': {
                 hotkey: 'ALT + M'
+            },
+            'layout>genes': {
+                hotkey: 'ALT + G'
             },
             'layout>variants': {
                 hotkey: 'ALT + V'

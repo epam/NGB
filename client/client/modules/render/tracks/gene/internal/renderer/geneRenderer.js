@@ -20,6 +20,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
     _gffColorByFeatureType = false;
     _gffShowNumbersAminoacid = false;
     _collapsedMode = false;
+    _geneFeatures = [];
     _showCenterLine;
 
     constructor(config, transformer: GeneTransformer, pixiRenderer) {
@@ -71,17 +72,21 @@ export default class GeneRenderer extends CachedTrackRenderer {
         return this._actualHeight;
     }
 
-    render(viewport,
-           cache,
-           isRedraw,
-           _gffColorByFeatureType = false,
-           _gffShowNumbersAminoacid,
-           _showCenterLine,
-           _collapsedMode = false) {
+    render(
+        viewport,
+        cache,
+        isRedraw,
+        _gffColorByFeatureType = false,
+        _gffShowNumbersAminoacid,
+        _showCenterLine,
+        _collapsedMode = false,
+        _geneFeatures = []
+    ) {
         this._gffColorByFeatureType = _gffColorByFeatureType;
         this._showCenterLine = _showCenterLine;
         this._gffShowNumbersAminoacid = _gffShowNumbersAminoacid;
         this._collapsedMode = _collapsedMode;
+        this._geneFeatures = _geneFeatures;
 
         if (!isRedraw) {
             this.scroll(viewport, 0, cache);
@@ -115,7 +120,8 @@ export default class GeneRenderer extends CachedTrackRenderer {
             this.featureRenderer._opts = {
                 gffColorByFeatureType: this._gffColorByFeatureType,
                 gffShowNumbersAminoacid: this._gffShowNumbersAminoacid,
-                collapsedMode: this._collapsedMode
+                collapsedMode: this._collapsedMode,
+                geneFeatures: this._geneFeatures
             };
             this.featureRenderer.prepare();
             const {graphics, hoveredGraphics, highlightGraphics, hoveredHighlightGraphics} = this.featureRenderer.render(cache.data, viewport, this._labelsContainer, this._dockableElementsContainer, this._attachedElementsContainer);
@@ -290,7 +296,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
         this._labelsContainer.mask = this._mask;
     }
 
-    checkPosition(viewport, cache, position, isHistogram) {
+    checkPosition(viewport, cache, position, isHistogram, isCollapsedMode = false) {
         if (isHistogram) {
             if (this.dataContainer !== null && this.dataContainer !== undefined)
                 return this._geneHistogram.checkPosition(position, GeneTransformer
@@ -299,7 +305,7 @@ export default class GeneRenderer extends CachedTrackRenderer {
         }
         else {
             if (this.dataContainer !== null && this.dataContainer !== undefined)
-                return this.featureRenderer.checkPosition(position, this.dataContainer);
+                return this.featureRenderer.checkPosition(position, this.dataContainer, isCollapsedMode);
         }
         return null;
     }

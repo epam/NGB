@@ -146,8 +146,19 @@ export default class FeatureRenderer {
         };
         this._geneFeatureRenderer._opts = this._opts;
         const maxIterations = 10000000;
+        const {
+            geneFeatures
+        } = this._opts || {};
         for (let i = 0; i < features.length; i++) {
             const item = features[i];
+            if (
+                geneFeatures &&
+                geneFeatures.length > 0 &&
+                !/^statistic$/i.test(item.feature) &&
+                geneFeatures.indexOf(item.feature) === -1
+            ) {
+                continue;
+            }
             const renderer = this.getRendererForFeature(item);
             if (!renderer) {
                 continue;
@@ -387,7 +398,7 @@ export default class FeatureRenderer {
         });
     }
 
-    checkPosition(position, relativeContainer) {
+    checkPosition(position, relativeContainer, isCollapsedMode = false) {
         const result = [];
         if (this._featuresPositions === null)
             return result;
@@ -399,7 +410,11 @@ export default class FeatureRenderer {
                 const featureName = this._featuresPositions[i].feature.feature ?
                     this._featuresPositions[i].feature.feature.toLowerCase() : null;
                 result.push(this._featuresPositions[i]);
-                if (featureName && (featureName === 'mrna' || featureName === 'transcript')) {
+                if (
+                    featureName &&
+                    (featureName === 'mrna' || featureName === 'transcript') &&
+                    !isCollapsedMode
+                ) {
                     break;
                 }
             }

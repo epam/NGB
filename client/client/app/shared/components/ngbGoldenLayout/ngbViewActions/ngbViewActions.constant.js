@@ -26,9 +26,7 @@ const fitAllTracksAction = {
     event:'tracks:fit:height',
     icon: 'format_line_spacing',
     label: 'Fit tracks heights',
-    isVisible: (context) => {
-        return context.tracks && context.tracks.length && context.currentChromosome;
-    }
+    isVisible: context => context.tracks && context.tracks.length && context.currentChromosome
 };
 const variantsResetFilterActions = {
     name: 'variantsResetFilter',
@@ -36,9 +34,7 @@ const variantsResetFilterActions = {
     event: 'variants:reset:filter',
     icon: 'delete_sweep',
     label: 'Reset variants filter',
-    isVisible: (context) => {
-        return !context.vcfFilterIsDefault;
-    }
+    isVisible: context => !context.vcfFilterIsDefault
 };
 const organizeTracksAction = {
     name: 'organizeTracks',
@@ -46,9 +42,7 @@ const organizeTracksAction = {
     event:'tracks:organize',
     icon: 'sort_by_alpha',
     label: 'Organize tracks',
-    isVisible: (context) => {
-        return context.tracks && context.tracks.length && context.currentChromosome;
-    }
+    isVisible: context => context.tracks && context.tracks.length && context.currentChromosome
 };
 
 const genomeAnnotationsAction = {
@@ -57,9 +51,7 @@ const genomeAnnotationsAction = {
     liStyle: {
         width: 'auto'
     },
-    isVisible: (context) => {
-        return context.tracks && context.tracks.length;
-    }
+    isVisible: context => context.tracks && context.tracks.length
 };
 
 const projectInfoSectionsAction = {
@@ -72,19 +64,24 @@ const projectInfoSectionsAction = {
 };
 
 const tracksSelectionAction = {
-    isVisible: (context) => context.tracks && context.tracks.length && context.currentChromosome,
     liStyle: {
         width: 'auto'
     },
-    name: 'tracksSelection'
+    name: 'tracksSelection',
+    isVisible: context => context.tracks && context.tracks.length && context.currentChromosome,
 };
 
-const blastSearchPanelPaginationAction = {
-    name: 'blastSearchPanelPagination',
-    liStyle: {
-        width: 'auto'
-    },
+const genesTableColumnAction = {
+    name: 'genesTableColumn',
     isDefault: false
+};
+const genesResetFilterActions = {
+    name: 'genesResetFilter',
+    isDefault: true,
+    event: 'genes:reset:filter',
+    icon: 'delete_sweep',
+    label: 'Reset genes filter',
+    isVisible: context => !context.genesFilterIsDefault
 };
 
 export default {
@@ -99,11 +96,12 @@ export default {
         variantsResetFilter: variantsResetFilterActions,
         variantsTableColumn: variantsTableColumnAction,
         variantsTablePagination: variantsTablePaginationAction,
-        blastSearchPanelPagination: blastSearchPanelPaginationAction
+        genesTableColumn: genesTableColumnAction,
+        genesResetFilter: genesResetFilterActions
     },
     viewActions: {
         ngbBrowser: [projectInfoSectionsAction, genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
         ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsResetFilterActions, variantsTableColumnAction],
-        ngbBlastSearchPanel: [blastSearchPanelPaginationAction]
+        ngbGenesTablePanel: [genesTableColumnAction, genesResetFilterActions]
     }
 };

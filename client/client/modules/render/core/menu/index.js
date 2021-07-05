@@ -15,6 +15,25 @@ function attachTracks(menuEntry, tracks, options) {
                 result[key] = menuEntry[key];
         }
     }
+    if (result.type === 'submenu' && typeof result.dynamicFields === 'function') {
+        const hash = fields => (fields || [])
+            .map(field => field.hash ? field.hash() : '')
+            .filter(Boolean)
+            .map(o => `${o}`)
+            .join('|');
+        Reflect.defineProperty(
+            result,
+            'fields',
+            {
+                get: function () {
+                    const fields = this.dynamicFields();
+                    if (!this.dynamicFieldsCache || hash(this.dynamicFieldsCache) !== hash(fields)) {
+                        this.dynamicFieldsCache = fields;
+                    }
+                    return this.dynamicFieldsCache;
+                }
+            });
+    }
     return result;
 }
 

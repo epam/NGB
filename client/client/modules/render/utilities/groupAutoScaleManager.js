@@ -95,9 +95,9 @@ class GroupAutoScaleManager {
     }
 
     detachTrackData(groupName, track) {
-        const [group] = this.groups.filter(g => g.name === name);
+        const [group] = this.groups.filter(g => g.name === groupName);
         if (group) {
-            delete group.data[`${track.config.bioDataItemId}`];
+            delete group.data[`${track.config.bioDataItemId}/${track.config.duplicateId || ''}`];
         }
         this.reportTrackDataChangedForGroup();
     }
@@ -139,7 +139,7 @@ class GroupAutoScaleManager {
                 };
                 this.groups.push(group);
             }
-            group.data[`${track.config.bioDataItemId}`] = data;
+            group.data[`${track.config.bioDataItemId}/${track.config.duplicateId || ''}`] = data;
             this.reportTrackDataChangedForGroup(groupName);
         }
     }
@@ -161,7 +161,7 @@ class GroupAutoScaleManager {
             } else {
                 const newGroupName = [
                     track.browserId || 'default',
-                    ...groupTracks.map(t => t.config.bioDataItemId.toString())
+                    ...groupTracks.map(t => `${t.config.bioDataItemId.toString()}/${t.config.duplicateId || ''}`)
                 ].join('-');
                 this.renameGroup(group, newGroupName);
                 groupTracks.forEach((groupTrack) => {

@@ -134,13 +134,17 @@ export default class ngbTrackController {
             if (this.isResizing) {
 
                 const tracksState = this.projectContext.tracksState || [];
-                const [tracksSettings ]= tracksState.filter(m => m.bioDataItemId.toLowerCase() === this.track.name.toLowerCase() &&
-                m.projectId.toLowerCase() === this.track.projectId.toLowerCase());
+                const [tracksSettings] = tracksState
+                    .filter(m => m.bioDataItemId.toLowerCase() === this.track.name.toLowerCase() &&
+                        m.projectId.toLowerCase() === this.track.projectId.toLowerCase() &&
+                        `${m.duplicateId || ''}` === `${this.track.duplicateId || ''}`
+                    );
 
                 if (!tracksSettings) {
                     tracksState.push({
                         bioDataItemId: this.track.name.toLowerCase(),
-                        height: this.track.height
+                        height: this.track.height,
+                        duplicateId: this.track.duplicateId
                     });
                 } else {
                     tracksSettings.height = this.track.height;
@@ -338,12 +342,12 @@ export default class ngbTrackController {
 
     get trackIsSelected() {
         return this.selectionContext
-            .getTrackIsSelected(this.track ? this.track.bioDataItemId : undefined, this.browserId);
+            .getTrackIsSelected(this.track, this.browserId);
     }
 
     set trackIsSelected(value) {
         return this.selectionContext
-            .setTrackIsSelected(this.track ? this.track.bioDataItemId : undefined, this.browserId, value);
+            .setTrackIsSelected(this.track, this.browserId, value);
     }
 
     changeTrackHeight(newHeight) {
@@ -357,7 +361,10 @@ export default class ngbTrackController {
         let state = null;
         let height = null;
         if (tracksState) {
-            [trackSettings] = tracksState.filter(data => data.bioDataItemId.toLowerCase() === this.track.name.toLowerCase());
+            [trackSettings] = tracksState
+                .filter(data => data.bioDataItemId.toLowerCase() === this.track.name.toLowerCase() &&
+                    `${data.duplicateId || ''}` === `${this.track.duplicateId || ''}`
+                );
             if (trackSettings) {
                 state = trackSettings.state;
                 height = trackSettings.height;
@@ -416,7 +423,12 @@ export default class ngbTrackController {
         const tracksState = this.projectContext.tracksState;
         const trackName = this.track.name.toLowerCase();
         const projectId = this.track.projectId.toLowerCase();
-        const [trackState] = tracksState.filter(t => t.bioDataItemId.toLowerCase() === trackName && t.projectId.toLowerCase() === projectId);
+        const duplicateId = `${this.track.duplicateId || ''}`;
+        const [trackState] = tracksState
+            .filter(t => t.bioDataItemId.toLowerCase() === trackName &&
+                t.projectId.toLowerCase() === projectId &&
+                `${t.duplicateId || ''}` === duplicateId
+            );
         if (trackState) {
             const index = tracksState.indexOf(trackState);
             tracksState.splice(index, 1);

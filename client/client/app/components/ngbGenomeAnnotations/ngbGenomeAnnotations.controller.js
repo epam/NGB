@@ -1,5 +1,4 @@
 import baseController from '../../shared/baseController';
-import {SelectionEvents} from '../../shared/selectionContext';
 
 export default class ngbGenomeAnnotationsController extends baseController{
     static get UID() {
@@ -116,24 +115,24 @@ export default class ngbGenomeAnnotationsController extends baseController{
             this.projectContext.changeState({tracks, tracksState});
         } else {
             const tracks = this.projectContext.tracks;
-            const [track] = tracks.filter(
+            const tracksToRemove = tracks.filter(
               (t) =>
                 t.name.toLowerCase() === file.name.toLowerCase() &&
                 t.format.toLowerCase() === file.format.toLowerCase()
             );
-            if (track) {
+            tracksToRemove.forEach(track => {
                 const index = tracks.indexOf(track);
                 tracks.splice(index, 1);
-            }
+            });
             const tracksState = this.projectContext.tracksState;
-            const [trackState] = tracksState.filter(
-              (t) => 
+            const trackStateToRemove = tracksState.filter(
+              (t) =>
                 t.bioDataItemId.toLowerCase() === file.name.toLowerCase() &&
                 t.format.toLowerCase() === file.format.toLowerCase()
             );
-            if (trackState) {
+            trackStateToRemove.forEach(trackState => {
                 tracksState.splice(tracksState.indexOf(trackState), 1);
-            }
+            });
             this.projectContext.changeState({tracks, tracksState});
         }
         this.projectContext.saveAnnotationFilesState();

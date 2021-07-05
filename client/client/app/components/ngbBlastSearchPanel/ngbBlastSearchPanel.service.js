@@ -18,8 +18,8 @@ function scientificNameSorter(a, b) {
 }
 
 export default class ngbBlastSearchService {
-    static instance(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService) {
-        return new ngbBlastSearchService(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService);
+    static instance(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService, geneDataService) {
+        return new ngbBlastSearchService(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService, geneDataService);
     }
 
     _detailedRead = null;
@@ -44,7 +44,7 @@ export default class ngbBlastSearchService {
         return BLAST_STATES;
     }
 
-    constructor(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService) {
+    constructor(dispatcher, bamDataService, projectDataService, ngbBlastSearchFormConstants, genomeDataService, geneDataService) {
         Object.assign(
             this,
             {
@@ -52,7 +52,8 @@ export default class ngbBlastSearchService {
                 bamDataService,
                 projectDataService,
                 ngbBlastSearchFormConstants,
-                genomeDataService
+                genomeDataService,
+                geneDataService
             }
         );
         this.currentTool = this.ngbBlastSearchFormConstants.BLAST_TOOLS[0];
@@ -75,68 +76,123 @@ export default class ngbBlastSearchService {
         return await this.projectDataService.getBlastDBList(type);
     }
 
+    async getNucleotideSequence(searchRequest) {
+        const {
+            startIndex,
+            endIndex,
+            chromosomeId,
+            referenceId: id
+        } = searchRequest;
+        if (
+            startIndex &&
+            endIndex &&
+            chromosomeId &&
+            id
+        ) {
+            const size = endIndex - startIndex;
+            const MAX_SIZE = 100 * 1000;
+            if (size > MAX_SIZE) {
+                return {};
+            }
+            const blockSize = 10 * 1024; // 10kb;
+            const count = Math.ceil(size / blockSize);
+            const payloads = [];
+            for (let p = 0; p < count; p++) {
+                const start = startIndex + blockSize * p;
+                const end = Math.min(endIndex, startIndex + blockSize * (p + 1) - 1);
+                payloads.push({
+                    startIndex: start,
+                    endIndex: end,
+                    scaleFactor: 1,
+                    chromosomeId,
+                    id
+                });
+            }
+            try {
+                const result = await this.genomeDataService.loadReferenceTrack(payloads);
+                if (result && result.blocks && result.blocks.length) {
+                    return {
+                        sequence: result.blocks.map(block => block.text).join('')
+                    };
+                }
+            } catch (e) {
+                // eslint-disable-next-line
+                console.warn('Error fetching sequence', e.message);
+                return {
+                    error: e.message
+                };
+            }
+        }
+        return {};
+    }
+
+    async getAminoAcidSequence(searchRequest) {
+        const {
+            startIndex,
+            endIndex,
+            chromosomeId,
+            referenceId,
+            id,
+            name: featureId,
+            feature: featureType = ''
+        } = searchRequest;
+        const aminoAcidsPayload = {
+            trackQuery: {
+                id,
+                chromosomeId,
+                endIndex,
+                startIndex,
+                scaleFactor: 1
+            },
+            referenceId,
+            featureId,
+            featureType: featureType.toUpperCase()
+        };
+        if (
+            id &&
+            referenceId &&
+            chromosomeId &&
+            featureId
+        ) {
+            try {
+                const result = await this.geneDataService.getAminoAcids(aminoAcidsPayload);
+                return {
+                    sequence: result
+                };
+            } catch (e) {
+                // eslint-disable-next-line
+                console.warn('Error fetching sequence', e.message);
+                return {
+                    error: e.message
+                };
+            }
+        }
+        return {};
+    }
+
     async getSequence() {
         const searchRequest = JSON.parse(localStorage.getItem('blastSearchRequest')) || null;
-        let read = null;
         if (searchRequest) {
             switch (searchRequest.source) {
                 case 'bam': {
-                    read = await this.bamDataService.loadRead(searchRequest);
-                    break;
+                    try {
+                        return await this.bamDataService.loadRead(searchRequest);
+                    } catch (e) {
+                        return {
+                            error: e.message
+                        };
+                    }
                 }
                 default:
                 case 'gene': {
-                    const {
-                        startIndex,
-                        endIndex,
-                        chromosomeId,
-                        referenceId: id
-                    } = searchRequest;
-                    if (
-                        startIndex &&
-                        endIndex &&
-                        chromosomeId &&
-                        id
-                    ) {
-                        const size = endIndex - startIndex;
-                        const MAX_SIZE = 100 * 1000;
-                        if (size > MAX_SIZE) {
-                            return {};
-                        }
-                        const blockSize = 10 * 1024; // 10kb;
-                        const count = Math.ceil(size / blockSize);
-                        const payloads = [];
-                        for (let p = 0; p < count; p++) {
-                            const start = startIndex + blockSize * p;
-                            const end = Math.min(endIndex, startIndex + blockSize * (p + 1) - 1);
-                            payloads.push({
-                                startIndex: start,
-                                endIndex: end,
-                                scaleFactor: 1,
-                                chromosomeId,
-                                id
-                            });
-                        }
-                        try {
-                            const result = await this.genomeDataService.loadReferenceTrack(payloads);
-                            if (result && result.blocks && result.blocks.length) {
-                                return {
-                                    sequence: result.blocks.map(block => block.text).join('')
-                                };
-                            }
-                        } catch (e) {
-                            // eslint-disable-next-line
-                            console.warn('Error fetching sequence', e.message);
-                        }
-                        return {};
-                    } else {
-                        read = {};
+                    if (searchRequest.aminoAcid) {
+                        return await this.getAminoAcidSequence(searchRequest);
                     }
-                    break;
+                    return await this.getNucleotideSequence(searchRequest);
                 }
             }
         }
-        return read;
+        return undefined;
     }
 
 
@@ -174,12 +230,14 @@ export default class ngbBlastSearchService {
 
     async getCurrentSearch() {
         let data = {};
+        let error;
         if (this._currentSearchId) {
             data = this._formatServerToClient(await this.projectDataService.getBlastSearch(this._currentSearchId));
         } else {
             const newSearch = await this.getSequence();
             if (newSearch) {
                 data.sequence = newSearch.sequence;
+                error = newSearch.error;
             }
             if (this.currentTool) {
                 data.tool = this.currentTool;
@@ -188,7 +246,7 @@ export default class ngbBlastSearchService {
         if (!data.organisms) {
             data.organisms = [];
         }
-        return data;
+        return {request: data, error};
     }
 
     popCurrentAlignmentObject() {

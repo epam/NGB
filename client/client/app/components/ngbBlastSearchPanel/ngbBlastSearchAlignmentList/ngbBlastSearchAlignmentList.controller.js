@@ -10,9 +10,9 @@ export default class ngbBlastSearchAlignmentList {
     windowElm = {};
     isProgressShown = true;
 
-    constructor(ngbBlastSearchService, $timeout, $window) {
+    constructor(ngbBlastSearchService, $timeout, $window, ngbBlastSearchAlignmentService) {
         Object.assign(this, {
-            ngbBlastSearchService, $timeout
+            ngbBlastSearchService, $timeout, ngbBlastSearchAlignmentService
         });
         this.windowElm = angular.element($window);
         this.initialize();
@@ -41,5 +41,15 @@ export default class ngbBlastSearchAlignmentList {
                 this.$timeout(() => this.isProgressShown = false, 0);
             }, 0);
         }, 0);
+    }
+
+    navigationToChromosomeAvailable() {
+        return this.ngbBlastSearchAlignmentService.navigationToChromosomeAvailable(this.searchResult);
+    }
+
+    async navigateToChromosome () {
+        if (this.searchResult && this.search) {
+            this.ngbBlastSearchAlignmentService.navigateToChromosome(this.searchResult, this.search);
+        }
     }
 }

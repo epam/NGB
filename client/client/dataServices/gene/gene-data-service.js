@@ -36,15 +36,21 @@ export class GeneDataService extends DataService {
             gene.projectId = undefined;
             gene.id = 1;
         }
-        return new Promise((resolve, reject) => {
-            this.post(url, gene).catch(() => { resolve([]); }).then((data)=> {
-                if (data) {
-                    resolve(data.blocks ? data.blocks : []);
-                } else {
-                    const code = 'Gene Data Service', message = 'Gene Data Service: error loading gene track';
-                    reject({code, message});
-                }
-            });
+        return new Promise((resolve) => {
+            this.post(url, gene)
+                .then((data)=> {
+                    if (data) {
+                        resolve(data.blocks ? data.blocks : []);
+                    } else {
+                        const message = 'Gene Data Service: error loading gene track';
+                        throw new Error(message);
+                    }
+                })
+                .catch(e => {
+                    // eslint-disable-next-line
+                    console.warn(e);
+                    resolve([]);
+                });
         });
     }
 
@@ -148,6 +154,20 @@ export class GeneDataService extends DataService {
             }, () => {
                 reject(errorHandler);
             });
+        });
+    }
+
+    getAminoAcids(request) {
+        return new Promise((resolve, reject) => {
+            this.post('gene/aminoacids', request)
+                .then((data) => {
+                    if (data && data.text) {
+                        resolve(data.text);
+                    } else {
+                        resolve(undefined);
+                    }
+                })
+                .catch(reject);
         });
     }
 

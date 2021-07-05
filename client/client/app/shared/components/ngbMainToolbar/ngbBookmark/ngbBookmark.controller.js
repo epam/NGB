@@ -125,6 +125,7 @@ function Bookmark(name, ruler, chromosome, tracks, layout, vcfColumns, customNam
     const mapFn = function(track) {
         return {
             bioDataItemId: track.bioDataItemId,
+            duplicateId: track.duplicateId,
             height: track.height,
             projectId: track.projectId,
             state: track.state,

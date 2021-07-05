@@ -22,7 +22,12 @@
                target="_blank">
                 {{$ctrl.searchResult.sequenceId}}
             </a>
-            <span ng-if="$ctrl.search.dbSource !== 'NCBI'">
+            <a class="blast-search-result-link"
+               ng-if="$ctrl.search.dbSource !== 'NCBI' && !!$ctrl.navigationToChromosomeAvailable"
+               ng-click="$ctrl.navigateToChromosome()">
+                {{$ctrl.searchResult.sequenceId}}
+            </a>
+            <span ng-if="$ctrl.search.dbSource !== 'NCBI' && !$ctrl.navigationToChromosomeAvailable">
                 {{$ctrl.searchResult.sequenceId}}
             </span>
             <span>({{$ctrl.searchResult.organism | na}})</span>

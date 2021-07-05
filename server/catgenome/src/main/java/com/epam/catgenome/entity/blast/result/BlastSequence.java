@@ -27,6 +27,7 @@ package com.epam.catgenome.entity.blast.result;
 import com.epam.catgenome.manager.blast.dto.Entry;
 import lombok.Builder;
 import lombok.Data;
+import org.apache.commons.math3.util.Precision;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -37,6 +38,8 @@ import java.util.stream.Collectors;
 @Data
 @Builder
 public class BlastSequence {
+    private static final int TOTAL_SUM_PRECISION = 1;
+
     private String sequenceId;
     private String sequenceAccessionVersion;
     private String organism;
@@ -63,7 +66,8 @@ public class BlastSequence {
                 .eValue(maxScoringEntry.getExpValue())
                 .queryCoverage(maxScoringEntry.getQueryCovS())
                 .percentIdentity(maxScoringEntry.getPercentIdent())
-                .totalScore(entries.stream().mapToDouble(Entry::getBitScore).sum())
+                .totalScore(Precision.round(entries.stream().mapToDouble(Entry::getBitScore).sum(),
+                        TOTAL_SUM_PRECISION))
                 .alignments(entries.stream()
                         .map(Alignment::fromEntry)
                         .sorted(Comparator.comparing(Alignment::getEValue))

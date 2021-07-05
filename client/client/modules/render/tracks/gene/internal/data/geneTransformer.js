@@ -104,6 +104,13 @@ export class GeneTransformer {
         return genes;
     }
 
+    getFeatures(data) {
+        return [...new Set((data || []).map(item => item.feature))]
+            .filter(Boolean)
+            .filter(feature => !/^statistic$/i.test(feature))
+            .sort();
+    }
+
     static analyzeGene(gene) {
         if (gene.items !== null && gene.items !== undefined && gene.items.length > 0) {
             const transcripts = [];

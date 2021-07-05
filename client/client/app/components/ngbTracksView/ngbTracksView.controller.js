@@ -321,7 +321,7 @@ export default class ngbTracksViewController extends baseController {
     }
 
     trackHash(track) {
-        return `[${track.bioDataItemId}][${track.projectId}]`;
+        return `[${track.bioDataItemId}][${track.projectId}][${track.duplicateId || ''}]`;
     }
 }
 

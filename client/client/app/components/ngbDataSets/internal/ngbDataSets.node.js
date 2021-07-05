@@ -41,6 +41,7 @@ export class Node {
 
     id;
     bioDataItemId;
+    duplicateId;
     format;
     name;
     prettyName;

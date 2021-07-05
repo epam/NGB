@@ -86,7 +86,8 @@ export default class ngbSashimiPlotController extends baseController{
             if (this.tracks) {
                 return (this.tracks || [])
                     .filter(selectedTrack => `${t.bioDataItemId}` === `${selectedTrack.config.bioDataItemId}` &&
-                        t.format === selectedTrack.config.format
+                        t.format === selectedTrack.config.format &&
+                        `${t.duplicateId || ''}` === `${selectedTrack.config.duplicateId || ''}`
                     ).length > 0;
             }
             return false;
@@ -179,6 +180,6 @@ export default class ngbSashimiPlotController extends baseController{
     }
 
     trackHash(track) {
-        return `[${track.bioDataItemId}][${track.projectId}]`;
+        return `[${track.bioDataItemId}][${track.projectId}][${track.duplicateId || ''}]`;
     }
 }

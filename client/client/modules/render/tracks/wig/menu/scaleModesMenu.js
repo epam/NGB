@@ -54,7 +54,7 @@ export default {
             enable: (state, tracks, track) => {
                 const groupAutoScale = [
                     track.config.browserId || 'default',
-                    ...tracks.map(t => t.config.bioDataItemId.toString())
+                    ...tracks.map(t => `${t.config.bioDataItemId.toString()}/${t.config.duplicateId || ''}`)
                 ].join('-');
                 if (
                     state.coverageScaleMode === scaleModes.groupAutoScaleMode &&

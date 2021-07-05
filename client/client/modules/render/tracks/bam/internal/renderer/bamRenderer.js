@@ -172,7 +172,7 @@ export class BamRenderer {
                     const x2 = 1 / this._noDataScaleFactor;
                     const x = 1 / this._viewport.factor;
                     const scale = (x2 - x) / (x2 - x1);
-    
+
                     return Math.max(1, Math.floor(1 + (this._config.yScale - 1) * scale));
                 }
                 default:
@@ -612,15 +612,29 @@ Minimal zoom level is at ${noReadText.value}${noReadText.unit}`;
     }
 
     hoverFeature(feature) {
-        this._coverageRenderer.hoverItem(null);
-        this._hoveredItemContainer.removeChildren();
+        this._coverageRenderer && this._coverageRenderer.hoverItem(null);
+        this._hoveredItemContainer && this._hoveredItemContainer.removeChildren();
         if (feature) {
             switch (feature.type) {
                 case HOVERED_ITEM_TYPE_COVERAGE: {
-                    this._coverageRenderer.hoverItem(feature.item, this._viewport, this._cacheService.cache.coverage.data, this._cacheService.cache.coverage.coordinateSystem);
+                    if (this._coverageRenderer) {
+                        this._coverageRenderer
+                            .hoverItem(
+                                feature.item,
+                                this._viewport,
+                                this._cacheService.cache.coverage.data,
+                                this._cacheService.cache.coverage.coordinateSystem
+                            );
+                    }
                 } break;
                 case HOVERED_ITEM_TYPE_REGION: {
-                    this._regionsRenderer.render(this._viewport, this._cacheService.cache.regionItems, feature.item);
+                    if (this._regionsRenderer) {
+                        this._regionsRenderer.render(
+                            this._viewport,
+                            this._cacheService.cache.regionItems,
+                            feature.item
+                        );
+                    }
                 } break;
                 case HOVERED_ITEM_TYPE_SPLICE_JUNCTION: {
                     if (!this._state.sashimi) {
