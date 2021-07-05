@@ -46,7 +46,7 @@ public enum GeneType {
     OPERON("operon", "operon", "pseudooperon"),
     POLYA_SITE("polyA_site", "polyA_site", "polyA_site"),
     PROPEPTIDE("propeptide", "propeptide", "pseudopropeptide"),
-    REGULATORY("regulatory", "regulatory", "regulatory"),
+    REGULATORY("regulatory", "regulatory", "pseudoregulatory"),
     REPEAT_REGION("repeat_region", "repeat_region", "repeat_region"),
     R_RNA("rRNA", "rRNA", "pseudorRNA"),
     S_REGION("S_region", "S_region", "pseudoS_region"),
@@ -77,7 +77,9 @@ public enum GeneType {
     SIG_PEPTIDE("sig_peptide", "sig_peptide", "pseudosig_peptide"),
     UNSURE("unsure", Constants.REGION, Constants.REGION),
     VARIATION("variation", "sequence_variant", "sequence_variant"),
-    //default
+    //source
+//    SOURCE("source", "", ""),
+    //default;
     DEFAULT(Constants.REGION, Constants.REGION, Constants.REGION);
 
     private final String genbankName;

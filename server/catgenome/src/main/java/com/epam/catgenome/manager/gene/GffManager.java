@@ -105,6 +105,7 @@ import org.biojava.nbio.core.sequence.features.DBReferenceInfo;
 import org.biojava.nbio.core.sequence.features.FeatureInterface;
 import org.biojava.nbio.core.sequence.features.Qualifier;
 import org.biojava.nbio.core.sequence.template.AbstractSequence;
+import org.biojava.nbio.genome.parsers.gff.Location;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -197,6 +198,7 @@ public class GffManager {
     private static final String CODON_START = "codon_start";
     private static final String GENE = "gene";
     private static final String NAME_ATTR = "Name";
+    private static final String PSEUDOGENE = "pseudogene";
 
     /**
      * Registers a gene file (GFF/GTF) in the system to make it available to browse. Creates Tabix index if absent
@@ -293,7 +295,11 @@ public class GffManager {
         fileManager.makeGeneDir(geneFile.getId());
 
         if (GenbankUtils.isGenbank(path)) {
-            path = genbankToGff(geneFile);
+            String geneDir = fileManager.getGeneDir(geneFile.getId());
+            Assert.notNull(geneDir, getMessage(MessageCode.RESOURCE_NOT_FOUND));
+            Path gffFilePath = Paths.get(geneDir, geneFile.getName() + GffCodec.GFF_EXTENSION);
+            genbankToGff(path, gffFilePath);
+            path = gffFilePath.toString();
             geneFile.setPath(path);
             request.setPath(path);
         }
@@ -1216,13 +1222,10 @@ public class GffManager {
     }
 
     @SneakyThrows
-    public String genbankToGff(final GeneFile geneFile) {
-        Map<String, DNASequence> dnaSequences = fileManager.readGenbankFile(geneFile.getPath());
+    public void genbankToGff(final String genebankFilePath, final Path gffFilePath) {
+        Map<String, DNASequence> dnaSequences = fileManager.readGenbankFile(genebankFilePath);
         Assert.isTrue(!dnaSequences.isEmpty(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
-        String geneDir = fileManager.getGeneDir(geneFile.getId());
-        Assert.notNull(geneDir, getMessage(MessageCode.RESOURCE_NOT_FOUND));
-        Path path = Paths.get(geneDir, geneFile.getName() + GffCodec.GFF_EXTENSION);
-        try (Gff3Writer gff3Writer = new Gff3Writer(path)) {
+        try (Gff3Writer gff3Writer = new Gff3Writer(gffFilePath)) {
             for (Map.Entry<String, DNASequence> sequence : dnaSequences.entrySet()) {
                 String seqId = sequence.getValue().getAccession().getID();
                 Map<String, Integer> ids = new HashMap<>();
@@ -1234,7 +1237,7 @@ public class GffManager {
                     List<String> value;
                     if (type.equals(OPERON) && qualifiers.containsKey(OPERON)) {
                         value = getQualifierValue(qualifiers, OPERON);
-                    } else if ((type.equals(GENE) || type.equals("pseudogene")) &&
+                    } else if ((type.equals(GENE) || type.equals(PSEUDOGENE)) &&
                             qualifiers.containsKey(LOCUS_TAG)) {
                         value = getQualifierValue(qualifiers, LOCUS_TAG);
                     } else {
@@ -1262,8 +1265,8 @@ public class GffManager {
                             seqId.isEmpty() ? sequence.getValue().getOriginalHeader() : seqId,
                             SOURCE,
                             type,
-                            f.getLocations().getStart().getPosition(),
-                            f.getLocations().getEnd().getPosition(),
+                            parseFeatureLocation(f.getSource()).getBegin(),
+                            parseFeatureLocation(f.getSource()).getEnd(),
                             DOT,
                             StrandSerializable.forValue(f.getLocations().getStrand().getStringRepresentation()),
                             attributes.containsKey(CODON_START) ?
@@ -1278,7 +1281,13 @@ public class GffManager {
                 }
             }
         }
-        return path.toString();
+    }
+
+    private Location parseFeatureLocation(final String source) {
+        final String[] replacements = {"join(", ")", "complement(", "<", ">"};
+        final String[] replaceBy = {"", "", "", "", ""};
+        final String[] regions = StringUtils.replaceEach(source, replacements, replaceBy).split("\\..|,");
+        return new Location(Integer.parseInt(regions[0]), Integer.parseInt(regions[regions.length - 1]));
     }
 
     private void loadExonsBackwards(int centerPosition, int viewPortSize, Chromosome chromosome,
