@@ -44,7 +44,6 @@ export default class ngbBlastSearchAlignmentService {
             sequenceStart,
             sequenceEnd,
             sequenceAccessionVersion: sequenceId,
-            sequenceId,
             queryEnd,
             sequenceTaxId
         } = alignment;
