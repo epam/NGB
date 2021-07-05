@@ -5,7 +5,8 @@ export default  {
         alignment: '<',
         index: '<',
         searchResult: '<',
-        search: '<'
+        search: '<',
+        featureCoords: '<'
     },
     controller: controller.UID,
     template: require('./ngbBlastSearchAlignment.tpl.html')

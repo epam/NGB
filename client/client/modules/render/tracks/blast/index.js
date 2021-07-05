@@ -32,13 +32,18 @@ export class BLASTTrack extends CachedTrack {
         const updated = super.updateCache();
         if (updated && this.cache && this.blastContext) {
             const {startIndex, endIndex} = this.cache.dataViewport;
+            const featureCoords = this.blastContext.featureCoords;
             const filterAlignment = alignment => {
-                const {
+                let {
                     sequenceStart,
-                    sequenceEnd
+                    sequenceEnd,
                 } = alignment;
                 if (!sequenceStart || !sequenceEnd) {
                     return false;
+                }
+                if (featureCoords) {
+                    sequenceStart = featureCoords.start;
+                    sequenceEnd = featureCoords.end;
                 }
                 const start = Math.min(sequenceStart, sequenceEnd);
                 const end = Math.max(sequenceStart, sequenceEnd);

@@ -36,15 +36,22 @@ export default class ngbBlastSearchAlignment {
     }
 
     async updateNavigationState () {
-        this.navigationAvailable = await this.ngbBlastSearchAlignmentService.navigationAvailable(this.alignment, this.search);
+        this.navigationAvailable = await this.ngbBlastSearchAlignmentService.navigationAvailable(this.alignment, this.search, this.featureCoords);
     }
 
     navigateToTracks () {
-        this.ngbBlastSearchAlignmentService.navigateToTracks(this.alignment, this.searchResult, this.search);
+        this.ngbBlastSearchAlignmentService.navigateToTracks(this.alignment, this.searchResult, this.search, this.featureCoords);
     }
 
     $onInit() {
         this.windowElm.on('resize', ::this.onResize);
+    }
+    $onChanges(changedObj){
+        const feature = changedObj.featureCoords;
+        if (feature) {
+            this.featureCoords = feature.currentValue;
+            this.updateNavigationState();
+        }
     }
 
     initialize() {
