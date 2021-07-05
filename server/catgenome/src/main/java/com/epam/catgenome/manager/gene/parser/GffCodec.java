@@ -51,7 +51,7 @@ public class GffCodec extends AsciiFeatureCodec<GeneFeature> {
     private static final String GFF3_GZ_EXTENSION = ".gff3.gz";
     private static final String GTF_GZ_EXTENSION = ".gtf.gz";
     private static final String GTF_EXTENSION = ".gtf";
-    private static final String GFF_EXTENSION = ".gff";
+    public static final String GFF_EXTENSION = ".gff";
     public static final String GFF3_EXTENSION = ".gff3";
 
     private static final List<String> HEADER_MARKERS = Arrays.asList("#", "track", "browser", ">");

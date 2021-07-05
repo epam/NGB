@@ -78,6 +78,7 @@ import com.epam.catgenome.manager.gene.writer.Gff3Writer;
 import com.epam.catgenome.manager.parallel.ParallelTaskExecutionUtils;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
+import com.epam.catgenome.manager.reference.io.GenbankUtils;
 import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.NggbIntervalTreeMap;
@@ -98,9 +99,13 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.biojava.nbio.core.sequence.AccessionID;
 import org.biojava.nbio.core.sequence.DNASequence;
+import org.biojava.nbio.core.sequence.compound.NucleotideCompound;
+import org.biojava.nbio.core.sequence.features.DBReferenceInfo;
+import org.biojava.nbio.core.sequence.features.FeatureInterface;
 import org.biojava.nbio.core.sequence.features.Qualifier;
+import org.biojava.nbio.core.sequence.template.AbstractSequence;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -108,10 +113,12 @@ import org.springframework.util.Assert;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -181,6 +188,15 @@ public class GffManager {
     private static final String PROTEIN_CODING = "protein_coding";
 
     private static final int EXON_SEARCH_CHUNK_SIZE = 100001;
+
+    private static final String SOURCE = "GenBank";
+    private static final String PSEUDO = "pseudo";
+    private static final String DOT = ".";
+    private static final String LOCUS_TAG = "locus_tag";
+    private static final String OPERON = "operon";
+    private static final String CODON_START = "codon_start";
+    private static final String GENE = "gene";
+    private static final String NAME_ATTR = "Name";
 
     /**
      * Registers a gene file (GFF/GTF) in the system to make it available to browse. Creates Tabix index if absent
@@ -262,16 +278,25 @@ public class GffManager {
 
     private GeneFile registerGeneFileFromFile(final FeatureIndexedFileRegistrationRequest request) {
         final GeneFile geneFile = new GeneFile();
-        final File file = new File(request.getPath());
+        String path = request.getPath();
+        final File file = new File(path);
         geneFile.setId(geneFileManager.createGeneFileId());
         geneFile.setCompressed(IOHelper.isGZIPFile(file.getName()));
-        geneFile.setPath(request.getPath());
-        geneFile.setSource(request.getPath());
+        geneFile.setPath(path);
+        geneFile.setSource(path);
         geneFile.setName(request.getName() != null ? request.getName() : file.getName());
         geneFile.setType(request.getType());
         geneFile.setCreatedDate(new Date());
         geneFile.setReferenceId(request.getReferenceId());
         geneFile.setPrettyName(request.getPrettyName());
+
+        fileManager.makeGeneDir(geneFile.getId());
+
+        if (GenbankUtils.isGenbank(path)) {
+            path = genbankToGff(geneFile);
+            geneFile.setPath(path);
+            request.setPath(path);
+        }
 
         if (StringUtils.isNotBlank(request.getIndexPath())) {
             BiologicalDataItem indexItem = new BiologicalDataItem();
@@ -1190,6 +1215,72 @@ public class GffManager {
         return res;
     }
 
+    @SneakyThrows
+    public String genbankToGff(final GeneFile geneFile) {
+        Map<String, DNASequence> dnaSequences = fileManager.readGenbankFile(geneFile.getPath());
+        Assert.isTrue(!dnaSequences.isEmpty(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
+        String geneDir = fileManager.getGeneDir(geneFile.getId());
+        Assert.notNull(geneDir, getMessage(MessageCode.RESOURCE_NOT_FOUND));
+        Path path = Paths.get(geneDir, geneFile.getName() + GffCodec.GFF_EXTENSION);
+        try (Gff3Writer gff3Writer = new Gff3Writer(path)) {
+            for (Map.Entry<String, DNASequence> sequence : dnaSequences.entrySet()) {
+                String seqId = sequence.getValue().getAccession().getID();
+                Map<String, Integer> ids = new HashMap<>();
+                for (FeatureInterface<AbstractSequence<NucleotideCompound>, NucleotideCompound> f :
+                        sequence.getValue().getFeatures()) {
+                    Map<String, List<Qualifier>> qualifiers = f.getQualifiers();
+                    String type = GeneType.getType(f.getType(), qualifiers.containsKey(PSEUDO));
+                    Map<String, List<String>> attributes = new LinkedHashMap<>();
+                    List<String> value;
+                    if (type.equals(OPERON) && qualifiers.containsKey(OPERON)) {
+                        value = getQualifierValue(qualifiers, OPERON);
+                    } else if ((type.equals(GENE) || type.equals("pseudogene")) &&
+                            qualifiers.containsKey(LOCUS_TAG)) {
+                        value = getQualifierValue(qualifiers, LOCUS_TAG);
+                    } else {
+                        String idKey = (qualifiers.containsKey(LOCUS_TAG) ?
+                                qualifiers.get(LOCUS_TAG).get(0).getValue() :
+                                seqId) + DOT + type;
+                        int idValue = 0;
+                        if (ids.containsKey(idKey)) {
+                            idValue = ids.get(idKey) + 1;
+                            value = Collections.singletonList(idKey + idValue);
+                        } else {
+                            value = Collections.singletonList(idKey);
+                        }
+                        ids.put(idKey, idValue);
+                    }
+                    attributes.put("ID", value);
+                    if (f.getQualifiers().containsKey(GENE)) {
+                        attributes.put(NAME_ATTR, getQualifierValue(qualifiers, GENE));
+                    } else if (qualifiers.containsKey(LOCUS_TAG)) {
+                        attributes.put(NAME_ATTR, getQualifierValue(qualifiers, LOCUS_TAG));
+                    }
+                    attributes.putAll(qualifiersToAttr(qualifiers));
+
+                    Gff3FeatureImpl feature = new Gff3FeatureImpl(
+                            seqId.isEmpty() ? sequence.getValue().getOriginalHeader() : seqId,
+                            SOURCE,
+                            type,
+                            f.getLocations().getStart().getPosition(),
+                            f.getLocations().getEnd().getPosition(),
+                            DOT,
+                            StrandSerializable.forValue(f.getLocations().getStrand().getStringRepresentation()),
+                            attributes.containsKey(CODON_START) ?
+                                    getQualifierValue(qualifiers, CODON_START).get(0) + 1 : DOT,
+                            attributes
+                    );
+                    try {
+                        gff3Writer.addFeature(feature);
+                    } catch (IOException e) {
+                        log.debug(e.getMessage(), e);
+                    }
+                }
+            }
+        }
+        return path.toString();
+    }
+
     private void loadExonsBackwards(int centerPosition, int viewPortSize, Chromosome chromosome,
                                     int intronLength, int featuresStart,
                                     final IntervalTree<Block> intervalTree,
@@ -1255,62 +1346,31 @@ public class GffManager {
         }
     }
 
-    private Map<String, List<String>> qualifiersToAttr(Map<String, List<Qualifier>> qualifiers, String type) {
+    private Map<String, List<String>> qualifiersToAttr(final Map<String, List<Qualifier>> qualifiers) {
         final Map<String, List<String>> attributes = new LinkedHashMap<>();
         for (Map.Entry<String, List<Qualifier>> qualifier : qualifiers.entrySet()) {
             List<String> values = qualifier.getValue().stream().map(Qualifier::getValue).collect(Collectors.toList());
             switch (qualifier.getKey()) {
                 case "db_xref":
-                    attributes.put("Dbxref", values);
-                    break;
-                case "gene":
-                    attributes.put("Name", values);
+                    attributes.put("Dbxref", qualifier.getValue()
+                        .stream()
+                        .map(q -> ((DBReferenceInfo) q).getDatabase() + ":" + ((DBReferenceInfo) q).getId())
+                        .collect(Collectors.toList()));
                     break;
                 case "note":
                     attributes.put("Note", values);
                     break;
-                case "operon":
-                    attributes.put("ID", type.equals("operon") ? values : null);
-                    break;
-                case "locus_tag":
-                    attributes.put("Name", values);
-                    attributes.put("ID", type.equals("gene") ? values : null);
-                    break;
                 default:
                     attributes.put(qualifier.getKey(), values);
+                    break;
             }
         }
         return attributes;
     }
 
-    @SneakyThrows
-    public void genbankToGff(final String genbankFilePath, final String gffFilePath) {
-        Map<String, DNASequence> dnaSequences = fileManager.readGenbankFile(genbankFilePath);
-        Assert.isTrue(!dnaSequences.isEmpty(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
-        Assert.notNull(gffFilePath, getMessage(MessageCode.RESOURCE_NOT_FOUND));
-        try (Gff3Writer gff3Writer = new Gff3Writer(Paths.get(gffFilePath))) {
-            for (Map.Entry<String, DNASequence> sequence : dnaSequences.entrySet()) {
-                AccessionID accession = sequence.getValue().getAccession();
-                sequence.getValue().getFeatures().forEach(f -> {
-                    Map<String, List<String>> attributes = qualifiersToAttr(f.getQualifiers(), f.getType());
-                    Gff3FeatureImpl feature = new Gff3FeatureImpl(
-                            accession.getID(),
-                            "GenBank",
-                            f.getType(),
-                            f.getLocations().getStart().getPosition(),
-                            f.getLocations().getEnd().getPosition(),
-                            ".",
-                            StrandSerializable.forValue(f.getLocations().getStrand().getStringRepresentation()),
-                            attributes.containsKey("codon_start") ? "</codon-start value decreased by 1>" : ".",
-                            attributes
-                    );
-                    try {
-                        gff3Writer.addFeature(feature);
-                    } catch (IOException e) {
-                        log.debug(e.getMessage());
-                    }
-                });
-            }
-        }
+    @NotNull
+    private List<String> getQualifierValue(final Map<String, List<Qualifier>> qualifiers, final String key) {
+        Assert.isTrue(qualifiers.containsKey(key), getMessage("No qualifiers with such a key"));
+        return qualifiers.get(key).stream().map(Qualifier::getValue).collect(Collectors.toList());
     }
 }

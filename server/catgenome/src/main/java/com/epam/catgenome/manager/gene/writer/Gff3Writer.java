@@ -21,13 +21,15 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * A class to write out gff3 files.  Features are added using {@link #addFeature(Gff3Feature)}, directives using {@link #addDirective(Gff3Codec.Gff3Directive)},
- * and comments using {@link #addComment(String)}.  Note that the version 3 directive is automatically added at creation, so should not be added separately.
+ * A class to write out gff3 files.  Features are added using {@link #addFeature(Gff3Feature)}, directives using
+ * {@link #addDirective(Gff3Codec.Gff3Directive)},
+ * and comments using {@link #addComment(String)}.  Note that the version 3 directive is automatically added
+ * at creation, so should not be added separately.
  */
 public class Gff3Writer implements Closeable {
 
     private final OutputStream out;
-    private final static String version = "3.1.25";
+    private static final String VERSION = "3.1.25";
 
     public Gff3Writer(final Path path) throws IOException {
 
@@ -44,7 +46,7 @@ public class Gff3Writer implements Closeable {
 
     private void initialize() {
         try {
-            writeWithNewLine(Gff3Codec.Gff3Directive.VERSION3_DIRECTIVE.encode(version));
+            writeWithNewLine(Gff3Codec.Gff3Directive.VERSION3_DIRECTIVE.encode(VERSION));
         } catch (final IOException ex) {
             throw new TribbleException("Error writing version directive", ex);
         }
@@ -82,7 +84,8 @@ public class Gff3Writer implements Closeable {
             out.write(Gff3Constants.UNDEFINED_FIELD_VALUE.getBytes());
         }
 
-        writeJoinedByDelimiter(Gff3Constants.ATTRIBUTE_DELIMITER, e ->  writeKeyValuePair(e.getKey(), e.getValue()), attributes.entrySet());
+        writeJoinedByDelimiter(Gff3Constants.ATTRIBUTE_DELIMITER, e ->
+                writeKeyValuePair(e.getKey(), e.getValue()), attributes.entrySet());
     }
 
     void writeKeyValuePair(final String key, final List<String> values) {
@@ -95,7 +98,8 @@ public class Gff3Writer implements Closeable {
         }
     }
 
-    private <T> void     writeJoinedByDelimiter(final char delimiter, final Consumer<T> consumer, final Collection<T> fields) throws IOException {
+    private <T> void     writeJoinedByDelimiter(final char delimiter, final Consumer<T> consumer,
+                                                final Collection<T> fields) throws IOException {
         boolean isNotFirstField = false;
         for (final T field : fields) {
             if (isNotFirstField) {
@@ -132,8 +136,8 @@ public class Gff3Writer implements Closeable {
 
     static String encodeString(final String s) {
         try {
-            //URLEncoder.encode is hardcoded to change all spaces to +, but we want spaces left unchanged so have to do this
-            //+ is escaped to %2B, so no loss of information
+            //URLEncoder.encode is hardcoded to change all spaces to +, but we want spaces left unchanged so have
+            // to do this + is escaped to %2B, so no loss of information
             return URLEncoder.encode(s, "UTF-8").replace("+", " ");
         } catch (final UnsupportedEncodingException ex) {
             throw new TribbleException("Encoding failure", ex);

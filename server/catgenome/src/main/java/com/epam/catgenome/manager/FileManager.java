@@ -419,6 +419,13 @@ public class FileManager {
         makeDir(substitute(GENE_DIR, params));
     }
 
+    public String getGeneDir(final long fileId) {
+        final Map<String, Object> params = new HashMap<>();
+        params.put(DIR_ID.name(), fileId);
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
+        return toRealPath(substitute(GENE_DIR, params));
+    }
+
     /**
      * Creates in the file system initial catalogue structure used to manage all BED files associated
      * with the provided BED file id and provided user ID.

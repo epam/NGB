@@ -29,6 +29,7 @@ import java.util.Set;
 
 public final class GenbankUtils {
 
+    public static final String GENBANK_DEFAULT_EXTENSION = ".gbk";
     protected static final Set<String> GENBANK_EXTENSIONS = new HashSet<>();
 
     static {

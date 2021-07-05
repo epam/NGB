@@ -160,7 +160,7 @@ public class GeneRegisterer {
     private void createFileIndices(String filePath, String indexPath,
             boolean createTabixIndex, boolean createFeatureIndex)
             throws IOException {
-        fileManager.makeGeneDir(geneFile.getId());
+//        fileManager.makeGeneDir(geneFile.getId());
 
         File indexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.ORIGINAL);
         File largeScaleIndexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.LARGE_SCALE);
