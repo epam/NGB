@@ -1,11 +1,10 @@
-import {GENETrack} from '../gene';
-import FpkmMenu from './fpkmMenu';
 import Menu from '../../core/menu';
+import {GENETrack} from '../gene';
+import featureCountsMenu from './menu/index.js';
 
-export class FPKMTrack extends GENETrack {
-
+export class FeatureCountsTrack extends GENETrack {
     static Menu = Menu(
-        FpkmMenu,
+        featureCountsMenu,
         {
             postStateMutatorFn: GENETrack.postStateMutatorFn,
         }

@@ -16,7 +16,7 @@
                         <ngb-track
                                 ng-repeat="track in ctrl.tracks track by ctrl.trackHash(track)"
                                 dnd-draggable="track"
-                                selectable="track.format !== 'BLAST' && track.format !== 'REFERENCE' && track.format !== 'FPKM'"
+                                selectable="track.format !== 'BLAST' && track.format !== 'REFERENCE'"
                                 browser-id="ctrl.browserId"
 
                                 track="track"
