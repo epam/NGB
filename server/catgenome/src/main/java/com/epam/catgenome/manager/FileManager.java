@@ -411,12 +411,22 @@ public class FileManager {
      *
      * @param fileId {@code long} represents a gene file id in the system
      */
-    public void makeGeneDir(long fileId) {
+    public String makeGeneDir(long fileId) {
         final Map<String, Object> params = new HashMap<>();
         params.put(DIR_ID.name(), fileId);
         params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
         // create a directory for Gene files, associated with the given reference id
-        makeDir(substitute(GENE_DIR, params));
+        final String relativePath = substitute(GENE_DIR, params);
+        makeDir(relativePath);
+        return toRealPath(relativePath);
+    }
+
+    public String getGeneDir(final Long fileId) {
+        final Map<String, Object> params = new HashMap<>();
+        params.put(DIR_ID.name(), fileId);
+        params.put(FilePathPlaceholder.ROOT_DIR_NAME.name(), ROOT_DIR_NAME);
+        final String relativePath = substitute(GENE_DIR, params);
+        return toRealPath(relativePath);
     }
 
     /**
@@ -2086,6 +2096,7 @@ public class FileManager {
                 filePathFormat = VCF_DIR;
                 break;
             case GENE:
+            case FEATURE_COUNTS:
                 filePathFormat = GENE_DIR;
                 break;
             case SEG:

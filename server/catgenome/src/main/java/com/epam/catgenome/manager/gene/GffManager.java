@@ -27,6 +27,7 @@ package com.epam.catgenome.manager.gene;
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.Constants;
 import com.epam.catgenome.constant.MessagesConstants;
+import com.epam.catgenome.controller.tools.FeatureFileSortRequest;
 import com.epam.catgenome.controller.vo.externaldb.ensemblevo.EnsemblEntryVO;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
@@ -73,11 +74,13 @@ import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.manager.gene.reader.AbstractGeneReader;
+import com.epam.catgenome.manager.gene.featurecounts.FeatureCountsToGffConvertor;
 import com.epam.catgenome.manager.gene.writer.Gff3FeatureImpl;
 import com.epam.catgenome.manager.gene.writer.Gff3Writer;
 import com.epam.catgenome.manager.parallel.ParallelTaskExecutionUtils;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
+import com.epam.catgenome.manager.tools.ToolsManager;
 import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.NggbIntervalTreeMap;
@@ -102,12 +105,14 @@ import org.biojava.nbio.core.sequence.AccessionID;
 import org.biojava.nbio.core.sequence.DNASequence;
 import org.biojava.nbio.core.sequence.features.Qualifier;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -176,11 +181,18 @@ public class GffManager {
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
+    @Autowired
+    private ToolsManager toolsManager;
+
+    @Value("#{'${feature.counts.extensions}'.split(',')}")
+    private List<String> featureCountsExtensions;
+
     private static final String EXON_FEATURE_NAME = "exon";
 
     private static final String PROTEIN_CODING = "protein_coding";
 
     private static final int EXON_SEARCH_CHUNK_SIZE = 100001;
+    private static final String GTF_EXTENSION = ".gtf";
 
     /**
      * Registers a gene file (GFF/GTF) in the system to make it available to browse. Creates Tabix index if absent
@@ -262,8 +274,31 @@ public class GffManager {
 
     private GeneFile registerGeneFileFromFile(final FeatureIndexedFileRegistrationRequest request) {
         final GeneFile geneFile = new GeneFile();
+        final Long geneFileId = geneFileManager.createGeneFileId();
+
+        if (isFeatureCounts(request.getPath())) {
+            final String gffFilePath = buildGffFileNameFromFeatureCounts(request.getPath(), geneFileId);
+            FeatureCountsToGffConvertor.convert(request.getPath(), gffFilePath);
+
+            final String sortedGffFilePath = Paths.get(fileManager.getGeneDir(geneFileId),
+                    FilenameUtils.getBaseName(gffFilePath) + ".sorted" + GTF_EXTENSION)
+                    .toString();
+            final FeatureFileSortRequest featureFileSortRequest = new FeatureFileSortRequest();
+            featureFileSortRequest.setOriginalFilePath(gffFilePath);
+            featureFileSortRequest.setSortedFilePath(sortedGffFilePath);
+            toolsManager.sortFeatureFile(featureFileSortRequest);
+            try {
+                Files.delete(Paths.get(gffFilePath));
+            } catch (IOException e) {
+                throw new IllegalArgumentException(e);
+            }
+
+            request.setPath(sortedGffFilePath);
+            geneFile.setFormat(BiologicalDataItemFormat.FEATURE_COUNTS);
+        }
+
         final File file = new File(request.getPath());
-        geneFile.setId(geneFileManager.createGeneFileId());
+        geneFile.setId(geneFileId);
         geneFile.setCompressed(IOHelper.isGZIPFile(file.getName()));
         geneFile.setPath(request.getPath());
         geneFile.setSource(request.getPath());
@@ -1312,5 +1347,17 @@ public class GffManager {
                 });
             }
         }
+    }
+
+    private String buildGffFileNameFromFeatureCounts(final String featureCountsPath, final Long geneFileId) {
+        final String geneFolder = fileManager.makeGeneDir(geneFileId);
+        final String featureCountsFileName = FilenameUtils.getBaseName(featureCountsPath);
+        return Paths.get(geneFolder, featureCountsFileName + GTF_EXTENSION).toString();
+    }
+
+    private boolean isFeatureCounts(final String path) {
+        return CollectionUtils.emptyIfNull(featureCountsExtensions).stream()
+                .anyMatch(path::endsWith);
+
     }
 }
