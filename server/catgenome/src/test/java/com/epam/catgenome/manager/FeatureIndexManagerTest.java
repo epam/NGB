@@ -38,6 +38,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.epam.catgenome.entity.bed.BedFile;
+import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.manager.bed.BedManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -1247,7 +1248,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         geneFilterForm.setFeatureTypes(Collections.singletonList(FeatureType.GENE));
         geneFilterForm.setOrderBy(Collections.singletonList(new OrderBy("START_INDEX", true)));
 
-        final IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchGenesByReference(
+        final IndexSearchResult<GeneIndexEntry> result = featureIndexManager.searchGenesByReference(
                 geneFilterForm, referenceId);
 
         assertEquals(TEST_AMOUNT_OF_GENE, result.getEntries().size());
@@ -1266,7 +1267,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
         geneFilterForm.setOrderBy(Collections.singletonList(new OrderBy("TEST_TEST", true)));
 
-        final IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchGenesByReference(
+        final IndexSearchResult<GeneIndexEntry> result = featureIndexManager.searchGenesByReference(
                 geneFilterForm, referenceId);
 
         assertEquals(TEST_AMOUNT, result.getEntries().size());
@@ -1279,7 +1280,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         geneFilterForm.setOrderBy(Collections.singletonList(new OrderBy("TEST_TEST", true)));
         geneFilterForm.setPageSize((int) TEST_AMOUNT);
 
-        final IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchGenesByReference(
+        final IndexSearchResult<GeneIndexEntry> result = featureIndexManager.searchGenesByReference(
                 geneFilterForm, referenceId);
 
         assertEquals(TEST_AMOUNT, result.getEntries().size());

@@ -732,15 +732,7 @@ public class FeatureIndexManager {
                     chromosomeMap.get(Utils.changeChromosomeName(feature.getContig())));
             masterEntry.setStartIndex(feature.getStart());
             masterEntry.setEndIndex(feature.getEnd());
-            if (GeneUtils.isGene(feature)) {
-                masterEntry.setFeatureType(FeatureType.GENE);
-            }
-            if (GeneUtils.isTranscript(feature)) {
-                masterEntry.setFeatureType(FeatureType.MRNA);
-            }
-            if (GeneUtils.isExon(feature)) {
-                masterEntry.setFeatureType(FeatureType.EXON);
-            }
+            masterEntry.setFeatureType(GeneUtils.fetchType(feature));
 
             masterEntry.setSource(feature.getSource());
             masterEntry.setScore(feature.getScore());

@@ -79,6 +79,26 @@ public enum FeatureType {
     NCRNA("ncrna"),
 
     /**
+     * A tmrna feature from GFF/GTF file
+     */
+    TMRNA("tmrna"),
+
+    /**
+     * A trna feature from GFF/GTF file
+     */
+    TRNA("trna"),
+
+    /**
+     * A operon feature from GFF/GTF file
+     */
+    OPERON("operon"),
+
+    /**
+     * A regulatory feature from GFF/GTF file
+     */
+    REGULATORY("regulatory"),
+
+    /**
      * A start_codon feature from GFF/GTF file
      */
     START_CODON("start_codon"),
