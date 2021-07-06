@@ -373,8 +373,6 @@ export default class ngbGoldenLayoutController extends baseController {
 
     blastSearchPanelRemoved() {
         localStorage.removeItem('blastSearchRequest');
-        localStorage.removeItem('blastSearchResultColumns');
-        localStorage.removeItem('blastHistoryColumns');
 
         this.projectContext.changeState({ blastRegion: { forceReset: true } });
     }
