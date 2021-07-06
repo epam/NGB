@@ -24,9 +24,14 @@
 
 package com.epam.catgenome.entity.vcf;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.Value;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.search.FieldDoc;
 import org.apache.lucene.search.IndexSearcher;
@@ -37,6 +42,8 @@ import org.apache.lucene.util.BytesRef;
 /**
  * Helper class to represent a pointer in Lucene search results
  */
+@Data
+@NoArgsConstructor
 public class Pointer {
     /** The score of this document for the query. */
     private float score;
@@ -48,11 +55,7 @@ public class Pointer {
     /** Only set by {@link TopDocs#merge} */
     private int shardIndex;
 
-    private List<FieldsRef> fields;
-
-    public Pointer() {
-        // no op
-    }
+    private List<FieldRef> fields;
 
     public Pointer(float score, int doc, int shardIndex) {
         this.score = score;
@@ -60,50 +63,18 @@ public class Pointer {
         this.shardIndex = shardIndex;
     }
 
-    public float getScore() {
-        return score;
-    }
-
-    public void setScore(float score) {
-        this.score = score;
-    }
-
-    public int getDoc() {
-        return doc;
-    }
-
-    public void setDoc(int doc) {
-        this.doc = doc;
-    }
-
-    public int getShardIndex() {
-        return shardIndex;
-    }
-
-    public void setShardIndex(int shardIndex) {
-        this.shardIndex = shardIndex;
-    }
-
-    public List<FieldsRef> getFields() {
-        return fields;
-    }
-
-    public void setFields(List<FieldsRef> fields) {
-        this.fields = fields;
-    }
-
     public ScoreDoc toScoreDoc() {
         if (CollectionUtils.isEmpty(fields)) {
             return new ScoreDoc(doc, score, shardIndex);
         } else {
-            BytesRef[] docs = fields.stream()
-                    .map(FieldsRef::toByteRef)
-                    .toArray(BytesRef[]::new);
+            Object[] docs = fields.stream()
+                    .map(FieldRef::toField)
+                    .toArray();
             return new FieldDoc(doc, score, docs, shardIndex);
         }
     }
 
-    public static Pointer fromScoreDoc(ScoreDoc doc) {
+    public static Pointer fromScoreDoc(final ScoreDoc doc) {
         if (doc == null) {
             return null;
         }
@@ -111,15 +82,8 @@ public class Pointer {
             FieldDoc fieldDoc = (FieldDoc)doc;
             Pointer pointer = new Pointer(doc.score, doc.doc, doc.shardIndex);
             if (fieldDoc.fields.length != 0) {
-                List<FieldsRef> refs = new ArrayList<>();
-                for (Object field : fieldDoc.fields) {
-                    if (field instanceof BytesRef) {
-                        BytesRef bytesRef = (BytesRef)field;
-                        FieldsRef ref = FieldsRef.fromBytesRef(bytesRef);
-                        refs.add(ref);
-                    }
-                }
-                pointer.setFields(refs);
+                pointer.setFields(
+                        Arrays.stream(fieldDoc.fields).map(FieldRef::fromField).collect(Collectors.toList()));
             }
             return pointer;
         } else {
@@ -127,59 +91,35 @@ public class Pointer {
         }
     }
 
-    public static class FieldsRef {
-        private String bytes;
-        private int offset;
-        private int length;
-        private boolean valid;
+    @Value
+    @Builder
+    public static class FieldRef {
 
-        public FieldsRef() {
-            //no op
+        Object ref;
+        FieldRefType type;
+
+        public Object toField() {
+            if (type == FieldRefType.BYTES_REF) {
+                return new BytesRef((String) ref);
+            } else {
+                return ref;
+            }
         }
 
-        public String getBytes() {
-            return bytes;
+        public static FieldRef fromField(final Object ref) {
+            if (ref instanceof BytesRef) {
+                return FieldRef.builder().type(FieldRefType.BYTES_REF)
+                        .ref(((BytesRef)ref).utf8ToString()).build();
+
+            } else {
+                return FieldRef.builder().type(FieldRefType.PLAIN)
+                        .ref(ref).build();
+            }
         }
 
-        public void setBytes(String bytes) {
-            this.bytes = bytes;
-        }
-
-        public int getOffset() {
-            return offset;
-        }
-
-        public void setOffset(int offset) {
-            this.offset = offset;
-        }
-
-        public int getLength() {
-            return length;
-        }
-
-        public void setLength(int length) {
-            this.length = length;
-        }
-
-        public boolean isValid() {
-            return valid;
-        }
-
-        public void setValid(boolean valid) {
-            this.valid = valid;
-        }
-
-        public BytesRef toByteRef() {
-            return new BytesRef(bytes);
-        }
-
-        public static FieldsRef fromBytesRef(BytesRef bytesRef) {
-            FieldsRef ref = new FieldsRef();
-            ref.setOffset(bytesRef.offset);
-            ref.setLength(bytesRef.length);
-            ref.setValid(bytesRef.isValid());
-            ref.setBytes(bytesRef.utf8ToString());
-            return ref;
+        public enum FieldRefType {
+            BYTES_REF, PLAIN
         }
     }
+
 }

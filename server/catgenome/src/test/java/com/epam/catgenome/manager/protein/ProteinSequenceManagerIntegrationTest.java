@@ -83,6 +83,12 @@ public class ProteinSequenceManagerIntegrationTest extends AbstractManagerTest {
     public static final String GENE_ATTR_AMINOACID_SEQ = "AAAAA";
     public static final String CALCULATED_AMINO_ACID_SEQ = "QQRRTQNP";
     public static final String CDS_CALCULATED_SEQ = "FG";
+    public static final int END_INDEX_30 = 30;
+    public static final int END_INDEX_15 = 15;
+    public static final int START_INDEX_7 = 7;
+    public static final double SCALE_FACTOR = 1D;
+    public static final int END_INDEX_10 = 10;
+    public static final int START_INDEX_2 = 2;
     @Autowired
     private GffManager gffManager;
 
@@ -130,10 +136,10 @@ public class ProteinSequenceManagerIntegrationTest extends AbstractManagerTest {
         // Load protein sequence.
         TrackQuery track = new TrackQuery();
         track.setId(geneFile.getId());
-        track.setStartIndex(2);
-        track.setEndIndex(30);
+        track.setStartIndex(START_INDEX_2);
+        track.setEndIndex(END_INDEX_30);
         track.setChromosomeId(reference.getChromosomes().get(0).getId());
-        track.setScaleFactor(1D);
+        track.setScaleFactor(SCALE_FACTOR);
 
         ProteinSequence seq = proteinSequenceManager.loadProteinSequence(
                 ProteinSequenceConstructRequest.builder()
@@ -158,10 +164,10 @@ public class ProteinSequenceManagerIntegrationTest extends AbstractManagerTest {
         // Load protein sequence.
         TrackQuery track = new TrackQuery();
         track.setId(geneFile.getId());
-        track.setStartIndex(2);
-        track.setEndIndex(10);
+        track.setStartIndex(START_INDEX_2);
+        track.setEndIndex(END_INDEX_10);
         track.setChromosomeId(reference.getChromosomes().get(0).getId());
-        track.setScaleFactor(1D);
+        track.setScaleFactor(SCALE_FACTOR);
 
         ProteinSequence seq = proteinSequenceManager.loadProteinSequence(
                 ProteinSequenceConstructRequest.builder()
@@ -174,10 +180,10 @@ public class ProteinSequenceManagerIntegrationTest extends AbstractManagerTest {
 
         track = new TrackQuery();
         track.setId(geneFile.getId());
-        track.setStartIndex(7);
-        track.setEndIndex(15);
+        track.setStartIndex(START_INDEX_7);
+        track.setEndIndex(END_INDEX_15);
         track.setChromosomeId(reference.getChromosomes().get(0).getId());
-        track.setScaleFactor(1D);
+        track.setScaleFactor(SCALE_FACTOR);
 
         seq = proteinSequenceManager.loadProteinSequence(
                 ProteinSequenceConstructRequest.builder()
