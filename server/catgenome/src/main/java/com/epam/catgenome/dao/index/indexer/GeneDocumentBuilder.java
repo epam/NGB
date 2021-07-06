@@ -33,7 +33,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.StoredField;
-import org.apache.lucene.document.StringField;
 import org.apache.lucene.util.BytesRef;
 
 import java.util.HashMap;
@@ -64,8 +63,8 @@ public class GeneDocumentBuilder extends AbstractDocumentBuilder<GeneIndexEntry>
         document.add(new SortedStringField(FeatureIndexDao.FeatureIndexFields.STRAND.getFieldName(),
                 entry.getStrand()));
         MapUtils.emptyIfNull(entry.getAttributes()).forEach((k, v) -> {
-                document.add(new SortedStringField(k.toLowerCase(), v));
-                document.add(new StoredField(k.toLowerCase(), v));
+            document.add(new SortedStringField(k.toLowerCase(), v));
+            document.add(new StoredField(k.toLowerCase(), v));
         });
     }
 

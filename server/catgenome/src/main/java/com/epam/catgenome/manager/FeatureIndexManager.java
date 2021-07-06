@@ -37,6 +37,7 @@ import com.epam.catgenome.entity.gene.Gene;
 import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.gene.GeneFileType;
 import com.epam.catgenome.entity.gene.GeneFilterForm;
+import com.epam.catgenome.entity.gene.GeneFilterInfo;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.FeatureType;
 import com.epam.catgenome.entity.index.GeneIndexEntry;
@@ -406,8 +407,16 @@ public class FeatureIndexManager {
 
     public IndexSearchResult<GeneIndexEntry> searchGenesByReference(final GeneFilterForm filterForm,
                                                                        final long referenceId) throws IOException {
-        return getGeneSearchResult(filterForm, Optional.ofNullable(getGeneFile(referenceId))
-                .map(Collections::singletonList).orElse(Collections.emptyList()));
+        return getGeneSearchResult(filterForm, getGeneFilesForReference(referenceId));
+    }
+
+    public GeneFilterInfo getAvailableGeneFieldsToSearch(final Long referenceId) {
+        return featureIndexDao.getAvailableFieldsToSearch(getGeneFilesForReference(referenceId));
+    }
+
+    private List<FeatureFile> getGeneFilesForReference(long referenceId) {
+        return Optional.ofNullable(getGeneFile(referenceId))
+                .map(Collections::singletonList).orElse(Collections.emptyList());
     }
 
     public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(final String featureId,
@@ -422,8 +431,6 @@ public class FeatureIndexManager {
 
         return mergeWithBookmarkSearch(res, featureId);
     }
-
-
 
     /**
      * Loads {@code VcfFilterInfo} object for a specified project. {@code VcfFilterInfo} contains information about

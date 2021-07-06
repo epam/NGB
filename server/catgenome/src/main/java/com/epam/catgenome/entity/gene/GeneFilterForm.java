@@ -43,7 +43,6 @@ import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 

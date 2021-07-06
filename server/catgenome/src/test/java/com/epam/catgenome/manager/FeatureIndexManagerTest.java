@@ -38,6 +38,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.epam.catgenome.entity.bed.BedFile;
+import com.epam.catgenome.entity.gene.GeneFilterInfo;
 import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.manager.bed.BedManager;
 import org.apache.commons.lang3.StringUtils;
@@ -1259,6 +1260,31 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
                 .orElse(0);
 
         assertEquals(maxInt, result.getEntries().get(0).getStartIndex());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void searchCDS() throws IOException {
+        final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
+        geneFilterForm.setFeatureId(null);
+        geneFilterForm.setFeatureTypes(Collections.singletonList(FeatureType.CDS));
+
+        final IndexSearchResult<GeneIndexEntry> result = featureIndexManager.searchGenesByReference(
+                geneFilterForm, referenceId);
+
+        assertFalse(result.getEntries().isEmpty());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void getAvailableGeneAttributes() {
+        GeneFilterInfo availableFields = featureIndexManager.getAvailableGeneFieldsToSearch(referenceId);
+        assertNotNull(availableFields);
+        assertTrue(availableFields.getAvailableFilters().contains("gene_name"));
+        assertTrue(availableFields.getAvailableFilters().contains("gene_source"));
+        assertTrue(availableFields.getAvailableFilters().contains("gene_biotype"));
+        assertTrue(availableFields.getAvailableFilters().contains("mrna_name"));
+        assertTrue(availableFields.getAvailableFilters().contains("mrna_biotype"));
     }
 
     @Test

@@ -183,6 +183,8 @@ public final class GeneUtils {
                             return FeatureType.RRNA;
                         case NCRNA:
                             return FeatureType.NCRNA;
+                        default:
+                            return null;
                     }
                 }
             }

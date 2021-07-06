@@ -29,6 +29,7 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTra
 
 import com.epam.catgenome.controller.vo.SpeciesVO;
 import com.epam.catgenome.entity.gene.GeneFilterForm;
+import com.epam.catgenome.entity.gene.GeneFilterInfo;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.entity.reference.Species;
@@ -209,6 +210,20 @@ public class ReferenceController extends AbstractRESTController {
                                                             @RequestBody final GeneFilterForm geneFilterForm)
         throws IOException {
         return Result.success(featureIndexSecurityService.searchFeaturesByReference(geneFilterForm, referenceId));
+    }
+
+    @RequestMapping(value = "/reference/{referenceId}/filter/gene/info", method = RequestMethod.POST)
+    @ResponseBody
+    @ApiOperation(
+            value = "Searches for given filter parameters in a reference gene file, case-insensitive",
+            notes = "Searches an index of a gene file, associated with a given reference's ID for filter parameters",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<GeneFilterInfo> getAvailableFieldsToSearch(
+            @PathVariable(value = "referenceId") final Long referenceId) throws IOException {
+        return Result.success(featureIndexSecurityService.getAvailableFieldsToSearch(referenceId));
     }
 
     @ResponseBody
