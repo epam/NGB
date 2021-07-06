@@ -30,6 +30,7 @@ import com.epam.catgenome.dao.index.field.SortedStringField;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.FeatureType;
+import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
@@ -210,6 +211,8 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
     public static AbstractDocumentBuilder createDocumentCreator(FeatureIndexEntry entry) {
         if (entry instanceof VcfIndexEntry) {
             return new BigVcfDocumentBuilder();
+        } else if (entry instanceof GeneIndexEntry) {
+            return new GeneDocumentBuilder();
         } else {
             return new DefaultDocumentBuilder();
         }
@@ -227,9 +230,13 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
             List<String> info) {
         switch (format) {
             case VCF:
-                BigVcfDocumentBuilder creator = new BigVcfDocumentBuilder();
-                creator.setVcfInfoFields(info);
-                return creator;
+                BigVcfDocumentBuilder vcfCreator = new BigVcfDocumentBuilder();
+                vcfCreator.setVcfInfoFields(info);
+                return vcfCreator;
+            case GENE:
+                GeneDocumentBuilder geneCreator = new GeneDocumentBuilder();
+                geneCreator.setGeneAttributes(info);
+                return geneCreator;
             default:
                 return new DefaultDocumentBuilder();
         }

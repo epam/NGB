@@ -30,6 +30,7 @@ import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTra
 import com.epam.catgenome.controller.vo.SpeciesVO;
 import com.epam.catgenome.entity.gene.GeneFilterForm;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
+import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.entity.reference.Species;
 import java.io.IOException;
 import java.util.List;
@@ -203,7 +204,7 @@ public class ReferenceController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<IndexSearchResult<FeatureIndexEntry>> searchFeatureInProjectWithFilter(
+    public Result<IndexSearchResult<GeneIndexEntry>> searchFeatureInProjectWithFilter(
                                                             @PathVariable(value = "referenceId") final Long referenceId,
                                                             @RequestBody final GeneFilterForm geneFilterForm)
         throws IOException {

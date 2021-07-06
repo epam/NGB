@@ -55,6 +55,10 @@ public class GeneFilterForm extends AbstractFilterForm {
     private List<Long> chromosomeIds;
     private String featureId;
     private List<FeatureType> featureTypes;
+    /**
+     * Additional fields to show in Variations table
+     */
+    private List<String> attributesFields;
 
     public Sort defaultSort() {
         final List<SortField> sortFields = new ArrayList<>();
@@ -167,9 +171,8 @@ public class GeneFilterForm extends AbstractFilterForm {
         return false;
     }
 
-    @Override
-    public List<String> getInfoFields() {
-        return Collections.emptyList();
+    public List<String> getAdditionalFields() {
+        return attributesFields;
     }
 
     @Override

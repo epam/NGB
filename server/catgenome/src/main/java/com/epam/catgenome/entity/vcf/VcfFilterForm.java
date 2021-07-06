@@ -368,7 +368,7 @@ public class VcfFilterForm extends AbstractFilterForm {
         this.quality = quality;
     }
 
-    public List<String> getInfoFields() {
+    public List<String> getAdditionalFields() {
         return infoFields;
     }
 

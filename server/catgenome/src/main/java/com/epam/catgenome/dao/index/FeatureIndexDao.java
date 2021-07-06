@@ -169,6 +169,11 @@ public class FeatureIndexDao {
         QUALITY("quality"),
         IS_EXON("is_exon"),
 
+        STRAND("strand"),
+        SCORE("score"),
+        FRAME("frame"),
+        SOURCE("source"),
+
         // Facet fields
         CHR_ID("chrId"),
         FACET_CHR_ID("facet_chrId"),

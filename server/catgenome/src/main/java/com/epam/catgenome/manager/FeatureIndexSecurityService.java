@@ -28,6 +28,7 @@ package com.epam.catgenome.manager;
 
 import com.epam.catgenome.entity.gene.GeneFilterForm;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
+import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.entity.index.Group;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
@@ -63,8 +64,8 @@ public class FeatureIndexSecurityService {
     }
 
     @PreAuthorize(ROLE_USER)
-    public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(final GeneFilterForm filterForm,
-                                                                          final Long referenceId) throws IOException {
+    public IndexSearchResult<GeneIndexEntry> searchFeaturesByReference(final GeneFilterForm filterForm,
+                                                                       final Long referenceId) throws IOException {
         return featureIndexManager.searchGenesByReference(filterForm, referenceId);
     }
 
@@ -115,5 +116,9 @@ public class FeatureIndexSecurityService {
     @PreAuthorize(ROLE_ADMIN + OR + READ_PROJECT_BY_ID)
     public VcfFilterInfo loadVcfFilterInfoForProject(Long projectId) throws IOException {
         return featureIndexManager.loadVcfFilterInfoForProject(projectId);
+    }
+
+    public Object getAttributeFields(Long referenceId) {
+        return null;
     }
 }

@@ -39,6 +39,7 @@ import com.epam.catgenome.entity.gene.GeneFileType;
 import com.epam.catgenome.entity.gene.GeneFilterForm;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.FeatureType;
+import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.entity.index.Group;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
@@ -349,23 +350,23 @@ public class FeatureIndexManager {
             return res;
         } else {
             final IndexSearchResult<VcfIndexEntry> res = featureIndexDao.searchFileIndexes(vcfFiles,
-                               filterForm.computeQuery(FeatureType.VARIATION), filterForm.getInfoFields(),
+                               filterForm.computeQuery(FeatureType.VARIATION), filterForm.getAdditionalFields(),
                                                                            null, null);
             res.setExceedsLimit(false);
             return res;
         }
     }
 
-    private IndexSearchResult<FeatureIndexEntry> getGeneSearchResult(final GeneFilterForm filterForm,
+    private IndexSearchResult<GeneIndexEntry> getGeneSearchResult(final GeneFilterForm filterForm,
                                                                      final List<FeatureFile> featureFiles)
             throws IOException {
         Assert.notNull(filterForm.getPageSize(), "Page size shall be specified");
-        final LuceneIndexSearcher<FeatureIndexEntry> indexSearcher =
+        final LuceneIndexSearcher<GeneIndexEntry> indexSearcher =
                 getIndexSearcher(filterForm, featureIndexDao, fileManager, taskExecutorService.getSearchExecutor());
         final Sort sort = Optional.ofNullable(
                 featureIndexDao.createGeneSorting(filterForm.getOrderBy(), featureFiles))
                 .orElseGet(filterForm::defaultSort);
-        final IndexSearchResult<FeatureIndexEntry> res =
+        final IndexSearchResult<GeneIndexEntry> res =
                 indexSearcher.getSearchResults(featureFiles, filterForm.computeQuery(), sort);
 
         res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount()
@@ -403,7 +404,7 @@ public class FeatureIndexManager {
         return bookmarkSearchRes;
     }
 
-    public IndexSearchResult<FeatureIndexEntry> searchGenesByReference(final GeneFilterForm filterForm,
+    public IndexSearchResult<GeneIndexEntry> searchGenesByReference(final GeneFilterForm filterForm,
                                                                        final long referenceId) throws IOException {
         return getGeneSearchResult(filterForm, Optional.ofNullable(getGeneFile(referenceId))
                 .map(Collections::singletonList).orElse(Collections.emptyList()));
@@ -723,7 +724,7 @@ public class FeatureIndexManager {
                                      Map<String, Chromosome> chromosomeMap) {
         if (chromosomeMap.containsKey(feature.getContig())
                 || chromosomeMap.containsKey(Utils.changeChromosomeName(feature.getContig()))) {
-            FeatureIndexEntry masterEntry = new FeatureIndexEntry();
+            GeneIndexEntry masterEntry = new GeneIndexEntry();
             masterEntry.setFeatureId(feature.getFeatureId());
             masterEntry.setUuid(UUID.randomUUID());
             masterEntry.setChromosome(chromosomeMap.containsKey(feature.getContig()) ?
@@ -740,6 +741,12 @@ public class FeatureIndexManager {
             if (GeneUtils.isExon(feature)) {
                 masterEntry.setFeatureType(FeatureType.EXON);
             }
+
+            masterEntry.setSource(feature.getSource());
+            masterEntry.setScore(feature.getScore());
+            masterEntry.setFrame(feature.getFrame());
+            Optional.ofNullable(feature.getStrand()).ifPresent(strand -> masterEntry.setStrand(strand.toValue()));
+            masterEntry.setAttributes(feature.getAttributes());
 
             allEntries.add(masterEntry);
 
