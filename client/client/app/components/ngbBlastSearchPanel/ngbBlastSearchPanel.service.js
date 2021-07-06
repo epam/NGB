@@ -295,8 +295,8 @@ export default class ngbBlastSearchService {
         });
     }
 
-    fetchFeatureCoords(requestUrl) {
-       return this.projectDataService.getNCBIFeatureCoordinates(requestUrl);
+    fetchFeatureCoords(searchResult, search) {
+       return this.projectDataService.getNCBIFeatureCoordinates(searchResult, search);
     }
 
     _formatServerToClient(search) {

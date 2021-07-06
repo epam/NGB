@@ -44,7 +44,6 @@ export default class ngbBlastSearchAlignmentService {
             sequenceStart,
             sequenceEnd,
             sequenceAccessionVersion: sequenceId,
-            queryEnd,
             sequenceTaxId
         } = alignment;
         if (featureCoords) {
@@ -60,7 +59,7 @@ export default class ngbBlastSearchAlignmentService {
             }
             return {
                 start: start + sequenceStart,
-                end: start + sequenceStart + queryEnd,
+                end: start + sequenceStart + sequenceEnd,
                 chromosome: chromosome.name,
                 referenceId: referenceId,
             };

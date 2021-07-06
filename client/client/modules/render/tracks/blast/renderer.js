@@ -206,7 +206,7 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
                 queryEnd = queryLength - queryEnd;
                 if (featureCoords){
                     sequenceStart += featureCoords.start;
-                    sequenceEnd =  sequenceStart + queryEnd;
+                    sequenceEnd =  sequenceStart + sequenceEnd;
                 }
                 const start = Math.min(sequenceStart, sequenceEnd);
                 const end = Math.max(sequenceStart, sequenceEnd);
@@ -535,7 +535,7 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
         } = alignment;
         if (featureCoords){
             sequenceStart += featureCoords.start;
-            sequenceEnd = sequenceStart + queryEnd;
+            sequenceEnd = sequenceStart + sequenceEnd;
         }
         if (!sequenceStart || !sequenceEnd) {
             return undefined;

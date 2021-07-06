@@ -37,14 +37,13 @@ export class BLASTTrack extends CachedTrack {
                 let {
                     sequenceStart,
                     sequenceEnd,
-                    queryEnd
                 } = alignment;
                 if (!sequenceStart || !sequenceEnd) {
                     return false;
                 }
                 if (featureCoords) {
                     sequenceStart += featureCoords.start;
-                    sequenceEnd = sequenceStart + queryEnd;
+                    sequenceEnd = sequenceStart + sequenceEnd;
                 }
                 const start = Math.min(sequenceStart, sequenceEnd);
                 const end = Math.max(sequenceStart, sequenceEnd);

@@ -258,8 +258,19 @@ export class ProjectDataService extends DataService {
     getDatasetFileLink(bioDataItemId) {
         return this.getFullUrl(`dataitem/${bioDataItemId}/download`);
     }
-    
-    getNCBIFeatureCoordinates(requestUrl) {
+
+    getCoordsUrl(searchResult, search) {
+        const {sequenceAccessionVersion, sequenceId, taxId} = searchResult;
+        const {dbType} = search;
+        const id = sequenceAccessionVersion || sequenceId;
+        const db = search && dbType && /^protein$/i.test(dbType)
+            ? 'PROTEIN'
+            : 'NUCLEOTIDE';
+        return id && db && taxId ? `blast/coordinate?sequenceId=${id}&type=${db}&taxId=${taxId}`: undefined;
+    }
+
+    getNCBIFeatureCoordinates(searchResult, search) {
+        const requestUrl = this.getCoordsUrl(searchResult, search);
         return new Promise((resolve, reject) => {
             this.get(requestUrl)
                 .catch((response) => resolve({...response, error: true}))
