@@ -148,6 +148,8 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     private static final int TEST_START_INDEX = 65000;
     private static final int TEST_END_INDEX = 200_000;
     private static final int DEFAULT_PAGE_SIZE = 10;
+    public static final int SMALL_PAGE_SIZE = 8;
+    public static final int LAST = 1;
 
     private Logger logger = LoggerFactory.getLogger(FeatureIndexManagerTest.class);
 
@@ -1264,6 +1266,33 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void searchGenesByFilterWithSortingAndPaging() throws IOException {
+        final GeneFilterForm geneFilterForm = getSmallGeneFilter();
+        geneFilterForm.setFeatureTypes(Collections.singletonList(FeatureType.GENE));
+        geneFilterForm.setOrderBy(Collections.singletonList(new OrderBy("START_INDEX", true)));
+
+        IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchGenesByReference(
+                geneFilterForm, referenceId);
+
+        assertEquals(SMALL_PAGE_SIZE, result.getEntries().size());
+        assertNotNull(result.getPointer());
+
+        final Integer maxInt = result.getEntries().stream()
+                .map(FeatureIndexEntry::getStartIndex)
+                .max(Comparator.naturalOrder())
+                .orElse(0);
+
+        assertEquals(maxInt, result.getEntries().get(0).getStartIndex());
+
+        geneFilterForm.setPointer(result.getPointer());
+        result = featureIndexManager.searchGenesByReference(geneFilterForm, referenceId);
+
+        assertEquals(LAST, result.getEntries().size());
+
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void searchCDS() throws IOException {
         final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
         geneFilterForm.setFeatureId(null);
@@ -1343,6 +1372,13 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         final GeneFilterForm geneFilterForm = new GeneFilterForm();
         geneFilterForm.setFeatureId("ENSFCA");
         geneFilterForm.setPageSize(DEFAULT_PAGE_SIZE);
+        return geneFilterForm;
+    }
+
+    private GeneFilterForm getSmallGeneFilter() {
+        final GeneFilterForm geneFilterForm = new GeneFilterForm();
+        geneFilterForm.setFeatureId("ENSFCA");
+        geneFilterForm.setPageSize(SMALL_PAGE_SIZE);
         return geneFilterForm;
     }
 
