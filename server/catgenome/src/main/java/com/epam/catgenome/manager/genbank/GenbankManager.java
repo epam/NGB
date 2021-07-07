@@ -105,40 +105,44 @@ public class GenbankManager {
     public void genbankToGff(final String genebankFilePath, final Path gffFilePath) {
         Map<String, DNASequence> dnaSequences = readGenbankFile(genebankFilePath);
         Assert.isTrue(!dnaSequences.isEmpty(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
+        Map<String, Integer> featureIds = new HashMap<>();
+        String featureIdKey;
+        String featureIdWithType;
+        int featureIdNum;
         try (Gff3Writer gff3Writer = new Gff3Writer(gffFilePath)) {
             for (Map.Entry<String, DNASequence> sequence : dnaSequences.entrySet()) {
                 String seqId = sequence.getValue().getAccession().getID();
-                Map<String, Integer> ids = new HashMap<>();
-                List<String> value;
-                int idValue;
                 for (FeatureInterface<AbstractSequence<NucleotideCompound>, NucleotideCompound> f :
                         sequence.getValue().getFeatures()) {
                     Map<String, List<Qualifier>> qualifiers = f.getQualifiers();
                     String type = GeneType.getType(f.getType(), qualifiers.containsKey(PSEUDO));
                     Map<String, List<String>> attributes = new LinkedHashMap<>();
                     if (type.equals(OPERON) && qualifiers.containsKey(OPERON)) {
-                        value = getQualifierValue(qualifiers, OPERON);
-                    } else if ((type.equals(GENE) || type.equals(PSEUDOGENE)) &&
-                            qualifiers.containsKey(LOCUS_TAG)) {
-                        value = getQualifierValue(qualifiers, LOCUS_TAG);
+                        featureIdKey = getQualifierByKey(qualifiers, OPERON);
+                        featureIds.put(featureIdKey, 0);
+                    } else if ((type.equals(GENE) || type.equals(PSEUDOGENE)) && qualifiers.containsKey(LOCUS_TAG)) {
+                        featureIdKey = getQualifierByKey(qualifiers, LOCUS_TAG);
+                        featureIds.put(featureIdKey, 0);
                     } else {
-                        String idKey = (qualifiers.containsKey(LOCUS_TAG) ?
-                                qualifiers.get(LOCUS_TAG).get(0).getValue() :
-                                seqId) + DOT + type;
-                        idValue = 0;
-                        if (ids.containsKey(idKey)) {
-                            idValue = ids.get(idKey) + 1;
-                            value = Collections.singletonList(idKey + idValue);
+                        featureIdKey = qualifiers.containsKey(LOCUS_TAG) ?
+                                getQualifierByKey(qualifiers, LOCUS_TAG) : seqId;
+                        featureIdWithType = featureIdKey + DOT + type;
+                        if (featureIds.containsKey(featureIdWithType)) {
+                            featureIdNum = featureIds.get(featureIdWithType) + 1;
+                            featureIdKey = featureIdWithType + featureIdNum;
+                            featureIds.put(featureIdWithType, featureIdNum);
+                        } else if (featureIds.containsKey(featureIdKey)) {
+                            featureIdKey = featureIdWithType;
+                            featureIds.put(featureIdKey, 0);
                         } else {
-                            value = Collections.singletonList(idKey);
+                            featureIds.put(featureIdKey, 0);
                         }
-                        ids.put(idKey, idValue);
                     }
-                    attributes.put(ID_ATTR, value);
+                    attributes.put(ID_ATTR, Collections.singletonList(featureIdKey));
                     if (f.getQualifiers().containsKey(GENE)) {
-                        attributes.put(NAME_ATTR, getQualifierValue(qualifiers, GENE));
+                        attributes.put(NAME_ATTR, Collections.singletonList(getQualifierByKey(qualifiers, GENE)));
                     } else if (qualifiers.containsKey(LOCUS_TAG)) {
-                        attributes.put(NAME_ATTR, getQualifierValue(qualifiers, LOCUS_TAG));
+                        attributes.put(NAME_ATTR, Collections.singletonList(getQualifierByKey(qualifiers, LOCUS_TAG)));
                     }
                     attributes.putAll(qualifiersToAttr(qualifiers));
 
@@ -151,7 +155,7 @@ public class GenbankManager {
                             DOT,
                             StrandSerializable.forValue(f.getLocations().getStrand().getStringRepresentation()),
                             attributes.containsKey(CODON_START) ?
-                                    getQualifierValue(qualifiers, CODON_START).get(0) + 1 : DOT,
+                                    getQualifierByKey(qualifiers, CODON_START) + 1 : DOT,
                             attributes
                     );
                     try {
@@ -199,11 +203,10 @@ public class GenbankManager {
         return attributes;
     }
 
-    private List<String> getQualifierValue(final Map<String, List<Qualifier>> qualifiers, final String key) {
+    private String getQualifierByKey(final Map<String, List<Qualifier>> qualifiers, final String key) {
         Assert.isTrue(qualifiers.containsKey(key), getMessage(MessageCode.ERROR_NO_QUALIFIERS));
-        return qualifiers.get(key).stream().map(Qualifier::getValue).collect(Collectors.toList());
+        return qualifiers.get(key).get(0).getValue();
     }
-
 
     private Location parseFeatureLocation(final String source) {
         final String[] replacements = {"join(", ")", "complement(", "<", ">"};
