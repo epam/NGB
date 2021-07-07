@@ -94,6 +94,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.epam.catgenome.dao.index.searcher.AbstractIndexSearcher.getIndexSearcher;
 
@@ -415,8 +416,12 @@ public class FeatureIndexManager {
     }
 
     private List<FeatureFile> getGeneFilesForReference(long referenceId) {
-        return Optional.ofNullable(getGeneFile(referenceId))
-                .map(Collections::singletonList).orElse(Collections.emptyList());
+        return Stream.concat(
+                Optional.ofNullable(getGeneFile(referenceId))
+                        .map(Collections::singletonList).orElse(Collections.emptyList()).stream(),
+                getFeatureFiles(referenceId).stream()
+        ).filter(featureFile -> featureFile.getFormat() == BiologicalDataItemFormat.GENE)
+                .distinct().collect(Collectors.toList());
     }
 
     public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(final String featureId,

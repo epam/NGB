@@ -1271,7 +1271,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         geneFilterForm.setFeatureTypes(Collections.singletonList(FeatureType.GENE));
         geneFilterForm.setOrderBy(Collections.singletonList(new OrderBy("START_INDEX", true)));
 
-        IndexSearchResult<FeatureIndexEntry> result = featureIndexManager.searchGenesByReference(
+        IndexSearchResult<GeneIndexEntry> result = featureIndexManager.searchGenesByReference(
                 geneFilterForm, referenceId);
 
         assertEquals(SMALL_PAGE_SIZE, result.getEntries().size());
