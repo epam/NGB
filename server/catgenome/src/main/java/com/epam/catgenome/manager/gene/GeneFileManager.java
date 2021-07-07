@@ -129,6 +129,19 @@ public class GeneFileManager implements SecuredEntityManager {
         return geneFile;
     }
 
+    /**
+     * Loads a persisted list of {@code GeneFile} record by it's IDs
+     *
+     * @param geneFileIds list of {@code long} a GeneFile ID
+     * @return list of {@code GeneFile} instance
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public List<GeneFile> loadFiles(List<Long> geneFileIds) {
+        List<GeneFile> geneFile = geneFileDao.loadGeneFiles(geneFileIds);
+        Assert.notNull(geneFile, MessageHelper.getMessage(MessagesConstants.ERROR_FILE_NOT_FOUND, geneFileIds));
+        return geneFile;
+    }
+
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
     public AbstractSecuredEntity changeOwner(Long id, String owner) {

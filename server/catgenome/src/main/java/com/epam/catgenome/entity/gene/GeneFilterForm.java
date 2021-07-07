@@ -31,11 +31,13 @@ import com.epam.catgenome.entity.index.FeatureType;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
@@ -43,8 +45,9 @@ import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Getter
@@ -55,6 +58,13 @@ public class GeneFilterForm extends AbstractFilterForm {
     private List<Long> chromosomeIds;
     private String featureId;
     private List<FeatureType> featureTypes;
+    private Map<Long, List<Long>> geneFileIdsByProject;
+
+
+    /**
+     * Additional fields to show in Gene table
+     */
+    private List<String> attributesFields;
 
     public Sort defaultSort() {
         final List<SortField> sortFields = new ArrayList<>();
@@ -111,8 +121,7 @@ public class GeneFilterForm extends AbstractFilterForm {
             builder.add(featureTypeBuilder.build(), BooleanClause.Occur.MUST);
         } else {
             final BooleanQuery.Builder featureTypeBuilder = new BooleanQuery.Builder()
-                    .add(new TermQuery(new Term(FeatureIndexDao.FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                            FeatureType.GENE.getFileValue())), BooleanClause.Occur.SHOULD);
+                    .add(new MatchAllDocsQuery(), BooleanClause.Occur.MUST);
             builder.add(featureTypeBuilder.build(), BooleanClause.Occur.MUST);
         }
     }
@@ -167,13 +176,17 @@ public class GeneFilterForm extends AbstractFilterForm {
         return false;
     }
 
-    @Override
-    public List<String> getInfoFields() {
-        return Collections.emptyList();
+    public List<String> getAdditionalFields() {
+        return attributesFields;
     }
 
     @Override
     public Integer getPage() {
         return 1;
+    }
+
+    public List<Long> getFileIds() {
+        return MapUtils.emptyIfNull(geneFileIdsByProject)
+                .values().stream().flatMap(List::stream).collect(Collectors.toList());
     }
 }

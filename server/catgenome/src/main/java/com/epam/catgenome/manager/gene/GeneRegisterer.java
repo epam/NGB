@@ -304,8 +304,7 @@ public class GeneRegisterer {
     }
 
     private void indexFeature(GeneFeature feature, List<FeatureIndexEntry> allEntries, boolean doFeatureIndex) {
-        if ((GeneUtils.isGene(feature) || GeneUtils.isTranscript(feature) || GeneUtils.isExon(feature))
-                && doFeatureIndex) {
+        if (doFeatureIndex) {
             featureIndexManager.addGeneFeatureToIndex(allEntries, feature, chromosomeMap);
         }
     }

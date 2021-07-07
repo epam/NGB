@@ -16,7 +16,7 @@ public abstract class AbstractFilterForm {
 
     public abstract boolean filterEmpty();
 
-    public abstract List<String> getInfoFields();
+    public abstract List<String> getAdditionalFields();
 
     public abstract Integer getPage();
 
