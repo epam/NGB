@@ -26,6 +26,7 @@
 
 package com.epam.catgenome.manager;
 
+import com.epam.catgenome.controller.vo.ItemsByProject;
 import com.epam.catgenome.entity.gene.GeneFilterForm;
 import com.epam.catgenome.entity.gene.GeneFilterInfo;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
@@ -119,7 +120,7 @@ public class FeatureIndexSecurityService {
         return featureIndexManager.loadVcfFilterInfoForProject(projectId);
     }
 
-    public GeneFilterInfo getAvailableFieldsToSearch(Long referenceId) {
-        return featureIndexManager.getAvailableGeneFieldsToSearch(referenceId);
+    public GeneFilterInfo getAvailableFieldsToSearch(Long referenceId, ItemsByProject fileIdsByProjectId) {
+        return featureIndexManager.getAvailableGeneFieldsToSearch(referenceId, fileIdsByProjectId);
     }
 }

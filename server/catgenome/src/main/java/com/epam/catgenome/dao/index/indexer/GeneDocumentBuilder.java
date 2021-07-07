@@ -104,6 +104,10 @@ public class GeneDocumentBuilder extends AbstractDocumentBuilder<GeneIndexEntry>
                 doc.getField(FeatureIndexDao.FeatureIndexFields.FRAME.getFieldName())
                         .numericValue().intValue());
 
+        // NOTE: hack to be able to have real feature type name as string
+        // if FeatureType == GENERIC_GENE_FEATURE here we set the real one from index
+        geneIndexEntry.setFeature(doc.get(FeatureIndexDao.FeatureIndexFields.FEATURE_TYPE.getFieldName()));
+
         if (CollectionUtils.isNotEmpty(attributesFields)) {
             geneIndexEntry.setAttributes(new HashMap<>());
             for (String infoField : attributesFields) {

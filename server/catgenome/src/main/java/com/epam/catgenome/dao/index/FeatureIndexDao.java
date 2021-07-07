@@ -457,7 +457,7 @@ public class FeatureIndexDao {
         }
     }
 
-    public GeneFilterInfo getAvailableFieldsToSearch(final List<FeatureFile> files) {
+    public GeneFilterInfo getAvailableFieldsToSearch(final List<? extends FeatureFile> files) {
         final Set<String> availableFields = new HashSet<>();
         final Set<String> mainFields = Arrays.stream(FeatureIndexFields.values())
                 .map(FeatureIndexFields::getFieldName).collect(Collectors.toSet());
@@ -605,7 +605,8 @@ public class FeatureIndexDao {
         return null;
     }
 
-    public Sort createGeneSorting(final List<GeneFilterForm.OrderBy> orderBy, final List<FeatureFile> featureFiles) {
+    public Sort createGeneSorting(final List<GeneFilterForm.OrderBy> orderBy,
+                                  final List<? extends FeatureFile> featureFiles) {
         if (CollectionUtils.isNotEmpty(orderBy)) {
             final ArrayList<SortField> sortFields = new ArrayList<>();
             for (GeneFilterForm.OrderBy o : orderBy) {

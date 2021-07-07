@@ -24,11 +24,13 @@
 
 package com.epam.catgenome.entity.index;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * <p>
@@ -42,6 +44,7 @@ public class GeneIndexEntry extends FeatureIndexEntry {
     private Float score;
     private String strand;
     private Integer frame;
+    private String feature;
     private Map<String, String> attributes;
 
     public GeneIndexEntry() {
@@ -55,6 +58,13 @@ public class GeneIndexEntry extends FeatureIndexEntry {
         score = origin.score;
         strand = origin.strand;
         frame = origin.frame;
+        feature = origin.feature;
         attributes = new HashMap<>(origin.attributes);
+    }
+
+    @JsonIgnore
+    @Override
+    public String getCustomFeatureType() {
+        return Optional.ofNullable(feature).orElse("");
     }
 }

@@ -98,7 +98,7 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
                 new BytesRef(entry.getStartIndex().toString())));
 
         document.add(new StringField(FeatureIndexFields.FEATURE_TYPE.getFieldName(),
-                entry.getFeatureType() != null ? entry.getFeatureType().getFileValue() : "",
+                entry.getFeatureType() != null ? entry.getFeatureType().getFileValue() : entry.getCustomFeatureType(),
                 Field.Store.YES));
         document.add(
                 new StringField(FeatureIndexFields.FILE_ID.getFieldName(), featureFileId.toString(),

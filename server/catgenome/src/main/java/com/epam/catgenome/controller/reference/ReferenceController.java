@@ -27,6 +27,7 @@ package com.epam.catgenome.controller.reference;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
 
+import com.epam.catgenome.controller.vo.ItemsByProject;
 import com.epam.catgenome.controller.vo.SpeciesVO;
 import com.epam.catgenome.entity.gene.GeneFilterForm;
 import com.epam.catgenome.entity.gene.GeneFilterInfo;
@@ -222,8 +223,9 @@ public class ReferenceController extends AbstractRESTController {
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
             })
     public Result<GeneFilterInfo> getAvailableFieldsToSearch(
-            @PathVariable(value = "referenceId") final Long referenceId) throws IOException {
-        return Result.success(featureIndexSecurityService.getAvailableFieldsToSearch(referenceId));
+            @PathVariable(value = "referenceId") final Long referenceId,
+            @RequestBody ItemsByProject fileIdsByProjectId) throws IOException {
+        return Result.success(featureIndexSecurityService.getAvailableFieldsToSearch(referenceId, fileIdsByProjectId));
     }
 
     @ResponseBody

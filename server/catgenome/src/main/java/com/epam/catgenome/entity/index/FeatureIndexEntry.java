@@ -28,6 +28,7 @@ import java.io.Serializable;
 import java.util.UUID;
 
 import com.epam.catgenome.entity.reference.Chromosome;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
 /**
@@ -149,5 +150,10 @@ public class FeatureIndexEntry implements Serializable {
 
     public void setFeatureFileId(Long featureFileId) {
         this.featureFileId = featureFileId;
+    }
+
+    @JsonIgnore
+    public String getCustomFeatureType() {
+        return "";
     }
 }

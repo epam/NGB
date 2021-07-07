@@ -74,6 +74,11 @@ public enum FeatureType {
     UTR3("3utr"),
 
     /**
+     * A utr feature from GFF/GTF file
+     */
+    UTR("utr"),
+
+    /**
      * A ncrna feature from GFF/GTF file
      */
     NCRNA("ncrna"),
@@ -94,9 +99,19 @@ public enum FeatureType {
     OPERON("operon"),
 
     /**
+     * A region feature from GFF/GTF file
+     */
+    REGION("region"),
+
+    /**
      * A regulatory feature from GFF/GTF file
      */
     REGULATORY("regulatory"),
+
+    /**
+     * A generic feature from GFF/GTF file
+     */
+    GENERIC_GENE_FEATURE("generic_gene"),
 
     /**
      * A start_codon feature from GFF/GTF file
@@ -134,7 +149,13 @@ public enum FeatureType {
         namesMap.put(EXON.getFileValue().toUpperCase(), EXON);
         namesMap.put(UTR5.getFileValue().toUpperCase(), UTR5);
         namesMap.put(UTR3.getFileValue().toUpperCase(), UTR3);
+        namesMap.put(UTR.getFileValue().toUpperCase(), UTR);
         namesMap.put(NCRNA.getFileValue().toUpperCase(), NCRNA);
+        namesMap.put(TMRNA.getFileValue().toUpperCase(), TMRNA);
+        namesMap.put(TRNA.getFileValue().toUpperCase(), TRNA);
+        namesMap.put(OPERON.getFileValue().toUpperCase(), OPERON);
+        namesMap.put(REGION.getFileValue().toUpperCase(), REGION);
+        namesMap.put(REGULATORY.getFileValue().toUpperCase(), REGULATORY);
         namesMap.put(START_CODON.getFileValue().toUpperCase(), START_CODON);
         namesMap.put(STOP_CODON.getFileValue().toUpperCase(), STOP_CODON);
         namesMap.put(VARIATION.getFileValue().toUpperCase(), VARIATION);
@@ -152,7 +173,8 @@ public enum FeatureType {
      * @return FeatureType instance
      */
     public static FeatureType forValue(String indexValue) {
-        return namesMap.get(indexValue.toUpperCase());
+        final FeatureType featureType = namesMap.get(indexValue.toUpperCase());
+        return featureType != null ? featureType : GENERIC_GENE_FEATURE;
     }
 
     public String getFileValue() {
