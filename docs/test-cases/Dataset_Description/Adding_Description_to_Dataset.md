@@ -12,7 +12,7 @@ Test verifies
 | Steps | Actions | Expected results |
 | :---: | --- | --- |
 | 1 | Login to NGB  | |
-| 2 | Go to **Datasets** tab| |
+| 2 | Go to **Datasets** tab.| |
 | 3 | Select **sample_1-lumpy.vcf** in the **SV_Sample2** dataset| <li> File is selected <li> The browser window displays Description file from **Prerequisites** <li> **Description** value displays in the header of **Browser** panel|
 | 4 | Select **SV_Sample1** dataset| <li> Dataset is selected with all related files <li> The browser window displays info from **html** file in **Prerequisites** <li>**Description** value displays in the header of **Browser** panel|
 | 5 | Click on **Description** view in the header of **Browser** panel| <br> Context menu is expanded with checkboxes with following values: <li> **Description**  - displays info from **html** file in **Prerequisites** <li> **Summary** - displays files list, variant diagrams <br> **Description** value displays by default|
