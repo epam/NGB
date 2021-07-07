@@ -43,7 +43,7 @@ import javax.xml.bind.JAXBException;
 import com.epam.catgenome.controller.util.UrlTestingUtils;
 import com.epam.catgenome.entity.BiologicalDataItemResourceType;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
-import com.epam.catgenome.manager.reference.io.GenbankUtils;
+import com.epam.catgenome.manager.genbank.GenbankUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.tuple.Pair;

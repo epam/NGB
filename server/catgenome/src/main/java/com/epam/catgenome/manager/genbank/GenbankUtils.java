@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.manager.reference.io;
+package com.epam.catgenome.manager.genbank;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -21,8 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.manager.gene;
+package com.epam.catgenome.manager.genbank;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public enum GeneType {
 
     UTR_3("3'UTR", "3'UTR", "3'UTR"),
@@ -78,31 +83,13 @@ public enum GeneType {
     UNSURE("unsure", Constants.REGION, Constants.REGION),
     VARIATION("variation", "sequence_variant", "sequence_variant"),
     //source
-//    SOURCE("source", "", ""),
+    SOURCE("source", "", ""),
     //default;
     DEFAULT(Constants.REGION, Constants.REGION, Constants.REGION);
 
     private final String genbankName;
     private final String gffName;
     private final String gffPseudoName;
-
-    public String getGenbankName() {
-        return genbankName;
-    }
-
-    public String getGffName() {
-        return gffName;
-    }
-
-    public String getGffPseudoName() {
-        return gffPseudoName;
-    }
-
-    GeneType(String genbankName, String gffName, String gffPseudoName) {
-        this.genbankName = genbankName;
-        this.gffName = gffName;
-        this.gffPseudoName = gffPseudoName;
-    }
 
     public static String getType(final String genbankName, final boolean pseudo) {
         for (GeneType type: GeneType.values()) {

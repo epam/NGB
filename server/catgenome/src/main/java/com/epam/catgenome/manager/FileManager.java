@@ -106,8 +106,6 @@ import com.epam.catgenome.util.feature.reader.EhCacheBasedIndexCache;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import htsjdk.samtools.seekablestream.SeekableStream;
-import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import htsjdk.samtools.util.BlockCompressedInputStream;
 import htsjdk.samtools.util.BlockCompressedOutputStream;
 import htsjdk.tribble.AsciiFeatureCodec;
@@ -130,8 +128,6 @@ import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.store.SimpleFSDirectory;
-import org.biojava.nbio.core.sequence.DNASequence;
-import org.biojava.nbio.core.sequence.io.GenbankReaderHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.bio.CompressionType;
 import org.jetbrains.bio.big.BigWigFile;
@@ -2137,13 +2133,6 @@ public class FileManager {
         }
 
         return null;
-    }
-
-    public Map<String, DNASequence> readGenbankFile(final String genbankFilePath) throws Exception {
-        Assert.notNull(genbankFilePath, getMessage(MessageCode.RESOURCE_NOT_FOUND));
-        try (SeekableStream genBankStream = SeekableStreamFactory.getInstance().getStreamFor(genbankFilePath)) {
-            return GenbankReaderHelper.readGenbankDNASequence(genBankStream);
-        }
     }
 
     private static String getGeneFileExtension(Class<? extends GeneFeature> geneFeatureClass, GeneFile geneFile) {

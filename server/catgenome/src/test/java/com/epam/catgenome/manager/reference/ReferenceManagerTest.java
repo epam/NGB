@@ -41,7 +41,7 @@ import java.util.List;
 import com.epam.catgenome.dao.BiologicalDataItemDao;
 import com.epam.catgenome.entity.reference.Species;
 import com.epam.catgenome.manager.reference.io.FastaUtils;
-import com.epam.catgenome.manager.reference.io.GenbankUtils;
+import com.epam.catgenome.manager.genbank.GenbankUtils;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
