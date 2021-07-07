@@ -357,6 +357,23 @@ export default class ngbVariantsTableController extends baseController {
 
         this.gridApi.infiniteScroll.setScrollDirections(false, false);
         this.gridOptions.data = [];
+        const sortingConfiguration = sortColumns
+            .filter(column => !!column.sort)
+            .map((column, priority) => ({
+                field: column.field,
+                sort: ({
+                    ...column.sort,
+                    priority
+                })
+            }));
+        const {columns = []} = grid || {};
+        columns.forEach(columnDef => {
+            const [sortingConfig] = sortingConfiguration
+                .filter(c => c.field === columnDef.field);
+            if (sortingConfig) {
+                columnDef.sort = sortingConfig.sort;
+            }
+        });
         this.projectContext.loadVariations(1).then((data) => {
             if (this.projectContext.variantsPageError) {
                 this.variantsLoadError = this.projectContext.variantsPageError;

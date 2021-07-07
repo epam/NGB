@@ -36,6 +36,8 @@ export default class ngbBlastSearchResultTableService {
     }
 
     getBlastSearchResultGridColumns() {
+        const headerCells = require('./ngbBlastSearchResultTable_header.tpl.html');
+
         const result = [];
         const columnsList = this.blastSearchResultColumns;
         for (let i = 0; i < columnsList.length; i++) {
@@ -47,6 +49,7 @@ export default class ngbBlastSearchResultTableService {
                         cellFilter: 'percentage:2:this',
                         enableHiding: false,
                         field: column,
+                        headerCellTemplate: headerCells,
                         minWidth: 40,
                         name: column
                     });
@@ -56,6 +59,7 @@ export default class ngbBlastSearchResultTableService {
                     result.push({
                         enableHiding: false,
                         field: column,
+                        headerCellTemplate: headerCells,
                         minWidth: 40,
                         name: column,
                         width: '*'

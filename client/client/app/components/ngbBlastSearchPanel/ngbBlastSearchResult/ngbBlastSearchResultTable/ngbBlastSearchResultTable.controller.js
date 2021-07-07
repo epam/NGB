@@ -74,6 +74,7 @@ export default class ngbBlastSearchResultTableController extends baseController 
                 this.gridApi = gridApi;
                 this.gridApi.core.handleWindowResize();
                 this.gridApi.selection.on.rowSelectionChanged(this.$scope, ::this.rowClick);
+                this.gridApi.core.on.sortChanged(this.$scope, ::this.sortChanged);
                 this.gridApi.colMovable.on.columnPositionChanged(this.$scope, ::this.saveColumnsState);
                 this.gridApi.colResizable.on.columnSizeChanged(this.$scope, ::this.saveColumnsState);
             }
@@ -90,7 +91,6 @@ export default class ngbBlastSearchResultTableController extends baseController 
                 this.isEmptyResults = false;
             } else if (this.ngbBlastSearchResultTableService.blastSearchResult.length) {
                 this.searchResultTableLoadError = null;
-                this.gridOptions.columnDefs = this.ngbBlastSearchResultTableService.getBlastSearchResultGridColumns();
                 this.gridOptions.data = this.ngbBlastSearchResultTableService.blastSearchResult;
                 this.isEmptyResults = false;
             } else {
@@ -130,6 +130,27 @@ export default class ngbBlastSearchResultTableController extends baseController 
             }
         }
         this.ngbBlastSearchResultTableService.blastSearchResultColumns = result;
+    }
+
+    sortChanged(grid, sortColumns) {
+        this.saveColumnsState();
+        const sortingConfiguration = sortColumns
+            .filter(column => !!column.sort)
+            .map((column, priority) => ({
+                field: column.field,
+                sort: ({
+                    ...column.sort,
+                    priority
+                })
+            }));
+        const {columns = []} = grid || {};
+        columns.forEach(columnDef => {
+            const [sortingConfig] = sortingConfiguration
+                .filter(c => c.field === columnDef.field);
+            if (sortingConfig) {
+                columnDef.sort = sortingConfig.sort;
+            }
+        });
     }
 
     rowClick(row) {
