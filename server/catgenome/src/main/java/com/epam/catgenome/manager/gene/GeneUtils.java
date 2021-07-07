@@ -184,7 +184,7 @@ public final class GeneUtils {
                         case NCRNA:
                             return FeatureType.NCRNA;
                         default:
-                            return null;
+                            return FeatureType.GENERIC_GENE_FEATURE;
                     }
                 }
             }

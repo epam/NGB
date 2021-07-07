@@ -216,8 +216,8 @@ public class ReferenceController extends AbstractRESTController {
     @RequestMapping(value = "/reference/{referenceId}/filter/gene/info", method = RequestMethod.POST)
     @ResponseBody
     @ApiOperation(
-            value = "Searches for given filter parameters in a reference gene file, case-insensitive",
-            notes = "Searches an index of a gene file, associated with a given reference's ID for filter parameters",
+            value = "Returns information about possible custom gene table columns",
+            notes = "Searches an index of a gene files, associated with a given reference's IDs for filter parameters",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ApiResponses(
             value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)

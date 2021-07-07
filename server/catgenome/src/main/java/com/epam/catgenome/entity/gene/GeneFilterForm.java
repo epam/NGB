@@ -62,7 +62,7 @@ public class GeneFilterForm extends AbstractFilterForm {
 
 
     /**
-     * Additional fields to show in Variations table
+     * Additional fields to show in Gene table
      */
     private List<String> attributesFields;
 

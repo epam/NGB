@@ -30,7 +30,7 @@ import lombok.Value;
 import java.util.Set;
 
 /**
- * Contains data to fill filter form on UI for a GENE FILTER and INFO header lines
+ * Contains data to fill filter form on UI for a GENE TABLE
  */
 @Value
 @Builder
