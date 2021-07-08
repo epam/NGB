@@ -108,9 +108,9 @@ public enum BiologicalDataItemFormat {
         EXTENSIONS_MAP.put("bdg", WIG);
         EXTENSIONS_MAP.put("bg", WIG);
         EXTENSIONS_MAP.put("bedGraph", WIG);
-        EXTENSIONS_MAP.put("genbank", GENBANK);
-        EXTENSIONS_MAP.put("gb", GB);
-        EXTENSIONS_MAP.put("gbk", GBK);
+        EXTENSIONS_MAP.put("genbank", GENE);
+        EXTENSIONS_MAP.put("gb", GENE);
+        EXTENSIONS_MAP.put("gbk", GENE);
     }
 
     /**
