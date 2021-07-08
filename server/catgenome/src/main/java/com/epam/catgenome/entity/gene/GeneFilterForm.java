@@ -30,7 +30,9 @@ import com.epam.catgenome.entity.AbstractFilterForm;
 import com.epam.catgenome.entity.index.FeatureType;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.Value;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -63,11 +65,10 @@ public class GeneFilterForm extends AbstractFilterForm {
     private Map<Long, List<Long>> geneFileIdsByProject;
 
 
-    private StrandSerializable strand;
-    private String source;
-    private Integer frame;
-    private Float scoreFrom;
-    private Float scoreTo;
+    private List<StrandSerializable> strands;
+    private List<Integer> frames;
+    private List<String> sources;
+    private BoundsFilter<Float> score;
 
     private Map<String, String> additionalFilters;
 
@@ -127,12 +128,15 @@ public class GeneFilterForm extends AbstractFilterForm {
      * @param builder
      */
     private void addFeatureSourceFilter(final BooleanQuery.Builder builder) {
-        if (StringUtils.isBlank(source)) {
+        if (CollectionUtils.isEmpty(sources)) {
             return;
         }
-        final BooleanQuery.Builder prefixQueryBuilder = new BooleanQuery.Builder()
-                .add(new PrefixQuery(new Term(FeatureIndexDao.FeatureIndexFields.SOURCE.getFieldName(),
-                        source.toLowerCase())), BooleanClause.Occur.MUST);
+        final BooleanQuery.Builder prefixQueryBuilder = new BooleanQuery.Builder();
+        for (String source : sources) {
+            prefixQueryBuilder.add(
+                    new PrefixQuery(new Term(FeatureIndexDao.FeatureIndexFields.SOURCE.getFieldName(),
+                        source.toLowerCase())), BooleanClause.Occur.SHOULD);
+        }
 
         builder.add(prefixQueryBuilder.build(), BooleanClause.Occur.MUST);
     }
@@ -143,12 +147,15 @@ public class GeneFilterForm extends AbstractFilterForm {
      * @param builder
      */
     private void addFeatureStrandFilter(final BooleanQuery.Builder builder) {
-        if (strand == null) {
+        if (CollectionUtils.isEmpty(strands)) {
             return;
         }
-        final BooleanQuery.Builder prefixQueryBuilder = new BooleanQuery.Builder()
-                .add(new TermQuery(new Term(FeatureIndexDao.FeatureIndexFields.STRAND.getFieldName(),
-                        strand.getFileValue())), BooleanClause.Occur.MUST);
+        final BooleanQuery.Builder prefixQueryBuilder = new BooleanQuery.Builder();
+        for (StrandSerializable strand : strands) {
+            prefixQueryBuilder
+                    .add(new TermQuery(new Term(FeatureIndexDao.FeatureIndexFields.STRAND.getFieldName(),
+                    strand.getFileValue())), BooleanClause.Occur.SHOULD);
+        }
 
         builder.add(prefixQueryBuilder.build(), BooleanClause.Occur.MUST);
     }
@@ -159,12 +166,14 @@ public class GeneFilterForm extends AbstractFilterForm {
      * @param builder
      */
     private void addFeatureFrameFilter(final BooleanQuery.Builder builder) {
-        if (frame == null) {
+        if (CollectionUtils.isEmpty(frames)) {
             return;
         }
-        final BooleanQuery.Builder frameBuilder = new BooleanQuery.Builder()
-                .add(IntPoint.newSetQuery(FeatureIndexDao.FeatureIndexFields.FRAME.getFieldName(),
-                        frame), BooleanClause.Occur.MUST);
+        final BooleanQuery.Builder frameBuilder = new BooleanQuery.Builder();
+        for (Integer frame : frames) {
+            frameBuilder.add(IntPoint.newSetQuery(FeatureIndexDao.FeatureIndexFields.FRAME.getFieldName(),
+                    frame), BooleanClause.Occur.SHOULD);
+        }
 
         builder.add(frameBuilder.build(), BooleanClause.Occur.MUST);
     }
@@ -175,16 +184,19 @@ public class GeneFilterForm extends AbstractFilterForm {
      * @param builder
      */
     private void addFeatureScoreFilter(final BooleanQuery.Builder builder) {
-        if (scoreFrom != null && scoreTo != null) {
+        if (score == null || (score.getLeft() == null && score.getRight() == null)) {
+            return;
+        }
+        if (score.getLeft() != null && score.getRight() != null) {
             builder.add(FloatPoint.newRangeQuery(FeatureIndexDao.FeatureIndexFields.SCORE.getFieldName(),
-                    scoreFrom, scoreTo), BooleanClause.Occur.MUST);
+                    score.getLeft(), score.getRight()), BooleanClause.Occur.MUST);
         } else {
-            if (scoreFrom != null) {
+            if (score.getLeft() != null) {
                 builder.add(FloatPoint.newRangeQuery(FeatureIndexDao.FeatureIndexFields.SCORE.getFieldName(),
-                        scoreFrom, Float.MAX_VALUE), BooleanClause.Occur.MUST);
-            } else if (scoreTo != null) {
+                        score.getLeft(), Float.MAX_VALUE), BooleanClause.Occur.MUST);
+            } else if (score.getRight() != null) {
                 builder.add(FloatPoint.newRangeQuery(FeatureIndexDao.FeatureIndexFields.SCORE.getFieldName(),
-                        Float.MIN_VALUE, scoreTo), BooleanClause.Occur.MUST);
+                        Float.MIN_VALUE, score.getRight()), BooleanClause.Occur.MUST);
             }
         }
     }
@@ -287,5 +299,12 @@ public class GeneFilterForm extends AbstractFilterForm {
     public List<Long> getFileIds() {
         return MapUtils.emptyIfNull(geneFileIdsByProject)
                 .values().stream().flatMap(List::stream).collect(Collectors.toList());
+    }
+
+    @Value
+    @RequiredArgsConstructor
+    public static class BoundsFilter<T> {
+        T left;
+        T right;
     }
 }

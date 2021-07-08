@@ -1253,26 +1253,31 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
                 .getEntries().size());
 
         // check that we will found feature with source filters
-        geneFilterForm.setSource("ensembl");
+        geneFilterForm.setSources(Collections.singletonList("ensembl"));
         assertEquals(ONE, featureIndexManager.searchGenesByReference(geneFilterForm, referenceId)
                 .getEntries().size());
 
         // check that we will found feature with frame filters
-        geneFilterForm.setFrame(GOOD_FRAME);
+        geneFilterForm.setFrames(Collections.singletonList(GOOD_FRAME));
         assertEquals(ONE, featureIndexManager.searchGenesByReference(geneFilterForm, referenceId)
                 .getEntries().size());
 
         // check that we will found feature with Score filters
-        geneFilterForm.setScoreFrom(GOOD_SCORE_FROM);
+        geneFilterForm.setScore(new GeneFilterForm.BoundsFilter<>(GOOD_SCORE_FROM, null));
+        assertEquals(ONE, featureIndexManager.searchGenesByReference(geneFilterForm, referenceId)
+                .getEntries().size());
+
+        // check that we will found feature with Score filters
+        geneFilterForm.setScore(new GeneFilterForm.BoundsFilter<>(GOOD_SCORE_FROM, WRONG_SCORE_FROM));
         assertEquals(ONE, featureIndexManager.searchGenesByReference(geneFilterForm, referenceId)
                 .getEntries().size());
 
         // check that we will  dont found feature with Score wrong filters
-        geneFilterForm.setScoreFrom(WRONG_SCORE_FROM);
+        geneFilterForm.setScore(new GeneFilterForm.BoundsFilter<>(WRONG_SCORE_FROM, null));
         assertEquals(ZERO, featureIndexManager.searchGenesByReference(geneFilterForm, referenceId)
                 .getEntries().size());
 
-        geneFilterForm.setScoreFrom(null);
+        geneFilterForm.setScore(null);
 
         // check that we will  found feature with additional filters
         geneFilterForm.setAdditionalFilters(Collections.singletonMap("gene_biotype", "protein_coding"));
