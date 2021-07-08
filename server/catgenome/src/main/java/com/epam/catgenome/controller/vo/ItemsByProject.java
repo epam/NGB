@@ -26,9 +26,12 @@
 
 package com.epam.catgenome.controller.vo;
 
+import org.apache.commons.collections4.MapUtils;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ItemsByProject {
 
@@ -49,5 +52,9 @@ public class ItemsByProject {
     }
 
     private Map<Long, List<Long>> value;
+
+    public List<Long> getFileIds() {
+        return MapUtils.emptyIfNull(value).values().stream().flatMap(List::stream).collect(Collectors.toList());
+    }
 
 }

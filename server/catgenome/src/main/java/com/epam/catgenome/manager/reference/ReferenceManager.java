@@ -26,10 +26,10 @@ package com.epam.catgenome.manager.reference;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 
+import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.entity.reference.Species;
 
 import java.io.DataInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -48,22 +48,21 @@ import com.epam.catgenome.exception.ReferenceReadingException;
 import com.epam.catgenome.exception.RegistrationException;
 import com.epam.catgenome.manager.AuthManager;
 import com.epam.catgenome.manager.BiologicalDataItemManager;
+import com.epam.catgenome.manager.genbank.GenbankManager;
 import com.epam.catgenome.manager.reference.io.FastaSequenceFile;
 import com.epam.catgenome.manager.reference.io.FastaUtils;
-import com.epam.catgenome.manager.reference.io.GenbankUtils;
+import com.epam.catgenome.manager.genbank.GenbankUtils;
 import com.epam.catgenome.manager.reference.io.NibDataReader;
 import com.epam.catgenome.manager.reference.io.NibDataWriter;
 import com.epam.catgenome.util.BlockCompressedDataInputStream;
 import com.epam.catgenome.util.BlockCompressedDataOutputStream;
 import com.epam.catgenome.util.NgbFileUtils;
 import com.epam.catgenome.util.Utils;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.biojava.nbio.core.sequence.DNASequence;
-import org.biojava.nbio.core.sequence.io.FastaWriterHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -124,6 +123,8 @@ public class ReferenceManager {
 
     @Autowired private BiologicalDataItemManager biologicalDataItemManager;
 
+    @Autowired private GenbankManager genbankManager;
+
     @Autowired
     private AuthManager authManager;
 
@@ -176,9 +177,19 @@ public class ReferenceManager {
         }
         reference.setType(request.getType());
         if (GenbankUtils.isGenbank(path)) {
-            path = genbankToFasta(reference);
+            String genbankFilePath = reference.getPath();
+            Map<String, DNASequence> dnaSequences = genbankManager.readGenbankFile(genbankFilePath);
+            Assert.isTrue(!dnaSequences.isEmpty(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
+
+            path = genbankManager.genbankToFasta(reference, dnaSequences);
             reference.setPath(path);
             reference.setType(BiologicalDataItemResourceType.FILE);
+
+            if (genbankManager.hasFeatures(dnaSequences)) {
+                FeatureIndexedFileRegistrationRequest geneFileRequest = new FeatureIndexedFileRegistrationRequest();
+                geneFileRequest.setPath(genbankFilePath);
+                request.setGeneFileRequest(geneFileRequest);
+            }
         }
         // processes data for a genome and generates all required resources: meta-information,
         // files with NT-sequence and GC-content per each chromosome etc.
@@ -588,18 +599,6 @@ public class ReferenceManager {
             }
         }
         return lengthOfGenome;
-    }
-
-    @SneakyThrows
-    private String genbankToFasta(final Reference reference) {
-        String genbankFilePath = reference.getPath();
-        Map<String, DNASequence> dnaSequences = fileManager.readGenbankFile(genbankFilePath);
-        Assert.isTrue(!dnaSequences.isEmpty(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
-        String referenceDir = fileManager.getReferenceDir(reference);
-        Assert.notNull(referenceDir, getMessage(MessageCode.RESOURCE_NOT_FOUND));
-        File dnaFileFasta = new File(referenceDir, reference.getName() + FastaUtils.DEFAULT_FASTA_EXTENSION);
-        FastaWriterHelper.writeNucleotideSequence(dnaFileFasta, dnaSequences.values());
-        return dnaFileFasta.getPath();
     }
 
     private void setIndex(Reference reference) {

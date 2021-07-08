@@ -91,7 +91,7 @@ public abstract class AbstractIndexSearcher<T extends FeatureIndexEntry, R exten
             }
             final IndexSearcher searcher = new IndexSearcher(reader, executorService);
             final AbstractDocumentBuilder<T> documentCreator = AbstractDocumentBuilder
-                    .createDocumentCreator(files.get(0).getFormat(), filterForm.getInfoFields());
+                    .createDocumentCreator(files.get(0).getFormat(), filterForm.getAdditionalFields());
             final IndexSearchResult<T> searchResults = performSearch(searcher, reader, query,
                     sort, documentCreator);
             //return 0 to prevent random access in UI

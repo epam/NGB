@@ -32,6 +32,7 @@ import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
 import com.epam.catgenome.entity.gene.GeneFilterForm;
+import com.epam.catgenome.entity.gene.GeneFilterInfo;
 import com.epam.catgenome.entity.index.BookmarkIndexEntry;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.FeatureType;
@@ -70,6 +71,7 @@ import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.MultiReader;
 import org.apache.lucene.index.Term;
@@ -102,6 +104,7 @@ import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -168,6 +171,11 @@ public class FeatureIndexDao {
         GENE_NAMES("geneNames"), // gene names, concatenated by coma
         QUALITY("quality"),
         IS_EXON("is_exon"),
+
+        STRAND("strand"),
+        SCORE("score"),
+        FRAME("frame"),
+        SOURCE("source"),
 
         // Facet fields
         CHR_ID("chrId"),
@@ -449,6 +457,29 @@ public class FeatureIndexDao {
         }
     }
 
+    public GeneFilterInfo getAvailableFieldsToSearch(final List<? extends FeatureFile> files) {
+        final Set<String> availableFields = new HashSet<>();
+        final Set<String> mainFields = Arrays.stream(FeatureIndexFields.values())
+                .map(FeatureIndexFields::getFieldName).collect(Collectors.toSet());
+        try {
+            for (SimpleFSDirectory file : fileManager.getIndexesForFiles(files)) {
+                DirectoryReader reader = DirectoryReader.open(file);
+                for (LeafReaderContext subReader : reader.leaves()) {
+                    Fields fields = subReader.reader().fields();
+                    for (String field : fields) {
+                        if (!mainFields.contains(field)) {
+                            availableFields.add(field);
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to perform index search for files " +
+                    files.stream().map(BaseEntity::getName).collect(Collectors.joining(", ")), e);
+        }
+        return GeneFilterInfo.builder().availableFilters(availableFields).build();
+    }
+
     /**
      * Queries a feature index of a list of files
      *
@@ -574,7 +605,8 @@ public class FeatureIndexDao {
         return null;
     }
 
-    public Sort createGeneSorting(final List<GeneFilterForm.OrderBy> orderBy, final List<FeatureFile> featureFiles) {
+    public Sort createGeneSorting(final List<GeneFilterForm.OrderBy> orderBy,
+                                  final List<? extends FeatureFile> featureFiles) {
         if (CollectionUtils.isNotEmpty(orderBy)) {
             final ArrayList<SortField> sortFields = new ArrayList<>();
             for (GeneFilterForm.OrderBy o : orderBy) {
@@ -590,6 +622,13 @@ public class FeatureIndexDao {
                     setMissingValuesOrder(sf, sortField.getType(), o.isDesc());
 
                     sortFields.add(sf);
+                } else {
+                    if(getAvailableFieldsToSearch(featureFiles).getAvailableFilters().contains(o.getField())) {
+                        SortField.Type type = SortField.Type.STRING;
+                        SortField sf = new SortedSetSortField(o.getField(), o.isDesc());
+                        setMissingValuesOrder(sf, type, o.isDesc());
+                        sortFields.add(sf);
+                    }
                 }
             }
 

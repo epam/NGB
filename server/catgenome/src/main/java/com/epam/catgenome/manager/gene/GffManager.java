@@ -69,9 +69,9 @@ import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.PdbBlock;
 import com.epam.catgenome.manager.externaldb.bindings.ecsbpdbmap.Segment;
 import com.epam.catgenome.manager.externaldb.bindings.rcsbpbd.Record;
 import com.epam.catgenome.manager.externaldb.bindings.uniprot.Uniprot;
+import com.epam.catgenome.manager.genbank.GenbankManager;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
-import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.manager.gene.reader.AbstractGeneReader;
 import com.epam.catgenome.manager.gene.featurecounts.FeatureCountsToGffConvertor;
 import com.epam.catgenome.manager.gene.writer.Gff3FeatureImpl;
@@ -79,6 +79,7 @@ import com.epam.catgenome.manager.gene.writer.Gff3Writer;
 import com.epam.catgenome.manager.parallel.ParallelTaskExecutionUtils;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
+import com.epam.catgenome.manager.genbank.GenbankUtils;
 import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.NggbIntervalTreeMap;
@@ -92,16 +93,12 @@ import htsjdk.samtools.util.IntervalTree;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.readers.LineIterator;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.biojava.nbio.core.sequence.AccessionID;
-import org.biojava.nbio.core.sequence.DNASequence;
-import org.biojava.nbio.core.sequence.features.Qualifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -110,12 +107,12 @@ import org.springframework.util.Assert;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -177,6 +174,9 @@ public class GffManager {
 
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
+
+    @Autowired
+    private GenbankManager genbankManager;
 
     @Value("#{'${feature.counts.extensions}'.split(',')}")
     private List<String> featureCountsExtensions;
@@ -277,16 +277,30 @@ public class GffManager {
             geneFile.setFormat(BiologicalDataItemFormat.FEATURE_COUNTS);
         }
 
-        final File file = new File(request.getPath());
+        String path = request.getPath();
+        final File file = new File(path);
         geneFile.setId(geneFileId);
         geneFile.setCompressed(IOHelper.isGZIPFile(file.getName()));
-        geneFile.setPath(request.getPath());
-        geneFile.setSource(request.getPath());
+        geneFile.setPath(path);
+        geneFile.setSource(path);
         geneFile.setName(request.getName() != null ? request.getName() : file.getName());
         geneFile.setType(request.getType());
         geneFile.setCreatedDate(new Date());
         geneFile.setReferenceId(request.getReferenceId());
         geneFile.setPrettyName(request.getPrettyName());
+
+        fileManager.makeGeneDir(geneFile.getId());
+
+        if (GenbankUtils.isGenbank(path)) {
+            String geneDir = fileManager.getGeneDir(geneFile.getId());
+            Assert.notNull(geneDir, getMessage(MessageCode.RESOURCE_NOT_FOUND));
+            Path gffFilePath = Paths.get(geneDir,
+                    FilenameUtils.removeExtension(geneFile.getName()) + GffCodec.GFF_EXTENSION);
+            genbankManager.genbankToGff(path, gffFilePath);
+            path = gffFilePath.toString();
+            geneFile.setPath(path);
+            request.setPath(path);
+        }
 
         if (StringUtils.isNotBlank(request.getIndexPath())) {
             BiologicalDataItem indexItem = new BiologicalDataItem();
@@ -1267,65 +1281,6 @@ public class GffManager {
         while (iterator.hasNext() && totalLength < viewPortSize / 2) {
             GeneFeature feature = iterator.next();
             totalLength = processExon(intervalTree, totalLength, feature, intronLength, centerPosition, true);
-        }
-    }
-
-    private Map<String, List<String>> qualifiersToAttr(Map<String, List<Qualifier>> qualifiers, String type) {
-        final Map<String, List<String>> attributes = new LinkedHashMap<>();
-        for (Map.Entry<String, List<Qualifier>> qualifier : qualifiers.entrySet()) {
-            List<String> values = qualifier.getValue().stream().map(Qualifier::getValue).collect(Collectors.toList());
-            switch (qualifier.getKey()) {
-                case "db_xref":
-                    attributes.put("Dbxref", values);
-                    break;
-                case "gene":
-                    attributes.put("Name", values);
-                    break;
-                case "note":
-                    attributes.put("Note", values);
-                    break;
-                case "operon":
-                    attributes.put("ID", type.equals("operon") ? values : null);
-                    break;
-                case "locus_tag":
-                    attributes.put("Name", values);
-                    attributes.put("ID", type.equals("gene") ? values : null);
-                    break;
-                default:
-                    attributes.put(qualifier.getKey(), values);
-            }
-        }
-        return attributes;
-    }
-
-    @SneakyThrows
-    public void genbankToGff(final String genbankFilePath, final String gffFilePath) {
-        Map<String, DNASequence> dnaSequences = fileManager.readGenbankFile(genbankFilePath);
-        Assert.isTrue(!dnaSequences.isEmpty(), getMessage(MessageCode.ERROR_GENBANK_FILE_READING));
-        Assert.notNull(gffFilePath, getMessage(MessageCode.RESOURCE_NOT_FOUND));
-        try (Gff3Writer gff3Writer = new Gff3Writer(Paths.get(gffFilePath))) {
-            for (Map.Entry<String, DNASequence> sequence : dnaSequences.entrySet()) {
-                AccessionID accession = sequence.getValue().getAccession();
-                sequence.getValue().getFeatures().forEach(f -> {
-                    Map<String, List<String>> attributes = qualifiersToAttr(f.getQualifiers(), f.getType());
-                    Gff3FeatureImpl feature = new Gff3FeatureImpl(
-                            accession.getID(),
-                            "GenBank",
-                            f.getType(),
-                            f.getLocations().getStart().getPosition(),
-                            f.getLocations().getEnd().getPosition(),
-                            ".",
-                            StrandSerializable.forValue(f.getLocations().getStrand().getStringRepresentation()),
-                            attributes.containsKey("codon_start") ? "</codon-start value decreased by 1>" : ".",
-                            attributes
-                    );
-                    try {
-                        gff3Writer.addFeature(feature);
-                    } catch (IOException e) {
-                        log.debug(e.getMessage());
-                    }
-                });
-            }
         }
     }
 

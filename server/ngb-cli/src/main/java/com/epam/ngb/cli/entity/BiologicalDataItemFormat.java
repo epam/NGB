@@ -60,6 +60,9 @@ public enum BiologicalDataItemFormat {
     MAF(13, false, true),
     MAF_INDEX(14),
     VG(15),
+    GENBANK(16),
+    GBK(17),
+    GB(18),
     FEATURE_COUNTS(19);
 
     private long id;
@@ -106,6 +109,9 @@ public enum BiologicalDataItemFormat {
         EXTENSIONS_MAP.put("bdg", WIG);
         EXTENSIONS_MAP.put("bg", WIG);
         EXTENSIONS_MAP.put("bedGraph", WIG);
+        EXTENSIONS_MAP.put("genbank", GENE);
+        EXTENSIONS_MAP.put("gb", GENE);
+        EXTENSIONS_MAP.put("gbk", GENE);
         EXTENSIONS_MAP.put("featureCounts", GENE);
         EXTENSIONS_MAP.put("txt", GENE);
     }

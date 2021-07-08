@@ -26,6 +26,7 @@ package com.epam.catgenome.manager.gene;
 
 import com.epam.catgenome.entity.gene.Gene;
 import com.epam.catgenome.entity.gene.GeneTranscript;
+import com.epam.catgenome.entity.index.FeatureType;
 import com.epam.catgenome.entity.protein.ProteinSequence;
 import com.epam.catgenome.entity.protein.ProteinSequenceEntry;
 import com.epam.catgenome.entity.reference.Chromosome;
@@ -67,6 +68,15 @@ public final class GeneUtils {
         GENE(new String[] {"gene"}),
         CHROMOSOME(new String[] {"chromosome"}),
         EXON(new String[] {"exon"}),
+        CDS(new String[] {"CDS", "cds"}),
+        UTR5(new String[] {"UTR5", "5utr", "utr5", "5UTR", "five_prime_utr"}),
+        UTR3(new String[] {"UTR3", "3utr", "utr3", "3UTR", "three_prime_utr"}),
+        RRNA(new String[] {"RRNA", "rrna"}),
+        NCRNA(new String[] {"NCRNA", "ncrna"}),
+        TRNA(new String[] {"TRNA", "trna"}),
+        TMRNA(new String[] {"TMRNA", "tmrna"}),
+        OPERON(new String[] {"OPERON", "operon"}),
+        REGULATORY(new String[] {"REGULATORY", "regulatory"}),
         TRANSCRIPT(new String[] {"transcript", "mRNA"});
 
         private String[] featureTypeNames;
@@ -141,6 +151,45 @@ public final class GeneUtils {
      */
     public static boolean isTranscript(GeneFeature feature) {
         return isType(GeneFeatureType.TRANSCRIPT, feature);
+    }
+
+    public static FeatureType fetchType(GeneFeature feature) {
+        for (GeneFeatureType type : GeneFeatureType.values()) {
+            for (String featureTypeName : type.featureTypeNames) {
+                if (featureTypeName.equalsIgnoreCase(feature.getFeature())) {
+                    switch (type) {
+                        case GENE:
+                        case CHROMOSOME:
+                            return FeatureType.GENE;
+                        case OPERON:
+                            return FeatureType.OPERON;
+                        case TRNA:
+                            return FeatureType.TRNA;
+                        case TMRNA:
+                            return FeatureType.TMRNA;
+                        case REGULATORY:
+                            return FeatureType.REGULATORY;
+                        case TRANSCRIPT:
+                            return FeatureType.MRNA;
+                        case EXON:
+                            return FeatureType.EXON;
+                        case CDS:
+                            return FeatureType.CDS;
+                        case UTR5:
+                            return FeatureType.UTR5;
+                        case UTR3:
+                            return FeatureType.UTR3;
+                        case RRNA:
+                            return FeatureType.RRNA;
+                        case NCRNA:
+                            return FeatureType.NCRNA;
+                        default:
+                            return FeatureType.GENERIC_GENE_FEATURE;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /**

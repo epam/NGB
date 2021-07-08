@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+import com.epam.catgenome.entity.index.GeneIndexEntry;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -700,10 +701,14 @@ public class ProjectControllerTest extends AbstractControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath(JPATH_STATUS).value(ResultStatus.OK.name()));
         actions.andDo(MockMvcResultHandlers.print());
 
-        ResponseResult<IndexSearchResult<FeatureIndexEntry>> indexEntriesRes = getObjectMapper()
+        ResponseResult<IndexSearchResult<GeneIndexEntry>> indexEntriesRes = getObjectMapper()
                 .readValue(actions.andReturn().getResponse().getContentAsByteArray(),
                         getTypeFactory().constructParametrizedType(ResponseResult.class, ResponseResult.class,
-                                IndexSearchResult.class));
+                                getTypeFactory().constructParametrizedType(
+                                        IndexSearchResult.class, IndexSearchResult.class, GeneIndexEntry.class
+                                )
+                        )
+                );
 
         Assert.assertFalse(indexEntriesRes.getPayload().getEntries().isEmpty());
         Assert.assertTrue(TEST_FEATURE_ID.equalsIgnoreCase(indexEntriesRes.getPayload().getEntries()

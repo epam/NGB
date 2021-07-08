@@ -41,18 +41,6 @@ export default class ngbBlastSearchResultTableService {
         for (let i = 0; i < columnsList.length; i++) {
             const column = columnsList[i];
             switch (column) {
-                case 'sequenceId': {
-                    result.push({
-                        cellTemplate: `<a class="ui-grid-cell-contents blast-search-result-link sequence-link" 
-                                        ng-href="{{row.entity.href}}"
-                                       >{{row.entity.sequenceId}}</a>`,
-                        enableHiding: false,
-                        field: 'sequenceId',
-                        minWidth: 40,
-                        name: 'sequenceId'
-                    });
-                    break;
-                }
                 case 'queryCover':
                 case 'percentIdentity': {
                     result.push({

@@ -27,9 +27,12 @@ package com.epam.catgenome.controller.reference;
 import static com.epam.catgenome.component.MessageHelper.getMessage;
 import static com.epam.catgenome.controller.vo.Query2TrackConverter.convertToTrack;
 
+import com.epam.catgenome.controller.vo.ItemsByProject;
 import com.epam.catgenome.controller.vo.SpeciesVO;
 import com.epam.catgenome.entity.gene.GeneFilterForm;
+import com.epam.catgenome.entity.gene.GeneFilterInfo;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
+import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.entity.reference.Species;
 import java.io.IOException;
 import java.util.List;
@@ -203,11 +206,26 @@ public class ReferenceController extends AbstractRESTController {
     @ApiResponses(
         value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
         })
-    public Result<IndexSearchResult<FeatureIndexEntry>> searchFeatureInProjectWithFilter(
+    public Result<IndexSearchResult<GeneIndexEntry>> searchFeatureInProjectWithFilter(
                                                             @PathVariable(value = "referenceId") final Long referenceId,
                                                             @RequestBody final GeneFilterForm geneFilterForm)
         throws IOException {
         return Result.success(featureIndexSecurityService.searchFeaturesByReference(geneFilterForm, referenceId));
+    }
+
+    @RequestMapping(value = "/reference/{referenceId}/filter/gene/info", method = RequestMethod.POST)
+    @ResponseBody
+    @ApiOperation(
+            value = "Returns information about possible custom gene table columns",
+            notes = "Searches an index of a gene files, associated with a given reference's IDs for filter parameters",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<GeneFilterInfo> getAvailableFieldsToSearch(
+            @PathVariable(value = "referenceId") final Long referenceId,
+            @RequestBody ItemsByProject fileIdsByProjectId) throws IOException {
+        return Result.success(featureIndexSecurityService.getAvailableFieldsToSearch(referenceId, fileIdsByProjectId));
     }
 
     @ResponseBody
