@@ -414,7 +414,8 @@ public class FeatureIndexManager {
 
     public GeneFilterInfo getAvailableGeneFieldsToSearch(final Long referenceId, ItemsByProject fileIdsByProjectId) {
         return featureIndexDao.getAvailableFieldsToSearch(
-                getGeneFilesForReference(referenceId, fileIdsByProjectId.getFileIds()));
+                getGeneFilesForReference(referenceId, Optional.ofNullable(fileIdsByProjectId)
+                        .map(ItemsByProject::getFileIds).orElse(Collections.emptyList())));
     }
 
     private List<? extends FeatureFile> getGeneFilesForReference(final long referenceId, final List<Long> fileIds) {

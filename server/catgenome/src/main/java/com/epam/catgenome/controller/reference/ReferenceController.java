@@ -224,7 +224,7 @@ public class ReferenceController extends AbstractRESTController {
             })
     public Result<GeneFilterInfo> getAvailableFieldsToSearch(
             @PathVariable(value = "referenceId") final Long referenceId,
-            @RequestBody ItemsByProject fileIdsByProjectId) throws IOException {
+            @RequestBody(required = false) ItemsByProject fileIdsByProjectId) {
         return Result.success(featureIndexSecurityService.getAvailableFieldsToSearch(referenceId, fileIdsByProjectId));
     }
 
