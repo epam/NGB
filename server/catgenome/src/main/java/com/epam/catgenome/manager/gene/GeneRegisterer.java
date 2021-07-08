@@ -36,7 +36,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.epam.catgenome.util.*;
+import com.epam.catgenome.util.IndexUtils;
+import com.epam.catgenome.util.PositionalOutputStream;
+import com.epam.catgenome.util.Utils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -160,7 +162,6 @@ public class GeneRegisterer {
     private void createFileIndices(String filePath, String indexPath,
             boolean createTabixIndex, boolean createFeatureIndex)
             throws IOException {
-        fileManager.makeGeneDir(geneFile.getId());
 
         File indexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.ORIGINAL);
         File largeScaleIndexFile = fileManager.makeFileForGeneIndex(geneFile, GeneFileType.LARGE_SCALE);

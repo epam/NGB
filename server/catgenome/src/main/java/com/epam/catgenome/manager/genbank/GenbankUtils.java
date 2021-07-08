@@ -22,13 +22,14 @@
  * SOFTWARE.
  */
 
-package com.epam.catgenome.manager.reference.io;
+package com.epam.catgenome.manager.genbank;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public final class GenbankUtils {
 
+    public static final String GENBANK_DEFAULT_EXTENSION = ".gbk";
     protected static final Set<String> GENBANK_EXTENSIONS = new HashSet<>();
 
     static {

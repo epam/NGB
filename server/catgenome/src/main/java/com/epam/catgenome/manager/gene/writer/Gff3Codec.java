@@ -24,7 +24,11 @@ import java.util.regex.Pattern;
  * it is linked to in the input file which overlap the given region.
  */
 
-public class Gff3Codec {
+public final class Gff3Codec {
+
+    private Gff3Codec() {
+        //utility class
+    }
 
     static String extractSingleAttribute(final List<String> values) {
         if (values == null || values.isEmpty()) {
@@ -38,7 +42,8 @@ public class Gff3Codec {
     }
 
     /**
-     * Enum for parsing directive lines.  If information in directive line needs to be parsed beyond specifying directive type, decode method should be overriden
+     * Enum for parsing directive lines.  If information in directive line needs to be parsed beyond specifying
+     * directive type, decode method should be overriden
      */
     public enum Gff3Directive {
 
@@ -55,7 +60,8 @@ public class Gff3Codec {
                     throw new TribbleException("Cannot encode null in VERSION3_DIRECTIVE");
                 }
                 if (!(object instanceof String)) {
-                    throw new TribbleException("Cannot encode object of type " + object.getClass() + " in VERSION3_DIRECTIVE");
+                    throw new TribbleException("Cannot encode object of type " +
+                            object.getClass() + " in VERSION3_DIRECTIVE");
                 }
 
                 final String versionLine = "##gff-version " + (String)object;
@@ -86,6 +92,6 @@ public class Gff3Codec {
             return null;
         }
 
-        abstract String encode(final Object object);
+        abstract String encode(Object object);
     }
 }
