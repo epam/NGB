@@ -1323,7 +1323,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     public void searchGenesByFilterWithFeatureTypes() throws IOException {
         final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
         geneFilterForm.setPageSize((int)(TEST_AMOUNT_OF_GENE + TEST_AMOUNT_OF_MRNA));
-        geneFilterForm.setFeatureTypes(Arrays.asList(FeatureType.MRNA, FeatureType.GENE));
+        geneFilterForm.setFeatureTypes(Arrays.asList(FeatureType.MRNA.getFileValue(), FeatureType.GENE.getFileValue()));
 
         assertEquals(TEST_AMOUNT_OF_GENE + TEST_AMOUNT_OF_MRNA,
                 featureIndexManager.searchGenesByReference(geneFilterForm, referenceId).getEntries().size());
@@ -1344,7 +1344,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void searchGenesByFilterWithSorting() throws IOException {
         final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
-        geneFilterForm.setFeatureTypes(Collections.singletonList(FeatureType.GENE));
+        geneFilterForm.setFeatureTypes(Collections.singletonList(FeatureType.GENE.getFileValue()));
         geneFilterForm.setOrderBy(Collections.singletonList(new OrderBy("START_INDEX", true)));
 
         final IndexSearchResult<GeneIndexEntry> result = featureIndexManager.searchGenesByReference(
@@ -1364,7 +1364,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void searchGenesByFilterWithSortingAndPaging() throws IOException {
         final GeneFilterForm geneFilterForm = getSmallGeneFilter();
-        geneFilterForm.setFeatureTypes(Collections.singletonList(FeatureType.GENE));
+        geneFilterForm.setFeatureTypes(Collections.singletonList(FeatureType.GENE.getFileValue()));
         geneFilterForm.setOrderBy(Collections.singletonList(new OrderBy("START_INDEX", true)));
 
         IndexSearchResult<GeneIndexEntry> result = featureIndexManager.searchGenesByReference(
@@ -1392,7 +1392,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     public void searchCDS() throws IOException {
         final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
         geneFilterForm.setFeatureId(null);
-        geneFilterForm.setFeatureTypes(Collections.singletonList(FeatureType.CDS));
+        geneFilterForm.setFeatureTypes(Collections.singletonList(FeatureType.CDS.getFileValue()));
 
         final IndexSearchResult<GeneIndexEntry> result = featureIndexManager.searchGenesByReference(
                 geneFilterForm, referenceId);

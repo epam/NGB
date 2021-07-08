@@ -27,7 +27,6 @@ package com.epam.catgenome.entity.gene;
 import com.epam.catgenome.dao.index.FeatureIndexDao;
 import com.epam.catgenome.dao.index.field.GeneIndexSortField;
 import com.epam.catgenome.entity.AbstractFilterForm;
-import com.epam.catgenome.entity.index.FeatureType;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -61,7 +60,7 @@ public class GeneFilterForm extends AbstractFilterForm {
     private Integer endIndex;
     private List<Long> chromosomeIds;
     private String featureId;
-    private List<FeatureType> featureTypes;
+    private List<String> featureTypes;
     private Map<Long, List<Long>> geneFileIdsByProject;
 
 
@@ -209,9 +208,9 @@ public class GeneFilterForm extends AbstractFilterForm {
     private void addFeatureTypesFilter(final BooleanQuery.Builder builder) {
         if (CollectionUtils.isNotEmpty(featureTypes)) {
             final BooleanQuery.Builder featureTypeBuilder = new BooleanQuery.Builder();
-            for (FeatureType type : featureTypes) {
+            for (String type : featureTypes) {
                 featureTypeBuilder.add(new TermQuery(new Term(
-                                FeatureIndexDao.FeatureIndexFields.FEATURE_TYPE.getFieldName(), type.getFileValue())),
+                                FeatureIndexDao.FeatureIndexFields.FEATURE_TYPE.getFieldName(), type)),
                         BooleanClause.Occur.SHOULD);
             }
             builder.add(featureTypeBuilder.build(), BooleanClause.Occur.MUST);
@@ -267,7 +266,7 @@ public class GeneFilterForm extends AbstractFilterForm {
         }
     }
 
-    private void addAdditionalFilters(BooleanQuery.Builder builder) {
+    private void addAdditionalFilters(final BooleanQuery.Builder builder) {
         if (additionalFilters != null && !additionalFilters.isEmpty()) {
             for (Map.Entry<String, String> entry : additionalFilters.entrySet()) {
                 addAdditionalFilter(builder, entry);
@@ -275,8 +274,8 @@ public class GeneFilterForm extends AbstractFilterForm {
         }
     }
 
-    private void addAdditionalFilter(BooleanQuery.Builder builder,
-                                     Map.Entry<String, String> entry) {
+    private void addAdditionalFilter(final BooleanQuery.Builder builder,
+                                     final Map.Entry<String, String> entry) {
         String key = entry.getKey().toLowerCase();
         builder.add(new PrefixQuery(new Term(key, entry.getValue().toLowerCase())),
                 BooleanClause.Occur.MUST);
