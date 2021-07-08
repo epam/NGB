@@ -27,7 +27,6 @@ package com.epam.catgenome.manager.gene;
 import com.epam.catgenome.component.MessageCode;
 import com.epam.catgenome.constant.Constants;
 import com.epam.catgenome.constant.MessagesConstants;
-import com.epam.catgenome.controller.tools.FeatureFileSortRequest;
 import com.epam.catgenome.controller.vo.externaldb.ensemblevo.EnsemblEntryVO;
 import com.epam.catgenome.controller.vo.registration.FeatureIndexedFileRegistrationRequest;
 import com.epam.catgenome.controller.vo.registration.IndexedFileRegistrationRequest;
@@ -80,7 +79,6 @@ import com.epam.catgenome.manager.gene.writer.Gff3Writer;
 import com.epam.catgenome.manager.parallel.ParallelTaskExecutionUtils;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
-import com.epam.catgenome.manager.tools.ToolsManager;
 import com.epam.catgenome.util.HistogramUtils;
 import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.NggbIntervalTreeMap;
@@ -112,7 +110,6 @@ import org.springframework.util.Assert;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -181,9 +178,6 @@ public class GffManager {
     @Autowired(required = false)
     private EhCacheBasedIndexCache indexCache;
 
-    @Autowired
-    private ToolsManager toolsManager;
-
     @Value("#{'${feature.counts.extensions}'.split(',')}")
     private List<String> featureCountsExtensions;
 
@@ -192,7 +186,7 @@ public class GffManager {
     private static final String PROTEIN_CODING = "protein_coding";
 
     private static final int EXON_SEARCH_CHUNK_SIZE = 100001;
-    private static final String GTF_EXTENSION = ".gtf";
+    private static final String GTF_EXTENSION = ".gff";
 
     /**
      * Registers a gene file (GFF/GTF) in the system to make it available to browse. Creates Tabix index if absent
@@ -278,22 +272,8 @@ public class GffManager {
 
         if (isFeatureCounts(request.getPath())) {
             final String gffFilePath = buildGffFileNameFromFeatureCounts(request.getPath(), geneFileId);
-            FeatureCountsToGffConvertor.convert(request.getPath(), gffFilePath);
-
-            final String sortedGffFilePath = Paths.get(fileManager.getGeneDir(geneFileId),
-                    FilenameUtils.getBaseName(gffFilePath) + ".sorted" + GTF_EXTENSION)
-                    .toString();
-            final FeatureFileSortRequest featureFileSortRequest = new FeatureFileSortRequest();
-            featureFileSortRequest.setOriginalFilePath(gffFilePath);
-            featureFileSortRequest.setSortedFilePath(sortedGffFilePath);
-            toolsManager.sortFeatureFile(featureFileSortRequest);
-            try {
-                Files.delete(Paths.get(gffFilePath));
-            } catch (IOException e) {
-                throw new IllegalArgumentException(e);
-            }
-
-            request.setPath(sortedGffFilePath);
+            new FeatureCountsToGffConvertor().convert(request.getPath(), gffFilePath, fileManager.getTempDir());
+            request.setPath(gffFilePath);
             geneFile.setFormat(BiologicalDataItemFormat.FEATURE_COUNTS);
         }
 
@@ -1358,6 +1338,5 @@ public class GffManager {
     private boolean isFeatureCounts(final String path) {
         return CollectionUtils.emptyIfNull(featureCountsExtensions).stream()
                 .anyMatch(path::endsWith);
-
     }
 }

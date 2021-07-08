@@ -24,61 +24,46 @@
 
 package com.epam.catgenome.manager.gene.featurecounts;
 
-import com.epam.catgenome.entity.gene.FeatureCounts;
-import com.epam.catgenome.manager.gene.parser.StrandSerializable;
-import com.epam.catgenome.manager.gene.writer.Gff3FeatureImpl;
-import com.epam.catgenome.manager.gene.writer.Gff3Writer;
+import com.epam.catgenome.util.sort.AbstractFeatureSorter;
+import com.epam.catgenome.util.sort.SortableRecord;
+import com.epam.catgenome.util.sort.SortableRecordCodec;
 import com.google.common.io.LineProcessor;
-import htsjdk.tribble.annotation.Strand;
-import htsjdk.tribble.bed.SimpleBEDFeature;
+import htsjdk.samtools.util.SortingCollection;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
+import java.io.File;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.epam.catgenome.manager.gene.featurecounts.FeatureCountsParserUtils.*;
+
 @Slf4j
-public class FeatureCountsLineProcessor implements LineProcessor<FeatureCountsReaderStatus> {
-    private static final String TAB_DELIMITER = "\t";
-    private static final String FIELD_DELIMITER = ";";
+public class FeatureCountsLineProcessor implements LineProcessor<SortingCollection<SortableRecord>> {
+
+    private static final int ESTIMATED_RECORD_SIZE = 150;
+    private static final int DEFAULT_MAX_MEMORY = 500;
     private static final String COMMENT_MARKER = "#";
-    private static final String EMPTY_VALUE = ".";
-    private static final int GENE_ID_INDEX = 0;
-    private static final int CHROMOSOMES_INDEX = 1;
-    private static final int STARTS_INDEX = 2;
-    private static final int ENDS_INDEX = 3;
-    private static final int STRANDS_INDEX = 4;
-    private static final int LENGTH_INDEX = 5;
-    private static final int MANDATORY_COLUMNS_COUNT = 6;
-    private static final String FEATURE_COUNTS_SOURCE = "featureCounts";
-    private static final String LENGTH_ATTRIBUTE_NAME = "Length";
-    private static final String GENE_ID_ATTRIBUTE_NAME = "Geneid";
-    private static final String GENE_TYPE = "gene";
-    private static final String EXON_TYPE = "exon";
 
     private final Map<Integer, String> header;
-    private final Gff3Writer gff3Writer;
-    private boolean headerProcessed;
-    private FeatureCountsReaderStatus result;
+    private final SortingCollection<SortableRecord> sortingCollection;
 
-    public FeatureCountsLineProcessor(final Gff3Writer gff3Writer) {
-        this.result = FeatureCountsReaderStatus.PROCESSING;
-        this.header = new HashMap<>();
-        this.gff3Writer = gff3Writer;
+    private boolean headerProcessed;
+
+    public FeatureCountsLineProcessor(final File tmpDir, final Map<Integer, String> header) {
+        this.sortingCollection = SortingCollection.newInstance(
+                SortableRecord.class,
+                new SortableRecordCodec(),
+                AbstractFeatureSorter.getDefaultComparator(),
+                DEFAULT_MAX_MEMORY * 1024 * 1024 / ESTIMATED_RECORD_SIZE, tmpDir);
+        this.header = header;
     }
 
     @Override
     public boolean processLine(final String line) {
         if (StringUtils.isBlank(line)) {
-            result = FeatureCountsReaderStatus.SUCCESSFUL;
             return false;
         }
 
@@ -100,28 +85,30 @@ public class FeatureCountsLineProcessor implements LineProcessor<FeatureCountsRe
         }
 
         final String geneId = lineColumns[GENE_ID_INDEX];
-        final FeatureCounts.FeatureCountsBuilder featureBuilder = FeatureCounts.builder()
-                .geneId(geneId)
-                .length(Integer.parseInt(lineColumns[LENGTH_INDEX]))
-                .additional(parseAdditionalColumns(lineColumns));
-        parseFeatures(lineColumns[CHROMOSOMES_INDEX],
-                lineColumns[STARTS_INDEX],
-                lineColumns[ENDS_INDEX],
-                lineColumns[STRANDS_INDEX],
-                geneId,
-                featureBuilder);
+        final String[] chromosomes = StringUtils.split(lineColumns[CHROMOSOMES_INDEX], FIELD_DELIMITER);
+        final String[] starts = StringUtils.split(lineColumns[STARTS_INDEX], FIELD_DELIMITER);
 
-        featureCountToGff(featureBuilder.build()).stream()
-                .sorted(Comparator.comparing(Gff3FeatureImpl::getContig)
-                        .thenComparing(Gff3FeatureImpl::getStart))
-                .forEach(this::writeGffFeature);
+        if (Stream.of(chromosomes.length, starts.length).distinct().count() != 1) {
+            log.debug("Failed to process '{}' feature counts record. The sizes for: 'Chr', 'Start'" +
+                    "shall be the same", geneId);
+            return true;
+        }
+
+        sortingCollection.add(new SortableRecord(findChromosomeName(chromosomes), calculateGeneStart(starts, geneId),
+                line + TAB_DELIMITER + GENE_TYPE));
+        sortingCollection.add(new SortableRecord(findChromosomeName(chromosomes), calculateGeneStart(starts, geneId),
+                line + TAB_DELIMITER + TRANSCRIPT_TYPE));
+        for (int i = 0; i < chromosomes.length; i++) {
+            sortingCollection.add(new SortableRecord(chromosomes[i], Integer.parseInt(starts[i]),
+                    line + TAB_DELIMITER + EXON_TYPE));
+        }
 
         return true;
     }
 
     @Override
-    public FeatureCountsReaderStatus getResult() {
-        return result;
+    public SortingCollection<SortableRecord> getResult() {
+        return sortingCollection;
     }
 
     private boolean notEnoughColumns(final String[] columns) {
@@ -138,50 +125,6 @@ public class FeatureCountsLineProcessor implements LineProcessor<FeatureCountsRe
         }
     }
 
-    private void parseFeatures(final String rawChromosomes, final String rawStarts,
-                               final String rawEnds, final String rawStrands,
-                               final String geneId, final FeatureCounts.FeatureCountsBuilder featureBuilder) {
-        final String[] chromosomes = StringUtils.split(rawChromosomes, FIELD_DELIMITER);
-        final String[] starts = StringUtils.split(rawStarts, FIELD_DELIMITER);
-        final String[] ends = StringUtils.split(rawEnds, FIELD_DELIMITER);
-        final String[] strands = StringUtils.split(rawStrands, FIELD_DELIMITER);
-
-        if (Stream.of(chromosomes.length, starts.length, ends.length, strands.length).distinct().count() != 1) {
-            log.debug("Failed to process '{}' feature counts record. The sizes for: 'Chr', 'Start', 'End', 'Strand' " +
-                    "shall be the same", geneId);
-            return;
-        }
-
-        final List<SimpleBEDFeature> features = new ArrayList<>();
-        for (int i = 0; i < chromosomes.length; i++) {
-            final SimpleBEDFeature feature = new SimpleBEDFeature(Integer.parseInt(starts[i]),
-                    Integer.parseInt(ends[i]), chromosomes[i]);
-            feature.setStrand(Strand.toStrand(strands[i]));
-            features.add(feature);
-        }
-
-        featureBuilder
-                .features(features)
-                .chromosome(findChromosomeName(chromosomes))
-                .start(calculateGeneStart(starts, geneId))
-                .end(calculateGeneEnd(ends, geneId))
-                .strand(determineGeneStrand(strands));
-    }
-
-    private Map<String, String> parseAdditionalColumns(final String[] allColumns) {
-        if (allColumns.length == MANDATORY_COLUMNS_COUNT) {
-            return null;
-        }
-
-        return header.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getValue, entry ->
-                        buildAdditionalColumnValue(allColumns, entry.getKey())));
-    }
-
-    private String buildAdditionalColumnValue(final String[] allColumns, final Integer index) {
-        return allColumns.length < index ? EMPTY_VALUE : allColumns[index];
-    }
-
     private String findChromosomeName(final String[] chromosomes) {
         final Set<String> chromosomesSet = Stream.of(chromosomes).collect(Collectors.toSet());
         if (chromosomesSet.size() != 1) {
@@ -196,72 +139,5 @@ public class FeatureCountsLineProcessor implements LineProcessor<FeatureCountsRe
                 .min()
                 .orElseThrow(() -> new IllegalArgumentException(
                         String.format("Failed to calculate start for gene '%s'", geneId)));
-    }
-
-    private int calculateGeneEnd(final String[] ends, final String geneId) {
-        return Stream.of(ends)
-                .mapToInt(Integer::parseInt)
-                .min()
-                .orElseThrow(() -> new IllegalArgumentException(
-                        String.format("Failed to calculate end for gene '%s'", geneId)));
-    }
-
-    private Strand determineGeneStrand(final String[] strands) {
-        final Set<String> strandsSet = Stream.of(strands).collect(Collectors.toSet());
-        if (strandsSet.size() != 1) {
-            throw new IllegalArgumentException("Multiple strands is not supported for 'FEATURE_COUNTS' format");
-        }
-        return Strand.toStrand(strands[0]);
-    }
-
-    private List<Gff3FeatureImpl> featureCountToGff(final FeatureCounts featureCount) {
-        final Map<String, List<String>> attributes = featureCount.getAdditional().entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry ->
-                        Collections.singletonList(entry.getValue())));
-        attributes.put(GENE_ID_ATTRIBUTE_NAME, Collections.singletonList(featureCount.getGeneId()));
-
-        final List<Gff3FeatureImpl> gffFeatures = featureCount.getFeatures().stream()
-                .map(feature -> featureCountToExon(attributes, feature))
-                .collect(Collectors.toList());
-        gffFeatures.add(featureCountToGffGene(attributes, featureCount));
-        return gffFeatures;
-    }
-
-    private Gff3FeatureImpl featureCountToGffGene(final Map<String, List<String>> attributes,
-                                                  final FeatureCounts feature) {
-        return buildGffFeature(attributes, feature.getLength(),
-                feature.getChromosome(), feature.getStart(), feature.getEnd(),
-                feature.getStrand(), GENE_TYPE);
-    }
-
-    private Gff3FeatureImpl featureCountToExon(final Map<String, List<String>> attributes,
-                                               final SimpleBEDFeature feature) {
-        return buildGffFeature(attributes,
-                feature.getEnd() - feature.getStart() + 1,
-                feature.getContig(), feature.getStart(), feature.getEnd(),
-                feature.getStrand(), EXON_TYPE);
-    }
-
-    private Gff3FeatureImpl buildGffFeature(final Map<String, List<String>> attributes, final int length,
-                                            final String contig, final int start, final int end,
-                                            final Strand strand, final String type) {
-        attributes.put(LENGTH_ATTRIBUTE_NAME, Collections.singletonList(String.valueOf(length)));
-        return new Gff3FeatureImpl(contig,
-                FEATURE_COUNTS_SOURCE,
-                type,
-                start,
-                end,
-                EMPTY_VALUE,
-                StrandSerializable.valueOf(strand.name()),
-                EMPTY_VALUE,
-                attributes);
-    }
-
-    private void writeGffFeature(final Gff3FeatureImpl feature) {
-        try {
-            gff3Writer.addFeature(feature);
-        } catch (IOException e) {
-            log.debug(e.getMessage());
-        }
     }
 }
