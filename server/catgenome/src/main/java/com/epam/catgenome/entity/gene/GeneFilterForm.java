@@ -104,7 +104,7 @@ public class GeneFilterForm extends AbstractFilterForm {
     }
 
     /**
-     * Filter variations by feature name
+     * Filter Gene features by feature name
      *
      * @param builder
      */
@@ -122,7 +122,7 @@ public class GeneFilterForm extends AbstractFilterForm {
     }
 
     /**
-     * Filter variations by feature source
+     * Filter Gene features by feature source
      *
      * @param builder
      */
@@ -138,7 +138,7 @@ public class GeneFilterForm extends AbstractFilterForm {
     }
 
     /**
-     * Filter variations by feature strand
+     * Filter Gene features by feature strand
      *
      * @param builder
      */
@@ -154,7 +154,7 @@ public class GeneFilterForm extends AbstractFilterForm {
     }
 
     /**
-     * Filter variations by feature strand
+     * Filter Gene features by feature strand
      *
      * @param builder
      */
@@ -170,7 +170,7 @@ public class GeneFilterForm extends AbstractFilterForm {
     }
 
     /**
-     * Filter variations by feature strand
+     * Filter Gene features by feature strand
      *
      * @param builder
      */
@@ -190,7 +190,7 @@ public class GeneFilterForm extends AbstractFilterForm {
     }
 
     /**
-     * Filter variations by feature types
+     * Filter Gene features by feature types
      *
      * @param builder
      */
@@ -211,7 +211,7 @@ public class GeneFilterForm extends AbstractFilterForm {
     }
 
     /**
-     * Filter variations by specified chromosomes
+     * Filter Gene features by specified chromosomes
      *
      * @param builder
      */
@@ -229,7 +229,7 @@ public class GeneFilterForm extends AbstractFilterForm {
     }
 
     /**
-     * Filter variations by positions, using start and end indexes
+     * Filter Gene features by positions, using start and end indexes
      *
      * @param builder
      */
@@ -266,7 +266,7 @@ public class GeneFilterForm extends AbstractFilterForm {
     private void addAdditionalFilter(BooleanQuery.Builder builder,
                                      Map.Entry<String, String> entry) {
         String key = entry.getKey().toLowerCase();
-        builder.add(new TermQuery(new Term(key, entry.getValue().toLowerCase())),
+        builder.add(new PrefixQuery(new Term(key, entry.getValue().toLowerCase())),
                 BooleanClause.Occur.MUST);
     }
 
