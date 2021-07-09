@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -416,6 +416,13 @@ public class FeatureIndexManager {
         return featureIndexDao.getAvailableFieldsToSearch(
                 getGeneFilesForReference(referenceId, Optional.ofNullable(fileIdsByProjectId)
                         .map(ItemsByProject::getFileIds).orElse(Collections.emptyList())));
+    }
+
+    public Set<String> getAvailableFieldValues(final Long referenceId, final ItemsByProject fileIdsByProjectId,
+                                               final String fieldName) {
+        return featureIndexDao.getAvailableFieldValues(
+                getGeneFilesForReference(referenceId, Optional.ofNullable(fileIdsByProjectId)
+                        .map(ItemsByProject::getFileIds).orElse(Collections.emptyList())), fieldName);
     }
 
     private List<? extends FeatureFile> getGeneFilesForReference(final long referenceId, final List<Long> fileIds) {

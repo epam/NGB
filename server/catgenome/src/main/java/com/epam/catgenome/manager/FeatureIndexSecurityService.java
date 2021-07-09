@@ -123,4 +123,9 @@ public class FeatureIndexSecurityService {
     public GeneFilterInfo getAvailableFieldsToSearch(Long referenceId, ItemsByProject fileIdsByProjectId) {
         return featureIndexManager.getAvailableGeneFieldsToSearch(referenceId, fileIdsByProjectId);
     }
+
+    public Set<String> getAvailableFieldValues(final Long referenceId, final ItemsByProject fileIdsByProjectId,
+                                               final String fieldName) {
+        return featureIndexManager.getAvailableFieldValues(referenceId, fileIdsByProjectId, fieldName);
+    }
 }
