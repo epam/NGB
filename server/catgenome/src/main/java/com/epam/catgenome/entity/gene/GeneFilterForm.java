@@ -60,6 +60,7 @@ public class GeneFilterForm extends AbstractFilterForm {
     private Integer endIndex;
     private List<Long> chromosomeIds;
     private String featureId;
+    private String featureName;
     private List<String> featureTypes;
     private Map<Long, List<Long>> geneFileIdsByProject;
 
@@ -92,6 +93,7 @@ public class GeneFilterForm extends AbstractFilterForm {
     public Query computeQuery() {
         final BooleanQuery.Builder mainBuilder = new BooleanQuery.Builder();
         addFeatureTypesFilter(mainBuilder);
+        addFeatureIdFilter(mainBuilder);
         addFeatureNameFilter(mainBuilder);
         addFeatureSourceFilter(mainBuilder);
         addFeatureStrandFilter(mainBuilder);
@@ -109,14 +111,23 @@ public class GeneFilterForm extends AbstractFilterForm {
      * @param builder
      */
     private void addFeatureNameFilter(final BooleanQuery.Builder builder) {
+        if (StringUtils.isBlank(featureName)) {
+            return;
+        }
+        final BooleanQuery.Builder prefixQueryBuilder = new BooleanQuery.Builder()
+                .add(new PrefixQuery(new Term(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName(),
+                featureName.toLowerCase())), BooleanClause.Occur.SHOULD);
+
+        builder.add(prefixQueryBuilder.build(), BooleanClause.Occur.MUST);
+    }
+
+    private void addFeatureIdFilter(final BooleanQuery.Builder builder) {
         if (StringUtils.isBlank(featureId)) {
             return;
         }
         final BooleanQuery.Builder prefixQueryBuilder = new BooleanQuery.Builder()
                 .add(new PrefixQuery(new Term(FeatureIndexDao.FeatureIndexFields.FEATURE_ID.getFieldName(),
-                featureId.toLowerCase())), BooleanClause.Occur.SHOULD)
-                .add(new PrefixQuery(new Term(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName(),
-                featureId.toLowerCase())), BooleanClause.Occur.SHOULD);
+                        featureId.toLowerCase())), BooleanClause.Occur.SHOULD);
 
         builder.add(prefixQueryBuilder.build(), BooleanClause.Occur.MUST);
     }
