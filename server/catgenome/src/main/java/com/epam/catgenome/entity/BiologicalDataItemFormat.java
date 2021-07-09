@@ -124,7 +124,9 @@ public enum BiologicalDataItemFormat {
      */
     INDEX(-1, true),
 
-    BED_GRAPH_INDEX(18, true);
+    BED_GRAPH_INDEX(18, true),
+
+    FEATURE_COUNTS(19);
 
     private long id;
     private boolean index = false;
@@ -149,6 +151,7 @@ public enum BiologicalDataItemFormat {
         idMap.put(REFERENCE_INDEX.id, REFERENCE_INDEX);
         idMap.put(INDEX.id, INDEX);
         idMap.put(BED_GRAPH_INDEX.id, BED_GRAPH_INDEX);
+        idMap.put(FEATURE_COUNTS.id, FEATURE_COUNTS);
     }
 
     BiologicalDataItemFormat(long id) {

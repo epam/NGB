@@ -343,7 +343,8 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
                     dataItem = mapVcfFile(rs, index);
                     break;
                 case GENE:
-                    dataItem = mapGeneFile(rs, index);
+                case FEATURE_COUNTS:
+                    dataItem = mapGeneFile(rs, index, format);
                     break;
                 case BAM:
                     dataItem = mapBamFile(rs, index);
@@ -431,8 +432,10 @@ public class BiologicalDataItemDao extends NamedParameterJdbcDaoSupport {
         }
 
         @NotNull
-        private static BiologicalDataItem mapGeneFile(ResultSet rs, BiologicalDataItem index) throws SQLException {
+        private static BiologicalDataItem mapGeneFile(ResultSet rs, BiologicalDataItem index,
+                                                      BiologicalDataItemFormat format) throws SQLException {
             GeneFile geneFile = new GeneFile();
+            geneFile.setFormat(format);
             geneFile.setId(rs.getLong(GENE_ITEM_ID.name()));
             geneFile.setBioDataItemId(rs.getLong(BIO_DATA_ITEM_ID.name()));
             geneFile.setCompressed(rs.getBoolean(GENE_COMPRESSED.name()));
