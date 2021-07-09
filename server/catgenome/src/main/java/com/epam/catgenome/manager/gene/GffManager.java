@@ -74,8 +74,6 @@ import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.gene.reader.AbstractGeneReader;
 import com.epam.catgenome.manager.gene.featurecounts.FeatureCountsToGffConvertor;
-import com.epam.catgenome.manager.gene.writer.Gff3FeatureImpl;
-import com.epam.catgenome.manager.gene.writer.Gff3Writer;
 import com.epam.catgenome.manager.parallel.ParallelTaskExecutionUtils;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
@@ -186,7 +184,6 @@ public class GffManager {
     private static final String PROTEIN_CODING = "protein_coding";
 
     private static final int EXON_SEARCH_CHUNK_SIZE = 100001;
-    private static final String GTF_EXTENSION = ".gff";
 
     /**
      * Registers a gene file (GFF/GTF) in the system to make it available to browse. Creates Tabix index if absent
@@ -1287,7 +1284,7 @@ public class GffManager {
     private String buildGffFileNameFromFeatureCounts(final String featureCountsPath, final Long geneFileId) {
         final String geneFolder = fileManager.makeGeneDir(geneFileId);
         final String featureCountsFileName = FilenameUtils.getBaseName(featureCountsPath);
-        return Paths.get(geneFolder, featureCountsFileName + GTF_EXTENSION).toString();
+        return Paths.get(geneFolder, featureCountsFileName + GffCodec.GFF_EXTENSION).toString();
     }
 
     private boolean isFeatureCounts(final String path) {
