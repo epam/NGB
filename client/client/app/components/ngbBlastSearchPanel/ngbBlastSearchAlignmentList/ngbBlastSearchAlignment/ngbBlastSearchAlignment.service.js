@@ -49,6 +49,7 @@ export default class ngbBlastSearchAlignmentService {
         if (featureCoords) {
             const {
                 start,
+                end,
                 referenceId,
                 chromosomeId,
             } = featureCoords;
@@ -58,8 +59,8 @@ export default class ngbBlastSearchAlignmentService {
                 return null;
             }
             return {
-                start: start + sequenceStart,
-                end: start + sequenceStart + sequenceEnd,
+                start: start,
+                end: end,
                 chromosome: chromosome.name,
                 referenceId: referenceId,
             };

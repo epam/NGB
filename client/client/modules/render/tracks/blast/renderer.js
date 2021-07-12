@@ -196,7 +196,7 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
                 if (!sequenceStart || !sequenceEnd) {
                     return false;
                 }
-                const positiveStrand = sequenceStrandView === '+';
+                const positiveStrand = !sequenceStrandView || sequenceStrandView === '+';
                 if (!positiveStrand) {
                     const temp = queryStart;
                     queryStart = queryLength - queryEnd + 1;
@@ -204,9 +204,9 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
                 }
                 queryStart = queryStart - 1;
                 queryEnd = queryLength - queryEnd;
-                if (featureCoords){
-                    sequenceStart += featureCoords.start;
-                    sequenceEnd =  sequenceStart + sequenceEnd;
+                if (featureCoords) {
+                    sequenceStart = featureCoords.start;
+                    sequenceEnd = featureCoords.end;
                 }
                 const start = Math.min(sequenceStart, sequenceEnd);
                 const end = Math.max(sequenceStart, sequenceEnd);
@@ -533,14 +533,14 @@ class BLASTAlignmentRenderer extends CachedTrackRenderer {
             queryStart,
             queryEnd,
         } = alignment;
-        if (featureCoords){
-            sequenceStart += featureCoords.start;
-            sequenceEnd = sequenceStart + sequenceEnd;
+        if (featureCoords) {
+            sequenceStart = featureCoords.start;
+            sequenceEnd = featureCoords.end;
         }
         if (!sequenceStart || !sequenceEnd) {
             return undefined;
         }
-        const positiveStrand = sequenceStrandView === '+';
+        const positiveStrand = !sequenceStrandView || sequenceStrandView === '+';
         if (!positiveStrand) {
             const temp = queryStart;
             queryStart = queryLength - queryEnd + 1;

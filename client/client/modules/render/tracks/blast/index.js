@@ -42,8 +42,8 @@ export class BLASTTrack extends CachedTrack {
                     return false;
                 }
                 if (featureCoords) {
-                    sequenceStart += featureCoords.start;
-                    sequenceEnd = sequenceStart + sequenceEnd;
+                    sequenceStart = featureCoords.start;
+                    sequenceEnd = featureCoords.end;
                 }
                 const start = Math.min(sequenceStart, sequenceEnd);
                 const end = Math.max(sequenceStart, sequenceEnd);

@@ -296,7 +296,26 @@ export default class ngbBlastSearchService {
     }
 
     fetchFeatureCoords(searchResult, search) {
-       return this.projectDataService.getNCBIFeatureCoordinates(searchResult, search);
+        if (!search || !searchResult || search.dbSource !== 'NCBI') {
+            return Promise.resolve(undefined);
+        }
+        const {sequenceAccessionVersion, sequenceId, taxId} = searchResult;
+        const {dbType} = search;
+        const id = sequenceAccessionVersion || sequenceId;
+        const db = search && dbType && /^protein$/i.test(dbType)
+            ? 'PROTEIN'
+            : 'NUCLEOTIDE';
+        return new Promise((resolve) => {
+            this.projectDataService.getFeatureCoordinates(id, db, taxId)
+                .then((result) => {
+                    if (result.error) {
+                        resolve(undefined);
+                    } else {
+                        resolve(result);
+                    }
+                })
+                .catch(() => resolve(undefined));
+        });
     }
 
     _formatServerToClient(search) {

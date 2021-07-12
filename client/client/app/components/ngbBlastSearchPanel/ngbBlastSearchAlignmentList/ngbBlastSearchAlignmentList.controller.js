@@ -32,8 +32,7 @@ export default class ngbBlastSearchAlignmentList {
     async initialize() {
         this.searchResult = this.ngbBlastSearchService.popCurrentAlignmentObject();
         this.search = this.ngbBlastSearchService.cutCurrentResult;
-        const result = await this.ngbBlastSearchService.fetchFeatureCoords(this.searchResult, this.search);
-        this.featureCoords = result.error ? null : result;
+        this.featureCoords = await this.ngbBlastSearchService.fetchFeatureCoords(this.searchResult, this.search);
         // Todo: this is workaround for alignment rendering optimization.
         // We should check this and refactor
         this.$timeout(() => {
