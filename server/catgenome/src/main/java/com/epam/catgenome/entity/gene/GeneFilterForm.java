@@ -60,7 +60,7 @@ public class GeneFilterForm extends AbstractFilterForm {
     private Integer endIndex;
     private List<Long> chromosomeIds;
     private String featureId;
-    private String featureName;
+    private List<String> featureNames;
     private List<String> featureTypes;
     private Map<Long, List<Long>> geneFileIdsByProject;
 
@@ -111,14 +111,16 @@ public class GeneFilterForm extends AbstractFilterForm {
      * @param builder
      */
     private void addFeatureNameFilter(final BooleanQuery.Builder builder) {
-        if (StringUtils.isBlank(featureName)) {
+        if (CollectionUtils.isEmpty(featureNames)) {
             return;
         }
-        final BooleanQuery.Builder prefixQueryBuilder = new BooleanQuery.Builder()
-                .add(new PrefixQuery(new Term(FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName(),
-                featureName.toLowerCase())), BooleanClause.Occur.SHOULD);
-
-        builder.add(prefixQueryBuilder.build(), BooleanClause.Occur.MUST);
+        final BooleanQuery.Builder featureNameBuilder = new BooleanQuery.Builder();
+        featureNames.forEach(name -> {
+            featureNameBuilder.add(new PrefixQuery(new Term(
+                    FeatureIndexDao.FeatureIndexFields.FEATURE_NAME.getFieldName(),
+                    name.toLowerCase())), BooleanClause.Occur.SHOULD);
+        });
+        builder.add(featureNameBuilder.build(), BooleanClause.Occur.MUST);
     }
 
     private void addFeatureIdFilter(final BooleanQuery.Builder builder) {
