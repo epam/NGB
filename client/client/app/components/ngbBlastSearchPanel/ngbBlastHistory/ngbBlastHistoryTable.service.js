@@ -243,7 +243,7 @@ export default class ngbBlastHistoryTableService {
                     columnSettings = {
                         cellTemplate: actionsCell,
                         enableSorting: false,
-                        field: 'id',
+                        field: 'actions',
                         headerCellTemplate: '<span></span>',
                         maxWidth: 70,
                         minWidth: 60,

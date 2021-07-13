@@ -117,7 +117,6 @@ export default class ngbBlastHistoryController extends baseController {
                 this.isEmptyResults = false;
             } else if (this.ngbBlastHistoryTableService.blastHistory.length) {
                 this.historyLoadError = null;
-                this.gridOptions.columnDefs = this.ngbBlastHistoryTableService.getBlastHistoryGridColumns();
                 this.gridOptions.data = this.ngbBlastHistoryTableService.blastHistory;
                 this.isEmptyResults = false;
             } else if (this.ngbBlastHistoryTableService.currentPageHistory > 1) {
