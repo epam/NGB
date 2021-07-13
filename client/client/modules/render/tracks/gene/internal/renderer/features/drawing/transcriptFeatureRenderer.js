@@ -33,7 +33,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         let transcriptLabelSize = {height: 0, width: 0};
         const transcript = this.config.transcript;
 
-        if (feature.name !== null) {
+        if (feature.name) {
             transcriptLabelSize = PixiTextSize.getTextSize(feature.name, transcript.label);
         }
 
@@ -302,7 +302,7 @@ export default class TranscriptFeatureRenderer extends FeatureBaseRenderer {
         const aminoacidsFitsViewport = this._aminoacidFeatureRenderer.aminoacidsFitsViewport(feature, viewport);
         let center = transcriptConfig.height / 2 + transcriptConfig.marginTop + (aminoacidsFitsViewport ? this._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
         const project = viewport.project;
-        if (feature.name !== null &&
+        if (feature.name &&
             (feature.feature.toLowerCase() === 'transcript' || feature.feature.toLowerCase() === 'mrna') && !feature.canonical) {
             const label = new PIXI.Text(feature.name, transcriptConfig.label);
             let labelStart = project.brushBP2pixel(feature.startIndex) - pixelsInBp / 2;
