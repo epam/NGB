@@ -272,6 +272,7 @@ public class GffManager {
             new FeatureCountsToGffConvertor().convert(request.getPath(), gffFilePath, fileManager.getTempDir());
             request.setPath(gffFilePath);
             geneFile.setFormat(BiologicalDataItemFormat.FEATURE_COUNTS);
+            request.setType(BiologicalDataItemResourceType.FILE);
         }
 
         String path = request.getPath();
