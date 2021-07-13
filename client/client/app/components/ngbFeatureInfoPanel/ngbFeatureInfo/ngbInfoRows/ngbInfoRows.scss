@@ -6,6 +6,7 @@
 .property-name
 {
   border: 0;
+  word-wrap: break-word;
 }
 
 .property-name {
@@ -16,7 +17,6 @@
 .property-value {
   font: 13px Arial;
   color: #666;
-  word-wrap: break-word;
 }
 
 #summary .property-row {
