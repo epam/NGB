@@ -160,7 +160,7 @@ export default class ngbGenesTableService {
     }
 
     get genesTableColumns() {
-        if (!localStorage.getItem('genesTableColumns')) {
+        if (!localStorage.getItem('genesTableColumns') || localStorage.getItem('genesTableColumns') === '[]') {
             localStorage.setItem('genesTableColumns', JSON.stringify(DEFAULT_GENES_COLUMNS));
         }
         return JSON.parse(localStorage.getItem('genesTableColumns'));

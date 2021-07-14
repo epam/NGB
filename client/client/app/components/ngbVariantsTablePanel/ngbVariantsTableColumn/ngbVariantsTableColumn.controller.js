@@ -43,7 +43,8 @@ export default class ngbVariantTableColumnController extends baseController {
     }
 
     onVariantsRestoreViewClick() {
-        console.log(this.columnsList);
+        this.projectContext.vcfColumns = [];
+        this.addColumnToTable();
     }
 
     loadColumns() {
