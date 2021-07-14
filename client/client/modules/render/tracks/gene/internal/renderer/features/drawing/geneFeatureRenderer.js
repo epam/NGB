@@ -29,7 +29,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
         const shouldDisplayDetails = width >= this.config.gene.displayDetailsThreshold;
         let maxLabelWidth = {height: 0, width: 0};
         const gene = this.config.gene;
-        if (feature.name !== null) {
+        if (feature.name) {
             maxLabelWidth = PixiTextSize.getTextSize(feature.name, gene.label);
         }
         if (rect) {
@@ -97,7 +97,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
         let geneNameLabelHeight = 0;
         const gene = this.config.gene;
 
-        if (feature.name !== null) {
+        if (feature.name) {
             const label = new PIXI.Text(feature.name, this.config.gene.label);
             label.resolution = drawingConfiguration.resolution;
             label.x = Math.round(position.x);
@@ -254,7 +254,7 @@ export default class GeneFeatureRenderer extends FeatureBaseRenderer {
 
                 const transcriptAminoacidsFitsViewport = this._transcriptFeatureRenderer._aminoacidFeatureRenderer.aminoacidsFitsViewport(transcripts[i], viewport);
 
-                if (transcripts[i].name !== null) {
+                if (transcripts[i].name) {
                     const labelSize = PixiTextSize.getTextSize(transcripts[i].name, transcript.label);
                     transcriptY += labelSize.height + transcript.label.marginTop + transcript.height + transcript.marginTop + (transcriptAminoacidsFitsViewport ? this._transcriptFeatureRenderer._aminoacidFeatureRenderer._aminoacidNumberHeight : 0);
                 } else {

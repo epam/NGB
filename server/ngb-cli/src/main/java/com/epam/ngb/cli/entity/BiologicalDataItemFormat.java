@@ -62,7 +62,8 @@ public enum BiologicalDataItemFormat {
     VG(15),
     GENBANK(16),
     GBK(17),
-    GB(18);
+    GB(18),
+    FEATURE_COUNTS(19);
 
     private long id;
     /**
@@ -111,6 +112,8 @@ public enum BiologicalDataItemFormat {
         EXTENSIONS_MAP.put("genbank", GENE);
         EXTENSIONS_MAP.put("gb", GENE);
         EXTENSIONS_MAP.put("gbk", GENE);
+        EXTENSIONS_MAP.put("featureCounts", GENE);
+        EXTENSIONS_MAP.put("txt", GENE);
     }
 
     /**

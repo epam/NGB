@@ -73,6 +73,7 @@ import com.epam.catgenome.manager.genbank.GenbankManager;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.manager.gene.parser.GffCodec;
 import com.epam.catgenome.manager.gene.reader.AbstractGeneReader;
+import com.epam.catgenome.manager.gene.featurecounts.FeatureCountsToGffConvertor;
 import com.epam.catgenome.manager.parallel.ParallelTaskExecutionUtils;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
@@ -97,6 +98,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -173,6 +175,9 @@ public class GffManager {
 
     @Autowired
     private GenbankManager genbankManager;
+
+    @Value("#{'${feature.counts.extensions}'.split(',')}")
+    private List<String> featureCountsExtensions;
 
     private static final String EXON_FEATURE_NAME = "exon";
 
@@ -260,9 +265,18 @@ public class GffManager {
 
     private GeneFile registerGeneFileFromFile(final FeatureIndexedFileRegistrationRequest request) {
         final GeneFile geneFile = new GeneFile();
+        final Long geneFileId = geneFileManager.createGeneFileId();
+
+        if (isFeatureCounts(request.getPath())) {
+            final String gffFilePath = buildGffFileNameFromFeatureCounts(request.getPath(), geneFileId);
+            new FeatureCountsToGffConvertor().convert(request.getPath(), gffFilePath, fileManager.getTempDir());
+            request.setPath(gffFilePath);
+            geneFile.setFormat(BiologicalDataItemFormat.FEATURE_COUNTS);
+        }
+
         String path = request.getPath();
         final File file = new File(path);
-        geneFile.setId(geneFileManager.createGeneFileId());
+        geneFile.setId(geneFileId);
         geneFile.setCompressed(IOHelper.isGZIPFile(file.getName()));
         geneFile.setPath(path);
         geneFile.setSource(path);
@@ -1265,5 +1279,16 @@ public class GffManager {
             GeneFeature feature = iterator.next();
             totalLength = processExon(intervalTree, totalLength, feature, intronLength, centerPosition, true);
         }
+    }
+
+    private String buildGffFileNameFromFeatureCounts(final String featureCountsPath, final Long geneFileId) {
+        final String geneFolder = fileManager.makeGeneDir(geneFileId);
+        final String featureCountsFileName = FilenameUtils.getBaseName(featureCountsPath);
+        return Paths.get(geneFolder, featureCountsFileName + GffCodec.GFF_EXTENSION).toString();
+    }
+
+    private boolean isFeatureCounts(final String path) {
+        return CollectionUtils.emptyIfNull(featureCountsExtensions).stream()
+                .anyMatch(path::endsWith);
     }
 }

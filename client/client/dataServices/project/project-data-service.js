@@ -57,11 +57,11 @@ export class ProjectDataService extends DataService {
         return this.get(`reference/${referenceId}/search?featureId=${featureId}`);
     }
 
-    searchGeneNames(referenceId, featureId) {
+    searchGeneNames(referenceId, featureId, displayField) {
         return new Promise((resolve) => {
             this.get(`reference/${referenceId}/search?featureId=${featureId}`).then((data) => {
                 if (data && data.entries) {
-                    resolve(data.entries.map(e => e.featureName));
+                    resolve(data.entries.map(e => e[displayField]));
                 } else {
                     resolve([]);
                 }
@@ -259,6 +259,46 @@ export class ProjectDataService extends DataService {
         return this.getFullUrl(`dataitem/${bioDataItemId}/download`);
     }
 
+    getCoordsUrl(searchResult, search) {
+        const {sequenceAccessionVersion, sequenceId, taxId} = searchResult;
+        const {dbType} = search;
+        const id = sequenceAccessionVersion || sequenceId;
+        const db = search && dbType && /^protein$/i.test(dbType)
+            ? 'PROTEIN'
+            : 'NUCLEOTIDE';
+        return id && db && taxId ? `blast/coordinate?sequenceId=${id}&type=${db}&taxId=${taxId}`: undefined;
+    }
+
+    getFeatureCoordinates(sequenceId, dbType, taxId) {
+        return new Promise((resolve, reject) => {
+            this.get(`blast/coordinate?sequenceId=${sequenceId}&type=${dbType}&taxId=${taxId}`)
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = {};
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
+
+    getNCBIFeatureCoordinates(searchResult, search) {
+        const requestUrl = this.getCoordsUrl(searchResult, search);
+        return new Promise((resolve, reject) => {
+            this.get(requestUrl)
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = {};
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
     getDatasetFileInfo(bioDataItemId) {
         return new Promise((resolve, reject) => {
             this.get(`dataitem/${bioDataItemId}/downloadUrl`)

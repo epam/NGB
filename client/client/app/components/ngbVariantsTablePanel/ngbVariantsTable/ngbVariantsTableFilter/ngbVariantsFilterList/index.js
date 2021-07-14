@@ -3,9 +3,9 @@ import './ngbVariantsFilterList.scss';
 import angular from 'angular';
 
 // Import internal modules
-import controller from './ngbVariantsFilterList.controller';
 import component from './ngbVariantsFilterList.component';
-import scroller from './ngbVariantsFilterList.scroller';
+import controller from './ngbVariantsFilterList.controller';
+import scroller from './../../../../../shared/filter/filterList/ngbFilterList.scroller';
 
 // Import external modules
 export default angular.module('ngbVariantsFilterList', [])

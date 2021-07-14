@@ -1,26 +1,67 @@
 const DEFAULT_GENES_COLUMNS = [
-    'chr', 'gene', 'gene_id', 'start', 'end', 'strand', 'info', 'molecularView'
+    'chr', 'gene', 'gene_id', 'type', 'start', 'end', 'strand', 'info'//, 'molecularView'
 ];
-const ALL_GENES_COLUMNS = [
-    'chr', 'gene', 'gene_id', 'start', 'end', 'strand', 'gene_source', 'info', 'molecularView'
+const OPTIONAL_GENE_COLUMNS = [
+    'featureFileId', 'source', 'score', 'frame'
 ];
 const DEFAULT_ORDERBY_GENES_COLUMNS = {
     'chr': 'CHROMOSOME_NAME',
     'gene': 'FEATURE_NAME',
     'gene_id': 'FEATURE_ID',
+    'type': 'FEATURE_TYPE',
     'start': 'START_INDEX',
-    'end': 'END_INDEX'
+    'end': 'END_INDEX',
+    'strand': 'strand'
 };
 const GENES_COLUMN_TITLES = {
     chr: 'Chr',
-    gene: 'Gene',
-    gene_id: 'Gene Id',
-    gene_source: 'Gene Source',
+    gene: 'Name',
+    gene_id: 'Id',
+    source: 'Gene Source',
+    type: 'Type',
     start: 'Start',
     end: 'End',
     strand: 'Strand',
     info: 'Info',
     molecularView: 'Molecular View'
+};
+const GENE_TYPE_LIST = [
+    {label: 'GENE', value: 'GENE'},
+    {label: 'MRNA', value: 'MRNA'},
+    {label: 'RRNA', value: 'RRNA'},
+    {label: 'CDS', value: 'CDS'},
+    {label: 'EXON', value: 'EXON'},
+    {label: 'UTR5', value: 'UTR5'},
+    {label: 'UTR3', value: 'UTR3'},
+    {label: 'UTR', value: 'UTR'},
+    {label: 'NCRNA', value: 'NCRNA'},
+    {label: 'TMRNA', value: 'TMRNA'},
+    {label: 'TRNA', value: 'TRNA'},
+    {label: 'OPERON', value: 'OPERON'},
+    {label: 'REGION', value: 'REGION'},
+    {label: 'REGULATORY', value: 'REGULATORY'},
+    {label: 'GENERIC_GENE_FEATURE', value: 'GENERIC_GENE_FEATURE'},
+    {label: 'START_CODON', value: 'START_CODON'},
+    {label: 'STOP_CODON', value: 'STOP_CODON'},
+];
+const GENE_TYPE_COLOR = {
+    GENE: '100',
+    MRNA: '200',
+    RRNA: '300',
+    CDS: '400',
+    EXON: '500',
+    UTR5: '600',
+    UTR3: '700',
+    UTR: '800',
+    NCRNA: '900',
+    TMRNA: 'A00',
+    TRNA: 'B00',
+    OPERON: 'C00',
+    REGION: 'D00',
+    REGULATORY: 'E00',
+    GENERIC_GENE_FEATURE: 'A700',
+    START_CODON: 'DEL',
+    STOP_CODON: 'INV',
 };
 const PAGE_SIZE = 100;
 const blockFilterGenesTimeout = 500;
@@ -30,12 +71,13 @@ export default class ngbGenesTableService {
     _hasMoreGenes = true;
     _blockFilterGenes;
 
-    constructor(dispatcher, projectDataService, genomeDataService, projectContext) {
+    constructor(dispatcher, genomeDataService, projectContext, uiGridConstants) {
         this.dispatcher = dispatcher;
-        this.projectDataService = projectDataService;
         this.genomeDataService = genomeDataService;
         this.projectContext = projectContext;
+        this.uiGridConstants = uiGridConstants;
         this.initEvents();
+        this.initialize();
     }
 
     _nextPageMarker = undefined;
@@ -54,6 +96,14 @@ export default class ngbGenesTableService {
 
     get genesPageSize() {
         return PAGE_SIZE;
+    }
+
+    get geneTypeColor() {
+        return GENE_TYPE_COLOR;
+    }
+
+    get geneTypeList() {
+        return GENE_TYPE_LIST;
     }
 
     _genesTableError = null;
@@ -78,7 +128,7 @@ export default class ngbGenesTableService {
         return this._genesFilterIsDefault;
     }
 
-    _displayGenesFilter = {};
+    _displayGenesFilter;
 
     get displayGenesFilter() {
         if (this._displayGenesFilter !== undefined) {
@@ -120,21 +170,29 @@ export default class ngbGenesTableService {
         localStorage.setItem('genesTableColumns', JSON.stringify(columns || []));
     }
 
-    get allGenesColumns() {
-        return ALL_GENES_COLUMNS;
-    }
+    _optionalGenesColumns = [];
 
     get optionalGenesColumns() {
-        return this.allGenesColumns
-            .filter(c => !~this.defaultGenesColumns.indexOf(c));
+        return this._optionalGenesColumns;
     }
 
-    static instance(dispatcher, projectDataService, genomeDataService, projectContext) {
-        return new ngbGenesTableService(dispatcher, projectDataService, genomeDataService, projectContext);
+    static instance(dispatcher, genomeDataService, projectContext, uiGridConstants) {
+        return new ngbGenesTableService(dispatcher, genomeDataService, projectContext, uiGridConstants);
     }
 
     initEvents() {
-        this.dispatcher.on('genes:reset:filter', ::this.resetGenesFilter);
+        this.dispatcher.on('genes:reset:filter', this.resetGenesFilter.bind(this));
+        this.dispatcher.on('reference:change', this.initialize.bind(this));
+    }
+
+    initialize() {
+        if (!this.projectContext.reference) {
+            return;
+        }
+        this.genomeDataService.getGenesInfo(this.projectContext.reference.id).then(data => {
+            this._optionalGenesColumns = OPTIONAL_GENE_COLUMNS.concat(data.availableFilters);
+            this.dispatcher.emit('genes:info:loaded');
+        });
     }
 
     setDisplayGenesFilter(value, updateScope = true) {
@@ -147,12 +205,14 @@ export default class ngbGenesTableService {
 
     async loadGenes(reference, page) {
         const filter = {
-            // chromosome: this.genesFilter.chromosome,
-            // strand: this.genesFilter.strand,
-            // start: this.genesFilter.start,
-            // end: this.genesFilter.end,
-            // gene: this.genesFilter.gene,
-            // additionalFilters: this.genesFilter.additionalFilters || {},
+            chromosomeIds: this.genesFilter.chromosome || [],
+            startIndex: this.genesFilter.start,
+            endIndex: this.genesFilter.end,
+            featureNames: this.genesFilter.gene || [],
+            featureId: this.genesFilter.gene_id,
+            featureTypes: this.genesFilter.type || [],
+            additionalFilters: this.genesFilter.additionalFilters || {},
+            attributesFields: this.genesTableColumns.filter(c => !this.defaultGenesColumns.includes(c)),
             pageSize: this.genesPageSize,
             pointer: page,
             orderBy: (this.orderByGenes || []).map(config => ({
@@ -160,6 +220,30 @@ export default class ngbGenesTableService {
                 desc: !config.ascending
             }))
         };
+        if (this.genesFilter.frame) {
+            filter.frames = [this.genesFilter.frame];
+        }
+        if (this.genesFilter.source) {
+            filter.sources = [this.genesFilter.source];
+        }
+        if (this.genesFilter.strand) {
+            switch(this.genesFilter.strand) {
+                case '+': {
+                    filter.strands = ['POSITIVE'];
+                    break;
+                }
+                case '-': {
+                    filter.strands = ['NEGATIVE'];
+                    break;
+                }
+            }
+        }
+        if (this.genesFilter.score) {
+            filter.score = {
+                left: this.genesFilter.score[0],
+                right: this.genesFilter.score[1]
+            };
+        }
         this.refreshGenesFilterEmptyStatus();
         try {
             const data = await this.genomeDataService.loadGenes(
@@ -196,7 +280,7 @@ export default class ngbGenesTableService {
             let columnSettings = null;
             const column = columnsList[i];
             if (this.orderByGenes) {
-                const fieldName = (DEFAULT_ORDERBY_GENES_COLUMNS[column] || column);
+                const fieldName = (this.orderByColumnsGenes[column] || column);
                 const [columnSortingConfiguration] = this.orderByGenes.filter(o => o.field === fieldName);
                 if (columnSortingConfiguration) {
                     sortingPriority = this.orderByGenes.indexOf(columnSortingConfiguration);
@@ -232,15 +316,42 @@ export default class ngbGenesTableService {
                     };
                     break;
                 }
+                case 'type': {
+                    columnSettings = {
+                        cellTemplate: `<div class="md-label variation-type"
+                                    md-colors="{background: 'accent-{{grid.appScope.$ctrl.geneTypeColor[COL_FIELD]}}',color:'background-900'}"
+                                    ng-class="COL_FIELD CUSTOM_FILTERS" >{{row.entity.feature}}</div>`,
+                        enableHiding: false,
+                        field: 'type',
+                        filter: {
+                            selectOptions: GENE_TYPE_LIST,
+                            term: '',
+                            type: this.uiGridConstants.filter.SELECT
+                        },
+                        headerCellTemplate: headerCells,
+                        maxWidth: 104,
+                        minWidth: 104,
+                        name: 'Type',
+                        filterApplied: () => this.genesFieldIsFiltered(column),
+                        menuItems: [
+                            {
+                                title: 'Clear column filter',
+                                action: () => this.clearGeneFieldFilter(column),
+                                shown: () => this.genesFieldIsFiltered(column)
+                            }
+                        ]
+                    };
+                    break;
+                }
                 default: {
                     columnSettings = {
                         enableHiding: !this.defaultGenesColumns.includes(column),
                         enableFiltering: true,
-                        enableSorting: DEFAULT_ORDERBY_GENES_COLUMNS.hasOwnProperty(column),
+                        enableSorting: true,
                         field: column,
                         headerCellTemplate: headerCells,
                         minWidth: 40,
-                        name: this.genesColumnTitleMap[column],
+                        name: this.genesColumnTitleMap[column] || column,
                         filterApplied: () => this.genesFieldIsFiltered(column),
                         menuItems: [
                             {
@@ -268,16 +379,19 @@ export default class ngbGenesTableService {
     }
 
     _formatServerToClient(search) {
-        return {
+        const result = {
             ...search,
+            ...search.attributes,
             chr: search.chromosome ? search.chromosome.name : undefined,
             gene: search.featureName,
             gene_id: search.featureId,
             start: search.startIndex,
-            end: search.endIndex
+            end: search.endIndex,
+            type: search.featureType
         };
+        delete result.attributes;
+        return result;
     }
-
 
     refreshGenesFilterEmptyStatus() {
         const {additionalFilters, ...defaultFilters} = this.genesFilter;

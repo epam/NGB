@@ -35,7 +35,7 @@ export default class ListElements {
             this.onSearchStartCallback(searchString);
         }
         (async() => {
-            let items = null;
+            let items;
             let shouldUpdateScope = true;
             if ((!searchString || !searchString.length) && this.fullList) {
                 items = this.fullList;
