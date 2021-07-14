@@ -146,7 +146,7 @@ public class FeatureIndexDao {
     @Value("#{catgenome['lucene.index.max.size.grouping'] ?: 2L * 1024 * 1024 * 1024}")
     private long luceneIndexMaxSizeForGrouping;
 
-    @Value("${lucene.request.max.values}")
+    @Value("${lucene.request.max.values:20}")
     private int luceneRequestMaxValues;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureIndexDao.class);
