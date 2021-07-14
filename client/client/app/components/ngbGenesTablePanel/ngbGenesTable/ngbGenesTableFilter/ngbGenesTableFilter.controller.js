@@ -20,7 +20,7 @@ export default class ngbGenesTableFilterController {
                     const items = await projectDataService.searchGeneNames(projectContext.referenceId, searchText);
                     return new Promise((resolve) => {
                         resolve({
-                            model: items.map(e => e.featureId),
+                            model: items.map(e => e.featureName),
                             view: items
                         });
                     });

@@ -1,16 +1,18 @@
-// Import Style
-import './ngbGenesTable.scss';
-
 import angular from 'angular';
-import component from './ngbGenesTable.component';
-import controller from './ngbGenesTable.controller';
-import ngbGenesTableColumn from './ngbGenesTableColumn';
-import ngbGenesTableFilter from './ngbGenesTableFilter';
-import service from './ngbGenesTable.service';
 
-export default angular
-    .module('ngbGenesTablePanel', [ngbGenesTableColumn, ngbGenesTableFilter])
-    .service('ngbGenesTableService', service.instance)
-    .controller(controller.UID, controller)
+// Import Style
+import './ngbGenesTablePanel.scss';
+
+// Import internal modules
+import component from './ngbGenesTablePanel.component.js';
+import controller from './ngbGenesTablePanel.controller';
+
+// Import components
+import  ngbGenesTable from './ngbGenesTable';
+
+
+// Import external modules
+export default angular.module('ngbGenesTablePanel', [ngbGenesTable])
     .component('ngbGenesTablePanel', component)
+    .controller(controller.UID, controller)
     .name;

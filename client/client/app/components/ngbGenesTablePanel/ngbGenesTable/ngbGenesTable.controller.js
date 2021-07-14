@@ -1,5 +1,5 @@
-import {EventGeneInfo} from '../../shared/utils/events';
-import baseController from '../../shared/baseController';
+import {EventGeneInfo} from '../../../shared/utils/events';
+import baseController from '../../../shared/baseController';
 
 const ROW_HEIGHT = 35;
 
@@ -90,7 +90,6 @@ export default class ngbGenesTableController extends baseController {
 
     async initialize() {
         this.errorMessageList = [];
-        this.isProgressShown = true;
         this.geneLoadError = null;
         Object.assign(this.gridOptions, {
             appScopeProvider: this.$scope,
@@ -123,11 +122,10 @@ export default class ngbGenesTableController extends baseController {
     }
 
     async appendData() {
-        if (!this.projectContext.reference || !this.gridApi) {
+        if (!this.projectContext.reference) {
             return;
         }
         try {
-            // this.gridApi.infiniteScroll.saveScrollPercentage();
             const data = await this.ngbGenesTableService.loadGenes(
                 this.projectContext.reference.id,
                 this.ngbGenesTableService.nextPageMarker
@@ -137,6 +135,9 @@ export default class ngbGenesTableController extends baseController {
                 this.gridOptions.data = [];
                 this.isEmptyResults = false;
             } else if (data.length) {
+                if (this.gridApi) {
+                    this.gridApi.infiniteScroll.saveScrollPercentage();
+                }
                 this.geneLoadError = null;
                 this.gridOptions.columnDefs = this.ngbGenesTableService.getGenesGridColumns();
                 this.isEmptyResults = false;

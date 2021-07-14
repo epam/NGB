@@ -1,0 +1,13 @@
+<div class="u-height__full" layout="row">
+    <div flex layout="column">
+        <md-content flex>
+            <div ng-if="$ctrl.isProgressShown">
+                <div class="progress" layout-align="center center">
+                    <span>Loading genes...</span>
+                </div>
+                <md-progress-linear md-mode="query"></md-progress-linear>
+            </div>
+            <ngb-genes-table is-progress-shown="$ctrl.isProgressShown"></ngb-genes-table>
+        </md-content>
+    </div>
+</div>
