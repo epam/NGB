@@ -36,6 +36,7 @@ import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.entity.reference.Species;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import com.epam.catgenome.exception.FeatureIndexException;
@@ -44,12 +45,6 @@ import com.epam.catgenome.manager.reference.ReferenceSecurityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.controller.AbstractRESTController;
@@ -66,6 +61,13 @@ import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * <p>
@@ -226,6 +228,23 @@ public class ReferenceController extends AbstractRESTController {
             @PathVariable(value = "referenceId") final Long referenceId,
             @RequestBody(required = false) ItemsByProject fileIdsByProjectId) {
         return Result.success(featureIndexSecurityService.getAvailableFieldsToSearch(referenceId, fileIdsByProjectId));
+    }
+
+    @PostMapping(value = "/reference/{referenceId}/filter/gene/values")
+    @ResponseBody
+    @ApiOperation(
+            value = "Returns information about possible custom gene table columns",
+            notes = "Searches an index of a gene files, associated with a given reference's IDs for filter parameters",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiResponses(
+            value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
+            })
+    public Result<Set<String>> getAvailableFieldValues(
+            @PathVariable final Long referenceId,
+            @RequestBody(required = false) final ItemsByProject fileIdsByProjectId,
+            @RequestParam final String fieldName) {
+        return Result.success(featureIndexSecurityService.getAvailableFieldValues(referenceId, fileIdsByProjectId,
+                fieldName));
     }
 
     @ResponseBody

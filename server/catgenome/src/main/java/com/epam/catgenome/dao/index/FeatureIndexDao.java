@@ -146,6 +146,9 @@ public class FeatureIndexDao {
     @Value("#{catgenome['lucene.index.max.size.grouping'] ?: 2L * 1024 * 1024 * 1024}")
     private long luceneIndexMaxSizeForGrouping;
 
+    @Value("${lucene.request.max.values}")
+    private int luceneRequestMaxValues;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureIndexDao.class);
 
     private static final int FACET_LIMIT = 1000;
@@ -478,6 +481,30 @@ public class FeatureIndexDao {
                     files.stream().map(BaseEntity::getName).collect(Collectors.joining(", ")), e);
         }
         return GeneFilterInfo.builder().availableFilters(availableFields).build();
+    }
+
+    public Set<String> getAvailableFieldValues(final List<? extends FeatureFile> files, final String fieldName) {
+        final Set<String> termValues = new HashSet<>();
+        int i = 0;
+        try {
+            for (SimpleFSDirectory file : fileManager.getIndexesForFiles(files)) {
+                DirectoryReader reader = DirectoryReader.open(file);
+                for (LeafReaderContext subReader : reader.leaves()) {
+                    Terms terms = subReader.reader().terms(fieldName);
+                    TermsEnum termsEnum = terms.iterator();
+                    BytesRef byteRef = termsEnum.next();
+                    while (byteRef != null && i < luceneRequestMaxValues) {
+                        termValues.add(byteRef.utf8ToString());
+                        byteRef = termsEnum.next();
+                        i++;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to perform index search for files " +
+                    files.stream().map(BaseEntity::getName).collect(Collectors.joining(", ")), e);
+        }
+        return termValues;
     }
 
     /**
