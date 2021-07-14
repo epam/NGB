@@ -12,6 +12,12 @@
                 </md-checkbox>
             </div>
         </md-menu-item>
+        <md-menu-item>
+            <div class="for-md-tooltip-work restore_view_button"
+                 ng-click="$ctrl.onGenesRestoreViewClick()">
+                Restore view
+            </div>
+        </md-menu-item>
         <md-divider></md-divider>
         <md-menu-item ng-repeat="column in $ctrl.columnsList | orderBy: 'name' track by $index">
             <div class="for-md-tooltip-work">
