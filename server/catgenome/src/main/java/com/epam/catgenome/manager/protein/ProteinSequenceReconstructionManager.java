@@ -102,11 +102,11 @@ public class ProteinSequenceReconstructionManager {
      * @throws IOException if error occurred while working with files
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public Map<Gene, List<ProteinSequenceEntry>> reconstructProteinSequence(final Track<Gene> geneTrack,
-                                        final Chromosome chromosome, final Long referenceId, boolean collapsedTrack)
-        throws GeneReadingException {
-        // Load CDS from gene file in specified interval [startIndex, endIndex].
+    public Map<Gene, List<ProteinSequenceEntry>> reconstructProteinSequence(
+            final Track<Gene> geneTrack, final Chromosome chromosome, final Long referenceId,
+            final boolean collapsedTrack, final boolean extendCds) throws GeneReadingException {
 
+        // Load CDS from gene file in specified interval [startIndex, endIndex].
         double time1 = Utils.getSystemTimeMilliseconds();
         Map<Gene, List<Gene>> mrnaToCdsMap = loadCds(geneTrack, chromosome, collapsedTrack);
         double time2 = Utils.getSystemTimeMilliseconds();
@@ -124,7 +124,7 @@ public class ProteinSequenceReconstructionManager {
 
             // Convert nucleotide triple -> amino acid for all CDS.
             Map<Gene, List<ProteinSequenceEntry>> cdsToAminoAcidsMap = getAminoAcids(geneTrack, cdsList, cdsNucleotides,
-                                                                                     frames);
+                                                                                     frames, extendCds);
 
             List<ProteinSequenceEntry> aminoAcids = new ArrayList<>();
             cdsToAminoAcidsMap.values().stream().forEach(aminoAcids::addAll);
@@ -142,7 +142,7 @@ public class ProteinSequenceReconstructionManager {
         final List<Gene> cdsList = Collections.singletonList(cds);
         final List<Integer> frames = cdsList.stream().map(Gene::getFrame).collect(Collectors.toList());
         final List<List<Sequence>> cdsNucleotides = loadCdsNucleatides(cdsList, referenceId, chromosome);
-        return getAminoAcids(geneTrack, cdsList, cdsNucleotides, frames)
+        return getAminoAcids(geneTrack, cdsList, cdsNucleotides, frames, false)
                 .values().stream().flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
@@ -182,7 +182,8 @@ public class ProteinSequenceReconstructionManager {
      */
     public Map<Gene, List<ProteinSequenceEntry>> getAminoAcids(final Track<Gene> track, final List<Gene> cdsList,
                                                                final List<List<Sequence>> cdsNucleotides,
-                                                               final List<Integer> frames) {
+                                                               final List<Integer> frames,
+                                                               final boolean extendCDS) {
         if (CollectionUtils.isEmpty(cdsList) || CollectionUtils.isEmpty(cdsNucleotides)) {
             return Collections.emptyMap();
         }
@@ -217,7 +218,7 @@ public class ProteinSequenceReconstructionManager {
             List<List<Sequence>> tripleList = ListUtils.partition(nucleotides, TRIPLE_LENGTH);
             List<ProteinSequenceEntry> value =
                     reconstructAminoAcidByTriples(track, cds, cdsNucleotides, i, tripleList,
-                                                  extendedStart, aminoAcidCounter);
+                                                  extendedStart, aminoAcidCounter, extendCDS);
 
             proteinSequences.putIfAbsent(cds, value);
 
@@ -490,12 +491,13 @@ public class ProteinSequenceReconstructionManager {
         return result;
     }
 
-    private List<ProteinSequenceEntry> reconstructAminoAcidByTriples(Track<Gene> track, final Gene cds,
+    private List<ProteinSequenceEntry> reconstructAminoAcidByTriples(final Track<Gene> track, final Gene cds,
                                                                      final List<List<Sequence>> cdsNucleotides,
                                                                      final int currCdsIndex,
                                                                      final List<List<Sequence>> tripleList,
                                                                      final Integer extendedStart,
-                                                                     final MutableInt aminoAcidCounter) {
+                                                                     final MutableInt aminoAcidCounter,
+                                                                     final boolean extendCDS) {
         List<ProteinSequenceEntry> proteinSequences = new ArrayList<>();
         int newExtendedStart = extendedStart;
         for (List<Sequence> aTripleList : tripleList) {
@@ -509,6 +511,9 @@ public class ProteinSequenceReconstructionManager {
             // Reconstruct boundary amino acids, using nucleotide sequences from nearby CDS.
             int lastCdsIndex = currCdsIndex;
             boolean isAdditionalCds = false;
+            if (!extendCDS && length < TRIPLE_LENGTH) {
+                continue;
+            }
             while (length < TRIPLE_LENGTH) {
                 lastCdsIndex = lastCdsIndex + 1;
                 List<Sequence> utilNucleotides;
@@ -530,7 +535,9 @@ public class ProteinSequenceReconstructionManager {
                 length = triple.size();
 
             }
-
+            if (length < TRIPLE_LENGTH) {
+                continue;
+            }
             processCds(track, cds, proteinSequences, triple, isAdditionalCds, newExtendedStart, aminoAcidCounter);
             newExtendedStart = 0;
         }
