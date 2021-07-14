@@ -42,6 +42,10 @@ export default class ngbVariantTableColumnController extends baseController {
         this.projectContext.setDisplayVariantsFilter(this.displayVariantsFilter, false);
     }
 
+    onVariantsRestoreViewClick() {
+        console.log(this.columnsList);
+    }
+
     loadColumns() {
         this.onColumnChange([]);
         this.$timeout(::this.$scope.$apply);

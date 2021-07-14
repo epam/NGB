@@ -41,6 +41,10 @@ export default class ngbGenesTableColumnController extends baseController {
         this.ngbGenesTableService.setDisplayGenesFilter(this.displayGenesFilter, false);
     }
 
+    onGenesRestoreViewClick() {
+        console.log(this.columnsList)
+    }
+
     loadColumns() {
         this.onColumnChange([]);
         this.$timeout(::this.$scope.$apply);
