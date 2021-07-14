@@ -268,6 +268,9 @@ public class GffManager {
         final Long geneFileId = geneFileManager.createGeneFileId();
 
         if (isFeatureCounts(request.getPath())) {
+            request.setName(request.getName() != null
+                    ? request.getName()
+                    : Paths.get(request.getPath()).getFileName().toString());
             final String gffFilePath = buildGffFileNameFromFeatureCounts(request.getPath(), geneFileId);
             new FeatureCountsToGffConvertor().convert(request.getPath(), gffFilePath, fileManager.getTempDir());
             request.setPath(gffFilePath);
