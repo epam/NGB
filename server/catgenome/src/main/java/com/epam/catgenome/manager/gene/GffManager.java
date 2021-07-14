@@ -114,6 +114,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -315,15 +316,16 @@ public class GffManager {
             geneFile.setIndex(indexItem);
         }
 
-        long geneId = geneFile.getId();
-        biologicalDataItemManager.createBiologicalDataItem(geneFile);
-        geneFile.setBioDataItemId(geneFile.getId());
-        geneFile.setId(geneId);
-
-        log.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, geneFile.getId(), geneFile.getPath()));
-        GeneRegisterer geneRegisterer = new GeneRegisterer(referenceGenomeManager, fileManager, featureIndexManager,
-                                                           geneFile);
         try {
+            long geneId = geneFile.getId();
+            biologicalDataItemManager.createBiologicalDataItem(geneFile);
+            geneFile.setBioDataItemId(geneFile.getId());
+            geneFile.setId(geneId);
+
+            log.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, geneFile.getId(), geneFile.getPath()));
+            GeneRegisterer geneRegisterer = new GeneRegisterer(referenceGenomeManager, fileManager, featureIndexManager,
+                    geneFile);
+
             geneRegisterer.processRegistration(request);
             biologicalDataItemManager.createBiologicalDataItem(geneFile.getIndex());
             geneFileManager.create(geneFile);
@@ -331,7 +333,9 @@ public class GffManager {
             throw new RegistrationException("Error while Gene file registration: " + geneFile.getPath(), e);
         }  finally {
             if (geneFile.getId() != null && !geneFileManager.geneFileExists(geneFile.getId())) {
-                biologicalDataItemManager.deleteBiologicalDataItem(geneFile.getBioDataItemId());
+                if (Objects.nonNull(geneFile.getBioDataItemId())) {
+                    biologicalDataItemManager.deleteBiologicalDataItem(geneFile.getBioDataItemId());
+                }
                 try {
                     fileManager.deleteFeatureFileDirectory(geneFile);
                 } catch (IOException e) {
