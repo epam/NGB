@@ -64,6 +64,7 @@ const GENE_TYPE_COLOR = {
     STOP_CODON: 'INV',
 };
 const PAGE_SIZE = 100;
+const MAX_VISIBLE_PAGES = 3;
 const blockFilterGenesTimeout = 500;
 
 export default class ngbGenesTableService {
@@ -120,6 +121,58 @@ export default class ngbGenesTableService {
 
     set orderByGenes(orderByGenes) {
         this._orderByGenes = orderByGenes;
+    }
+
+    _pageList = [];
+
+    get nextPagePointer() {
+        return this._pageList[this.lastPage];
+    }
+
+    get prevPagePointer() {
+        return this._pageList[this.firstPage - 2];
+    }
+
+    get totalPages() {
+        return this._pageList.length;
+    }
+
+    get maxVisiblePages() {
+        return MAX_VISIBLE_PAGES;
+    }
+
+    _firstPage = 0;
+
+    get firstPage() {
+        return this._firstPage;
+    }
+
+    set firstPage(value) {
+        this._firstPage = value;
+    }
+
+    _lastPage = -1; // because initial loading is the same method as scrollDown
+
+    get lastPage() {
+        return this._lastPage;
+    }
+
+    set lastPage(value) {
+        this._lastPage = value;
+    }
+
+    _lastPageLength = 0;
+
+    get lastPageLength() {
+        return this._lastPageLength;
+    }
+
+    getPage(page) {
+        return this._pageList[page];
+    }
+
+    clearPageList() {
+        this._pageList = [];
     }
 
     _genesFilterIsDefault = true;
@@ -203,7 +256,7 @@ export default class ngbGenesTableService {
         }
     }
 
-    async loadGenes(reference, page) {
+    async loadGenes(reference, isScrollTop) {
         const filter = {
             chromosomeIds: this.genesFilter.chromosome || [],
             startIndex: this.genesFilter.start,
@@ -214,7 +267,7 @@ export default class ngbGenesTableService {
             additionalFilters: this.genesFilter.additionalFilters || {},
             attributesFields: this.genesTableColumns.filter(c => !this.defaultGenesColumns.includes(c)),
             pageSize: this.genesPageSize,
-            pointer: page,
+            pointer: isScrollTop ? this.prevPagePointer : this.nextPagePointer,
             orderBy: (this.orderByGenes || []).map(config => ({
                 field: config.field,
                 desc: !config.ascending
@@ -252,14 +305,16 @@ export default class ngbGenesTableService {
             );
             this._genesTableError = null;
             this._hasMoreGenes = !!data.pointer;
+            if (isScrollTop) {
+                this._pageList.pop();
+            } else if (data.pointer) {
+                this._pageList.push(data.pointer);
+            }
+            this._lastPageLength = (data.entries || []).length;
             this.nextPageMarker = data.pointer;
-            let filteredData = [];
-            if (data.entries) {
-                filteredData = (data.entries || [])
+            return (data.entries || [])
                     .map(this._formatServerToClient.bind(this))
                     .map(feature => ({...feature, referenceId: reference}));
-            }
-            return filteredData;
         } catch (e) {
             this._hasMoreGenes = false;
             this._genesTableError = e.message;
