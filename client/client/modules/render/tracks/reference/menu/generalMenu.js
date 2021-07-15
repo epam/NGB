@@ -1,3 +1,4 @@
+import downloadFile from '../../common/menu/downloadFile';
 import header from '../../common/menu/header';
 import {menu} from '../../../utilities';
 
@@ -47,6 +48,7 @@ export default {
         },
         menu.getDivider(),
         header,
+        downloadFile
     ],
     name: 'reference>general',
     type: 'submenu'
