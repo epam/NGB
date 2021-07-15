@@ -180,6 +180,9 @@ public class GffManager {
     @Value("#{'${feature.counts.extensions}'.split(',')}")
     private List<String> featureCountsExtensions;
 
+    @Value("${feature.counts.max.memory:500}")
+    private int featureCountsMaxMemory;
+
     private static final String EXON_FEATURE_NAME = "exon";
 
     private static final String PROTEIN_CODING = "protein_coding";
@@ -273,7 +276,8 @@ public class GffManager {
                     ? request.getName()
                     : Paths.get(request.getPath()).getFileName().toString());
             final String gffFilePath = buildGffFileNameFromFeatureCounts(request.getPath(), geneFileId);
-            new FeatureCountsToGffConvertor().convert(request.getPath(), gffFilePath, fileManager.getTempDir());
+            new FeatureCountsToGffConvertor().convert(request.getPath(), gffFilePath, fileManager.getTempDir(),
+                    featureCountsMaxMemory);
             request.setPath(gffFilePath);
             geneFile.setFormat(BiologicalDataItemFormat.FEATURE_COUNTS);
             request.setType(BiologicalDataItemResourceType.FILE);

@@ -58,17 +58,25 @@ import static com.epam.catgenome.manager.gene.featurecounts.FeatureCountsParserU
 @Slf4j
 public class FeatureCountsToGffConvertor {
 
-    public void convert(final String featureCountsFilePath, final String gffFilePath, final File tmpDir) {
+    public void convert(final String featureCountsFilePath, final String gffFilePath, final File tmpDir,
+                        final int maxMemory) {
         try (Gff3Writer gff3Writer = new Gff3Writer(Paths.get(gffFilePath));
              Reader reader = getReader(featureCountsFilePath)) {
             final Map<Integer, String> header = new HashMap<>();
             final LineProcessor<SortingCollection<SortableRecord>> processor =
-                    new FeatureCountsLineProcessor(tmpDir, header);
-            final SortingCollection<SortableRecord> sortableRecords = CharStreams.readLines(reader, processor);
-            StreamSupport.stream(sortableRecords.spliterator(), false)
-                    .map(record -> recordToGffFeature(record, header))
-                    .filter(Objects::nonNull)
-                    .forEach(feature -> writeGffFeature(feature, gff3Writer));
+                    new FeatureCountsLineProcessor(tmpDir, header, maxMemory);
+            SortingCollection<SortableRecord> sortableRecords = null;
+            try {
+                sortableRecords = CharStreams.readLines(reader, processor);
+                StreamSupport.stream(sortableRecords.spliterator(), false)
+                        .map(record -> recordToGffFeature(record, header))
+                        .filter(Objects::nonNull)
+                        .forEach(feature -> writeGffFeature(feature, gff3Writer));
+            } finally {
+                if (Objects.nonNull(sortableRecords)) {
+                    sortableRecords.cleanup();
+                }
+            }
         } catch (IOException e) {
             throw new IllegalArgumentException("Cannot convert data.", e);
         }
