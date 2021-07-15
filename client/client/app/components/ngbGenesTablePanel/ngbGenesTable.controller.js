@@ -46,6 +46,7 @@ export default class ngbGenesTableController extends baseController {
         'genes:refresh': this.reloadGenes.bind(this),
         'display:genes:filter': this.refreshScope.bind(this),
         'reference:change': this.initialize.bind(this),
+        'genes:restore': this.restoreState.bind(this),
     };
 
     constructor(
@@ -141,6 +142,9 @@ export default class ngbGenesTableController extends baseController {
                 this.gridOptions.columnDefs = this.ngbGenesTableService.getGenesGridColumns();
                 this.isEmptyResults = false;
                 this.gridOptions.data = this.gridOptions.data.concat(data);
+                if (!this.defaultState) {
+                    this.defaultState = this.gridApi.saveState.save();
+                }
             } else if (!this.gridOptions.data.length) {
                 this.isEmptyResults = true;
             }
@@ -292,5 +296,13 @@ export default class ngbGenesTableController extends baseController {
         });
         this.dispatcher.emitSimpleEvent('miew:show:structure', data);
         event.stopImmediatePropagation();
+    }
+
+    restoreState() {
+        if (!this.gridApi) {
+            return;
+        }
+        this.gridApi.saveState.restore(this.$scope, this.defaultState);
+        this.saveColumnsState();
     }
 }

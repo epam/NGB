@@ -43,8 +43,7 @@ export default class ngbGenesTableColumnController extends baseController {
 
     onGenesRestoreViewClick() {
         this.ngbGenesTableService.genesTableColumns = [];
-        this.onColumnChange();
-        this.addColumnToTable();
+        this.dispatcher.emit('genes:restore');
     }
 
     loadColumns() {
