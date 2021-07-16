@@ -159,6 +159,7 @@ public class DataItemManager {
                 bedManager.unregisterBedFile(itemId);
                 break;
             case GENE:
+            case FEATURE_COUNTS:
                 geneManager.unregisterGeneFile(itemId);
                 break;
             case WIG:

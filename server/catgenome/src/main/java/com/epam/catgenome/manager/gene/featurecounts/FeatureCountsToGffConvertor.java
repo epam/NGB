@@ -27,6 +27,7 @@ package com.epam.catgenome.manager.gene.featurecounts;
 import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.manager.gene.writer.Gff3FeatureImpl;
 import com.epam.catgenome.manager.gene.writer.Gff3Writer;
+import com.epam.catgenome.util.IOHelper;
 import com.epam.catgenome.util.sort.SortableRecord;
 import com.google.common.io.CharStreams;
 import com.google.common.io.LineProcessor;
@@ -35,12 +36,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,25 +58,33 @@ import static com.epam.catgenome.manager.gene.featurecounts.FeatureCountsParserU
 @Slf4j
 public class FeatureCountsToGffConvertor {
 
-    public void convert(final String featureCountsFilePath, final String gffFilePath, final File tmpFile) {
+    public void convert(final String featureCountsFilePath, final String gffFilePath, final File tmpDir,
+                        final int maxMemory) {
         try (Gff3Writer gff3Writer = new Gff3Writer(Paths.get(gffFilePath));
              Reader reader = getReader(featureCountsFilePath)) {
             final Map<Integer, String> header = new HashMap<>();
             final LineProcessor<SortingCollection<SortableRecord>> processor =
-                    new FeatureCountsLineProcessor(tmpFile, header);
-            final SortingCollection<SortableRecord> sortableRecords = CharStreams.readLines(reader, processor);
-            StreamSupport.stream(sortableRecords.spliterator(), false)
-                    .map(record -> recordToGffFeature(record, header))
-                    .filter(Objects::nonNull)
-                    .forEach(feature -> writeGffFeature(feature, gff3Writer));
+                    new FeatureCountsLineProcessor(tmpDir, header, maxMemory);
+            SortingCollection<SortableRecord> sortableRecords = null;
+            try {
+                sortableRecords = CharStreams.readLines(reader, processor);
+                StreamSupport.stream(sortableRecords.spliterator(), false)
+                        .map(record -> recordToGffFeature(record, header))
+                        .filter(Objects::nonNull)
+                        .forEach(feature -> writeGffFeature(feature, gff3Writer));
+            } finally {
+                if (Objects.nonNull(sortableRecords)) {
+                    sortableRecords.cleanup();
+                }
+            }
         } catch (IOException e) {
             throw new IllegalArgumentException("Cannot convert data.", e);
         }
     }
 
-    private static InputStreamReader getReader(final String featureCountsFilePath) throws IOException {
-        return new InputStreamReader(Files.newInputStream(Paths.get(featureCountsFilePath)),
-                StandardCharsets.UTF_8);
+    private static BufferedReader getReader(final String featureCountsFilePath) throws IOException {
+        return new BufferedReader(new InputStreamReader(
+                IOHelper.openStream(featureCountsFilePath), StandardCharsets.UTF_8));
     }
 
     private Gff3FeatureImpl recordToGffFeature(final SortableRecord record, final Map<Integer, String> header) {

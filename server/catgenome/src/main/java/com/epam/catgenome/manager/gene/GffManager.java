@@ -114,6 +114,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -178,6 +179,9 @@ public class GffManager {
 
     @Value("#{'${feature.counts.extensions}'.split(',')}")
     private List<String> featureCountsExtensions;
+
+    @Value("${feature.counts.max.memory:500}")
+    private int featureCountsMaxMemory;
 
     private static final String EXON_FEATURE_NAME = "exon";
 
@@ -268,10 +272,15 @@ public class GffManager {
         final Long geneFileId = geneFileManager.createGeneFileId();
 
         if (isFeatureCounts(request.getPath())) {
+            request.setName(request.getName() != null
+                    ? request.getName()
+                    : Paths.get(request.getPath()).getFileName().toString());
             final String gffFilePath = buildGffFileNameFromFeatureCounts(request.getPath(), geneFileId);
-            new FeatureCountsToGffConvertor().convert(request.getPath(), gffFilePath, fileManager.getTempDir());
+            new FeatureCountsToGffConvertor().convert(request.getPath(), gffFilePath, fileManager.getTempDir(),
+                    featureCountsMaxMemory);
             request.setPath(gffFilePath);
             geneFile.setFormat(BiologicalDataItemFormat.FEATURE_COUNTS);
+            request.setType(BiologicalDataItemResourceType.FILE);
         }
 
         String path = request.getPath();
@@ -311,15 +320,16 @@ public class GffManager {
             geneFile.setIndex(indexItem);
         }
 
-        long geneId = geneFile.getId();
-        biologicalDataItemManager.createBiologicalDataItem(geneFile);
-        geneFile.setBioDataItemId(geneFile.getId());
-        geneFile.setId(geneId);
-
-        log.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, geneFile.getId(), geneFile.getPath()));
-        GeneRegisterer geneRegisterer = new GeneRegisterer(referenceGenomeManager, fileManager, featureIndexManager,
-                                                           geneFile);
         try {
+            long geneId = geneFile.getId();
+            biologicalDataItemManager.createBiologicalDataItem(geneFile);
+            geneFile.setBioDataItemId(geneFile.getId());
+            geneFile.setId(geneId);
+
+            log.info(getMessage(MessagesConstants.INFO_GENE_REGISTER, geneFile.getId(), geneFile.getPath()));
+            GeneRegisterer geneRegisterer = new GeneRegisterer(referenceGenomeManager, fileManager, featureIndexManager,
+                    geneFile);
+
             geneRegisterer.processRegistration(request);
             biologicalDataItemManager.createBiologicalDataItem(geneFile.getIndex());
             geneFileManager.create(geneFile);
@@ -327,7 +337,9 @@ public class GffManager {
             throw new RegistrationException("Error while Gene file registration: " + geneFile.getPath(), e);
         }  finally {
             if (geneFile.getId() != null && !geneFileManager.geneFileExists(geneFile.getId())) {
-                biologicalDataItemManager.deleteBiologicalDataItem(geneFile.getBioDataItemId());
+                if (Objects.nonNull(geneFile.getBioDataItemId())) {
+                    biologicalDataItemManager.deleteBiologicalDataItem(geneFile.getBioDataItemId());
+                }
                 try {
                     fileManager.deleteFeatureFileDirectory(geneFile);
                 } catch (IOException e) {
