@@ -56,7 +56,19 @@ function getDisplayName (state) {
 
 export default {
     displayName: state => getDisplayName(state),
-    isVisible: (state) => (state.availableFeatures || []).length > 1,
+    isVisible: (state, tracks, track) => {
+        if (
+            track &&
+            track.transformer &&
+            typeof track.transformer.isHistogramDrawingModeForViewport === 'function' &&
+            track.viewport &&
+            track.cache &&
+            track.transformer.isHistogramDrawingModeForViewport(track.viewport, track.cache)
+        ) {
+            return false;
+        }
+        return (state.availableFeatures || []).length > 1;
+    },
     dynamicFields: (state, tracks, track) => (state.availableFeatures || []).map(featureName => ({
         disable: () => disableFeature(state, featureName, track),
         enable: () => enableFeature(state, featureName, track),
