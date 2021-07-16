@@ -49,6 +49,7 @@ export default class ngbGenesTableController extends baseController {
         'genes:refresh': this.reloadGenes.bind(this),
         'display:genes:filter': this.refreshScope.bind(this),
         'reference:change': this.initialize.bind(this),
+        'genes:values:loaded': this.initialize.bind(this),
     };
 
     constructor(
@@ -58,8 +59,7 @@ export default class ngbGenesTableController extends baseController {
         appLayout,
         ngbGenesTableService,
         uiGridConstants,
-        projectContext,
-        uiGridInfiniteScrollService
+        projectContext
     ) {
         super();
 
@@ -70,13 +70,14 @@ export default class ngbGenesTableController extends baseController {
             appLayout,
             ngbGenesTableService,
             uiGridConstants,
-            projectContext,
-            uiGridInfiniteScrollService
+            projectContext
         });
-        this.geneTypeColor = this.ngbGenesTableService.geneTypeColor;
+        this.getStyle = this.ngbGenesTableService.getStyle(this.ngbGenesTableService);
         this.displayGenesFilter = this.ngbGenesTableService.displayGenesFilter;
         this.initEvents();
     }
+
+    getColor = () => {};
 
     static get UID() {
         return 'ngbGenesTableController';
@@ -120,7 +121,7 @@ export default class ngbGenesTableController extends baseController {
         this.geneLoadError = undefined;
         this.isEmptyResults = false;
         this.gridOptions.data = [];
-        this.ngbGenesTableService.clearPageList();
+        this.ngbGenesTableService.resetPagination();
         if (this.gridApi) {
             this.gridApi.infiniteScroll.setScrollDirections(false, false);
             this.$timeout(() => {
