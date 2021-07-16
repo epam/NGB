@@ -15,6 +15,9 @@ function enableFeature (state, feature, track) {
     if (track && track._flags) {
         track._flags.dataChanged = true;
         track.reportTrackState();
+        if (typeof track.featureTypesChanged === 'function') {
+            track.featureTypesChanged();
+        }
     }
 }
 
@@ -27,6 +30,9 @@ function disableFeature (state, feature, track) {
     if (track && track._flags) {
         track._flags.dataChanged = true;
         track.reportTrackState();
+        if (typeof track.featureTypesChanged === 'function') {
+            track.featureTypesChanged();
+        }
     }
 }
 
@@ -64,6 +70,5 @@ export default {
     label: 'Features',
     name: 'gene>features',
     type: 'submenu',
-    preventAutoClose: true,
-    capitalized: false
+    preventAutoClose: true
 };

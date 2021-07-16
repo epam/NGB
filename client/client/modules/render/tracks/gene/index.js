@@ -2,7 +2,10 @@ import * as GeneTypes from './geneTypes';
 import {GeneRenderer, GeneTransformer} from './internal';
 import {CachedTrack} from '../../core';
 import GeneConfig from './geneConfig';
-import {CachedGeneDataService} from '../../../../dataServices';
+import {
+    CachedGeneDataService,
+    GenomeDataService
+} from '../../../../dataServices';
 import geneMenuConfig from './exterior/geneMenuConfig';
 import Menu from '../../core/menu';
 import {menu as menuUtilities} from '../../utilities';
@@ -96,6 +99,49 @@ export class GENETrack extends CachedTrack {
         this.hotKeyListenerDestructor = function() {
             self.dispatcher.removeListener('hotkeyPressed', _hotKeyListener);
         };
+        this.fetchAvailableFeatureTypes();
+    }
+
+    fetchAvailableFeatureTypes () {
+        const {
+            id,
+            project,
+            referenceId
+        } = this.config;
+        let projectId = project ? project.id : undefined;
+        if (!projectId) {
+            const [someDataset] = (this.projectContext.datasets || [])
+                .filter(dataset =>
+                    (dataset.reference && dataset.reference.id === referenceId) ||
+                    (dataset.items || dataset._lazyItems || [])
+                        .filter(item => item.referenceId === referenceId)
+                        .length > 0
+                );
+            if (someDataset) {
+                projectId = someDataset.id;
+            }
+        }
+        if (referenceId && projectId && id) {
+            const genomeService = new GenomeDataService(this.dispatcher);
+            genomeService.getGeneFeatureTypes(
+                referenceId,
+                projectId,
+                id
+            )
+                .then(this.updateAvailableFeatures.bind(this))
+                .catch((e) => {
+                    // eslint-disable-next-line
+                    console.warn(`Error fetching gene feature types: ${e.message}`);
+                });
+        } else if (!projectId) {
+            // warn user if we were unable to determine track's project
+            // eslint-disable-next-line
+            console.warn(`Unknown project for gene track:`, this.name);
+        }
+    }
+
+    featureTypesChanged () {
+        // todo: refresh histogram cache
     }
 
     clearData() {
@@ -375,8 +421,7 @@ export class GENETrack extends CachedTrack {
                 return await super.updateCache(this.viewport);
             }
             return false;
-        }
-        else {
+        } else {
             return await super.updateCache(this.viewport);
         }
     }
