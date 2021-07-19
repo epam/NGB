@@ -218,7 +218,7 @@ public class ReferenceController extends AbstractRESTController {
         return Result.success(featureIndexSecurityService.searchFeaturesByReference(geneFilterForm, referenceId));
     }
 
-    @PostMapping(value = "/reference/{referenceId}/export/gene")
+    @PostMapping(value = "/reference/{referenceId}/filter/gene/export")
     @ResponseBody
     @ApiOperation(
         value = "Searches for given filter parameters in a reference gene file, case-insensitive and exports " +

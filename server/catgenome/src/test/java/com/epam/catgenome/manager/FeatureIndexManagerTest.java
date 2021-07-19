@@ -191,6 +191,9 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     @Autowired
     private ApplicationContext context;
 
+    @Autowired
+    private ExportManager exportManager;
+
     private long referenceId;
     private Reference testReference;
     private Chromosome testChromosome;
@@ -1457,7 +1460,7 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         geneFilterForm.setPageSize(null);
         geneFilterForm.setAttributesFields(Arrays.asList("gene_version", "gene_source"));
 
-        assertNotNull(featureIndexManager.exportGenesByReference(geneFilterForm, referenceId, ExportFormat.TSV, true));
+        assertNotNull(exportManager.exportGenesByReference(geneFilterForm, referenceId, ExportFormat.TSV, true));
     }
 
     @Test

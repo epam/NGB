@@ -60,6 +60,9 @@ public class FeatureIndexSecurityService {
     @Autowired
     private FeatureIndexManager featureIndexManager;
 
+    @Autowired
+    private ExportManager exportManager;
+
     @PreAuthorize(ROLE_USER)
     public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(final String featureId,
                                                                           final Long referenceId) throws IOException {
@@ -133,6 +136,6 @@ public class FeatureIndexSecurityService {
     @PreAuthorize(ROLE_USER)
     public byte[] exportFeaturesByReference(final GeneFilterForm geneFilterForm, final Long referenceId,
                                             final ExportFormat format, final boolean includeHeader) throws IOException {
-        return featureIndexManager.exportGenesByReference(geneFilterForm, referenceId, format, includeHeader);
+        return exportManager.exportGenesByReference(geneFilterForm, referenceId, format, includeHeader);
     }
 }
