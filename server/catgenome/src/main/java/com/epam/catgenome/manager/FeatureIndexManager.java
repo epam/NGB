@@ -67,6 +67,7 @@ import com.epam.catgenome.manager.reference.BookmarkManager;
 import com.epam.catgenome.manager.reference.ReferenceGenomeManager;
 import com.epam.catgenome.manager.vcf.VcfFileManager;
 import com.epam.catgenome.manager.vcf.VcfManager;
+import com.epam.catgenome.util.ExportFormat;
 import com.epam.catgenome.util.Utils;
 import com.epam.catgenome.util.feature.reader.AbstractFeatureReader;
 import htsjdk.samtools.util.CloseableIterator;
@@ -85,8 +86,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -98,6 +101,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.epam.catgenome.dao.index.searcher.AbstractIndexSearcher.getIndexSearcher;
+import static com.epam.catgenome.util.Utils.NEW_LINE;
 
 /**
  * Source:      VcfIndexManager
@@ -114,6 +118,7 @@ import static com.epam.catgenome.dao.index.searcher.AbstractIndexSearcher.getInd
 public class FeatureIndexManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureIndexManager.class);
     private static final String VCF_FILE_IDS_FIELD = "vcfFileIds";
+    private static final List<String> GENE_FIELDS = Arrays.asList("Source", "Score", "Strand", "Frame", "Feature");
 
     @Autowired
     private FileManager fileManager;
@@ -363,7 +368,6 @@ public class FeatureIndexManager {
     private IndexSearchResult<GeneIndexEntry> getGeneSearchResult(final GeneFilterForm filterForm,
                                                                      final List<? extends FeatureFile> featureFiles)
             throws IOException {
-        Assert.notNull(filterForm.getPageSize(), "Page size shall be specified");
         final LuceneIndexSearcher<GeneIndexEntry> indexSearcher =
                 getIndexSearcher(filterForm, featureIndexDao, fileManager, taskExecutorService.getSearchExecutor());
         final Sort sort = Optional.ofNullable(
@@ -371,9 +375,8 @@ public class FeatureIndexManager {
                 .orElseGet(filterForm::defaultSort);
         final IndexSearchResult<GeneIndexEntry> res =
                 indexSearcher.getSearchResults(featureFiles, filterForm.computeQuery(), sort);
-
-        res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount()
-                / filterForm.getPageSize().doubleValue()));
+        res.setTotalPagesCount(filterForm.getPageSize() != null ? (int) Math.ceil(res.getTotalResultsCount()
+                    / filterForm.getPageSize().doubleValue()) : 1);
         return res;
     }
 
@@ -410,6 +413,42 @@ public class FeatureIndexManager {
     public IndexSearchResult<GeneIndexEntry> searchGenesByReference(final GeneFilterForm filterForm,
                                                                        final long referenceId) throws IOException {
         return getGeneSearchResult(filterForm, getGeneFilesForReference(referenceId, filterForm.getFileIds()));
+    }
+
+    public byte[] exportGenesByReference(final GeneFilterForm filterForm, final long referenceId,
+                                         final ExportFormat format, final boolean includeHeader) throws IOException {
+        IndexSearchResult<GeneIndexEntry> indexSearchResult = getGeneSearchResult(filterForm,
+                getGeneFilesForReference(referenceId, filterForm.getFileIds()));
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        final List<String> additionalFields = filterForm.getAdditionalFields();
+        if (includeHeader) {
+            String header = String.join(format.getSeparator(), GENE_FIELDS) +
+                    (CollectionUtils.isEmpty(additionalFields) ? "" :
+                            format.getSeparator() + String.join(format.getSeparator(), additionalFields)) +
+                    NEW_LINE;
+            outputStream.write(header.getBytes());
+        }
+
+        for (GeneIndexEntry geneIndexEntry: indexSearchResult.getEntries()) {
+            List<String> additionalValues = new ArrayList<>();
+            if (additionalFields != null) {
+                Map<String, String> attributes = geneIndexEntry.getAttributes();
+                for (String field: additionalFields) {
+                    if (attributes != null) {
+                        additionalValues.add(attributes.getOrDefault(field, null));
+                    }
+                }
+            }
+            String line = geneIndexEntry.getSource() + format.getSeparator() +
+                    geneIndexEntry.getScore() + format.getSeparator() +
+                    geneIndexEntry.getStrand() + format.getSeparator() +
+                    geneIndexEntry.getFrame() + format.getSeparator() +
+                    geneIndexEntry.getFeature() +
+                    (CollectionUtils.isEmpty(additionalFields) ? "" :
+                            format.getSeparator() + String.join(format.getSeparator(), additionalValues)) + NEW_LINE;
+            outputStream.write(line.getBytes());
+        }
+        return outputStream.toByteArray();
     }
 
     public GeneFilterInfo getAvailableGeneFieldsToSearch(final Long referenceId, ItemsByProject fileIdsByProjectId) {

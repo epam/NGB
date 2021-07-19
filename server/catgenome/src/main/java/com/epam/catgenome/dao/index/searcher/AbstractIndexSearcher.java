@@ -67,8 +67,10 @@ public abstract class AbstractIndexSearcher<T extends FeatureIndexEntry, R exten
 
         if (filterForm.getPointer() != null) {
             return new NextPageSearcher<T, R>(featureIndexDao, fileManager, filterForm, executorService);
-        } else {
+        } else if (filterForm.getPageSize() != null) {
             return new PagingSearcher<T, R>(featureIndexDao, fileManager, filterForm, executorService);
+        } else {
+            return new Searcher<T, R>(featureIndexDao, fileManager, filterForm, executorService);
         }
     }
 

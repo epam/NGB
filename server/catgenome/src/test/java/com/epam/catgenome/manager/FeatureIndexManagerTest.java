@@ -42,6 +42,7 @@ import com.epam.catgenome.entity.bed.BedFile;
 import com.epam.catgenome.entity.gene.GeneFilterInfo;
 import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.manager.bed.BedManager;
+import com.epam.catgenome.util.ExportFormat;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -1446,6 +1447,17 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
 
         assertEquals(TEST_PAGE_SIZE, featureIndexManager.searchGenesByReference(geneFilterForm, referenceId)
                 .getEntries().size());
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testExportGeneTable() throws IOException {
+        final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
+        geneFilterForm.setPointer(null);
+        geneFilterForm.setPageSize(null);
+        geneFilterForm.setAttributesFields(Arrays.asList("gene_version", "gene_source"));
+
+        assertNotNull(featureIndexManager.exportGenesByReference(geneFilterForm, referenceId, ExportFormat.TSV, true));
     }
 
     @Test

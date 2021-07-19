@@ -89,6 +89,7 @@ public final class Utils {
     private static final String ORDER_BY_CLAUSE = " order by %s";
     private static final int DEFAULT_PAGE_SIZE = 20;
     private static final int DEFAULT_PAGE_NUM = 0;
+    public static final String NEW_LINE = "\n";
 
     private Utils() {
         // no operations by default

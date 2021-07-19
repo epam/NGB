@@ -38,6 +38,7 @@ import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
 import com.epam.catgenome.security.acl.aspect.AclFilter;
 import com.epam.catgenome.security.acl.aspect.AclMapFilter;
+import com.epam.catgenome.util.ExportFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -127,5 +128,11 @@ public class FeatureIndexSecurityService {
     public Set<String> getAvailableFieldValues(final Long referenceId, final ItemsByProject fileIdsByProjectId,
                                                final String fieldName) {
         return featureIndexManager.getAvailableFieldValues(referenceId, fileIdsByProjectId, fieldName);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public byte[] exportFeaturesByReference(final GeneFilterForm geneFilterForm, final Long referenceId,
+                                            final ExportFormat format, final boolean includeHeader) throws IOException {
+        return featureIndexManager.exportGenesByReference(geneFilterForm, referenceId, format, includeHeader);
     }
 }
