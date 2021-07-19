@@ -24,8 +24,12 @@
 
 package com.epam.catgenome.manager.gene.parser;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Source:      GffFeature.java
@@ -186,7 +190,7 @@ public class GffFeature implements GeneFeature {
         for (String group : groups) {
             String[] keyValue = group.split("=");
             if (keyValue.length == 2) {
-                attributes.put(keyValue[0], keyValue[1]);
+                attributes.put(decodeAttribute(keyValue[0]), decodeAttribute(keyValue[1]));
             }
         }
         return getGeneId();
@@ -327,6 +331,13 @@ public class GffFeature implements GeneFeature {
             return false;
         }
         return feature.equals(f.feature);
+    }
 
+    private String decodeAttribute(final String attribute) {
+        try {
+            return Objects.nonNull(attribute) ? URLDecoder.decode(attribute, StandardCharsets.UTF_8.toString()) : null;
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("Cannot decode GFF attribute", e);
+        }
     }
 }
