@@ -4,6 +4,9 @@
             At this scale - features density is shown as a histogram.<br>
             Zoom-in to see exact features.
         </div>
+        <div class="track-notification-text" ng-if="$ctrl.isBLASTPNotification">
+            Please note, that BLASTp results visualisation does not show exact location of the alignment (due to the AA to nucleotide coordinates mapping). Whole gene feature is highlighted instead.
+        </div>
         <ng-md-icon class="track-notification-close-button"
                     ng-click="$ctrl.closeNotification()"
                     icon="clear"

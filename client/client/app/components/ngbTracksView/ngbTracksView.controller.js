@@ -247,9 +247,17 @@ export default class ngbTracksViewController extends baseController {
         return this.isFirstTrackOfTypes(track, 'GENE', 'BED', 'FEATURE_COUNTS');
     }
 
+    isFirstBlastTrack (track) {
+        const [firstTrack] = (this.tracks || []).filter(t => t.format === 'BLAST');
+        return firstTrack === track;
+    }
+
     getTrackNotification (track) {
         if (this.isFirstGeneOrBedTrack(track)) {
             return NotificationsContext.NotificationType.GeneHistogramNotification;
+        }
+        if (this.isFirstBlastTrack(track)) {
+            return NotificationsContext.NotificationType.BLASTPNotification;
         }
         return undefined;
     }

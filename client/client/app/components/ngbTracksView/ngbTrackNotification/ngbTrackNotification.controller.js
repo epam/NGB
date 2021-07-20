@@ -15,6 +15,10 @@ export default class ngbTrackNotificationController {
         return this.notification === NotificationsContext.NotificationType.GeneHistogramNotification;
     }
 
+    get isBLASTPNotification () {
+        return this.notification === NotificationsContext.NotificationType.BLASTPNotification;
+    }
+
     get visible () {
         return !this.notificationsContext.notificationIsShown(this.notification) &&
             this.getAdditionalVisibilityCriteria();
@@ -33,6 +37,9 @@ export default class ngbTrackNotificationController {
                         this.trackInstance.viewport,
                         this.trackInstance.cache
                     );
+            case NotificationsContext.NotificationType.BLASTPNotification:
+                return this.trackInstance &&
+                    this.trackInstance.cache.isProtein === true;
         }
         return true;
     }

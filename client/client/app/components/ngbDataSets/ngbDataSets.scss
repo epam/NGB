@@ -38,6 +38,7 @@ $folder-line: #cccccc;
   text-align: center;
   border-radius: 3px;
   border: 1px solid darken($unselected-color, 10%);
+  overflow: hidden;
 
   &.selected {
     background-color: $selected-color;
