@@ -336,11 +336,20 @@ export default class ngbTracksViewController extends baseController {
     }
 
     set notificationStyle(track) {
-        // const trackContainer = track.instance.domElement.getBoundingClientRect();
-        // const top = trackContainer.top + pageYOffset;
+        const tracks = this.projectContext.getActiveTracks();
+        const trackIndex = tracks.findIndex(track => track.format === 'GENE' || track.format === 'BED');
+        const headers = 24 * (trackIndex + 1);// height of all above track's headers plus this track's
+        let heights = 0;
+        tracks.map((track, index) => {
+            if (index < trackIndex) {
+                // height of all above tracks
+                heights += track.instance.domElement.getBoundingClientRect().height;
+            }
+            return track;
+        });
         this._notificationStyle = {
-            // 'top': '440'
-        }
+            'top': heights + headers
+        };
     }
 
     get showNotification () {
