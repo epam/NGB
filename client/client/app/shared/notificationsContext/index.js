@@ -6,7 +6,8 @@ class NotificationsContext {
     }
 
     static NotificationType = {
-        GeneHistogramNotification: 'gene-histogram'
+        GeneHistogramNotification: 'gene-histogram',
+        BlastPNotification: 'blastp'
     };
 
     /**
@@ -14,7 +15,8 @@ class NotificationsContext {
      * @type {{[NotificationsContext.NotificationType]: number}}
      */
     static NotificationVersions = {
-        [NotificationsContext.NotificationType.GeneHistogramNotification]: 1
+        [NotificationsContext.NotificationType.GeneHistogramNotification]: 1,
+        [NotificationsContext.NotificationType.BlastPNotification]: 1
     };
 
     constructor () {
