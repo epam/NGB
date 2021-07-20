@@ -12,4 +12,8 @@ stack: jdk 8, python 3
 
 build_script:
   - python3 -m pip install mkdocs mkdocs-material
+  - bash build.sh
+  - ./gradlew jacocoTestReport
+  - bash <(curl -s https://codecov.io/bash)
+  - ./publish.sh
 test: off
