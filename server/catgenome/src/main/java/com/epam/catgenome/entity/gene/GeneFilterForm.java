@@ -223,7 +223,8 @@ public class GeneFilterForm extends AbstractFilterForm {
             final BooleanQuery.Builder featureTypeBuilder = new BooleanQuery.Builder();
             for (String type : featureTypes) {
                 featureTypeBuilder.add(new TermQuery(new Term(
-                                FeatureIndexDao.FeatureIndexFields.FEATURE_TYPE.getFieldName(), type)),
+                                FeatureIndexDao.FeatureIndexFields.FEATURE_TYPE.getFieldName(),
+                                StringUtils.upperCase(type))),
                         BooleanClause.Occur.SHOULD);
             }
             builder.add(featureTypeBuilder.build(), BooleanClause.Occur.MUST);
