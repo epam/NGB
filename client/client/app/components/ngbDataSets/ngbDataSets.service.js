@@ -241,6 +241,21 @@ export default class ngbDataSetsService {
         }
         this.navigateToTracks(datasets, forceReference);
         this.dispatcher.emitSimpleEvent('dataset:selection:change');
+
+        if (item.format === 'GENE' || item.format === 'BED') {
+            const tracks = this.projectContext.getActiveTracks()
+                .filter(track => track.format === 'GENE' || track.format === 'BED');
+            if (tracks && tracks.length === 0) {
+                if (!isSelected) {
+                    if (this.projectContext.notificationPreviousData) {
+                        this.projectContext.notificationPreviousData.track = null;
+                    }
+                    this.dispatcher.emitSimpleEvent('track:notification:close');
+                } else {
+                    this.dispatcher.emitSimpleEvent('track:notification:open');
+                }
+            }
+        }
     }
 
     updateTracksState(datasets, forceReference) {

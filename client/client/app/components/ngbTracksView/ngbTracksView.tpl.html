@@ -13,6 +13,29 @@
                 </div>
                 <div dnd-list="ctrl.tracks">
                         <div class="dndPlaceholder"></div>
+                        <div
+                                ng-if="ctrl.showNotification"
+                                class="notification-dialog-container"
+                                ng-style="ctrl.notificationStyle"
+                        >
+                                <div class="notification-dialog-content">
+                                        At this scale - features density is shown as a histogram.<br>
+                                        Zoom-in to see exact features.
+                                </div>
+                                <div class="notification-dialog-actions">
+                                        <input type="checkbox"
+                                                class="notification-dialog-checkbox"
+                                                ng-checked="!ctrl.showNotificationAgain"
+                                                ng-click="ctrl.notificationOnChangeShow()">
+                                                Do not show this notification again
+                                        </input>
+                                        <button aria-label="Close notification"
+                                                class="notification-dialog-close"
+                                                ng-click="ctrl.notificationOnClose()">
+                                                X
+                                        </button>
+                                </div>
+                        </div>
                         <ngb-track
                                 ng-repeat="track in ctrl.tracks track by ctrl.trackHash(track)"
                                 dnd-draggable="track"

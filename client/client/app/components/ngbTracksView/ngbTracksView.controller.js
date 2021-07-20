@@ -28,6 +28,9 @@ export default class ngbTracksViewController extends baseController {
     projectContext;
     selectionContext;
     trackNamingService;
+    showNotificationAgain = true;
+    _showNotification = false;
+
 
     static get UID() {
         return 'ngbTracksViewController';
@@ -78,7 +81,8 @@ export default class ngbTracksViewController extends baseController {
                             .then(async() => {
                                 await this.INIT();
                             })
-                            .then(this.refreshTracksScope);
+                            .then(this.refreshTracksScope)
+                            .then(this.checkNotification);
                     },
                     'position:select': ::this.selectPosition,
                     'viewport:position': ::this.setViewport,
@@ -103,7 +107,9 @@ export default class ngbTracksViewController extends baseController {
                 .then(::this.refreshTracksScope);
         },
         'tracks:fit:height': ::this.fitTracksHeights,
-        'hotkeyPressed': ::this.hotKeyListener
+        'hotkeyPressed': ::this.hotKeyListener,
+        'track:notification:close': ::this.notificationOnClose,
+        'track:notification:open': ::this.notificationOnOpen
     };
 
     hotKeyListener(event) {
@@ -234,6 +240,7 @@ export default class ngbTracksViewController extends baseController {
             );
 
         this.renderable = true;
+        this.checkNotification();
     }
 
     fitTracksHeights() {
@@ -322,6 +329,83 @@ export default class ngbTracksViewController extends baseController {
 
     trackHash(track) {
         return `[${track.bioDataItemId}][${track.projectId}][${track.duplicateId || ''}]`;
+    }
+
+    get notificationStyle() {
+        return this._notificationStyle;
+    }
+
+    set notificationStyle(track) {
+        // const trackContainer = track.instance.domElement.getBoundingClientRect();
+        // const top = trackContainer.top + pageYOffset;
+        this._notificationStyle = {
+            // 'top': '440'
+        }
+    }
+
+    get showNotification () {
+        return this._showNotification;
+    }
+
+    set showNotification(value) {
+        this._showNotification = value;
+    }
+
+    checkNotification() {
+        if (this.chromosome) {
+            const tracks = this.projectContext.getActiveTracks();
+            const trackIndex = tracks.findIndex(
+                track => track.format === 'GENE' || track.format === 'BED');
+            const track = tracks[trackIndex];
+            if (track && track.referenceId === this.chromosome.referenceId) {
+                setTimeout(() => this.notificationStyle = track);
+
+                if (
+                    localStorage.showZoomNotification &&
+                    localStorage.getItem('showZoomNotification') === 'false'
+                ) {
+                    this.showNotification = false;
+                } else if (this.projectContext.notificationPreviousData) {
+                    if (
+                        this.projectContext._currentChromosome.id !==
+                        this.projectContext.notificationPreviousData.chromosome
+                    ) {
+                        this.showNotification = true;
+                    } else {
+                        this.showNotification = this.projectContext.notificationPreviousData.track !== track.id;
+                    }
+                } else if (!this.projectContext.notificationPreviousData) {
+                    this.showNotification = true;
+                }
+
+                if (this.showNotification) {
+                    this.projectContext.notificationPreviousData = {
+                        chromosome: this.projectContext._currentChromosome.id,
+                        track: track.id
+                    };
+                }
+            }
+        }
+    }
+
+    notificationOnClose() {
+        if (!this.showNotificationAgain) {
+            localStorage.setItem('showZoomNotification', Boolean(this.showNotificationAgain));
+        }
+        this.showNotification = false;
+    }
+
+    notificationOnOpen() {
+        if (localStorage.showZoomNotification &&
+            localStorage.getItem('showZoomNotification') === 'false'
+        ) {
+            return;
+        }
+        this.showNotification = true;
+    }
+
+    notificationOnChangeShow() {
+        this.showNotificationAgain = !this.showNotificationAgain;
     }
 }
 

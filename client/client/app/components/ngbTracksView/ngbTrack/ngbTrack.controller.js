@@ -438,6 +438,16 @@ export default class ngbTrackController {
             } else {
                 this.projectContext.changeState({tracksState});
             }
+            if (this.projectContext.notificationPreviousData) {
+                if (this.projectContext.notificationPreviousData.track === this.track.id) {
+                    const tracks = this.projectContext.getActiveTracks()
+                        .filter(track => track.format === 'GENE' || track.format === 'BED');
+                    if (tracks && tracks.length === 0) {
+                        this.projectContext.notificationPreviousData.track = null;
+                        this.dispatcher.emitSimpleEvent('track:notification:close');
+                    }
+                }
+            }
         }
         event.stopImmediatePropagation();
         event.stopPropagation();

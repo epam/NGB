@@ -19,3 +19,57 @@ ngb-tracks-selection-menu {
 ngb-tracks-view .dndHasDraggingElement ngb-track {
   transition: transform .25s ease-out;
 }
+
+.notification-dialog-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: absolute;
+  top: 450px;
+  right: 5px;
+  z-index: 100;
+  width: auto;
+  min-width: 100px;
+  max-width: 200px;
+	height: auto;
+	background-color: #FFFFFF;
+	border: 1px solid #EEEEEE;
+	border-radius: 10px;
+  padding: 10px;
+  font-size: 12px;
+}
+
+.notification-dialog-container:before {
+	content: ' ';
+	position: absolute;
+  z-index: 200;
+	width: 0;
+	height: 0;
+	top: -20px;
+  right: 50px;
+	border: 10px solid #EEEEEE;
+	border-color:  transparent #FFFFFF #FFFFFF transparent;
+}
+
+.notification-dialog-content {
+  font-size: 13px;
+  min-width: auto;
+}
+
+.notification-dialog-actions {
+  margin-top: 10px;;
+  min-height: auto;
+  justify-content: space-between;
+  display: flex;
+}
+
+.notification-dialog-checkbox {
+  align-content: flex-start;
+}
+
+.notification-dialog-close {
+  color: #FF4500;
+  min-width: 10px;
+  margin: 0px;
+  font-weight: bold;
+}
