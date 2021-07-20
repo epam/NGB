@@ -31,7 +31,7 @@ if [ $? -ne 0 ]; then
     exit 0
 fi
 
-if [[ "$APPVEYOR_REPO_BRANCH" == "develop" ]] || [[ "$APPVEYOR_REPO_BRANCH" == "release/"* ]]; then
+if [[ "$APPVEYOR_REPO_BRANCH" == "release/"* ]]; then
   docker login -u $DOCKER_USER -p $DOCKER_PSWD
   docker tag ngb:latest $DOCKER_USER/ngb:$NGB_VERSION
   docker push $DOCKER_USER/ngb:$NGB_VERSION
