@@ -1,4 +1,4 @@
-import  baseController from '../../../shared/baseController';
+import  baseController from '../../../../shared/baseController';
 
 export default class ngbGenesTableColumnController extends baseController {
 

@@ -25,45 +25,8 @@ const GENES_COLUMN_TITLES = {
     info: 'Info',
     molecularView: 'Molecular View'
 };
-const GENE_TYPE_LIST = [
-    {label: 'GENE', value: 'GENE'},
-    {label: 'MRNA', value: 'MRNA'},
-    {label: 'RRNA', value: 'RRNA'},
-    {label: 'CDS', value: 'CDS'},
-    {label: 'EXON', value: 'EXON'},
-    {label: 'UTR5', value: 'UTR5'},
-    {label: 'UTR3', value: 'UTR3'},
-    {label: 'UTR', value: 'UTR'},
-    {label: 'NCRNA', value: 'NCRNA'},
-    {label: 'TMRNA', value: 'TMRNA'},
-    {label: 'TRNA', value: 'TRNA'},
-    {label: 'OPERON', value: 'OPERON'},
-    {label: 'REGION', value: 'REGION'},
-    {label: 'REGULATORY', value: 'REGULATORY'},
-    {label: 'GENERIC_GENE_FEATURE', value: 'GENERIC_GENE_FEATURE'},
-    {label: 'START_CODON', value: 'START_CODON'},
-    {label: 'STOP_CODON', value: 'STOP_CODON'},
-];
-const GENE_TYPE_COLOR = {
-    GENE: '100',
-    MRNA: '200',
-    RRNA: '300',
-    CDS: '400',
-    EXON: '500',
-    UTR5: '600',
-    UTR3: '700',
-    UTR: '800',
-    NCRNA: '900',
-    TMRNA: 'A00',
-    TRNA: 'B00',
-    OPERON: 'C00',
-    REGION: 'D00',
-    REGULATORY: 'E00',
-    GENERIC_GENE_FEATURE: 'A700',
-    START_CODON: 'DEL',
-    STOP_CODON: 'INV',
-};
 const PAGE_SIZE = 100;
+const MAX_VISIBLE_PAGES = 3;
 const blockFilterGenesTimeout = 500;
 
 export default class ngbGenesTableService {
@@ -98,14 +61,6 @@ export default class ngbGenesTableService {
         return PAGE_SIZE;
     }
 
-    get geneTypeColor() {
-        return GENE_TYPE_COLOR;
-    }
-
-    get geneTypeList() {
-        return GENE_TYPE_LIST;
-    }
-
     _genesTableError = null;
 
     get genesTableError() {
@@ -121,6 +76,56 @@ export default class ngbGenesTableService {
     set orderByGenes(orderByGenes) {
         this._orderByGenes = orderByGenes;
     }
+
+    _pageList = [];
+
+    get nextPagePointer() {
+        return this._pageList[this.lastPage];
+    }
+
+    get prevPagePointer() {
+        return this._pageList[this.firstPage - 2];
+    }
+
+    get totalPages() {
+        return this._pageList.length;
+    }
+
+    get maxVisiblePages() {
+        return MAX_VISIBLE_PAGES;
+    }
+
+    _firstPage = 0;
+
+    get firstPage() {
+        return this._firstPage;
+    }
+
+    set firstPage(value) {
+        this._firstPage = value;
+    }
+
+    _lastPage = -1; // because initial loading is the same method as scrollDown
+
+    get lastPage() {
+        return this._lastPage;
+    }
+
+    set lastPage(value) {
+        this._lastPage = value;
+    }
+
+    _lastPageLength = 0;
+
+    get lastPageLength() {
+        return this._lastPageLength;
+    }
+
+    getPage(page) {
+        return this._pageList[page];
+    }
+
+    _geneTypeList = [];
 
     _genesFilterIsDefault = true;
 
@@ -176,6 +181,16 @@ export default class ngbGenesTableService {
         return this._optionalGenesColumns;
     }
 
+    get geneTypeList() {
+        return this._geneTypeList;
+    }
+
+    resetPagination() {
+        this._pageList = [];
+        this._firstPage = 0;
+        this._lastPage = -1;
+    }
+
     static instance(dispatcher, genomeDataService, projectContext, uiGridConstants) {
         return new ngbGenesTableService(dispatcher, genomeDataService, projectContext, uiGridConstants);
     }
@@ -193,6 +208,13 @@ export default class ngbGenesTableService {
             this._optionalGenesColumns = OPTIONAL_GENE_COLUMNS.concat(data.availableFilters);
             this.dispatcher.emit('genes:info:loaded');
         });
+        this.genomeDataService.filterGeneValues(this.projectContext.reference.id, 'featureType').then(data => {
+            this._geneTypeList = data.map(type => ({
+                label: type.toUpperCase(),
+                value: type.toUpperCase()
+            }));
+            this.dispatcher.emit('genes:values:loaded');
+        });
     }
 
     setDisplayGenesFilter(value, updateScope = true) {
@@ -203,7 +225,7 @@ export default class ngbGenesTableService {
         }
     }
 
-    async loadGenes(reference, page) {
+    async loadGenes(reference, isScrollTop) {
         const filter = {
             chromosomeIds: this.genesFilter.chromosome || [],
             startIndex: this.genesFilter.start,
@@ -214,7 +236,7 @@ export default class ngbGenesTableService {
             additionalFilters: this.genesFilter.additionalFilters || {},
             attributesFields: this.genesTableColumns.filter(c => !this.defaultGenesColumns.includes(c)),
             pageSize: this.genesPageSize,
-            pointer: page,
+            pointer: isScrollTop ? this.prevPagePointer : this.nextPagePointer,
             orderBy: (this.orderByGenes || []).map(config => ({
                 field: config.field,
                 desc: !config.ascending
@@ -227,7 +249,7 @@ export default class ngbGenesTableService {
             filter.sources = [this.genesFilter.source];
         }
         if (this.genesFilter.strand) {
-            switch(this.genesFilter.strand) {
+            switch (this.genesFilter.strand) {
                 case '+': {
                     filter.strands = ['POSITIVE'];
                     break;
@@ -252,14 +274,16 @@ export default class ngbGenesTableService {
             );
             this._genesTableError = null;
             this._hasMoreGenes = !!data.pointer;
-            this.nextPageMarker = data.pointer;
-            let filteredData = [];
-            if (data.entries) {
-                filteredData = (data.entries || [])
-                    .map(this._formatServerToClient.bind(this))
-                    .map(feature => ({...feature, referenceId: reference}));
+            if (isScrollTop) {
+                this._pageList.pop();
+            } else if (data.pointer) {
+                this._pageList.push(data.pointer);
             }
-            return filteredData;
+            this._lastPageLength = (data.entries || []).length;
+            this.nextPageMarker = data.pointer;
+            return (data.entries || [])
+                .map(this._formatServerToClient.bind(this))
+                .map(feature => ({...feature, referenceId: reference}));
         } catch (e) {
             this._hasMoreGenes = false;
             this._genesTableError = e.message;
@@ -319,12 +343,12 @@ export default class ngbGenesTableService {
                 case 'type': {
                     columnSettings = {
                         cellTemplate: `<div class="md-label variation-type"
-                                    md-colors="{background: 'accent-{{grid.appScope.$ctrl.geneTypeColor[COL_FIELD]}}',color:'background-900'}"
+                                    ng-style="grid.appScope.$ctrl.getStyle(COL_FIELD)"
                                     ng-class="COL_FIELD CUSTOM_FILTERS" >{{row.entity.feature}}</div>`,
                         enableHiding: false,
                         field: 'type',
                         filter: {
-                            selectOptions: GENE_TYPE_LIST,
+                            selectOptions: this.geneTypeList,
                             term: '',
                             type: this.uiGridConstants.filter.SELECT
                         },
@@ -445,5 +469,49 @@ export default class ngbGenesTableService {
         if (!this.projectContext.genesFilterIsDefault) {
             this.clearGenesFilter();
         }
+    }
+
+    hashCode(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return 100 * hash;
+    }
+
+    intToRGB(i) {
+        const c = (i & 0x00FFFFFF)
+            .toString(16)
+            .toUpperCase();
+
+        return `#${'00000'.substring(0, 6 - c.length)}${c}`;
+    }
+
+    determineDarkness(color) {
+        const parsedColor = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
+
+        const r = parseInt(parsedColor[1], 16);
+        const g = parseInt(parsedColor[2], 16);
+        const b = parseInt(parsedColor[3], 16);
+
+        // HSP (Highly Sensitive Poo) equation from http://alienryderflex.com/hsp.html
+        const hsp = Math.sqrt(
+            0.299 * (r * r) +
+            0.587 * (g * g) +
+            0.114 * (b * b)
+        );
+
+        // Using the HSP value, determine whether the color is light or dark
+        return hsp > 127.5 ? '#000' : '#fff';
+    }
+
+    getStyle(context) {
+        return str => {
+            const color = context.intToRGB(context.hashCode(str));
+            return {
+                'background-color': color,
+                'color': context.determineDarkness(color)
+            };
+        };
     }
 }

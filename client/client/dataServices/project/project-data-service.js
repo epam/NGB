@@ -61,7 +61,11 @@ export class ProjectDataService extends DataService {
         return new Promise((resolve) => {
             this.get(`reference/${referenceId}/search?featureId=${featureId}`).then((data) => {
                 if (data && data.entries) {
-                    resolve(data.entries.map(e => e[displayField]));
+                    if (displayField) {
+                        resolve(data.entries.map(e => e.featureName));
+                    } else {
+                        resolve(data.entries);
+                    }
                 } else {
                     resolve([]);
                 }

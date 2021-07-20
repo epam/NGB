@@ -32,6 +32,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.search.FieldDoc;
 import org.apache.lucene.search.IndexSearcher;
@@ -44,6 +45,7 @@ import org.apache.lucene.util.BytesRef;
  */
 @Data
 @NoArgsConstructor
+@Slf4j
 public class Pointer {
     /** The score of this document for the query. */
     private float score;
@@ -99,10 +101,20 @@ public class Pointer {
         FieldRefType type;
 
         public Object toField() {
-            if (type == FieldRefType.BYTES_REF) {
-                return new BytesRef((String) ref);
-            } else {
-                return ref;
+            switch (type) {
+                case BYTES_REF:
+                    return new BytesRef((String) ref);
+                case INTEGER:
+                    return Integer.parseInt(ref.toString());
+                case DOUBLE:
+                    return Double.parseDouble(ref.toString());
+                case FLOAT:
+                    return Float.parseFloat(ref.toString());
+                case LONG:
+                    return Long.parseLong(ref.toString());
+                default:
+                    log.debug("Cannot determine field type");
+                    return ref;
             }
         }
 
@@ -111,14 +123,32 @@ public class Pointer {
                 return FieldRef.builder().type(FieldRefType.BYTES_REF)
                         .ref(((BytesRef)ref).utf8ToString()).build();
 
-            } else {
-                return FieldRef.builder().type(FieldRefType.PLAIN)
-                        .ref(ref).build();
             }
+            return FieldRef.builder()
+                    .type(getRefType(ref))
+                    .ref(ref)
+                    .build();
+        }
+
+        private static FieldRefType getRefType(final Object ref) {
+            if (ref instanceof Integer) {
+                return FieldRefType.INTEGER;
+            }
+            if (ref instanceof Double) {
+                return FieldRefType.DOUBLE;
+            }
+            if (ref instanceof Float) {
+                return FieldRefType.FLOAT;
+            }
+            if (ref instanceof Long) {
+                return FieldRefType.LONG;
+            }
+            log.debug("Failed to determine field type");
+            return FieldRefType.PLAIN;
         }
 
         public enum FieldRefType {
-            BYTES_REF, PLAIN
+            BYTES_REF, PLAIN, INTEGER, DOUBLE, FLOAT, LONG
         }
     }
 

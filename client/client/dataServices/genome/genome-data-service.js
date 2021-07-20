@@ -134,4 +134,28 @@ export class GenomeDataService extends DataService {
                 .catch(reject);
         });
     }
+
+    filterGeneValues(reference, fieldName, filter = {}) {
+        return new Promise((resolve, reject) => {
+            this.post(`reference/${reference}/filter/gene/values?fieldName=${fieldName}`, filter)
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        reject(new Error('No gene values received'));
+                    }
+                })
+                .catch(reject);
+        });
+    }
+
+    getGeneFeatureTypes(referenceId, projectId, geneFileId) {
+        return this.filterGeneValues(
+            referenceId,
+            'featureType',
+            {
+                value: {[projectId]: [geneFileId]}
+            }
+        );
+    }
 }
