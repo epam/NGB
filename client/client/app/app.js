@@ -21,6 +21,7 @@ import angularUiRouter from 'angular-ui-router';
 import projectContext from './shared/projectContext';
 import SelectionContext from './shared/selectionContext';
 import BLASTContext from './shared/blastContext';
+import NotificationsContext from './shared/notificationsContext';
 import config from './app.config';
 import controller from './app.controller';
 import {dispatcher} from './shared/dispatcher';
@@ -68,4 +69,5 @@ export default angular.module('NGB', [
     .service('lastActionRepeater', lastActionRepeater.instance)
     .constant('appLayout', layoutConstant)
     .service('groupAutoScaleManager', GroupAutoScaleManager.instance)
+    .service('notificationsContext', NotificationsContext.instance)
     .name;

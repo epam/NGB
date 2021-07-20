@@ -1,0 +1,22 @@
+<div class="ngb-track-notification" ng-class="{'visible': $ctrl.visible}">
+    <div class="ngb-track-notification-content">
+        <div class="track-notification-text" ng-if="$ctrl.isGeneHistogramNotification">
+            At this scale - features density is shown as a histogram.<br>
+            Zoom-in to see exact features.
+        </div>
+        <ng-md-icon class="track-notification-close-button"
+                    ng-click="$ctrl.closeNotification()"
+                    icon="clear"
+                    size="16"></ng-md-icon>
+        <div class="track-notification-dialog-checkbox-container">
+            <input id="notification-{{$ctrl.notification}}"
+                   type="checkbox"
+                   class="track-notification-dialog-checkbox"
+                   ng-model="$ctrl.closePermanently">
+            </input>
+            <label for="notification-{{$ctrl.notification}}" style="margin-left: 5px">
+                Do not show this notification again
+            </label>
+        </div>
+    </div>
+</div>

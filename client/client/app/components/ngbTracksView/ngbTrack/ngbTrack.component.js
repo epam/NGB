@@ -9,7 +9,8 @@ export default {
         state: '=',
         track: '=',
         trackOpts: '=',
-        viewport: '='
+        viewport: '=',
+        notification: '='
     },
     controller: controller.UID,
     controllerAs: 'ctrl',

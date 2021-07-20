@@ -186,4 +186,10 @@
             dnd-nodrag
             class="ngb-resize-panel"
             flex="100"></div>
+    <ngb-track-notification
+            ng-if="!!ctrl.notification"
+            dnd-nodrag
+            notification="ctrl.notification"
+            track-instance="ctrl.trackInstance">
+    </ngb-track-notification>
 </div>
