@@ -1,0 +1,28 @@
+ngb-variants-table-download {
+  display: block;
+  padding: 0;
+
+  .md-button.md-icon-button {
+    padding: 0;
+    margin: 0;
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    min-height: 24px;
+
+    ng-md-icon {
+      fill: #FFF;
+    }
+  }
+}
+
+.download-dlb-content {
+  min-width:600px;
+  max-width: 800px;
+  margin: 10px 30px;
+  padding: 10px;
+}
+
+.download-dlb-select-container {
+  width: 100%;
+}

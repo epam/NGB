@@ -225,7 +225,7 @@ export default class ngbGenesTableService {
         }
     }
 
-    async loadGenes(reference, isScrollTop) {
+    getRequestFilter(isScrollTop) {
         const filter = {
             chromosomeIds: this.genesFilter.chromosome || [],
             startIndex: this.genesFilter.start,
@@ -266,6 +266,11 @@ export default class ngbGenesTableService {
                 right: this.genesFilter.score[1]
             };
         }
+        return filter;
+    }
+
+    async loadGenes(reference, isScrollTop) {
+        const filter = this.getRequestFilter(isScrollTop);
         this.refreshGenesFilterEmptyStatus();
         try {
             const data = await this.genomeDataService.loadGenes(
@@ -289,6 +294,17 @@ export default class ngbGenesTableService {
             this._genesTableError = e.message;
             return [];
         }
+    }
+
+    downloadFile(reference, format, includeHeader) {
+        return {};
+        // return this.genomeDataService.downloadGenes(
+        //     reference,
+        //     {
+        //         format: format,
+        //         header: includeHeader,
+        //         ...this.getRequestFilter(false)
+        //     });
     }
 
     getGenesGridColumns() {
