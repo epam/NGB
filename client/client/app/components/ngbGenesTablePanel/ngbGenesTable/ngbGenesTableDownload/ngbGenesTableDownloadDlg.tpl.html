@@ -1,0 +1,41 @@
+<md-dialog aria-label="Settings">
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Download table data</h2>
+        <span flex></span>
+        <md-button aria-label="Close" class="md-icon-button" ng-click="ctrl.close()">
+          <ng-md-icon icon="clear" style="fill: #fff;"></ng-md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <md-dialog-content class="download-dlb-content">
+        <div class="row">
+            <md-input-container class="download-dlb-select-container">
+                <label>Format</label>
+                <md-select name="downloadFormat" ng-model="ctrl.downloadFormat" required>
+                    <md-option ng-repeat="format in ctrl.formatList track by $index"
+                               ng-value="format">
+                        {{ format.name }}
+                    </md-option>
+                </md-select>
+            </md-input-container>
+        </div>
+        <div class="row">
+            <md-checkbox aria-label="Include header row" flex
+                         ng-model="ctrl.includeHeader">
+                <div class="hint">
+                    Include header row
+                </div>
+            </md-checkbox>
+        </div>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+        <md-button class="md-primary" ng-click="ctrl.download($event)">
+            Download
+        </md-button>
+        <md-button ng-click="ctrl.close()" style="margin-right:20px;">
+            Cancel
+        </md-button>
+    </md-dialog-actions>
+</md-dialog>

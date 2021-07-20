@@ -349,11 +349,11 @@ export default class projectContext {
             this.variantsGroupByTypeError;
     }
 
-    get variantsPageLoading () {
+    get variantsPageLoading() {
         return this._variantsPageLoading;
     }
 
-    get variantsPageError () {
+    get variantsPageError() {
         return this._variantsPageError;
     }
 
@@ -440,9 +440,28 @@ export default class projectContext {
         return this._highlightProfileConditions;
     }
 
+    static analyzeTrackSettings(settings) {
+        for (const key in settings) {
+            if (settings.hasOwnProperty(key) && settings[key] !== undefined) {
+                switch ((typeof settings[key]).toLowerCase()) {
+                    case 'object':
+                        settings[key] = projectContext.analyzeTrackSettings(settings[key]);
+                        break;
+                    case 'string': {
+                        if (settings[key].indexOf('#') === 0) {
+                            settings[key] = parseInt(`0x${settings[key].substring(1)}`);
+                        }
+                    }
+                        break;
+                }
+            }
+        }
+        return settings;
+    }
+
     convertTracksStateToJson(tracksState) {
         const self = this;
-        const mapFn = function(ts) {
+        const mapFn = function (ts) {
             const convertValue = o => {
                 if (Array.isArray(o)) {
                     return (o || []).map(convertValue);
@@ -465,32 +484,6 @@ export default class projectContext {
         };
         const convertedState = tracksState.map(mapFn);
         return JSON.stringify(convertedState);
-    }
-
-    convertTracksStateFromJson(tracksState) {
-        const self = this;
-        const mapFn = function(ts) {
-            const convertValue = o => {
-                if (Array.isArray(o)) {
-                    return (o || []).map(convertValue);
-                } else if (o instanceof Object) {
-                    return mapFn(o);
-                }
-                return o;
-            };
-            const converted = {};
-            for (const attr in ts) {
-                if (ts.hasOwnProperty(attr)) {
-                    let convertedAttr = attr;
-                    if (self._tracksStateRevertRules.hasOwnProperty(attr)) {
-                        convertedAttr = self._tracksStateRevertRules[attr];
-                    }
-                    converted[convertedAttr] = convertValue(ts[attr]);
-                }
-            }
-            return converted;
-        };
-        return JSON.parse(tracksState).map(mapFn);
     }
 
     getTrackState(name, projectId) {
@@ -801,25 +794,35 @@ export default class projectContext {
         return undefined;
     }
 
-    static analyzeTrackSettings(settings) {
-        for (const key in settings) {
-            if (settings.hasOwnProperty(key) && settings[key] !== undefined) {
-                switch ((typeof settings[key]).toLowerCase()) {
-                    case 'object': settings[key] = projectContext.analyzeTrackSettings(settings[key]); break;
-                    case 'string': {
-                        if (settings[key].indexOf('#') === 0) {
-                            settings[key] = parseInt(`0x${settings[key].substring(1)}`);
-                        }
-                    } break;
+    convertTracksStateFromJson(tracksState) {
+        const self = this;
+        const mapFn = function (ts) {
+            const convertValue = o => {
+                if (Array.isArray(o)) {
+                    return (o || []).map(convertValue);
+                } else if (o instanceof Object) {
+                    return mapFn(o);
+                }
+                return o;
+            };
+            const converted = {};
+            for (const attr in ts) {
+                if (ts.hasOwnProperty(attr)) {
+                    let convertedAttr = attr;
+                    if (self._tracksStateRevertRules.hasOwnProperty(attr)) {
+                        convertedAttr = self._tracksStateRevertRules[attr];
+                    }
+                    converted[convertedAttr] = convertValue(ts[attr]);
                 }
             }
-        }
-        return settings;
+            return converted;
+        };
+        return JSON.parse(tracksState).map(mapFn);
     }
 
     setHighlightProfileConditions(highlightProfile) {
         const highlightProfileList = this.getTrackDefaultSettings('interest_profiles');
-        if(highlightProfileList && highlightProfileList[highlightProfile]) {
+        if (highlightProfileList && highlightProfileList[highlightProfile]) {
             this._highlightProfileConditions = highlightProfileList[highlightProfile].conditions.map(item => ({
                 highlightColor: item.highlight_color,
                 parsedCondition: vcfHighlightCondition.parseFullCondition(item.condition)
@@ -836,18 +839,18 @@ export default class projectContext {
     _getVcfCallbacks() {
         const dispatcher = this.dispatcher;
         const self = this;
-        const onSetToDefault = function() {
+        const onSetToDefault = function () {
             dispatcher.emitGlobalEvent('ngbFilter:setDefault', {});
         };
-        const onStart = function() {
+        const onStart = function () {
             dispatcher.emit('ngbColumns:change', self.vcfInfoColumns);
             dispatcher.emitGlobalEvent('variants:loading:started', {});
         };
-        const onFinish = function() {
+        const onFinish = function () {
             dispatcher.emitGlobalEvent('variants:loading:finished', {});
             dispatcher.emit('ngbColumns:change', self.vcfInfoColumns);
         };
-        const onInit = function() {
+        const onInit = function () {
             dispatcher.emit('variants:initialized', self.vcfInfo);
         };
         const groupByChromosome = {
@@ -978,8 +981,8 @@ export default class projectContext {
                             r.annotationFiles = [];
                         }
                         if (r.geneFile && r.annotationFiles.filter(a =>
-                                a.name.toLowerCase() === r.geneFile.name.toLowerCase() && a.format.toLowerCase() === r.geneFile.format.toLowerCase()
-                            ).length === 0) {
+                            a.name.toLowerCase() === r.geneFile.name.toLowerCase() && a.format.toLowerCase() === r.geneFile.format.toLowerCase()
+                        ).length === 0) {
                             r.geneFile.selected = true;
                             r.geneFile.isGeneFile = true;
                             r.annotationFiles.push(r.geneFile);
@@ -1021,7 +1024,7 @@ export default class projectContext {
                 this.dispatcher.emitGlobalEvent(...opts);
             }
         };
-        (async() => {
+        (async () => {
             const result = await this.changeStateAsync(state, callbacks);
             const {
                 chromosomeDidChange,
@@ -1153,7 +1156,7 @@ export default class projectContext {
             this._blockFilterVariants = null;
         }
         const callbacks = this._getVcfCallbacks();
-        this.filter({asDefault:true, callbacks});
+        this.filter({asDefault: true, callbacks});
         this._blockFilterVariants = setTimeout(() => {
             this._blockFilterVariants = null;
         }, blockFilterVariantsTimeout);
@@ -1220,7 +1223,8 @@ export default class projectContext {
             case 'startIndex': {
                 this.vcfFilter.startIndex = undefined;
                 this.vcfFilter.endIndex = undefined;
-            } break;
+            }
+                break;
             default: {
                 if (this.vcfFilter.additionalFilters) {
                     this.vcfFilter.additionalFilters[fieldName] = undefined;
@@ -1272,7 +1276,11 @@ export default class projectContext {
                 }
             });
         }
-        const {referenceDidChange, vcfFilesChanged, recoveredTracksState} = await this._changeProject(reference, tracks, tracksState, tracksReordering, shouldAddAnnotationTracks);
+        const {
+            referenceDidChange,
+            vcfFilesChanged,
+            recoveredTracksState
+        } = await this._changeProject(reference, tracks, tracksState, tracksReordering, shouldAddAnnotationTracks);
         const tracksStateDidChange = await this._changeTracksState(recoveredTracksState || tracksState);
         const chromosomeDidChange = this._changeChromosome(chromosome);
         if (chromosomeDidChange && !keepBLASTTrack) {
@@ -1382,10 +1390,10 @@ export default class projectContext {
                         const track = items[j];
                         if (track.name && track.format) {
                             const existingTrackStates = tracksState.filter(t =>
-                            (t.bioDataItemId.toString().toLowerCase() === track.name.toLowerCase() ||
-                            t.bioDataItemId.toString().toLowerCase() === track.bioDataItemId.toString().toLowerCase()) &&
-                            (t.projectId.toString().toLowerCase() === _projectName ||
-                            t.projectId.toString().toLowerCase() === _projectId));
+                                (t.bioDataItemId.toString().toLowerCase() === track.name.toLowerCase() ||
+                                    t.bioDataItemId.toString().toLowerCase() === track.bioDataItemId.toString().toLowerCase()) &&
+                                (t.projectId.toString().toLowerCase() === _projectName ||
+                                    t.projectId.toString().toLowerCase() === _projectId));
                             existingTrackStates.forEach(state => {
                                 state.bioDataItemId = track.name;
                             });
@@ -1824,6 +1832,7 @@ export default class projectContext {
         const tracksSettings = this.tracksState;
         tracksSettings.forEach(ts => ts.bioDataItemId = decodeURIComponent(ts.bioDataItemId));
         const referenceName = this.reference.name;
+
         function sortItems(file1, file2) {
             if (!tracksSettings) {
                 // reference should be first;
@@ -1836,19 +1845,22 @@ export default class projectContext {
                 }
                 return 0;
             }
+
             function findIndex(bioDataItemId, projectId, duplicateId = '') {
                 return (element) => element.bioDataItemId.toString().toLowerCase() === bioDataItemId.toString().toLowerCase() &&
                     element.projectId.toLowerCase() === projectId.toLowerCase() &&
                     `${element.duplicateId || ''}` === `${duplicateId}`;
             }
+
             const index1 = tracksSettings.findIndex(findIndex(file1.name.toLowerCase(), file1.projectId.toLowerCase(), file1.duplicateId));
             const index2 = tracksSettings.findIndex(findIndex(file2.name.toLowerCase(), file2.projectId.toLowerCase(), file2.duplicateId));
             return index1 - index2;
         }
+
         function filterItems(projectFiles) {
             if (!tracksSettings) return projectFiles;
             return projectFiles.filter(file => {
-                const [fileSettings]= tracksSettings.filter(m =>
+                const [fileSettings] = tracksSettings.filter(m =>
                     m.bioDataItemId.toLowerCase() === file.name.toString().toLowerCase() &&
                     m.projectId.toLowerCase() === file.projectId.toLowerCase() &&
                     `${m.duplicateId || ''}` === `${file.duplicateId || ''}`
@@ -1856,6 +1868,7 @@ export default class projectContext {
                 return fileSettings !== undefined && fileSettings !== null;
             });
         }
+
         return filterItems(this.tracks).sort(sortItems);
     }
 
@@ -1900,7 +1913,7 @@ export default class projectContext {
             return;
         }
         this._isVariantsLoading = true;
-        (async() => {
+        (async () => {
             const {infoFields, asDefault, callbacks, keepPage} = opts;
             const {onError, onFinish, onInit, onSetToDefault, onStart, groupByCallbacks} = callbacks;
             if (onStart) {
@@ -1949,8 +1962,7 @@ export default class projectContext {
                 this._filteredVariants = [];
             }
             this._isVariantsLoading = false;
-        }
-        catch (errorObj) {
+        } catch (errorObj) {
             this._isVariantsLoading = false;
             if (errorCallback) {
                 errorCallback(errorObj);
@@ -2031,7 +2043,8 @@ export default class projectContext {
             }
             if (error.toLowerCase().indexOf('feature index is too large to perform request') >= 0) {
                 return 'VCF file too large, unable to show data';
-            } if (error.toLowerCase().indexOf('variations filter shall be specified') >= 0) {
+            }
+            if (error.toLowerCase().indexOf('variations filter shall be specified') >= 0) {
                 return error;
             } else {
                 return null;
@@ -2073,7 +2086,8 @@ export default class projectContext {
             });
     }
 
-    async loadVariations(page) {
+
+    getVcfRequestFilter(page) {
         const vcfFileIdsByProject = this._vcfFilter && this._vcfFilter.vcfFileIdsByProject && this._vcfFilter.vcfFileIdsByProject.length ? this._vcfFilter.vcfFileIdsByProject : this.getVcfFileIdsByProject();
         const quality = this._vcfFilter ? this._vcfFilter.quality.value : [];
         const exon = (this._vcfFilter && (this._vcfFilter.exons !== undefined)) ? this._vcfFilter.exons : false;
@@ -2095,7 +2109,6 @@ export default class projectContext {
         const chromosomeIds = this._vcfFilter.chromosomeIds || [];
         const startIndex = this._vcfFilter.startIndex;
         const endIndex = this._vcfFilter.endIndex;
-
         const filter = {
             additionalFilters,
             chromosomeIds,
@@ -2113,7 +2126,13 @@ export default class projectContext {
         };
         if (this.variationsPointer && this.variationsPointerPage + 1 === page) {
             filter.pointer = this.variationsPointer;
-        } else {
+        }
+        return filter;
+    }
+
+    async loadVariations(page) {
+        const filter = this.getVcfRequestFilter(page);
+        if (!this.variationsPointer || this.variationsPointerPage + 1 !== page) {
             this.variationsPointer = null;
             this.variationsPointerPage = null;
         }
@@ -2219,6 +2238,15 @@ export default class projectContext {
                 {...infoFieldsObj, ...item.info},
             );
         });
+    }
+
+    downloadVcfTable(reference, format, includeHeader) {
+        return {};
+        // return this.projectDataService.downloadVcf({
+        //     format: format,
+        //     header: includeHeader,
+        //     ...this.getVcfRequestFilter(1)
+        // });
     }
 
     get layoutPanels() {

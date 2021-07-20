@@ -158,4 +158,20 @@ export class GenomeDataService extends DataService {
             }
         );
     }
+
+    downloadGenes(reference, data) {
+        return new Promise((resolve, reject) => {
+            this.downloadFile(`reference/${reference}/filter/gene`, data, {customResponseType: 'arraybuffer'})
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = [];
+                        resolve(data);
+                    }
+                }, reject);
+        });
+    }
+
 }

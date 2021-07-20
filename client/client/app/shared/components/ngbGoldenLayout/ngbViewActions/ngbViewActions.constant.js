@@ -1,3 +1,7 @@
+const variantsTableDownloadAction = {
+    name: 'variantsTableDownload',
+    isDefault: false
+};
 const variantsTableColumnAction = {
     name: 'variantsTableColumn',
     isDefault: false
@@ -71,6 +75,10 @@ const tracksSelectionAction = {
     isVisible: context => context.tracks && context.tracks.length && context.currentChromosome,
 };
 
+const genesTableDownloadAction = {
+    name: 'genesTableDownload',
+    isDefault: false
+};
 const genesTableColumnAction = {
     name: 'genesTableColumn',
     isDefault: false
@@ -93,15 +101,17 @@ export default {
         organizeTracks: organizeTracksAction,
         tracksSelection: tracksSelectionAction,
         variantsLoadingIndicator: variantsLoadingIndicatorAction,
+        variantsTableDownloadAction: variantsTableDownloadAction,
         variantsResetFilter: variantsResetFilterActions,
         variantsTableColumn: variantsTableColumnAction,
         variantsTablePagination: variantsTablePaginationAction,
+        genesTableDownloadAction: genesTableDownloadAction,
         genesTableColumn: genesTableColumnAction,
         genesResetFilter: genesResetFilterActions
     },
     viewActions: {
         ngbBrowser: [projectInfoSectionsAction, genomeAnnotationsAction, tracksSelectionAction, fitAllTracksAction, organizeTracksAction, closeAllTracksAction],
-        ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsResetFilterActions, variantsTableColumnAction],
-        ngbGenesTablePanel: [genesTableColumnAction, genesResetFilterActions]
+        ngbVariantsTablePanel: [variantsTablePaginationAction, variantsLoadingIndicatorAction, variantsTableDownloadAction, variantsResetFilterActions, variantsTableColumnAction],
+        ngbGenesTablePanel: [genesTableDownloadAction, genesTableColumnAction, genesResetFilterActions]
     }
 };

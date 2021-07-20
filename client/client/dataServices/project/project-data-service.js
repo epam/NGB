@@ -44,7 +44,7 @@ export class ProjectDataService extends DataService {
     }
 
     getProjectIdDescription(projectId) {
-        return this.downloadFile(`project/${+projectId}/description`, {customResponseType: 'arraybuffer'});
+        return this.downloadFile(`project/${+projectId}/description`, undefined, {customResponseType: 'arraybuffer'});
     }
 
     /**
@@ -121,6 +121,21 @@ export class ProjectDataService extends DataService {
                     resolve(data);
                 }
             }, reject);
+        });
+    }
+
+    downloadVcf(data) {
+        return new Promise((resolve, reject) => {
+            this.downloadFile('filter', data, {customResponseType: 'arraybuffer'})
+                .catch((response) => resolve({...response, error: true}))
+                .then((data) => {
+                    if (data) {
+                        resolve(data);
+                    } else {
+                        data = [];
+                        resolve(data);
+                    }
+                }, reject);
         });
     }
 
@@ -246,7 +261,7 @@ export class ProjectDataService extends DataService {
 
     downloadBlastResults(blastSearchId) {
         return new Promise((resolve, reject) => {
-            this.downloadFile(`task/${blastSearchId}/raw`, {customResponseType: 'arraybuffer'})
+            this.downloadFile(`task/${blastSearchId}/raw`, undefined, {customResponseType: 'arraybuffer'})
                 .catch((response) => resolve({...response, error: true}))
                 .then((data) => {
                     if (data) {
@@ -270,7 +285,7 @@ export class ProjectDataService extends DataService {
         const db = search && dbType && /^protein$/i.test(dbType)
             ? 'PROTEIN'
             : 'NUCLEOTIDE';
-        return id && db && taxId ? `blast/coordinate?sequenceId=${id}&type=${db}&taxId=${taxId}`: undefined;
+        return id && db && taxId ? `blast/coordinate?sequenceId=${id}&type=${db}&taxId=${taxId}` : undefined;
     }
 
     getFeatureCoordinates(sequenceId, dbType, taxId) {
@@ -303,6 +318,7 @@ export class ProjectDataService extends DataService {
                 }, reject);
         });
     }
+
     getDatasetFileInfo(bioDataItemId) {
         return new Promise((resolve, reject) => {
             this.get(`dataitem/${bioDataItemId}/downloadUrl`)
