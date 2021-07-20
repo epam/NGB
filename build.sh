@@ -1,5 +1,6 @@
 #!/bin/bash
 
+echo "Starting NGB build"
 if [[ "$APPVEYOR_REPO_BRANCH" == "release/"* ]]; then
   echo "Building with docker distribution"
   BUILD_DOCKER=buildDocker
