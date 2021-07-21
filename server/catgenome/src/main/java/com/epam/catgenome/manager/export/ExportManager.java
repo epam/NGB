@@ -62,6 +62,7 @@ public class ExportManager {
         }
         filterForm.setPageSize(exportPageSize);
         filterForm.setPage(1);
+        setGeneAttributes(filterForm);
         IndexSearchResult<GeneIndexEntry> indexSearchResult = featureIndexManager.getGeneSearchResult(filterForm,
                 featureIndexManager.getGeneFilesForReference(referenceId, filterForm.getFileIds()));
         writeGenePage(format, exportFields, indexSearchResult, outputStream);
@@ -86,6 +87,7 @@ public class ExportManager {
         }
         filterForm.setPageSize(exportPageSize);
         filterForm.setPage(1);
+        setVcfAttributes(filterForm);
         IndexSearchResult<VcfIndexEntry> indexSearchResult = featureIndexManager.filterVariations(filterForm);
         writeVcfPage(format, exportFields, indexSearchResult, outputStream);
         for (int i = 2; i <= indexSearchResult.getTotalPagesCount(); i++) {
@@ -104,8 +106,8 @@ public class ExportManager {
             List<String> fieldValues = new ArrayList<>();
             Map<String, String> attributes = MapUtils.emptyIfNull(indexEntry.getAttributes());
             for (String exportField: exportFields) {
-                fieldValues.add(GeneField.getGetter(exportField) != null ?
-                        GeneField.getGetter(exportField).apply(indexEntry) :
+                fieldValues.add(GeneField.getByField(exportField) != null ?
+                        GeneField.getByField(exportField).getGetter().apply(indexEntry) :
                         attributes.getOrDefault(exportField, null));
             }
             String line = String.join(format.getSeparator(), fieldValues) + NEW_LINE;
@@ -121,12 +123,32 @@ public class ExportManager {
             List<String> fieldValues = new ArrayList<>();
             Map<String, Object> attributes = MapUtils.emptyIfNull(indexEntry.getInfo());
             for (String exportField: exportFields) {
-                fieldValues.add(VcfField.getGetter(exportField) != null ?
-                        VcfField.getGetter(exportField).apply(indexEntry) :
+                fieldValues.add(VcfField.getByField(exportField) != null ?
+                        VcfField.getByField(exportField).getGetter().apply(indexEntry) :
                         (String) attributes.getOrDefault(exportField, null));
             }
             String line = String.join(format.getSeparator(), fieldValues) + NEW_LINE;
             outputStream.write(line.getBytes());
         }
+    }
+
+    private void setGeneAttributes(GeneExportFilterForm filterForm) {
+        List<String> attributesFields = new ArrayList<>();
+        for (String field: filterForm.getExportFields()) {
+            if (GeneField.getByField(field) == null) {
+                attributesFields.add(field);
+            }
+        }
+        filterForm.setAttributesFields(attributesFields);
+    }
+
+    private void setVcfAttributes(VcfExportFilterForm filterForm) {
+        List<String> attributesFields = new ArrayList<>();
+        for (String field: filterForm.getExportFields()) {
+            if (VcfField.getByField(field) == null) {
+                attributesFields.add(field);
+            }
+        }
+        filterForm.setInfoFields(attributesFields);
     }
 }

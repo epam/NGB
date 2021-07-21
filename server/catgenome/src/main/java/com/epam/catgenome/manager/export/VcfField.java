@@ -50,25 +50,25 @@ public enum VcfField {
 
     private final String field;
     private final Function<VcfIndexEntry, String> getter;
-    private static final Map<String, Function<VcfIndexEntry, String>> MAP = new HashMap<>();
+    private static final Map<String, VcfField> MAP = new HashMap<>();
 
     static {
-        MAP.put(VARIATION_TYPE.field, VARIATION_TYPE.getter);
-        MAP.put(GENE.field, GENE.getter);
-        MAP.put(GENE_IDS.field, GENE_IDS.getter);
-        MAP.put(GENE_NAME.field, START_INDEX.getter);
-        MAP.put(FAILED_FILTER.field, FAILED_FILTER.getter);
-        MAP.put(IMPACT.field, IMPACT.getter);
-        MAP.put(EFFECT.field, EFFECT.getter);
-        MAP.put(QUALITY.field, QUALITY.getter);
-        MAP.put(IS_EXON.field, IS_EXON.getter);
-        MAP.put(START_INDEX.field, START_INDEX.getter);
-        MAP.put(END_INDEX.field, END_INDEX.getter);
-        MAP.put(FEATURE_ID.field, FEATURE_ID.getter);
-        MAP.put(CHROMOSOME.field, CHROMOSOME.getter);
-        MAP.put(FEATURE_TYPE.field, FEATURE_TYPE.getter);
-        MAP.put(FEATURE_FILE_ID.field, FEATURE_FILE_ID.getter);
-        MAP.put(FEATURE_NAME.field, FEATURE_NAME.getter);
+        MAP.put(VARIATION_TYPE.field, VARIATION_TYPE);
+        MAP.put(GENE.field, GENE);
+        MAP.put(GENE_IDS.field, GENE_IDS);
+        MAP.put(GENE_NAME.field, START_INDEX);
+        MAP.put(FAILED_FILTER.field, FAILED_FILTER);
+        MAP.put(IMPACT.field, IMPACT);
+        MAP.put(EFFECT.field, EFFECT);
+        MAP.put(QUALITY.field, QUALITY);
+        MAP.put(IS_EXON.field, IS_EXON);
+        MAP.put(START_INDEX.field, START_INDEX);
+        MAP.put(END_INDEX.field, END_INDEX);
+        MAP.put(FEATURE_ID.field, FEATURE_ID);
+        MAP.put(CHROMOSOME.field, CHROMOSOME);
+        MAP.put(FEATURE_TYPE.field, FEATURE_TYPE);
+        MAP.put(FEATURE_FILE_ID.field, FEATURE_FILE_ID);
+        MAP.put(FEATURE_NAME.field, FEATURE_NAME);
     }
 
     VcfField(final String field, final Function<VcfIndexEntry, String> getter) {
@@ -76,7 +76,11 @@ public enum VcfField {
         this.getter = getter;
     }
 
-    public static Function<VcfIndexEntry, String> getGetter(String field) {
+    public static VcfField getByField(String field) {
         return MAP.get(field);
+    }
+
+    public Function<VcfIndexEntry, String> getGetter() {
+        return getter;
     }
 }

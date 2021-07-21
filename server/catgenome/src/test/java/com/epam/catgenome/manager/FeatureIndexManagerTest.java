@@ -1460,7 +1460,6 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     public void testExportGeneTable() throws IOException {
         final GeneExportFilterForm geneFilterForm = new GeneExportFilterForm();
         geneFilterForm.setFeatureId("ENSFCAG000000");
-        geneFilterForm.setAttributesFields(Arrays.asList("gene_version", "gene_source"));
         geneFilterForm.setExportFields(Arrays.asList("source", "featureId", "gene_version", "gene_source"));
 
         assertNotNull(exportManager.exportGenesByReference(geneFilterForm, referenceId, ExportFormat.TSV, true));

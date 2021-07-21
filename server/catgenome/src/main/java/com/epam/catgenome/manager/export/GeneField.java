@@ -45,21 +45,21 @@ public enum GeneField {
 
     private final String field;
     private final Function<GeneIndexEntry, String> getter;
-    private static final Map<String, Function<GeneIndexEntry, String>> MAP = new HashMap<>();
+    private static final Map<String, GeneField> MAP = new HashMap<>();
 
     static {
-        MAP.put(SOURCE.field, SOURCE.getter);
-        MAP.put(SCORE.field, SCORE.getter);
-        MAP.put(STRAND.field, STRAND.getter);
-        MAP.put(FRAME.field, FRAME.getter);
-        MAP.put(FEATURE.field, FEATURE.getter);
-        MAP.put(START_INDEX.field, START_INDEX.getter);
-        MAP.put(END_INDEX.field, END_INDEX.getter);
-        MAP.put(FEATURE_ID.field, FEATURE_ID.getter);
-        MAP.put(CHROMOSOME.field, CHROMOSOME.getter);
-        MAP.put(FEATURE_TYPE.field, FEATURE_TYPE.getter);
-        MAP.put(FEATURE_FILE_ID.field, FEATURE_FILE_ID.getter);
-        MAP.put(FEATURE_NAME.field, FEATURE_NAME.getter);
+        MAP.put(SOURCE.field, SOURCE);
+        MAP.put(SCORE.field, SCORE);
+        MAP.put(STRAND.field, STRAND);
+        MAP.put(FRAME.field, FRAME);
+        MAP.put(FEATURE.field, FEATURE);
+        MAP.put(START_INDEX.field, START_INDEX);
+        MAP.put(END_INDEX.field, END_INDEX);
+        MAP.put(FEATURE_ID.field, FEATURE_ID);
+        MAP.put(CHROMOSOME.field, CHROMOSOME);
+        MAP.put(FEATURE_TYPE.field, FEATURE_TYPE);
+        MAP.put(FEATURE_FILE_ID.field, FEATURE_FILE_ID);
+        MAP.put(FEATURE_NAME.field, FEATURE_NAME);
     }
 
     GeneField(final String field, final Function<GeneIndexEntry, String> getter) {
@@ -67,7 +67,11 @@ public enum GeneField {
         this.getter = getter;
     }
 
-    public static Function<GeneIndexEntry, String> getGetter(String field) {
+    public static GeneField getByField(String field) {
         return MAP.get(field);
+    }
+
+    public Function<GeneIndexEntry, String> getGetter() {
+        return getter;
     }
 }
