@@ -58,7 +58,7 @@ public class ProteinSequenceSecurityService {
     @PreAuthorize(READ_PERMISSION_FOR_GENE_FILE_BY_TRACK)
     public Map<Gene, List<ProteinSequenceEntry>> loadProteinSequenceWithoutGrouping(
             Track<Gene> genes, Long referenceId, boolean collapsed) throws GeneReadingException {
-        return proteinSequenceManager.loadProteinSequenceWithoutGrouping(genes, referenceId, collapsed);
+        return proteinSequenceManager.loadProteinSequenceWithoutGrouping(genes, referenceId, collapsed, true);
     }
 
     @PreAuthorize(READ_PERMISSION_FOR_GENE_FILE_BY_TRACK)

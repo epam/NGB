@@ -15,6 +15,9 @@ function enableFeature (state, feature, track) {
     if (track && track._flags) {
         track._flags.dataChanged = true;
         track.reportTrackState();
+        if (typeof track.featureTypesChanged === 'function') {
+            track.featureTypesChanged();
+        }
     }
 }
 
@@ -27,6 +30,9 @@ function disableFeature (state, feature, track) {
     if (track && track._flags) {
         track._flags.dataChanged = true;
         track.reportTrackState();
+        if (typeof track.featureTypesChanged === 'function') {
+            track.featureTypesChanged();
+        }
     }
 }
 
@@ -50,7 +56,19 @@ function getDisplayName (state) {
 
 export default {
     displayName: state => getDisplayName(state),
-    isVisible: (state) => (state.availableFeatures || []).length > 1,
+    isVisible: (state, tracks, track) => {
+        if (
+            track &&
+            track.transformer &&
+            typeof track.transformer.isHistogramDrawingModeForViewport === 'function' &&
+            track.viewport &&
+            track.cache &&
+            track.transformer.isHistogramDrawingModeForViewport(track.viewport, track.cache)
+        ) {
+            return false;
+        }
+        return (state.availableFeatures || []).length > 1;
+    },
     dynamicFields: (state, tracks, track) => (state.availableFeatures || []).map(featureName => ({
         disable: () => disableFeature(state, featureName, track),
         enable: () => enableFeature(state, featureName, track),
@@ -64,6 +82,5 @@ export default {
     label: 'Features',
     name: 'gene>features',
     type: 'submenu',
-    preventAutoClose: true,
-    capitalized: false
+    preventAutoClose: true
 };

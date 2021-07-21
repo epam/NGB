@@ -43,7 +43,7 @@ import static com.epam.catgenome.manager.gene.featurecounts.FeatureCountsParserU
 @Slf4j
 public class FeatureCountsLineProcessor implements LineProcessor<SortingCollection<SortableRecord>> {
 
-    private static final int ESTIMATED_RECORD_SIZE = 150;
+    private static final int ESTIMATED_RECORD_SIZE = 500;
     private static final int DEFAULT_MAX_MEMORY = 500;
     private static final String COMMENT_MARKER = "#";
 
@@ -52,12 +52,12 @@ public class FeatureCountsLineProcessor implements LineProcessor<SortingCollecti
 
     private boolean headerProcessed;
 
-    public FeatureCountsLineProcessor(final File tmpDir, final Map<Integer, String> header) {
+    public FeatureCountsLineProcessor(final File tmpDir, final Map<Integer, String> header, final int maxMemory) {
         this.sortingCollection = SortingCollection.newInstance(
                 SortableRecord.class,
                 new SortableRecordCodec(),
                 AbstractFeatureSorter.getDefaultComparator(),
-                DEFAULT_MAX_MEMORY * 1024 * 1024 / ESTIMATED_RECORD_SIZE, tmpDir);
+                getMemory(maxMemory) * 1024 * 1024 / ESTIMATED_RECORD_SIZE, tmpDir);
         this.header = header;
     }
 
@@ -139,5 +139,9 @@ public class FeatureCountsLineProcessor implements LineProcessor<SortingCollecti
                 .min()
                 .orElseThrow(() -> new IllegalArgumentException(
                         String.format("Failed to calculate start for gene '%s'", geneId)));
+    }
+
+    private int getMemory(final int maxMemory) {
+        return maxMemory > 0 ? maxMemory : DEFAULT_MAX_MEMORY;
     }
 }

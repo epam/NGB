@@ -11,10 +11,19 @@ export default class ngbGenesTableFilterController {
                 this.list = async (searchText) => {
                     if (!searchText || searchText.length < 2) {
                         return new Promise((resolve) => {
-                            resolve([]);
+                            resolve({
+                                model: [],
+                                view: []
+                            });
                         });
                     }
-                    return await projectDataService.searchGeneNames(projectContext.referenceId, searchText, 'featureId');
+                    const items = await projectDataService.searchGeneNames(projectContext.referenceId, searchText);
+                    return new Promise((resolve) => {
+                        resolve({
+                            model: items.map(e => e.featureName),
+                            view: items
+                        });
+                    });
                 };
                 break;
             }

@@ -112,7 +112,8 @@ public class ProteinSequenceManager {
         Chromosome chromosome = trackHelper.validateTrack(geneTrack);
 
         Map<Gene, List<ProteinSequenceEntry>> proteinSequences = psReconstructionManager
-                .reconstructProteinSequence(gffManager.loadGenes(geneTrack, false), chromosome, referenceId, false);
+                .reconstructProteinSequence(gffManager.loadGenes(geneTrack, false),
+                        chromosome, referenceId, false, true);
 
         Track<ProteinSequenceInfo> track = new Track<>(geneTrack);
         List<ProteinSequenceInfo> blocks = new ArrayList<>(proteinSequences.size());
@@ -142,13 +143,15 @@ public class ProteinSequenceManager {
      * @return a map of protein sequences to transcripts
      * @throws GeneReadingException
      */
-    public Map<Gene, List<ProteinSequenceEntry>> loadProteinSequenceWithoutGrouping(final Track<Gene> geneTrack,
-                                                     final Long referenceId, boolean collapsedTrack)
+    public Map<Gene, List<ProteinSequenceEntry>> loadProteinSequenceWithoutGrouping(
+            final Track<Gene> geneTrack, final Long referenceId,
+            final boolean collapsedTrack, final boolean extendCds)
         throws GeneReadingException {
         Assert.notNull(referenceId, MessageHelper.getMessage(MessagesConstants.ERROR_REFERENCE_ID_NULL));
         Chromosome chromosome = trackHelper.validateTrack(geneTrack);
 
-        return psReconstructionManager.reconstructProteinSequence(geneTrack, chromosome, referenceId, collapsedTrack);
+        return psReconstructionManager.reconstructProteinSequence(geneTrack, chromosome, referenceId,
+                collapsedTrack, extendCds);
     }
 
     public List<ProteinSequenceEntry> loadCdsProteinSequence(final Track<Gene> geneTrack,
@@ -237,14 +240,15 @@ public class ProteinSequenceManager {
                 .map(t -> new ProteinSequenceEntry(t, 0L,  0L, t.length() - 1L,
                         (long) request.getTrackQuery().getStartIndex(), (long) request.getTrackQuery().getEndIndex()));
         if (selfTranslation.isPresent()) {
-            return GeneUtils.constructProteinString(Collections.singletonList(selfTranslation.get()));
+            return GeneUtils.constructProteinString(Collections.singletonList(selfTranslation.get()),
+                    isGeneOnReverseStrand(geneToTranslate));
         }
 
         if (request.getFeatureType() == FeatureType.CDS) {
             if (geneToTranslate.isPresent()) {
                 return GeneUtils.constructProteinString(
-                        loadCdsProteinSequence(geneTrack, geneToTranslate.get(), request.getReferenceId())
-                );
+                        loadCdsProteinSequence(geneTrack, geneToTranslate.get(), request.getReferenceId()),
+                        isGeneOnReverseStrand(geneToTranslate));
             } else {
                 throw new IllegalArgumentException(MessageHelper.getMessage(
                         MessagesConstants.ERROR_CANT_FIND_TRANSCRIPT, request.getFeatureId(),
@@ -253,16 +257,22 @@ public class ProteinSequenceManager {
         }
 
         final String transcript = resolveFeatureNameForTranslation(request, geneTrack);
-        final List<ProteinSequenceEntry> entries =
-                loadProteinSequenceWithoutGrouping(genes, request.getReferenceId(), false)
+        return loadProteinSequenceWithoutGrouping(genes, request.getReferenceId(), false, false)
                 .entrySet().stream()
                 .filter(e -> e.getKey().getFeatureName().equalsIgnoreCase(transcript))
-                .findFirst().map(Map.Entry::getValue)
+                .findFirst()
+                .map(e -> GeneUtils.constructProteinString(e.getValue(),
+                        isGeneOnReverseStrand(Optional.ofNullable(e.getKey()))))
                 .orElseThrow(() -> new IllegalArgumentException(MessageHelper.getMessage(
                         MessagesConstants.ERROR_CANT_FIND_TRANSCRIPT, request.getFeatureId(),
                         request.getFeatureType())));
+    }
 
-        return GeneUtils.constructProteinString(entries);
+    private boolean isGeneOnReverseStrand(final Optional<Gene> geneToTranslate) {
+        return geneToTranslate
+                .map(Gene::getStrand)
+                .map(s -> StrandSerializable.NEGATIVE == s)
+                .orElse(false);
     }
 
     // If we got MRNA -> we just take featureId form request, or else if we gote GENE feature, we need to choose
@@ -376,7 +386,7 @@ public class ProteinSequenceManager {
 
 
             Map<Gene, List<ProteinSequenceEntry>> cdsToAminoAcidsMap = psReconstructionManager.getAminoAcids(geneTrack,
-                    cdses, cdsNucleotides, frames);
+                    cdses, cdsNucleotides, frames, true);
             List<ProteinSequenceEntry> aminoAcids = new ArrayList<>();
             cdsToAminoAcidsMap.values().stream().forEach(aminoAcids::addAll);
             variantList.add(aminoAcids);

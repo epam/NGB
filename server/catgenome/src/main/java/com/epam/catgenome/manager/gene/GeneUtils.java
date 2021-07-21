@@ -33,6 +33,7 @@ import com.epam.catgenome.entity.reference.Chromosome;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
 import com.epam.catgenome.util.Utils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Comparator;
 import java.util.List;
@@ -255,18 +256,20 @@ public final class GeneUtils {
      *  Construct protein string from list of ProteinSequenceEntry
      * @return ProteinSequence
      */
-    public static ProteinSequence constructProteinString(List<ProteinSequenceEntry> proteinSequenceEntries) {
+    public static ProteinSequence constructProteinString(final List<ProteinSequenceEntry> proteinSequenceEntries,
+                                                         final boolean reverseStrand) {
         if (ListUtils.emptyIfNull(proteinSequenceEntries).isEmpty()) {
             return EMPTY_PROTEIN_SEQUENCE;
         }
         proteinSequenceEntries.sort(Comparator.comparing(ProteinSequenceEntry::getTripleStartIndex));
+        final String aminoAcidSequence = ListUtils.emptyIfNull(proteinSequenceEntries).stream()
+                .map(ProteinSequenceEntry::getText)
+                .filter(s -> !s.equalsIgnoreCase("stop") && !s.equalsIgnoreCase("start"))
+                .collect(Collectors.joining());
         return new ProteinSequence(
                 proteinSequenceEntries.get(0).getCdsStartIndex().intValue(),
                 proteinSequenceEntries.get(proteinSequenceEntries.size() - 1).getCdsEndIndex().intValue(),
-                ListUtils.emptyIfNull(proteinSequenceEntries).stream()
-                        .map(ProteinSequenceEntry::getText)
-                        .filter(s -> !s.equalsIgnoreCase("stop") && !s.equalsIgnoreCase("start"))
-                        .collect(Collectors.joining()),
+                reverseStrand ? StringUtils.reverse(aminoAcidSequence) : aminoAcidSequence,
                 proteinSequenceEntries.stream().findFirst()
                         .map(ProteinSequenceEntry::getIndex).orElse(0L)
         );

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2016 EPAM Systems
+ * Copyright (c) 2016-2021 EPAM Systems
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -408,14 +408,36 @@ public class FeatureIndexManager {
     }
 
     public IndexSearchResult<GeneIndexEntry> searchGenesByReference(final GeneFilterForm filterForm,
-                                                                       final long referenceId) throws IOException {
-        return getGeneSearchResult(filterForm, getGeneFilesForReference(referenceId, filterForm.getFileIds()));
+                                                                    final long referenceId) throws IOException {
+        final List<? extends FeatureFile> files = getGeneFilesForReference(referenceId, filterForm.getFileIds());
+        if (CollectionUtils.isEmpty(files)) {
+            return new IndexSearchResult<>();
+        }
+        return getGeneSearchResult(filterForm, files);
     }
 
-    public GeneFilterInfo getAvailableGeneFieldsToSearch(final Long referenceId, ItemsByProject fileIdsByProjectId) {
-        return featureIndexDao.getAvailableFieldsToSearch(
+    public GeneFilterInfo getAvailableGeneFieldsToSearch(final Long referenceId,
+                                                         final ItemsByProject fileIdsByProjectId) {
+        final List<? extends FeatureFile> files =
                 getGeneFilesForReference(referenceId, Optional.ofNullable(fileIdsByProjectId)
-                        .map(ItemsByProject::getFileIds).orElse(Collections.emptyList())));
+                .map(ItemsByProject::getFileIds).orElse(Collections.emptyList()));
+        if (CollectionUtils.isEmpty(files)) {
+            return GeneFilterInfo.builder().build();
+        }
+        return featureIndexDao.getAvailableFieldsToSearch(files);
+    }
+
+    public Set<String> getAvailableFieldValues(final Long referenceId,
+                                               final ItemsByProject fileIdsByProjectId,
+                                               final String fieldName) {
+        final List<? extends FeatureFile> files = getGeneFilesForReference(referenceId,
+                Optional.ofNullable(fileIdsByProjectId)
+                        .map(ItemsByProject::getFileIds).orElse(Collections.emptyList()));
+        if (CollectionUtils.isEmpty(files)) {
+            return Collections.emptySet();
+        }
+        return featureIndexDao.getAvailableFieldValues(
+                files, fieldName);
     }
 
     private List<? extends FeatureFile> getGeneFilesForReference(final long referenceId, final List<Long> fileIds) {

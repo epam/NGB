@@ -2,7 +2,7 @@ import controller from './ngbGenesTable.controller';
 
 export default {
     bindings: {
-        changeState: '&'
+        isProgressShown: '='
     },
     controller: controller.UID,
     restrict: 'E',

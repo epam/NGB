@@ -81,8 +81,8 @@ public class ProteinSequenceManagerIntegrationTest extends AbstractManagerTest {
     private static final int TRACK_START_INDEX = 1;
     private static final double TRACK_SCALE_FACTOR = 23.94927536183396;
     public static final String GENE_ATTR_AMINOACID_SEQ = "AAAAA";
-    public static final String CALCULATED_AMINO_ACID_SEQ = "QQRRTQNP";
-    public static final String CDS_CALCULATED_SEQ = "FG";
+    public static final String CALCULATED_AMINO_ACID_SEQ = "QQRTQNP";
+    public static final String CDS_CALCULATED_SEQ = "GF";
     public static final int END_INDEX_30 = 30;
     public static final int END_INDEX_15 = 15;
     public static final int START_INDEX_7 = 7;

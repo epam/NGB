@@ -1,4 +1,4 @@
-import ListElements from './../../../../shared/filter/filterList/ngbFilterList.elements';
+import ListElements from './ngbFilterList.elements';
 
 export default class ngbGenesFilterListController {
     projectContext;
@@ -61,9 +61,9 @@ export default class ngbGenesFilterListController {
             last = parts[parts.length - 1];
             parts.splice(parts.length - 1, 1);
         }
-        if (this.listElements.fullList && this.listElements.fullList.length > 0) {
-            this.selectedItems = this.listElements.fullList.filter(item => parts.indexOf(item.toLowerCase()) >= 0);
-            const [fullMatch] = this.listElements.fullList.filter(item => item.toLowerCase() === last.toLowerCase());
+        if (this.listElements.fullList && this.listElements.fullList.model.length > 0) {
+            this.selectedItems = this.listElements.fullList.model.filter(item => parts.indexOf(item.toLowerCase()) >= 0);
+            const [fullMatch] = this.listElements.fullList.model.filter(item => item.toLowerCase() === last.toLowerCase());
             if (fullMatch) {
                 this.selectedItems.push(fullMatch);
             }
@@ -145,7 +145,7 @@ export default class ngbGenesFilterListController {
     apply() {
         const parts = this.displayText.split(',').map(part => part.trim().toLowerCase());
         if (this.listElements.fullList && this.listElements.length > 0) {
-            this.selectedItems = this.listElements.fullList.filter(item => parts.indexOf(item.toLowerCase()) >= 0);
+            this.selectedItems = this.listElements.fullList.model.filter(item => parts.indexOf(item.toLowerCase()) >= 0);
         } else {
             this.selectedItems = parts.filter(part => part !== '');
         }

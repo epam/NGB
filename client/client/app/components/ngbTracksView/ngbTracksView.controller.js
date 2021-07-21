@@ -4,6 +4,7 @@ import {Viewport} from '../../../modules/render/';
 import angular from 'angular';
 import baseController from '../../shared/baseController';
 import {getFormattedDate} from '../../shared/utils/date';
+import NotificationsContext from '../../shared/notificationsContext';
 
 const RULER_TRACK_FORMAT = 'RULER';
 
@@ -234,6 +235,31 @@ export default class ngbTracksViewController extends baseController {
             );
 
         this.renderable = true;
+    }
+
+    isFirstTrackOfTypes (track, ...types) {
+        const typesSet = new Set(types);
+        const [firstTrack] = (this.tracks || []).filter(t => typesSet.has(t.format));
+        return firstTrack === track;
+    }
+
+    isFirstGeneOrBedTrack (track) {
+        return this.isFirstTrackOfTypes(track, 'GENE', 'BED', 'FEATURE_COUNTS');
+    }
+
+    isFirstBlastTrack (track) {
+        const [firstTrack] = (this.tracks || []).filter(t => t.format === 'BLAST');
+        return firstTrack === track;
+    }
+
+    getTrackNotification (track) {
+        if (this.isFirstGeneOrBedTrack(track)) {
+            return NotificationsContext.NotificationType.GeneHistogramNotification;
+        }
+        if (this.isFirstBlastTrack(track)) {
+            return NotificationsContext.NotificationType.BLASTPNotification;
+        }
+        return undefined;
     }
 
     fitTracksHeights() {
