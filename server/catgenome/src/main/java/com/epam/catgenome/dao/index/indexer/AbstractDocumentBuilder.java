@@ -135,6 +135,10 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
         Set<String> requiredFields = getRequiredFields();
         Document doc = searcher.doc(docId, requiredFields);
 
+        return buildEntryFromDocument(docId, doc);
+    }
+
+    public E buildEntryFromDocument(final int docId, final Document doc) {
         FeatureType featureType =
                 FeatureType.forValue(doc.get(FeatureIndexFields.FEATURE_TYPE.getFieldName()));
         E entry = createSpecificEntry(doc);
@@ -164,7 +168,12 @@ public abstract class AbstractDocumentBuilder<E extends FeatureIndexEntry> {
                             .utf8ToString());
         }
 
+        entry.setDocId(docId);
         return entry;
+    }
+
+    public Document getDocumentById(final IndexSearcher searcher, final int docId) throws IOException {
+        return searcher.doc(docId);
     }
 
     protected abstract Set<String> getRequiredFields();

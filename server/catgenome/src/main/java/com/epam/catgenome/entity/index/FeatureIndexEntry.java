@@ -29,6 +29,7 @@ import java.util.UUID;
 
 import com.epam.catgenome.entity.reference.Chromosome;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
 
 
 /**
@@ -40,6 +41,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * Represents a feature in a feature index
  * </p>
  */
+@Data
 public class FeatureIndexEntry implements Serializable {
 
     /**
@@ -59,6 +61,7 @@ public class FeatureIndexEntry implements Serializable {
     protected String featureName;
 
     private UUID uuid;
+    private Integer docId;
 
     public FeatureIndexEntry() {
         // no-op
@@ -72,62 +75,7 @@ public class FeatureIndexEntry implements Serializable {
         endIndex = origin.getEndIndex();
         featureName = origin.getFeatureName();
         uuid = origin.getUuid();
-    }
-
-    public String getFeatureName() {
-        return featureName;
-    }
-
-    public void setFeatureName(String featureName) {
-        this.featureName = featureName;
-    }
-
-    public Integer getEndIndex() {
-        return endIndex;
-    }
-
-    public void setEndIndex(Integer endIndex) {
-        this.endIndex = endIndex;
-    }
-
-    public Integer getStartIndex() {
-        return startIndex;
-    }
-
-    public void setStartIndex(Integer startIndex) {
-        this.startIndex = startIndex;
-    }
-
-    public String getFeatureId() {
-        return featureId;
-    }
-
-    public void setFeatureId(String featureId) {
-        this.featureId = featureId;
-    }
-
-    public Chromosome getChromosome() {
-        return chromosome;
-    }
-
-    public void setChromosome(Chromosome chromosome) {
-        this.chromosome = chromosome;
-    }
-
-    public FeatureType getFeatureType() {
-        return featureType;
-    }
-
-    public void setFeatureType(FeatureType featureType) {
-        this.featureType = featureType;
-    }
-
-    public UUID getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(UUID uuid) {
-        this.uuid = uuid;
+        docId = origin.getDocId();
     }
 
     @Override
@@ -142,14 +90,6 @@ public class FeatureIndexEntry implements Serializable {
     @Override
     public int hashCode() {
         return featureId.hashCode() + startIndex.hashCode() + endIndex.hashCode();
-    }
-
-    public Long getFeatureFileId() {
-        return featureFileId;
-    }
-
-    public void setFeatureFileId(Long featureFileId) {
-        this.featureFileId = featureFileId;
     }
 
     @JsonIgnore

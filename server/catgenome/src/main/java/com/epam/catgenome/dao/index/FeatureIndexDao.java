@@ -28,14 +28,17 @@ import com.epam.catgenome.constant.MessagesConstants;
 import com.epam.catgenome.dao.index.field.GeneIndexSortField;
 import com.epam.catgenome.dao.index.field.VcfIndexSortField;
 import com.epam.catgenome.dao.index.indexer.AbstractDocumentBuilder;
+import com.epam.catgenome.dao.index.indexer.GeneDocumentBuilder;
 import com.epam.catgenome.entity.BaseEntity;
 import com.epam.catgenome.entity.BiologicalDataItemFormat;
 import com.epam.catgenome.entity.FeatureFile;
+import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.gene.GeneFilterForm;
 import com.epam.catgenome.entity.gene.GeneFilterInfo;
 import com.epam.catgenome.entity.index.BookmarkIndexEntry;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.FeatureType;
+import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.entity.index.Group;
 import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.reference.Bookmark;
@@ -71,6 +74,7 @@ import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.MultiReader;
@@ -114,6 +118,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.epam.catgenome.component.MessageHelper.getMessage;
@@ -184,7 +189,8 @@ public class FeatureIndexDao {
         CHR_ID("chrId"),
         FACET_CHR_ID("facet_chrId"),
         F_UID("f_uid"),
-        FACET_UID("facet_uid");
+        FACET_UID("facet_uid"),
+        DOC_ID("docId");
 
         private String fieldName;
 
@@ -550,6 +556,44 @@ public class FeatureIndexDao {
             return new IndexSearchResult<>(new ArrayList<T>((Collection<? extends T>) entryMap.values()),
                                            maxResultsCount != null &&
                                            totalHits > maxResultsCount, totalHits);
+        } finally {
+            for (SimpleFSDirectory index : indexes) {
+                IOUtils.closeQuietly(index);
+            }
+        }
+    }
+
+    /**
+     * Queries gene index by Lucene document ID
+     *
+     * @param featureFile the {@link GeneFile} which indexes to search
+     * @param docId the document ID
+     * @return {@link GeneIndexEntry} if such document exists
+     * @throws IOException if something is wrong in the filesystem
+     */
+    public GeneIndexEntry searchGeneFeatureByDocumentId(final GeneFile featureFile,
+                                                        final Integer docId) throws IOException {
+        final SimpleFSDirectory[] indexes = fileManager.getIndexesForFiles(Collections.singletonList(featureFile));
+        try (MultiReader reader = openMultiReader(indexes)) {
+            if (reader.numDocs() == 0) {
+                return null;
+            }
+
+            final IndexSearcher searcher = new IndexSearcher(reader, taskExecutorService.getSearchExecutor());
+            final GeneDocumentBuilder documentCreator = new GeneDocumentBuilder();
+            final Document document = documentCreator.getDocumentById(searcher, docId);
+            final GeneIndexEntry entry = documentCreator.buildEntryFromDocument(docId, document);
+
+            final Set<String> featureIndexFieldNames = Arrays.stream(FeatureIndexFields.values())
+                    .map(FeatureIndexFields::getFieldName)
+                    .collect(Collectors.toSet());
+            final Map<String, String> attributes = document.getFields().stream()
+                    .map(IndexableField::name)
+                    .distinct()
+                    .filter(fieldName -> !featureIndexFieldNames.contains(fieldName))
+                    .collect(Collectors.toMap(Function.identity(), document::get));
+            entry.setAttributes(attributes);
+            return entry;
         } finally {
             for (SimpleFSDirectory index : indexes) {
                 IOUtils.closeQuietly(index);

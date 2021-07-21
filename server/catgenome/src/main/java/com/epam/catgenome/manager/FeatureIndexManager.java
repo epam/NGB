@@ -39,6 +39,7 @@ import com.epam.catgenome.entity.gene.GeneFile;
 import com.epam.catgenome.entity.gene.GeneFileType;
 import com.epam.catgenome.entity.gene.GeneFilterForm;
 import com.epam.catgenome.entity.gene.GeneFilterInfo;
+import com.epam.catgenome.entity.gene.GeneHighLevel;
 import com.epam.catgenome.entity.index.FeatureIndexEntry;
 import com.epam.catgenome.entity.index.FeatureType;
 import com.epam.catgenome.entity.index.GeneIndexEntry;
@@ -60,6 +61,7 @@ import com.epam.catgenome.manager.gene.GeneFileManager;
 import com.epam.catgenome.manager.gene.GeneUtils;
 import com.epam.catgenome.manager.gene.GffManager;
 import com.epam.catgenome.manager.gene.parser.GeneFeature;
+import com.epam.catgenome.manager.gene.parser.StrandSerializable;
 import com.epam.catgenome.manager.gene.reader.AbstractGeneReader;
 import com.epam.catgenome.manager.parallel.TaskExecutorService;
 import com.epam.catgenome.manager.project.ProjectManager;
@@ -91,6 +93,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -338,6 +341,35 @@ public class FeatureIndexManager {
     public IndexSearchResult<VcfIndexEntry> filterVariations(VcfFilterForm filterForm) throws IOException {
         List<VcfFile> files = vcfFileManager.loadVcfFiles(filterForm.getVcfFileIds());
         return getVcfSearchResult(filterForm, files);
+    }
+
+    /**
+     * Loads Gene feature content by Lucene document id
+     *
+     * @param fileId {@link GeneFile} id
+     * @param docId Lucene document id
+     * @return gene content
+     */
+    public GeneHighLevel loadGeneFeatureByDocumentId(final Long fileId, final Integer docId) {
+        try {
+            final GeneIndexEntry entry = featureIndexDao
+                    .searchGeneFeatureByDocumentId(geneFileManager.load(fileId), docId);
+            if (Objects.isNull(entry)) {
+                return null;
+            }
+            final GeneHighLevel geneHighLevel = new GeneHighLevel();
+            geneHighLevel.setStartIndex(entry.getStartIndex());
+            geneHighLevel.setEndIndex(entry.getEndIndex());
+            geneHighLevel.setFrame(entry.getFrame());
+            geneHighLevel.setSource(entry.getSource());
+            geneHighLevel.setStrand(StrandSerializable.forValue(entry.getStrand()));
+            geneHighLevel.setFeature(entry.getFeature());
+            geneHighLevel.setSeqName(entry.getFeatureName());
+            geneHighLevel.setAttributes(entry.getAttributes());
+            return geneHighLevel;
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private IndexSearchResult<VcfIndexEntry> getVcfSearchResult(final VcfFilterForm filterForm,
