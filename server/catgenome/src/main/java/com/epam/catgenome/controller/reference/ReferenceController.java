@@ -41,7 +41,9 @@ import java.util.concurrent.Callable;
 
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.FeatureIndexSecurityService;
+import com.epam.catgenome.manager.export.GeneExportFilterForm;
 import com.epam.catgenome.manager.reference.ReferenceSecurityService;
+import com.epam.catgenome.manager.export.ExportFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -68,6 +70,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
@@ -213,6 +217,27 @@ public class ReferenceController extends AbstractRESTController {
                                                             @RequestBody final GeneFilterForm geneFilterForm)
         throws IOException {
         return Result.success(featureIndexSecurityService.searchFeaturesByReference(geneFilterForm, referenceId));
+    }
+
+    @PostMapping(value = "/reference/{referenceId}/filter/gene/export")
+    @ResponseBody
+    @ApiOperation(
+        value = "Searches for given filter parameters in a reference gene file, case-insensitive and exports " +
+                "result to CSV/TSV file",
+        notes = "Searches an index of a gene file, associated with a given reference's ID for filter parameters " +
+                "and exports result to CSV/TSV file",
+        produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @ApiResponses(value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)})
+    public void exportFeatureInProjectWithFilter(@PathVariable final Long referenceId,
+                                                @RequestParam final ExportFormat format,
+                                                @RequestParam final boolean includeHeader,
+                                                @RequestBody final GeneExportFilterForm geneFilterForm,
+                                                final HttpServletResponse response)
+            throws IOException {
+        byte[] bytes = featureIndexSecurityService.exportFeaturesByReference(geneFilterForm, referenceId,
+                format, includeHeader);
+        response.getOutputStream().write(bytes);
+        response.flushBuffer();
     }
 
     @RequestMapping(value = "/reference/{referenceId}/filter/gene/info", method = RequestMethod.POST)

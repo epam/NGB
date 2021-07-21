@@ -72,6 +72,7 @@ public class GeneFilterForm extends AbstractFilterForm {
 
     private Map<String, String> additionalFilters;
 
+    private Integer page;
 
     /**
      * Additional fields to show in Gene table

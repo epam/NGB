@@ -36,8 +36,12 @@ import com.epam.catgenome.entity.index.IndexSearchResult;
 import com.epam.catgenome.entity.index.VcfIndexEntry;
 import com.epam.catgenome.entity.vcf.VcfFilterForm;
 import com.epam.catgenome.entity.vcf.VcfFilterInfo;
+import com.epam.catgenome.manager.export.ExportManager;
+import com.epam.catgenome.manager.export.GeneExportFilterForm;
+import com.epam.catgenome.manager.export.VcfExportFilterForm;
 import com.epam.catgenome.security.acl.aspect.AclFilter;
 import com.epam.catgenome.security.acl.aspect.AclMapFilter;
+import com.epam.catgenome.manager.export.ExportFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -58,6 +62,9 @@ public class FeatureIndexSecurityService {
 
     @Autowired
     private FeatureIndexManager featureIndexManager;
+
+    @Autowired
+    private ExportManager exportManager;
 
     @PreAuthorize(ROLE_USER)
     public IndexSearchResult<FeatureIndexEntry> searchFeaturesByReference(final String featureId,
@@ -82,6 +89,14 @@ public class FeatureIndexSecurityService {
     @PreAuthorize(ROLE_USER)
     public IndexSearchResult<VcfIndexEntry> filterVariations(VcfFilterForm filterForm) throws IOException {
         return featureIndexManager.filterVariations(filterForm);
+    }
+
+    @AclFilter
+    @PreAuthorize(ROLE_USER)
+    public byte[] exportVariations(final VcfExportFilterForm filterForm,
+                                   final ExportFormat format,
+                                   final boolean includeHeader) throws IOException {
+        return exportManager.exportVariations(filterForm, format, includeHeader);
     }
 
     @AclFilter
@@ -127,5 +142,13 @@ public class FeatureIndexSecurityService {
     public Set<String> getAvailableFieldValues(final Long referenceId, final ItemsByProject fileIdsByProjectId,
                                                final String fieldName) {
         return featureIndexManager.getAvailableFieldValues(referenceId, fileIdsByProjectId, fieldName);
+    }
+
+    @PreAuthorize(ROLE_USER)
+    public byte[] exportFeaturesByReference(final GeneExportFilterForm geneFilterForm,
+                                            final Long referenceId,
+                                            final ExportFormat format,
+                                            final boolean includeHeader) throws IOException {
+        return exportManager.exportGenesByReference(geneFilterForm, referenceId, format, includeHeader);
     }
 }
