@@ -161,7 +161,7 @@ public class FilterController extends AbstractRESTController {
 
     @RequestMapping(value = "/filter/export", method = RequestMethod.POST)
     @ApiOperation(
-        value = "Filters variations for a given VCF file and export to CSV/TSV",
+        value = "Filters variations for a given VCF file and exports to CSV/TSV",
         notes = "Request should contain the following fields: <br/>" +
                 "<b>vcfFileIds</b>: an array of IDs of VCF files to filter<br/>" +
                 "other fields are optional: <br/>" +
