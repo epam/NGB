@@ -172,7 +172,7 @@ export default class ngbGenesTableController extends baseController {
                     this.gridApi.infiniteScroll.saveScrollPercentage();
                 }
                 this.gridOptions.data = viewData;
-                if (!this.defaultState) {
+                if (!this.defaultState && this.gridApi) {
                     this.defaultState = this.gridApi.saveState.save();
                 }
             } else if (!this.gridOptions.data.length) {
