@@ -42,7 +42,10 @@ import com.epam.catgenome.entity.bed.BedFile;
 import com.epam.catgenome.entity.gene.GeneFilterInfo;
 import com.epam.catgenome.entity.index.GeneIndexEntry;
 import com.epam.catgenome.manager.bed.BedManager;
-import com.epam.catgenome.util.ExportFormat;
+import com.epam.catgenome.manager.export.ExportManager;
+import com.epam.catgenome.manager.export.ExportFormat;
+import com.epam.catgenome.manager.export.GeneExportFilterForm;
+import com.epam.catgenome.manager.export.VcfExportFilterForm;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -1455,10 +1458,10 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
     @Test
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void testExportGeneTable() throws IOException {
-        final GeneFilterForm geneFilterForm = getSimpleGeneFilter();
-        geneFilterForm.setPointer(null);
-        geneFilterForm.setPageSize(null);
+        final GeneExportFilterForm geneFilterForm = new GeneExportFilterForm();
+        geneFilterForm.setFeatureId("ENSFCAG000000");
         geneFilterForm.setAttributesFields(Arrays.asList("gene_version", "gene_source"));
+        geneFilterForm.setExportFields(Arrays.asList("source", "featureId", "gene_version", "gene_source"));
 
         assertNotNull(exportManager.exportGenesByReference(geneFilterForm, referenceId, ExportFormat.TSV, true));
     }
@@ -1651,6 +1654,24 @@ public class FeatureIndexManagerTest extends AbstractManagerTest {
         assertFalse(res4.getEntries().isEmpty());
     }
 
+    @Test
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void testExportVariations() throws IOException {
+        final FeatureIndexedFileRegistrationRequest request = new FeatureIndexedFileRegistrationRequest();
+        request.setReferenceId(referenceId);
+        final Resource resource = context.getResource("classpath:templates/samples.vcf");
+        request.setPath(resource.getFile().getAbsolutePath());
+
+        final VcfFile samplesVcf = vcfManager.registerVcfFile(request);
+
+        final VcfExportFilterForm form = new VcfExportFilterForm();
+        form.setVcfFileIdsByProject(Collections.singletonMap(testProject.getId(),
+                Collections.singletonList(samplesVcf.getId())));
+        form.setExportFields(Arrays.asList("variationType", "featureType", "chromosome"));
+
+        final byte[] exportResult = exportManager.exportVariations(form, ExportFormat.CSV, true);
+        assertNotNull(exportResult);
+    }
 
     @Test
     @Ignore // TODO: remove this test before merging to master

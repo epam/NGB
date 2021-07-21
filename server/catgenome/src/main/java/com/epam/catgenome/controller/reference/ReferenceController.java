@@ -41,8 +41,9 @@ import java.util.concurrent.Callable;
 
 import com.epam.catgenome.exception.FeatureIndexException;
 import com.epam.catgenome.manager.FeatureIndexSecurityService;
+import com.epam.catgenome.manager.export.GeneExportFilterForm;
 import com.epam.catgenome.manager.reference.ReferenceSecurityService;
-import com.epam.catgenome.util.ExportFormat;
+import com.epam.catgenome.manager.export.ExportFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -226,16 +227,13 @@ public class ReferenceController extends AbstractRESTController {
         notes = "Searches an index of a gene file, associated with a given reference's ID for filter parameters " +
                 "and exports result to CSV/TSV file",
         produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    @ApiResponses(
-        value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)
-        })
-    public void exportFeatureInProjectWithFilter(
-                                                @PathVariable final Long referenceId,
+    @ApiResponses(value = {@ApiResponse(code = HTTP_STATUS_OK, message = API_STATUS_DESCRIPTION)})
+    public void exportFeatureInProjectWithFilter(@PathVariable final Long referenceId,
                                                 @RequestParam final ExportFormat format,
                                                 @RequestParam final boolean includeHeader,
-                                                @RequestBody final GeneFilterForm geneFilterForm,
+                                                @RequestBody final GeneExportFilterForm geneFilterForm,
                                                 final HttpServletResponse response)
-        throws IOException {
+            throws IOException {
         byte[] bytes = featureIndexSecurityService.exportFeaturesByReference(geneFilterForm, referenceId,
                 format, includeHeader);
         response.getOutputStream().write(bytes);

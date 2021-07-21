@@ -360,7 +360,7 @@ public class FeatureIndexManager {
         }
     }
 
-    protected IndexSearchResult<GeneIndexEntry> getGeneSearchResult(final GeneFilterForm filterForm,
+    public IndexSearchResult<GeneIndexEntry> getGeneSearchResult(final GeneFilterForm filterForm,
                                                                      final List<? extends FeatureFile> featureFiles)
             throws IOException {
         final LuceneIndexSearcher<GeneIndexEntry> indexSearcher =
@@ -370,8 +370,8 @@ public class FeatureIndexManager {
                 .orElseGet(filterForm::defaultSort);
         final IndexSearchResult<GeneIndexEntry> res =
                 indexSearcher.getSearchResults(featureFiles, filterForm.computeQuery(), sort);
-        res.setTotalPagesCount(filterForm.getPageSize() != null ? (int) Math.ceil(res.getTotalResultsCount()
-                    / filterForm.getPageSize().doubleValue()) : 1);
+        res.setTotalPagesCount((int) Math.ceil(res.getTotalResultsCount()
+                / filterForm.getPageSize().doubleValue()));
         return res;
     }
 
@@ -423,7 +423,7 @@ public class FeatureIndexManager {
                         .map(ItemsByProject::getFileIds).orElse(Collections.emptyList())), fieldName);
     }
 
-    protected List<? extends FeatureFile> getGeneFilesForReference(final long referenceId, final List<Long> fileIds) {
+    public List<? extends FeatureFile> getGeneFilesForReference(final long referenceId, final List<Long> fileIds) {
         if (CollectionUtils.isEmpty(fileIds)) {
             return Stream.concat(
                     Optional.ofNullable(getGeneFile(referenceId))

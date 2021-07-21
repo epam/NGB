@@ -21,19 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.epam.catgenome.util;
+package com.epam.catgenome.manager.export;
 
-public enum ExportFormat {
-    CSV(","),
-    TSV("\t");
+import com.epam.catgenome.entity.gene.GeneFilterForm;
+import lombok.Getter;
+import lombok.Setter;
 
-    private final String separator;
+import java.util.List;
 
-    ExportFormat(String separator) {
-        this.separator = separator;
-    }
-
-    public String getSeparator() {
-        return separator;
-    }
+@Getter
+@Setter
+public class GeneExportFilterForm extends GeneFilterForm {
+    private List<String> exportFields;
 }
