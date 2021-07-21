@@ -266,6 +266,30 @@ export default class ngbGenesTableService {
                 right: this.genesFilter.score[1]
             };
         }
+        const tracks = (this.projectContext.tracks || []).filter(track => track.format === 'GENE');
+        if (tracks.length) {
+            filter.geneFileIdsByProject = {};
+            tracks.forEach(track => {
+                let datasetId = track.project ? track.project.id.toString() : undefined;
+                if (!datasetId && track.projectId) {
+                    if (Number.isNaN(Number(track.projectId))) {
+                        const [dataset] = (this.projectContext.datasets || [])
+                            .filter(d => d.name === track.projectId);
+                        if (dataset) {
+                            datasetId = dataset.id;
+                        }
+                    } else {
+                        datasetId = track.projectId;
+                    }
+                }
+                if (datasetId) {
+                    if (!filter.geneFileIdsByProject[datasetId]) {
+                        filter.geneFileIdsByProject[datasetId] = [];
+                    }
+                    filter.geneFileIdsByProject[datasetId].push(track.id);
+                }
+            });
+        }
         this.refreshGenesFilterEmptyStatus();
         try {
             const data = await this.genomeDataService.loadGenes(

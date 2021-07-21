@@ -6,6 +6,7 @@ const ROW_HEIGHT = 35;
 export default class ngbGenesTableController extends baseController {
     dispatcher;
     projectContext;
+    isLoading = false;
     isProgressShown = true;
     isEmptyResult = false;
     errorMessageList = [];
@@ -50,6 +51,7 @@ export default class ngbGenesTableController extends baseController {
         'display:genes:filter': this.refreshScope.bind(this),
         'reference:change': this.initialize.bind(this),
         'genes:values:loaded': this.initialize.bind(this),
+        'dataset:selection:change': this.initialize.bind(this),
     };
 
     constructor(
@@ -77,7 +79,8 @@ export default class ngbGenesTableController extends baseController {
         this.initEvents();
     }
 
-    getColor = () => {};
+    getColor = () => {
+    };
 
     static get UID() {
         return 'ngbGenesTableController';
@@ -116,6 +119,9 @@ export default class ngbGenesTableController extends baseController {
     }
 
     async reloadGenes() {
+        if (this.isLoading) {
+            return;
+        }
         this.isProgressShown = true;
         this.errorMessageList = [];
         this.geneLoadError = undefined;
@@ -143,11 +149,13 @@ export default class ngbGenesTableController extends baseController {
         if (!this.projectContext.reference) {
             return;
         }
+        this.isLoading = true;
         try {
             const data = await this.ngbGenesTableService.loadGenes(
                 this.projectContext.reference.id,
                 isScrollTop
             );
+            this.isLoading = false;
             if (this.ngbGenesTableService.genesTableError) {
                 this.geneLoadError = this.ngbGenesTableService.genesTableError;
                 this.gridOptions.data = [];

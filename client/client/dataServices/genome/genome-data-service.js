@@ -142,7 +142,7 @@ export class GenomeDataService extends DataService {
                     if (data) {
                         resolve(data);
                     } else {
-                        reject(new Error('No gene values received'));
+                        resolve([]);
                     }
                 })
                 .catch(reject);
